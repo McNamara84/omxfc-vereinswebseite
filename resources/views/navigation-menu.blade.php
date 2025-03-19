@@ -44,9 +44,9 @@
             {{ __('Mitglied werden') }}
         </x-nav-link>
 
-        <x-nav-link href="{{ route('login') }}" :active="request()->routeIs('login')">
+        <!--<x-nav-link href="{{ route('login') }}" :active="request()->routeIs('login')">
             {{ __('Login') }}
-        </x-nav-link>
+        </x-nav-link>-->
     @endguest
 </div>
 
@@ -205,9 +205,9 @@
                     {{ __('Mitglied werden') }}
                 </x-responsive-nav-link>
         
-                <x-responsive-nav-link href="{{ route('login') }}" :active="request()->routeIs('login')">
+                <!--<x-responsive-nav-link href="{{ route('login') }}" :active="request()->routeIs('login')">
                     {{ __('Login') }}
-                </x-responsive-nav-link>
+                </x-responsive-nav-link>-->
             @endguest
         </div>
         
