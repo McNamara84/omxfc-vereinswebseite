@@ -1,0 +1,19 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+[x-cloak] {
+    display: none;
+}
+
+/* Vereinslogo als Asset referenzieren */
+.logo {
+    background-image: url('../images/omxfc-logo.png');
+}
+
+.ag-logo {
+    height: 250px;
+    width: 250px;
+    margin-left: auto;
+    margin-right: auto;
+}
