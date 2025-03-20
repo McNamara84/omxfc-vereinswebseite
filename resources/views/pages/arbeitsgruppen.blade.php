@@ -27,7 +27,7 @@
         <section class="mb-12">
             <h2 class="text-2xl font-semibold mb-4">AG Fanhörbücher (EARDRAX)</h2>
             <img src="{{ asset('images/ag-fanhoerbuecher.jpg') }}" alt="AG Fanhörbücher"
-                class="w-full h-auto rounded-lg shadow mb-4">
+                class="w-full h-auto rounded-lg shadow mb-4 ag-logo">
             <p class="mb-4">Die Fanhörbücher (EARDRAX) AG (Arbeitsgemeinschaft) ist ein munterer Tummelplatz für alle,
                 die immer schon einmal bei einer Hörspielproduktion mitmachen wollten. Hier werden die frühen
                 Maddrax-Abenteuer von Fans für Fans im Rahmen von inszenierten Lesungen anhand von Skripten Take für
@@ -50,10 +50,24 @@
         <!-- AG Mapdrax -->
         <section class="mb-12">
             <h2 class="text-2xl font-semibold mb-4">AG Mapdrax</h2>
-            <img src="{{ asset('images/ag-mapdrax.jpg') }}" alt="AG Mapdrax"
-                class="w-full h-auto rounded-lg shadow mb-4">
-            <p class="mb-4 italic">Dieser Text ist ein Platzhalter für die Beschreibung der AG Mapdrax. Der Text wird
-                nachgereicht, sobald der AG-Leiter dieser AG einen Text an den Administrator übermittelt hat.</p>
+            <img src="{{ asset('images/ag-mapdrax.png') }}" alt="AG Mapdrax"
+                class="w-full h-auto rounded-lg shadow mb-4 ag-logo">
+            <p class="mb-4">MAPDRAX ist ein Teil des MADDRAXIKON und dient als kartographische Unterstützung des
+                Maddrax-Wikis. Die Idee ist simpel: Es soll die dunkle Zukunft der Erde in Form einer Open-Source-Karte
+                visualisiert werden, auf die über die Wiki-Beiträge zugegriffen werden kann. Als Tool verwenden wir die
+                Online-Anwendung INKARNATE. Diese Anwendung ist ein Werkzeug, bei dem Fantasykarten gestaltet werden
+                können. Aufgrund der postapokalyptischen Welt von MADDRAX gibt es jedoch gewisse Einschränkungen, auf
+                die später näher eingegangen wird. 2019 begann das Projekt mit einer Karte, die Holger Ehrmann in
+                Inkarnate erstellt hatte, basierend auf Informationen aus den Heften und einigen Karten aus dem
+                MX-Rollenspiel-Regelheft. Diese Karten bilden weiterhin die Basis unserer Arbeit. Im nächsten Schritt
+                hat sich Marcel Lanthemann dem Projekt angeschlossen und begonnen, detailliertere Zoom-Stufen zu
+                erstellen, auf denen Städte, Handlungsorte, Flüsse, Gebirge usw. dargestellt sind. Auch Wälder, Hügel
+                und Sümpfe sind schon genauer sichtbar. Bald erkannten wir jedoch, dass dieser Weg der Kartenerstellung
+                ein großes Handicap hat – es ist sehr aufwendig, die Karten aktuell zu halten. In der Serie kommen immer
+                wieder neue Handlungsorte hinzu, die berücksichtigt werden müssen, was Anpassungen der Kartenausschnitte
+                erfordert. Aus diesem Grund sind wir dann von den detaillierten Karten auf MAPDRAX V2 umgestiegen.
+                MAPDRAX kann jede Art von Unterstützung gebrauchen. Wer sich angesprochen fühlt, der kann sich sehr
+                gerne beim Leiter der Arbeitsgruppe MAPDRAX melden</p>
             <p><strong>AG-Leitung:</strong> Marcel<br>
                 <strong>Treffen:</strong> Wird bekannt gegeben<br>
                 <strong>Kontakt:</strong> <a href="mailto:ag-mapdrax@maddraxikon.com"
