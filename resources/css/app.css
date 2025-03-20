@@ -12,8 +12,13 @@
 }
 
 .ag-logo {
-    height: 250px;
-    width: 250px;
+    width: 25%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.ag-beispielgrafiken {
+    width: 50%;
     margin-left: auto;
     margin-right: auto;
 }
