@@ -21,6 +21,11 @@ class PageController extends Controller
         return view('pages.chronik');
     }
 
+    public function ehrenmitglieder()
+    {
+        return view('pages.ehrenmitglieder');
+    }
+
     public function arbeitsgruppen()
     {
         return view('pages.arbeitsgruppen');

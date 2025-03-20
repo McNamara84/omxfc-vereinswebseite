@@ -32,6 +32,10 @@
             {{ __('Chronik') }}
         </x-nav-link>
 
+        <x-nav-link href="{{ route('ehrenmitglieder') }}" :active="request()->routeIs('ehrenmitglieder')">
+            {{ __('Ehrenmitglieder') }}
+        </x-nav-link>
+
         <x-nav-link href="{{ route('arbeitsgruppen') }}" :active="request()->routeIs('arbeitsgruppen')">
             {{ __('Arbeitsgruppen') }}
         </x-nav-link>
@@ -191,6 +195,10 @@
         
                 <x-responsive-nav-link href="{{ route('chronik') }}" :active="request()->routeIs('chronik')">
                     {{ __('Chronik') }}
+                </x-responsive-nav-link>
+
+                <x-responsive-nav-link href="{{ route('ehrenmitglieder') }}" :active="request()->routeIs('ehrenmitglieder')">
+                    {{ __('Ehrenmitglieder') }}
                 </x-responsive-nav-link>
         
                 <x-responsive-nav-link href="{{ route('arbeitsgruppen') }}" :active="request()->routeIs('arbeitsgruppen')">
