@@ -50,7 +50,7 @@
             <p class="mb-4">MAPDRAX kann jede Art von Unterstützung gebrauchen. Wer sich angesprochen fühlt, der kann sich sehr gerne beim Leiter der Arbeitsgruppe MAPDRAX melden.</p>
             <p class="mb-4">
             <strong>AG-Leitung:</strong> Marcel<br>
-            <strong>Treffen:</strong> Wird bekannt gegeben<br>
+            <strong>Treffen:</strong> Jeden ersten Mittwoch im Monat zwischen 20:30 und 21:00 Uhr per Online-Meeting.<br>
             <strong>Kontakt:</strong> <a href="mailto:ag-mapdrax@maddraxikon.com" class="text-blue-600 hover:underline">ag-mapdrax@maddraxikon.com</a>
             </p>
         </section>
