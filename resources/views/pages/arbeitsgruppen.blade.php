@@ -44,20 +44,10 @@
         <!-- AG Mapdrax -->
         <section class="mb-12">
             <h2 class="text-2xl font-semibold mb-4">AG Mapdrax</h2>
-            <p class="mb-4">MAPDRAX ist ein Teil des MADDRAXIKON und dient als kartographische Unterstützung des Maddrax-Wikis.</p>
-            <img src="{{ asset('images/maddrax-logo-uralt.png') }}" alt="AG Mapdrax" class="w-full h-auto rounded-lg shadow mb-4 ag-logo">
-            <p class="mb-4">Die Idee ist simpel: Es soll die dunkle Zukunft der Erde in Form einer Open-Source-Karte visualisiert werden, auf die über die Wiki-Beiträge zugegriffen werden kann.</p>
-            <img src="{{ asset('images/ag-maddraxikon.png') }}" alt="AG Mapdrax" class="w-full h-auto rounded-lg shadow mb-4 ag-logo">
-            <p class="mb-4">Als Tool verwenden wir die Online-Anwendung INKARNATE. Diese Anwendung ist ein Werkzeug, bei dem Fantasykarten gestaltet werden können. Aufgrund der postapokalyptischen Welt von MADDRAX gibt es jedoch gewisse Einschränkungen, auf die später näher eingegangen wird.
-            <p class="mb-4">2019 begann das Projekt mit einer Karte, die Holger Ehrmann in Inkarnate erstellt hatte,</p>
-            <img src="{{ asset('images/mapdraxv1.png') }}" alt="AG Mapdrax" class="w-full h-auto rounded-lg shadow mb-4 ag-beispielgrafiken">
-            <p class="mb-4">basierend auf Informationen aus den Heften und einigen Karten aus dem MX-Rollenspiel-Regelheft. Diese Karten bilden weiterhin die Basis unserer Arbeit.</p>
-            <img src="{{ asset('images/maddrax-karte.png') }}" alt="AG Mapdrax" class="w-full h-auto rounded-lg shadow mb-4 ag-beispielgrafiken">
-            <p class="mb-4">Im nächsten Schritt hat sich Marcel Lanthemann dem Projekt angeschlossen und begonnen, detailliertere Zoom-Stufen zu erstellen, auf denen Städte, Handlungsorte, Flüsse, Gebirge usw. dargestellt sind. Auch Wälder, Hügel und Sümpfe sind schon genauer sichtbar. Bald erkannten wir jedoch, dass dieser Weg der Kartenerstellung ein großes Handicap hat – es ist sehr aufwendig, die Karten aktuell zu halten. In der Serie kommen immer wieder neue Handlungsorte hinzu, die berücksichtigt werden müssen, was Anpassungen der Kartenausschnitte erfordert.</p>
-            <img src="{{ asset('images/mapdrax-kartenausschnitte.png') }}" alt="AG Mapdrax" class="w-full h-auto shadow mb-4 ag-logo">
-            <p class="mb-4">Aus diesem Grund sind wir dann von den detaillierten Karten auf MAPDRAX V2 umgestiegen.</p>
-            <img src="{{ asset('images/ag-mapdraxv2.png') }}" alt="AG Mapdrax" class="w-full h-auto rounded-lg shadow mb-4 ag-logo">
-            <p class="mb-4">MAPDRAX kann jede Art von Unterstützung gebrauchen. Wer sich angesprochen fühlt, der kann sich sehr gerne beim Leiter der Arbeitsgruppe MAPDRAX melden</p>
+            <img src="{{ asset('images/ag-mapdrax.png') }}" alt="AG Mapdrax" class="w-full h-auto rounded-lg shadow mb-4 ag-logo">
+            <p class="mb-4">MAPDRAX ist ein Teil des MADDRAXIKON und dient als kartographische Unterstützung des Maddrax-Wikis. Die Idee ist simpel: Es soll die dunkle Zukunft der Erde in Form einer Open-Source-Karte visualisiert werden, auf die über die Wiki-Beiträge zugegriffen werden kann.</p>
+            <p class="mb-4">Als Tool verwenden wir die Online-Anwendung INKARNATE. Diese Anwendung ist ein Werkzeug, bei dem Fantasykarten gestaltet werden können. Aktuell arbeiten wir an MAPDRAX V2.</p>
+            <p class="mb-4">MAPDRAX kann jede Art von Unterstützung gebrauchen. Wer sich angesprochen fühlt, der kann sich sehr gerne beim Leiter der Arbeitsgruppe MAPDRAX melden.</p>
             <p class="mb-4">
             <strong>AG-Leitung:</strong> Marcel<br>
             <strong>Treffen:</strong> Wird bekannt gegeben<br>
