@@ -40,6 +40,10 @@ return new class extends Migration {
 
         // Admin dem Team mit Rolle „Admin“ hinzufügen
         $team->users()->attach($adminUser, ['role' => 'Admin']);
+
+        $adminUser->forceFill([
+            'current_team_id' => $team->id,
+        ])->save();
     }
 
     /**
