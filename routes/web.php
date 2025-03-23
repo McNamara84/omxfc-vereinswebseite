@@ -4,7 +4,6 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\MitgliedschaftController;
 
-
 // Öffentliche Seiten
 Route::get('/', [PageController::class, 'home'])->name('home');
 Route::get('/satzung', [PageController::class, 'satzung'])->name('satzung');
@@ -15,8 +14,8 @@ Route::get('/termine', [PageController::class, 'termine'])->name('termine');
 Route::get('/mitglied-werden', [PageController::class, 'mitgliedWerden'])->name('mitglied.werden');
 Route::get('/impressum', [PageController::class, 'impressum'])->name('impressum');
 Route::get('/datenschutz', [PageController::class, 'datenschutz'])->name('datenschutz');
+Route::get('/changelog', [PageController::class, 'changelog'])->name('changelog');
 Route::get('/mitglied-werden/erfolgreich', [PageController::class, 'mitgliedWerdenErfolgreich'])->name('mitglied.werden.erfolgreich');
-
 
 // Nur für eingeloggte Mitglieder
 Route::middleware(['auth', 'verified'])->group(function () {

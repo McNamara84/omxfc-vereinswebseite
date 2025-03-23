@@ -51,6 +51,11 @@ class PageController extends Controller
         return view('pages.datenschutz');
     }
 
+    public function changelog()
+    {
+        return view('pages.changelog');
+    }
+
     public function mitgliedWerdenErfolgreich()
     {
         return view('pages.mitglied_werden_erfolgreich');

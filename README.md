@@ -7,3 +7,5 @@
 - Datenbankstruktur erstellen: `php artisan migrate`
 - Rückgängig machen der Datenbankmigration: `php artisan migrate:rollback`
 - Cache leeren: `php artisan cache:clear`
+- Datenbank vollständig zurücksetzen: `php artisan migrate:fresh`
+- Cache für Routes neu schreiben: `php artisan route:clear`

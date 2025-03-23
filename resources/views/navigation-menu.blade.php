@@ -44,6 +44,10 @@
             {{ __('Termine') }}
         </x-nav-link>
 
+        <x-nav-link href="{{ route('changelog') }}" :active="request()->routeIs('changelog')">
+            {{ __('Changelog') }}
+        </x-nav-link>
+
         <x-nav-link href="{{ route('mitglied.werden') }}" :active="request()->routeIs('mitglied.werden')">
             {{ __('Mitglied werden') }}
         </x-nav-link>
@@ -207,6 +211,10 @@
         
                 <x-responsive-nav-link href="{{ route('termine') }}" :active="request()->routeIs('termine')">
                     {{ __('Termine') }}
+                </x-responsive-nav-link>
+
+                <x-responsive-nav-link href="{{ route('changelog') }}" :active="request()->routeIs('changelog')">
+                    {{ __('Changelog') }}
                 </x-responsive-nav-link>
         
                 <x-responsive-nav-link href="{{ route('mitglied.werden') }}" :active="request()->routeIs('mitglied.werden')">
