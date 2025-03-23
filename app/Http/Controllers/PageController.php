@@ -50,4 +50,9 @@ class PageController extends Controller
     {
         return view('pages.datenschutz');
     }
+
+    public function mitgliedWerdenErfolgreich()
+    {
+        return view('pages.mitglied_werden_erfolgreich');
+    }
 }

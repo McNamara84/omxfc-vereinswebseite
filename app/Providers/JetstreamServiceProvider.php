@@ -45,17 +45,51 @@ class JetstreamServiceProvider extends ServiceProvider
     {
         Jetstream::defaultApiTokenPermissions(['read']);
 
-        Jetstream::role('admin', 'Administrator', [
+        Jetstream::permissions([
             'create',
             'read',
             'update',
             'delete',
-        ])->description('Administrator users can perform any action.');
+            'manage-finances',
+            'manage-members',
+            'admin',
+        ]);
 
-        Jetstream::role('editor', 'Editor', [
+        Jetstream::role('Anwärter', 'Anwärter', [
+            // keine besonderen Rechte
+        ])->description('Person, die einen Antrag auf Mitgliedschaft gestellt hat.');
+
+        Jetstream::role('Mitglied', 'Mitglied', [
             'read',
+        ])->description('Bestätigtes Vereinsmitglied.');
+
+        Jetstream::role('Ehrenmitglied', 'Ehrenmitglied', [
+            'read',
+        ])->description('Ehrenmitglied mit denselben Zugriffsrechten wie ein reguläres Mitglied.');
+
+        Jetstream::role('Kassenwart', 'Kassenwart', [
+            'read',
+            'manage-finances',
+            'manage-members',
+        ])->description('Kassenwart, der Mitgliedsbeiträge und Finanzen verwaltet sowie Mitgliederanträge bestätigen darf.');
+
+        Jetstream::role('Vorstand', 'Vorstand', [
             'create',
+            'read',
             'update',
-        ])->description('Editor users have the ability to read, create, and update.');
+            'delete',
+            'manage-finances',
+            'manage-members',
+        ])->description('Vorstand mit umfassenden administrativen Rechten.');
+
+        Jetstream::role('Admin', 'Admin', [
+            'create',
+            'read',
+            'update',
+            'delete',
+            'manage-finances',
+            'manage-members',
+            'admin',
+        ])->description('IT-Systemadministrator mit uneingeschränkten Zugriffsrechten auf alle Bereiche.');
     }
 }

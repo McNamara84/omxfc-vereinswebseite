@@ -31,6 +31,17 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'vorname',
+        'nachname',
+        'strasse',
+        'hausnummer',
+        'plz',
+        'stadt',
+        'land',
+        'telefon',
+        'verein_gefunden',
+        'mitgliedsbeitrag',
+        'rolle',
     ];
 
     /**

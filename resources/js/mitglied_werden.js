@@ -66,16 +66,52 @@ document.addEventListener('DOMContentLoaded', () => {
         return isValid;
     }
 
-    function handleSubmit(e) {
+    async function handleSubmit(e) {
         e.preventDefault();
 
-        if (validateForm() && satzungCheck.checked) {
-            alert('Formular ist korrekt ausgefüllt und kann abgeschickt werden.');
-            // Später hier das AJAX-Submit implementieren
-        } else {
+        if (!validateForm() || !satzungCheck.checked) {
             alert('Bitte korrigiere die rot markierten Fehler im Formular.');
+            return;
+        }
+
+        let formData = new FormData(form);
+        let messages = document.getElementById('form-messages');
+
+        try {
+            const response = await fetch('/mitglied-werden', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    'Accept': 'application/json'
+                },
+                body: formData
+            });
+
+            if (response.ok) {
+                window.location.href = '/mitglied-werden/erfolgreich';
+            } else {
+                let result;
+                try {
+                    result = await response.json();
+                    messages.textContent = result.errors ? Object.values(result.errors).join(' ') : 'Unbekannter Fehler aufgetreten.';
+                } catch {
+                    messages.textContent = 'Es ist ein Fehler aufgetreten. Bitte versuche es später erneut.';
+                }
+
+                messages.className = 'mb-4 p-4 bg-red-100 border border-red-400 text-red-800 rounded';
+                messages.classList.remove('hidden');
+                messages.scrollIntoView({ behavior: 'smooth' });
+            }
+        } catch (error) {
+            // Fehlerbehandlung, falls keine JSON-Antwort kommt
+            messages.className = 'mb-4 p-4 bg-red-100 border border-red-400 text-red-800 rounded';
+            messages.textContent = 'Ein unerwarteter Fehler ist aufgetreten. Bitte versuche es später erneut.';
+            messages.classList.remove('hidden');
+            messages.scrollIntoView({ behavior: 'smooth' });
+            console.error('Fehler:', error);
         }
     }
+
 
     // Initialer Check beim Laden der Seite
     toggleSubmit();
