@@ -11,6 +11,8 @@
             <h3 class="text-l font-semibold mb-2">Änderungen:</h3>
             <ul class="list-disc ml-6 mt-2">
                 <li>Reihenfolge der menüpunkte im Hauptmenü angepasst (Danke Tanja!)</li>
+                <li>Durchschnittliche Berwertungen der Romane von Ehrenmitgliedern entfernt (Danke Tanja!)</li>
+                <li>Link zum Autoren-Artikel im Maddraxikon für Ehrenmitglieder ergänzt (Danke Tanja!)</li>
             </ul>
         </section>
         <section class="mb-6">
