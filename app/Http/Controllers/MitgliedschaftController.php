@@ -6,6 +6,10 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Laravel\Jetstream\Jetstream;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\MitgliedAntragEingereicht;
+use App\Mail\AntragAnVorstand;
+use App\Mail\AntragAnAdmin;
 
 class MitgliedschaftController extends Controller
 {
@@ -30,6 +34,7 @@ class MitgliedschaftController extends Controller
             'name' => $request->vorname . ' ' . $request->nachname,
             'email' => $request->mail,
             'password' => Hash::make($request->passwort),
+            'current_team_id' => 1,
             'vorname' => $request->vorname,
             'nachname' => $request->nachname,
             'strasse' => $request->strasse,
@@ -51,7 +56,10 @@ class MitgliedschaftController extends Controller
         // Den User dem Team mit Rolle "Anwärter" zuweisen:
         $team->users()->attach($user, ['role' => 'Anwärter']);
 
-        // TODO: Mail an Vorstand senden
+        // Mailversand
+        Mail::to($user->email)->send(new MitgliedAntragEingereicht($user));
+        Mail::to('info@maddraxikon.com')->send(new AntragAnVorstand($user));
+        Mail::to('holgerehrmann@gmail.com')->send(new AntragAnAdmin($user));
 
         return response()->json([
             'success' => true,

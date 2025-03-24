@@ -74,8 +74,15 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        let formData = new FormData(form);
-        let messages = document.getElementById('form-messages');
+        const formData = new FormData(form);
+        const messages = document.getElementById('form-messages');
+        const submitButton = document.getElementById('submit-button');
+        const loadingIndicator = document.getElementById('loading-indicator');
+
+        // Button deaktivieren und Lade-Indikator zeigen
+        submitButton.disabled = true;
+        submitButton.classList.add('hidden');
+        loadingIndicator.classList.remove('hidden');
 
         try {
             const response = await fetch('/mitglied-werden', {
@@ -101,17 +108,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 messages.className = 'mb-4 p-4 bg-red-100 border border-red-400 text-red-800 rounded';
                 messages.classList.remove('hidden');
                 messages.scrollIntoView({ behavior: 'smooth' });
+
+                // Button und Indikator zurücksetzen bei Fehler
+                submitButton.disabled = false;
+                submitButton.classList.remove('hidden');
+                loadingIndicator.classList.add('hidden');
             }
         } catch (error) {
-            // Fehlerbehandlung, falls keine JSON-Antwort kommt
             messages.className = 'mb-4 p-4 bg-red-100 border border-red-400 text-red-800 rounded';
             messages.textContent = 'Ein unerwarteter Fehler ist aufgetreten. Bitte versuche es später erneut.';
             messages.classList.remove('hidden');
             messages.scrollIntoView({ behavior: 'smooth' });
             console.error('Fehler:', error);
+
+            // Button und Indikator zurücksetzen bei Fehler
+            submitButton.disabled = false;
+            submitButton.classList.remove('hidden');
+            loadingIndicator.classList.add('hidden');
         }
     }
-
 
     // Initialer Check beim Laden der Seite
     toggleSubmit();

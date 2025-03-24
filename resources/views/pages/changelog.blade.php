@@ -3,7 +3,14 @@
         <h1 class="text-2xl sm:text-3xl font-bold text-[#8B0116] dark:text-[#ff4b63] mb-4 sm:mb-8">Changelog</h1>
         <p class="mb-6">Auf dieser Seite werden sämtliche Änderungen an der vereinswebseite des Offiziellen Maddrax Fanclub e. V. dokumentiert.</p>
         <section class="mb-6">
-            <h2 class="text-xl font-semibold mb-2">Version 0.1 (23.03.2025)</h2>
+            <h2 class="text-xl font-semibold mb-2">Version 0.2.0 (28.03.2025)</h2>
+            <h3 class="text-l font-semibold mb-2">Features:</h3>
+            <ul class="list-disc ml-6 mt-2">
+                <li>Mailversand bei Eingang eines neuen Antrags auf Mitgliedschaft implementiert</li>
+            </ul>
+        </section>
+        <section class="mb-6">
+            <h2 class="text-xl font-semibold mb-2">Version 0.1.0 (23.03.2025)</h2>
             <h3 class="text-l font-semibold mb-2">Features:</h3>
             <ul class="list-disc ml-6 mt-2">
                 <li>Erstellung der Webseite</li>
