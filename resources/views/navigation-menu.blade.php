@@ -12,7 +12,6 @@
 
                 <!-- Navigation Links -->
 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-
     @auth
         <x-nav-link href="{{ route('dashboard') }}" :active="request()->routeIs('dashboard')">
             {{ __('Dashboard') }}
@@ -20,45 +19,36 @@
     @endauth
 
     @guest
-        <x-nav-link href="{{ route('home') }}" :active="request()->routeIs('home')">
+        <!--<x-nav-link href="{{ route('home') }}" :active="request()->routeIs('home')">
             {{ __('Startseite') }}
-        </x-nav-link>
-
-        <x-nav-link href="{{ route('satzung') }}" :active="request()->routeIs('satzung')">
-            {{ __('Satzung') }}
-        </x-nav-link>
-
+        </x-nav-link>-->
         <x-nav-link href="{{ route('chronik') }}" :active="request()->routeIs('chronik')">
             {{ __('Chronik') }}
         </x-nav-link>
-
-        <x-nav-link href="{{ route('ehrenmitglieder') }}" :active="request()->routeIs('ehrenmitglieder')">
-            {{ __('Ehrenmitglieder') }}
-        </x-nav-link>
-
         <x-nav-link href="{{ route('arbeitsgruppen') }}" :active="request()->routeIs('arbeitsgruppen')">
             {{ __('Arbeitsgruppen') }}
         </x-nav-link>
-
+        <x-nav-link href="{{ route('ehrenmitglieder') }}" :active="request()->routeIs('ehrenmitglieder')">
+            {{ __('Ehrenmitglieder') }}
+        </x-nav-link>
         <x-nav-link href="{{ route('termine') }}" :active="request()->routeIs('termine')">
             {{ __('Termine') }}
         </x-nav-link>
-
-        <x-nav-link href="{{ route('changelog') }}" :active="request()->routeIs('changelog')">
-            {{ __('Changelog') }}
+        <x-nav-link href="{{ route('satzung') }}" :active="request()->routeIs('satzung')">
+            {{ __('Satzung') }}
         </x-nav-link>
-
         <x-nav-link href="{{ route('mitglied.werden') }}" :active="request()->routeIs('mitglied.werden')">
             {{ __('Mitglied werden') }}
         </x-nav-link>
-
+        <x-nav-link href="{{ route('changelog') }}" :active="request()->routeIs('changelog')">
+            {{ __('Changelog') }}
+        </x-nav-link>
         <!--<x-nav-link href="{{ route('login') }}" :active="request()->routeIs('login')">
             {{ __('Login') }}
         </x-nav-link>-->
     @endguest
 </div>
-
-            </div>
+        </div>
             @auth
             <div class="hidden sm:flex sm:items-center sm:ms-6">
                 <!-- Teams Dropdown -->
@@ -189,45 +179,36 @@
             @endauth
         
             @guest
-                <x-responsive-nav-link href="{{ route('home') }}" :active="request()->routeIs('home')">
+                <!--<x-responsive-nav-link href="{{ route('home') }}" :active="request()->routeIs('home')">
                     {{ __('Startseite') }}
-                </x-responsive-nav-link>
-        
-                <x-responsive-nav-link href="{{ route('satzung') }}" :active="request()->routeIs('satzung')">
-                    {{ __('Satzung') }}
-                </x-responsive-nav-link>
-        
+                </x-responsive-nav-link>-->
                 <x-responsive-nav-link href="{{ route('chronik') }}" :active="request()->routeIs('chronik')">
                     {{ __('Chronik') }}
                 </x-responsive-nav-link>
-
-                <x-responsive-nav-link href="{{ route('ehrenmitglieder') }}" :active="request()->routeIs('ehrenmitglieder')">
-                    {{ __('Ehrenmitglieder') }}
-                </x-responsive-nav-link>
-        
                 <x-responsive-nav-link href="{{ route('arbeitsgruppen') }}" :active="request()->routeIs('arbeitsgruppen')">
                     {{ __('Arbeitsgruppen') }}
                 </x-responsive-nav-link>
-        
+                <x-responsive-nav-link href="{{ route('ehrenmitglieder') }}" :active="request()->routeIs('ehrenmitglieder')">
+                    {{ __('Ehrenmitglieder') }}
+                </x-responsive-nav-link>
                 <x-responsive-nav-link href="{{ route('termine') }}" :active="request()->routeIs('termine')">
                     {{ __('Termine') }}
                 </x-responsive-nav-link>
-
-                <x-responsive-nav-link href="{{ route('changelog') }}" :active="request()->routeIs('changelog')">
-                    {{ __('Changelog') }}
+                <x-responsive-nav-link href="{{ route('satzung') }}" :active="request()->routeIs('satzung')">
+                    {{ __('Satzung') }}
                 </x-responsive-nav-link>
-        
                 <x-responsive-nav-link href="{{ route('mitglied.werden') }}" :active="request()->routeIs('mitglied.werden')">
                     {{ __('Mitglied werden') }}
                 </x-responsive-nav-link>
-        
+                <x-responsive-nav-link href="{{ route('changelog') }}" :active="request()->routeIs('changelog')">
+                    {{ __('Changelog') }}
+                </x-responsive-nav-link>
                 <!--<x-responsive-nav-link href="{{ route('login') }}" :active="request()->routeIs('login')">
                     {{ __('Login') }}
                 </x-responsive-nav-link>-->
             @endguest
         </div>
         
-
         <!-- Responsive Settings Options -->
         @auth
         <div class="pt-4 pb-1 border-t border-gray-200 dark:border-gray-600">

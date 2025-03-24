@@ -8,6 +8,10 @@
             <ul class="list-disc ml-6 mt-2">
                 <li>Mailversand bei Eingang eines neuen Antrags auf Mitgliedschaft implementiert</li>
             </ul>
+            <h3 class="text-l font-semibold mb-2">Änderungen:</h3>
+            <ul class="list-disc ml-6 mt-2">
+                <li>Reihenfolge der menüpunkte im Hauptmenü angepasst (Danke Tanja!)</li>
+            </ul>
         </section>
         <section class="mb-6">
             <h2 class="text-xl font-semibold mb-2">Version 0.1.0 (23.03.2025)</h2>
@@ -19,8 +23,9 @@
                 <li>Impressum hinzugefügt</li>
                 <li>Changelog hinzugefügt</li>
                 <li>Datenschutzerklärung hinzugefügt</li>
-                <li>Ehrenmitglieder hinzugefügt</li>
-                <li>Antrag auf Mitgliedschaft hinzugefügt</li>
+                <li>Chronik hinzugefügt (Danke Marcel!)</li>
+                <li>Ehrenmitglieder hinzugefügt (Danke Arndt!)</li>
+                <li>Antrag auf Mitgliedschaft hinzugefügt (Danke Markus!)</li>
             </ul>
         </section>
     </div>
