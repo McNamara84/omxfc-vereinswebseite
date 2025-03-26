@@ -11,6 +11,8 @@ use App\Actions\Jetstream\RemoveTeamMember;
 use App\Actions\Jetstream\UpdateTeamName;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Jetstream\Jetstream;
+use Laravel\Fortify\Contracts\LoginResponse as LoginResponseContract;
+use App\Http\Responses\LoginResponse;
 
 class JetstreamServiceProvider extends ServiceProvider
 {
@@ -19,7 +21,8 @@ class JetstreamServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Neue LoginResponse-Klasse registrieren
+        $this->app->singleton(LoginResponseContract::class, LoginResponse::class);
     }
 
     /**
