@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\MitgliedschaftController;
+use App\Http\Controllers\Auth\CustomEmailVerificationController;
 
 // Öffentliche Seiten
 Route::get('/', [PageController::class, 'home'])->name('home');
@@ -17,11 +18,18 @@ Route::get('/datenschutz', [PageController::class, 'datenschutz'])->name('datens
 Route::get('/changelog', [PageController::class, 'changelog'])->name('changelog');
 Route::get('/mitglied-werden/erfolgreich', [PageController::class, 'mitgliedWerdenErfolgreich'])->name('mitglied.werden.erfolgreich');
 
-// Nur für eingeloggte Mitglieder
-Route::middleware(['auth', 'verified'])->group(function () {
+// POST Route für Mitgliedschaftsantrag
+Route::post('/mitglied-werden', [MitgliedschaftController::class, 'store'])->name('mitglied.store');
+
+// Route für E-Mail-Verifizierung (Laravel Jetstream / Fortify)
+Route::get('/email/verify/{id}/{hash}', CustomEmailVerificationController::class)
+    ->middleware(['signed', 'throttle:6,1'])
+    ->withoutMiddleware([\App\Http\Middleware\RedirectIfAnwaerter::class])
+    ->name('verification.verify');
+
+// Nur für eingeloggte und verifizierte Mitglieder, die NICHT Anwärter sind
+Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function () {
     Route::get('/dashboard', function () {
         return view('dashboard');
     })->name('dashboard');
 });
-
-Route::post('/mitglied-werden', [MitgliedschaftController::class, 'store'])->name('mitglied.store');

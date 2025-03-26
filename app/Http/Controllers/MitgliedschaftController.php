@@ -58,8 +58,8 @@ class MitgliedschaftController extends Controller
 
         // Mailversand
         Mail::to($user->email)->send(new MitgliedAntragEingereicht($user));
-        Mail::to('info@maddraxikon.com')->send(new AntragAnVorstand($user));
-        Mail::to('holgerehrmann@gmail.com')->send(new AntragAnAdmin($user));
+        //Mail::to('info@maddraxikon.com')->send(new AntragAnVorstand($user));
+        //Mail::to('holgerehrmann@gmail.com')->send(new AntragAnAdmin($user));
 
         return response()->json([
             'success' => true,
