@@ -45,4 +45,15 @@ class Team extends JetstreamTeam
             'personal_team' => 'boolean',
         ];
     }
+
+    /**
+     * Prüft, ob ein User eine bestimmte Rolle im Team hat.
+     */
+    public function hasUserWithRole(User $user, string $role): bool
+    {
+        return $this->users()
+                    ->where('user_id', $user->id)
+                    ->wherePivot('role', $role)
+                    ->exists();
+    }
 }

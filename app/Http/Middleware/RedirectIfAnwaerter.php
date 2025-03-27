@@ -15,12 +15,13 @@ class RedirectIfAnwaerter
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if ($request->user() && $request->user()->currentTeam->hasUserWithRole($request->user(), 'Anwärter')) {
+        $user = $request->user();
+        $team = $user->currentTeam;
+
+        if ($team && $team->hasUserWithRole($user, 'Anwärter')) {
             auth()->logout();
 
-            return redirect()->route('login')->withErrors([
-                'email' => 'Dein Mitgliedschaftsantrag wird derzeit noch bearbeitet. Bitte warte auf eine E-Mail vom Vorstand. Diese erhältst du nach erfolgreicher Prüfung deines Antrags und nach Zahlungseingang deines Mitgliedsbeitrags für das erste Jahr.'
-            ]);
+            return redirect()->route('login')->withErrors('Dein Mitgliedschaftsantrag wird derzeit noch bearbeitet. Wir benachrichtigen dich per E-Mail, sobald du freigeschaltet wurdest.');
         }
 
         return $next($request);

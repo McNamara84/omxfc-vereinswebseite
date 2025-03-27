@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\MitgliedschaftController;
 use App\Http\Controllers\Auth\CustomEmailVerificationController;
+use App\Http\Controllers\DashboardController;
 
 // Öffentliche Seiten
 Route::get('/', [PageController::class, 'home'])->name('home');
@@ -29,7 +30,10 @@ Route::get('/email/verify/{id}/{hash}', CustomEmailVerificationController::class
 
 // Nur für eingeloggte und verifizierte Mitglieder, die NICHT Anwärter sind
 Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function () {
-    Route::get('/dashboard', function () {
-        return view('dashboard');
-    })->name('dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    Route::post('/anwaerter/{user}/approve', [DashboardController::class, 'approveAnwaerter'])
+        ->name('anwaerter.approve');
+    Route::post('/anwaerter/{user}/reject', [DashboardController::class, 'rejectAnwaerter'])
+        ->name('anwaerter.reject');
 });
