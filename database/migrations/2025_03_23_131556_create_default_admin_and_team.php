@@ -17,6 +17,7 @@ return new class extends Migration {
         $adminUser = User::create([
             'name' => 'Holger Ehrmann',
             'email' => 'info@maddraxikon.com',
+            'email_verified_at' => now(),
             'password' => Hash::make('password'), // Standard-Passwort; später ändern!
             'vorname' => 'Holger',
             'nachname' => 'Ehrmann',
