@@ -3,12 +3,74 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\Team;
+use App\Models\User;
 
 class PageController extends Controller
 {
     public function home()
     {
-        return view('pages.home');
+        $whoWeAre = "Wir Maddrax-Fans sind eine muntere Gruppe unterschiedlicher Typen und Charaktere, die alle eine große Leidenschaft eint: Mit archetypischen Helden in einer dystopen Welt der Zukunft auf eine außergewöhnliche Abenteuerreise zu gehen. Manchmal gruselig, phantastisch, unglaublich – und manchmal einfach nur schräg und sonderbar. All das macht das Maddraxiversum aus, in dem alles anders ist, als gedacht.";
+
+        $whatWeDo = "Wir treffen uns in unterschiedlichen Konstellationen mal online, um sich über dies und das auszutauschen, oder bei Fantreffen, um den Autor:innen Details aus der Schreibwerkstatt und dem Lektor Pläne für Künftiges zu entlocken – und einfach eine gute Zeit mit Gleichgesinnten zu haben. In mehreren Arbeitsgruppen werkeln wir gemeinsam an den unterschiedlichsten Fanprojekten, je nach Interessen der einzelnen Mitglieder.";
+
+        $currentProjects = [
+            [
+                'title' => 'Maddraxikon',
+                'description' => 'Gemeinsam erfassen wir Informationen aus den Romanen im größten Fan-Wiki zur Serie und tauschen uns bei unseren AG-Treffen über die neuesten Artikel und Funktionen im Maddraxikon aus. Auch Neueinsteigern wird geholfen.'
+            ],
+            [
+                'title' => 'Fanhörbücher',
+                'description' => 'Die AG Fanhörbücher macht die ersten 249 Romane als gratis Hörbücher auf YouTube zugänglich und plant regelmäßig weitere Veröffentlichungen.'
+            ],
+            [
+                'title' => 'MAPDRAX',
+                'description' => 'Die AG MAPDRAX kartografiert das Maddraxiversum mit dem Tool Inkarnate und bietet regelmäßig Unterstützung für Neueinsteiger an.'
+            ],
+            [
+                'title' => 'Fantreffen',
+                'description' => 'Ein Orga-Team kümmert sich um die Organisation des nächsten Fantreffens, geplant für Mai 2026.'
+            ]
+        ];
+
+        $membershipBenefits = [
+            'Austausch über die aktuellen Romanen mit anderen Fans',
+            'Kostenlose Teilnahme an den jährlichen Fantreffen',
+            'Zugang zur Mitgliederversammlung (findet mindestens jährlich statt)',
+            'Zugriff auf sämtliche Protokolle der Mitgliederversammlungen',
+            'Zugriff auf die neuesten Hörbücher noch vor der Veröffentlichung',
+            'Zugriff auf die MAPDRAX-Beta noch vor der Veröffentlichung',
+        ];
+
+        $galleryImages = [
+            'images/chronik/gruendungsversammlung.jpg',
+            'images/chronik/jahreshauptversammlung2024.jpg',
+            'images/chronik/jahreshauptversammlung2025.jpg',
+            'images/chronik/maddraxcon2025-1.jpg',
+            'images/chronik/maddraxcon2025-2.jpg',
+            // Weitere Bilder hier einfügen
+        ];
+
+
+        $team = Team::where('name', 'Mitglieder')->first();
+
+        if ($team) {
+            $memberCount = $team->users()
+                ->wherePivotNotIn('role', ['Anwärter'])
+                ->count();
+        } else {
+            // Fallback, falls das Team nicht gefunden wird
+            $memberCount = 0;
+        }
+
+        return view('pages.home', compact(
+            'whoWeAre',
+            'whatWeDo',
+            'currentProjects',
+            'membershipBenefits',
+            'galleryImages',
+            'memberCount'
+        ));
     }
 
     public function satzung()

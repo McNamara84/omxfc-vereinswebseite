@@ -10,6 +10,7 @@
                 <li>Annehmen und Ablehnen von Mitgliedschaftsanträgen implementiert</li>
                 <li>Login-Formular hinzugefügt</li>
                 <li>Termine hinzugefügt</li>
+                <li>Startseite hinzugefügt (Danke Arndt!)</li>
             </ul>
             <h3 class="text-l font-semibold mb-2">Änderungen:</h3>
             <ul class="list-disc ml-6 mt-2">
