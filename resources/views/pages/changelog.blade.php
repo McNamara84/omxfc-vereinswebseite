@@ -9,6 +9,7 @@
                 <li>Mailversand bei Eingang eines neuen Antrags auf Mitgliedschaft implementiert</li>
                 <li>Annehmen und Ablehnen von Mitgliedschaftsanträgen implementiert</li>
                 <li>Login-Formular hinzugefügt</li>
+                <li>Termine hinzugefügt</li>
             </ul>
             <h3 class="text-l font-semibold mb-2">Änderungen:</h3>
             <ul class="list-disc ml-6 mt-2">
@@ -33,5 +34,5 @@
                 <li>Antrag auf Mitgliedschaft hinzugefügt (Danke Markus!)</li>
             </ul>
         </section>
-    </div>
+    </div>s
 </x-app-layout>
