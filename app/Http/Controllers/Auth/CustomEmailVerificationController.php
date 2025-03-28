@@ -30,7 +30,7 @@ class CustomEmailVerificationController extends Controller
         event(new Verified($user));
 
         // Versenden der Mails an Admin und Vorstand
-        Mail::to('info@maddraxikon.com')->send(new AntragAnVorstand($user));
+        Mail::to('omxfc.vorstand@gmail.com')->send(new AntragAnVorstand($user));
         Mail::to('holgerehrmann@gmail.com')->send(new AntragAnAdmin($user));
 
         return redirect()->route('login')->with('status', 'Deine E-Mail-Adresse wurde erfolgreich bestätigt.');
