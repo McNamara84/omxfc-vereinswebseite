@@ -43,9 +43,9 @@
         <x-nav-link href="{{ route('changelog') }}" :active="request()->routeIs('changelog')">
             {{ __('Changelog') }}
         </x-nav-link>
-        <!--<x-nav-link href="{{ route('login') }}" :active="request()->routeIs('login')">
+        <x-nav-link href="{{ route('login') }}" :active="request()->routeIs('login')">
             {{ __('Login') }}
-        </x-nav-link>-->
+        </x-nav-link>
     @endguest
 </div>
         </div>
@@ -151,9 +151,9 @@
                 <x-responsive-nav-link href="{{ route('changelog') }}" :active="request()->routeIs('changelog')">
                     {{ __('Changelog') }}
                 </x-responsive-nav-link>
-                <!--<x-responsive-nav-link href="{{ route('login') }}" :active="request()->routeIs('login')">
+                <x-responsive-nav-link href="{{ route('login') }}" :active="request()->routeIs('login')">
                     {{ __('Login') }}
-                </x-responsive-nav-link>-->
+                </x-responsive-nav-link>
             @endguest
         </div>
         

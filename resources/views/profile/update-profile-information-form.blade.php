@@ -1,10 +1,10 @@
 <x-form-section submit="updateProfileInformation">
     <x-slot name="title">
-        {{ __('Profile Information') }}
+        {{ __('Persönliche Daten') }}
     </x-slot>
 
     <x-slot name="description">
-        {{ __('Update your account\'s profile information and email address.') }}
+        {{ __('Hier kannst du ganz einfach deine persönlichen Angaben aktualisieren. Bitte halte diese Informationen möglichst aktuell um den Newsletter zu erhalten und analoge Post zu erhalten.') }}
     </x-slot>
 
     <x-slot name="form">
@@ -61,22 +61,22 @@
 
         <!-- Email -->
         <div class="col-span-6 sm:col-span-4">
-            <x-label for="email" value="{{ __('Email') }}" />
+            <x-label for="email" value="{{ __('E-Mail') }}" />
             <x-input id="email" type="email" class="mt-1 block w-full" wire:model="state.email" required autocomplete="username" />
             <x-input-error for="email" class="mt-2" />
 
             @if (Laravel\Fortify\Features::enabled(Laravel\Fortify\Features::emailVerification()) && ! $this->user->hasVerifiedEmail())
                 <p class="text-sm mt-2 dark:text-white">
-                    {{ __('Your email address is unverified.') }}
+                    {{ __('neine Mailadresse wurde noch nicht verifiziert.') }}
 
                     <button type="button" class="underline text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800" wire:click.prevent="sendEmailVerification">
-                        {{ __('Click here to re-send the verification email.') }}
+                        {{ __('Hier klicken um neue Verifizierungsmail zu erhalten.') }}
                     </button>
                 </p>
 
                 @if ($this->verificationLinkSent)
                     <p class="mt-2 font-medium text-sm text-green-600 dark:text-green-400">
-                        {{ __('A new verification link has been sent to your email address.') }}
+                        {{ __('Die Verifizierungsmail wurde erfolgreich versendet.') }}
                     </p>
                 @endif
             @endif
@@ -85,11 +85,11 @@
 
     <x-slot name="actions">
         <x-action-message class="me-3" on="saved">
-            {{ __('Saved.') }}
+            {{ __('Gespeichert.') }}
         </x-action-message>
 
         <x-button wire:loading.attr="disabled" wire:target="photo">
-            {{ __('Save') }}
+            {{ __('Speichern') }}
         </x-button>
     </x-slot>
 </x-form-section>

@@ -8,12 +8,14 @@
             <ul class="list-disc ml-6 mt-2">
                 <li>Mailversand bei Eingang eines neuen Antrags auf Mitgliedschaft implementiert</li>
                 <li>Annehmen und Ablehnen von Mitgliedschaftsanträgen implementiert</li>
+                <li>Login-Formular hinzugefügt</li>
             </ul>
             <h3 class="text-l font-semibold mb-2">Änderungen:</h3>
             <ul class="list-disc ml-6 mt-2">
                 <li>Reihenfolge der menüpunkte im Hauptmenü angepasst (Danke Tanja!)</li>
                 <li>Durchschnittliche Berwertungen der Romane von Ehrenmitgliedern entfernt (Danke Tanja!)</li>
                 <li>Link zum Autoren-Artikel im Maddraxikon für Ehrenmitglieder ergänzt (Danke Tanja!)</li>
+                <li>Schriftfarbe im Mitgliedschaftsformular angepasst damit Eingaben lesbar werden (Danke Tanja!)</li>
             </ul>
         </section>
         <section class="mb-6">
