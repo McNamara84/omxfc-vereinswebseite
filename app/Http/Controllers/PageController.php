@@ -141,7 +141,7 @@ class PageController extends Controller
                 ['datum' => '22. November 2024', 'titel' => 'Außerordentliche Mitgliederversammlung', 'datei' => '2024-11-22-aomv.pdf'],
             ],
             2025 => [
-                ['datum' => '9. Februar 2025', 'titel' => 'Jahreshauptversammlung', 'datei' => '2025-02-09-jhv.pdf'],
+                ['datum' => '9. Februar 2025', 'titel' => 'Jahreshauptversammlung (liegt noch nicht vor)', 'datei' => '2025-02-09-jhv.pdf'],
             ],
         ];
 

@@ -31,7 +31,8 @@ Route::get('/email/verify/{id}/{hash}', CustomEmailVerificationController::class
 // Nur für eingeloggte und verifizierte Mitglieder, die NICHT Anwärter sind
 Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-
+    Route::get('/protokolle', [PageController::class, 'protokolle'])->name('protokolle');
+    Route::get('/protokolle/download/{datei}', [PageController::class, 'downloadProtokoll'])->name('protokolle.download');
     Route::post('/anwaerter/{user}/approve', [DashboardController::class, 'approveAnwaerter'])
         ->name('anwaerter.approve');
     Route::post('/anwaerter/{user}/reject', [DashboardController::class, 'rejectAnwaerter'])
