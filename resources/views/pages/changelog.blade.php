@@ -12,6 +12,7 @@
             <h3 class="text-l font-semibold mb-2">Änderungen:</h3>
             <ul class="list-disc ml-6 mt-2">
                 <li>Weitere Vorteile einer Mitgliedschaft im Verein ergänzt</li>
+                <li>Profil angepasst damit alle Pesonendaten durch Mitglieder selbständiug aktualisiert werden können</li>
             </ul>
         </section>
         <section class="mb-6">
