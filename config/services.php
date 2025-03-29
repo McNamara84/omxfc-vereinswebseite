@@ -34,5 +34,12 @@ return [
             'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
     ],
+    'nextcloud' => [
+        'links' => [
+            '2025' => env('NEXTCLOUD_LINK_2025', ''),
+            '2024' => env('NEXTCLOUD_LINK_2024', ''),
+            '2023' => env('NEXTCLOUD_LINK_2023', ''),
+        ],
+    ],
 
 ];

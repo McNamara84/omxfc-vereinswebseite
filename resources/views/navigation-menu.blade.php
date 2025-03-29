@@ -19,6 +19,9 @@
         <x-nav-link href="{{ route('protokolle') }}" :active="request()->routeIs('protokolle')">
             {{ __('Protokolle') }}
         </x-nav-link>
+        <x-nav-link href="{{ route('fotogalerie') }}" :active="request()->routeIs('fotogalerie')">
+            {{ __('Fotos') }}
+        </x-nav-link>
     @endauth
 
     @guest
@@ -129,6 +132,9 @@
                 </x-responsive-nav-link>
                 <x-responsive-nav-link href="{{ route('protokolle') }}" :active="request()->routeIs('protokolle')">
                     {{ __('Protokolle') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link href="{{ route('fotogalerie') }}" :active="request()->routeIs('fotogalerie')">
+                    {{ __('Fotos') }}
                 </x-responsive-nav-link>
             @endauth
         

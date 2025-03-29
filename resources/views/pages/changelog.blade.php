@@ -7,6 +7,7 @@
             <h3 class="text-l font-semibold mb-2">Features:</h3>
             <ul class="list-disc ml-6 mt-2">
                 <li>Neue Unterseite für Protokolle im internen Mitgliederbereich</li>
+                <li>Neue Unterseite für Fotos im internen Mitgliederbereich</li>
             </ul>
             <h3 class="text-l font-semibold mb-2">Änderungen:</h3>
             <ul class="list-disc ml-6 mt-2">
