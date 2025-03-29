@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Team;
 use App\Models\User;
+use Illuminate\Support\Facades\Storage;
 
 class PageController extends Controller
 {
@@ -36,10 +37,11 @@ class PageController extends Controller
         $membershipBenefits = [
             'Austausch über die aktuellen Romanen mit anderen Fans',
             'Kostenlose Teilnahme an den jährlichen Fantreffen',
-            'Zugang zur Mitgliederversammlung (findet mindestens jährlich statt)',
-            'Zugriff auf sämtliche Protokolle der Mitgliederversammlungen',
+            'Kontakt zu Maddrax-Autor:innen',
+            'Aktive Mitgestaltung des Vereinslevens',
             'Zugriff auf die neuesten Hörbücher noch vor der Veröffentlichung',
             'Zugriff auf die MAPDRAX-Beta noch vor der Veröffentlichung',
+            'Zugang zu exklusiven  Sprecherrollen in den Fanhörbüchern',
         ];
 
         $galleryImages = [
@@ -125,5 +127,35 @@ class PageController extends Controller
     public function mitgliedWerdenErfolgreich()
     {
         return view('pages.mitglied_werden_erfolgreich');
+    }
+
+    public function protokolle()
+    {
+        $protokolle = [
+            2023 => [
+                ['datum' => '20. Mai 2023', 'titel' => 'Gründungsversammlung', 'datei' => '2023-05-20-gruendungsversammlung.pdf'],
+            ],
+            2024 => [
+                ['datum' => '26. Januar 2024', 'titel' => 'Außerordentliche Mitgliederversammlung', 'datei' => '2024-01-26-aomv.pdf'],
+                ['datum' => '11. Mai 2024', 'titel' => 'Jahreshauptversammlung', 'datei' => '2024-05-11-jhv.pdf'],
+                ['datum' => '22. November 2024', 'titel' => 'Außerordentliche Mitgliederversammlung', 'datei' => '2024-11-22-aomv.pdf'],
+            ],
+            2025 => [
+                ['datum' => '9. Februar 2025', 'titel' => 'Jahreshauptversammlung', 'datei' => '2025-02-09-jhv.pdf'],
+            ],
+        ];
+
+        return view('pages.protokolle', compact('protokolle'));
+    }
+
+    public function downloadProtokoll($datei)
+    {
+        $path = 'protokolle/' . $datei;
+
+        if (Storage::disk('private')->exists($path)) {
+            return Storage::disk('private')->download($path);
+        }
+
+        return redirect()->back()->withErrors('Die Datei existiert nicht.');
     }
 }
