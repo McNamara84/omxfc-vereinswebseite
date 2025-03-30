@@ -81,4 +81,22 @@ class MaddraxDataService
 
         return $romane;
     }
+
+    /**
+     * Alle Figuren distinct und sortiert nach Bewertung der Romane zurückgeben
+     */
+    public static function getFiguren(): array
+    {
+        $data = self::loadData();
+
+        $figuren = collect($data)
+            ->pluck('personen')  // extrahiere alle "figuren"-Arrays
+            ->flatten()                 // flach machen
+            ->unique()                  // doppelte Einträge entfernen
+            ->sort()                    // alphabetisch sortieren
+            ->values()                  // Werte zurücksetzen (indexbasiert)
+            ->toArray();
+
+        return $figuren;
+    }
 }

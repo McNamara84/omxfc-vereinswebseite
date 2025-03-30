@@ -4,7 +4,7 @@
     </x-slot>
 
     <x-slot name="description">
-        {{ __('Hier kannst du deine Lieblingsdetails zur Serie Maddrax hinterlegen. Alle Felder sind optional. Alle Angaben, die du hier machst, können von anderen Mitgliedern eingesehen werden.') }}
+        {{ __('Hier kannst du deine Lieblingsdetails zur Serie Maddrax hinterlegen. Alle Felder sind optional. Alle Angaben, die du hier machst, können von anderen Mitgliedern eingesehen werden. Die Auswahlmöglichkeiten werden freundlicherweise durch das Maddraxikon zur Verfügung gestellt. Sollte eine Auswahl fehlen, liegt das daran, dass die entsprechenden Informationen im Maddraxikon noch fehlen.') }}
     </x-slot>
 
     <x-slot name="form">
@@ -12,7 +12,7 @@
         <div class="col-span-6 sm:col-span-4">
             <x-label for="einstiegsroman" value="{{ __('Einstiegsroman (optional)') }}" />
             <select id="einstiegsroman" wire:model="state.einstiegsroman" class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-800 rounded-md shadow-sm">
-                <option value="">Einstiegsroman auswählen</option>
+                <option value="">Roman auswählen</option>
                 @foreach($romane as $roman)
                     <option value="{{ $roman }}">{{ $roman }}</option>
                 @endforeach
@@ -23,7 +23,7 @@
         <div class="col-span-6 sm:col-span-4">
             <x-label for="lesestand" value="{{ __('Aktueller Lesestand (optional)') }}" />
             <select id="lesestand" wire:model="state.lesestand" class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-800 rounded-md shadow-sm">
-                <option value="">Aktuellen Lesestand auswählen</option>
+                <option value="">Roman auswählen</option>
                 @foreach($romane as $roman)
                     <option value="{{ $roman }}">{{ $roman }}</option>
                 @endforeach
@@ -45,7 +45,7 @@
         <div class="col-span-6 sm:col-span-4">
             <x-label for="lieblingsroman" value="{{ __('Lieblingsroman (optional)') }}" />
             <select id="lieblingsroman" wire:model="state.lieblingsroman" class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-800 rounded-md shadow-sm">
-                <option value="">Lieblingsroman auswählen</option>
+                <option value="">Roman auswählen</option>
                 @foreach($romane as $roman)
                     <option value="{{ $roman }}">{{ $roman }}</option>
                 @endforeach
@@ -63,8 +63,18 @@
             </select>
             <x-input-error for="lieblingszyklus" class="mt-2" />
         </div>
+        <!-- Lieblingsfigur Dropdown -->
+        <div class="col-span-6 sm:col-span-4">
+            <x-label for="lieblingsfigur" value="{{ __('Lieblingsfigur (optional)') }}" />
+            <select id="lieblingsfigur" wire:model="state.lieblingsfigur" class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-800 rounded-md shadow-sm">
+                <option value="">Figur auswählen</option>
+                @foreach($figuren as $figur)
+                    <option value="{{ $figur }}">{{ $figur }}</option>
+                @endforeach
+            </select>
+            <x-input-error for="lieblingsfigur" class="mt-2" />
+        </div>
         @foreach ([
-            'lieblingsfigur' => 'Lieblingsfigur',
             'lieblingsmutation' => 'Lieblingsmutation',
             'lieblingsschauplatz' => 'Lieblingsschauplatz',
         ] as $field => $label)
