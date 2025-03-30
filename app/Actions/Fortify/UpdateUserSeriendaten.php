@@ -1,0 +1,35 @@
+<?php
+
+namespace App\Actions\Fortify;
+
+use App\Models\User;
+use Illuminate\Support\Facades\Validator;
+use Laravel\Fortify\Contracts\UpdatesUserProfileInformation;
+
+class UpdateUserSeriendaten
+{
+    public function update(User $user, array $input): void
+    {
+        Validator::make($input, [
+            'einstiegsroman' => ['nullable', 'string', 'max:255'],
+            'lesestand' => ['nullable', 'string', 'max:255'],
+            'lieblingsroman' => ['nullable', 'string', 'max:255'],
+            'lieblingsfigur' => ['nullable', 'string', 'max:255'],
+            'lieblingsmutation' => ['nullable', 'string', 'max:255'],
+            'lieblingsschauplatz' => ['nullable', 'string', 'max:255'],
+            'lieblingsautor' => ['nullable', 'string', 'max:255'],
+            'lieblingszyklus' => ['nullable', 'string', 'max:255'],
+        ])->validateWithBag('updateSeriendaten');
+
+        $user->forceFill([
+            'einstiegsroman' => $input['einstiegsroman'],
+            'lesestand' => $input['lesestand'],
+            'lieblingsroman' => $input['lieblingsroman'],
+            'lieblingsfigur' => $input['lieblingsfigur'],
+            'lieblingsmutation' => $input['lieblingsmutation'],
+            'lieblingsschauplatz' => $input['lieblingsschauplatz'],
+            'lieblingsautor' => $input['lieblingsautor'],
+            'lieblingszyklus' => $input['lieblingszyklus'],
+        ])->save();
+    }
+}
