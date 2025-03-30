@@ -11,6 +11,7 @@ class UpdateSeriendatenForm extends Component
 {
     public array $state = [];
     public array $autoren = [];
+    public array $zyklen = [];
 
     public function mount()
     {
@@ -25,6 +26,7 @@ class UpdateSeriendatenForm extends Component
             'lieblingszyklus',
         ]);
         $this->autoren = MaddraxDataService::getAutoren();
+        $this->zyklen = MaddraxDataService::getZyklen();
     }
 
     public function updateSeriendaten(UpdateUserSeriendaten $updater)

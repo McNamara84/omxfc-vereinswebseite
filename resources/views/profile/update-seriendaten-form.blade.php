@@ -10,15 +10,26 @@
     <x-slot name="form">
         <!-- Lieblingsautor Dropdown -->
         <div class="col-span-6 sm:col-span-4">
-            <x-label for="lieblingsautor" value="{{ __('Lieblingsautor:in') }}" />
+            <x-label for="lieblingsautor" value="{{ __('Lieblingsautor:in (optional)') }}" />
             <select id="lieblingsautor" wire:model="state.lieblingsautor" class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-800 rounded-md shadow-sm">
-                <option value="">Bitte auswählen (optional)</option>
+                <option value="">Autor:in auswählen</option>
                 @foreach($autoren as $autor)
                     <option value="{{ $autor }}">{{ $autor }}</option>
                 @endforeach
             </select>
             <x-input-error for="lieblingsautor" class="mt-2" />
-</div>
+        </div>
+        <!-- Lieblingszyklus Dropdown -->
+        <div class="col-span-6 sm:col-span-4">
+            <x-label for="lieblingszyklus" value="{{ __('Lieblingszyklus (optional)') }}" />
+            <select id="lieblingszyklus" wire:model="state.lieblingszyklus" class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-800 rounded-md shadow-sm">
+                <option value="">Zyklus auswählen</option>
+                @foreach($zyklen as $zyklus)
+                    <option value="{{ $zyklus }}">{{ $zyklus }}-Zyklus</option>
+                @endforeach
+            </select>
+            <x-input-error for="lieblingszyklus" class="mt-2" />
+        </div>
         @foreach ([
             'einstiegsroman' => 'Einstiegsroman',
             'lesestand' => 'Aktueller Lesestand',
@@ -26,7 +37,6 @@
             'lieblingsfigur' => 'Lieblingsfigur',
             'lieblingsmutation' => 'Lieblingsmutation',
             'lieblingsschauplatz' => 'Lieblingsschauplatz',
-            'lieblingszyklus' => 'Lieblingszyklus',
         ] as $field => $label)
             <div class="col-span-6 sm:col-span-4">
                 <x-label for="{{ $field }}" :value="$label" />

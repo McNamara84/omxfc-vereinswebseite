@@ -30,13 +30,30 @@ class MaddraxDataService
         $data = self::loadData();
 
         $autoren = collect($data)
-            ->pluck('text')       // extrahiere alle "text"-Arrays
-            ->flatten()           // flach machen
-            ->unique()            // doppelte Einträge entfernen
-            ->sort()              // alphabetisch sortieren
-            ->values()            // Werte zurücksetzen (indexbasiert)
+            ->pluck('text')  // extrahiere alle "text"-Arrays
+            ->flatten()             // flach machen
+            ->unique()              // doppelte Einträge entfernen
+            ->sort()                // alphabetisch sortieren
+            ->values()              // Werte zurücksetzen (indexbasiert)
             ->toArray();
 
         return $autoren;
+    }
+
+    /**
+     * Alle Zyklen distinct zurückgeben
+     */
+    public static function getZyklen(): array
+    {
+        $data = self::loadData();
+
+        $zyklen = collect($data)
+            ->pluck('zyklus')    // extrahiere alle "zyklus"-Arrays
+            ->flatten()                 // flach machen
+            ->unique()                  // doppelte Einträge entfernen
+            ->values()                  // Werte zurücksetzen (indexbasiert)
+            ->toArray();
+
+        return $zyklen;
     }
 }
