@@ -38,7 +38,7 @@ class PageController extends Controller
             'Austausch über die aktuellen Romanen mit anderen Fans',
             'Kostenlose Teilnahme an den jährlichen Fantreffen',
             'Kontakt zu Maddrax-Autor:innen',
-            'Aktive Mitgestaltung des Vereinslevens',
+            'Aktive Mitgestaltung des Vereinslebens',
             'Zugriff auf die neuesten Hörbücher noch vor der Veröffentlichung',
             'Zugriff auf die MAPDRAX-Beta noch vor der Veröffentlichung',
             'Zugang zu exklusiven  Sprecherrollen in den Fanhörbüchern',
