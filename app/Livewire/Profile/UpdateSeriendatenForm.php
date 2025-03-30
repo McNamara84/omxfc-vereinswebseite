@@ -5,10 +5,12 @@ namespace App\Livewire\Profile;
 use Livewire\Component;
 use App\Actions\Fortify\UpdateUserSeriendaten;
 use Illuminate\Support\Facades\Auth;
+use App\Services\MaddraxDataService;
 
 class UpdateSeriendatenForm extends Component
 {
     public array $state = [];
+    public array $autoren = [];
 
     public function mount()
     {
@@ -22,6 +24,7 @@ class UpdateSeriendatenForm extends Component
             'lieblingsautor',
             'lieblingszyklus',
         ]);
+        $this->autoren = MaddraxDataService::getAutoren();
     }
 
     public function updateSeriendaten(UpdateUserSeriendaten $updater)

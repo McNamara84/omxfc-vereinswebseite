@@ -8,6 +8,17 @@
     </x-slot>
 
     <x-slot name="form">
+        <!-- Lieblingsautor Dropdown -->
+        <div class="col-span-6 sm:col-span-4">
+            <x-label for="lieblingsautor" value="{{ __('Lieblingsautor:in') }}" />
+            <select id="lieblingsautor" wire:model="state.lieblingsautor" class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-800 rounded-md shadow-sm">
+                <option value="">Bitte auswählen (optional)</option>
+                @foreach($autoren as $autor)
+                    <option value="{{ $autor }}">{{ $autor }}</option>
+                @endforeach
+            </select>
+            <x-input-error for="lieblingsautor" class="mt-2" />
+</div>
         @foreach ([
             'einstiegsroman' => 'Einstiegsroman',
             'lesestand' => 'Aktueller Lesestand',
@@ -15,7 +26,6 @@
             'lieblingsfigur' => 'Lieblingsfigur',
             'lieblingsmutation' => 'Lieblingsmutation',
             'lieblingsschauplatz' => 'Lieblingsschauplatz',
-            'lieblingsautor' => 'Lieblingsautor:in',
             'lieblingszyklus' => 'Lieblingszyklus',
         ] as $field => $label)
             <div class="col-span-6 sm:col-span-4">
