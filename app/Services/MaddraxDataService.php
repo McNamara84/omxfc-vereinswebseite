@@ -56,4 +56,29 @@ class MaddraxDataService
 
         return $zyklen;
     }
+
+    /**
+     * Alle Nummern und Romantitel zurückgeben
+     */
+    public static function getRomane(): array
+    {
+        $data = self::loadData();
+
+        $titel = collect($data)
+            ->pluck('titel')    // extrahiere alle "titel"-Arrays
+            ->flatten()                // flach machen
+            ->values();                // Werte zurücksetzen (indexbasiert)
+        $nummer = collect($data)
+            ->pluck('nummer')    // extrahiere alle "nummer"-Arrays
+            ->flatten()                // flach machen
+            ->values();                // Werte zurücksetzen (indexbasiert)
+        // Nummer und Titel jeweils zu einem String zusammenfügen
+        $romane = collect($nummer)->map(function ($item, $key) use ($titel) {
+            return $item . ' - ' . $titel[$key];
+        })->toArray(); // in Array umwandeln
+
+
+
+        return $romane;
+    }
 }
