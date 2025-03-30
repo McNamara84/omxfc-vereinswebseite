@@ -19,6 +19,17 @@
             </select>
             <x-input-error for="einstiegsroman" class="mt-2" />
         </div>
+        <!-- Lesestand Dropdown -->
+        <div class="col-span-6 sm:col-span-4">
+            <x-label for="lesestand" value="{{ __('Aktueller Lesestand (optional)') }}" />
+            <select id="lesestand" wire:model="state.lesestand" class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-800 rounded-md shadow-sm">
+                <option value="">Aktuellen Lesestand auswählen</option>
+                @foreach($romane as $roman)
+                    <option value="{{ $roman }}">{{ $roman }}</option>
+                @endforeach
+            </select>
+            <x-input-error for="lesestand" class="mt-2" />
+        </div>
         <!-- Lieblingsautor Dropdown -->
         <div class="col-span-6 sm:col-span-4">
             <x-label for="lieblingsautor" value="{{ __('Lieblingsautor:in (optional)') }}" />
@@ -42,7 +53,6 @@
             <x-input-error for="lieblingszyklus" class="mt-2" />
         </div>
         @foreach ([
-            'lesestand' => 'Aktueller Lesestand',
             'lieblingsroman' => 'Lieblingsroman',
             'lieblingsfigur' => 'Lieblingsfigur',
             'lieblingsmutation' => 'Lieblingsmutation',
