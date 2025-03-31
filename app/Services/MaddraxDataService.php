@@ -15,8 +15,25 @@ class MaddraxDataService
     public static function loadData(): array
     {
         if (is_null(self::$data)) {
-            $json = Storage::disk('local')->get('maddrax.json');
-            self::$data = json_decode($json, true);
+            try {
+                // Prüfen, ob die Datei existiert
+                if (Storage::disk('local')->exists('maddrax.json')) {
+                    $json = Storage::disk('local')->get('maddrax.json');
+                    self::$data = json_decode($json, true);
+
+                    // Falls json_decode fehlschlägt, ein leeres Array zurückgeben
+                    if (is_null(self::$data)) {
+                        \Log::warning('MaddraxDataService: JSON konnte nicht dekodiert werden');
+                        self::$data = [];
+                    }
+                } else {
+                    \Log::warning('MaddraxDataService: maddrax.json wurde nicht gefunden');
+                    self::$data = [];
+                }
+            } catch (\Exception $e) {
+                \Log::error('MaddraxDataService Fehler: ' . $e->getMessage());
+                self::$data = [];
+            }
         }
 
         return self::$data;
