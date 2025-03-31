@@ -50,6 +50,59 @@ class MitgliederController extends Controller
             'roleRanks' => $roleRanks
         ]);
     }
+
+    public function changeRole(Request $request, User $user)
+    {
+        $request->validate([
+            'role' => 'required|string|in:Mitglied,Ehrenmitglied,Kassenwart,Vorstand,Admin',
+        ]);
+
+        $currentUser = Auth::user();
+        $team = $currentUser->currentTeam;
+
+        // Korrekte Ermittlung der Rolle des eingeloggten Nutzers
+        $currentUserRole = $team->users()
+            ->where('user_id', $currentUser->id)
+            ->first()
+            ->membership
+            ->role;
+
+        // Rolle des zu ändernden Nutzers
+        $memberRole = $team->users()
+            ->where('user_id', $user->id)
+            ->first()
+            ->membership
+            ->role;
+
+        // Rollenrangfolge festlegen (höhere Zahl = höherer Rang)
+        $roleRanks = [
+            'Mitglied' => 1,
+            'Ehrenmitglied' => 2,
+            'Kassenwart' => 3,
+            'Vorstand' => 4,
+            'Admin' => 5
+        ];
+
+        $currentUserRank = $roleRanks[$currentUserRole] ?? 0;
+        $memberRank = $roleRanks[$memberRole] ?? 0;
+        $newRoleRank = $roleRanks[$request->role] ?? 0;
+
+        // Prüfen, ob der aktuelle Nutzer die Berechtigung hat
+        if ($currentUserRank <= $memberRank) {
+            return back()->with('error', 'Du hast keine Berechtigung, die Rolle dieses Mitglieds zu ändern.');
+        }
+
+        // Prüfen, ob die neue Rolle nicht höher als die eigene Rolle ist
+        if ($newRoleRank > $currentUserRank) {
+            return back()->with('error', 'Du kannst keine Rolle vergeben, die höher als deine eigene ist.');
+        }
+
+        // Rolle des Mitglieds ändern
+        $team->users()->updateExistingPivot($user->id, ['role' => $request->role]);
+
+        return back()->with('status', 'Die Rolle von ' . $user->name . ' wurde zu ' . $request->role . ' geändert.');
+    }
+
     public function removeMember(User $user)
     {
         $currentUser = Auth::user();

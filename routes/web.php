@@ -39,5 +39,6 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
     Route::post('/anwaerter/{user}/reject', [DashboardController::class, 'rejectAnwaerter'])->name('anwaerter.reject');
     Route::get('/fotogalerie', [PhotoGalleryController::class, 'index'])->name('fotogalerie');
     Route::get('/mitglieder', [MitgliederController::class, 'index'])->name('mitglieder.index');
+    Route::put('/mitglieder/{user}/role', [MitgliederController::class, 'changeRole'])->name('mitglieder.change-role');
     Route::delete('/mitglieder/{user}', [MitgliederController::class, 'removeMember'])->name('mitglieder.remove');
 });

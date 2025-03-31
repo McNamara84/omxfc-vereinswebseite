@@ -26,6 +26,7 @@
                                     <th class="px-4 py-2 text-left">Kontaktdaten</th>
                                     <th class="px-4 py-2 text-left">Adresse</th>
                                     <th class="px-4 py-2 text-left">Beitrag</th>
+                                    <th class="px-4 py-2 text-left">Rolle</th>
                                 @endif
                                 <th class="px-4 py-2 text-center">Aktionen</th>
                             </tr>
@@ -42,9 +43,6 @@
                                                 <div class="font-medium text-gray-900">{{ $member->name }}</div>
                                                 @if($canViewDetails)
                                                     <div class="text-sm text-gray-500">{{ $member->vorname }} {{ $member->nachname }}</div>
-                                                    <div class="text-xs text-gray-500">
-                                                        {{ $member->membership->role }}
-                                                    </div>
                                                 @endif
                                             </div>
                                         </div>
@@ -63,6 +61,9 @@
                                         <td class="px-4 py-3 text-sm text-gray-900">
                                             {{ $member->mitgliedsbeitrag }}
                                         </td>
+                                        <td class="px-4 py-3 text-sm text-gray-900">
+                                            {{ $member->membership->role }}
+                                        </td>
                                     @endif
                                     
                                     <td class="px-4 py-3 text-center">
@@ -79,13 +80,41 @@
                                                 @endphp
                                                 
                                                 @if($currentUserRank > $memberRank)
+                                                    <!-- Rolle ändern (Dropdown) -->
+                                                    <div class="relative" x-data="{ open: false }">
+                                                        <button @click="open = !open" type="button" 
+                                                            class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded">
+                                                            Rolle ändern
+                                                        </button>
+                                                        
+                                                        <div x-show="open" @click.away="open = false" 
+                                                            class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10">
+                                                            <div class="py-1">
+                                                                @foreach($roleRanks as $role => $rank)
+                                                                    @if($rank <= $currentUserRank && $role !== $memberRole)
+                                                                        <form action="{{ route('mitglieder.change-role', $member->id) }}" method="POST">
+                                                                            @csrf
+                                                                            @method('PUT')
+                                                                            <input type="hidden" name="role" value="{{ $role }}">
+                                                                            <button type="submit" 
+                                                                                class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                                                                Zu {{ $role }} ändern
+                                                                            </button>
+                                                                        </form>
+                                                                    @endif
+                                                                @endforeach
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <!-- Mitgliedschaft beenden -->
                                                     <form action="{{ route('mitglieder.remove', $member->id) }}" method="POST"
                                                         onsubmit="return confirm('Willst du die Mitgliedschaft von {{ $member->name }} wirklich beenden? Dies löscht den Benutzer aus der Datenbank!');">
                                                         @csrf
                                                         @method('DELETE')
                                                         <button type="submit" 
                                                             class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded">
-                                                            Mitgliedschaft beenden
+                                                            Löschen
                                                         </button>
                                                     </form>
                                                 @endif
@@ -110,7 +139,7 @@
                                     <div class="font-medium text-gray-900">{{ $member->name }}</div>
                                     @if($canViewDetails)
                                         <div class="text-sm text-gray-500">{{ $member->vorname }} {{ $member->nachname }}</div>
-                                        <div class="text-xs text-gray-500">{{ $member->membership->role }}</div>
+                                        <div class="text-xs text-gray-500">Rolle: {{ $member->membership->role }}</div>
                                     @endif
                                 </div>
                             </div>
@@ -135,9 +164,9 @@
                                 </div>
                             @endif
                             
-                            <div class="flex gap-2">
+                            <div class="flex flex-col gap-2">
                                 <a href="{{ route('profile.show', ['user' => $member->id]) }}" 
-                                   class="flex-1 block text-center bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded">
+                                   class="block text-center bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded">
                                     Profil ansehen
                                 </a>
                                 
@@ -148,7 +177,34 @@
                                     @endphp
                                     
                                     @if($currentUserRank > $memberRank)
-                                        <form action="{{ route('mitglieder.remove', $member->id) }}" method="POST" class="flex-1"
+                                        <!-- Rolle ändern (Mobile) -->
+                                        <div class="relative" x-data="{ open: false }">
+                                            <button @click="open = !open" type="button" 
+                                                class="w-full bg-yellow-500 hover:bg-yellow-600 text-white py-2 px-4 rounded">
+                                                Rolle ändern
+                                            </button>
+                                            
+                                            <div x-show="open" @click.away="open = false" 
+                                                class="absolute left-0 right-0 mt-2 bg-white rounded-md shadow-lg z-10">
+                                                <div class="py-1">
+                                                    @foreach($roleRanks as $role => $rank)
+                                                        @if($rank <= $currentUserRank && $role !== $memberRole)
+                                                            <form action="{{ route('mitglieder.change-role', $member->id) }}" method="POST">
+                                                                @csrf
+                                                                @method('PUT')
+                                                                <input type="hidden" name="role" value="{{ $role }}">
+                                                                <button type="submit" 
+                                                                    class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                                                    Zu {{ $role }} ändern
+                                                                </button>
+                                                            </form>
+                                                        @endif
+                                                    @endforeach
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <form action="{{ route('mitglieder.remove', $member->id) }}" method="POST"
                                             onsubmit="return confirm('Willst du die Mitgliedschaft von {{ $member->name }} wirklich beenden? Dies löscht den Benutzer aus der Datenbank!');">
                                             @csrf
                                             @method('DELETE')
