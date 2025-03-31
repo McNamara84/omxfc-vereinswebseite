@@ -74,9 +74,19 @@
             </select>
             <x-input-error for="lieblingsfigur" class="mt-2" />
         </div>
+        <!-- Lieblingsschauplatz Dropdown -->
+        <div class="col-span-6 sm:col-span-4">
+            <x-label for="lieblingsschauplatz" value="{{ __('Lieblingsschauplatz (optional)') }}" />
+            <select id="lieblingsschauplatz" wire:model="state.lieblingsschauplatz" class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-800 rounded-md shadow-sm">
+                <option value="">Schauplatz auswählen</option>
+                @foreach($schauplaetze as $schauplatz)
+                    <option value="{{ $schauplatz }}">{{ $schauplatz }}</option>
+                @endforeach
+            </select>
+            <x-input-error for="lieblingsschauplatz" class="mt-2" />
+        </div>
         @foreach ([
             'lieblingsmutation' => 'Lieblingsmutation',
-            'lieblingsschauplatz' => 'Lieblingsschauplatz',
         ] as $field => $label)
             <div class="col-span-6 sm:col-span-4">
                 <x-label for="{{ $field }}" :value="$label" />

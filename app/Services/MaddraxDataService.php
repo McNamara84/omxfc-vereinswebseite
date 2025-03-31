@@ -99,4 +99,22 @@ class MaddraxDataService
 
         return $figuren;
     }
+
+    /**
+     * Alle Schauplätze distinct und sortiert zurückgeben
+     */
+    public static function getSchauplaetze(): array
+    {
+        $data = self::loadData();
+
+        $schauplaetze = collect($data)
+            ->pluck('orte')  // extrahiere alle "figuren"-Arrays
+            ->flatten()                 // flach machen
+            ->unique()                  // doppelte Einträge entfernen
+            ->sort()                    // alphabetisch sortieren
+            ->values()                  // Werte zurücksetzen (indexbasiert)
+            ->toArray();
+
+        return $schauplaetze;
+    }
 }
