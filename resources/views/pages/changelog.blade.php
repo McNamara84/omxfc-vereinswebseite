@@ -12,6 +12,7 @@
             <ul class="list-disc ml-6 mt-2">
                 <li>Profil angepasst damit alle Pesonendaten durch Mitglieder selbständiug aktualisiert werden können</li>
                 <li>Tippfehler auf der Startseite korrigiert (Danke Tanja!)</li>
+                <li>Fehlerhafte Anzeige des Dashboards für den Vorstand verbessert (Danke Markus!)</li>
             </ul>
         </section>
         <section class="mb-6">
