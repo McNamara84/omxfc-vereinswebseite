@@ -6,6 +6,7 @@ use App\Http\Controllers\MitgliedschaftController;
 use App\Http\Controllers\Auth\CustomEmailVerificationController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PhotoGalleryController;
+use App\Http\Controllers\MitgliederController;
 
 // Öffentliche Seiten
 Route::get('/', [PageController::class, 'home'])->name('home');
@@ -37,5 +38,6 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
     Route::post('/anwaerter/{user}/approve', [DashboardController::class, 'approveAnwaerter'])->name('anwaerter.approve');
     Route::post('/anwaerter/{user}/reject', [DashboardController::class, 'rejectAnwaerter'])->name('anwaerter.reject');
     Route::get('/fotogalerie', [PhotoGalleryController::class, 'index'])->name('fotogalerie');
-    Route::get('/mitglieder', [App\Http\Controllers\MitgliederController::class, 'index'])->name('mitglieder.index');
+    Route::get('/mitglieder', [MitgliederController::class, 'index'])->name('mitglieder.index');
+    Route::delete('/mitglieder/{user}', [MitgliederController::class, 'removeMember'])->name('mitglieder.remove');
 });
