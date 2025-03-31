@@ -37,4 +37,5 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
     Route::post('/anwaerter/{user}/approve', [DashboardController::class, 'approveAnwaerter'])->name('anwaerter.approve');
     Route::post('/anwaerter/{user}/reject', [DashboardController::class, 'rejectAnwaerter'])->name('anwaerter.reject');
     Route::get('/fotogalerie', [PhotoGalleryController::class, 'index'])->name('fotogalerie');
+    Route::get('/mitglieder', [App\Http\Controllers\MitgliederController::class, 'index'])->name('mitglieder.index');
 });

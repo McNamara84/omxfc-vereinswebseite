@@ -41,7 +41,6 @@ class User extends Authenticatable
         'telefon',
         'verein_gefunden',
         'mitgliedsbeitrag',
-        'rolle',
         'einstiegsroman',
         'lesestand',
         'lieblingsroman',
