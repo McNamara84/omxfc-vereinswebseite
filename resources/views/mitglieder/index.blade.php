@@ -68,7 +68,7 @@
                                     
                                     <td class="px-4 py-3 text-center">
                                         <div class="flex justify-center gap-2">
-                                            <a href="{{ route('profile.show', ['user' => $member->id]) }}" 
+                                            <a href="{{ route('profile.view', $member->id) }}" 
                                                class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded">
                                                 Profil
                                             </a>
@@ -165,7 +165,7 @@
                             @endif
                             
                             <div class="flex flex-col gap-2">
-                                <a href="{{ route('profile.show', ['user' => $member->id]) }}" 
+                                <a href="{{ route('profile.view', $member->id) }}"
                                    class="block text-center bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded">
                                     Profil ansehen
                                 </a>

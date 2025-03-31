@@ -7,6 +7,8 @@ use App\Http\Controllers\Auth\CustomEmailVerificationController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PhotoGalleryController;
 use App\Http\Controllers\MitgliederController;
+use App\Http\Controllers\ProfileViewController;
+use App\Http\Middleware\RedirectIfAnwaerter;
 
 // Öffentliche Seiten
 Route::get('/', [PageController::class, 'home'])->name('home');
@@ -27,7 +29,7 @@ Route::post('/mitglied-werden', [MitgliedschaftController::class, 'store'])->nam
 // Route für E-Mail-Verifizierung (Laravel Jetstream / Fortify)
 Route::get('/email/verify/{id}/{hash}', CustomEmailVerificationController::class)
     ->middleware(['signed', 'throttle:6,1'])
-    ->withoutMiddleware([\App\Http\Middleware\RedirectIfAnwaerter::class])
+    ->withoutMiddleware([RedirectIfAnwaerter::class])
     ->name('verification.verify');
 
 // Nur für eingeloggte und verifizierte Mitglieder, die NICHT Anwärter sind
@@ -41,4 +43,5 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
     Route::get('/mitglieder', [MitgliederController::class, 'index'])->name('mitglieder.index');
     Route::put('/mitglieder/{user}/role', [MitgliederController::class, 'changeRole'])->name('mitglieder.change-role');
     Route::delete('/mitglieder/{user}', [MitgliederController::class, 'removeMember'])->name('mitglieder.remove');
+    Route::get('/profile/{user}', [ProfileViewController::class, 'show'])->name('profile.view');
 });
