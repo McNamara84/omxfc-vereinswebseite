@@ -26,8 +26,8 @@
                                     <th class="px-4 py-2 text-left">Kontaktdaten</th>
                                     <th class="px-4 py-2 text-left">Adresse</th>
                                     <th class="px-4 py-2 text-left">Beitrag</th>
-                                    <th class="px-4 py-2 text-left">Rolle</th>
                                 @endif
+                                    <th class="px-4 py-2 text-left">Rolle</th>
                                 <th class="px-4 py-2 text-center">Aktionen</th>
                             </tr>
                         </thead>
@@ -61,11 +61,10 @@
                                         <td class="px-4 py-3 text-sm text-gray-900">
                                             {{ $member->mitgliedsbeitrag }}
                                         </td>
+                                    @endif
                                         <td class="px-4 py-3 text-sm text-gray-900">
                                             {{ $member->membership->role }}
                                         </td>
-                                    @endif
-                                    
                                     <td class="px-4 py-3 text-center">
                                         <div class="flex justify-center gap-2">
                                             <a href="{{ route('profile.view', $member->id) }}" 
