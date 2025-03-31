@@ -3,6 +3,21 @@
         <h1 class="text-2xl sm:text-3xl font-bold text-[#8B0116] dark:text-[#ff4b63] mb-4 sm:mb-8">Changelog</h1>
         <p class="mb-6">Auf dieser Seite werden sämtliche Änderungen an der vereinswebseite des Offiziellen Maddrax Fanclub e. V. dokumentiert.</p>
         <section class="mb-6">
+            <h2 class="text-xl font-semibold mb-2">Version 0.4.0 (04.04.2025)</h2>
+            <h3 class="text-l font-semibold mb-2">Features:</h3>
+            <ul class="list-disc ml-6 mt-2">
+                <li>Neuer Abschnitt Serienspezifische Daten im Profil ergänzt (Danke Arndt!)</li>
+                <li>Mitgliederliste im internen Mitgliederbereich ergänzt (Danke Markus!)</li>
+                <li>Mitgliederkarte im internen Mitgliederbereich ergänzt</li>
+            </ul>
+            <h3 class="text-l font-semibold mb-2">Änderungen:</h3>
+            <ul class="list-disc ml-6 mt-2">
+                <li>Profil angepasst damit alle Pesonendaten durch Mitglieder selbständiug aktualisiert werden können</li>
+                <li>Tippfehler auf der Startseite korrigiert (Danke Tanja!)</li>
+                <li>Fehlerhafte Anzeige des Dashboards für den Vorstand verbessert (Danke Markus!)</li>
+            </ul>
+        </section>
+        <section class="mb-6">
             <h2 class="text-xl font-semibold mb-2">Version 0.3.0 (31.03.2025)</h2>
             <h3 class="text-l font-semibold mb-2">Features:</h3>
             <ul class="list-disc ml-6 mt-2">
@@ -12,6 +27,7 @@
             <h3 class="text-l font-semibold mb-2">Änderungen:</h3>
             <ul class="list-disc ml-6 mt-2">
                 <li>Weitere Vorteile einer Mitgliedschaft im Verein ergänzt</li>
+                <li>Profil angepasst damit alle Pesonendaten durch Mitglieder selbständiug aktualisiert werden können</li>
             </ul>
         </section>
         <section class="mb-6">

@@ -16,6 +16,12 @@
         <x-nav-link href="{{ route('dashboard') }}" :active="request()->routeIs('dashboard')">
             {{ __('Dashboard') }}
         </x-nav-link>
+        <x-nav-link href="{{ route('mitglieder.index') }}" :active="request()->routeIs('mitglieder.index')">
+            {{ __('Mitgliederliste') }}
+        </x-nav-link>
+        <x-nav-link href="{{ route('mitglieder.karte') }}" :active="request()->routeIs('mitglieder.karte')">
+            {{ __('Mitgliederkarte') }}
+        </x-nav-link>
         <x-nav-link href="{{ route('protokolle') }}" :active="request()->routeIs('protokolle')">
             {{ __('Protokolle') }}
         </x-nav-link>
@@ -129,6 +135,12 @@
             @auth
                 <x-responsive-nav-link href="{{ route('dashboard') }}" :active="request()->routeIs('dashboard')">
                     {{ __('Dashboard') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link href="{{ route('mitglieder.index') }}" :active="request()->routeIs('mitglieder.index')">
+                    {{ __('Mitgliederliste') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link href="{{ route('mitglieder.karte') }}" :active="request()->routeIs('mitglieder.karte')">
+                    {{ __('Mitgliederkarte') }}
                 </x-responsive-nav-link>
                 <x-responsive-nav-link href="{{ route('protokolle') }}" :active="request()->routeIs('protokolle')">
                     {{ __('Protokolle') }}

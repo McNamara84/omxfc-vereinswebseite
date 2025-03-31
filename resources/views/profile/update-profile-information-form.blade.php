@@ -4,47 +4,41 @@
     </x-slot>
 
     <x-slot name="description">
-        {{ __('Hier kannst du ganz einfach deine persönlichen Angaben aktualisieren. Bitte halte diese Informationen möglichst aktuell um den Newsletter zu erhalten und analoge Post zu erhalten.') }}
+        {{ __('Hier kannst du ganz einfach deine persönlichen Angaben aktualisieren. Bitte halte diese Informationen möglichst aktuell, damit wir dich erreichen können. Während Namen und Foto für andere sichtbar sind, bleiben deine Adressdaten und dein eingestellter Mitgliedsbeitrag für andere Mitglieder unsichtbar.') }}
     </x-slot>
 
     <x-slot name="form">
-        <!-- Profile Photo -->
+        <!-- Profilfoto -->
         @if (Laravel\Jetstream\Jetstream::managesProfilePhotos())
             <div x-data="{photoName: null, photoPreview: null}" class="col-span-6 sm:col-span-4">
-                <!-- Profile Photo File Input -->
-                <input type="file" id="photo" class="hidden"
-                            wire:model.live="photo"
-                            x-ref="photo"
-                            x-on:change="
-                                    photoName = $refs.photo.files[0].name;
-                                    const reader = new FileReader();
-                                    reader.onload = (e) => {
-                                        photoPreview = e.target.result;
-                                    };
-                                    reader.readAsDataURL($refs.photo.files[0]);
-                            " />
+                <input type="file" id="photo" class="hidden" wire:model.live="photo" x-ref="photo" x-on:change="
+                                        photoName = $refs.photo.files[0].name;
+                                        const reader = new FileReader();
+                                        reader.onload = (e) => {
+                                            photoPreview = e.target.result;
+                                        };
+                                        reader.readAsDataURL($refs.photo.files[0]);
+                                " />
 
-                <x-label for="photo" value="{{ __('Photo') }}" />
+                <x-label for="photo" value="{{ __('Foto') }}" />
 
-                <!-- Current Profile Photo -->
                 <div class="mt-2" x-show="! photoPreview">
-                    <img src="{{ $this->user->profile_photo_url }}" alt="{{ $this->user->name }}" class="rounded-full size-20 object-cover">
+                    <img src="{{ $this->user->profile_photo_url }}" alt="{{ $this->user->name }}"
+                        class="rounded-full size-20 object-cover">
                 </div>
 
-                <!-- New Profile Photo Preview -->
                 <div class="mt-2" x-show="photoPreview" style="display: none;">
                     <span class="block rounded-full size-20 bg-cover bg-no-repeat bg-center"
-                          x-bind:style="'background-image: url(\'' + photoPreview + '\');'">
-                    </span>
+                        x-bind:style="'background-image: url(\'' + photoPreview + '\');'"></span>
                 </div>
 
                 <x-secondary-button class="mt-2 me-2" type="button" x-on:click.prevent="$refs.photo.click()">
-                    {{ __('Select A New Photo') }}
+                    {{ __('Neues Foto auswählen') }}
                 </x-secondary-button>
 
                 @if ($this->user->profile_photo_path)
                     <x-secondary-button type="button" class="mt-2" wire:click="deleteProfilePhoto">
-                        {{ __('Remove Photo') }}
+                        {{ __('Foto entfernen') }}
                     </x-secondary-button>
                 @endif
 
@@ -52,35 +46,83 @@
             </div>
         @endif
 
-        <!-- Name -->
-        <div class="col-span-6 sm:col-span-4">
-            <x-label for="name" value="{{ __('Name') }}" />
-            <x-input id="name" type="text" class="mt-1 block w-full" wire:model="state.name" required autocomplete="name" />
-            <x-input-error for="name" class="mt-2" />
+        <!-- Vorname -->
+        <div class="col-span-6 sm:col-span-3">
+            <x-label for="vorname" value="{{ __('Vorname') }}" />
+            <x-input id="vorname" type="text" class="mt-1 block w-full" wire:model="state.vorname" required />
+            <x-input-error for="vorname" class="mt-2" />
         </div>
 
-        <!-- Email -->
+        <!-- Nachname -->
+        <div class="col-span-6 sm:col-span-3">
+            <x-label for="nachname" value="{{ __('Nachname') }}" />
+            <x-input id="nachname" type="text" class="mt-1 block w-full" wire:model="state.nachname" required />
+            <x-input-error for="nachname" class="mt-2" />
+        </div>
+
+        <!-- Straße -->
+        <div class="col-span-4">
+            <x-label for="strasse" value="{{ __('Straße') }}" />
+            <x-input id="strasse" type="text" class="mt-1 block w-full" wire:model="state.strasse" required />
+            <x-input-error for="strasse" class="mt-2" />
+        </div>
+
+        <!-- Hausnummer -->
+        <div class="col-span-2">
+            <x-label for="hausnummer" value="{{ __('Hausnummer') }}" />
+            <x-input id="hausnummer" type="text" class="mt-1 block w-full" wire:model="state.hausnummer" required />
+            <x-input-error for="hausnummer" class="mt-2" />
+        </div>
+
+        <!-- PLZ -->
+        <div class="col-span-2">
+            <x-label for="plz" value="{{ __('PLZ') }}" />
+            <x-input id="plz" type="text" class="mt-1 block w-full" wire:model="state.plz" required />
+            <x-input-error for="plz" class="mt-2" />
+        </div>
+
+        <!-- Stadt -->
+        <div class="col-span-4">
+            <x-label for="stadt" value="{{ __('Stadt') }}" />
+            <x-input id="stadt" type="text" class="mt-1 block w-full" wire:model="state.stadt" required />
+            <x-input-error for="stadt" class="mt-2" />
+        </div>
+
+        <!-- Land -->
+        <div class="col-span-6 sm:col-span-4">
+            <x-label for="land" value="{{ __('Land') }}" />
+            <select id="land" wire:model="state.land" required
+                class="mt-1 block w-full rounded-md shadow-sm border-gray-300">
+                <option value="Deutschland">Deutschland</option>
+                <option value="Österreich">Österreich</option>
+                <option value="Schweiz">Schweiz</option>
+            </select>
+            <x-input-error for="land" class="mt-2" />
+        </div>
+
+        <!-- Telefon -->
+        <div class="col-span-6 sm:col-span-4">
+            <x-label for="telefon" value="{{ __('Telefonnummer (optional)') }}" />
+            <x-input id="telefon" type="tel" class="mt-1 block w-full" wire:model="state.telefon" />
+            <x-input-error for="telefon" class="mt-2" />
+        </div>
+
+        <!-- Mitgliedsbeitrag -->
+        <div class="col-span-6 sm:col-span-4">
+            <x-label for="mitgliedsbeitrag" value="{{ __('Mitgliedsbeitrag (jährlich, min. 12€)') }}" />
+            <x-input id="mitgliedsbeitrag" type="number" min="12" class="mt-1 block w-full"
+                wire:model="state.mitgliedsbeitrag" required />
+            <x-input-error for="mitgliedsbeitrag" class="mt-2" />
+        </div>
+
+        <!-- E-Mail -->
         <div class="col-span-6 sm:col-span-4">
             <x-label for="email" value="{{ __('E-Mail') }}" />
-            <x-input id="email" type="email" class="mt-1 block w-full" wire:model="state.email" required autocomplete="username" />
+            <x-input id="email" type="email" class="mt-1 block w-full" wire:model="state.email" required
+                autocomplete="username" />
             <x-input-error for="email" class="mt-2" />
-
-            @if (Laravel\Fortify\Features::enabled(Laravel\Fortify\Features::emailVerification()) && ! $this->user->hasVerifiedEmail())
-                <p class="text-sm mt-2 dark:text-white">
-                    {{ __('neine Mailadresse wurde noch nicht verifiziert.') }}
-
-                    <button type="button" class="underline text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800" wire:click.prevent="sendEmailVerification">
-                        {{ __('Hier klicken um neue Verifizierungsmail zu erhalten.') }}
-                    </button>
-                </p>
-
-                @if ($this->verificationLinkSent)
-                    <p class="mt-2 font-medium text-sm text-green-600 dark:text-green-400">
-                        {{ __('Die Verifizierungsmail wurde erfolgreich versendet.') }}
-                    </p>
-                @endif
-            @endif
         </div>
+
     </x-slot>
 
     <x-slot name="actions">
@@ -88,7 +130,7 @@
             {{ __('Gespeichert.') }}
         </x-action-message>
 
-        <x-button wire:loading.attr="disabled" wire:target="photo">
+        <x-button wire:loading.attr="disabled">
             {{ __('Speichern') }}
         </x-button>
     </x-slot>
