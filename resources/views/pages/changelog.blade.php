@@ -6,6 +6,17 @@
             <h2 class="text-xl font-semibold mb-2">Version 0.4.0 (04.04.2025)</h2>
             <h3 class="text-l font-semibold mb-2">Features:</h3>
             <ul class="list-disc ml-6 mt-2">
+                <li></li>
+            </ul>
+            <h3 class="text-l font-semibold mb-2">Änderungen:</h3>
+            <ul class="list-disc ml-6 mt-2">
+                <li>Text der Bestätigungsmail angepasst (Danke Tanja!)</li>
+            </ul>
+        </section>
+        <section class="mb-6">
+            <h2 class="text-xl font-semibold mb-2">Version 0.4.0 (04.04.2025)</h2>
+            <h3 class="text-l font-semibold mb-2">Features:</h3>
+            <ul class="list-disc ml-6 mt-2">
                 <li>Neuer Abschnitt Serienspezifische Daten im Profil ergänzt (Danke Arndt!)</li>
                 <li>Mitgliederliste im internen Mitgliederbereich ergänzt (Danke Markus!)</li>
                 <li>Mitgliederkarte im internen Mitgliederbereich ergänzt</li>
