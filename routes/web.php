@@ -9,6 +9,7 @@ use App\Http\Controllers\PhotoGalleryController;
 use App\Http\Controllers\MitgliederController;
 use App\Http\Controllers\ProfileViewController;
 use App\Http\Middleware\RedirectIfAnwaerter;
+use App\Http\Controllers\MitgliederKarteController;
 
 // Öffentliche Seiten
 Route::get('/', [PageController::class, 'home'])->name('home');
@@ -44,4 +45,5 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
     Route::put('/mitglieder/{user}/role', [MitgliederController::class, 'changeRole'])->name('mitglieder.change-role');
     Route::delete('/mitglieder/{user}', [MitgliederController::class, 'removeMember'])->name('mitglieder.remove');
     Route::get('/profile/{user}', [ProfileViewController::class, 'show'])->name('profile.view');
+    Route::get('/mitglieder/karte', [MitgliederKarteController::class, 'index'])->name('mitglieder.karte');
 });
