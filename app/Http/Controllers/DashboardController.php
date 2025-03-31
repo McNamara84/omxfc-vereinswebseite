@@ -43,7 +43,7 @@ class DashboardController extends Controller
         $team = $user->currentTeam;
         $team->users()->updateExistingPivot($user->id, ['role' => 'Mitglied']);
 
-        return back()->with('status', 'Anwärter genehmigt.');
+        return back()->with('status', 'Antrag genehmigt.');
     }
 
     public function rejectAnwaerter(User $user)
@@ -52,6 +52,6 @@ class DashboardController extends Controller
         $team->users()->detach($user->id);
         $user->delete();
 
-        return back()->with('status', 'Anwärter abgelehnt und gelöscht.');
+        return back()->with('status', 'Antrag abgelehnt und gelöscht.');
     }
 }
