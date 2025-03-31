@@ -83,7 +83,7 @@ class MaddraxDataService
     }
 
     /**
-     * Alle Figuren distinct und sortiert nach Bewertung der Romane zurückgeben
+     * Alle Figuren distinct und alphabetisch sortiert zurückgeben
      */
     public static function getFiguren(): array
     {
