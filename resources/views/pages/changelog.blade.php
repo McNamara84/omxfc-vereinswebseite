@@ -8,10 +8,14 @@
             <ul class="list-disc ml-6 mt-2">
                 <li>Mailversand bei Genehmigung von Mitgliedsnträgen implementiert</li>
                 <li>Anzeige von Regionalstammtischen auf der Mitgliederkarte implementiert</li>
+                <li>Sortierung der Mitgliederliste nach Namen, Mitgliedsbeitrag und Rolle ermöglicht (Danke Tanja!)</li>
             </ul>
             <h3 class="text-l font-semibold mb-2">Änderungen:</h3>
             <ul class="list-disc ml-6 mt-2">
                 <li>Text der Bestätigungsmail angepasst (Danke Tanja!)</li>
+                <li>Mitgliederliste auch im Dark Mode lesbar gemacht (Danke Tanja!)</li>
+                <li>Buttons in Mitgliederliste verkleinert</li>
+                <li>Responsivität der Mitgliederliste verbessert</li>
             </ul>
         </section>
         <section class="mb-6">
