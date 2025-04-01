@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
+use App\Mail\MitgliedGenehmigtMail;
+use Illuminate\Support\Facades\Mail;
 
 class DashboardController extends Controller
 {
@@ -42,6 +44,7 @@ class DashboardController extends Controller
     {
         $team = $user->currentTeam;
         $team->users()->updateExistingPivot($user->id, ['role' => 'Mitglied']);
+        Mail::to($user->email)->send(new MitgliedGenehmigtMail($user));
 
         return back()->with('status', 'Antrag genehmigt.');
     }
