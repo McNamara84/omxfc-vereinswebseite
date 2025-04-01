@@ -9,6 +9,8 @@
                 <li>Mailversand bei Genehmigung von Mitgliedsnträgen implementiert</li>
                 <li>Anzeige von Regionalstammtischen auf der Mitgliederkarte implementiert</li>
                 <li>Sortierung der Mitgliederliste nach Namen, Mitgliedsbeitrag und Rolle ermöglicht (Danke Tanja!)</li>
+                <li>Neue Spalte Bezahlt bis in Mitgliederliste ergänzt</li>
+                <li>Neue Spalte Mitglied seit in Mitgliederliste ergänzt</li>
             </ul>
             <h3 class="text-l font-semibold mb-2">Änderungen:</h3>
             <ul class="list-disc ml-6 mt-2">

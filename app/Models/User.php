@@ -49,6 +49,8 @@ class User extends Authenticatable
         'lieblingsschauplatz',
         'lieblingsautor',
         'lieblingszyklus',
+        'mitglied_seit',
+        'bezahlt_bis',
     ];
 
     /**
@@ -82,6 +84,8 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'mitglied_seit' => 'date',
+            'bezahlt_bis' => 'date',
         ];
     }
 }

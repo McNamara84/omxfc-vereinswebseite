@@ -18,7 +18,7 @@ class MitgliederController extends Controller
         $sortDir = $request->input('dir', 'asc'); // Standardrichtung: aufsteigend
 
         // Nur erlaubte Sortierfelder akzeptieren
-        $allowedSortFields = ['name', 'role', 'mitgliedsbeitrag'];
+        $allowedSortFields = ['name', 'role', 'mitgliedsbeitrag', 'mitglied_seit', 'bezahlt_bis'];
         if (!in_array($sortBy, $allowedSortFields)) {
             $sortBy = 'name';
         }

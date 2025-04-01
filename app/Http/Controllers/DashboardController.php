@@ -44,6 +44,9 @@ class DashboardController extends Controller
     {
         $team = $user->currentTeam;
         $team->users()->updateExistingPivot($user->id, ['role' => 'Mitglied']);
+        // Mitgliedsdatum setzen
+        $user->mitglied_seit = now()->toDateString();
+        $user->save();
         Mail::to($user->email)->send(new MitgliedGenehmigtMail($user));
 
         return back()->with('status', 'Antrag genehmigt.');
