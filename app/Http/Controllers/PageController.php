@@ -129,6 +129,11 @@ class PageController extends Controller
         return view('pages.mitglied_werden_erfolgreich');
     }
 
+    public function mitgliedWerdenBestaetigt()
+    {
+        return view('pages.mitglied_werden_bestaetigt');
+    }
+
     public function protokolle()
     {
         $protokolle = [

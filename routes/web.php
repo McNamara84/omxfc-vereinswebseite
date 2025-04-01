@@ -23,6 +23,7 @@ Route::get('/impressum', [PageController::class, 'impressum'])->name('impressum'
 Route::get('/datenschutz', [PageController::class, 'datenschutz'])->name('datenschutz');
 Route::get('/changelog', [PageController::class, 'changelog'])->name('changelog');
 Route::get('/mitglied-werden/erfolgreich', [PageController::class, 'mitgliedWerdenErfolgreich'])->name('mitglied.werden.erfolgreich');
+Route::get('/mitglied-werden/bestaetigt', [PageController::class, 'mitgliedWerdenBestaetigt'])->name('mitglied.werden.bestaetigt');
 
 // POST Route für Mitgliedschaftsantrag
 Route::post('/mitglied-werden', [MitgliedschaftController::class, 'store'])->name('mitglied.store');

@@ -15,7 +15,8 @@
                 <li>Text der Bestätigungsmail angepasst (Danke Tanja!)</li>
                 <li>Mitgliederliste auch im Dark Mode lesbar gemacht (Danke Tanja!)</li>
                 <li>Buttons in Mitgliederliste verkleinert</li>
-                <li>Responsivität der Mitgliederliste verbessert</li>
+                <li>Responsivität der Mitgliederliste verbessert (Danke Markus!)</li>
+                <li>Klick auf die den Bestätigungslink leitet nun auf eine eigene Seite mit Erklärungstext weiter (Danke Tanja!)</li>
             </ul>
         </section>
         <section class="mb-6">
