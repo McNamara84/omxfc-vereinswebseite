@@ -2,7 +2,7 @@
     <div class="py-8">
         <div class="max-w-3xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
-                <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-6">Neue Aufgabe erstellen</h2>
+                <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-6">Neue Challenge erstellen</h2>
 
                 <form action="{{ route('todos.store') }}" method="POST">
                     @csrf
@@ -49,7 +49,7 @@
                             required
                             class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
                         <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Wie viele Punkte erhält das Mitglied
-                            für die Erledigung dieser Aufgabe?</p>
+                            für die Erledigung dieser Challenge?</p>
                         @error('points')
                             <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                         @enderror
@@ -62,7 +62,7 @@
                         </a>
                         <button type="submit"
                             class="inline-flex items-center px-4 py-2 bg-[#8B0116] dark:bg-[#C41E3A] border border-transparent rounded-md font-semibold text-white hover:bg-[#A50019] dark:hover:bg-[#D63A4D] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#8B0116] dark:focus:ring-[#FF6B81]">
-                            Aufgabe erstellen
+                            Challenge erstellen
                         </button>
                     </div>
                 </form>

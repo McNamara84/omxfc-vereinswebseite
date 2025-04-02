@@ -31,12 +31,12 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                             </svg>
-                            Neue Aufgabe erstellen
+                            Neue Challenge erstellen
                         </a>
                     </div>
                 @endif
             </div>
-            <!-- Deine Aufgaben -->
+            <!-- Deine Challenges -->
             <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
                 <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4">Deine Challenges</h2>
                 @if($assignedTodos->isEmpty())
@@ -145,7 +145,7 @@
                     </div>
                 @endif
             </div>
-            <!-- Offene Aufgaben -->
+            <!-- Offene Challenges -->
             <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
                 <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4">Offene Challenges</h2>
                 @if($unassignedTodos->isEmpty())
@@ -225,7 +225,7 @@
                     </div>
                 @endif
             </div>
-            <!-- Erledigte Aufgaben (nur wenn Verifizierungsrechte vorhanden) -->
+            <!-- Erledigte Challenges (nur wenn Verifizierungsrechte vorhanden) -->
             @if($canVerifyTodos && $completedTodos->where('status', 'completed')->isNotEmpty())
                 <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
                     <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4">Zu verifizierende Challenges
@@ -307,7 +307,7 @@
                     </div>
                 </div>
             @endif
-            <!-- In Bearbeitung befindliche Aufgaben -->
+            <!-- In Bearbeitung befindliche Challenges -->
             <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
                 <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4">In Bearbeitung befindliche
                     Challenges</h2>

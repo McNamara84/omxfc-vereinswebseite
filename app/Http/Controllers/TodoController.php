@@ -130,7 +130,7 @@ class TodoController extends Controller
         ]);
 
         return redirect()->route('todos.index')
-            ->with('status', 'Aufgabe wurde erfolgreich erstellt.');
+            ->with('status', 'Challenge wurde erfolgreich erstellt.');
     }
 
     /**
@@ -143,7 +143,7 @@ class TodoController extends Controller
 
         if (!$memberTeam || $todo->team_id !== $memberTeam->id) {
             return redirect()->route('todos.index')
-                ->with('error', 'Aufgabe nicht gefunden.');
+                ->with('error', 'Challenge nicht gefunden.');
         }
 
         $membership = $memberTeam->users()->where('user_id', $user->id)->first();
@@ -176,12 +176,12 @@ class TodoController extends Controller
 
         if (!$memberTeam || $todo->team_id !== $memberTeam->id) {
             return redirect()->route('todos.index')
-                ->with('error', 'Aufgabe nicht gefunden.');
+                ->with('error', 'Challenge nicht gefunden.');
         }
 
         if ($todo->assigned_to || $todo->status !== 'open') {
             return redirect()->route('todos.show', $todo)
-                ->with('error', 'Diese Aufgabe wurde bereits übernommen oder ist nicht mehr verfügbar.');
+                ->with('error', 'Diese Challenge wurde bereits übernommen oder ist nicht mehr verfügbar.');
         }
 
         $membership = $memberTeam->users()->where('user_id', $user->id)->first();
@@ -189,7 +189,7 @@ class TodoController extends Controller
 
         if (!in_array($userRole, ['Mitglied', 'Ehrenmitglied', 'Kassenwart', 'Vorstand', 'Admin'])) {
             return redirect()->route('todos.show', $todo)
-                ->with('error', 'Sie haben keine Berechtigung, diese Aufgabe zu übernehmen.');
+                ->with('error', 'Sie haben keine Berechtigung, diese Challenge zu übernehmen.');
         }
 
         $todo->update([
@@ -198,7 +198,7 @@ class TodoController extends Controller
         ]);
 
         return redirect()->route('todos.show', $todo)
-            ->with('status', 'Aufgabe wurde erfolgreich übernommen.');
+            ->with('status', 'Challenge wurde erfolgreich übernommen.');
     }
 
     /**
@@ -210,7 +210,7 @@ class TodoController extends Controller
 
         if ($todo->assigned_to !== $user->id || $todo->status !== 'assigned') {
             return redirect()->route('todos.show', $todo)
-                ->with('error', 'Sie können diese Aufgabe nicht als erledigt markieren.');
+                ->with('error', 'Sie können diese Challenge nicht als erledigt markieren.');
         }
 
         $todo->update([
@@ -219,7 +219,7 @@ class TodoController extends Controller
         ]);
 
         return redirect()->route('todos.show', $todo)
-            ->with('status', 'Aufgabe wurde als erledigt markiert und wartet nun auf Verifizierung.');
+            ->with('status', 'Challenge wurde als erledigt markiert und wartet nun auf Verifizierung.');
     }
 
     /**
@@ -232,12 +232,12 @@ class TodoController extends Controller
 
         if (!$memberTeam || $todo->team_id !== $memberTeam->id) {
             return redirect()->route('todos.index')
-                ->with('error', 'Aufgabe nicht gefunden.');
+                ->with('error', 'Challenge nicht gefunden.');
         }
 
         if ($todo->status !== 'completed') {
             return redirect()->route('todos.show', $todo)
-                ->with('error', 'Diese Aufgabe kann nicht verifiziert werden.');
+                ->with('error', 'Diese Challenge kann nicht verifiziert werden.');
         }
 
         $membership = $memberTeam->users()->where('user_id', $user->id)->first();
@@ -245,7 +245,7 @@ class TodoController extends Controller
 
         if (!in_array($userRole, ['Kassenwart', 'Vorstand', 'Admin'])) {
             return redirect()->route('todos.show', $todo)
-                ->with('error', 'Sie haben keine Berechtigung, diese Aufgabe zu verifizieren.');
+                ->with('error', 'Sie haben keine Berechtigung, diese Challenge zu verifizieren.');
         }
 
         // Punkte gutschreiben
@@ -263,7 +263,7 @@ class TodoController extends Controller
         ]);
 
         return redirect()->route('todos.show', $todo)
-            ->with('status', 'Aufgabe wurde verifiziert und die Punkte wurden gutgeschrieben.');
+            ->with('status', 'Challenge wurde verifiziert und die Punkte wurden gutgeschrieben.');
     }
 
     /**
@@ -275,7 +275,7 @@ class TodoController extends Controller
 
         if ($todo->assigned_to !== $user->id || $todo->status !== 'assigned') {
             return redirect()->route('todos.show', $todo)
-                ->with('error', 'Sie können diese Aufgabe nicht freigeben, da sie Ihnen nicht zugewiesen ist oder nicht im Bearbeitungsstatus ist.');
+                ->with('error', 'Du kannst diese Challenge nicht freigeben, da sie Ihnen nicht zugewiesen ist oder nicht im Bearbeitungsstatus ist.');
         }
 
         $todo->update([
@@ -284,6 +284,6 @@ class TodoController extends Controller
         ]);
 
         return redirect()->route('todos.index')
-            ->with('status', 'Aufgabe wurde erfolgreich freigegeben und steht nun wieder zur Verfügung.');
+            ->with('status', 'Challenge wurde erfolgreich freigegeben und steht nun wieder zur Verfügung.');
     }
 }

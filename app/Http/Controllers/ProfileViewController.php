@@ -67,7 +67,7 @@ class ProfileViewController extends Controller
                 ->where('user_points.team_id', $memberTeam->id)
                 ->sum('points');
 
-            // Anzahl abgeschlossener Aufgaben
+            // Anzahl abgeschlossener Challenges
             $completedTasks = UserPoint::where('user_points.user_id', $user->id)
                 ->where('user_points.team_id', $memberTeam->id)
                 ->count();
