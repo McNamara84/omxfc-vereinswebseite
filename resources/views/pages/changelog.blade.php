@@ -6,7 +6,7 @@
             <h2 class="text-xl font-semibold mb-2">Version 0.6.0 (06.04.2025)</h2>
             <h3 class="text-l font-semibold mb-2">Features:</h3>
             <ul class="list-disc ml-6 mt-2">
-                <li></li>
+                <li>Neue Seite Aufgaben im internen Mitgliederbereich implementiert</li>
             </ul>
             <h3 class="text-l font-semibold mb-2">Änderungen:</h3>
             <ul class="list-disc ml-6 mt-2">
@@ -14,7 +14,7 @@
             </ul>
         </section>
         <section class="mb-6">
-            <h2 class="text-xl font-semibold mb-2">Version 0.5.0 (04.04.2025)</h2>
+            <h2 class="text-xl font-semibold mb-2">Version 0.5.0 (02.04.2025)</h2>
             <h3 class="text-l font-semibold mb-2">Features:</h3>
             <ul class="list-disc ml-6 mt-2">
                 <li>Mailversand bei Genehmigung von Mitgliedsnträgen implementiert</li>

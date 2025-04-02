@@ -28,6 +28,9 @@
         <x-nav-link href="{{ route('fotogalerie') }}" :active="request()->routeIs('fotogalerie')">
             {{ __('Fotos') }}
         </x-nav-link>
+        <x-nav-link href="{{ route('todos.index') }}" :active="request()->routeIs('todos.*')">
+            {{ __('Aufgaben') }}
+        </x-nav-link>
     @endauth
 
     @guest
@@ -147,6 +150,9 @@
                 </x-responsive-nav-link>
                 <x-responsive-nav-link href="{{ route('fotogalerie') }}" :active="request()->routeIs('fotogalerie')">
                     {{ __('Fotos') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link href="{{ route('todos.index') }}" :active="request()->routeIs('todos.*')">
+                    {{ __('Aufgaben') }}
                 </x-responsive-nav-link>
             @endauth
         

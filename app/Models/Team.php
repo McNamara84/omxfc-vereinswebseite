@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Laravel\Jetstream\Events\TeamCreated;
 use Laravel\Jetstream\Events\TeamDeleted;
 use Laravel\Jetstream\Events\TeamUpdated;
@@ -52,8 +53,24 @@ class Team extends JetstreamTeam
     public function hasUserWithRole(User $user, string $role): bool
     {
         return $this->users()
-                    ->where('user_id', $user->id)
-                    ->wherePivot('role', $role)
-                    ->exists();
+            ->where('user_id', $user->id)
+            ->wherePivot('role', $role)
+            ->exists();
+    }
+
+    /**
+     * Get the todos for the team.
+     */
+    public function todos(): HasMany
+    {
+        return $this->hasMany(Todo::class);
+    }
+
+    /**
+     * Get the user points for the team.
+     */
+    public function userPoints(): HasMany
+    {
+        return $this->hasMany(UserPoint::class);
     }
 }

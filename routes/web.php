@@ -10,6 +10,7 @@ use App\Http\Controllers\MitgliederController;
 use App\Http\Controllers\ProfileViewController;
 use App\Http\Middleware\RedirectIfAnwaerter;
 use App\Http\Controllers\MitgliederKarteController;
+use App\Http\Controllers\TodoController;
 
 // Öffentliche Seiten
 Route::get('/', [PageController::class, 'home'])->name('home');
@@ -47,4 +48,11 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
     Route::delete('/mitglieder/{user}', [MitgliederController::class, 'removeMember'])->name('mitglieder.remove');
     Route::get('/profile/{user}', [ProfileViewController::class, 'show'])->name('profile.view');
     Route::get('/mitglieder/karte', [MitgliederKarteController::class, 'index'])->name('mitglieder.karte');
+    Route::get('/todos', [TodoController::class, 'index'])->name('todos.index');
+    Route::get('/todos/create', [TodoController::class, 'create'])->name('todos.create');
+    Route::post('/todos', [TodoController::class, 'store'])->name('todos.store');
+    Route::get('/todos/{todo}', [TodoController::class, 'show'])->name('todos.show');
+    Route::post('/todos/{todo}/assign', [TodoController::class, 'assign'])->name('todos.assign');
+    Route::post('/todos/{todo}/complete', [TodoController::class, 'complete'])->name('todos.complete');
+    Route::post('/todos/{todo}/verify', [TodoController::class, 'verify'])->name('todos.verify');
 });
