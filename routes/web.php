@@ -11,6 +11,7 @@ use App\Http\Controllers\ProfileViewController;
 use App\Http\Middleware\RedirectIfAnwaerter;
 use App\Http\Controllers\MitgliederKarteController;
 use App\Http\Controllers\TodoController;
+use App\Http\Controllers\MeetingController;
 
 // Öffentliche Seiten
 Route::get('/', [PageController::class, 'home'])->name('home');
@@ -56,4 +57,6 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
     Route::post('/todos/{todo}/complete', [TodoController::class, 'complete'])->name('todos.complete');
     Route::post('/todos/{todo}/verify', [TodoController::class, 'verify'])->name('todos.verify');
     Route::post('/todos/{todo}/release', [TodoController::class, 'release'])->name('todos.release');
+    Route::get('/meetings', [MeetingController::class, 'index'])->name('meetings');
+    Route::post('/meetings/redirect', [MeetingController::class, 'redirectToZoom'])->name('meetings.redirect');
 });
