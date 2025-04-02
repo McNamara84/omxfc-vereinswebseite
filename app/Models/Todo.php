@@ -63,6 +63,14 @@ class Todo extends Model
     }
 
     /**
+     * Get the category that the todo belongs to.
+     */
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(TodoCategory::class);
+    }
+
+    /**
      * Prüft, ob ein Benutzer dieses Todo übernehmen kann.
      */
     public function canBeAssignedTo(User $user): bool

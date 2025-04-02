@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\Todo;
 use App\Models\Team;
 use App\Models\UserPoint;
+use App\Models\TodoCategory;
 
 class TodoController extends Controller
 {
@@ -49,6 +50,7 @@ class TodoController extends Controller
             ->sum('points');
 
         return view('todos.index', [
+            'todos' => $todos,
             'assignedTodos' => $assignedTodos,
             'unassignedTodos' => $unassignedTodos,
             'completedTodos' => $completedTodos,
@@ -81,8 +83,11 @@ class TodoController extends Controller
                 ->with('error', 'Sie haben keine Berechtigung, Aufgaben zu erstellen.');
         }
 
+        $categories = TodoCategory::orderBy('name')->get();
+
         return view('todos.create', [
-            'memberTeam' => $memberTeam
+            'memberTeam' => $memberTeam,
+            'categories' => $categories
         ]);
     }
 
@@ -111,6 +116,7 @@ class TodoController extends Controller
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'points' => 'required|integer|min:1|max:100',
+            'category_id' => 'required|exists:todo_categories,id',
         ]);
 
         Todo::create([
@@ -119,6 +125,7 @@ class TodoController extends Controller
             'title' => $request->title,
             'description' => $request->description,
             'points' => $request->points,
+            'category_id' => $request->category_id,
             'status' => 'open',
         ]);
 
@@ -257,5 +264,26 @@ class TodoController extends Controller
 
         return redirect()->route('todos.show', $todo)
             ->with('status', 'Aufgabe wurde verifiziert und die Punkte wurden gutgeschrieben.');
+    }
+
+    /**
+     * Gibt ein angenommenes Todo wieder frei.
+     */
+    public function release(Todo $todo)
+    {
+        $user = Auth::user();
+
+        if ($todo->assigned_to !== $user->id || $todo->status !== 'assigned') {
+            return redirect()->route('todos.show', $todo)
+                ->with('error', 'Sie können diese Aufgabe nicht freigeben, da sie Ihnen nicht zugewiesen ist oder nicht im Bearbeitungsstatus ist.');
+        }
+
+        $todo->update([
+            'assigned_to' => null,
+            'status' => 'open'
+        ]);
+
+        return redirect()->route('todos.index')
+            ->with('status', 'Aufgabe wurde erfolgreich freigegeben und steht nun wieder zur Verfügung.');
     }
 }

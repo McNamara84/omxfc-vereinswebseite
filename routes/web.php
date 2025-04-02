@@ -55,4 +55,5 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
     Route::post('/todos/{todo}/assign', [TodoController::class, 'assign'])->name('todos.assign');
     Route::post('/todos/{todo}/complete', [TodoController::class, 'complete'])->name('todos.complete');
     Route::post('/todos/{todo}/verify', [TodoController::class, 'verify'])->name('todos.verify');
+    Route::post('/todos/{todo}/release', [TodoController::class, 'release'])->name('todos.release');
 });
