@@ -8,16 +8,38 @@ use Illuminate\Support\Facades\Auth;
 
 class MitgliederController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        // Bestehender Code bleibt unverändert...
         $user = Auth::user();
         $team = $user->currentTeam;
 
+        // Sortierparameter auslesen
+        $sortBy = $request->input('sort', 'name'); // Standardsortierung: Name
+        $sortDir = $request->input('dir', 'asc'); // Standardrichtung: aufsteigend
+
+        // Nur erlaubte Sortierfelder akzeptieren
+        $allowedSortFields = ['name', 'role', 'mitgliedsbeitrag', 'mitglied_seit', 'bezahlt_bis'];
+        if (!in_array($sortBy, $allowedSortFields)) {
+            $sortBy = 'name';
+        }
+
+        // Sortierrichtung validieren
+        if (!in_array($sortDir, ['asc', 'desc'])) {
+            $sortDir = 'asc';
+        }
+
         // Nur Nutzer mit Rollen außer "Anwärter" anzeigen
-        $members = $team->users()
-            ->wherePivotNotIn('role', ['Anwärter'])
-            ->get();
+        $membersQuery = $team->users()
+            ->wherePivotNotIn('role', ['Anwärter']);
+
+        // Sortierung anwenden
+        if ($sortBy === 'role') {
+            // Nach Rolle sortieren (Pivot-Tabelle)
+            $members = $membersQuery->orderByPivot('role', $sortDir)->get();
+        } else {
+            // Nach anderen Feldern sortieren
+            $members = $membersQuery->orderBy($sortBy, $sortDir)->get();
+        }
 
         // Korrekte Ermittlung der Rolle des eingeloggten Nutzers
         $userRole = $team->users()
@@ -47,7 +69,9 @@ class MitgliederController extends Controller
             'canViewDetails' => $canViewDetails,
             'currentUser' => $user,
             'currentUserRank' => $currentUserRank,
-            'roleRanks' => $roleRanks
+            'roleRanks' => $roleRanks,
+            'sortBy' => $sortBy,
+            'sortDir' => $sortDir
         ]);
     }
 

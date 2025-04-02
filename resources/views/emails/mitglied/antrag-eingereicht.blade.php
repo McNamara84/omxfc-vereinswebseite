@@ -1,9 +1,7 @@
 <x-mail::message>
 # Wundan zum Gruße, {{ $user->vorname }}!
 
-Dein Mitgliedschaftsantrag wird nun geprüft. Dies geschieht manuell. Lass uns etwas Zeit um deinen Antrag zu prüfen. Wir informieren dich, sobald dein Antrag bearbeitet wurde und senden dir dann auch direkt die Zahlungsdaten für den Mitgliedsbeitrag zu.
-    
-Bis es so weit ist bestätige schon mal deinen Account, indem du auf den folgenden Button klickst.
+Fast fertig! Bitte bestätige deine E-Mail-Adresse. Solange du diese nicht bestätigt hast, wird der Vorstand deinen Antrag nicht zur Prüfung vorgelegt bekommen.
 
 <x-mail::button :url="$verificationUrl" color="success">Mailadresse bestätigen</x-mail::button>
 

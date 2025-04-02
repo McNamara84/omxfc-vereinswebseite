@@ -3,7 +3,26 @@
         <h1 class="text-2xl sm:text-3xl font-bold text-[#8B0116] dark:text-[#ff4b63] mb-4 sm:mb-8">Changelog</h1>
         <p class="mb-6">Auf dieser Seite werden sämtliche Änderungen an der vereinswebseite des Offiziellen Maddrax Fanclub e. V. dokumentiert.</p>
         <section class="mb-6">
-            <h2 class="text-xl font-semibold mb-2">Version 0.4.0 (04.04.2025)</h2>
+            <h2 class="text-xl font-semibold mb-2">Version 0.5.0 (02.04.2025)</h2>
+            <h3 class="text-l font-semibold mb-2">Features:</h3>
+            <ul class="list-disc ml-6 mt-2">
+                <li>Mailversand bei Genehmigung von Mitgliedsnträgen implementiert</li>
+                <li>Anzeige von Regionalstammtischen auf der Mitgliederkarte implementiert</li>
+                <li>Sortierung der Mitgliederliste nach Namen, Mitgliedsbeitrag und Rolle ermöglicht (Danke Tanja!)</li>
+                <li>Neue Spalte Bezahlt bis in Mitgliederliste ergänzt</li>
+                <li>Neue Spalte Mitglied seit in Mitgliederliste ergänzt</li>
+            </ul>
+            <h3 class="text-l font-semibold mb-2">Änderungen:</h3>
+            <ul class="list-disc ml-6 mt-2">
+                <li>Text der Bestätigungsmail angepasst (Danke Tanja!)</li>
+                <li>Mitgliederliste auch im Dark Mode lesbar gemacht (Danke Tanja!)</li>
+                <li>Buttons in Mitgliederliste verkleinert</li>
+                <li>Responsivität der Mitgliederliste verbessert (Danke Markus!)</li>
+                <li>Klick auf die den Bestätigungslink leitet nun auf eine eigene Seite mit Erklärungstext weiter (Danke Tanja!)</li>
+            </ul>
+        </section>
+        <section class="mb-6">
+            <h2 class="text-xl font-semibold mb-2">Version 0.4.0 (01.04.2025)</h2>
             <h3 class="text-l font-semibold mb-2">Features:</h3>
             <ul class="list-disc ml-6 mt-2">
                 <li>Neuer Abschnitt Serienspezifische Daten im Profil ergänzt (Danke Arndt!)</li>

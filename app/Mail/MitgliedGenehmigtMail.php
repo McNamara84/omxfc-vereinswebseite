@@ -2,20 +2,18 @@
 
 namespace App\Mail;
 
+use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
-use App\Models\User;
-use Illuminate\Support\Facades\URL;
 
-class MitgliedAntragEingereicht extends Mailable
+
+class MitgliedGenehmigtMail extends Mailable
 {
     use Queueable, SerializesModels;
-
-    public User $user;
 
     /**
      * Create a new message instance.
@@ -31,7 +29,7 @@ class MitgliedAntragEingereicht extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Mailadresse bestätigen',
+            subject: 'Mitgliedsantrag genehmigt',
         );
     }
 
@@ -41,17 +39,9 @@ class MitgliedAntragEingereicht extends Mailable
     public function content(): Content
     {
         return new Content(
-            markdown: 'emails.mitglied.antrag-eingereicht',
+            markdown: 'emails.mitglied.antrag-genehmigt',
             with: [
                 'user' => $this->user,
-                'verificationUrl' => URL::temporarySignedRoute(
-                    'verification.verify',
-                    now()->addMinutes(60), // Link ist 60 Min. gültig
-                    [
-                        'id' => $this->user->id,
-                        'hash' => sha1($this->user->email),
-                    ]
-                ),
             ],
         );
     }

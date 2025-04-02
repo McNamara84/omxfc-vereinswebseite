@@ -22,7 +22,7 @@ class CustomEmailVerificationController extends Controller
         }
 
         if ($user->hasVerifiedEmail()) {
-            return redirect()->route('login')->with('status', 'Deine E-Mail-Adresse wurde bereits verifiziert.');
+            return redirect()->route('mitglied.werden.bestaetigt')->with('status', 'Deine E-Mail-Adresse wurde bereits verifiziert.');
         }
 
         $user->markEmailAsVerified();
@@ -33,6 +33,6 @@ class CustomEmailVerificationController extends Controller
         Mail::to('omxfc.vorstand@gmail.com')->send(new AntragAnVorstand($user));
         Mail::to('holgerehrmann@gmail.com')->send(new AntragAnAdmin($user));
 
-        return redirect()->route('login')->with('status', 'Deine E-Mail-Adresse wurde erfolgreich bestätigt.');
+        return redirect()->route('mitglied.werden.bestaetigt')->with('status', 'Deine E-Mail-Adresse wurde erfolgreich bestätigt.');
     }
 }

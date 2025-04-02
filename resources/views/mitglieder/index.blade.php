@@ -2,74 +2,227 @@
     <div class="py-8">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             @if(session('status'))
-                <div class="mb-4 p-4 bg-green-100 border border-green-400 text-green-800 rounded">
+                <div class="mb-4 p-4 bg-green-100 border border-green-400 text-green-800 dark:bg-green-800 dark:border-green-700 dark:text-green-100 rounded">
                     {{ session('status') }}
                 </div>
             @endif
             
             @if(session('error'))
-                <div class="mb-4 p-4 bg-red-100 border border-red-400 text-red-800 rounded">
+                <div class="mb-4 p-4 bg-red-100 border border-red-400 text-red-800 dark:bg-red-800 dark:border-red-700 dark:text-red-100 rounded">
                     {{ session('error') }}
                 </div>
             @endif
             
-            <div class="bg-white shadow-xl sm:rounded-lg p-6">
-                <h2 class="text-2xl font-semibold text-[#8B0116] mb-6">Mitgliederliste</h2>
+            <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
+                <h2 class="text-2xl font-semibold text-[#8B0116] dark:text-red-400 mb-6">Mitgliederliste</h2>
 
                 <!-- Desktop-Ansicht (versteckt auf Mobilgeräten) -->
-                <div class="hidden md:block">
-                    <table class="min-w-full divide-y divide-gray-200">
+                <div class="hidden md:block overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                         <thead>
                             <tr>
-                                <th class="px-4 py-2 text-left">Name</th>
+                                <th class="px-4 py-2 text-left">
+                                    <a href="{{ route('mitglieder.index', ['sort' => 'name', 'dir' => ($sortBy === 'name' && $sortDir === 'asc') ? 'desc' : 'asc']) }}" 
+                                       class="flex items-center group text-gray-700 dark:text-gray-300 hover:text-[#8B0116] dark:hover:text-red-400">
+                                        Name
+                                        @if($sortBy === 'name')
+                                            <span class="ml-1">
+                                                @if($sortDir === 'asc')
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+                                                    </svg>
+                                                @else
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                                    </svg>
+                                                @endif
+                                            </span>
+                                        @endif
+                                    </a>
+                                </th>
+                                
+                                <th class="px-4 py-2 text-left">
+                                    <a href="{{ route('mitglieder.index', ['sort' => 'mitglied_seit', 'dir' => ($sortBy === 'mitglied_seit' && $sortDir === 'asc') ? 'desc' : 'asc']) }}" 
+                                       class="flex items-center group text-gray-700 dark:text-gray-300 hover:text-[#8B0116] dark:hover:text-red-400">
+                                        Mitglied seit
+                                        @if($sortBy === 'mitglied_seit')
+                                            <span class="ml-1">
+                                                @if($sortDir === 'asc')
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+                                                    </svg>
+                                                @else
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                                    </svg>
+                                                @endif
+                                            </span>
+                                        @endif
+                                    </a>
+                                </th>
+                                
+                                <th class="px-4 py-2 text-left">
+                                    <a href="{{ route('mitglieder.index', ['sort' => 'role', 'dir' => ($sortBy === 'role' && $sortDir === 'asc') ? 'desc' : 'asc']) }}" 
+                                       class="flex items-center group text-gray-700 dark:text-gray-300 hover:text-[#8B0116] dark:hover:text-red-400">
+                                        Rolle
+                                        @if($sortBy === 'role')
+                                            <span class="ml-1">
+                                                @if($sortDir === 'asc')
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+                                                    </svg>
+                                                @else
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                                    </svg>
+                                                @endif
+                                            </span>
+                                        @endif
+                                    </a>
+                                </th>
+                                
                                 @if($canViewDetails)
-                                    <th class="px-4 py-2 text-left">Kontaktdaten</th>
-                                    <th class="px-4 py-2 text-left">Adresse</th>
-                                    <th class="px-4 py-2 text-left">Beitrag</th>
+                                    <th class="px-4 py-2 text-left">
+                                        <a href="{{ route('mitglieder.index', ['sort' => 'bezahlt_bis', 'dir' => ($sortBy === 'bezahlt_bis' && $sortDir === 'asc') ? 'desc' : 'asc']) }}" 
+                                           class="flex items-center group text-gray-700 dark:text-gray-300 hover:text-[#8B0116] dark:hover:text-red-400">
+                                            Bezahlt bis
+                                            @if($sortBy === 'bezahlt_bis')
+                                                <span class="ml-1">
+                                                    @if($sortDir === 'asc')
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+                                                        </svg>
+                                                    @else
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                                        </svg>
+                                                    @endif
+                                                </span>
+                                            @endif
+                                        </a>
+                                    </th>
+                                    
+                                    <th class="px-4 py-2 text-left">
+                                        <a href="{{ route('mitglieder.index', ['sort' => 'mitgliedsbeitrag', 'dir' => ($sortBy === 'mitgliedsbeitrag' && $sortDir === 'asc') ? 'desc' : 'asc']) }}" 
+                                           class="flex items-center group text-gray-700 dark:text-gray-300 hover:text-[#8B0116] dark:hover:text-red-400">
+                                            Beitrag
+                                            @if($sortBy === 'mitgliedsbeitrag')
+                                                <span class="ml-1">
+                                                    @if($sortDir === 'asc')
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+                                                        </svg>
+                                                    @else
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                                        </svg>
+                                                    @endif
+                                                </span>
+                                            @endif
+                                        </a>
+                                    </th>
+                                    
+                                    <th class="px-4 py-2 text-left text-gray-700 dark:text-gray-300 hidden lg:table-cell">Details</th>
                                 @endif
-                                    <th class="px-4 py-2 text-left">Rolle</th>
-                                <th class="px-4 py-2 text-center">Aktionen</th>
+                                
+                                <th class="px-4 py-2 text-center text-gray-700 dark:text-gray-300">Aktionen</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-200">
+                        <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
                             @foreach($members as $member)
-                                <tr>
+                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
                                     <td class="px-4 py-3">
                                         <div class="flex items-center">
                                             <div class="h-10 w-10 flex-shrink-0">
                                                 <img class="h-10 w-10 rounded-full" src="{{ $member->profile_photo_url }}" alt="{{ $member->name }}">
                                             </div>
                                             <div class="ml-4">
-                                                <div class="font-medium text-gray-900">{{ $member->name }}</div>
+                                                <div class="font-medium text-gray-900 dark:text-gray-100">{{ $member->name }}</div>
                                                 @if($canViewDetails)
-                                                    <div class="text-sm text-gray-500">{{ $member->vorname }} {{ $member->nachname }}</div>
+                                                    <div class="text-sm text-gray-500 dark:text-gray-400">{{ $member->vorname }} {{ $member->nachname }}</div>
                                                 @endif
                                             </div>
                                         </div>
                                     </td>
                                     
+                                    <td class="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">
+                                        {{ $member->mitglied_seit ? $member->mitglied_seit->format('d.m.Y') : '-' }}
+                                    </td>
+                                    
+                                    <td class="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">
+                                        {{ $member->membership->role }}
+                                    </td>
+                                    
                                     @if($canViewDetails)
-                                        <td class="px-4 py-3">
-                                            <div class="text-sm text-gray-900">{{ $member->email }}</div>
-                                            <div class="text-sm text-gray-500">{{ $member->telefon }}</div>
+                                        <td class="px-4 py-3 text-sm">
+                                            @if($member->bezahlt_bis)
+                                                @php
+                                                    $bezahlt_bis = \Carbon\Carbon::parse($member->bezahlt_bis);
+                                                    $heute = \Carbon\Carbon::now();
+                                                    $differenz = $heute->diffInDays($bezahlt_bis, false);
+                                                @endphp
+                                                
+                                                @if($differenz < 0)
+                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-100">
+                                                        Überfällig: {{ $member->bezahlt_bis->format('d.m.Y') }}
+                                                    </span>
+                                                @elseif($differenz < 30)
+                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-100">
+                                                        {{ $member->bezahlt_bis->format('d.m.Y') }}
+                                                    </span>
+                                                @else
+                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100">
+                                                        {{ $member->bezahlt_bis->format('d.m.Y') }}
+                                                    </span>
+                                                @endif
+                                            @else
+                                                <span class="text-gray-500 dark:text-gray-400">-</span>
+                                            @endif
                                         </td>
-                                        <td class="px-4 py-3">
-                                            <div class="text-sm text-gray-900">{{ $member->strasse }} {{ $member->hausnummer }}</div>
-                                            <div class="text-sm text-gray-500">{{ $member->plz }} {{ $member->stadt }}</div>
-                                            <div class="text-sm text-gray-500">{{ $member->land }}</div>
-                                        </td>
-                                        <td class="px-4 py-3 text-sm text-gray-900">
+                                        
+                                        <td class="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">
                                             {{ $member->mitgliedsbeitrag }}
                                         </td>
-                                    @endif
-                                        <td class="px-4 py-3 text-sm text-gray-900">
-                                            {{ $member->membership->role }}
+                                        
+                                        <td class="px-4 py-3 text-sm text-gray-500 dark:text-gray-400 hidden lg:table-cell">
+                                            <div x-data="{ showDetails: false }" class="relative">
+                                                <button @click="showDetails = !showDetails" type="button" 
+                                                    class="inline-flex items-center text-blue-600 dark:text-blue-400 hover:underline">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                    </svg>
+                                                    Info
+                                                </button>
+                                                
+                                                <div x-show="showDetails" @click.away="showDetails = false" 
+                                                    class="absolute left-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-md shadow-lg z-10 p-4">
+                                                    <h4 class="font-semibold text-gray-900 dark:text-gray-100 mb-2">Kontaktdaten</h4>
+                                                    <div class="mb-3">
+                                                        <div class="text-sm">{{ $member->email }}</div>
+                                                        <div class="text-sm">{{ $member->telefon }}</div>
+                                                    </div>
+                                                    
+                                                    <h4 class="font-semibold text-gray-900 dark:text-gray-100 mb-2">Adresse</h4>
+                                                    <div class="mb-3">
+                                                        <div class="text-sm">{{ $member->strasse }} {{ $member->hausnummer }}</div>
+                                                        <div class="text-sm">{{ $member->plz }} {{ $member->stadt }}</div>
+                                                        <div class="text-sm">{{ $member->land }}</div>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </td>
+                                    @endif
+                                    
                                     <td class="px-4 py-3 text-center">
-                                        <div class="flex justify-center gap-2">
+                                        <div class="flex justify-center items-center space-x-1">
                                             <a href="{{ route('profile.view', $member->id) }}" 
-                                               class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded">
-                                                Profil
+                                               class="inline-flex items-center justify-center bg-blue-500 hover:bg-blue-600 text-white text-xs px-2 py-1 rounded" 
+                                               title="Profil ansehen">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                </svg>
+                                                <span class="ml-1 hidden xl:inline">Profil</span>
                                             </a>
                                             
                                             @if($canViewDetails && $currentUser->id !== $member->id)
@@ -82,12 +235,16 @@
                                                     <!-- Rolle ändern (Dropdown) -->
                                                     <div class="relative" x-data="{ open: false }">
                                                         <button @click="open = !open" type="button" 
-                                                            class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded">
-                                                            Rolle ändern
+                                                            class="inline-flex items-center justify-center bg-yellow-500 hover:bg-yellow-600 text-white text-xs px-2 py-1 rounded"
+                                                            title="Rolle ändern">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                                            </svg>
+                                                            <span class="ml-1 hidden xl:inline">Rolle</span>
                                                         </button>
                                                         
                                                         <div x-show="open" @click.away="open = false" 
-                                                            class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10">
+                                                            class="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg z-10">
                                                             <div class="py-1">
                                                                 @foreach($roleRanks as $role => $rank)
                                                                     @if($rank <= $currentUserRank && $role !== $memberRole)
@@ -96,7 +253,7 @@
                                                                             @method('PUT')
                                                                             <input type="hidden" name="role" value="{{ $role }}">
                                                                             <button type="submit" 
-                                                                                class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                                                                class="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">
                                                                                 Zu {{ $role }} ändern
                                                                             </button>
                                                                         </form>
@@ -112,8 +269,12 @@
                                                         @csrf
                                                         @method('DELETE')
                                                         <button type="submit" 
-                                                            class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded">
-                                                            Löschen
+                                                            class="inline-flex items-center justify-center bg-red-500 hover:bg-red-600 text-white text-xs px-2 py-1 rounded"
+                                                            title="Mitgliedschaft beenden">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                            </svg>
+                                                            <span class="ml-1 hidden xl:inline">Löschen</span>
                                                         </button>
                                                     </form>
                                                 @endif
@@ -128,45 +289,130 @@
 
                 <!-- Mobile-Ansicht (nur auf Mobilgeräten sichtbar) -->
                 <div class="md:hidden space-y-6">
+                    <!-- Sortieroptionen für Mobile -->
+                    <div class="mb-4 bg-gray-100 dark:bg-gray-700 rounded-lg p-3">
+                        <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Sortieren nach:</h3>
+                        <div class="flex flex-wrap gap-2">
+                            <a href="{{ route('mitglieder.index', ['sort' => 'name', 'dir' => ($sortBy === 'name' && $sortDir === 'asc') ? 'desc' : 'asc']) }}"
+                               class="px-3 py-1 text-xs rounded-full {{ $sortBy === 'name' ? 'bg-[#8B0116] text-white' : 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300' }}">
+                                Name {{ $sortBy === 'name' ? ($sortDir === 'asc' ? '↑' : '↓') : '' }}
+                            </a>
+                            <a href="{{ route('mitglieder.index', ['sort' => 'mitglied_seit', 'dir' => ($sortBy === 'mitglied_seit' && $sortDir === 'asc') ? 'desc' : 'asc']) }}"
+                               class="px-3 py-1 text-xs rounded-full {{ $sortBy === 'mitglied_seit' ? 'bg-[#8B0116] text-white' : 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300' }}">
+                                Mitglied seit {{ $sortBy === 'mitglied_seit' ? ($sortDir === 'asc' ? '↑' : '↓') : '' }}
+                            </a>
+                            <a href="{{ route('mitglieder.index', ['sort' => 'role', 'dir' => ($sortBy === 'role' && $sortDir === 'asc') ? 'desc' : 'asc']) }}"
+                               class="px-3 py-1 text-xs rounded-full {{ $sortBy === 'role' ? 'bg-[#8B0116] text-white' : 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300' }}">
+                                Rolle {{ $sortBy === 'role' ? ($sortDir === 'asc' ? '↑' : '↓') : '' }}
+                            </a>
+                            @if($canViewDetails)
+                                <a href="{{ route('mitglieder.index', ['sort' => 'bezahlt_bis', 'dir' => ($sortBy === 'bezahlt_bis' && $sortDir === 'asc') ? 'desc' : 'asc']) }}"
+                                   class="px-3 py-1 text-xs rounded-full {{ $sortBy === 'bezahlt_bis' ? 'bg-[#8B0116] text-white' : 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300' }}">
+                                    Bezahlt {{ $sortBy === 'bezahlt_bis' ? ($sortDir === 'asc' ? '↑' : '↓') : '' }}
+                                </a>
+                                <a href="{{ route('mitglieder.index', ['sort' => 'mitgliedsbeitrag', 'dir' => ($sortBy === 'mitgliedsbeitrag' && $sortDir === 'asc') ? 'desc' : 'asc']) }}"
+                                   class="px-3 py-1 text-xs rounded-full {{ $sortBy === 'mitgliedsbeitrag' ? 'bg-[#8B0116] text-white' : 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300' }}">
+                                    Beitrag {{ $sortBy === 'mitgliedsbeitrag' ? ($sortDir === 'asc' ? '↑' : '↓') : '' }}
+                                </a>
+                            @endif
+                        </div>
+                    </div>
+                    
                     @foreach($members as $member)
-                        <div class="bg-gray-50 p-4 rounded-lg shadow">
+                        <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg shadow">
                             <div class="flex items-center mb-4">
                                 <div class="h-12 w-12 flex-shrink-0">
                                     <img class="h-12 w-12 rounded-full" src="{{ $member->profile_photo_url }}" alt="{{ $member->name }}">
                                 </div>
                                 <div class="ml-4">
-                                    <div class="font-medium text-gray-900">{{ $member->name }}</div>
+                                    <div class="font-medium text-gray-900 dark:text-gray-100">{{ $member->name }}</div>
+                                    <div class="text-xs text-gray-500 dark:text-gray-400">
+                                        {{ $member->membership->role }} • 
+                                        Mitglied seit {{ $member->mitglied_seit ? $member->mitglied_seit->format('d.m.Y') : 'k.A.' }}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <div class="grid grid-cols-2 gap-4">
                                     @if($canViewDetails)
-                                        <div class="text-sm text-gray-500">{{ $member->vorname }} {{ $member->nachname }}</div>
-                                        <div class="text-xs text-gray-500">Rolle: {{ $member->membership->role }}</div>
+                                        <div>
+                                            <h4 class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400 font-semibold mb-1">Bezahlt bis</h4>
+                                            @if($member->bezahlt_bis)
+                                                @php
+                                                    $bezahlt_bis = \Carbon\Carbon::parse($member->bezahlt_bis);
+                                                    $heute = \Carbon\Carbon::now();
+                                                    $differenz = $heute->diffInDays($bezahlt_bis, false);
+                                                @endphp
+                                                
+                                                @if($differenz < 0)
+                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-100">
+                                                        Überfällig: {{ $member->bezahlt_bis->format('d.m.Y') }}
+                                                    </span>
+                                                @elseif($differenz < 30)
+                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-100">
+                                                        {{ $member->bezahlt_bis->format('d.m.Y') }}
+                                                    </span>
+                                                @else
+                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100">
+                                                        {{ $member->bezahlt_bis->format('d.m.Y') }}
+                                                    </span>
+                                                @endif
+                                            @else
+                                                <span class="text-gray-500 dark:text-gray-400">-</span>
+                                            @endif
+                                        </div>
+                                        
+                                        <div>
+                                            <h4 class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400 font-semibold mb-1">Beitrag</h4>
+                                            <div class="text-sm text-gray-900 dark:text-gray-100">{{ $member->mitgliedsbeitrag }}</div>
+                                        </div>
                                     @endif
                                 </div>
                             </div>
                             
                             @if($canViewDetails)
-                                <div class="mb-3">
-                                    <h4 class="text-xs uppercase tracking-wide text-gray-500 font-semibold mb-1">Kontaktdaten</h4>
-                                    <div class="text-sm">{{ $member->email }}</div>
-                                    <div class="text-sm">{{ $member->telefon }}</div>
-                                </div>
-                                
-                                <div class="mb-3">
-                                    <h4 class="text-xs uppercase tracking-wide text-gray-500 font-semibold mb-1">Adresse</h4>
-                                    <div class="text-sm">{{ $member->strasse }} {{ $member->hausnummer }}</div>
-                                    <div class="text-sm">{{ $member->plz }} {{ $member->stadt }}</div>
-                                    <div class="text-sm">{{ $member->land }}</div>
-                                </div>
-                                
-                                <div class="mb-4">
-                                    <h4 class="text-xs uppercase tracking-wide text-gray-500 font-semibold mb-1">Beitrag</h4>
-                                    <div class="text-sm">{{ $member->mitgliedsbeitrag }}</div>
+                                <div x-data="{ open: false }" class="mb-4">
+                                    <button @click="open = !open" type="button" 
+                                        class="flex items-center justify-between w-full px-4 py-2 text-sm font-medium text-left text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-600 rounded-md hover:bg-gray-200 dark:hover:bg-gray-500 focus:outline-none focus-visible:ring focus-visible:ring-opacity-75">
+                                        <span>Weitere Details anzeigen</span>
+                                        <svg :class="{'transform rotate-180': open}" class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                        </svg>
+                                    </button>
+                                    <div x-show="open" 
+                                        x-transition:enter="transition ease-out duration-100"
+                                        x-transition:enter-start="transform opacity-0 scale-95"
+                                        x-transition:enter-end="transform opacity-100 scale-100"
+                                        x-transition:leave="transition ease-in duration-75"
+                                        x-transition:leave-start="transform opacity-100 scale-100"
+                                        x-transition:leave-end="transform opacity-0 scale-95"
+                                        class="mt-2 space-y-3">
+                                        
+                                        <div>
+                                            <h4 class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400 font-semibold mb-1">Kontaktdaten</h4>
+                                            <div class="text-sm text-gray-900 dark:text-gray-100">{{ $member->email }}</div>
+                                            <div class="text-sm text-gray-700 dark:text-gray-300">{{ $member->telefon }}</div>
+                                        </div>
+                                        
+                                        <div>
+                                            <h4 class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400 font-semibold mb-1">Adresse</h4>
+                                            <div class="text-sm text-gray-900 dark:text-gray-100">{{ $member->strasse }} {{ $member->hausnummer }}</div>
+                                            <div class="text-sm text-gray-700 dark:text-gray-300">{{ $member->plz }} {{ $member->stadt }}</div>
+                                            <div class="text-sm text-gray-700 dark:text-gray-300">{{ $member->land }}</div>
+                                        </div>
+                                    </div>
                                 </div>
                             @endif
                             
-                            <div class="flex flex-col gap-2">
+                            <div class="flex flex-row gap-2">
                                 <a href="{{ route('profile.view', $member->id) }}"
-                                   class="block text-center bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded">
-                                    Profil ansehen
+                                   class="flex-1 flex justify-center items-center bg-blue-500 hover:bg-blue-600 text-white py-2 px-3 rounded">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                    </svg>
+                                    Profil
                                 </a>
                                 
                                 @if($canViewDetails && $currentUser->id !== $member->id)
@@ -177,14 +423,17 @@
                                     
                                     @if($currentUserRank > $memberRank)
                                         <!-- Rolle ändern (Mobile) -->
-                                        <div class="relative" x-data="{ open: false }">
+                                        <div class="relative flex-1" x-data="{ open: false }">
                                             <button @click="open = !open" type="button" 
-                                                class="w-full bg-yellow-500 hover:bg-yellow-600 text-white py-2 px-4 rounded">
-                                                Rolle ändern
+                                                class="w-full flex justify-center items-center bg-yellow-500 hover:bg-yellow-600 text-white py-2 px-3 rounded">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                                </svg>
+                                                Rolle
                                             </button>
                                             
                                             <div x-show="open" @click.away="open = false" 
-                                                class="absolute left-0 right-0 mt-2 bg-white rounded-md shadow-lg z-10">
+                                                class="absolute left-0 right-0 mt-2 bg-white dark:bg-gray-800 rounded-md shadow-lg z-10">
                                                 <div class="py-1">
                                                     @foreach($roleRanks as $role => $rank)
                                                         @if($rank <= $currentUserRank && $role !== $memberRole)
@@ -193,7 +442,7 @@
                                                                 @method('PUT')
                                                                 <input type="hidden" name="role" value="{{ $role }}">
                                                                 <button type="submit" 
-                                                                    class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                                                    class="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">
                                                                     Zu {{ $role }} ändern
                                                                 </button>
                                                             </form>
@@ -204,12 +453,16 @@
                                         </div>
                                         
                                         <form action="{{ route('mitglieder.remove', $member->id) }}" method="POST"
+                                            class="flex-1"
                                             onsubmit="return confirm('Willst du die Mitgliedschaft von {{ $member->name }} wirklich beenden? Dies löscht den Benutzer aus der Datenbank!');">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" 
-                                                class="w-full bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded">
-                                                Mitgliedschaft beenden
+                                                class="w-full flex justify-center items-center bg-red-500 hover:bg-red-600 text-white py-2 px-3 rounded">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                </svg>
+                                                Löschen
                                             </button>
                                         </form>
                                     @endif

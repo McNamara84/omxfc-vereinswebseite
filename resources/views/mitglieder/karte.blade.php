@@ -21,8 +21,9 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     
     <script>
-        // Mitgliederdaten aus dem Controller
+        // Daten aus dem Controller
         const memberData = {!! $memberData !!};
+        const stammtischData = {!! $stammtischData !!};
         
         // Karte initialisieren
         document.addEventListener('DOMContentLoaded', function() {
@@ -56,6 +57,14 @@
                 iconAnchor: [15, 15]
             });
             
+            // Spezielles Icon für Regionalstammtische
+            const stammtischIcon = L.divIcon({
+                html: '<div class="marker-icon stammtisch"><i class="fas fa-users"></i></div>',
+                className: 'custom-div-icon',
+                iconSize: [40, 40],
+                iconAnchor: [20, 20]
+            });
+            
             // Mitglieder auf Karte platzieren
             memberData.forEach(member => {
                 let icon;
@@ -85,12 +94,33 @@
                 `);
             });
             
-            // Legende hinzufügen (vereinfacht)
+            // Regionalstammtische auf Karte platzieren
+            stammtischData.forEach(stammtisch => {
+                const marker = L.marker([stammtisch.lat, stammtisch.lon], {
+                    icon: stammtischIcon,
+                    zIndexOffset: 1000 // Stammtische über anderen Markern anzeigen
+                }).addTo(map);
+                
+                // Popup mit Infos
+                marker.bindPopup(`
+                    <div class="text-center">
+                        <strong>${stammtisch.name}</strong><br>
+                        ${stammtisch.address}<br>
+                        <em>${stammtisch.info}</em>
+                    </div>
+                `);
+            });
+            
+            // Legende hinzufügen
             const legend = L.control({position: 'bottomright'});
             legend.onAdd = function(map) {
                 const div = L.DomUtil.create('div', 'legend bg-white p-2 rounded shadow');
                 div.innerHTML = `
                     <h4 class="font-semibold mb-2">Legende</h4>
+                    <div class="flex items-center mb-1">
+                        <div class="marker-icon stammtisch mr-2" style="display:inline-block;"></div>
+                        <span>Regionalstammtisch</span>
+                    </div>
                     <div class="flex items-center mb-1">
                         <div class="marker-icon vorstand mr-2" style="display:inline-block;"></div>
                         <span>Vorstand</span>
@@ -110,7 +140,10 @@
         });
     </script>
     
-    <!-- Styles für die Icons (vereinfacht) -->
+    <!-- Font Awesome für Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    
+    <!-- Styles für die Icons -->
     <style>
         .marker-icon {
             width: 20px;
@@ -118,15 +151,32 @@
             border-radius: 50%;
             border: 2px solid white;
             box-shadow: 0 0 5px rgba(0,0,0,0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
         }
+        
         .marker-icon.vorstand {
             background-color: #0056b3; 
         }
+        
         .marker-icon.ehrenmitglied {
             background-color: #ffc107;
         }
+        
         .marker-icon.mitglied {
             background-color: #6c757d;
+        }
+        
+        .marker-icon.stammtisch {
+            background-color: #e63946;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 14px;
         }
         
         .custom-div-icon {
@@ -140,8 +190,15 @@
         }
         
         .legend .marker-icon {
-            width: 12px;
-            height: 12px;
+            width: 16px;
+            height: 16px;
+            margin-right: 5px;
+        }
+        
+        .legend .marker-icon.stammtisch {
+            width: 16px;
+            height: 16px;
+            font-size: 8px;
         }
     </style>
 </x-app-layout>
