@@ -41,8 +41,40 @@
                         @endif
                     </div>
                     
-                    <!-- Serienbezogene Daten - für alle sichtbar -->
                     <div class="w-full lg:w-2/3 lg:pl-8">
+                        <!-- Punkte-Statistiken - für alle sichtbar -->
+                        <div class="mb-8">
+                            <h2 class="text-xl font-semibold text-[#8B0116] mb-6">Vereinsaktivität</h2>
+                            
+                            <div class="bg-gray-50 dark:bg-gray-700 p-6 rounded-lg shadow mb-6">
+                                <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-6">
+                                    <div class="text-center sm:text-left mb-4 sm:mb-0">
+                                        <h3 class="text-lg font-semibold text-gray-800 dark:text-white mb-2">Gesamtpunktestand</h3>
+                                        <p class="text-3xl font-bold text-[#8B0116] dark:text-[#FF6B81]">{{ $userPoints }} Punkte</p>
+                                    </div>
+                                    <div class="text-center sm:text-right">
+                                        <h3 class="text-lg font-semibold text-gray-800 dark:text-white mb-2">Erledigte Aufgaben</h3>
+                                        <p class="text-3xl font-bold text-gray-700 dark:text-gray-300">{{ $completedTasks }}</p>
+                                    </div>
+                                </div>
+                                
+                                @if(count($categoryPoints) > 0)
+                                    <div>
+                                        <h3 class="text-lg font-semibold text-gray-800 dark:text-white mb-3">Punkte nach Kategorien</h3>
+                                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                                            @foreach($categoryPoints as $category => $points)
+                                                <div class="bg-white dark:bg-gray-800 p-3 rounded-lg shadow-sm">
+                                                    <p class="text-sm text-gray-600 dark:text-gray-400">{{ $category }}</p>
+                                                    <p class="text-xl font-semibold text-gray-800 dark:text-white">{{ $points }} Punkte</p>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                        
+                        <!-- Serienbezogene Daten - für alle sichtbar -->
                         <h2 class="text-xl font-semibold text-[#8B0116] mb-6">Meine Maddrax-Leidenschaft</h2>
                         
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">

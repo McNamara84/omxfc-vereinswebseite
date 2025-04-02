@@ -47,6 +47,11 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
     Route::get('/mitglieder', [MitgliederController::class, 'index'])->name('mitglieder.index');
     Route::put('/mitglieder/{user}/role', [MitgliederController::class, 'changeRole'])->name('mitglieder.change-role');
     Route::delete('/mitglieder/{user}', [MitgliederController::class, 'removeMember'])->name('mitglieder.remove');
+    // Eigenes Profil anzeigen (muss VOR der generischen Route stehen)
+    Route::get('/profile/view', function () {
+        return app(App\Http\Controllers\ProfileViewController::class)->show(Auth::user());
+    })->name('profile.view.self');
+    // Fremdes Profil anzeigen
     Route::get('/profile/{user}', [ProfileViewController::class, 'show'])->name('profile.view');
     Route::get('/mitglieder/karte', [MitgliederKarteController::class, 'index'])->name('mitglieder.karte');
     Route::get('/todos', [TodoController::class, 'index'])->name('todos.index');

@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Team;
+use App\Models\UserPoint;
 
 
 class ProfileViewController extends Controller
@@ -14,22 +16,28 @@ class ProfileViewController extends Controller
         $currentUser = Auth::user();
         $team = $currentUser->currentTeam;
 
-        // Stelle sicher, dass der Benutzer nicht versucht, eigenes Profil anzuzeigen
-        if ($currentUser->id === $user->id) {
-            return redirect()->route('profile.show');
+        // Wir erlauben jetzt auch das Anzeigen des eigenen Profils
+        $isOwnProfile = $currentUser->id === $user->id;
+
+        if (!$isOwnProfile) {
+            // Stelle sicher, dass der anzuzeigende Benutzer im gleichen Team ist
+            $membershipInTeam = $team->users()
+                ->where('user_id', $user->id)
+                ->first();
+
+            if (!$membershipInTeam) {
+                return redirect()->route('dashboard')->with('error', 'Profil nicht gefunden.');
+            }
+
+            // Korrekte Ermittlung der Rolle des anzuzeigenden Nutzers
+            $memberRole = $membershipInTeam->membership->role;
+        } else {
+            // Bei eigenem Profil die eigene Rolle anzeigen
+            $membershipInTeam = $team->users()
+                ->where('user_id', $currentUser->id)
+                ->first();
+            $memberRole = $membershipInTeam ? $membershipInTeam->membership->role : 'Mitglied';
         }
-
-        // Stelle sicher, dass der anzuzeigende Benutzer im gleichen Team ist
-        $membershipInTeam = $team->users()
-            ->where('user_id', $user->id)
-            ->first();
-
-        if (!$membershipInTeam) {
-            return redirect()->route('dashboard')->with('error', 'Profil nicht gefunden.');
-        }
-
-        // Korrekte Ermittlung der Rolle des anzuzeigenden Nutzers
-        $memberRole = $membershipInTeam->membership->role;
 
         // Korrekte Ermittlung der Rolle des eingeloggten Nutzers
         $currentUserMembership = $team->users()
@@ -44,12 +52,48 @@ class ProfileViewController extends Controller
 
         // Prüfe, ob der Benutzer erweiterte Rechte hat (für detaillierte Ansicht)
         $allowedRoles = ['Kassenwart', 'Vorstand', 'Admin'];
-        $canViewDetails = in_array($currentUserRole, $allowedRoles);
+        $canViewDetails = $isOwnProfile || in_array($currentUserRole, $allowedRoles);
+
+        // Punkte-Informationen abrufen
+        $memberTeam = Team::where('name', 'Mitglieder')->first();
+
+        $userPoints = 0;
+        $completedTasks = 0;
+        $categoryPoints = [];
+
+        if ($memberTeam) {
+            // Gesamtpunkte
+            $userPoints = UserPoint::where('user_points.user_id', $user->id)
+                ->where('user_points.team_id', $memberTeam->id)
+                ->sum('points');
+
+            // Anzahl abgeschlossener Aufgaben
+            $completedTasks = UserPoint::where('user_points.user_id', $user->id)
+                ->where('user_points.team_id', $memberTeam->id)
+                ->count();
+
+            // Punkte nach Kategorien gruppieren
+            $pointsByCategory = UserPoint::where('user_points.user_id', $user->id)
+                ->where('user_points.team_id', $memberTeam->id)  // Tabelle spezifizieren
+                ->join('todos', 'user_points.todo_id', '=', 'todos.id')
+                ->leftJoin('todo_categories', 'todos.category_id', '=', 'todo_categories.id')
+                ->selectRaw('COALESCE(todo_categories.name, "Ohne Kategorie") as category, SUM(user_points.points) as total')
+                ->groupBy('category')
+                ->get();
+
+            foreach ($pointsByCategory as $category) {
+                $categoryPoints[$category->category] = $category->total;
+            }
+        }
 
         return view('profile.view', [
             'user' => $user,
             'memberRole' => $memberRole,
-            'canViewDetails' => $canViewDetails
+            'canViewDetails' => $canViewDetails,
+            'userPoints' => $userPoints,
+            'completedTasks' => $completedTasks,
+            'categoryPoints' => $categoryPoints,
+            'isOwnProfile' => $isOwnProfile
         ]);
     }
 }
