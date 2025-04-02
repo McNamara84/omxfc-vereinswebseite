@@ -38,9 +38,9 @@
             </div>
             <!-- Deine Aufgaben -->
             <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
-                <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4">Deine Aufgaben</h2>
+                <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4">Deine Challenges</h2>
                 @if($assignedTodos->isEmpty())
-                    <p class="text-gray-600 dark:text-gray-400">Du hast aktuell keine übernommenen Aufgaben.</p>
+                    <p class="text-gray-600 dark:text-gray-400">Du hast aktuell keine übernommenen Challenges.</p>
                 @else
                     <!-- Desktop-Ansicht (versteckt auf Mobilgeräten) -->
                     <div class="hidden md:block">
@@ -147,9 +147,9 @@
             </div>
             <!-- Offene Aufgaben -->
             <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
-                <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4">Offene Aufgaben</h2>
+                <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4">Offene Challenges</h2>
                 @if($unassignedTodos->isEmpty())
-                    <p class="text-gray-600 dark:text-gray-400">Es sind aktuell keine offenen Aufgaben verfügbar.</p>
+                    <p class="text-gray-600 dark:text-gray-400">Es sind aktuell keine offenen Challenges verfügbar.</p>
                 @else
                     <!-- Desktop-Ansicht (versteckt auf Mobilgeräten) -->
                     <div class="hidden md:block">
@@ -228,7 +228,7 @@
             <!-- Erledigte Aufgaben (nur wenn Verifizierungsrechte vorhanden) -->
             @if($canVerifyTodos && $completedTodos->where('status', 'completed')->isNotEmpty())
                 <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
-                    <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4">Zu verifizierende Aufgaben
+                    <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4">Zu verifizierende Challenges
                     </h2>
                     <!-- Desktop-Ansicht (versteckt auf Mobilgeräten) -->
                     <div class="hidden md:block">
@@ -310,12 +310,12 @@
             <!-- In Bearbeitung befindliche Aufgaben -->
             <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
                 <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4">In Bearbeitung befindliche
-                    Aufgaben</h2>
+                    Challenges</h2>
                 @php
                     $inProgressTodos = $todos->where('status', 'assigned')->where('assigned_to', '!=', Auth::id());
                 @endphp
                 @if($inProgressTodos->isEmpty())
-                    <p class="text-gray-600 dark:text-gray-400">Es werden aktuell keine Aufgaben von anderen Mitgliedern
+                    <p class="text-gray-600 dark:text-gray-400">Es werden aktuell keine Challenges von anderen Mitgliedern
                         bearbeitet.</p>
                 @else
                     <!-- Desktop-Ansicht (versteckt auf Mobilgeräten) -->

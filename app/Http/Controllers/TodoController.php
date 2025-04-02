@@ -80,7 +80,7 @@ class TodoController extends Controller
 
         if (!in_array($userRole, ['Kassenwart', 'Vorstand', 'Admin'])) {
             return redirect()->route('todos.index')
-                ->with('error', 'Sie haben keine Berechtigung, Aufgaben zu erstellen.');
+                ->with('error', 'Du hast keine Berechtigung, Challenges zu erstellen.');
         }
 
         $categories = TodoCategory::orderBy('name')->get();
@@ -109,7 +109,7 @@ class TodoController extends Controller
 
         if (!in_array($userRole, ['Kassenwart', 'Vorstand', 'Admin'])) {
             return redirect()->route('todos.index')
-                ->with('error', 'Sie haben keine Berechtigung, Aufgaben zu erstellen.');
+                ->with('error', 'Du hast keine Berechtigung, Challenges zu erstellen.');
         }
 
         $request->validate([

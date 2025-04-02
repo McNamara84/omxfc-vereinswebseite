@@ -29,7 +29,7 @@
             {{ __('Fotos') }}
         </x-nav-link>
         <x-nav-link href="{{ route('todos.index') }}" :active="request()->routeIs('todos.*')">
-            {{ __('Aufgaben') }}
+            {{ __('Challenges') }}
         </x-nav-link>
         <x-nav-link href="{{ route('meetings') }}" :active="request()->routeIs('meetings')">
             {{ __('Meetings') }}
@@ -155,7 +155,7 @@
                     {{ __('Fotos') }}
                 </x-responsive-nav-link>
                 <x-responsive-nav-link href="{{ route('todos.index') }}" :active="request()->routeIs('todos.*')">
-                    {{ __('Aufgaben') }}
+                    {{ __('Challenges') }}
                 </x-responsive-nav-link>
                 <x-responsive-nav-link href="{{ route('meetings') }}" :active="request()->routeIs('meetings')">
                     {{ __('Meetings') }}

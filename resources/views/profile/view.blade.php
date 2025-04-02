@@ -53,7 +53,7 @@
                                         <p class="text-3xl font-bold text-[#8B0116] dark:text-[#FF6B81]">{{ $userPoints }} Punkte</p>
                                     </div>
                                     <div class="text-center sm:text-right">
-                                        <h3 class="text-lg font-semibold text-gray-800 dark:text-white mb-2">Erledigte Aufgaben</h3>
+                                        <h3 class="text-lg font-semibold text-gray-800 dark:text-white mb-2">Erledigte Challenges</h3>
                                         <p class="text-3xl font-bold text-gray-700 dark:text-gray-300">{{ $completedTasks }}</p>
                                     </div>
                                 </div>
