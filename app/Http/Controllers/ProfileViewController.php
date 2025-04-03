@@ -70,7 +70,7 @@ class ProfileViewController extends Controller
                 ->where('user_points.team_id', $memberTeam->id)
                 ->sum('points');
 
-            // Anzahl abgeschlossener Aufgaben
+            // Anzahl abgeschlossener Challenges
             $completedTasks = UserPoint::where('user_points.user_id', $user->id)
                 ->where('user_points.team_id', $memberTeam->id)
                 ->count();
@@ -99,7 +99,7 @@ class ProfileViewController extends Controller
                 ];
             }
 
-            // Retrologe Badge - für Aufgaben der Kategorie "AG Maddraxikon"
+            // Retrologe Badge - für Challenges der Kategorie "AG Maddraxikon"
             $maddraxikonCategory = TodoCategory::where('name', 'AG Maddraxikon')->first();
 
             if ($maddraxikonCategory) {

@@ -20,6 +20,7 @@ class Todo extends Model
         'status',
         'completed_at',
         'verified_at',
+        'category_id',
     ];
 
     protected function casts(): array

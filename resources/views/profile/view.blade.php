@@ -136,7 +136,7 @@
                                         <p class="text-4xl font-bold text-gray-700 dark:text-gray-300">
                                             {{ $completedTasks }}
                                         </p>
-                                        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Aufgaben</p>
+                                        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Challenges</p>
                                     </div>
                                 </div>
                             </div>
