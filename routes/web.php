@@ -64,4 +64,12 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
     Route::post('/todos/{todo}/release', [TodoController::class, 'release'])->name('todos.release');
     Route::get('/meetings', [MeetingController::class, 'index'])->name('meetings');
     Route::post('/meetings/redirect', [MeetingController::class, 'redirectToZoom'])->name('meetings.redirect');
+    //Badges
+    Route::get('/badges/{filename}', function ($filename) {
+        $path = storage_path('app/private/' . $filename);
+        if (!file_exists($path)) {
+            abort(404);
+        }
+        return response()->file($path);
+    })->name('badges.image');
 });

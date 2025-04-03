@@ -7,6 +7,7 @@
             <h3 class="text-l font-semibold mb-2">Features:</h3>
             <ul class="list-disc ml-6 mt-2">
                 <li>Neue Seite Challenges im internen Mitgliederbereich implementiert</li>
+                <li>Badges in Profilen eingefügt</li>
                 <li>Neue Seite Meetings im internen Mitgliederbereich ergänzt (Danke Marcel!)</li>
             </ul>
             <h3 class="text-l font-semibold mb-2">Änderungen:</h3>

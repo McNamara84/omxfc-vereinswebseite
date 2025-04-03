@@ -7,7 +7,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Team;
 use App\Models\UserPoint;
-
+use App\Models\TodoCategory;
 
 class ProfileViewController extends Controller
 {
@@ -61,20 +61,23 @@ class ProfileViewController extends Controller
         $completedTasks = 0;
         $categoryPoints = [];
 
+        // Badges
+        $badges = [];
+
         if ($memberTeam) {
             // Gesamtpunkte
             $userPoints = UserPoint::where('user_points.user_id', $user->id)
                 ->where('user_points.team_id', $memberTeam->id)
                 ->sum('points');
 
-            // Anzahl abgeschlossener Challenges
+            // Anzahl abgeschlossener Aufgaben
             $completedTasks = UserPoint::where('user_points.user_id', $user->id)
                 ->where('user_points.team_id', $memberTeam->id)
                 ->count();
 
             // Punkte nach Kategorien gruppieren
             $pointsByCategory = UserPoint::where('user_points.user_id', $user->id)
-                ->where('user_points.team_id', $memberTeam->id)  // Tabelle spezifizieren
+                ->where('user_points.team_id', $memberTeam->id)
                 ->join('todos', 'user_points.todo_id', '=', 'todos.id')
                 ->leftJoin('todo_categories', 'todos.category_id', '=', 'todo_categories.id')
                 ->selectRaw('COALESCE(todo_categories.name, "Ohne Kategorie") as category, SUM(user_points.points) as total')
@@ -83,6 +86,36 @@ class ProfileViewController extends Controller
 
             foreach ($pointsByCategory as $category) {
                 $categoryPoints[$category->category] = $category->total;
+            }
+
+            // Badges bestimmen
+
+            // Ersthelfer Badge - für jedes Mitglied, das mind. eine Aufgabe erfüllt hat
+            if ($completedTasks > 0) {
+                $badges[] = [
+                    'name' => 'Ersthelfer',
+                    'description' => 'Hat mindestens eine Challenge erfüllt',
+                    'image' => route('badges.image', 'BadgeErsthelfer.png'),
+                ];
+            }
+
+            // Retrologe Badge - für Aufgaben der Kategorie "AG Maddraxikon"
+            $maddraxikonCategory = TodoCategory::where('name', 'AG Maddraxikon')->first();
+
+            if ($maddraxikonCategory) {
+                $maddraxikonTasks = UserPoint::where('user_points.user_id', $user->id)
+                    ->where('user_points.team_id', $memberTeam->id)
+                    ->join('todos', 'user_points.todo_id', '=', 'todos.id')
+                    ->where('todos.category_id', $maddraxikonCategory->id)
+                    ->count();
+
+                if ($maddraxikonTasks > 0) {
+                    $badges[] = [
+                        'name' => 'Retrologe (Stufe 1)',
+                        'description' => 'Hat im Maddraxikon mitgewirkt',
+                        'image' => route('badges.image', 'BadgeRetrologe1.png'),
+                    ];
+                }
             }
         }
 
@@ -93,7 +126,8 @@ class ProfileViewController extends Controller
             'userPoints' => $userPoints,
             'completedTasks' => $completedTasks,
             'categoryPoints' => $categoryPoints,
-            'isOwnProfile' => $isOwnProfile
+            'isOwnProfile' => $isOwnProfile,
+            'badges' => $badges,
         ]);
     }
 }
