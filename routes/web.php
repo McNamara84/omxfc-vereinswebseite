@@ -12,6 +12,7 @@ use App\Http\Middleware\RedirectIfAnwaerter;
 use App\Http\Controllers\MitgliederKarteController;
 use App\Http\Controllers\TodoController;
 use App\Http\Controllers\MeetingController;
+use Illuminate\Support\Facades\Auth;
 
 // Öffentliche Seiten
 Route::get('/', [PageController::class, 'home'])->name('home');
@@ -49,7 +50,7 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
     Route::delete('/mitglieder/{user}', [MitgliederController::class, 'removeMember'])->name('mitglieder.remove');
     // Eigenes Profil anzeigen (muss VOR der generischen Route stehen)
     Route::get('/profile/view', function () {
-        return app(App\Http\Controllers\ProfileViewController::class)->show(Auth::user());
+        return app(ProfileViewController::class)->show(Auth::user());
     })->name('profile.view.self');
     // Fremdes Profil anzeigen
     Route::get('/profile/{user}', [ProfileViewController::class, 'show'])->name('profile.view');
