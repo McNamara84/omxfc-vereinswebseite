@@ -10,6 +10,9 @@ use App\Http\Controllers\MitgliederController;
 use App\Http\Controllers\ProfileViewController;
 use App\Http\Middleware\RedirectIfAnwaerter;
 use App\Http\Controllers\MitgliederKarteController;
+use App\Http\Controllers\TodoController;
+use App\Http\Controllers\MeetingController;
+use Illuminate\Support\Facades\Auth;
 
 // Öffentliche Seiten
 Route::get('/', [PageController::class, 'home'])->name('home');
@@ -45,6 +48,29 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
     Route::get('/mitglieder', [MitgliederController::class, 'index'])->name('mitglieder.index');
     Route::put('/mitglieder/{user}/role', [MitgliederController::class, 'changeRole'])->name('mitglieder.change-role');
     Route::delete('/mitglieder/{user}', [MitgliederController::class, 'removeMember'])->name('mitglieder.remove');
+    // Eigenes Profil anzeigen (muss VOR der generischen Route stehen)
+    Route::get('/profile/view', function () {
+        return app(ProfileViewController::class)->show(Auth::user());
+    })->name('profile.view.self');
+    // Fremdes Profil anzeigen
     Route::get('/profile/{user}', [ProfileViewController::class, 'show'])->name('profile.view');
     Route::get('/mitglieder/karte', [MitgliederKarteController::class, 'index'])->name('mitglieder.karte');
+    Route::get('/todos', [TodoController::class, 'index'])->name('todos.index');
+    Route::get('/todos/create', [TodoController::class, 'create'])->name('todos.create');
+    Route::post('/todos', [TodoController::class, 'store'])->name('todos.store');
+    Route::get('/todos/{todo}', [TodoController::class, 'show'])->name('todos.show');
+    Route::post('/todos/{todo}/assign', [TodoController::class, 'assign'])->name('todos.assign');
+    Route::post('/todos/{todo}/complete', [TodoController::class, 'complete'])->name('todos.complete');
+    Route::post('/todos/{todo}/verify', [TodoController::class, 'verify'])->name('todos.verify');
+    Route::post('/todos/{todo}/release', [TodoController::class, 'release'])->name('todos.release');
+    Route::get('/meetings', [MeetingController::class, 'index'])->name('meetings');
+    Route::post('/meetings/redirect', [MeetingController::class, 'redirectToZoom'])->name('meetings.redirect');
+    //Badges
+    Route::get('/badges/{filename}', function ($filename) {
+        $path = storage_path('app/private/' . $filename);
+        if (!file_exists($path)) {
+            abort(404);
+        }
+        return response()->file($path);
+    })->name('badges.image');
 });

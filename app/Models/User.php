@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
@@ -87,5 +88,47 @@ class User extends Authenticatable
             'mitglied_seit' => 'date',
             'bezahlt_bis' => 'date',
         ];
+    }
+
+    /**
+     * Get the todos created by the user.
+     */
+    public function createdTodos(): HasMany
+    {
+        return $this->hasMany(Todo::class, 'created_by');
+    }
+
+    /**
+     * Get the todos assigned to the user.
+     */
+    public function assignedTodos(): HasMany
+    {
+        return $this->hasMany(Todo::class, 'assigned_to');
+    }
+
+    /**
+     * Get the todos verified by the user.
+     */
+    public function verifiedTodos(): HasMany
+    {
+        return $this->hasMany(Todo::class, 'verified_by');
+    }
+
+    /**
+     * Get the user's points.
+     */
+    public function points(): HasMany
+    {
+        return $this->hasMany(UserPoint::class);
+    }
+
+    /**
+     * Get the total points for a specific team.
+     */
+    public function totalPointsForTeam(Team $team): int
+    {
+        return $this->points()
+            ->where('team_id', $team->id)
+            ->sum('points');
     }
 }
