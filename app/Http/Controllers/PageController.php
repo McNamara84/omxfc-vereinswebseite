@@ -21,16 +21,16 @@ class PageController extends Controller
                 'description' => 'Gemeinsam erfassen wir Informationen aus den Romanen im größten Fan-Wiki zur Serie und tauschen uns bei unseren AG-Treffen über die neuesten Artikel und Funktionen im Maddraxikon aus. Auch Neueinsteigern wird geholfen.'
             ],
             [
-                'title' => 'Fanhörbücher',
-                'description' => 'Die AG Fanhörbücher macht die ersten 249 Romane als gratis Hörbücher auf YouTube zugänglich und plant regelmäßig weitere Veröffentlichungen.'
+                'title' => 'EARDRAX',
+                'description' => 'Die AG EARDRAX hat sich das ehrgeizige Ziel gesetzt die ersten 249 Romane als Inszenierte Lesungen auf YouTube zugänglich zu machen. Wenn du wissen willst warum, auch mal was einsprechen willst und eitere Veröffentlichungen mit planen möchtest, komm gerne vorbei.'
             ],
             [
                 'title' => 'MAPDRAX',
-                'description' => 'Die AG MAPDRAX kartografiert das Maddraxiversum mit dem Tool Inkarnate und bietet regelmäßig Unterstützung für Neueinsteiger an.'
+                'description' => 'Die AG MAPDRAX kartografiert das Maddraxiversum mit dem Tool Inkarnate. Das Ergebnis ist ein dystopisches Google Maps schön und nützlich, für Herumtreiber wie Autoren. In regelmäßigen AG Treffen gibt es immer die Gelegenheit Fragen zu stellen und Unterstützung zu bekommen.'
             ],
             [
-                'title' => 'Fantreffen',
-                'description' => 'Ein Orga-Team kümmert sich um die Organisation des nächsten Fantreffens, geplant für Mai 2026.'
+                'title' => 'Fantreffen 2026',
+                'description' => 'Ein Orga-Team kümmert sich um die Organisation des nächsten Fantreffens, geplant für Mai 2026. Location steht schon, alles andere wird noch geplant.'
             ]
         ];
 
