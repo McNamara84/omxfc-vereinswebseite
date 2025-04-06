@@ -49,7 +49,7 @@
                     <h2 class="text-xl font-bold text-[#8B0116] dark:text-[#ff4b63] mb-2">Lucy Guth</h2>
                     <p class="text-gray-700 dark:text-gray-300 text-sm mb-3">
                         Lucy Guth (Tanja Monique Bruske-Guth) wurde 1978 geboren und ist seit 2014 als Maddrax-Autorin
-                        dabei und hat dementsprechend schon viel Gutes beigetragen. In ihrem Hauptberuf arbeitet sie als
+                        dabei und hat dementsprechend schon viel Gut(h)es beigetragen. In ihrem Hauptberuf arbeitet sie als
                         Redakteurin bei der Gelnhäuser Neuen Zeitung.
                     </p>
                     <p class="text-gray-700 dark:text-gray-300 text-sm mb-3">
