@@ -16,7 +16,8 @@
                 <li>Wortwitz im Text für Lucy Guth Wortwitz eingebaut (Danke Tanja!)</li>
                 <li>Text zu Oliver Müller auf der Unterseite Ehrenmitglieder angepasst (Danke Tanja!)</li>
                 <li>Satzung auf aktuelle Fassung vom 26. Januar 2024 geprüft (Danke Tanja!)</li>
-                <li>Hinweistext zum Datenshutz über Mitgliederkarte aktualisiert</li>
+                <li>Hinweistext zum Datenshutz über Mitgliederkarte aktualisiert (Danke Tanja!)</li>
+                <li>Begrüßung auf Startseite horizontal zentriert (Danke Tanja!)</li>
             </ul>
         </section>
         <section class="mb-6">
