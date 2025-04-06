@@ -17,7 +17,7 @@ class MeetingController extends Controller
                 'time_to' => '20:30',
             ],
             [
-                'name' => 'AG Fanhörbücher',
+                'name' => 'AG EARDRAX',
                 'day' => 'second wednesday',
                 'time_from' => '19:00',
                 'time_to' => '19:30',
