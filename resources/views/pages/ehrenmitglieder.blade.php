@@ -104,8 +104,7 @@
                         Kurzgeschichten und schreibt Romane, auch für Professor Zamorra und John Sinclair.
                     </p>
                     <p class="text-gray-700 dark:text-gray-300 text-sm mb-3">
-                        Sein Roman <em>Der Giftplanet</em> (MX 540) wurde 2021 zum besten Maddrax-Roman mit der
-                        „Goldenen Taratze" ausgezeichnet.
+                        2021 erhielt er den Leserpreis „Goldenen Taratze“ für seinen Roman <em>Der Giftplanet</em> (MX 540).
                     </p>
                     <div class="mt-auto">
                         <a href="https://de.maddraxikon.com/index.php?title=Oliver_Müller" target="_blank"

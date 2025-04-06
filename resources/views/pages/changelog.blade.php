@@ -14,6 +14,7 @@
                 <li>Maddrax-Film in Chronik verlinkt (Danke Tanja!)</li>
                 <li>Reihenfolge der Ehrenmitglieder alphabetisch sortiert (Danke Tanja!)</li>
                 <li>Wortwitz im Text für Lucy Guth Wortwitz eingebaut (Danke Tanja!)</li>
+                <li>Text zu Oliver Müller auf der Unterseite Ehrenmitglieder angepasst (Danke Tanja!)</li>
             </ul>
         </section>
         <section class="mb-6">
