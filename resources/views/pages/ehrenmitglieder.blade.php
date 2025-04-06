@@ -1,15 +1,13 @@
 <x-app-layout>
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 bg-gray-100 dark:bg-gray-800 rounded-lg shadow-sm">
         <h1 class="text-2xl sm:text-3xl font-bold text-[#8B0116] dark:text-[#ff4b63] mb-4 sm:mb-8">Ehrenmitglieder</h1>
-
         <p class="mb-8 text-gray-700 dark:text-gray-300">
             Wir sind stolz darauf, herausragende Autoren der Maddrax-Serie zu unseren Ehrenmitgliedern zählen zu dürfen.
             Diese talentierten Schriftsteller haben maßgeblich zum Erfolg und zur Entwicklung des Maddraxiversums
             beigetragen.
         </p>
-
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <!-- Michael Edelbrock -->
+            <!-- Edelbrock, Michael -->
             <div
                 class="bg-white dark:bg-gray-700 rounded-lg shadow-md overflow-hidden transition-transform hover:scale-105 flex flex-col">
                 <div class="h-80 bg-gray-200 dark:bg-gray-600 flex items-center justify-center overflow-hidden">
@@ -34,14 +32,39 @@
                     </p>
                     <div class="mt-auto">
                         <a href="https://de.maddraxikon.com/index.php?title=Michael_Edelbrock" target="_blank"
-                           class="block bg-[#8B0116] dark:bg-[#ff4b63] text-white text-sm font-semibold py-2 px-4 text-center hover:bg-[#6a0110] dark:hover:bg-[#d63c4e]">
+                            class="block bg-[#8B0116] dark:bg-[#ff4b63] text-white text-sm font-semibold py-2 px-4 text-center hover:bg-[#6a0110] dark:hover:bg-[#d63c4e]">
                             Mehr über Michael erfahren
                         </a>
                     </div>
                 </div>
             </div>
-
-            <!-- Ian Rolf Hill -->
+            <!-- Guth, Lucy -->
+            <div
+                class="bg-white dark:bg-gray-700 rounded-lg shadow-md overflow-hidden transition-transform hover:scale-105 flex flex-col">
+                <div class="h-80 bg-gray-200 dark:bg-gray-600 flex items-center justify-center overflow-hidden">
+                    <img src="{{ asset('images/ehrenmitglieder/lucy-guth.jpg') }}" alt="Lucy Guth"
+                        class="object-cover h-full">
+                </div>
+                <div class="p-4 flex flex-col flex-1">
+                    <h2 class="text-xl font-bold text-[#8B0116] dark:text-[#ff4b63] mb-2">Lucy Guth</h2>
+                    <p class="text-gray-700 dark:text-gray-300 text-sm mb-3">
+                        Lucy Guth (Tanja Monique Bruske-Guth) wurde 1978 geboren und ist seit 2014 als Maddrax-Autorin
+                        dabei und hat dementsprechend schon viel Gutes beigetragen. In ihrem Hauptberuf arbeitet sie als
+                        Redakteurin bei der Gelnhäuser Neuen Zeitung.
+                    </p>
+                    <p class="text-gray-700 dark:text-gray-300 text-sm mb-3">
+                        Sie veröffentlicht als Tanja Bruske Theaterstücke und Romane und als Lucy Guth auch für Perry
+                        Rhodan. 2023 erhielt sie den Leserpreis „Goldene Taratze" für ihren Roman <em>Das Haus auf dem
+                            Hügel</em> (MX 607).
+                    </p>
+                    <div class="mt-auto">
+                        <a href="https://de.maddraxikon.com/index.php?title=Lucy_Guth" target="_blank"
+                            class="block bg-[#8B0116] dark:bg-[#ff4b63] text-white text-sm font-semibold py-2 px-4 text-center hover:bg-[#6a0110] dark:hover:bg-[#d63c4e]">Mehr
+                            über Lucy erfahren</a>
+                    </div>
+                </div>
+            </div>
+            <!-- Hill, Ian Rolf -->
             <div
                 class="bg-white dark:bg-gray-700 rounded-lg shadow-md overflow-hidden transition-transform hover:scale-105 flex flex-col">
                 <div class="h-80 bg-gray-200 dark:bg-gray-600 flex items-center justify-center overflow-hidden">
@@ -66,35 +89,7 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Lucy Guth -->
-            <div
-                class="bg-white dark:bg-gray-700 rounded-lg shadow-md overflow-hidden transition-transform hover:scale-105 flex flex-col">
-                <div class="h-80 bg-gray-200 dark:bg-gray-600 flex items-center justify-center overflow-hidden">
-                    <img src="{{ asset('images/ehrenmitglieder/lucy-guth.jpg') }}" alt="Lucy Guth"
-                        class="object-cover h-full">
-                </div>
-                <div class="p-4 flex flex-col flex-1">
-                    <h2 class="text-xl font-bold text-[#8B0116] dark:text-[#ff4b63] mb-2">Lucy Guth</h2>
-                    <p class="text-gray-700 dark:text-gray-300 text-sm mb-3">
-                        Lucy Guth (Tanja Monique Bruske-Guth) wurde 1978 geboren und ist seit 2014 als Maddrax-Autorin
-                        dabei und hat dementsprechend schon viel Gutes beigetragen. In ihrem Hauptberuf arbeitet sie als
-                        Redakteurin bei der Gelnhäuser Neuen Zeitung.
-                    </p>
-                    <p class="text-gray-700 dark:text-gray-300 text-sm mb-3">
-                        Sie veröffentlicht als Tanja Bruske Theaterstücke und Romane und als Lucy Guth auch für Perry
-                        Rhodan. 2023 erhielt sie den Leserpreis „Goldene Taratze" für ihren Roman <em>Das Haus auf dem
-                            Hügel</em> (MX 607).
-                    </p>
-                <div class="mt-auto">
-                <a href="https://de.maddraxikon.com/index.php?title=Lucy_Guth" target="_blank"
-                    class="block bg-[#8B0116] dark:bg-[#ff4b63] text-white text-sm font-semibold py-2 px-4 text-center hover:bg-[#6a0110] dark:hover:bg-[#d63c4e]">Mehr
-                    über Lucy erfahren</a>
-                </div>
-            </div>
-            </div>
-
-            <!-- Oliver Müller -->
+            <!-- Müller, Oliver -->
             <div
                 class="bg-white dark:bg-gray-700 rounded-lg shadow-md overflow-hidden transition-transform hover:scale-105 flex flex-col">
                 <div class="h-80 bg-gray-200 dark:bg-gray-600 flex items-center justify-center overflow-hidden">
@@ -119,8 +114,7 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Michael Schönenbröcher -->
+            <!-- Schönenbröcher, Michael -->
             <div
                 class="bg-white dark:bg-gray-700 rounded-lg shadow-md overflow-hidden transition-transform hover:scale-105 flex flex-col">
                 <div class="h-80 bg-gray-200 dark:bg-gray-600 flex items-center justify-center overflow-hidden">
@@ -146,8 +140,7 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Jo Zybell -->
+            <!-- Zybell, Jo -->
             <div
                 class="bg-white dark:bg-gray-700 rounded-lg shadow-md overflow-hidden transition-transform hover:scale-105 flex flex-col">
                 <div class="h-80 bg-gray-200 dark:bg-gray-600 flex items-center justify-center overflow-hidden">
