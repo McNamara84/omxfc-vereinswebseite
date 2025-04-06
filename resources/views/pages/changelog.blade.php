@@ -19,6 +19,7 @@
                 <li>Hinweistext zum Datenshutz über Mitgliederkarte aktualisiert (Danke Tanja!)</li>
                 <li>Begrüßung auf Startseite horizontal zentriert (Danke Tanja!)</li>
                 <li>Resonsive Darstellung des Google-Kalenders auf der Seite Termine verbessert</li>
+                <li>Beschreibung zum CHATDRAX 2.0 (ehemals Maddrax-Stammtisch) unter Meetings aktualisiert (Danke Tanja!)</li>
             </ul>
         </section>
         <section class="mb-6">

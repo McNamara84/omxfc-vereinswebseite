@@ -29,7 +29,7 @@ class MeetingController extends Controller
                 'time_to' => '21:00',
             ],
             [
-                'name' => 'MADDRAX-Stammtisch',
+                'name' => 'CHATDRAX 2.0 - Der MADDRAX-Online-Stammtisch',
                 'day' => 'see_note',
                 'time_from' => '20:00',
                 'time_to' => null,
