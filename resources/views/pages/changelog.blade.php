@@ -18,6 +18,7 @@
                 <li>Satzung auf aktuelle Fassung vom 26. Januar 2024 geprüft (Danke Tanja!)</li>
                 <li>Hinweistext zum Datenshutz über Mitgliederkarte aktualisiert (Danke Tanja!)</li>
                 <li>Begrüßung auf Startseite horizontal zentriert (Danke Tanja!)</li>
+                <li>Resonsive Darstellung des Google-Kalenders auf der Seite Termine verbessert</li>
             </ul>
         </section>
         <section class="mb-6">

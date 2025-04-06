@@ -97,11 +97,15 @@ class PageController extends Controller
 
     public function termine()
     {
-        $calendarUrl = 'https://calendar.google.com/calendar/embed?height=600&wkst=2&bgcolor=%23ffffff&ctz=Europe%2FBerlin&showTitle=0&showNav=1&showPrint=0&showCalendars=0&showTabs=0&showTz=0&src=Nzk5YTNmNDU0Y2NlYWJlZjg4M2JiYTg4ZWJjMTI0NTUyYTcxMzFhZDc2OTA2OWJjZDJiNjJkYmZkYzcxMWMwZkBncm91cC5jYWxlbmRhci5nb29nbGUuY29t&color=%23D50000';
+        $baseCalendarId = 'Nzk5YTNmNDU0Y2NlYWJlZjg4M2JiYTg4ZWJjMTI0NTUyYTcxMzFhZDc2OTA2OWJjZDJiNjJkYmZkYzcxMWMwZkBncm91cC5jYWxlbmRhci5nb29nbGUuY29t';
 
-        $calendarLink = 'https://calendar.google.com/calendar/u/0?cid=Nzk5YTNmNDU0Y2NlYWJlZjg4M2JiYTg4ZWJjMTI0NTUyYTcxMzFhZDc2OTA2OWJjZDJiNjJkYmZkYzcxMWMwZkBncm91cC5jYWxlbmRhci5nb29nbGUuY29t';
+        $calendarUrl = "https://calendar.google.com/calendar/embed?height=600&wkst=2&bgcolor=%23ffffff&ctz=Europe%2FBerlin&showTitle=0&showNav=1&showPrint=0&showCalendars=0&showTabs=0&showTz=0&src={$baseCalendarId}&color=%23D50000";
 
-        return view('pages.termine', compact('calendarUrl', 'calendarLink'));
+        $calendarUrlAgenda = "https://calendar.google.com/calendar/embed?mode=AGENDA&height=600&wkst=2&bgcolor=%23ffffff&ctz=Europe%2FBerlin&showTitle=0&showNav=0&showPrint=0&showCalendars=0&showTabs=0&showTz=0&src={$baseCalendarId}&color=%23D50000";
+
+        $calendarLink = "https://calendar.google.com/calendar/u/0?cid={$baseCalendarId}";
+
+        return view('pages.termine', compact('calendarUrl', 'calendarUrlAgenda', 'calendarLink'));
     }
 
     public function mitgliedWerden()
