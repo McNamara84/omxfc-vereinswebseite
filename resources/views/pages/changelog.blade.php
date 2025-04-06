@@ -10,6 +10,7 @@
                 <li>AG Fanhörbücher auf der Unterseite Arebitsgruppen umbenannt in AG EARDRAX (Danke Tanja!)</li>
                 <li>Challenge-Kategorie AG Fanhörbücher umbenannt in AG EARDRAX (Danke Tanja!)</li>
                 <li>AG Fanhörbücher in Unterseite Meetings umbenannt in AG EARDRAX (Danke Tanja!)</li>
+                <li>Links zu Jubiläumsroman und Autor in der Chronik ergänzt (Danke Tanja!)</li>
             </ul>
         </section>
         <section class="mb-6">
