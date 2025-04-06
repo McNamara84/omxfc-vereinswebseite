@@ -7,6 +7,8 @@
             <h3 class="text-l font-semibold mb-2">Änderungen:</h3>
             <ul class="list-disc ml-6 mt-2">
                 <li>Texte zu aktuellen Projekten aktualisiert (Danke Tanja!)</li>
+                <li>AG Fanhörbücher auf der Unterseite Arebitsgruppen umbenannt in AG EARDRAX (Danke Tanja!)</li>
+                <li>Challenge-Kategorie AG Fanhörbücher umbenannt in AG EARDRAX (Danke Tanja!)</li>
             </ul>
         </section>
         <section class="mb-6">
