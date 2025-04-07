@@ -1,13 +1,25 @@
 <x-app-layout>
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 bg-gray-100 dark:bg-gray-800">
         <h1 class="text-2xl sm:text-3xl font-bold text-[#8B0116] dark:text-[#ff4b63] mb-4 sm:mb-8">Changelog</h1>
-        <p class="mb-6">Auf dieser Seite werden sämtliche Änderungen an der vereinswebseite des Offiziellen Maddrax Fanclub e. V. dokumentiert.</p>
+        <p class="mb-6">Auf dieser Seite werden sämtliche Änderungen an der Vereinswebseite des Offiziellen Maddrax
+            Fanclub e. V. dokumentiert.</p>
+        <section class="mb-6">
+            <h2 class="text-xl font-semibold mb-2">Version 0.7.0 (??.04.2025)</h2>
+            <h3 class="text-l font-semibold mb-2">Features:</h3>
+            <ul class="list-disc ml-6 mt-2">
+                <li>Neue Cards zu Challenges im Dashboard hinzugefügt (Danke Tanja!)</li>
+            </ul>
+            <h3 class="text-l font-semibold mb-2">Änderungen:</h3>
+            <ul class="list-disc ml-6 mt-2">
+                <li>???</li>
+            </ul>
+        </section>
         <section class="mb-6">
             <h2 class="text-xl font-semibold mb-2">Version 0.6.1 (07.04.2025)</h2>
             <h3 class="text-l font-semibold mb-2">Änderungen:</h3>
             <ul class="list-disc ml-6 mt-2">
                 <li>Texte zu aktuellen Projekten aktualisiert (Danke Tanja!)</li>
-                <li>AG Fanhörbücher auf der Unterseite Arebitsgruppen umbenannt in AG EARDRAX (Danke Tanja!)</li>
+                <li>AG Fanhörbücher auf der Unterseite Arbeitsgruppen umbenannt in AG EARDRAX (Danke Tanja!)</li>
                 <li>Challenge-Kategorie AG Fanhörbücher umbenannt in AG EARDRAX (Danke Tanja!)</li>
                 <li>AG Fanhörbücher in Unterseite Meetings umbenannt in AG EARDRAX (Danke Tanja!)</li>
                 <li>Links zu Jubiläumsroman und Autor in der Chronik ergänzt (Danke Tanja!)</li>
@@ -16,9 +28,9 @@
                 <li>Wortwitz im Text für Lucy Guth Wortwitz eingebaut (Danke Tanja!)</li>
                 <li>Text zu Oliver Müller auf der Unterseite Ehrenmitglieder angepasst (Danke Tanja!)</li>
                 <li>Satzung auf aktuelle Fassung vom 26. Januar 2024 geprüft (Danke Tanja!)</li>
-                <li>Hinweistext zum Datenshutz über Mitgliederkarte aktualisiert (Danke Tanja!)</li>
+                <li>Hinweistext zum Datenschutz über Mitgliederkarte aktualisiert (Danke Tanja!)</li>
                 <li>Begrüßung auf Startseite horizontal zentriert (Danke Tanja!)</li>
-                <li>Resonsive Darstellung des Google-Kalenders auf der Seite Termine verbessert</li>
+                <li>Responsive Darstellung des Google-Kalenders auf der Seite Termine verbessert</li>
                 <li>Beschreibung zum CHATDRAX 2.0 (ehemals Maddrax-Stammtisch) unter Meetings aktualisiert (Danke Tanja!)</li>
             </ul>
         </section>
@@ -51,7 +63,8 @@
                 <li>Mitgliederliste auch im Dark Mode lesbar gemacht (Danke Tanja!)</li>
                 <li>Buttons in Mitgliederliste verkleinert</li>
                 <li>Responsivität der Mitgliederliste verbessert (Danke Markus!)</li>
-                <li>Klick auf die den Bestätigungslink leitet nun auf eine eigene Seite mit Erklärungstext weiter (Danke Tanja!)</li>
+                <li>Klick auf die den Bestätigungslink leitet nun auf eine eigene Seite mit Erklärungstext weiter (Danke
+                    Tanja!)</li>
             </ul>
         </section>
         <section class="mb-6">
@@ -64,7 +77,8 @@
             </ul>
             <h3 class="text-l font-semibold mb-2">Änderungen:</h3>
             <ul class="list-disc ml-6 mt-2">
-                <li>Profil angepasst damit alle Pesonendaten durch Mitglieder selbständiug aktualisiert werden können</li>
+                <li>Profil angepasst damit alle Pesonendaten durch Mitglieder selbständiug aktualisiert werden können
+                </li>
                 <li>Tippfehler auf der Startseite korrigiert (Danke Tanja!)</li>
                 <li>Fehlerhafte Anzeige des Dashboards für den Vorstand verbessert (Danke Markus!)</li>
             </ul>
@@ -79,7 +93,8 @@
             <h3 class="text-l font-semibold mb-2">Änderungen:</h3>
             <ul class="list-disc ml-6 mt-2">
                 <li>Weitere Vorteile einer Mitgliedschaft im Verein ergänzt</li>
-                <li>Profil angepasst damit alle Pesonendaten durch Mitglieder selbständiug aktualisiert werden können</li>
+                <li>Profil angepasst damit alle Pesonendaten durch Mitglieder selbständiug aktualisiert werden können
+                </li>
             </ul>
         </section>
         <section class="mb-6">
