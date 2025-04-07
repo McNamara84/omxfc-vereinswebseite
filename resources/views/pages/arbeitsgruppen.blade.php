@@ -23,12 +23,12 @@
             </p>
         </section>
 
-        <!-- AG Fanhörbücher -->
+        <!-- AG EARDRAX -->
         <section class="mb-12">
-            <h2 class="text-2xl font-semibold mb-4">AG Fanhörbücher (EARDRAX)</h2>
-            <img src="{{ asset('images/ag-eardrax.png') }}" alt="AG Fanhörbücher"
+            <h2 class="text-2xl font-semibold mb-4">AG EARDRAX (Fanhörbücher)</h2>
+            <img src="{{ asset('images/ag-eardrax.png') }}" alt="AG EARDRAX"
                 class="w-full h-auto rounded-lg shadow mb-4 ag-logo">
-            <p class="mb-4">Die Fanhörbücher (EARDRAX) AG (Arbeitsgemeinschaft) ist ein munterer Tummelplatz für alle, die immer schon einmal bei einer Hörbuchproduktion mitmachen wollten.</p>
+            <p class="mb-4">Die AG EARDRAX (Fanhörbücher) ist ein munterer Tummelplatz für alle, die immer schon einmal bei einer Hörbuchproduktion mitmachen wollten.</p>
             <p class="mb-4">EARDRAX ist eine klassische Corona-Idee: als ein (damals noch) kleiner Haufen von Maddrax-Fans auf die Idee kam, die Maddrax Romane ab Band 15 der Heftserie zu vertonen. Die Folgen 1 bis 14 gab es ja schon von Lübbe Audio als klassische, aber gekürzte Hörbuchversionen.</p>
             <p class="mb-4">Bei EARDRAX werden die frühen Maddrax-Abenteuer von Fans für Fans im Rahmen von inszenierten Lesungen anhand von Skripten Take für Take aufgenommen und nach Abschluss der Aufnahmen mit Sounds und Musik zu einem inszenierten Hörbuch zusammengesetzt.</p>
             <p class="mb-4">Außerdem haben wir auch abseits des gesprochenen Wortes noch vieles und spannendes für interessierte Fans zu bieten: z.B. das Erstellen und Bearbeiten der Skripte, Korrekturlesungen, das Erstellen von KI-Hintergrundbildern, Audio- und Videoschnitt, eine soziale Medien Abteilung und vieles mehr!</p>

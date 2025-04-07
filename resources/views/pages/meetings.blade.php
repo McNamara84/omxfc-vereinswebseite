@@ -10,7 +10,7 @@
                         <p>
                             <strong>Wann:</strong>
                             @if($meeting['day'] === 'see_note')
-                                An Samstagen ohne neuen Roman (Beginn: {{ $meeting['time_from'] }})
+                                Jeden zweiten Dienstag nach einem Roman (Beginn: {{ $meeting['time_from'] }})
                             @else
                                 {{ $meeting['next']->translatedFormat('l, d.m.Y') }}
                                 von {{ $meeting['time_from'] }} bis {{ $meeting['time_to'] }}

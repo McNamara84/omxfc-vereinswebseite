@@ -6,8 +6,7 @@
                 
                 <div class="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-md">
                     <p class="text-sm text-yellow-800">
-                        <strong>Hinweis zum Datenschutz:</strong> Aus Datenschutzgründen werden die Standorte der Mitglieder 
-                        nicht exakt angezeigt.
+                        <strong>Hinweis:</strong> Aus Datenschutzgründen werden die Standorte der Mitglieder nicht exakt angezeigt.
                     </p>
                 </div>
                 <!-- Karten-Container -->
