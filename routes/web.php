@@ -13,6 +13,7 @@ use App\Http\Controllers\MitgliederKarteController;
 use App\Http\Controllers\TodoController;
 use App\Http\Controllers\MeetingController;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\KassenbuchController;
 
 // Öffentliche Seiten
 Route::get('/', [PageController::class, 'home'])->name('home');
@@ -68,6 +69,9 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
     Route::post('/todos/{todo}/release', [TodoController::class, 'release'])->name('todos.release');
     Route::get('/meetings', [MeetingController::class, 'index'])->name('meetings');
     Route::post('/meetings/redirect', [MeetingController::class, 'redirectToZoom'])->name('meetings.redirect');
+    Route::get('/kassenbuch', [KassenbuchController::class, 'index'])->name('kassenbuch.index');
+    Route::put('/kassenbuch/update-payment/{user}', [KassenbuchController::class, 'updatePaymentStatus'])->name('kassenbuch.update-payment');
+    Route::post('/kassenbuch/add-entry', [KassenbuchController::class, 'addKassenbuchEntry'])->name('kassenbuch.add-entry');
     //Badges
     Route::get('/badges/{filename}', function ($filename) {
         $path = storage_path('app/private/' . $filename);
