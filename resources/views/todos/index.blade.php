@@ -227,7 +227,7 @@
             </div>
             <!-- Erledigte Challenges (nur wenn Verifizierungsrechte vorhanden) -->
             @if($canVerifyTodos && $completedTodos->where('status', 'completed')->isNotEmpty())
-                <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
+                <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
                     <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4">Zu verifizierende Challenges
                     </h2>
                     <!-- Desktop-Ansicht (versteckt auf Mobilgeräten) -->
@@ -307,17 +307,14 @@
                     </div>
                 </div>
             @endif
-            <!-- In Bearbeitung befindliche Challenges -->
-            <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
-                <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4">In Bearbeitung befindliche
-                    Challenges</h2>
-                @php
-                    $inProgressTodos = $todos->where('status', 'assigned')->where('assigned_to', '!=', Auth::id());
-                @endphp
-                @if($inProgressTodos->isEmpty())
-                    <p class="text-gray-600 dark:text-gray-400">Es werden aktuell keine Challenges von anderen Mitgliedern
-                        bearbeitet.</p>
-                @else
+
+            <!-- In Bearbeitung befindliche Challenges - Nur anzeigen, wenn es welche gibt -->
+            @php
+                $inProgressTodos = $todos->where('status', 'assigned')->where('assigned_to', '!=', Auth::id());
+            @endphp
+            @if($inProgressTodos->isNotEmpty())
+                <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
+                    <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4">In Bearbeitung befindliche Challenges</h2>
                     <!-- Desktop-Ansicht (versteckt auf Mobilgeräten) -->
                     <div class="hidden md:block">
                         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
@@ -376,8 +373,8 @@
                             </div>
                         @endforeach
                     </div>
-                @endif
-            </div>
+                </div>
+            @endif
         </div>
     </div>
 </x-app-layout>

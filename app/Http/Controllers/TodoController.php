@@ -14,7 +14,7 @@ class TodoController extends Controller
     /**
      * Zeigt die Übersicht der Todos an.
      */
-    public function index()
+    public function index(Request $request)
     {
         $user = Auth::user();
         $memberTeam = Team::where('name', 'Mitglieder')->first();
@@ -34,9 +34,18 @@ class TodoController extends Controller
         $canCreateTodos = in_array($userRole, ['Kassenwart', 'Vorstand', 'Admin']);
         $canVerifyTodos = in_array($userRole, ['Kassenwart', 'Vorstand', 'Admin']);
 
-        $todos = Todo::where('team_id', $memberTeam->id)
-            ->with(['creator', 'assignee', 'verifier'])
-            ->orderBy('status')
+        // Query-Builder für Todos
+        $todosQuery = Todo::where('team_id', $memberTeam->id)
+            ->with(['creator', 'assignee', 'verifier']);
+
+        // Filter für "pending" hinzufügen
+        $filter = $request->query('filter');
+        if ($filter === 'pending' && $canVerifyTodos) {
+            $todosQuery->where('status', 'completed');
+        }
+
+        // Sortierung anwenden
+        $todos = $todosQuery->orderBy('status')
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -58,7 +67,8 @@ class TodoController extends Controller
             'canVerifyTodos' => $canVerifyTodos,
             'userPoints' => $userPoints,
             'memberTeam' => $memberTeam,
-            'userRole' => $userRole
+            'userRole' => $userRole,
+            'filter' => $filter
         ]);
     }
 
