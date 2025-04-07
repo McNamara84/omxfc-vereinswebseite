@@ -47,6 +47,8 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
     Route::get('/fotogalerie', [PhotoGalleryController::class, 'index'])->name('fotogalerie');
     Route::get('/mitglieder', [MitgliederController::class, 'index'])->name('mitglieder.index');
     Route::put('/mitglieder/{user}/role', [MitgliederController::class, 'changeRole'])->name('mitglieder.change-role');
+    Route::post('/mitglieder/export-csv', [MitgliederController::class, 'exportCsv'])->name('mitglieder.export-csv');
+    Route::get('/mitglieder/all-emails', [MitgliederController::class, 'getAllEmails'])->name('mitglieder.all-emails');
     Route::delete('/mitglieder/{user}', [MitgliederController::class, 'removeMember'])->name('mitglieder.remove');
     // Eigenes Profil anzeigen (muss VOR der generischen Route stehen)
     Route::get('/profile/view', function () {
@@ -55,6 +57,7 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
     // Fremdes Profil anzeigen
     Route::get('/profile/{user}', [ProfileViewController::class, 'show'])->name('profile.view');
     Route::get('/mitglieder/karte', [MitgliederKarteController::class, 'index'])->name('mitglieder.karte');
+    Route::get('/mitglieder/karte/locked', [MitgliederKarteController::class, 'locked'])->name('mitglieder.karte.locked');
     Route::get('/todos', [TodoController::class, 'index'])->name('todos.index');
     Route::get('/todos/create', [TodoController::class, 'create'])->name('todos.create');
     Route::post('/todos', [TodoController::class, 'store'])->name('todos.store');
