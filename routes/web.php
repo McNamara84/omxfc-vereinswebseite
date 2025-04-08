@@ -14,6 +14,7 @@ use App\Http\Controllers\TodoController;
 use App\Http\Controllers\MeetingController;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\KassenbuchController;
+use App\Http\Controllers\MaddraxiversumController;
 
 // Öffentliche Seiten
 Route::get('/', [PageController::class, 'home'])->name('home');
@@ -72,6 +73,7 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
     Route::get('/kassenbuch', [KassenbuchController::class, 'index'])->name('kassenbuch.index');
     Route::put('/kassenbuch/update-payment/{user}', [KassenbuchController::class, 'updatePaymentStatus'])->name('kassenbuch.update-payment');
     Route::post('/kassenbuch/add-entry', [KassenbuchController::class, 'addKassenbuchEntry'])->name('kassenbuch.add-entry');
+    Route::get('/maddraxiversum', [MaddraxiversumController::class, 'index'])->name('maddraxiversum.index');
     //Badges
     Route::get('/badges/{filename}', function ($filename) {
         $path = storage_path('app/private/' . $filename);

@@ -37,6 +37,9 @@
         <x-nav-link href="{{ route('kassenbuch.index') }}" :active="request()->routeIs('kassenbuch.index')">
             {{ __('Kassenbuch') }}
         </x-nav-link>
+        <x-nav-link href="{{ route('maddraxiversum.index') }}" :active="request()->routeIs('maddraxiversum.index')">
+            {{ __('Maddraxiversum') }}
+        </x-nav-link>
     @endauth
 
     @guest
@@ -165,6 +168,9 @@
                 </x-responsive-nav-link>
                 <x-responsive-nav-link href="{{ route('kassenbuch.index') }}" :active="request()->routeIs('kassenbuch.index')">
                     {{ __('Kassenbuch') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link href="{{ route('maddraxiversum.index') }}" :active="request()->routeIs('maddraxiversum.index')">
+                    {{ __('Maddraxiversum') }}
                 </x-responsive-nav-link>
             @endauth
         

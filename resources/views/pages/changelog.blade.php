@@ -11,6 +11,7 @@
                 <li>Export-Funktion der wichtigsten Spalten der Mitgliederliste als CSV-Datei für Vorstand implementiert (Danke Tanja!)</li>
                 <li>Button zum Kopieren aller E-Mailadressen der Mitglieder in die Zwischenablage in Mitgliederliste eingefügt</li>
                 <li>Neue Unterseite Kassenbuch im internen Bereich angelegt (Danke Tanja!)</li>
+                <li>Neue Unterseite Maddraxiversum im internen Bereich erstellt mit der aktuellen Version von MAPDRAX</li>
             </ul>
             <h3 class="text-l font-semibold mb-2">Änderungen:</h3>
             <ul class="list-disc ml-6 mt-2">
