@@ -74,6 +74,7 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
     Route::put('/kassenbuch/update-payment/{user}', [KassenbuchController::class, 'updatePaymentStatus'])->name('kassenbuch.update-payment');
     Route::post('/kassenbuch/add-entry', [KassenbuchController::class, 'addKassenbuchEntry'])->name('kassenbuch.add-entry');
     Route::get('/maddraxiversum', [MaddraxiversumController::class, 'index'])->name('maddraxiversum.index');
+    Route::get('/maddraxikon-cities', [MaddraxiversumController::class, 'getCities']);
     //Badges
     Route::get('/badges/{filename}', function ($filename) {
         $path = storage_path('app/private/' . $filename);

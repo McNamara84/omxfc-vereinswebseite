@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 use App\Models\User;
+use Illuminate\Support\Facades\Http;
 
 class MaddraxiversumController extends Controller
 {
@@ -29,10 +30,7 @@ class MaddraxiversumController extends Controller
                 $showMap = true;
             }
         } else {
-            // Optional: Handle den Fall, dass der Benutzer kein aktuelles Team hat
-            // Eventuell Weiterleitung oder Fehlermeldung
-             // Für dieses Beispiel gehen wir davon aus, dass jeder eingeloggte Benutzer ein Team hat.
-             // Wenn nicht, wird die Karte einfach nicht angezeigt.
+           
         }
 
 
@@ -42,5 +40,14 @@ class MaddraxiversumController extends Controller
             'requiredPoints' => $requiredPoints,
             'tileUrl' => 'https://mapdraxv2.maddraxikon.com/v2/{z}/{x}/{y}.png' // URL-Muster für die Tiles
         ]);
+    }
+
+    public function getCities()
+    {
+        $apiUrl = 'https://de.maddraxikon.com/api.php?action=ask&query=[[Kategorie:St%C3%A4dte%20in%20Amraka]]||[[Kategorie:St%C3%A4dte%20in%20Ausala]]||[[Kategorie:St%C3%A4dte%20in%20Euree]]||[[Kategorie:St%C3%A4dte%20in%20Meeraka]]||[[Kategorie:St%C3%A4dte%20in%20Aiaa]]||[[Kategorie:St%C3%A4dte%20in%20Afra]]||[[Kategorie:St%C3%A4dte%20in%20der%20Antakis]]|?Koordinaten|limit%3D400&format=json';
+
+        $response = Http::get($apiUrl);
+
+        return $response->json();
     }
 }
