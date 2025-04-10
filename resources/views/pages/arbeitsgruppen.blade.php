@@ -33,6 +33,7 @@
             <p class="mb-4">Bei EARDRAX werden die frühen Maddrax-Abenteuer von Fans für Fans im Rahmen von inszenierten Lesungen anhand von Skripten Take für Take aufgenommen und nach Abschluss der Aufnahmen mit Sounds und Musik zu einem inszenierten Hörbuch zusammengesetzt.</p>
             <p class="mb-4">Außerdem haben wir auch abseits des gesprochenen Wortes noch vieles und spannendes für interessierte Fans zu bieten: z.B. das Erstellen und Bearbeiten der Skripte, Korrekturlesungen, das Erstellen von KI-Hintergrundbildern, Audio- und Videoschnitt, eine soziale Medien Abteilung und vieles mehr!</p>
             <p class="mb-4">Wie viel Arbeit, aber auch Liebe und Herzblut dahintersteckt, kann man ahnen, wenn man der <a href="https://t1p.de/MXHBplaylist" class="text-blue-600 hover:underline">EARDAX-Playlist auf YouTube</a> folgt.</p>
+            <p class="mb-4">Doch bei jeder neuen Folge steht dieselbe Frage an: Wer liest und somit macht mit – und zwar ohne dass ein Honorar gezahlt werden kann; einfach, weil es Spaß macht?</p>
             <p class="mb-4">Na, ganz einfach: IHR, die Fans der Serie!</p>
             <p><strong>AG-Leitung:</strong> Martin<br>
                 <strong>Treffen:</strong> Jeden zweiten Mittwoch im Monat zwischen 19:00 und 19:30 Uhr per Online-Meeting.<br>
