@@ -32,7 +32,7 @@
             <div class="relative">
                 <div class="absolute -left-[20px] top-2 bg-[#8B0116] dark:bg-[#ff4b63] rounded-full w-3 h-3"></div>
                 <time class="font-semibold text-lg">18. Mai 2024</time>
-                <p class="mt-2">Mit dem Hörbuch 27 "Ruf des Blutes" startet bereits das 8. Hörbuch von EARDRAX. Gestartet wurde dieses Projekt am 13. Juli 2021 mit der ersten Folge der Hörbuch-Umsetzung des MADDRAX Bandes 16 "Die Heiler".</p>
+                <p class="mt-2">Mit dem Hörbuch 27 "Ruf des Blutes" startet bereits die achte Produktion von EARDRAX. Gestartet wurde dieses Projekt am 13. Juli 2021 mit der ersten Folge der Hörbuch-Umsetzung des MADDRAX Bandes 16 "Die Heiler".</p>
             </div>
             <div class="relative">
                 <div class="absolute -left-[20px] top-2 bg-[#8B0116] dark:bg-[#ff4b63] rounded-full w-3 h-3"></div>

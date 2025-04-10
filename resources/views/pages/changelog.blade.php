@@ -17,6 +17,7 @@
             <ul class="list-disc ml-6 mt-2">
                 <li>Mitgliederkarte nur für Mitglieder, die mindestens eine Challenge mit einem Punkt erledigt haben</li>
                 <li>Tippfehler auf Startseite beseitigt (Danke Martin!)</li>
+                <li>Text zum 18. Mai 2024 in der Chronik aktualisiert (Danke Martin!)</li>
             </ul>
         </section>
         <section class="mb-6">
