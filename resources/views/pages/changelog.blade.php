@@ -16,6 +16,7 @@
             <h3 class="text-l font-semibold mb-2">Änderungen:</h3>
             <ul class="list-disc ml-6 mt-2">
                 <li>Mitgliederkarte nur für Mitglieder, die mindestens eine Challenge mit einem Punkt erledigt haben</li>
+                <li>Tippfehler auf Startseite beseitigt (Danke Martin!)</li>
             </ul>
         </section>
         <section class="mb-6">
