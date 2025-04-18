@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use App\Models\User;
+use App\Models\UserPoint;
+use App\Models\Team;
 
 class MitgliederKarteController extends Controller
 {
@@ -14,6 +16,24 @@ class MitgliederKarteController extends Controller
     {
         $user = Auth::user();
         $team = $user->currentTeam;
+        
+        // Prüfen, ob der Nutzer mindestens einen Punkt oder eine erledigte Challenge hat
+        $memberTeam = Team::where('name', 'Mitglieder')->first();
+        
+        if ($memberTeam) {
+            $userPoints = UserPoint::where('user_id', $user->id)
+                ->where('team_id', $memberTeam->id)
+                ->count();
+                
+            $hasAccess = $userPoints > 0;
+        } else {
+            $hasAccess = false;
+        }
+        
+        // Wenn der Nutzer keine Punkte hat, zeigen wir eine Meldung an
+        if (!$hasAccess) {
+            return view('mitglieder.karte-locked');
+        }
         
         // Nur Nutzer mit Rollen außer "Anwärter" anzeigen
         $members = $team->users()

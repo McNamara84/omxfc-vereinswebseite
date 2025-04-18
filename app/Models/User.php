@@ -131,4 +131,18 @@ class User extends Authenticatable
             ->where('team_id', $team->id)
             ->sum('points');
     }
+
+    /**
+     * Increment points for the current team.
+     */
+    public function incrementTeamPoints(int $points = 1): void
+    {
+        if ($this->currentTeam) {
+            UserPoint::create([
+                'user_id' => $this->id,
+                'team_id' => $this->currentTeam->id,
+                'points' => $points
+            ]);
+        }
+    }
 }

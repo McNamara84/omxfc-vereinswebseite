@@ -22,7 +22,7 @@ class PageController extends Controller
             ],
             [
                 'title' => 'EARDRAX',
-                'description' => 'Die AG EARDRAX hat sich das ehrgeizige Ziel gesetzt die ersten 249 Romane als Inszenierte Lesungen auf YouTube zugänglich zu machen. Wenn du wissen willst warum, auch mal was einsprechen willst und eitere Veröffentlichungen mit planen möchtest, komm gerne vorbei.'
+                'description' => 'Die AG EARDRAX hat sich das ehrgeizige Ziel gesetzt, die ersten 249 Romane als Inszenierte Lesungen auf YouTube zugänglich zu machen. Wenn du wissen willst warum, auch mal was einsprechen willst und eitere Veröffentlichungen mit planen möchtest, komm gerne vorbei.'
             ],
             [
                 'title' => 'MAPDRAX',

@@ -25,8 +25,8 @@ class MeetingController extends Controller
             [
                 'name' => 'AG MAPDRAX',
                 'day' => 'first wednesday',
-                'time_from' => '20:30',
-                'time_to' => '21:00',
+                'time_from' => '20:00',
+                'time_to' => '20:30',
             ],
             [
                 'name' => 'CHATDRAX 2.0 - Der MADDRAX-Online-Stammtisch',

@@ -14,7 +14,7 @@ return new class extends Migration {
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->foreignId('team_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('todo_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('todo_id')->nullable()->constrained()->nullOnDelete();
             $table->integer('points');
             $table->timestamps();
         });

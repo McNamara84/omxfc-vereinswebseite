@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class MitgliederController extends Controller
 {
@@ -172,5 +173,133 @@ class MitgliederController extends Controller
         $user->delete();
 
         return back()->with('status', 'Die Mitgliedschaft wurde erfolgreich beendet.');
+    }
+
+    /**
+     * Exportiert Mitgliederdaten als CSV-Datei.
+     */
+    public function exportCsv(Request $request)
+    {
+        $user = Auth::user();
+        $team = $user->currentTeam;
+
+        // Überprüfen, ob der Benutzer berechtigt ist (Kassenwart, Vorstand oder Admin)
+        $allowedRoles = ['Kassenwart', 'Vorstand', 'Admin'];
+        $userRole = $team->users()
+            ->where('user_id', $user->id)
+            ->first()
+            ->membership
+            ->role;
+
+        if (!in_array($userRole, $allowedRoles)) {
+            return back()->with('error', 'Du hast keine Berechtigung zum Exportieren von Mitgliederdaten.');
+        }
+
+        // Felder validieren
+        $request->validate([
+            'export_fields' => 'required|array',
+            'export_fields.*' => 'in:name,email,adresse,bezahlt_bis',
+        ]);
+
+        // Mitglieder abrufen (ohne Anwärter)
+        $members = $team->users()
+            ->wherePivotNotIn('role', ['Anwärter'])
+            ->orderBy('name')
+            ->get();
+
+        // CSV-Datei generieren
+        $filename = 'mitglieder-export-' . date('Y-m-d') . '.csv';
+
+        $headers = [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ];
+
+        // StreamedResponse verwenden, um Speicherverbrauch zu minimieren
+        return new StreamedResponse(function () use ($members, $request) {
+            // Output-Stream öffnen und BOM für Excel-UTF-8-Kompatibilität setzen
+            $handle = fopen('php://output', 'w');
+            fprintf($handle, chr(0xEF) . chr(0xBB) . chr(0xBF));
+
+            // Spaltenüberschriften
+            $headers = [];
+            if (in_array('name', $request->export_fields)) {
+                $headers[] = 'Name';
+                $headers[] = 'Vorname';
+                $headers[] = 'Nachname';
+            }
+            if (in_array('email', $request->export_fields)) {
+                $headers[] = 'E-Mail';
+            }
+            if (in_array('adresse', $request->export_fields)) {
+                $headers[] = 'Straße';
+                $headers[] = 'Hausnummer';
+                $headers[] = 'PLZ';
+                $headers[] = 'Stadt';
+                $headers[] = 'Land';
+            }
+            if (in_array('bezahlt_bis', $request->export_fields)) {
+                $headers[] = 'Bezahlt bis';
+            }
+
+            fputcsv($handle, $headers);
+
+            // Daten schreiben
+            foreach ($members as $member) {
+                $row = [];
+
+                if (in_array('name', $request->export_fields)) {
+                    $row[] = $member->name;
+                    $row[] = $member->vorname;
+                    $row[] = $member->nachname;
+                }
+                if (in_array('email', $request->export_fields)) {
+                    $row[] = $member->email;
+                }
+                if (in_array('adresse', $request->export_fields)) {
+                    $row[] = $member->strasse;
+                    $row[] = $member->hausnummer;
+                    $row[] = $member->plz;
+                    $row[] = $member->stadt;
+                    $row[] = $member->land;
+                }
+                if (in_array('bezahlt_bis', $request->export_fields)) {
+                    $row[] = $member->bezahlt_bis ? $member->bezahlt_bis->format('d.m.Y') : '';
+                }
+
+                fputcsv($handle, $row);
+            }
+
+            fclose($handle);
+        }, 200, $headers);
+    }
+
+    /**
+     * Gibt alle E-Mail-Adressen als Textliste zurück.
+     */
+    public function getAllEmails()
+    {
+        $user = Auth::user();
+        $team = $user->currentTeam;
+
+        // Überprüfen, ob der Benutzer berechtigt ist (Kassenwart, Vorstand oder Admin)
+        $allowedRoles = ['Kassenwart', 'Vorstand', 'Admin'];
+        $userRole = $team->users()
+            ->where('user_id', $user->id)
+            ->first()
+            ->membership
+            ->role;
+
+        if (!in_array($userRole, $allowedRoles)) {
+            return response()->json(['error' => 'Keine Berechtigung'], 403);
+        }
+
+        // E-Mail-Adressen abrufen
+        $emails = $team->users()
+            ->wherePivotNotIn('role', ['Anwärter'])
+            ->pluck('email')
+            ->implode('; ');
+
+        return response()->json(['emails' => $emails]);
     }
 }

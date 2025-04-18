@@ -13,6 +13,8 @@ use App\Http\Controllers\MitgliederKarteController;
 use App\Http\Controllers\TodoController;
 use App\Http\Controllers\MeetingController;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\KassenbuchController;
+use App\Http\Controllers\MaddraxiversumController;
 
 // Öffentliche Seiten
 Route::get('/', [PageController::class, 'home'])->name('home');
@@ -47,6 +49,8 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
     Route::get('/fotogalerie', [PhotoGalleryController::class, 'index'])->name('fotogalerie');
     Route::get('/mitglieder', [MitgliederController::class, 'index'])->name('mitglieder.index');
     Route::put('/mitglieder/{user}/role', [MitgliederController::class, 'changeRole'])->name('mitglieder.change-role');
+    Route::post('/mitglieder/export-csv', [MitgliederController::class, 'exportCsv'])->name('mitglieder.export-csv');
+    Route::get('/mitglieder/all-emails', [MitgliederController::class, 'getAllEmails'])->name('mitglieder.all-emails');
     Route::delete('/mitglieder/{user}', [MitgliederController::class, 'removeMember'])->name('mitglieder.remove');
     // Eigenes Profil anzeigen (muss VOR der generischen Route stehen)
     Route::get('/profile/view', function () {
@@ -55,6 +59,7 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
     // Fremdes Profil anzeigen
     Route::get('/profile/{user}', [ProfileViewController::class, 'show'])->name('profile.view');
     Route::get('/mitglieder/karte', [MitgliederKarteController::class, 'index'])->name('mitglieder.karte');
+    Route::get('/mitglieder/karte/locked', [MitgliederKarteController::class, 'locked'])->name('mitglieder.karte.locked');
     Route::get('/todos', [TodoController::class, 'index'])->name('todos.index');
     Route::get('/todos/create', [TodoController::class, 'create'])->name('todos.create');
     Route::post('/todos', [TodoController::class, 'store'])->name('todos.store');
@@ -65,6 +70,14 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
     Route::post('/todos/{todo}/release', [TodoController::class, 'release'])->name('todos.release');
     Route::get('/meetings', [MeetingController::class, 'index'])->name('meetings');
     Route::post('/meetings/redirect', [MeetingController::class, 'redirectToZoom'])->name('meetings.redirect');
+    Route::get('/kassenbuch', [KassenbuchController::class, 'index'])->name('kassenbuch.index');
+    Route::put('/kassenbuch/update-payment/{user}', [KassenbuchController::class, 'updatePaymentStatus'])->name('kassenbuch.update-payment');
+    Route::post('/kassenbuch/add-entry', [KassenbuchController::class, 'addKassenbuchEntry'])->name('kassenbuch.add-entry');
+    Route::get('/maddraxiversum', [MaddraxiversumController::class, 'index'])->name('maddraxiversum.index');
+    Route::get('/maddraxikon-cities', [MaddraxiversumController::class, 'getCities']);
+    Route::post('/mission/start', [MaddraxiversumController::class, 'startMission']);
+    Route::post('/mission/check-status', [MaddraxiversumController::class, 'checkMissionStatus']);
+    Route::get('/mission/status', [MaddraxiversumController::class, 'getMissionStatus']);
     //Badges
     Route::get('/badges/{filename}', function ($filename) {
         $path = storage_path('app/private/' . $filename);
