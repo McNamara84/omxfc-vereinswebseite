@@ -4,18 +4,33 @@
         <p class="mb-6">Auf dieser Seite werden sämtliche Änderungen an der Vereinswebseite des Offiziellen Maddrax
             Fanclub e. V. dokumentiert.</p>
         <section class="mb-6">
+            <h2 class="text-xl font-semibold mb-2">Version 0.8.0 (xx.05.2025)</h2>
+            <h3 class="text-l font-semibold mb-2">Features:</h3>
+            <ul class="list-disc ml-6 mt-2">
+                <li>Neue Seite Romantauschbörse im internen Mitgliederbereich hinzugefügt</li>
+            </ul>
+            <h3 class="text-l font-semibold mb-2">Änderungen:</h3>
+            <ul class="list-disc ml-6 mt-2">
+                <li>Hauptmenü im internen Mitgliederbereich umstrukturiert</li>
+            </ul>
+        </section>
+        <section class="mb-6">
             <h2 class="text-xl font-semibold mb-2">Version 0.7.0 (18.04.2025)</h2>
             <h3 class="text-l font-semibold mb-2">Features:</h3>
             <ul class="list-disc ml-6 mt-2">
                 <li>Neue Cards zu Challenges im Dashboard hinzugefügt (Danke Tanja!)</li>
-                <li>Export-Funktion der wichtigsten Spalten der Mitgliederliste als CSV-Datei für Vorstand implementiert (Danke Tanja!)</li>
-                <li>Button zum Kopieren aller E-Mailadressen der Mitglieder in die Zwischenablage in Mitgliederliste eingefügt</li>
+                <li>Export-Funktion der wichtigsten Spalten der Mitgliederliste als CSV-Datei für Vorstand implementiert
+                    (Danke Tanja!)</li>
+                <li>Button zum Kopieren aller E-Mailadressen der Mitglieder in die Zwischenablage in Mitgliederliste
+                    eingefügt</li>
                 <li>Neue Unterseite Kassenbuch im internen Bereich angelegt (Danke Tanja!)</li>
-                <li>Neue Unterseite Maddraxiversum im internen Bereich erstellt mit der aktuellen Version von MAPDRAX</li>
+                <li>Neue Unterseite Maddraxiversum im internen Bereich erstellt mit der aktuellen Version von MAPDRAX
+                </li>
             </ul>
             <h3 class="text-l font-semibold mb-2">Änderungen:</h3>
             <ul class="list-disc ml-6 mt-2">
-                <li>Mitgliederkarte nur für Mitglieder, die mindestens eine Challenge mit einem Punkt erledigt haben</li>
+                <li>Mitgliederkarte nur für Mitglieder, die mindestens eine Challenge mit einem Punkt erledigt haben
+                </li>
                 <li>Tippfehler auf Startseite beseitigt (Danke Martin!)</li>
                 <li>Text zum 18. Mai 2024 in der Chronik aktualisiert (Danke Martin!)</li>
                 <li>Fehlenden Satz zur AG EARDRAX ergänzt (Danke Martin!)</li>
@@ -39,7 +54,8 @@
                 <li>Hinweistext zum Datenschutz über Mitgliederkarte aktualisiert (Danke Tanja!)</li>
                 <li>Begrüßung auf Startseite horizontal zentriert (Danke Tanja!)</li>
                 <li>Responsive Darstellung des Google-Kalenders auf der Seite Termine verbessert</li>
-                <li>Beschreibung zum CHATDRAX 2.0 (ehemals Maddrax-Stammtisch) unter Meetings aktualisiert (Danke Tanja!)</li>
+                <li>Beschreibung zum CHATDRAX 2.0 (ehemals Maddrax-Stammtisch) unter Meetings aktualisiert (Danke
+                    Tanja!)</li>
             </ul>
         </section>
         <section class="mb-6">
