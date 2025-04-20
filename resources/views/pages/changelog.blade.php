@@ -12,6 +12,7 @@
             <h3 class="text-l font-semibold mb-2">Änderungen:</h3>
             <ul class="list-disc ml-6 mt-2">
                 <li>Hauptmenü im internen Mitgliederbereich umstrukturiert</li>
+                <li>Dropdown-Auswahl für Lieblingsfigur im persönlichen Mitgliederprofil gefixt (Danke Martin!)</li>
             </ul>
         </section>
         <section class="mb-6">
