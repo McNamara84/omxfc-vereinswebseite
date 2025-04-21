@@ -37,6 +37,7 @@
                         <x-nav-link href="{{ route('todos.index') }}">Challenges</x-nav-link>
                         <x-nav-link href="{{ route('maddraxiversum.index') }}">Maddraxiversum</x-nav-link>
                         <x-nav-link href="{{ route('romantausch.index') }}">Tauschbörse</x-nav-link>
+                        <x-nav-link href="{{ route('downloads') }}">Downloads</x-nav-link>
                     @endauth
                     @guest
                         <x-nav-link href="{{ route('chronik') }}">Chronik</x-nav-link>
@@ -109,6 +110,7 @@
             <x-responsive-nav-link href="{{ route('todos.index') }}">Challenges</x-responsive-nav-link>
             <x-responsive-nav-link href="{{ route('maddraxiversum.index') }}">Maddraxiversum</x-responsive-nav-link>
             <x-responsive-nav-link href="{{ route('romantausch.index') }}">Tauschbörse</x-responsive-nav-link>
+            <x-responsive-nav-link href="{{ route('downloads') }}">Downloads</x-responsive-nav-link>
         @endauth
 
         @guest

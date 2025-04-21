@@ -8,6 +8,7 @@
             <h3 class="text-l font-semibold mb-2">Features:</h3>
             <ul class="list-disc ml-6 mt-2">
                 <li>Neue Seite Romantauschbörse im internen Mitgliederbereich hinzugefügt</li>
+                <li>Neue Seite Downloads im internen Mitgliederbereich hinzugefügt</li>
             </ul>
             <h3 class="text-l font-semibold mb-2">Änderungen:</h3>
             <ul class="list-disc ml-6 mt-2">

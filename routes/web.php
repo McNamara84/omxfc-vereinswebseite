@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\KassenbuchController;
 use App\Http\Controllers\MaddraxiversumController;
 use App\Http\Controllers\RomantauschController;
+use App\Http\Controllers\DownloadsController;
 
 // Öffentliche Seiten
 Route::get('/', [PageController::class, 'home'])->name('home');
@@ -96,4 +97,6 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
     Route::post('/romantauschboerse/{offer}/delete-offer', [RomantauschController::class, 'deleteOffer'])->name('romantausch.delete-offer');
     Route::post('/romantauschboerse/{request}/delete-request', [RomantauschController::class, 'deleteRequest'])->name('romantausch.delete-request');
     Route::post('/romantauschboerse/{offer}/{request}/complete', [RomantauschController::class, 'completeSwap'])->name('romantausch.complete-swap');
+    Route::get('/downloads', [DownloadsController::class, 'index'])->name('downloads');
+    Route::get('/downloads/download/{datei}', [DownloadsController::class, 'download'])->name('downloads.download');
 });
