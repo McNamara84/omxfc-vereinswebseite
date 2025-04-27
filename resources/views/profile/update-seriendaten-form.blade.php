@@ -1,3 +1,4 @@
+<!-- resources\views\profile\update-seriendaten-form.blade.php -->
 <x-form-section submit="updateSeriendaten">
     <x-slot name="title">
         {{ __('Serienspezifische Daten') }}
@@ -70,6 +71,7 @@
             <input type="text"
                 id="lieblingsfigur"
                 wire:model="state.lieblingsfigur"
+                x-ref="lieblingsfigurInput"
                 autocomplete="off"
                 class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-800 rounded-md shadow-sm"
                 x-model="query"
@@ -93,6 +95,7 @@
             <input type="text"
                 id="lieblingsschauplatz"
                 wire:model="state.lieblingsschauplatz"
+                x-ref="lieblingsschauplatzInput"
                 autocomplete="off"
                 class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-800 rounded-md shadow-sm"
                 x-model="query"
@@ -111,34 +114,52 @@
         </div>
         <!-- TODO: Lieblingsmutation -->
     </x-slot>
-
     <x-slot name="actions">
         <x-action-message class="me-3" on="saved">
             {{ __('Gespeichert.') }}
         </x-action-message>
-
-        <x-button>
+        <x-button id="saveButton">
             {{ __('Speichern') }}
         </x-button>
     </x-slot>
 </x-form-section>
 <script>
     function autocomplete(items, initialValue = '') {
-        return {
-            query: initialValue || '',
-            open: false,
-            items: items,
-            filteredItems: [],
-            filterItems() {
-                this.open = true;
-                const queryLower = this.query.toLowerCase();
-                this.filteredItems = this.items.filter(item => item.toLowerCase().includes(queryLower)).slice(0, 10);
-            },
-            selectItem(item) {
-                this.query = item;
-                this.$wire.set('state.' + this.$el.querySelector('input').id, item);
-                this.open = false;
+    return {
+        query: initialValue || '',
+        open: false,
+        items: items,
+        filteredItems: [],
+        filterItems() {
+            this.open = true;
+            const queryLower = this.query.toLowerCase();
+            this.filteredItems = this.items.filter(item => item.toLowerCase().includes(queryLower)).slice(0, 10);
+        },
+        selectItem(item) {
+            // Zuerst den ausgewählten Wert im Query-Feld anzeigen
+            this.query = item;
+            
+            // Den ausgewählten Wert an Livewire übertragen
+            const input = this.$refs.lieblingsfigurInput || this.$refs.lieblingsschauplatzInput;
+            if (!input) {
+                console.error('Input element reference not found');
+                return;
             }
-        };
-    }
-    </script>
+            
+            const inputId = input.id;
+            
+            // Wert direkt für das Input-Feld setzen
+            input.value = item;
+            
+            // Aktualisiere das Livewire-Modell explizit
+            this.$wire.set('state.' + inputId, item);
+            
+            // Manuell ein Input-Event auslösen
+            input.dispatchEvent(new Event('input', { bubbles: true }));
+            
+            // Auswahlmenü schließen
+            this.open = false;
+        }
+    };
+}
+</script>
