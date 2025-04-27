@@ -22,9 +22,9 @@ class KompendiumController extends Controller
     public function index(Request $request): View
     {
         /** @var \App\Models\User $user */
-        $user         = Auth::user();
-        $currentTeam  = $user->currentTeam;
-        $userPoints   = $currentTeam
+        $user = Auth::user();
+        $currentTeam = $user->currentTeam;
+        $userPoints = $currentTeam
             ? $user->totalPointsForTeam($currentTeam)
             : 0;
 
@@ -33,7 +33,7 @@ class KompendiumController extends Controller
         return view('pages.kompendium', [
             'userPoints' => $userPoints,
             'showSearch' => $showSearch,
-            'required'   => self::REQUIRED_POINTS,
+            'required' => self::REQUIRED_POINTS,
         ]);
     }
 
@@ -43,31 +43,31 @@ class KompendiumController extends Controller
     public function search(Request $request): JsonResponse
     {
         /** @var \App\Models\User $user */
-        $user        = Auth::user();
+        $user = Auth::user();
         $currentTeam = $user->currentTeam;
-        $userPoints  = $currentTeam
+        $userPoints = $currentTeam
             ? $user->totalPointsForTeam($currentTeam)
             : 0;
 
         if ($userPoints < self::REQUIRED_POINTS) {
             return response()->json([
                 'message' => "Mindestens "
-                            . self::REQUIRED_POINTS
-                            . " Punkte erforderlich (du hast $userPoints)."
+                    . self::REQUIRED_POINTS
+                    . " Punkte erforderlich (du hast $userPoints)."
             ], 403);
         }
 
         /* ---------- Validierung ---------- */
         $request->validate([
-            'q'    => 'required|string|min:2',
+            'q' => 'required|string|min:2',
             'page' => 'sometimes|integer|min:1',
         ]);
 
-        $query           = mb_strtolower($request->input('q'));
-        $page            = (int) $request->input('page', 1);
-        $perPage         = 5;
+        $query = mb_strtolower($request->input('q'));
+        $page = (int) $request->input('page', 1);
+        $perPage = 5;
         $snippetsPerFile = config('kompendium.snippets_per_novel', 10) ?: 10;
-        $radius          = 200;
+        $radius = 200;
 
         /* ---------- Datei-Scan (gecached) ---------- */
         $allHits = Cache::remember(
@@ -75,31 +75,37 @@ class KompendiumController extends Controller
             60,
             function () use ($query, $snippetsPerFile, $radius) {
 
-                $files = Storage::disk('private')
-                    ->allFiles('romane/01-Euree');
+                $files = Storage::disk('private')->allFiles('romane');
 
                 $hits = [];
 
                 foreach ($files as $path) {
-                    if (!Str::endsWith($path, '.txt')) continue;
+                    if (!Str::endsWith($path, '.txt'))
+                        continue;
 
-                    $text  = Storage::disk('private')->get($path);
+                    $text = Storage::disk('private')->get($path);
                     $lower = mb_strtolower($text);
 
-                    if (!Str::contains($lower, $query)) continue;
+                    if (!Str::contains($lower, $query))
+                        continue;
 
                     [$cycleSlug, $romanNr, $title] = $this->extractMetaFromPath($path);
 
+                    $cycleName = Str::of($cycleSlug)
+                        ->after('-')          // „Meeraka“
+                        ->replace('-', ' ')   // falls mehrere Wörter
+                        ->title() . '-Zyklus';
+
                     /* --- Snippets sammeln --- */
                     $snippets = [];
-                    $offset   = 0;
+                    $offset = 0;
 
                     while (
                         ($pos = mb_stripos($text, $query, $offset)) !== false &&
                         count($snippets) < $snippetsPerFile
                     ) {
-                        $start   = max($pos - $radius, 0);
-                        $length  = mb_strlen($query) + (2 * $radius);
+                        $start = max($pos - $radius, 0);
+                        $length = mb_strlen($query) + (2 * $radius);
                         $snippet = mb_substr($text, $start, $length);
 
                         $snippet = e($snippet);
@@ -110,18 +116,18 @@ class KompendiumController extends Controller
                         );
 
                         $snippets[] = $snippet;
-                        $offset     = $pos + mb_strlen($query);
+                        $offset = $pos + mb_strlen($query);
                     }
 
                     $hits[] = [
-                        'cycle'    => 'Euree-Zyklus',
-                        'romanNr'  => $romanNr,
-                        'title'    => $title,
+                        'cycle'    => $cycleName,
+                        'romanNr' => $romanNr,
+                        'title' => $title,
                         'snippets' => $snippets,
                     ];
                 }
 
-                usort($hits, fn ($a, $b) => strnatcmp($a['romanNr'], $b['romanNr']));
+                usort($hits, fn($a, $b) => strnatcmp($a['romanNr'], $b['romanNr']));
                 return $hits;
             }
         );
@@ -135,9 +141,9 @@ class KompendiumController extends Controller
         );
 
         return response()->json([
-            'data'        => $paginator->items(),
+            'data' => $paginator->items(),
             'currentPage' => $paginator->currentPage(),
-            'lastPage'    => $paginator->lastPage(),
+            'lastPage' => $paginator->lastPage(),
         ]);
     }
 
@@ -146,8 +152,8 @@ class KompendiumController extends Controller
      */
     private function extractMetaFromPath(string $path): array
     {
-        $parts      = preg_split('/[\\\\\/]+/', $path);
-        $cycleSlug  = $parts[1] ?? 'unknown';
+        $parts = preg_split('/[\\\\\/]+/', $path);
+        $cycleSlug = $parts[1] ?? 'unknown';
 
         [$romanNr, $title] = explode(' - ', pathinfo($path, PATHINFO_FILENAME), 2);
         return [$cycleSlug, $romanNr, $title];
