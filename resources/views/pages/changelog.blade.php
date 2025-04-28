@@ -12,6 +12,7 @@
             <h3 class="text-l font-semibold mb-2">Änderungen:</h3>
             <ul class="list-disc ml-6 mt-2">
                 <li>2. Zyklus (25-49) für das Kompendium indexiert</li>
+                <li>tippfehler auf der Startseite beseitigt (Danke Lanthi!)</li>
             </ul>
             </section>
         <section class="mb-6">
