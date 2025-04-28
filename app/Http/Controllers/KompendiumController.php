@@ -3,61 +3,52 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Http\JsonResponse;
 use Illuminate\View\View;
+use App\Models\RomanExcerpt;
 
 class KompendiumController extends Controller
 {
     /** Mindest-Punktzahl für die Suche */
     private const REQUIRED_POINTS = 100;
 
-    /**
-     * GET /kompendium  – Übersichtsseite
-     */
+    /* --------------------------------------------------------------------- */
+    /*  GET /kompendium  – Übersichtsseite                                   */
+    /* --------------------------------------------------------------------- */
     public function index(Request $request): View
     {
-        /** @var \App\Models\User $user */
         $user = Auth::user();
         $currentTeam = $user->currentTeam;
-        $userPoints = $currentTeam
-            ? $user->totalPointsForTeam($currentTeam)
-            : 0;
-
-        $showSearch = $userPoints >= self::REQUIRED_POINTS;
+        $userPoints = $currentTeam ? $user->totalPointsForTeam($currentTeam) : 0;
 
         return view('pages.kompendium', [
             'userPoints' => $userPoints,
-            'showSearch' => $showSearch,
+            'showSearch' => $userPoints >= self::REQUIRED_POINTS,
             'required' => self::REQUIRED_POINTS,
         ]);
     }
 
-    /**
-     * GET /kompendium/search  (AJAX)
-     */
+    /* --------------------------------------------------------------------- */
+    /*  GET /kompendium/search  (AJAX)                                       */
+    /* --------------------------------------------------------------------- */
     public function search(Request $request): JsonResponse
     {
-        /** @var \App\Models\User $user */
+        /* ----- Punkte-Check ------------------------------------------------ */
         $user = Auth::user();
         $currentTeam = $user->currentTeam;
-        $userPoints = $currentTeam
-            ? $user->totalPointsForTeam($currentTeam)
-            : 0;
+        $userPoints = $currentTeam ? $user->totalPointsForTeam($currentTeam) : 0;
 
         if ($userPoints < self::REQUIRED_POINTS) {
             return response()->json([
-                'message' => "Mindestens "
-                    . self::REQUIRED_POINTS
-                    . " Punkte erforderlich (du hast $userPoints)."
+                'message' => "Mindestens " . self::REQUIRED_POINTS . " Punkte erforderlich (du hast $userPoints)."
             ], 403);
         }
 
-        /* ---------- Validierung ---------- */
+        /* ----- Validierung ------------------------------------------------- */
         $request->validate([
             'q' => 'required|string|min:2',
             'page' => 'sometimes|integer|min:1',
@@ -69,73 +60,65 @@ class KompendiumController extends Controller
         $snippetsPerFile = config('kompendium.snippets_per_novel', 10) ?: 10;
         $radius = 200;
 
-        /* ---------- Datei-Scan (gecached) ---------- */
-        $allHits = Cache::remember(
-            "kompendium:{$query}",
-            60,
-            function () use ($query, $snippetsPerFile, $radius) {
+        /* ------------------------------------------------------------------ */
+        /*  SCOUT-SUCHAUFRUF  (RAW)                                           */
+        /* ------------------------------------------------------------------ */
+        $raw = RomanExcerpt::search($query)->raw();              // kein paginate()
+        $total = $raw['hits']['total_hits'] ?? 0;
 
-                $files = Storage::disk('private')->allFiles('romane');
+        $ids = $raw['ids'] ?? [];                               // enthält unsere "path"-Schlüssel
+        $ids = array_values($ids);                              // re-indexieren
+        $slice = array_slice($ids, ($page - 1) * $perPage, $perPage);
 
-                $hits = [];
+        /* ------------------------------------------------------------------ */
+        /*  Treffer in Frontend-Format wandeln                                */
+        /* ------------------------------------------------------------------ */
+        $hits = [];
 
-                foreach ($files as $path) {
-                    if (!Str::endsWith($path, '.txt'))
-                        continue;
+        foreach ($slice as $path) {
 
-                    $text = Storage::disk('private')->get($path);
-                    $lower = mb_strtolower($text);
+            [$cycleSlug, $romanNr, $title] = $this->extractMetaFromPath($path);
 
-                    if (!Str::contains($lower, $query))
-                        continue;
+            /* Original-Text laden → Snippets bilden */
+            $text = Storage::disk('private')->get($path);
+            $snippets = [];
+            $offset = 0;
 
-                    [$cycleSlug, $romanNr, $title] = $this->extractMetaFromPath($path);
+            while (
+                ($pos = mb_stripos($text, $query, $offset)) !== false &&
+                count($snippets) < $snippetsPerFile
+            ) {
+                $start = max($pos - $radius, 0);
+                $length = mb_strlen($query) + (2 * $radius);
+                $snippet = mb_substr($text, $start, $length);
 
-                    $cycleName = Str::of($cycleSlug)
-                        ->after('-')          // „Meeraka“
-                        ->replace('-', ' ')   // falls mehrere Wörter
-                        ->title() . '-Zyklus';
+                $snippet = e($snippet);
+                $snippet = preg_replace(
+                    '/' . preg_quote($query, '/') . '/iu',
+                    '<mark>$0</mark>',
+                    $snippet
+                );
 
-                    /* --- Snippets sammeln --- */
-                    $snippets = [];
-                    $offset = 0;
-
-                    while (
-                        ($pos = mb_stripos($text, $query, $offset)) !== false &&
-                        count($snippets) < $snippetsPerFile
-                    ) {
-                        $start = max($pos - $radius, 0);
-                        $length = mb_strlen($query) + (2 * $radius);
-                        $snippet = mb_substr($text, $start, $length);
-
-                        $snippet = e($snippet);
-                        $snippet = preg_replace(
-                            '/' . preg_quote($query, '/') . '/iu',
-                            '<mark>$0</mark>',
-                            $snippet
-                        );
-
-                        $snippets[] = $snippet;
-                        $offset = $pos + mb_strlen($query);
-                    }
-
-                    $hits[] = [
-                        'cycle'    => $cycleName,
-                        'romanNr' => $romanNr,
-                        'title' => $title,
-                        'snippets' => $snippets,
-                    ];
-                }
-
-                usort($hits, fn($a, $b) => strnatcmp($a['romanNr'], $b['romanNr']));
-                return $hits;
+                $snippets[] = $snippet;
+                $offset = $pos + mb_strlen($query);
             }
-        );
 
-        /* ---------- Pagination ---------- */
+            $cycleName = Str::of($cycleSlug)->after('-')->replace('-', ' ')->title() . '-Zyklus';
+
+            $hits[] = [
+                'cycle' => $cycleName,
+                'romanNr' => $romanNr,
+                'title' => $title,
+                'snippets' => $snippets,
+            ];
+        }
+
+        /* ------------------------------------------------------------------ */
+        /*  Pagination-Objekt für das Frontend                                */
+        /* ------------------------------------------------------------------ */
         $paginator = new LengthAwarePaginator(
-            array_slice($allHits, ($page - 1) * $perPage, $perPage),
-            count($allHits),
+            $hits,
+            $total,
             $perPage,
             $page
         );
@@ -147,9 +130,9 @@ class KompendiumController extends Controller
         ]);
     }
 
-    /**
-     * Zerlegt Pfad: romane/01-Euree/001 - Titel.txt
-     */
+    /* --------------------------------------------------------------------- */
+    /*  Hilfsfunktion: Pfad → Zyklus-Slug, Nummer, Titel                     */
+    /* --------------------------------------------------------------------- */
     private function extractMetaFromPath(string $path): array
     {
         $parts = preg_split('/[\\\\\/]+/', $path);
