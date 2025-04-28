@@ -9,7 +9,11 @@
 
                 {{-- Info-Card --------------------------------------------------- --}}
                 <div class="mb-6 p-4 border-l-4 border-[#8B0116] dark:border-[#ff4b63] bg-gray-50 dark:bg-gray-700 rounded">
-                    Aktuell sind lediglich die Romane des <strong>Euree-Zyklus</strong> (Band 1-24) indexiert.
+                    Aktuell sind die folgenden Romane für die Suche indexiert:
+                    <ul class="list-disc ml-6 mt-2">
+                        <li><strong>Euree-Zyklus</strong> (Band 1-24)</li>
+                        <li><strong>Meeraka-Zyklus</strong> (Band 25-49)</li>
+                    </ul>
                 </div>
 
                 {{-- Suchschlitz (ab 100 Punkte) -------------------------------- --}}
