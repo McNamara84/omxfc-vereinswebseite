@@ -4,7 +4,7 @@
         <p class="mb-6">Auf dieser Seite werden sämtliche Änderungen an der Vereinswebseite des Offiziellen Maddrax
             Fanclub e. V. dokumentiert.</p>
         <section class="mb-6">
-            <h2 class="text-xl font-semibold mb-2">Version 0.8.0 (27.04.2025)</h2>
+            <h2 class="text-xl font-semibold mb-2">Version 0.9.0 (xx.05.2025)</h2>
             <h3 class="text-l font-semibold mb-2">Features:</h3>
             <ul class="list-disc ml-6 mt-2">
                 <li>???</li>
