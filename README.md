@@ -9,3 +9,5 @@
 - Cache leeren: `php artisan cache:clear`
 - Datenbank vollständig zurücksetzen: `php artisan migrate:fresh`
 - Cache für Routes neu schreiben: `php artisan route:clear`
+- Neue Romane indexieren für Kompendium: `php artisan romane:index`
+- Romane komplett neu indexieren: `php artisan romane:index --fresh`

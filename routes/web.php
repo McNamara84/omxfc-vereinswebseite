@@ -18,6 +18,7 @@ use App\Http\Controllers\MaddraxiversumController;
 use App\Http\Controllers\RomantauschController;
 use App\Http\Controllers\DownloadsController;
 use App\Http\Controllers\KompendiumController;
+use App\Http\Controllers\StatistikController;
 
 // Öffentliche Seiten
 Route::get('/', [PageController::class, 'home'])->name('home');
@@ -103,4 +104,6 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
     // Kompendium
     Route::get('/kompendium', [KompendiumController::class, 'index'])->name('kompendium.index');
     Route::get('/kompendium/search', [KompendiumController::class, 'search'])->name('kompendium.search');
+    //Statistik
+    Route::get('/statistik', [StatistikController::class, 'index'])->name('statistik.index');
 });
