@@ -13,6 +13,10 @@
                     <ul class="list-disc ml-6 mt-2">
                         <li><strong>Euree-Zyklus</strong> (Band 1-24)</li>
                         <li><strong>Meeraka-Zyklus</strong> (Band 25-49)</li>
+                        <li><strong>Expeditions-Zyklus</strong> (Band 50-74)</li>
+                        <li><strong>Kratersee-Zyklus</strong> (Band 75-99)</li>
+                        <li><strong>Daa'muren-Zyklus</strong> (Band 100-124)</li>
+                        <li><strong>Wandler-Zyklus</strong> (Band 125-149)</li>
                     </ul>
                 </div>
 
