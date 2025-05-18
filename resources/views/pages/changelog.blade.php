@@ -8,6 +8,7 @@
             <h3 class="text-l font-semibold mb-2">Features:</h3>
             <ul class="list-disc ml-6 mt-2">
                 <li>Austritt und Löschen der eigenen Daten über Profileinstellungen implementiert</li>
+                <li>Neue Seite Rezensionen im internen Mitgliederbereich hinzugefügt</li>
             </ul>
             <h3 class="text-l font-semibold mb-2">Änderungen:</h3>
             <ul class="list-disc ml-6 mt-2">

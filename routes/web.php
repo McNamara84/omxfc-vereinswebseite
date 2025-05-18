@@ -19,6 +19,7 @@ use App\Http\Controllers\RomantauschController;
 use App\Http\Controllers\DownloadsController;
 use App\Http\Controllers\KompendiumController;
 use App\Http\Controllers\StatistikController;
+use App\Http\Controllers\RezensionController;
 
 // Öffentliche Seiten
 Route::get('/', [PageController::class, 'home'])->name('home');
@@ -106,4 +107,12 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
     Route::get('/kompendium/search', [KompendiumController::class, 'search'])->name('kompendium.search');
     //Statistik
     Route::get('/statistik', [StatistikController::class, 'index'])->name('statistik.index');
+    // Rezis
+    Route::prefix('rezensionen')->name('reviews.')->group(function () {
+        Route::get('/', [RezensionController::class, 'index'])->name('index');
+        Route::get('/{book}', [RezensionController::class, 'show'])->name('show');
+        Route::get('/{book}/create', [RezensionController::class, 'create'])->name('create');
+        Route::post('/{book}', [RezensionController::class, 'store'])->name('store');
+        Route::delete('/{review}', [RezensionController::class, 'destroy'])->name('destroy');
+    });
 });

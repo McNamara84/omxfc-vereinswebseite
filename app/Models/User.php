@@ -145,4 +145,44 @@ class User extends Authenticatable
             ]);
         }
     }
+
+    /**
+     * Get the role of the user on the current team.
+     *
+     * @return string|null
+     */
+    public function role(): ?string
+    {
+        if (!$this->currentTeam) {
+            return null;
+        }
+
+        $membership = $this->teams()
+            ->wherePivot('team_id', $this->currentTeam->id)
+            ->first();
+
+        return $membership->pivot->role ?? null;
+    }
+
+    /**
+     * Check if the user has any of the given roles on the current team.
+     *
+     * @param  array<string>  $roles
+     * @return bool
+     */
+    public function hasAnyRole(array $roles): bool
+    {
+        return in_array($this->role(), $roles, true);
+    }
+
+    /**
+     * Check if the user has the given role on the current team.
+     *
+     * @param  string  $role
+     * @return bool
+     */
+    public function hasRole(string $role): bool
+    {
+        return $this->role() === $role;
+    }
 }
