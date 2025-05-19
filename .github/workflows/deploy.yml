@@ -40,6 +40,7 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
+      # Erstellen der .env.production Datei auf dem Server falls nötig
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1
         with:
@@ -48,5 +49,32 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
             cd /root/maddrax-fanclub
+            if [ ! -f .env.production ]; then
+              echo "Erstelle .env.production falls nicht vorhanden"
+              cat > .env.production << 'EOL'
+            APP_NAME=MaddraxFanclub
+            APP_ENV=production
+            APP_KEY=${{ secrets.APP_KEY }}
+            APP_DEBUG=false
+            APP_URL=https://maddrax-fanclub.de
+            
+            LOG_CHANNEL=stack
+            LOG_DEPRECATIONS_CHANNEL=null
+            LOG_LEVEL=debug
+            
+            DB_CONNECTION=mysql
+            DB_HOST=db
+            DB_PORT=3306
+            DB_DATABASE=maddrax
+            DB_USERNAME=maddrax
+            DB_PASSWORD=SuperSicher123
+            EOL
+            fi
             docker compose pull web
             docker compose up -d --remove-orphans
+            
+            # Führe zusätzliche Laravel-Befehle aus, falls nötig
+            docker exec maddrax-web php artisan migrate --force
+            docker exec maddrax-web php artisan config:cache
+            docker exec maddrax-web php artisan route:cache
+            docker exec maddrax-web php artisan view:cache

@@ -4,6 +4,13 @@ WORKDIR /var/www/html
 COPY composer.json composer.lock ./
 RUN composer install --prefer-dist --no-dev --no-scripts --no-interaction
 
+# Neuer Node.js-Build-Step für Frontend-Assets
+FROM node:20-alpine AS frontend
+WORKDIR /var/www/html
+COPY package.json package-lock.json vite.config.js ./
+COPY resources/ ./resources/
+RUN npm ci && npm run build
+
 FROM nginx:1.27-alpine AS app
 
 RUN apk add --no-cache \
@@ -25,7 +32,8 @@ RUN apk add --no-cache \
   && printf "\nphp_admin_value[max_execution_time] = 120\n" >> /etc/php83/php-fpm.d/www.conf
 
 COPY --from=vendor /var/www/html /var/www/html
-COPY .                     /var/www/html
+COPY --from=frontend /var/www/html/public/build /var/www/html/public/build
+COPY . /var/www/html
 
 COPY deploy/nginx/laravel.conf /etc/nginx/conf.d/default.conf
 
