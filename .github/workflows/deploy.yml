@@ -47,6 +47,6 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
-            cd /opt/maddrax
+            cd /root/maddrax-fanclub
             docker compose pull web
             docker compose up -d --remove-orphans
