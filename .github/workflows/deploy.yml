@@ -57,6 +57,7 @@ jobs:
             APP_KEY=${{ secrets.APP_KEY }}
             APP_DEBUG=false
             APP_URL=https://maddrax-fanclub.de
+            ASSET_URL=https://maddrax-fanclub.de
             
             LOG_CHANNEL=stack
             LOG_DEPRECATIONS_CHANNEL=null
@@ -67,7 +68,9 @@ jobs:
             DB_PORT=3306
             DB_DATABASE=maddrax
             DB_USERNAME=maddrax
-            DB_PASSWORD=SuperSicher123
+            DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+            
+            VITE_APP_URL="${APP_URL}"
             EOL
             fi
             docker compose pull web
@@ -75,6 +78,11 @@ jobs:
             
             # Führe zusätzliche Laravel-Befehle aus, falls nötig
             docker exec maddrax-web php artisan migrate --force
+            docker exec maddrax-web php artisan optimize
             docker exec maddrax-web php artisan config:cache
             docker exec maddrax-web php artisan route:cache
             docker exec maddrax-web php artisan view:cache
+            
+            # Prüfe ob das Vite-Manifest existiert
+            echo "Prüfe ob das Vite-Manifest existiert..."
+            docker exec maddrax-web ls -la /var/www/html/public/build/
