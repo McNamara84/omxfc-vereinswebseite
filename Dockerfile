@@ -7,6 +7,8 @@ RUN composer install --prefer-dist --no-dev --no-scripts --no-interaction
 
 # ---------- Runtime-Stage ----------
 FROM nginx:1.27-alpine AS app
+RUN addgroup -g 82 -S www-data \
+ && adduser -u 82 -D -S -G www-data www-data
 # PHP-FPM installieren
 RUN apk add --no-cache \
         php83 php83-fpm php83-opcache \
