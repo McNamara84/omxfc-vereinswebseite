@@ -14,6 +14,8 @@ RUN apk add --no-cache \
     php83-fileinfo php83-gd php83-curl php83-zip php83-dom \
     php83-session php83-simplexml
 
+COPY deploy/php/conf/php-fpm.conf /etc/php83/
+
 # Code & vendor aus erster Stage
 COPY --from=vendor /var/www/html /var/www/html
 COPY . /var/www/html
