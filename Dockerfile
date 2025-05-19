@@ -7,10 +7,7 @@ RUN composer install --prefer-dist --no-dev --no-scripts --no-interaction
 # Neuer Node.js-Build-Step für Frontend-Assets
 FROM node:20-alpine AS frontend
 WORKDIR /var/www/html
-COPY package.json package-lock.json ./
-COPY vite.config.js ./
-COPY resources/ ./resources/
-COPY public/ ./public/
+COPY . .
 RUN npm ci && npm run build
 
 FROM nginx:1.27-alpine AS app
