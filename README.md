@@ -11,3 +11,5 @@
 - Cache für Routes neu schreiben: `php artisan route:clear`
 - Neue Romane indexieren für Kompendium: `php artisan romane:index`
 - Romane komplett neu indexieren: `php artisan romane:index --fresh`
+- Romane aus JSON-Datei in Datenbank importieren: `php artisan books:import`
+- Rezensionen aus CSV-Datei in Datenbank importieren: `php artisan reviews:import-old --fresh`

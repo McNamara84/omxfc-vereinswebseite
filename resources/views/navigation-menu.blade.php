@@ -40,6 +40,7 @@
                         <x-nav-link href="{{ route('downloads') }}">Downloads</x-nav-link>
                         <x-nav-link href="{{ route('kompendium.index') }}">Kompendium</x-nav-link>
                         <x-nav-link href="{{ route('statistik.index') }}">Statistik</x-nav-link>
+                        <x-nav-link href="{{ route('reviews.index') }}">Rezensionen</x-nav-link>
                     @endauth
                     @guest
                         <x-nav-link href="{{ route('chronik') }}">Chronik</x-nav-link>
@@ -115,6 +116,7 @@
             <x-responsive-nav-link href="{{ route('downloads') }}">Downloads</x-responsive-nav-link>
             <x-responsive-nav-link href="{{ route('kompendium.index') }}">Kompendium</x-responsive-nav-link>
             <x-responsive-nav-link href="{{ route('statistik.index') }}">Statistik</x-responsive-nav-link>
+            <x-responsive-nav-link href="{{ route('reviews.index') }}">Rezensionen</x-responsive-nav-link>
         @endauth
 
         @guest
