@@ -5,7 +5,7 @@ COPY composer.json composer.lock ./
 RUN composer install --prefer-dist --no-dev --no-scripts --no-interaction
 
 # Neuer Node.js-Build-Step für Frontend-Assets
-FROM node:23-alpine AS frontend
+FROM node:20-alpine AS frontend
 WORKDIR /var/www/html
 COPY . .
 RUN npm ci && npm run build
