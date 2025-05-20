@@ -1,45 +1,46 @@
-FROM composer:2.8 AS vendor
-
-WORKDIR /var/www/html
+# 1. Composer Stage: nur Dependencies ohne dev, keine Scripts
+FROM composer:2.8 AS composer
+WORKDIR /app
 COPY composer.json composer.lock ./
 RUN composer install --prefer-dist --no-dev --no-scripts --no-interaction
 
-# Neuer Node.js-Build-Step für Frontend-Assets
-FROM node:23-alpine AS frontend
-WORKDIR /var/www/html
-COPY . .
-RUN npm ci && npm run build
+# 2. Node Build Stage: Assets bauen
+FROM node:20 AS nodebuild
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+COPY resources ./resources
+COPY vite.config.js ./
+# falls noch weitere Dateien für das Frontend gebraucht werden, z.B. tailwind.config.js, diese ebenfalls kopieren!
+# COPY tailwind.config.js ./
+RUN npm run build
 
-FROM nginx:1.27-alpine AS app
+# 3. PHP-FPM Runtime Stage
+FROM php:8.3-fpm-alpine AS app
 
+# PHP Extensions installieren, ggf. anpassen!
 RUN apk add --no-cache \
-      php83 php83-fpm php83-opcache \
-      php83-pdo php83-pdo_mysql php83-mbstring php83-tokenizer \
-      php83-fileinfo php83-gd php83-curl php83-zip php83-dom \
-      php83-session php83-simplexml \
-  # fehlendes Log-Verzeichnis anlegen + Rechte geben
-  && mkdir -p /var/log/php83 \
-  && chown -R nginx:nginx /var/log/php83 \
-  # Original-Pool-Datei anpassen (User/Group/Port)
-  && sed -i 's|^user = .*|user = nginx|'   /etc/php83/php-fpm.d/www.conf \
-  && sed -i 's|^group = .*|group = nginx|' /etc/php83/php-fpm.d/www.conf \
-  && sed -i 's|^listen = .*|listen = 0.0.0.0:9000|' /etc/php83/php-fpm.d/www.conf \
-  # PHP-Limits ergänzen
-  && printf "\nphp_admin_value[memory_limit] = 256M"        >> /etc/php83/php-fpm.d/www.conf \
-  && printf "\nphp_admin_value[post_max_size] = 64M"        >> /etc/php83/php-fpm.d/www.conf \
-  && printf "\nphp_admin_value[upload_max_filesize] = 64M"  >> /etc/php83/php-fpm.d/www.conf \
-  && printf "\nphp_admin_value[max_execution_time] = 120\n" >> /etc/php83/php-fpm.d/www.conf
-
-COPY --from=vendor /var/www/html /var/www/html
-COPY --from=frontend /var/www/html/public/build/ /var/www/html/public/build/
-COPY . /var/www/html
-
-COPY deploy/nginx/laravel.conf /etc/nginx/conf.d/default.conf
+  php83-pdo_mysql php83-mbstring php83-xml php83-curl \
+  php83-gd php83-zip php83-fileinfo php83-tokenizer
 
 WORKDIR /var/www/html
-RUN chown -R nginx:nginx storage bootstrap/cache \
- && chmod -R ug+rwx storage bootstrap/cache \
- && php artisan optimize
 
-EXPOSE 80
-CMD ["sh", "-c", "php-fpm83 -D && nginx -g 'daemon off;'"]
+# Kopiere composer dependencies
+COPY --from=composer /app/vendor ./vendor
+# Kopiere gebaute Vite-Assets
+COPY --from=nodebuild /app/public/build ./public/build
+# Kopiere den kompletten Quellcode (außer node_modules, außer vendor)
+COPY . .
+
+# Rechte setzen
+RUN chown -R www-data:www-data storage bootstrap/cache \
+  && chmod -R ug+rwx storage bootstrap/cache
+
+# Optional: Laravel optimieren (je nach Deployment-Prozess)
+RUN php artisan optimize
+
+# Expose PHP-FPM Port (für Reverse Proxy/Nginx)
+EXPOSE 9000
+
+CMD ["php-fpm"]
+
