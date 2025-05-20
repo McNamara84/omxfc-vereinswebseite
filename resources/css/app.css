@@ -8,7 +8,7 @@
 
 /* Vereinslogo als Asset referenzieren */
 .logo {
-    background-image: url('images/omxfc-logo.png');
+    background-image: url('../images/omxfc-logo.png');
 }
 
 .ag-logo {
