@@ -93,6 +93,10 @@ jobs:
             # Prüfe, ob die manifests.json existiert und korrekt ist
             docker exec maddrax-web cat /var/www/html/public/build/manifest.json || echo "Manifest nicht gefunden!"
             
+            # Erzwinge einen neuen Build der Assets im Container
+            docker exec maddrax-web npm ci
+            docker exec maddrax-web npm run build
+            
             # Cache erneut leeren
             docker exec maddrax-web php artisan optimize:clear
             docker exec maddrax-web php artisan optimize
