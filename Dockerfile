@@ -18,23 +18,14 @@ RUN npm run build
 # 3. PHP-FPM Runtime Stage
 FROM php:8.3-fpm-alpine AS app
 
-# Alpine dependencies für Composer etc.
+# PHP Extensions installieren, ggf. anpassen!
 RUN apk add --no-cache \
-    icu-dev \
-    libzip-dev \
-    oniguruma-dev \
-    libpng-dev \
-    libjpeg-turbo-dev \
-    freetype-dev \
-    zip \
-    git
-
-# PHP Extensions installieren (!!!)
-RUN docker-php-ext-install pdo pdo_mysql mbstring zip exif pcntl
-
-# (Optional, falls du z.B. gd brauchst)
-RUN docker-php-ext-configure gd --with-freetype --with-jpeg
-RUN docker-php-ext-install gd
+  php83 \
+  php83-fpm \
+  php83-pdo \
+  php83-pdo_mysql \
+  php83-pdo_mysql php83-mbstring php83-xml php83-curl \
+  php83-gd php83-zip php83-fileinfo php83-tokenizer
 
 WORKDIR /var/www/html
 
