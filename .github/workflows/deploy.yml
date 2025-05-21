@@ -42,10 +42,39 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
+            set -e
+
+            echo "Navigiere zum Projektverzeichnis..."
             cd /root/maddrax-fanclub
+
+            echo "Docker-Container vor dem Pull:"
+            docker ps -a
+
+            echo "Pull der neuesten Images..."
             docker compose pull
+
+            echo "Starten der Container..."
             docker compose up -d --remove-orphans
-            docker exec maddrax-app php artisan migrate --force
-            docker exec maddrax-app php artisan config:cache
-            docker exec maddrax-app php artisan route:cache
-            docker exec maddrax-app php artisan view:cache
+
+            echo "Warten auf den Start der Dienste..."
+            sleep 10
+
+            echo "Docker-Container nach dem Start:"
+            docker ps -a
+
+            echo "Überprüfe Logs des 'maddrax-app'-Containers:"
+            docker logs --tail=50 maddrax-app || echo "Fehler beim Abrufen der Logs von maddrax-app"
+
+            echo "Überprüfe Logs des 'maddrax-nginx'-Containers:"
+            docker logs --tail=50 maddrax-nginx || echo "Fehler beim Abrufen der Logs von maddrax-nginx"
+
+            echo "Führe Laravel-Migrationen durch..."
+            docker exec maddrax-app php artisan migrate --force || echo "Migration fehlgeschlagen"
+
+            echo "Cache-Konfigurationen..."
+            docker exec maddrax-app php artisan config:cache || echo "config:cache fehlgeschlagen"
+            docker exec maddrax-app php artisan route:cache || echo "route:cache fehlgeschlagen"
+            docker exec maddrax-app php artisan view:cache || echo "view:cache fehlgeschlagen"
+
+            echo "Überprüfe, ob das Vite-Manifest existiert..."
+            docker exec maddrax-app ls -la /var/www/html/public/build/ || echo "Vite-Manifest nicht gefunden"
