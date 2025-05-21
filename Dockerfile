@@ -1,6 +1,6 @@
 FROM php:8.2-fpm
 
-# Systemabhängigkeiten installieren
+# Install required system packages
 RUN apt-get update && apt-get install -y \
     git \
     curl \
@@ -10,23 +10,24 @@ RUN apt-get update && apt-get install -y \
     zip \
     unzip \
     mariadb-client \
-    && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
+    && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd \
+    && rm -rf /var/lib/apt/lists/*
 
-# Composer installieren
+# Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Arbeitsverzeichnis festlegen
+# Set working directory
 WORKDIR /var/www/html
 
-# Abhängigkeiten installieren
+# Copy project files
 COPY . .
-RUN composer install --no-dev --optimize-autoloader
-RUN php artisan config:cache
-RUN php artisan route:cache
-RUN php artisan view:cache
 
-# Benutzerrechte setzen
-RUN chown -R www-data:www-data /var/www/html
+# Install dependencies
+RUN composer install --no-dev --optimize-autoloader
+
+# Set permissions
+RUN chown -R www-data:www-data /var/www/html \
+    && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
 EXPOSE 9000
 CMD ["php-fpm"]

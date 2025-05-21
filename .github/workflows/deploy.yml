@@ -47,34 +47,32 @@ jobs:
             echo "Navigiere zum Projektverzeichnis..."
             cd /root/maddrax-fanclub
 
-            echo "Docker-Container vor dem Pull:"
+            echo "Docker-Container vor dem Neustart:"
             docker ps -a
 
             echo "Pull der neuesten Images..."
             docker compose pull
 
-            echo "Starten der Container..."
+            echo "Docker Compose wird ausgeführt..."
+            docker compose down
             docker compose up -d --remove-orphans
 
-            echo "Warten auf den Start der Dienste..."
-            sleep 10
-
-            echo "Docker-Container nach dem Start:"
+            echo "Status nach Neustart der Container:"
             docker ps -a
 
-            echo "Überprüfe Logs des 'maddrax-app'-Containers:"
-            docker logs --tail=50 maddrax-app || echo "Fehler beim Abrufen der Logs von maddrax-app"
+            echo "Zeige Logs des maddrax-nginx Containers:"
+            docker logs --tail=50 maddrax-nginx || echo "Logs von maddrax-nginx nicht abrufbar"
 
-            echo "Überprüfe Logs des 'maddrax-nginx'-Containers:"
-            docker logs --tail=50 maddrax-nginx || echo "Fehler beim Abrufen der Logs von maddrax-nginx"
+            echo "Zeige Logs des maddrax-app Containers:"
+            docker logs --tail=50 maddrax-app || echo "Logs von maddrax-app nicht abrufbar"
 
-            echo "Führe Laravel-Migrationen durch..."
-            docker exec maddrax-app php artisan migrate --force || echo "Migration fehlgeschlagen"
+            echo "Laravel Migrationen durchführen..."
+            docker exec maddrax-app php artisan migrate --force || echo "Migrationen fehlgeschlagen"
 
-            echo "Cache-Konfigurationen..."
+            echo "Laravel Cache erstellen..."
             docker exec maddrax-app php artisan config:cache || echo "config:cache fehlgeschlagen"
             docker exec maddrax-app php artisan route:cache || echo "route:cache fehlgeschlagen"
             docker exec maddrax-app php artisan view:cache || echo "view:cache fehlgeschlagen"
 
-            echo "Überprüfe, ob das Vite-Manifest existiert..."
+            echo "Prüfen des Vite-Manifests..."
             docker exec maddrax-app ls -la /var/www/html/public/build/ || echo "Vite-Manifest nicht gefunden"
