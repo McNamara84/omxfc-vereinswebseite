@@ -22,9 +22,6 @@ WORKDIR /var/www/html
 # Copy project files
 COPY . .
 
-# Kopiere die PHP-FPM-Konfiguration
-COPY deploy/php/pool.d/www.conf /usr/local/etc/php-fpm.d/www.conf
-
 # Install dependencies
 RUN composer install --no-dev --optimize-autoloader
 
