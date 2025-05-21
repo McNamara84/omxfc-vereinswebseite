@@ -44,35 +44,27 @@ jobs:
           script: |
             set -e
 
-            echo "Navigiere zum Projektverzeichnis..."
             cd /root/maddrax-fanclub
-
-            echo "Docker-Container vor dem Neustart:"
-            docker ps -a
-
-            echo "Pull der neuesten Images..."
             docker compose pull
-
-            echo "Docker Compose wird ausgeführt..."
             docker compose down
             docker compose up -d --remove-orphans
 
-            echo "Status nach Neustart der Container:"
-            docker ps -a
-
-            echo "Zeige Logs des maddrax-nginx Containers:"
-            docker logs --tail=50 maddrax-nginx || echo "Logs von maddrax-nginx nicht abrufbar"
-
-            echo "Zeige Logs des maddrax-app Containers:"
-            docker logs --tail=50 maddrax-app || echo "Logs von maddrax-app nicht abrufbar"
+            echo "Warte 45 Sekunden, bis DB bereit ist..."
+            sleep 45
 
             echo "Laravel Migrationen durchführen..."
-            docker exec maddrax-app php artisan migrate --force || echo "Migrationen fehlgeschlagen"
+            docker exec maddrax-app php artisan migrate --force
 
             echo "Laravel Cache erstellen..."
-            docker exec maddrax-app php artisan config:cache || echo "config:cache fehlgeschlagen"
-            docker exec maddrax-app php artisan route:cache || echo "route:cache fehlgeschlagen"
-            docker exec maddrax-app php artisan view:cache || echo "view:cache fehlgeschlagen"
+            docker exec maddrax-app php artisan config:cache
+            docker exec maddrax-app php artisan route:cache
+            docker exec maddrax-app php artisan view:cache
 
-            echo "Prüfen des Vite-Manifests..."
-            docker exec maddrax-app ls -la /var/www/html/public/build/ || echo "Vite-Manifest nicht gefunden"
+            echo "Statusprüfung nach Deployment:"
+            docker ps -a
+
+            echo "Nginx-Container Logs:"
+            docker logs --tail=50 maddrax-nginx
+
+            echo "App-Container Logs:"
+            docker logs --tail=50 maddrax-app
