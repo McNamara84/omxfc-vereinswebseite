@@ -45,26 +45,56 @@ jobs:
             set -e
 
             cd /root/maddrax-fanclub
+            
+            echo "Pulling new images..."
             docker compose pull
+            
+            echo "Stopping containers..."
             docker compose down
+            
+            echo "Starting containers..."
             docker compose up -d --remove-orphans
-
-            echo "Warte 45 Sekunden, bis DB bereit ist..."
-            sleep 45
-
-            echo "Laravel Migrationen durchführen..."
-            docker exec maddrax-app php artisan migrate --force
-
-            echo "Laravel Cache erstellen..."
+            
+            echo "Waiting for containers to start..."
+            sleep 30
+            
+            echo "Checking container status:"
+            docker ps -a
+            
+            echo "Waiting for database to be ready..."
+            for i in {1..20}; do
+              if docker exec maddrax-db mysqladmin ping -h localhost -u root -pNochSicherer456 --silent; then
+                echo "Database is ready!"
+                break
+              fi
+              echo "Waiting for database... ($i/20)"
+              sleep 5
+            done
+            
+            echo "Running Laravel migrations..."
+            if docker exec maddrax-app php artisan migrate --force; then
+              echo "Migrations completed successfully"
+            else
+              echo "Migration failed, checking logs..."
+              docker logs maddrax-app
+              exit 1
+            fi
+            
+            echo "Caching Laravel configuration..."
             docker exec maddrax-app php artisan config:cache
             docker exec maddrax-app php artisan route:cache
             docker exec maddrax-app php artisan view:cache
-
-            echo "Statusprüfung nach Deployment:"
-            docker ps -a
-
-            echo "Nginx-Container Logs:"
-            docker logs --tail=50 maddrax-nginx
-
-            echo "App-Container Logs:"
-            docker logs --tail=50 maddrax-app
+            
+            echo "Final status check:"
+            docker ps
+            
+            echo "Testing local connectivity:"
+            curl -f http://localhost:8080 || echo "Local connection test failed"
+            
+            echo "Container logs for debugging:"
+            echo "=== Nginx logs ==="
+            docker logs --tail=20 maddrax-nginx
+            echo "=== App logs ==="
+            docker logs --tail=20 maddrax-app
+            echo "=== DB logs ==="
+            docker logs --tail=20 maddrax-db
