@@ -52,6 +52,9 @@ jobs:
             echo "Removing old containers..."
             docker compose down --remove-orphans
             
+            # Remove app_data volume to ensure fresh files
+            docker volume rm maddrax-fanclub_app_data || true
+            
             echo "Starting containers with new images..."
             docker compose up -d --force-recreate
             
