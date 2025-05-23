@@ -43,6 +43,10 @@ COPY --from=node-builder /app/public/build /var/www/html/public/build
 # Generate optimized autoload files
 RUN composer dump-autoload --optimize
 
+# Copy Livewire assets manually to avoid symlink issues
+RUN mkdir -p public/vendor/livewire \
+    && cp -r vendor/livewire/livewire/dist/* public/vendor/livewire/
+
 # Set permissions
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html \
@@ -66,4 +70,3 @@ RUN sed -i 's/user = www-data/user = www-data/g' /usr/local/etc/php-fpm.d/www.co
     && sed -i 's/group = www-data/group = www-data/g' /usr/local/etc/php-fpm.d/www.conf
 
 EXPOSE 9000
-CMD ["php-fpm"]
