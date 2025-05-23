@@ -63,7 +63,7 @@ jobs:
             
             echo "Waiting for database to be ready..."
             for i in {1..30}; do
-              if docker exec maddrax-db mysqladmin ping -h localhost -u root -pNochSicherer456 --silent; then
+              if docker exec maddrax-db mariadb -u root -pNochSicherer456 -e "SELECT 1" >/dev/null 2>&1; then
                 echo "Database is ready!"
                 break
               fi

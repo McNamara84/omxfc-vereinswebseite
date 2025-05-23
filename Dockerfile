@@ -1,3 +1,12 @@
+# Build Stage für Node/Vite
+FROM node:20-alpine as node-builder
+WORKDIR /app
+COPY package.json package-lock.json* ./
+RUN npm ci
+COPY . .
+RUN npm run build
+
+# PHP Production Stage
 FROM php:8.2-fpm
 
 # Install required system packages
@@ -22,11 +31,14 @@ WORKDIR /var/www/html
 # Copy composer files first for better caching
 COPY composer.json composer.lock ./
 
-# Install dependencies
+# Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader --no-scripts --no-interaction
 
 # Copy project files
 COPY . .
+
+# Copy built assets from node stage
+COPY --from=node-builder /app/public/build /var/www/html/public/build
 
 # Generate optimized autoload files
 RUN composer dump-autoload --optimize
