@@ -35,12 +35,20 @@
                             </div>
                         </div>
                         <x-nav-link href="{{ route('todos.index') }}">Challenges</x-nav-link>
-                        <x-nav-link href="{{ route('maddraxiversum.index') }}">Maddraxiversum</x-nav-link>
-                        <x-nav-link href="{{ route('romantausch.index') }}">Tauschbörse</x-nav-link>
-                        <x-nav-link href="{{ route('downloads') }}">Downloads</x-nav-link>
-                        <x-nav-link href="{{ route('kompendium.index') }}">Kompendium</x-nav-link>
-                        <x-nav-link href="{{ route('statistik.index') }}">Statistik</x-nav-link>
-                        <x-nav-link href="{{ route('reviews.index') }}">Rezensionen</x-nav-link>
+                        <!-- Dropdown Veranstaltungen -->
+                        <div class="relative flex items-center ml-4 group" x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false">
+                            <button class="px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white focus:outline-none transition">
+                                Mitgliedsvorteile
+                            </button>
+                            <div x-show="open" x-cloak class="absolute left-0 top-full mt-px w-48 bg-white dark:bg-gray-700 rounded-md shadow-lg z-50 py-2 group-hover:block">
+                                <x-dropdown-link href="{{ route('maddraxiversum.index') }}">Maddraxiversum</x-dropdown-link>
+                                <x-dropdown-link href="{{ route('romantausch.index') }}">Tauschbörse</x-dropdown-link>
+                                <x-dropdown-link href="{{ route('downloads') }}">Downloads</x-dropdown-link>
+                                <x-dropdown-link href="{{ route('kompendium.index') }}">Kompendium</x-dropdown-link>
+                                <x-dropdown-link href="{{ route('statistik.index') }}">Statistik</x-dropdown-link>
+                                <x-dropdown-link href="{{ route('reviews.index') }}">Rezensionen</x-dropdown-link>
+                            </div>
+                        </div>
                     @endauth
                     @guest
                         <x-nav-link href="{{ route('chronik') }}">Chronik</x-nav-link>

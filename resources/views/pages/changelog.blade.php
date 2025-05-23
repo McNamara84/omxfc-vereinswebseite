@@ -16,6 +16,7 @@
                 <li>4. Zyklus (75-99) für das Kompendium indexiert</li>
                 <li>5. Zyklus (100-124) für das Kompendium indexiert</li>
                 <li>6. Zyklus (125-149) für das Kompendium indexiert</li>
+                <li>Internes menü für angemeldete Mitglieder umstrukturiert</li>
             </ul>
         </section>
         <section class="mb-6">
