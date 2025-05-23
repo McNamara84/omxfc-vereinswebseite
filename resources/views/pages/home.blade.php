@@ -14,7 +14,7 @@
             </div>
             {{-- Wer wir sind --}}
             <div class="bg-white dark:bg-gray-700 rounded-lg shadow-md p-6">
-                <h2 class="text-2xl font-semibold text-[#8B0116] dark:text-[#ff4b63] mb-4">Wer wir nicht sind</h2>
+                <h2 class="text-2xl font-semibold text-[#8B0116] dark:text-[#ff4b63] mb-4">Wer wir sind</h2>
                 <p class="text-gray-700 dark:text-gray-300">{{ $whoWeAre }}</p>
             </div>
 
