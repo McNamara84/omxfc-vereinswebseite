@@ -39,10 +39,19 @@ RUN chown -R www-data:www-data /var/www/html \
 
 # Create storage directories if they don't exist
 RUN mkdir -p storage/app/public \
-    && mkdir -p storage/framework/{sessions,views,cache} \
+    && mkdir -p storage/framework/sessions \
+    && mkdir -p storage/framework/views \
+    && mkdir -p storage/framework/cache \
+    && mkdir -p storage/framework/testing \
     && mkdir -p storage/logs \
-    && chown -R www-data:www-data storage \
-    && chmod -R 775 storage
+    && touch storage/logs/laravel.log \
+    && mkdir -p bootstrap/cache \
+    && chown -R www-data:www-data /var/www/html \
+    && chmod -R 775 storage bootstrap/cache
+
+# Ensure PHP-FPM runs as www-data
+RUN sed -i 's/user = www-data/user = www-data/g' /usr/local/etc/php-fpm.d/www.conf \
+    && sed -i 's/group = www-data/group = www-data/g' /usr/local/etc/php-fpm.d/www.conf
 
 EXPOSE 9000
 CMD ["php-fpm"]
