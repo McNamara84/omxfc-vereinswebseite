@@ -14,6 +14,7 @@ export default defineConfig({
     resolve: {
         alias: {
             '@': path.resolve(__dirname, 'resources'),
+            '~leaflet': 'leaflet',
         },
     },
     // Force-Clear-Cache bei jedem Build

@@ -4,9 +4,6 @@
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-xl sm:rounded-lg h-full flex flex-col">
                 <div class="p-4 flex-grow flex flex-col">
                     @if ($showMap)
-                        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-                              integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-                              crossorigin=""/>
 
                         <div id="map" class="w-full flex-grow border dark:border-gray-600 rounded"></div>
 
