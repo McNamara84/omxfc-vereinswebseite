@@ -94,8 +94,8 @@ class ProfileViewController extends Controller
             if ($completedTasks > 0) {
                 $badges[] = [
                     'name' => 'Ersthelfer',
-                    'description' => 'Hat mindestens eine Challenge erfüllt',
-                    'image' => route('badges.image', 'BadgeErsthelfer.png'),
+                    'description' => 'Hat sich mindestens einmal für den Verein engagiert',
+                    'image' => route('badges.image', ['filename' => 'BadgeErsthelfer.png']),
                 ];
             }
 
@@ -113,7 +113,7 @@ class ProfileViewController extends Controller
                     $badges[] = [
                         'name' => 'Retrologe (Stufe 1)',
                         'description' => 'Hat im Maddraxikon mitgewirkt',
-                        'image' => route('badges.image', 'BadgeRetrologe1.png'),
+                        'image' => route('badges.image', ['filename' => 'BadgeRetrologe1.png']),
                     ];
                 }
             }

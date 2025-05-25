@@ -16,7 +16,7 @@
 - Rezensionen aus CSV-Datei in Datenbank importieren: `php artisan reviews:import-old --fresh`
 
 ### Build
-- Rezensionen aus CSV-Datei in Datenbank importieren: `docker exec maddrax-app bash -c "php artisan books:import"`
+- Romane aus JSON-Datei in Datenbank importieren: `docker exec maddrax-app bash -c "php artisan books:import"`
 - Dateien aus `/tmp/private-files` übertragen in den `private`-Storage: `docker cp /tmp/private-files/. maddrax-app:/var/www/html/storage/app/private/`
 - Rechte für `private`-Storage setzen: `docker exec maddrax-app chown -R www-data:www-data /var/www/html/storage/app/private/`
 - Unter `/tmp` abgelegte Protokolle verfügbar machen: `docker cp /tmp/2023-05-20-gruendungsversammlung.pdf maddrax-app:/var/www/html/storage/app/private/protokolle/`
