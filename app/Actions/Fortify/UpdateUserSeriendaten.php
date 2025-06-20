@@ -22,14 +22,14 @@ class UpdateUserSeriendaten
         ])->validateWithBag('updateSeriendaten');
 
         $user->forceFill([
-            'einstiegsroman' => $input['einstiegsroman'],
-            'lesestand' => $input['lesestand'],
-            'lieblingsroman' => $input['lieblingsroman'],
-            'lieblingsfigur' => $input['lieblingsfigur'],
-            'lieblingsmutation' => $input['lieblingsmutation'],
-            'lieblingsschauplatz' => $input['lieblingsschauplatz'],
-            'lieblingsautor' => $input['lieblingsautor'],
-            'lieblingszyklus' => $input['lieblingszyklus'],
+            'einstiegsroman' => $input['einstiegsroman'] ?? null,
+            'lesestand' => $input['lesestand'] ?? null,
+            'lieblingsroman' => $input['lieblingsroman'] ?? null,
+            'lieblingsfigur' => $input['lieblingsfigur'] ?? null,
+            'lieblingsmutation' => $input['lieblingsmutation'] ?? null,
+            'lieblingsschauplatz' => $input['lieblingsschauplatz'] ?? null,
+            'lieblingsautor' => $input['lieblingsautor'] ?? null,
+            'lieblingszyklus' => $input['lieblingszyklus'] ?? null,
         ])->save();
     }
 }
