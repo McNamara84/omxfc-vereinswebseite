@@ -11,6 +11,7 @@
                 <li>Fix: Lieblingsfigur wird nun korrekt gespeichert</li>
                 <li>Fix: Lieblingsschauplatz wird nun korrekt gespeichert</li>
                 <li>Fix: Absenderadresse in Mails aktualisiert</li>
+                <li>Fix: Mailadresse im Impressum aktualisiert</li>
             </ul>
         </section>
         <section class="mb-6">
