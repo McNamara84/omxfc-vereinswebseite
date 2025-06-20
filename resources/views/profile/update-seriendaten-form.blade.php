@@ -12,7 +12,8 @@
         <!-- Einstiegsroman Dropdown -->
         <div class="col-span-6 sm:col-span-4">
             <x-label for="einstiegsroman" value="{{ __('Einstiegsroman (optional)') }}" />
-            <select id="einstiegsroman" wire:model="state.einstiegsroman" class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-800 rounded-md shadow-sm">
+            <select id="einstiegsroman" wire:model="state.einstiegsroman"
+                class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-800 rounded-md shadow-sm">
                 <option value="">Roman auswählen</option>
                 @foreach($romane as $roman)
                     <option value="{{ $roman }}">{{ $roman }}</option>
@@ -23,7 +24,8 @@
         <!-- Lesestand Dropdown -->
         <div class="col-span-6 sm:col-span-4">
             <x-label for="lesestand" value="{{ __('Aktueller Lesestand (optional)') }}" />
-            <select id="lesestand" wire:model="state.lesestand" class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-800 rounded-md shadow-sm">
+            <select id="lesestand" wire:model="state.lesestand"
+                class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-800 rounded-md shadow-sm">
                 <option value="">Roman auswählen</option>
                 @foreach($romane as $roman)
                     <option value="{{ $roman }}">{{ $roman }}</option>
@@ -34,7 +36,8 @@
         <!-- Lieblingsautor Dropdown -->
         <div class="col-span-6 sm:col-span-4">
             <x-label for="lieblingsautor" value="{{ __('Lieblingsautor:in (optional)') }}" />
-            <select id="lieblingsautor" wire:model="state.lieblingsautor" class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-800 rounded-md shadow-sm">
+            <select id="lieblingsautor" wire:model="state.lieblingsautor"
+                class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-800 rounded-md shadow-sm">
                 <option value="">Autor:in auswählen</option>
                 @foreach($autoren as $autor)
                     <option value="{{ $autor }}">{{ $autor }}</option>
@@ -45,7 +48,8 @@
         <!-- Lieblingsroman Dropdown -->
         <div class="col-span-6 sm:col-span-4">
             <x-label for="lieblingsroman" value="{{ __('Lieblingsroman (optional)') }}" />
-            <select id="lieblingsroman" wire:model="state.lieblingsroman" class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-800 rounded-md shadow-sm">
+            <select id="lieblingsroman" wire:model="state.lieblingsroman"
+                class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-800 rounded-md shadow-sm">
                 <option value="">Roman auswählen</option>
                 @foreach($romane as $roman)
                     <option value="{{ $roman }}">{{ $roman }}</option>
@@ -56,7 +60,8 @@
         <!-- Lieblingszyklus Dropdown -->
         <div class="col-span-6 sm:col-span-4">
             <x-label for="lieblingszyklus" value="{{ __('Lieblingszyklus (optional)') }}" />
-            <select id="lieblingszyklus" wire:model="state.lieblingszyklus" class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-800 rounded-md shadow-sm">
+            <select id="lieblingszyklus" wire:model="state.lieblingszyklus"
+                class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-800 rounded-md shadow-sm">
                 <option value="">Zyklus auswählen</option>
                 @foreach($zyklen as $zyklus)
                     <option value="{{ $zyklus }}">{{ $zyklus }}-Zyklus</option>
@@ -64,52 +69,29 @@
             </select>
             <x-input-error for="lieblingszyklus" class="mt-2" />
         </div>
-        <!-- Lieblingsfigur Dropdown -->
-        <div class="col-span-6 sm:col-span-4" x-data="autocomplete(@js($figuren), '{{ $state['lieblingsfigur'] }}')">
+        <!-- FALLBACK: Lieblingsfigur als normales Dropdown -->
+        <div class="col-span-6 sm:col-span-4">
             <x-label for="lieblingsfigur" value="{{ __('Lieblingsfigur (optional)') }}" />
-        
-            <input type="text"
-                id="lieblingsfigur"
-                wire:model="state.lieblingsfigur"
-                x-ref="lieblingsfigurInput"
-                autocomplete="off"
-                class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-800 rounded-md shadow-sm"
-                x-model="query"
-                @input="filterItems()"
-                @focus="open = true"
-                @click.away="open = false">
-        
-            <ul x-show="open && filteredItems.length" class="mt-1 bg-white dark:bg-gray-700 shadow-lg rounded-md max-h-60 overflow-auto z-50 border">
-                <template x-for="item in filteredItems" :key="item">
-                    <li class="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer"
-                        @click="selectItem(item)">
-                        <span x-text="item"></span>
-                    </li>
-                </template>
-            </ul>
+            <select id="lieblingsfigur" wire:model="state.lieblingsfigur"
+                class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-800 rounded-md shadow-sm">
+                <option value="">Figur auswählen</option>
+                @foreach($figuren as $figur)
+                    <option value="{{ $figur }}">{{ $figur }}</option>
+                @endforeach
+            </select>
             <x-input-error for="lieblingsfigur" class="mt-2" />
         </div>
-        <!-- Lieblingsschauplatz Dropdown -->
-        <div class="col-span-6 sm:col-span-4" x-data="autocomplete(@js($schauplaetze), '{{ $state['lieblingsschauplatz'] }}')">
+
+        <!-- FALLBACK: Lieblingsschauplatz als normales Dropdown -->
+        <div class="col-span-6 sm:col-span-4">
             <x-label for="lieblingsschauplatz" value="{{ __('Lieblingsschauplatz (optional)') }}" />
-            <input type="text"
-                id="lieblingsschauplatz"
-                wire:model="state.lieblingsschauplatz"
-                x-ref="lieblingsschauplatzInput"
-                autocomplete="off"
-                class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-800 rounded-md shadow-sm"
-                x-model="query"
-                @input="filterItems()"
-                @focus="open = true"
-                @click.away="open = false">
-            <ul x-show="open && filteredItems.length" class="mt-1 bg-white dark:bg-gray-700 shadow-lg rounded-md max-h-60 overflow-auto z-50 border">
-                <template x-for="item in filteredItems" :key="item">
-                    <li class="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer"
-                        @click="selectItem(item)">
-                        <span x-text="item"></span>
-                    </li>
-                </template>
-            </ul>
+            <select id="lieblingsschauplatz" wire:model="state.lieblingsschauplatz"
+                class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-800 rounded-md shadow-sm">
+                <option value="">Schauplatz auswählen</option>
+                @foreach($schauplaetze as $schauplatz)
+                    <option value="{{ $schauplatz }}">{{ $schauplatz }}</option>
+                @endforeach
+            </select>
             <x-input-error for="lieblingsschauplatz" class="mt-2" />
         </div>
         <!-- TODO: Lieblingsmutation -->
@@ -124,42 +106,115 @@
     </x-slot>
 </x-form-section>
 <script>
-    function autocomplete(items, initialValue = '') {
-    return {
-        query: initialValue || '',
-        open: false,
-        items: items,
-        filteredItems: [],
-        filterItems() {
-            this.open = true;
-            const queryLower = this.query.toLowerCase();
-            this.filteredItems = this.items.filter(item => item.toLowerCase().includes(queryLower)).slice(0, 10);
-        },
-        selectItem(item) {
-            // Zuerst den ausgewählten Wert im Query-Feld anzeigen
-            this.query = item;
-            
-            // Den ausgewählten Wert an Livewire übertragen
-            const input = this.$refs.lieblingsfigurInput || this.$refs.lieblingsschauplatzInput;
-            if (!input) {
-                console.error('Input element reference not found');
-                return;
+    function autocomplete(items, initialValue = '', fieldName = '') {
+        return {
+            open: false,
+            items: items,
+            filteredItems: [],
+            fieldName: fieldName,
+            displayValue: initialValue || '',
+
+            init() {
+                // Initialen Wert setzen falls vorhanden
+                if (initialValue) {
+                    this.displayValue = initialValue;
+                }
+
+                // Überwache Änderungen des Input-Feldes von Livewire
+                this.$watch('displayValue', (value) => {
+                    this.syncWithLivewire(value);
+                });
+            },
+
+            handleFocus() {
+                // Nur öffnen und filtern wenn bereits Text vorhanden ist
+                if (this.displayValue.length > 0) {
+                    this.filterItems();
+                    this.open = true;
+                }
+            },
+
+            handleInput() {
+                this.filterItems();
+                this.syncWithLivewire(this.displayValue);
+
+                // Nur öffnen wenn mindestens ein Zeichen eingegeben wurde
+                if (this.displayValue.length > 0) {
+                    this.open = true;
+                } else {
+                    this.open = false;
+                }
+            },
+
+            filterItems() {
+                if (!this.displayValue || this.displayValue.length === 0) {
+                    this.filteredItems = [];
+                    return;
+                }
+
+                const queryLower = this.displayValue.toLowerCase();
+                this.filteredItems = this.items.filter(item =>
+                    item.toLowerCase().includes(queryLower)
+                ).slice(0, 10);
+            },
+
+            selectItem(item) {
+                // Wert setzen
+                this.displayValue = item;
+
+                // Mit Livewire synchronisieren
+                this.syncWithLivewire(item);
+
+                // Auswahlmenü schließen
+                this.open = false;
+            },
+
+            syncWithLivewire(value) {
+                // Mehrere Synchronisations-Methoden versuchen
+
+                // Methode 1: $wire verwenden falls verfügbar
+                if (typeof this.$wire !== 'undefined' && this.$wire.set) {
+                    try {
+                        this.$wire.set('state.' + this.fieldName, value);
+                    } catch (e) {
+                        console.log('Livewire $wire.set failed:', e);
+                    }
+                }
+
+                // Methode 2: Das Input-Element direkt manipulieren
+                const inputElement = this.$refs[this.fieldName + 'Input'];
+                if (inputElement) {
+                    inputElement.value = value;
+
+                    // Input Event auslösen
+                    inputElement.dispatchEvent(new Event('input', { bubbles: true }));
+
+                    // Change Event auslösen
+                    inputElement.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+
+                // Methode 3: Livewire direkt über window.Livewire ansprechen
+                if (typeof window.Livewire !== 'undefined') {
+                    try {
+                        // Den Livewire Component finden und das Feld setzen
+                        const component = window.Livewire.find(inputElement.getAttribute('wire:id') || this.getComponentId());
+                        if (component && component.set) {
+                            component.set('state.' + this.fieldName, value);
+                        }
+                    } catch (e) {
+                        console.log('Livewire window.Livewire failed:', e);
+                    }
+                }
+            },
+
+            getComponentId() {
+                // Versuche die Component ID zu finden
+                let element = this.$el;
+                while (element && !element.hasAttribute('wire:id')) {
+                    element = element.parentElement;
+                }
+                return element ? element.getAttribute('wire:id') : null;
             }
-            
-            const inputId = input.id;
-            
-            // Wert direkt für das Input-Feld setzen
-            input.value = item;
-            
-            // Aktualisiere das Livewire-Modell explizit
-            this.$wire.set('state.' + inputId, item);
-            
-            // Manuell ein Input-Event auslösen
-            input.dispatchEvent(new Event('input', { bubbles: true }));
-            
-            // Auswahlmenü schließen
-            this.open = false;
-        }
-    };
-}
+        };
+    }
 </script>
