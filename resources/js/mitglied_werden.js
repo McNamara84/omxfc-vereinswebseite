@@ -5,6 +5,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const submitButton = document.getElementById('submit-button');
     const form = document.getElementById('mitgliedschaft-form');
 
+    if (!form || !satzungCheck) {
+        return;
+    }
+
     const fields = {
         vorname: { regex: /.+/, error: "Vorname ist erforderlich." },
         nachname: { regex: /.+/, error: "Nachname ist erforderlich." },

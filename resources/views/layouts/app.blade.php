@@ -52,6 +52,11 @@
     @stack('modals')
 
     <script src="{{ asset('vendor/livewire/livewire.min.js') }}"></script>
+    <script>
+        if (typeof window.Livewire === 'undefined') {
+            console.error('Livewire konnte nicht geladen werden!');
+        }
+    </script>
 </body>
 
 </html>
