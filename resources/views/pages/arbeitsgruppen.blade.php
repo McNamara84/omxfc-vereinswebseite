@@ -18,8 +18,8 @@
             <p><strong>AG-Leitung:</strong> Holger<br>
                 <strong>Treffen:</strong> Jeden dritten Montag im Monat zwischen 20:00 und 20:30 Uhr per
                 Online-Meeting.<br>
-                <strong>Kontakt:</strong> <a href="mailto:ag-maddraxikon@maddraxikon.com"
-                    class="text-blue-600 hover:underline">ag-maddraxikon@maddraxikon.com</a>
+                <strong>Kontakt:</strong> <a href="mailto:ag-maddraxikon@maddrax-fanclub.de"
+                    class="text-blue-600 hover:underline">ag-maddraxikon@maddrax-fanclub.de</a>
             </p>
         </section>
 
@@ -37,8 +37,8 @@
             <p class="mb-4">Na, ganz einfach: IHR, die Fans der Serie!</p>
             <p><strong>AG-Leitung:</strong> Martin<br>
                 <strong>Treffen:</strong> Jeden zweiten Mittwoch im Monat zwischen 19:00 und 19:30 Uhr per Online-Meeting.<br>
-                <strong>Kontakt:</strong> <a href="mailto:ag-hoerbuch@maddraxikon.com"
-                    class="text-blue-600 hover:underline">ag-hoerbuch@maddraxikon.com</a>
+                <strong>Kontakt:</strong> <a href="mailto:ag-eardrax@maddrax-fanclub.de"
+                    class="text-blue-600 hover:underline">ag-eardrax@maddrax-fanclub.de</a>
             </p>
         </section>
 
@@ -52,7 +52,7 @@
             <p class="mb-4">
             <strong>AG-Leitung:</strong> Marcel<br>
             <strong>Treffen:</strong> Jeden ersten Mittwoch im Monat zwischen 20:30 und 21:00 Uhr per Online-Meeting.<br>
-            <strong>Kontakt:</strong> <a href="mailto:ag-mapdrax@maddraxikon.com" class="text-blue-600 hover:underline">ag-mapdrax@maddraxikon.com</a>
+            <strong>Kontakt:</strong> <a href="mailto:ag-mapdrax@maddrax-fanclub.de" class="text-blue-600 hover:underline">ag-mapdrax@maddrax-fanclub.de</a>
             </p>
         </section>
 
