@@ -5,6 +5,11 @@
                 Neue Rezension zu „{{ $book->title }}“ (Nr. {{ $book->roman_number }})
             </h1>
 
+            <div class="mb-6 p-4 bg-yellow-100 dark:bg-yellow-800 border-l-4 border-yellow-500 dark:border-yellow-300 text-yellow-700 dark:text-yellow-200">
+                <p class="font-bold">Hinweis</p>
+                <p>Du kannst die Rezensionen zu diesem Roman erst lesen, nachdem du selbst eine verfasst und gespeichert hast.</p>
+            </div>
+
             <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
                 <form action="{{ route('reviews.store', $book) }}" method="POST">
                     @csrf
