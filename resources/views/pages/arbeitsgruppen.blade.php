@@ -56,5 +56,18 @@
             </p>
         </section>
 
+        <!-- AG Mapdrax -->
+        <section class="mb-12">
+            <h2 class="text-2xl font-semibold mb-4">AG Rollenspiel</h2>
+            <img src="{{ asset('images/ag-rollenspiel.png') }}" alt="AG Mapdrax" class="w-full h-auto rounded-lg shadow mb-4 ag-logo">
+            <p class="mb-4">„Na mein Freund, hast du einen schönen Tag gehabt?“ Müde blinzelte Matt zu der Fremden, die sich an seinen Tisch gesellte. Irgendwas an der Frau war seltsam, und warum fühlte er sich so müde? „Magst du noch ein Biir?“ schwafelte die hünenhafte Fremde weiter, und näherte sich dem Nische, in der Matt sein Biir trank. Träge nahm er wahr, dass sich zwei weitere Gestalten näherten, ihn in die Zange nahmen. Irgendwas musste in dem schalen Gesöff gewesen sein, dass der Wirt ihm hingestellt hatte. Wie kam er nur aus dieser Nummer heraus? Die drei in ein Gespräch verwickeln – in der Hoffnung, dass seine Freunde rechtzeitig von ihrer Erkundungstour zurückkamen oder eine rasante Flucht nach vorn, in der Hoffnung die Fremden austricksen zu können. Oder vielleicht eine Ablenkung, mit der Ruf nach einem Mahl?</p>
+            <p class="mb-4">Entscheide selbst, wie es weiter geht. Dies ist die Essenz des Rollenspiels: Eine interaktive Geschichte erleben – eine Geschichte in der abenteuerlichen Welt von Matt Drax, Aruula und ihren Freunden! Wenn Du mehr wissen möchtest, oder es spannend findest, die Welt von Maddrax bespielbar zu machen, melde ich einfach!</p>
+            <p class="mb-4">
+            <strong>AG-Leitung:</strong> Stefan<br>
+            <strong>Treffen:</strong> nach Bedarf<br>
+            <strong>Kontakt:</strong> <a href="mailto:ag-rollenspiel@maddrax-fanclub.de" class="text-blue-600 hover:underline">ag-rollenspiel@maddrax-fanclub.de</a>
+            </p>
+        </section>
+
     </div>
 </x-app-layout>
