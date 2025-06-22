@@ -1,5 +1,4 @@
 import './bootstrap';
-import './mitglied_werden';
 
 // Leaflet importieren
 import L from 'leaflet';
