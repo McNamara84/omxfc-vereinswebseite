@@ -8,10 +8,11 @@
             <h3 class="text-l font-semibold mb-2">Features:</h3>
             <ul class="list-disc ml-6 mt-2">
                 <li>Hinweise zum Lesen von Rezensionen verbessert</li>
+                <li>Neuer Abschnitt für AG Rollenspiel der Unterseite Arbeitsgruppen hinzugefügt</li>
             </ul>
             <h3 class="text-l font-semibold mb-2">Änderungen:</h3>
             <ul class="list-disc ml-6 mt-2">
-                <li>-</li>
+                <li>Mailadressen der AG-Leiter vereinheitlicht und umgestellt auf Domain maddrax-fanclub.de.</li>
             </ul>
         </section>
         <section class="mb-6">
