@@ -54,7 +54,7 @@
                 </div>
                 <div class="w-full">
                     <label for="mail" class="block font-semibold mb-1">Mailadresse</label>
-                    <input type="email" id="mail" name="mail" required
+                    <input type="email" id="mail" name="mail" required autocomplete="username"
                         class="w-full rounded-md border-gray-300 shadow-sm bg-white text-gray-900 dark:bg-gray-700 dark:text-gray-100">
                     <span class="text-sm text-red-600" id="error-mail"></span>
                 </div>
