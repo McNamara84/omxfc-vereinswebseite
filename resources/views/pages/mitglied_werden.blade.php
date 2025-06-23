@@ -60,13 +60,13 @@
                 </div>
                 <div class="w-full">
                     <label for="passwort" class="block font-semibold mb-1">Passwort</label>
-                    <input type="password" id="passwort" name="passwort" required
+                    <input type="password" id="passwort" name="passwort" required autocomplete="new-password"
                         class="w-full rounded-md border-gray-300 shadow-sm bg-white text-gray-900 dark:bg-gray-700 dark:text-gray-100">
                     <span class="text-sm text-red-600" id="error-passwort"></span>
                 </div>
                 <div class="w-full">
                     <label for="passwort_confirmation" class="block font-semibold mb-1">Passwort wiederholen</label>
-                    <input type="password" id="passwort_confirmation" name="passwort_confirmation" required
+                    <input type="password" id="passwort_confirmation" name="passwort_confirmation" required autocomplete="new-password"
                         class="w-full rounded-md border-gray-300 shadow-sm bg-white text-gray-900 dark:bg-gray-700 dark:text-gray-100">
                     <span class="text-sm text-red-600" id="error-passwort_confirmation"></span>
                 </div>
