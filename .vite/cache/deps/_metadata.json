@@ -1,37 +1,37 @@
 {
-  "hash": "b006270c",
+  "hash": "83aa6ce3",
   "configHash": "09db4858",
-  "lockfileHash": "2342be68",
-  "browserHash": "e235cfae",
+  "lockfileHash": "436eb459",
+  "browserHash": "20210644",
   "optimized": {
     "@alpinejs/focus": {
       "src": "../../../node_modules/@alpinejs/focus/dist/module.esm.js",
       "file": "@alpinejs_focus.js",
-      "fileHash": "c9f42650",
+      "fileHash": "72d972b8",
       "needsInterop": false
     },
     "alpinejs": {
       "src": "../../../node_modules/alpinejs/dist/module.esm.js",
       "file": "alpinejs.js",
-      "fileHash": "a23ccd3a",
+      "fileHash": "e067918c",
       "needsInterop": false
     },
     "axios": {
       "src": "../../../node_modules/axios/index.js",
       "file": "axios.js",
-      "fileHash": "711a43c8",
+      "fileHash": "ec5e42d7",
       "needsInterop": false
     },
     "leaflet": {
       "src": "../../../node_modules/leaflet/dist/leaflet-src.js",
       "file": "leaflet.js",
-      "fileHash": "07bc6347",
+      "fileHash": "2c1f2869",
       "needsInterop": true
     },
     "leaflet.markercluster": {
       "src": "../../../node_modules/leaflet.markercluster/dist/leaflet.markercluster-src.js",
       "file": "leaflet__markercluster.js",
-      "fileHash": "98b6e7c7",
+      "fileHash": "dc872941",
       "needsInterop": true
     }
   },

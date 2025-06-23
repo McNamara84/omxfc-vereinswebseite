@@ -24,7 +24,7 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     <!-- Styles -->
-    {{-- <link rel="stylesheet" href="{{ asset('vendor/livewire/livewire.min.css') }}">--}}
+    @livewireStyles
 </head>
 
 <body class="font-sans antialiased">
@@ -53,7 +53,7 @@
 
     @stack('modals')
 
-    <script src="{{ asset('vendor/livewire/livewire.min.js') }}"></script>
+    @livewireScripts
 </body>
 
 </html>
