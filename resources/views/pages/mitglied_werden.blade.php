@@ -233,7 +233,9 @@
                     let result = null;
                     try {
                         result = await response.json();
-                    } catch { }
+                    } catch (jsonError) {
+                        console.error('JSON parsing error:', jsonError);
+                    }
 
                     if ((response.ok && result && result.success) || (result && result.success)) {
                         window.location.href = '/mitglied-werden/erfolgreich';
