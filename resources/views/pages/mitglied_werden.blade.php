@@ -66,7 +66,8 @@
                 </div>
                 <div class="w-full">
                     <label for="passwort_confirmation" class="block font-semibold mb-1">Passwort wiederholen</label>
-                    <input type="password" id="passwort_confirmation" name="passwort_confirmation" required autocomplete="new-password"
+                    <input type="password" id="passwort_confirmation" name="passwort_confirmation" required
+                        autocomplete="new-password"
                         class="w-full rounded-md border-gray-300 shadow-sm bg-white text-gray-900 dark:bg-gray-700 dark:text-gray-100">
                     <span class="text-sm text-red-600" id="error-passwort_confirmation"></span>
                 </div>
@@ -225,19 +226,23 @@
                             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
                             'Accept': 'application/json'
                         },
-                        body: formData
+                        body: formData,
+                        credentials: 'same-origin'
                     });
 
-                    if (response.ok) {
+                    let result = null;
+                    try {
+                        result = await response.json();
+                    } catch (jsonError) {
+                        console.error('JSON parsing error:', jsonError);
+                    }
+
+                    if ((response.ok && result && result.success) || (result && result.success)) {
                         window.location.href = '/mitglied-werden/erfolgreich';
                     } else {
-                        let result;
-                        try {
-                            result = await response.json();
-                            messages.textContent = result.errors ? Object.values(result.errors).join(' ') : 'Unbekannter Fehler aufgetreten.';
-                        } catch {
-                            messages.textContent = 'Es ist ein Fehler aufgetreten. Bitte versuche es später erneut.';
-                        }
+                        messages.textContent = result && result.errors
+                            ? Object.values(result.errors).join(' ')
+                            : 'Unbekannter Fehler aufgetreten.';
 
                         messages.className = 'mb-4 p-4 bg-red-100 border border-red-400 text-red-800 rounded';
                         messages.classList.remove('hidden');
