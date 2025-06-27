@@ -5,7 +5,12 @@ import path from 'path';
 export default defineConfig({
     plugins: [
         laravel({
-            input: ['resources/css/app.css', 'resources/js/app.js', 'resources/js/maddraxiversum.js',],
+            input: [
+                'resources/css/app.css',
+                'resources/js/app.js',
+                'resources/js/maddraxiversum.js',
+                'resources/js/statistik.js',
+            ],
             refresh: true,
             // Explizit den public-Pfad setzen
             publicDirectory: 'public',
