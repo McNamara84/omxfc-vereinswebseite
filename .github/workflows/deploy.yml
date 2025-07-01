@@ -87,12 +87,18 @@ jobs:
               exit 1
             fi
             
+            echo "Publishing assets..."
+            docker exec maddrax-app php artisan livewire:publish --assets || true
+            docker exec maddrax-app php artisan vendor:publish --provider="Livewire\LivewireServiceProvider" --tag=livewire:assets || true
+
             # Cache-Befehle - erst clearen, dann neu aufbauen
+            echo "Clearing caches..."
             docker exec maddrax-app php artisan config:clear
             docker exec maddrax-app php artisan route:clear  
             docker exec maddrax-app php artisan view:clear
             docker exec maddrax-app php artisan cache:clear
 
+            echo "Building caches..."
             docker exec maddrax-app php artisan config:cache
             docker exec maddrax-app php artisan route:cache
             docker exec maddrax-app php artisan view:cache
