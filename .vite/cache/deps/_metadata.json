@@ -1,43 +1,55 @@
 {
-  "hash": "83aa6ce3",
+  "hash": "0bb95c9d",
   "configHash": "09db4858",
-  "lockfileHash": "436eb459",
-  "browserHash": "20210644",
+  "lockfileHash": "0d4d31d5",
+  "browserHash": "0d4ddf46",
   "optimized": {
     "@alpinejs/focus": {
       "src": "../../../node_modules/@alpinejs/focus/dist/module.esm.js",
       "file": "@alpinejs_focus.js",
-      "fileHash": "72d972b8",
+      "fileHash": "1591061b",
       "needsInterop": false
     },
     "alpinejs": {
       "src": "../../../node_modules/alpinejs/dist/module.esm.js",
       "file": "alpinejs.js",
-      "fileHash": "e067918c",
+      "fileHash": "6231f04c",
       "needsInterop": false
     },
     "axios": {
       "src": "../../../node_modules/axios/index.js",
       "file": "axios.js",
-      "fileHash": "ec5e42d7",
+      "fileHash": "c84a4549",
+      "needsInterop": false
+    },
+    "chart.js/auto": {
+      "src": "../../../node_modules/chart.js/auto/auto.js",
+      "file": "chart__js_auto.js",
+      "fileHash": "8c2c5ed3",
       "needsInterop": false
     },
     "leaflet": {
       "src": "../../../node_modules/leaflet/dist/leaflet-src.js",
       "file": "leaflet.js",
-      "fileHash": "2c1f2869",
+      "fileHash": "2fabac0c",
       "needsInterop": true
     },
     "leaflet.markercluster": {
       "src": "../../../node_modules/leaflet.markercluster/dist/leaflet.markercluster-src.js",
       "file": "leaflet__markercluster.js",
-      "fileHash": "dc872941",
+      "fileHash": "13da56ff",
       "needsInterop": true
+    },
+    "simple-datatables": {
+      "src": "../../../node_modules/simple-datatables/dist/module.js",
+      "file": "simple-datatables.js",
+      "fileHash": "24b71084",
+      "needsInterop": false
     }
   },
   "chunks": {
-    "chunk-HKJ2B2AA": {
-      "file": "chunk-HKJ2B2AA.js"
+    "chunk-L6OFPWCY": {
+      "file": "chunk-L6OFPWCY.js"
     }
   }
 }
