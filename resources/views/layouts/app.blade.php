@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -20,10 +21,11 @@
     @vite(['resources/css/app.css'])
     @livewireStyles
 </head>
+
 <body class="font-sans antialiased">
     <!-- Livewire Scripts ganz am Anfang des body -->
     @livewireScripts
-    
+
     <x-banner />
     <div class="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
         @livewire('navigation-menu')
@@ -43,8 +45,14 @@
     <!-- Footer hier einfügen -->
     <x-footer />
     @stack('modals')
-    
+
+    <script>
+        console.log('Livewire verfügbar:', typeof window.Livewire);
+        console.log('Alpine verfügbar:', typeof window.Alpine);
+    </script>
+
     <!-- Alpine/JS am Ende -->
     @vite(['resources/js/app.js'])
 </body>
+
 </html>
