@@ -47,11 +47,8 @@
     @stack('modals')
 
     <script>
-        console.log('=== DEBUG START ===');
         console.log('Livewire verfügbar:', typeof window.Livewire, window.Livewire);
         console.log('Alpine verfügbar:', typeof window.Alpine, window.Alpine);
-        console.log('Document ready state:', document.readyState);
-        console.log('=== DEBUG END ===');
     </script>
 
     <!-- Alpine/JS am Ende -->
