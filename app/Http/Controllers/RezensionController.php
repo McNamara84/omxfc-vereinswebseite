@@ -134,9 +134,6 @@ class RezensionController extends Controller
             'content' => $data['content'],
         ]);
 
-        // 1 Punkt gutschreiben
-        $user->incrementTeamPoints(1);
-
         return redirect()
             ->route('reviews.show', $book)
             ->with('success', 'Rezension erfolgreich erstellt.');
