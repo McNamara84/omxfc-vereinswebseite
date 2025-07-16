@@ -123,7 +123,7 @@ class RezensionController extends Controller
 
         $data = $request->validate([
             'title' => 'required|string|max:255',
-            'content' => 'required|string|min:1250',
+            'content' => 'required|string|min:140',
         ]);
 
         $review = Review::create([

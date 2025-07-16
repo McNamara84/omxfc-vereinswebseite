@@ -28,7 +28,7 @@
                         <textarea name="content" id="content" rows="8"
                                   class="mt-1 block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 rounded"
                                   required>{{ old('content') }}</textarea>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Mindestens 1250 Zeichen.</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Mindestens 140 Zeichen.</p>
                         @error('content')
                             <p class="text-red-600 dark:text-red-400 text-sm mt-1">{{ $message }}</p>
                         @enderror
