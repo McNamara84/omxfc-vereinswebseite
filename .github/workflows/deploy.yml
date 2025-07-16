@@ -1,13 +1,10 @@
 name: Build and Deploy
-
 on:
   push:
     branches: [ main ]
-
 permissions:
   contents: read
   packages: write
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -31,7 +28,6 @@ jobs:
           push: true
           no-cache: true
           tags: ghcr.io/mcnamara84/omxfc-vereinswebseite:latest
-
   deploy:
     needs: build
     runs-on: ubuntu-latest
@@ -56,7 +52,7 @@ jobs:
             docker compose up -d --force-recreate
             
             echo "Waiting for containers to start..."
-            sleep 10
+            sleep 15
             
             echo "Checking container status:"
             docker ps -a
@@ -72,6 +68,7 @@ jobs:
             done
             
             echo "Running Laravel setup commands..."
+            
             # Erstelle den Storage-Link
             docker exec maddrax-app php artisan storage:link || true
             
@@ -84,36 +81,44 @@ jobs:
               exit 1
             fi
             
-            # Cache-Befehle - erst clearen, dann neu aufbauen
-            echo "Clearing caches..."
-            docker exec maddrax-app php artisan config:clear
-            docker exec maddrax-app php artisan route:clear  
-            docker exec maddrax-app php artisan view:clear
-            docker exec maddrax-app php artisan cache:clear
-            
-            echo "Building caches..."
+            # Cache-Management - optimiert für neue Architektur
+            echo "Optimizing Laravel..."
+            docker exec maddrax-app php artisan optimize:clear
             docker exec maddrax-app php artisan config:cache
             docker exec maddrax-app php artisan route:cache
             docker exec maddrax-app php artisan view:cache
-
-            echo "Publishing Livewire assets..."
-            docker exec maddrax-app php artisan vendor:publish --tag=livewire:assets --force
-
-            echo "Verifying Livewire assets..."
-            docker exec maddrax-app ls -la /var/www/html/public/vendor/livewire/
             
-            # Setze Berechtigungen nochmal
+            # Berechtigungen setzen
+            echo "Setting permissions..."
             docker exec maddrax-app chown -R www-data:www-data /var/www/html/storage
             docker exec maddrax-app chmod -R 775 /var/www/html/storage
             
-            echo "Final status check:"
+            # Gesundheitschecks
+            echo "Running health checks..."
+            
+            echo "=== Container Status ==="
             docker ps
             
-            echo "Testing local connectivity:"
-            curl -f http://localhost:8080 || echo "Local connection test failed"
+            echo "=== Testing connectivity ==="
+            if curl -f http://localhost:8080 >/dev/null 2>&1; then
+              echo "✅ Local connectivity test: PASSED"
+            else
+              echo "❌ Local connectivity test: FAILED"
+              echo "Container logs for debugging:"
+              echo "=== Nginx logs ==="
+              docker logs --tail=20 maddrax-nginx
+              echo "=== App logs ==="
+              docker logs --tail=20 maddrax-app
+              exit 1
+            fi
             
-            echo "Container logs for debugging:"
-            echo "=== Nginx logs ==="
-            docker logs --tail=20 maddrax-nginx
-            echo "=== App logs ==="
-            docker logs --tail=20 maddrax-app
+            echo "=== Verifying Livewire assets ==="
+            if docker exec maddrax-app test -f /var/www/html/public/vendor/livewire/livewire.js; then
+              echo "✅ Livewire assets: FOUND"
+            else
+              echo "❌ Livewire assets: MISSING"
+              echo "Re-publishing Livewire assets..."
+              docker exec maddrax-app php artisan vendor:publish --tag=livewire:assets --force
+            fi
+            
+            echo "🚀 Deployment completed successfully!"
