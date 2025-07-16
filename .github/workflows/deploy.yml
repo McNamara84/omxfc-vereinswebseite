@@ -47,7 +47,7 @@ jobs:
             
             echo "Removing old containers..."
             docker compose down --remove-orphans
-
+            
             echo "Removing app_data volume to ensure fresh assets..."
             docker volume rm maddrax-fanclub_app_data || true
             
