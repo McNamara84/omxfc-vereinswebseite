@@ -95,6 +95,12 @@ jobs:
             docker exec maddrax-app php artisan config:cache
             docker exec maddrax-app php artisan route:cache
             docker exec maddrax-app php artisan view:cache
+
+            echo "Publishing Livewire assets..."
+            docker exec maddrax-app php artisan vendor:publish --tag=livewire:assets --force
+
+            echo "Verifying Livewire assets..."
+            docker exec maddrax-app ls -la /var/www/html/public/vendor/livewire/
             
             # Setze Berechtigungen nochmal
             docker exec maddrax-app chown -R www-data:www-data /var/www/html/storage
