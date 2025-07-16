@@ -50,13 +50,7 @@
     <x-footer />
     @stack('modals')
 
-    <script>
-        console.log('Livewire verfügbar:', typeof window.Livewire, window.Livewire);
-        console.log('Alpine verfügbar:', typeof window.Alpine, window.Alpine);
-    </script>
-
-    <!-- Alpine/JS am Ende -->
+    <!-- Alpine/JS -->
     @vite(['resources/js/app.js'])
 </body>
-
 </html>
