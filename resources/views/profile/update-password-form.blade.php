@@ -8,6 +8,8 @@
     </x-slot>
 
     <x-slot name="form">
+        <!-- Hidden username field for accessibility -->
+        <input type="text" class="hidden" autocomplete="username" value="{{ old('email', auth()->user()->email) }}" />
         <div class="col-span-6 sm:col-span-4">
             <x-label for="current_password" value="{{ __('Aktuelles Passwort') }}" />
             <x-input id="current_password" type="password" class="mt-1 block w-full" wire:model="state.current_password" autocomplete="current-password" />
