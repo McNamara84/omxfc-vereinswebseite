@@ -25,14 +25,16 @@ class MaddraxiversumController extends Controller
         $userPoints = 0;
         $showMap = false;
 
-        // Stelle sicher, dass der Benutzer einem Team zugeordnet ist
-        if ($currentTeam) {
+        // Immer zeigen, wenn Ehrenmitglied
+        if ($user->hasRole('Ehrenmitglied')) {
+            $showMap = true;
+            $userPoints = $currentTeam ? $user->totalPointsForTeam($currentTeam) : 0;
+        } elseif ($currentTeam) {
+            // Stelle sicher, dass der Benutzer einem Team zugeordnet ist
             $userPoints = $user->totalPointsForTeam($currentTeam);
             if ($userPoints >= $requiredPoints) {
                 $showMap = true;
             }
-        } else {
-
         }
 
 
