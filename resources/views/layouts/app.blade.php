@@ -24,11 +24,7 @@
 
 <body class="font-sans antialiased">
     <!-- Livewire Scripts -->
-    <script src="/livewire/livewire.min.js" 
-        data-csrf="{{ csrf_token() }}" 
-        data-update-uri="/livewire/update" 
-        data-navigate-once="true">
-    </script>
+    @livewireScripts
 
     <x-banner />
     <div class="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
