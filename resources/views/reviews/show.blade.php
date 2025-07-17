@@ -20,13 +20,18 @@
                     </div>
 
                     @if(in_array($role ?? null, ['Vorstand','Admin'], true) || auth()->id() === $review->user_id)
-                        <form action="{{ route('reviews.destroy', $review) }}" method="POST" class="mt-4">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded">
-                                Rezension löschen
-                            </button>
-                        </form>
+                        <div class="mt-4 flex gap-2">
+                            <a href="{{ route('reviews.edit', $review) }}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
+                                Rezension bearbeiten
+                            </a>
+                            <form action="{{ route('reviews.destroy', $review) }}" method="POST">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded">
+                                    Rezension löschen
+                                </button>
+                            </form>
+                        </div>
                     @endif
                 </div>
             @empty

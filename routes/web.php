@@ -113,6 +113,8 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
         Route::get('/{book}', [RezensionController::class, 'show'])->name('show');
         Route::get('/{book}/create', [RezensionController::class, 'create'])->name('create');
         Route::post('/{book}', [RezensionController::class, 'store'])->name('store');
+        Route::get('/{review}/edit', [RezensionController::class, 'edit'])->name('edit');
+        Route::put('/{review}', [RezensionController::class, 'update'])->name('update');
         Route::delete('/{review}', [RezensionController::class, 'destroy'])->name('destroy');
     });
 });

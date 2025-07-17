@@ -140,6 +140,45 @@ class RezensionController extends Controller
     }
 
     /**
+     * Formular zum Bearbeiten einer Rezension.
+     */
+    public function edit(Review $review)
+    {
+        $user = Auth::user();
+        $role = $this->getRoleInMemberTeam();
+
+        if ($review->user_id === $user->id || in_array($role, ['Vorstand', 'Admin'], true)) {
+            return view('reviews.edit', compact('review'));
+        }
+
+        abort(403);
+    }
+
+    /**
+     * Aktualisieren einer Rezension.
+     */
+    public function update(Request $request, Review $review)
+    {
+        $user = Auth::user();
+        $role = $this->getRoleInMemberTeam();
+
+        if ($review->user_id === $user->id || in_array($role, ['Vorstand', 'Admin'], true)) {
+            $data = $request->validate([
+                'title' => 'required|string|max:255',
+                'content' => 'required|string|min:140',
+            ]);
+
+            $review->update($data);
+
+            return redirect()
+                ->route('reviews.show', $review->book)
+                ->with('success', 'Rezension erfolgreich aktualisiert.');
+        }
+
+        abort(403);
+    }
+
+    /**
      * Löschen einer Rezension.
      */
     public function destroy(Review $review)
