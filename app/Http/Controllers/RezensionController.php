@@ -72,7 +72,7 @@ class RezensionController extends Controller
         // Ehrenmitglied & Vorstand dürfen immer sehen, alle anderen nur wenn eigene Rezension existiert
         if ($hasOwn || in_array($role, ['Ehrenmitglied', 'Vorstand'], true)) {
             $reviews = $book->reviews()->with('user')->get();
-            return view('reviews.show', compact('book', 'reviews'));
+            return view('reviews.show', compact('book', 'reviews', 'role'));
         }
 
         return redirect()->route('reviews.create', $book);
