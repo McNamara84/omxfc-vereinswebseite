@@ -19,7 +19,20 @@
                         {{ $review->content }}
                     </div>
 
-                    @if(auth()->user()->hasAnyRole(['Vorstand','Admin']))
+                    @if(auth()->id() === $review->user_id && auth()->user()->hasAnyRole(['Mitglied','Ehrenmitglied','Kassenwart']))
+                        <div class="mt-4 flex space-x-2">
+                            <a href="{{ route('reviews.edit', $review) }}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
+                                Rezension bearbeiten
+                            </a>
+                            <form action="{{ route('reviews.destroy', $review) }}" method="POST">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded">
+                                    Rezension löschen
+                                </button>
+                            </form>
+                        </div>
+                    @elseif(auth()->user()->hasAnyRole(['Vorstand','Admin']))
                         <form action="{{ route('reviews.destroy', $review) }}" method="POST" class="mt-4">
                             @csrf
                             @method('DELETE')
