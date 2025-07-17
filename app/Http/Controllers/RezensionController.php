@@ -168,7 +168,7 @@ class RezensionController extends Controller
         $user = Auth::user();
         $role = $this->getRoleInMemberTeam();
 
-        $allowedRoles = ['Mitglied', 'Ehrenmitglied', 'Kassenwart'];
+        $allowedRoles = ['Mitglied', 'Ehrenmitglied', 'Kassenwart', 'Vorstand', 'Admin'];
 
         if ($review->team_id !== $this->memberTeam()->id
             || !in_array($role, $allowedRoles, true)
