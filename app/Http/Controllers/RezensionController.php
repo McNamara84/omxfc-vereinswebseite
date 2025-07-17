@@ -49,7 +49,14 @@ class RezensionController extends Controller
             abort(403);
         }
 
+        $user = Auth::user();
+        $teamId = $this->memberTeam()->id;
+
         $books = Book::withCount('reviews')
+            ->withExists(['reviews as has_review' => function ($query) use ($user, $teamId) {
+                $query->where('team_id', $teamId)
+                    ->where('user_id', $user->id);
+            }])
             ->orderBy('roman_number')
             ->get();
 
