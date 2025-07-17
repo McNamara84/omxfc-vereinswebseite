@@ -140,65 +140,12 @@ class RezensionController extends Controller
     }
 
     /**
-     * Formular zum Bearbeiten einer Rezension.
-     */
-    public function edit(Review $review)
-    {
-        $user = Auth::user();
-        $role = $this->getRoleInMemberTeam();
-
-        $allowedRoles = ['Mitglied', 'Ehrenmitglied', 'Kassenwart'];
-
-        if ($review->team_id !== $this->memberTeam()->id
-            || !in_array($role, $allowedRoles, true)
-            || $review->user_id !== $user->id) {
-            abort(403);
-        }
-
-        $book = $review->book;
-
-        return view('reviews.edit', compact('review', 'book'));
-    }
-
-    /**
-     * Aktualisiert eine bestehende Rezension.
-     */
-    public function update(Request $request, Review $review)
-    {
-        $user = Auth::user();
-        $role = $this->getRoleInMemberTeam();
-
-        $allowedRoles = ['Mitglied', 'Ehrenmitglied', 'Kassenwart'];
-
-        if ($review->team_id !== $this->memberTeam()->id
-            || !in_array($role, $allowedRoles, true)
-            || $review->user_id !== $user->id) {
-            abort(403);
-        }
-
-        $data = $request->validate([
-            'title' => 'required|string|max:255',
-            'content' => 'required|string|min:140',
-        ]);
-
-        $review->update($data);
-
-        return redirect()
-            ->route('reviews.show', $review->book)
-            ->with('success', 'Rezension erfolgreich aktualisiert.');
-    }
-
-    /**
-     * Löschen einer Rezension.
+     * Löschen einer Rezension (nur Vorstand/Admin).
      */
     public function destroy(Review $review)
     {
-        $user = Auth::user();
         $role = $this->getRoleInMemberTeam();
-        $isOwner = $review->user_id === $user->id
-            && in_array($role, ['Mitglied', 'Ehrenmitglied', 'Kassenwart'], true);
-
-        if (!$isOwner && !in_array($role, ['Vorstand', 'Admin'], true)) {
+        if (!in_array($role, ['Vorstand', 'Admin'], true)) {
             abort(403);
         }
 

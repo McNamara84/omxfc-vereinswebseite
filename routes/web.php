@@ -110,11 +110,9 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
     // Rezis
     Route::prefix('rezensionen')->name('reviews.')->group(function () {
         Route::get('/', [RezensionController::class, 'index'])->name('index');
-        Route::get('/{review}/edit', [RezensionController::class, 'edit'])->name('edit');
-        Route::put('/{review}', [RezensionController::class, 'update'])->name('update');
+        Route::get('/{book}', [RezensionController::class, 'show'])->name('show');
         Route::get('/{book}/create', [RezensionController::class, 'create'])->name('create');
         Route::post('/{book}', [RezensionController::class, 'store'])->name('store');
         Route::delete('/{review}', [RezensionController::class, 'destroy'])->name('destroy');
-        Route::get('/{book}', [RezensionController::class, 'show'])->name('show');
     });
 });
