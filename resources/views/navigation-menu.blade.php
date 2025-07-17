@@ -13,7 +13,7 @@
                     @auth
                         <x-nav-link href="{{ route('dashboard') }}">Dashboard</x-nav-link>
                         <!-- Dropdown Verein -->
-                        <div class="relative flex items-center ml-4 group" x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false">
+                        <div class="relative flex items-center ml-4 group" x-data="{ open: false }" @click="open = !open" @click.away="open = false">
                             <button class="px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white focus:outline-none transition">
                                 Verein
                             </button>
@@ -25,7 +25,7 @@
                             </div>
                         </div>
                         <!-- Dropdown Veranstaltungen -->
-                        <div class="relative flex items-center ml-4 group" x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false">
+                        <div class="relative flex items-center ml-4 group" x-data="{ open: false }" @click="open = !open" @click.away="open = false">
                             <button class="px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white focus:outline-none transition">
                                 Veranstaltungen
                             </button>
@@ -36,7 +36,7 @@
                         </div>
                         <x-nav-link href="{{ route('todos.index') }}">Challenges</x-nav-link>
                         <!-- Dropdown Veranstaltungen -->
-                        <div class="relative flex items-center ml-4 group" x-data="{ open: false }" @mouseenter="open = true" @mouseleave="open = false">
+                        <div class="relative flex items-center ml-4 group" x-data="{ open: false }" @click="open = !open" @click.away="open = false">
                             <button class="px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white focus:outline-none transition">
                                 Mitgliedsvorteile
                             </button>
