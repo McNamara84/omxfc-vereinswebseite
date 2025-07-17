@@ -6,6 +6,9 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Models\ReviewComment;
+
 
 class Review extends Model
 {
@@ -33,5 +36,13 @@ class Review extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Comments belonging to this review.
+     */
+    public function comments(): HasMany
+    {
+        return $this->hasMany(ReviewComment::class);
     }
 }

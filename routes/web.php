@@ -20,6 +20,7 @@ use App\Http\Controllers\DownloadsController;
 use App\Http\Controllers\KompendiumController;
 use App\Http\Controllers\StatistikController;
 use App\Http\Controllers\RezensionController;
+use App\Http\Controllers\ReviewCommentController;
 
 // Öffentliche Seiten
 Route::get('/', [PageController::class, 'home'])->name('home');
@@ -116,5 +117,6 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
         Route::get('/{review}/edit', [RezensionController::class, 'edit'])->name('edit');
         Route::put('/{review}', [RezensionController::class, 'update'])->name('update');
         Route::delete('/{review}', [RezensionController::class, 'destroy'])->name('destroy');
+        Route::post('/{review}/comment', [ReviewCommentController::class, 'store'])->name('comments.store');
     });
 });

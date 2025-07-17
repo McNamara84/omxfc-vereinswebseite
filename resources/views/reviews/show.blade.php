@@ -33,6 +33,17 @@
                             </form>
                         </div>
                     @endif
+                    <div class="mt-6">
+                        @foreach($review->comments->whereNull('parent_id') as $comment)
+                            @include('reviews.partials.comment', ['comment' => $comment])
+                        @endforeach
+
+                        <form method="POST" action="{{ route('reviews.comments.store', $review) }}" class="mt-4">
+                            @csrf
+                            <textarea name="content" rows="2" class="w-full border-gray-300 dark:border-gray-600 dark:bg-gray-800 rounded" placeholder="Kommentieren..." required></textarea>
+                            <button type="submit" class="mt-2 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded">Kommentar hinzufügen</button>
+                        </form>
+                    </div>
                 </div>
             @empty
                 <p class="text-gray-600 dark:text-gray-400">Noch keine Rezensionen vorhanden.</p>
