@@ -140,16 +140,18 @@ class RezensionController extends Controller
     }
 
     /**
-     * Löschen einer Rezension (nur Vorstand/Admin).
+     * Löschen einer Rezension.
      */
     public function destroy(Review $review)
     {
+        $user = Auth::user();
         $role = $this->getRoleInMemberTeam();
-        if (!in_array($role, ['Vorstand', 'Admin'], true)) {
-            abort(403);
+
+        if ($review->user_id === $user->id || in_array($role, ['Vorstand', 'Admin'], true)) {
+            $review->delete();
+            return back()->with('success', 'Rezension gelöscht.');
         }
 
-        $review->delete();
-        return back()->with('success', 'Rezension gelöscht.');
+        abort(403);
     }
 }

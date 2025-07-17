@@ -19,7 +19,7 @@
                         {{ $review->content }}
                     </div>
 
-                    @if(in_array($role ?? null, ['Vorstand','Admin'], true))
+                    @if(in_array($role ?? null, ['Vorstand','Admin'], true) || auth()->id() === $review->user_id)
                         <form action="{{ route('reviews.destroy', $review) }}" method="POST" class="mt-4">
                             @csrf
                             @method('DELETE')
