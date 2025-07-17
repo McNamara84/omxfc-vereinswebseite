@@ -4,6 +4,26 @@
         <p class="mb-6">Auf dieser Seite werden sämtliche Änderungen an der Vereinswebseite des Offiziellen Maddrax
             Fanclub e. V. dokumentiert.</p>
         <section class="mb-6">
+            <h2 class="text-xl font-semibold mb-2">Version 1.1.0 (17.07.2025)</h2>
+            <h3 class="text-l font-semibold mb-2">Features:</h3>
+            <ul class="list-disc ml-6 mt-2">
+                <li>Kommentarfunktion für Rezensionen</li>
+                <li>Bearbeiten von eigenen Rezensionen</li>
+                <li>Löschen eigener Rezensionen</li>
+                <li>Löschen von unangebrachten Rezensionen durch Vorstand</li>
+                <li>Markierung von Romanen auf der Unterseite Rezensionen als rezensiert</li>
+                <li>Buttons auf Unterseite Rezensionen zur Erstellung neuer Rezensionen</li>
+            </ul>
+            <h3 class="text-l font-semibold mb-2">Änderungen:</h3>
+            <ul class="list-disc ml-6 mt-2">
+                <li>Mindestlänge für Rezensionen verringert auf 140 Zeichen</li>
+                <li>Schreiben von Rezensionen generiert keine Punkte mehr</li>
+                <li>Zugriff zur Unterseite Maddraxiversum für Ehrenmitglieder auch ohne Punkte möglich</li>
+                <li>Übergeordnete Menüpünkte öffnen sich jetzt per Klick und nicht mehr per Hover</li>
+                <li>Fix: Mitglieder mit Rolle Vorstand können nun auch Rezensionen schreiben</li>
+            </ul>
+        </section>
+        <section class="mb-6">
             <h2 class="text-xl font-semibold mb-2">Version 1.0.4 (16.07.2025)</h2>
             <h3 class="text-l font-semibold mb-2">Änderungen:</h3>
             <ul class="list-disc ml-6 mt-2">
