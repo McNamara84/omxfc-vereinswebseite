@@ -106,8 +106,8 @@ class RezensionController extends Controller
             return redirect()->route('reviews.show', $book);
         }
 
-        // Nur Mitglieder, Kassenwart oder Admin dürfen eine neue anlegen
-        if (!in_array($role, ['Mitglied', 'Kassenwart', 'Admin'], true)) {
+        // Nur Mitglieder, Vorstand, Kassenwart oder Admin dürfen eine neue anlegen
+        if (!in_array($role, ['Mitglied', 'Vorstand', 'Kassenwart', 'Admin'], true)) {
             abort(403);
         }
 
@@ -128,7 +128,7 @@ class RezensionController extends Controller
             ->where('user_id', $user->id)
             ->exists();
 
-        if ($hasOwn || !in_array($role, ['Mitglied', 'Kassenwart', 'Admin'], true)) {
+        if ($hasOwn || !in_array($role, ['Mitglied', 'Vorstand', 'Kassenwart', 'Admin'], true)) {
             abort(403);
         }
 
