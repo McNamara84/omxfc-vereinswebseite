@@ -7,6 +7,9 @@ use App\Models\Review;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Team;
 use Illuminate\Support\Facades\DB;
+use App\Mail\ReviewCommentNotification;
+use Illuminate\Support\Facades\Mail;
+
 
 class ReviewCommentController extends Controller
 {
@@ -57,11 +60,16 @@ class ReviewCommentController extends Controller
             'parent_id' => 'nullable|exists:review_comments,id',
         ]);
 
-        $review->comments()->create([
+        $comment = $review->comments()->create([
             'user_id' => $user->id,
             'parent_id' => $request->parent_id,
             'content' => $request->content,
         ]);
+
+        if ($review->user_id !== $user->id) {
+            Mail::to($review->user->email)
+                ->send(new ReviewCommentNotification($review, $comment));
+        }
 
         return back()->with('success', 'Kommentar erfolgreich gespeichert.');
     }
