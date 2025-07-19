@@ -125,7 +125,7 @@ class TodoController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'points' => 'required|integer|min:1|max:100',
+            'points' => 'required|integer|min:1|max:1000',
             'category_id' => 'required|exists:todo_categories,id',
         ]);
 
