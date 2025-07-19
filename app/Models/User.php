@@ -52,6 +52,7 @@ class User extends Authenticatable
         'lieblingszyklus',
         'mitglied_seit',
         'bezahlt_bis',
+        'notify_new_review',
     ];
 
     /**
@@ -87,6 +88,7 @@ class User extends Authenticatable
             'password' => 'hashed',
             'mitglied_seit' => 'date',
             'bezahlt_bis' => 'date',
+            'notify_new_review' => 'boolean',
         ];
     }
 

@@ -46,6 +46,7 @@ class UserFactory extends Factory
             'telefon' => fake()->phoneNumber(),
             'verein_gefunden' => null,
             'mitgliedsbeitrag' => 12.00,
+            'notify_new_review' => false,
         ];
     }
 

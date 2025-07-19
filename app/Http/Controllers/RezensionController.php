@@ -152,8 +152,10 @@ class RezensionController extends Controller
         $authorNames = array_map('trim', explode(',', $book->author));
         $authors = User::whereIn('name', $authorNames)->get();
         foreach ($authors as $author) {
-            Mail::to($author->email)
-                ->send(new NewReviewNotification($review, $author));
+            if ($author->notify_new_review) {
+                Mail::to($author->email)
+                    ->send(new NewReviewNotification($review, $author));
+            }
         }
 
         return redirect()
