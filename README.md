@@ -3,6 +3,7 @@
 [![Build & Deploy](https://github.com/mcnamara84/omxfc-vereinswebseite/actions/workflows/deploy.yml/badge.svg?branch=main)](https://github.com/mcnamara84/omxfc-vereinswebseite/actions/workflows/deploy.yml)
 [![PHP Version](https://img.shields.io/badge/php-8.2-blue)](https://www.php.net/)
 [![License](https://img.shields.io/badge/license-MIT-green)](https://github.com/mcnamara84/omxfc-vereinswebseite/blob/main/LICENSE)
+![Coverage Badge](https://McNamara84.github.io/omxfc-vereinswebseite/badges/badge.svg)
 
 Eine Laravel 12 Anwendung für die Vereinswebseite des OMFXC.
 
