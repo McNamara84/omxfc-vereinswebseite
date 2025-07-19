@@ -37,6 +37,27 @@
                         {{ $completedTodos }}
                     </div>
                 </div>
+                <!-- Gesamtanzahl Rezensionen Card -->
+                <a href="{{ route('reviews.index') }}" class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 flex flex-col hover:bg-gray-50 dark:hover:bg-gray-700 transition duration-200">
+                    <h2 class="text-lg font-semibold text-[#8B0116] dark:text-[#FCA5A5] mb-2">Alle Rezensionen</h2>
+                    <div class="text-4xl font-bold text-gray-800 dark:text-gray-200 mt-auto">
+                        {{ $allReviews }}
+                    </div>
+                </a>
+                <!-- Meine Rezensionen Card -->
+                <a href="{{ route('reviews.index') }}" class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 flex flex-col hover:bg-gray-50 dark:hover:bg-gray-700 transition duration-200">
+                    <h2 class="text-lg font-semibold text-[#8B0116] dark:text-[#FCA5A5] mb-2">Meine Rezensionen</h2>
+                    <div class="text-4xl font-bold text-gray-800 dark:text-gray-200 mt-auto">
+                        {{ $myReviews }}
+                    </div>
+                </a>
+                <!-- Meine Kommentare Card -->
+                <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 flex flex-col">
+                    <h2 class="text-lg font-semibold text-[#8B0116] dark:text-[#FCA5A5] mb-2">Meine Kommentare</h2>
+                    <div class="text-4xl font-bold text-gray-800 dark:text-gray-200 mt-auto">
+                        {{ $myReviewComments }}
+                    </div>
+                </div>
             </div>
             <!-- TOP 3 Mitglieder -->
             <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-8">

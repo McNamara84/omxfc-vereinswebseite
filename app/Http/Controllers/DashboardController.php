@@ -11,6 +11,8 @@ use App\Models\Team;
 use App\Models\Todo;
 use App\Models\UserPoint;
 use Illuminate\Support\Facades\DB;
+use App\Models\Review;
+use App\Models\ReviewComment;
 
 class DashboardController extends Controller
 {
@@ -54,6 +56,9 @@ class DashboardController extends Controller
         $completedTodos = 0;
         $pendingVerification = 0;
         $topUsers = [];
+        $allReviews = 0;
+        $myReviews = 0;
+        $myReviewComments = 0;
 
         if ($memberTeam) {
             // Offene Aufgaben
@@ -96,6 +101,19 @@ class DashboardController extends Controller
                 });
         }
 
+        // Rezensionen zählen
+            $allReviews = Review::where('team_id', $memberTeam->id)->count();
+            $myReviews = Review::where('team_id', $memberTeam->id)
+                ->where('user_id', $user->id)
+                ->count();
+
+            // Eigene Kommentare auf Rezensionen
+            $myReviewComments = ReviewComment::where('user_id', $user->id)
+                ->whereHas('review', function ($query) use ($memberTeam) {
+                    $query->where('team_id', $memberTeam->id);
+                })
+                ->count();
+
         return view('dashboard', compact(
             'memberCount',
             'anwaerter',
@@ -105,7 +123,10 @@ class DashboardController extends Controller
             'pendingVerification',
             'userRole',
             'allowedRoles',
-            'topUsers'
+            'topUsers',
+            'allReviews',
+            'myReviews',
+            'myReviewComments'
         ));
     }
 
