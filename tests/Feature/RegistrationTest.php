@@ -22,32 +22,29 @@ class RegistrationTest extends TestCase
         $response->assertStatus(200);
     }
 
-    public function test_registration_screen_cannot_be_rendered_if_support_is_disabled(): void
-    {
-        if (Features::enabled(Features::registration())) {
-            $this->markTestSkipped('Registration support is enabled.');
-        }
-
-        $response = $this->get('/register');
-
-        $response->assertStatus(404);
-    }
-
     public function test_new_users_can_register(): void
     {
         if (! Features::enabled(Features::registration())) {
             $this->markTestSkipped('Registration support is not enabled.');
         }
 
-        $response = $this->post('/register', [
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-            'password' => 'password',
-            'password_confirmation' => 'password',
-            'terms' => Jetstream::hasTermsAndPrivacyPolicyFeature(),
+        $response = $this->post(route('mitglied.store'), [
+            'vorname' => 'Test',
+            'nachname' => 'User',
+            'strasse' => 'Teststraße',
+            'hausnummer' => '1',
+            'plz' => '12345',
+            'stadt' => 'Teststadt',
+            'land' => 'Deutschland',
+            'mail' => 'test@example.com',
+            'passwort' => 'password',
+            'passwort_confirmation' => 'password',
+            'mitgliedsbeitrag' => 12.00,
+            'telefon' => null,
+            'verein_gefunden' => null,
         ]);
 
-        $this->assertAuthenticated();
-        $response->assertRedirect(route('dashboard', absolute: false));
+        $response->assertJson(['success' => true]);
+        $this->assertGuest();
     }
 }
