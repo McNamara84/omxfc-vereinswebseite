@@ -84,7 +84,7 @@ jobs:
       env:
         DB_CONNECTION: sqlite
         DB_DATABASE: database/database.sqlite
-      run: php artisan test tests/Feature --parallel
+      run: php artisan test tests/Feature
 
     - name: Execute tests with MySQL (Feature tests only)
       env:
@@ -94,4 +94,4 @@ jobs:
         DB_DATABASE: laravel_testing
         DB_USERNAME: root
         DB_PASSWORD: password
-      run: php artisan test tests/Feature --parallel
+      run: php artisan test tests/Feature
