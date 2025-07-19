@@ -35,7 +35,17 @@ class UserFactory extends Factory
             'two_factor_recovery_codes' => null,
             'remember_token' => Str::random(10),
             'profile_photo_path' => null,
-            'current_team_id' => null,
+            'current_team_id' => 1,
+            'vorname' => fake()->firstName(),
+            'nachname' => fake()->lastName(),
+            'strasse' => fake()->streetName(),
+            'hausnummer' => strval(fake()->buildingNumber()),
+            'plz' => fake()->postcode(),
+            'stadt' => fake()->city(),
+            'land' => fake()->country(),
+            'telefon' => fake()->phoneNumber(),
+            'verein_gefunden' => null,
+            'mitgliedsbeitrag' => 12.00,
         ];
     }
 
@@ -67,6 +77,12 @@ class UserFactory extends Factory
                 ])
                 ->when(is_callable($callback), $callback),
             'ownedTeams'
-        );
+        )->afterCreating(function (User $user) {
+            if ($user->current_team_id === 1 && $user->ownedTeams()->exists()) {
+                $user->forceFill([
+                    'current_team_id' => $user->ownedTeams()->first()->id,
+                ])->save();
+            }
+        });
     }
 }
