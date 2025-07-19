@@ -37,7 +37,7 @@ jobs:
       with:
         php-version: ${{ matrix.php-version }}
         extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite, bcmath, soap, intl, gd, exif, iconv, imagick, fileinfo, pdo_mysql
-        coverage: none
+        coverage: xdebug
         tools: composer:v2
 
     - name: Setup Node.js
@@ -86,12 +86,55 @@ jobs:
         DB_DATABASE: database/database.sqlite
       run: php artisan test tests/Feature
 
-    - name: Execute tests with MySQL (Feature tests only)
+    - name: Execute tests with coverage (PHP 8.3 only)
+      if: matrix.php-version == '8.3'
       env:
-        DB_CONNECTION: mysql
-        DB_HOST: 127.0.0.1
-        DB_PORT: ${{ job.services.mysql.ports['3306'] }}
-        DB_DATABASE: laravel_testing
-        DB_USERNAME: root
-        DB_PASSWORD: password
-      run: php artisan test tests/Feature
+        DB_CONNECTION: sqlite
+        DB_DATABASE: database/database.sqlite
+      run: php artisan test tests/Feature --coverage-clover=coverage.xml
+
+    - name: Generate coverage badge
+      if: matrix.php-version == '8.3' && github.ref == 'refs/heads/main'
+      run: |
+        # Install bc for calculations
+        sudo apt-get update && sudo apt-get install -y bc
+        
+        # Extract coverage percentage from clover file
+        COVERAGE=$(php -r "
+        \$xml = simplexml_load_file('coverage.xml');
+        \$metrics = \$xml->project->metrics;
+        \$percent = round((\$metrics['coveredstatements'] / \$metrics['statements']) * 100, 2);
+        echo \$percent;
+        ")
+        
+        # Create badge URL
+        if (( $(echo "$COVERAGE >= 80" | bc -l) )); then
+          COLOR="brightgreen"
+        elif (( $(echo "$COVERAGE >= 60" | bc -l) )); then
+          COLOR="yellow"
+        else
+          COLOR="red"
+        fi
+        
+        # Create coverage directory
+        mkdir -p coverage
+        
+        # Generate badge SVG
+        curl -s "https://img.shields.io/badge/coverage-${COVERAGE}%25-${COLOR}" > coverage/badge.svg
+        
+        echo "Coverage: ${COVERAGE}%"
+
+    - name: Upload coverage badge
+      if: matrix.php-version == '8.3' && github.ref == 'refs/heads/main'
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-badge
+        path: coverage/badge.svg
+
+    - name: Deploy coverage badge to GitHub Pages
+      if: matrix.php-version == '8.3' && github.ref == 'refs/heads/main'
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./coverage
+        destination_dir: badges
