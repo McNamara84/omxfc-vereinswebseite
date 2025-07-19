@@ -8,6 +8,9 @@ use App\Models\Review;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Team;
 use Illuminate\Support\Facades\DB;
+use App\Models\User;
+use App\Mail\NewReviewNotification;
+use Illuminate\Support\Facades\Mail;
 
 class RezensionController extends Controller
 {
@@ -144,6 +147,14 @@ class RezensionController extends Controller
             'title' => $data['title'],
             'content' => $data['content'],
         ]);
+
+        // Autoren des Romans über neue Rezension informieren
+        $authorNames = array_map('trim', explode(',', $book->author));
+        $authors = User::whereIn('name', $authorNames)->get();
+        foreach ($authors as $author) {
+            Mail::to($author->email)
+                ->send(new NewReviewNotification($review, $author));
+        }
 
         return redirect()
             ->route('reviews.show', $book)
