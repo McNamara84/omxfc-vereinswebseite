@@ -20,7 +20,7 @@
                     </ul>
                 </div>
 
-                {{-- Suchschlitz (ab 100 Punkte) -------------------------------- --}}
+                {{-- Suchschlitz (ab 100 Baxx) -------------------------------- --}}
                 @if($showSearch)
                     <div class="mb-4">
                         <label for="search" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -34,7 +34,7 @@
                     </div>
                 @else
                     <p class="mb-4 text-sm text-gray-600 dark:text-gray-400">
-                        Die Suche wird ab <strong>{{ $required }}</strong> Punkten freigeschaltet.<br>
+                        Die Suche wird ab <strong>{{ $required }}</strong> Baxx freigeschaltet.<br>
                         Dein aktueller Stand: <span class="font-semibold">{{ $userPoints }}</span>.
                     </p>
                 @endif

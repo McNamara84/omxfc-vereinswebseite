@@ -57,7 +57,7 @@
                         <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Details</h3>
                         <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-md">
                             <div class="mb-2">
-                                <span class="text-gray-600 dark:text-gray-400 text-sm">Punkte:</span>
+                                <span class="text-gray-600 dark:text-gray-400 text-sm">Baxx:</span>
                                 <span
                                     class="ml-2 text-gray-800 dark:text-gray-200 font-semibold">{{ $todo->points }}</span>
                             </div>
@@ -148,7 +148,7 @@
                                 @csrf
                                 <button type="submit"
                                     class="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-                                    Verifizieren und Punkte vergeben
+                                    Verifizieren und Baxx vergeben
                                 </button>
                             </form>
                         @endif

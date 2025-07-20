@@ -23,9 +23,9 @@
                         {{ $openTodos }}
                     </div>
                 </a>
-                <!-- Punkte Card -->
+                <!-- Baxx Card -->
                 <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 flex flex-col">
-                    <h2 class="text-lg font-semibold text-[#8B0116] dark:text-[#FCA5A5] mb-2">Meine Punkte</h2>
+                    <h2 class="text-lg font-semibold text-[#8B0116] dark:text-[#FCA5A5] mb-2">Meine Baxx</h2>
                     <div class="text-4xl font-bold text-gray-800 dark:text-gray-200 mt-auto">
                         {{ $userPoints }}
                     </div>
@@ -61,7 +61,7 @@
             </div>
             <!-- TOP 3 Mitglieder -->
             <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-8">
-                <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FCA5A5] mb-6">TOP 3 Punktesammler</h2>
+                <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FCA5A5] mb-6">TOP 3 Baxx-Sammler</h2>
                 
                 @if(count($topUsers) > 0)
                     <div class="flex flex-col md:flex-row items-center md:items-start justify-center gap-6 md:gap-10">
@@ -95,12 +95,12 @@
                                 
                                 <h3 class="text-lg font-semibold text-gray-800 dark:text-white mt-2 group-hover:text-[#8B0116] dark:group-hover:text-[#FCA5A5] transition-colors">{{ $topUser['name'] }}</h3>
                                 <p class="font-bold text-xl text-[#8B0116] dark:text-[#FCA5A5]">{{ $topUser['points'] }}</p>
-                                <p class="text-xs text-gray-500 dark:text-gray-400">Punkte</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">Baxx</p>
                             </a>
                         @endforeach
                     </div>
                 @else
-                    <p class="text-gray-600 dark:text-gray-400 text-center">Noch keine Punkte vergeben.</p>
+                    <p class="text-gray-600 dark:text-gray-400 text-center">Noch keine Baxx vergeben.</p>
                 @endif
             </div>
             <!-- Zu verifizierende Aufgaben Card (nur für Admin) -->

@@ -13,11 +13,11 @@
                     {{ session('error') }}
                 </div>
             @endif
-            <!-- Kopfzeile mit Punkten und Aktionen -->
+            <!-- Kopfzeile mit Baxx und Aktionen -->
             <div
                 class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
-                    <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-1">Deine Punkte</h2>
+                    <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-1">Deine Baxx</h2>
                     <div class="text-4xl font-bold text-gray-800 dark:text-gray-200">
                         {{ $userPoints }}
                     </div>
@@ -49,7 +49,7 @@
                                 <tr>
                                     <th class="px-4 py-2 text-left text-gray-800 dark:text-gray-200">Titel</th>
                                     <th class="px-4 py-2 text-left text-gray-800 dark:text-gray-200">Status</th>
-                                    <th class="px-4 py-2 text-left text-gray-800 dark:text-gray-200">Punkte</th>
+                                    <th class="px-4 py-2 text-left text-gray-800 dark:text-gray-200">Baxx</th>
                                     <th class="px-4 py-2 text-center text-gray-800 dark:text-gray-200">Aktion</th>
                                 </tr>
                             </thead>
@@ -75,25 +75,7 @@
                                         <td class="px-4 py-2 text-center">
                                             <a href="{{ route('todos.show', $todo) }}"
                                                 class="text-[#8B0116] dark:text-[#FF6B81] hover:underline">
-                                                Details
-                                            </a>
-
-                                            @if($todo->status === 'assigned')
-                                                <form action="{{ route('todos.complete', $todo) }}" method="POST" class="inline-block ml-2">
-                                                    @csrf
-                                                    <button type="submit" class="text-green-600 dark:text-green-400 hover:underline">Als erledigt markieren</button>
-                                                </form>
-                                                <form action="{{ route('todos.release', $todo) }}" method="POST" class="inline-block ml-2">
-                                                    @csrf
-                                                    <button type="submit" class="text-red-600 dark:text-red-400 hover:underline">Freigeben</button>
-                                                </form>
-                                            @endif
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
+@@ -97,284 +97,284 @@ class="text-[#8B0116] dark:text-[#FF6B81] hover:underline">
                     <!-- Mobile-Ansicht (nur auf Mobilgeräten sichtbar) -->
                     <div class="md:hidden space-y-4">
                         @foreach($assignedTodos as $todo)
@@ -119,7 +101,7 @@
                                     </div>
                                 </div>
                                 <div class="mb-3">
-                                    <span class="text-sm text-gray-600 dark:text-gray-400">Punkte:</span>
+                                    <span class="text-sm text-gray-600 dark:text-gray-400">Baxx:</span>
                                     <div class="mt-1 font-semibold text-gray-800 dark:text-white">{{ $todo->points }}</div>
                                 </div>
                                 <div class="flex gap-2">
@@ -159,7 +141,7 @@
                                     <th class="px-4 py-2 text-left text-gray-800 dark:text-gray-200">Titel</th>
                                     <th class="px-4 py-2 text-left text-gray-800 dark:text-gray-200">Kategorie</th>
                                     <th class="px-4 py-2 text-left text-gray-800 dark:text-gray-200">Erstellt von</th>
-                                    <th class="px-4 py-2 text-left text-gray-800 dark:text-gray-200">Punkte</th>
+                                    <th class="px-4 py-2 text-left text-gray-800 dark:text-gray-200">Baxx</th>
                                     <th class="px-4 py-2 text-center text-gray-800 dark:text-gray-200">Aktion</th>
                                 </tr>
                             </thead>
@@ -204,7 +186,7 @@
                                     <div class="mt-1 text-gray-800 dark:text-gray-200">{{ $todo->creator->name }}</div>
                                 </div>
                                 <div class="mb-3">
-                                    <span class="text-sm text-gray-600 dark:text-gray-400">Punkte:</span>
+                                    <span class="text-sm text-gray-600 dark:text-gray-400">Baxx:</span>
                                     <div class="mt-1 font-semibold text-gray-800 dark:text-white">{{ $todo->points }}</div>
                                 </div>
                                 <div class="flex gap-2">
@@ -238,7 +220,7 @@
                                     <th class="px-4 py-2 text-left text-gray-800 dark:text-gray-200">Titel</th>
                                     <th class="px-4 py-2 text-left text-gray-800 dark:text-gray-200">Bearbeitet von</th>
                                     <th class="px-4 py-2 text-left text-gray-800 dark:text-gray-200">Erledigt am</th>
-                                    <th class="px-4 py-2 text-left text-gray-800 dark:text-gray-200">Punkte</th>
+                                    <th class="px-4 py-2 text-left text-gray-800 dark:text-gray-200">Baxx</th>
                                     <th class="px-4 py-2 text-center text-gray-800 dark:text-gray-200">Aktion</th>
                                 </tr>
                             </thead>
@@ -286,7 +268,7 @@
                                         {{ $todo->completed_at->format('d.m.Y H:i') }}</div>
                                 </div>
                                 <div class="mb-3">
-                                    <span class="text-sm text-gray-600 dark:text-gray-400">Punkte:</span>
+                                    <span class="text-sm text-gray-600 dark:text-gray-400">Baxx:</span>
                                     <div class="mt-1 font-semibold text-gray-800 dark:text-white">{{ $todo->points }}</div>
                                 </div>
                                 <div class="flex gap-2">
@@ -323,7 +305,7 @@
                                     <th class="px-4 py-2 text-left text-gray-800 dark:text-gray-200">Titel</th>
                                     <th class="px-4 py-2 text-left text-gray-800 dark:text-gray-200">Kategorie</th>
                                     <th class="px-4 py-2 text-left text-gray-800 dark:text-gray-200">Bearbeitet von</th>
-                                    <th class="px-4 py-2 text-left text-gray-800 dark:text-gray-200">Punkte</th>
+                                    <th class="px-4 py-2 text-left text-gray-800 dark:text-gray-200">Baxx</th>
                                     <th class="px-4 py-2 text-center text-gray-800 dark:text-gray-200">Aktion</th>
                                 </tr>
                             </thead>
@@ -361,7 +343,7 @@
                                     <div class="mt-1 text-gray-800 dark:text-gray-200">{{ $todo->assignee->name }}</div>
                                 </div>
                                 <div class="mb-3">
-                                    <span class="text-sm text-gray-600 dark:text-gray-400">Punkte:</span>
+                                    <span class="text-sm text-gray-600 dark:text-gray-400">Baxx:</span>
                                     <div class="mt-1 font-semibold text-gray-800 dark:text-white">{{ $todo->points }}</div>
                                 </div>
                                 <div class="flex gap-2">

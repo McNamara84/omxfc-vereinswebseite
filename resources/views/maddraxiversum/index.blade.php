@@ -15,8 +15,8 @@
                     @else
                         <div class="bg-yellow-100 dark:bg-yellow-800 border-l-4 border-yellow-500 dark:border-yellow-300 text-yellow-700 dark:text-yellow-200 p-4">
                             <p class="font-bold">Zugriff eingeschränkt</p>
-                            <p>Du benötigst mindestens {{ $requiredPoints }} Punkte, um die Maddraxiversum-Karte anzuzeigen.</p>
-                            <p>Du hast aktuell {{ $userPoints }} Punkte in deinem Team gesammelt.</p>
+                            <p>Du benötigst mindestens {{ $requiredPoints }} Baxx, um die Maddraxiversum-Karte anzuzeigen.</p>
+                            <p>Du hast aktuell {{ $userPoints }} Baxx in deinem Team gesammelt.</p>
                         </div>
                     @endif
                 </div>

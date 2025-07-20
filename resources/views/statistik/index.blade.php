@@ -36,7 +36,7 @@
                 </div>
             </div>
 
-            {{-- Card 2 – Balkendiagramm (≥ 1 Punkt) --}}
+            {{-- Card 2 – Balkendiagramm (≥ 1 Bakk) --}}
             @if ($userPoints >= 1)
                 <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
                     <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4">
@@ -52,7 +52,7 @@
                 </script>
             @endif
 
-            {{-- Card 3 – Romane-Tabelle (≥ 4 Punkte) --}}
+            {{-- Card 3 – Romane-Tabelle (≥ 4 Baxx) --}}
             @if ($userPoints >= 4)
                 <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
                     <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4">

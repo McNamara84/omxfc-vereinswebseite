@@ -44,11 +44,11 @@
 
                     <div class="mb-6">
                         <label for="points"
-                            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Punkte</label>
+                            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Baxx</label>
                         <input type="number" name="points" id="points" value="{{ old('points', 1) }}" min="1" max="1000"
                             required
                             class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
-                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Wie viele Punkte erhält das Mitglied
+                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Wie viele Baxx erhält das Mitglied
                             für die Erledigung dieser Challenge?</p>
                         @error('points')
                             <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>

@@ -7,7 +7,7 @@
                 </h1>
 
                 <p class="mb-4 text-sm text-gray-600 dark:text-gray-400">
-                    Deine Punkte: <span class="font-semibold">{{ $userPoints }}</span>
+                    Deine Baxx: <span class="font-semibold">{{ $userPoints }}</span>
                 </p>
 
                 <div id="accordion">
@@ -34,7 +34,7 @@
                                         <li class="flex items-center justify-between">
                                             <span>
                                                 {{ $file['titel'] }}
-                                                <span class="ml-2 text-xs text-gray-500">({{ $file['punkte'] }} Pkt)</span>
+                                                <span class="ml-2 text-xs text-gray-500">({{ $file['punkte'] }} Baxx)</span>
                                             </span>
 
                                             @if($userPoints >= $file['punkte'])
@@ -48,7 +48,7 @@
                                                     </svg>
                                                 </a>
                                             @else
-                                                <span class="text-gray-400 flex items-center" title="Mehr Punkte nötig">
+                                                <span class="text-gray-400 flex items-center" title="Mehr Baxx nötig">
                                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 12H6" />
                                                     </svg>
