@@ -1,4 +1,4 @@
-<nav x-data="{ open: false, openMenu: null }" class="bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700">
+<nav x-data="{ open: false, openMenu: null }" class="bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 xl:fixed xl:top-0 xl:left-0 xl:right-0 xl:z-50">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
             <!-- Linker Bereich: Logo + Hauptmenü -->
