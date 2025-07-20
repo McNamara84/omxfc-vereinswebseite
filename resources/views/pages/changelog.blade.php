@@ -4,6 +4,18 @@
         <p class="mb-6">Auf dieser Seite werden sämtliche Änderungen an der Vereinswebseite des Offiziellen Maddrax
             Fanclub e. V. dokumentiert.</p>
         <section class="mb-6">
+            <h2 class="text-xl font-semibold mb-2">Version 1.1.1 (20.07.2025)</h2>
+            <h3 class="text-l font-semibold mb-2">Änderungen:</h3>
+            <ul class="list-disc ml-6 mt-2">
+                <li>Maximal einstellbare Punkte für Challenges von 100 auf 1000 erhöht für größere Aufgaben</li>
+                <li>Auf großen Bildschirmen bleibt das Hauptmenü am oberen Bildschirmrand fixiert</li>
+                <li>Challenge Punkte umbenannt in Baxx</li>
+                <li>Fix: Neue Dashboard Cards für Rezensionen werden nicht angezeigt</li>
+                <li>Fix: Benachrichtigung an Autor bei neuer Rezension zu eigenem Roman wird nicht versandt</li>
+                <li>Fix: Benachrichtigung an Mitglied bei Kommentar zu eigener Rezension wird nicht versandt</li>
+            </ul>
+        </section>
+        <section class="mb-6">
             <h2 class="text-xl font-semibold mb-2">Version 1.1.0 (17.07.2025)</h2>
             <h3 class="text-l font-semibold mb-2">Features:</h3>
             <ul class="list-disc ml-6 mt-2">
