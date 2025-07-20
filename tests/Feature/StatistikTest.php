@@ -6,10 +6,29 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 use App\Models\Team;
 use App\Models\User;
+use Illuminate\Support\Facades\File;
 
 class StatistikTest extends TestCase
 {
     use RefreshDatabase;
+
+     private string $testStoragePath;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->testStoragePath = base_path('storage/testing');
+        $this->app->useStoragePath($this->testStoragePath);
+        File::ensureDirectoryExists($this->testStoragePath . '/app/private');
+    }
+
+    protected function tearDown(): void
+    {
+        File::deleteDirectory($this->testStoragePath);
+
+        parent::tearDown();
+    }
 
     private function actingMemberWithPoints(int $points): User
     {
