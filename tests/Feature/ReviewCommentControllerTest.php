@@ -8,7 +8,7 @@ use App\Models\Team;
 use App\Models\User;
 use App\Models\Book;
 use App\Models\Review;
-use App\Notifications\ReviewCommentNotification;
+use App\Mail\ReviewCommentNotification;
 use Illuminate\Support\Facades\Mail;
 
 class ReviewCommentControllerTest extends TestCase

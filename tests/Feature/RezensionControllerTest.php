@@ -7,7 +7,7 @@ use Tests\TestCase;
 use App\Models\Team;
 use App\Models\User;
 use App\Models\Book;
-use App\Notifications\NewReviewNotification;
+use App\Mail\NewReviewNotification;
 use Illuminate\Support\Facades\Mail;
 
 class RezensionControllerTest extends TestCase
