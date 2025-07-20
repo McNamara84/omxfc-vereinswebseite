@@ -75,7 +75,25 @@
                                         <td class="px-4 py-2 text-center">
                                             <a href="{{ route('todos.show', $todo) }}"
                                                 class="text-[#8B0116] dark:text-[#FF6B81] hover:underline">
-@@ -97,284 +97,284 @@ class="text-[#8B0116] dark:text-[#FF6B81] hover:underline">
+                                                Details
+                                            </a>
+
+                                            @if($todo->status === 'assigned')
+                                                <form action="{{ route('todos.complete', $todo) }}" method="POST" class="inline-block ml-2">
+                                                    @csrf
+                                                    <button type="submit" class="text-green-600 dark:text-green-400 hover:underline">Als erledigt markieren</button>
+                                                </form>
+                                                <form action="{{ route('todos.release', $todo) }}" method="POST" class="inline-block ml-2">
+                                                    @csrf
+                                                    <button type="submit" class="text-red-600 dark:text-red-400 hover:underline">Freigeben</button>
+                                                </form>
+                                            @endif
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
                     <!-- Mobile-Ansicht (nur auf Mobilgeräten sichtbar) -->
                     <div class="md:hidden space-y-4">
                         @foreach($assignedTodos as $todo)
