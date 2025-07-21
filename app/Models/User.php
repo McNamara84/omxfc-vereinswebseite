@@ -11,10 +11,13 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
 use Laravel\Jetstream\HasProfilePhoto;
 use Laravel\Jetstream\HasTeams;
 use Laravel\Sanctum\HasApiTokens;
+use Carbon\Carbon;
 
 /**
  * @property-read Team|null $currentTeam
  * @property int $id
+ * @property string $name
+ * @property Carbon|null $bezahlt_bis
  */
 class User extends Authenticatable
 {
