@@ -66,4 +66,60 @@ class KassenbuchControllerTest extends TestCase
         $this->assertEquals('2024-01-01', $member->mitglied_seit->format('Y-m-d'));
         $this->assertEquals(42.00, $member->mitgliedsbeitrag);
     }
+
+    public function test_index_creates_initial_kassenstand_and_shows_basic_data(): void
+    {
+        $user = $this->actingMember();
+        $this->actingAs($user);
+
+        $this->assertDatabaseMissing('kassenstand', ['team_id' => $user->currentTeam->id]);
+
+        $response = $this->get('/kassenbuch');
+
+        $response->assertOk();
+        $this->assertDatabaseHas('kassenstand', ['team_id' => $user->currentTeam->id, 'betrag' => 0.00]);
+
+        $response->assertViewHas('userRole', 'Mitglied');
+        $this->assertNull($response->viewData('members'));
+        $this->assertNull($response->viewData('kassenbuchEntries'));
+    }
+
+    public function test_index_sets_renewal_warning_for_expiring_membership(): void
+    {
+        $user = $this->actingMember();
+        $user->update(['bezahlt_bis' => now()->addDays(10)]);
+        $this->actingAs($user);
+
+        $response = $this->get('/kassenbuch');
+
+        $response->assertOk();
+        $response->assertViewHas('renewalWarning', true);
+    }
+
+    public function test_index_returns_members_and_entries_for_kassenwart(): void
+    {
+        $kassenwart = $this->actingMember('Kassenwart');
+        $this->actingAs($kassenwart);
+
+        $team = $kassenwart->currentTeam;
+        $member = User::factory()->create(['current_team_id' => $team->id]);
+        $team->users()->attach($member, ['role' => 'Mitglied']);
+
+        \App\Models\KassenbuchEntry::create([
+            'team_id' => $team->id,
+            'created_by' => $kassenwart->id,
+            'buchungsdatum' => now(),
+            'betrag' => 5,
+            'beschreibung' => 'Beitrag',
+            'typ' => 'einnahme',
+        ]);
+
+        $response = $this->get('/kassenbuch');
+
+        $response->assertOk();
+        $response->assertViewHas('userRole', 'Kassenwart');
+        $this->assertNotNull($response->viewData('members'));
+        $entries = $response->viewData('kassenbuchEntries');
+        $this->assertCount(1, $entries);
+    }
 }
