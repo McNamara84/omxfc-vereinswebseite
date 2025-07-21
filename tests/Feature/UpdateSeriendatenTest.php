@@ -27,14 +27,14 @@ class UpdateSeriendatenTest extends TestCase
 
         $component = Livewire::test(UpdateSeriendatenForm::class);
 
-        $this->assertSame('1 - Roman', $component->state['einstiegsroman']);
-        $this->assertSame('2 - Roman', $component->state['lesestand']);
-        $this->assertSame('3 - Roman', $component->state['lieblingsroman']);
-        $this->assertSame('Figur', $component->state['lieblingsfigur']);
-        $this->assertSame('Mutation', $component->state['lieblingsmutation']);
-        $this->assertSame('Ort', $component->state['lieblingsschauplatz']);
-        $this->assertSame('Autor', $component->state['lieblingsautor']);
-        $this->assertSame('Zyklus', $component->state['lieblingszyklus']);
+        $this->assertSame('1 - Roman', $component->get('state.einstiegsroman'));
+        $this->assertSame('2 - Roman', $component->get('state.lesestand'));
+        $this->assertSame('3 - Roman', $component->get('state.lieblingsroman'));
+        $this->assertSame('Figur', $component->get('state.lieblingsfigur'));
+        $this->assertSame('Mutation', $component->get('state.lieblingsmutation'));
+        $this->assertSame('Ort', $component->get('state.lieblingsschauplatz'));
+        $this->assertSame('Autor', $component->get('state.lieblingsautor'));
+        $this->assertSame('Zyklus', $component->get('state.lieblingszyklus'));
     }
 
     public function test_seriendaten_can_be_updated(): void

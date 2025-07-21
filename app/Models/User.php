@@ -18,6 +18,14 @@ use Carbon\Carbon;
  * @property int $id
  * @property string $name
  * @property Carbon|null $bezahlt_bis
+ * @property string|null $einstiegsroman
+ * @property string|null $lesestand
+ * @property string|null $lieblingsroman
+ * @property string|null $lieblingsfigur
+ * @property string|null $lieblingsmutation
+ * @property string|null $lieblingsschauplatz
+ * @property string|null $lieblingsautor
+ * @property string|null $lieblingszyklus
  */
 class User extends Authenticatable
 {
