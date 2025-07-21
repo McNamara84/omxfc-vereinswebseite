@@ -79,4 +79,31 @@ class KompendiumSearchTest extends TestCase
                 ]],
             ]);
     }
+
+    public function test_search_returns_empty_when_no_matches_found(): void
+    {
+        $user = $this->actingMember(150);
+        $this->actingAs($user);
+
+        Storage::fake('private');
+
+        $mock = Mockery::mock();
+        $mock->shouldReceive('raw')->andReturn([
+            'hits' => ['total_hits' => 0],
+            'ids' => [],
+        ]);
+        Mockery::mock('alias:' . RomanExcerpt::class)
+            ->shouldReceive('search')
+            ->with('nomatch')
+            ->andReturn($mock);
+
+        $response = $this->getJson('/kompendium/search?q=nomatch');
+
+        $response->assertOk()
+            ->assertJson([
+                'currentPage' => 1,
+                'lastPage' => 1,
+                'data' => [],
+            ]);
+    }
 }
