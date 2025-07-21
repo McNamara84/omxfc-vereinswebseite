@@ -63,4 +63,17 @@ class DownloadsTest extends TestCase
         $response->assertOk();
         $response->assertHeader('content-disposition');
     }
+
+    public function test_index_displays_downloads_and_user_points(): void
+    {
+        $user = $this->actingMember(7);
+        $this->actingAs($user);
+
+        $response = $this->get('/downloads');
+
+        $response->assertOk();
+        $response->assertViewHas('downloads');
+        $response->assertViewHas('userPoints', 7);
+        $response->assertSee('Deine Baxx');
+    }
 }
