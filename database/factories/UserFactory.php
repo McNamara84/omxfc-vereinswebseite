@@ -73,7 +73,7 @@ class UserFactory extends Factory
             Team::factory()
                 ->state(fn (array $attributes, User $user) => [
                     'name' => $user->name.'\'s Team',
-                    'user_id' => $user->id,
+                    'user_id' => $user->getKey(),
                     'personal_team' => true,
                 ])
                 ->when(is_callable($callback), $callback),
