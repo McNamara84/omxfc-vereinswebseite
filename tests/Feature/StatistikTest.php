@@ -92,4 +92,14 @@ class StatistikTest extends TestCase
         $response->assertSee('wird ab');
         $response->assertSee('10');
     }
+
+    public function test_statistics_page_returns_500_when_file_missing(): void
+    {
+        $user = $this->actingMemberWithPoints(5);
+        $this->actingAs($user);
+
+        $response = $this->get('/statistik');
+
+        $response->assertStatus(500);
+    }
 }
