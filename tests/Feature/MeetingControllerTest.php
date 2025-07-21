@@ -42,4 +42,16 @@ class MeetingControllerTest extends TestCase
         $this->assertSame('AG Maddraxikon', $meetings[0]['name']);
         $this->assertTrue($meetings[0]['next']->isFuture());
     }
+
+    public function test_meetings_page_handles_special_case_without_date(): void
+    {
+        Carbon::setTestNow('2025-03-15');
+        $this->actingAs($this->actingMember());
+
+        $meetings = $this->get('/meetings')->viewData('meetings');
+
+        $last = end($meetings);
+        $this->assertSame('CHATDRAX 2.0 - Der MADDRAX-Online-Stammtisch', $last['name']);
+        $this->assertNull($last['next']);
+    }
 }
