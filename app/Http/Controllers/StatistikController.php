@@ -42,6 +42,22 @@ class StatistikController extends Controller
             ->countBy()                // Anzahl pro Autor
             ->sortDesc();              // nach Häufigkeit absteigend
 
+        // ── Card 3 – Top-Autor:innen nach Bewertung ───────────────────────────
+        $topAuthorRatings = $romane
+            ->flatMap(fn($r) => collect($r['text'])->map(fn($a) => [
+                'author' => trim($a),
+                'rating' => $r['bewertung'],
+            ]))
+            ->filter(fn($a) => $a['author'] !== '')
+            ->groupBy('author')
+            ->map(fn($rows, $author) => [
+                'author' => $author,
+                'average' => round(collect($rows)->avg('rating'), 2),
+            ])
+            ->sortByDesc('average')
+            ->take(10)
+            ->values();
+
         $romaneSorted = $romane->sort(function ($a, $b) {
             // 1. Kriterium: Ø-Bewertung (absteigend)
             if ($a['bewertung'] !== $b['bewertung']) {
@@ -64,6 +80,7 @@ class StatistikController extends Controller
             'totalVotes' => $totalVotes,
             'averageVotes' => $averageVotes,
             'authorCounts' => $authorCounts,
+            'topAuthorRatings' => $topAuthorRatings,
             'userPoints' => $userPoints,
             'romaneTable' => $romaneTable,
         ]);

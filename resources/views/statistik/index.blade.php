@@ -86,6 +86,46 @@
                 </div>
             @endif
 
+            {{-- Card 4 – Top-Autor:innen nach Ø‑Bewertung (≥ 10 Baxx) --}}
+            @if ($userPoints >= 10)
+                <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
+                    <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4">
+                        Top 10 Autor:innen nach Ø-Bewertung
+                    </h2>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead>
+                                <tr>
+                                    <th>Rang</th>
+                                    <th>Autor:in</th>
+                                    <th>Ø&nbsp;Bewertung</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($topAuthorRatings as $i => $row)
+                                    <tr>
+                                        <td>{{ $i + 1 }}</td>
+                                        <td>{{ $row['author'] }}</td>
+                                        <td>{{ number_format($row['average'], 2, ',', '.') }}</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            @else
+                <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
+                    <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4">
+                        Top 10 Autor:innen nach Ø-Bewertung
+                    </h2>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">
+                        Diese Statistik wird ab <strong>10</strong> Baxx freigeschaltet.<br>
+                        Dein aktueller Stand: <span class="font-semibold">{{ $userPoints }}</span>.
+                    </p>
+                </div>
+            @endif
+
             {{-- Vite-Asset EINMAL am Ende laden, sobald irgendeine JS-Card erscheint --}}
             @if ($userPoints >= 1)
                 @vite(['resources/js/statistik.js'])

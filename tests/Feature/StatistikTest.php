@@ -66,4 +66,30 @@ class StatistikTest extends TestCase
         $response->assertSee('15,00');
         $response->assertSee('Roman2');
     }
+
+    public function test_top_author_table_visible_with_enough_points(): void
+    {
+        $this->createDataFile();
+        $user = $this->actingMemberWithPoints(10);
+        $this->actingAs($user);
+
+        $response = $this->get('/statistik');
+
+        $response->assertOk();
+        $response->assertSee('Top 10 Autor');
+        $response->assertSee('Author2');
+    }
+
+    public function test_top_author_statistic_locked_below_threshold(): void
+    {
+        $this->createDataFile();
+        $user = $this->actingMemberWithPoints(9);
+        $this->actingAs($user);
+
+        $response = $this->get('/statistik');
+
+        $response->assertOk();
+        $response->assertSee('wird ab');
+        $response->assertSee('10');
+    }
 }
