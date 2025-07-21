@@ -54,4 +54,28 @@ class MeetingControllerTest extends TestCase
         $this->assertSame('CHATDRAX 2.0 - Der MADDRAX-Online-Stammtisch', $last['name']);
         $this->assertNull($last['next']);
     }
+
+    public function test_meetings_page_computes_dates_for_all_meetings(): void
+    {
+        Carbon::setTestNow('2025-03-15');
+        $this->actingAs($this->actingMember());
+
+        $meetings = $this->get('/meetings')->viewData('meetings');
+
+        $this->assertTrue($meetings[0]['next']->equalTo(Carbon::parse('third monday of this month')));
+        $this->assertTrue($meetings[1]['next']->equalTo(Carbon::parse('second wednesday of next month')));
+        $this->assertTrue($meetings[2]['next']->equalTo(Carbon::parse('first wednesday of next month')));
+    }
+
+    public function test_valid_meeting_redirects_to_configured_zoom_url(): void
+    {
+        putenv('ZOOM_LINK_MADDRAXIKON=https://example.com/zoom');
+        $_ENV['ZOOM_LINK_MADDRAXIKON'] = 'https://example.com/zoom';
+        $_SERVER['ZOOM_LINK_MADDRAXIKON'] = 'https://example.com/zoom';
+
+        $this->actingAs($this->actingMember());
+
+        $this->post('/meetings/redirect', ['meeting' => 'maddraxikon'])
+            ->assertRedirect('https://example.com/zoom');
+    }
 }
