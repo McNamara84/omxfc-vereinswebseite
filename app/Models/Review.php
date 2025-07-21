@@ -9,7 +9,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use App\Models\ReviewComment;
 
-
+/**
+ * @property int $id
+ */
 class Review extends Model
 {
     use HasFactory, SoftDeletes;
