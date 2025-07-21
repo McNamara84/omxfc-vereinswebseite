@@ -39,4 +39,22 @@ class PhotoGalleryControllerTest extends TestCase
         $this->assertEquals('https://cloud.maddrax-fanclub.de/public.php/dav/files/tztWY5ML5XMRWPw/Foto1.jpg', $photos['2024'][0]);
         $this->assertEquals('https://cloud.maddrax-fanclub.de/public.php/dav/files/jjpfnJbgStE8LcQ/Foto1.jpg', $photos['2023'][0]);
     }
+
+    public function test_index_uses_fallback_when_no_photos_found(): void
+    {
+        Http::fake([
+            'cloud.maddrax-fanclub.de/*1.jpg' => Http::response('', 404),
+        ]);
+
+        $this->actingAs($this->actingMember());
+
+        $response = $this->get('/fotogalerie');
+
+        $response->assertOk();
+
+        $photos = $response->viewData('photos');
+        $this->assertEquals(asset('images/galerie/2025/placeholder1.jpg'), $photos['2025'][0]);
+        $this->assertEquals(asset('images/galerie/2024/placeholder1.jpg'), $photos['2024'][0]);
+        $this->assertEquals(asset('images/galerie/2023/placeholder1.jpg'), $photos['2023'][0]);
+    }
 }
