@@ -81,6 +81,7 @@ class KassenbuchController extends Controller
         $request->validate([
             'bezahlt_bis' => 'required|date',
             'mitgliedsbeitrag' => 'required|numeric|min:0',
+            'mitglied_seit' => 'nullable|date',
         ]);
         
         $currentUser = Auth::user();
@@ -101,6 +102,7 @@ class KassenbuchController extends Controller
         $user->update([
             'bezahlt_bis' => $request->bezahlt_bis,
             'mitgliedsbeitrag' => $request->mitgliedsbeitrag,
+            'mitglied_seit' => $request->mitglied_seit,
         ]);
         
         return back()->with('status', 'Zahlungsdaten für ' . $user->name . ' wurden aktualisiert.');

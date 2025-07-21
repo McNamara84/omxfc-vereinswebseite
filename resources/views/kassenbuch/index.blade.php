@@ -144,7 +144,7 @@
                                     </td>
                                     @if($userRole === 'Kassenwart' || $userRole === 'Admin')
                                     <td class="px-4 py-3 whitespace-nowrap text-sm">
-                                        <button type="button" onclick="openEditModal('{{ $member->id }}', '{{ $member->name }}', '{{ $member->mitgliedsbeitrag }}', '{{ $member->bezahlt_bis ? $member->bezahlt_bis->format('Y-m-d') : '' }}')" class="inline-flex items-center px-3 py-1 border border-transparent text-sm leading-5 font-medium rounded-md text-white bg-[#8B0116] hover:bg-red-700 focus:outline-none focus:border-red-700 focus:shadow-outline-red active:bg-red-800 transition ease-in-out duration-150">
+                                        <button type="button" onclick="openEditModal('{{ $member->id }}', '{{ $member->name }}', '{{ $member->mitgliedsbeitrag }}', '{{ $member->bezahlt_bis ? $member->bezahlt_bis->format('Y-m-d') : '' }}', '{{ $member->mitglied_seit ? $member->mitglied_seit->format('Y-m-d') : '' }}')" class="inline-flex items-center px-3 py-1 border border-transparent text-sm leading-5 font-medium rounded-md text-white bg-[#8B0116] hover:bg-red-700 focus:outline-none focus:border-red-700 focus:shadow-outline-red active:bg-red-800 transition ease-in-out duration-150">
                                             <svg class="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
                                             </svg>
@@ -230,14 +230,15 @@
             
             @if($userRole === 'Kassenwart' || $userRole === 'Admin')
             <!-- Modal für die Bearbeitung von Zahlungsdaten -->
-            <div x-data="{ open: false, user_id: '', user_name: '', mitgliedsbeitrag: '', bezahlt_bis: '' }" 
+            <div x-data="{ open: false, user_id: '', user_name: '', mitgliedsbeitrag: '', bezahlt_bis: '', mitglied_seit: '' }"
                  x-show="open" 
                  x-on:edit-payment-modal.window="
                     open = true; 
                     user_id = $event.detail.user_id; 
                     user_name = $event.detail.user_name; 
-                    mitgliedsbeitrag = $event.detail.mitgliedsbeitrag; 
+                    mitgliedsbeitrag = $event.detail.mitgliedsbeitrag;
                     bezahlt_bis = $event.detail.bezahlt_bis;
+                    mitglied_seit = $event.detail.mitglied_seit;
                  "
                  x-on:keydown.escape.window="open = false"
                  class="fixed inset-0 z-50 overflow-y-auto" 
@@ -277,17 +278,18 @@
                         <form :action="'/kassenbuch/update-payment/' + user_id" method="POST">
                             @csrf
                             @method('PUT')
-                            
                             <div class="mb-4">
                                 <label for="mitgliedsbeitrag" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Mitgliedsbeitrag (€)</label>
                                 <input type="number" step="0.01" min="0" id="mitgliedsbeitrag" name="mitgliedsbeitrag" x-model="mitgliedsbeitrag" class="shadow-sm focus:ring-[#8B0116] focus:border-[#8B0116] block w-full sm:text-sm border-gray-300 dark:border-gray-700 dark:bg-gray-700 dark:text-white rounded-md">
                             </div>
-                            
                             <div class="mb-4">
                                 <label for="bezahlt_bis" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Bezahlt bis</label>
                                 <input type="date" id="bezahlt_bis" name="bezahlt_bis" x-model="bezahlt_bis" class="shadow-sm focus:ring-[#8B0116] focus:border-[#8B0116] block w-full sm:text-sm border-gray-300 dark:border-gray-700 dark:bg-gray-700 dark:text-white rounded-md">
                             </div>
-                            
+                            <div class="mb-4">
+                                <label for="mitglied_seit" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Mitglied seit</label>
+                                <input type="date" id="mitglied_seit" name="mitglied_seit" x-model="mitglied_seit" class="shadow-sm focus:ring-[#8B0116] focus:border-[#8B0116] block w-full sm:text-sm border-gray-300 dark:border-gray-700 dark:bg-gray-700 dark:text-white rounded-md">
+                            </div>
                             <div class="mt-6 flex justify-end">
                                 <button type="button" @click="open = false" class="mr-3 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none">
                                     Abbrechen
@@ -385,13 +387,14 @@
             
             <!-- JavaScript für Modals -->
             <script>
-                function openEditModal(userId, userName, mitgliedsbeitrag, bezahltBis) {
+                function openEditModal(userId, userName, mitgliedsbeitrag, bezahltBis, mitgliedSeit) {
                     window.dispatchEvent(new CustomEvent('edit-payment-modal', {
                         detail: {
                             user_id: userId,
                             user_name: userName,
                             mitgliedsbeitrag: mitgliedsbeitrag || '',
-                            bezahlt_bis: bezahltBis || ''
+                            bezahlt_bis: bezahltBis || '',
+                            mitglied_seit: mitgliedSeit || ''
                         }
                     }));
                 }
