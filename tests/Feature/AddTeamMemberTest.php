@@ -20,7 +20,8 @@ class AddTeamMemberTest extends TestCase
     {
         Event::fake([AddingTeamMember::class, TeamMemberAdded::class]);
 
-        $this->actingAs($user = User::factory()->withPersonalTeam()->create());
+        $user = User::factory()->withPersonalTeam()->create();
+        $this->actingAs($user);
         $otherUser = User::factory()->create();
 
         app(AddTeamMember::class)->add($user, $user->currentTeam, $otherUser->email, 'Admin');
@@ -36,7 +37,8 @@ class AddTeamMemberTest extends TestCase
     {
         $owner = User::factory()->withPersonalTeam()->create();
         $otherUser = User::factory()->create();
-        $this->actingAs($nonOwner = User::factory()->create());
+        $nonOwner = User::factory()->create();
+        $this->actingAs($nonOwner);
 
         $this->expectException(AuthorizationException::class);
 
@@ -45,7 +47,8 @@ class AddTeamMemberTest extends TestCase
 
     public function test_email_must_exist_when_adding_team_member(): void
     {
-        $this->actingAs($user = User::factory()->withPersonalTeam()->create());
+        $user = User::factory()->withPersonalTeam()->create();
+        $this->actingAs($user);
 
         $this->expectException(ValidationException::class);
 
@@ -54,7 +57,8 @@ class AddTeamMemberTest extends TestCase
 
     public function test_user_must_not_already_be_on_team(): void
     {
-        $this->actingAs($user = User::factory()->withPersonalTeam()->create());
+        $user = User::factory()->withPersonalTeam()->create();
+        $this->actingAs($user);
         $otherUser = User::factory()->create();
 
         // Add the user once
@@ -67,7 +71,8 @@ class AddTeamMemberTest extends TestCase
 
     public function test_role_must_be_valid_when_adding_team_member(): void
     {
-        $this->actingAs($user = User::factory()->withPersonalTeam()->create());
+        $user = User::factory()->withPersonalTeam()->create();
+        $this->actingAs($user);
         $otherUser = User::factory()->create();
 
         $this->expectException(ValidationException::class);
