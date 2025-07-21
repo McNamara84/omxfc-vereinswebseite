@@ -40,6 +40,19 @@ class DownloadsTest extends TestCase
         $response->assertSessionHasErrors();
     }
 
+    public function test_download_succeeds_with_exact_required_points(): void
+    {
+        $user = $this->actingMember(5); // exactly the points required for first file
+        $this->actingAs($user);
+
+        Storage::disk('private')->put('downloads/BauanleitungEuphoriewurmV2.pdf', 'dummy');
+
+        $response = $this->get('/downloads/download/BauanleitungEuphoriewurmV2.pdf');
+
+        $response->assertOk();
+        $response->assertHeader('content-disposition');
+    }
+
     public function test_download_fails_when_file_missing(): void
     {
         $user = $this->actingMember(20);
