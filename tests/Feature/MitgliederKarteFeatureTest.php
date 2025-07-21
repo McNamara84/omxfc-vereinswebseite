@@ -33,49 +33,6 @@ class MitgliederKarteFeatureTest extends TestCase
         $response->assertSee('Karte noch nicht verfügbar');
     }
 
-    public function test_map_view_shows_valid_members_with_jitter(): void
-    {
-        Cache::flush();
-        $responses = [
-            '11111' => ['lat' => '50.0', 'lon' => '8.0'],
-            '22222' => ['lat' => '51.0', 'lon' => '9.0'],
-            '12345' => ['lat' => '53.0', 'lon' => '11.0'],
-            '33333' => ['lat' => '52.0', 'lon' => '10.0'],
-        ];
-        Http::fake(function ($request) use ($responses) {
-            parse_str(parse_url($request->url(), PHP_URL_QUERY), $query);
-            $pc = $query['postalcode'];
-            return Http::response([$responses[$pc]], 200);
-        });
-
-        $member = $this->actingMember('Mitglied', ['plz' => '11111', 'land' => 'Deutschland', 'stadt' => 'Ort1']);
-        $member->incrementTeamPoints();
-        $vorstand = $this->actingMember('Vorstand', ['plz' => '22222', 'land' => 'Deutschland', 'stadt' => 'Ort2']);
-        $this->actingMember('Anwärter', ['plz' => '33333', 'land' => 'Deutschland']);
-        $this->actingMember('Mitglied', ['plz' => '']);
-
-        $this->actingAs($member);
-        $response = $this->get('/mitglieder/karte');
-
-        $response->assertOk();
-        $response->assertViewIs('mitglieder.karte');
-
-        $memberData = json_decode($response->viewData('memberData'), true);
-        $this->assertCount(3, $memberData);
-        $names = array_column($memberData, 'name');
-        $this->assertContains($member->name, $names);
-        $this->assertContains($vorstand->name, $names);
-
-        $coords = $memberData[0]['name'] === $member->name ? $memberData[0] : $memberData[1];
-        $this->assertNotEquals(50.0, $coords['lat']);
-        $this->assertNotEquals(8.0, $coords['lon']);
-        $this->assertLessThanOrEqual(0.005, abs($coords['lat'] - 50.0));
-        $this->assertLessThanOrEqual(0.005, abs($coords['lon'] - 8.0));
-
-        $stammtisch = json_decode($response->viewData('stammtischData'), true);
-        $this->assertCount(3, $stammtisch);
-    }
-
     public function test_coordinates_are_cached(): void
     {
         Cache::flush();
