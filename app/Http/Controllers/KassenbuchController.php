@@ -58,7 +58,9 @@ class KassenbuchController extends Controller
         $renewalWarning = false;
         if ($user->bezahlt_bis) {
             $today = Carbon::now();
-            $expiryDate = Carbon::parse($user->bezahlt_bis);
+            $expiryDate = $user->bezahlt_bis instanceof Carbon
+                ? $user->bezahlt_bis
+                : Carbon::parse((string) $user->bezahlt_bis);
             $daysUntilExpiry = $today->diffInDays($expiryDate, false);
             
             if ($daysUntilExpiry > 0 && $daysUntilExpiry <= 30) {
@@ -78,7 +80,7 @@ class KassenbuchController extends Controller
     
     public function updatePaymentStatus(Request $request, User $user)
     {
-        $request->validate([
+        $data = $request->validate([
             'bezahlt_bis' => 'required|date',
             'mitgliedsbeitrag' => 'required|numeric|min:0',
             'mitglied_seit' => 'nullable|date',
@@ -100,9 +102,9 @@ class KassenbuchController extends Controller
         
         // Zahlungsdaten aktualisieren
         $user->update([
-            'bezahlt_bis' => $request->bezahlt_bis,
-            'mitgliedsbeitrag' => $request->mitgliedsbeitrag,
-            'mitglied_seit' => $request->mitglied_seit,
+            'bezahlt_bis' => $data['bezahlt_bis'],
+            'mitgliedsbeitrag' => $data['mitgliedsbeitrag'],
+            'mitglied_seit' => $data['mitglied_seit'] ?? null,
         ]);
         
         return back()->with('status', 'Zahlungsdaten für ' . $user->name . ' wurden aktualisiert.');
@@ -110,7 +112,7 @@ class KassenbuchController extends Controller
     
     public function addKassenbuchEntry(Request $request)
     {
-        $request->validate([
+        $data = $request->validate([
             'buchungsdatum' => 'required|date',
             'betrag' => 'required|numeric|not_in:0',
             'beschreibung' => 'required|string|max:255',
@@ -132,21 +134,21 @@ class KassenbuchController extends Controller
         }
         
         // Betrag anpassen (positiv für Einnahmen, negativ für Ausgaben)
-        $amount = abs($request->betrag);
-        if ($request->typ === 'ausgabe') {
+        $amount = abs($data['betrag']);
+        if ($data['typ'] === 'ausgabe') {
             $amount = -$amount;
         }
         
         // Neuen Eintrag erstellen
-        DB::transaction(function () use ($team, $user, $request, $amount) {
+        DB::transaction(function () use ($team, $user, $data, $amount) {
             // Kassenbucheintrag erstellen
             KassenbuchEntry::create([
                 'team_id' => $team->id,
                 'created_by' => $user->id,
-                'buchungsdatum' => $request->buchungsdatum,
+                'buchungsdatum' => $data['buchungsdatum'],
                 'betrag' => $amount,
-                'beschreibung' => $request->beschreibung,
-                'typ' => $request->typ,
+                'beschreibung' => $data['beschreibung'],
+                'typ' => $data['typ'],
             ]);
             
             // Kassenstand aktualisieren
