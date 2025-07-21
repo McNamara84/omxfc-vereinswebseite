@@ -159,8 +159,9 @@ class TodoController extends Controller
         $membership = $memberTeam->users()->where('user_id', $user->id)->first();
         $userRole = $membership ? $membership->membership->role : null;
 
-        $canAssign = !$todo->assigned_to && $todo->status === 'open' &&
-            in_array($userRole, ['Mitglied', 'Ehrenmitglied', 'Kassenwart', 'Vorstand', 'Admin']);
+        $canAssign = !$todo->assigned_to && $todo->status === 'open' && in_array($userRole, ['Mitglied', 'Ehrenmitglied', 'Kassenwart', 'Vorstand', 'Admin']);
+
+        $canEdit = $todo->created_by === $user->id || in_array($userRole, ['Kassenwart', 'Vorstand', 'Admin']);
 
         $canComplete = $todo->assigned_to === $user->id && $todo->status === 'assigned';
 
@@ -172,8 +173,75 @@ class TodoController extends Controller
             'canAssign' => $canAssign,
             'canComplete' => $canComplete,
             'canVerify' => $canVerify,
-            'userRole' => $userRole
+            'canEdit' => $canEdit,
+            'userRole' => $userRole,
         ]);
+    }
+
+    /**
+     * Formular zum Bearbeiten eines Todos.
+     */
+    public function edit(Todo $todo)
+    {
+        $user = Auth::user();
+        $memberTeam = Team::where('name', 'Mitglieder')->first();
+
+        if (!$memberTeam || $todo->team_id !== $memberTeam->id) {
+            return redirect()->route('todos.index')
+                ->with('error', 'Challenge nicht gefunden.');
+        }
+
+        $membership = $memberTeam->users()->where('user_id', $user->id)->first();
+        $userRole = $membership ? $membership->membership->role : null;
+
+        if ($todo->created_by !== $user->id && !in_array($userRole, ['Kassenwart', 'Vorstand', 'Admin'])) {
+            abort(403);
+        }
+
+        $categories = TodoCategory::orderBy('name')->get();
+
+        return view('todos.edit', [
+            'todo' => $todo,
+            'categories' => $categories,
+        ]);
+    }
+
+    /**
+     * Aktualisiert ein Todo.
+     */
+    public function update(Request $request, Todo $todo)
+    {
+        $user = Auth::user();
+        $memberTeam = Team::where('name', 'Mitglieder')->first();
+
+        if (!$memberTeam || $todo->team_id !== $memberTeam->id) {
+            return redirect()->route('todos.index')
+                ->with('error', 'Challenge nicht gefunden.');
+        }
+
+        $membership = $memberTeam->users()->where('user_id', $user->id)->first();
+        $userRole = $membership ? $membership->membership->role : null;
+
+        if ($todo->created_by !== $user->id && !in_array($userRole, ['Kassenwart', 'Vorstand', 'Admin'])) {
+            abort(403);
+        }
+
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'points' => 'required|integer|min:1|max:1000',
+            'category_id' => 'required|exists:todo_categories,id',
+        ]);
+
+        $todo->update([
+            'title' => $request->title,
+            'description' => $request->description,
+            'points' => $request->points,
+            'category_id' => $request->category_id,
+        ]);
+
+        return redirect()->route('todos.show', $todo)
+            ->with('status', 'Challenge wurde erfolgreich aktualisiert.');
     }
 
     /**
