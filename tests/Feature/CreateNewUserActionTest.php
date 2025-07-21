@@ -34,6 +34,7 @@ class CreateNewUserActionTest extends TestCase
     {
         $action = new CreateNewUser();
 
+        /** @var User $user */
         $user = $action->create([
             'name' => 'Alice Example',
             'email' => 'alice@example.com',
@@ -59,6 +60,7 @@ class CreateNewUserActionTest extends TestCase
 
         $action = new CreateNewUser();
 
+        /** @var User $user */
         $user = $action->create([
             'name' => 'Bob Example',
             'email' => 'bob@example.com',
