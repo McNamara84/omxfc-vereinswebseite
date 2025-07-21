@@ -5,7 +5,21 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Carbon\Carbon;
 
+/**
+ * @property int $id
+ * @property int $team_id
+ * @property int $created_by
+ * @property Carbon $buchungsdatum
+ * @property float $betrag
+ * @property string $beschreibung
+ * @property string $typ
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property-read Team $team
+ * @property-read User $creator
+ */
 class KassenbuchEntry extends Model
 {
     use HasFactory;

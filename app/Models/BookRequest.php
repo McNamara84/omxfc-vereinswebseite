@@ -4,7 +4,21 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Carbon\Carbon;
 
+/**
+ * @property int $id
+ * @property int $user_id
+ * @property string $series
+ * @property int $book_number
+ * @property string $book_title
+ * @property string $condition
+ * @property bool $completed
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property-read User $user
+ * @property-read BookSwap|null $swap
+ */
 class BookRequest extends Model
 {
     use HasFactory;

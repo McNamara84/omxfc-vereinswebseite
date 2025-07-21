@@ -4,7 +4,18 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Carbon\Carbon;
 
+/**
+ * @property int $id
+ * @property int $offer_id
+ * @property int $request_id
+ * @property Carbon|null $completed_at
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property-read BookOffer $offer
+ * @property-read BookRequest $request
+ */
 class BookSwap extends Model
 {
     use HasFactory;
