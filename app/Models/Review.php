@@ -8,9 +8,22 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use App\Models\ReviewComment;
+use Carbon\Carbon;
+use Illuminate\Support\Collection;
 
 /**
  * @property int $id
+ * @property int $team_id
+ * @property int $user_id
+ * @property int $book_id
+ * @property string $title
+ * @property string $content
+ * @property Carbon|null $deleted_at
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property-read Book $book
+ * @property-read User $user
+ * @property-read Collection<int, ReviewComment> $comments
  */
 class Review extends Model
 {

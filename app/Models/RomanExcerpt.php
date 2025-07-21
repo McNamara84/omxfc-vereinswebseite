@@ -5,6 +5,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Laravel\Scout\Searchable;
 
+/**
+ * @property string $path
+ * @property string|null $cycle
+ * @property int|null $roman_nr
+ * @property string $title
+ * @property string $body
+ */
 class RomanExcerpt extends Model
 {
     use Searchable;

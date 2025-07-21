@@ -7,10 +7,22 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Laravel\Jetstream\Events\TeamCreated;
 use Laravel\Jetstream\Events\TeamDeleted;
 use Laravel\Jetstream\Events\TeamUpdated;
+use Illuminate\Support\Collection;
+use App\Models\Todo;
+use App\Models\UserPoint;
+use App\Models\User;
+use Carbon\Carbon;
 use Laravel\Jetstream\Team as JetstreamTeam;
 
 /**
  * @property int $id
+ * @property int $user_id
+ * @property string $name
+ * @property bool $personal_team
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property-read Collection<int, Todo> $todos
+ * @property-read Collection<int, UserPoint> $userPoints
  */
 class Team extends JetstreamTeam
 {

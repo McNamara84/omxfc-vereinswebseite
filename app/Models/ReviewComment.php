@@ -7,9 +7,22 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Carbon\Carbon;
+use Illuminate\Support\Collection;
 
 /**
  * @property int $id
+ * @property int $review_id
+ * @property int $user_id
+ * @property int|null $parent_id
+ * @property string $content
+ * @property Carbon|null $deleted_at
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property-read Review $review
+ * @property-read User $user
+ * @property-read ReviewComment|null $parent
+ * @property-read Collection<int, ReviewComment> $children
  */
 class ReviewComment extends Model
 {

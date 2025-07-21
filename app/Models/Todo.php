@@ -5,7 +5,29 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Carbon\Carbon;
 
+/**
+ * @property int $id
+ * @property int $team_id
+ * @property int $created_by
+ * @property int|null $assigned_to
+ * @property int|null $verified_by
+ * @property string $title
+ * @property string|null $description
+ * @property int $points
+ * @property string $status
+ * @property Carbon|null $completed_at
+ * @property Carbon|null $verified_at
+ * @property int|null $category_id
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property-read Team $team
+ * @property-read User $creator
+ * @property-read User|null $assignee
+ * @property-read User|null $verifier
+ * @property-read TodoCategory|null $category
+ */
 class Todo extends Model
 {
     use HasFactory;
