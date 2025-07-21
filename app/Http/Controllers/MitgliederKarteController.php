@@ -42,6 +42,9 @@ class MitgliederKarteController extends Controller
             
         // Geodaten für die Mitglieder sammeln
         $memberData = [];
+        $totalLat = 0;
+        $totalLon = 0;
+        $memberCount = 0;
         
         foreach ($members as $member) {
             // Nur Mitglieder mit PLZ berücksichtigen
@@ -51,6 +54,12 @@ class MitgliederKarteController extends Controller
                 
                 if ($coordinates) {
                     // Kleine zufällige Verschiebung hinzufügen (max 500m)
+
+                    // Mittelpunktberechnung (ohne Jitter für Genauigkeit)
+                    $totalLat += $coordinates['lat'];
+                    $totalLon += $coordinates['lon'];
+                    $memberCount++;
+
                     $jitter = $this->addJitter($coordinates['lat'], $coordinates['lon']);
                     
                     $memberData[] = [
@@ -64,6 +73,9 @@ class MitgliederKarteController extends Controller
                 }
             }
         }
+
+        $centerLat = $memberCount > 0 ? $totalLat / $memberCount : 51.1657;
+        $centerLon = $memberCount > 0 ? $totalLon / $memberCount : 10.4515;
         
         // Regionalstammtische definieren
         $stammtischData = [
@@ -94,7 +106,9 @@ class MitgliederKarteController extends Controller
             'memberData' => json_encode($memberData),
             'stammtischData' => json_encode($stammtischData),
             'centerLat' => 51.1657, // Mitte von Deutschland
-            'centerLon' => 10.4515
+            'centerLon' => 10.4515,
+            'membersCenterLat' => $centerLat,
+            'membersCenterLon' => $centerLon,
         ]);
     }
     

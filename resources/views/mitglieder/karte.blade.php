@@ -23,6 +23,7 @@
         // Daten aus dem Controller
         const memberData = {!! $memberData !!};
         const stammtischData = {!! $stammtischData !!};
+        const membersCenter = { lat: {{ $membersCenterLat }}, lon: {{ $membersCenterLon }} };
         
         // Karte initialisieren
         document.addEventListener('DOMContentLoaded', function() {
@@ -59,6 +60,14 @@
             // Spezielles Icon für Regionalstammtische
             const stammtischIcon = L.divIcon({
                 html: '<div class="marker-icon stammtisch"><i class="fas fa-users"></i></div>',
+                className: 'custom-div-icon',
+                iconSize: [40, 40],
+                iconAnchor: [20, 20]
+            });
+
+            // Icon für den Schwerpunkt aller Mitglieder
+            const centerIcon = L.divIcon({
+                html: '<div class="marker-icon center"><i class="fas fa-star"></i></div>',
                 className: 'custom-div-icon',
                 iconSize: [40, 40],
                 iconAnchor: [20, 20]
@@ -109,6 +118,17 @@
                     </div>
                 `);
             });
+
+            // Mittelpunkt aller Mitglieder markieren
+            const centerMarker = L.marker([membersCenter.lat, membersCenter.lon], {
+                icon: centerIcon,
+                zIndexOffset: 1000
+            }).addTo(map);
+            centerMarker.bindPopup(`
+                <div class="text-center">
+                    <strong>Mittelpunkt</strong>
+                </div>
+            `);
             
             // Legende hinzufügen
             const legend = L.control({position: 'bottomright'});
@@ -119,6 +139,10 @@
                     <div class="flex items-center mb-1">
                         <div class="marker-icon stammtisch mr-2" style="display:inline-block;"></div>
                         <span>Regionalstammtisch</span>
+                    </div>
+                    <div class="flex items-center mb-1">
+                        <div class="marker-icon center mr-2" style="display:inline-block;"></div>
+                        <span>Mittelpunkt</span>
                     </div>
                     <div class="flex items-center mb-1">
                         <div class="marker-icon vorstand mr-2" style="display:inline-block;"></div>
@@ -177,6 +201,16 @@
             align-items: center;
             font-size: 14px;
         }
+
+        .marker-icon.center {
+            background-color: #28a745;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 14px;
+        }
         
         .custom-div-icon {
             background: none;
@@ -195,6 +229,12 @@
         }
         
         .legend .marker-icon.stammtisch {
+            width: 16px;
+            height: 16px;
+            font-size: 8px;
+        }
+
+        .legend .marker-icon.center {
             width: 16px;
             height: 16px;
             font-size: 8px;
