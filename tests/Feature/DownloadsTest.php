@@ -76,4 +76,15 @@ class DownloadsTest extends TestCase
         $response->assertViewHas('userPoints', 7);
         $response->assertSee('Deine Baxx');
     }
+
+    public function test_download_fails_when_metadata_is_missing(): void
+    {
+        $user = $this->actingMember(10);
+        $this->actingAs($user);
+
+        $response = $this->from('/downloads')->get('/downloads/download/unknown.pdf');
+
+        $response->assertRedirect('/downloads');
+        $response->assertSessionHasErrors();
+    }
 }
