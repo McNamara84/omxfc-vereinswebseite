@@ -77,7 +77,9 @@
                                                 class="text-[#8B0116] dark:text-[#FF6B81] hover:underline">
                                                 Details
                                             </a>
-
+                                            @if($todo->created_by === Auth::id())
+                                                <a href="{{ route('todos.edit', $todo) }}" class="ml-2 text-blue-600 dark:text-blue-400 hover:underline">Bearbeiten</a>
+                                            @endif
                                             @if($todo->status === 'assigned')
                                                 <form action="{{ route('todos.complete', $todo) }}" method="POST" class="inline-block ml-2">
                                                     @csrf
@@ -127,6 +129,9 @@
                                         class="inline-block bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 text-gray-800 dark:text-white py-1 px-3 rounded text-sm">
                                         Details
                                     </a>
+                                    @if($todo->created_by === Auth::id())
+                                        <a href="{{ route('todos.edit', $todo) }}" class="inline-block bg-blue-500 hover:bg-blue-600 text-white py-1 px-3 rounded text-sm">Bearbeiten</a>
+                                    @endif
                                     @if($todo->status === 'assigned')
                                         <div class="flex gap-2 mt-2">
                                             <form action="{{ route('todos.complete', $todo) }}" method="POST">
@@ -175,6 +180,9 @@
                                                 class="text-[#8B0116] dark:text-[#FF6B81] hover:underline mr-2">
                                                 Details
                                             </a>
+                                            @if($todo->created_by === Auth::id())
+                                                <a href="{{ route('todos.edit', $todo) }}" class="text-blue-600 dark:text-blue-400 hover:underline mr-2">Bearbeiten</a>
+                                            @endif
                                             <form action="{{ route('todos.assign', $todo) }}" method="POST"
                                                 class="inline-block">
                                                 @csrf
@@ -212,6 +220,9 @@
                                         class="inline-block bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 text-gray-800 dark:text-white py-1 px-3 rounded text-sm">
                                         Details
                                     </a>
+                                    @if($todo->created_by === Auth::id())
+                                        <a href="{{ route('todos.edit', $todo) }}" class="inline-block bg-blue-500 hover:bg-blue-600 text-white py-1 px-3 rounded text-sm">Bearbeiten</a>
+                                    @endif
                                     <form action="{{ route('todos.assign', $todo) }}" method="POST">
                                         @csrf
                                         <button type="submit"
@@ -255,6 +266,9 @@
                                                 class="text-[#8B0116] dark:text-[#FF6B81] hover:underline mr-2">
                                                 Details
                                             </a>
+                                            @if($todo->created_by === Auth::id())
+                                                <a href="{{ route('todos.edit', $todo) }}" class="text-blue-600 dark:text-blue-400 hover:underline mr-2">Bearbeiten</a>
+                                            @endif
                                             <form action="{{ route('todos.verify', $todo) }}" method="POST"
                                                 class="inline-block">
                                                 @csrf
@@ -294,6 +308,9 @@
                                         class="inline-block bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 text-gray-800 dark:text-white py-1 px-3 rounded text-sm">
                                         Details
                                     </a>
+                                    @if($todo->created_by === Auth::id())
+                                        <a href="{{ route('todos.edit', $todo) }}" class="inline-block bg-blue-500 hover:bg-blue-600 text-white py-1 px-3 rounded text-sm">Bearbeiten</a>
+                                    @endif
                                     <form action="{{ route('todos.verify', $todo) }}" method="POST">
                                         @csrf
                                         <button type="submit"
@@ -339,6 +356,9 @@
                                                 class="text-[#8B0116] dark:text-[#FF6B81] hover:underline">
                                                 Details
                                             </a>
+                                            @if($todo->created_by === Auth::id())
+                                                <a href="{{ route('todos.edit', $todo) }}" class="ml-2 text-blue-600 dark:text-blue-400 hover:underline">Bearbeiten</a>
+                                            @endif
                                         </td>
                                     </tr>
                                 @endforeach
@@ -369,6 +389,9 @@
                                         class="inline-block bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 text-gray-800 dark:text-white py-1 px-3 rounded text-sm">
                                         Details
                                     </a>
+                                    @if($todo->created_by === Auth::id())
+                                        <a href="{{ route('todos.edit', $todo) }}" class="inline-block bg-blue-500 hover:bg-blue-600 text-white py-1 px-3 rounded text-sm">Bearbeiten</a>
+                                    @endif
                                 </div>
                             </div>
                         @endforeach

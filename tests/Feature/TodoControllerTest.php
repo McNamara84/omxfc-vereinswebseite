@@ -101,4 +101,39 @@ class TodoControllerTest extends TestCase
         $this->assertNull($todo->assigned_to);
         $this->assertSame('open', $todo->status);
     }
+
+    public function test_creator_can_update_todo(): void
+    {
+        $user = $this->actingMember('Admin');
+        $todo = $this->createTodo($user);
+        $category = TodoCategory::first();
+        $this->actingAs($user);
+
+        $response = $this->put(route('todos.update', $todo), [
+            'title' => 'Updated',
+            'description' => 'New desc',
+            'points' => 10,
+            'category_id' => $category->id,
+        ]);
+
+        $response->assertRedirect(route('todos.show', $todo, false));
+        $todo->refresh();
+        $this->assertSame('Updated', $todo->title);
+        $this->assertSame(10, $todo->points);
+    }
+
+    public function test_non_creator_cannot_update_todo(): void
+    {
+        $creator = $this->actingMember('Admin');
+        $other = $this->actingMember();
+        $todo = $this->createTodo($creator);
+        $this->actingAs($other);
+
+        $this->put(route('todos.update', $todo), [
+            'title' => 'X',
+            'description' => 'Y',
+            'points' => 5,
+            'category_id' => TodoCategory::first()->id,
+        ])->assertForbidden();
+    }
 }
