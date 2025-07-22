@@ -67,4 +67,75 @@ class MitgliederControllerTest extends TestCase
         $this->actingAs($this->actingMember('Mitglied'));
         $this->getJson('/mitglieder/all-emails')->assertStatus(403);
     }
+
+    public function test_higher_rank_user_can_change_member_role(): void
+    {
+        $team = Team::where('name', 'Mitglieder')->first();
+        $board = User::factory()->create(['current_team_id' => $team->id]);
+        $team->users()->attach($board, ['role' => 'Vorstand']);
+        $member = User::factory()->create(['current_team_id' => $team->id]);
+        $team->users()->attach($member, ['role' => 'Mitglied']);
+        $this->actingAs($board);
+
+        $response = $this->from('/mitglieder')->put("/mitglieder/{$member->id}/role", [
+            'role' => 'Ehrenmitglied'
+        ]);
+
+        $response->assertRedirect('/mitglieder');
+        $this->assertDatabaseHas('team_user', [
+            'user_id' => $member->id,
+            'role' => 'Ehrenmitglied'
+        ]);
+    }
+
+    public function test_cannot_assign_role_higher_than_own(): void
+    {
+        $team = Team::where('name', 'Mitglieder')->first();
+        $board = User::factory()->create(['current_team_id' => $team->id]);
+        $team->users()->attach($board, ['role' => 'Vorstand']);
+        $member = User::factory()->create(['current_team_id' => $team->id]);
+        $team->users()->attach($member, ['role' => 'Mitglied']);
+        $this->actingAs($board);
+
+        $response = $this->from('/mitglieder')->put("/mitglieder/{$member->id}/role", [
+            'role' => 'Admin'
+        ]);
+
+        $response->assertRedirect('/mitglieder');
+        $response->assertSessionHas('error');
+        $this->assertDatabaseHas('team_user', [
+            'user_id' => $member->id,
+            'role' => 'Mitglied'
+        ]);
+    }
+
+    public function test_user_cannot_remove_self(): void
+    {
+        $team = Team::where('name', 'Mitglieder')->first();
+        $board = User::factory()->create(['current_team_id' => $team->id]);
+        $team->users()->attach($board, ['role' => 'Vorstand']);
+        $this->actingAs($board);
+
+        $response = $this->from('/mitglieder')->delete("/mitglieder/{$board->id}");
+
+        $response->assertRedirect('/mitglieder');
+        $response->assertSessionHas('error');
+        $this->assertDatabaseHas('users', ['id' => $board->id]);
+    }
+
+    public function test_higher_rank_user_can_remove_member(): void
+    {
+        $team = Team::where('name', 'Mitglieder')->first();
+        $board = User::factory()->create(['current_team_id' => $team->id]);
+        $team->users()->attach($board, ['role' => 'Vorstand']);
+        $member = User::factory()->create(['current_team_id' => $team->id]);
+        $team->users()->attach($member, ['role' => 'Mitglied']);
+        $this->actingAs($board);
+
+        $response = $this->from('/mitglieder')->delete("/mitglieder/{$member->id}");
+
+        $response->assertRedirect('/mitglieder');
+        $this->assertDatabaseMissing('users', ['id' => $member->id]);
+        $this->assertDatabaseMissing('team_user', ['user_id' => $member->id]);
+    }
 }
