@@ -12,6 +12,9 @@ class PhotoGalleryControllerTest extends TestCase
 {
     use RefreshDatabase;
 
+    /** @var string[] */
+    private array $createdPlaceholders = [];
+
     private function actingMember(): User
     {
         $team = Team::where('name', 'Mitglieder')->first();
@@ -62,9 +65,30 @@ class PhotoGalleryControllerTest extends TestCase
     {
         $path = public_path("images/galerie/{$year}/placeholder1.jpg");
         if (!file_exists($path)) {
-            mkdir(dirname($path), 0777, true);
-            file_put_contents($path, 'dummy');
+            $dir = dirname($path);
+            if (!is_dir($dir)) {
+                mkdir($dir, 0777, true);
+            }
+            file_put_contents($path, 'dummy');$this->createdPlaceholders[] = $path;
         }
+    }
+
+    protected function tearDown(): void
+    {
+        foreach ($this->createdPlaceholders as $path) {
+            if (file_exists($path)) {
+                unlink($path);
+            }
+            $yearDir = dirname($path);
+            if (is_dir($yearDir) && count(scandir($yearDir)) === 2) {
+                rmdir($yearDir);
+                $galerieDir = dirname($yearDir);
+                if (is_dir($galerieDir) && count(scandir($galerieDir)) === 2) {
+                    rmdir($galerieDir);
+                }
+            }
+        }
+        parent::tearDown();
     }
 
     public function test_proxy_image_returns_remote_file(): void
