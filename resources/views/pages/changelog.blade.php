@@ -4,6 +4,26 @@
         <p class="mb-6">Auf dieser Seite werden sämtliche Änderungen an der Vereinswebseite des Offiziellen Maddrax
             Fanclub e. V. dokumentiert.</p>
         <section class="mb-6">
+            <h2 class="text-xl font-semibold mb-2">Version 1.2.0 (23.07.2025)</h2>
+            <h3 class="text-l font-semibold mb-2">Features:</h3>
+            <ul class="list-disc ml-6 mt-2">
+                <li>Neue Unterseite Belohnungen mit Übersicht über alle freischaltbaren Belohnungen</li>
+                <li>Bearbeiten von Challenges durch Vorstand auch nach der Erstellung</li>
+                <li>Neue Statistik zu Top Teamplayern unter den Autor:innen (verfügbar ab 4 Baxx)</li>
+                <li>Neue Statistik zu durchschnittlichen Bewertungen je Autor:in (verfügbar ab 7 Baxx)</li>
+                <li>Neue Statistik zu Charakteren nach Auftritten (verfügbar ab 10 Baxx)</li>
+                <li>Markierung auf Mitgliederkarte für Mittelpunkt aller Mitglieder</li>
+            </ul>
+            <h3 class="text-l font-semibold mb-2">Änderungen:</h3>
+            <ul class="list-disc ml-6 mt-2">
+                <li>Liste der Romane auf der Unterseite Rezensionen in Akkordeon verpackt</li>
+                <li>Alle 10 Rezensionen erhalten fleißige Mitglieder nun einen Punkt</li>
+                <li>Ladezeiten des Dashboards durch Caching optimiert</li>
+                <li>Benötigte Baxx für unterschiedliche Belohnungen angepasst damit für jeden Punktezugewinn etwas freigeschaltet wird</li>
+                <li>Fix: Badges im Profil werden nicht angezeigt</li>
+            </ul>
+        </section>
+        <section class="mb-6">
             <h2 class="text-xl font-semibold mb-2">Version 1.1.1 (20.07.2025)</h2>
             <h3 class="text-l font-semibold mb-2">Änderungen:</h3>
             <ul class="list-disc ml-6 mt-2">
