@@ -42,7 +42,20 @@ class StatistikController extends Controller
             ->countBy()                // Anzahl pro Autor
             ->sortDesc();              // nach Häufigkeit absteigend
 
-        // ── Card 3 – Top-Autor:innen nach Bewertung ───────────────────────────
+        // ── Card 3 – Top Teamplayer ─────────────────────────────────────────
+        $teamplayerTable = $romane
+            ->filter(fn($r) => collect($r['text'])->filter()->count() > 1)
+            ->flatMap(fn($r) => collect($r['text'])->map(fn($a) => trim($a)))
+            ->filter()
+            ->countBy()
+            ->sortDesc()
+            ->map(fn($count, $author) => [
+                'author' => $author,
+                'count'  => $count,
+            ])
+            ->values();
+
+        // ── Card 4 – Top-Autor:innen nach Bewertung ───────────────────────────
         $topAuthorRatings = $romane
             ->flatMap(fn($r) => collect($r['text'])->map(fn($a) => [
                 'author' => trim($a),
@@ -80,6 +93,7 @@ class StatistikController extends Controller
             'totalVotes' => $totalVotes,
             'averageVotes' => $averageVotes,
             'authorCounts' => $authorCounts,
+            'teamplayerTable' => $teamplayerTable,
             'topAuthorRatings' => $topAuthorRatings,
             'userPoints' => $userPoints,
             'romaneTable' => $romaneTable,

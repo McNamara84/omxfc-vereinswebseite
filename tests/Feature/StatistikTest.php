@@ -83,14 +83,14 @@ class StatistikTest extends TestCase
     public function test_top_author_statistic_locked_below_threshold(): void
     {
         $this->createDataFile();
-        $user = $this->actingMemberWithPoints(9);
+        $user = $this->actingMemberWithPoints(7);
         $this->actingAs($user);
 
         $response = $this->get('/statistik');
 
         $response->assertOk();
         $response->assertSee('wird ab');
-        $response->assertSee('10');
+        $response->assertSee('8');
     }
 
     public function test_statistics_page_returns_500_when_file_missing(): void
@@ -101,5 +101,30 @@ class StatistikTest extends TestCase
         $response = $this->get('/statistik');
 
         $response->assertStatus(500);
+    }
+
+    public function test_teamplayer_table_visible_with_enough_points(): void
+    {
+        $this->createDataFile();
+        $user = $this->actingMemberWithPoints(2);
+        $this->actingAs($user);
+
+        $response = $this->get('/statistik');
+
+        $response->assertOk();
+        $response->assertSee('Top Teamplayer');
+        $response->assertSee('Author2');
+    }
+
+    public function test_teamplayer_table_hidden_below_threshold(): void
+    {
+        $this->createDataFile();
+        $user = $this->actingMemberWithPoints(1);
+        $this->actingAs($user);
+
+        $response = $this->get('/statistik');
+
+        $response->assertOk();
+        $response->assertDontSee('Top Teamplayer');
     }
 }
