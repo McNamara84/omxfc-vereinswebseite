@@ -137,4 +137,123 @@ class RezensionControllerTest extends TestCase
         $deleteResponse->assertRedirect('/rezensionen');
         $this->assertSoftDeleted('reviews', ['id' => $review->id]);
     }
+
+    public function test_show_displays_review_for_author(): void
+    {
+        $user = $this->actingMember();
+        $this->actingAs($user);
+
+        $book = Book::create([
+            'roman_number' => 1,
+            'title' => 'Roman1',
+            'author' => 'Author',
+        ]);
+        $review = Review::create([
+            'team_id' => $user->currentTeam->id,
+            'user_id' => $user->id,
+            'book_id' => $book->id,
+            'title' => 'R',
+            'content' => str_repeat('A', 140),
+        ]);
+
+        $response = $this->get(route('reviews.show', $book));
+        $response->assertOk();
+        $response->assertViewIs('reviews.show');
+        $response->assertViewHas('reviews', function ($c) use ($review) {
+            return $c->first()->is($review);
+        });
+    }
+
+    public function test_create_redirects_when_review_exists(): void
+    {
+        $user = $this->actingMember();
+        $this->actingAs($user);
+
+        $book = Book::create([
+            'roman_number' => 1,
+            'title' => 'Roman1',
+            'author' => 'Author',
+        ]);
+        Review::create([
+            'team_id' => $user->currentTeam->id,
+            'user_id' => $user->id,
+            'book_id' => $book->id,
+            'title' => 'R',
+            'content' => str_repeat('B', 140),
+        ]);
+
+        $this->get(route('reviews.create', $book))
+            ->assertRedirect(route('reviews.show', $book, false));
+    }
+
+    public function test_store_fails_when_review_exists(): void
+    {
+        $user = $this->actingMember();
+        $this->actingAs($user);
+
+        $book = Book::create([
+            'roman_number' => 1,
+            'title' => 'Roman1',
+            'author' => 'Author',
+        ]);
+        Review::create([
+            'team_id' => $user->currentTeam->id,
+            'user_id' => $user->id,
+            'book_id' => $book->id,
+            'title' => 'R',
+            'content' => str_repeat('C', 140),
+        ]);
+
+        $this->post(route('reviews.store', $book), [
+            'title' => 'T',
+            'content' => str_repeat('D', 140),
+        ])->assertStatus(403);
+    }
+
+    public function test_update_forbidden_for_non_author(): void
+    {
+        $owner = $this->actingMember();
+        $book = Book::create([
+            'roman_number' => 1,
+            'title' => 'Roman1',
+            'author' => 'Author',
+        ]);
+        $review = Review::create([
+            'team_id' => $owner->currentTeam->id,
+            'user_id' => $owner->id,
+            'book_id' => $book->id,
+            'title' => 'Old',
+            'content' => str_repeat('E', 140),
+        ]);
+
+        $this->actingAs($this->actingMember());
+
+        $this->put(route('reviews.update', $review), [
+            'title' => 'New',
+            'content' => str_repeat('F', 140),
+        ])->assertStatus(403);
+    }
+
+    public function test_destroy_forbidden_for_non_author(): void
+    {
+        $owner = $this->actingMember();
+        $book = Book::create([
+            'roman_number' => 1,
+            'title' => 'Roman1',
+            'author' => 'Author',
+        ]);
+        $review = Review::create([
+            'team_id' => $owner->currentTeam->id,
+            'user_id' => $owner->id,
+            'book_id' => $book->id,
+            'title' => 'Old',
+            'content' => str_repeat('E', 140),
+        ]);
+
+        $this->actingAs($this->actingMember());
+
+        $this->delete(route('reviews.destroy', $review))
+            ->assertStatus(403);
+        $this->assertDatabaseHas('reviews', ['id' => $review->id, 'deleted_at' => null]);
+    }
 }
