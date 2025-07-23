@@ -42,7 +42,7 @@ class DownloadsTest extends TestCase
 
     public function test_download_succeeds_with_exact_required_points(): void
     {
-        $user = $this->actingMember(5); // exactly the points required for first file
+        $user = $this->actingMember(6); // exactly the points required for first file
         $this->actingAs($user);
 
         Storage::disk('private')->put('downloads/BauanleitungEuphoriewurmV2.pdf', 'dummy');

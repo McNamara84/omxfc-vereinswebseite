@@ -21,7 +21,7 @@ class MaddraxiversumController extends Controller
         /** @var User $user */
         $user = Auth::user();
         $currentTeam = $user->currentTeam; // Holt das aktuelle Team des Benutzers
-        $requiredPoints = 10; // Mindestpunktzahl für den Zugriff
+        $requiredPoints = 9; // Mindestpunktzahl für den Zugriff
         $userPoints = 0;
         $showMap = false;
 

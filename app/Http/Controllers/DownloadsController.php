@@ -19,19 +19,19 @@ class DownloadsController extends Controller
             [
                 'titel' => 'Bauanleitung Euphoriewurm',
                 'datei' => 'BauanleitungEuphoriewurmV2.pdf',
-                'punkte' => 5,
+                'punkte' => 6,
             ],
             [
                 'titel' => 'Bauanleitung Prototyp XP-1',
                 'datei' => 'BauanleitungProtoV11.pdf',
-                'punkte' => 10,
+                'punkte' => 8,
             ],
         ],
         'Fanstories' => [
             [
                 'titel' => 'Das Flüstern der Vergangenheit von Max T. Hardwet',
                 'datei' => 'DasFlüsternDerVergangenheit.pdf',
-                'punkte' => 2,
+                'punkte' => 3,
             ],
         ],
     ];

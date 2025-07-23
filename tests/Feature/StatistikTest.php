@@ -120,7 +120,7 @@ class StatistikTest extends TestCase
     public function test_teamplayer_table_visible_with_enough_points(): void
     {
         $this->createDataFile();
-        $user = $this->actingMemberWithPoints(2);
+        $user = $this->actingMemberWithPoints(4);
         $this->actingAs($user);
 
         $response = $this->get('/statistik');
@@ -158,13 +158,13 @@ class StatistikTest extends TestCase
     public function test_character_statistic_locked_below_threshold(): void
     {
         $this->createDataFile();
-        $user = $this->actingMemberWithPoints(15);
+        $user = $this->actingMemberWithPoints(9);
         $this->actingAs($user);
 
         $response = $this->get('/statistik');
 
         $response->assertOk();
         $response->assertSee('wird ab');
-        $response->assertSee('16');
+        $response->assertSee('10');
     }
 }

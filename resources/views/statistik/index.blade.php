@@ -33,8 +33,8 @@
                     <div class="text-gray-600 dark:text-gray-400">Ø-Stimmen pro Roman</div>
                 </div>
             </div>
-            {{-- Card 2 – Balkendiagramm (≥ 1 Bakk) --}}
-            @if ($userPoints >= 1)
+            {{-- Card 2 – Balkendiagramm (≥ 2 Bakk) --}}
+            @if ($userPoints >= 2)
                 <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
                     <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4">
                         Romane je Autor:in
@@ -48,8 +48,8 @@
                     window.authorChartValues = @json($authorCounts->values());
                 </script>
             @endif
-            {{-- Card 3 – Teamplayer-Tabelle (≥ 2 Baxx) --}}
-            @if ($userPoints >= 2)
+            {{-- Card 3 – Teamplayer-Tabelle (≥ 4 Baxx) --}}
+            @if ($userPoints >= 4)
                 <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
                     <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4">
                         Top Teamplayer
@@ -77,8 +77,8 @@
                     </div>
                 </div>
             @endif
-            {{-- Card 4 – Romane-Tabelle (≥ 4 Baxx) --}}
-            @if ($userPoints >= 4)
+            {{-- Card 4 – Romane-Tabelle (≥ 5 Baxx) --}}
+            @if ($userPoints >= 5)
                 <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
                     <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4">
                         Alle Romane
@@ -110,8 +110,8 @@
                     </div>
                 </div>
             @endif
-            {{-- Card 5 – Top-Autor:innen nach Ø‑Bewertung (≥ 8 Baxx) --}}
-            @if ($userPoints >= 8)
+            {{-- Card 5 – Top-Autor:innen nach Ø‑Bewertung (≥ 7 Baxx) --}}
+            @if ($userPoints >= 7)
                 <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
                     <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4">
                         Top 10 Autor:innen nach Ø-Bewertung
@@ -144,13 +144,13 @@
                         Top 10 Autor:innen nach Ø-Bewertung
                     </h2>
                     <p class="text-sm text-gray-600 dark:text-gray-400">
-                        Diese Statistik wird ab <strong>8</strong> Baxx freigeschaltet.<br>
+                        Diese Statistik wird ab <strong>7</strong> Baxx freigeschaltet.<br>
                         Dein aktueller Stand: <span class="font-semibold">{{ $userPoints }}</span>.
                     </p>
                 </div>
             @endif
-            {{-- Card 6 – Top-Charaktere nach Auftritten (≥ 16 Baxx) --}}
-            @if ($userPoints >= 16)
+            {{-- Card 6 – Top-Charaktere nach Auftritten (≥ 10 Baxx) --}}
+            @if ($userPoints >= 10)
                 <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
                     <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4">
                         Top 10 Charaktere nach Auftritten
@@ -183,7 +183,7 @@
                         Top 10 Charaktere nach Auftritten
                     </h2>
                     <p class="text-sm text-gray-600 dark:text-gray-400">
-                        Diese Statistik wird ab <strong>16</strong> Baxx freigeschaltet.<br>
+                        Diese Statistik wird ab <strong>10</strong> Baxx freigeschaltet.<br>
                         Dein aktueller Stand: <span class="font-semibold">{{ $userPoints }}</span>.
                     </p>
                 </div>
