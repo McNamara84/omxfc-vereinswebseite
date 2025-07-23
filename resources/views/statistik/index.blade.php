@@ -149,7 +149,45 @@
                     </p>
                 </div>
             @endif
+            {{-- Card 6 – Top-Charaktere nach Auftritten (≥ 16 Baxx) --}}
+            @if ($userPoints >= 16)
+                <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
+                    <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4">
+                        Top 10 Charaktere nach Auftritten
+                    </h2>
 
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead>
+                                <tr>
+                                    <th>Rang</th>
+                                    <th>Charakter</th>
+                                    <th>Auftritte</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($topCharacters as $i => $row)
+                                    <tr>
+                                        <td>{{ $i + 1 }}</td>
+                                        <td>{{ $row['name'] }}</td>
+                                        <td>{{ $row['count'] }}</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            @else
+                <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
+                    <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4">
+                        Top 10 Charaktere nach Auftritten
+                    </h2>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">
+                        Diese Statistik wird ab <strong>16</strong> Baxx freigeschaltet.<br>
+                        Dein aktueller Stand: <span class="font-semibold">{{ $userPoints }}</span>.
+                    </p>
+                </div>
+            @endif
             {{-- Vite-Asset EINMAL am Ende laden, sobald irgendeine JS-Card erscheint --}}
             @if ($userPoints >= 1)
                 @vite(['resources/js/statistik.js'])

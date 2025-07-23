@@ -88,6 +88,19 @@ class StatistikController extends Controller
             'stimmen' => $r['stimmen'],
         ]);
 
+        // ── Card 5 – Top-Charaktere nach Auftritten ──────────────────────────
+        $topCharacters = $romane
+            ->flatMap(fn($r) => collect($r['personen'] ?? [])->map(fn($p) => trim($p)))
+            ->filter()
+            ->countBy()
+            ->sortDesc()
+            ->take(10)
+            ->map(fn($count, $name) => [
+                'name'  => $name,
+                'count' => $count,
+            ])
+            ->values();
+
         return view('statistik.index', [
             'averageRating' => $averageRating,
             'totalVotes' => $totalVotes,
@@ -95,6 +108,7 @@ class StatistikController extends Controller
             'authorCounts' => $authorCounts,
             'teamplayerTable' => $teamplayerTable,
             'topAuthorRatings' => $topAuthorRatings,
+            'topCharacters' => $topCharacters,
             'userPoints' => $userPoints,
             'romaneTable' => $romaneTable,
         ]);

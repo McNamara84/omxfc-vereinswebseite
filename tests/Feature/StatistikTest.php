@@ -42,8 +42,22 @@ class StatistikTest extends TestCase
     private function createDataFile(): void
     {
         $data = [
-            ['nummer' => 1, 'titel' => 'Roman1', 'text' => ['Author1'], 'bewertung' => 4.0, 'stimmen' => 10],
-            ['nummer' => 2, 'titel' => 'Roman2', 'text' => ['Author1', 'Author2'], 'bewertung' => 5.0, 'stimmen' => 20],
+            [
+                'nummer'    => 1,
+                'titel'     => 'Roman1',
+                'text'      => ['Author1'],
+                'bewertung' => 4.0,
+                'stimmen'   => 10,
+                'personen'  => ['Char1', 'Char2'],
+            ],
+            [
+                'nummer'    => 2,
+                'titel'     => 'Roman2',
+                'text'      => ['Author1', 'Author2'],
+                'bewertung' => 5.0,
+                'stimmen'   => 20,
+                'personen'  => ['Char2', 'Char3'],
+            ],
         ];
         $path = storage_path('app/private/maddrax.json');
         if (!is_dir(dirname($path))) {
@@ -126,5 +140,31 @@ class StatistikTest extends TestCase
 
         $response->assertOk();
         $response->assertDontSee('Top Teamplayer');
+    }
+
+    public function test_character_table_visible_with_enough_points(): void
+    {
+        $this->createDataFile();
+        $user = $this->actingMemberWithPoints(16);
+        $this->actingAs($user);
+
+        $response = $this->get('/statistik');
+
+        $response->assertOk();
+        $response->assertSee('Top 10 Charaktere');
+        $response->assertSee('Char2');
+    }
+
+    public function test_character_statistic_locked_below_threshold(): void
+    {
+        $this->createDataFile();
+        $user = $this->actingMemberWithPoints(15);
+        $this->actingAs($user);
+
+        $response = $this->get('/statistik');
+
+        $response->assertOk();
+        $response->assertSee('wird ab');
+        $response->assertSee('16');
     }
 }
