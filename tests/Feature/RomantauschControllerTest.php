@@ -77,4 +77,89 @@ class RomantauschControllerTest extends TestCase
         $this->assertEquals(1, (int) $offer->fresh()->completed);
         $this->assertEquals(1, (int) $request->fresh()->completed);
     }
+
+    public function test_create_offer_loads_books_from_json(): void
+    {
+        $path = storage_path('app/private/maddrax.json');
+        rename($path, $path . '.bak');
+        file_put_contents($path, json_encode([
+            ['nummer' => 1, 'titel' => 'Roman1'],
+        ]));
+
+        $this->actingAs($this->actingMember());
+        $response = $this->get('/romantauschboerse/create-offer');
+
+        $response->assertOk();
+        $response->assertViewIs('romantausch.create_offer');
+        $this->assertSame('Roman1', $response->viewData('books')[0]['titel']);
+
+        unlink($path);
+        rename($path . '.bak', $path);
+    }
+
+    public function test_create_offer_returns_error_on_invalid_json(): void
+    {
+        $path = storage_path('app/private/maddrax.json');
+        rename($path, $path . '.bak');
+        file_put_contents($path, '{invalid');
+
+        $this->actingAs($this->actingMember());
+        $this->get('/romantauschboerse/create-offer')->assertStatus(500);
+
+        unlink($path);
+        rename($path . '.bak', $path);
+    }
+
+    public function test_store_offer_creates_entry_when_book_found(): void
+    {
+        $path = storage_path('app/private/maddrax.json');
+        rename($path, $path . '.bak');
+        file_put_contents($path, json_encode([
+            ['nummer' => 1, 'titel' => 'Roman1'],
+        ]));
+
+        $user = $this->actingMember();
+        $this->actingAs($user);
+
+        $response = $this->post('/romantauschboerse/store-offer', [
+            'book_number' => 1,
+            'condition' => 'neu',
+        ]);
+
+        $response->assertRedirect(route('romantausch.index', [], false));
+        $this->assertDatabaseHas('book_offers', [
+            'user_id' => $user->id,
+            'book_number' => 1,
+            'book_title' => 'Roman1',
+            'condition' => 'neu',
+        ]);
+
+        unlink($path);
+        rename($path . '.bak', $path);
+    }
+
+    public function test_store_offer_returns_error_when_book_missing(): void
+    {
+        $path = storage_path('app/private/maddrax.json');
+        rename($path, $path . '.bak');
+        file_put_contents($path, json_encode([
+            ['nummer' => 1, 'titel' => 'Roman1'],
+        ]));
+
+        $user = $this->actingMember();
+        $this->actingAs($user);
+
+        $response = $this->from('/romantauschboerse/create-offer')
+            ->post('/romantauschboerse/store-offer', [
+                'book_number' => 2,
+                'condition' => 'neu',
+            ]);
+
+        $response->assertRedirect('/romantauschboerse/create-offer');
+        $response->assertSessionHas('error', 'Ausgewählter Roman nicht gefunden.');
+        $this->assertDatabaseCount('book_offers', 0);
+
+        unlink($path);
+        rename($path . '.bak', $path);
+    }
 }
