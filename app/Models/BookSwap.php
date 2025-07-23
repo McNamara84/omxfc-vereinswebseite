@@ -26,7 +26,9 @@ class BookSwap extends Model
         'completed_at',
     ];
 
-    protected $dates = ['completed_at'];
+    protected $casts = [
+        'completed_at' => 'datetime',
+    ];
 
     public function offer()
     {
