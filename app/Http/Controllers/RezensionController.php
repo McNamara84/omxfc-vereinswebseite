@@ -63,7 +63,21 @@ class RezensionController extends Controller
             ->orderBy('roman_number')
             ->get();
 
-        return view('reviews.index', compact('books'));
+        $jsonPath = storage_path('app/private/maddrax.json');
+        if (!is_readable($jsonPath)) {
+            abort(500, 'Die Maddrax-Datei wurde nicht gefunden.');
+        }
+
+        $romanData = collect(json_decode(file_get_contents($jsonPath), true));
+        $cycleMap = $romanData->pluck('zyklus', 'nummer');
+
+        $books->each(function ($book) use ($cycleMap) {
+            $book->cycle = $cycleMap[$book->roman_number] ?? 'Unbekannt';
+        });
+
+        $booksByCycle = $books->sortByDesc('roman_number')->groupBy('cycle');
+
+        return view('reviews.index', compact('booksByCycle'));
     }
 
     /**
