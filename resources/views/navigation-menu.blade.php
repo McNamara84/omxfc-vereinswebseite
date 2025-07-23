@@ -34,7 +34,15 @@
                                 <x-dropdown-link href="{{ route('meetings') }}">Meetings</x-dropdown-link>
                             </div>
                         </div>
-                        <x-nav-link href="{{ route('todos.index') }}">Challenges</x-nav-link>
+                        <div class="relative flex items-center ml-4 group" x-data="{ open: false }" @click="open = !open" @click.away="open = false">
+                            <button class="px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white focus:outline-none transition">
+                                Baxx
+                            </button>
+                            <div x-show="open" x-cloak class="absolute left-0 top-full mt-px w-48 bg-white dark:bg-gray-700 rounded-md shadow-lg z-50 py-2 group-hover:block">
+                                <x-dropdown-link href="{{ route('todos.index') }}">Challenges</x-dropdown-link>
+                                <x-dropdown-link href="{{ route('rewards.index') }}">Belohnungen</x-dropdown-link>
+                            </div>
+                        </div>
                         <!-- Dropdown Veranstaltungen -->
                         <div class="relative flex items-center ml-4 group" x-data="{ open: false }" @click="open = !open" @click.away="open = false">
                             <button class="px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white focus:outline-none transition">
@@ -118,7 +126,11 @@
                 <x-responsive-nav-link href="{{ route('meetings') }}">Meetings</x-responsive-nav-link>
             </div>
 
-            <x-responsive-nav-link href="{{ route('todos.index') }}">Challenges</x-responsive-nav-link>
+            <button @click="openMenu = (openMenu === 'baxx' ? null : 'baxx')" class="w-full text-left px-4 py-2 font-semibold text-gray-600 dark:text-gray-300">Baxx</button>
+            <div x-show="openMenu === 'baxx'" x-cloak>
+                <x-responsive-nav-link href="{{ route('todos.index') }}">Challenges</x-responsive-nav-link>
+                <x-responsive-nav-link href="{{ route('rewards.index') }}">Belohnungen</x-responsive-nav-link>
+            </div>
             <x-responsive-nav-link href="{{ route('maddraxiversum.index') }}">Maddraxiversum</x-responsive-nav-link>
             <x-responsive-nav-link href="{{ route('romantausch.index') }}">Tauschbörse</x-responsive-nav-link>
             <x-responsive-nav-link href="{{ route('downloads') }}">Downloads</x-responsive-nav-link>
