@@ -88,7 +88,7 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
     Route::get('/mission/status', [MaddraxiversumController::class, 'getMissionStatus']);
     //Badges
     Route::get('/badges/{filename}', function ($filename) {
-        $path = storage_path('app/private/' . $filename);
+        $path = public_path('images/badges/' . $filename);
         if (!file_exists($path)) {
             abort(404);
         }
