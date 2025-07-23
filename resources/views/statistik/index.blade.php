@@ -52,7 +52,9 @@
                 </script>
             @endif
 
-            {{-- Card 3 – Romane-Tabelle (≥ 4 Baxx) --}}
+            {{-- TODO: Card 3 – Teamplayer-Tabelle (≥ 2 Baxx) --}}
+
+            {{-- Card 4 – Romane-Tabelle (≥ 4 Baxx) --}}
             @if ($userPoints >= 4)
                 <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
                     <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4">
