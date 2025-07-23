@@ -136,4 +136,81 @@ class TodoControllerTest extends TestCase
             'category_id' => TodoCategory::first()->id,
         ])->assertForbidden();
     }
+
+    public function test_index_displays_lists_and_points(): void
+    {
+        $user = $this->actingMember();
+        $other = $this->actingMember();
+        $todoOpen = $this->createTodo($user);
+        $todoAssigned = $this->createTodo($user, ['assigned_to' => $user->id, 'status' => 'assigned']);
+        $todoCompleted = $this->createTodo($user, ['assigned_to' => $other->id, 'status' => 'completed']);
+
+        \App\Models\UserPoint::create([
+            'user_id' => $user->id,
+            'team_id' => $user->currentTeam->id,
+            'points' => 3,
+        ]);
+
+        $this->actingAs($user);
+        $response = $this->get('/todos');
+
+        $response->assertOk();
+        $response->assertViewIs('todos.index');
+        $response->assertViewHas('assignedTodos', function ($c) use ($todoAssigned) {
+            return $c->contains($todoAssigned);
+        });
+        $response->assertViewHas('unassignedTodos', function ($c) use ($todoOpen) {
+            return $c->contains($todoOpen);
+        });
+        $response->assertViewHas('completedTodos', function ($c) use ($todoCompleted) {
+            return $c->contains($todoCompleted);
+        });
+        $response->assertViewHas('userPoints', 3);
+    }
+
+    public function test_store_creates_todo_for_admin(): void
+    {
+        $user = $this->actingMember('Admin');
+        $category = TodoCategory::first() ?? TodoCategory::create(['name' => 'Test', 'slug' => 'test']);
+        $this->actingAs($user);
+
+        $response = $this->post('/todos', [
+            'title' => 'New Todo',
+            'description' => 'Desc',
+            'points' => 7,
+            'category_id' => $category->id,
+        ]);
+
+        $response->assertRedirect(route('todos.index', [], false));
+        $this->assertDatabaseHas('todos', [
+            'title' => 'New Todo',
+            'created_by' => $user->id,
+        ]);
+    }
+
+    public function test_show_displays_todo_and_permissions(): void
+    {
+        $user = $this->actingMember();
+        $todo = $this->createTodo($user);
+        $this->actingAs($user);
+
+        $response = $this->get(route('todos.show', $todo));
+
+        $response->assertOk();
+        $response->assertViewIs('todos.show');
+        $response->assertViewHas('canAssign', true);
+        $response->assertViewHas('canEdit', true);
+    }
+
+    public function test_edit_page_loads_for_creator(): void
+    {
+        $user = $this->actingMember('Admin');
+        $todo = $this->createTodo($user);
+        $this->actingAs($user);
+
+        $response = $this->get(route('todos.edit', $todo));
+
+        $response->assertOk();
+        $response->assertViewIs('todos.edit');
+    }
 }
