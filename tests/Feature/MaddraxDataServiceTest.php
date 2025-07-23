@@ -74,4 +74,20 @@ class MaddraxDataServiceTest extends TestCase
         $this->assertSame(['Figur1', 'Figur2'], MaddraxDataService::getFiguren());
         $this->assertSame(['Ort1', 'Ort2'], MaddraxDataService::getSchauplaetze());
     }
+
+    public function test_load_data_returns_empty_when_file_is_missing(): void
+    {
+        File::delete($this->testStoragePath . '/app/private/maddrax.json');
+        $this->actingAs($this->actingMember());
+
+        $this->assertSame([], MaddraxDataService::loadData());
+    }
+
+    public function test_load_data_returns_empty_when_json_is_invalid(): void
+    {
+        File::put($this->testStoragePath . '/app/private/maddrax.json', '{invalid');
+        $this->actingAs($this->actingMember());
+
+        $this->assertSame([], MaddraxDataService::getAutoren());
+    }
 }
