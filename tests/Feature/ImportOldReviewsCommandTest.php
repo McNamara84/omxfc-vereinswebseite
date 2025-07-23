@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Models\Team;
 use Illuminate\Support\Facades\File;
 use App\Models\Book;
+use App\Models\Review;
 
 class ImportOldReviewsCommandTest extends TestCase
 {
@@ -38,18 +39,25 @@ class ImportOldReviewsCommandTest extends TestCase
         $user = User::factory()->create(['email' => 'user@example.com', 'current_team_id' => $team->id]);
         $team->users()->attach($user, ['role' => 'Mitglied']);
 
+        // create nine existing reviews so that the import triggers the 10th point
+        for ($i = 1; $i <= 9; $i++) {
+            Review::create([
+                'team_id' => $team->id,
+                'user_id' => $user->id,
+                'book_id' => $book->id,
+                'title' => 'Review'.$i,
+                'content' => 'Dummy',
+            ]);
+        }
+
         $csv = "topic;author;timestamp;content\n";
-        $csv .= "001 - Roman1;user@example.com;13. März 2025, 12:34;Tolles Buch\n";
+        $csv .= "001 - Roman1;user@example.com;13. März 2025, 12:34;Letzte\n";
         File::put($this->testStoragePath . '/app/private/reviews.csv', $csv);
 
         $this->artisan('reviews:import-old', ['--path' => 'private/reviews.csv'])->assertExitCode(0);
 
-        $this->assertDatabaseHas('reviews', [
-            'book_id' => $book->id,
-            'user_id' => $user->id,
-            'title' => 'Rezi aus dem alten Maddrax-Forum',
-            'content' => 'Tolles Buch',
-        ]);
+        $this->assertSame(10, Review::where('team_id', $team->id)->where('user_id', $user->id)->count());
+        $this->assertDatabaseCount('user_points', 1);
         $this->assertDatabaseHas('user_points', [
             'user_id' => $user->id,
             'team_id' => $team->id,

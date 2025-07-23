@@ -8,6 +8,7 @@ use App\Models\Team;
 use App\Models\User;
 use App\Models\Book;
 use Illuminate\Support\Facades\Mail;
+use App\Models\Review;
 
 class ReviewCreationTest extends TestCase
 {
@@ -47,6 +48,48 @@ class ReviewCreationTest extends TestCase
         ]);
 
         Mail::assertNothingSent();
+    }
+
+    public function test_point_awarded_on_every_tenth_review(): void
+    {
+        Mail::fake();
+
+        $user = $this->actingMember();
+        $this->actingAs($user);
+
+        // create nine existing reviews for the user
+        for ($i = 1; $i <= 9; $i++) {
+            $book = Book::create([
+                'roman_number' => $i,
+                'title' => 'Roman'.$i,
+                'author' => 'Author',
+            ]);
+
+            Review::create([
+                'team_id' => $user->currentTeam->id,
+                'user_id' => $user->id,
+                'book_id' => $book->id,
+                'title' => 'Review'.$i,
+                'content' => str_repeat('A', 150),
+            ]);
+        }
+
+        $newBook = Book::create([
+            'roman_number' => 10,
+            'title' => 'Roman10',
+            'author' => 'Author',
+        ]);
+
+        $this->post("/rezensionen/{$newBook->id}", [
+            'title' => 'Tolles Buch',
+            'content' => str_repeat('A', 150),
+        ]);
+
+        $this->assertDatabaseCount('user_points', 1);
+        $this->assertDatabaseHas('user_points', [
+            'user_id' => $user->id,
+            'points' => 1,
+        ]);
     }
 
     public function test_non_member_cannot_store_review(): void

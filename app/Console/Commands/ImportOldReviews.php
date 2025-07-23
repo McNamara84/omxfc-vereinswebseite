@@ -131,14 +131,19 @@ class ImportOldReviews extends Command
                 'updated_at' => $dt,
             ]);
 
-            // Award point for this legacy review
-            UserPoint::create([
-                'user_id' => $user->id,
-                'team_id' => $teamId,
-                'points' => 1,
-                'created_at' => $dt,
-                'updated_at' => $dt,
-            ]);
+            // Award one Baxx for every tenth imported review of the member
+            $reviewCount = Review::where('team_id', $teamId)
+                ->where('user_id', $user->id)
+                ->count();
+            if ($reviewCount % 10 === 0) {
+                UserPoint::create([
+                    'user_id' => $user->id,
+                    'team_id' => $teamId,
+                    'points' => 1,
+                    'created_at' => $dt,
+                    'updated_at' => $dt,
+                ]);
+            }
 
             $bar->advance();
         }
