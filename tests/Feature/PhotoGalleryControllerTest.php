@@ -57,4 +57,42 @@ class PhotoGalleryControllerTest extends TestCase
         $this->assertEquals(asset('images/galerie/2024/placeholder1.jpg'), $photos['2024'][0]);
         $this->assertEquals(asset('images/galerie/2023/placeholder1.jpg'), $photos['2023'][0]);
     }
+
+    private function ensurePlaceholder(string $year): void
+    {
+        $path = public_path("images/galerie/{$year}/placeholder1.jpg");
+        if (!file_exists($path)) {
+            mkdir(dirname($path), 0777, true);
+            file_put_contents($path, 'dummy');
+        }
+    }
+
+    public function test_proxy_image_returns_remote_file(): void
+    {
+        $this->ensurePlaceholder('2025');
+
+        Http::fake([
+            'cloud.maddrax-fanclub.de/*Foto1.jpg' => Http::response('img', 200, ['Content-Type' => 'image/jpeg']),
+        ]);
+
+        $response = app(\App\Http\Controllers\PhotoGalleryController::class)->proxyImage('2025', 1);
+
+        $this->assertEquals(200, $response->getStatusCode());
+        $this->assertEquals('image/jpeg', $response->headers->get('Content-Type'));
+        $this->assertEquals('img', $response->getContent());
+    }
+
+    public function test_proxy_image_returns_placeholder_on_failure(): void
+    {
+        $this->ensurePlaceholder('2025');
+
+        Http::fake([
+            'cloud.maddrax-fanclub.de/*Foto1.jpg' => Http::response('', 404),
+        ]);
+
+        $response = app(\App\Http\Controllers\PhotoGalleryController::class)->proxyImage('2025', 1);
+
+        $this->assertInstanceOf(\Symfony\Component\HttpFoundation\BinaryFileResponse::class, $response);
+        $this->assertStringEndsWith('images/galerie/2025/placeholder1.jpg', $response->getFile()->getPathname());
+    }
 }
