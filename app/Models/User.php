@@ -178,7 +178,7 @@ class User extends Authenticatable
             ->wherePivot('team_id', $this->currentTeam->id)
             ->first();
 
-        return $membership->pivot->role ?? null;
+        return $membership->membership->role ?? null;
     }
 
     /**
