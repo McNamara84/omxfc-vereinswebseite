@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Storage;
+use Carbon\Carbon;
 use DOMDocument;
 use DOMXPath;
 
@@ -154,7 +155,8 @@ class CrawlNovels extends Command
     {
         $jsonData = [];
         foreach ($data as $row) {
-            if ($row[3] == 0) {
+            $releaseDate = $row[1] !== null ? Carbon::parse($row[1]) : null;
+            if ($releaseDate && $releaseDate->isAfter(Carbon::today())) {
                 continue;
             }
             $obj = new \stdClass();
@@ -163,7 +165,7 @@ class CrawlNovels extends Command
             $obj->zyklus = $row[2];
             $obj->titel = $row[5];
             $obj->text = $row[6];
-            $obj->bewertung = (float) $row[3];
+            $obj->bewertung = empty($row[3]) ? 0.0 : (float) $row[3];
             $obj->stimmen = (int) $row[4];
             $obj->personen = $row[7];
             $obj->schlagworte = $row[8];

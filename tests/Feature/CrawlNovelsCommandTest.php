@@ -7,6 +7,7 @@ use Tests\TestCase;
 use Illuminate\Support\Facades\File;
 use App\Console\Commands\CrawlNovels;
 use ReflectionClass;
+use Carbon\Carbon;
 
 class CrawlNovelsCommandTest extends TestCase
 {
@@ -101,15 +102,16 @@ class CrawlNovelsCommandTest extends TestCase
 
     public function test_write_heftromane_sorts_and_writes_json(): void
     {
+        Carbon::setTestNow(Carbon::create(2024, 6, 1));
         $command = new CrawlNovels();
         $ref = new ReflectionClass($command);
         $method = $ref->getMethod('writeHeftromane');
         $method->setAccessible(true);
 
         $data = [
-            [2, null, null, '4.0', '1', 'T2', null, null, null, null],
-            [1, null, null, 0, '1', 'Skip', null, null, null, null],
-            [3, null, null, '1.0', '1', 'T3', null, null, null, null],
+            [1, '2024-07-01', null, '4.0', '1', 'Future', null, null, null, null],
+            [2, '2024-05-01', null, '3.0', '2', 'Past', null, null, null, null],
+            [3, '2024-06-01', null, 0, '0', 'TodayUnrated', null, null, null, null],
         ];
         $file = storage_path('app/private/maddrax.json');
 
@@ -118,6 +120,7 @@ class CrawlNovelsCommandTest extends TestCase
         $this->assertTrue($result);
         $json = json_decode(File::get($file), true);
         $numbers = array_column($json, 'nummer');
-        $this->assertSame([2,3], $numbers); // rating 0 skipped and sorted
+        $this->assertSame([2,3], $numbers); // future release skipped, sorted
+        Carbon::setTestNow();
     }
 }
