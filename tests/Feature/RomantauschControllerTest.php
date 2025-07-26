@@ -138,6 +138,43 @@ class RomantauschControllerTest extends TestCase
         rename($path . '.bak', $path);
     }
 
+    public function test_point_awarded_on_every_tenth_offer(): void
+    {
+        $path = storage_path('app/private/maddrax.json');
+        rename($path, $path . '.bak');
+        file_put_contents($path, json_encode([
+            ['nummer' => 1, 'titel' => 'Roman1'],
+        ]));
+
+        $user = $this->actingMember();
+        $this->actingAs($user);
+
+        // create nine existing offers for the user
+        for ($i = 1; $i <= 9; $i++) {
+            BookOffer::create([
+                'user_id' => $user->id,
+                'series' => 'Maddrax - Die dunkle Zukunft der Erde',
+                'book_number' => $i,
+                'book_title' => 'Roman'.$i,
+                'condition' => 'neu',
+            ]);
+        }
+
+        $this->post('/romantauschboerse/store-offer', [
+            'book_number' => 1,
+            'condition' => 'neu',
+        ]);
+
+        $this->assertDatabaseCount('user_points', 1);
+        $this->assertDatabaseHas('user_points', [
+            'user_id' => $user->id,
+            'points' => 1,
+        ]);
+
+        unlink($path);
+        rename($path . '.bak', $path);
+    }
+
     public function test_store_offer_returns_error_when_book_missing(): void
     {
         $path = storage_path('app/private/maddrax.json');
