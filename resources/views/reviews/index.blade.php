@@ -2,7 +2,10 @@
     <div class="py-8">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <h1 class="text-2xl font-semibold text-[#8B0116] dark:text-[#FCA5A5] mb-4">Rezensionen</h1>
-
+            <p class="mb-6 text-sm text-gray-600 dark:text-gray-400">
+                Für jede <strong>zehnte</strong> verfasste Rezension erhältst du automatisch
+                <strong>1 Baxx</strong>.
+            </p>
             <div id="accordion">
                 @foreach($booksByCycle as $cycle => $cycleBooks)
                     @php $id = \Illuminate\Support\Str::slug($cycle); @endphp
