@@ -1,27 +1,27 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\PageController;
-use App\Http\Controllers\MitgliedschaftController;
 use App\Http\Controllers\Auth\CustomEmailVerificationController;
 use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\PhotoGalleryController;
-use App\Http\Controllers\MitgliederController;
-use App\Http\Controllers\ProfileViewController;
-use App\Http\Middleware\RedirectIfAnwaerter;
-use App\Http\Controllers\MitgliederKarteController;
-use App\Http\Controllers\TodoController;
-use App\Http\Controllers\RewardController;
-use App\Http\Controllers\MeetingController;
-use Illuminate\Support\Facades\Auth;
-use App\Http\Controllers\KassenbuchController;
-use App\Http\Controllers\MaddraxiversumController;
-use App\Http\Controllers\RomantauschController;
 use App\Http\Controllers\DownloadsController;
+use App\Http\Controllers\KassenbuchController;
 use App\Http\Controllers\KompendiumController;
-use App\Http\Controllers\StatistikController;
-use App\Http\Controllers\RezensionController;
+use App\Http\Controllers\MaddraxiversumController;
+use App\Http\Controllers\MeetingController;
+use App\Http\Controllers\MitgliederController;
+use App\Http\Controllers\MitgliederKarteController;
+use App\Http\Controllers\MitgliedschaftController;
+use App\Http\Controllers\PageController;
+use App\Http\Controllers\PhotoGalleryController;
+use App\Http\Controllers\ProfileViewController;
 use App\Http\Controllers\ReviewCommentController;
+use App\Http\Controllers\RewardController;
+use App\Http\Controllers\RezensionController;
+use App\Http\Controllers\RomantauschController;
+use App\Http\Controllers\StatistikController;
+use App\Http\Controllers\TodoController;
+use App\Http\Middleware\RedirectIfAnwaerter;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Route;
 
 // Öffentliche Seiten
 Route::get('/', [PageController::class, 'home'])->name('home');
@@ -48,72 +48,106 @@ Route::get('/email/verify/{id}/{hash}', CustomEmailVerificationController::class
 
 // Nur für eingeloggte und verifizierte Mitglieder, die NICHT Anwärter sind
 Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function () {
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-    Route::get('/protokolle', [PageController::class, 'protokolle'])->name('protokolle');
-    Route::get('/protokolle/download/{datei}', [PageController::class, 'downloadProtokoll'])->name('protokolle.download');
-    Route::post('/anwaerter/{user}/approve', [DashboardController::class, 'approveAnwaerter'])->name('anwaerter.approve');
-    Route::post('/anwaerter/{user}/reject', [DashboardController::class, 'rejectAnwaerter'])->name('anwaerter.reject');
+    Route::controller(DashboardController::class)->group(function () {
+        Route::get('/dashboard', 'index')->name('dashboard');
+        Route::post('/anwaerter/{user}/approve', 'approveAnwaerter')->name('anwaerter.approve');
+        Route::post('/anwaerter/{user}/reject', 'rejectAnwaerter')->name('anwaerter.reject');
+    });
+
+    Route::controller(PageController::class)->group(function () {
+        Route::get('/protokolle', 'protokolle')->name('protokolle');
+        Route::get('/protokolle/download/{datei}', 'downloadProtokoll')->name('protokolle.download');
+    });
+
     Route::get('/fotogalerie', [PhotoGalleryController::class, 'index'])->name('fotogalerie');
-    Route::get('/mitglieder', [MitgliederController::class, 'index'])->name('mitglieder.index');
-    Route::put('/mitglieder/{user}/role', [MitgliederController::class, 'changeRole'])->name('mitglieder.change-role');
-    Route::post('/mitglieder/export-csv', [MitgliederController::class, 'exportCsv'])->name('mitglieder.export-csv');
-    Route::get('/mitglieder/all-emails', [MitgliederController::class, 'getAllEmails'])->name('mitglieder.all-emails');
-    Route::delete('/mitglieder/{user}', [MitgliederController::class, 'removeMember'])->name('mitglieder.remove');
-    // Eigenes Profil anzeigen (muss VOR der generischen Route stehen)
-    Route::get('/profile/view', function () {
-        return app(ProfileViewController::class)->show(Auth::user());
-    })->name('profile.view.self');
-    // Fremdes Profil anzeigen
-    Route::get('/profile/{user}', [ProfileViewController::class, 'show'])->name('profile.view');
-    Route::get('/mitglieder/karte', [MitgliederKarteController::class, 'index'])->name('mitglieder.karte');
-    Route::get('/mitglieder/karte/locked', [MitgliederKarteController::class, 'locked'])->name('mitglieder.karte.locked');
-    Route::get('/todos', [TodoController::class, 'index'])->name('todos.index');
-    Route::get('/todos/create', [TodoController::class, 'create'])->name('todos.create');
-    Route::post('/todos', [TodoController::class, 'store'])->name('todos.store');
-    Route::get('/todos/{todo}', [TodoController::class, 'show'])->name('todos.show');
-    Route::post('/todos/{todo}/assign', [TodoController::class, 'assign'])->name('todos.assign');
-    Route::get('/todos/{todo}/edit', [TodoController::class, 'edit'])->name('todos.edit');
-    Route::put('/todos/{todo}', [TodoController::class, 'update'])->name('todos.update');
-    Route::post('/todos/{todo}/complete', [TodoController::class, 'complete'])->name('todos.complete');
-    Route::post('/todos/{todo}/verify', [TodoController::class, 'verify'])->name('todos.verify');
-    Route::post('/todos/{todo}/release', [TodoController::class, 'release'])->name('todos.release');
+
+    Route::prefix('mitglieder')->name('mitglieder.')->controller(MitgliederController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::put('/{user}/role', 'changeRole')->name('change-role');
+        Route::post('/export-csv', 'exportCsv')->name('export-csv');
+        Route::get('/all-emails', 'getAllEmails')->name('all-emails');
+        Route::delete('/{user}', 'removeMember')->name('remove');
+    });
+
+    Route::prefix('profile')->name('profile.')->group(function () {
+        Route::get('view', function () {
+            return app(ProfileViewController::class)->show(Auth::user());
+        })->name('view.self');
+        Route::get('{user}', [ProfileViewController::class, 'show'])->name('view');
+    });
+
+    Route::prefix('mitglieder/karte')->controller(MitgliederKarteController::class)->group(function () {
+        Route::get('/', 'index')->name('mitglieder.karte');
+        Route::get('/locked', 'locked')->name('mitglieder.karte.locked');
+    });
+
+    Route::prefix('todos')->name('todos.')->controller(TodoController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('create', 'create')->name('create');
+        Route::post('/', 'store')->name('store');
+        Route::get('{todo}', 'show')->name('show');
+        Route::get('{todo}/edit', 'edit')->name('edit');
+        Route::post('{todo}/assign', 'assign')->name('assign');
+        Route::put('{todo}', 'update')->name('update');
+        Route::post('{todo}/complete', 'complete')->name('complete');
+        Route::post('{todo}/verify', 'verify')->name('verify');
+        Route::post('{todo}/release', 'release')->name('release');
+    });
+
     Route::get('/belohnungen', [RewardController::class, 'index'])->name('rewards.index');
-    Route::get('/meetings', [MeetingController::class, 'index'])->name('meetings');
-    Route::post('/meetings/redirect', [MeetingController::class, 'redirectToZoom'])->name('meetings.redirect');
-    Route::get('/kassenbuch', [KassenbuchController::class, 'index'])->name('kassenbuch.index');
-    Route::put('/kassenbuch/update-payment/{user}', [KassenbuchController::class, 'updatePaymentStatus'])->name('kassenbuch.update-payment');
-    Route::post('/kassenbuch/add-entry', [KassenbuchController::class, 'addKassenbuchEntry'])->name('kassenbuch.add-entry');
-    Route::get('/maddraxiversum', [MaddraxiversumController::class, 'index'])->name('maddraxiversum.index');
-    Route::get('/maddraxikon-cities', [MaddraxiversumController::class, 'getCities']);
-    Route::post('/mission/start', [MaddraxiversumController::class, 'startMission']);
-    Route::post('/mission/check-status', [MaddraxiversumController::class, 'checkMissionStatus']);
-    Route::get('/mission/status', [MaddraxiversumController::class, 'getMissionStatus']);
-    //Badges
+
+    Route::prefix('meetings')->controller(MeetingController::class)->group(function () {
+        Route::get('/', 'index')->name('meetings');
+        Route::post('redirect', 'redirectToZoom')->name('meetings.redirect');
+    });
+
+    Route::prefix('kassenbuch')->name('kassenbuch.')->controller(KassenbuchController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::put('update-payment/{user}', 'updatePaymentStatus')->name('update-payment');
+        Route::post('add-entry', 'addKassenbuchEntry')->name('add-entry');
+    });
+
+    Route::controller(MaddraxiversumController::class)->group(function () {
+        Route::get('/maddraxiversum', 'index')->name('maddraxiversum.index');
+        Route::get('/maddraxikon-cities', 'getCities');
+        Route::post('/mission/start', 'startMission');
+        Route::post('/mission/check-status', 'checkMissionStatus');
+        Route::get('/mission/status', 'getMissionStatus');
+    });
+
     Route::get('/badges/{filename}', function ($filename) {
         $path = public_path('images/badges/' . $filename);
         if (!file_exists($path)) {
             abort(404);
         }
+
         return response()->file($path);
     })->name('badges.image');
-    // Romantauschbörse
-    Route::get('/romantauschboerse', [RomantauschController::class, 'index'])->name('romantausch.index');
-    Route::get('/romantauschboerse/create-offer', [RomantauschController::class, 'createOffer'])->name('romantausch.create-offer');
-    Route::post('/romantauschboerse/store-offer', [RomantauschController::class, 'storeOffer'])->name('romantausch.store-offer');
-    Route::get('/romantauschboerse/create-request', [RomantauschController::class, 'createRequest'])->name('romantausch.create-request');
-    Route::post('/romantauschboerse/store-request', [RomantauschController::class, 'storeRequest'])->name('romantausch.store-request');
-    Route::post('/romantauschboerse/{offer}/delete-offer', [RomantauschController::class, 'deleteOffer'])->name('romantausch.delete-offer');
-    Route::post('/romantauschboerse/{request}/delete-request', [RomantauschController::class, 'deleteRequest'])->name('romantausch.delete-request');
-    Route::post('/romantauschboerse/{offer}/{request}/complete', [RomantauschController::class, 'completeSwap'])->name('romantausch.complete-swap');
-    Route::post('/romantauschboerse/swaps/{swap}/confirm', [RomantauschController::class, 'confirmSwap'])->name('romantausch.confirm-swap');
-    Route::get('/downloads', [DownloadsController::class, 'index'])->name('downloads');
-    Route::get('/downloads/download/{datei}', [DownloadsController::class, 'download'])->name('downloads.download');
-    // Kompendium
-    Route::get('/kompendium', [KompendiumController::class, 'index'])->name('kompendium.index');
-    Route::get('/kompendium/search', [KompendiumController::class, 'search'])->name('kompendium.search');
-    //Statistik
+
+    Route::prefix('romantauschboerse')->name('romantausch.')->controller(RomantauschController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('create-offer', 'createOffer')->name('create-offer');
+        Route::post('store-offer', 'storeOffer')->name('store-offer');
+        Route::get('create-request', 'createRequest')->name('create-request');
+        Route::post('store-request', 'storeRequest')->name('store-request');
+        Route::post('{offer}/delete-offer', 'deleteOffer')->name('delete-offer');
+        Route::post('{request}/delete-request', 'deleteRequest')->name('delete-request');
+        Route::post('{offer}/{request}/complete', 'completeSwap')->name('complete-swap');
+        Route::post('swaps/{swap}/confirm', 'confirmSwap')->name('confirm-swap');
+    });
+
+    Route::prefix('downloads')->controller(DownloadsController::class)->group(function () {
+        Route::get('/', 'index')->name('downloads');
+        Route::get('download/{datei}', 'download')->name('downloads.download');
+    });
+
+    Route::prefix('kompendium')->name('kompendium.')->controller(KompendiumController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('search', 'search')->name('search');
+    });
+
     Route::get('/statistik', [StatistikController::class, 'index'])->name('statistik.index');
-    // Rezis
+
     Route::prefix('rezensionen')->name('reviews.')->group(function () {
         Route::get('/', [RezensionController::class, 'index'])->name('index');
         Route::get('/{book}', [RezensionController::class, 'show'])->name('show');
