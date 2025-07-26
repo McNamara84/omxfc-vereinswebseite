@@ -20,6 +20,11 @@
                     </a>
                 </div>
             </div>
+            <p class="mb-6 text-sm text-gray-600 dark:text-gray-400">
+                Für jedes <strong>zehnte</strong> eingestellte Angebot erhältst du automatisch
+                <strong>1 Bakk</strong>. Bestätigen beide Parteien einen Tausch, bekommt ihr
+                jeweils <strong>2 Baxx</strong> zusätzlich gutgeschrieben.
+            </p>
             @if($activeSwaps->isNotEmpty())
                 <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
                     <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-2">Deine Matches</h2>
