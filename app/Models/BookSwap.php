@@ -24,10 +24,14 @@ class BookSwap extends Model
         'offer_id',
         'request_id',
         'completed_at',
+        'offer_confirmed',
+        'request_confirmed',
     ];
 
     protected $casts = [
         'completed_at' => 'datetime',
+        'offer_confirmed' => 'boolean',
+        'request_confirmed' => 'boolean',
     ];
 
     public function offer()

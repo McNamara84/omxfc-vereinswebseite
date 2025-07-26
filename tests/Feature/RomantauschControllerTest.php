@@ -233,8 +233,9 @@ class RomantauschControllerTest extends TestCase
 
         $response->assertOk();
         $response->assertViewIs('romantausch.index');
-        $this->assertTrue($response->viewData('offers')->first()->is($offer));
-        $this->assertTrue($response->viewData('requests')->first()->is($request));
+        $this->assertTrue($response->viewData('offers')->isEmpty());
+        $this->assertTrue($response->viewData('requests')->isEmpty());
+        $this->assertTrue($response->viewData('activeSwaps')->isEmpty());
         $this->assertTrue($response->viewData('completedSwaps')->first()->is($swap));
     }
 

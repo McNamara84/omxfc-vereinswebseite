@@ -105,6 +105,7 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
     Route::post('/romantauschboerse/{offer}/delete-offer', [RomantauschController::class, 'deleteOffer'])->name('romantausch.delete-offer');
     Route::post('/romantauschboerse/{request}/delete-request', [RomantauschController::class, 'deleteRequest'])->name('romantausch.delete-request');
     Route::post('/romantauschboerse/{offer}/{request}/complete', [RomantauschController::class, 'completeSwap'])->name('romantausch.complete-swap');
+    Route::post('/romantauschboerse/swaps/{swap}/confirm', [RomantauschController::class, 'confirmSwap'])->name('romantausch.confirm-swap');
     Route::get('/downloads', [DownloadsController::class, 'index'])->name('downloads');
     Route::get('/downloads/download/{datei}', [DownloadsController::class, 'download'])->name('downloads.download');
     // Kompendium

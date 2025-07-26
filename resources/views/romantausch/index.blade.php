@@ -6,7 +6,6 @@
                     {{ session('success') }}
                 </div>
             @endif
-
             <!-- Kopfzeile mit Buttons -->
             <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <h1 class="text-2xl font-semibold text-[#8B0116] dark:text-[#FF6B81]">Romantauschbörse</h1>
@@ -21,7 +20,31 @@
                     </a>
                 </div>
             </div>
-
+            @if($activeSwaps->isNotEmpty())
+                <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
+                    <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-2">Deine Matches</h2>
+                    <p class="mb-4 text-gray-600 dark:text-gray-400">Kontaktiert euch gegenseitig über die angezeigten Mailadressen und klickt anschließend auf „Tausch abgeschlossen“. Für jeden abgeschlossenen Tausch gibt es <strong>2 Baxx</strong>!</p>
+                    <ul class="space-y-4">
+                        @foreach($activeSwaps as $swap)
+                            <li class="bg-gray-100 dark:bg-gray-700 p-3 rounded">
+                                <div class="font-semibold mb-1">{{ $swap->offer->book_number }} - {{ $swap->offer->book_title }}</div>
+                                <div class="text-sm text-gray-600 dark:text-gray-300 mb-2">
+                                    {{ $swap->offer->user->name }} ({{ $swap->offer->user->email }}) ↔ {{ $swap->request->user->name }} ({{ $swap->request->user->email }})
+                                </div>
+                                @php $user = auth()->user(); @endphp
+                                @if(($user->is($swap->offer->user) && !$swap->offer_confirmed) || ($user->is($swap->request->user) && !$swap->request_confirmed))
+                                    <form method="POST" action="{{ route('romantausch.confirm-swap', $swap) }}">
+                                        @csrf
+                                        <button class="px-4 py-2 bg-[#8B0116] dark:bg-[#C41E3A] text-white rounded">Tausch abgeschlossen</button>
+                                    </form>
+                                @else
+                                    <p class="text-green-700 dark:text-green-300">Bestätigt.</p>
+                                @endif
+                            </li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
             <!-- Angebote -->
             <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
                 <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4">Aktuelle Angebote</h2>
@@ -38,7 +61,6 @@
                     </ul>
                 @endif
             </div>
-
             <!-- Gesuche -->
             <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
                 <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4">Aktuelle Gesuche</h2>
@@ -55,7 +77,6 @@
                     </ul>
                 @endif
             </div>
-
             <!-- Abgeschlossene Tauschaktionen -->
             <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
                 <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4">Erfolgreiche Tauschaktionen</h2>
