@@ -22,6 +22,8 @@
                                 <x-dropdown-link href="{{ route('mitglieder.karte') }}">Mitgliederkarte</x-dropdown-link>
                                 <x-dropdown-link href="{{ route('protokolle') }}">Protokolle</x-dropdown-link>
                                 <x-dropdown-link href="{{ route('kassenbuch.index') }}">Kassenbuch</x-dropdown-link>
+                                <x-dropdown-link href="{{ route('reviews.index') }}">Rezensionen</x-dropdown-link>
+                                <x-dropdown-link href="{{ route('romantausch.index') }}">Tauschbörse</x-dropdown-link>
                             </div>
                         </div>
                         <!-- Dropdown Veranstaltungen -->
@@ -50,11 +52,9 @@
                             </button>
                             <div x-show="open" x-cloak class="absolute left-0 top-full mt-px w-48 bg-white dark:bg-gray-700 rounded-md shadow-lg z-50 py-2 group-hover:block">
                                 <x-dropdown-link href="{{ route('maddraxiversum.index') }}">Maddraxiversum</x-dropdown-link>
-                                <x-dropdown-link href="{{ route('romantausch.index') }}">Tauschbörse</x-dropdown-link>
                                 <x-dropdown-link href="{{ route('downloads') }}">Downloads</x-dropdown-link>
                                 <x-dropdown-link href="{{ route('kompendium.index') }}">Kompendium</x-dropdown-link>
                                 <x-dropdown-link href="{{ route('statistik.index') }}">Statistik</x-dropdown-link>
-                                <x-dropdown-link href="{{ route('reviews.index') }}">Rezensionen</x-dropdown-link>
                             </div>
                         </div>
                     @endauth
@@ -118,6 +118,8 @@
                 <x-responsive-nav-link href="{{ route('mitglieder.karte') }}">Mitgliederkarte</x-responsive-nav-link>
                 <x-responsive-nav-link href="{{ route('protokolle') }}">Protokolle</x-responsive-nav-link>
                 <x-responsive-nav-link href="{{ route('kassenbuch.index') }}">Kassenbuch</x-responsive-nav-link>
+                <x-responsive-nav-link href="{{ route('reviews.index') }}">Rezensionen</x-responsive-nav-link>
+                <x-responsive-nav-link href="{{ route('romantausch.index') }}">Tauschbörse</x-responsive-nav-link>
             </div>
 
             <button @click="openMenu = (openMenu === 'veranstaltungen' ? null : 'veranstaltungen')" class="w-full text-left px-4 py-2 font-semibold text-gray-600 dark:text-gray-300">Veranstaltungen</button>
@@ -132,11 +134,10 @@
                 <x-responsive-nav-link href="{{ route('rewards.index') }}">Belohnungen</x-responsive-nav-link>
             </div>
             <x-responsive-nav-link href="{{ route('maddraxiversum.index') }}">Maddraxiversum</x-responsive-nav-link>
-            <x-responsive-nav-link href="{{ route('romantausch.index') }}">Tauschbörse</x-responsive-nav-link>
             <x-responsive-nav-link href="{{ route('downloads') }}">Downloads</x-responsive-nav-link>
             <x-responsive-nav-link href="{{ route('kompendium.index') }}">Kompendium</x-responsive-nav-link>
             <x-responsive-nav-link href="{{ route('statistik.index') }}">Statistik</x-responsive-nav-link>
-            <x-responsive-nav-link href="{{ route('reviews.index') }}">Rezensionen</x-responsive-nav-link>
+    
         @endauth
 
         @guest
