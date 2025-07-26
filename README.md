@@ -39,6 +39,7 @@ Eine Laravel 12 Anwendung für die Vereinswebseite des OMFXC.
 
 | Zweck | Befehl |
 |-------|--------|
+| Docker Compose nutzen | docker exec maddrax-app php
 | Server starten | `php artisan serve` |
 | Datenbankmigrationen ausführen | `php artisan migrate` |
 | Migrationen rückgängig machen | `php artisan migrate:rollback` |
@@ -49,6 +50,7 @@ Eine Laravel 12 Anwendung für die Vereinswebseite des OMFXC.
 | Romane komplett neu indexieren | `php artisan romane:index --fresh` |
 | Romane importieren | `php artisan books:import` |
 | Rezensionen importieren | `php artisan reviews:import-old --fresh` |
+| Neue Romane crawlen | `php artisan crawlnovels` |
 
 Weitere Befehle lassen sich über `php artisan list` anzeigen.
 
