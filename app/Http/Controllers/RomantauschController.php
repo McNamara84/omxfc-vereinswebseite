@@ -75,6 +75,12 @@ class RomantauschController extends Controller
             'book_title' => $book['titel'],
             'condition' => $validated['condition'],
         ]);
+
+        $offerCount = BookOffer::where('user_id', Auth::id())->count();
+        if ($offerCount % 10 === 0) {
+            Auth::user()->incrementTeamPoints();
+        }
+
         $this->matchSwap($offer, 'offer');
 
         return redirect()->route('romantausch.index')->with('success', 'Angebot erstellt.');
