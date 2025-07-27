@@ -12,6 +12,9 @@ use App\Models\UserPoint;
 use Illuminate\Support\Str;
 use App\Models\Book;
 use App\Models\Review;
+use App\Models\BookOffer;
+use App\Models\BookRequest;
+use App\Models\BookSwap;
 
 class ProfileViewControllerTest extends TestCase
 {
@@ -42,6 +45,33 @@ class ProfileViewControllerTest extends TestCase
             'todo_id' => $todo->id,
             'points' => $points,
         ]);
+    }
+
+    private function createCompletedSwaps(User $member, User $partner, int $count): void
+    {
+        for ($i = 0; $i < $count; $i++) {
+            $offer = BookOffer::create([
+                'user_id' => $member->id,
+                'series' => 'Series',
+                'book_number' => $i + 1,
+                'book_title' => 'Title',
+                'condition' => 'neu',
+            ]);
+
+            $request = BookRequest::create([
+                'user_id' => $partner->id,
+                'series' => 'Series',
+                'book_number' => $i + 1,
+                'book_title' => 'Title',
+                'condition' => 'neu',
+            ]);
+
+            BookSwap::create([
+                'offer_id' => $offer->id,
+                'request_id' => $request->id,
+                'completed_at' => now(),
+            ]);
+        }
     }
 
     public function test_view_own_profile_shows_details(): void
@@ -167,5 +197,73 @@ class ProfileViewControllerTest extends TestCase
         $response->assertViewHas('userPoints', 0);
         $response->assertViewHas('categoryPoints', []);
         $response->assertViewHas('badges', []);
+    }
+
+    public function test_haendler_badge_for_one_swap(): void
+    {
+        $admin = $this->createMember('Admin');
+        $member = $this->createMember();
+        $partner = $this->createMember();
+
+        $this->createCompletedSwaps($member, $partner, 1);
+
+        $this->actingAs($admin);
+        $response = $this->get("/profile/{$member->id}");
+
+        $response->assertOk();
+        $badges = $response->viewData('badges');
+        $this->assertCount(1, $badges);
+        $this->assertEquals('Händler (Stufe 1)', $badges[0]['name']);
+    }
+
+    public function test_haendler_badge_for_ten_swaps(): void
+    {
+        $admin = $this->createMember('Admin');
+        $member = $this->createMember();
+        $partner = $this->createMember();
+
+        $this->createCompletedSwaps($member, $partner, 10);
+
+        $this->actingAs($admin);
+        $response = $this->get("/profile/{$member->id}");
+
+        $response->assertOk();
+        $badges = $response->viewData('badges');
+        $this->assertCount(1, $badges);
+        $this->assertEquals('Händler (Stufe 2)', $badges[0]['name']);
+    }
+
+    public function test_haendler_badge_for_hundred_swaps(): void
+    {
+        $admin = $this->createMember('Admin');
+        $member = $this->createMember();
+        $partner = $this->createMember();
+
+        $this->createCompletedSwaps($member, $partner, 100);
+
+        $this->actingAs($admin);
+        $response = $this->get("/profile/{$member->id}");
+
+        $response->assertOk();
+        $badges = $response->viewData('badges');
+        $this->assertCount(1, $badges);
+        $this->assertEquals('Händler (Stufe 3)', $badges[0]['name']);
+    }
+
+    public function test_haendler_badge_for_thousand_swaps(): void
+    {
+        $admin = $this->createMember('Admin');
+        $member = $this->createMember();
+        $partner = $this->createMember();
+
+        $this->createCompletedSwaps($member, $partner, 1000);
+
+        $this->actingAs($admin);
+        $response = $this->get("/profile/{$member->id}");
+
+        $response->assertOk();
+        $badges = $response->viewData('badges');
+        $this->assertCount(1, $badges);
+        $this->assertEquals('Händler (Stufe 4)', $badges[0]['name']);
     }
 }

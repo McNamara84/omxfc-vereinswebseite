@@ -8,6 +8,7 @@ use App\Models\Team;
 use App\Models\UserPoint;
 use App\Models\TodoCategory;
 use App\Models\Review;
+use App\Models\BookSwap;
 
 class ProfileViewController extends Controller
 {
@@ -139,6 +140,43 @@ class ProfileViewController extends Controller
                     'name' => 'Rezensator (Stufe 1)',
                     'description' => 'Hat 10 Rezensionen verfasst',
                     'image' => route('badges.image', ['filename' => 'BadgeRezensator1.png']),
+                ];
+            }
+
+            // Händler Badges - für abgeschlossene Tauschtransaktionen
+            $tradeCount = BookSwap::whereNotNull('completed_at')
+                ->where(function ($query) use ($user) {
+                    $query->whereHas('offer', function ($q) use ($user) {
+                        $q->where('user_id', $user->id);
+                    })->orWhereHas('request', function ($q) use ($user) {
+                        $q->where('user_id', $user->id);
+                    });
+                })
+                ->count();
+
+            if ($tradeCount >= 1000) {
+                $badges[] = [
+                    'name' => 'Händler (Stufe 4)',
+                    'description' => 'Hat 1000 Tauschgeschäfte abgeschlossen',
+                    'image' => route('badges.image', ['filename' => 'BadgeHaendler4.png']),
+                ];
+            } elseif ($tradeCount >= 100) {
+                $badges[] = [
+                    'name' => 'Händler (Stufe 3)',
+                    'description' => 'Hat 100 Tauschgeschäfte abgeschlossen',
+                    'image' => route('badges.image', ['filename' => 'BadgeHaendler3.png']),
+                ];
+            } elseif ($tradeCount >= 10) {
+                $badges[] = [
+                    'name' => 'Händler (Stufe 2)',
+                    'description' => 'Hat 10 Tauschgeschäfte abgeschlossen',
+                    'image' => route('badges.image', ['filename' => 'BadgeHaendler2.png']),
+                ];
+            } elseif ($tradeCount >= 1) {
+                $badges[] = [
+                    'name' => 'Händler (Stufe 1)',
+                    'description' => 'Hat einen Tausch erfolgreich abgeschlossen',
+                    'image' => route('badges.image', ['filename' => 'BadgeHaendler1.png']),
                 ];
             }
         }
