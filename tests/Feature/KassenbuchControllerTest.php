@@ -122,4 +122,58 @@ class KassenbuchControllerTest extends TestCase
         $entries = $response->viewData('kassenbuchEntries');
         $this->assertCount(1, $entries);
     }
+
+    public function test_member_cannot_update_payment_status(): void
+    {
+        $member = $this->actingMember();
+        $this->actingAs($member);
+
+        $team = $member->currentTeam;
+        $target = User::factory()->create([
+            'current_team_id' => $team->id,
+            'bezahlt_bis' => '2024-06-30',
+            'mitglied_seit' => '2020-01-01',
+            'mitgliedsbeitrag' => 36.00,
+        ]);
+        $team->users()->attach($target, ['role' => 'Mitglied']);
+
+        $response = $this->from('/kassenbuch')->put("/kassenbuch/update-payment/{$target->id}", [
+            'mitgliedsbeitrag' => 42,
+            'bezahlt_bis' => '2025-12-31',
+            'mitglied_seit' => '2024-01-01',
+        ]);
+
+        $response->assertRedirect('/kassenbuch');
+        $response->assertSessionHas('error');
+
+        $target->refresh();
+        $this->assertEquals('2024-06-30', $target->bezahlt_bis->format('Y-m-d'));
+        $this->assertEquals('2020-01-01', $target->mitglied_seit->format('Y-m-d'));
+        $this->assertEquals(36.00, $target->mitgliedsbeitrag);
+    }
+
+    public function test_member_cannot_add_entry(): void
+    {
+        $member = $this->actingMember();
+        $this->actingAs($member);
+
+        // initialize kassenstand
+        $this->get('/kassenbuch');
+
+        $response = $this->from('/kassenbuch')->post('/kassenbuch/add-entry', [
+            'buchungsdatum' => '2025-01-01',
+            'betrag' => 5,
+            'beschreibung' => 'Beitrag',
+            'typ' => 'einnahme',
+        ]);
+
+        $response->assertRedirect('/kassenbuch');
+        $response->assertSessionHas('error');
+
+        $this->assertDatabaseCount('kassenbuch_entries', 0);
+        $this->assertDatabaseHas('kassenstand', [
+            'team_id' => $member->currentTeam->id,
+            'betrag' => 0.00,
+        ]);
+    }
 }
