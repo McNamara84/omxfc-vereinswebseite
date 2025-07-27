@@ -330,8 +330,7 @@ class TodoController extends Controller
         $userRole = $membership ? $membership->membership->role : null;
 
         if (!in_array($userRole, ['Kassenwart', 'Vorstand', 'Admin'])) {
-            return redirect()->route('todos.show', $todo)
-                ->with('error', 'Sie haben keine Berechtigung, diese Challenge zu verifizieren.');
+            abort(403);
         }
 
         // Punkte gutschreiben

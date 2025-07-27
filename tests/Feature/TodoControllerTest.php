@@ -88,6 +88,25 @@ class TodoControllerTest extends TestCase
         ]);
     }
 
+    public function test_member_cannot_verify_other_users_todo(): void
+    {
+        $assignee = $this->actingMember();
+        $admin = $this->actingMember('Admin');
+        $todo = $this->createTodo($admin, [
+            'assigned_to' => $assignee->id,
+            'status' => 'completed',
+            'completed_at' => now(),
+        ]);
+        $member = $this->actingMember();
+        $this->actingAs($member);
+
+        $this->post(route('todos.verify', $todo))->assertForbidden();
+
+        $todo->refresh();
+        $this->assertSame('completed', $todo->status);
+        $this->assertNull($todo->verified_by);
+    }
+
     public function test_assigned_user_can_release_todo(): void
     {
         $user = $this->actingMember();
@@ -135,6 +154,11 @@ class TodoControllerTest extends TestCase
             'points' => 5,
             'category_id' => TodoCategory::first()->id,
         ])->assertForbidden();
+
+        $todo->refresh();
+        $this->assertSame('Todo', $todo->title);
+        $this->assertSame('desc', $todo->description);
+        $this->assertSame(5, $todo->points);
     }
 
     public function test_index_displays_lists_and_points(): void
