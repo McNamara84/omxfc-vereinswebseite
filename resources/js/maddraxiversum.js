@@ -144,7 +144,7 @@ function animateGlider(from, to, durationSeconds) {
         // Erstelle das Icon
         const gliderIcon = L.divIcon({
             className: 'glider-icon',
-            html: `<img src="/images/mapdrax/GleiterPlayer.png" style="width: 32px; height: 32px; transform: rotate(${bearing}deg);">`,
+            html: `<img src="/images/mapdrax/GleiterPlayer.png" alt="Gleiter von oben" style="width: 32px; height: 32px; transform: rotate(${bearing}deg);">`,
             iconSize: [32, 32],
             iconAnchor: [16, 16]
         });
