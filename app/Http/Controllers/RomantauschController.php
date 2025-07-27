@@ -12,6 +12,7 @@ use App\Models\BookOffer;
 use App\Models\BookRequest;
 use App\Models\BookSwap;
 use App\Mail\BookSwapMatched;
+use App\Models\Activity;
 
 class RomantauschController extends Controller
 {
@@ -83,6 +84,12 @@ class RomantauschController extends Controller
 
         $this->matchSwap($offer, 'offer');
 
+        Activity::create([
+            'user_id' => Auth::id(),
+            'subject_type' => BookOffer::class,
+            'subject_id' => $offer->id,
+        ]);
+
         return redirect()->route('romantausch.index')->with('success', 'Angebot erstellt.');
     }
 
@@ -136,6 +143,12 @@ class RomantauschController extends Controller
             'condition' => $validated['condition'],
         ]);
         $this->matchSwap($requestModel, 'request');
+
+        Activity::create([
+            'user_id' => Auth::id(),
+            'subject_type' => BookRequest::class,
+            'subject_id' => $requestModel->id,
+        ]);
 
         return redirect()->route('romantausch.index')->with('success', 'Gesuch erstellt.');
     }
