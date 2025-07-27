@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
+use App\Models\Activity;
 
 class DashboardController extends Controller
 {
@@ -159,6 +160,11 @@ class DashboardController extends Controller
                 ->count()
         );
 
+        $activities = Activity::with('user')
+            ->latest()
+            ->limit(10)
+            ->get();
+
         return view('dashboard', compact(
             'memberCount',
             'anwaerter',
@@ -171,7 +177,8 @@ class DashboardController extends Controller
             'topUsers',
             'allReviews',
             'myReviews',
-            'myReviewComments'
+            'myReviewComments',
+            'activities'
         ));
     }
 

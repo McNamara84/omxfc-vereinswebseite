@@ -59,6 +59,34 @@
                     </div>
                 </div>
             </div>
+            <!-- Aktivitäten Card -->
+            <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-8">
+                <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FCA5A5] mb-4">Aktivitäten</h2>
+                <ul class="divide-y divide-gray-200 dark:divide-gray-700">
+                    @forelse($activities as $activity)
+                        <li class="py-2 flex justify-between">
+                            <span class="text-sm text-gray-600 dark:text-gray-400">
+                                {{ $activity->created_at->format('d.m.Y H:i') }} - {{ $activity->user->name }}
+                            </span>
+                            @if($activity->subject_type === \App\Models\Review::class)
+                                <a href="{{ route('reviews.show', $activity->subject->book_id) }}" class="text-sm text-blue-600 dark:text-blue-400 hover:underline">
+                                    Neue Rezension: {{ $activity->subject->title }}
+                                </a>
+                            @elseif($activity->subject_type === \App\Models\BookOffer::class)
+                                <a href="{{ route('romantausch.index') }}" class="text-sm text-blue-600 dark:text-blue-400 hover:underline">
+                                    Neues Angebot: {{ $activity->subject->book_title }}
+                                </a>
+                            @elseif($activity->subject_type === \App\Models\BookRequest::class)
+                                <a href="{{ route('romantausch.index') }}" class="text-sm text-blue-600 dark:text-blue-400 hover:underline">
+                                    Neues Gesuch: {{ $activity->subject->book_title }}
+                                </a>
+                            @endif
+                        </li>
+                    @empty
+                        <li class="py-2 text-gray-600 dark:text-gray-400">Keine Aktivitäten vorhanden.</li>
+                    @endforelse
+                </ul>
+            </div>
             <!-- TOP 3 Mitglieder -->
             <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-8">
                 <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FCA5A5] mb-6">TOP 3 Baxx-Sammler</h2>
