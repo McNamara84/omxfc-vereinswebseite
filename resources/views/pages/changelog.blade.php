@@ -4,6 +4,27 @@
         <p class="mb-6">Auf dieser Seite werden sämtliche Änderungen an der Vereinswebseite des Offiziellen Maddrax
             Fanclub e. V. dokumentiert.</p>
         <section class="mb-6">
+            <h2 class="text-xl font-semibold mb-2">Version 1.3.0 (27.07.2025)</h2>
+            <h3 class="text-l font-semibold mb-2">Features:</h3>
+            <ul class="list-disc ml-6 mt-2">
+                <li>Dashboard um neues Panel für Aktivitäten der Mitglieder erweitert</li>
+                <li>Filtermöglichkeiten in Rezensionen eingeführt</li>
+                <li>Neue Badges für das Verfassen von Rezensionen</li>
+                <li>Neue Badges für das Tauschen von Romanen in der Romantauschbörse</li>
+                <li>Angepasste Fehlerseiten für Fehler 403, 404 und 500</li>
+            </ul>
+            <h3 class="text-l font-semibold mb-2">Änderungen:</h3>
+            <ul class="list-disc ml-6 mt-2">
+                <li>Für jedes zehnte Tauschangebot in der Romantauschbörse erhalten Mitglieder nun einen Bakk</li>
+                <li>Für abgeschlossene Tauschtransaktionen in der Romantauschbörse erhalten beide Parteien jeweils 2 Baxx zusätzlich</li>
+                <li>Links zur Romantauschbörse und zu den Rezensionen im Hauptmenü in den übergeordneten Menüpunkt Verein verschoben</li>
+                <li>Alternative Textbeschreibungen für Fotos optimiert für mehr Barrierefreiheit</li>
+                <li>Tastaturnavigation für das Hauptmenü implementiert</li>
+                <li>Validierung im Mitgliedsantrag verbessert mit Live-Hinweisen beim Ausfüllen des Formulars</li>
+                <li>Ladezeiten der Mitgliederkarte optimiert durch Caching und Indizierung</li>
+            </ul>
+        </section>
+        <section class="mb-6">
             <h2 class="text-xl font-semibold mb-2">Version 1.2.0 (23.07.2025)</h2>
             <h3 class="text-l font-semibold mb-2">Features:</h3>
             <ul class="list-disc ml-6 mt-2">
