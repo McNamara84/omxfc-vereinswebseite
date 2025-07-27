@@ -205,7 +205,6 @@
                 e.preventDefault();
 
                 if (!validateForm() || !satzungCheck.checked) {
-                    alert('Bitte korrigiere die rot markierten Fehler im Formular.');
                     return;
                 }
 
@@ -239,11 +238,26 @@
 
                     if ((response.ok && result && result.success) || (result && result.success)) {
                         window.location.href = '/mitglied-werden/erfolgreich';
-                    } else {
-                        messages.textContent = result && result.errors
-                            ? Object.values(result.errors).join(' ')
-                            : 'Unbekannter Fehler aufgetreten.';
+                    } else if (response.status === 422 && result && result.errors) {
+                        // Serverseitige Validierungsfehler den jeweiligen Feldern zuordnen
+                        for (const [field, msgs] of Object.entries(result.errors)) {
+                            const errorElem = document.getElementById(`error-${field}`);
+                            if (errorElem) {
+                                errorElem.textContent = msgs.join(' ');
+                            }
+                        }
 
+                        messages.textContent = 'Bitte korrigiere die markierten Felder.';
+                        messages.className = 'mb-4 p-4 bg-red-100 border border-red-400 text-red-800 rounded';
+                        messages.classList.remove('hidden');
+                        messages.scrollIntoView({ behavior: 'smooth' });
+
+                        // Button und Indikator zurücksetzen bei Fehler
+                        submitButton.disabled = false;
+                        submitButton.classList.remove('hidden');
+                        loadingIndicator.classList.add('hidden');
+                    } else {
+                        messages.textContent = 'Unbekannter Fehler aufgetreten.';
                         messages.className = 'mb-4 p-4 bg-red-100 border border-red-400 text-red-800 rounded';
                         messages.classList.remove('hidden');
                         messages.scrollIntoView({ behavior: 'smooth' });
