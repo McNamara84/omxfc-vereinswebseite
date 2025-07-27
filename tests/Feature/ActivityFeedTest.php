@@ -12,6 +12,8 @@ use App\Models\BookOffer;
 use App\Models\BookRequest;
 use App\Models\Activity;
 use App\Models\Team;
+use App\Models\Todo;
+use App\Models\TodoCategory;
 
 class ActivityFeedTest extends TestCase
 {
@@ -26,11 +28,11 @@ class ActivityFeedTest extends TestCase
         ]));
     }
 
-    private function actingMember(): User
+    private function actingMember(string $role = 'Mitglied'): User
     {
         $team = Team::where('name', 'Mitglieder')->first();
         $user = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($user, ['role' => 'Mitglied']);
+        $team->users()->attach($user, ['role' => $role]);
         return $user;
     }
 
@@ -145,5 +147,56 @@ class ActivityFeedTest extends TestCase
 
         $response->assertOk();
         $this->assertCount(3, $response->viewData('activities'));
+    }
+
+    public function test_activity_created_when_challenge_is_accepted(): void
+    {
+        $user = $this->actingMember();
+        $this->actingAs($user);
+
+        $category = \App\Models\TodoCategory::create(['name' => 'Test', 'slug' => 'test']);
+        $todo = \App\Models\Todo::create([
+            'team_id' => $user->currentTeam->id,
+            'created_by' => $user->id,
+            'title' => 'Challenge',
+            'points' => 5,
+            'category_id' => $category->id,
+            'status' => 'open',
+        ]);
+
+        $this->post(route('todos.assign', $todo));
+
+        $this->assertDatabaseHas('activities', [
+            'user_id' => $user->id,
+            'subject_type' => \App\Models\Todo::class,
+            'subject_id' => $todo->id,
+            'action' => 'accepted',
+        ]);
+    }
+
+    public function test_activity_created_when_challenge_is_verified(): void
+    {
+        $assignee = $this->actingMember();
+        $admin = $this->actingMember('Admin');
+        $category = \App\Models\TodoCategory::create(['name' => 'Test2', 'slug' => 'test2']);
+        $todo = \App\Models\Todo::create([
+            'team_id' => $assignee->currentTeam->id,
+            'created_by' => $admin->id,
+            'assigned_to' => $assignee->id,
+            'title' => 'Challenge',
+            'points' => 5,
+            'category_id' => $category->id,
+            'status' => 'completed',
+            'completed_at' => now(),
+        ]);
+
+        $this->actingAs($admin)->post(route('todos.verify', $todo));
+
+        $this->assertDatabaseHas('activities', [
+            'user_id' => $assignee->id,
+            'subject_type' => \App\Models\Todo::class,
+            'subject_id' => $todo->id,
+            'action' => 'completed',
+        ]);
     }
 }

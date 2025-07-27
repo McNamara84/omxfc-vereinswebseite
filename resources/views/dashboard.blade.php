@@ -80,6 +80,10 @@
                                 <a href="{{ route('romantausch.index') }}" class="text-sm text-blue-600 dark:text-blue-400 hover:underline">
                                     Neues Gesuch: {{ $activity->subject->book_title }}
                                 </a>
+                            @elseif($activity->subject_type === \App\Models\Todo::class && $activity->action === 'accepted')
+                                <span class="text-sm">hat die Challenge {{ $activity->subject->title }} angenommen</span>
+                            @elseif($activity->subject_type === \App\Models\Todo::class && $activity->action === 'completed')
+                                <span class="text-sm">hat die Challenge {{ $activity->subject->title }} erfolgreich abgeschlossen</span>
                             @endif
                         </li>
                     @empty

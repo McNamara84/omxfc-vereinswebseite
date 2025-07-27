@@ -12,6 +12,7 @@ class Activity extends Model
         'user_id',
         'subject_type',
         'subject_id',
+        'action',
     ];
 
     public function user(): BelongsTo

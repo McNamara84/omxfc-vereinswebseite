@@ -8,6 +8,7 @@ use App\Models\Todo;
 use App\Models\Team;
 use App\Models\UserPoint;
 use App\Models\TodoCategory;
+use App\Models\Activity;
 
 class TodoController extends Controller
 {
@@ -275,6 +276,13 @@ class TodoController extends Controller
             'status' => 'assigned'
         ]);
 
+        Activity::create([
+            'user_id' => $user->id,
+            'subject_type' => Todo::class,
+            'subject_id' => $todo->id,
+            'action' => 'accepted',
+        ]);
+
         return redirect()->route('todos.show', $todo)
             ->with('status', 'Challenge wurde erfolgreich übernommen.');
     }
@@ -338,6 +346,13 @@ class TodoController extends Controller
             'status' => 'verified',
             'verified_by' => $user->id,
             'verified_at' => now()
+        ]);
+
+        Activity::create([
+            'user_id' => $todo->assigned_to,
+            'subject_type' => Todo::class,
+            'subject_id' => $todo->id,
+            'action' => 'completed',
         ]);
 
         return redirect()->route('todos.show', $todo)
