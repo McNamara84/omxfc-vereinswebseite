@@ -6,6 +6,34 @@
                 Für jede <strong>zehnte</strong> verfasste Rezension erhältst du automatisch
                 <strong>1 Baxx</strong>.
             </p>
+            <form method="GET" action="{{ route('reviews.index') }}" class="mb-6 bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div>
+                        <label for="roman_number" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Nr.</label>
+                        <input id="roman_number" name="roman_number" type="text" value="{{ request('roman_number') }}" class="mt-1 block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 rounded" />
+                    </div>
+                    <div>
+                        <label for="title" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Titel</label>
+                        <input id="title" name="title" type="text" value="{{ request('title') }}" class="mt-1 block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 rounded" />
+                    </div>
+                    <div>
+                        <label for="author" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Autor</label>
+                        <input id="author" name="author" type="text" value="{{ request('author') }}" class="mt-1 block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 rounded" />
+                    </div>
+                    <div>
+                        <label for="review_status" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Rezensionsstatus</label>
+                        <select id="review_status" name="review_status" class="mt-1 block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 rounded">
+                            <option value="">Alle</option>
+                            <option value="with" @selected(request('review_status') === 'with')>Mit Rezension</option>
+                            <option value="without" @selected(request('review_status') === 'without')>Ohne Rezension</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="mt-4 flex items-center">
+                    <button type="submit" class="bg-[#8B0116] dark:bg-[#FCA5A5] text-white px-4 py-2 rounded">Filtern</button>
+                    <a href="{{ route('reviews.index') }}" class="ml-3 text-gray-600 dark:text-gray-400 hover:underline">Zurücksetzen</a>
+                </div>
+            </form>
             <div id="accordion">
                 @foreach($booksByCycle as $cycle => $cycleBooks)
                     @php $id = \Illuminate\Support\Str::slug($cycle); @endphp

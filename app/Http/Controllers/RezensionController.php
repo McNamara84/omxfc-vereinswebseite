@@ -46,7 +46,7 @@ class RezensionController extends Controller
     /**
      * Übersicht aller Bücher + Rezensionszahl.
      */
-    public function index()
+    public function index(Request $request)
     {
         $role = $this->getRoleInMemberTeam();
         if (!in_array($role, ['Mitglied', 'Ehrenmitglied', 'Kassenwart', 'Vorstand', 'Admin'], true)) {
@@ -56,7 +56,27 @@ class RezensionController extends Controller
         $user = Auth::user();
         $teamId = $this->memberTeam()->id;
 
-        $books = Book::withCount('reviews')
+        $query = Book::query();
+
+        if ($request->filled('roman_number')) {
+            $query->where('roman_number', $request->integer('roman_number'));
+        }
+
+        if ($request->filled('title')) {
+            $query->where('title', 'like', '%' . $request->input('title') . '%');
+        }
+
+        if ($request->filled('author')) {
+            $query->where('author', 'like', '%' . $request->input('author') . '%');
+        }
+
+        if ($request->input('review_status') === 'with') {
+            $query->whereHas('reviews');
+        } elseif ($request->input('review_status') === 'without') {
+            $query->doesntHave('reviews');
+        }
+
+        $books = $query->withCount('reviews')
             ->withExists(['reviews as has_review' => function ($query) use ($user, $teamId) {
                 $query->where('team_id', $teamId)
                     ->where('user_id', $user->id);
