@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Team;
 use App\Models\UserPoint;
 use App\Models\TodoCategory;
+use App\Models\Review;
 
 class ProfileViewController extends Controller
 {
@@ -116,6 +116,30 @@ class ProfileViewController extends Controller
                         'image' => route('badges.image', ['filename' => 'BadgeRetrologe1.png']),
                     ];
                 }
+            }
+            // Rezensator Badges - für verfasste Rezensionen
+            $reviewCount = Review::where('team_id', $memberTeam->id)
+                ->where('user_id', $user->id)
+                ->count();
+
+            if ($reviewCount >= 1000) {
+                $badges[] = [
+                    'name' => 'Rezensator (Stufe 3)',
+                    'description' => 'Hat 1000 Rezensionen verfasst',
+                    'image' => route('badges.image', ['filename' => 'BadgeRezensator3.png']),
+                ];
+            } elseif ($reviewCount >= 100) {
+                $badges[] = [
+                    'name' => 'Rezensator (Stufe 2)',
+                    'description' => 'Hat 100 Rezensionen verfasst',
+                    'image' => route('badges.image', ['filename' => 'BadgeRezensator2.png']),
+                ];
+            } elseif ($reviewCount >= 10) {
+                $badges[] = [
+                    'name' => 'Rezensator (Stufe 1)',
+                    'description' => 'Hat 10 Rezensionen verfasst',
+                    'image' => route('badges.image', ['filename' => 'BadgeRezensator1.png']),
+                ];
             }
         }
 

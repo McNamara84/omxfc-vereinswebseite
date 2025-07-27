@@ -10,6 +10,8 @@ use App\Models\Todo;
 use App\Models\TodoCategory;
 use App\Models\UserPoint;
 use Illuminate\Support\Str;
+use App\Models\Book;
+use App\Models\Review;
 
 class ProfileViewControllerTest extends TestCase
 {
@@ -119,6 +121,20 @@ class ProfileViewControllerTest extends TestCase
         $this->createTodoWithPoints($member, $general, 5);
         $this->createTodoWithPoints($member, $maddraxikon, 3);
 
+        $book = Book::create([
+            'roman_number' => 1,
+            'title' => 'Roman1',
+            'author' => 'Author',
+        ]);
+        for ($i = 0; $i < 10; $i++) {
+            Review::create([
+                'team_id' => $member->currentTeam->id,
+                'user_id' => $member->id,
+                'book_id' => $book->id,
+                'title' => 'R'.$i,
+                'content' => str_repeat('A', 140),
+            ]);
+        }
         $this->actingAs($admin);
 
         $response = $this->get("/profile/{$member->id}");
@@ -131,9 +147,10 @@ class ProfileViewControllerTest extends TestCase
             'AG Maddraxikon' => 3,
         ]);
         $badges = $response->viewData('badges');
-        $this->assertCount(2, $badges);
+        $this->assertCount(3, $badges);
         $this->assertEquals('Ersthelfer', $badges[0]['name']);
         $this->assertEquals('Retrologe (Stufe 1)', $badges[1]['name']);
+        $this->assertEquals('Rezensator (Stufe 1)', $badges[2]['name']);
     }
 
     public function test_member_team_missing_results_in_zero_points(): void
