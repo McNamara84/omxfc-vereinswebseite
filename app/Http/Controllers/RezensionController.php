@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 use App\Models\User;
 use App\Mail\NewReviewNotification;
 use Illuminate\Support\Facades\Mail;
+use App\Models\Activity;
 
 class RezensionController extends Controller
 {
@@ -179,6 +180,12 @@ class RezensionController extends Controller
                     ->send(new NewReviewNotification($review, $author));
             }
         }
+
+        Activity::create([
+            'user_id' => $user->id,
+            'subject_type' => Review::class,
+            'subject_id' => $review->id,
+        ]);
 
         return redirect()
             ->route('reviews.show', $book)
