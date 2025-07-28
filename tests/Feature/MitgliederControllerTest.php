@@ -138,4 +138,93 @@ class MitgliederControllerTest extends TestCase
         $this->assertDatabaseMissing('users', ['id' => $member->id]);
         $this->assertDatabaseMissing('team_user', ['user_id' => $member->id]);
     }
+
+    public function test_index_sorts_members_by_role_desc(): void
+    {
+        $team = Team::where('name', 'Mitglieder')->first();
+
+        $vorstand = User::factory()->create(['name' => 'Victor Vorstand', 'current_team_id' => $team->id]);
+        $team->users()->attach($vorstand, ['role' => 'Vorstand']);
+
+        $kassenwart = User::factory()->create(['name' => 'Karl Kass', 'current_team_id' => $team->id]);
+        $team->users()->attach($kassenwart, ['role' => 'Kassenwart']);
+
+        $ehren = User::factory()->create(['name' => 'Erika Ehren', 'current_team_id' => $team->id]);
+        $team->users()->attach($ehren, ['role' => 'Ehrenmitglied']);
+
+        $acting = $this->actingMember('Mitglied');
+        $acting->update(['name' => 'Aaron Actor']);
+        $this->actingAs($acting);
+
+        $response = $this->get('/mitglieder?sort=role&dir=desc');
+        $response->assertOk();
+
+        $members = $response->viewData('members');
+        $roles = $members->pluck('membership.role')->all();
+
+        $this->assertSame([
+            'Vorstand',
+            'Mitglied',
+            'Kassenwart',
+            'Ehrenmitglied',
+            'Admin',
+        ], $roles);
+    }
+
+    public function test_index_sorts_members_by_name_asc(): void
+    {
+        $team = Team::where('name', 'Mitglieder')->first();
+
+        $a = User::factory()->create(['name' => 'Anna Alpha', 'current_team_id' => $team->id]);
+        $team->users()->attach($a, ['role' => 'Ehrenmitglied']);
+
+        $z = User::factory()->create(['name' => 'Zara Zulu', 'current_team_id' => $team->id]);
+        $team->users()->attach($z, ['role' => 'Kassenwart']);
+
+        $acting = $this->actingMember('Mitglied');
+        $acting->update(['name' => 'Mike Member']);
+        $this->actingAs($acting);
+
+        $response = $this->get('/mitglieder?sort=name&dir=asc');
+        $response->assertOk();
+
+        $members = $response->viewData('members');
+        $names = $members->pluck('name')->all();
+
+        $this->assertSame([
+            'Anna Alpha',
+            'Holger Ehrmann',
+            'Mike Member',
+            'Zara Zulu',
+        ], $names);
+    }
+
+    public function test_index_falls_back_to_name_on_invalid_sort(): void
+    {
+        $team = Team::where('name', 'Mitglieder')->first();
+
+        $first = User::factory()->create(['name' => 'Alice First', 'current_team_id' => $team->id]);
+        $team->users()->attach($first, ['role' => 'Mitglied']);
+
+        $second = User::factory()->create(['name' => 'Bob Second', 'current_team_id' => $team->id]);
+        $team->users()->attach($second, ['role' => 'Mitglied']);
+
+        $acting = $this->actingMember('Mitglied');
+        $acting->update(['name' => 'Charlie Current']);
+        $this->actingAs($acting);
+
+        $response = $this->get('/mitglieder?sort=foo&dir=desc');
+        $response->assertOk();
+        $this->assertSame('name', $response->viewData('sortBy'));
+
+        $members = $response->viewData('members');
+        $names = $members->pluck('name')->all();
+
+        $this->assertSame([
+            'Holger Ehrmann',
+            'Charlie Current',
+            'Bob Second',
+            'Alice First',
+        ], $names);
+    }
 }
