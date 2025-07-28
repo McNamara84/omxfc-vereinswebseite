@@ -120,4 +120,16 @@ class DashboardControllerTest extends TestCase
         $anwaerter = $response->viewData('anwaerter');
         $this->assertTrue($anwaerter->contains($applicant));
     }
+
+    public function test_redirect_when_membership_missing(): void
+    {
+        $team = Team::where('name', 'Mitglieder')->first();
+        $user = User::factory()->create(['current_team_id' => $team->id]);
+        $this->actingAs($user);
+
+        $response = $this->get('/dashboard');
+
+        $response->assertRedirect('/');
+        $response->assertSessionHas('error');
+    }
 }
