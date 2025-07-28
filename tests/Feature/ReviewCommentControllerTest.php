@@ -54,4 +54,56 @@ class ReviewCommentControllerTest extends TestCase
         ]);
         Mail::assertSent(ReviewCommentNotification::class);
     }
+
+    public function test_member_without_own_review_cannot_comment(): void
+    {
+        $team = Team::where('name', 'Mitglieder')->first();
+        $author = $this->actingMember();
+        $book = Book::create(['roman_number' => 1, 'title' => 'Roman1', 'author' => 'Foo']);
+        $review = Review::create([
+            'team_id' => $team->id,
+            'user_id' => $author->id,
+            'book_id' => $book->id,
+            'title' => 'Review',
+            'content' => str_repeat('B', 140),
+        ]);
+
+        $member = $this->actingMember();
+        $this->actingAs($member);
+
+        $this->post(route('reviews.comments.store', $review), [
+            'content' => 'Forbidden',
+        ])->assertForbidden();
+
+        $this->assertDatabaseMissing('review_comments', [
+            'review_id' => $review->id,
+            'user_id' => $member->id,
+        ]);
+    }
+
+    public function test_member_without_required_role_cannot_comment(): void
+    {
+        $team = Team::where('name', 'Mitglieder')->first();
+        $author = $this->actingMember();
+        $book = Book::create(['roman_number' => 1, 'title' => 'Roman1', 'author' => 'Foo']);
+        $review = Review::create([
+            'team_id' => $team->id,
+            'user_id' => $author->id,
+            'book_id' => $book->id,
+            'title' => 'Review',
+            'content' => str_repeat('B', 140),
+        ]);
+
+        $member = $this->actingMember('Gast');
+        $this->actingAs($member);
+
+        $this->post(route('reviews.comments.store', $review), [
+            'content' => 'Forbidden',
+        ])->assertForbidden();
+
+        $this->assertDatabaseMissing('review_comments', [
+            'review_id' => $review->id,
+            'user_id' => $member->id,
+        ]);
+    }
 }
