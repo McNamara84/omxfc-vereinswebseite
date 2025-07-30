@@ -69,7 +69,7 @@ class StatistikTest extends TestCase
     public function test_statistics_page_shows_computed_values(): void
     {
         $this->createDataFile();
-        $user = $this->actingMemberWithPoints(5); // show all cards
+        $user = $this->actingMemberWithPoints(11);
         $this->actingAs($user);
 
         $response = $this->get('/statistik');
@@ -109,7 +109,7 @@ class StatistikTest extends TestCase
 
     public function test_statistics_page_returns_500_when_file_missing(): void
     {
-        $user = $this->actingMemberWithPoints(5);
+        $user = $this->actingMemberWithPoints(11);
         $this->actingAs($user);
 
         $response = $this->get('/statistik');

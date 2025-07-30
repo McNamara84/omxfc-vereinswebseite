@@ -9,31 +9,7 @@
                     Statistik
                 </h1>
             </div>
-            {{-- Card 1 – Grundstatistiken (für alle sichtbar) --}}
-            <div
-                class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6 grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
-                <div>
-                    <div class="text-3xl font-bold text-gray-900 dark:text-gray-100">
-                        {{ number_format($averageRating, 2, ',', '.') }}
-                    </div>
-                    <div class="text-gray-600 dark:text-gray-400">Ø-Bewertung</div>
-                </div>
-
-                <div>
-                    <div class="text-3xl font-bold text-gray-900 dark:text-gray-100">
-                        {{ $totalVotes }}
-                    </div>
-                    <div class="text-gray-600 dark:text-gray-400">Stimmen insgesamt</div>
-                </div>
-
-                <div>
-                    <div class="text-3xl font-bold text-gray-900 dark:text-gray-100">
-                        {{ number_format($averageVotes, 2, ',', '.') }}
-                    </div>
-                    <div class="text-gray-600 dark:text-gray-400">Ø-Stimmen pro Roman</div>
-                </div>
-            </div>
-            {{-- Card 2 – Balkendiagramm (≥ 2 Bakk) --}}
+            {{-- Card 1 – Balkendiagramm (≥ 2 Bakk) --}}
             @if ($userPoints >= 2)
                 <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
                     <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4">
@@ -48,7 +24,7 @@
                     window.authorChartValues = @json($authorCounts->values());
                 </script>
             @endif
-            {{-- Card 3 – Teamplayer-Tabelle (≥ 4 Baxx) --}}
+            {{-- Card 2 – Teamplayer-Tabelle (≥ 4 Baxx) --}}
             @if ($userPoints >= 4)
                 <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
                     <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4">
@@ -77,7 +53,7 @@
                     </div>
                 </div>
             @endif
-            {{-- Card 4 – Romane-Tabelle (≥ 5 Baxx) --}}
+            {{-- Card 3 – Romane-Tabelle (≥ 5 Baxx) --}}
             @if ($userPoints >= 5)
                 <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
                     <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4">
@@ -110,7 +86,7 @@
                     </div>
                 </div>
             @endif
-            {{-- Card 5 – Top-Autor:innen nach Ø‑Bewertung (≥ 7 Baxx) --}}
+            {{-- Card 4 – Top-Autor:innen nach Ø‑Bewertung (≥ 7 Baxx) --}}
             @if ($userPoints >= 7)
                 <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
                     <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4">
@@ -149,7 +125,7 @@
                     </p>
                 </div>
             @endif
-            {{-- Card 6 – Top-Charaktere nach Auftritten (≥ 10 Baxx) --}}
+            {{-- Card 5 – Top-Charaktere nach Auftritten (≥ 10 Baxx) --}}
             @if ($userPoints >= 10)
                 <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
                     <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4">
@@ -188,7 +164,34 @@
                     </p>
                 </div>
             @endif
-            {{-- Vite-Asset EINMAL am Ende laden, sobald irgendeine JS-Card erscheint --}}
+            {{-- Card 6 – Bewertungen im Maddraxikon (≥ 11 Baxx) --}}
+            @if ($userPoints >= 11)
+                <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6 grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+                    <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 col-span-1 md:col-span-3">
+                        Bewertungen im Maddraxikon
+                    </h2>
+                    <div>
+                        <div class="text-3xl font-bold text-gray-900 dark:text-gray-100">
+                            {{ number_format($averageRating, 2, ',', '.') }}
+                        </div>
+                        <div class="text-gray-600 dark:text-gray-400">Ø-Bewertung</div>
+                    </div>
+
+                    <div>
+                        <div class="text-3xl font-bold text-gray-900 dark:text-gray-100">
+                            {{ $totalVotes }}
+                        </div>
+                        <div class="text-gray-600 dark:text-gray-400">Stimmen insgesamt</div>
+                    </div>
+
+                    <div>
+                        <div class="text-3xl font-bold text-gray-900 dark:text-gray-100">
+                            {{ number_format($averageVotes, 2, ',', '.') }}
+                        </div>
+                        <div class="text-gray-600 dark:text-gray-400">Ø-Stimmen pro Roman</div>
+                    </div>
+                </div>
+            @endif
             @if ($userPoints >= 1)
                 @vite(['resources/js/statistik.js'])
             @endif

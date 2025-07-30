@@ -52,6 +52,11 @@ return [
         'points' => 10,
     ],
     [
+        'title' => 'Statistik - Bewertungen im Maddraxikon',
+        'description' => 'Zeigt Durchschnittsbewertung, Stimmenanzahl und Ø-Stimmen pro Roman.',
+        'points' => 11,
+    ],
+    [
         'title' => 'Kompendium-Suche',
         'description' => 'Erlaubt die Volltextsuche im Maddrax-Kompendium.',
         'points' => 100,
