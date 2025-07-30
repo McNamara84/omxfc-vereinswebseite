@@ -171,21 +171,35 @@ class MitgliederControllerTest extends TestCase
         ], $roles);
     }
 
-    public function test_index_sorts_members_by_name_asc(): void
+    public function test_index_sorts_members_by_nachname_asc(): void
     {
         $team = Team::where('name', 'Mitglieder')->first();
 
-        $a = User::factory()->create(['name' => 'Anna Alpha', 'current_team_id' => $team->id]);
+        $a = User::factory()->create([
+            'name' => 'Anna Alpha',
+            'vorname' => 'Anna',
+            'nachname' => 'Alpha',
+            'current_team_id' => $team->id
+        ]);
         $team->users()->attach($a, ['role' => 'Ehrenmitglied']);
 
-        $z = User::factory()->create(['name' => 'Zara Zulu', 'current_team_id' => $team->id]);
+        $z = User::factory()->create([
+            'name' => 'Zara Zulu',
+            'vorname' => 'Zara',
+            'nachname' => 'Zulu',
+            'current_team_id' => $team->id
+        ]);
         $team->users()->attach($z, ['role' => 'Kassenwart']);
 
         $acting = $this->actingMember('Mitglied');
-        $acting->update(['name' => 'Mike Member']);
+        $acting->update([
+            'name' => 'Mike Member',
+            'vorname' => 'Mike',
+            'nachname' => 'Member'
+        ]);
         $this->actingAs($acting);
 
-        $response = $this->get('/mitglieder?sort=name&dir=asc');
+        $response = $this->get('/mitglieder?sort=nachname&dir=asc');
         $response->assertOk();
 
         $members = $response->viewData('members');
@@ -199,32 +213,46 @@ class MitgliederControllerTest extends TestCase
         ], $names);
     }
 
-    public function test_index_falls_back_to_name_on_invalid_sort(): void
+    public function test_index_falls_back_to_nachname_on_invalid_sort(): void
     {
         $team = Team::where('name', 'Mitglieder')->first();
 
-        $first = User::factory()->create(['name' => 'Alice First', 'current_team_id' => $team->id]);
+        $first = User::factory()->create([
+            'name' => 'Alice First',
+            'vorname' => 'Alice',
+            'nachname' => 'First',
+            'current_team_id' => $team->id
+        ]);
         $team->users()->attach($first, ['role' => 'Mitglied']);
 
-        $second = User::factory()->create(['name' => 'Bob Second', 'current_team_id' => $team->id]);
+        $second = User::factory()->create([
+            'name' => 'Bob Second',
+            'vorname' => 'Bob',
+            'nachname' => 'Second',
+            'current_team_id' => $team->id
+        ]);
         $team->users()->attach($second, ['role' => 'Mitglied']);
 
         $acting = $this->actingMember('Mitglied');
-        $acting->update(['name' => 'Charlie Current']);
+        $acting->update([
+            'name' => 'Charlie Current',
+            'vorname' => 'Charlie',
+            'nachname' => 'Current'
+        ]);
         $this->actingAs($acting);
 
         $response = $this->get('/mitglieder?sort=foo&dir=desc');
         $response->assertOk();
-        $this->assertSame('name', $response->viewData('sortBy'));
+        $this->assertSame('nachname', $response->viewData('sortBy'));
 
         $members = $response->viewData('members');
         $names = $members->pluck('name')->all();
 
         $this->assertSame([
-            'Holger Ehrmann',
-            'Charlie Current',
             'Bob Second',
             'Alice First',
+            'Holger Ehrmann',
+            'Charlie Current',
         ], $names);
     }
 }

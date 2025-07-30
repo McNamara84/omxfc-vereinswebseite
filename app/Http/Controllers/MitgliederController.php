@@ -15,13 +15,13 @@ class MitgliederController extends Controller
         $team = $user->currentTeam;
 
         // Sortierparameter auslesen
-        $sortBy = $request->input('sort', 'name'); // Standardsortierung: Name
+        $sortBy = $request->input('sort', 'nachname'); // Standardsortierung: Nachname
         $sortDir = $request->input('dir', 'asc'); // Standardrichtung: aufsteigend
 
         // Nur erlaubte Sortierfelder akzeptieren
-        $allowedSortFields = ['name', 'role', 'mitgliedsbeitrag', 'mitglied_seit', 'bezahlt_bis'];
+        $allowedSortFields = ['nachname', 'role', 'mitgliedsbeitrag', 'mitglied_seit', 'bezahlt_bis'];
         if (!in_array($sortBy, $allowedSortFields)) {
-            $sortBy = 'name';
+            $sortBy = 'nachname';
         }
 
         // Sortierrichtung validieren
@@ -204,7 +204,7 @@ class MitgliederController extends Controller
         // Mitglieder abrufen (ohne Anwärter)
         $members = $team->users()
             ->wherePivotNotIn('role', ['Anwärter'])
-            ->orderBy('name')
+            ->orderBy('nachname')
             ->get();
 
         // CSV-Datei generieren

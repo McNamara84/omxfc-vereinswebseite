@@ -383,9 +383,9 @@
     <div class="mb-4 bg-gray-100 dark:bg-gray-700 rounded-lg p-3">
     <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Sortieren nach:</h3>
     <div class="flex flex-wrap gap-2">
-    <a href="{{ route('mitglieder.index', ['sort' => 'name', 'dir' => ($sortBy === 'name' && $sortDir === 'asc') ? 'desc' : 'asc']) }}"
-    class="px-3 py-1 text-xs rounded-full {{ $sortBy === 'name' ? 'bg-[#8B0116] text-white' : 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300' }}">
-    Name {{ $sortBy === 'name' ? ($sortDir === 'asc' ? '↑' : '↓') : '' }}
+    <a href="{{ route('mitglieder.index', ['sort' => 'nachname', 'dir' => ($sortBy === 'nachname' && $sortDir === 'asc') ? 'desc' : 'asc']) }}"
+    class="px-3 py-1 text-xs rounded-full {{ $sortBy === 'nachname' ? 'bg-[#8B0116] text-white' : 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300' }}">
+    Name {{ $sortBy === 'nachname' ? ($sortDir === 'asc' ? '↑' : '↓') : '' }}
     </a>
     <a href="{{ route('mitglieder.index', ['sort' => 'mitglied_seit', 'dir' => ($sortBy === 'mitglied_seit' && $sortDir === 'asc') ? 'desc' : 'asc']) }}"
     class="px-3 py-1 text-xs rounded-full {{ $sortBy === 'mitglied_seit' ? 'bg-[#8B0116] text-white' : 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300' }}">
