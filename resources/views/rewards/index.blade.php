@@ -15,6 +15,11 @@
                             <h2 class="text-lg font-semibold text-[#8B0116] dark:text-[#ff4b63] mb-1">{{ $reward['title'] }}</h2>
                             <p class="text-gray-700 dark:text-gray-300">{{ $reward['description'] }}</p>
                             <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">Erforderliche Baxx: {{ $reward['points'] }}</p>
+                            @if(isset($reward['percentage']))
+                                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                                    {{ $reward['percentage'] }}% der Mitglieder haben diese Belohnung freigeschaltet
+                                </p>
+                            @endif
                         </div>
                     @endforeach
                 </div>

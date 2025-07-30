@@ -2,10 +2,10 @@
 
 namespace Tests\Feature;
 
+use App\Models\Team;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
-use App\Models\User;
-use App\Models\Team;
 
 class RewardControllerTest extends TestCase
 {
@@ -19,6 +19,7 @@ class RewardControllerTest extends TestCase
         if ($points) {
             $user->incrementTeamPoints($points);
         }
+
         return $user;
     }
 
@@ -32,7 +33,32 @@ class RewardControllerTest extends TestCase
 
         $response->assertOk();
         $response->assertViewIs('rewards.index');
-        $response->assertViewHas('rewards', $rewards);
+        $viewRewards = $response->viewData('rewards');
+        $this->assertCount(count($rewards), $viewRewards);
         $response->assertViewHas('userPoints', 5);
+    }
+
+    public function test_index_calculates_unlocked_percentages(): void
+    {
+        $team = Team::where('name', 'Mitglieder')->first();
+
+        $user1 = User::factory()->create(['current_team_id' => $team->id]);
+        $team->users()->attach($user1, ['role' => 'Mitglied']);
+        $user1->incrementTeamPoints(1);
+
+        $user2 = User::factory()->create(['current_team_id' => $team->id]);
+        $team->users()->attach($user2, ['role' => 'Mitglied']);
+        $user2->incrementTeamPoints(3);
+
+        $user3 = User::factory()->create(['current_team_id' => $team->id]);
+        $team->users()->attach($user3, ['role' => 'Mitglied']);
+
+        $this->actingAs($user2);
+
+        $rewards = $this->get('/belohnungen')->viewData('rewards');
+
+        $this->assertEquals(50, $rewards[0]['percentage']);
+        $this->assertEquals(25, $rewards[1]['percentage']);
+        $this->assertEquals(25, $rewards[2]['percentage']);
     }
 }
