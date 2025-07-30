@@ -12,7 +12,7 @@
             {{-- Card 1 – Balkendiagramm (≥ 2 Bakk) --}}
             @if ($userPoints >= 2)
                 <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
-                    <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4">
+                    <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
                         Romane je Autor:in
                     </h2>
                     <canvas id="authorChart" height="140"></canvas>
@@ -27,7 +27,7 @@
             {{-- Card 2 – Teamplayer-Tabelle (≥ 4 Baxx) --}}
             @if ($userPoints >= 4)
                 <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
-                    <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4">
+                    <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
                         Top Teamplayer
                     </h2>
 
@@ -56,7 +56,7 @@
             {{-- Card 3 – Romane-Tabelle (≥ 5 Baxx) --}}
             @if ($userPoints >= 5)
                 <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
-                    <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4">
+                    <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
                         Alle Romane
                     </h2>
 
@@ -89,7 +89,7 @@
             {{-- Card 4 – Top-Autor:innen nach Ø‑Bewertung (≥ 7 Baxx) --}}
             @if ($userPoints >= 7)
                 <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
-                    <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4">
+                    <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
                         Top 10 Autor:innen nach Ø-Bewertung
                     </h2>
 
@@ -128,7 +128,7 @@
             {{-- Card 5 – Top-Charaktere nach Auftritten (≥ 10 Baxx) --}}
             @if ($userPoints >= 10)
                 <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
-                    <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4">
+                    <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
                         Top 10 Charaktere nach Auftritten
                     </h2>
 
@@ -155,7 +155,7 @@
                 </div>
             @else
                 <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
-                    <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4">
+                    <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
                         Top 10 Charaktere nach Auftritten
                     </h2>
                     <p class="text-sm text-gray-600 dark:text-gray-400">
