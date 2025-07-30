@@ -4,6 +4,17 @@
         <p class="mb-6">Auf dieser Seite werden sämtliche Änderungen an der Vereinswebseite des Offiziellen Maddrax
             Fanclub e. V. dokumentiert.</p>
         <section class="mb-6">
+            <h2 class="text-xl font-semibold mb-2">Version 1.3.1 (30.07.2025)</h2>
+            <h3 class="text-l font-semibold mb-2">Änderungen:</h3>
+            <ul class="list-disc ml-6 mt-2">
+                <li>Übergeordnete Menüpunkte in der mobilen Ansicht fett markiert</li>
+                <li>Standard-Sortierreihenfolge der Mitgliederliste nach Nachname geändert</li>
+                <li>Statistik über die Maddraxikon-Bewertungen verschoben</li>
+                <li>Abmelden anderer Browser-Sitzungen in den Profileinstellungen ermöglicht</li>
+                <li>Prozentuale Anzeige der Freischaltungen von Belohnungen ergänzt</li>
+            </ul>
+        </section>
+        <section class="mb-6">
             <h2 class="text-xl font-semibold mb-2">Version 1.3.0 (27.07.2025)</h2>
             <h3 class="text-l font-semibold mb-2">Features:</h3>
             <ul class="list-disc ml-6 mt-2">
