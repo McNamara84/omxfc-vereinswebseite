@@ -1,6 +1,6 @@
 <x-app-layout>
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 bg-gray-100 dark:bg-gray-800 rounded-lg shadow-sm">
-        <h1 class="text-2xl sm:text-3xl font-bold text-[#8B0116] dark:text-[#ff4b63] mb-4 sm:mb-8">Fotogalerie</h1>
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 bg-apocalypse-dark text-gray-100 rounded-lg shadow-sm">
+        <h1 class="text-2xl sm:text-3xl font-bold text-apocalypse-accent mb-4 sm:mb-8">Fotogalerie</h1>
 
         <p class="mb-8 text-gray-700 dark:text-gray-300">
             Hier findest du Fotos von unseren Veranstaltungen aus den letzten Jahren.
@@ -13,7 +13,7 @@
                     @foreach($years as $year)
                         <button 
                             class="jahr-tab py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap
-                            {{ $year === $activeYear ? 'border-[#8B0116] dark:border-[#ff4b63] text-[#8B0116] dark:text-[#ff4b63]' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300 dark:hover:border-gray-300' }}"
+                            {{ $year === $activeYear ? 'border-[#8B0116] dark:border-[#ff4b63] text-apocalypse-accent' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300 dark:hover:border-gray-300' }}"
                             data-year="{{ $year }}"
                         >
                             Fotos {{ $year }}
@@ -77,13 +77,13 @@
                 
                 // Alle Tabs zurücksetzen
                 jahresTabs.forEach(t => {
-                    t.classList.remove('border-[#8B0116]', 'dark:border-[#ff4b63]', 'text-[#8B0116]', 'dark:text-[#ff4b63]');
+                    t.classList.remove('border-[#8B0116]', 'dark:border-[#ff4b63]', 'text-apocalypse-accent', 'dark:text-[#ff4b63]');
                     t.classList.add('border-transparent', 'text-gray-500');
                 });
                 
                 // Aktiven Tab setzen
                 this.classList.remove('border-transparent', 'text-gray-500');
-                this.classList.add('border-[#8B0116]', 'dark:border-[#ff4b63]', 'text-[#8B0116]', 'dark:text-[#ff4b63]');
+                this.classList.add('border-[#8B0116]', 'dark:border-[#ff4b63]', 'text-apocalypse-accent', 'dark:text-[#ff4b63]');
                 
                 // Galerien anzeigen/verstecken
                 document.querySelectorAll('.gallery-container').forEach(gallery => {

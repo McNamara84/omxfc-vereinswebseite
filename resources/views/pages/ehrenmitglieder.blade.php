@@ -1,6 +1,6 @@
 <x-app-layout>
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 bg-gray-100 dark:bg-gray-800 rounded-lg shadow-sm">
-        <h1 class="text-2xl sm:text-3xl font-bold text-[#8B0116] dark:text-[#ff4b63] mb-4 sm:mb-8">Ehrenmitglieder</h1>
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 bg-apocalypse-dark text-gray-100 rounded-lg shadow-sm">
+        <h1 class="text-2xl sm:text-3xl font-bold text-apocalypse-accent mb-4 sm:mb-8">Ehrenmitglieder</h1>
         <p class="mb-8 text-gray-700 dark:text-gray-300">
             Wir sind stolz darauf, herausragende Autoren der Maddrax-Serie zu unseren Ehrenmitgliedern zählen zu dürfen.
             Diese talentierten Schriftsteller haben maßgeblich zum Erfolg und zur Entwicklung des Maddraxiversums
@@ -16,7 +16,7 @@
                         class="object-cover h-full">
                 </div>
                 <div class="p-4 flex flex-col flex-1">
-                    <h2 class="text-xl font-bold text-[#8B0116] dark:text-[#ff4b63] mb-2">Michael Edelbrock</h2>
+                    <h2 class="text-xl font-bold text-apocalypse-accent mb-2">Michael Edelbrock</h2>
                     <p class="text-gray-700 dark:text-gray-300 text-sm mb-3">
                         Michael Edelbrock wurde 1980 geboren und beschäftigt sich am liebsten mit dicken Schmökern oder
                         langen Sagen, sowohl in der klassischen Phantastik als auch in der Science-Fiction.
@@ -46,7 +46,7 @@
                         class="object-cover h-full">
                 </div>
                 <div class="p-4 flex flex-col flex-1">
-                    <h2 class="text-xl font-bold text-[#8B0116] dark:text-[#ff4b63] mb-2">Lucy Guth</h2>
+                    <h2 class="text-xl font-bold text-apocalypse-accent mb-2">Lucy Guth</h2>
                     <p class="text-gray-700 dark:text-gray-300 text-sm mb-3">
                         Lucy Guth (Tanja Monique Bruske-Guth) wurde 1978 geboren und ist seit 2014 als Maddrax-Autorin
                         dabei und hat dementsprechend schon viel Gut(h)es beigetragen. In ihrem Hauptberuf arbeitet sie als
@@ -72,7 +72,7 @@
                         class="object-cover h-full">
                 </div>
                 <div class="p-4 flex flex-col flex-1">
-                    <h2 class="text-xl font-bold text-[#8B0116] dark:text-[#ff4b63] mb-2">Ian Rolf Hill</h2>
+                    <h2 class="text-xl font-bold text-apocalypse-accent mb-2">Ian Rolf Hill</h2>
                     <p class="text-gray-700 dark:text-gray-300 text-sm mb-3">
                         Ian Rolf Hill (Florian Hilleberg) wurde 1980 geboren und ist seit 2016 für Maddrax aktiv. Für
                         die Serie hat er eine Vielzahl an Romanen geschrieben und interessante Charaktere entwickelt,
@@ -97,7 +97,7 @@
                         class="object-cover h-full">
                 </div>
                 <div class="p-4 flex flex-col flex-1">
-                    <h2 class="text-xl font-bold text-[#8B0116] dark:text-[#ff4b63] mb-2">Oliver Müller</h2>
+                    <h2 class="text-xl font-bold text-apocalypse-accent mb-2">Oliver Müller</h2>
                     <p class="text-gray-700 dark:text-gray-300 text-sm mb-3">
                         Oliver Müller wurde 1983 geboren und gab seinen Einstand bei Maddrax im Jahr 2014 mit <em>Ein
                             Käfig aus Zeit</em> (MX 365). Neben seinem Hauptberuf veröffentlicht er viele
@@ -121,7 +121,7 @@
                         alt="Michael Schönenbröcher" class="object-cover h-full">
                 </div>
                 <div class="p-4 flex flex-col flex-1">
-                    <h2 class="text-xl font-bold text-[#8B0116] dark:text-[#ff4b63] mb-2">Michael Schönenbröcher</h2>
+                    <h2 class="text-xl font-bold text-apocalypse-accent mb-2">Michael Schönenbröcher</h2>
                     <p class="text-gray-700 dark:text-gray-300 text-sm mb-3">
                         Michael Schönenbröcher (Mad Mike) wurde 1961 geboren, ist seit 1979 Lektor beim Bastei Verlag
                         und seit 2000 alleiniger Betreuer von Maddrax. Die Serie, die in Zusammenarbeit mit den Autoren
@@ -147,7 +147,7 @@
                         class="object-cover h-full">
                 </div>
                 <div class="p-4 flex flex-col flex-1">
-                    <h2 class="text-xl font-bold text-[#8B0116] dark:text-[#ff4b63] mb-2">Jo Zybell</h2>
+                    <h2 class="text-xl font-bold text-apocalypse-accent mb-2">Jo Zybell</h2>
                     <p class="text-gray-700 dark:text-gray-300 text-sm mb-3">
                         Jo Zybell (Thomas Ziebula) wurde 1954 geboren und hat die Serie als Autor seit 2000 aktiv
                         mitgestaltet. Von ihm wurde eine Vielzahl an Heftromanen und ergänzenden Hardcover-Bücher

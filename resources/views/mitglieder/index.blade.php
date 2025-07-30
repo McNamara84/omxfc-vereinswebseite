@@ -14,7 +14,7 @@
     @endif
     
     <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
-    <h2 class="text-2xl font-semibold text-[#8B0116] dark:text-red-400 mb-6">Mitgliederliste</h2>
+    <h2 class="text-2xl font-semibold text-apocalypse-accent dark:text-red-400 mb-6">Mitgliederliste</h2>
     
     <!-- Export-Funktionen für berechtigte Benutzer -->
     @if($canViewDetails)
@@ -67,19 +67,19 @@
                         <h4 class="font-medium text-gray-700 dark:text-gray-300 mb-2">Zu exportierende Daten auswählen:</h4>
                         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                             <label class="inline-flex items-center">
-                                <input type="checkbox" name="export_fields[]" value="name" class="rounded border-gray-300 text-[#8B0116] shadow-sm focus:border-red-300 focus:ring focus:ring-red-200 focus:ring-opacity-50" checked>
+                                <input type="checkbox" name="export_fields[]" value="name" class="rounded border-gray-300 text-apocalypse-accent shadow-sm focus:border-red-300 focus:ring focus:ring-red-200 focus:ring-opacity-50" checked>
                                 <span class="ml-2 text-gray-700 dark:text-gray-300">Name (Vor-/Nachname)</span>
                             </label>
                             <label class="inline-flex items-center">
-                                <input type="checkbox" name="export_fields[]" value="email" class="rounded border-gray-300 text-[#8B0116] shadow-sm focus:border-red-300 focus:ring focus:ring-red-200 focus:ring-opacity-50" checked>
+                                <input type="checkbox" name="export_fields[]" value="email" class="rounded border-gray-300 text-apocalypse-accent shadow-sm focus:border-red-300 focus:ring focus:ring-red-200 focus:ring-opacity-50" checked>
                                 <span class="ml-2 text-gray-700 dark:text-gray-300">E-Mail-Adresse</span>
                             </label>
                             <label class="inline-flex items-center">
-                                <input type="checkbox" name="export_fields[]" value="adresse" class="rounded border-gray-300 text-[#8B0116] shadow-sm focus:border-red-300 focus:ring focus:ring-red-200 focus:ring-opacity-50">
+                                <input type="checkbox" name="export_fields[]" value="adresse" class="rounded border-gray-300 text-apocalypse-accent shadow-sm focus:border-red-300 focus:ring focus:ring-red-200 focus:ring-opacity-50">
                                 <span class="ml-2 text-gray-700 dark:text-gray-300">Postadresse</span>
                             </label>
                             <label class="inline-flex items-center">
-                                <input type="checkbox" name="export_fields[]" value="bezahlt_bis" class="rounded border-gray-300 text-[#8B0116] shadow-sm focus:border-red-300 focus:ring focus:ring-red-200 focus:ring-opacity-50">
+                                <input type="checkbox" name="export_fields[]" value="bezahlt_bis" class="rounded border-gray-300 text-apocalypse-accent shadow-sm focus:border-red-300 focus:ring focus:ring-red-200 focus:ring-opacity-50">
                                 <span class="ml-2 text-gray-700 dark:text-gray-300">Bezahlt bis</span>
                             </label>
                         </div>
@@ -113,7 +113,7 @@
     <tr>
     <th class="px-4 py-2 text-left">
     <a href="{{ route('mitglieder.index', ['sort' => 'name', 'dir' => ($sortBy === 'name' && $sortDir === 'asc') ? 'desc' : 'asc']) }}"
-    class="flex items-center group text-gray-700 dark:text-gray-300 hover:text-[#8B0116] dark:hover:text-red-400">
+    class="flex items-center group text-gray-700 dark:text-gray-300 hover:text-apocalypse-accent dark:hover:text-red-400">
     Name
     @if($sortBy === 'name')
     <span class="ml-1">
@@ -133,7 +133,7 @@
     
     <th class="px-4 py-2 text-left">
     <a href="{{ route('mitglieder.index', ['sort' => 'mitglied_seit', 'dir' => ($sortBy === 'mitglied_seit' && $sortDir === 'asc') ? 'desc' : 'asc']) }}"
-    class="flex items-center group text-gray-700 dark:text-gray-300 hover:text-[#8B0116] dark:hover:text-red-400">
+    class="flex items-center group text-gray-700 dark:text-gray-300 hover:text-apocalypse-accent dark:hover:text-red-400">
     Mitglied seit
     @if($sortBy === 'mitglied_seit')
     <span class="ml-1">
@@ -153,7 +153,7 @@
     
     <th class="px-4 py-2 text-left">
     <a href="{{ route('mitglieder.index', ['sort' => 'role', 'dir' => ($sortBy === 'role' && $sortDir === 'asc') ? 'desc' : 'asc']) }}"
-    class="flex items-center group text-gray-700 dark:text-gray-300 hover:text-[#8B0116] dark:hover:text-red-400">
+    class="flex items-center group text-gray-700 dark:text-gray-300 hover:text-apocalypse-accent dark:hover:text-red-400">
     Rolle
     @if($sortBy === 'role')
     <span class="ml-1">
@@ -174,7 +174,7 @@
     @if($canViewDetails)
     <th class="px-4 py-2 text-left">
     <a href="{{ route('mitglieder.index', ['sort' => 'bezahlt_bis', 'dir' => ($sortBy === 'bezahlt_bis' && $sortDir === 'asc') ? 'desc' : 'asc']) }}"
-    class="flex items-center group text-gray-700 dark:text-gray-300 hover:text-[#8B0116] dark:hover:text-red-400">
+    class="flex items-center group text-gray-700 dark:text-gray-300 hover:text-apocalypse-accent dark:hover:text-red-400">
     Bezahlt bis
     @if($sortBy === 'bezahlt_bis')
     <span class="ml-1">
@@ -194,7 +194,7 @@
     
     <th class="px-4 py-2 text-left">
     <a href="{{ route('mitglieder.index', ['sort' => 'mitgliedsbeitrag', 'dir' => ($sortBy === 'mitgliedsbeitrag' && $sortDir === 'asc') ? 'desc' : 'asc']) }}"
-    class="flex items-center group text-gray-700 dark:text-gray-300 hover:text-[#8B0116] dark:hover:text-red-400">
+    class="flex items-center group text-gray-700 dark:text-gray-300 hover:text-apocalypse-accent dark:hover:text-red-400">
     Beitrag
     @if($sortBy === 'mitgliedsbeitrag')
     <span class="ml-1">

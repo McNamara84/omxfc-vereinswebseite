@@ -3,7 +3,7 @@
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
                 {{-- Überschrift ------------------------------------------------ --}}
-                <h1 class="text-2xl font-semibold text-[#8B0116] dark:text-[#ff4b63] mb-6">
+                <h1 class="text-2xl font-semibold text-apocalypse-accent mb-6">
                     Maddrax-Kompendium
                 </h1>
 
@@ -72,7 +72,7 @@
                 // HTML-Template pro Roman
                 const tpl = (roman) => `
                     <div class="border border-gray-200 dark:border-gray-700 rounded p-4">
-                        <h2 class="font-semibold text-[#8B0116] dark:text-[#ff4b63] mb-2">
+                        <h2 class="font-semibold text-apocalypse-accent mb-2">
                             ${roman.cycle} – ${roman.romanNr}: ${roman.title}
                         </h2>
                         ${roman.snippets.map(s => `<p class="mb-2 text-sm leading-relaxed">${s}</p>`).join('')}

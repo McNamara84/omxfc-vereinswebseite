@@ -1,6 +1,6 @@
 <x-app-layout>
-    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 bg-gray-100 dark:bg-gray-800 rounded-lg shadow-sm">
-        <h1 class="text-2xl sm:text-3xl font-bold text-[#8B0116] dark:text-[#ff4b63] mb-4 sm:mb-8">Mitglied werden</h1>
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 bg-apocalypse-dark text-gray-100 rounded-lg shadow-sm">
+        <h1 class="text-2xl sm:text-3xl font-bold text-apocalypse-accent mb-4 sm:mb-8">Mitglied werden</h1>
         <!-- Erfolg-/Fehlermeldungen -->
         <div id="form-messages" class="mb-4 hidden"></div>
         <form id="mitgliedschaft-form" class="w-full">
@@ -123,12 +123,12 @@
                 disabled>Antrag absenden</button>
             <!-- Lade-Indikator -->
             <div id="loading-indicator" class="mt-4 hidden flex items-center justify-center">
-                <svg class="animate-spin h-8 w-8 text-[#8B0116]" xmlns="http://www.w3.org/2000/svg" fill="none"
+                <svg class="animate-spin h-8 w-8 text-apocalypse-accent" xmlns="http://www.w3.org/2000/svg" fill="none"
                     viewBox="0 0 24 24">
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v2.5A5.5 5.5 0 006.5 12H4z"></path>
                 </svg>
-                <span class="ml-2 font-medium text-[#8B0116]">Dein Antrag wird gesendet, bitte warten...</span>
+                <span class="ml-2 font-medium text-apocalypse-accent">Dein Antrag wird gesendet, bitte warten...</span>
             </div>
         </form>
     </div>

@@ -19,7 +19,7 @@
             <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
                 <!-- Titel und Status -->
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
-                    <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81]">{{ $todo->title }}</h2>
+                    <h2 class="text-xl font-semibold text-apocalypse-accent">{{ $todo->title }}</h2>
                     <div class="mt-2 md:mt-0">
                         @if($todo->status === 'open')
                             <span

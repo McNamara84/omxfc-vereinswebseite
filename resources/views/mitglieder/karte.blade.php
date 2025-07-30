@@ -2,7 +2,7 @@
     <div class="py-8">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white shadow-xl sm:rounded-lg p-6">
-                <h2 class="text-2xl font-semibold text-[#8B0116] mb-6">Mitgliederkarte</h2>
+                <h2 class="text-2xl font-semibold text-apocalypse-accent mb-6">Mitgliederkarte</h2>
                 
                 <div class="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-md">
                     <p class="text-sm text-yellow-800">

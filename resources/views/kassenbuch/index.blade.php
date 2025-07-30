@@ -13,7 +13,7 @@
             </div>
             @endif
             
-            <h1 class="text-2xl font-semibold text-[#8B0116] dark:text-red-400 mb-6">Kassenbuch</h1>
+            <h1 class="text-2xl font-semibold text-apocalypse-accent dark:text-red-400 mb-6">Kassenbuch</h1>
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <!-- Card 1: Mitgliedsbeitrag Status (Für alle Rollen) -->
@@ -362,11 +362,11 @@
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Typ</label>
                                 <div class="flex space-x-4">
                                     <label class="inline-flex items-center">
-                                        <input type="radio" name="typ" value="einnahme" checked class="form-radio h-4 w-4 text-[#8B0116] focus:ring-[#8B0116] border-gray-300 dark:border-gray-700">
+                                        <input type="radio" name="typ" value="einnahme" checked class="form-radio h-4 w-4 text-apocalypse-accent focus:ring-[#8B0116] border-gray-300 dark:border-gray-700">
                                         <span class="ml-2 text-gray-700 dark:text-gray-300">Einnahme</span>
                                     </label>
                                     <label class="inline-flex items-center">
-                                        <input type="radio" name="typ" value="ausgabe" class="form-radio h-4 w-4 text-[#8B0116] focus:ring-[#8B0116] border-gray-300 dark:border-gray-700">
+                                        <input type="radio" name="typ" value="ausgabe" class="form-radio h-4 w-4 text-apocalypse-accent focus:ring-[#8B0116] border-gray-300 dark:border-gray-700">
                                         <span class="ml-2 text-gray-700 dark:text-gray-300">Ausgabe</span>
                                     </label>
                                 </div>

@@ -109,7 +109,7 @@
                     <div class="col-span-2 mt-8 md:mt-0">
                         <!-- Vereinsaktivität -->
                         <div class="mb-8">
-                            <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 flex items-center">
+                            <h2 class="text-xl font-semibold text-apocalypse-accent mb-4 flex items-center">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none"
                                     viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -124,7 +124,7 @@
                                         class="text-center sm:text-left mb-6 sm:mb-0 bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm flex-1 mr-0 sm:mr-4">
                                         <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
                                             Baxx</h3>
-                                        <p class="text-4xl font-bold text-[#8B0116] dark:text-[#FF6B81]">
+                                        <p class="text-4xl font-bold text-apocalypse-accent">
                                             {{ $userPoints }}
                                         </p>
                                         <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Baxx</p>
@@ -144,7 +144,7 @@
 
                         <!-- Maddrax-Leidenschaft -->
                         <div>
-                            <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 flex items-center">
+                            <h2 class="text-xl font-semibold text-apocalypse-accent mb-4 flex items-center">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none"
                                     viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

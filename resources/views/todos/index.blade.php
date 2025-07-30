@@ -17,7 +17,7 @@
             <div
                 class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
-                    <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-1">Deine Baxx</h2>
+                    <h2 class="text-xl font-semibold text-apocalypse-accent mb-1">Deine Baxx</h2>
                     <div class="text-4xl font-bold text-gray-800 dark:text-gray-200">
                         {{ $userPoints }}
                     </div>
@@ -38,7 +38,7 @@
             </div>
             <!-- Deine Challenges -->
             <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
-                <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4">Deine Challenges</h2>
+                <h2 class="text-xl font-semibold text-apocalypse-accent mb-4">Deine Challenges</h2>
                 @if($assignedTodos->isEmpty())
                     <p class="text-gray-600 dark:text-gray-400">Du hast aktuell keine übernommenen Challenges.</p>
                 @else
@@ -74,7 +74,7 @@
                                         <td class="px-4 py-2 text-gray-700 dark:text-gray-300">{{ $todo->points }}</td>
                                         <td class="px-4 py-2 text-center">
                                             <a href="{{ route('todos.show', $todo) }}"
-                                                class="text-[#8B0116] dark:text-[#FF6B81] hover:underline">
+                                                class="text-apocalypse-accent hover:underline">
                                                 Details
                                             </a>
                                             @if($todo->created_by === Auth::id())
@@ -152,7 +152,7 @@
             </div>
             <!-- Offene Challenges -->
             <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
-                <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4">Offene Challenges</h2>
+                <h2 class="text-xl font-semibold text-apocalypse-accent mb-4">Offene Challenges</h2>
                 @if($unassignedTodos->isEmpty())
                     <p class="text-gray-600 dark:text-gray-400">Es sind aktuell keine offenen Challenges verfügbar.</p>
                 @else
@@ -177,7 +177,7 @@
                                         <td class="px-4 py-2 text-gray-700 dark:text-gray-300">{{ $todo->points }}</td>
                                         <td class="px-4 py-2 text-center">
                                             <a href="{{ route('todos.show', $todo) }}"
-                                                class="text-[#8B0116] dark:text-[#FF6B81] hover:underline mr-2">
+                                                class="text-apocalypse-accent hover:underline mr-2">
                                                 Details
                                             </a>
                                             @if($todo->created_by === Auth::id())
@@ -239,7 +239,7 @@
             <!-- Erledigte Challenges (nur wenn Verifizierungsrechte vorhanden) -->
             @if($canVerifyTodos && $completedTodos->where('status', 'completed')->isNotEmpty())
                 <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
-                    <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4">Zu verifizierende Challenges
+                    <h2 class="text-xl font-semibold text-apocalypse-accent mb-4">Zu verifizierende Challenges
                     </h2>
                     <!-- Desktop-Ansicht (versteckt auf Mobilgeräten) -->
                     <div class="hidden md:block">
@@ -263,7 +263,7 @@
                                         <td class="px-4 py-2 text-gray-700 dark:text-gray-300">{{ $todo->points }}</td>
                                         <td class="px-4 py-2 text-center">
                                             <a href="{{ route('todos.show', $todo) }}"
-                                                class="text-[#8B0116] dark:text-[#FF6B81] hover:underline mr-2">
+                                                class="text-apocalypse-accent hover:underline mr-2">
                                                 Details
                                             </a>
                                             @if($todo->created_by === Auth::id())
@@ -331,7 +331,7 @@
             @endphp
             @if($inProgressTodos->isNotEmpty())
                 <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
-                    <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4">In Bearbeitung befindliche Challenges</h2>
+                    <h2 class="text-xl font-semibold text-apocalypse-accent mb-4">In Bearbeitung befindliche Challenges</h2>
                     <!-- Desktop-Ansicht (versteckt auf Mobilgeräten) -->
                     <div class="hidden md:block">
                         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
@@ -353,7 +353,7 @@
                                         <td class="px-4 py-2 text-gray-700 dark:text-gray-300">{{ $todo->points }}</td>
                                         <td class="px-4 py-2 text-center">
                                             <a href="{{ route('todos.show', $todo) }}"
-                                                class="text-[#8B0116] dark:text-[#FF6B81] hover:underline">
+                                                class="text-apocalypse-accent hover:underline">
                                                 Details
                                             </a>
                                             @if($todo->created_by === Auth::id())

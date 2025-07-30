@@ -1,6 +1,6 @@
 <x-app-layout>
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        <h1 class="text-3xl font-bold text-[#8B0116] dark:text-[#ff4b63] mb-8">Chronik des Offiziellen MADDRAX Fanclub e. V.</h1>
+        <h1 class="text-3xl font-bold text-apocalypse-accent mb-8">Chronik des Offiziellen MADDRAX Fanclub e. V.</h1>
         <div class="relative border-l-4 border-[#8B0116] dark:border-[#ff4b63] pl-8 space-y-8">
             <div class="relative">
                 <div class="absolute -left-[25px] top-2 bg-[#8B0116] dark:bg-[#ff4b63] rounded-full w-3 h-3"></div>

@@ -1,7 +1,7 @@
 <x-app-layout>
     <div class="py-8">
         <div class="max-w-3xl mx-auto sm:px-6 lg:px-8">
-            <h1 class="text-2xl font-semibold text-[#8B0116] dark:text-[#FCA5A5] mb-6">
+            <h1 class="text-2xl font-semibold text-apocalypse-accent mb-6">
                 Rezension zu „{{ $review->book->title }}“ bearbeiten
             </h1>
 

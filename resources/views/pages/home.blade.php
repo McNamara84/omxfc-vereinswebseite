@@ -1,6 +1,6 @@
 <x-app-layout>
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 bg-gray-100 dark:bg-gray-800 rounded-lg shadow-sm">
-        <h1 class="text-3xl font-bold text-[#8B0116] dark:text-[#ff4b63] mb-8 text-center">Willkommen beim Offiziellen MADDRAX Fanclub e. V.!</h1>
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 bg-apocalypse-dark text-gray-100 rounded-lg shadow-sm">
+        <h1 class="text-3xl font-bold text-apocalypse-accent mb-8 text-center">Willkommen beim Offiziellen MADDRAX Fanclub e. V.!</h1>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             {{-- Fotogalerie --}}
@@ -14,19 +14,19 @@
             </div>
             {{-- Wer wir sind --}}
             <div class="bg-white dark:bg-gray-700 rounded-lg shadow-md p-6">
-                <h2 class="text-2xl font-semibold text-[#8B0116] dark:text-[#ff4b63] mb-4">Wer wir sind</h2>
+                <h2 class="text-2xl font-semibold text-apocalypse-accent mb-4">Wer wir sind</h2>
                 <p class="text-gray-700 dark:text-gray-300">{{ $whoWeAre }}</p>
             </div>
 
             {{-- Was wir machen --}}
             <div class="bg-white dark:bg-gray-700 rounded-lg shadow-md p-6">
-                <h2 class="text-2xl font-semibold text-[#8B0116] dark:text-[#ff4b63] mb-4">Was wir machen</h2>
+                <h2 class="text-2xl font-semibold text-apocalypse-accent mb-4">Was wir machen</h2>
                 <p class="text-gray-700 dark:text-gray-300">{{ $whatWeDo }}</p>
             </div>
 
             {{-- Aktuelle Projekte --}}
             <div class="md:col-span-2 bg-white dark:bg-gray-700 rounded-lg shadow-md p-6">
-                <h2 class="text-2xl font-semibold text-[#8B0116] dark:text-[#ff4b63] mb-4">Aktuelle Projekte</h2>
+                <h2 class="text-2xl font-semibold text-apocalypse-accent mb-4">Aktuelle Projekte</h2>
                 <ul class="list-disc ml-5 text-gray-700 dark:text-gray-300 space-y-2">
                     @foreach($currentProjects as $project)
                     <li><strong>{{ $project['title'] }}</strong>: {{ $project['description'] }}</li>
@@ -36,7 +36,7 @@
 
             {{-- Vorteile einer Mitgliedschaft --}}
             <div class="bg-white dark:bg-gray-700 rounded-lg shadow-md p-6">
-                <h2 class="text-2xl font-semibold text-[#8B0116] dark:text-[#ff4b63] mb-4">Vorteile einer Mitgliedschaft
+                <h2 class="text-2xl font-semibold text-apocalypse-accent mb-4">Vorteile einer Mitgliedschaft
                 </h2>
                 <ul class="list-disc ml-5 text-gray-700 dark:text-gray-300">
                     @foreach($membershipBenefits as $benefit)
@@ -47,7 +47,7 @@
 
             {{-- Anzahl Mitglieder --}}
             <div class="bg-white dark:bg-gray-700 rounded-lg shadow-md p-6 flex flex-col justify-center items-center">
-                <h2 class="text-4xl font-bold text-[#8B0116] dark:text-[#ff4b63]">{{ $memberCount }}</h2>
+                <h2 class="text-4xl font-bold text-apocalypse-accent">{{ $memberCount }}</h2>
                 <span class="text-gray-700 dark:text-gray-300">aktive Mitglieder</span>
             </div>
         </div>

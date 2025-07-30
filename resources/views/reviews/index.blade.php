@@ -1,7 +1,7 @@
 <x-app-layout>
     <div class="py-8">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <h1 class="text-2xl font-semibold text-[#8B0116] dark:text-[#FCA5A5] mb-4">Rezensionen</h1>
+            <h1 class="text-2xl font-semibold text-apocalypse-accent mb-4">Rezensionen</h1>
             <p class="mb-6 text-sm text-gray-600 dark:text-gray-400">
                 Für jede <strong>zehnte</strong> verfasste Rezension erhältst du automatisch
                 <strong>1 Baxx</strong>.
@@ -59,7 +59,7 @@
                                     @foreach($cycleBooks->sortByDesc('roman_number') as $book)
                                         <tr>
                                             <td class="px-4 py-2">
-                                                <a href="{{ route('reviews.show', $book) }}" class="text-[#8B0116] hover:underline">
+                                                <a href="{{ route('reviews.show', $book) }}" class="text-apocalypse-accent hover:underline">
                                                     {{ $book->roman_number }}
                                                 </a>
                                             </td>
@@ -81,7 +81,7 @@
                                                 @endif
                                             </td>
                                             <td class="px-4 py-2">
-                                                <a href="{{ route('reviews.show', $book) }}" class="text-[#8B0116] hover:underline">
+                                                <a href="{{ route('reviews.show', $book) }}" class="text-apocalypse-accent hover:underline">
                                                     {{ $book->reviews_count }} {{ $book->reviews_count === 1 ? 'Rezension' : 'Rezensionen' }}
                                                 </a>
                                             </td>

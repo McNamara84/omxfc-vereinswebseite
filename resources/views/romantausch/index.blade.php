@@ -8,7 +8,7 @@
             @endif
             <!-- Kopfzeile mit Buttons -->
             <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <h1 class="text-2xl font-semibold text-[#8B0116] dark:text-[#FF6B81]">Romantauschbörse</h1>
+                <h1 class="text-2xl font-semibold text-apocalypse-accent">Romantauschbörse</h1>
                 <div class="flex gap-2">
                     <a href="{{ route('romantausch.create-offer') }}"
                        class="inline-flex items-center px-4 py-2 bg-[#8B0116] dark:bg-[#C41E3A] border border-transparent rounded-md font-semibold text-white hover:bg-[#A50019] dark:hover:bg-[#D63A4D]">
@@ -27,7 +27,7 @@
             </p>
             @if($activeSwaps->isNotEmpty())
                 <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
-                    <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-2">Deine Matches</h2>
+                    <h2 class="text-xl font-semibold text-apocalypse-accent mb-2">Deine Matches</h2>
                     <p class="mb-4 text-gray-600 dark:text-gray-400">Kontaktiert euch gegenseitig über die angezeigten Mailadressen und klickt anschließend auf „Tausch abgeschlossen“. Für jeden abgeschlossenen Tausch gibt es <strong>2 Baxx</strong>!</p>
                     <ul class="space-y-4">
                         @foreach($activeSwaps as $swap)
@@ -52,7 +52,7 @@
             @endif
             <!-- Angebote -->
             <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
-                <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4">Aktuelle Angebote</h2>
+                <h2 class="text-xl font-semibold text-apocalypse-accent mb-4">Aktuelle Angebote</h2>
                 @if($offers->isEmpty())
                     <p class="text-gray-600 dark:text-gray-400">Keine Angebote vorhanden.</p>
                 @else
@@ -68,7 +68,7 @@
             </div>
             <!-- Gesuche -->
             <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
-                <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4">Aktuelle Gesuche</h2>
+                <h2 class="text-xl font-semibold text-apocalypse-accent mb-4">Aktuelle Gesuche</h2>
                 @if($requests->isEmpty())
                     <p class="text-gray-600 dark:text-gray-400">Keine Gesuche vorhanden.</p>
                 @else
@@ -84,7 +84,7 @@
             </div>
             <!-- Abgeschlossene Tauschaktionen -->
             <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
-                <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4">Erfolgreiche Tauschaktionen</h2>
+                <h2 class="text-xl font-semibold text-apocalypse-accent mb-4">Erfolgreiche Tauschaktionen</h2>
                 @if($completedSwaps->isEmpty())
                     <p class="text-gray-600 dark:text-gray-400">Bisher wurden noch keine Tauschaktionen abgeschlossen.</p>
                 @else

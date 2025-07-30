@@ -7,7 +7,7 @@
                 </div>
             @endif
 
-            <h1 class="text-2xl font-semibold text-[#8B0116] dark:text-[#FCA5A5] mb-6">
+            <h1 class="text-2xl font-semibold text-apocalypse-accent mb-6">
                 Rezensionen zu „{{ $book->title }}“ (Nr. {{ $book->roman_number }})
             </h1>
 
@@ -49,7 +49,7 @@
                 <p class="text-gray-600 dark:text-gray-400">Noch keine Rezensionen vorhanden.</p>
             @endforelse
 
-            <a href="{{ route('reviews.index') }}" class="text-[#8B0116] hover:underline">← Zurück zur Übersicht</a>
+            <a href="{{ route('reviews.index') }}" class="text-apocalypse-accent hover:underline">← Zurück zur Übersicht</a>
         </div>
     </div>
 </x-app-layout>
