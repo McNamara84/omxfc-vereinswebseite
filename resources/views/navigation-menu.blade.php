@@ -136,10 +136,14 @@
                 <x-responsive-nav-link href="{{ route('todos.index') }}">Challenges</x-responsive-nav-link>
                 <x-responsive-nav-link href="{{ route('rewards.index') }}">Belohnungen</x-responsive-nav-link>
             </div>
-            <x-responsive-nav-link href="{{ route('maddraxiversum.index') }}">Maddraxiversum</x-responsive-nav-link>
-            <x-responsive-nav-link href="{{ route('downloads') }}">Downloads</x-responsive-nav-link>
-            <x-responsive-nav-link href="{{ route('kompendium.index') }}">Kompendium</x-responsive-nav-link>
-            <x-responsive-nav-link href="{{ route('statistik.index') }}">Statistik</x-responsive-nav-link>
+            <button id="belohnungen-mobile-button" type="button" @click="openMenu = (openMenu === 'belohnungen' ? null : 'belohnungen')" class="w-full text-left px-4 py-2 font-bold text-gray-600 dark:text-gray-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500" :class="{ 'bg-gray-100 dark:bg-gray-700': openMenu === 'belohnungen' }" :aria-expanded="openMenu === 'belohnungen'" aria-controls="belohnungen-mobile-menu" @keydown.enter.prevent="openMenu = (openMenu === 'belohnungen' ? null : 'belohnungen')" @keydown.space.prevent="openMenu = (openMenu === 'belohnungen' ? null : 'belohnungen')">
+            Belohnungen</button>
+            <div id="belohnungen-mobile-menu" x-show="openMenu === 'belohnungen'" x-cloak>
+                <x-responsive-nav-link href="{{ route('maddraxiversum.index') }}">Maddraxiversum</x-responsive-nav-link>
+                <x-responsive-nav-link href="{{ route('downloads') }}">Downloads</x-responsive-nav-link>
+                <x-responsive-nav-link href="{{ route('kompendium.index') }}">Kompendium</x-responsive-nav-link>
+                <x-responsive-nav-link href="{{ route('statistik.index') }}">Statistik</x-responsive-nav-link>
+            </div>
     
         @endauth
 
