@@ -29,6 +29,19 @@
                                     class="mt-1 inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-[#8B0116] text-white">
                                     {{ $memberRole }}
                                 </div>
+                                <div class="mt-2 text-sm text-gray-600 dark:text-gray-400 flex items-center">
+                                    @if ($isOnline)
+                                        <span class="flex items-center">
+                                            <span class="relative flex h-3 w-3 mr-2">
+                                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                                                <span class="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                                            </span>
+                                            Online
+                                        </span>
+                                    @elseif ($lastSeen)
+                                        Zuletzt gesehen {{ $lastSeen->diffForHumans() }}
+                                    @endif
+                                </div>
                             </div>
 
                             <!-- Badges -->

@@ -9,6 +9,8 @@ use App\Models\UserPoint;
 use App\Models\TodoCategory;
 use App\Models\Review;
 use App\Models\BookSwap;
+use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class ProfileViewController extends Controller
 {
@@ -54,6 +56,13 @@ class ProfileViewController extends Controller
         // Prüfe, ob der Benutzer erweiterte Rechte hat (für detaillierte Ansicht)
         $allowedRoles = ['Kassenwart', 'Vorstand', 'Admin'];
         $canViewDetails = $isOwnProfile || in_array($currentUserRole, $allowedRoles);
+
+        $lastActivity = DB::table('sessions')
+            ->where('user_id', $user->id)
+            ->max('last_activity');
+
+        $lastSeen = $lastActivity ? Carbon::createFromTimestamp($lastActivity) : null;
+        $isOnline = $lastSeen && $lastSeen->gt(now()->subMinutes(5));
 
         // Punkte-Informationen abrufen
         $memberTeam = Team::where('name', 'Mitglieder')->first();
@@ -189,6 +198,8 @@ class ProfileViewController extends Controller
             'completedTasks' => $completedTasks,
             'categoryPoints' => $categoryPoints,
             'isOwnProfile' => $isOwnProfile,
+            'lastSeen' => $lastSeen,
+            'isOnline' => $isOnline,
             'badges' => $badges,
         ]);
     }

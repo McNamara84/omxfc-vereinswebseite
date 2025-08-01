@@ -10,6 +10,7 @@ use App\Models\Todo;
 use App\Models\TodoCategory;
 use App\Models\UserPoint;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
 use App\Models\Book;
 use App\Models\Review;
 use App\Models\BookOffer;
@@ -265,5 +266,50 @@ class ProfileViewControllerTest extends TestCase
         $badges = $response->viewData('badges');
         $this->assertCount(1, $badges);
         $this->assertEquals('Händler (Stufe 4)', $badges[0]['name']);
+    }
+
+    public function test_online_status_is_true_for_recent_activity(): void
+    {
+        $viewer = $this->createMember();
+        $target = $this->createMember();
+        $this->actingAs($viewer);
+
+        DB::table('sessions')->insert([
+            'id' => Str::random(40),
+            'user_id' => $target->id,
+            'ip_address' => '127.0.0.1',
+            'user_agent' => 'test',
+            'payload' => '',
+            'last_activity' => now()->timestamp,
+        ]);
+
+        $response = $this->get("/profile/{$target->id}");
+
+        $response->assertOk();
+        $response->assertViewHas('isOnline', true);
+        $this->assertNotNull($response->viewData('lastSeen'));
+    }
+
+    public function test_online_status_is_false_for_old_activity(): void
+    {
+        $viewer = $this->createMember();
+        $target = $this->createMember();
+        $this->actingAs($viewer);
+
+        DB::table('sessions')->insert([
+            'id' => Str::random(40),
+            'user_id' => $target->id,
+            'ip_address' => '127.0.0.1',
+            'user_agent' => 'test',
+            'payload' => '',
+            'last_activity' => now()->subMinutes(10)->timestamp,
+        ]);
+
+        $response = $this->get("/profile/{$target->id}");
+
+        $response->assertOk();
+        $response->assertViewHas('isOnline', false);
+        $lastSeen = $response->viewData('lastSeen');
+        $this->assertTrue($lastSeen->lt(now()->subMinutes(5)));
     }
 }
