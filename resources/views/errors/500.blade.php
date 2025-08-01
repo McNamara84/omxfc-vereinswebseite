@@ -2,7 +2,7 @@
     <div class="container mx-auto py-12 text-center">
         <h1 class="text-5xl font-bold text-[#8B0116] dark:text-[#ff4b63] mb-6">500</h1>
         <img src="{{ asset('images/errors/500.png') }}" alt="Server zerstört" class="mx-auto w-64 h-auto mb-6">
-        <p class="text-xl text-gray-700 dark:text-gray-300 mb-8">
+        <p class="text-xl text-maddrax-sand mb-8">
             {{ __('Entweder ist ein Komet eingeschlagen oder der Server ist überlastet. Bitte versuche es später aus deinem Bunker erneut.') }}
         </p>
         <a href="{{ url('/') }}" class="text-[#8B0116] dark:text-[#ff4b63] underline">

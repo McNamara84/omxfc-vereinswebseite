@@ -16,7 +16,7 @@
                 </div>
             @endif
 
-            <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
+            <div class="bg-maddrax-black border border-maddrax-red shadow-xl sm:rounded-lg p-6">
                 <!-- Titel und Status -->
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
                     <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81]">{{ $todo->title }}</h2>
@@ -41,12 +41,12 @@
 
                 <!-- Beschreibung -->
                 <div class="mb-6">
-                    <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Beschreibung</h3>
+                    <h3 class="text-sm font-medium text-maddrax-sand mb-2">Beschreibung</h3>
                     <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-md text-gray-800 dark:text-gray-200">
                         @if($todo->description)
                             {!! nl2br(e($todo->description)) !!}
                         @else
-                            <span class="text-gray-500 dark:text-gray-400 italic">Keine Beschreibung vorhanden</span>
+                            <span class="text-maddrax-sand italic">Keine Beschreibung vorhanden</span>
                         @endif
                     </div>
                 </div>
@@ -54,7 +54,7 @@
                 <!-- Details -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                     <div>
-                        <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Details</h3>
+                        <h3 class="text-sm font-medium text-maddrax-sand mb-2">Details</h3>
                         <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-md">
                             <div class="mb-2">
                                 <span class="text-gray-600 dark:text-gray-400 text-sm">Baxx:</span>
@@ -78,7 +78,7 @@
                     </div>
 
                     <div>
-                        <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Status</h3>
+                        <h3 class="text-sm font-medium text-maddrax-sand mb-2">Status</h3>
                         <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-md">
                             @if($todo->assigned_to)
                                 <div class="mb-2">

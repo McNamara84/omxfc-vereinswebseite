@@ -12,9 +12,9 @@
             </h1>
 
             @forelse($reviews as $review)
-                <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
+                <div class="bg-maddrax-black border border-maddrax-red shadow-xl sm:rounded-lg p-6 mb-6">
                     <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-200">{{ $review->title }}</h2>
-                    <p class="text-sm text-gray-500 dark:text-gray-400">von {{ $review->user->name }} am {{ $review->created_at->format('d.m.Y') }}</p>
+                    <p class="text-sm text-maddrax-sand">von {{ $review->user->name }} am {{ $review->created_at->format('d.m.Y') }}</p>
                     <div class="mt-4 text-gray-800 dark:text-gray-200 whitespace-pre-line">
                         {{ $review->content }}
                     </div>

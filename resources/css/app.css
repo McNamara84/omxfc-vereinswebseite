@@ -1,6 +1,15 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+@layer base {
+    body {
+        @apply bg-maddrax-dark text-maddrax-sand;
+    }
+
+    a {
+        @apply text-maddrax-red hover:text-maddrax-sand;
+    }
+}
 
 [x-cloak] {
     display: none;

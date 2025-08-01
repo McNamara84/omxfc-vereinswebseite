@@ -1,7 +1,7 @@
 <x-app-layout>
     <div class="py-8">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg overflow-hidden">
+            <div class="bg-maddrax-black border border-maddrax-red shadow-xl sm:rounded-lg overflow-hidden">
                 <!-- Hintergrund-Banner -->
                 <div class="h-40 bg-gradient-to-r from-[#8B0116] to-[#FF6B81] relative">
                     <!-- Profilbild -->
@@ -59,7 +59,7 @@
                                                 <h3 class="text-sm font-medium text-gray-800 dark:text-white text-center">
                                                     {{ $badge['name'] }}
                                                 </h3>
-                                                <p class="text-xs text-gray-500 dark:text-gray-400 text-center mt-1">
+                                                <p class="text-xs text-maddrax-sand text-center mt-1">
                                                     {{ $badge['description'] }}
                                                 </p>
                                             </div>
@@ -79,7 +79,7 @@
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                     d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                                             </svg>
-                                            <span class="text-gray-700 dark:text-gray-300">{{ $user->email }}</span>
+                                            <span class="text-maddrax-sand">{{ $user->email }}</span>
                                         </div>
                                         @if($user->telefon)
                                             <div class="flex items-center">
@@ -88,7 +88,7 @@
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                         d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                                                 </svg>
-                                                <span class="text-gray-700 dark:text-gray-300">{{ $user->telefon }}</span>
+                                                <span class="text-maddrax-sand">{{ $user->telefon }}</span>
                                             </div>
                                         @endif
                                     </div>
@@ -96,7 +96,7 @@
 
                                 <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-5">
                                     <h2 class="text-lg font-semibold text-gray-800 dark:text-white mb-3">Adresse</h2>
-                                    <address class="not-italic text-gray-700 dark:text-gray-300">
+                                    <address class="not-italic text-maddrax-sand">
                                         @if($user->strasse && $user->hausnummer)
                                             {{ $user->strasse }} {{ $user->hausnummer }}<br>
                                         @endif
@@ -112,7 +112,7 @@
                                 <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-5">
                                     <h2 class="text-lg font-semibold text-gray-800 dark:text-white mb-3">Mitgliedsbeitrag
                                     </h2>
-                                    <p class="text-gray-700 dark:text-gray-300">{{ $user->mitgliedsbeitrag }}</p>
+                                    <p class="text-maddrax-sand">{{ $user->mitgliedsbeitrag }}</p>
                                 </div>
                             @endif
                         </div>
@@ -134,22 +134,22 @@
                             <div class="bg-gray-50 dark:bg-gray-700 p-6 rounded-lg shadow">
                                 <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-8">
                                     <div
-                                        class="text-center sm:text-left mb-6 sm:mb-0 bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm flex-1 mr-0 sm:mr-4">
-                                        <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
+                                        class="text-center sm:text-left mb-6 sm:mb-0 bg-maddrax-black border border-maddrax-red p-4 rounded-lg shadow-sm flex-1 mr-0 sm:mr-4">
+                                        <h3 class="text-sm font-medium text-maddrax-sand mb-1">
                                             Baxx</h3>
                                         <p class="text-4xl font-bold text-[#8B0116] dark:text-[#FF6B81]">
                                             {{ $userPoints }}
                                         </p>
-                                        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Baxx</p>
+                                        <p class="text-sm text-maddrax-sand mt-1">Baxx</p>
                                     </div>
                                     <div
-                                        class="text-center sm:text-left bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm flex-1">
-                                        <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Erledigte
+                                        class="text-center sm:text-left bg-maddrax-black border border-maddrax-red p-4 rounded-lg shadow-sm flex-1">
+                                        <h3 class="text-sm font-medium text-maddrax-sand mb-1">Erledigte
                                             Challenges</h3>
-                                        <p class="text-4xl font-bold text-gray-700 dark:text-gray-300">
+                                        <p class="text-4xl font-bold text-maddrax-sand">
                                             {{ $completedTasks }}
                                         </p>
-                                        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Challenges</p>
+                                        <p class="text-sm text-maddrax-sand mt-1">Challenges</p>
                                     </div>
                                 </div>
                             </div>
@@ -238,11 +238,11 @@
             <div class="fixed inset-0 bg-black bg-opacity-75 transition-opacity" onclick="closeBadgeModal()"></div>
 
             <div
-                class="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-lg w-full mx-auto z-10 transform transition-all">
+                class="relative bg-maddrax-black border border-maddrax-red rounded-lg shadow-xl max-w-lg w-full mx-auto z-10 transform transition-all">
                 <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
-                    <h3 id="badgeModalTitle" class="text-xl font-bold text-gray-900 dark:text-white"></h3>
+                    <h3 id="badgeModalTitle" class="text-xl font-bold text-maddrax-sand dark:text-white"></h3>
                     <button type="button" onclick="closeBadgeModal()"
-                        class="text-gray-400 hover:text-gray-500 focus:outline-none">
+                        class="text-gray-400 hover:text-maddrax-sand focus:outline-none">
                         <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M6 18L18 6M6 6l12 12"></path>
@@ -256,7 +256,7 @@
                             <img id="badgeModalImage" src="" alt="Badge" class="w-full h-full object-contain">
                         </div>
                     </div>
-                    <p id="badgeModalDescription" class="text-base text-gray-700 dark:text-gray-300 text-center"></p>
+                    <p id="badgeModalDescription" class="text-base text-maddrax-sand text-center"></p>
                 </div>
 
                 <div class="px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex justify-end">

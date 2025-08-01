@@ -10,49 +10,49 @@
             <!-- Dashboard Cards Grid -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                 <!-- Mitgliederzahl Card -->
-                <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 flex flex-col">
+                <div class="bg-maddrax-black border border-maddrax-red shadow-xl sm:rounded-lg p-6 flex flex-col">
                     <h2 class="text-lg font-semibold text-[#8B0116] dark:text-[#FCA5A5] mb-2">Aktuelle Mitgliederzahl</h2>
                     <div class="text-4xl font-bold text-gray-800 dark:text-gray-200 mt-auto">
                         {{ $memberCount }}
                     </div>
                 </div>
                 <!-- Offene Aufgaben Card -->
-                <a href="{{ route('todos.index') }}" class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 flex flex-col hover:bg-gray-50 dark:hover:bg-gray-700 transition duration-200">
+                <a href="{{ route('todos.index') }}" class="bg-maddrax-black border border-maddrax-red shadow-xl sm:rounded-lg p-6 flex flex-col hover:bg-maddrax-red transition duration-200">
                     <h2 class="text-lg font-semibold text-[#8B0116] dark:text-[#FCA5A5] mb-2">Offene Challenges</h2>
                     <div class="text-4xl font-bold text-gray-800 dark:text-gray-200 mt-auto">
                         {{ $openTodos }}
                     </div>
                 </a>
                 <!-- Baxx Card -->
-                <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 flex flex-col">
+                <div class="bg-maddrax-black border border-maddrax-red shadow-xl sm:rounded-lg p-6 flex flex-col">
                     <h2 class="text-lg font-semibold text-[#8B0116] dark:text-[#FCA5A5] mb-2">Meine Baxx</h2>
                     <div class="text-4xl font-bold text-gray-800 dark:text-gray-200 mt-auto">
                         {{ $userPoints }}
                     </div>
                 </div>
                 <!-- Erledigte Aufgaben Card -->
-                <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 flex flex-col">
+                <div class="bg-maddrax-black border border-maddrax-red shadow-xl sm:rounded-lg p-6 flex flex-col">
                     <h2 class="text-lg font-semibold text-[#8B0116] dark:text-[#FCA5A5] mb-2">Abgeschlossene Challenges</h2>
                     <div class="text-4xl font-bold text-gray-800 dark:text-gray-200 mt-auto">
                         {{ $completedTodos }}
                     </div>
                 </div>
                 <!-- Gesamtanzahl Rezensionen Card -->
-                <a href="{{ route('reviews.index') }}" class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 flex flex-col hover:bg-gray-50 dark:hover:bg-gray-700 transition duration-200">
+                <a href="{{ route('reviews.index') }}" class="bg-maddrax-black border border-maddrax-red shadow-xl sm:rounded-lg p-6 flex flex-col hover:bg-maddrax-red transition duration-200">
                     <h2 class="text-lg font-semibold text-[#8B0116] dark:text-[#FCA5A5] mb-2">Alle Rezensionen</h2>
                     <div class="text-4xl font-bold text-gray-800 dark:text-gray-200 mt-auto">
                         {{ $allReviews }}
                     </div>
                 </a>
                 <!-- Meine Rezensionen Card -->
-                <a href="{{ route('reviews.index') }}" class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 flex flex-col hover:bg-gray-50 dark:hover:bg-gray-700 transition duration-200">
+                <a href="{{ route('reviews.index') }}" class="bg-maddrax-black border border-maddrax-red shadow-xl sm:rounded-lg p-6 flex flex-col hover:bg-maddrax-red transition duration-200">
                     <h2 class="text-lg font-semibold text-[#8B0116] dark:text-[#FCA5A5] mb-2">Meine Rezensionen</h2>
                     <div class="text-4xl font-bold text-gray-800 dark:text-gray-200 mt-auto">
                         {{ $myReviews }}
                     </div>
                 </a>
                 <!-- Meine Kommentare Card -->
-                <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 flex flex-col">
+                <div class="bg-maddrax-black border border-maddrax-red shadow-xl sm:rounded-lg p-6 flex flex-col">
                     <h2 class="text-lg font-semibold text-[#8B0116] dark:text-[#FCA5A5] mb-2">Meine Kommentare</h2>
                     <div class="text-4xl font-bold text-gray-800 dark:text-gray-200 mt-auto">
                         {{ $myReviewComments }}
@@ -60,7 +60,7 @@
                 </div>
             </div>
             <!-- Aktivitäten Card -->
-            <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-8">
+            <div class="bg-maddrax-black border border-maddrax-red shadow-xl sm:rounded-lg p-6 mb-8">
                 <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FCA5A5] mb-4">Aktivitäten</h2>
                 <ul class="divide-y divide-gray-200 dark:divide-gray-700">
                     @forelse($activities as $activity)
@@ -92,7 +92,7 @@
                 </ul>
             </div>
             <!-- TOP 3 Mitglieder -->
-            <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-8">
+            <div class="bg-maddrax-black border border-maddrax-red shadow-xl sm:rounded-lg p-6 mb-8">
                 <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FCA5A5] mb-6">TOP 3 Baxx-Sammler</h2>
                 
                 @if(count($topUsers) > 0)
@@ -127,7 +127,7 @@
                                 
                                 <h3 class="text-lg font-semibold text-gray-800 dark:text-white mt-2 group-hover:text-[#8B0116] dark:group-hover:text-[#FCA5A5] transition-colors">{{ $topUser['name'] }}</h3>
                                 <p class="font-bold text-xl text-[#8B0116] dark:text-[#FCA5A5]">{{ $topUser['points'] }}</p>
-                                <p class="text-xs text-gray-500 dark:text-gray-400">Baxx</p>
+                                <p class="text-xs text-maddrax-sand">Baxx</p>
                             </a>
                         @endforeach
                     </div>
@@ -137,14 +137,14 @@
             </div>
             <!-- Zu verifizierende Aufgaben Card (nur für Admin) -->
             @if(in_array($userRole, $allowedRoles) && $pendingVerification > 0)
-                <a href="{{ route('todos.index') }}?filter=pending" class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-8 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700 transition duration-200">
+                <a href="{{ route('todos.index') }}?filter=pending" class="bg-maddrax-black border border-maddrax-red shadow-xl sm:rounded-lg p-6 mb-8 flex items-center justify-between hover:bg-maddrax-red transition duration-200">
                     <div>
                         <h2 class="text-lg font-semibold text-[#8B0116] dark:text-[#FCA5A5] mb-1">Auf Verifizierung wartende Challenges</h2>
                         <p class="text-gray-600 dark:text-gray-400 text-sm">Es gibt {{ $pendingVerification }} Challenge(s), die auf Bestätigung warten</p>
                     </div>
                     <div class="flex items-center">
                         <div class="text-3xl font-bold text-[#8B0116] dark:text-[#FCA5A5] mr-4">{{ $pendingVerification }}</div>
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-500 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-maddrax-sand" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                         </svg>
                     </div>
@@ -152,17 +152,17 @@
             @endif
             <!-- Anwärter-Liste für Kassenwart, Vorstand und Admin -->
             @if($anwaerter->isNotEmpty())
-                <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
+                <div class="bg-maddrax-black border border-maddrax-red shadow-xl sm:rounded-lg p-6">
                     <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FCA5A5] mb-4">Mitgliedsanträge</h2>
                     <!-- Desktop-Ansicht (versteckt auf Mobilgeräten) -->
                     <div class="hidden md:block overflow-auto">
                         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                             <thead>
                                 <tr>
-                                    <th class="px-4 py-2 text-left text-gray-700 dark:text-gray-300">Name</th>
-                                    <th class="px-4 py-2 text-left text-gray-700 dark:text-gray-300">E-Mail</th>
-                                    <th class="px-4 py-2 text-left text-gray-700 dark:text-gray-300">Beitrag</th>
-                                    <th class="px-4 py-2 text-center text-gray-700 dark:text-gray-300">Aktion</th>
+                                    <th class="px-4 py-2 text-left text-maddrax-sand">Name</th>
+                                    <th class="px-4 py-2 text-left text-maddrax-sand">E-Mail</th>
+                                    <th class="px-4 py-2 text-left text-maddrax-sand">Beitrag</th>
+                                    <th class="px-4 py-2 text-center text-maddrax-sand">Aktion</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
@@ -199,16 +199,16 @@
                         @foreach($anwaerter as $person)
                             <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg shadow">
                                 <div class="mb-2">
-                                    <span class="font-semibold text-gray-700 dark:text-gray-300">Name:</span>
+                                    <span class="font-semibold text-maddrax-sand">Name:</span>
                                     <span class="block mt-1 text-gray-800 dark:text-gray-200">{{ $person->name }}</span>
                                 </div>
                                 <div class="mb-2">
-                                    <span class="font-semibold text-gray-700 dark:text-gray-300">E-Mail:</span>
+                                    <span class="font-semibold text-maddrax-sand">E-Mail:</span>
                                     <span
                                         class="block mt-1 break-words text-gray-800 dark:text-gray-200">{{ $person->email }}</span>
                                 </div>
                                 <div class="mb-4">
-                                    <span class="font-semibold text-gray-700 dark:text-gray-300">Beitrag:</span>
+                                    <span class="font-semibold text-maddrax-sand">Beitrag:</span>
                                     <span
                                         class="block mt-1 text-gray-800 dark:text-gray-200">{{ $person->mitgliedsbeitrag }}</span>
                                 </div>

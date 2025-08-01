@@ -1,7 +1,7 @@
 <x-app-layout>
     <div class="py-4 flex flex-col h-[calc(100vh-4rem)]">
         <div class="flex-grow mx-auto w-full px-4 lg:px-6">
-            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-xl sm:rounded-lg h-full flex flex-col">
+            <div class="bg-maddrax-black border border-maddrax-red overflow-hidden shadow-xl sm:rounded-lg h-full flex flex-col">
                 <div class="p-4 flex-grow flex flex-col">
                     @if ($showMap)
 
@@ -25,15 +25,15 @@
     </div>
 </x-app-layout>
 <div id="mission-modal" class="fixed inset-0 bg-black bg-opacity-50 z-[2000] flex items-center justify-center hidden">
-    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto">
+    <div class="bg-maddrax-black border border-maddrax-red p-6 rounded-lg shadow-xl max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto">
         <div class="flex justify-between items-start mb-4">
             <h3 id="mission-title" class="text-xl font-bold"></h3>
-            <button id="close-mission-modal" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+            <button id="close-mission-modal" class="text-maddrax-sand hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
                 ✕
             </button>
         </div>
         <div id="mission-duration" class="mb-2 text-gray-600 dark:text-gray-400"></div>
-        <div id="mission-description" class="mb-6 text-gray-700 dark:text-gray-300"></div>
+        <div id="mission-description" class="mb-6 text-maddrax-sand"></div>
         <button id="start-mission" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded w-full">
             Starte Mission
         </button>

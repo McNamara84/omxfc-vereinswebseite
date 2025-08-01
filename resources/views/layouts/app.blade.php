@@ -11,8 +11,8 @@
     <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('favicon/favicon-16x16.png') }}">
     <link rel="manifest" href="{{ asset('favicon/site.webmanifest') }}">
     <link rel="shortcut icon" href="{{ asset('favicon/favicon.ico') }}">
-    <meta name="msapplication-TileColor" content="#ffffff">
-    <meta name="theme-color" content="#ffffff">
+    <meta name="msapplication-TileColor" content="#900316">
+    <meta name="theme-color" content="#900316">
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
@@ -21,7 +21,7 @@
     @livewireStyles
 </head>
 
-<body class="font-sans antialiased">
+<body class="font-sans antialiased bg-maddrax-dark text-maddrax-sand">
     <!-- Livewire Scripts -->
     <script src="/livewire/livewire.min.js" 
         data-csrf="{{ csrf_token() }}" 
@@ -30,18 +30,18 @@
     </script>
 
     <x-banner />
-    <div class="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 xl:pt-16">
+    <div class="min-h-screen xl:pt-16">
         @livewire('navigation-menu')
         <!-- Page Heading -->
         @if (isset($header))
-            <header class="bg-white dark:bg-gray-800 shadow">
+            <header class="bg-maddrax-black text-maddrax-sand shadow border-b border-maddrax-red">
                 <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
                     {{ $header }}
                 </div>
             </header>
         @endif
         <!-- Page Content -->
-        <main class="text-gray-900 dark:text-gray-100">
+        <main>
             {{ $slot }}
         </main>
     </div>

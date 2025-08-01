@@ -17,12 +17,12 @@
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <!-- Card 1: Mitgliedsbeitrag Status (Für alle Rollen) -->
-                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-                    <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Dein Mitgliedsbeitrag</h2>
+                <div class="bg-maddrax-black border border-maddrax-red rounded-lg shadow-md p-6">
+                    <h2 class="text-lg font-medium text-maddrax-sand dark:text-white mb-4">Dein Mitgliedsbeitrag</h2>
                     
                     <div class="mb-4">
                         <p class="text-sm text-gray-600 dark:text-gray-400">Dein aktueller Mitgliedsbeitrag:</p>
-                        <p class="text-xl font-semibold text-gray-900 dark:text-white">
+                        <p class="text-xl font-semibold text-maddrax-sand dark:text-white">
                             {{ $memberData->mitgliedsbeitrag ? number_format($memberData->mitgliedsbeitrag, 2, ',', '.') . ' €' : 'Nicht festgelegt' }}
                         </p>
                     </div>
@@ -64,8 +64,8 @@
                 </div>
                 
                 <!-- Card 2: Aktueller Kassenstand (Für alle Rollen) -->
-                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-                    <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Aktueller Kassenstand</h2>
+                <div class="bg-maddrax-black border border-maddrax-red rounded-lg shadow-md p-6">
+                    <h2 class="text-lg font-medium text-maddrax-sand dark:text-white mb-4">Aktueller Kassenstand</h2>
                     
                     <div>
                         <p class="text-sm text-gray-600 dark:text-gray-400">Kassenstand zum {{ \Carbon\Carbon::parse($kassenstand->letzte_aktualisierung)->format('d.m.Y') }}</p>
@@ -77,42 +77,42 @@
                 
                 @if(in_array($userRole, ['Vorstand', 'Admin', 'Kassenwart']))
                 <!-- Card 3: Mitgliederliste mit Zahlungsstatus (Für Vorstand und Kassenwart) -->
-                <div class="md:col-span-2 bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+                <div class="md:col-span-2 bg-maddrax-black border border-maddrax-red rounded-lg shadow-md p-6">
                     <div class="flex justify-between items-center mb-4">
-                        <h2 class="text-lg font-medium text-gray-900 dark:text-white">Zahlungsstatus der Mitglieder</h2>
+                        <h2 class="text-lg font-medium text-maddrax-sand dark:text-white">Zahlungsstatus der Mitglieder</h2>
                     </div>
                     
                     <div class="overflow-x-auto">
                         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                             <thead>
                                 <tr>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Mitglied</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">E-Mail</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Beitrag</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Bezahlt bis</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-maddrax-sand uppercase tracking-wider">Mitglied</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-maddrax-sand uppercase tracking-wider">E-Mail</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-maddrax-sand uppercase tracking-wider">Beitrag</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-maddrax-sand uppercase tracking-wider">Bezahlt bis</th>
                                     @if($userRole === 'Kassenwart' || $userRole === 'Admin')
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Aktionen</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-maddrax-sand uppercase tracking-wider">Aktionen</th>
                                     @endif
                                 </tr>
                             </thead>
-                            <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                            <tbody class="bg-maddrax-black border border-maddrax-red divide-y divide-gray-200 dark:divide-gray-700">
                                 @foreach($members as $member)
-                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+                                <tr class="hover:bg-maddrax-red">
                                     <td class="px-4 py-3 whitespace-nowrap">
                                         <div class="flex items-center">
                                             <div class="h-8 w-8 flex-shrink-0">
                                                 <img class="h-8 w-8 rounded-full" src="{{ $member->profile_photo_url }}" alt="{{ $member->name }}">
                                             </div>
                                             <div class="ml-3">
-                                                <div class="text-sm font-medium text-gray-900 dark:text-white">{{ $member->name }}</div>
-                                                <div class="text-xs text-gray-500 dark:text-gray-400">{{ $member->vorname }} {{ $member->nachname }}</div>
+                                                <div class="text-sm font-medium text-maddrax-sand dark:text-white">{{ $member->name }}</div>
+                                                <div class="text-xs text-maddrax-sand">{{ $member->vorname }} {{ $member->nachname }}</div>
                                             </div>
                                         </div>
                                     </td>
-                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-maddrax-sand">
                                         {{ $member->email }}
                                     </td>
-                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-maddrax-sand">
                                         {{ $member->mitgliedsbeitrag ? number_format($member->mitgliedsbeitrag, 2, ',', '.') . ' €' : '-' }}
                                     </td>
                                     <td class="px-4 py-3 whitespace-nowrap">
@@ -160,9 +160,9 @@
                 </div>
                 
                 <!-- Card 4: Kassenbuch (Für Vorstand und Kassenwart) -->
-                <div class="md:col-span-2 bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+                <div class="md:col-span-2 bg-maddrax-black border border-maddrax-red rounded-lg shadow-md p-6">
                     <div class="flex justify-between items-center mb-4">
-                        <h2 class="text-lg font-medium text-gray-900 dark:text-white">Kassenbuch</h2>
+                        <h2 class="text-lg font-medium text-maddrax-sand dark:text-white">Kassenbuch</h2>
                         
                         @if($userRole === 'Kassenwart' || $userRole === 'Admin')
                         <button type="button" onclick="openKassenbuchModal()" class="inline-flex items-center px-4 py-2 border border-transparent text-sm leading-5 font-medium rounded-md text-white bg-[#8B0116] hover:bg-red-700 focus:outline-none focus:border-red-700 focus:shadow-outline-red active:bg-red-800 transition ease-in-out duration-150">
@@ -178,21 +178,21 @@
                         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                             <thead>
                                 <tr>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Datum</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Beschreibung</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Einnahme</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Ausgabe</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Erstellt von</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-maddrax-sand uppercase tracking-wider">Datum</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-maddrax-sand uppercase tracking-wider">Beschreibung</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-maddrax-sand uppercase tracking-wider">Einnahme</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-maddrax-sand uppercase tracking-wider">Ausgabe</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-maddrax-sand uppercase tracking-wider">Erstellt von</th>
                                 </tr>
                             </thead>
-                            <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                            <tbody class="bg-maddrax-black border border-maddrax-red divide-y divide-gray-200 dark:divide-gray-700">
                                 @if($kassenbuchEntries->count() > 0)
                                     @foreach($kassenbuchEntries as $entry)
-                                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
-                                        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                                    <tr class="hover:bg-maddrax-red">
+                                        <td class="px-4 py-3 whitespace-nowrap text-sm text-maddrax-sand">
                                             {{ \Carbon\Carbon::parse($entry->buchungsdatum)->format('d.m.Y') }}
                                         </td>
-                                        <td class="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">
+                                        <td class="px-4 py-3 text-sm text-maddrax-sand">
                                             {{ $entry->beschreibung }}
                                         </td>
                                         <td class="px-4 py-3 whitespace-nowrap text-sm">
@@ -209,14 +209,14 @@
                                                 -
                                             @endif
                                         </td>
-                                        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                                        <td class="px-4 py-3 whitespace-nowrap text-sm text-maddrax-sand">
                                             {{ $entry->creator->name }}
                                         </td>
                                     </tr>
                                     @endforeach
                                 @else
                                     <tr>
-                                        <td colspan="5" class="px-4 py-8 text-center text-sm text-gray-500 dark:text-gray-400">
+                                        <td colspan="5" class="px-4 py-8 text-center text-sm text-maddrax-sand">
                                             Keine Einträge vorhanden.
                                         </td>
                                     </tr>
@@ -263,35 +263,35 @@
                          x-transition:leave="ease-in duration-200" 
                          x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100" 
                          x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" 
-                         class="bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:max-w-lg sm:w-full p-6">
+                         class="bg-maddrax-black border border-maddrax-red rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:max-w-lg sm:w-full p-6">
                         <div class="flex justify-between items-center mb-4">
-                            <h3 class="text-lg font-medium text-gray-900 dark:text-white">Zahlungsdaten bearbeiten</h3>
-                            <button @click="open = false" class="text-gray-400 hover:text-gray-500 dark:text-gray-300 dark:hover:text-gray-200">
+                            <h3 class="text-lg font-medium text-maddrax-sand dark:text-white">Zahlungsdaten bearbeiten</h3>
+                            <button @click="open = false" class="text-gray-400 hover:text-maddrax-sand dark:text-gray-300 dark:hover:text-gray-200">
                                 <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                                 </svg>
                             </button>
                         </div>
                         
-                        <p class="text-sm text-gray-500 dark:text-gray-400 mb-4" x-text="'Mitglied: ' + user_name"></p>
+                        <p class="text-sm text-maddrax-sand mb-4" x-text="'Mitglied: ' + user_name"></p>
                         
                         <form :action="'/kassenbuch/update-payment/' + user_id" method="POST">
                             @csrf
                             @method('PUT')
                             <div class="mb-4">
-                                <label for="mitgliedsbeitrag" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Mitgliedsbeitrag (€)</label>
+                                <label for="mitgliedsbeitrag" class="block text-sm font-medium text-maddrax-sand mb-1">Mitgliedsbeitrag (€)</label>
                                 <input type="number" step="0.01" min="0" id="mitgliedsbeitrag" name="mitgliedsbeitrag" x-model="mitgliedsbeitrag" class="shadow-sm focus:ring-[#8B0116] focus:border-[#8B0116] block w-full sm:text-sm border-gray-300 dark:border-gray-700 dark:bg-gray-700 dark:text-white rounded-md">
                             </div>
                             <div class="mb-4">
-                                <label for="bezahlt_bis" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Bezahlt bis</label>
+                                <label for="bezahlt_bis" class="block text-sm font-medium text-maddrax-sand mb-1">Bezahlt bis</label>
                                 <input type="date" id="bezahlt_bis" name="bezahlt_bis" x-model="bezahlt_bis" class="shadow-sm focus:ring-[#8B0116] focus:border-[#8B0116] block w-full sm:text-sm border-gray-300 dark:border-gray-700 dark:bg-gray-700 dark:text-white rounded-md">
                             </div>
                             <div class="mb-4">
-                                <label for="mitglied_seit" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Mitglied seit</label>
+                                <label for="mitglied_seit" class="block text-sm font-medium text-maddrax-sand mb-1">Mitglied seit</label>
                                 <input type="date" id="mitglied_seit" name="mitglied_seit" x-model="mitglied_seit" class="shadow-sm focus:ring-[#8B0116] focus:border-[#8B0116] block w-full sm:text-sm border-gray-300 dark:border-gray-700 dark:bg-gray-700 dark:text-white rounded-md">
                             </div>
                             <div class="mt-6 flex justify-end">
-                                <button type="button" @click="open = false" class="mr-3 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none">
+                                <button type="button" @click="open = false" class="mr-3 px-4 py-2 text-sm font-medium text-maddrax-sand bg-maddrax-black border border-maddrax-red rounded-md shadow-sm hover:bg-maddrax-red focus:outline-none">
                                     Abbrechen
                                 </button>
                                 <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-[#8B0116] border border-transparent rounded-md shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
@@ -330,10 +330,10 @@
                          x-transition:leave="ease-in duration-200" 
                          x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100" 
                          x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" 
-                         class="bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:max-w-lg sm:w-full p-6">
+                         class="bg-maddrax-black border border-maddrax-red rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:max-w-lg sm:w-full p-6">
                         <div class="flex justify-between items-center mb-4">
-                            <h3 class="text-lg font-medium text-gray-900 dark:text-white">Kassenbucheintrag hinzufügen</h3>
-                            <button @click="open = false" class="text-gray-400 hover:text-gray-500 dark:text-gray-300 dark:hover:text-gray-200">
+                            <h3 class="text-lg font-medium text-maddrax-sand dark:text-white">Kassenbucheintrag hinzufügen</h3>
+                            <button @click="open = false" class="text-gray-400 hover:text-maddrax-sand dark:text-gray-300 dark:hover:text-gray-200">
                                 <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                                 </svg>
@@ -344,36 +344,36 @@
                             @csrf
                             
                             <div class="mb-4">
-                                <label for="buchungsdatum" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Buchungsdatum</label>
+                                <label for="buchungsdatum" class="block text-sm font-medium text-maddrax-sand mb-1">Buchungsdatum</label>
                                 <input type="date" id="buchungsdatum" name="buchungsdatum" required value="{{ date('Y-m-d') }}" class="shadow-sm focus:ring-[#8B0116] focus:border-[#8B0116] block w-full sm:text-sm border-gray-300 dark:border-gray-700 dark:bg-gray-700 dark:text-white rounded-md">
                             </div>
                             
                             <div class="mb-4">
-                                <label for="beschreibung" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Beschreibung</label>
+                                <label for="beschreibung" class="block text-sm font-medium text-maddrax-sand mb-1">Beschreibung</label>
                                 <input type="text" id="beschreibung" name="beschreibung" required class="shadow-sm focus:ring-[#8B0116] focus:border-[#8B0116] block w-full sm:text-sm border-gray-300 dark:border-gray-700 dark:bg-gray-700 dark:text-white rounded-md">
                             </div>
                             
                             <div class="mb-4">
-                                <label for="betrag" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Betrag (€)</label>
+                                <label for="betrag" class="block text-sm font-medium text-maddrax-sand mb-1">Betrag (€)</label>
                                 <input type="number" step="0.01" min="0.01" id="betrag" name="betrag" required class="shadow-sm focus:ring-[#8B0116] focus:border-[#8B0116] block w-full sm:text-sm border-gray-300 dark:border-gray-700 dark:bg-gray-700 dark:text-white rounded-md">
                             </div>
                             
                             <div class="mb-4">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Typ</label>
+                                <label class="block text-sm font-medium text-maddrax-sand mb-2">Typ</label>
                                 <div class="flex space-x-4">
                                     <label class="inline-flex items-center">
                                         <input type="radio" name="typ" value="einnahme" checked class="form-radio h-4 w-4 text-[#8B0116] focus:ring-[#8B0116] border-gray-300 dark:border-gray-700">
-                                        <span class="ml-2 text-gray-700 dark:text-gray-300">Einnahme</span>
+                                        <span class="ml-2 text-maddrax-sand">Einnahme</span>
                                     </label>
                                     <label class="inline-flex items-center">
                                         <input type="radio" name="typ" value="ausgabe" class="form-radio h-4 w-4 text-[#8B0116] focus:ring-[#8B0116] border-gray-300 dark:border-gray-700">
-                                        <span class="ml-2 text-gray-700 dark:text-gray-300">Ausgabe</span>
+                                        <span class="ml-2 text-maddrax-sand">Ausgabe</span>
                                     </label>
                                 </div>
                             </div>
                             
                             <div class="mt-6 flex justify-end">
-                                <button type="button" @click="open = false" class="mr-3 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none">
+                                <button type="button" @click="open = false" class="mr-3 px-4 py-2 text-sm font-medium text-maddrax-sand bg-maddrax-black border border-maddrax-red rounded-md shadow-sm hover:bg-maddrax-red focus:outline-none">
                                     Abbrechen
                                 </button>
                                 <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-[#8B0116] border border-transparent rounded-md shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">

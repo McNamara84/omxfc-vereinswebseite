@@ -1,5 +1,5 @@
 <x-app-layout>
-    <div class="max-w-md mx-auto px-6 py-12 bg-gray-100 dark:bg-gray-800 rounded-lg shadow-md">
+    <div class="max-w-md mx-auto px-6 py-12 bg-maddrax-dark border border-maddrax-red rounded-lg shadow-md">
         <h2 class="text-2xl font-bold text-[#8B0116] dark:text-[#ff4b63] mb-6 text-center">
             {{ __('Login') }}
         </h2>
@@ -29,7 +29,7 @@
             </div>
             <div class="flex items-center justify-between mt-6">
                 @if (Route::has('password.request'))
-                    <a class="underline text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#8B0116] dark:focus:ring-offset-gray-800"
+                    <a class="underline text-sm text-gray-600 dark:text-gray-400 hover:text-maddrax-sand dark:hover:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#8B0116] dark:focus:ring-offset-gray-800"
                         href="{{ route('password.request') }}">
                         {{ __('Passwort vergessen?') }}
                     </a>

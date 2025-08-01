@@ -10,12 +10,12 @@
                 <p>Du kannst die Rezensionen zu diesem Roman erst lesen, nachdem du selbst eine verfasst und gespeichert hast.</p>
             </div>
 
-            <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
+            <div class="bg-maddrax-black border border-maddrax-red shadow-xl sm:rounded-lg p-6">
                 <form action="{{ route('reviews.store', $book) }}" method="POST">
                     @csrf
 
                     <div class="mb-4">
-                        <label for="title" class="block text-gray-700 dark:text-gray-300 font-medium">Rezensionstitel</label>
+                        <label for="title" class="block text-maddrax-sand font-medium">Rezensionstitel</label>
                         <input type="text" name="title" id="title" value="{{ old('title') }}"
                                class="mt-1 block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 rounded" required>
                         @error('title')
@@ -24,11 +24,11 @@
                     </div>
 
                     <div class="mb-4">
-                        <label for="content" class="block text-gray-700 dark:text-gray-300 font-medium">Rezensionstext</label>
+                        <label for="content" class="block text-maddrax-sand font-medium">Rezensionstext</label>
                         <textarea name="content" id="content" rows="8"
                                   class="mt-1 block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 rounded"
                                   required>{{ old('content') }}</textarea>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Mindestens 140 Zeichen.</p>
+                        <p class="text-xs text-maddrax-sand mt-1">Mindestens 140 Zeichen.</p>
                         @error('content')
                             <p class="text-red-600 dark:text-red-400 text-sm mt-1">{{ $message }}</p>
                         @enderror

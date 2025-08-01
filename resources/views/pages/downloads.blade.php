@@ -1,7 +1,7 @@
 <x-app-layout>
     <div class="py-8">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
+            <div class="bg-maddrax-black border border-maddrax-red shadow-xl sm:rounded-lg p-6">
                 <h1 class="text-2xl font-semibold text-[#8B0116] dark:text-[#ff4b63] mb-6">
                     Downloads
                 </h1>
@@ -34,7 +34,7 @@
                                         <li class="flex items-center justify-between">
                                             <span>
                                                 {{ $file['titel'] }}
-                                                <span class="ml-2 text-xs text-gray-500">({{ $file['punkte'] }} Baxx)</span>
+                                                <span class="ml-2 text-xs text-maddrax-sand">({{ $file['punkte'] }} Baxx)</span>
                                             </span>
 
                                             @if($userPoints >= $file['punkte'])
