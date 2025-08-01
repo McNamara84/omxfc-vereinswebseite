@@ -114,7 +114,7 @@
             <x-responsive-nav-link href="{{ route('dashboard') }}">Dashboard</x-responsive-nav-link>
             <button id="verein-mobile-button" type="button" @click="openMenu = (openMenu === 'verein' ? null : 'verein')" class="w-full text-left px-4 py-2 font-bold text-gray-600 dark:text-gray-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500" :class="{ 'bg-gray-100 dark:bg-gray-700': openMenu === 'verein' }" :aria-expanded="openMenu === 'verein'" aria-controls="verein-mobile-menu" @keydown.enter.prevent="openMenu = (openMenu === 'verein' ? null : 'verein')" @keydown.space.prevent="openMenu = (openMenu === 'verein' ? null : 'verein')">
             Verein</button>
-            <div id="verein-mobile-menu" x-show="openMenu === 'verein'" x-cloak>
+            <div id="verein-mobile-menu" x-show="openMenu === 'verein'" x-cloak class="italic">
                 <x-responsive-nav-link href="{{ route('mitglieder.index') }}">Mitgliederliste</x-responsive-nav-link>
                 <x-responsive-nav-link href="{{ route('mitglieder.karte') }}">Mitgliederkarte</x-responsive-nav-link>
                 <x-responsive-nav-link href="{{ route('protokolle') }}">Protokolle</x-responsive-nav-link>
@@ -125,20 +125,20 @@
 
             <button id="veranstaltungen-mobile-button" type="button" @click="openMenu = (openMenu === 'veranstaltungen' ? null : 'veranstaltungen')" class="w-full text-left px-4 py-2 font-bold text-gray-600 dark:text-gray-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500" :class="{ 'bg-gray-100 dark:bg-gray-700': openMenu === 'veranstaltungen' }" :aria-expanded="openMenu === 'veranstaltungen'" aria-controls="veranstaltungen-mobile-menu" @keydown.enter.prevent="openMenu = (openMenu === 'veranstaltungen' ? null : 'veranstaltungen')" @keydown.space.prevent="openMenu = (openMenu === 'veranstaltungen' ? null : 'veranstaltungen')">
             Veranstaltungen</button>
-            <div id="veranstaltungen-mobile-menu" x-show="openMenu === 'veranstaltungen'" x-cloak>
+            <div id="veranstaltungen-mobile-menu" x-show="openMenu === 'veranstaltungen'" x-cloak class="italic">
                 <x-responsive-nav-link href="{{ route('fotogalerie') }}">Fotos</x-responsive-nav-link>
                 <x-responsive-nav-link href="{{ route('meetings') }}">Meetings</x-responsive-nav-link>
             </div>
 
             <button id="baxx-mobile-button" type="button" @click="openMenu = (openMenu === 'baxx' ? null : 'baxx')" class="w-full text-left px-4 py-2 font-bold text-gray-600 dark:text-gray-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500" :class="{ 'bg-gray-100 dark:bg-gray-700': openMenu === 'baxx' }" :aria-expanded="openMenu === 'baxx'" aria-controls="baxx-mobile-menu" @keydown.enter.prevent="openMenu = (openMenu === 'baxx' ? null : 'baxx')" @keydown.space.prevent="openMenu = (openMenu === 'baxx' ? null : 'baxx')">
             Baxx</button>
-            <div id="baxx-mobile-menu" x-show="openMenu === 'baxx'" x-cloak>
+            <div id="baxx-mobile-menu" x-show="openMenu === 'baxx'" x-cloak class="italic">
                 <x-responsive-nav-link href="{{ route('todos.index') }}">Challenges</x-responsive-nav-link>
                 <x-responsive-nav-link href="{{ route('rewards.index') }}">Belohnungen</x-responsive-nav-link>
             </div>
             <button id="belohnungen-mobile-button" type="button" @click="openMenu = (openMenu === 'belohnungen' ? null : 'belohnungen')" class="w-full text-left px-4 py-2 font-bold text-gray-600 dark:text-gray-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500" :class="{ 'bg-gray-100 dark:bg-gray-700': openMenu === 'belohnungen' }" :aria-expanded="openMenu === 'belohnungen'" aria-controls="belohnungen-mobile-menu" @keydown.enter.prevent="openMenu = (openMenu === 'belohnungen' ? null : 'belohnungen')" @keydown.space.prevent="openMenu = (openMenu === 'belohnungen' ? null : 'belohnungen')">
             Belohnungen</button>
-            <div id="belohnungen-mobile-menu" x-show="openMenu === 'belohnungen'" x-cloak>
+            <div id="belohnungen-mobile-menu" x-show="openMenu === 'belohnungen'" x-cloak class="italic">
                 <x-responsive-nav-link href="{{ route('maddraxiversum.index') }}">Maddraxiversum</x-responsive-nav-link>
                 <x-responsive-nav-link href="{{ route('downloads') }}">Downloads</x-responsive-nav-link>
                 <x-responsive-nav-link href="{{ route('kompendium.index') }}">Kompendium</x-responsive-nav-link>
