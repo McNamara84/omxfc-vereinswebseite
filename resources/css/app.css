@@ -22,3 +22,19 @@
     margin-left: auto;
     margin-right: auto;
 }
+
+@layer base {
+    body {
+        @apply bg-apocalypse text-black dark:bg-gray-900 dark:text-gray-100;
+    }
+
+    a {
+        @apply text-maddrax dark:text-red-400;
+    }
+}
+
+@layer utilities {
+    .bg-white {
+        background-color: #FED17E;
+    }
+}

@@ -17,6 +17,10 @@ export default {
             fontFamily: {
                 sans: ['Figtree', ...defaultTheme.fontFamily.sans],
             },
+            colors: {
+                apocalypse: '#FED17E',
+                maddrax: '#900316',
+            },
         },
     },
 
