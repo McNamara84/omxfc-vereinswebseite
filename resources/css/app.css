@@ -6,6 +6,55 @@
     display: none;
 }
 
+/* Post-apocalyptic color palette */
+:root {
+    --background: #FED17E; /* scorched earth */
+    --surface: #f4c76e;    /* lighter panels */
+    --text: #000000;       /* dark text */
+    --accent: #900316;     /* blood red */
+}
+
+.dark {
+    --background: #0f0f0f; /* wasteland night */
+    --surface: #1a0f0f;
+    --text: #FED17E;
+    --accent: #900316;
+}
+
+body {
+    background-color: var(--background);
+    color: var(--text);
+}
+
+a {
+    color: var(--accent);
+}
+
+a:hover {
+    color: #63010e;
+}
+
+/* Override Tailwind utility colors to use palette */
+.bg-white, .bg-gray-100 {
+    background-color: var(--surface) !important;
+}
+
+.text-gray-900 {
+    color: var(--text) !important;
+}
+
+.dark .bg-gray-800 {
+    background-color: var(--surface) !important;
+}
+
+.dark .bg-gray-900 {
+    background-color: var(--background) !important;
+}
+
+.dark .text-gray-100 {
+    color: var(--text) !important;
+}
+
 /* Vereinslogo als Asset referenzieren */
 .logo {
     background-image: url('../images/omxfc-logo.png');
