@@ -13,7 +13,7 @@
     </div>
     @endif
     
-    <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
+    <div class="bg-maddrax-black border border-maddrax-red shadow-xl sm:rounded-lg p-6">
     <h2 class="text-2xl font-semibold text-[#8B0116] dark:text-red-400 mb-6">Mitgliederliste</h2>
     <!-- Filter -->
     <form method="GET" action="{{ route('mitglieder.index') }}" class="mb-6" x-data>
@@ -22,7 +22,7 @@
         <div class="flex flex-wrap gap-4 items-center">
             <label class="inline-flex items-center">
                 <input type="checkbox" name="filters[]" value="online" @checked(in_array('online', $filters ?? [])) @change="$root.submit()" class="rounded border-gray-300 text-[#8B0116] shadow-sm focus:ring-[#8B0116]">
-                <span class="ml-2 text-gray-700 dark:text-gray-300">Nur online</span>
+                <span class="ml-2 text-maddrax-sand">Nur online</span>
             </label>
         </div>
     </form>
@@ -31,7 +31,7 @@
     <div class="mb-6">
         <div x-data="{ showExportOptions: false, showEmailCopy: false, emailsCopied: false }" class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
             <div class="flex flex-wrap gap-4 items-center justify-between">
-                <h3 class="text-lg font-medium text-gray-700 dark:text-gray-300">Datenexport & Funktionen</h3>
+                <h3 class="text-lg font-medium text-maddrax-sand">Datenexport & Funktionen</h3>
                 
                 <div class="flex space-x-2">
                     <!-- CSV Export Button -->
@@ -71,26 +71,26 @@
             
             <!-- CSV Export Optionen -->
             <div x-show="showExportOptions" class="mt-4">
-                <form action="{{ route('mitglieder.export-csv') }}" method="POST" class="bg-white dark:bg-gray-800 p-4 rounded-md shadow">
+                <form action="{{ route('mitglieder.export-csv') }}" method="POST" class="bg-maddrax-black border border-maddrax-red p-4 rounded-md shadow">
                     @csrf
                     <div class="mb-3">
-                        <h4 class="font-medium text-gray-700 dark:text-gray-300 mb-2">Zu exportierende Daten auswählen:</h4>
+                        <h4 class="font-medium text-maddrax-sand mb-2">Zu exportierende Daten auswählen:</h4>
                         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                             <label class="inline-flex items-center">
                                 <input type="checkbox" name="export_fields[]" value="name" class="rounded border-gray-300 text-[#8B0116] shadow-sm focus:border-red-300 focus:ring focus:ring-red-200 focus:ring-opacity-50" checked>
-                                <span class="ml-2 text-gray-700 dark:text-gray-300">Name (Vor-/Nachname)</span>
+                                <span class="ml-2 text-maddrax-sand">Name (Vor-/Nachname)</span>
                             </label>
                             <label class="inline-flex items-center">
                                 <input type="checkbox" name="export_fields[]" value="email" class="rounded border-gray-300 text-[#8B0116] shadow-sm focus:border-red-300 focus:ring focus:ring-red-200 focus:ring-opacity-50" checked>
-                                <span class="ml-2 text-gray-700 dark:text-gray-300">E-Mail-Adresse</span>
+                                <span class="ml-2 text-maddrax-sand">E-Mail-Adresse</span>
                             </label>
                             <label class="inline-flex items-center">
                                 <input type="checkbox" name="export_fields[]" value="adresse" class="rounded border-gray-300 text-[#8B0116] shadow-sm focus:border-red-300 focus:ring focus:ring-red-200 focus:ring-opacity-50">
-                                <span class="ml-2 text-gray-700 dark:text-gray-300">Postadresse</span>
+                                <span class="ml-2 text-maddrax-sand">Postadresse</span>
                             </label>
                             <label class="inline-flex items-center">
                                 <input type="checkbox" name="export_fields[]" value="bezahlt_bis" class="rounded border-gray-300 text-[#8B0116] shadow-sm focus:border-red-300 focus:ring focus:ring-red-200 focus:ring-opacity-50">
-                                <span class="ml-2 text-gray-700 dark:text-gray-300">Bezahlt bis</span>
+                                <span class="ml-2 text-maddrax-sand">Bezahlt bis</span>
                             </label>
                         </div>
                     </div>
@@ -123,7 +123,7 @@
     <tr>
     <th class="px-4 py-2 text-left">
     <a href="{{ route('mitglieder.index', array_merge(request()->query(), ['sort' => 'name', 'dir' => ($sortBy === 'name' && $sortDir === 'asc') ? 'desc' : 'asc'])) }}"
-    class="flex items-center group text-gray-700 dark:text-gray-300 hover:text-[#8B0116] dark:hover:text-red-400">
+    class="flex items-center group text-maddrax-sand hover:text-[#8B0116] dark:hover:text-red-400">
     Name
     @if($sortBy === 'name')
     <span class="ml-1">
@@ -143,7 +143,7 @@
     
     <th class="px-4 py-2 text-left">
     <a href="{{ route('mitglieder.index', array_merge(request()->query(), ['sort' => 'mitglied_seit', 'dir' => ($sortBy === 'mitglied_seit' && $sortDir === 'asc') ? 'desc' : 'asc'])) }}"
-    class="flex items-center group text-gray-700 dark:text-gray-300 hover:text-[#8B0116] dark:hover:text-red-400">
+    class="flex items-center group text-maddrax-sand hover:text-[#8B0116] dark:hover:text-red-400">
     Mitglied seit
     @if($sortBy === 'mitglied_seit')
     <span class="ml-1">
@@ -163,7 +163,7 @@
     
     <th class="px-4 py-2 text-left">
     <a href="{{ route('mitglieder.index', array_merge(request()->query(), ['sort' => 'role', 'dir' => ($sortBy === 'role' && $sortDir === 'asc') ? 'desc' : 'asc'])) }}"
-    class="flex items-center group text-gray-700 dark:text-gray-300 hover:text-[#8B0116] dark:hover:text-red-400">
+    class="flex items-center group text-maddrax-sand hover:text-[#8B0116] dark:hover:text-red-400">
     Rolle
     @if($sortBy === 'role')
     <span class="ml-1">
@@ -184,7 +184,7 @@
     @if($canViewDetails)
     <th class="px-4 py-2 text-left">
     <a href="{{ route('mitglieder.index', array_merge(request()->query(), ['sort' => 'bezahlt_bis', 'dir' => ($sortBy === 'bezahlt_bis' && $sortDir === 'asc') ? 'desc' : 'asc'])) }}"
-    class="flex items-center group text-gray-700 dark:text-gray-300 hover:text-[#8B0116] dark:hover:text-red-400">
+    class="flex items-center group text-maddrax-sand hover:text-[#8B0116] dark:hover:text-red-400">
     Bezahlt bis
     @if($sortBy === 'bezahlt_bis')
     <span class="ml-1">
@@ -204,7 +204,7 @@
     
     <th class="px-4 py-2 text-left">
     <a href="{{ route('mitglieder.index', array_merge(request()->query(), ['sort' => 'mitgliedsbeitrag', 'dir' => ($sortBy === 'mitgliedsbeitrag' && $sortDir === 'asc') ? 'desc' : 'asc'])) }}"
-    class="flex items-center group text-gray-700 dark:text-gray-300 hover:text-[#8B0116] dark:hover:text-red-400">
+    class="flex items-center group text-maddrax-sand hover:text-[#8B0116] dark:hover:text-red-400">
     Beitrag
     @if($sortBy === 'mitgliedsbeitrag')
     <span class="ml-1">
@@ -222,37 +222,37 @@
     </a>
     </th>
     
-    <th class="px-4 py-2 text-left text-gray-700 dark:text-gray-300 hidden lg:table-cell">Details</th>
+    <th class="px-4 py-2 text-left text-maddrax-sand hidden lg:table-cell">Details</th>
     @endif
     
-    <th class="px-4 py-2 text-center text-gray-700 dark:text-gray-300">Aktionen</th>
+    <th class="px-4 py-2 text-center text-maddrax-sand">Aktionen</th>
     </tr>
     </thead>
     <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
     @foreach($members as $member)
-    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+    <tr class="hover:bg-maddrax-red">
     <td class="px-4 py-3">
     <div class="flex items-center">
     <div class="h-10 w-10 flex-shrink-0">
     <img class="h-10 w-10 rounded-full" src="{{ $member->profile_photo_url }}" alt="{{ $member->name }}">
     </div>
     <div class="ml-4">
-    <div class="font-medium text-gray-900 dark:text-gray-100 flex items-center">
+    <div class="font-medium text-maddrax-sand flex items-center">
         <span class="inline-block w-2 h-2 rounded-full mr-2 {{ in_array($member->id, $onlineUserIds) ? 'bg-green-500' : 'bg-gray-400' }}" title="{{ in_array($member->id, $onlineUserIds) ? 'Online' : 'Offline' }}"></span>
         {{ $member->name }}
     </div>
     @if($canViewDetails)
-    <div class="text-sm text-gray-500 dark:text-gray-400">{{ $member->vorname }} {{ $member->nachname }}</div>
+    <div class="text-sm text-maddrax-sand">{{ $member->vorname }} {{ $member->nachname }}</div>
     @endif
     </div>
     </div>
     </td>
     
-    <td class="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">
+    <td class="px-4 py-3 text-sm text-maddrax-sand">
     {{ $member->mitglied_seit ? $member->mitglied_seit->format('d.m.Y') : '-' }}
     </td>
     
-    <td class="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">
+    <td class="px-4 py-3 text-sm text-maddrax-sand">
     {{ $member->membership->role }}
     </td>
     
@@ -279,15 +279,15 @@
     </span>
     @endif
     @else
-    <span class="text-gray-500 dark:text-gray-400">-</span>
+    <span class="text-maddrax-sand">-</span>
     @endif
     </td>
     
-    <td class="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">
+    <td class="px-4 py-3 text-sm text-maddrax-sand">
     {{ $member->mitgliedsbeitrag }}
     </td>
     
-    <td class="px-4 py-3 text-sm text-gray-500 dark:text-gray-400 hidden lg:table-cell">
+    <td class="px-4 py-3 text-sm text-maddrax-sand hidden lg:table-cell">
     <div x-data="{ showDetails: false }" class="relative">
     <button @click="showDetails = !showDetails" type="button"
     class="inline-flex items-center text-blue-600 dark:text-blue-400 hover:underline">
@@ -298,14 +298,14 @@
     </button>
     
     <div x-show="showDetails" @click.away="showDetails = false"
-    class="absolute left-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-md shadow-lg z-10 p-4">
-    <h4 class="font-semibold text-gray-900 dark:text-gray-100 mb-2">Kontaktdaten</h4>
+    class="absolute left-0 mt-2 w-64 bg-maddrax-black border border-maddrax-red rounded-md shadow-lg z-10 p-4">
+    <h4 class="font-semibold text-maddrax-sand mb-2">Kontaktdaten</h4>
     <div class="mb-3">
     <div class="text-sm">{{ $member->email }}</div>
     <div class="text-sm">{{ $member->telefon }}</div>
     </div>
     
-    <h4 class="font-semibold text-gray-900 dark:text-gray-100 mb-2">Adresse</h4>
+    <h4 class="font-semibold text-maddrax-sand mb-2">Adresse</h4>
     <div class="mb-3">
     <div class="text-sm">{{ $member->strasse }} {{ $member->hausnummer }}</div>
     <div class="text-sm">{{ $member->plz }} {{ $member->stadt }}</div>
@@ -347,7 +347,7 @@
     </button>
     
     <div x-show="open" @click.away="open = false"
-    class="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg z-10">
+    class="absolute right-0 mt-2 w-48 bg-maddrax-black border border-maddrax-red rounded-md shadow-lg z-10">
     <div class="py-1">
     @foreach($roleRanks as $role => $rank)
     @if($rank <= $currentUserRank && $role !== $memberRole)
@@ -394,27 +394,27 @@
     <div class="md:hidden space-y-6">
     <!-- Sortieroptionen für Mobile -->
     <div class="mb-4 bg-gray-100 dark:bg-gray-700 rounded-lg p-3">
-    <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Sortieren nach:</h3>
+    <h3 class="text-sm font-medium text-maddrax-sand mb-2">Sortieren nach:</h3>
     <div class="flex flex-wrap gap-2">
     <a href="{{ route('mitglieder.index', array_merge(request()->query(), ['sort' => 'nachname', 'dir' => ($sortBy === 'nachname' && $sortDir === 'asc') ? 'desc' : 'asc'])) }}"
-    class="px-3 py-1 text-xs rounded-full {{ $sortBy === 'nachname' ? 'bg-[#8B0116] text-white' : 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300' }}">
+    class="px-3 py-1 text-xs rounded-full {{ $sortBy === 'nachname' ? 'bg-[#8B0116] text-white' : 'bg-gray-200 dark:bg-gray-600 text-maddrax-sand' }}">
     Name {{ $sortBy === 'nachname' ? ($sortDir === 'asc' ? '↑' : '↓') : '' }}
     </a>
     <a href="{{ route('mitglieder.index', array_merge(request()->query(), ['sort' => 'mitglied_seit', 'dir' => ($sortBy === 'mitglied_seit' && $sortDir === 'asc') ? 'desc' : 'asc'])) }}"
-    class="px-3 py-1 text-xs rounded-full {{ $sortBy === 'mitglied_seit' ? 'bg-[#8B0116] text-white' : 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300' }}">
+    class="px-3 py-1 text-xs rounded-full {{ $sortBy === 'mitglied_seit' ? 'bg-[#8B0116] text-white' : 'bg-gray-200 dark:bg-gray-600 text-maddrax-sand' }}">
     Mitglied seit {{ $sortBy === 'mitglied_seit' ? ($sortDir === 'asc' ? '↑' : '↓') : '' }}
     </a>
     <a href="{{ route('mitglieder.index', array_merge(request()->query(), ['sort' => 'role', 'dir' => ($sortBy === 'role' && $sortDir === 'asc') ? 'desc' : 'asc'])) }}"
-    class="px-3 py-1 text-xs rounded-full {{ $sortBy === 'role' ? 'bg-[#8B0116] text-white' : 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300' }}">
+    class="px-3 py-1 text-xs rounded-full {{ $sortBy === 'role' ? 'bg-[#8B0116] text-white' : 'bg-gray-200 dark:bg-gray-600 text-maddrax-sand' }}">
     Rolle {{ $sortBy === 'role' ? ($sortDir === 'asc' ? '↑' : '↓') : '' }}
     </a>
     @if($canViewDetails)
     <a href="{{ route('mitglieder.index', array_merge(request()->query(), ['sort' => 'bezahlt_bis', 'dir' => ($sortBy === 'bezahlt_bis' && $sortDir === 'asc') ? 'desc' : 'asc'])) }}"
-    class="px-3 py-1 text-xs rounded-full {{ $sortBy === 'bezahlt_bis' ? 'bg-[#8B0116] text-white' : 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300' }}">
+    class="px-3 py-1 text-xs rounded-full {{ $sortBy === 'bezahlt_bis' ? 'bg-[#8B0116] text-white' : 'bg-gray-200 dark:bg-gray-600 text-maddrax-sand' }}">
     Bezahlt {{ $sortBy === 'bezahlt_bis' ? ($sortDir === 'asc' ? '↑' : '↓') : '' }}
     </a>
     <a href="{{ route('mitglieder.index', array_merge(request()->query(), ['sort' => 'mitgliedsbeitrag', 'dir' => ($sortBy === 'mitgliedsbeitrag' && $sortDir === 'asc') ? 'desc' : 'asc'])) }}"
-    class="px-3 py-1 text-xs rounded-full {{ $sortBy === 'mitgliedsbeitrag' ? 'bg-[#8B0116] text-white' : 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300' }}">
+    class="px-3 py-1 text-xs rounded-full {{ $sortBy === 'mitgliedsbeitrag' ? 'bg-[#8B0116] text-white' : 'bg-gray-200 dark:bg-gray-600 text-maddrax-sand' }}">
     Beitrag {{ $sortBy === 'mitgliedsbeitrag' ? ($sortDir === 'asc' ? '↑' : '↓') : '' }}
     </a>
     @endif
@@ -428,11 +428,11 @@
     <img class="h-12 w-12 rounded-full" src="{{ $member->profile_photo_url }}" alt="{{ $member->name }}">
     </div>
     <div class="ml-4">
-    <div class="font-medium text-gray-900 dark:text-gray-100 flex items-center">
+    <div class="font-medium text-maddrax-sand flex items-center">
         <span class="inline-block w-2 h-2 rounded-full mr-2 {{ in_array($member->id, $onlineUserIds) ? 'bg-green-500' : 'bg-gray-400' }}" title="{{ in_array($member->id, $onlineUserIds) ? 'Online' : 'Offline' }}"></span>
         {{ $member->name }}
     </div>
-    <div class="text-xs text-gray-500 dark:text-gray-400">
+    <div class="text-xs text-maddrax-sand">
     {{ $member->membership->role }} •
     Mitglied seit {{ $member->mitglied_seit ? $member->mitglied_seit->format('d.m.Y') : 'k.A.' }}
     </div>
@@ -443,7 +443,7 @@
     <div class="grid grid-cols-2 gap-4">
     @if($canViewDetails)
     <div>
-    <h4 class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400 font-semibold mb-1">Bezahlt bis</h4>
+    <h4 class="text-xs uppercase tracking-wide text-maddrax-sand font-semibold mb-1">Bezahlt bis</h4>
     @if($member->bezahlt_bis)
     @php
     $bezahlt_bis = \Carbon\Carbon::parse($member->bezahlt_bis);
@@ -465,13 +465,13 @@
     </span>
     @endif
     @else
-    <span class="text-gray-500 dark:text-gray-400">-</span>
+    <span class="text-maddrax-sand">-</span>
     @endif
     </div>
     
     <div>
-    <h4 class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400 font-semibold mb-1">Beitrag</h4>
-    <div class="text-sm text-gray-900 dark:text-gray-100">{{ $member->mitgliedsbeitrag }}</div>
+    <h4 class="text-xs uppercase tracking-wide text-maddrax-sand font-semibold mb-1">Beitrag</h4>
+    <div class="text-sm text-maddrax-sand">{{ $member->mitgliedsbeitrag }}</div>
     </div>
     @endif
     </div>
@@ -480,7 +480,7 @@
     @if($canViewDetails)
     <div x-data="{ open: false }" class="mb-4">
     <button @click="open = !open" type="button"
-    class="flex items-center justify-between w-full px-4 py-2 text-sm font-medium text-left text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-600 rounded-md hover:bg-gray-200 dark:hover:bg-gray-500 focus:outline-none focus-visible:ring focus-visible:ring-opacity-75">
+    class="flex items-center justify-between w-full px-4 py-2 text-sm font-medium text-left text-maddrax-sand bg-gray-100 dark:bg-gray-600 rounded-md hover:bg-gray-200 dark:hover:bg-gray-500 focus:outline-none focus-visible:ring focus-visible:ring-opacity-75">
     <span>Weitere Details anzeigen</span>
     <svg :class="{'transform rotate-180': open}" class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
     <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
@@ -496,16 +496,16 @@
     class="mt-2 space-y-3">
     
     <div>
-    <h4 class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400 font-semibold mb-1">Kontaktdaten</h4>
-    <div class="text-sm text-gray-900 dark:text-gray-100">{{ $member->email }}</div>
-    <div class="text-sm text-gray-700 dark:text-gray-300">{{ $member->telefon }}</div>
+    <h4 class="text-xs uppercase tracking-wide text-maddrax-sand font-semibold mb-1">Kontaktdaten</h4>
+    <div class="text-sm text-maddrax-sand">{{ $member->email }}</div>
+    <div class="text-sm text-maddrax-sand">{{ $member->telefon }}</div>
     </div>
     
     <div>
-    <h4 class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400 font-semibold mb-1">Adresse</h4>
-    <div class="text-sm text-gray-900 dark:text-gray-100">{{ $member->strasse }} {{ $member->hausnummer }}</div>
-    <div class="text-sm text-gray-700 dark:text-gray-300">{{ $member->plz }} {{ $member->stadt }}</div>
-    <div class="text-sm text-gray-700 dark:text-gray-300">{{ $member->land }}</div>
+    <h4 class="text-xs uppercase tracking-wide text-maddrax-sand font-semibold mb-1">Adresse</h4>
+    <div class="text-sm text-maddrax-sand">{{ $member->strasse }} {{ $member->hausnummer }}</div>
+    <div class="text-sm text-maddrax-sand">{{ $member->plz }} {{ $member->stadt }}</div>
+    <div class="text-sm text-maddrax-sand">{{ $member->land }}</div>
     </div>
     </div>
     </div>
@@ -539,7 +539,7 @@
     </button>
     
     <div x-show="open" @click.away="open = false"
-    class="absolute left-0 right-0 mt-2 bg-white dark:bg-gray-800 rounded-md shadow-lg z-10">
+    class="absolute left-0 right-0 mt-2 bg-maddrax-black border border-maddrax-red rounded-md shadow-lg z-10">
     <div class="py-1">
     @foreach($roleRanks as $role => $rank)
     @if($rank <= $currentUserRank && $role !== $memberRole)

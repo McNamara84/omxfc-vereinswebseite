@@ -4,14 +4,14 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             {{-- Kopfzeile --}}
             <div
-                class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                class="bg-maddrax-black border border-maddrax-red shadow-xl sm:rounded-lg p-6 mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <h1 class="text-2xl font-semibold text-[#8B0116] dark:text-[#FF6B81]">
                     Statistik
                 </h1>
             </div>
             {{-- Card 1 – Balkendiagramm (≥ 2 Bakk) --}}
             @if ($userPoints >= 2)
-                <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
+                <div class="bg-maddrax-black border border-maddrax-red shadow-xl sm:rounded-lg p-6 mb-6">
                     <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
                         Romane je Autor:in
                     </h2>
@@ -26,7 +26,7 @@
             @endif
             {{-- Card 2 – Teamplayer-Tabelle (≥ 4 Baxx) --}}
             @if ($userPoints >= 4)
-                <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
+                <div class="bg-maddrax-black border border-maddrax-red shadow-xl sm:rounded-lg p-6 mb-6">
                     <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
                         Top Teamplayer
                     </h2>
@@ -55,7 +55,7 @@
             @endif
             {{-- Card 3 – Romane-Tabelle (≥ 5 Baxx) --}}
             @if ($userPoints >= 5)
-                <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
+                <div class="bg-maddrax-black border border-maddrax-red shadow-xl sm:rounded-lg p-6 mb-6">
                     <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
                         Alle Romane
                     </h2>
@@ -88,7 +88,7 @@
             @endif
             {{-- Card 4 – Top-Autor:innen nach Ø‑Bewertung (≥ 7 Baxx) --}}
             @if ($userPoints >= 7)
-                <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
+                <div class="bg-maddrax-black border border-maddrax-red shadow-xl sm:rounded-lg p-6 mb-6">
                     <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
                         Top 10 Autor:innen nach Ø-Bewertung
                     </h2>
@@ -115,7 +115,7 @@
                     </div>
                 </div>
             @else
-                <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
+                <div class="bg-maddrax-black border border-maddrax-red shadow-xl sm:rounded-lg p-6 mb-6">
                     <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4">
                         Top 10 Autor:innen nach Ø-Bewertung
                     </h2>
@@ -127,7 +127,7 @@
             @endif
             {{-- Card 5 – Top-Charaktere nach Auftritten (≥ 10 Baxx) --}}
             @if ($userPoints >= 10)
-                <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
+                <div class="bg-maddrax-black border border-maddrax-red shadow-xl sm:rounded-lg p-6 mb-6">
                     <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
                         Top 10 Charaktere nach Auftritten
                     </h2>
@@ -154,7 +154,7 @@
                     </div>
                 </div>
             @else
-                <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
+                <div class="bg-maddrax-black border border-maddrax-red shadow-xl sm:rounded-lg p-6 mb-6">
                     <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
                         Top 10 Charaktere nach Auftritten
                     </h2>
@@ -166,26 +166,26 @@
             @endif
             {{-- Card 6 – Bewertungen im Maddraxikon (≥ 11 Baxx) --}}
             @if ($userPoints >= 11)
-                <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6 grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+                <div class="bg-maddrax-black border border-maddrax-red shadow-xl sm:rounded-lg p-6 mb-6 grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
                     <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 col-span-1 md:col-span-3">
                         Bewertungen im Maddraxikon
                     </h2>
                     <div>
-                        <div class="text-3xl font-bold text-gray-900 dark:text-gray-100">
+                        <div class="text-3xl font-bold text-maddrax-sand">
                             {{ number_format($averageRating, 2, ',', '.') }}
                         </div>
                         <div class="text-gray-600 dark:text-gray-400">Ø-Bewertung</div>
                     </div>
 
                     <div>
-                        <div class="text-3xl font-bold text-gray-900 dark:text-gray-100">
+                        <div class="text-3xl font-bold text-maddrax-sand">
                             {{ $totalVotes }}
                         </div>
                         <div class="text-gray-600 dark:text-gray-400">Stimmen insgesamt</div>
                     </div>
 
                     <div>
-                        <div class="text-3xl font-bold text-gray-900 dark:text-gray-100">
+                        <div class="text-3xl font-bold text-maddrax-sand">
                             {{ number_format($averageVotes, 2, ',', '.') }}
                         </div>
                         <div class="text-gray-600 dark:text-gray-400">Ø-Stimmen pro Roman</div>

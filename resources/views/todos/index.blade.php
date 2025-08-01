@@ -15,7 +15,7 @@
             @endif
             <!-- Kopfzeile mit Baxx und Aktionen -->
             <div
-                class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                class="bg-maddrax-black border border-maddrax-red shadow-xl sm:rounded-lg p-6 mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                     <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-1">Deine Baxx</h2>
                     <div class="text-4xl font-bold text-gray-800 dark:text-gray-200">
@@ -37,7 +37,7 @@
                 @endif
             </div>
             <!-- Deine Challenges -->
-            <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
+            <div class="bg-maddrax-black border border-maddrax-red shadow-xl sm:rounded-lg p-6 mb-6">
                 <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4">Deine Challenges</h2>
                 @if($assignedTodos->isEmpty())
                     <p class="text-gray-600 dark:text-gray-400">Du hast aktuell keine übernommenen Challenges.</p>
@@ -56,7 +56,7 @@
                             <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
                                 @foreach($assignedTodos as $todo)
                                     <tr>
-                                        <td class="px-4 py-2 text-gray-700 dark:text-gray-300">{{ $todo->title }}</td>
+                                        <td class="px-4 py-2 text-maddrax-sand">{{ $todo->title }}</td>
                                         <td class="px-4 py-2">
                                             @if($todo->status === 'assigned')
                                                 <span
@@ -71,7 +71,7 @@
                                                     class="px-2 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded-full text-xs">Verifiziert</span>
                                             @endif
                                         </td>
-                                        <td class="px-4 py-2 text-gray-700 dark:text-gray-300">{{ $todo->points }}</td>
+                                        <td class="px-4 py-2 text-maddrax-sand">{{ $todo->points }}</td>
                                         <td class="px-4 py-2 text-center">
                                             <a href="{{ route('todos.show', $todo) }}"
                                                 class="text-[#8B0116] dark:text-[#FF6B81] hover:underline">
@@ -151,7 +151,7 @@
                 @endif
             </div>
             <!-- Offene Challenges -->
-            <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
+            <div class="bg-maddrax-black border border-maddrax-red shadow-xl sm:rounded-lg p-6 mb-6">
                 <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4">Offene Challenges</h2>
                 @if($unassignedTodos->isEmpty())
                     <p class="text-gray-600 dark:text-gray-400">Es sind aktuell keine offenen Challenges verfügbar.</p>
@@ -171,10 +171,10 @@
                             <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
                                 @foreach($unassignedTodos as $todo)
                                     <tr>
-                                        <td class="px-4 py-2 text-gray-700 dark:text-gray-300">{{ $todo->title }}</td>
-                                        <td class="px-4 py-2 text-gray-700 dark:text-gray-300">{{ $todo->category ? $todo->category->name : '-' }}</td>
-                                        <td class="px-4 py-2 text-gray-700 dark:text-gray-300">{{ $todo->creator->name }}</td>
-                                        <td class="px-4 py-2 text-gray-700 dark:text-gray-300">{{ $todo->points }}</td>
+                                        <td class="px-4 py-2 text-maddrax-sand">{{ $todo->title }}</td>
+                                        <td class="px-4 py-2 text-maddrax-sand">{{ $todo->category ? $todo->category->name : '-' }}</td>
+                                        <td class="px-4 py-2 text-maddrax-sand">{{ $todo->creator->name }}</td>
+                                        <td class="px-4 py-2 text-maddrax-sand">{{ $todo->points }}</td>
                                         <td class="px-4 py-2 text-center">
                                             <a href="{{ route('todos.show', $todo) }}"
                                                 class="text-[#8B0116] dark:text-[#FF6B81] hover:underline mr-2">
@@ -238,7 +238,7 @@
             </div>
             <!-- Erledigte Challenges (nur wenn Verifizierungsrechte vorhanden) -->
             @if($canVerifyTodos && $completedTodos->where('status', 'completed')->isNotEmpty())
-                <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
+                <div class="bg-maddrax-black border border-maddrax-red shadow-xl sm:rounded-lg p-6 mb-6">
                     <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4">Zu verifizierende Challenges
                     </h2>
                     <!-- Desktop-Ansicht (versteckt auf Mobilgeräten) -->
@@ -256,11 +256,11 @@
                             <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
                                 @foreach($completedTodos->where('status', 'completed') as $todo)
                                     <tr>
-                                        <td class="px-4 py-2 text-gray-700 dark:text-gray-300">{{ $todo->title }}</td>
-                                        <td class="px-4 py-2 text-gray-700 dark:text-gray-300">{{ $todo->assignee->name }}</td>
-                                        <td class="px-4 py-2 text-gray-700 dark:text-gray-300">
+                                        <td class="px-4 py-2 text-maddrax-sand">{{ $todo->title }}</td>
+                                        <td class="px-4 py-2 text-maddrax-sand">{{ $todo->assignee->name }}</td>
+                                        <td class="px-4 py-2 text-maddrax-sand">
                                             {{ $todo->completed_at->format('d.m.Y H:i') }}</td>
-                                        <td class="px-4 py-2 text-gray-700 dark:text-gray-300">{{ $todo->points }}</td>
+                                        <td class="px-4 py-2 text-maddrax-sand">{{ $todo->points }}</td>
                                         <td class="px-4 py-2 text-center">
                                             <a href="{{ route('todos.show', $todo) }}"
                                                 class="text-[#8B0116] dark:text-[#FF6B81] hover:underline mr-2">
@@ -330,7 +330,7 @@
                 $inProgressTodos = $todos->where('status', 'assigned')->where('assigned_to', '!=', Auth::id());
             @endphp
             @if($inProgressTodos->isNotEmpty())
-                <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
+                <div class="bg-maddrax-black border border-maddrax-red shadow-xl sm:rounded-lg p-6">
                     <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4">In Bearbeitung befindliche Challenges</h2>
                     <!-- Desktop-Ansicht (versteckt auf Mobilgeräten) -->
                     <div class="hidden md:block">
@@ -347,10 +347,10 @@
                             <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
                                 @foreach($inProgressTodos as $todo)
                                     <tr>
-                                        <td class="px-4 py-2 text-gray-700 dark:text-gray-300">{{ $todo->title }}</td>
-                                        <td class="px-4 py-2 text-gray-700 dark:text-gray-300">{{ $todo->category ? $todo->category->name : '-' }}</td>
-                                        <td class="px-4 py-2 text-gray-700 dark:text-gray-300">{{ $todo->assignee->name }}</td>
-                                        <td class="px-4 py-2 text-gray-700 dark:text-gray-300">{{ $todo->points }}</td>
+                                        <td class="px-4 py-2 text-maddrax-sand">{{ $todo->title }}</td>
+                                        <td class="px-4 py-2 text-maddrax-sand">{{ $todo->category ? $todo->category->name : '-' }}</td>
+                                        <td class="px-4 py-2 text-maddrax-sand">{{ $todo->assignee->name }}</td>
+                                        <td class="px-4 py-2 text-maddrax-sand">{{ $todo->points }}</td>
                                         <td class="px-4 py-2 text-center">
                                             <a href="{{ route('todos.show', $todo) }}"
                                                 class="text-[#8B0116] dark:text-[#FF6B81] hover:underline">

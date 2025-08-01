@@ -8,7 +8,7 @@
     </x-slot>
 
     <x-slot name="content">
-        <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">
+        <h3 class="text-lg font-medium text-maddrax-sand">
             @if ($this->enabled)
                 @if ($showingConfirmation)
                     {{ __('Finish enabling two factor authentication.') }}

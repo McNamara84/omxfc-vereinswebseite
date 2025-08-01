@@ -1,5 +1,5 @@
 <div class="mt-4 bg-gray-50 dark:bg-gray-700 p-4 rounded">
-    <p class="text-sm text-gray-500 dark:text-gray-300">
+    <p class="text-sm text-maddrax-sand dark:text-gray-300">
         {{ $comment->user->name }} am {{ $comment->created_at->format('d.m.Y H:i') }}
     </p>
     <div class="mt-2 text-gray-800 dark:text-gray-200 whitespace-pre-line">

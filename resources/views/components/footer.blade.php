@@ -1,4 +1,4 @@
-<footer class="bg-gray-900 text-white py-4">
+<footer class="bg-maddrax-black text-maddrax-sand border-t border-maddrax-red py-4">
     <div class="container mx-auto px-4 text-center">
         <a href="{{ route('impressum') }}">Impressum</a> |
         <a href="{{ route('datenschutz') }}">Datenschutz</a>

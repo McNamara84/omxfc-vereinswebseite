@@ -1,5 +1,5 @@
 <x-app-layout>
-    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 bg-gray-100 dark:bg-gray-800 rounded-lg shadow-sm">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 bg-maddrax-dark border border-maddrax-red rounded-lg shadow-sm">
         <h1 class="text-2xl sm:text-3xl font-bold text-[#8B0116] dark:text-[#ff4b63] mb-4 sm:mb-8">Mitglied werden</h1>
         <!-- Erfolg-/Fehlermeldungen -->
         <div id="form-messages" class="mb-4 hidden"></div>
@@ -8,43 +8,43 @@
                 <div class="w-full">
                     <label for="vorname" class="block font-semibold mb-1">Vorname</label>
                     <input type="text" id="vorname" name="vorname" required
-                        class="w-full rounded-md border-gray-300 shadow-sm bg-white text-gray-900 dark:bg-gray-700 dark:text-gray-100">
+                        class="w-full rounded-md border-gray-300 shadow-sm bg-white text-maddrax-sand dark:bg-gray-700 dark:text-gray-100">
                     <span class="text-sm text-red-600" id="error-vorname"></span>
                 </div>
                 <div class="w-full">
                     <label for="nachname" class="block font-semibold mb-1">Nachname</label>
                     <input type="text" id="nachname" name="nachname" required
-                        class="w-full rounded-md border-gray-300 shadow-sm bg-white text-gray-900 dark:bg-gray-700 dark:text-gray-100">
+                        class="w-full rounded-md border-gray-300 shadow-sm bg-white text-maddrax-sand dark:bg-gray-700 dark:text-gray-100">
                     <span class="text-sm text-red-600" id="error-nachname"></span>
                 </div>
                 <div class="w-full">
                     <label for="strasse" class="block font-semibold mb-1">Straße</label>
                     <input type="text" id="strasse" name="strasse" required
-                        class="w-full rounded-md border-gray-300 shadow-sm bg-white text-gray-900 dark:bg-gray-700 dark:text-gray-100">
+                        class="w-full rounded-md border-gray-300 shadow-sm bg-white text-maddrax-sand dark:bg-gray-700 dark:text-gray-100">
                     <span class="text-sm text-red-600" id="error-strasse"></span>
                 </div>
                 <div class="w-full">
                     <label for="hausnummer" class="block font-semibold mb-1">Hausnummer</label>
                     <input type="text" id="hausnummer" name="hausnummer" required
-                        class="w-full rounded-md border-gray-300 shadow-sm bg-white text-gray-900 dark:bg-gray-700 dark:text-gray-100">
+                        class="w-full rounded-md border-gray-300 shadow-sm bg-white text-maddrax-sand dark:bg-gray-700 dark:text-gray-100">
                     <span class="text-sm text-red-600" id="error-hausnummer"></span>
                 </div>
                 <div class="w-full">
                     <label for="plz" class="block font-semibold mb-1">Postleitzahl</label>
                     <input type="text" id="plz" name="plz" required
-                        class="w-full rounded-md border-gray-300 shadow-sm bg-white text-gray-900 dark:bg-gray-700 dark:text-gray-100">
+                        class="w-full rounded-md border-gray-300 shadow-sm bg-white text-maddrax-sand dark:bg-gray-700 dark:text-gray-100">
                     <span class="text-sm text-red-600" id="error-plz"></span>
                 </div>
                 <div class="w-full">
                     <label for="stadt" class="block font-semibold mb-1">Stadt</label>
                     <input type="text" id="stadt" name="stadt" required
-                        class="w-full rounded-md border-gray-300 shadow-sm bg-white text-gray-900 dark:bg-gray-700 dark:text-gray-100">
+                        class="w-full rounded-md border-gray-300 shadow-sm bg-white text-maddrax-sand dark:bg-gray-700 dark:text-gray-100">
                     <span class="text-sm text-red-600" id="error-stadt"></span>
                 </div>
                 <div class="w-full">
                     <label for="land" class="block font-semibold mb-1">Land</label>
                     <select id="land" name="land" required
-                        class="w-full rounded-md border-gray-300 shadow-sm bg-white text-gray-900 dark:bg-gray-700 dark:text-gray-100">
+                        class="w-full rounded-md border-gray-300 shadow-sm bg-white text-maddrax-sand dark:bg-gray-700 dark:text-gray-100">
                         <option value="">Bitte wählen</option>
                         <option>Deutschland</option>
                         <option>Österreich</option>
@@ -55,20 +55,20 @@
                 <div class="w-full">
                     <label for="mail" class="block font-semibold mb-1">Mailadresse</label>
                     <input type="email" id="mail" name="mail" required autocomplete="username"
-                        class="w-full rounded-md border-gray-300 shadow-sm bg-white text-gray-900 dark:bg-gray-700 dark:text-gray-100">
+                        class="w-full rounded-md border-gray-300 shadow-sm bg-white text-maddrax-sand dark:bg-gray-700 dark:text-gray-100">
                     <span class="text-sm text-red-600" id="error-mail"></span>
                 </div>
                 <div class="w-full">
                     <label for="passwort" class="block font-semibold mb-1">Passwort</label>
                     <input type="password" id="passwort" name="passwort" required autocomplete="new-password"
-                        class="w-full rounded-md border-gray-300 shadow-sm bg-white text-gray-900 dark:bg-gray-700 dark:text-gray-100">
+                        class="w-full rounded-md border-gray-300 shadow-sm bg-white text-maddrax-sand dark:bg-gray-700 dark:text-gray-100">
                     <span class="text-sm text-red-600" id="error-passwort"></span>
                 </div>
                 <div class="w-full">
                     <label for="passwort_confirmation" class="block font-semibold mb-1">Passwort wiederholen</label>
                     <input type="password" id="passwort_confirmation" name="passwort_confirmation" required
                         autocomplete="new-password"
-                        class="w-full rounded-md border-gray-300 shadow-sm bg-white text-gray-900 dark:bg-gray-700 dark:text-gray-100">
+                        class="w-full rounded-md border-gray-300 shadow-sm bg-white text-maddrax-sand dark:bg-gray-700 dark:text-gray-100">
                     <span class="text-sm text-red-600" id="error-passwort_confirmation"></span>
                 </div>
                 <!-- Mitgliedsbeitrag über volle Breite -->
@@ -88,14 +88,14 @@
                 <div class="w-full">
                     <label for="telefon" class="block font-semibold mb-1">Handynummer (optional)</label>
                     <input type="tel" id="telefon" name="telefon" placeholder="+49 170 1234567"
-                        class="w-full rounded-md border-gray-300 shadow-sm bg-white text-gray-900 dark:bg-gray-700 dark:text-gray-100">
+                        class="w-full rounded-md border-gray-300 shadow-sm bg-white text-maddrax-sand dark:bg-gray-700 dark:text-gray-100">
                     <span class="text-sm text-red-600" id="error-telefon"></span>
                 </div>
                 <div class="w-full">
                     <label for="verein_gefunden" class="block font-semibold mb-1">Wie hast du von uns erfahren?
                         (optional)</label>
                     <select id="verein_gefunden" name="verein_gefunden"
-                        class="w-full rounded-md border-gray-300 shadow-sm bg-white text-gray-900 dark:bg-gray-700 dark:text-gray-100">
+                        class="w-full rounded-md border-gray-300 shadow-sm bg-white text-maddrax-sand dark:bg-gray-700 dark:text-gray-100">
                         <option value="">Bitte auswählen</option>
                         <option>Facebook</option>
                         <option>Instagram</option>

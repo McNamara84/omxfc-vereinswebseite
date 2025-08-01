@@ -17,6 +17,12 @@ export default {
             fontFamily: {
                 sans: ['Figtree', ...defaultTheme.fontFamily.sans],
             },
+            colors: {
+                'maddrax-sand': '#FED17E',
+                'maddrax-red': '#900316',
+                'maddrax-black': '#000000',
+                'maddrax-dark': '#1a1a1a',
+            },
         },
     },
 

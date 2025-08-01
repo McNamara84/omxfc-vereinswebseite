@@ -1,5 +1,5 @@
 <x-app-layout>
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 bg-gray-100 dark:bg-gray-800 rounded-lg shadow-sm">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 bg-maddrax-dark border border-maddrax-red rounded-lg shadow-sm">
         <h1 class="text-2xl sm:text-3xl font-bold text-[#8B0116] dark:text-[#ff4b63] mb-4 sm:mb-8">Termine</h1>
         <!-- Desktop: Monatsansicht -->
         <div
@@ -13,7 +13,7 @@
             <iframe src="{{ $calendarUrlAgenda }}" class="w-full h-full border-0" frameborder="0" scrolling="no">
             </iframe>
         </div>
-        <p class="mt-4 text-sm sm:text-base text-gray-700 dark:text-gray-300">
+        <p class="mt-4 text-sm sm:text-base text-maddrax-sand">
             Hier findest du alle aktuellen Termine des Vereins. Den Kalender kannst du auch direkt bei
             <a href="{{ $calendarLink }}" target="_blank"
                 class="text-[#8B0116] dark:text-[#ff4b63] underline hover:text-[#6a0110] dark:hover:text-[#d63c4e]">

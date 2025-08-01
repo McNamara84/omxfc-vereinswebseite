@@ -1,8 +1,8 @@
 <x-app-layout>
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 bg-gray-100 dark:bg-gray-800 rounded-lg shadow-sm">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 bg-maddrax-dark border border-maddrax-red rounded-lg shadow-sm">
         <h1 class="text-2xl sm:text-3xl font-bold text-[#8B0116] dark:text-[#ff4b63] mb-4 sm:mb-8">Fotogalerie</h1>
 
-        <p class="mb-8 text-gray-700 dark:text-gray-300">
+        <p class="mb-8 text-maddrax-sand">
             Hier findest du Fotos von unseren Veranstaltungen aus den letzten Jahren.
         </p>
 
@@ -13,7 +13,7 @@
                     @foreach($years as $year)
                         <button 
                             class="jahr-tab py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap
-                            {{ $year === $activeYear ? 'border-[#8B0116] dark:border-[#ff4b63] text-[#8B0116] dark:text-[#ff4b63]' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300 dark:hover:border-gray-300' }}"
+                            {{ $year === $activeYear ? 'border-[#8B0116] dark:border-[#ff4b63] text-[#8B0116] dark:text-[#ff4b63]' : 'border-transparent text-maddrax-sand hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300 dark:hover:border-gray-300' }}"
                             data-year="{{ $year }}"
                         >
                             Fotos {{ $year }}
@@ -39,7 +39,7 @@
                         @if(isset($photos[$year]) && count($photos[$year]) > 0)
                             <img src="{{ $photos[$year][0] }}" alt="Foto {{ $year }}" class="main-image object-contain max-h-full max-w-full">
                         @else
-                            <div class="text-gray-500 dark:text-gray-400">Keine Fotos für {{ $year }} verfügbar</div>
+                            <div class="text-maddrax-sand">Keine Fotos für {{ $year }} verfügbar</div>
                         @endif
                     </div>
                     
@@ -78,11 +78,11 @@
                 // Alle Tabs zurücksetzen
                 jahresTabs.forEach(t => {
                     t.classList.remove('border-[#8B0116]', 'dark:border-[#ff4b63]', 'text-[#8B0116]', 'dark:text-[#ff4b63]');
-                    t.classList.add('border-transparent', 'text-gray-500');
+                    t.classList.add('border-transparent', 'text-maddrax-sand');
                 });
                 
                 // Aktiven Tab setzen
-                this.classList.remove('border-transparent', 'text-gray-500');
+                this.classList.remove('border-transparent', 'text-maddrax-sand');
                 this.classList.add('border-[#8B0116]', 'dark:border-[#ff4b63]', 'text-[#8B0116]', 'dark:text-[#ff4b63]');
                 
                 // Galerien anzeigen/verstecken

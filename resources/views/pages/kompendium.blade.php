@@ -1,7 +1,7 @@
 <x-app-layout>
     <div class="py-8">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
+            <div class="bg-maddrax-black border border-maddrax-red shadow-xl sm:rounded-lg p-6">
                 {{-- Überschrift ------------------------------------------------ --}}
                 <h1 class="text-2xl font-semibold text-[#8B0116] dark:text-[#ff4b63] mb-6">
                     Maddrax-Kompendium
@@ -23,7 +23,7 @@
                 {{-- Suchschlitz (ab 100 Baxx) -------------------------------- --}}
                 @if($showSearch)
                     <div class="mb-4">
-                        <label for="search" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        <label for="search" class="block text-sm font-medium text-maddrax-sand mb-1">
                             Volltextsuche
                         </label>
                         <input id="search"
