@@ -35,7 +35,7 @@
                     </button>
                     
                     <!-- Hauptbild-Container -->
-                    <div class="main-image-container h-[500px] flex items-center justify-center mb-4 bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden">
+                    <div class="main-image-container h-64 sm:h-80 md:h-96 lg:h-[500px] flex items-center justify-center mb-4 bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden">
                         @if(isset($photos[$year]) && count($photos[$year]) > 0)
                             <img src="{{ $photos[$year][0] }}" alt="Foto {{ $year }}" class="main-image object-contain max-h-full max-w-full">
                         @else
