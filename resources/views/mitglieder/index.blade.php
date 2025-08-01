@@ -15,7 +15,17 @@
     
     <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
     <h2 class="text-2xl font-semibold text-[#8B0116] dark:text-red-400 mb-6">Mitgliederliste</h2>
-    
+    <!-- Filter -->
+    <form method="GET" action="{{ route('mitglieder.index') }}" class="mb-6" x-data>
+        <input type="hidden" name="sort" value="{{ $sortBy }}">
+        <input type="hidden" name="dir" value="{{ $sortDir }}">
+        <div class="flex flex-wrap gap-4 items-center">
+            <label class="inline-flex items-center">
+                <input type="checkbox" name="filters[]" value="online" @checked(in_array('online', $filters ?? [])) @change="$root.submit()" class="rounded border-gray-300 text-[#8B0116] shadow-sm focus:ring-[#8B0116]">
+                <span class="ml-2 text-gray-700 dark:text-gray-300">Nur online</span>
+            </label>
+        </div>
+    </form>
     <!-- Export-Funktionen für berechtigte Benutzer -->
     @if($canViewDetails)
     <div class="mb-6">
@@ -112,7 +122,7 @@
     <thead>
     <tr>
     <th class="px-4 py-2 text-left">
-    <a href="{{ route('mitglieder.index', ['sort' => 'name', 'dir' => ($sortBy === 'name' && $sortDir === 'asc') ? 'desc' : 'asc']) }}"
+    <a href="{{ route('mitglieder.index', array_merge(request()->query(), ['sort' => 'name', 'dir' => ($sortBy === 'name' && $sortDir === 'asc') ? 'desc' : 'asc'])) }}"
     class="flex items-center group text-gray-700 dark:text-gray-300 hover:text-[#8B0116] dark:hover:text-red-400">
     Name
     @if($sortBy === 'name')
@@ -132,7 +142,7 @@
     </th>
     
     <th class="px-4 py-2 text-left">
-    <a href="{{ route('mitglieder.index', ['sort' => 'mitglied_seit', 'dir' => ($sortBy === 'mitglied_seit' && $sortDir === 'asc') ? 'desc' : 'asc']) }}"
+    <a href="{{ route('mitglieder.index', array_merge(request()->query(), ['sort' => 'mitglied_seit', 'dir' => ($sortBy === 'mitglied_seit' && $sortDir === 'asc') ? 'desc' : 'asc'])) }}"
     class="flex items-center group text-gray-700 dark:text-gray-300 hover:text-[#8B0116] dark:hover:text-red-400">
     Mitglied seit
     @if($sortBy === 'mitglied_seit')
@@ -152,7 +162,7 @@
     </th>
     
     <th class="px-4 py-2 text-left">
-    <a href="{{ route('mitglieder.index', ['sort' => 'role', 'dir' => ($sortBy === 'role' && $sortDir === 'asc') ? 'desc' : 'asc']) }}"
+    <a href="{{ route('mitglieder.index', array_merge(request()->query(), ['sort' => 'role', 'dir' => ($sortBy === 'role' && $sortDir === 'asc') ? 'desc' : 'asc'])) }}"
     class="flex items-center group text-gray-700 dark:text-gray-300 hover:text-[#8B0116] dark:hover:text-red-400">
     Rolle
     @if($sortBy === 'role')
@@ -173,7 +183,7 @@
     
     @if($canViewDetails)
     <th class="px-4 py-2 text-left">
-    <a href="{{ route('mitglieder.index', ['sort' => 'bezahlt_bis', 'dir' => ($sortBy === 'bezahlt_bis' && $sortDir === 'asc') ? 'desc' : 'asc']) }}"
+    <a href="{{ route('mitglieder.index', array_merge(request()->query(), ['sort' => 'bezahlt_bis', 'dir' => ($sortBy === 'bezahlt_bis' && $sortDir === 'asc') ? 'desc' : 'asc'])) }}"
     class="flex items-center group text-gray-700 dark:text-gray-300 hover:text-[#8B0116] dark:hover:text-red-400">
     Bezahlt bis
     @if($sortBy === 'bezahlt_bis')
@@ -193,7 +203,7 @@
     </th>
     
     <th class="px-4 py-2 text-left">
-    <a href="{{ route('mitglieder.index', ['sort' => 'mitgliedsbeitrag', 'dir' => ($sortBy === 'mitgliedsbeitrag' && $sortDir === 'asc') ? 'desc' : 'asc']) }}"
+    <a href="{{ route('mitglieder.index', array_merge(request()->query(), ['sort' => 'mitgliedsbeitrag', 'dir' => ($sortBy === 'mitgliedsbeitrag' && $sortDir === 'asc') ? 'desc' : 'asc'])) }}"
     class="flex items-center group text-gray-700 dark:text-gray-300 hover:text-[#8B0116] dark:hover:text-red-400">
     Beitrag
     @if($sortBy === 'mitgliedsbeitrag')
@@ -227,7 +237,10 @@
     <img class="h-10 w-10 rounded-full" src="{{ $member->profile_photo_url }}" alt="{{ $member->name }}">
     </div>
     <div class="ml-4">
-    <div class="font-medium text-gray-900 dark:text-gray-100">{{ $member->name }}</div>
+    <div class="font-medium text-gray-900 dark:text-gray-100 flex items-center">
+        <span class="inline-block w-2 h-2 rounded-full mr-2 {{ in_array($member->id, $onlineUserIds) ? 'bg-green-500' : 'bg-gray-400' }}" title="{{ in_array($member->id, $onlineUserIds) ? 'Online' : 'Offline' }}"></span>
+        {{ $member->name }}
+    </div>
     @if($canViewDetails)
     <div class="text-sm text-gray-500 dark:text-gray-400">{{ $member->vorname }} {{ $member->nachname }}</div>
     @endif
@@ -383,24 +396,24 @@
     <div class="mb-4 bg-gray-100 dark:bg-gray-700 rounded-lg p-3">
     <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Sortieren nach:</h3>
     <div class="flex flex-wrap gap-2">
-    <a href="{{ route('mitglieder.index', ['sort' => 'nachname', 'dir' => ($sortBy === 'nachname' && $sortDir === 'asc') ? 'desc' : 'asc']) }}"
+    <a href="{{ route('mitglieder.index', array_merge(request()->query(), ['sort' => 'nachname', 'dir' => ($sortBy === 'nachname' && $sortDir === 'asc') ? 'desc' : 'asc'])) }}"
     class="px-3 py-1 text-xs rounded-full {{ $sortBy === 'nachname' ? 'bg-[#8B0116] text-white' : 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300' }}">
     Name {{ $sortBy === 'nachname' ? ($sortDir === 'asc' ? '↑' : '↓') : '' }}
     </a>
-    <a href="{{ route('mitglieder.index', ['sort' => 'mitglied_seit', 'dir' => ($sortBy === 'mitglied_seit' && $sortDir === 'asc') ? 'desc' : 'asc']) }}"
+    <a href="{{ route('mitglieder.index', array_merge(request()->query(), ['sort' => 'mitglied_seit', 'dir' => ($sortBy === 'mitglied_seit' && $sortDir === 'asc') ? 'desc' : 'asc'])) }}"
     class="px-3 py-1 text-xs rounded-full {{ $sortBy === 'mitglied_seit' ? 'bg-[#8B0116] text-white' : 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300' }}">
     Mitglied seit {{ $sortBy === 'mitglied_seit' ? ($sortDir === 'asc' ? '↑' : '↓') : '' }}
     </a>
-    <a href="{{ route('mitglieder.index', ['sort' => 'role', 'dir' => ($sortBy === 'role' && $sortDir === 'asc') ? 'desc' : 'asc']) }}"
+    <a href="{{ route('mitglieder.index', array_merge(request()->query(), ['sort' => 'role', 'dir' => ($sortBy === 'role' && $sortDir === 'asc') ? 'desc' : 'asc'])) }}"
     class="px-3 py-1 text-xs rounded-full {{ $sortBy === 'role' ? 'bg-[#8B0116] text-white' : 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300' }}">
     Rolle {{ $sortBy === 'role' ? ($sortDir === 'asc' ? '↑' : '↓') : '' }}
     </a>
     @if($canViewDetails)
-    <a href="{{ route('mitglieder.index', ['sort' => 'bezahlt_bis', 'dir' => ($sortBy === 'bezahlt_bis' && $sortDir === 'asc') ? 'desc' : 'asc']) }}"
+    <a href="{{ route('mitglieder.index', array_merge(request()->query(), ['sort' => 'bezahlt_bis', 'dir' => ($sortBy === 'bezahlt_bis' && $sortDir === 'asc') ? 'desc' : 'asc'])) }}"
     class="px-3 py-1 text-xs rounded-full {{ $sortBy === 'bezahlt_bis' ? 'bg-[#8B0116] text-white' : 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300' }}">
     Bezahlt {{ $sortBy === 'bezahlt_bis' ? ($sortDir === 'asc' ? '↑' : '↓') : '' }}
     </a>
-    <a href="{{ route('mitglieder.index', ['sort' => 'mitgliedsbeitrag', 'dir' => ($sortBy === 'mitgliedsbeitrag' && $sortDir === 'asc') ? 'desc' : 'asc']) }}"
+    <a href="{{ route('mitglieder.index', array_merge(request()->query(), ['sort' => 'mitgliedsbeitrag', 'dir' => ($sortBy === 'mitgliedsbeitrag' && $sortDir === 'asc') ? 'desc' : 'asc'])) }}"
     class="px-3 py-1 text-xs rounded-full {{ $sortBy === 'mitgliedsbeitrag' ? 'bg-[#8B0116] text-white' : 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300' }}">
     Beitrag {{ $sortBy === 'mitgliedsbeitrag' ? ($sortDir === 'asc' ? '↑' : '↓') : '' }}
     </a>
@@ -415,7 +428,10 @@
     <img class="h-12 w-12 rounded-full" src="{{ $member->profile_photo_url }}" alt="{{ $member->name }}">
     </div>
     <div class="ml-4">
-    <div class="font-medium text-gray-900 dark:text-gray-100">{{ $member->name }}</div>
+    <div class="font-medium text-gray-900 dark:text-gray-100 flex items-center">
+        <span class="inline-block w-2 h-2 rounded-full mr-2 {{ in_array($member->id, $onlineUserIds) ? 'bg-green-500' : 'bg-gray-400' }}" title="{{ in_array($member->id, $onlineUserIds) ? 'Online' : 'Offline' }}"></span>
+        {{ $member->name }}
+    </div>
     <div class="text-xs text-gray-500 dark:text-gray-400">
     {{ $member->membership->role }} •
     Mitglied seit {{ $member->mitglied_seit ? $member->mitglied_seit->format('d.m.Y') : 'k.A.' }}

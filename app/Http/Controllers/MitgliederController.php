@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class MitgliederController extends Controller
@@ -32,6 +33,19 @@ class MitgliederController extends Controller
         // Nur Nutzer mit Rollen außer "Anwärter" anzeigen
         $membersQuery = $team->users()
             ->wherePivotNotIn('role', ['Anwärter']);
+
+        $filters = (array) $request->input('filters', []);
+
+        // IDs aller aktuell aktiven Nutzer ermitteln
+        $onlineUserIds = DB::table('sessions')
+            ->where('last_activity', '>=', now()->subMinutes(5)->timestamp)
+            ->pluck('user_id')
+            ->toArray();
+
+        // Filter anwenden (z. B. nur online)
+        if (in_array('online', $filters)) {
+            $membersQuery->whereIn('users.id', $onlineUserIds);
+        }
 
         // Sortierung anwenden
         if ($sortBy === 'role') {
@@ -72,7 +86,9 @@ class MitgliederController extends Controller
             'currentUserRank' => $currentUserRank,
             'roleRanks' => $roleRanks,
             'sortBy' => $sortBy,
-            'sortDir' => $sortDir
+            'sortDir' => $sortDir,
+            'filters' => $filters,
+            'onlineUserIds' => $onlineUserIds
         ]);
     }
 

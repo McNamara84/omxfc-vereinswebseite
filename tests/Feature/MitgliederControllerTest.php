@@ -6,6 +6,8 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 use App\Models\Team;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class MitgliederControllerTest extends TestCase
 {
@@ -254,5 +256,34 @@ class MitgliederControllerTest extends TestCase
             'Holger Ehrmann',
             'Charlie Current',
         ], $names);
+    }
+
+    public function test_filter_shows_only_online_members(): void
+    {
+        $team = Team::where('name', 'Mitglieder')->first();
+
+        $online = User::factory()->create(['current_team_id' => $team->id]);
+        $team->users()->attach($online, ['role' => 'Mitglied']);
+
+        $offline = User::factory()->create(['current_team_id' => $team->id]);
+        $team->users()->attach($offline, ['role' => 'Mitglied']);
+
+        DB::table('sessions')->insert([
+            'id' => Str::random(40),
+            'user_id' => $online->id,
+            'ip_address' => '127.0.0.1',
+            'user_agent' => 'test',
+            'payload' => '',
+            'last_activity' => now()->timestamp,
+        ]);
+
+        $this->actingAs($online);
+
+        $response = $this->get('/mitglieder?filters[]=online');
+        $response->assertOk();
+
+        $members = $response->viewData('members');
+        $this->assertCount(1, $members);
+        $this->assertTrue($members->contains('id', $online->id));
     }
 }
