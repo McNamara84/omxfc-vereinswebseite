@@ -11,8 +11,8 @@
     <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('favicon/favicon-16x16.png') }}">
     <link rel="manifest" href="{{ asset('favicon/site.webmanifest') }}">
     <link rel="shortcut icon" href="{{ asset('favicon/favicon.ico') }}">
-    <meta name="msapplication-TileColor" content="#ffffff">
-    <meta name="theme-color" content="#ffffff">
+    <meta name="msapplication-TileColor" content="#1b1b1b">
+    <meta name="theme-color" content="#1b1b1b">
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
@@ -30,18 +30,18 @@
     </script>
 
     <x-banner />
-    <div class="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 xl:pt-16">
+    <div class="min-h-screen bg-charcoal text-dust xl:pt-16">
         @livewire('navigation-menu')
         <!-- Page Heading -->
         @if (isset($header))
-            <header class="bg-white dark:bg-gray-800 shadow">
+            <header class="bg-ash border-b border-rust shadow">
                 <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
                     {{ $header }}
                 </div>
             </header>
         @endif
         <!-- Page Content -->
-        <main class="text-gray-900 dark:text-gray-100">
+        <main class="text-dust">
             {{ $slot }}
         </main>
     </div>

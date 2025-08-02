@@ -17,6 +17,15 @@ export default {
             fontFamily: {
                 sans: ['Figtree', ...defaultTheme.fontFamily.sans],
             },
+            colors: {
+                charcoal: '#1b1b1b',
+                ash: '#2a2a2a',
+                rust: {
+                    DEFAULT: '#b7410e',
+                    light: '#da7627',
+                },
+                dust: '#d6d3d1',
+            },
         },
     },
 

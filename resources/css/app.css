@@ -6,6 +6,16 @@
     display: none;
 }
 
+@layer base {
+    body {
+        @apply bg-charcoal text-dust;
+    }
+
+    a {
+        @apply text-rust hover:text-rust-light;
+    }
+}
+
 /* Vereinslogo als Asset referenzieren */
 .logo {
     background-image: url('../images/omxfc-logo.png');
