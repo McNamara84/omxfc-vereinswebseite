@@ -36,11 +36,14 @@
             </form>
             <div id="accordion">
                 @foreach($booksByCycle as $cycle => $cycleBooks)
-                    @php $id = \Illuminate\Support\Str::slug($cycle); @endphp
+                    @php
+                        $id = \Illuminate\Support\Str::slug($cycle);
+                        $reviewCount = $cycleBooks->sum('reviews_count');
+                    @endphp
                     <div class="mb-4 border border-gray-200 dark:border-gray-700 rounded-lg">
                         <h2>
                             <button type="button" class="w-full flex justify-between items-center bg-gray-100 dark:bg-gray-700 px-4 py-3 rounded-t-lg font-semibold" onclick="toggleAccordion('{{ $id }}')">
-                                {{ $cycle }}-Zyklus
+                                {{ $cycle }}-Zyklus ({{ $reviewCount }} {{ $reviewCount === 1 ? 'Rezension' : 'Rezensionen' }})
                                 <span id="icon-{{ $id }}">{{ $loop->first ? '-' : '+' }}</span>
                             </button>
                         </h2>

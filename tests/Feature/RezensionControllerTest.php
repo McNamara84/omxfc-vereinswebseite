@@ -10,6 +10,7 @@ use App\Models\Book;
 use App\Mail\NewReviewNotification;
 use Illuminate\Support\Facades\Mail;
 use App\Models\Review;
+use Illuminate\Support\Facades\Storage;
 
 class RezensionControllerTest extends TestCase
 {
@@ -56,6 +57,41 @@ class RezensionControllerTest extends TestCase
         $this->actingAs($user);
 
         $this->get('/rezensionen')->assertStatus(403);
+    }
+
+    public function test_index_displays_total_review_count_per_cycle(): void
+    {
+        Storage::fake('private');
+        Storage::disk('private')->put('maddrax.json', json_encode([
+            ['nummer' => 1, 'titel' => 'Roman1', 'zyklus' => 'Z1'],
+            ['nummer' => 2, 'titel' => 'Roman2', 'zyklus' => 'Z1'],
+        ]));
+
+        $book1 = Book::create(['roman_number' => 1, 'title' => 'Alpha', 'author' => 'A']);
+        $book2 = Book::create(['roman_number' => 2, 'title' => 'Beta', 'author' => 'B']);
+
+        $teamId = Team::where('name', 'Mitglieder')->first()->id;
+        Review::create([
+            'team_id' => $teamId,
+            'user_id' => User::factory()->create()->id,
+            'book_id' => $book1->id,
+            'title' => 'R1',
+            'content' => str_repeat('A', 140),
+        ]);
+        Review::create([
+            'team_id' => $teamId,
+            'user_id' => User::factory()->create()->id,
+            'book_id' => $book2->id,
+            'title' => 'R2',
+            'content' => str_repeat('B', 140),
+        ]);
+
+        $user = $this->actingMember();
+        $this->actingAs($user);
+
+        $this->get('/rezensionen')
+            ->assertOk()
+            ->assertSee('(2 Rezensionen)');
     }
 
     public function test_show_redirects_when_user_has_no_permission(): void
