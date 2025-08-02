@@ -20,7 +20,7 @@ class MitgliederController extends Controller
         $sortDir = $request->input('dir', 'asc'); // Standardrichtung: aufsteigend
 
         // Nur erlaubte Sortierfelder akzeptieren
-        $allowedSortFields = ['nachname', 'role', 'mitgliedsbeitrag', 'mitglied_seit', 'bezahlt_bis'];
+        $allowedSortFields = ['nachname', 'role', 'mitgliedsbeitrag', 'mitglied_seit', 'last_activity'];
         if (!in_array($sortBy, $allowedSortFields)) {
             $sortBy = 'nachname';
         }
@@ -51,9 +51,27 @@ class MitgliederController extends Controller
         if ($sortBy === 'role') {
             // Nach Rolle sortieren (Pivot-Tabelle)
             $members = $membersQuery->orderByPivot('role', $sortDir)->get();
+        } elseif ($sortBy === 'last_activity') {
+            // Für die Sortierung nach letzter Aktivität zunächst alle Mitglieder abrufen
+            $members = $membersQuery->get();
         } else {
             // Nach anderen Feldern sortieren
             $members = $membersQuery->orderBy($sortBy, $sortDir)->get();
+        }
+
+        // Letzte Aktivität für alle Nutzer ermitteln
+        $lastActivities = DB::table('sessions')
+            ->select('user_id', DB::raw('MAX(last_activity) as last_activity'))
+            ->groupBy('user_id')
+            ->pluck('last_activity', 'user_id');
+
+        foreach ($members as $member) {
+            $member->last_activity = $lastActivities[$member->id] ?? null;
+        }
+
+        // Sortierung nach letzter Aktivität anwenden
+        if ($sortBy === 'last_activity') {
+            $members = $members->sortBy('last_activity', SORT_REGULAR, $sortDir === 'desc')->values();
         }
 
         // Korrekte Ermittlung der Rolle des eingeloggten Nutzers

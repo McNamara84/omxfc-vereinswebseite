@@ -215,6 +215,45 @@ class MitgliederControllerTest extends TestCase
         ], $names);
     }
 
+    public function test_index_sorts_members_by_last_activity_desc(): void
+    {
+        $team = Team::where('name', 'Mitglieder')->first();
+
+        $recent = User::factory()->create(['name' => 'Ralf Recent', 'current_team_id' => $team->id]);
+        $team->users()->attach($recent, ['role' => 'Mitglied']);
+
+        $older = User::factory()->create(['name' => 'Olaf Old', 'current_team_id' => $team->id]);
+        $team->users()->attach($older, ['role' => 'Mitglied']);
+
+        DB::table('sessions')->insert([
+            'id' => Str::random(40),
+            'user_id' => $older->id,
+            'ip_address' => '127.0.0.1',
+            'user_agent' => 'test',
+            'payload' => '',
+            'last_activity' => now()->subMinutes(10)->timestamp,
+        ]);
+
+        DB::table('sessions')->insert([
+            'id' => Str::random(40),
+            'user_id' => $recent->id,
+            'ip_address' => '127.0.0.1',
+            'user_agent' => 'test',
+            'payload' => '',
+            'last_activity' => now()->timestamp,
+        ]);
+
+        $this->actingAs($this->actingMember('Mitglied'));
+
+        $response = $this->get('/mitglieder?sort=last_activity&dir=desc');
+        $response->assertOk();
+
+        $members = $response->viewData('members');
+        $names = $members->pluck('name')->take(2)->all();
+
+        $this->assertSame(['Ralf Recent', 'Olaf Old'], $names);
+    }
+
     public function test_index_falls_back_to_nachname_on_invalid_sort(): void
     {
         $team = Team::where('name', 'Mitglieder')->first();

@@ -183,10 +183,10 @@
     
     @if($canViewDetails)
     <th class="px-4 py-2 text-left">
-    <a href="{{ route('mitglieder.index', array_merge(request()->query(), ['sort' => 'bezahlt_bis', 'dir' => ($sortBy === 'bezahlt_bis' && $sortDir === 'asc') ? 'desc' : 'asc'])) }}"
+    <a href="{{ route('mitglieder.index', array_merge(request()->query(), ['sort' => 'last_activity', 'dir' => ($sortBy === 'last_activity' && $sortDir === 'asc') ? 'desc' : 'asc'])) }}"
     class="flex items-center group text-gray-700 dark:text-gray-300 hover:text-[#8B0116] dark:hover:text-red-400">
-    Bezahlt bis
-    @if($sortBy === 'bezahlt_bis')
+    Zuletzt online
+    @if($sortBy === 'last_activity')
     <span class="ml-1">
     @if($sortDir === 'asc')
     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -201,7 +201,7 @@
     @endif
     </a>
     </th>
-    
+
     <th class="px-4 py-2 text-left">
     <a href="{{ route('mitglieder.index', array_merge(request()->query(), ['sort' => 'mitgliedsbeitrag', 'dir' => ($sortBy === 'mitgliedsbeitrag' && $sortDir === 'asc') ? 'desc' : 'asc'])) }}"
     class="flex items-center group text-gray-700 dark:text-gray-300 hover:text-[#8B0116] dark:hover:text-red-400">
@@ -257,30 +257,8 @@
     </td>
     
     @if($canViewDetails)
-    <td class="px-4 py-3 text-sm">
-    @if($member->bezahlt_bis)
-    @php
-    $bezahlt_bis = \Carbon\Carbon::parse($member->bezahlt_bis);
-    $heute = \Carbon\Carbon::now();
-    $differenz = $heute->diffInDays($bezahlt_bis, false);
-    @endphp
-    
-    @if($differenz < 0)
-    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-100">
-    Überfällig: {{ $member->bezahlt_bis->format('d.m.Y') }}
-    </span>
-    @elseif($differenz < 30)
-    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-100">
-    {{ $member->bezahlt_bis->format('d.m.Y') }}
-    </span>
-    @else
-    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100">
-    {{ $member->bezahlt_bis->format('d.m.Y') }}
-    </span>
-    @endif
-    @else
-    <span class="text-gray-500 dark:text-gray-400">-</span>
-    @endif
+    <td class="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">
+    {{ $member->last_activity ? \Carbon\Carbon::createFromTimestamp($member->last_activity)->format('d.m.Y H:i') : '-' }}
     </td>
     
     <td class="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">
@@ -409,9 +387,9 @@
     Rolle {{ $sortBy === 'role' ? ($sortDir === 'asc' ? '↑' : '↓') : '' }}
     </a>
     @if($canViewDetails)
-    <a href="{{ route('mitglieder.index', array_merge(request()->query(), ['sort' => 'bezahlt_bis', 'dir' => ($sortBy === 'bezahlt_bis' && $sortDir === 'asc') ? 'desc' : 'asc'])) }}"
-    class="px-3 py-1 text-xs rounded-full {{ $sortBy === 'bezahlt_bis' ? 'bg-[#8B0116] text-white' : 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300' }}">
-    Bezahlt {{ $sortBy === 'bezahlt_bis' ? ($sortDir === 'asc' ? '↑' : '↓') : '' }}
+    <a href="{{ route('mitglieder.index', array_merge(request()->query(), ['sort' => 'last_activity', 'dir' => ($sortBy === 'last_activity' && $sortDir === 'asc') ? 'desc' : 'asc'])) }}"
+    class="px-3 py-1 text-xs rounded-full {{ $sortBy === 'last_activity' ? 'bg-[#8B0116] text-white' : 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300' }}">
+    Zuletzt online {{ $sortBy === 'last_activity' ? ($sortDir === 'asc' ? '↑' : '↓') : '' }}
     </a>
     <a href="{{ route('mitglieder.index', array_merge(request()->query(), ['sort' => 'mitgliedsbeitrag', 'dir' => ($sortBy === 'mitgliedsbeitrag' && $sortDir === 'asc') ? 'desc' : 'asc'])) }}"
     class="px-3 py-1 text-xs rounded-full {{ $sortBy === 'mitgliedsbeitrag' ? 'bg-[#8B0116] text-white' : 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300' }}">
@@ -443,30 +421,10 @@
     <div class="grid grid-cols-2 gap-4">
     @if($canViewDetails)
     <div>
-    <h4 class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400 font-semibold mb-1">Bezahlt bis</h4>
-    @if($member->bezahlt_bis)
-    @php
-    $bezahlt_bis = \Carbon\Carbon::parse($member->bezahlt_bis);
-    $heute = \Carbon\Carbon::now();
-    $differenz = $heute->diffInDays($bezahlt_bis, false);
-    @endphp
-    
-    @if($differenz < 0)
-    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-100">
-    Überfällig: {{ $member->bezahlt_bis->format('d.m.Y') }}
-    </span>
-    @elseif($differenz < 30)
-    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-100">
-    {{ $member->bezahlt_bis->format('d.m.Y') }}
-    </span>
-    @else
-    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100">
-    {{ $member->bezahlt_bis->format('d.m.Y') }}
-    </span>
-    @endif
-    @else
-    <span class="text-gray-500 dark:text-gray-400">-</span>
-    @endif
+    <h4 class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400 font-semibold mb-1">Zuletzt online</h4>
+    <div class="text-sm text-gray-900 dark:text-gray-100">
+    {{ $member->last_activity ? \Carbon\Carbon::createFromTimestamp($member->last_activity)->format('d.m.Y H:i') : '-' }}
+    </div>
     </div>
     
     <div>
