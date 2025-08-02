@@ -30,10 +30,10 @@ function drawAuthorChart(canvasId, labels, data) {
 }
 
 /**
- * Rendert das Liniendiagramm „Bewertungen des Euree-Zyklus“,
+ * Rendert ein Liniendiagramm für die Zyklus-Bewertungen,
  * wenn das Canvas existiert.
  */
-function drawEureeChart(canvasId, labels, data) {
+function drawCycleChart(canvasId, labels, data) {
     const canvas = document.getElementById(canvasId);
     if (!canvas) return;
 
@@ -78,11 +78,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const labels = window.authorChartLabels ?? [];
     const values = window.authorChartValues ?? [];
     drawAuthorChart('authorChart', labels, values);
-    const eureeLabels = window.eureeChartLabels ?? [];
-    const eureeValues = window.eureeChartValues ?? [];
-    drawEureeChart('eureeChart', eureeLabels, eureeValues);
+
+    const cycles = ['euree', 'meeraka', 'expedition', 'kratersee', 'daaMuren', 'wandler'];
+    cycles.forEach((cycle) => {
+        const cycleLabels = window[`${cycle}ChartLabels`] ?? [];
+        const cycleValues = window[`${cycle}ChartValues`] ?? [];
+        drawCycleChart(`${cycle}Chart`, cycleLabels, cycleValues);
+    });
+
     initRomaneTable();
 });
 
 /* ── optionale Named-Exports (falls du die Funktionen woanders brauchst) */
-export { drawAuthorChart, drawEureeChart, initRomaneTable };
+export { drawAuthorChart, drawCycleChart, initRomaneTable };

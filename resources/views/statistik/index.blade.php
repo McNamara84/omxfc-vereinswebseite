@@ -271,6 +271,82 @@
                     window.eureeChartValues = @json($eureeValues);
                 </script>
             @endif
+
+            {{-- Card 9 – Bewertungen des Meeraka-Zyklus (≥ 14 Baxx) --}}
+            @if ($userPoints >= 14)
+                <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
+                    <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                        Bewertungen des Meeraka-Zyklus
+                    </h2>
+                    <canvas id="meerakaChart" height="140"></canvas>
+                </div>
+
+                <script>
+                    window.meerakaChartLabels = @json($meerakaLabels);
+                    window.meerakaChartValues = @json($meerakaValues);
+                </script>
+            @endif
+
+            {{-- Card 10 – Bewertungen des Expeditions-Zyklus (≥ 15 Baxx) --}}
+            @if ($userPoints >= 15)
+                <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
+                    <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                        Bewertungen des Expeditions-Zyklus
+                    </h2>
+                    <canvas id="expeditionChart" height="140"></canvas>
+                </div>
+
+                <script>
+                    window.expeditionChartLabels = @json($expeditionLabels);
+                    window.expeditionChartValues = @json($expeditionValues);
+                </script>
+            @endif
+
+            {{-- Card 11 – Bewertungen des Kratersee-Zyklus (≥ 16 Baxx) --}}
+            @if ($userPoints >= 16)
+                <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
+                    <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                        Bewertungen des Kratersee-Zyklus
+                    </h2>
+                    <canvas id="kraterseeChart" height="140"></canvas>
+                </div>
+
+                <script>
+                    window.kraterseeChartLabels = @json($kraterseeLabels);
+                    window.kraterseeChartValues = @json($kraterseeValues);
+                </script>
+            @endif
+
+            {{-- Card 12 – Bewertungen des Daa'muren-Zyklus (≥ 17 Baxx) --}}
+            @if ($userPoints >= 17)
+                <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
+                    <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                        Bewertungen des Daa'muren-Zyklus
+                    </h2>
+                    <canvas id="daaMurenChart" height="140"></canvas>
+                </div>
+
+                <script>
+                    window.daaMurenChartLabels = @json($daaMurenLabels);
+                    window.daaMurenChartValues = @json($daaMurenValues);
+                </script>
+            @endif
+
+            {{-- Card 13 – Bewertungen des Wandler-Zyklus (≥ 18 Baxx) --}}
+            @if ($userPoints >= 18)
+                <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
+                    <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                        Bewertungen des Wandler-Zyklus
+                    </h2>
+                    <canvas id="wandlerChart" height="140"></canvas>
+                </div>
+
+                <script>
+                    window.wandlerChartLabels = @json($wandlerLabels);
+                    window.wandlerChartValues = @json($wandlerValues);
+                </script>
+            @endif
+
             @if ($userPoints >= 1)
                 @vite(['resources/js/statistik.js'])
             @endif

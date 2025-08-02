@@ -110,6 +110,46 @@ class StatistikController extends Controller
         $eureeLabels = $eureeCycle->pluck('nummer');
         $eureeValues = $eureeCycle->pluck('bewertung');
 
+        // ── Card 9 – Bewertungen des Meeraka-Zyklus ──────────────────────
+        $meerakaCycle = $romane
+            ->filter(fn($r) => ($r['nummer'] ?? 0) >= 25 && ($r['nummer'] ?? 0) <= 49)
+            ->sortBy('nummer');
+
+        $meerakaLabels = $meerakaCycle->pluck('nummer');
+        $meerakaValues = $meerakaCycle->pluck('bewertung');
+
+        // ── Card 10 – Bewertungen des Expeditions-Zyklus ─────────────────
+        $expeditionCycle = $romane
+            ->filter(fn($r) => ($r['nummer'] ?? 0) >= 50 && ($r['nummer'] ?? 0) <= 74)
+            ->sortBy('nummer');
+
+        $expeditionLabels = $expeditionCycle->pluck('nummer');
+        $expeditionValues = $expeditionCycle->pluck('bewertung');
+
+        // ── Card 11 – Bewertungen des Kratersee-Zyklus ───────────────────
+        $kraterseeCycle = $romane
+            ->filter(fn($r) => ($r['nummer'] ?? 0) >= 75 && ($r['nummer'] ?? 0) <= 99)
+            ->sortBy('nummer');
+
+        $kraterseeLabels = $kraterseeCycle->pluck('nummer');
+        $kraterseeValues = $kraterseeCycle->pluck('bewertung');
+
+        // ── Card 12 – Bewertungen des Daa'muren-Zyklus ──────────────────
+        $daaMurenCycle = $romane
+            ->filter(fn($r) => ($r['nummer'] ?? 0) >= 100 && ($r['nummer'] ?? 0) <= 124)
+            ->sortBy('nummer');
+
+        $daaMurenLabels = $daaMurenCycle->pluck('nummer');
+        $daaMurenValues = $daaMurenCycle->pluck('bewertung');
+
+        // ── Card 13 – Bewertungen des Wandler-Zyklus ─────────────────────
+        $wandlerCycle = $romane
+            ->filter(fn($r) => ($r['nummer'] ?? 0) >= 125 && ($r['nummer'] ?? 0) <= 149)
+            ->sortBy('nummer');
+
+        $wandlerLabels = $wandlerCycle->pluck('nummer');
+        $wandlerValues = $wandlerCycle->pluck('bewertung');
+
         // ── Card 7 – Rezensionen unserer Mitglieder ───────────────────────────
         $totalReviews = 0;
         $averageReviewsPerBook = 0;
@@ -197,6 +237,16 @@ class StatistikController extends Controller
             'romaneTable' => $romaneTable,
             'eureeLabels' => $eureeLabels,
             'eureeValues' => $eureeValues,
+            'meerakaLabels' => $meerakaLabels,
+            'meerakaValues' => $meerakaValues,
+            'expeditionLabels' => $expeditionLabels,
+            'expeditionValues' => $expeditionValues,
+            'kraterseeLabels' => $kraterseeLabels,
+            'kraterseeValues' => $kraterseeValues,
+            'daaMurenLabels' => $daaMurenLabels,
+            'daaMurenValues' => $daaMurenValues,
+            'wandlerLabels' => $wandlerLabels,
+            'wandlerValues' => $wandlerValues,
             'totalReviews' => $totalReviews,
             'averageReviewsPerBook' => $averageReviewsPerBook,
             'topReviewers' => $topReviewers,
