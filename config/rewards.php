@@ -64,7 +64,32 @@ return [
     [
         'title' => 'Statistik - Bewertungen des Euree-Zyklus',
         'description' => 'Zeigt Bewertungen des Euree-Zyklus aus dem Maddraxikon in einem Liniendiagramm.',
-        'points' => 12,
+        'points' => 13,
+    ],
+    [
+        'title' => 'Statistik - Bewertungen des Meeraka-Zyklus',
+        'description' => 'Zeigt Bewertungen des Meeraka-Zyklus aus dem Maddraxikon in einem Liniendiagramm.',
+        'points' => 14,
+    ],
+    [
+        'title' => 'Statistik - Bewertungen des Expeditions-Zyklus',
+        'description' => 'Zeigt Bewertungen des Expeditions-Zyklus aus dem Maddraxikon in einem Liniendiagramm.',
+        'points' => 15,
+    ],
+    [
+        'title' => 'Statistik - Bewertungen des Kratersee-Zyklus',
+        'description' => 'Zeigt Bewertungen des Kratersee-Zyklus aus dem Maddraxikon in einem Liniendiagramm.',
+        'points' => 16,
+    ],
+    [
+        'title' => 'Statistik - Bewertungen des Daa\'muren-Zyklus',
+        'description' => 'Zeigt Bewertungen des Daa\'muren-Zyklus aus dem Maddraxikon in einem Liniendiagramm.',
+        'points' => 17,
+    ],
+    [
+        'title' => 'Statistik - Bewertungen des Wandler-Zyklus',
+        'description' => 'Zeigt Bewertungen des Wandler-Zyklus aus dem Maddraxikon in einem Liniendiagramm.',
+        'points' => 18,
     ],
     [
         'title' => 'Kompendium-Suche',
