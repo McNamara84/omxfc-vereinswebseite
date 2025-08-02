@@ -1,4 +1,4 @@
-<nav x-data="{ open: false, openMenu: null }" class="bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 xl:fixed xl:top-0 xl:left-0 xl:right-0 xl:z-50">
+<nav x-data="{ open: false, openMenu: null }" class="bg-gray-100 dark:bg-gray-800 border-b-4 border-indigo-500 dark:border-indigo-700 xl:fixed xl:top-0 xl:left-0 xl:right-0 xl:z-50">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
             <!-- Linker Bereich: Logo + Hauptmenü -->
@@ -17,7 +17,7 @@
                             <button id="verein-button" type="button" class="px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition" :aria-expanded="open" aria-controls="verein-menu" @keydown.enter.prevent="open = !open" @keydown.space.prevent="open = !open">
                                 Verein
                             </button>
-                            <div id="verein-menu" x-show="open" x-cloak class="absolute left-0 top-full mt-px w-48 bg-white dark:bg-gray-700 rounded-md shadow-lg z-50 py-2 group-hover:block" role="menu">
+                            <div id="verein-menu" x-show="open" x-cloak class="absolute left-0 top-full mt-px w-48 bg-gray-100 dark:bg-gray-700 rounded-md shadow-lg z-50 py-2 group-hover:block" role="menu">
                                 <x-dropdown-link href="{{ route('mitglieder.index') }}">Mitgliederliste</x-dropdown-link>
                                 <x-dropdown-link href="{{ route('mitglieder.karte') }}">Mitgliederkarte</x-dropdown-link>
                                 <x-dropdown-link href="{{ route('protokolle') }}">Protokolle</x-dropdown-link>
@@ -31,7 +31,7 @@
                             <button id="veranstaltungen-button" type="button" class="px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition" :aria-expanded="open" aria-controls="veranstaltungen-menu" @keydown.enter.prevent="open = !open" @keydown.space.prevent="open = !open">
                                 Veranstaltungen
                             </button>
-                            <div id="veranstaltungen-menu" x-show="open" x-cloak class="absolute left-0 top-full mt-px w-48 bg-white dark:bg-gray-700 rounded-md shadow-lg z-50 py-2 group-hover:block" role="menu">
+                            <div id="veranstaltungen-menu" x-show="open" x-cloak class="absolute left-0 top-full mt-px w-48 bg-gray-100 dark:bg-gray-700 rounded-md shadow-lg z-50 py-2 group-hover:block" role="menu">
                                 <x-dropdown-link href="{{ route('fotogalerie') }}">Fotos</x-dropdown-link>
                                 <x-dropdown-link href="{{ route('meetings') }}">Meetings</x-dropdown-link>
                             </div>
@@ -40,7 +40,7 @@
                             <button id="baxx-button" type="button" class="px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition" :aria-expanded="open" aria-controls="baxx-menu" @keydown.enter.prevent="open = !open" @keydown.space.prevent="open = !open">
                                 Baxx
                             </button>
-                            <div id="baxx-menu" x-show="open" x-cloak class="absolute left-0 top-full mt-px w-48 bg-white dark:bg-gray-700 rounded-md shadow-lg z-50 py-2 group-hover:block" role="menu">
+                            <div id="baxx-menu" x-show="open" x-cloak class="absolute left-0 top-full mt-px w-48 bg-gray-100 dark:bg-gray-700 rounded-md shadow-lg z-50 py-2 group-hover:block" role="menu">
                                 <x-dropdown-link href="{{ route('todos.index') }}">Challenges</x-dropdown-link>
                                 <x-dropdown-link href="{{ route('rewards.index') }}">Belohnungen</x-dropdown-link>
                             </div>
@@ -50,7 +50,7 @@
                             <button id="belohnungen-button" type="button" class="px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition" :aria-expanded="open" aria-controls="belohnungen-menu" @keydown.enter.prevent="open = !open" @keydown.space.prevent="open = !open">
                                 Belohnungen
                             </button>
-                            <div id="belohnungen-menu" x-show="open" x-cloak class="absolute left-0 top-full mt-px w-48 bg-white dark:bg-gray-700 rounded-md shadow-lg z-50 py-2 group-hover:block" role="menu">
+                            <div id="belohnungen-menu" x-show="open" x-cloak class="absolute left-0 top-full mt-px w-48 bg-gray-100 dark:bg-gray-700 rounded-md shadow-lg z-50 py-2 group-hover:block" role="menu">
                                 <x-dropdown-link href="{{ route('maddraxiversum.index') }}">Maddraxiversum</x-dropdown-link>
                                 <x-dropdown-link href="{{ route('downloads') }}">Downloads</x-dropdown-link>
                                 <x-dropdown-link href="{{ route('kompendium.index') }}">Kompendium</x-dropdown-link>
