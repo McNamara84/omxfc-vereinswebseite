@@ -257,6 +257,20 @@
                     </div>
                 </div>
             @endif
+            {{-- Card 8 – Bewertungen des Euree-Zyklus (≥ 13 Baxx) --}}
+            @if ($userPoints >= 13)
+                <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
+                    <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                        Bewertungen des Euree-Zyklus
+                    </h2>
+                    <canvas id="eureeChart" height="140"></canvas>
+                </div>
+
+                <script>
+                    window.eureeChartLabels = @json($eureeLabels);
+                    window.eureeChartValues = @json($eureeValues);
+                </script>
+            @endif
             @if ($userPoints >= 1)
                 @vite(['resources/js/statistik.js'])
             @endif

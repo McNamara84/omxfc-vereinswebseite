@@ -62,6 +62,11 @@ return [
         'points' => 12,
     ],
     [
+        'title' => 'Statistik - Bewertungen des Euree-Zyklus',
+        'description' => 'Zeigt Bewertungen des Euree-Zyklus aus dem Maddraxikon in einem Liniendiagramm.',
+        'points' => 12,
+    ],
+    [
         'title' => 'Kompendium-Suche',
         'description' => 'Erlaubt die Volltextsuche im Maddrax-Kompendium.',
         'points' => 100,

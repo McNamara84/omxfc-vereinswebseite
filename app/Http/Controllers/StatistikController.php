@@ -102,6 +102,14 @@ class StatistikController extends Controller
             ])
             ->values();
 
+        // ── Card 8 – Bewertungen des Euree-Zyklus ───────────────────────
+        $eureeCycle = $romane
+            ->filter(fn($r) => ($r['nummer'] ?? 0) >= 1 && ($r['nummer'] ?? 0) <= 24)
+            ->sortBy('nummer');
+
+        $eureeLabels = $eureeCycle->pluck('nummer');
+        $eureeValues = $eureeCycle->pluck('bewertung');
+
         // ── Card 7 – Rezensionen unserer Mitglieder ───────────────────────────
         $totalReviews = 0;
         $averageReviewsPerBook = 0;
@@ -187,6 +195,8 @@ class StatistikController extends Controller
             'topCharacters' => $topCharacters,
             'userPoints' => $userPoints,
             'romaneTable' => $romaneTable,
+            'eureeLabels' => $eureeLabels,
+            'eureeValues' => $eureeValues,
             'totalReviews' => $totalReviews,
             'averageReviewsPerBook' => $averageReviewsPerBook,
             'topReviewers' => $topReviewers,

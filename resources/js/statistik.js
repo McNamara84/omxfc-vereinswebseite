@@ -30,6 +30,32 @@ function drawAuthorChart(canvasId, labels, data) {
 }
 
 /**
+ * Rendert das Liniendiagramm „Bewertungen des Euree-Zyklus“,
+ * wenn das Canvas existiert.
+ */
+function drawEureeChart(canvasId, labels, data) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+
+    new Chart(canvas.getContext('2d'), {
+        type: 'line',
+        data: {
+            labels,
+            datasets: [{
+                data,
+                borderColor: 'rgba(139, 1, 22, .8)',
+                backgroundColor: 'rgba(139, 1, 22, .3)',
+                tension: 0.3,
+            }],
+        },
+        options: {
+            plugins: { legend: { display: false } },
+            scales:  { y: { beginAtZero: true, ticks: { stepSize: 1 } } },
+        },
+    });
+}
+
+/**
  * Initialisiert die sortier-/paginierbare Romane-Tabelle.
  */
 function initRomaneTable() {
@@ -52,8 +78,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const labels = window.authorChartLabels ?? [];
     const values = window.authorChartValues ?? [];
     drawAuthorChart('authorChart', labels, values);
+    const eureeLabels = window.eureeChartLabels ?? [];
+    const eureeValues = window.eureeChartValues ?? [];
+    drawEureeChart('eureeChart', eureeLabels, eureeValues);
     initRomaneTable();
 });
 
 /* ── optionale Named-Exports (falls du die Funktionen woanders brauchst) */
-export { drawAuthorChart, initRomaneTable };
+export { drawAuthorChart, drawEureeChart, initRomaneTable };
