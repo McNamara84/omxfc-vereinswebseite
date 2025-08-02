@@ -222,37 +222,39 @@
                         </div>
                     </div>
 
-                    <div class="mt-6">
-                        <h3 class="font-semibold mb-2">Top Rezensent:innen</h3>
-                        <ul class="list-disc ml-5">
-                            @foreach ($topReviewers as $row)
-                                <li>{{ $row['name'] }} ({{ $row['count'] }})</li>
-                            @endforeach
-                        </ul>
-                    </div>
-
-                    <div class="mt-6">
-                        <h3 class="font-semibold mb-2">Meistkommentierte Rezensionen</h3>
-                        <ul class="list-disc ml-5">
-                            @foreach ($topCommentedReviews as $row)
-                                <li>{{ $row['title'] }} ({{ $row['comments'] }})</li>
-                            @endforeach
-                        </ul>
-                    </div>
-
-                    @if ($longestReviewAuthor)
-                        <div class="mt-6">
-                            <h3 class="font-semibold mb-2">Längste Rezensionen im Durchschnitt</h3>
-                            <p>{{ $longestReviewAuthor['name'] }} ({{ $longestReviewAuthor['length'] }} Zeichen)</p>
+                    <div class="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div>
+                            <h3 class="font-semibold mb-2">Meistkommentierte Rezensionen</h3>
+                            <ul class="list-disc ml-5">
+                                @foreach ($topCommentedReviews as $row)
+                                    <li>{{ $row['title'] }} ({{ $row['comments'] }})</li>
+                                @endforeach
+                            </ul>
                         </div>
-                    @endif
 
-                    @if ($mostReviewedBook)
-                        <div class="mt-6">
-                            <h3 class="font-semibold mb-2">Roman mit den meisten Rezensionen</h3>
-                            <p>{{ $mostReviewedBook['title'] }} ({{ $mostReviewedBook['count'] }})</p>
+                        @if ($longestReviewAuthor)
+                            <div>
+                                <h3 class="font-semibold mb-2">Längste Rezensionen im Durchschnitt</h3>
+                                <p>{{ $longestReviewAuthor['name'] }} ({{ $longestReviewAuthor['length'] }} Zeichen)</p>
+                            </div>
+                        @endif
+
+                        <div>
+                            <h3 class="font-semibold mb-2">Top Rezensent:innen</h3>
+                            <ul class="list-disc ml-5">
+                                @foreach ($topReviewers as $row)
+                                    <li>{{ $row['name'] }} ({{ $row['count'] }})</li>
+                                @endforeach
+                            </ul>
                         </div>
-                    @endif
+
+                        @if ($mostReviewedBook)
+                            <div>
+                                <h3 class="font-semibold mb-2">Roman mit den meisten Rezensionen</h3>
+                                <p>{{ $mostReviewedBook['title'] }} ({{ $mostReviewedBook['count'] }})</p>
+                            </div>
+                        @endif
+                    </div>
                 </div>
             @endif
             @if ($userPoints >= 1)
