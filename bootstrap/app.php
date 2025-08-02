@@ -15,8 +15,10 @@ return Application::configure(basePath: dirname(__DIR__))
         // Globale Middleware hier registrieren (für alle Requests)
         $middleware->alias([
             'redirect.if.anwaerter' => \App\Http\Middleware\RedirectIfAnwaerter::class,
+            'admin' => \App\Http\Middleware\EnsureAdmin::class,
         ]);
         $middleware->appendToGroup('web', \App\Http\Middleware\UpdateLastActivity::class);
+        $middleware->appendToGroup('web', \App\Http\Middleware\LogPageVisit::class);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

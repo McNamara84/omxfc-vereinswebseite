@@ -19,6 +19,7 @@ use App\Http\Controllers\RezensionController;
 use App\Http\Controllers\RomantauschController;
 use App\Http\Controllers\StatistikController;
 use App\Http\Controllers\TodoController;
+use App\Http\Controllers\AdminController;
 use App\Http\Middleware\RedirectIfAnwaerter;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -48,6 +49,7 @@ Route::get('/email/verify/{id}/{hash}', CustomEmailVerificationController::class
 
 // Nur für eingeloggte und verifizierte Mitglieder, die NICHT Anwärter sind
 Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function () {
+    Route::get('/admin', [AdminController::class, 'index'])->name('admin.index')->middleware('admin');
     Route::controller(DashboardController::class)->group(function () {
         Route::get('/dashboard', 'index')->name('dashboard');
         Route::post('/anwaerter/{user}/approve', 'approveAnwaerter')->name('anwaerter.approve');
