@@ -25,18 +25,18 @@
 
 @layer base {
     body {
-        background-image: url('../images/design/light/concrete_light.webp');
+        background-image: url('/images/design/light/concrete_light.webp');
         background-image: image-set(
-            url('../images/design/light/concrete_light.avif') type('image/avif'),
-            url('../images/design/light/concrete_light.webp') type('image/webp')
+            url('/images/design/light/concrete_light.avif') type('image/avif'),
+            url('/images/design/light/concrete_light.webp') type('image/webp')
         );
     }
 
     .dark body {
-        background-image: url('../images/design/dark/concrete_dark.webp');
+        background-image: url('/images/design/dark/concrete_dark.webp');
         background-image: image-set(
-            url('../images/design/dark/concrete_dark.avif') type('image/avif'),
-            url('../images/design/dark/concrete_dark.webp') type('image/webp')
+            url('/images/design/dark/concrete_dark.avif') type('image/avif'),
+            url('/images/design/dark/concrete_dark.webp') type('image/webp')
         );
     }
 }
