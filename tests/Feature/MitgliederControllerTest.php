@@ -225,23 +225,8 @@ class MitgliederControllerTest extends TestCase
         $older = User::factory()->create(['name' => 'Olaf Old', 'current_team_id' => $team->id]);
         $team->users()->attach($older, ['role' => 'Mitglied']);
 
-        DB::table('sessions')->insert([
-            'id' => Str::random(40),
-            'user_id' => $older->id,
-            'ip_address' => '127.0.0.1',
-            'user_agent' => 'test',
-            'payload' => '',
-            'last_activity' => now()->subMinutes(10)->timestamp,
-        ]);
-
-        DB::table('sessions')->insert([
-            'id' => Str::random(40),
-            'user_id' => $recent->id,
-            'ip_address' => '127.0.0.1',
-            'user_agent' => 'test',
-            'payload' => '',
-            'last_activity' => now()->timestamp,
-        ]);
+        $older->forceFill(['last_activity' => now()->subMinutes(10)->timestamp])->save();
+        $recent->forceFill(['last_activity' => now()->timestamp])->save();
 
         $this->actingAs($this->actingMember('Mitglied'));
 
@@ -249,7 +234,10 @@ class MitgliederControllerTest extends TestCase
         $response->assertOk();
 
         $members = $response->viewData('members');
-        $names = $members->pluck('name')->take(2)->all();
+        $names = $members->pluck('name')
+            ->filter(fn ($name) => in_array($name, ['Ralf Recent', 'Olaf Old']))
+            ->values()
+            ->all();
 
         $this->assertSame(['Ralf Recent', 'Olaf Old'], $names);
     }

@@ -68,6 +68,7 @@ class User extends Authenticatable
         'mitglied_seit',
         'bezahlt_bis',
         'notify_new_review',
+        'last_activity',
     ];
 
     /**
@@ -104,6 +105,7 @@ class User extends Authenticatable
             'mitglied_seit' => 'date',
             'bezahlt_bis' => 'date',
             'notify_new_review' => 'boolean',
+            'last_activity' => 'integer',
         ];
     }
 

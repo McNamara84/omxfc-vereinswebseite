@@ -16,6 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'redirect.if.anwaerter' => \App\Http\Middleware\RedirectIfAnwaerter::class,
         ]);
+        $middleware->appendToGroup('web', \App\Http\Middleware\UpdateLastActivity::class);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //
