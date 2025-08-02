@@ -7,6 +7,9 @@ use Tests\TestCase;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Support\Facades\File;
+use App\Models\Book;
+use App\Models\Review;
+use App\Models\ReviewComment;
 
 class StatistikTest extends TestCase
 {
@@ -166,5 +169,52 @@ class StatistikTest extends TestCase
         $response->assertOk();
         $response->assertSee('wird ab');
         $response->assertSee('10');
+    }
+
+    public function test_review_statistics_visible_with_enough_points(): void
+    {
+        $this->createDataFile();
+        $team = Team::where('name', 'Mitglieder')->first();
+
+        $viewer = $this->actingMemberWithPoints(12);
+        $this->actingAs($viewer);
+
+        $user2 = User::factory()->create(['current_team_id' => $team->id]);
+        $user3 = User::factory()->create(['current_team_id' => $team->id]);
+        $team->users()->attach($user2, ['role' => 'Mitglied']);
+        $team->users()->attach($user3, ['role' => 'Mitglied']);
+
+        $book1 = Book::create(['roman_number' => 1, 'title' => 'B1', 'author' => 'A1']);
+        $book2 = Book::create(['roman_number' => 2, 'title' => 'B2', 'author' => 'A2']);
+
+        $reviewA = Review::create(['team_id' => $team->id, 'user_id' => $viewer->id, 'book_id' => $book1->id, 'title' => 'RA', 'content' => str_repeat('A', 100)]);
+        $reviewB = Review::create(['team_id' => $team->id, 'user_id' => $viewer->id, 'book_id' => $book1->id, 'title' => 'RB', 'content' => str_repeat('A', 120)]);
+        Review::create(['team_id' => $team->id, 'user_id' => $viewer->id, 'book_id' => $book2->id, 'title' => 'RC', 'content' => str_repeat('A', 80)]);
+        Review::create(['team_id' => $team->id, 'user_id' => $user2->id, 'book_id' => $book1->id, 'title' => 'RD', 'content' => 'X']);
+        Review::create(['team_id' => $team->id, 'user_id' => $user2->id, 'book_id' => $book2->id, 'title' => 'RE', 'content' => 'Y']);
+        Review::create(['team_id' => $team->id, 'user_id' => $user3->id, 'book_id' => $book1->id, 'title' => 'RF', 'content' => 'Z']);
+
+        ReviewComment::create(['review_id' => $reviewA->id, 'user_id' => $user2->id, 'content' => 'C1']);
+        ReviewComment::create(['review_id' => $reviewA->id, 'user_id' => $user3->id, 'content' => 'C2']);
+        ReviewComment::create(['review_id' => $reviewB->id, 'user_id' => $user2->id, 'content' => 'C3']);
+
+        $response = $this->get('/statistik');
+
+        $response->assertOk();
+        $response->assertSee('Rezensionen unserer Mitglieder');
+        $response->assertSee('RA');
+        $response->assertSee($viewer->name);
+    }
+
+    public function test_review_statistics_hidden_below_threshold(): void
+    {
+        $this->createDataFile();
+        $user = $this->actingMemberWithPoints(11);
+        $this->actingAs($user);
+
+        $response = $this->get('/statistik');
+
+        $response->assertOk();
+        $response->assertDontSee('Rezensionen unserer Mitglieder');
     }
 }

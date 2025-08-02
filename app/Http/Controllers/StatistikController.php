@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
+use App\Models\Review;
 
 class StatistikController extends Controller
 {
@@ -101,6 +102,81 @@ class StatistikController extends Controller
             ])
             ->values();
 
+        // ── Card 7 – Rezensionen unserer Mitglieder ───────────────────────────
+        $totalReviews = 0;
+        $averageReviewsPerBook = 0;
+        $topReviewers = collect();
+        $topCommentedReviews = collect();
+        $longestReviewAuthor = null;
+        $avgCommentsPerReview = 0;
+        $mostReviewedBook = null;
+
+        if ($currentTeam) {
+            $teamId = $currentTeam->id;
+
+            $totalReviews = Review::where('team_id', $teamId)->count();
+            $booksReviewed = Review::where('team_id', $teamId)
+                ->distinct('book_id')
+                ->count('book_id');
+            $averageReviewsPerBook = $booksReviewed > 0 ? round($totalReviews / $booksReviewed, 2) : 0;
+
+            $topReviewers = Review::where('team_id', $teamId)
+                ->selectRaw('user_id, COUNT(*) as review_count')
+                ->groupBy('user_id')
+                ->orderByDesc('review_count')
+                ->take(3)
+                ->with('user')
+                ->get()
+                ->map(fn($row) => [
+                    'name' => $row->user->name,
+                    'count' => $row->review_count,
+                ]);
+
+            $topCommentedReviews = Review::where('team_id', $teamId)
+                ->withCount('comments')
+                ->orderByDesc('comments_count')
+                ->take(3)
+                ->get()
+                ->map(fn($r) => [
+                    'title' => $r->title,
+                    'comments' => $r->comments_count,
+                ]);
+
+            $longest = Review::where('team_id', $teamId)
+                ->selectRaw('user_id, AVG(LENGTH(content)) as avg_length')
+                ->groupBy('user_id')
+                ->orderByDesc('avg_length')
+                ->with('user')
+                ->first();
+            if ($longest) {
+                $longestReviewAuthor = [
+                    'name' => $longest->user->name,
+                    'length' => round($longest->avg_length),
+                ];
+            }
+
+            $avgCommentsPerReview = round(
+                Review::where('team_id', $teamId)
+                    ->withCount('comments')
+                    ->get()
+                    ->avg('comments_count'),
+                2
+            );
+
+            $mostReviewed = Review::where('team_id', $teamId)
+                ->selectRaw('book_id, COUNT(*) as review_count')
+                ->groupBy('book_id')
+                ->orderByDesc('review_count')
+                ->with('book')
+                ->first();
+            if ($mostReviewed) {
+                $mostReviewedBook = [
+                    'title' => $mostReviewed->book->title,
+                    'count' => $mostReviewed->review_count,
+                ];
+            }
+        }
+
         return view('statistik.index', [
             'averageRating' => $averageRating,
             'totalVotes' => $totalVotes,
@@ -111,6 +187,13 @@ class StatistikController extends Controller
             'topCharacters' => $topCharacters,
             'userPoints' => $userPoints,
             'romaneTable' => $romaneTable,
+            'totalReviews' => $totalReviews,
+            'averageReviewsPerBook' => $averageReviewsPerBook,
+            'topReviewers' => $topReviewers,
+            'topCommentedReviews' => $topCommentedReviews,
+            'longestReviewAuthor' => $longestReviewAuthor,
+            'avgCommentsPerReview' => $avgCommentsPerReview,
+            'mostReviewedBook' => $mostReviewedBook,
         ]);
     }
 }

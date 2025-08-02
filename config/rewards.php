@@ -57,6 +57,11 @@ return [
         'points' => 11,
     ],
     [
+        'title' => 'Statistik - Rezensionen unserer Mitglieder',
+        'description' => 'Zeigt Analysen rund um die Rezensionen im Verein.',
+        'points' => 12,
+    ],
+    [
         'title' => 'Kompendium-Suche',
         'description' => 'Erlaubt die Volltextsuche im Maddrax-Kompendium.',
         'points' => 100,

@@ -188,8 +188,71 @@
                         <div class="text-3xl font-bold text-gray-900 dark:text-gray-100">
                             {{ number_format($averageVotes, 2, ',', '.') }}
                         </div>
-                        <div class="text-gray-600 dark:text-gray-400">Ø-Stimmen pro Roman</div>
+                    <div class="text-gray-600 dark:text-gray-400">Ø-Stimmen pro Roman</div>
                     </div>
+                </div>
+            @endif
+            {{-- Card 7 – Rezensionen unserer Mitglieder (≥ 12 Baxx) --}}
+            @if ($userPoints >= 12)
+                <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
+                    <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                        Rezensionen unserer Mitglieder
+                    </h2>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+                        <div>
+                            <div class="text-3xl font-bold text-gray-900 dark:text-gray-100">
+                                {{ $totalReviews }}
+                            </div>
+                            <div class="text-gray-600 dark:text-gray-400">Rezensionen insgesamt</div>
+                        </div>
+
+                        <div>
+                            <div class="text-3xl font-bold text-gray-900 dark:text-gray-100">
+                                {{ number_format($averageReviewsPerBook, 2, ',', '.') }}
+                            </div>
+                            <div class="text-gray-600 dark:text-gray-400">Ø Rezensionen pro Roman</div>
+                        </div>
+
+                        <div>
+                            <div class="text-3xl font-bold text-gray-900 dark:text-gray-100">
+                                {{ number_format($avgCommentsPerReview, 2, ',', '.') }}
+                            </div>
+                            <div class="text-gray-600 dark:text-gray-400">Ø Kommentare pro Rezension</div>
+                        </div>
+                    </div>
+
+                    <div class="mt-6">
+                        <h3 class="font-semibold mb-2">Top Rezensent:innen</h3>
+                        <ul class="list-disc ml-5">
+                            @foreach ($topReviewers as $row)
+                                <li>{{ $row['name'] }} ({{ $row['count'] }})</li>
+                            @endforeach
+                        </ul>
+                    </div>
+
+                    <div class="mt-6">
+                        <h3 class="font-semibold mb-2">Meistkommentierte Rezensionen</h3>
+                        <ul class="list-disc ml-5">
+                            @foreach ($topCommentedReviews as $row)
+                                <li>{{ $row['title'] }} ({{ $row['comments'] }})</li>
+                            @endforeach
+                        </ul>
+                    </div>
+
+                    @if ($longestReviewAuthor)
+                        <div class="mt-6">
+                            <h3 class="font-semibold mb-2">Längste Rezensionen im Durchschnitt</h3>
+                            <p>{{ $longestReviewAuthor['name'] }} ({{ $longestReviewAuthor['length'] }} Zeichen)</p>
+                        </div>
+                    @endif
+
+                    @if ($mostReviewedBook)
+                        <div class="mt-6">
+                            <h3 class="font-semibold mb-2">Roman mit den meisten Rezensionen</h3>
+                            <p>{{ $mostReviewedBook['title'] }} ({{ $mostReviewedBook['count'] }})</p>
+                        </div>
+                    @endif
                 </div>
             @endif
             @if ($userPoints >= 1)
