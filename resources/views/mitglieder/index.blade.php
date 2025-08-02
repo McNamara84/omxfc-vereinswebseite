@@ -258,7 +258,7 @@
     
     @if($canViewDetails)
     <td class="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">
-    {{ $member->last_activity ? \Carbon\Carbon::createFromTimestamp($member->last_activity)->format('d.m.Y H:i') : '-' }}
+    {{ $member->last_activity ? \Carbon\Carbon::createFromTimestamp($member->last_activity, config('app.timezone'))->format('d.m.Y H:i') : '-' }}
     </td>
     
     <td class="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">
@@ -423,7 +423,7 @@
     <div>
     <h4 class="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400 font-semibold mb-1">Zuletzt online</h4>
     <div class="text-sm text-gray-900 dark:text-gray-100">
-    {{ $member->last_activity ? \Carbon\Carbon::createFromTimestamp($member->last_activity)->format('d.m.Y H:i') : '-' }}
+    {{ $member->last_activity ? \Carbon\Carbon::createFromTimestamp($member->last_activity, config('app.timezone'))->format('d.m.Y H:i') : '-' }}
     </div>
     </div>
     
