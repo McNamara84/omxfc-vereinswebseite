@@ -30,7 +30,7 @@
     </script>
 
     <x-banner />
-    <div class="min-h-screen text-gray-900 dark:text-gray-100 xl:pt-16">
+    <div class="min-h-screen text-gray-900 dark:text-gray-100 xl:pt-24">
         @livewire('navigation-menu')
         <!-- Page Heading -->
         @if (isset($header))

@@ -1,5 +1,5 @@
 <x-app-layout>
-    <div class="py-8">
+    <div class="pb-8">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
                 {{-- Überschrift ------------------------------------------------ --}}

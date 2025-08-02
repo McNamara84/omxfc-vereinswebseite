@@ -1,5 +1,5 @@
 <x-app-layout>
-    <div class="max-w-3xl mx-auto px-6 py-10 text-center bg-gray-100 dark:bg-gray-800 rounded-lg shadow-md">
+    <div class="max-w-3xl mx-auto px-6 pb-10 text-center bg-gray-100 dark:bg-gray-800 rounded-lg shadow-md">
         <h2 class="text-2xl font-bold text-green-700 dark:text-green-400 mb-4">🎉 Antrag erfolgreich eingereicht!</h2>
         <p class="text-gray-700 dark:text-gray-300 mb-4">
             Wir haben dir eine E-Mail zur Bestätigung deiner Mailadresse geschickt.
