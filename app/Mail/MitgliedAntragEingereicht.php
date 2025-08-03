@@ -45,7 +45,7 @@ class MitgliedAntragEingereicht extends Mailable
             with: [
                 'user' => $this->user,
                 'verificationUrl' => URL::temporarySignedRoute(
-                    'verification.verify',
+                    'verification.verify.de',
                     now()->addMinutes(60), // Link ist 60 Min. gültig
                     [
                         'id' => $this->user->id,

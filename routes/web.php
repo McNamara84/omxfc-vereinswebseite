@@ -46,7 +46,7 @@ Route::post('/mitglied-werden', [MitgliedschaftController::class, 'store'])->nam
 Route::get('/email/bestaetigen/{id}/{hash}', CustomEmailVerificationController::class)
     ->middleware(['signed', 'throttle:6,1'])
     ->withoutMiddleware([RedirectIfAnwaerter::class])
-    ->name('verification.verify');
+    ->name('verification.verify.de');
 
 // Nur für eingeloggte und verifizierte Mitglieder, die NICHT Anwärter sind
 Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function () {
