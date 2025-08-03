@@ -37,6 +37,7 @@
                             <div id="veranstaltungen-menu" x-show="open" x-cloak class="absolute left-0 top-full mt-px w-48 bg-white dark:bg-gray-700 rounded-md shadow-lg z-50 py-2 group-hover:block" role="menu">
                                 <x-dropdown-link href="{{ route('fotogalerie') }}">Fotos</x-dropdown-link>
                                 <x-dropdown-link href="{{ route('meetings') }}">Meetings</x-dropdown-link>
+                                <x-dropdown-link href="{{ route('termine') }}">Termine</x-dropdown-link>
                             </div>
                         </div>
                         <div class="relative flex items-center ml-4 group" x-data="{ open: false }" @click="open = !open" @click.away="open = false" @keydown.escape="open = false">
@@ -135,6 +136,7 @@
             <div id="veranstaltungen-mobile-menu" x-show="openMenu === 'veranstaltungen'" x-cloak class="italic">
                 <x-responsive-nav-link href="{{ route('fotogalerie') }}">Fotos</x-responsive-nav-link>
                 <x-responsive-nav-link href="{{ route('meetings') }}">Meetings</x-responsive-nav-link>
+                <x-responsive-nav-link href="{{ route('termine') }}">Termine</x-responsive-nav-link>
             </div>
 
             <button id="baxx-mobile-button" type="button" @click="openMenu = (openMenu === 'baxx' ? null : 'baxx')" class="w-full text-left px-4 py-2 font-bold text-gray-600 dark:text-gray-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500" :class="{ 'bg-gray-100 dark:bg-gray-700': openMenu === 'baxx' }" :aria-expanded="openMenu === 'baxx'" aria-controls="baxx-mobile-menu" @keydown.enter.prevent="openMenu = (openMenu === 'baxx' ? null : 'baxx')" @keydown.space.prevent="openMenu = (openMenu === 'baxx' ? null : 'baxx')">
