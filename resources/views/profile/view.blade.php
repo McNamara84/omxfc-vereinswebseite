@@ -224,6 +224,12 @@
                                         <p class="text-gray-600 dark:text-gray-300">{{ $user->lieblingszyklus }}-Zyklus</p>
                                     </div>
                                 @endif
+                                @if($user->lieblingsthema)
+                                    <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg shadow">
+                                        <h3 class="font-semibold text-gray-800 dark:text-white mb-2">Lieblingsthema</h3>
+                                        <p class="text-gray-600 dark:text-gray-300">{{ $user->lieblingsthema }}</p>
+                                    </div>
+                                @endif
                             </div>
                         </div>
                     </div>

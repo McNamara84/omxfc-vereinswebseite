@@ -23,6 +23,7 @@ class UpdateSeriendatenTest extends TestCase
             'lieblingsschauplatz' => 'Ort',
             'lieblingsautor' => 'Autor',
             'lieblingszyklus' => 'Zyklus',
+            'lieblingsthema' => 'Thema',
         ]));
 
         $component = Livewire::test(UpdateSeriendatenForm::class);
@@ -35,6 +36,7 @@ class UpdateSeriendatenTest extends TestCase
         $this->assertSame('Ort', $component->get('state.lieblingsschauplatz'));
         $this->assertSame('Autor', $component->get('state.lieblingsautor'));
         $this->assertSame('Zyklus', $component->get('state.lieblingszyklus'));
+        $this->assertSame('Thema', $component->get('state.lieblingsthema'));
     }
 
     public function test_seriendaten_can_be_updated(): void
@@ -51,6 +53,7 @@ class UpdateSeriendatenTest extends TestCase
                 'lieblingsschauplatz' => 'F',
                 'lieblingsautor' => 'G',
                 'lieblingszyklus' => 'H',
+                'lieblingsthema' => 'I',
             ])
             ->call('updateSeriendaten');
 
@@ -64,6 +67,7 @@ class UpdateSeriendatenTest extends TestCase
         $this->assertSame('F', $user->lieblingsschauplatz);
         $this->assertSame('G', $user->lieblingsautor);
         $this->assertSame('H', $user->lieblingszyklus);
+        $this->assertSame('I', $user->lieblingsthema);
     }
 
     public function test_validation_fails_for_too_long_values(): void
