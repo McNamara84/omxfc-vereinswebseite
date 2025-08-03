@@ -1,26 +1,14 @@
 <x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            Seitenaufrufe
-        </h2>
-    </x-slot>
-
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-xl sm:rounded-lg p-6">
-                <canvas id="visitsChart"></canvas>
-            </div>
+    <x-member-page>
+        <h1 class="text-2xl font-semibold text-[#8B0116] dark:text-[#FCA5A5] mb-6">Seitenaufrufe</h1>
+        <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-xl sm:rounded-lg p-6 mb-8">
+            <canvas id="visitsChart"></canvas>
         </div>
-    </div>
-
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-xl sm:rounded-lg p-6">
-                <h3 class="font-semibold text-lg mb-4">Seitenaufrufe nach Nutzer</h3>
-                <canvas id="userVisitsChart"></canvas>
-            </div>
+        <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-xl sm:rounded-lg p-6">
+            <h3 class="font-semibold text-lg mb-4">Seitenaufrufe nach Nutzer</h3>
+            <canvas id="userVisitsChart"></canvas>
         </div>
-    </div>
+    </x-member-page>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>

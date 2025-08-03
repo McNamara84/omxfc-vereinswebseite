@@ -1,6 +1,5 @@
 <x-app-layout>
-    <div class="py-8">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+    <x-member-page>
             @if(session('status'))
             <div class="mb-4 p-4 bg-green-100 border border-green-400 text-green-800 dark:bg-green-800 dark:border-green-700 dark:text-green-100 rounded">
                 {{ session('status') }}
@@ -404,6 +403,5 @@
                 }
             </script>
             @endif
-        </div>
-    </div>
+    </x-member-page>
 </x-app-layout>
