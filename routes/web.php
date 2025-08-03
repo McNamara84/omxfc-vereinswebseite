@@ -43,7 +43,7 @@ Route::get('/mitglied-werden/bestaetigt', [PageController::class, 'mitgliedWerde
 Route::post('/mitglied-werden', [MitgliedschaftController::class, 'store'])->name('mitglied.store');
 
 // Route für E-Mail-Verifizierung (Laravel Jetstream / Fortify)
-Route::get('/email/verify/{id}/{hash}', CustomEmailVerificationController::class)
+Route::get('/email/bestaetigen/{id}/{hash}', CustomEmailVerificationController::class)
     ->middleware(['signed', 'throttle:6,1'])
     ->withoutMiddleware([RedirectIfAnwaerter::class])
     ->name('verification.verify');
@@ -53,8 +53,8 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
     Route::get('/admin', [AdminController::class, 'index'])->name('admin.index')->middleware('admin');
     Route::controller(DashboardController::class)->group(function () {
         Route::get('/dashboard', 'index')->name('dashboard');
-        Route::post('/anwaerter/{user}/approve', 'approveAnwaerter')->name('anwaerter.approve');
-        Route::post('/anwaerter/{user}/reject', 'rejectAnwaerter')->name('anwaerter.reject');
+        Route::post('/anwaerter/{user}/freigeben', 'approveAnwaerter')->name('anwaerter.approve');
+        Route::post('/anwaerter/{user}/ablehnen', 'rejectAnwaerter')->name('anwaerter.reject');
     });
 
     Route::controller(PageController::class)->group(function () {
@@ -72,8 +72,8 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
         Route::delete('/{user}', 'removeMember')->name('remove');
     });
 
-    Route::prefix('profile')->name('profile.')->group(function () {
-        Route::get('view', function () {
+    Route::prefix('profil')->name('profile.')->group(function () {
+        Route::get('anzeigen', function () {
             return app(ProfileViewController::class)->show(Auth::user());
         })->name('view.self');
         Route::get('{user}', [ProfileViewController::class, 'show'])->name('view');
@@ -81,44 +81,44 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
 
     Route::prefix('mitglieder/karte')->controller(MitgliederKarteController::class)->group(function () {
         Route::get('/', 'index')->name('mitglieder.karte');
-        Route::get('/locked', 'locked')->name('mitglieder.karte.locked');
+        Route::get('/gesperrt', 'locked')->name('mitglieder.karte.locked');
     });
 
-    Route::prefix('todos')->name('todos.')->controller(TodoController::class)->group(function () {
+    Route::prefix('aufgaben')->name('todos.')->controller(TodoController::class)->group(function () {
         Route::get('/', 'index')->name('index');
-        Route::get('create', 'create')->name('create');
+        Route::get('erstellen', 'create')->name('create');
         Route::post('/', 'store')->name('store');
         Route::get('{todo}', 'show')->name('show');
-        Route::get('{todo}/edit', 'edit')->name('edit');
-        Route::post('{todo}/assign', 'assign')->name('assign');
+        Route::get('{todo}/bearbeiten', 'edit')->name('edit');
+        Route::post('{todo}/zuweisen', 'assign')->name('assign');
         Route::put('{todo}', 'update')->name('update');
-        Route::post('{todo}/complete', 'complete')->name('complete');
-        Route::post('{todo}/verify', 'verify')->name('verify');
-        Route::post('{todo}/release', 'release')->name('release');
+        Route::post('{todo}/abschliessen', 'complete')->name('complete');
+        Route::post('{todo}/pruefen', 'verify')->name('verify');
+        Route::post('{todo}/freigeben', 'release')->name('release');
     });
 
     Route::get('/belohnungen', [RewardController::class, 'index'])->name('rewards.index');
 
-    Route::prefix('meetings')->controller(MeetingController::class)->group(function () {
+    Route::prefix('treffen')->controller(MeetingController::class)->group(function () {
         Route::get('/', 'index')->name('meetings');
-        Route::post('redirect', 'redirectToZoom')->name('meetings.redirect');
+        Route::post('umleiten', 'redirectToZoom')->name('meetings.redirect');
     });
 
     Route::prefix('kassenbuch')->name('kassenbuch.')->controller(KassenbuchController::class)->group(function () {
         Route::get('/', 'index')->name('index');
-        Route::put('update-payment/{user}', 'updatePaymentStatus')->name('update-payment');
-        Route::post('add-entry', 'addKassenbuchEntry')->name('add-entry');
+        Route::put('zahlung-aktualisieren/{user}', 'updatePaymentStatus')->name('update-payment');
+        Route::post('eintrag-hinzufuegen', 'addKassenbuchEntry')->name('add-entry');
     });
 
     Route::controller(MaddraxiversumController::class)->group(function () {
         Route::get('/maddraxiversum', 'index')->name('maddraxiversum.index');
-        Route::get('/maddraxikon-cities', 'getCities');
-        Route::post('/mission/start', 'startMission');
-        Route::post('/mission/check-status', 'checkMissionStatus');
+        Route::get('/maddraxikon-staedte', 'getCities');
+        Route::post('/mission/starten', 'startMission');
+        Route::post('/mission/status-pruefen', 'checkMissionStatus');
         Route::get('/mission/status', 'getMissionStatus');
     });
 
-    Route::get('/badges/{filename}', function ($filename) {
+    Route::get('/abzeichen/{filename}', function ($filename) {
         $path = public_path('images/badges/' . $filename);
         if (!file_exists($path)) {
             abort(404);
@@ -129,24 +129,24 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
 
     Route::prefix('romantauschboerse')->name('romantausch.')->controller(RomantauschController::class)->group(function () {
         Route::get('/', 'index')->name('index');
-        Route::get('create-offer', 'createOffer')->name('create-offer');
-        Route::post('store-offer', 'storeOffer')->name('store-offer');
-        Route::get('create-request', 'createRequest')->name('create-request');
-        Route::post('store-request', 'storeRequest')->name('store-request');
-        Route::post('{offer}/delete-offer', 'deleteOffer')->name('delete-offer');
-        Route::post('{request}/delete-request', 'deleteRequest')->name('delete-request');
-        Route::post('{offer}/{request}/complete', 'completeSwap')->name('complete-swap');
-        Route::post('swaps/{swap}/confirm', 'confirmSwap')->name('confirm-swap');
+        Route::get('angebot-erstellen', 'createOffer')->name('create-offer');
+        Route::post('angebot-speichern', 'storeOffer')->name('store-offer');
+        Route::get('anfrage-erstellen', 'createRequest')->name('create-request');
+        Route::post('anfrage-speichern', 'storeRequest')->name('store-request');
+        Route::post('{offer}/angebot-loeschen', 'deleteOffer')->name('delete-offer');
+        Route::post('{request}/anfrage-loeschen', 'deleteRequest')->name('delete-request');
+        Route::post('{offer}/{request}/abschliessen', 'completeSwap')->name('complete-swap');
+        Route::post('tausche/{swap}/bestaetigen', 'confirmSwap')->name('confirm-swap');
     });
 
     Route::prefix('downloads')->controller(DownloadsController::class)->group(function () {
         Route::get('/', 'index')->name('downloads');
-        Route::get('download/{datei}', 'download')->name('downloads.download');
+        Route::get('herunterladen/{datei}', 'download')->name('downloads.download');
     });
 
     Route::prefix('kompendium')->name('kompendium.')->controller(KompendiumController::class)->group(function () {
         Route::get('/', 'index')->name('index');
-        Route::get('search', 'search')->name('search');
+        Route::get('suche', 'search')->name('search');
     });
 
     Route::get('/statistik', [StatistikController::class, 'index'])->name('statistik.index');
@@ -154,11 +154,11 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
     Route::prefix('rezensionen')->name('reviews.')->group(function () {
         Route::get('/', [RezensionController::class, 'index'])->name('index');
         Route::get('/{book}', [RezensionController::class, 'show'])->name('show');
-        Route::get('/{book}/create', [RezensionController::class, 'create'])->name('create');
+        Route::get('/{book}/erstellen', [RezensionController::class, 'create'])->name('create');
         Route::post('/{book}', [RezensionController::class, 'store'])->name('store');
-        Route::get('/{review}/edit', [RezensionController::class, 'edit'])->name('edit');
+        Route::get('/{review}/bearbeiten', [RezensionController::class, 'edit'])->name('edit');
         Route::put('/{review}', [RezensionController::class, 'update'])->name('update');
         Route::delete('/{review}', [RezensionController::class, 'destroy'])->name('destroy');
-        Route::post('/{review}/comment', [ReviewCommentController::class, 'store'])->name('comments.store');
+        Route::post('/{review}/kommentar', [ReviewCommentController::class, 'store'])->name('comments.store');
     });
 });

@@ -41,7 +41,7 @@ class RomantauschControllerTest extends TestCase
         rename($path, $path . '.bak');
 
         $this->actingAs($this->actingMember());
-        $this->get('/romantauschboerse/create-offer')->assertStatus(500);
+        $this->get('/romantauschboerse/angebot-erstellen')->assertStatus(500);
 
         rename($path . '.bak', $path);
     }
@@ -67,7 +67,7 @@ class RomantauschControllerTest extends TestCase
         ]);
 
         $this->actingAs($user);
-        $this->post("/romantauschboerse/{$offer->id}/{$request->id}/complete")
+        $this->post("/romantauschboerse/{$offer->id}/{$request->id}/abschliessen")
             ->assertRedirect(route('romantausch.index'));
 
         $this->assertDatabaseHas('book_swaps', [
@@ -87,7 +87,7 @@ class RomantauschControllerTest extends TestCase
         ]));
 
         $this->actingAs($this->actingMember());
-        $response = $this->get('/romantauschboerse/create-offer');
+        $response = $this->get('/romantauschboerse/angebot-erstellen');
 
         $response->assertOk();
         $response->assertViewIs('romantausch.create_offer');
@@ -104,7 +104,7 @@ class RomantauschControllerTest extends TestCase
         file_put_contents($path, '{invalid');
 
         $this->actingAs($this->actingMember());
-        $this->get('/romantauschboerse/create-offer')->assertStatus(500);
+        $this->get('/romantauschboerse/angebot-erstellen')->assertStatus(500);
 
         unlink($path);
         rename($path . '.bak', $path);
@@ -121,7 +121,7 @@ class RomantauschControllerTest extends TestCase
         $user = $this->actingMember();
         $this->actingAs($user);
 
-        $response = $this->post('/romantauschboerse/store-offer', [
+        $response = $this->post('/romantauschboerse/angebot-speichern', [
             'book_number' => 1,
             'condition' => 'neu',
         ]);
@@ -160,7 +160,7 @@ class RomantauschControllerTest extends TestCase
             ]);
         }
 
-        $this->post('/romantauschboerse/store-offer', [
+        $this->post('/romantauschboerse/angebot-speichern', [
             'book_number' => 1,
             'condition' => 'neu',
         ]);
@@ -186,13 +186,13 @@ class RomantauschControllerTest extends TestCase
         $user = $this->actingMember();
         $this->actingAs($user);
 
-        $response = $this->from('/romantauschboerse/create-offer')
-            ->post('/romantauschboerse/store-offer', [
+        $response = $this->from('/romantauschboerse/angebot-erstellen')
+            ->post('/romantauschboerse/angebot-speichern', [
                 'book_number' => 2,
                 'condition' => 'neu',
             ]);
 
-        $response->assertRedirect('/romantauschboerse/create-offer');
+        $response->assertRedirect('/romantauschboerse/angebot-erstellen');
         $response->assertSessionHas('error', 'Ausgewählter Roman nicht gefunden.');
         $this->assertDatabaseCount('book_offers', 0);
 
@@ -245,7 +245,7 @@ class RomantauschControllerTest extends TestCase
         rename($path, $path . '.bak');
 
         $this->actingAs($this->actingMember());
-        $this->get('/romantauschboerse/create-request')->assertStatus(500);
+        $this->get('/romantauschboerse/anfrage-erstellen')->assertStatus(500);
 
         rename($path . '.bak', $path);
     }
@@ -259,7 +259,7 @@ class RomantauschControllerTest extends TestCase
         ]));
 
         $this->actingAs($this->actingMember());
-        $response = $this->get('/romantauschboerse/create-request');
+        $response = $this->get('/romantauschboerse/anfrage-erstellen');
 
         $response->assertOk();
         $response->assertViewIs('romantausch.create_request');
@@ -276,7 +276,7 @@ class RomantauschControllerTest extends TestCase
         file_put_contents($path, '{invalid');
 
         $this->actingAs($this->actingMember());
-        $this->get('/romantauschboerse/create-request')->assertStatus(500);
+        $this->get('/romantauschboerse/anfrage-erstellen')->assertStatus(500);
 
         unlink($path);
         rename($path . '.bak', $path);
@@ -293,7 +293,7 @@ class RomantauschControllerTest extends TestCase
         $user = $this->actingMember();
         $this->actingAs($user);
 
-        $response = $this->post('/romantauschboerse/store-request', [
+        $response = $this->post('/romantauschboerse/anfrage-speichern', [
             'book_number' => 1,
             'condition' => 'neu',
         ]);
@@ -321,13 +321,13 @@ class RomantauschControllerTest extends TestCase
         $user = $this->actingMember();
         $this->actingAs($user);
 
-        $response = $this->from('/romantauschboerse/create-request')
-            ->post('/romantauschboerse/store-request', [
+        $response = $this->from('/romantauschboerse/anfrage-erstellen')
+            ->post('/romantauschboerse/anfrage-speichern', [
                 'book_number' => 2,
                 'condition' => 'neu',
             ]);
 
-        $response->assertRedirect('/romantauschboerse/create-request');
+        $response->assertRedirect('/romantauschboerse/anfrage-erstellen');
         $response->assertSessionHas('error', 'Ausgewählter Roman nicht gefunden.');
         $this->assertDatabaseCount('book_requests', 0);
 

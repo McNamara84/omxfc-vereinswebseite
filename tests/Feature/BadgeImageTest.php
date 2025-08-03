@@ -42,7 +42,7 @@ class BadgeImageTest extends TestCase
         file_put_contents($this->filePath, '<svg></svg>');
         $this->actingAs($this->actingMember());
 
-        $response = $this->get('/badges/test.svg');
+        $response = $this->get('/abzeichen/test.svg');
 
         $response->assertOk();
         $this->assertInstanceOf(BinaryFileResponse::class, $response->baseResponse);
@@ -52,7 +52,7 @@ class BadgeImageTest extends TestCase
     {
         $this->actingAs($this->actingMember());
 
-        $response = $this->get('/badges/does-not-exist.svg');
+        $response = $this->get('/abzeichen/does-not-exist.svg');
 
         $response->assertNotFound();
     }

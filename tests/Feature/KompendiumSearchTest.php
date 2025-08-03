@@ -34,7 +34,7 @@ class KompendiumSearchTest extends TestCase
         $user = $this->actingMember(50); // below 100
         $this->actingAs($user);
 
-        $this->getJson('/kompendium/search?q=test')
+        $this->getJson('/kompendium/suche?q=test')
             ->assertStatus(403)
             ->assertJson(['message' => 'Mindestens 100 Punkte erforderlich (du hast 50).']);
     }
@@ -44,7 +44,7 @@ class KompendiumSearchTest extends TestCase
         $user = $this->actingMember(150);
         $this->actingAs($user);
 
-        $this->getJson('/kompendium/search?q=a')
+        $this->getJson('/kompendium/suche?q=a')
             ->assertStatus(422);
     }
 
@@ -66,7 +66,7 @@ class KompendiumSearchTest extends TestCase
             ->with('example')
             ->andReturn($mock);
 
-        $response = $this->getJson('/kompendium/search?q=example');
+        $response = $this->getJson('/kompendium/suche?q=example');
 
         $response->assertOk()
             ->assertJson([
@@ -97,7 +97,7 @@ class KompendiumSearchTest extends TestCase
             ->with('nomatch')
             ->andReturn($mock);
 
-        $response = $this->getJson('/kompendium/search?q=nomatch');
+        $response = $this->getJson('/kompendium/suche?q=nomatch');
 
         $response->assertOk()
             ->assertJson([

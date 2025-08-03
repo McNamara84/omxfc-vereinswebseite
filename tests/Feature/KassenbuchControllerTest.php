@@ -27,7 +27,7 @@ class KassenbuchControllerTest extends TestCase
         // initialize kassenstand
         $this->get('/kassenbuch');
 
-        $response = $this->post('/kassenbuch/add-entry', [
+        $response = $this->post('/kassenbuch/eintrag-hinzufuegen', [
             'buchungsdatum' => '2025-01-01',
             'betrag' => 5,
             'beschreibung' => 'Beitrag',
@@ -53,7 +53,7 @@ class KassenbuchControllerTest extends TestCase
         $member = User::factory()->create(['current_team_id' => $team->id]);
         $team->users()->attach($member, ['role' => 'Mitglied']);
 
-        $response = $this->from('/kassenbuch')->put("/kassenbuch/update-payment/{$member->id}", [
+        $response = $this->from('/kassenbuch')->put("/kassenbuch/zahlung-aktualisieren/{$member->id}", [
             'mitgliedsbeitrag' => 42,
             'bezahlt_bis' => '2025-12-31',
             'mitglied_seit' => '2024-01-01',
@@ -137,7 +137,7 @@ class KassenbuchControllerTest extends TestCase
         ]);
         $team->users()->attach($target, ['role' => 'Mitglied']);
 
-        $response = $this->from('/kassenbuch')->put("/kassenbuch/update-payment/{$target->id}", [
+        $response = $this->from('/kassenbuch')->put("/kassenbuch/zahlung-aktualisieren/{$target->id}", [
             'mitgliedsbeitrag' => 42,
             'bezahlt_bis' => '2025-12-31',
             'mitglied_seit' => '2024-01-01',
@@ -160,7 +160,7 @@ class KassenbuchControllerTest extends TestCase
         // initialize kassenstand
         $this->get('/kassenbuch');
 
-        $response = $this->from('/kassenbuch')->post('/kassenbuch/add-entry', [
+        $response = $this->from('/kassenbuch')->post('/kassenbuch/eintrag-hinzufuegen', [
             'buchungsdatum' => '2025-01-01',
             'betrag' => 5,
             'beschreibung' => 'Beitrag',

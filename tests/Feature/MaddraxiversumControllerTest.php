@@ -61,7 +61,7 @@ class MaddraxiversumControllerTest extends TestCase
         $user = $this->actingMember('Mitglied', 10);
         $this->actingAs($user);
 
-        $response = $this->get('/maddraxikon-cities');
+        $response = $this->get('/maddraxikon-staedte');
 
         $response->assertOk();
         $response->assertJson(['test' => 'data']);
@@ -79,7 +79,7 @@ class MaddraxiversumControllerTest extends TestCase
 
     private function startMission(User $user): void
     {
-        $this->postJson('/mission/start', [
+        $this->postJson('/mission/starten', [
             'name' => 'Testmission',
             'origin' => 'A',
             'destination' => 'B',

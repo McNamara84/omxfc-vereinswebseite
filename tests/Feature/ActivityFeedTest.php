@@ -66,7 +66,7 @@ class ActivityFeedTest extends TestCase
         $user = $this->actingMember();
         $this->actingAs($user);
 
-        $response = $this->post('/romantauschboerse/store-offer', [
+        $response = $this->post('/romantauschboerse/angebot-speichern', [
             'book_number' => 1,
             'condition' => 'neu',
         ]);
@@ -85,7 +85,7 @@ class ActivityFeedTest extends TestCase
         $user = $this->actingMember();
         $this->actingAs($user);
 
-        $response = $this->post('/romantauschboerse/store-request', [
+        $response = $this->post('/romantauschboerse/anfrage-speichern', [
             'book_number' => 1,
             'condition' => 'neu',
         ]);

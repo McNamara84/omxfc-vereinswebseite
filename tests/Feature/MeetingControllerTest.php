@@ -25,7 +25,7 @@ class MeetingControllerTest extends TestCase
     {
         $this->actingAs($this->actingMember());
 
-        $this->post('/meetings/redirect', ['meeting' => 'unknown'])
+        $this->post('/treffen/umleiten', ['meeting' => 'unknown'])
             ->assertForbidden();
     }
 
@@ -34,7 +34,7 @@ class MeetingControllerTest extends TestCase
         Carbon::setTestNow('2025-03-15');
         $this->actingAs($this->actingMember());
 
-        $response = $this->get('/meetings');
+        $response = $this->get('/treffen');
         $response->assertOk();
 
         $meetings = $response->viewData('meetings');
@@ -48,7 +48,7 @@ class MeetingControllerTest extends TestCase
         Carbon::setTestNow('2025-03-15');
         $this->actingAs($this->actingMember());
 
-        $meetings = $this->get('/meetings')->viewData('meetings');
+        $meetings = $this->get('/treffen')->viewData('meetings');
 
         $last = end($meetings);
         $this->assertSame('CHATDRAX 2.0 - Der MADDRAX-Online-Stammtisch', $last['name']);
@@ -60,7 +60,7 @@ class MeetingControllerTest extends TestCase
         Carbon::setTestNow('2025-03-15');
         $this->actingAs($this->actingMember());
 
-        $meetings = $this->get('/meetings')->viewData('meetings');
+        $meetings = $this->get('/treffen')->viewData('meetings');
 
         $this->assertTrue($meetings[0]['next']->equalTo(Carbon::parse('third monday of this month')));
         $this->assertTrue($meetings[1]['next']->equalTo(Carbon::parse('second wednesday of next month')));
@@ -75,7 +75,7 @@ class MeetingControllerTest extends TestCase
 
         $this->actingAs($this->actingMember());
 
-        $this->post('/meetings/redirect', ['meeting' => 'maddraxikon'])
+        $this->post('/treffen/umleiten', ['meeting' => 'maddraxikon'])
             ->assertRedirect('https://example.com/zoom');
     }
 }
