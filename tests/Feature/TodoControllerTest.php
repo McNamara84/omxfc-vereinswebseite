@@ -176,7 +176,7 @@ class TodoControllerTest extends TestCase
         ]);
 
         $this->actingAs($user);
-        $response = $this->get('/todos');
+        $response = $this->get('/aufgaben');
 
         $response->assertOk();
         $response->assertViewIs('todos.index');
@@ -198,7 +198,7 @@ class TodoControllerTest extends TestCase
         $category = TodoCategory::first() ?? TodoCategory::create(['name' => 'Test', 'slug' => 'test']);
         $this->actingAs($user);
 
-        $response = $this->post('/todos', [
+        $response = $this->post('/aufgaben', [
             'title' => 'New Todo',
             'description' => 'Desc',
             'points' => 7,

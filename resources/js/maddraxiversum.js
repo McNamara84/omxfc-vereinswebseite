@@ -44,7 +44,7 @@ const missions = {
 };
 
 // Lade Städte und erstelle Marker mit Popup und Missionslink
-axios.get('/maddraxikon-cities').then(response => {
+axios.get('/maddraxikon-staedte').then(response => {
     const results = response.data.query.results;
     for (const cityName in results) {
         const city = results[cityName];
@@ -212,7 +212,7 @@ startMissionButton.addEventListener('click', async () => {
 
     try {
         // Starte die Mission auf dem Backend
-        const response = await axios.post('/mission/start', {
+        const response = await axios.post('/mission/starten', {
             name: mission.name,
             origin: "Waashton",
             destination: mission.destination,
@@ -235,7 +235,7 @@ startMissionButton.addEventListener('click', async () => {
 
         // 4. Mission als abgeschlossen markieren
         console.log('Sende Status-Check-Request...');
-        const statusResponse = await axios.post('/mission/check-status', {}, {
+        const statusResponse = await axios.post('/mission/status-pruefen', {}, {
             headers: { 'X-CSRF-TOKEN': csrfToken }
         });
         console.log('Status-Check-Response:', statusResponse.data);
@@ -314,7 +314,7 @@ async function loadMissionStatus() {
                 }
 
                 // Mission als abgeschlossen markieren
-                const statusResponse = await axios.post('/mission/check-status', {}, {
+                const statusResponse = await axios.post('/mission/status-pruefen', {}, {
                     headers: { 'X-CSRF-TOKEN': csrfToken }
                 });
 

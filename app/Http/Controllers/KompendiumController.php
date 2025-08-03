@@ -33,7 +33,7 @@ class KompendiumController extends Controller
     }
 
     /* --------------------------------------------------------------------- */
-    /*  GET /kompendium/search  (AJAX)                                       */
+    /*  GET /kompendium/suche  (AJAX)                                       */
     /* --------------------------------------------------------------------- */
     public function search(Request $request): JsonResponse
     {

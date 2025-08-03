@@ -20,7 +20,7 @@ class TodoAuthorizationTest extends TestCase
         $team->users()->attach($user, ['role' => 'Mitglied']);
         $this->actingAs($user);
 
-        $response = $this->get('/todos/create');
+        $response = $this->get('/aufgaben/erstellen');
 
         $response->assertRedirect(route('todos.index', [], false));
         $response->assertSessionHas('error', 'Du hast keine Berechtigung, Challenges zu erstellen.');
@@ -35,7 +35,7 @@ class TodoAuthorizationTest extends TestCase
 
         TodoCategory::create(['name' => 'Test', 'slug' => 'test']);
 
-        $response = $this->get('/todos/create');
+        $response = $this->get('/aufgaben/erstellen');
 
         $response->assertOk();
         $response->assertViewIs('todos.create');

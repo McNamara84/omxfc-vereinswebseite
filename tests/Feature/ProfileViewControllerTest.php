@@ -80,7 +80,7 @@ class ProfileViewControllerTest extends TestCase
         $user = $this->createMember();
         $this->actingAs($user);
 
-        $response = $this->get("/profile/{$user->id}");
+        $response = $this->get("/profil/{$user->id}");
 
         $response->assertOk();
         $response->assertViewHas('isOwnProfile', true);
@@ -94,7 +94,7 @@ class ProfileViewControllerTest extends TestCase
         $target = $this->createMember();
         $this->actingAs($viewer);
 
-        $response = $this->get("/profile/{$target->id}");
+        $response = $this->get("/profil/{$target->id}");
 
         $response->assertOk();
         $response->assertViewHas('isOwnProfile', false);
@@ -108,7 +108,7 @@ class ProfileViewControllerTest extends TestCase
         $target = $this->createMember();
         $this->actingAs($admin);
 
-        $response = $this->get("/profile/{$target->id}");
+        $response = $this->get("/profil/{$target->id}");
 
         $response->assertOk();
         $response->assertViewHas('canViewDetails', true);
@@ -122,7 +122,7 @@ class ProfileViewControllerTest extends TestCase
         $otherTeam->users()->attach($target, ['role' => 'Mitglied']);
         $this->actingAs($viewer);
 
-        $response = $this->get("/profile/{$target->id}");
+        $response = $this->get("/profil/{$target->id}");
 
         $response->assertRedirect('/dashboard');
         $response->assertSessionHas('error');
@@ -135,7 +135,7 @@ class ProfileViewControllerTest extends TestCase
         $target = $this->createMember();
         $this->actingAs($viewer);
 
-        $response = $this->get("/profile/{$target->id}");
+        $response = $this->get("/profil/{$target->id}");
 
         $response->assertRedirect('/dashboard');
         $response->assertSessionHas('error');
@@ -168,7 +168,7 @@ class ProfileViewControllerTest extends TestCase
         }
         $this->actingAs($admin);
 
-        $response = $this->get("/profile/{$member->id}");
+        $response = $this->get("/profil/{$member->id}");
 
         $response->assertOk();
         $response->assertViewHas('userPoints', 8);
@@ -192,7 +192,7 @@ class ProfileViewControllerTest extends TestCase
 
         $this->actingAs($admin);
 
-        $response = $this->get("/profile/{$member->id}");
+        $response = $this->get("/profil/{$member->id}");
 
         $response->assertOk();
         $response->assertViewHas('userPoints', 0);
@@ -209,7 +209,7 @@ class ProfileViewControllerTest extends TestCase
         $this->createCompletedSwaps($member, $partner, 1);
 
         $this->actingAs($admin);
-        $response = $this->get("/profile/{$member->id}");
+        $response = $this->get("/profil/{$member->id}");
 
         $response->assertOk();
         $badges = $response->viewData('badges');
@@ -226,7 +226,7 @@ class ProfileViewControllerTest extends TestCase
         $this->createCompletedSwaps($member, $partner, 10);
 
         $this->actingAs($admin);
-        $response = $this->get("/profile/{$member->id}");
+        $response = $this->get("/profil/{$member->id}");
 
         $response->assertOk();
         $badges = $response->viewData('badges');
@@ -243,7 +243,7 @@ class ProfileViewControllerTest extends TestCase
         $this->createCompletedSwaps($member, $partner, 100);
 
         $this->actingAs($admin);
-        $response = $this->get("/profile/{$member->id}");
+        $response = $this->get("/profil/{$member->id}");
 
         $response->assertOk();
         $badges = $response->viewData('badges');
@@ -260,7 +260,7 @@ class ProfileViewControllerTest extends TestCase
         $this->createCompletedSwaps($member, $partner, 1000);
 
         $this->actingAs($admin);
-        $response = $this->get("/profile/{$member->id}");
+        $response = $this->get("/profil/{$member->id}");
 
         $response->assertOk();
         $badges = $response->viewData('badges');
@@ -283,7 +283,7 @@ class ProfileViewControllerTest extends TestCase
             'last_activity' => now()->timestamp,
         ]);
 
-        $response = $this->get("/profile/{$target->id}");
+        $response = $this->get("/profil/{$target->id}");
 
         $response->assertOk();
         $response->assertViewHas('isOnline', true);
@@ -305,7 +305,7 @@ class ProfileViewControllerTest extends TestCase
             'last_activity' => now()->subMinutes(10)->timestamp,
         ]);
 
-        $response = $this->get("/profile/{$target->id}");
+        $response = $this->get("/profil/{$target->id}");
 
         $response->assertOk();
         $response->assertViewHas('isOnline', false);

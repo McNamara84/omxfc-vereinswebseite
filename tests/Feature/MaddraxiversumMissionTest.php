@@ -28,7 +28,7 @@ class MaddraxiversumMissionTest extends TestCase
         $user = $this->actingMember();
         $this->actingAs($user);
 
-        $response = $this->postJson('/mission/start', [
+        $response = $this->postJson('/mission/starten', [
             'name' => 'Testmission',
             'origin' => 'A',
             'destination' => 'B',
@@ -56,7 +56,7 @@ class MaddraxiversumMissionTest extends TestCase
         $user = $this->actingMember();
         $this->actingAs($user);
 
-        $this->postJson('/mission/start', [
+        $this->postJson('/mission/starten', [
             'name' => 'Testmission',
             'origin' => 'A',
             'destination' => 'B',
@@ -67,7 +67,7 @@ class MaddraxiversumMissionTest extends TestCase
         $mission = Mission::first();
         Carbon::setTestNow('2025-01-01 12:01:00');
 
-        $this->postJson('/mission/check-status')
+        $this->postJson('/mission/status-pruefen')
             ->assertOk()
             ->assertJson(['status' => 'completed']);
 

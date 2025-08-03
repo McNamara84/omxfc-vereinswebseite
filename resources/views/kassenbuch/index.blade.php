@@ -275,7 +275,7 @@
                         
                         <p class="text-sm text-gray-500 dark:text-gray-400 mb-4" x-text="'Mitglied: ' + user_name"></p>
                         
-                        <form :action="'/kassenbuch/update-payment/' + user_id" method="POST">
+                        <form :action="'/kassenbuch/zahlung-aktualisieren/' + user_id" method="POST">
                             @csrf
                             @method('PUT')
                             <div class="mb-4">

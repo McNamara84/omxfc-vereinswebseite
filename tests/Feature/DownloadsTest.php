@@ -34,7 +34,7 @@ class DownloadsTest extends TestCase
         $user = $this->actingMember(2);
         $this->actingAs($user);
 
-        $response = $this->from('/downloads')->get('/downloads/download/BauanleitungEuphoriewurmV2.pdf');
+        $response = $this->from('/downloads')->get('/downloads/herunterladen/BauanleitungEuphoriewurmV2.pdf');
 
         $response->assertRedirect('/downloads');
         $response->assertSessionHasErrors();
@@ -47,7 +47,7 @@ class DownloadsTest extends TestCase
 
         Storage::disk('private')->put('downloads/BauanleitungEuphoriewurmV2.pdf', 'dummy');
 
-        $response = $this->get('/downloads/download/BauanleitungEuphoriewurmV2.pdf');
+        $response = $this->get('/downloads/herunterladen/BauanleitungEuphoriewurmV2.pdf');
 
         $response->assertOk();
         $response->assertHeader('content-disposition');
@@ -58,7 +58,7 @@ class DownloadsTest extends TestCase
         $user = $this->actingMember(20);
         $this->actingAs($user);
 
-        $response = $this->from('/downloads')->get('/downloads/download/BauanleitungEuphoriewurmV2.pdf');
+        $response = $this->from('/downloads')->get('/downloads/herunterladen/BauanleitungEuphoriewurmV2.pdf');
 
         $response->assertRedirect('/downloads');
         $response->assertSessionHasErrors();
@@ -71,7 +71,7 @@ class DownloadsTest extends TestCase
 
         Storage::disk('private')->put('downloads/BauanleitungProtoV11.pdf', 'dummy');
 
-        $response = $this->get('/downloads/download/BauanleitungProtoV11.pdf');
+        $response = $this->get('/downloads/herunterladen/BauanleitungProtoV11.pdf');
 
         $response->assertOk();
         $response->assertHeader('content-disposition');
@@ -95,7 +95,7 @@ class DownloadsTest extends TestCase
         $user = $this->actingMember(10);
         $this->actingAs($user);
 
-        $response = $this->from('/downloads')->get('/downloads/download/unknown.pdf');
+        $response = $this->from('/downloads')->get('/downloads/herunterladen/unknown.pdf');
 
         $response->assertRedirect('/downloads');
         $response->assertSessionHasErrors();
