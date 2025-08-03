@@ -32,8 +32,12 @@ class AppServiceProvider extends ServiceProvider
         $version = Config::get('app.version');
 
         if ($version === null || $version === '0.0.0') {
-            $process = Process::run('git describe --tags --abbrev=0');
-            $version = $process->successful() ? trim($process->output()) : '0.0.0';
+            try {
+                $process = Process::run(['git', 'describe', '--tags', '--abbrev=0']);
+                $version = $process->successful() ? trim($process->output()) : '0.0.0';
+            } catch (\Throwable $e) {
+                $version = '0.0.0';
+            }
         }
 
         View::share('appVersion', $version);
