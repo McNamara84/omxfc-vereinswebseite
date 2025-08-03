@@ -68,6 +68,7 @@
                         <x-nav-link href="{{ route('termine') }}">Termine</x-nav-link>
                         <x-nav-link href="{{ route('satzung') }}">Satzung</x-nav-link>
                         <x-nav-link href="{{ route('mitglied.werden') }}">Mitglied werden</x-nav-link>
+                        <x-nav-link href="{{ route('spenden') }}">Spenden</x-nav-link>
                         <x-nav-link href="{{ route('changelog') }}">Changelog</x-nav-link>
                     @endguest
                 </div>
@@ -160,6 +161,7 @@
             <x-responsive-nav-link href="{{ route('termine') }}">Termine</x-responsive-nav-link>
             <x-responsive-nav-link href="{{ route('satzung') }}">Satzung</x-responsive-nav-link>
             <x-responsive-nav-link href="{{ route('mitglied.werden') }}">Mitglied werden</x-responsive-nav-link>
+            <x-responsive-nav-link href="{{ route('spenden') }}">Spenden</x-responsive-nav-link>
             <x-responsive-nav-link href="{{ route('changelog') }}">Changelog</x-responsive-nav-link>
             <x-responsive-nav-link href="{{ route('login') }}">Login</x-responsive-nav-link>
         @endguest

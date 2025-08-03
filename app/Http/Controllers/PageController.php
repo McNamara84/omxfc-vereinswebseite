@@ -123,6 +123,11 @@ class PageController extends Controller
         return view('pages.datenschutz');
     }
 
+    public function spenden()
+    {
+        return view('pages.spenden');
+    }
+
     public function changelog()
     {
         return view('pages.changelog');
