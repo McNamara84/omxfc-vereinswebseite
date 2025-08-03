@@ -1,5 +1,5 @@
 <x-app-layout>
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-6 sm:pb-10 bg-gray-100 dark:bg-gray-800 rounded-lg shadow-sm">
+    <x-public-page>
         <h1 class="text-2xl sm:text-3xl font-bold text-[#8B0116] dark:text-[#ff4b63] mb-4 sm:mb-8">Termine</h1>
         <!-- Desktop: Monatsansicht -->
         <div
@@ -21,5 +21,5 @@
             </a>
             öffnen.
         </p>
-    </div>
+    </x-public-page>
 </x-app-layout>

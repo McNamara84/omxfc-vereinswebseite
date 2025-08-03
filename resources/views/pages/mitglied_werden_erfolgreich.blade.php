@@ -1,5 +1,5 @@
 <x-app-layout>
-    <div class="max-w-3xl mx-auto px-6 pb-10 text-center bg-gray-100 dark:bg-gray-800 rounded-lg shadow-md">
+    <x-public-page class="max-w-3xl text-center">
         <h2 class="text-2xl font-bold text-green-700 dark:text-green-400 mb-4">🎉 Antrag erfolgreich eingereicht!</h2>
         <p class="text-gray-700 dark:text-gray-300 mb-4">
             Wir haben dir eine E-Mail zur Bestätigung deiner Mailadresse geschickt.
@@ -14,5 +14,5 @@
             class="inline-block mt-6 px-4 py-2 bg-[#8B0116] text-white rounded hover:bg-[#7a0113] transition">
             Zurück zur Startseite
         </a>
-    </div>
+    </x-public-page>
 </x-app-layout>
