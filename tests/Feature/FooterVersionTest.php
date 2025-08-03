@@ -12,7 +12,7 @@ class FooterVersionTest extends TestCase
 
     public function test_footer_displays_version_and_changelog_link(): void
     {
-        $process = Process::run(['git', 'describe', '--tags', '--abbrev=0']);
+        $process = Process::run(['bash', '-c', 'git describe --tags $(git rev-list --tags --max-count=1)']);
         $version = $process->successful() ? trim($process->output()) : '0.0.0';
 
         $response = $this->get('/');

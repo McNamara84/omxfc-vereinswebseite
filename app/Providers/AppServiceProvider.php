@@ -33,7 +33,7 @@ class AppServiceProvider extends ServiceProvider
 
         if ($version === null || $version === '0.0.0') {
             try {
-                $process = Process::run(['git', 'describe', '--tags', '--abbrev=0']);
+                $process = Process::run(['bash', '-c', 'git describe --tags $(git rev-list --tags --max-count=1)']);
                 $version = $process->successful() ? trim($process->output()) : '0.0.0';
             } catch (\Throwable $e) {
                 $version = '0.0.0';
