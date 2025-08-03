@@ -22,6 +22,7 @@ class PageAccessibilityTest extends TestCase
             '/arbeitsgruppen',
             '/termine',
             '/mitglied-werden',
+            '/spenden',
             '/impressum',
             '/datenschutz',
             '/changelog',

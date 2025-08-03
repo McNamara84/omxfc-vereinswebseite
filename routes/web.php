@@ -34,6 +34,7 @@ Route::get('/termine', [PageController::class, 'termine'])->name('termine');
 Route::get('/mitglied-werden', [PageController::class, 'mitgliedWerden'])->name('mitglied.werden');
 Route::get('/impressum', [PageController::class, 'impressum'])->name('impressum');
 Route::get('/datenschutz', [PageController::class, 'datenschutz'])->name('datenschutz');
+Route::get('/spenden', [PageController::class, 'spenden'])->name('spenden');
 Route::get('/changelog', [PageController::class, 'changelog'])->name('changelog');
 Route::get('/mitglied-werden/erfolgreich', [PageController::class, 'mitgliedWerdenErfolgreich'])->name('mitglied.werden.erfolgreich');
 Route::get('/mitglied-werden/bestaetigt', [PageController::class, 'mitgliedWerdenBestaetigt'])->name('mitglied.werden.bestaetigt');
