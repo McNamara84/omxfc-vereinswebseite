@@ -38,7 +38,7 @@ class EmailVerificationTest extends TestCase
         $user = User::factory()->unverified()->create();
 
         $verificationUrl = URL::temporarySignedRoute(
-            'verification.verify',
+            'verification.verify.de',
             now()->addMinutes(60),
             ['id' => $user->id, 'hash' => sha1($user->email)]
         );
@@ -60,7 +60,7 @@ class EmailVerificationTest extends TestCase
         $user = User::factory()->unverified()->create();
 
         $verificationUrl = URL::temporarySignedRoute(
-            'verification.verify',
+            'verification.verify.de',
             now()->addMinutes(60),
             ['id' => $user->id, 'hash' => sha1('wrong-email')]
         );
