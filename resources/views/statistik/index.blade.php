@@ -1,7 +1,6 @@
 {{-- resources/views/statistik/index.blade.php --}}
 <x-app-layout>
-    <div class="py-8">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+    <x-member-page>
             {{-- Kopfzeile --}}
             <div
                 class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -350,6 +349,5 @@
             @if ($userPoints >= 1)
                 @vite(['resources/js/statistik.js'])
             @endif
-        </div>
-    </div>
+    </x-member-page>
 </x-app-layout>

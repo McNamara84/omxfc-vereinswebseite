@@ -1,6 +1,5 @@
 <x-app-layout>
-    <div class="py-8">
-        <div class="max-w-3xl mx-auto sm:px-6 lg:px-8">
+    <x-member-page class="max-w-3xl">
             <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
                 <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-6">Neue Challenge erstellen</h2>
 
@@ -67,6 +66,5 @@
                     </div>
                 </form>
             </div>
-        </div>
-    </div>
+    </x-member-page>
 </x-app-layout>

@@ -1,6 +1,5 @@
 <x-app-layout>
-    <div class="py-8">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+    <x-member-page>
             <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg overflow-hidden">
                 <!-- Hintergrund-Banner -->
                 <div class="h-40 bg-gradient-to-r from-[#8B0116] to-[#FF6B81] relative">
@@ -296,4 +295,5 @@
             }
         });
     </script>
+    </x-member-page>
 </x-app-layout>
