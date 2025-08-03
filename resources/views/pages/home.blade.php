@@ -1,5 +1,5 @@
 <x-app-layout>
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-6 sm:pb-10 bg-gray-100 dark:bg-gray-800 rounded-lg shadow-sm">
+    <x-public-page>
         <h1 class="text-3xl font-bold text-[#8B0116] dark:text-[#ff4b63] mb-8 text-center">Willkommen beim Offiziellen MADDRAX Fanclub e. V.!</h1>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -51,7 +51,7 @@
                 <span class="text-gray-700 dark:text-gray-300">aktive Mitglieder</span>
             </div>
         </div>
-    </div>
+    </x-public-page>
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {

@@ -1,5 +1,5 @@
 <x-app-layout>
-    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-6 sm:pb-10 bg-gray-100 dark:bg-gray-800">
+    <x-public-page>
         <h1 class="text-2xl sm:text-3xl font-bold text-[#8B0116] dark:text-[#ff4b63] mb-4 sm:mb-8">Datenschutzerklärung</h1>
 
         <section class="mb-6">
@@ -87,5 +87,5 @@
                 Verschlüsselungstechniken (z. B. SSL-Verschlüsselung bei der Übertragung der Daten über die Webseite),
                 regelmäßige Sicherheitsupdates sowie Zugriffskontrollen und Zugriffsberechtigungen.</p>
         </section>
-    </div>
+    </x-public-page>
 </x-app-layout>
