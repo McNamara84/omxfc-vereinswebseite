@@ -37,6 +37,7 @@ class MaddraxDataServiceTest extends TestCase
                 'text' => ['Author1', 'Author2'],
                 'personen' => ['Figur1'],
                 'orte' => ['Ort1'],
+                'schlagworte' => ['Thema1'],
             ],
             [
                 'nummer' => 2,
@@ -45,6 +46,7 @@ class MaddraxDataServiceTest extends TestCase
                 'text' => ['Author1'],
                 'personen' => ['Figur2'],
                 'orte' => ['Ort2'],
+                'schlagworte' => ['Thema2'],
             ],
         ];
         File::put($this->testStoragePath . '/app/private/maddrax.json', json_encode($data));
@@ -73,6 +75,7 @@ class MaddraxDataServiceTest extends TestCase
         $this->assertSame(['1 - Roman1', '2 - Roman2'], MaddraxDataService::getRomane());
         $this->assertSame(['Figur1', 'Figur2'], MaddraxDataService::getFiguren());
         $this->assertSame(['Ort1', 'Ort2'], MaddraxDataService::getSchauplaetze());
+        $this->assertSame(['Thema1', 'Thema2'], MaddraxDataService::getSchlagworte());
     }
 
     public function test_load_data_returns_empty_when_file_is_missing(): void

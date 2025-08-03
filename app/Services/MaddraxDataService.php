@@ -134,4 +134,22 @@ class MaddraxDataService
 
         return $schauplaetze;
     }
+
+    /**
+     * Alle Schlagworte distinct und alphabetisch sortiert zurückgeben
+     */
+    public static function getSchlagworte(): array
+    {
+        $data = self::loadData();
+
+        $schlagworte = collect($data)
+            ->pluck('schlagworte')
+            ->flatten()
+            ->unique()
+            ->sort()
+            ->values()
+            ->toArray();
+
+        return $schlagworte;
+    }
 }

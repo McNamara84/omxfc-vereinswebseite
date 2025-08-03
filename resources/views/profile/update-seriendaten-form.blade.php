@@ -94,6 +94,18 @@
             </select>
             <x-input-error for="lieblingsschauplatz" class="mt-2" />
         </div>
+        <!-- Lieblingsthema Dropdown -->
+        <div class="col-span-6 sm:col-span-4">
+            <x-label for="lieblingsthema" value="{{ __('Lieblingsthema (optional)') }}" />
+            <select id="lieblingsthema" wire:model="state.lieblingsthema"
+                class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-800 rounded-md shadow-sm">
+                <option value="">Thema auswählen</option>
+                @foreach($schlagworte as $thema)
+                    <option value="{{ $thema }}">{{ $thema }}</option>
+                @endforeach
+            </select>
+            <x-input-error for="lieblingsthema" class="mt-2" />
+        </div>
         <!-- TODO: Lieblingsmutation -->
     </x-slot>
     <x-slot name="actions">

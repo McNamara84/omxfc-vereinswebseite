@@ -19,6 +19,7 @@ class UpdateUserSeriendaten
             'lieblingsschauplatz' => ['nullable', 'string', 'max:255'],
             'lieblingsautor' => ['nullable', 'string', 'max:255'],
             'lieblingszyklus' => ['nullable', 'string', 'max:255'],
+            'lieblingsthema' => ['nullable', 'string', 'max:255'],
         ])->validateWithBag('updateSeriendaten');
 
         $user->forceFill([
@@ -30,6 +31,7 @@ class UpdateUserSeriendaten
             'lieblingsschauplatz' => $input['lieblingsschauplatz'] ?? null,
             'lieblingsautor' => $input['lieblingsautor'] ?? null,
             'lieblingszyklus' => $input['lieblingszyklus'] ?? null,
+            'lieblingsthema' => $input['lieblingsthema'] ?? null,
         ])->save();
     }
 }
