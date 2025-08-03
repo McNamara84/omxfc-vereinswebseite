@@ -14,6 +14,11 @@ class AdminController extends Controller
             ->orderByDesc('total')
             ->get();
 
-        return view('admin.index', compact('visitData'));
+        $userVisitData = PageVisit::select('path', 'user_id', DB::raw('COUNT(*) as total'))
+            ->with('user:id,name')
+            ->groupBy('path', 'user_id')
+            ->get();
+
+        return view('admin.index', compact('visitData', 'userVisitData'));
     }
 }
