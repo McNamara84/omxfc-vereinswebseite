@@ -17,6 +17,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Application Version
+    |--------------------------------------------------------------------------
+    |
+    | This value represents the version of your application and will be
+    | displayed in the application's footer. It can be set via the
+    | APP_VERSION environment variable.
+    |
+    */
+
+    'version' => env('APP_VERSION', '0.0.0'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Environment
     |--------------------------------------------------------------------------
     |
