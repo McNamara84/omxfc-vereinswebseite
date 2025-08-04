@@ -14,7 +14,7 @@
                 @csrf
                 @method('PUT')
                 <textarea name="content" rows="2" class="w-full border-gray-300 dark:border-gray-600 dark:bg-gray-800 rounded mt-1" required>{{ old('content', $comment->content) }}</textarea>
-                <div class="mt-2 flex gap-2">
+                <div class="mt-2 flex flex-col sm:flex-row gap-2">
                     <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded">Speichern</button>
                     <button type="button" @click="editing = false" class="bg-gray-600 hover:bg-gray-700 text-white px-3 py-1 rounded">Abbrechen</button>
                 </div>

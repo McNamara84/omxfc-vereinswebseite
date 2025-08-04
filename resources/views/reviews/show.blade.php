@@ -19,7 +19,7 @@
                     </div>
 
                     @if(in_array($role ?? null, ['Vorstand','Admin'], true) || auth()->id() === $review->user_id)
-                        <div class="mt-4 flex gap-2">
+                        <div class="mt-4 flex flex-col sm:flex-row gap-2">
                             <a href="{{ route('reviews.edit', $review) }}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
                                 Rezension bearbeiten
                             </a>
