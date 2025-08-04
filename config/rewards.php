@@ -142,6 +142,11 @@ return [
         'points' => 28,
     ],
     [
+        'title' => 'Statistik - Bewertungen des Parallelwelt-Zyklus',
+        'description' => 'Zeigt Bewertungen des Parallelwelt-Zyklus aus dem Maddraxikon in einem Liniendiagramm.',
+        'points' => 29,
+    ],
+    [
         'title' => 'Kompendium-Suche',
         'description' => 'Erlaubt die Volltextsuche im Maddrax-Kompendium.',
         'points' => 100,
