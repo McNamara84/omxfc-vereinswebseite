@@ -238,6 +238,14 @@ class StatistikController extends Controller
         $parallelweltLabels = $parallelweltCycle->pluck('nummer');
         $parallelweltValues = $parallelweltCycle->pluck('bewertung');
 
+        // ── Card 25 – Bewertungen des Weltenriss-Zyklus ───────────────────
+        $weltenrissCycle = $romane
+            ->filter(fn($r) => ($r['nummer'] ?? 0) >= 550 && ($r['nummer'] ?? 0) <= 599)
+            ->sortBy('nummer');
+
+        $weltenrissLabels = $weltenrissCycle->pluck('nummer');
+        $weltenrissValues = $weltenrissCycle->pluck('bewertung');
+
         // ── Card 7 – Rezensionen unserer Mitglieder ───────────────────────────
         $totalReviews = 0;
         $averageReviewsPerBook = 0;
@@ -357,6 +365,8 @@ class StatistikController extends Controller
             'fremdweltValues' => $fremdweltValues,
             'parallelweltLabels' => $parallelweltLabels,
             'parallelweltValues' => $parallelweltValues,
+            'weltenrissLabels' => $weltenrissLabels,
+            'weltenrissValues' => $weltenrissValues,
             'totalReviews' => $totalReviews,
             'averageReviewsPerBook' => $averageReviewsPerBook,
             'topReviewers' => $topReviewers,

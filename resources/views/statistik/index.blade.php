@@ -511,6 +511,21 @@
                 </script>
             @endif
 
+            {{-- Card 25 – Bewertungen des Weltenriss-Zyklus (≥ 30 Baxx) --}}
+            @if ($userPoints >= 30)
+                <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
+                    <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                        Bewertungen des Weltenriss-Zyklus
+                    </h2>
+                    <canvas id="weltenrissChart" height="140"></canvas>
+                </div>
+
+                <script>
+                    window.weltenrissChartLabels = @json($weltenrissLabels);
+                    window.weltenrissChartValues = @json($weltenrissValues);
+                </script>
+            @endif
+
             @if ($userPoints >= 1)
                 @vite(['resources/js/statistik.js'])
             @endif
