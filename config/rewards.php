@@ -97,6 +97,11 @@ return [
         'points' => 19,
     ],
     [
+        'title' => 'Statistik - Bewertungen des Ausala-Zyklus',
+        'description' => 'Zeigt Bewertungen des Ausala-Zyklus aus dem Maddraxikon in einem Liniendiagramm.',
+        'points' => 20,
+    ],
+    [
         'title' => 'Kompendium-Suche',
         'description' => 'Erlaubt die Volltextsuche im Maddrax-Kompendium.',
         'points' => 100,
