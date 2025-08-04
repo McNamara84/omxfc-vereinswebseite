@@ -5,34 +5,47 @@
                 Für jede <strong>zehnte</strong> verfasste Rezension erhältst du automatisch
                 <strong>1 Baxx</strong>.
             </p>
-            <form method="GET" action="{{ route('reviews.index') }}" class="mb-6 bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div>
-                        <label for="roman_number" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Nr.</label>
-                        <input id="roman_number" name="roman_number" type="text" value="{{ request('roman_number') }}" class="mt-1 block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 rounded" />
-                    </div>
-                    <div>
-                        <label for="title" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Titel</label>
-                        <input id="title" name="title" type="text" value="{{ request('title') }}" class="mt-1 block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 rounded" />
-                    </div>
-                    <div>
-                        <label for="author" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Autor</label>
-                        <input id="author" name="author" type="text" value="{{ request('author') }}" class="mt-1 block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 rounded" />
-                    </div>
-                    <div>
-                        <label for="review_status" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Rezensionsstatus</label>
-                        <select id="review_status" name="review_status" class="mt-1 block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 rounded">
-                            <option value="">Alle</option>
-                            <option value="with" @selected(request('review_status') === 'with')>Mit Rezension</option>
-                            <option value="without" @selected(request('review_status') === 'without')>Ohne Rezension</option>
-                        </select>
-                    </div>
+            @php
+                $filtersApplied = request()->filled('roman_number') || request()->filled('title') || request()->filled('author') || request()->filled('review_status');
+            @endphp
+            <div x-data="{ open: @js($filtersApplied) }" class="mb-6">
+                <button type="button" @click="open = !open" class="w-full flex justify-between items-center bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-4">
+                    <span class="font-semibold text-gray-700 dark:text-gray-300" x-text="open ? 'Filter ausblenden' : 'Filter anzeigen'"></span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transform transition-transform" :class="{ 'rotate-180': open }" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.25 8.27a.75.75 0 01-.02-1.06z" clip-rule="evenodd" />
+                    </svg>
+                </button>
+                <div x-show="open" x-transition class="mt-4">
+                    <form method="GET" action="{{ route('reviews.index') }}" class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <div>
+                                <label for="roman_number" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Nr.</label>
+                                <input id="roman_number" name="roman_number" type="text" value="{{ request('roman_number') }}" class="mt-1 block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 rounded" />
+                            </div>
+                            <div>
+                                <label for="title" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Titel</label>
+                                <input id="title" name="title" type="text" value="{{ request('title') }}" class="mt-1 block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 rounded" />
+                            </div>
+                            <div>
+                                <label for="author" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Autor</label>
+                                <input id="author" name="author" type="text" value="{{ request('author') }}" class="mt-1 block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 rounded" />
+                            </div>
+                            <div>
+                                <label for="review_status" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Rezensionsstatus</label>
+                                <select id="review_status" name="review_status" class="mt-1 block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 rounded">
+                                    <option value="">Alle</option>
+                                    <option value="with" @selected(request('review_status') === 'with')>Mit Rezension</option>
+                                    <option value="without" @selected(request('review_status') === 'without')>Ohne Rezension</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="mt-4 flex flex-col sm:flex-row sm:items-center gap-2">
+                            <button type="submit" class="bg-[#8B0116] dark:bg-[#FCA5A5] text-white px-4 py-2 rounded">Filtern</button>
+                            <a href="{{ route('reviews.index') }}" class="text-gray-600 dark:text-gray-400 hover:underline">Zurücksetzen</a>
+                        </div>
+                    </form>
                 </div>
-                <div class="mt-4 flex flex-col sm:flex-row sm:items-center gap-2">
-                    <button type="submit" class="bg-[#8B0116] dark:bg-[#FCA5A5] text-white px-4 py-2 rounded">Filtern</button>
-                    <a href="{{ route('reviews.index') }}" class="text-gray-600 dark:text-gray-400 hover:underline">Zurücksetzen</a>
-                </div>
-            </form>
+            </div>
             <div id="accordion">
                 @foreach($booksByCycle as $cycle => $cycleBooks)
                     @php
