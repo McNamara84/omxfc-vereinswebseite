@@ -137,6 +137,11 @@ return [
         'points' => 27,
     ],
     [
+        'title' => 'Statistik - Bewertungen des Fremdwelt-Zyklus',
+        'description' => 'Zeigt Bewertungen des Fremdwelt-Zyklus aus dem Maddraxikon in einem Liniendiagramm.',
+        'points' => 28,
+    ],
+    [
         'title' => 'Kompendium-Suche',
         'description' => 'Erlaubt die Volltextsuche im Maddrax-Kompendium.',
         'points' => 100,
