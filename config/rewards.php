@@ -107,6 +107,11 @@ return [
         'points' => 21,
     ],
     [
+        'title' => 'Statistik - Bewertungen des Antarktis-Zyklus',
+        'description' => 'Zeigt Bewertungen des Antarktis-Zyklus aus dem Maddraxikon in einem Liniendiagramm.',
+        'points' => 22,
+    ],
+    [
         'title' => 'Kompendium-Suche',
         'description' => 'Erlaubt die Volltextsuche im Maddrax-Kompendium.',
         'points' => 100,
