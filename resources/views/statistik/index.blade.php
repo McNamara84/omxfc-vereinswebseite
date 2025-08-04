@@ -346,6 +346,21 @@
                 </script>
             @endif
 
+            {{-- Card 14 – Bewertungen des Mars-Zyklus (≥ 19 Baxx) --}}
+            @if ($userPoints >= 19)
+                <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
+                    <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                        Bewertungen des Mars-Zyklus
+                    </h2>
+                    <canvas id="marsChart" height="140"></canvas>
+                </div>
+
+                <script>
+                    window.marsChartLabels = @json($marsLabels);
+                    window.marsChartValues = @json($marsValues);
+                </script>
+            @endif
+
             @if ($userPoints >= 1)
                 @vite(['resources/js/statistik.js'])
             @endif

@@ -150,6 +150,14 @@ class StatistikController extends Controller
         $wandlerLabels = $wandlerCycle->pluck('nummer');
         $wandlerValues = $wandlerCycle->pluck('bewertung');
 
+        // ── Card 14 – Bewertungen des Mars-Zyklus ─────────────────────
+        $marsCycle = $romane
+            ->filter(fn($r) => ($r['nummer'] ?? 0) >= 150 && ($r['nummer'] ?? 0) <= 174)
+            ->sortBy('nummer');
+
+        $marsLabels = $marsCycle->pluck('nummer');
+        $marsValues = $marsCycle->pluck('bewertung');
+
         // ── Card 7 – Rezensionen unserer Mitglieder ───────────────────────────
         $totalReviews = 0;
         $averageReviewsPerBook = 0;
@@ -247,6 +255,8 @@ class StatistikController extends Controller
             'daaMurenValues' => $daaMurenValues,
             'wandlerLabels' => $wandlerLabels,
             'wandlerValues' => $wandlerValues,
+            'marsLabels' => $marsLabels,
+            'marsValues' => $marsValues,
             'totalReviews' => $totalReviews,
             'averageReviewsPerBook' => $averageReviewsPerBook,
             'topReviewers' => $topReviewers,

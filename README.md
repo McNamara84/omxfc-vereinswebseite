@@ -9,6 +9,10 @@
 
 Eine Laravel 12 Anwendung für die Vereinswebseite des OMFXC.
 
+## Versionsanzeige
+
+Die im Footer angezeigte Versionsnummer wird automatisch aus dem neuesten Git-Tag des Repositories ermittelt.
+
 ## Installation
 
 1. Repository clonen und ins Projektverzeichnis wechseln.
