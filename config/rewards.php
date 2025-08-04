@@ -127,6 +127,11 @@ return [
         'points' => 25,
     ],
     [
+        'title' => 'Statistik - Bewertungen des Archivar-Zyklus',
+        'description' => 'Zeigt Bewertungen des Archivar-Zyklus aus dem Maddraxikon in einem Liniendiagramm.',
+        'points' => 26,
+    ],
+    [
         'title' => 'Kompendium-Suche',
         'description' => 'Erlaubt die Volltextsuche im Maddrax-Kompendium.',
         'points' => 100,

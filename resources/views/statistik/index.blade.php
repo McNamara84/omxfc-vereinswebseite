@@ -451,6 +451,21 @@
                 </script>
             @endif
 
+            {{-- Card 21 – Bewertungen des Archivar-Zyklus (≥ 26 Baxx) --}}
+            @if ($userPoints >= 26)
+                <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
+                    <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                        Bewertungen des Archivar-Zyklus
+                    </h2>
+                    <canvas id="archivarChart" height="140"></canvas>
+                </div>
+
+                <script>
+                    window.archivarChartLabels = @json($archivarLabels);
+                    window.archivarChartValues = @json($archivarValues);
+                </script>
+            @endif
+
             @if ($userPoints >= 1)
                 @vite(['resources/js/statistik.js'])
             @endif
