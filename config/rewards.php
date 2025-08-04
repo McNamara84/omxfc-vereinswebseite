@@ -152,6 +152,11 @@ return [
         'points' => 30,
     ],
     [
+        'title' => 'Statistik - Bewertungen des Amraka-Zyklus',
+        'description' => 'Zeigt Bewertungen des Amraka-Zyklus aus dem Maddraxikon in einem Liniendiagramm.',
+        'points' => 31,
+    ],
+    [
         'title' => 'Kompendium-Suche',
         'description' => 'Erlaubt die Volltextsuche im Maddrax-Kompendium.',
         'points' => 100,
