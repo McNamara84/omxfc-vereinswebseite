@@ -541,6 +541,21 @@
                 </script>
             @endif
 
+            {{-- Card 27 – Bewertungen des Weltrat-Zyklus (≥ 32 Baxx) --}}
+            @if ($userPoints >= 32)
+                <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
+                    <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                        Bewertungen des Weltrat-Zyklus
+                    </h2>
+                    <canvas id="weltratChart" height="140"></canvas>
+                </div>
+
+                <script>
+                    window.weltratChartLabels = @json($weltratLabels);
+                    window.weltratChartValues = @json($weltratValues);
+                </script>
+            @endif
+
             @if ($userPoints >= 1)
                 @vite(['resources/js/statistik.js'])
             @endif
