@@ -6,7 +6,7 @@
                 </div>
             @endif
 
-            <h1 class="text-2xl font-semibold text-[#8B0116] dark:text-[#FCA5A5] mb-6">
+            <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-6">
                 Rezensionen zu „{{ $book->title }}“ (Nr. {{ $book->roman_number }})
             </h1>
 

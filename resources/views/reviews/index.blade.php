@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-member-page>
-            <h1 class="text-2xl font-semibold text-[#8B0116] dark:text-[#FCA5A5] mb-4">Rezensionen</h1>
-            <p class="mb-6 text-sm text-gray-600 dark:text-gray-400">
+            <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-4">Rezensionen</h1>
+            <p class="mb-6 text-base font-medium text-gray-700 dark:text-gray-300">
                 Für jede <strong>zehnte</strong> verfasste Rezension erhältst du automatisch
                 <strong>1 Baxx</strong>.
             </p>
