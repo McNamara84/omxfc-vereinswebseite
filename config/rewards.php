@@ -117,6 +117,11 @@ return [
         'points' => 23,
     ],
     [
+        'title' => 'Statistik - Bewertungen des Ursprung-Zyklus',
+        'description' => 'Zeigt Bewertungen des Ursprung-Zyklus aus dem Maddraxikon in einem Liniendiagramm.',
+        'points' => 24,
+    ],
+    [
         'title' => 'Kompendium-Suche',
         'description' => 'Erlaubt die Volltextsuche im Maddrax-Kompendium.',
         'points' => 100,
