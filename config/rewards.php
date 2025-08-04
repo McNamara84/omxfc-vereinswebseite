@@ -147,6 +147,11 @@ return [
         'points' => 29,
     ],
     [
+        'title' => 'Statistik - Bewertungen des Weltenriss-Zyklus',
+        'description' => 'Zeigt Bewertungen des Weltenriss-Zyklus aus dem Maddraxikon in einem Liniendiagramm.',
+        'points' => 30,
+    ],
+    [
         'title' => 'Kompendium-Suche',
         'description' => 'Erlaubt die Volltextsuche im Maddrax-Kompendium.',
         'points' => 100,
