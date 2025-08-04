@@ -102,6 +102,11 @@ return [
         'points' => 20,
     ],
     [
+        'title' => 'Statistik - Bewertungen des Afra-Zyklus',
+        'description' => 'Zeigt Bewertungen des Afra-Zyklus aus dem Maddraxikon in einem Liniendiagramm.',
+        'points' => 21,
+    ],
+    [
         'title' => 'Kompendium-Suche',
         'description' => 'Erlaubt die Volltextsuche im Maddrax-Kompendium.',
         'points' => 100,
