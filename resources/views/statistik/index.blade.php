@@ -361,6 +361,21 @@
                 </script>
             @endif
 
+            {{-- Card 15 – Bewertungen des Ausala-Zyklus (≥ 20 Baxx) --}}
+            @if ($userPoints >= 20)
+                <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
+                    <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                        Bewertungen des Ausala-Zyklus
+                    </h2>
+                    <canvas id="ausalaChart" height="140"></canvas>
+                </div>
+
+                <script>
+                    window.ausalaChartLabels = @json($ausalaLabels);
+                    window.ausalaChartValues = @json($ausalaValues);
+                </script>
+            @endif
+
             @if ($userPoints >= 1)
                 @vite(['resources/js/statistik.js'])
             @endif
