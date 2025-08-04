@@ -132,6 +132,11 @@ return [
         'points' => 26,
     ],
     [
+        'title' => 'Statistik - Bewertungen des Zeitsprung-Zyklus',
+        'description' => 'Zeigt Bewertungen des Zeitsprung-Zyklus aus dem Maddraxikon in einem Liniendiagramm.',
+        'points' => 27,
+    ],
+    [
         'title' => 'Kompendium-Suche',
         'description' => 'Erlaubt die Volltextsuche im Maddrax-Kompendium.',
         'points' => 100,
