@@ -246,6 +246,14 @@ class StatistikController extends Controller
         $weltenrissLabels = $weltenrissCycle->pluck('nummer');
         $weltenrissValues = $weltenrissCycle->pluck('bewertung');
 
+        // ── Card 26 – Bewertungen des Amraka-Zyklus ───────────────────
+        $amrakaCycle = $romane
+            ->filter(fn($r) => ($r['nummer'] ?? 0) >= 600 && ($r['nummer'] ?? 0) <= 649)
+            ->sortBy('nummer');
+
+        $amrakaLabels = $amrakaCycle->pluck('nummer');
+        $amrakaValues = $amrakaCycle->pluck('bewertung');
+
         // ── Card 7 – Rezensionen unserer Mitglieder ───────────────────────────
         $totalReviews = 0;
         $averageReviewsPerBook = 0;
@@ -367,6 +375,8 @@ class StatistikController extends Controller
             'parallelweltValues' => $parallelweltValues,
             'weltenrissLabels' => $weltenrissLabels,
             'weltenrissValues' => $weltenrissValues,
+            'amrakaLabels' => $amrakaLabels,
+            'amrakaValues' => $amrakaValues,
             'totalReviews' => $totalReviews,
             'averageReviewsPerBook' => $averageReviewsPerBook,
             'topReviewers' => $topReviewers,

@@ -526,6 +526,21 @@
                 </script>
             @endif
 
+            {{-- Card 26 – Bewertungen des Amraka-Zyklus (≥ 31 Baxx) --}}
+            @if ($userPoints >= 31)
+                <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
+                    <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                        Bewertungen des Amraka-Zyklus
+                    </h2>
+                    <canvas id="amrakaChart" height="140"></canvas>
+                </div>
+
+                <script>
+                    window.amrakaChartLabels = @json($amrakaLabels);
+                    window.amrakaChartValues = @json($amrakaValues);
+                </script>
+            @endif
+
             @if ($userPoints >= 1)
                 @vite(['resources/js/statistik.js'])
             @endif
