@@ -254,6 +254,13 @@ class StatistikController extends Controller
         $amrakaLabels = $amrakaCycle->pluck('nummer');
         $amrakaValues = $amrakaCycle->pluck('bewertung');
 
+        // ── Card 27 – Bewertungen des Weltrat-Zyklus ───────────────────
+        $weltratLabels = collect(range(650, 699));
+        $weltratValues = $weltratLabels->map(function ($nummer) use ($romane) {
+            $roman = $romane->firstWhere('nummer', $nummer);
+            return $roman['bewertung'] ?? null;
+        });
+
         // ── Card 7 – Rezensionen unserer Mitglieder ───────────────────────────
         $totalReviews = 0;
         $averageReviewsPerBook = 0;
@@ -377,6 +384,8 @@ class StatistikController extends Controller
             'weltenrissValues' => $weltenrissValues,
             'amrakaLabels' => $amrakaLabels,
             'amrakaValues' => $amrakaValues,
+            'weltratLabels' => $weltratLabels,
+            'weltratValues' => $weltratValues,
             'totalReviews' => $totalReviews,
             'averageReviewsPerBook' => $averageReviewsPerBook,
             'topReviewers' => $topReviewers,

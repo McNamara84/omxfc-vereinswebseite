@@ -157,6 +157,11 @@ return [
         'points' => 31,
     ],
     [
+        'title' => 'Statistik - Bewertungen des Weltrat-Zyklus',
+        'description' => 'Zeigt Bewertungen des Weltrat-Zyklus aus dem Maddraxikon in einem Liniendiagramm.',
+        'points' => 32,
+    ],
+    [
         'title' => 'Kompendium-Suche',
         'description' => 'Erlaubt die Volltextsuche im Maddrax-Kompendium.',
         'points' => 100,
