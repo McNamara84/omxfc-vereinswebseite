@@ -217,4 +217,28 @@ class StatistikTest extends TestCase
         $response->assertOk();
         $response->assertDontSee('Rezensionen unserer Mitglieder');
     }
+
+    public function test_afra_cycle_chart_visible_with_enough_points(): void
+    {
+        $this->createDataFile();
+        $user = $this->actingMemberWithPoints(21);
+        $this->actingAs($user);
+
+        $response = $this->get('/statistik');
+
+        $response->assertOk();
+        $response->assertSee('Bewertungen des Afra-Zyklus');
+    }
+
+    public function test_afra_cycle_chart_hidden_below_threshold(): void
+    {
+        $this->createDataFile();
+        $user = $this->actingMemberWithPoints(20);
+        $this->actingAs($user);
+
+        $response = $this->get('/statistik');
+
+        $response->assertOk();
+        $response->assertDontSee('Bewertungen des Afra-Zyklus');
+    }
 }
