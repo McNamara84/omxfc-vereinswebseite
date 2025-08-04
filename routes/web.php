@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdminController;
 use App\Http\Controllers\Auth\CustomEmailVerificationController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DownloadsController;
@@ -19,7 +20,6 @@ use App\Http\Controllers\RezensionController;
 use App\Http\Controllers\RomantauschController;
 use App\Http\Controllers\StatistikController;
 use App\Http\Controllers\TodoController;
-use App\Http\Controllers\AdminController;
 use App\Http\Middleware\RedirectIfAnwaerter;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -119,8 +119,8 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
     });
 
     Route::get('/abzeichen/{filename}', function ($filename) {
-        $path = public_path('images/badges/' . $filename);
-        if (!file_exists($path)) {
+        $path = public_path('images/badges/'.$filename);
+        if (! file_exists($path)) {
             abort(404);
         }
 
@@ -160,5 +160,7 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
         Route::put('/{review}', [RezensionController::class, 'update'])->name('update');
         Route::delete('/{review}', [RezensionController::class, 'destroy'])->name('destroy');
         Route::post('/{review}/kommentar', [ReviewCommentController::class, 'store'])->name('comments.store');
+        Route::put('/kommentar/{comment}', [ReviewCommentController::class, 'update'])->name('comments.update');
+        Route::delete('/kommentar/{comment}', [ReviewCommentController::class, 'destroy'])->name('comments.destroy');
     });
 });

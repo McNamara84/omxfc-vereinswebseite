@@ -6,9 +6,33 @@
         {{ $comment->content }}
     </div>
 
+    @if(auth()->id() === $comment->user_id)
+        <div x-data="{ editing: false }" class="mt-2">
+            <button type="button" @click="editing = !editing" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded">Bearbeiten</button>
+
+            <form x-show="editing" method="POST" action="{{ route('reviews.comments.update', $comment) }}" class="mt-2">
+                @csrf
+                @method('PUT')
+                <textarea name="content" rows="2" class="w-full border-gray-300 dark:border-gray-600 dark:bg-gray-800 rounded mt-1" required>{{ old('content', $comment->content) }}</textarea>
+                <div class="mt-2 flex gap-2">
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded">Speichern</button>
+                    <button type="button" @click="editing = false" class="bg-gray-600 hover:bg-gray-700 text-white px-3 py-1 rounded">Abbrechen</button>
+                </div>
+            </form>
+        </div>
+    @endif
+
+    @if(auth()->id() === $comment->user_id || in_array($role ?? null, ['Vorstand','Admin'], true))
+        <form method="POST" action="{{ route('reviews.comments.destroy', $comment) }}" class="mt-2">
+            @csrf
+            @method('DELETE')
+            <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded">Löschen</button>
+        </form>
+    @endif
+
     @foreach($comment->children as $child)
         <div class="ml-6">
-            @include('reviews.partials.comment', ['comment' => $child])
+            @include('reviews.partials.comment', ['comment' => $child, 'role' => $role])
         </div>
     @endforeach
 

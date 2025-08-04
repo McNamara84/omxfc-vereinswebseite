@@ -34,7 +34,7 @@
                     @endif
                     <div class="mt-6">
                         @foreach($review->comments->whereNull('parent_id') as $comment)
-                            @include('reviews.partials.comment', ['comment' => $comment])
+                            @include('reviews.partials.comment', ['comment' => $comment, 'role' => $role])
                         @endforeach
 
                         <form method="POST" action="{{ route('reviews.comments.store', $review) }}" class="mt-4">
