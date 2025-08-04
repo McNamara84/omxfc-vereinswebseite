@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Models\Review;
-use Illuminate\Support\Facades\Auth;
-use App\Models\Team;
-use Illuminate\Support\Facades\DB;
 use App\Mail\ReviewCommentNotification;
+use App\Models\Review;
+use App\Models\ReviewComment;
+use App\Models\Team;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
-
 
 class ReviewCommentController extends Controller
 {
@@ -27,7 +27,7 @@ class ReviewCommentController extends Controller
     protected function getRoleInMemberTeam(): ?string
     {
         $team = Team::where('name', 'Mitglieder')->first();
-        if (!$team) {
+        if (! $team) {
             return null;
         }
 
@@ -51,7 +51,7 @@ class ReviewCommentController extends Controller
             ->where('user_id', $user->id)
             ->exists();
 
-        if (!($hasOwn || in_array($role, ['Ehrenmitglied', 'Vorstand'], true))) {
+        if (! ($hasOwn || in_array($role, ['Ehrenmitglied', 'Vorstand'], true))) {
             abort(403);
         }
 
@@ -72,5 +72,44 @@ class ReviewCommentController extends Controller
         }
 
         return back()->with('success', 'Kommentar erfolgreich gespeichert.');
+    }
+
+    /**
+     * Aktualisiert einen vorhandenen Kommentar.
+     */
+    public function update(Request $request, ReviewComment $comment)
+    {
+        $user = Auth::user();
+
+        if ($user->id !== $comment->user_id) {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'content' => 'required|string|min:1',
+        ]);
+
+        $comment->update([
+            'content' => $validated['content'],
+        ]);
+
+        return back()->with('success', 'Kommentar erfolgreich aktualisiert.');
+    }
+
+    /**
+     * Löscht einen Kommentar.
+     */
+    public function destroy(ReviewComment $comment)
+    {
+        $user = Auth::user();
+        $role = $this->getRoleInMemberTeam();
+
+        if ($user->id !== $comment->user_id && ! in_array($role, ['Vorstand', 'Admin'], true)) {
+            abort(403);
+        }
+
+        $comment->delete();
+
+        return back()->with('success', 'Kommentar erfolgreich gelöscht.');
     }
 }
