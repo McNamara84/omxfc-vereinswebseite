@@ -182,6 +182,14 @@ class StatistikController extends Controller
         $antarktisLabels = $antarktisCycle->pluck('nummer');
         $antarktisValues = $antarktisCycle->pluck('bewertung');
 
+        // ── Card 18 – Bewertungen des Schatten-Zyklus ───────────────────
+        $schattenCycle = $romane
+            ->filter(fn($r) => ($r['nummer'] ?? 0) >= 250 && ($r['nummer'] ?? 0) <= 275)
+            ->sortBy('nummer');
+
+        $schattenLabels = $schattenCycle->pluck('nummer');
+        $schattenValues = $schattenCycle->pluck('bewertung');
+
         // ── Card 7 – Rezensionen unserer Mitglieder ───────────────────────────
         $totalReviews = 0;
         $averageReviewsPerBook = 0;
@@ -287,6 +295,8 @@ class StatistikController extends Controller
             'afraValues' => $afraValues,
             'antarktisLabels' => $antarktisLabels,
             'antarktisValues' => $antarktisValues,
+            'schattenLabels' => $schattenLabels,
+            'schattenValues' => $schattenValues,
             'totalReviews' => $totalReviews,
             'averageReviewsPerBook' => $averageReviewsPerBook,
             'topReviewers' => $topReviewers,

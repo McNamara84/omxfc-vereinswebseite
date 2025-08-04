@@ -265,4 +265,28 @@ class StatistikTest extends TestCase
         $response->assertOk();
         $response->assertDontSee('Bewertungen des Antarktis-Zyklus');
     }
+
+    public function test_schatten_cycle_chart_visible_with_enough_points(): void
+    {
+        $this->createDataFile();
+        $user = $this->actingMemberWithPoints(23);
+        $this->actingAs($user);
+
+        $response = $this->get('/statistik');
+
+        $response->assertOk();
+        $response->assertSee('Bewertungen des Schatten-Zyklus');
+    }
+
+    public function test_schatten_cycle_chart_hidden_below_threshold(): void
+    {
+        $this->createDataFile();
+        $user = $this->actingMemberWithPoints(22);
+        $this->actingAs($user);
+
+        $response = $this->get('/statistik');
+
+        $response->assertOk();
+        $response->assertDontSee('Bewertungen des Schatten-Zyklus');
+    }
 }

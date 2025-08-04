@@ -112,6 +112,11 @@ return [
         'points' => 22,
     ],
     [
+        'title' => 'Statistik - Bewertungen des Schatten-Zyklus',
+        'description' => 'Zeigt Bewertungen des Schatten-Zyklus aus dem Maddraxikon in einem Liniendiagramm.',
+        'points' => 23,
+    ],
+    [
         'title' => 'Kompendium-Suche',
         'description' => 'Erlaubt die Volltextsuche im Maddrax-Kompendium.',
         'points' => 100,

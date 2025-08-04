@@ -406,6 +406,21 @@
                 </script>
             @endif
 
+            {{-- Card 18 – Bewertungen des Schatten-Zyklus (≥ 23 Baxx) --}}
+            @if ($userPoints >= 23)
+                <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
+                    <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                        Bewertungen des Schatten-Zyklus
+                    </h2>
+                    <canvas id="schattenChart" height="140"></canvas>
+                </div>
+
+                <script>
+                    window.schattenChartLabels = @json($schattenLabels);
+                    window.schattenChartValues = @json($schattenValues);
+                </script>
+            @endif
+
             @if ($userPoints >= 1)
                 @vite(['resources/js/statistik.js'])
             @endif
