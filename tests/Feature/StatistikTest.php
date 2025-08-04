@@ -313,4 +313,28 @@ class StatistikTest extends TestCase
         $response->assertOk();
         $response->assertDontSee('Bewertungen des Ursprung-Zyklus');
     }
+
+    public function test_streiter_cycle_chart_visible_with_enough_points(): void
+    {
+        $this->createDataFile();
+        $user = $this->actingMemberWithPoints(25);
+        $this->actingAs($user);
+
+        $response = $this->get('/statistik');
+
+        $response->assertOk();
+        $response->assertSee('Bewertungen des Streiter-Zyklus');
+    }
+
+    public function test_streiter_cycle_chart_hidden_below_threshold(): void
+    {
+        $this->createDataFile();
+        $user = $this->actingMemberWithPoints(24);
+        $this->actingAs($user);
+
+        $response = $this->get('/statistik');
+
+        $response->assertOk();
+        $response->assertDontSee('Bewertungen des Streiter-Zyklus');
+    }
 }

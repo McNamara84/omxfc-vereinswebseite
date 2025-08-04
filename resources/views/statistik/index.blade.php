@@ -436,6 +436,21 @@
                 </script>
             @endif
 
+            {{-- Card 20 – Bewertungen des Streiter-Zyklus (≥ 25 Baxx) --}}
+            @if ($userPoints >= 25)
+                <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
+                    <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                        Bewertungen des Streiter-Zyklus
+                    </h2>
+                    <canvas id="streiterChart" height="140"></canvas>
+                </div>
+
+                <script>
+                    window.streiterChartLabels = @json($streiterLabels);
+                    window.streiterChartValues = @json($streiterValues);
+                </script>
+            @endif
+
             @if ($userPoints >= 1)
                 @vite(['resources/js/statistik.js'])
             @endif

@@ -122,6 +122,11 @@ return [
         'points' => 24,
     ],
     [
+        'title' => 'Statistik - Bewertungen des Streiter-Zyklus',
+        'description' => 'Zeigt Bewertungen des Streiter-Zyklus aus dem Maddraxikon in einem Liniendiagramm.',
+        'points' => 25,
+    ],
+    [
         'title' => 'Kompendium-Suche',
         'description' => 'Erlaubt die Volltextsuche im Maddrax-Kompendium.',
         'points' => 100,
