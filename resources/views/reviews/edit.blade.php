@@ -29,7 +29,7 @@
                         @enderror
                     </div>
 
-                    <div class="flex items-center justify-between">
+                    <div class="flex flex-col sm:flex-row sm:justify-between gap-4">
                         <a href="{{ route('reviews.show', $review->book) }}" class="text-gray-600 dark:text-gray-400 hover:underline">Abbrechen</a>
                         <button type="submit" class="bg-[#8B0116] dark:bg-[#FCA5A5] text-white px-4 py-2 rounded">
                             Rezension aktualisieren
