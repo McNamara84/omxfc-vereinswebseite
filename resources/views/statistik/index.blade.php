@@ -475,14 +475,29 @@
                     <canvas id="zeitsprungChart" height="140"></canvas>
                 </div>
 
-                <script>
-                    window.zeitsprungChartLabels = @json($zeitsprungLabels);
-                    window.zeitsprungChartValues = @json($zeitsprungValues);
-                </script>
-            @endif
+            <script>
+                window.zeitsprungChartLabels = @json($zeitsprungLabels);
+                window.zeitsprungChartValues = @json($zeitsprungValues);
+            </script>
+        @endif
 
-            @if ($userPoints >= 1)
-                @vite(['resources/js/statistik.js'])
-            @endif
+        {{-- Card 23 – Bewertungen des Fremdwelt-Zyklus (≥ 28 Baxx) --}}
+        @if ($userPoints >= 28)
+            <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
+                <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                    Bewertungen des Fremdwelt-Zyklus
+                </h2>
+                <canvas id="fremdweltChart" height="140"></canvas>
+            </div>
+
+            <script>
+                window.fremdweltChartLabels = @json($fremdweltLabels);
+                window.fremdweltChartValues = @json($fremdweltValues);
+            </script>
+        @endif
+
+        @if ($userPoints >= 1)
+            @vite(['resources/js/statistik.js'])
+        @endif
     </x-member-page>
 </x-app-layout>
