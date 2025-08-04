@@ -214,6 +214,14 @@ class StatistikController extends Controller
         $archivarLabels = $archivarCycle->pluck('nummer');
         $archivarValues = $archivarCycle->pluck('bewertung');
 
+        // ── Card 22 – Bewertungen des Zeitsprung-Zyklus ───────────────────
+        $zeitsprungCycle = $romane
+            ->filter(fn($r) => ($r['nummer'] ?? 0) >= 350 && ($r['nummer'] ?? 0) <= 399)
+            ->sortBy('nummer');
+
+        $zeitsprungLabels = $zeitsprungCycle->pluck('nummer');
+        $zeitsprungValues = $zeitsprungCycle->pluck('bewertung');
+
         // ── Card 7 – Rezensionen unserer Mitglieder ───────────────────────────
         $totalReviews = 0;
         $averageReviewsPerBook = 0;
@@ -327,6 +335,8 @@ class StatistikController extends Controller
             'streiterValues' => $streiterValues,
             'archivarLabels' => $archivarLabels,
             'archivarValues' => $archivarValues,
+            'zeitsprungLabels' => $zeitsprungLabels,
+            'zeitsprungValues' => $zeitsprungValues,
             'totalReviews' => $totalReviews,
             'averageReviewsPerBook' => $averageReviewsPerBook,
             'topReviewers' => $topReviewers,

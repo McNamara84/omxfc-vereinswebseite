@@ -466,6 +466,21 @@
                 </script>
             @endif
 
+            {{-- Card 22 – Bewertungen des Zeitsprung-Zyklus (≥ 27 Baxx) --}}
+            @if ($userPoints >= 27)
+                <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
+                    <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                        Bewertungen des Zeitsprung-Zyklus
+                    </h2>
+                    <canvas id="zeitsprungChart" height="140"></canvas>
+                </div>
+
+                <script>
+                    window.zeitsprungChartLabels = @json($zeitsprungLabels);
+                    window.zeitsprungChartValues = @json($zeitsprungValues);
+                </script>
+            @endif
+
             @if ($userPoints >= 1)
                 @vite(['resources/js/statistik.js'])
             @endif

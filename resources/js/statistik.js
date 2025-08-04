@@ -79,7 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const values = window.authorChartValues ?? [];
     drawAuthorChart('authorChart', labels, values);
 
-    const cycles = ['euree', 'meeraka', 'expedition', 'kratersee', 'daaMuren', 'wandler', 'mars', 'ausala', 'afra', 'antarktis', 'schatten', 'ursprung', 'streiter', 'archivar'];
+    const cycles = ['euree', 'meeraka', 'expedition', 'kratersee', 'daaMuren', 'wandler', 'mars', 'ausala', 'afra', 'antarktis', 'schatten', 'ursprung', 'streiter', 'archivar', 'zeitsprung'];
     cycles.forEach((cycle) => {
         const cycleLabels = window[`${cycle}ChartLabels`] ?? [];
         const cycleValues = window[`${cycle}ChartValues`] ?? [];
