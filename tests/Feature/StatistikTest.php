@@ -409,4 +409,28 @@ class StatistikTest extends TestCase
         $response->assertOk();
         $response->assertDontSee('Bewertungen des Fremdwelt-Zyklus');
     }
+
+    public function test_parallelwelt_cycle_chart_visible_with_enough_points(): void
+    {
+        $this->createDataFile();
+        $user = $this->actingMemberWithPoints(29);
+        $this->actingAs($user);
+
+        $response = $this->get('/statistik');
+
+        $response->assertOk();
+        $response->assertSee('Bewertungen des Parallelwelt-Zyklus');
+    }
+
+    public function test_parallelwelt_cycle_chart_hidden_below_threshold(): void
+    {
+        $this->createDataFile();
+        $user = $this->actingMemberWithPoints(28);
+        $this->actingAs($user);
+
+        $response = $this->get('/statistik');
+
+        $response->assertOk();
+        $response->assertDontSee('Bewertungen des Parallelwelt-Zyklus');
+    }
 }

@@ -230,6 +230,14 @@ class StatistikController extends Controller
         $fremdweltLabels = $fremdweltCycle->pluck('nummer');
         $fremdweltValues = $fremdweltCycle->pluck('bewertung');
 
+        // ── Card 24 – Bewertungen des Parallelwelt-Zyklus ───────────────────
+        $parallelweltCycle = $romane
+            ->filter(fn($r) => ($r['nummer'] ?? 0) >= 500 && ($r['nummer'] ?? 0) <= 549)
+            ->sortBy('nummer');
+
+        $parallelweltLabels = $parallelweltCycle->pluck('nummer');
+        $parallelweltValues = $parallelweltCycle->pluck('bewertung');
+
         // ── Card 7 – Rezensionen unserer Mitglieder ───────────────────────────
         $totalReviews = 0;
         $averageReviewsPerBook = 0;
@@ -347,6 +355,8 @@ class StatistikController extends Controller
             'zeitsprungValues' => $zeitsprungValues,
             'fremdweltLabels' => $fremdweltLabels,
             'fremdweltValues' => $fremdweltValues,
+            'parallelweltLabels' => $parallelweltLabels,
+            'parallelweltValues' => $parallelweltValues,
             'totalReviews' => $totalReviews,
             'averageReviewsPerBook' => $averageReviewsPerBook,
             'topReviewers' => $topReviewers,
