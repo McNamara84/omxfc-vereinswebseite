@@ -1,3 +1,6 @@
+@php
+    $depth = $depth ?? 0;
+@endphp
 <div class="mt-4 bg-gray-50 dark:bg-gray-700 p-4 rounded">
     <p class="text-sm text-gray-500 dark:text-gray-300">
         {{ $comment->user->name }} am {{ $comment->created_at->format('d.m.Y H:i') }}
@@ -36,8 +39,22 @@
     @endif
 
     @foreach($comment->children as $child)
-        <div class="md:ml-6">
-            @include('reviews.partials.comment', ['comment' => $child, 'role' => $role, 'parentAuthor' => $comment->user->name])
+        @php
+            $nextDepth = $depth + 1;
+            $mobileIndent = match (true) {
+                $nextDepth === 1 => 'ml-4',
+                $nextDepth === 2 => 'ml-8',
+                $nextDepth === 3 => 'ml-12',
+                default => '',
+            };
+        @endphp
+        <div class="{{ $mobileIndent }} md:ml-6">
+            @include('reviews.partials.comment', [
+                'comment' => $child,
+                'role' => $role,
+                'parentAuthor' => $comment->user->name,
+                'depth' => $nextDepth,
+            ])
         </div>
     @endforeach
 
