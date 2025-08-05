@@ -2,6 +2,11 @@
     <p class="text-sm text-gray-500 dark:text-gray-300">
         {{ $comment->user->name }} am {{ $comment->created_at->format('d.m.Y H:i') }}
     </p>
+    @isset($parentAuthor)
+        <p class="text-xs text-gray-500 dark:text-gray-400 md:hidden">
+            Antwort auf {{ $parentAuthor }}
+        </p>
+    @endisset
     <div class="mt-2 text-gray-800 dark:text-gray-200 whitespace-pre-line">
         {{ $comment->content }}
     </div>
@@ -31,8 +36,8 @@
     @endif
 
     @foreach($comment->children as $child)
-        <div class="ml-6">
-            @include('reviews.partials.comment', ['comment' => $child, 'role' => $role])
+        <div class="md:ml-6">
+            @include('reviews.partials.comment', ['comment' => $child, 'role' => $role, 'parentAuthor' => $comment->user->name])
         </div>
     @endforeach
 
