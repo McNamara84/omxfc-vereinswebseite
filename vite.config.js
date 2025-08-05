@@ -10,6 +10,7 @@ export default defineConfig({
                 'resources/js/app.js',
                 'resources/js/maddraxiversum.js',
                 'resources/js/statistik.js',
+                'resources/js/changelog.js',
             ],
             refresh: true,
             // Explizit den public-Pfad setzen

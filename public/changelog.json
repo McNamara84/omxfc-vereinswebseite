@@ -1,0 +1,143 @@
+[
+  {
+    "version": "1.4.0",
+    "pub_date": "2025-08-03",
+    "notes": [
+      "[New] Onlinestatus in Mitgliederprofilen anzeigen",
+      "[New] Neuer Online-Filter für die Mitgliederliste",
+      "[New] Neue Statistik zu Rezensionen ab 12 Baxx",
+      "[New] Neue Statistiken zu Bewertungen der Maddrax-Zyklen ab 13 Baxx",
+      "[New] Anzeige der Gesamtanzahl der Rezensionen je Zyklus unter Rezensionen",
+      "[New] Neues Eingabefeld Lieblingsthema in Mitgliederprofilen",
+      "[New] Neue öffentliche Seite Spenden ergänzt",
+      "[New] Löschen von Kommentaren zu Rezensionen",
+      "[New] Bearbeiten von Kommentaren zu Rezensionen",
+      "[New] Kommentare zu Rezensionen im Dashboard unter Aktivitäten anzeigen",
+      "[Improved] Probleme bei der Responsivität auf mobilen Geräten behoben",
+      "[Improved] Dark Mode auf Mobilgeräten verbessert",
+      "[Improved] Übergeordnete Menüpunkte im mobilen Hauptmenü kursiv gesetzt für bessere Abhebung",
+      "[Improved] Postapokalyptische Hintergrundgrafik in Desktop-Ansicht hinzugefügt",
+      "[Improved] öffentlicher Terminaklender auch im internen Mitgliederbereich unter Veranstaltungen verlinkt",
+      "[Improved] Lesbarkeit unter Rezensionen verbessert"
+    ]
+  },
+  {
+    "version": "1.3.1",
+    "pub_date": "2025-07-30",
+    "notes": [
+      "[Improved] Übergeordnete Menüpunkte in der mobilen Ansicht fett markiert",
+      "[Improved] Standard-Sortierreihenfolge der Mitgliederliste nach Nachname geändert",
+      "[Improved] Statistik über die Maddraxikon-Bewertungen verschoben",
+      "[Improved] Abmelden anderer Browser-Sitzungen in den Profileinstellungen ermöglicht",
+      "[Improved] Prozentuale Anzeige der Freischaltungen von Belohnungen ergänzt"
+    ]
+  },
+  {
+    "version": "1.3.0",
+    "pub_date": "2025-07-27",
+    "notes": [
+      "[New] Dashboard um neues Panel für Aktivitäten der Mitglieder erweitert",
+      "[New] Filtermöglichkeiten in Rezensionen eingeführt",
+      "[New] Neue Badges für das Verfassen von Rezensionen",
+      "[New] Neue Badges für das Tauschen von Romanen in der Romantauschbörse",
+      "[New] Angepasste Fehlerseiten für Fehler 403, 404 und 500",
+      "[Improved] Für jedes zehnte Tauschangebot in der Romantauschbörse erhalten Mitglieder nun einen Bakk",
+      "[Improved] Für abgeschlossene Tauschtransaktionen in der Romantauschbörse erhalten beide Parteien jeweils 2 Baxx zusätzlich",
+      "[Improved] Links zur Romantauschbörse und zu den Rezensionen im Hauptmenü in den übergeordneten Menüpunkt Verein verschoben",
+      "[Improved] Alternative Textbeschreibungen für Fotos optimiert für mehr Barrierefreiheit",
+      "[Improved] Tastaturnavigation für das Hauptmenü implementiert",
+      "[Improved] Validierung im Mitgliedsantrag verbessert mit Live-Hinweisen beim Ausfüllen des Formulars",
+      "[Improved] Ladezeiten der Mitgliederkarte optimiert durch Caching und Indizierung"
+    ]
+  },
+  {
+    "version": "1.2.0",
+    "pub_date": "2025-07-23",
+    "notes": [
+      "[New] Neue Unterseite Belohnungen mit Übersicht über alle freischaltbaren Belohnungen",
+      "[New] Bearbeiten von Challenges durch Vorstand auch nach der Erstellung",
+      "[New] Neue Statistik zu Top Teamplayern unter den Autor:innen (verfügbar ab 4 Baxx)",
+      "[New] Neue Statistik zu durchschnittlichen Bewertungen je Autor:in (verfügbar ab 7 Baxx)",
+      "[New] Neue Statistik zu Charakteren nach Auftritten (verfügbar ab 10 Baxx)",
+      "[New] Markierung auf Mitgliederkarte für Mittelpunkt aller Mitglieder",
+      "[Improved] Liste der Romane auf der Unterseite Rezensionen in Akkordeon verpackt",
+      "[Improved] Alle 10 Rezensionen erhalten fleißige Mitglieder nun einen Punkt",
+      "[Improved] Ladezeiten des Dashboards durch Caching optimiert",
+      "[Improved] Benötigte Baxx für unterschiedliche Belohnungen angepasst damit für jeden Punktezugewinn etwas freigeschaltet wird",
+      "[Fixed] Badges im Profil werden nicht angezeigt"
+    ]
+  },
+  {
+    "version": "1.1.1",
+    "pub_date": "2025-07-20",
+    "notes": [
+      "[Improved] Maximal einstellbare Punkte für Challenges von 100 auf 1000 erhöht für größere Aufgaben",
+      "[Improved] Auf großen Bildschirmen bleibt das Hauptmenü am oberen Bildschirmrand fixiert",
+      "[Improved] Challenge Punkte umbenannt in Baxx",
+      "[Fixed] Neue Dashboard Cards für Rezensionen werden nicht angezeigt",
+      "[Fixed] Benachrichtigung an Autor bei neuer Rezension zu eigenem Roman wird nicht versandt",
+      "[Fixed] Benachrichtigung an Mitglied bei Kommentar zu eigener Rezension wird nicht versandt"
+    ]
+  },
+  {
+    "version": "1.1.0",
+    "pub_date": "2025-07-17",
+    "notes": [
+      "[New] Kommentarfunktion für Rezensionen",
+      "[New] Bearbeiten von eigenen Rezensionen",
+      "[New] Löschen eigener Rezensionen",
+      "[New] Löschen von unangebrachten Rezensionen durch Vorstand",
+      "[New] Markierung von Romanen auf der Unterseite Rezensionen als rezensiert",
+      "[New] Buttons auf Unterseite Rezensionen zur Erstellung neuer Rezensionen",
+      "[Improved] Mindestlänge für Rezensionen verringert auf 140 Zeichen",
+      "[Improved] Schreiben von Rezensionen generiert keine Punkte mehr",
+      "[Improved] Zugriff zur Unterseite Maddraxiversum für Ehrenmitglieder auch ohne Punkte möglich",
+      "[Improved] Übergeordnete Menüpünkte öffnen sich jetzt per Klick und nicht mehr per Hover",
+      "[Fixed] Mitglieder mit Rolle Vorstand können nun auch Rezensionen schreiben"
+    ]
+  },
+  {
+    "version": "1.0.4",
+    "pub_date": "2025-07-16",
+    "notes": [
+      "[Fixed] Profilseite bearbeiten",
+      "[Fixed] Statistikseite lädt nicht"
+    ]
+  },
+  {
+    "version": "1.0.3",
+    "pub_date": "2025-06-25",
+    "notes": [
+      "[Fixed] Falsch-positive Fehlermeldung beim Absenden des Mitgliedsantrags behoben"
+    ]
+  },
+  {
+    "version": "1.0.2",
+    "pub_date": "2025-06-22",
+    "notes": [
+      "[New] Hinweise zum Lesen von Rezensionen verbessert",
+      "[New] Neuer Abschnitt für AG Rollenspiel der Unterseite Arbeitsgruppen hinzugefügt",
+      "[Improved] Mailadressen der AG-Leiter vereinheitlicht und umgestellt auf Domain maddrax-fanclub.de.",
+      "[Fixed] Speicherung von Profilbildern funktioniert jetzt wieder"
+    ]
+  },
+  {
+    "version": "1.0.1",
+    "pub_date": "2025-06-20",
+    "notes": [
+      "[Improved] Update des Laravel Frameworks auf die neueste Version",
+      "[Fixed] Lieblingsfigur wird nun korrekt gespeichert",
+      "[Fixed] Lieblingsschauplatz wird nun korrekt gespeichert",
+      "[Fixed] Absenderadresse in Mails aktualisiert",
+      "[Fixed] Mailadresse im Impressum aktualisiert"
+    ]
+  },
+  {
+    "version": "1.0.0",
+    "pub_date": "2025-05-19",
+    "notes": [
+      "[New] Austritt und Löschen der eigenen Daten über Profileinstellungen implementiert",
+      "[New] Neue Seite Rezensionen im internen Mitgliederbereich hinzugefügt"
+    ]
+  }
+]
