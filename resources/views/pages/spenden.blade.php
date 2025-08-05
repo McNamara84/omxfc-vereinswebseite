@@ -7,7 +7,7 @@
             <input type="hidden" name="business" value="kassenwart@maddrax-fanclub.de" />
             <input type="hidden" name="no_recurring" value="0" />
             <input type="hidden" name="currency_code" value="EUR" />
-            <input type="image" src="https://www.paypalobjects.com/de_DE/DE/i/btn/btn_donateCC_LG.gif" name="submit" alt="Spenden mit PayPal" />
+            <input type="image" src="https://www.paypalobjects.com/de_DE/DE/i/btn/btn_donateCC_LG.gif" name="submit" alt="Spenden mit PayPal" class="w-48" />
             <img alt="" src="https://www.paypal.com/en_DE/i/scr/pixel.gif" width="1" height="1" />
         </form>
     </x-public-page>
