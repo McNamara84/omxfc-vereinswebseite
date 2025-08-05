@@ -4,6 +4,31 @@
         <p class="mb-6">Auf dieser Seite werden sämtliche Änderungen an der Vereinswebseite des Offiziellen Maddrax
             Fanclub e. V. dokumentiert.</p>
         <section class="mb-6">
+            <h2 class="text-xl font-semibold mb-2">Version 1.4.0 (03.08.2025)</h2>
+            <h3 class="text-l font-semibold mb-2">Feature:</h3>
+            <ul class="list-disc ml-6 mt-2">
+                <li>Onlinestatus in Mitgliederprofilen anzeigen</li>
+                <li>Neuer Online-Filter für die Mitgliederliste</li>
+                <li>Neue Statistik zu Rezensionen ab 12 Baxx</li>
+                <li>Neue Statistiken zu Bewertungen der Maddrax-Zyklen ab 13 Baxx</li>
+                <li>Anzeige der Gesamtanzahl der Rezensionen je Zyklus unter Rezensionen</li>
+                <li>Neues Eingabefeld Lieblingsthema in Mitgliederprofilen</li>
+                <li>Neue öffentliche Seite Spenden ergänzt</li>
+                <li>Löschen von Kommentaren zu Rezensionen</li>
+                <li>Bearbeiten von Kommentaren zu Rezensionen</li>
+                <li>Kommentare zu Rezensionen im Dashboard unter Aktivitäten anzeigen</li>
+            </ul>
+            <h3 class="text-l font-semibold mb-2">Änderungen:</h3>
+            <ul class="list-disc ml-6 mt-2">
+                <li>Probleme bei der Responsivität auf mobilen Geräten behoben</li>
+                <li>Dark Mode auf Mobilgeräten verbessert</li>
+                <li>Übergeordnete Menüpunkte im mobilen Hauptmenü kursiv gesetzt für bessere Abhebung</li>
+                <li>Postapokalyptische Hintergrundgrafik in Desktop-Ansicht hinzugefügt</li>
+                <li>öffentlicher Terminaklender auch im internen Mitgliederbereich unter Veranstaltungen verlinkt</li>
+                <li>Lesbarkeit unter Rezensionen verbessert</li>
+            </ul>
+        </section>
+        <section class="mb-6">
             <h2 class="text-xl font-semibold mb-2">Version 1.3.1 (30.07.2025)</h2>
             <h3 class="text-l font-semibold mb-2">Änderungen:</h3>
             <ul class="list-disc ml-6 mt-2">
