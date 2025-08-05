@@ -1,10 +1,12 @@
 <x-app-layout>
     <x-member-page>
-            <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-4">Rezensionen</h1>
-            <p class="mb-6 text-base font-medium text-gray-700 dark:text-gray-300">
-                Für jede <strong>zehnte</strong> verfasste Rezension erhältst du automatisch
-                <strong>1 Baxx</strong>.
-            </p>
+            <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
+                <h1 class="text-2xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-2">Rezensionen</h1>
+                <p class="text-base text-gray-700 dark:text-gray-300">
+                    Für jede <strong>zehnte</strong> verfasste Rezension erhältst du automatisch
+                    <strong>1 Baxx</strong>.
+                </p>
+            </div>
             @php
                 $filtersApplied = request()->filled('roman_number') || request()->filled('title') || request()->filled('author') || request()->filled('review_status');
             @endphp
