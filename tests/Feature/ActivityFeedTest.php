@@ -14,6 +14,7 @@ use App\Models\Activity;
 use App\Models\Team;
 use App\Models\Todo;
 use App\Models\TodoCategory;
+use App\Models\ReviewComment;
 
 class ActivityFeedTest extends TestCase
 {
@@ -97,6 +98,42 @@ class ActivityFeedTest extends TestCase
             'subject_type' => BookRequest::class,
             'subject_id' => $requestModel->id,
         ]);
+    }
+
+    public function test_activity_created_for_new_review_comment(): void
+    {
+        $book = Book::create([
+            'roman_number' => 1,
+            'title' => 'Roman1',
+            'author' => 'Author',
+        ]);
+
+        $user = $this->actingMember();
+        $this->actingAs($user);
+
+        $review = Review::create([
+            'team_id' => $user->currentTeam->id,
+            'user_id' => $user->id,
+            'book_id' => $book->id,
+            'title' => 'Meine Rezension',
+            'content' => str_repeat('A', 140),
+        ]);
+
+        $response = $this->post(route('reviews.comments.store', $review), [
+            'content' => 'Tolles Buch!',
+        ]);
+
+        $response->assertRedirect();
+        $comment = ReviewComment::first();
+        $this->assertDatabaseHas('activities', [
+            'user_id' => $user->id,
+            'subject_type' => ReviewComment::class,
+            'subject_id' => $comment->id,
+        ]);
+
+        $dashboard = $this->get('/dashboard');
+        $dashboard->assertOk();
+        $dashboard->assertSee('Kommentar zu Meine Rezension von ' . $user->name);
     }
 
     public function test_dashboard_displays_recent_activities(): void

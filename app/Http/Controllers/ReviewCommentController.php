@@ -6,6 +6,7 @@ use App\Mail\ReviewCommentNotification;
 use App\Models\Review;
 use App\Models\ReviewComment;
 use App\Models\Team;
+use App\Models\Activity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -70,6 +71,12 @@ class ReviewCommentController extends Controller
             Mail::to($review->user->email)
                 ->send(new ReviewCommentNotification($review, $comment));
         }
+
+        Activity::create([
+            'user_id' => $user->id,
+            'subject_type' => ReviewComment::class,
+            'subject_id' => $comment->id,
+        ]);
 
         return back()->with('success', 'Kommentar erfolgreich gespeichert.');
     }
