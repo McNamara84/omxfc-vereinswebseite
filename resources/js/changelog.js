@@ -37,7 +37,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     const text = match[2];
 
                     const typeBadge = document.createElement('span');
-                    typeBadge.className = `text-xs font-bold rounded px-2 py-1 mr-2 ${
+                    typeBadge.className = `text-xs font-bold rounded px-2 py-1 mr-2 w-28 text-center ${
                         type === 'new' || type === 'added'
                             ? 'bg-green-600 text-white'
                             : type === 'fixed'
