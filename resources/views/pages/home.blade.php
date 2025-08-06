@@ -67,4 +67,8 @@
             }, 4000);
         });
     </script>
+
+    <script type="application/ld+json">
+        {!! json_encode($structuredData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}
+    </script>
 </x-app-layout>
