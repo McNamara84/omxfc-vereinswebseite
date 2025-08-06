@@ -39,4 +39,35 @@
                 Registernummer: 9677</p>
         </section>
     </x-public-page>
+
+    <script type="application/ld+json">
+        {
+            "@@context": "https://schema.org",
+            "@@type": "Organization",
+            "name": "Offizieller MADDRAX Fanclub e. V.",
+            "legalName": "Offizieller MADDRAX Fanclub e. V.",
+            "foundingDate": "2023-05-20",
+            "url": "https://www.maddrax-fanclub.de",
+            "address": {
+                "@@type": "PostalAddress",
+                "streetAddress": "Guido-Seeber-Weg 12",
+                "postalCode": "14480",
+                "addressLocality": "Potsdam",
+                "addressCountry": "DE"
+            },
+            "contactPoint": [
+                {
+                    "@@type": "ContactPoint",
+                    "telephone": "+49 179 4218330",
+                    "email": "info@maddrax-fanclub.de",
+                    "contactType": "customer service"
+                }
+            ],
+            "sameAs": [
+                "https://www.facebook.com/mxikon",
+                "https://www.instagram.com/offizieller_maddrax_fanclub/",
+                "https://www.youtube.com/@mxikon"
+            ]
+        }
+    </script>
 </x-app-layout>
