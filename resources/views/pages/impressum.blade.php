@@ -68,7 +68,7 @@
             ];
         @endphp
         <script type="application/ld+json">
-            {!! json_encode($organizationStructuredData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}
+            @json($organizationStructuredData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)
         </script>
     </x-public-page>
 </x-app-layout>
