@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             header.className = 'flex items-center mb-4';
 
             const badge = document.createElement('span');
-            badge.className = 'bg-purple-600 text-white text-sm font-bold rounded px-2 py-1 mr-2';
+            badge.className = 'bg-purple-100 text-purple-800 dark:bg-purple-600 dark:text-white text-sm font-bold rounded px-2 py-1 mr-2';
             badge.innerText = release.version;
 
             const date = document.createElement('span');
