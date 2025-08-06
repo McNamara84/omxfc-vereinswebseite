@@ -1,5 +1,3 @@
-/* resources/js/changelog.js */
-
 document.addEventListener('DOMContentLoaded', async () => {
     const container = document.getElementById('release-notes');
     if (!container) {
