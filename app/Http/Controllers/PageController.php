@@ -65,13 +65,45 @@ class PageController extends Controller
             $memberCount = 0;
         }
 
+        $organizationUrl = config('app.url') ?? url('/');
+        $logoUrl = asset('images/omxfc-logo.png');
+        $sameAs = [
+            'https://www.facebook.com/mxikon',
+            'https://www.instagram.com/offizieller_maddrax_fanclub/',
+            'https://www.youtube.com/@mxikon',
+        ];
+
+        $structuredData = [
+            '@context' => 'https://schema.org',
+            '@graph' => [
+                [
+                    '@type' => 'Organization',
+                    'name' => config('app.name', 'Offizieller MADDRAX Fanclub e. V.'),
+                    'url' => $organizationUrl,
+                    'logo' => $logoUrl,
+                    'sameAs' => $sameAs,
+                ],
+                [
+                    '@type' => 'WebSite',
+                    'name' => config('app.name', 'Offizieller MADDRAX Fanclub e. V.'),
+                    'url' => $organizationUrl,
+                    'potentialAction' => [
+                        '@type' => 'SearchAction',
+                        'target' => route('kompendium.search') . '?q={search_term_string}',
+                        'query-input' => 'required name=search_term_string',
+                    ],
+                ],
+            ],
+        ];
+
         return view('pages.home', compact(
             'whoWeAre',
             'whatWeDo',
             'currentProjects',
             'membershipBenefits',
             'galleryImages',
-            'memberCount'
+            'memberCount',
+            'structuredData'
         ));
     }
 
