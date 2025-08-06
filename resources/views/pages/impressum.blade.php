@@ -1,4 +1,4 @@
-<x-app-layout>
+<x-app-layout title="TODO: Meta-Titel für Impressum" description="TODO: Meta-Beschreibung für Impressum">
     <x-public-page>
         <h1 class="text-2xl sm:text-3xl font-bold text-[#8B0116] dark:text-[#ff4b63] mb-4 sm:mb-8">Impressum</h1>
 

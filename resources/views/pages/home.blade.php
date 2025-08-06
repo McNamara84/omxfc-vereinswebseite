@@ -1,4 +1,4 @@
-<x-app-layout>
+<x-app-layout title="TODO: Meta-Titel für Home" description="TODO: Meta-Beschreibung für Home">
     <x-public-page>
         <h1 class="text-3xl font-bold text-[#8B0116] dark:text-[#ff4b63] mb-8 text-center">Willkommen beim Offiziellen MADDRAX Fanclub e. V.!</h1>
 

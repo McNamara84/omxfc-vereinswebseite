@@ -1,4 +1,4 @@
-<x-app-layout>
+<x-app-layout title="TODO: Meta-Titel für Mitglied werden bestätigt" description="TODO: Meta-Beschreibung für Mitglied werden bestätigt">
     <x-public-page class="max-w-2xl">
         <h1 class="text-2xl font-bold text-[#8B0116] dark:text-[#ff4b63] mb-4">Vielen Dank für deine Bestätigung!</h1>
         <p class="text-gray-700 dark:text-gray-300 leading-relaxed">

@@ -1,4 +1,4 @@
-<x-app-layout>
+<x-app-layout title="TODO: Meta-Titel für Chronik" description="TODO: Meta-Beschreibung für Chronik">
     <x-public-page>
         <h1 class="text-3xl font-bold text-[#8B0116] dark:text-[#ff4b63] mb-8">Chronik des Offiziellen MADDRAX Fanclub e. V.</h1>
         <div class="relative border-l-4 border-[#8B0116] dark:border-[#ff4b63] pl-8 space-y-8">
