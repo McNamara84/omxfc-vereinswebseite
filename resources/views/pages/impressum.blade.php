@@ -54,12 +54,12 @@
                     'addressLocality' => 'Potsdam',
                     'addressCountry' => 'DE',
                 ],
-                'contactPoint' => [[
+                'contactPoint' => [
                     '@type' => 'ContactPoint',
                     'telephone' => '+49 179 4218330',
                     'email' => 'info@maddrax-fanclub.de',
                     'contactType' => 'customer service',
-                ]],
+                ],
                 'sameAs' => [
                     'https://www.facebook.com/mxikon',
                     'https://www.instagram.com/offizieller_maddrax_fanclub/',
