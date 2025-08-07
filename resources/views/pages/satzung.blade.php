@@ -1,4 +1,4 @@
-<x-app-layout title="TODO: Meta-Titel für Satzung" description="TODO: Meta-Beschreibung für Satzung">
+<x-app-layout title="Satzung – Offizieller MADDRAX Fanclub e. V." description="Rechte, Pflichten und Ziele der Mitglieder des eingetragenen Vereins.">
     <x-public-page>
         <h1 class="text-2xl sm:text-3xl font-bold text-[#8B0116] dark:text-[#ff4b63] mb-4 sm:mb-8">Satzung des Offiziellen MADDRAX Fanclub e.V.</h1>
         <section class="mb-6">
