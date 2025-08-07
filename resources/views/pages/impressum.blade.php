@@ -1,4 +1,4 @@
-<x-app-layout title="TODO: Meta-Titel für Impressum" description="TODO: Meta-Beschreibung für Impressum">
+<x-app-layout title="Impressum – Offizieller MADDRAX Fanclub e. V." description="Verantwortliche Ansprechpartner, Kontakt und Vereinsregistereintrag gemäß §5 TMG.">
     <x-public-page>
         <h1 class="text-2xl sm:text-3xl font-bold text-[#8B0116] dark:text-[#ff4b63] mb-4 sm:mb-8">Impressum</h1>
 
