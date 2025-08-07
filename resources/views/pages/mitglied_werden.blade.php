@@ -1,4 +1,4 @@
-<x-app-layout title="TODO: Meta-Titel für Mitglied werden" description="TODO: Meta-Beschreibung für Mitglied werden">
+<x-app-layout title="Mitglied werden – Offizieller MADDRAX Fanclub e. V." description="Online-Antrag zur Aufnahme in den Fanclub der MADDRAX-Romanserie.">
     <x-public-page>
         <h1 class="text-2xl sm:text-3xl font-bold text-[#8B0116] dark:text-[#ff4b63] mb-4 sm:mb-8">Mitglied werden</h1>
         <!-- Erfolg-/Fehlermeldungen -->
