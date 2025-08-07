@@ -1,4 +1,4 @@
-<x-guest-layout title="TODO: Meta-Titel für Nutzungsbedingungen" description="TODO: Meta-Beschreibung für Nutzungsbedingungen">
+<x-guest-layout title="Nutzungsbedingungen – Offizieller MADDRAX Fanclub e. V." description="Rechtliche Hinweise zur Nutzung unserer Webseiten und Angebote">
     <div class="pt-4 bg-gray-100 dark:bg-gray-900">
         <div class="min-h-screen flex flex-col items-center pt-6 sm:pt-0">
             <div>
