@@ -1,4 +1,4 @@
-<x-app-layout title="TODO: Meta-Titel für Ehrenmitglieder" description="TODO: Meta-Beschreibung für Ehrenmitglieder">
+<x-app-layout title="Ehrenmitglieder – Offizieller MADDRAX Fanclub e. V." description="Autoren der MADDRAX-Serie, die als Ehrenmitglieder des Fanclubs geehrt werden und sich besonders für die Fangemeinschaft engagieren.">
     <x-public-page>
         <h1 class="text-2xl sm:text-3xl font-bold text-[#8B0116] dark:text-[#ff4b63] mb-4 sm:mb-8">Ehrenmitglieder</h1>
         <p class="mb-8 text-gray-700 dark:text-gray-300">
