@@ -1,4 +1,4 @@
-<x-guest-layout title="TODO: Meta-Titel für Datenschutzrichtlinie" description="TODO: Meta-Beschreibung für Datenschutzrichtlinie">
+<x-guest-layout title="Datenschutzrichtlinie – Offizieller MADDRAX Fanclub e. V." description="Informationen zur Verarbeitung personenbezogener Daten und deinen Rechten">
     <div class="pt-4 bg-gray-100 dark:bg-gray-900">
         <div class="min-h-screen flex flex-col items-center pt-6 sm:pt-0">
             <div>
