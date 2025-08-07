@@ -6,7 +6,7 @@
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
         <title>{{ $title ?? config('app.name', 'Laravel') }}</title>
-        <meta name="description" content="{{ $description ?? 'TODO: Meta-Beschreibung einfügen' }}">
+        <meta name="description" content="{{ $description ?? 'Offizieller MADDRAX Fanclub e. V. – Informationen zu Projekten, Terminen und Mitgliedschaft.' }}">
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
