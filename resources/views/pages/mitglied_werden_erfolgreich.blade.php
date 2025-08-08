@@ -1,4 +1,4 @@
-<x-app-layout>
+<x-app-layout title="Antrag versendet – Offizieller MADDRAX Fanclub e. V." description="Bestätige deine E-Mail, damit wir deinen Mitgliedsantrag bearbeiten können.">
     <x-public-page class="max-w-3xl text-center">
         <h2 class="text-2xl font-bold text-green-700 dark:text-green-400 mb-4">🎉 Antrag erfolgreich eingereicht!</h2>
         <p class="text-gray-700 dark:text-gray-300 mb-4">

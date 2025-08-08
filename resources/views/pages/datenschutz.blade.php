@@ -1,4 +1,4 @@
-<x-app-layout>
+<x-app-layout title="Datenschutzerklärung – Offizieller MADDRAX Fanclub e. V." description="Wie der Verein personenbezogene Daten von Mitgliedsanträgen verarbeitet und schützt.">
     <x-public-page>
         <h1 class="text-2xl sm:text-3xl font-bold text-[#8B0116] dark:text-[#ff4b63] mb-4 sm:mb-8">Datenschutzerklärung</h1>
 

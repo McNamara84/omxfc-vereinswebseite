@@ -8,6 +8,13 @@ use Illuminate\View\View;
 class AppLayout extends Component
 {
     /**
+     * Create a new component instance.
+     */
+    public function __construct(public ?string $title = null, public ?string $description = null)
+    {
+    }
+
+    /**
      * Get the view / contents that represents the component.
      */
     public function render(): View

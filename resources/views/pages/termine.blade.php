@@ -1,4 +1,4 @@
-<x-app-layout>
+<x-app-layout title="Termine – Offizieller MADDRAX Fanclub e. V." description="Aktuelle Vereinsveranstaltungen und Treffen im praktischen Kalender.">
     <x-public-page>
         <h1 class="text-2xl sm:text-3xl font-bold text-[#8B0116] dark:text-[#ff4b63] mb-4 sm:mb-8">Termine</h1>
         <!-- Desktop: Monatsansicht -->
