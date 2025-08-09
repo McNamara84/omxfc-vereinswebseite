@@ -118,15 +118,6 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
         Route::get('/mission/status', 'getMissionStatus');
     });
 
-    Route::get('/abzeichen/{filename}', function ($filename) {
-        $path = public_path('images/badges/'.$filename);
-        if (! file_exists($path)) {
-            abort(404);
-        }
-
-        return response()->file($path);
-    })->name('badges.image');
-
     Route::prefix('romantauschboerse')->name('romantausch.')->controller(RomantauschController::class)->group(function () {
         Route::get('/', 'index')->name('index');
         Route::get('angebot-erstellen', 'createOffer')->name('create-offer');
