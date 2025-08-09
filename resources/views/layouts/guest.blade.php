@@ -9,12 +9,12 @@
         <meta name="description" content="{{ $description ?? 'Offizieller MADDRAX Fanclub e. V. – Informationen zu Projekten, Terminen und Mitgliedschaft.' }}">
         <meta property="og:title" content="{{ $title ?? config('app.name', 'Laravel') }}">
         <meta property="og:description" content="{{ $description ?? 'Offizieller MADDRAX Fanclub e. V. – Informationen zu Projekten, Terminen und Mitgliedschaft.' }}">
-        <meta property="og:image" content="{{ $image ?? Vite::asset('resources/images/omxfc-logo.png') }}">
+        <meta property="og:image" content="{{ asset($image ?? Vite::asset('resources/images/omxfc-logo.png')) }}">
         <meta property="og:type" content="website">
         <meta name="twitter:card" content="summary_large_image">
         <meta name="twitter:title" content="{{ $title ?? config('app.name', 'Laravel') }}">
         <meta name="twitter:description" content="{{ $description ?? 'Offizieller MADDRAX Fanclub e. V. – Informationen zu Projekten, Terminen und Mitgliedschaft.' }}">
-        <meta name="twitter:image" content="{{ $image ?? Vite::asset('resources/images/omxfc-logo.png') }}">
+        <meta name="twitter:image" content="{{ asset($image ?? Vite::asset('resources/images/omxfc-logo.png')) }}">
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
