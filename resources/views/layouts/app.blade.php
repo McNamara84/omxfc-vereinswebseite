@@ -14,6 +14,7 @@
     <meta name="twitter:title" content="{{ $title ?? config('app.name', 'OMXFC e. V.') }}">
     <meta name="twitter:description" content="{{ $description ?? 'Der Offizielle MADDRAX Fanclub e. V. vernetzt Fans der postapokalyptischen Romanserie und informiert über Projekte, Termine und Mitgliedschaft.' }}">
     <meta name="twitter:image" content="{{ $socialImage }}">
+    <link rel="canonical" href="{{ request()->url() }}" />
     <!-- Favicon -->
     <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('favicon/apple-touch-icon.png') }}">
     <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('favicon/favicon-32x32.png') }}">
