@@ -15,6 +15,7 @@
         <meta name="twitter:title" content="{{ $title ?? config('app.name', 'Laravel') }}">
         <meta name="twitter:description" content="{{ $description ?? 'Offizieller MADDRAX Fanclub e. V. – Informationen zu Projekten, Terminen und Mitgliedschaft.' }}">
         <meta name="twitter:image" content="{{ $socialImage }}">
+        <link rel="canonical" href="{{ url()->current() }}" />
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
