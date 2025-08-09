@@ -62,6 +62,12 @@
                 <p class="mt-2">Mit der Jahreshauptversammlung endet die MaddraxCon in Aachen. Der Verein begrüßt die neuen Mitglieder und hat aktuell 34 Vereinsmitglieder. Jo Zybell und Ian Rolf Hill werden als Ehrenmitglieder aufgenommen.</p>
                 <img src="{{ asset('images/chronik/jahreshauptversammlung2025.jpg') }}" class="mt-3 rounded-md shadow max-w-xs" alt="Jahreshauptversammlung in Aachen 2025">
             </div>
+            <div class="relative">
+                <div class="absolute -left-[20px] top-2 bg-[#8B0116] dark:bg-[#ff4b63] rounded-full w-3 h-3"></div>
+                <time class="font-semibold text-lg">7. August 2025</time>
+                <p class="mt-2">Der MADDRAX-Regionalstammtisch Berlin-Brandenburg findet zum ersten Mal statt.</p>
+                <img src="{{ asset('images/chronik/regionalstammtischbbb1.jpg') }}" class="mt-3 rounded-md shadow max-w-xs" alt="Teilnehmer des ersten MADDRAX-Regionalstammtischs Berlin-Brandenburg 2025">
+            </div>
             <!-- Weitere Ereignisse analog ergänzen -->
         </div>
     </x-public-page>
