@@ -69,3 +69,5 @@ php artisan sitemap:generate
 
 Die Datei wird unter `public/sitemap.xml` abgelegt und sollte regelmäßig aktualisiert werden.
 
+Stellen Sie sicher, dass `APP_URL` in der `.env`-Datei auf eine gültige, öffentlich erreichbare URL gesetzt ist.
+

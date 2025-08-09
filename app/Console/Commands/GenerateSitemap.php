@@ -20,14 +20,20 @@ class GenerateSitemap extends Command
     public function handle(): int
     {
         $baseUrl = config('app.url');
-        if (! $baseUrl) {
-            $this->error('APP_URL is not set.');
+        if (! $baseUrl || ! filter_var($baseUrl, FILTER_VALIDATE_URL)) {
+            $this->error('APP_URL is not set or is not a valid URL.');
 
             return self::FAILURE;
         }
 
-        SitemapGenerator::create($baseUrl)
-            ->writeToFile(public_path('sitemap.xml'));
+        try {
+            SitemapGenerator::create($baseUrl)
+                ->writeToFile(public_path('sitemap.xml'));
+        } catch (\Throwable $e) {
+            $this->error('Failed to generate sitemap: ' . $e->getMessage());
+
+            return self::FAILURE;
+        }
 
         $this->info('Sitemap generated successfully.');
 
