@@ -9,6 +9,11 @@
             <select id="userSelect" class="mb-4 border-gray-300 dark:bg-gray-700 dark:border-gray-600 rounded-md"></select>
             <canvas id="userVisitsChart"></canvas>
         </div>
+        <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-xl sm:rounded-lg p-6 mt-8">
+            <h3 class="font-semibold text-lg mb-4">Aktive Mitglieder nach Uhrzeit</h3>
+            <select id="weekdaySelect" class="mb-4 border-gray-300 dark:bg-gray-700 dark:border-gray-600 rounded-md"></select>
+            <canvas id="activeUsersChart"></canvas>
+        </div>
     </x-member-page>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -82,5 +87,50 @@
         updateUserChart(users[0]);
 
         userSelect.addEventListener('change', (e) => updateUserChart(e.target.value));
+
+        const activityData = @json($activityData);
+        const weekdaySelect = document.getElementById('weekdaySelect');
+        const dayNames = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag'];
+        dayNames.forEach((day, index) => {
+            const option = document.createElement('option');
+            option.value = index;
+            option.textContent = day;
+            weekdaySelect.appendChild(option);
+        });
+        const allOption = document.createElement('option');
+        allOption.value = 'all';
+        allOption.textContent = 'Alle';
+        weekdaySelect.appendChild(allOption);
+
+        const hours = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0') + ':00');
+        const ctx3 = document.getElementById('activeUsersChart').getContext('2d');
+        const activeChart = new Chart(ctx3, {
+            type: 'line',
+            data: {
+                labels: hours,
+                datasets: [{
+                    label: dayNames[0],
+                    data: activityData[0],
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    fill: false,
+                }],
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: { beginAtZero: true },
+                },
+            },
+        });
+
+        function updateActiveChart(selected) {
+            activeChart.data.datasets[0].data = activityData[selected];
+            activeChart.data.datasets[0].label = selected === 'all' ? 'Alle' : dayNames[selected];
+            activeChart.update();
+        }
+
+        updateActiveChart(0);
+        weekdaySelect.addEventListener('change', (e) => updateActiveChart(e.target.value));
     </script>
 </x-app-layout>
