@@ -33,9 +33,9 @@
 
 <body class="font-sans antialiased">
     <!-- Livewire Scripts -->
-    <script src="/livewire/livewire.min.js" 
-        data-csrf="{{ csrf_token() }}" 
-        data-update-uri="/livewire/update" 
+    <script src="{{ asset('vendor/livewire/livewire.min.js') }}"
+        data-csrf="{{ csrf_token() }}"
+        data-update-uri="/livewire/update"
         data-navigate-once="true">
     </script>
 
