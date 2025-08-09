@@ -6,15 +6,6 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ $title ?? config('app.name', 'OMXFC e. V.') }}</title>
     <meta name="description" content="{{ $description ?? 'Der Offizielle MADDRAX Fanclub e. V. vernetzt Fans der postapokalyptischen Romanserie und informiert über Projekte, Termine und Mitgliedschaft.' }}">
-    @php
-        try {
-            $defaultImagePath = Vite::asset('resources/images/omxfc-logo.png');
-        } catch (\Throwable $e) {
-            $defaultImagePath = 'resources/images/omxfc-logo.png';
-        }
-        $socialImagePath = $image ?? $defaultImagePath;
-        $socialImage = filter_var($socialImagePath, FILTER_VALIDATE_URL) ? $socialImagePath : asset($socialImagePath);
-    @endphp
     <meta property="og:title" content="{{ $title ?? config('app.name', 'OMXFC e. V.') }}">
     <meta property="og:description" content="{{ $description ?? 'Der Offizielle MADDRAX Fanclub e. V. vernetzt Fans der postapokalyptischen Romanserie und informiert über Projekte, Termine und Mitgliedschaft.' }}">
     <meta property="og:image" content="{{ $socialImage }}">
