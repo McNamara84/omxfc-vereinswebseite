@@ -105,7 +105,7 @@ class ProfileViewController extends Controller
                 $badges[] = [
                     'name' => 'Ersthelfer',
                     'description' => 'Hat sich mindestens einmal für den Verein engagiert',
-                    'image' => route('badges.image', ['filename' => 'BadgeErsthelfer.png']),
+                    'image' => asset('images/badges/BadgeErsthelfer.png'),
                 ];
             }
 
@@ -123,7 +123,7 @@ class ProfileViewController extends Controller
                     $badges[] = [
                         'name' => 'Retrologe (Stufe 1)',
                         'description' => 'Hat im Maddraxikon mitgewirkt',
-                        'image' => route('badges.image', ['filename' => 'BadgeRetrologe1.png']),
+                        'image' => asset('images/badges/BadgeRetrologe1.png'),
                     ];
                 }
             }
@@ -136,19 +136,19 @@ class ProfileViewController extends Controller
                 $badges[] = [
                     'name' => 'Rezensator (Stufe 3)',
                     'description' => 'Hat 1000 Rezensionen verfasst',
-                    'image' => route('badges.image', ['filename' => 'BadgeRezensator3.png']),
+                    'image' => asset('images/badges/BadgeRezensator3.png'),
                 ];
             } elseif ($reviewCount >= 100) {
                 $badges[] = [
                     'name' => 'Rezensator (Stufe 2)',
                     'description' => 'Hat 100 Rezensionen verfasst',
-                    'image' => route('badges.image', ['filename' => 'BadgeRezensator2.png']),
+                    'image' => asset('images/badges/BadgeRezensator2.png'),
                 ];
             } elseif ($reviewCount >= 10) {
                 $badges[] = [
                     'name' => 'Rezensator (Stufe 1)',
                     'description' => 'Hat 10 Rezensionen verfasst',
-                    'image' => route('badges.image', ['filename' => 'BadgeRezensator1.png']),
+                    'image' => asset('images/badges/BadgeRezensator1.png'),
                 ];
             }
 
@@ -167,25 +167,25 @@ class ProfileViewController extends Controller
                 $badges[] = [
                     'name' => 'Händler (Stufe 4)',
                     'description' => 'Hat 1000 Tauschgeschäfte abgeschlossen',
-                    'image' => route('badges.image', ['filename' => 'BadgeHaendler4.png']),
+                    'image' => asset('images/badges/BadgeHaendler4.png'),
                 ];
             } elseif ($tradeCount >= 100) {
                 $badges[] = [
                     'name' => 'Händler (Stufe 3)',
                     'description' => 'Hat 100 Tauschgeschäfte abgeschlossen',
-                    'image' => route('badges.image', ['filename' => 'BadgeHaendler3.png']),
+                    'image' => asset('images/badges/BadgeHaendler3.png'),
                 ];
             } elseif ($tradeCount >= 10) {
                 $badges[] = [
                     'name' => 'Händler (Stufe 2)',
                     'description' => 'Hat 10 Tauschgeschäfte abgeschlossen',
-                    'image' => route('badges.image', ['filename' => 'BadgeHaendler2.png']),
+                    'image' => asset('images/badges/BadgeHaendler2.png'),
                 ];
             } elseif ($tradeCount >= 1) {
                 $badges[] = [
                     'name' => 'Händler (Stufe 1)',
                     'description' => 'Hat einen Tausch erfolgreich abgeschlossen',
-                    'image' => route('badges.image', ['filename' => 'BadgeHaendler1.png']),
+                    'image' => asset('images/badges/BadgeHaendler1.png'),
                 ];
             }
         }
