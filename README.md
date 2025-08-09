@@ -55,6 +55,19 @@ Die im Footer angezeigte Versionsnummer wird automatisch aus dem neuesten Git-Ta
 | Romane importieren | `php artisan books:import` |
 | Rezensionen importieren | `php artisan reviews:import-old --fresh` |
 | Neue Romane crawlen | `php artisan crawlnovels` |
+| Sitemap generieren | `php artisan sitemap:generate` |
 
 Weitere Befehle lassen sich über `php artisan list` anzeigen.
+
+## Sitemap
+
+Die Sitemap der öffentlichen Seiten kann mit folgendem Befehl erstellt werden:
+
+```bash
+php artisan sitemap:generate
+```
+
+Die Datei wird unter `public/sitemap.xml` abgelegt und sollte regelmäßig aktualisiert werden.
+
+Stellen Sie sicher, dass `APP_URL` in der `.env`-Datei auf eine gültige, öffentlich erreichbare URL gesetzt ist.
 
