@@ -55,6 +55,7 @@ Die im Footer angezeigte Versionsnummer wird automatisch aus dem neuesten Git-Ta
 | Romane importieren | `php artisan books:import` |
 | Rezensionen importieren | `php artisan reviews:import-old --fresh` |
 | Neue Romane crawlen | `php artisan crawlnovels` |
+| Neue Hardcover crawlen | `php artisan crawlhardcovers` |
 | Sitemap generieren | `php artisan sitemap:generate` |
 
 Weitere Befehle lassen sich über `php artisan list` anzeigen.
