@@ -133,7 +133,9 @@ class ActivityFeedTest extends TestCase
 
         $dashboard = $this->get('/dashboard');
         $dashboard->assertOk();
-        $dashboard->assertSee('Kommentar zu <a href="' . route('reviews.show', $review->book_id) . '" class="text-blue-600 dark:text-blue-400 hover:underline">Meine Rezension</a> von <a href="' . route('profile.view', $user->id) . '" class="text-[#8B0116] hover:underline">' . $user->name . '</a>', false);
+        $dashboard->assertSeeText('Kommentar zu Meine Rezension von ' . $user->name);
+        $dashboard->assertSee('<a href="' . route('reviews.show', $review->book_id) . '" class="text-blue-600 dark:text-blue-400 hover:underline">Meine Rezension</a>', false);
+        $dashboard->assertSee('<a href="' . route('profile.view', $user->id) . '" class="text-[#8B0116] hover:underline">', false);
     }
 
     public function test_dashboard_displays_recent_activities(): void
