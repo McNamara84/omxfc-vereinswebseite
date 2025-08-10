@@ -201,7 +201,7 @@ class RezensionController extends Controller
         foreach ($authors as $author) {
             if ($author->notify_new_review) {
                 Mail::to($author->email)
-                    ->send(new NewReviewNotification($review, $author));
+                    ->queue(new NewReviewNotification($review, $author));
             }
         }
 

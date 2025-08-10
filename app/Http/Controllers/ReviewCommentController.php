@@ -69,7 +69,7 @@ class ReviewCommentController extends Controller
 
         if ($review->user_id !== $user->id) {
             Mail::to($review->user->email)
-                ->send(new ReviewCommentNotification($review, $comment));
+                ->queue(new ReviewCommentNotification($review, $comment));
         }
 
         Activity::create([

@@ -48,7 +48,7 @@ class RezensionControllerTest extends TestCase
             'book_id' => $book->id,
             'title' => 'Tolle Rezension',
         ]);
-        Mail::assertSent(NewReviewNotification::class);
+        Mail::assertQueued(NewReviewNotification::class);
     }
 
     public function test_store_strips_heading_markers_before_validation(): void

@@ -227,7 +227,7 @@ class RomantauschController extends Controller
                     'offer_id' => $model->id,
                     'request_id' => $match->id,
                 ]);
-                Mail::to($match->user->email)->send(new BookSwapMatched($swap));
+                Mail::to($match->user->email)->queue(new BookSwapMatched($swap));
             }
         } else {
             $match = BookOffer::where('book_number', $model->book_number)
@@ -239,7 +239,7 @@ class RomantauschController extends Controller
                     'offer_id' => $match->id,
                     'request_id' => $model->id,
                 ]);
-                Mail::to($model->user->email)->send(new BookSwapMatched($swap));
+                Mail::to($model->user->email)->queue(new BookSwapMatched($swap));
             }
         }
     }

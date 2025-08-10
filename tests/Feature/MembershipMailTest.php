@@ -34,7 +34,7 @@ class MembershipMailTest extends TestCase
 
         $response->assertJson(['success' => true]);
 
-        Mail::assertSent(MitgliedAntragEingereicht::class, function ($mail) {
+        Mail::assertQueued(MitgliedAntragEingereicht::class, function ($mail) {
             return $mail->user->email === 'applicant@example.com';
         });
 
