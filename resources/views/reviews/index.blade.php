@@ -1,4 +1,4 @@
-<x-app-layout>
+<x-app-layout :title="$title" :description="$description">
     <x-member-page>
             <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
                 <h1 class="text-2xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-2">Rezensionen</h1>

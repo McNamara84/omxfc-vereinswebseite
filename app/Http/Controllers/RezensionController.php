@@ -98,7 +98,11 @@ class RezensionController extends Controller
 
         $booksByCycle = $books->sortByDesc('roman_number')->groupBy('cycle');
 
-        return view('reviews.index', compact('booksByCycle'));
+        return view('reviews.index', [
+            'booksByCycle' => $booksByCycle,
+            'title' => 'Rezensionen – Offizieller MADDRAX Fanclub e. V.',
+            'description' => 'Alle Vereinsrezensionen zu den Maddrax-Romanen im Überblick.',
+        ]);
     }
 
     /**
@@ -121,7 +125,13 @@ class RezensionController extends Controller
                     $query->with(['user', 'children.user'])->orderBy('created_at');
                 }])
                 ->get();
-            return view('reviews.show', compact('book', 'reviews', 'role'));
+            return view('reviews.show', [
+                'book' => $book,
+                'reviews' => $reviews,
+                'role' => $role,
+                'title' => 'Rezensionen zu ' . $book->title . ' – Offizieller MADDRAX Fanclub e. V.',
+                'description' => 'Leserrezensionen zum Roman "' . $book->title . '".',
+            ]);
         }
 
         return redirect()->route('reviews.create', $book);
@@ -149,7 +159,11 @@ class RezensionController extends Controller
             abort(403);
         }
 
-        return view('reviews.create', compact('book'));
+        return view('reviews.create', [
+            'book' => $book,
+            'title' => 'Rezension zu ' . $book->title . ' verfassen – Offizieller MADDRAX Fanclub e. V.',
+            'description' => 'Schreibe deine Rezension zum Roman "' . $book->title . '".',
+        ]);
     }
 
     /**
@@ -225,7 +239,11 @@ class RezensionController extends Controller
         $role = $this->getRoleInMemberTeam();
 
         if ($review->user_id === $user->id || in_array($role, ['Vorstand', 'Admin'], true)) {
-            return view('reviews.edit', compact('review'));
+            return view('reviews.edit', [
+                'review' => $review,
+                'title' => 'Rezension zu ' . $review->book->title . ' bearbeiten – Offizieller MADDRAX Fanclub e. V.',
+                'description' => 'Überarbeite deine Rezension zum Roman "' . $review->book->title . '".',
+            ]);
         }
 
         abort(403);

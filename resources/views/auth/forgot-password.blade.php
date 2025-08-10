@@ -1,4 +1,4 @@
-<x-app-layout>
+<x-app-layout title="Passwort vergessen – Offizieller MADDRAX Fanclub e. V." description="Fordere einen Link zum Zurücksetzen deines Passworts an.">
     <div class="max-w-md mx-auto px-6 py-12 bg-gray-100 dark:bg-gray-800 rounded-lg shadow-md">
         <h2 class="text-2xl font-bold text-[#8B0116] dark:text-[#ff4b63] mb-6 text-center">
             {{ __('Passwort vergessen') }}
