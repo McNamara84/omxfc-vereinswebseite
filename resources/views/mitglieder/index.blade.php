@@ -231,7 +231,7 @@
     @foreach($members as $member)
     <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
     <td class="px-4 py-3">
-    <div class="flex items-center">
+    <a href="{{ route('profile.view', $member->id) }}" class="flex items-center">
     <div class="h-10 w-10 flex-shrink-0">
     <img class="h-10 w-10 rounded-full" src="{{ $member->profile_photo_url }}" alt="{{ $member->name }}">
     </div>
@@ -244,7 +244,7 @@
     <div class="text-sm text-gray-500 dark:text-gray-400">{{ $member->vorname }} {{ $member->nachname }}</div>
     @endif
     </div>
-    </div>
+    </a>
     </td>
     
     <td class="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">
@@ -400,7 +400,7 @@
     
     @foreach($members as $member)
     <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg shadow">
-    <div class="flex items-center mb-4">
+    <a href="{{ route('profile.view', $member->id) }}" class="flex items-center mb-4">
     <div class="h-12 w-12 flex-shrink-0">
     <img class="h-12 w-12 rounded-full" src="{{ $member->profile_photo_url }}" alt="{{ $member->name }}">
     </div>
@@ -414,7 +414,7 @@
     Mitglied seit {{ $member->mitglied_seit ? $member->mitglied_seit->format('d.m.Y') : 'k.A.' }}
     </div>
     </div>
-    </div>
+    </a>
     
     <div class="mb-4">
     <div class="grid grid-cols-2 gap-4">

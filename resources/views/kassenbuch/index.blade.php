@@ -98,7 +98,7 @@
                                 @foreach($members as $member)
                                 <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
                                     <td class="px-4 py-3 whitespace-nowrap">
-                                        <div class="flex items-center">
+                                        <a href="{{ route('profile.view', $member->id) }}" class="flex items-center">
                                             <div class="h-8 w-8 flex-shrink-0">
                                                 <img class="h-8 w-8 rounded-full" src="{{ $member->profile_photo_url }}" alt="{{ $member->name }}">
                                             </div>
@@ -106,7 +106,7 @@
                                                 <div class="text-sm font-medium text-gray-900 dark:text-white">{{ $member->name }}</div>
                                                 <div class="text-xs text-gray-500 dark:text-gray-400">{{ $member->vorname }} {{ $member->nachname }}</div>
                                             </div>
-                                        </div>
+                                        </a>
                                     </td>
                                     <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                                         {{ $member->email }}
