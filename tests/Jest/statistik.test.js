@@ -6,7 +6,6 @@ describe('statistik module', () => {
   let initRomaneTable;
   let mockChart;
   let mockDataTable;
-  let mockSortColumn;
 
   beforeEach(async () => {
     jest.resetModules();
@@ -14,11 +13,9 @@ describe('statistik module', () => {
     const datatableModule = await import('simple-datatables');
     mockChart = chartModule.default;
     mockDataTable = datatableModule.DataTable;
-    mockSortColumn = datatableModule.mockSortColumn;
 
     mockChart.mockClear();
     mockDataTable.mockClear();
-    mockSortColumn.mockClear();
 
     const mod = await import('../../resources/js/statistik.js');
     drawAuthorChart = mod.drawAuthorChart;
@@ -56,6 +53,7 @@ describe('statistik module', () => {
 
     expect(mockDataTable).toHaveBeenCalledTimes(1);
     expect(mockDataTable.mock.calls[0][0].id).toBe('romaneTable');
-    expect(mockSortColumn).toHaveBeenCalledWith(3, 'desc');
+    const instance = mockDataTable.mock.results[0].value;
+    expect(instance.sortColumn).toHaveBeenCalledWith(3, 'desc');
   });
 });
