@@ -11,10 +11,10 @@ describe('statistik module', () => {
   beforeEach(async () => {
     jest.resetModules();
     const chartModule = await import('chart.js/auto');
-    const { DataTable, mockSortColumn: sortColumn } = await import('simple-datatables');
+    const datatableModule = await import('simple-datatables');
     mockChart = chartModule.default;
-    mockDataTable = DataTable;
-    mockSortColumn = sortColumn;
+    mockDataTable = datatableModule.DataTable;
+    mockSortColumn = datatableModule.mockSortColumn;
 
     mockChart.mockClear();
     mockDataTable.mockClear();
@@ -56,7 +56,6 @@ describe('statistik module', () => {
 
     expect(mockDataTable).toHaveBeenCalledTimes(1);
     expect(mockDataTable.mock.calls[0][0].id).toBe('romaneTable');
-    const tableInstance = mockDataTable.mock.results[0].value;
-    expect(tableInstance.sortColumn).toHaveBeenCalledWith(3, 'desc');
+    expect(mockSortColumn).toHaveBeenCalledWith(3, 'desc');
   });
 });
