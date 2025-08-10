@@ -62,6 +62,25 @@ class DashboardControllerTest extends TestCase
         $this->assertDatabaseMissing('team_user', ['user_id' => $applicant->id]);
     }
 
+    public function test_approving_applicant_clears_dashboard_cache(): void
+    {
+        Mail::fake();
+        $admin = $this->actingAdmin();
+        $applicant = $this->createApplicant();
+
+        $this->actingAs($admin)->get('/dashboard');
+
+        $this->actingAs($admin)
+            ->from('/dashboard')
+            ->post(route('anwaerter.approve', $applicant))
+            ->assertRedirect('/dashboard');
+
+        $response = $this->actingAs($admin)->get('/dashboard');
+
+        $response->assertViewHas('memberCount', 3);
+        $this->assertFalse($response->viewData('anwaerter')->contains($applicant));
+    }
+
     public function test_index_displays_dashboard_statistics(): void
     {
         $team = Team::where('name', 'Mitglieder')->first();
