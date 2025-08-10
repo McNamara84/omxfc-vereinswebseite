@@ -105,6 +105,7 @@ jobs:
       run: |
         mkdir -p output
         npx make-coverage-badge --input-path=coverage/coverage-summary.json --badge-label='JS Coverage' --output=output/js-coverage.svg
+        test -f output/js-coverage.svg
 
     - name: Create PHP coverage badge
       if: matrix.php-version == '8.3' && github.ref == 'refs/heads/main'
