@@ -1,4 +1,4 @@
-name: Laravel Feature Tests
+name: Unit Tests
 
 on:
   push:
