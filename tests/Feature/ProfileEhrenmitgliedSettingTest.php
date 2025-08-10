@@ -19,6 +19,14 @@ class ProfileEhrenmitgliedSettingTest extends TestCase
         return $user;
     }
 
+    private function createMitglied(): User
+    {
+        $team = Team::where('name', 'Mitglieder')->first();
+        $user = User::factory()->create(['current_team_id' => $team->id]);
+        $team->users()->attach($user, ['role' => 'Mitglied']);
+        return $user;
+    }
+
     public function test_ehrenmitglied_sees_review_notification_setting(): void
     {
         $user = $this->createEhrenmitglied();
@@ -34,5 +42,16 @@ class ProfileEhrenmitgliedSettingTest extends TestCase
             'role' => 'Ehrenmitglied',
         ]);
         $response->assertSee('E-Mail bei neuer Rezension erhalten');
+    }
+
+    public function test_regular_member_does_not_see_review_notification_setting(): void
+    {
+        $user = $this->createMitglied();
+        $this->actingAs($user);
+
+        $response = $this->get('/user/profile');
+
+        $response->assertOk();
+        $response->assertDontSee('E-Mail bei neuer Rezension erhalten');
     }
 }

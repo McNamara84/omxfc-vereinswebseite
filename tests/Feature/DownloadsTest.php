@@ -100,4 +100,14 @@ class DownloadsTest extends TestCase
         $response->assertRedirect('/downloads');
         $response->assertSessionHasErrors();
     }
+
+    public function test_guest_is_redirected_to_login_when_accessing_downloads_page(): void
+    {
+        $this->get('/downloads')->assertRedirect('/login');
+    }
+
+    public function test_guest_is_redirected_to_login_when_downloading_file(): void
+    {
+        $this->get('/downloads/herunterladen/BauanleitungEuphoriewurmV2.pdf')->assertRedirect('/login');
+    }
 }
