@@ -172,8 +172,10 @@ class RezensionController extends Controller
 
         $data = $request->validate([
             'title' => 'required|string|max:255',
-            'content' => 'required|string|min:140',
+            'content' => 'required|string|min:140|not_regex:/^\\s*#/m',
         ]);
+
+        $data['content'] = preg_replace('/^\\s*#+\\s*/m', '', $data['content']);
 
         $review = Review::create([
             'team_id' => $teamId,
@@ -238,8 +240,10 @@ class RezensionController extends Controller
         if ($review->user_id === $user->id || in_array($role, ['Vorstand', 'Admin'], true)) {
             $data = $request->validate([
                 'title' => 'required|string|max:255',
-                'content' => 'required|string|min:140',
+                'content' => 'required|string|min:140|not_regex:/^\\s*#/m',
             ]);
+
+            $data['content'] = preg_replace('/^\\s*#+\\s*/m', '', $data['content']);
 
             $review->update($data);
 
