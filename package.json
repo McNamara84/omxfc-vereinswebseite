@@ -21,6 +21,7 @@
     },
     "dependencies": {
         "@alpinejs/focus": "^3.14.9",
+        "jest": "^30.0.5",
         "leaflet": "^1.9.4",
         "leaflet.markercluster": "^1.5.3"
     }
