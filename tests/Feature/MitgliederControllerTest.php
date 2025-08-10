@@ -230,7 +230,7 @@ class MitgliederControllerTest extends TestCase
 
         $this->actingAs($this->actingMember('Mitglied'));
 
-        $response = $this->get('/mitglieder?sort=last_activity&dir=desc');
+        $response = $this->get('/mitglieder?sort=last_activity');
         $response->assertOk();
 
         $members = $response->viewData('members');
