@@ -108,11 +108,12 @@ jobs:
           echo "coverage/coverage-summary.json not found" >&2
           exit 1
         fi
-        npx --yes make-coverage-badge --input-path=coverage/coverage-summary.json --badge-label="JS Coverage" --output=output/js-coverage.svg
+        npx --yes make-coverage-badge --report-path=coverage/coverage-summary.json --output-path=output/js-coverage.svg
         if [ ! -f output/js-coverage.svg ]; then
           echo "JS coverage badge was not created" >&2
           exit 1
         fi
+        sed -i 's/Coverage/JS Coverage/' output/js-coverage.svg
 
     - name: Create PHP coverage badge
       if: matrix.php-version == '8.3' && github.ref == 'refs/heads/main'
@@ -120,8 +121,17 @@ jobs:
       with:
         report: coverage.xml
         coverage_badge_path: output/php-coverage.svg
-        badge_label: 'PHP Coverage'
         push_badge: false
+
+    - name: Customize PHP coverage badge label
+      if: matrix.php-version == '8.3' && github.ref == 'refs/heads/main'
+      run: |
+        if [ -f output/php-coverage.svg ]; then
+          sed -i 's/Coverage/PHP Coverage/' output/php-coverage.svg
+        else
+          echo "PHP coverage badge was not created" >&2
+          exit 1
+        fi
 
     - name: Deploy coverage badges to image-data branch
       if: matrix.php-version == '8.3' && github.ref == 'refs/heads/main'
