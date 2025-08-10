@@ -1,5 +1,9 @@
 import { jest } from '@jest/globals';
 
+// Using jest.unstable_mockModule because Jest's stable mock API currently
+// lacks full support for mocking ES modules loaded via dynamic import.
+// This enables us to intercept the axios dependency in the bootstrap module.
+
 describe('bootstrap module', () => {
   beforeEach(() => {
     jest.resetModules();
