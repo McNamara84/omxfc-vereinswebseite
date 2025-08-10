@@ -97,18 +97,33 @@ jobs:
         XDEBUG_MODE: coverage
       run: php artisan test tests/Feature --coverage-clover=coverage.xml
 
-    - name: Run Jest tests
-      run: npm test
+    - name: Run Jest tests with coverage
+      run: npm test -- --coverage --coverageReporters=json-summary --coverageDirectory=coverage
 
-    - name: Create coverage badge
+    - name: Create JS coverage badge
+      if: matrix.php-version == '8.3' && github.ref == 'refs/heads/main'
+      run: |
+        mkdir -p output
+        if [ ! -f "coverage/coverage-summary.json" ]; then
+          echo "coverage/coverage-summary.json not found" >&2
+          exit 1
+        fi
+        npx --yes make-coverage-badge --input-path=coverage/coverage-summary.json --badge-label="JS Coverage" --output=output/js-coverage.svg
+        if [ ! -f output/js-coverage.svg ]; then
+          echo "JS coverage badge was not created" >&2
+          exit 1
+        fi
+
+    - name: Create PHP coverage badge
       if: matrix.php-version == '8.3' && github.ref == 'refs/heads/main'
       uses: timkrase/phpunit-coverage-badge@v1.2.1
       with:
         report: coverage.xml
-        coverage_badge_path: output/coverage.svg
+        coverage_badge_path: output/php-coverage.svg
+        badge_label: 'PHP Coverage'
         push_badge: false
 
-    - name: Deploy coverage badge to image-data branch
+    - name: Deploy coverage badges to image-data branch
       if: matrix.php-version == '8.3' && github.ref == 'refs/heads/main'
       uses: peaceiris/actions-gh-pages@v3
       with:
