@@ -182,7 +182,7 @@
     
     @if($canViewDetails)
     <th class="px-4 py-2 text-left">
-    <a href="{{ route('mitglieder.index', array_merge(request()->query(), ['sort' => 'last_activity', 'dir' => ($sortBy === 'last_activity' && $sortDir === 'asc') ? 'desc' : 'asc'])) }}"
+    <a href="{{ route('mitglieder.index', array_merge(request()->query(), ['sort' => 'last_activity', 'dir' => ($sortBy === 'last_activity' && $sortDir === 'desc') ? 'asc' : 'desc'])) }}"
     class="flex items-center group text-gray-700 dark:text-gray-300 hover:text-[#8B0116] dark:hover:text-red-400">
     Zuletzt online
     @if($sortBy === 'last_activity')
@@ -386,7 +386,7 @@
     Rolle {{ $sortBy === 'role' ? ($sortDir === 'asc' ? '↑' : '↓') : '' }}
     </a>
     @if($canViewDetails)
-    <a href="{{ route('mitglieder.index', array_merge(request()->query(), ['sort' => 'last_activity', 'dir' => ($sortBy === 'last_activity' && $sortDir === 'asc') ? 'desc' : 'asc'])) }}"
+    <a href="{{ route('mitglieder.index', array_merge(request()->query(), ['sort' => 'last_activity', 'dir' => ($sortBy === 'last_activity' && $sortDir === 'desc') ? 'asc' : 'desc'])) }}"
     class="px-3 py-1 text-xs rounded-full {{ $sortBy === 'last_activity' ? 'bg-[#8B0116] text-white' : 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300' }}">
     Zuletzt online {{ $sortBy === 'last_activity' ? ($sortDir === 'asc' ? '↑' : '↓') : '' }}
     </a>

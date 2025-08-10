@@ -230,7 +230,7 @@ class MitgliederControllerTest extends TestCase
 
         $this->actingAs($this->actingMember('Mitglied'));
 
-        $response = $this->get('/mitglieder?sort=last_activity&dir=desc');
+        $response = $this->get('/mitglieder?sort=last_activity');
         $response->assertOk();
 
         $members = $response->viewData('members');
@@ -270,18 +270,19 @@ class MitgliederControllerTest extends TestCase
         ]);
         $this->actingAs($acting);
 
-        $response = $this->get('/mitglieder?sort=foo&dir=desc');
+        $response = $this->get('/mitglieder?sort=foo');
         $response->assertOk();
         $this->assertSame('nachname', $response->viewData('sortBy'));
+        $this->assertSame('asc', $response->viewData('sortDir'));
 
         $members = $response->viewData('members');
         $names = $members->pluck('name')->all();
 
         $this->assertSame([
-            'Bob Second',
-            'Alice First',
-            'Holger Ehrmann',
             'Charlie Current',
+            'Holger Ehrmann',
+            'Alice First',
+            'Bob Second',
         ], $names);
     }
 

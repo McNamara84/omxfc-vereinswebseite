@@ -17,7 +17,6 @@ class MitgliederController extends Controller
 
         // Sortierparameter auslesen
         $sortBy = $request->input('sort', 'nachname'); // Standardsortierung: Nachname
-        $sortDir = $request->input('dir', 'asc'); // Standardrichtung: aufsteigend
 
         // Nur erlaubte Sortierfelder akzeptieren
         $allowedSortFields = ['nachname', 'role', 'mitgliedsbeitrag', 'mitglied_seit', 'last_activity'];
@@ -25,9 +24,13 @@ class MitgliederController extends Controller
             $sortBy = 'nachname';
         }
 
+        // Standardrichtung nach Validierung bestimmen
+        $defaultSortDir = $sortBy === 'last_activity' ? 'desc' : 'asc';
+        $sortDir = $request->input('dir', $defaultSortDir);
+
         // Sortierrichtung validieren
         if (!in_array($sortDir, ['asc', 'desc'])) {
-            $sortDir = 'asc';
+            $sortDir = $defaultSortDir;
         }
 
         // Nur Nutzer mit Rollen außer "Anwärter" anzeigen
