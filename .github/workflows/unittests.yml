@@ -12,6 +12,8 @@ permissions:
 jobs:
   laravel-tests:
     runs-on: ubuntu-latest
+    env:
+      JEST_COVERAGE_DIR: coverage
     
     strategy:
       fail-fast: false
@@ -98,17 +100,17 @@ jobs:
       run: php artisan test tests/Feature --coverage-clover=coverage.xml
 
     - name: Run Jest tests with coverage
-      run: npm test -- --coverage --coverageReporters=json-summary
+      run: npm test -- --coverage --coverageReporters=json-summary --coverageDirectory=$JEST_COVERAGE_DIR
 
     - name: Create JS coverage badge
       if: matrix.php-version == '8.3' && github.ref == 'refs/heads/main'
       run: |
         mkdir -p output
-        if [ ! -f coverage/coverage-summary.json ]; then
-          echo "coverage/coverage-summary.json not found" >&2
+        if [ ! -f "$JEST_COVERAGE_DIR/coverage-summary.json" ]; then
+          echo "$JEST_COVERAGE_DIR/coverage-summary.json not found" >&2
           exit 1
         fi
-        npx --yes make-coverage-badge --input-path=coverage/coverage-summary.json --badge-label='JS Coverage' --output=output/js-coverage.svg
+        npx --yes make-coverage-badge --input-path="$JEST_COVERAGE_DIR/coverage-summary.json" --badge-label='JS Coverage' --output=output/js-coverage.svg
         if [ ! -f output/js-coverage.svg ]; then
           echo "JS coverage badge was not created" >&2
           exit 1
