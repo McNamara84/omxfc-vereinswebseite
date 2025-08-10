@@ -191,6 +191,9 @@ class DashboardController extends Controller
         $user->save();
         Mail::to($user->email)->queue(new MitgliedGenehmigtMail($user));
 
+        Cache::forget("member_count_{$team->id}");
+        Cache::forget("anwaerter_{$team->id}");
+
         return back()->with('status', 'Antrag genehmigt.');
     }
 
@@ -199,6 +202,9 @@ class DashboardController extends Controller
         $team = $user->currentTeam;
         $team->users()->detach($user->id);
         $user->delete();
+
+        Cache::forget("member_count_{$team->id}");
+        Cache::forget("anwaerter_{$team->id}");
 
         return back()->with('status', 'Antrag abgelehnt und gelöscht.');
     }
