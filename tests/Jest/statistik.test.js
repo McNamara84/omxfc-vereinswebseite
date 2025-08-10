@@ -4,19 +4,21 @@ describe('statistik module', () => {
   let drawAuthorChart;
   let drawCycleChart;
   let initRomaneTable;
-  let ChartMock;
-  let DataTableMock;
-  let sortColumnMock;
+  let mockChart;
+  let mockDataTable;
+  let mockSortColumn;
 
   beforeEach(async () => {
     jest.resetModules();
-    ChartMock = jest.fn();
-    sortColumnMock = jest.fn();
-    DataTableMock = jest.fn(() => ({ sortColumn: sortColumnMock }));
+    const chartModule = await import('chart.js/auto');
+    const dataModule = await import('simple-datatables');
+    mockChart = chartModule.default;
+    mockDataTable = dataModule.DataTable;
+    mockSortColumn = dataModule.mockSortColumn;
 
-    await jest.unstable_mockModule('chart.js/auto', () => ({ default: ChartMock }));
-    await jest.unstable_mockModule('simple-datatables', () => ({ DataTable: DataTableMock }));
-    await jest.unstable_mockModule('simple-datatables/dist/style.css', () => ({}));
+    mockChart.mockClear();
+    mockDataTable.mockClear();
+    mockSortColumn.mockClear();
 
     const mod = await import('../../resources/js/statistik.js');
     drawAuthorChart = mod.drawAuthorChart;
@@ -30,8 +32,8 @@ describe('statistik module', () => {
     document.body.innerHTML = '<canvas id="chart"></canvas>';
     drawAuthorChart('chart', ['A', 'B'], [1, 2]);
 
-    expect(ChartMock).toHaveBeenCalledTimes(1);
-    const [ctx, config] = ChartMock.mock.calls[0];
+    expect(mockChart).toHaveBeenCalledTimes(1);
+    const [ctx, config] = mockChart.mock.calls[0];
     expect(config.type).toBe('bar');
     expect(config.data.labels).toEqual(['A', 'B']);
     expect(config.data.datasets[0].data).toEqual([1, 2]);
@@ -41,8 +43,8 @@ describe('statistik module', () => {
     document.body.innerHTML = '<canvas id="cycle"></canvas>';
     drawCycleChart('cycle', ['X'], [5]);
 
-    expect(ChartMock).toHaveBeenCalledTimes(1);
-    const config = ChartMock.mock.calls[0][1];
+    expect(mockChart).toHaveBeenCalledTimes(1);
+    const config = mockChart.mock.calls[0][1];
     expect(config.type).toBe('line');
     expect(config.data.labels).toEqual(['X']);
     expect(config.data.datasets[0].data).toEqual([5]);
@@ -52,8 +54,8 @@ describe('statistik module', () => {
     document.body.innerHTML = '<table id="romaneTable"></table>';
     initRomaneTable();
 
-    expect(DataTableMock).toHaveBeenCalledTimes(1);
-    expect(DataTableMock.mock.calls[0][0].id).toBe('romaneTable');
-    expect(sortColumnMock).toHaveBeenCalledWith(3, 'desc');
+    expect(mockDataTable).toHaveBeenCalledTimes(1);
+    expect(mockDataTable.mock.calls[0][0].id).toBe('romaneTable');
+    expect(mockSortColumn).toHaveBeenCalledWith(3, 'desc');
   });
 });
