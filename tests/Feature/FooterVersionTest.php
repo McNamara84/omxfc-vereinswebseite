@@ -14,11 +14,14 @@ class FooterVersionTest extends TestCase
     {
         $commit = trim(Process::run(['git', 'rev-list', '--tags', '--max-count=1'])->output());
 
+        $version = '0.0.0';
+
         if ($commit !== '') {
-            $process = Process::run(['git', 'describe', '--tags', $commit]);
-            $version = $process->successful() ? trim($process->output()) : '0.0.0';
-        } else {
-            $version = '0.0.0';
+            $describe = Process::run(['git', 'describe', '--tags', $commit]);
+
+            if ($describe->successful()) {
+                $version = trim($describe->output());
+            }
         }
 
         $response = $this->get('/');

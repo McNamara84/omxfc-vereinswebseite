@@ -33,17 +33,20 @@ class AppServiceProvider extends ServiceProvider
         $version = Config::get('app.version');
 
         if ($version === null || $version === '0.0.0') {
+            $version = '0.0.0';
+
             try {
                 $commit = trim(Process::run(['git', 'rev-list', '--tags', '--max-count=1'])->output());
 
                 if ($commit !== '') {
-                    $process = Process::run(['git', 'describe', '--tags', $commit]);
-                    $version = $process->successful() ? trim($process->output()) : '0.0.0';
-                } else {
-                    $version = '0.0.0';
+                    $describe = Process::run(['git', 'describe', '--tags', $commit]);
+
+                    if ($describe->successful()) {
+                        $version = trim($describe->output());
+                    }
                 }
             } catch (\Throwable $e) {
-                $version = '0.0.0';
+                // use default version
             }
         }
 
