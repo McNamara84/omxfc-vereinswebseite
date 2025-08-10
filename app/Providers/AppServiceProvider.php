@@ -36,7 +36,12 @@ class AppServiceProvider extends ServiceProvider
             $version = '0.0.0';
 
             try {
-                $commit = trim(Process::run(['git', 'rev-list', '--tags', '--max-count=1'])->output());
+                $commit = '';
+                $revList = Process::run(['git', 'rev-list', '--tags', '--max-count=1']);
+
+                if ($revList->successful()) {
+                    $commit = trim($revList->output());
+                }
 
                 if ($commit !== '') {
                     $describe = Process::run(['git', 'describe', '--tags', $commit]);
