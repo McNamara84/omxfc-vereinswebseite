@@ -1,4 +1,4 @@
-<x-app-layout>
+<x-app-layout :title="$title" :description="$description">
     <x-member-page class="max-w-3xl">
             @if(session('success'))
                 <div class="mb-4 p-4 bg-green-100 dark:bg-green-800 border border-green-400 dark:border-green-600 text-green-800 dark:text-green-100 rounded">

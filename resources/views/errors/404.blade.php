@@ -1,4 +1,4 @@
-<x-app-layout>
+<x-app-layout title="Seite nicht gefunden – Offizieller MADDRAX Fanclub e. V." description="Die angeforderte Seite existiert nicht.">
     <div class="container mx-auto py-12 text-center">
         <h1 class="text-5xl font-bold text-[#8B0116] dark:text-[#ff4b63] mb-6">404</h1>
         <img src="{{ asset('images/errors/404.png') }}" alt="Seite verschollen" class="mx-auto w-64 h-auto mb-6">
