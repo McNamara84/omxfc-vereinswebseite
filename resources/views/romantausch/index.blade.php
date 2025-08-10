@@ -61,7 +61,15 @@
                         @foreach($offers as $offer)
                             <li class="bg-gray-100 dark:bg-gray-700 p-3 rounded flex justify-between items-center">
                                 <span>{{ $offer->book_number }} - {{ $offer->book_title }} ({{ $offer->condition }})</span>
-                                <span class="text-sm text-gray-600 dark:text-gray-300">von <a href="{{ route('profile.view', $offer->user->id) }}" class="text-[#8B0116] hover:underline">{{ $offer->user->name }}</a></span>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-sm text-gray-600 dark:text-gray-300">von <a href="{{ route('profile.view', $offer->user->id) }}" class="text-[#8B0116] hover:underline">{{ $offer->user->name }}</a></span>
+                                    @if(auth()->id() === $offer->user_id)
+                                        <form method="POST" action="{{ route('romantausch.delete-offer', $offer) }}">
+                                            @csrf
+                                            <button class="text-red-600 hover:underline">Löschen</button>
+                                        </form>
+                                    @endif
+                                </div>
                             </li>
                         @endforeach
                     </ul>
@@ -77,7 +85,15 @@
                         @foreach($requests as $request)
                             <li class="bg-gray-100 dark:bg-gray-700 p-3 rounded flex justify-between items-center">
                                 <span>{{ $request->book_number }} - {{ $request->book_title }} ({{ $request->condition }} oder besser)</span>
-                                <span class="text-sm text-gray-600 dark:text-gray-300">von <a href="{{ route('profile.view', $request->user->id) }}" class="text-[#8B0116] hover:underline">{{ $request->user->name }}</a></span>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-sm text-gray-600 dark:text-gray-300">von <a href="{{ route('profile.view', $request->user->id) }}" class="text-[#8B0116] hover:underline">{{ $request->user->name }}</a></span>
+                                    @if(auth()->id() === $request->user_id)
+                                        <form method="POST" action="{{ route('romantausch.delete-request', $request) }}">
+                                            @csrf
+                                            <button class="text-red-600 hover:underline">Löschen</button>
+                                        </form>
+                                    @endif
+                                </div>
                             </li>
                         @endforeach
                     </ul>

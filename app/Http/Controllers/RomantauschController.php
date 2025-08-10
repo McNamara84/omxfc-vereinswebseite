@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\BookOffer;
@@ -156,7 +157,7 @@ class RomantauschController extends Controller
     // Angebot löschen
     public function deleteOffer(BookOffer $offer)
     {
-        $this->authorize('delete', $offer);
+        Gate::authorize('delete', $offer);
         $offer->delete();
 
         return redirect()->route('romantausch.index')->with('success', 'Angebot gelöscht.');
@@ -165,7 +166,7 @@ class RomantauschController extends Controller
     // Gesuch löschen
     public function deleteRequest(BookRequest $request)
     {
-        $this->authorize('delete', $request);
+        Gate::authorize('delete', $request);
         $request->delete();
 
         return redirect()->route('romantausch.index')->with('success', 'Gesuch gelöscht.');
