@@ -170,6 +170,10 @@ class RezensionController extends Controller
             abort(403);
         }
 
+        $request->merge([
+            'content' => preg_replace('/^\\s*#+\\s*/m', '', (string) $request->input('content')),
+        ]);
+
         $data = $request->validate([
             'title' => 'required|string|max:255',
             'content' => 'required|string|min:140',
@@ -236,6 +240,10 @@ class RezensionController extends Controller
         $role = $this->getRoleInMemberTeam();
 
         if ($review->user_id === $user->id || in_array($role, ['Vorstand', 'Admin'], true)) {
+            $request->merge([
+                'content' => preg_replace('/^\\s*#+\\s*/m', '', (string) $request->input('content')),
+            ]);
+
             $data = $request->validate([
                 'title' => 'required|string|max:255',
                 'content' => 'required|string|min:140',

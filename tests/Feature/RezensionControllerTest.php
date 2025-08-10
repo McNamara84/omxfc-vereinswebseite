@@ -51,6 +51,50 @@ class RezensionControllerTest extends TestCase
         Mail::assertSent(NewReviewNotification::class);
     }
 
+    public function test_store_strips_heading_markers_before_validation(): void
+    {
+        $book = Book::create([
+            'roman_number' => 1,
+            'title' => 'Roman1',
+            'author' => 'Author',
+        ]);
+
+        $user = $this->actingMember();
+        $this->actingAs($user);
+
+        $response = $this->post(route('reviews.store', $book), [
+            'title' => 'Tolle Rezension',
+            'content' => '# ' . str_repeat('A', 140),
+        ]);
+
+        $response->assertRedirect(route('reviews.show', $book, false));
+        $this->assertDatabaseHas('reviews', [
+            'book_id' => $book->id,
+            'content' => str_repeat('A', 140),
+        ]);
+    }
+
+    public function test_store_rejects_content_too_short_after_stripping_heading_markers(): void
+    {
+        $book = Book::create([
+            'roman_number' => 1,
+            'title' => 'Roman1',
+            'author' => 'Author',
+        ]);
+
+        $user = $this->actingMember();
+        $this->actingAs($user);
+
+        $response = $this->from(route('reviews.create', $book))
+            ->post(route('reviews.store', $book), [
+                'title' => 'Tolle Rezension',
+                'content' => '# ' . str_repeat('A', 139),
+            ]);
+
+        $response->assertRedirect(route('reviews.create', $book, false));
+        $response->assertSessionHasErrors('content');
+    }
+
     public function test_index_requires_valid_role(): void
     {
         $user = $this->actingMember('Gast');
@@ -268,6 +312,64 @@ class RezensionControllerTest extends TestCase
             'title' => 'New',
             'content' => str_repeat('F', 140),
         ])->assertStatus(403);
+    }
+
+    public function test_update_strips_heading_markers_before_validation(): void
+    {
+        $user = $this->actingMember();
+        $this->actingAs($user);
+
+        $book = Book::create([
+            'roman_number' => 1,
+            'title' => 'Roman1',
+            'author' => 'Author',
+        ]);
+        $review = Review::create([
+            'team_id' => $user->currentTeam->id,
+            'user_id' => $user->id,
+            'book_id' => $book->id,
+            'title' => 'R',
+            'content' => str_repeat('E', 140),
+        ]);
+
+        $response = $this->put(route('reviews.update', $review), [
+            'title' => 'R',
+            'content' => '# ' . str_repeat('A', 140),
+        ]);
+
+        $response->assertRedirect(route('reviews.show', $book, false));
+        $this->assertDatabaseHas('reviews', [
+            'id' => $review->id,
+            'content' => str_repeat('A', 140),
+        ]);
+    }
+
+    public function test_update_rejects_content_too_short_after_stripping_heading_markers(): void
+    {
+        $user = $this->actingMember();
+        $this->actingAs($user);
+
+        $book = Book::create([
+            'roman_number' => 1,
+            'title' => 'Roman1',
+            'author' => 'Author',
+        ]);
+        $review = Review::create([
+            'team_id' => $user->currentTeam->id,
+            'user_id' => $user->id,
+            'book_id' => $book->id,
+            'title' => 'R',
+            'content' => str_repeat('E', 140),
+        ]);
+
+        $response = $this->from(route('reviews.edit', $review))
+            ->put(route('reviews.update', $review), [
+                'title' => 'R',
+                'content' => '# ' . str_repeat('A', 139),
+            ]);
+
+        $response->assertRedirect(route('reviews.edit', $review, false));
+        $response->assertSessionHasErrors('content');
     }
 
     public function test_destroy_forbidden_for_non_author(): void
