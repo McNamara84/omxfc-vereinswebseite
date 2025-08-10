@@ -7,7 +7,7 @@
                     <div class="absolute left-8 bottom-0 transform translate-y-1/2">
                         <div
                             class="h-36 w-36 border-4 border-white dark:border-gray-800 rounded-full overflow-hidden shadow-xl">
-                            <img class="h-full w-full object-cover" src="{{ $user->profile_photo_url }}"
+                            <img loading="lazy" class="h-full w-full object-cover" src="{{ $user->profile_photo_url }}"
                                 alt="{{ $user->name }}">
                         </div>
                     </div>
@@ -53,7 +53,7 @@
                                             <div class="flex flex-col items-center">
                                                 <div class="h-20 w-20 mb-2 cursor-pointer hover:opacity-90 transition-opacity"
                                                     onclick="openBadgeModal('{{ $badge['name'] }}', '{{ $badge['description'] }}', '{{ $badge['image'] }}')">
-                                                    <img src="{{ $badge['image'] }}" alt="{{ $badge['name'] }}" class="w-full">
+                                                    <img loading="lazy" src="{{ $badge['image'] }}" alt="{{ $badge['name'] }}" class="w-full">
                                                 </div>
                                                 <h3 class="text-sm font-medium text-gray-800 dark:text-white text-center">
                                                     {{ $badge['name'] }}
@@ -258,7 +258,7 @@
                 <div class="p-6">
                     <div class="flex justify-center mb-6">
                         <div class="w-128 h-128">
-                            <img id="badgeModalImage" src="" alt="Badge" class="w-full h-full object-contain">
+                            <img loading="lazy" id="badgeModalImage" src="" alt="Badge" class="w-full h-full object-contain">
                         </div>
                     </div>
                     <p id="badgeModalDescription" class="text-base text-gray-700 dark:text-gray-300 text-center"></p>

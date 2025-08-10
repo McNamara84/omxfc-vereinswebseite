@@ -233,7 +233,7 @@
     <td class="px-4 py-3">
     <a href="{{ route('profile.view', $member->id) }}" class="flex items-center">
     <div class="h-10 w-10 flex-shrink-0">
-    <img class="h-10 w-10 rounded-full" src="{{ $member->profile_photo_url }}" alt="{{ $member->name }}">
+    <img loading="lazy" class="h-10 w-10 rounded-full" src="{{ $member->profile_photo_url }}" alt="{{ $member->name }}">
     </div>
     <div class="ml-4">
     <div class="font-medium text-gray-900 dark:text-gray-100 flex items-center">
@@ -402,7 +402,7 @@
     <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg shadow">
     <a href="{{ route('profile.view', $member->id) }}" class="flex items-center mb-4">
     <div class="h-12 w-12 flex-shrink-0">
-    <img class="h-12 w-12 rounded-full" src="{{ $member->profile_photo_url }}" alt="{{ $member->name }}">
+    <img loading="lazy" class="h-12 w-12 rounded-full" src="{{ $member->profile_photo_url }}" alt="{{ $member->name }}">
     </div>
     <div class="ml-4">
     <div class="font-medium text-gray-900 dark:text-gray-100 flex items-center">

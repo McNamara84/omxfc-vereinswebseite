@@ -37,7 +37,7 @@
                     <!-- Hauptbild-Container -->
                     <div class="main-image-container h-64 sm:h-80 md:h-96 lg:h-[500px] flex items-center justify-center mb-4 bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden">
                         @if(isset($photos[$year]) && count($photos[$year]) > 0)
-                            <img src="{{ $photos[$year][0] }}" alt="Foto {{ $year }}" class="main-image object-contain max-h-full max-w-full">
+                            <img loading="lazy" src="{{ $photos[$year][0] }}" alt="Foto {{ $year }}" class="main-image object-contain max-h-full max-w-full">
                         @else
                             <div class="text-gray-500 dark:text-gray-400">Keine Fotos für {{ $year }} verfügbar</div>
                         @endif
@@ -54,7 +54,7 @@
                 <div class="thumbnails-container flex overflow-x-auto gap-2 pb-2 mt-4">
                     @if(isset($photos[$year]))
                         @foreach($photos[$year] as $index => $photoUrl)
-                            <img 
+                            <img loading="lazy" 
                                 src="{{ $photoUrl }}" 
                                 alt="Thumbnail {{ $index + 1 }}" 
                                 class="thumbnail h-20 w-auto object-cover cursor-pointer rounded {{ $index === 0 ? 'ring-2 ring-[#8B0116] dark:ring-[#ff4b63]' : '' }}"
