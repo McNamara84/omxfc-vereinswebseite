@@ -80,9 +80,9 @@
                                     Neues Gesuch: {{ $activity->subject->book_title }}
                                 </a>
                             @elseif($activity->subject_type === \App\Models\ReviewComment::class)
-                                <a href="{{ route('reviews.show', $activity->subject->review->book_id) }}" class="text-sm text-blue-600 dark:text-blue-400 hover:underline">
-                                    Kommentar zu {{ $activity->subject->review->title }} von <a href="{{ route('profile.view', $activity->user->id) }}" class="text-[#8B0116] hover:underline">{{ $activity->user->name }}</a>
-                                </a>
+                                <span class="text-sm">
+                                    Kommentar zu <a href="{{ route('reviews.show', $activity->subject->review->book_id) }}" class="text-blue-600 dark:text-blue-400 hover:underline">{{ $activity->subject->review->title }}</a> von <a href="{{ route('profile.view', $activity->user->id) }}" class="text-[#8B0116] hover:underline">{{ $activity->user->name }}</a>
+                                </span>
                             @elseif($activity->subject_type === \App\Models\Todo::class && $activity->action === 'accepted')
                                 <span class="text-sm">hat die Challenge {{ $activity->subject->title }} angenommen</span>
                             @elseif($activity->subject_type === \App\Models\Todo::class && $activity->action === 'completed')
