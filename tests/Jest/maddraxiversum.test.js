@@ -54,7 +54,7 @@ describe('maddraxiversum', () => {
     `;
     global.tileUrl = 'http://tiles.example';
 
-    mod = await import('../maddraxiversum.js');
+    mod = await import('../../resources/js/maddraxiversum.js');
   });
 
   test('calculateBearing returns correct bearings', () => {

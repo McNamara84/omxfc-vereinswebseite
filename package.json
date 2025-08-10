@@ -3,7 +3,8 @@
     "type": "module",
     "scripts": {
         "build": "vite build",
-        "dev": "vite"
+        "dev": "vite",
+        "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
     },
     "devDependencies": {
         "@tailwindcss/forms": "^0.5.7",

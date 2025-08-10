@@ -107,7 +107,7 @@ const missionDuration = document.getElementById('mission-duration');
 const startMissionButton = document.getElementById('start-mission');
 const closeModalButton = document.getElementById('close-mission-modal');
 
-function openMissionModal(mission) {
+export function openMissionModal(mission) {
     missionTitle.textContent = mission.name;
     missionDescription.textContent = mission.description;
     missionDuration.textContent = `Dauer: ${mission.mission_duration} min`;
@@ -119,7 +119,7 @@ closeModalButton.addEventListener('click', () => {
     modal.classList.replace('flex', 'hidden');
 });
 
-function calculateBearing(from, to) {
+export function calculateBearing(from, to) {
     const startLat = from[0] * Math.PI / 180;
     const startLng = from[1] * Math.PI / 180;
     const destLat = to[0] * Math.PI / 180;
@@ -135,7 +135,7 @@ function calculateBearing(from, to) {
     return bearing;
 }
 
-function animateGlider(from, to, durationSeconds) {
+export function animateGlider(from, to, durationSeconds) {
     return new Promise((resolve) => {
         // Berechne den initialen Kurs
         const bearing = calculateBearing(from, to);
