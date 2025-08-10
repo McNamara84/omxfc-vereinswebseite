@@ -24,6 +24,8 @@ class CrawlHardcovers extends Command
 
     private const CATEGORY_URL = self::BASE_URL.'index.php?title=Kategorie:Maddrax-Hardcover';
 
+    private const NBSP = "\u{A0}";
+
     public function handle(): int
     {
         set_time_limit(1800);
@@ -133,7 +135,7 @@ class CrawlHardcovers extends Command
         $numberNode = $xpath->query('//b[number(text()) >= 1 and number(text()) <= 999]');
         $number = $numberNode->length > 0 ? $numberNode->item(0)->nodeValue : null;
 
-        $evtNode = $xpath->query("//td[contains(text(), 'Erstmals\xC2\xA0erschienen:')]/following-sibling::td[1]");
+        $evtNode = $xpath->query("//td[contains(text(), 'Erstmals".self::NBSP."erschienen:')]/following-sibling::td[1]");
         $evt = $evtNode->length > 0 ? trim($evtNode->item(0)->textContent) : null;
 
         $zyklusNode = $xpath->query("//td[contains(text(), 'Zyklus:')]/following-sibling::td[1]");
@@ -178,11 +180,11 @@ class CrawlHardcovers extends Command
         $handlungsortNode = $xpath->query("//td[contains(text(), 'Handlungsort:')]/following-sibling::td[1]");
         $handlungsort = $handlungsortNode->length > 0 ? explode(', ', trim($handlungsortNode->item(0)->textContent)) : null;
 
-        if ($number !== null && $rating !== null) {
-            return [$number, $evt, $zyklus, $rating, $votes, $title, $text, $personen, $schlagworte, $handlungsort];
+        if ($number === null) {
+            return null;
         }
 
-        return null;
+        return [$number, $evt, $zyklus, $rating, $votes, $title, $text, $personen, $schlagworte, $handlungsort];
     }
 
     private function writeHardcovers(array $data): bool
@@ -199,7 +201,7 @@ class CrawlHardcovers extends Command
             $obj->zyklus = $row[2];
             $obj->titel = $row[5];
             $obj->text = $row[6];
-            $obj->bewertung = empty($row[3]) ? 0.0 : (float) $row[3];
+            $obj->bewertung = $row[3] === null ? null : (float) $row[3];
             $obj->stimmen = (int) $row[4];
             $obj->personen = $row[7];
             $obj->schlagworte = $row[8];

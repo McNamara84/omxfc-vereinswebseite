@@ -133,7 +133,7 @@ class CrawlHardcoversCommandTest extends TestCase
         $data = [
             [1, '2024-07-01', null, '4.0', '1', 'Future', null, null, null, null],
             [2, '2024-05-01', null, '3.0', '2', 'Past', null, null, null, null],
-            [3, '2024-06-01', null, 0, '0', 'TodayUnrated', null, null, null, null],
+            [3, '2024-06-01', null, null, '0', 'TodayUnrated', null, null, null, null],
         ];
         $result = $method->invoke($command, $data);
 
@@ -142,6 +142,35 @@ class CrawlHardcoversCommandTest extends TestCase
         $json = json_decode(File::get($file), true);
         $numbers = array_column($json, 'nummer');
         $this->assertSame([2, 3], $numbers); // future release skipped, sorted
+        $today = collect($json)->firstWhere('nummer', 3);
+        $this->assertNull($today['bewertung']);
         Carbon::setTestNow();
+    }
+
+    public function test_get_hardcover_info_returns_entry_when_unrated(): void
+    {
+        $html = '<b>5</b><table><tr><td>Erstmals&nbsp;erschienen:</td><td>2024-01</td></tr></table>';
+        $file = storage_path('app/private/unrated.html');
+        File::put($file, $html);
+
+        $command = new CrawlHardcovers;
+        $ref = new ReflectionClass($command);
+        $method = $ref->getMethod('getHardcoverInfo');
+        $method->setAccessible(true);
+
+        $info = $method->invoke($command, 'file://'.$file);
+
+        $this->assertSame([
+            '5',
+            '2024-01',
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+        ], $info);
     }
 }
