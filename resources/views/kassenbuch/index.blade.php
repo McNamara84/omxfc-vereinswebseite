@@ -209,7 +209,7 @@
                                             @endif
                                         </td>
                                         <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                                            {{ $entry->creator->name }}
+                                            <a href="{{ route('profile.view', $entry->creator->id) }}" class="text-[#8B0116] hover:underline">{{ $entry->creator->name }}</a>
                                         </td>
                                     </tr>
                                     @endforeach

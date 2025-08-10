@@ -33,7 +33,7 @@
                             <li class="bg-gray-100 dark:bg-gray-700 p-3 rounded">
                                 <div class="font-semibold mb-1">{{ $swap->offer->book_number }} - {{ $swap->offer->book_title }}</div>
                                 <div class="text-sm text-gray-600 dark:text-gray-300 mb-2">
-                                    {{ $swap->offer->user->name }} ({{ $swap->offer->user->email }}) ↔ {{ $swap->request->user->name }} ({{ $swap->request->user->email }})
+                                    <a href="{{ route('profile.view', $swap->offer->user->id) }}" class="text-[#8B0116] hover:underline">{{ $swap->offer->user->name }}</a> ({{ $swap->offer->user->email }}) ↔ <a href="{{ route('profile.view', $swap->request->user->id) }}" class="text-[#8B0116] hover:underline">{{ $swap->request->user->name }}</a> ({{ $swap->request->user->email }})
                                 </div>
                                 @php $user = auth()->user(); @endphp
                                 @if(($user->is($swap->offer->user) && !$swap->offer_confirmed) || ($user->is($swap->request->user) && !$swap->request_confirmed))
@@ -59,7 +59,7 @@
                         @foreach($offers as $offer)
                             <li class="bg-gray-100 dark:bg-gray-700 p-3 rounded flex justify-between items-center">
                                 <span>{{ $offer->book_number }} - {{ $offer->book_title }} ({{ $offer->condition }})</span>
-                                <span class="text-sm text-gray-600 dark:text-gray-300">von {{ $offer->user->name }}</span>
+                                <span class="text-sm text-gray-600 dark:text-gray-300">von <a href="{{ route('profile.view', $offer->user->id) }}" class="text-[#8B0116] hover:underline">{{ $offer->user->name }}</a></span>
                             </li>
                         @endforeach
                     </ul>
@@ -75,7 +75,7 @@
                         @foreach($requests as $request)
                             <li class="bg-gray-100 dark:bg-gray-700 p-3 rounded flex justify-between items-center">
                                 <span>{{ $request->book_number }} - {{ $request->book_title }} ({{ $request->condition }} oder besser)</span>
-                                <span class="text-sm text-gray-600 dark:text-gray-300">von {{ $request->user->name }}</span>
+                                <span class="text-sm text-gray-600 dark:text-gray-300">von <a href="{{ route('profile.view', $request->user->id) }}" class="text-[#8B0116] hover:underline">{{ $request->user->name }}</a></span>
                             </li>
                         @endforeach
                     </ul>
@@ -91,7 +91,7 @@
                         @foreach($completedSwaps as $swap)
                             <li class="bg-gray-100 dark:bg-gray-700 p-3 rounded">
                                 <span class="font-semibold">{{ $swap->offer->book_number }} - {{ $swap->offer->book_title }}</span><br>
-                                Getauscht zwischen {{ $swap->offer->user->name }} und {{ $swap->request->user->name }} am {{ $swap->completed_at->format('d.m.Y') }}
+                                Getauscht zwischen <a href="{{ route('profile.view', $swap->offer->user->id) }}" class="text-[#8B0116] hover:underline">{{ $swap->offer->user->name }}</a> und <a href="{{ route('profile.view', $swap->request->user->id) }}" class="text-[#8B0116] hover:underline">{{ $swap->request->user->name }}</a> am {{ $swap->completed_at->format('d.m.Y') }}
                             </li>
                         @endforeach
                     </ul>

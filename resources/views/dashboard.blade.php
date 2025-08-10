@@ -65,7 +65,7 @@
                     @forelse($activities as $activity)
                         <li class="py-2 flex justify-between">
                             <span class="text-sm text-gray-600 dark:text-gray-400">
-                                {{ $activity->created_at->format('d.m.Y H:i') }} - {{ $activity->user->name }}
+                                {{ $activity->created_at->format('d.m.Y H:i') }} - <a href="{{ route('profile.view', $activity->user->id) }}" class="text-[#8B0116] hover:underline">{{ $activity->user->name }}</a>
                             </span>
                             @if($activity->subject_type === \App\Models\Review::class)
                                 <a href="{{ route('reviews.show', $activity->subject->book_id) }}" class="text-sm text-blue-600 dark:text-blue-400 hover:underline">
@@ -81,7 +81,7 @@
                                 </a>
                             @elseif($activity->subject_type === \App\Models\ReviewComment::class)
                                 <a href="{{ route('reviews.show', $activity->subject->review->book_id) }}" class="text-sm text-blue-600 dark:text-blue-400 hover:underline">
-                                    Kommentar zu {{ $activity->subject->review->title }} von {{ $activity->user->name }}
+                                    Kommentar zu {{ $activity->subject->review->title }} von <a href="{{ route('profile.view', $activity->user->id) }}" class="text-[#8B0116] hover:underline">{{ $activity->user->name }}</a>
                                 </a>
                             @elseif($activity->subject_type === \App\Models\Todo::class && $activity->action === 'accepted')
                                 <span class="text-sm">hat die Challenge {{ $activity->subject->title }} angenommen</span>
@@ -171,7 +171,7 @@
                             <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
                                 @foreach($anwaerter as $person)
                                     <tr>
-                                        <td class="px-4 py-2 text-gray-800 dark:text-gray-200">{{ $person->name }}</td>
+                                        <td class="px-4 py-2 text-gray-800 dark:text-gray-200"><a href="{{ route('profile.view', $person->id) }}" class="text-[#8B0116] hover:underline">{{ $person->name }}</a></td>
                                         <td class="px-4 py-2 text-gray-800 dark:text-gray-200">{{ $person->email }}</td>
                                         <td class="px-4 py-2 text-gray-800 dark:text-gray-200">
                                             {{ $person->mitgliedsbeitrag }}</td>
@@ -203,7 +203,7 @@
                             <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg shadow">
                                 <div class="mb-2">
                                     <span class="font-semibold text-gray-700 dark:text-gray-300">Name:</span>
-                                    <span class="block mt-1 text-gray-800 dark:text-gray-200">{{ $person->name }}</span>
+                                    <span class="block mt-1 text-gray-800 dark:text-gray-200"><a href="{{ route('profile.view', $person->id) }}" class="text-[#8B0116] hover:underline">{{ $person->name }}</a></span>
                                 </div>
                                 <div class="mb-2">
                                     <span class="font-semibold text-gray-700 dark:text-gray-300">E-Mail:</span>

@@ -3,7 +3,7 @@
 @endphp
 <div class="mt-4 bg-gray-50 dark:bg-gray-700 p-4 rounded">
     <p class="text-sm text-gray-500 dark:text-gray-300">
-        {{ $comment->user->name }} am {{ $comment->created_at->format('d.m.Y H:i') }}
+        <a href="{{ route('profile.view', $comment->user->id) }}" class="text-[#8B0116] hover:underline">{{ $comment->user->name }}</a> am {{ $comment->created_at->format('d.m.Y H:i') }}
     </p>
     @isset($parentAuthor)
         <p class="text-xs text-gray-500 dark:text-gray-400 md:hidden">

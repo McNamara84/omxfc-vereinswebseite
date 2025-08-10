@@ -172,7 +172,7 @@
                                     <tr>
                                         <td class="px-4 py-2 text-gray-700 dark:text-gray-300">{{ $todo->title }}</td>
                                         <td class="px-4 py-2 text-gray-700 dark:text-gray-300">{{ $todo->category ? $todo->category->name : '-' }}</td>
-                                        <td class="px-4 py-2 text-gray-700 dark:text-gray-300">{{ $todo->creator->name }}</td>
+                                        <td class="px-4 py-2 text-gray-700 dark:text-gray-300"><a href="{{ route('profile.view', $todo->creator->id) }}" class="text-[#8B0116] hover:underline">{{ $todo->creator->name }}</a></td>
                                         <td class="px-4 py-2 text-gray-700 dark:text-gray-300">{{ $todo->points }}</td>
                                         <td class="px-4 py-2 text-center">
                                             <a href="{{ route('todos.show', $todo) }}"
@@ -208,7 +208,7 @@
                                 </div>
                                 <div class="mb-2">
                                     <span class="text-sm text-gray-600 dark:text-gray-400">Erstellt von:</span>
-                                    <div class="mt-1 text-gray-800 dark:text-gray-200">{{ $todo->creator->name }}</div>
+                                    <div class="mt-1 text-gray-800 dark:text-gray-200"><a href="{{ route('profile.view', $todo->creator->id) }}" class="text-[#8B0116] hover:underline">{{ $todo->creator->name }}</a></div>
                                 </div>
                                 <div class="mb-3">
                                     <span class="text-sm text-gray-600 dark:text-gray-400">Baxx:</span>
@@ -256,7 +256,7 @@
                                 @foreach($completedTodos->where('status', 'completed') as $todo)
                                     <tr>
                                         <td class="px-4 py-2 text-gray-700 dark:text-gray-300">{{ $todo->title }}</td>
-                                        <td class="px-4 py-2 text-gray-700 dark:text-gray-300">{{ $todo->assignee->name }}</td>
+                                        <td class="px-4 py-2 text-gray-700 dark:text-gray-300"><a href="{{ route('profile.view', $todo->assignee->id) }}" class="text-[#8B0116] hover:underline">{{ $todo->assignee->name }}</a></td>
                                         <td class="px-4 py-2 text-gray-700 dark:text-gray-300">
                                             {{ $todo->completed_at->format('d.m.Y H:i') }}</td>
                                         <td class="px-4 py-2 text-gray-700 dark:text-gray-300">{{ $todo->points }}</td>
@@ -291,7 +291,7 @@
                                 </div>
                                 <div class="mb-2">
                                     <span class="text-sm text-gray-600 dark:text-gray-400">Bearbeitet von:</span>
-                                    <div class="mt-1 text-gray-800 dark:text-gray-200">{{ $todo->assignee->name }}</div>
+                                    <div class="mt-1 text-gray-800 dark:text-gray-200"><a href="{{ route('profile.view', $todo->assignee->id) }}" class="text-[#8B0116] hover:underline">{{ $todo->assignee->name }}</a></div>
                                 </div>
                                 <div class="mb-2">
                                     <span class="text-sm text-gray-600 dark:text-gray-400">Erledigt am:</span>
@@ -348,7 +348,7 @@
                                     <tr>
                                         <td class="px-4 py-2 text-gray-700 dark:text-gray-300">{{ $todo->title }}</td>
                                         <td class="px-4 py-2 text-gray-700 dark:text-gray-300">{{ $todo->category ? $todo->category->name : '-' }}</td>
-                                        <td class="px-4 py-2 text-gray-700 dark:text-gray-300">{{ $todo->assignee->name }}</td>
+                                        <td class="px-4 py-2 text-gray-700 dark:text-gray-300"><a href="{{ route('profile.view', $todo->assignee->id) }}" class="text-[#8B0116] hover:underline">{{ $todo->assignee->name }}</a></td>
                                         <td class="px-4 py-2 text-gray-700 dark:text-gray-300">{{ $todo->points }}</td>
                                         <td class="px-4 py-2 text-center">
                                             <a href="{{ route('todos.show', $todo) }}"
@@ -377,7 +377,7 @@
                                 </div>
                                 <div class="mb-2">
                                     <span class="text-sm text-gray-600 dark:text-gray-400">Bearbeitet von:</span>
-                                    <div class="mt-1 text-gray-800 dark:text-gray-200">{{ $todo->assignee->name }}</div>
+                                    <div class="mt-1 text-gray-800 dark:text-gray-200"><a href="{{ route('profile.view', $todo->assignee->id) }}" class="text-[#8B0116] hover:underline">{{ $todo->assignee->name }}</a></div>
                                 </div>
                                 <div class="mb-3">
                                     <span class="text-sm text-gray-600 dark:text-gray-400">Baxx:</span>
