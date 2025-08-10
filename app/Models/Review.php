@@ -69,19 +69,16 @@ class Review extends Model
 
         $dom = new \DOMDocument();
         libxml_use_internal_errors(true);
-        $dom->loadHTML(mb_convert_encoding($html, 'HTML-ENTITIES', 'UTF-8'));
+        $dom->loadHTML(
+            mb_convert_encoding($html, 'HTML-ENTITIES', 'UTF-8'),
+            LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD
+        );
         foreach ($dom->getElementsByTagName('a') as $a) {
             $a->setAttribute('rel', 'noopener noreferrer');
         }
         libxml_clear_errors();
 
-        $body = $dom->getElementsByTagName('body')->item(0);
-        $result = '';
-        foreach ($body->childNodes as $child) {
-            $result .= $dom->saveHTML($child);
-        }
-
-        return $result;
+        return $dom->saveHTML();
     }
 }
 
