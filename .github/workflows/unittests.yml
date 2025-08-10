@@ -98,11 +98,12 @@ jobs:
       run: php artisan test tests/Feature --coverage-clover=coverage.xml
 
     - name: Run Jest tests with coverage
-      run: npm test -- --coverage --coverageReporters=lcov,json-summary
+      run: npm test -- --coverage --coverageReporters=json-summary
 
     - name: Create JS coverage badge
       if: matrix.php-version == '8.3' && github.ref == 'refs/heads/main'
       run: |
+        mkdir -p output
         npx make-coverage-badge
         mv coverage.svg output/js-coverage.svg
         sed -i 's/Coverage/JS Coverage/' output/js-coverage.svg
