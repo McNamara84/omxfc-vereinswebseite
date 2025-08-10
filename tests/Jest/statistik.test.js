@@ -53,7 +53,7 @@ describe('statistik module', () => {
 
     expect(mockDataTable).toHaveBeenCalledTimes(1);
     expect(mockDataTable.mock.calls[0][0].id).toBe('romaneTable');
-    const instance = mockDataTable.mock.results[0].value;
+    const instance = mockDataTable.mock.instances[0];
     expect(instance.sortColumn).toHaveBeenCalledWith(3, 'desc');
   });
 });
