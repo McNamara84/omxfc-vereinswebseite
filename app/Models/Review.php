@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use App\Models\ReviewComment;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 
 /**
  * @property int $id
@@ -60,4 +61,27 @@ class Review extends Model
     {
         return $this->hasMany(ReviewComment::class);
     }
+
+    public function getFormattedContentAttribute(): string
+    {
+        $html = Str::markdown($this->content);
+        $html = strip_tags($html, '<p><strong><em><a>');
+
+        $dom = new \DOMDocument();
+        libxml_use_internal_errors(true);
+        $dom->loadHTML(mb_convert_encoding($html, 'HTML-ENTITIES', 'UTF-8'));
+        foreach ($dom->getElementsByTagName('a') as $a) {
+            $a->setAttribute('rel', 'noopener noreferrer');
+        }
+        libxml_clear_errors();
+
+        $body = $dom->getElementsByTagName('body')->item(0);
+        $result = '';
+        foreach ($body->childNodes as $child) {
+            $result .= $dom->saveHTML($child);
+        }
+
+        return $result;
+    }
 }
+
