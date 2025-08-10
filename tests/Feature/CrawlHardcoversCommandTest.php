@@ -135,11 +135,10 @@ class CrawlHardcoversCommandTest extends TestCase
             [2, '2024-05-01', null, '3.0', '2', 'Past', null, null, null, null],
             [3, '2024-06-01', null, 0, '0', 'TodayUnrated', null, null, null, null],
         ];
-        $file = storage_path('app/private/hardcovers.json');
-
-        $result = $method->invoke($command, $data, $file);
+        $result = $method->invoke($command, $data);
 
         $this->assertTrue($result);
+        $file = storage_path('app/private/hardcovers.json');
         $json = json_decode(File::get($file), true);
         $numbers = array_column($json, 'nummer');
         $this->assertSame([2, 3], $numbers); // future release skipped, sorted

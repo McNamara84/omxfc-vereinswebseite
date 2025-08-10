@@ -49,8 +49,7 @@ class CrawlHardcovers extends Command
         $bar->finish();
         $this->newLine();
 
-        $path = Storage::disk('private')->path('hardcovers.json');
-        if ($this->writeHardcovers($data, $path)) {
+        if ($this->writeHardcovers($data)) {
             $this->info('hardcovers.json updated.');
 
             return self::SUCCESS;
@@ -85,7 +84,16 @@ class CrawlHardcovers extends Command
             return [];
         }
         $dom = new DOMDocument;
-        @$dom->loadHTML($html);
+        libxml_use_internal_errors(true);
+        if ($dom->loadHTML($html) === false) {
+            $this->error('Failed to parse HTML from '.$categoryUrl);
+            libxml_clear_errors();
+            libxml_use_internal_errors(false);
+
+            return [];
+        }
+        libxml_clear_errors();
+        libxml_use_internal_errors(false);
         $xpath = new DOMXPath($dom);
         $articles = $xpath->query("//div[@id='mw-pages']//a");
         $urls = [];
@@ -110,7 +118,16 @@ class CrawlHardcovers extends Command
             return null;
         }
         $dom = new DOMDocument;
-        @$dom->loadHTML($html);
+        libxml_use_internal_errors(true);
+        if ($dom->loadHTML($html) === false) {
+            $this->error('Failed to parse HTML from '.$url);
+            libxml_clear_errors();
+            libxml_use_internal_errors(false);
+
+            return null;
+        }
+        libxml_clear_errors();
+        libxml_use_internal_errors(false);
         $xpath = new DOMXPath($dom);
 
         $numberNode = $xpath->query('//b[number(text()) >= 1 and number(text()) <= 999]');
@@ -168,7 +185,7 @@ class CrawlHardcovers extends Command
         return null;
     }
 
-    private function writeHardcovers(array $data, string $filename): bool
+    private function writeHardcovers(array $data): bool
     {
         $jsonData = [];
         foreach ($data as $row) {
@@ -192,6 +209,12 @@ class CrawlHardcovers extends Command
         usort($jsonData, fn ($a, $b) => $a->nummer <=> $b->nummer);
         $json = json_encode($jsonData, JSON_PRETTY_PRINT);
 
-        return file_put_contents($filename, $json) !== false;
+        try {
+            return Storage::disk('private')->put('hardcovers.json', $json);
+        } catch (\Throwable $e) {
+            $this->error('Failed to write hardcovers.json: '.$e->getMessage());
+
+            return false;
+        }
     }
 }
