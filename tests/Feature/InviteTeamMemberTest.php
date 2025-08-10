@@ -31,7 +31,7 @@ class InviteTeamMemberTest extends TestCase
                 'role' => 'Admin',
             ])->call('addTeamMember');
 
-        Mail::assertSent(TeamInvitation::class);
+        Mail::assertQueued(TeamInvitation::class);
 
         $this->assertCount(1, $user->currentTeam->fresh()->teamInvitations);
     }

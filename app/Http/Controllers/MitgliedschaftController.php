@@ -57,7 +57,7 @@ class MitgliedschaftController extends Controller
         $team->users()->attach($user, ['role' => 'Anwärter']);
 
         // Mailversand
-        Mail::to($user->email)->send(new MitgliedAntragEingereicht($user));
+        Mail::to($user->email)->queue(new MitgliedAntragEingereicht($user));
 
         return response()->json([
             'success' => true,

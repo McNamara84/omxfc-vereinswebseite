@@ -45,7 +45,7 @@ class DashboardControllerTest extends TestCase
             'role' => 'Mitglied',
         ]);
         $this->assertNotNull($applicant->fresh()->mitglied_seit);
-        Mail::assertSent(MitgliedGenehmigtMail::class);
+        Mail::assertQueued(MitgliedGenehmigtMail::class);
     }
 
     public function test_admin_can_reject_applicant(): void

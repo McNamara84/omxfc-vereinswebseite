@@ -49,7 +49,7 @@ class BookSwapProcessTest extends TestCase
         $swap = BookSwap::first();
         $this->assertEquals($request->id, $swap->request_id);
 
-        Mail::assertSent(BookSwapMatched::class);
+        Mail::assertQueued(BookSwapMatched::class);
     }
 
     public function test_confirmations_complete_swap_and_award_points(): void

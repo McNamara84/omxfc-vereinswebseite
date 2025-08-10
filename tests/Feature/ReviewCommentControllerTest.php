@@ -54,7 +54,7 @@ class ReviewCommentControllerTest extends TestCase
             'user_id' => $commenter->id,
             'content' => 'Nice review',
         ]);
-        Mail::assertSent(ReviewCommentNotification::class);
+        Mail::assertQueued(ReviewCommentNotification::class);
     }
 
     public function test_member_without_own_review_cannot_comment(): void

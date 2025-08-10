@@ -30,8 +30,8 @@ class CustomEmailVerificationControllerTest extends TestCase
 
         $response->assertRedirect(route('mitglied.werden.bestaetigt', absolute: false));
         $this->assertTrue($user->fresh()->hasVerifiedEmail());
-        Mail::assertSent(AntragAnVorstand::class, fn ($mail) => $mail->hasTo('vorstand@maddrax-fanclub.de'));
-        Mail::assertSent(AntragAnAdmin::class, fn ($mail) => $mail->hasTo('holgerehrmann@gmail.com'));
+        Mail::assertQueued(AntragAnVorstand::class, fn ($mail) => $mail->hasTo('vorstand@maddrax-fanclub.de'));
+        Mail::assertQueued(AntragAnAdmin::class, fn ($mail) => $mail->hasTo('holgerehrmann@gmail.com'));
     }
 
     public function test_verification_fails_with_invalid_hash(): void

@@ -189,7 +189,7 @@ class DashboardController extends Controller
         // Mitgliedsdatum setzen
         $user->mitglied_seit = now()->toDateString();
         $user->save();
-        Mail::to($user->email)->send(new MitgliedGenehmigtMail($user));
+        Mail::to($user->email)->queue(new MitgliedGenehmigtMail($user));
 
         return back()->with('status', 'Antrag genehmigt.');
     }
