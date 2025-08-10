@@ -65,6 +65,13 @@ describe('maddraxiversum', () => {
     expect(calculateBearing([0, 0], [0, -1])).toBeCloseTo(270);
   });
 
+  test('calculateBearing handles identical points and dateline crossings', () => {
+    const { calculateBearing } = mod;
+    expect(calculateBearing([0, 0], [0, 0])).toBeCloseTo(0);
+    expect(calculateBearing([10, 170], [10, -170])).toBeCloseTo(88.246, 3);
+    expect(calculateBearing([-10, -170], [-10, 170])).toBeCloseTo(268.246, 3);
+  });
+
   test('openMissionModal populates and shows modal', () => {
     const { openMissionModal } = mod;
     const mission = { name: 'Test', description: 'Desc', mission_duration: 10 };
@@ -77,6 +84,16 @@ describe('maddraxiversum', () => {
     const modalEl = document.getElementById('mission-modal');
     expect(modalEl.classList.contains('flex')).toBe(true);
     expect(modalEl.classList.contains('hidden')).toBe(false);
+  });
+
+  test('close button hides mission modal', () => {
+    const { openMissionModal } = mod;
+    const mission = { name: 'Test', description: 'Desc', mission_duration: 10 };
+    openMissionModal(mission);
+    const modalEl = document.getElementById('mission-modal');
+    document.getElementById('close-mission-modal').click();
+    expect(modalEl.classList.contains('hidden')).toBe(true);
+    expect(modalEl.classList.contains('flex')).toBe(false);
   });
 
   test('animateGlider moves marker along path and cleans up', async () => {
