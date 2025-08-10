@@ -100,7 +100,7 @@
                                     <td class="px-4 py-3 whitespace-nowrap">
                                         <a href="{{ route('profile.view', $member->id) }}" class="flex items-center">
                                             <div class="h-8 w-8 flex-shrink-0">
-                                                <img class="h-8 w-8 rounded-full" src="{{ $member->profile_photo_url }}" alt="{{ $member->name }}">
+                                                <img loading="lazy" class="h-8 w-8 rounded-full" src="{{ $member->profile_photo_url }}" alt="{{ $member->name }}">
                                             </div>
                                             <div class="ml-3">
                                                 <div class="text-sm font-medium text-gray-900 dark:text-white">{{ $member->name }}</div>

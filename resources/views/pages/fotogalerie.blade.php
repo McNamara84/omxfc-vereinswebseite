@@ -54,9 +54,9 @@
                 <div class="thumbnails-container flex overflow-x-auto gap-2 pb-2 mt-4">
                     @if(isset($photos[$year]))
                         @foreach($photos[$year] as $index => $photoUrl)
-                            <img 
-                                src="{{ $photoUrl }}" 
-                                alt="Thumbnail {{ $index + 1 }}" 
+                            <img @if($index > 0) loading="lazy" @endif
+                                src="{{ $photoUrl }}"
+                                alt="Thumbnail {{ $index + 1 }}"
                                 class="thumbnail h-20 w-auto object-cover cursor-pointer rounded {{ $index === 0 ? 'ring-2 ring-[#8B0116] dark:ring-[#ff4b63]' : '' }}"
                                 data-index="{{ $index }}"
                             >

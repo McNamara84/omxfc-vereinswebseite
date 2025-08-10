@@ -133,7 +133,7 @@
                         @foreach ($team->users->sortBy('name') as $user)
                             <div class="flex items-center justify-between">
                             <a href="{{ route('profile.view', $user->id) }}" class="flex items-center">
-                                <img class="size-8 rounded-full object-cover" src="{{ $user->profile_photo_url }}" alt="{{ $user->name }}">
+                                <img loading="lazy" class="size-8 rounded-full object-cover" src="{{ $user->profile_photo_url }}" alt="{{ $user->name }}">
                                 <div class="ms-4 dark:text-white">{{ $user->name }}</div>
                             </a>
 
