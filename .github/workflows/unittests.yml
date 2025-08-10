@@ -104,9 +104,8 @@ jobs:
       if: matrix.php-version == '8.3' && github.ref == 'refs/heads/main'
       run: |
         mkdir -p output
-        npx make-coverage-badge
+        npx make-coverage-badge --badge-label='JS Coverage'
         mv coverage.svg output/js-coverage.svg
-        sed -i 's/Coverage/JS Coverage/' output/js-coverage.svg
 
     - name: Create PHP coverage badge
       if: matrix.php-version == '8.3' && github.ref == 'refs/heads/main'
@@ -114,11 +113,8 @@ jobs:
       with:
         report: coverage.xml
         coverage_badge_path: output/php-coverage.svg
+        badge_label: 'PHP Coverage'
         push_badge: false
-
-    - name: Rename PHP coverage badge label
-      if: matrix.php-version == '8.3' && github.ref == 'refs/heads/main'
-      run: sed -i 's/Coverage/PHP Coverage/' output/php-coverage.svg
 
     - name: Deploy coverage badges to image-data branch
       if: matrix.php-version == '8.3' && github.ref == 'refs/heads/main'
