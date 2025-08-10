@@ -66,7 +66,7 @@
                                     @if(auth()->id() === $offer->user_id)
                                         <form method="POST" action="{{ route('romantausch.delete-offer', $offer) }}">
                                             @csrf
-                                            <button class="text-red-600 hover:underline">Löschen</button>
+                                            <button class="text-red-600 hover:underline" onclick="return confirm('Möchtest du dieses Angebot wirklich löschen?')">Löschen</button>
                                         </form>
                                     @endif
                                 </div>
@@ -90,7 +90,7 @@
                                     @if(auth()->id() === $request->user_id)
                                         <form method="POST" action="{{ route('romantausch.delete-request', $request) }}">
                                             @csrf
-                                            <button class="text-red-600 hover:underline">Löschen</button>
+                                            <button class="text-red-600 hover:underline" onclick="return confirm('Möchtest du dieses Gesuch wirklich löschen?')">Löschen</button>
                                         </form>
                                     @endif
                                 </div>
