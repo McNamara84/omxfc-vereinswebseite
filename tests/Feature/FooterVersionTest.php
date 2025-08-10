@@ -12,8 +12,21 @@ class FooterVersionTest extends TestCase
 
     public function test_footer_displays_version_and_changelog_link(): void
     {
-        $process = Process::run(['bash', '-c', 'git describe --tags $(git rev-list --tags --max-count=1)']);
-        $version = $process->successful() ? trim($process->output()) : '0.0.0';
+        $version = '0.0.0';
+
+        $revList = Process::run(['git', 'rev-list', '--tags', '--max-count=1']);
+
+        if ($revList->successful()) {
+            $commit = trim($revList->output());
+
+            if ($commit !== '') {
+                $describe = Process::run(['git', 'describe', '--tags', $commit]);
+
+                if ($describe->successful()) {
+                    $version = trim($describe->output());
+                }
+            }
+        }
 
         $response = $this->get('/');
         $response->assertSee("Version {$version}");
