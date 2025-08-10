@@ -61,6 +61,28 @@ class CrawlHardcoversCommandTest extends TestCase
         ], $urls);
     }
 
+    public function test_get_url_content_logs_error_on_failure(): void
+    {
+        $command = new class extends CrawlHardcovers
+        {
+            public array $messages = [];
+
+            public function error($string, $verbosity = null)
+            {
+                $this->messages[] = $string;
+            }
+        };
+
+        $ref = new ReflectionClass($command);
+        $method = $ref->getMethod('getUrlContent');
+        $method->setAccessible(true);
+
+        $result = $method->invoke($command, 'file:///does-not-exist');
+
+        $this->assertFalse($result);
+        $this->assertNotEmpty($command->messages);
+    }
+
     public function test_get_hardcover_info_parses_html(): void
     {
         $html = '<b>123</b>

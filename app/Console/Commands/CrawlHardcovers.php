@@ -63,7 +63,19 @@ class CrawlHardcovers extends Command
 
     private function getUrlContent(string $url): string|false
     {
-        return @file_get_contents($url);
+        set_error_handler(static function ($severity, $message) use ($url) {
+            throw new \RuntimeException("{$url}: {$message}");
+        });
+
+        try {
+            return file_get_contents($url);
+        } catch (\Throwable $e) {
+            $this->error('Failed to fetch '.$url.' - '.$e->getMessage());
+
+            return false;
+        } finally {
+            restore_error_handler();
+        }
     }
 
     private function getArticleUrls(string $categoryUrl): array
