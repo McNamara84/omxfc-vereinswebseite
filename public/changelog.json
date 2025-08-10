@@ -1,5 +1,22 @@
 [
   {
+    "version": "1.4.1",
+    "pub_date": "2025-08-10",
+    "notes": [
+      "[New] Eintrag zur Chronik hinzugefügt: Erster Regionalstammtisch Berlin-Brandenburg",
+      "[Improved] Changelog Design angepasst für bessere Lesbarkeit",
+      "[Improved] Suchmaschinenenoptimierung mit strukturierten Daten nach schema.org für die Startseite",
+      "[Improved] Suchmaschinenenoptimierung mit strukturierten Daten nach schema.org für das Impressum",
+      "[Improved] Sitemap ergänzt für bessere Indexierung durch Suchmaschinen",
+      "[Improved] Markdown-Unterstützung (fett, kursiv, Link) für Rezensionen",
+      "[Improved] Mailversand optimiert durch Anlegen einer Warteschlange falls mehrere Mails gleichzeitig versendet werden sollen",
+      "[Improved] Links auf Mitgliederprofile im internen Mitgliederbereich ergänzt",
+      "[Improved] Hinweis zu verdienbaren Baxx in Romantauschbörse besser lesbar gemacht",
+      "[Improved] Lazy Loading für alle Grafiken auf öfentlichen Seiten implementiert",
+      "[Fixed] Badges im Profil werden nicht angezeigt"
+    ]
+  },
+  {
     "version": "1.4.0",
     "pub_date": "2025-08-05",
     "notes": [
