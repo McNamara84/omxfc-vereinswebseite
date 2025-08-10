@@ -1,4 +1,4 @@
-<x-app-layout>
+<x-app-layout title="Fotogalerie – Offizieller MADDRAX Fanclub e. V." description="Bilder von Veranstaltungen und Treffen des Fanclubs.">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-6 sm:pb-10 bg-gray-100 dark:bg-gray-800 rounded-lg shadow-sm">
         <h1 class="text-2xl sm:text-3xl font-bold text-[#8B0116] dark:text-[#ff4b63] mb-4 sm:mb-8">Fotogalerie</h1>
 
@@ -54,9 +54,9 @@
                 <div class="thumbnails-container flex overflow-x-auto gap-2 pb-2 mt-4">
                     @if(isset($photos[$year]))
                         @foreach($photos[$year] as $index => $photoUrl)
-                            <img 
-                                src="{{ $photoUrl }}" 
-                                alt="Thumbnail {{ $index + 1 }}" 
+                            <img @if($index > 0) loading="lazy" @endif
+                                src="{{ $photoUrl }}"
+                                alt="Thumbnail {{ $index + 1 }}"
                                 class="thumbnail h-20 w-auto object-cover cursor-pointer rounded {{ $index === 0 ? 'ring-2 ring-[#8B0116] dark:ring-[#ff4b63]' : '' }}"
                                 data-index="{{ $index }}"
                             >

@@ -107,7 +107,7 @@
                                     <div class="relative mb-2">
                                         <div class="absolute -top-3 -right-2 w-8 h-8 bg-yellow-400 dark:bg-yellow-500 rounded-full flex items-center justify-center text-white font-bold shadow-md transform group-hover:scale-110 transition-transform">1</div>
                                         <div class="h-20 w-20 rounded-full overflow-hidden border-4 border-yellow-400 dark:border-yellow-500 shadow-lg group-hover:shadow-xl transition-shadow">
-                                            <img src="{{ $topUser['profile_photo_url'] }}" alt="{{ $topUser['name'] }}" class="h-full w-full object-cover">
+                                            <img loading="lazy" src="{{ $topUser['profile_photo_url'] }}" alt="{{ $topUser['name'] }}" class="h-full w-full object-cover">
                                         </div>
                                     </div>
                                 @elseif($index === 1)
@@ -115,7 +115,7 @@
                                     <div class="relative mb-2">
                                         <div class="absolute -top-3 -right-2 w-8 h-8 bg-gray-300 dark:bg-gray-400 rounded-full flex items-center justify-center text-gray-700 dark:text-gray-800 font-bold shadow-md transform group-hover:scale-110 transition-transform">2</div>
                                         <div class="h-20 w-20 rounded-full overflow-hidden border-4 border-gray-300 dark:border-gray-400 shadow-lg group-hover:shadow-xl transition-shadow">
-                                            <img src="{{ $topUser['profile_photo_url'] }}" alt="{{ $topUser['name'] }}" class="h-full w-full object-cover">
+                                            <img loading="lazy" src="{{ $topUser['profile_photo_url'] }}" alt="{{ $topUser['name'] }}" class="h-full w-full object-cover">
                                         </div>
                                     </div>
                                 @else
@@ -123,7 +123,7 @@
                                     <div class="relative mb-2">
                                         <div class="absolute -top-3 -right-2 w-8 h-8 bg-yellow-700 dark:bg-yellow-800 rounded-full flex items-center justify-center text-white font-bold shadow-md transform group-hover:scale-110 transition-transform">3</div>
                                         <div class="h-20 w-20 rounded-full overflow-hidden border-4 border-yellow-700 dark:border-yellow-800 shadow-lg group-hover:shadow-xl transition-shadow">
-                                            <img src="{{ $topUser['profile_photo_url'] }}" alt="{{ $topUser['name'] }}" class="h-full w-full object-cover">
+                                            <img loading="lazy" src="{{ $topUser['profile_photo_url'] }}" alt="{{ $topUser['name'] }}" class="h-full w-full object-cover">
                                         </div>
                                     </div>
                                 @endif

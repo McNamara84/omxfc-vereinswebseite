@@ -7,7 +7,7 @@
             <div class="md:col-span-2 bg-white dark:bg-gray-700 rounded-lg shadow-md overflow-hidden">
                 <div id="gallery" class="relative w-full h-48 sm:h-64 md:h-72">
                     @foreach($galleryImages as $image)
-                        <img src="{{ asset($image) }}" alt="Foto von einem Treffen des Vereins mit einem Teil der Mitglieder"
+                        <img loading="lazy" src="{{ asset($image) }}" alt="Foto von einem Treffen des Vereins mit einem Teil der Mitglieder"
                             class="absolute inset-0 w-full h-full object-cover opacity-0 transition-opacity duration-1000">
                     @endforeach
                 </div>

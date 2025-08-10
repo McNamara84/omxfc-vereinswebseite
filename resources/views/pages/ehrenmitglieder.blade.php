@@ -12,7 +12,7 @@
                 class="bg-white dark:bg-gray-700 rounded-lg shadow-md overflow-hidden transition-transform hover:scale-105 flex flex-col">
                 <div class="h-80 bg-gray-200 dark:bg-gray-600 flex items-center justify-center overflow-hidden">
                     <!-- Angepasstes Seitenverhältnis für Portraitfotos -->
-                    <img src="{{ asset('images/ehrenmitglieder/michael-edelbrock.jpg') }}" alt="Michael Edelbrock"
+                    <img loading="lazy" src="{{ asset('images/ehrenmitglieder/michael-edelbrock.jpg') }}" alt="Michael Edelbrock"
                         class="object-cover h-full">
                 </div>
                 <div class="p-4 flex flex-col flex-1">
@@ -42,7 +42,7 @@
             <div
                 class="bg-white dark:bg-gray-700 rounded-lg shadow-md overflow-hidden transition-transform hover:scale-105 flex flex-col">
                 <div class="h-80 bg-gray-200 dark:bg-gray-600 flex items-center justify-center overflow-hidden">
-                    <img src="{{ asset('images/ehrenmitglieder/lucy-guth.jpg') }}" alt="Lucy Guth"
+                    <img loading="lazy" src="{{ asset('images/ehrenmitglieder/lucy-guth.jpg') }}" alt="Lucy Guth"
                         class="object-cover h-full">
                 </div>
                 <div class="p-4 flex flex-col flex-1">
@@ -68,7 +68,7 @@
             <div
                 class="bg-white dark:bg-gray-700 rounded-lg shadow-md overflow-hidden transition-transform hover:scale-105 flex flex-col">
                 <div class="h-80 bg-gray-200 dark:bg-gray-600 flex items-center justify-center overflow-hidden">
-                    <img src="{{ asset('images/ehrenmitglieder/ian-rolf-hill.jpg') }}" alt="Ian Rolf Hill"
+                    <img loading="lazy" src="{{ asset('images/ehrenmitglieder/ian-rolf-hill.jpg') }}" alt="Ian Rolf Hill"
                         class="object-cover h-full">
                 </div>
                 <div class="p-4 flex flex-col flex-1">
@@ -93,7 +93,7 @@
             <div
                 class="bg-white dark:bg-gray-700 rounded-lg shadow-md overflow-hidden transition-transform hover:scale-105 flex flex-col">
                 <div class="h-80 bg-gray-200 dark:bg-gray-600 flex items-center justify-center overflow-hidden">
-                    <img src="{{ asset('images/ehrenmitglieder/oliver-mueller.jpg') }}" alt="Oliver Müller"
+                    <img loading="lazy" src="{{ asset('images/ehrenmitglieder/oliver-mueller.jpg') }}" alt="Oliver Müller"
                         class="object-cover h-full">
                 </div>
                 <div class="p-4 flex flex-col flex-1">
@@ -117,7 +117,7 @@
             <div
                 class="bg-white dark:bg-gray-700 rounded-lg shadow-md overflow-hidden transition-transform hover:scale-105 flex flex-col">
                 <div class="h-80 bg-gray-200 dark:bg-gray-600 flex items-center justify-center overflow-hidden">
-                    <img src="{{ asset('images/ehrenmitglieder/michael-schoenenbröcher.jpg') }}"
+                    <img loading="lazy" src="{{ asset('images/ehrenmitglieder/michael-schoenenbröcher.jpg') }}"
                         alt="Michael Schönenbröcher" class="object-cover h-full">
                 </div>
                 <div class="p-4 flex flex-col flex-1">
@@ -143,7 +143,7 @@
             <div
                 class="bg-white dark:bg-gray-700 rounded-lg shadow-md overflow-hidden transition-transform hover:scale-105 flex flex-col">
                 <div class="h-80 bg-gray-200 dark:bg-gray-600 flex items-center justify-center overflow-hidden">
-                    <img src="{{ asset('images/ehrenmitglieder/jo-zybell.jpg') }}" alt="Jo Zybell"
+                    <img loading="lazy" src="{{ asset('images/ehrenmitglieder/jo-zybell.jpg') }}" alt="Jo Zybell"
                         class="object-cover h-full">
                 </div>
                 <div class="p-4 flex flex-col flex-1">
