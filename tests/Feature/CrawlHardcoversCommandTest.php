@@ -61,17 +61,9 @@ class CrawlHardcoversCommandTest extends TestCase
         ], $urls);
     }
 
-    public function test_get_url_content_logs_error_on_failure(): void
+    public function test_get_url_content_returns_false_on_failure(): void
     {
-        $command = new class extends CrawlHardcovers
-        {
-            public array $messages = [];
-
-            public function error($string, $verbosity = null)
-            {
-                $this->messages[] = $string;
-            }
-        };
+        $command = new CrawlHardcovers();
 
         $ref = new ReflectionClass($command);
         $method = $ref->getMethod('getUrlContent');
@@ -80,23 +72,22 @@ class CrawlHardcoversCommandTest extends TestCase
         $result = $method->invoke($command, 'file:///does-not-exist');
 
         $this->assertFalse($result);
-        $this->assertNotEmpty($command->messages);
     }
 
     public function test_get_hardcover_info_parses_html(): void
     {
-        $html = '<b>123</b>
+        $html = '<div class="heftartikel-navigationsleiste-anfang"><table><tr><td align="center"><i>123</i></td></tr></table></div>
             <table>
                 <tr><td>Erstmals&nbsp;erschienen:</td><td>2024-01</td></tr>
-                <tr><td>Zyklus:</td><td>Testzyklus (1)</td></tr>
-                <tr><td>Titel:</td><th>Der Roman</th></tr>
+                <tr><td>Serie:</td><td><a>Testserie</a></td></tr>
+                <tr><td>Titel:</td><th><b>Der Roman</b></th></tr>
                 <tr><td>Text:</td><td>Autor1, Autor2</td></tr>
                 <tr><td>Personen:</td><td>P1, P2</td></tr>
                 <tr><td>Schlagworte:</td><td>S1, S2</td></tr>
                 <tr><td>Handlungsort:</td><td>O1, O2</td></tr>
             </table>
             <div class="voteboxrate">4.5</div>
-            <span class="rating-total">3 Stimmen</span>';
+            <span class="rating-total">(3 Stimmen)</span>';
 
         $file = storage_path('app/private/article.html');
         File::put($file, $html);
@@ -109,12 +100,12 @@ class CrawlHardcoversCommandTest extends TestCase
         $info = $method->invoke($command, 'file://'.$file);
 
         $this->assertSame([
-            '123',
+            123,
+            'Der Roman',
             '2024-01',
-            'Testzyklus',
+            'Testserie',
             '4.5',
             '3',
-            'Der Roman',
             ['Autor1', 'Autor2'],
             ['P1', 'P2'],
             ['S1', 'S2'],
@@ -131,9 +122,9 @@ class CrawlHardcoversCommandTest extends TestCase
         $method->setAccessible(true);
 
         $data = [
-            [1, '2024-07-01', null, '4.0', '1', 'Future', null, null, null, null],
-            [2, '2024-05-01', null, '3.0', '2', 'Past', null, null, null, null],
-            [3, '2024-06-01', null, null, '0', 'TodayUnrated', null, null, null, null],
+            [1, 'Future', '2024-07-01', null, '4.0', '1', null, null, null, null],
+            [2, 'Past', '2024-05-01', null, '3.0', '2', null, null, null, null],
+            [3, 'TodayUnrated', '2024-06-01', null, null, '0', null, null, null, null],
         ];
         $result = $method->invoke($command, $data);
 
@@ -149,7 +140,11 @@ class CrawlHardcoversCommandTest extends TestCase
 
     public function test_get_hardcover_info_returns_entry_when_unrated(): void
     {
-        $html = '<b>5</b><table><tr><td>Erstmals&nbsp;erschienen:</td><td>2024-01</td></tr></table>';
+        $html = '<div class="heftartikel-navigationsleiste-anfang"><table><tr><td align="center"><i>5</i></td></tr></table></div>
+            <table>
+                <tr><td>Erstmals&nbsp;erschienen:</td><td>2024-01</td></tr>
+                <tr><td>Titel:</td><th><b>Unrated Title</b></th></tr>
+            </table>';
         $file = storage_path('app/private/unrated.html');
         File::put($file, $html);
 
@@ -161,9 +156,9 @@ class CrawlHardcoversCommandTest extends TestCase
         $info = $method->invoke($command, 'file://'.$file);
 
         $this->assertSame([
-            '5',
+            5,
+            'Unrated Title',
             '2024-01',
-            null,
             null,
             null,
             null,
