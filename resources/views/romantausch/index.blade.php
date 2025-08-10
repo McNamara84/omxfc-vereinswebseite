@@ -6,24 +6,26 @@
                 </div>
             @endif
             <!-- Kopfzeile mit Buttons -->
-            <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <h1 class="text-2xl font-semibold text-[#8B0116] dark:text-[#FF6B81]">Romantauschbörse</h1>
-                <div class="flex gap-2">
-                    <a href="{{ route('romantausch.create-offer') }}"
-                       class="inline-flex items-center px-4 py-2 bg-[#8B0116] dark:bg-[#C41E3A] border border-transparent rounded-md font-semibold text-white hover:bg-[#A50019] dark:hover:bg-[#D63A4D]">
-                        Angebot erstellen
-                    </a>
-                    <a href="{{ route('romantausch.create-request') }}"
-                       class="inline-flex items-center px-4 py-2 bg-gray-600 dark:bg-gray-500 border border-transparent rounded-md font-semibold text-white hover:bg-gray-700 dark:hover:bg-gray-400">
-                        Gesuch erstellen
-                    </a>
+            <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <h1 class="text-2xl font-semibold text-[#8B0116] dark:text-[#FF6B81]">Romantauschbörse</h1>
+                    <div class="flex gap-2">
+                        <a href="{{ route('romantausch.create-offer') }}"
+                           class="inline-flex items-center px-4 py-2 bg-[#8B0116] dark:bg-[#C41E3A] border border-transparent rounded-md font-semibold text-white hover:bg-[#A50019] dark:hover:bg-[#D63A4D]">
+                            Angebot erstellen
+                        </a>
+                        <a href="{{ route('romantausch.create-request') }}"
+                           class="inline-flex items-center px-4 py-2 bg-gray-600 dark:bg-gray-500 border border-transparent rounded-md font-semibold text-white hover:bg-gray-700 dark:hover:bg-gray-400">
+                            Gesuch erstellen
+                        </a>
+                    </div>
                 </div>
+                <p class="mt-4 text-sm text-gray-600 dark:text-gray-400">
+                    Für jedes <strong>zehnte</strong> eingestellte Angebot erhältst du automatisch
+                    <strong>1 Bakk</strong>. Bestätigen beide Parteien einen Tausch, bekommt ihr
+                    jeweils <strong>2 Baxx</strong> zusätzlich gutgeschrieben.
+                </p>
             </div>
-            <p class="mb-6 text-sm text-gray-600 dark:text-gray-400">
-                Für jedes <strong>zehnte</strong> eingestellte Angebot erhältst du automatisch
-                <strong>1 Bakk</strong>. Bestätigen beide Parteien einen Tausch, bekommt ihr
-                jeweils <strong>2 Baxx</strong> zusätzlich gutgeschrieben.
-            </p>
             @if($activeSwaps->isNotEmpty())
                 <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
                     <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-2">Deine Matches</h2>
