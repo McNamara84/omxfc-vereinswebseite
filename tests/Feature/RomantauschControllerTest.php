@@ -334,4 +334,76 @@ class RomantauschControllerTest extends TestCase
         unlink($path);
         rename($path . '.bak', $path);
     }
+
+    public function test_user_can_delete_own_offer(): void
+    {
+        $user = $this->actingMember();
+        $offer = BookOffer::create([
+            'user_id' => $user->id,
+            'series' => 'Maddrax - Die dunkle Zukunft der Erde',
+            'book_number' => 1,
+            'book_title' => 'Roman1',
+            'condition' => 'neu',
+        ]);
+
+        $this->actingAs($user);
+        $this->post("/romantauschboerse/{$offer->id}/angebot-loeschen")
+            ->assertRedirect(route('romantausch.index'));
+
+        $this->assertDatabaseMissing('book_offers', ['id' => $offer->id]);
+    }
+
+    public function test_user_cannot_delete_offer_of_other_user(): void
+    {
+        $user = $this->actingMember();
+        $other = User::factory()->create();
+        $offer = BookOffer::create([
+            'user_id' => $other->id,
+            'series' => 'Maddrax - Die dunkle Zukunft der Erde',
+            'book_number' => 1,
+            'book_title' => 'Roman1',
+            'condition' => 'neu',
+        ]);
+
+        $this->actingAs($user);
+        $this->post("/romantauschboerse/{$offer->id}/angebot-loeschen")->assertForbidden();
+
+        $this->assertDatabaseHas('book_offers', ['id' => $offer->id]);
+    }
+
+    public function test_user_can_delete_own_request(): void
+    {
+        $user = $this->actingMember();
+        $request = BookRequest::create([
+            'user_id' => $user->id,
+            'series' => 'Maddrax - Die dunkle Zukunft der Erde',
+            'book_number' => 1,
+            'book_title' => 'Roman1',
+            'condition' => 'neu',
+        ]);
+
+        $this->actingAs($user);
+        $this->post("/romantauschboerse/{$request->id}/anfrage-loeschen")
+            ->assertRedirect(route('romantausch.index'));
+
+        $this->assertDatabaseMissing('book_requests', ['id' => $request->id]);
+    }
+
+    public function test_user_cannot_delete_request_of_other_user(): void
+    {
+        $user = $this->actingMember();
+        $other = User::factory()->create();
+        $request = BookRequest::create([
+            'user_id' => $other->id,
+            'series' => 'Maddrax - Die dunkle Zukunft der Erde',
+            'book_number' => 1,
+            'book_title' => 'Roman1',
+            'condition' => 'neu',
+        ]);
+
+        $this->actingAs($user);
+        $this->post("/romantauschboerse/{$request->id}/anfrage-loeschen")->assertForbidden();
+
+        $this->assertDatabaseHas('book_requests', ['id' => $request->id]);
+    }
 }
