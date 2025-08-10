@@ -66,7 +66,7 @@
                             </div>
                             <div class="mb-2">
                                 <span class="text-gray-600 dark:text-gray-400 text-sm">Erstellt von:</span>
-                                <span class="ml-2 text-gray-800 dark:text-gray-200">{{ $todo->creator->name }}</span>
+                                <span class="ml-2 text-gray-800 dark:text-gray-200"><a href="{{ route('profile.view', $todo->creator->id) }}" class="text-[#8B0116] hover:underline">{{ $todo->creator->name }}</a></span>
                             </div>
                             <div class="mb-2">
                                 <span class="text-gray-600 dark:text-gray-400 text-sm">Erstellt am:</span>
@@ -82,7 +82,7 @@
                             @if($todo->assigned_to)
                                 <div class="mb-2">
                                     <span class="text-gray-600 dark:text-gray-400 text-sm">Zugewiesen an:</span>
-                                    <span class="ml-2 text-gray-800 dark:text-gray-200">{{ $todo->assignee->name }}</span>
+                                    <span class="ml-2 text-gray-800 dark:text-gray-200"><a href="{{ route('profile.view', $todo->assignee->id) }}" class="text-[#8B0116] hover:underline">{{ $todo->assignee->name }}</a></span>
                                 </div>
                             @endif
 
@@ -97,7 +97,7 @@
                             @if($todo->verified_by)
                                 <div class="mb-2">
                                     <span class="text-gray-600 dark:text-gray-400 text-sm">Verifiziert von:</span>
-                                    <span class="ml-2 text-gray-800 dark:text-gray-200">{{ $todo->verifier->name }}</span>
+                                    <span class="ml-2 text-gray-800 dark:text-gray-200"><a href="{{ route('profile.view', $todo->verifier->id) }}" class="text-[#8B0116] hover:underline">{{ $todo->verifier->name }}</a></span>
                                 </div>
                                 <div class="mb-2">
                                     <span class="text-gray-600 dark:text-gray-400 text-sm">Verifiziert am:</span>
