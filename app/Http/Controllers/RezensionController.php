@@ -170,12 +170,14 @@ class RezensionController extends Controller
             abort(403);
         }
 
-        $data = $request->validate([
-            'title' => 'required|string|max:255',
-            'content' => 'required|string|min:140|not_regex:/^\\s*#/m',
+        $request->merge([
+            'content' => preg_replace('/^\\s*#+\\s*/m', '', (string) $request->input('content')),
         ]);
 
-        $data['content'] = preg_replace('/^\\s*#+\\s*/m', '', $data['content']);
+        $data = $request->validate([
+            'title' => 'required|string|max:255',
+            'content' => 'required|string|min:140',
+        ]);
 
         $review = Review::create([
             'team_id' => $teamId,
@@ -238,12 +240,14 @@ class RezensionController extends Controller
         $role = $this->getRoleInMemberTeam();
 
         if ($review->user_id === $user->id || in_array($role, ['Vorstand', 'Admin'], true)) {
-            $data = $request->validate([
-                'title' => 'required|string|max:255',
-                'content' => 'required|string|min:140|not_regex:/^\\s*#/m',
+            $request->merge([
+                'content' => preg_replace('/^\\s*#+\\s*/m', '', (string) $request->input('content')),
             ]);
 
-            $data['content'] = preg_replace('/^\\s*#+\\s*/m', '', $data['content']);
+            $data = $request->validate([
+                'title' => 'required|string|max:255',
+                'content' => 'required|string|min:140',
+            ]);
 
             $review->update($data);
 
