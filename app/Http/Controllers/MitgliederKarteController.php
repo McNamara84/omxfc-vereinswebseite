@@ -47,7 +47,7 @@ class MitgliederKarteController extends Controller
             $members = $team->users()
                 ->as('pivot')
                 ->wherePivotNotIn('role', ['Anwärter'])
-                ->select('users.id', 'users.name', 'users.plz', 'users.land', 'users.stadt', 'team_user.role as pivot_role')
+                ->select('users.id', 'users.name', 'users.plz', 'users.land', 'users.stadt')
                 ->get();
 
             // Geodaten für die Mitglieder sammeln

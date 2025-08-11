@@ -20,7 +20,7 @@ class MitgliederKarteMembershipTest extends TestCase
         $members = $team->users()
             ->as('pivot')
             ->wherePivotNotIn('role', ['Anwärter'])
-            ->select('users.id', 'users.name', 'users.plz', 'users.land', 'users.stadt', 'team_user.role as pivot_role')
+            ->select('users.id', 'users.name', 'users.plz', 'users.land', 'users.stadt')
             ->get();
 
         $member = $members->first();
