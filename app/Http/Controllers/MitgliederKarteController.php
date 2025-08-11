@@ -45,7 +45,6 @@ class MitgliederKarteController extends Controller
         } else {
             // Nur Nutzer mit Rollen außer "Anwärter" anzeigen
             $members = $team->users()
-                ->as('pivot')
                 ->select('users.id', 'users.name', 'users.plz', 'users.land', 'users.stadt')
                 ->withPivot('role')
                 ->wherePivotNotIn('role', ['Anwärter'])
@@ -76,7 +75,7 @@ class MitgliederKarteController extends Controller
                         $memberData[] = [
                             'name' => $member->name,
                             'city' => $member->stadt,
-                            'role' => $member->pivot->role,
+                            'role' => $member->membership->role,
                             'lat' => $jitter['lat'],
                             'lon' => $jitter['lon'],
                             'profile_url' => route('profile.view', $member->id),
