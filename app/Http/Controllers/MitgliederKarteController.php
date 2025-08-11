@@ -46,6 +46,7 @@ class MitgliederKarteController extends Controller
             // Nur Nutzer mit Rollen außer "Anwärter" anzeigen
             $members = $team->users()
                 ->as('pivot')
+                ->withPivot('role')
                 ->wherePivotNotIn('role', ['Anwärter'])
                 ->select('users.id', 'users.name', 'users.plz', 'users.land', 'users.stadt')
                 ->get();
