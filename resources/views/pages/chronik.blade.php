@@ -108,7 +108,7 @@
         </div>
         <div id="chronik-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 hidden">
             <div class="relative">
-                <button id="chronik-modal-close" class="absolute top-2 right-2 text-white text-2xl">&times;</button>
+                <button id="chronik-modal-close" class="absolute top-2 right-2 text-white text-2xl" aria-label="Close modal">&times;</button>
                 <picture>
                     <source id="chronik-modal-avif" type="image/avif" />
                     <source id="chronik-modal-webp" type="image/webp" />
@@ -116,37 +116,5 @@
                 </picture>
             </div>
         </div>
-        <script>
-            document.querySelectorAll('.chronik-image').forEach(el => {
-                el.addEventListener('click', e => {
-                    e.preventDefault();
-                    const modal = document.getElementById('chronik-modal');
-                    const img = document.getElementById('chronik-modal-img');
-                    const srcAvif = document.getElementById('chronik-modal-avif');
-                    const srcWebp = document.getElementById('chronik-modal-webp');
-                    srcAvif.srcset = el.dataset.avif;
-                    srcWebp.srcset = el.dataset.webp;
-                    img.src = el.dataset.webp;
-                    img.alt = el.querySelector('img').alt;
-                    modal.classList.remove('hidden');
-                });
-            });
-
-            const modal = document.getElementById('chronik-modal');
-            const closeBtn = document.getElementById('chronik-modal-close');
-            closeBtn.addEventListener('click', () => {
-                modal.classList.add('hidden');
-            });
-            modal.addEventListener('click', e => {
-                if (e.target === modal) {
-                    modal.classList.add('hidden');
-                }
-            });
-            document.addEventListener('keydown', e => {
-                if (e.key === 'Escape') {
-                    modal.classList.add('hidden');
-                }
-            });
-        </script>
     </x-public-page>
 </x-app-layout>

@@ -11,3 +11,5 @@ import 'leaflet/dist/leaflet.css';
 
 // Leaflet global verfügbar machen
 window.L = L;
+
+import './chronik';
