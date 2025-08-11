@@ -47,7 +47,6 @@ class MitgliederKarteController extends Controller
             $members = $team->users()
                 ->select('users.id', 'users.name', 'users.plz', 'users.land', 'users.stadt')
                 ->withPivot('role')
-                ->as('pivot')
                 ->wherePivotNotIn('role', ['Anwärter'])
                 ->get();
 
@@ -76,7 +75,7 @@ class MitgliederKarteController extends Controller
                         $memberData[] = [
                             'name' => $member->name,
                             'city' => $member->stadt,
-                            'role' => $member->pivot->role,
+                            'role' => $member->membership->role,
                             'lat' => $jitter['lat'],
                             'lon' => $jitter['lon'],
                             'profile_url' => route('profile.view', $member->id),
