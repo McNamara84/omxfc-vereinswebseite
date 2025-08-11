@@ -112,7 +112,7 @@
                 <picture>
                     <source id="chronik-modal-avif" type="image/avif" />
                     <source id="chronik-modal-webp" type="image/webp" />
-                    <img id="chronik-modal-img" src="" alt="" class="max-w-full max-h-screen rounded-md shadow-lg" />
+                    <img id="chronik-modal-img" src="" alt="Modal image" class="max-w-full max-h-screen rounded-md shadow-lg" />
                 </picture>
             </div>
         </div>

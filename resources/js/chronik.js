@@ -5,20 +5,22 @@ document.addEventListener('DOMContentLoaded', () => {
     const img = document.getElementById('chronik-modal-img');
     const srcAvif = document.getElementById('chronik-modal-avif');
     const srcWebp = document.getElementById('chronik-modal-webp');
+    const closeBtn = document.getElementById('chronik-modal-close');
 
     document.addEventListener('click', (e) => {
         const trigger = e.target.closest('.chronik-image');
-        if (trigger) {
-            e.preventDefault();
-            srcAvif.srcset = trigger.dataset.avif;
-            srcWebp.srcset = trigger.dataset.webp;
-            img.src = trigger.dataset.webp;
-            img.alt = trigger.querySelector('img').alt;
-            modal.classList.remove('hidden');
-            return;
-        }
+        if (!trigger) return;
 
-        if (e.target.id === 'chronik-modal-close' || e.target === modal) {
+        e.preventDefault();
+        srcAvif.srcset = trigger.dataset.avif;
+        srcWebp.srcset = trigger.dataset.webp;
+        img.src = trigger.dataset.webp;
+        img.alt = trigger.querySelector('img').alt;
+        modal.classList.remove('hidden');
+    });
+
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal || e.target === closeBtn) {
             modal.classList.add('hidden');
         }
     });
