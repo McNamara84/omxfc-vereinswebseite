@@ -47,7 +47,7 @@ class HoerbuchController extends Controller
         }
 
         $request->validate([
-            'episode_number' => 'required|string|max:10',
+            'episode_number' => 'required|string|max:10|unique:audiobook_episodes,episode_number',
             'title' => 'required|string|max:255',
             'author' => 'required|string|max:255',
             'planned_release_date' => 'required|date',

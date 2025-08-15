@@ -60,6 +60,38 @@ class HoerbuchControllerTest extends TestCase
         ]);
     }
 
+    public function test_episode_number_must_be_unique(): void
+    {
+        $user = $this->actingMember('Admin');
+
+        AudiobookEpisode::create([
+            'episode_number' => 'F30',
+            'title' => 'Vorhandene Folge',
+            'author' => 'Autor',
+            'planned_release_date' => '2025-12-24',
+            'status' => 'Skript wird erstellt',
+            'responsible_user_id' => null,
+            'progress' => 10,
+            'notes' => null,
+        ]);
+
+        $data = [
+            'episode_number' => 'F30',
+            'title' => 'Duplikat',
+            'author' => 'Zweiter Autor',
+            'planned_release_date' => '2025-12-24',
+            'status' => 'Skript wird erstellt',
+            'responsible_user_id' => null,
+            'progress' => 20,
+            'notes' => null,
+        ];
+
+        $response = $this->actingAs($user)->post(route('hoerbuecher.store'), $data);
+
+        $response->assertSessionHasErrors('episode_number');
+        $this->assertEquals(1, AudiobookEpisode::where('episode_number', 'F30')->count());
+    }
+
     public function test_member_cannot_view_create_form(): void
     {
         $user = $this->actingMember('Mitglied');
