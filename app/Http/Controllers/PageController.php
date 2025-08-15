@@ -45,11 +45,11 @@ class PageController extends Controller
         ];
 
         $galleryImages = [
-            'images/chronik/gruendungsversammlung.jpg',
-            'images/chronik/jahreshauptversammlung2024.jpg',
-            'images/chronik/jahreshauptversammlung2025.jpg',
-            'images/chronik/maddraxcon2025-1.jpg',
-            'images/chronik/maddraxcon2025-2.jpg',
+            'images/chronik/gruendungsversammlung',
+            'images/chronik/jahreshauptversammlung2024',
+            'images/chronik/jahreshauptversammlung2025',
+            'images/chronik/maddraxcon2025-1',
+            'images/chronik/maddraxcon2025-2',
             // Weitere Bilder hier einfügen
         ];
 
