@@ -37,7 +37,7 @@
                     <picture>
                         <source type="image/avif" srcset="{{ asset('images/chronik/jahreshauptversammlung2024.avif') }}">
                         <source type="image/webp" srcset="{{ asset('images/chronik/jahreshauptversammlung2024.webp') }}">
-                        <img loading="lazy" src="{{ asset('images/chronik/jahreshauptversammlung2024.webp') }}" class="rounded-md" alt="Jahreshauptversammlung in Aachen 2025">
+                        <img loading="lazy" src="{{ asset('images/chronik/jahreshauptversammlung2024.webp') }}" class="rounded-md" alt="Jahreshauptversammlung in Köln 2024">
                     </picture>
                 </a>
             </div>
@@ -64,7 +64,7 @@
                     <picture>
                         <source type="image/avif" srcset="{{ asset('images/chronik/maddraxcon2025-1.avif') }}">
                         <source type="image/webp" srcset="{{ asset('images/chronik/maddraxcon2025-1.webp') }}">
-                        <img loading="lazy" src="{{ asset('images/chronik/maddraxcon2025-1.webp') }}" class="rounded-md" alt="Jahreshauptversammlung in Aachen 2025">
+                        <img loading="lazy" src="{{ asset('images/chronik/maddraxcon2025-1.webp') }}" class="rounded-md" alt="Fantreffen in Aachen 2025">
                     </picture>
                 </a>
             </div>
@@ -76,7 +76,7 @@
                     <picture>
                         <source type="image/avif" srcset="{{ asset('images/chronik/maddraxcon2025-2.avif') }}">
                         <source type="image/webp" srcset="{{ asset('images/chronik/maddraxcon2025-2.webp') }}">
-                        <img loading="lazy" src="{{ asset('images/chronik/maddraxcon2025-2.webp') }}" class="rounded-md" alt="Jahreshauptversammlung in Aachen 2025">
+                        <img loading="lazy" src="{{ asset('images/chronik/maddraxcon2025-2.webp') }}" class="rounded-md" alt="Workshop auf der MaddraxCon 2025 in Aachen">
                     </picture>
                 </a>
             </div>
