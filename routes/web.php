@@ -20,6 +20,7 @@ use App\Http\Controllers\RezensionController;
 use App\Http\Controllers\RomantauschController;
 use App\Http\Controllers\StatistikController;
 use App\Http\Controllers\TodoController;
+use App\Http\Controllers\HoerbuchController;
 use App\Http\Middleware\RedirectIfAnwaerter;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -96,6 +97,11 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
         Route::post('{todo}/pruefen', 'verify')->name('verify');
         Route::post('{todo}/freigeben', 'release')->name('release');
     });
+    Route::prefix('hoerbuecher')->name('hoerbuecher.')->controller(HoerbuchController::class)->group(function () {
+        Route::get('erstellen', 'create')->name('create');
+        Route::post('/', 'store')->name('store');
+    });
+
 
     Route::get('/belohnungen', [RewardController::class, 'index'])->name('rewards.index');
 
