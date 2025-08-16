@@ -203,7 +203,7 @@ class HoerbuchControllerTest extends TestCase
     {
         $user = $this->actingMember('Admin');
 
-        $invalidDates = ['13.2025', '99.9999', '3025', '2025-13-01'];
+        $invalidDates = ['13.2025', '99.9999', '3025', '2025-13-01', '2025-02-30', '2025-04-31'];
 
         foreach ($invalidDates as $date) {
             $data = [

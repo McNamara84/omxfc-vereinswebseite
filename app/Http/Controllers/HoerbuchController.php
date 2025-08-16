@@ -8,6 +8,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
+use App\Rules\ValidReleaseTime;
 
 class HoerbuchController extends Controller
 {
@@ -61,7 +62,7 @@ class HoerbuchController extends Controller
             'episode_number' => 'required|string|max:10|unique:audiobook_episodes,episode_number',
             'title' => 'required|string|max:255',
             'author' => 'required|string|max:255',
-            'planned_release_date' => ['required', 'string', 'regex:/^((19|20)\d{2}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])|(0[1-9]|1[0-2])\.(19|20)\d{2}|(19|20)\d{2})$/'],
+            'planned_release_date' => ['required', 'string', new ValidReleaseTime()],
             'status' => 'required|in:' . implode(',', AudiobookEpisode::STATUSES),
             'responsible_user_id' => 'nullable|exists:users,id',
             'progress' => 'required|integer|min:0|max:100',
@@ -115,7 +116,7 @@ class HoerbuchController extends Controller
             ],
             'title' => 'required|string|max:255',
             'author' => 'required|string|max:255',
-            'planned_release_date' => ['required', 'string', 'regex:/^((19|20)\d{2}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])|(0[1-9]|1[0-2])\.(19|20)\d{2}|(19|20)\d{2})$/'],
+            'planned_release_date' => ['required', 'string', new ValidReleaseTime()],
             'status' => 'required|in:' . implode(',', AudiobookEpisode::STATUSES),
             'responsible_user_id' => 'nullable|exists:users,id',
             'progress' => 'required|integer|min:0|max:100',
