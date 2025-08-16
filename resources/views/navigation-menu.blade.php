@@ -67,6 +67,7 @@
                                 <x-dropdown-link href="{{ route('admin.index') }}">Admin</x-dropdown-link>
                                 <x-dropdown-link href="{{ route('hoerbuecher.index') }}">EARDRAX Dashboard</x-dropdown-link>
                                 <x-dropdown-link href="{{ route('hoerbuecher.create') }}">Neue Hörbuchfolge</x-dropdown-link>
+                                <x-dropdown-link href="{{ route('arbeitsgruppen.create') }}">Neue AG</x-dropdown-link>
                             </div>
                         </div>
                         @endif
@@ -166,6 +167,7 @@
                 <x-responsive-nav-link href="{{ route('admin.index') }}">Admin</x-responsive-nav-link>
                 <x-responsive-nav-link href="{{ route('hoerbuecher.index') }}">EARDRAX Dashboard</x-responsive-nav-link>
                 <x-responsive-nav-link href="{{ route('hoerbuecher.create') }}">Neue Hörbuchfolge</x-responsive-nav-link>
+                <x-responsive-nav-link href="{{ route('arbeitsgruppen.create') }}">Neue AG</x-responsive-nav-link>
             </div>
             @endif
 

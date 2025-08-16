@@ -21,6 +21,7 @@ use App\Http\Controllers\RomantauschController;
 use App\Http\Controllers\StatistikController;
 use App\Http\Controllers\TodoController;
 use App\Http\Controllers\HoerbuchController;
+use App\Http\Controllers\ArbeitsgruppenController;
 use App\Http\Middleware\RedirectIfAnwaerter;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -104,6 +105,11 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
         Route::get('{episode}/bearbeiten', 'edit')->name('edit');
         Route::put('{episode}', 'update')->name('update');
         Route::delete('{episode}', 'destroy')->name('destroy');
+    });
+
+    Route::prefix('arbeitsgruppen')->name('arbeitsgruppen.')->controller(ArbeitsgruppenController::class)->middleware('admin')->group(function () {
+        Route::get('erstellen', 'create')->name('create');
+        Route::post('/', 'store')->name('store');
     });
 
 

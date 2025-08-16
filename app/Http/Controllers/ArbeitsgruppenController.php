@@ -1,0 +1,59 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Team;
+use App\Models\User;
+use Illuminate\Http\Request;
+
+class ArbeitsgruppenController extends Controller
+{
+    /**
+     * Display form to create a new AG (team).
+     */
+    public function create()
+    {
+        $users = User::orderBy('name')->get();
+
+        return view('arbeitsgruppen.create', [
+            'users' => $users,
+        ]);
+    }
+
+    /**
+     * Store a newly created AG (team).
+     */
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'leader_id' => 'required|exists:users,id',
+            'description' => 'nullable|string',
+            'email' => 'nullable|email|max:255',
+            'meeting_schedule' => 'nullable|string|max:255',
+            'logo' => 'nullable|image|max:2048',
+        ]);
+
+        $logoPath = $request->file('logo')?->store('ag-logos', 'public');
+
+        $team = Team::create([
+            'user_id' => $validated['leader_id'],
+            'name' => $validated['name'],
+            'personal_team' => false,
+            'description' => $validated['description'] ?? null,
+            'email' => $validated['email'] ?? null,
+            'meeting_schedule' => $validated['meeting_schedule'] ?? null,
+            'logo_path' => $logoPath,
+        ]);
+
+        // Attach leader to team with existing role if available
+        $memberTeam = Team::where('name', 'Mitglieder')->first();
+        $membership = $memberTeam?->users()->where('user_id', $validated['leader_id'])->first();
+        $leaderRole = $membership ? $membership->membership->role : null;
+
+        $team->users()->attach($validated['leader_id'], ['role' => $leaderRole]);
+
+        return redirect()->route('dashboard')
+            ->with('status', 'Arbeitsgruppe wurde erstellt.');
+    }
+}

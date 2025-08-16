@@ -21,6 +21,10 @@ class TeamFactory extends Factory
             'name' => $this->faker->unique()->company(),
             'user_id' => User::factory(),
             'personal_team' => true,
+            'description' => null,
+            'email' => null,
+            'meeting_schedule' => null,
+            'logo_path' => null,
         ];
     }
 }
