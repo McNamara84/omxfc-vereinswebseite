@@ -76,6 +76,24 @@
                     </div>
                 </div>
 
+                <div class="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="roles_total" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Anzahl Rollen</label>
+                        <input type="number" name="roles_total" id="roles_total" value="{{ old('roles_total', 0) }}" min="0" required class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
+                        @error('roles_total')
+                            <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div>
+                        <label for="roles_filled" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Besetzte Rollen</label>
+                        <input type="number" name="roles_filled" id="roles_filled" value="{{ old('roles_filled', 0) }}" min="0" required class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
+                        @error('roles_filled')
+                            <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                        @enderror
+                    </div>
+                </div>
+
                 <div class="mb-6">
                     <label for="notes" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Anmerkungen</label>
                     <textarea name="notes" id="notes" rows="4" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">{{ old('notes') }}</textarea>

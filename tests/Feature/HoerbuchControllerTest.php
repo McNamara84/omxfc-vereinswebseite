@@ -43,6 +43,8 @@ class HoerbuchControllerTest extends TestCase
             'status' => 'Skript wird erstellt',
             'responsible_user_id' => $responsible->id,
             'progress' => 50,
+            'roles_total' => 10,
+            'roles_filled' => 5,
             'notes' => 'Bemerkung',
         ];
 
@@ -57,6 +59,8 @@ class HoerbuchControllerTest extends TestCase
             'status' => 'Skript wird erstellt',
             'responsible_user_id' => $responsible->id,
             'progress' => 50,
+            'roles_total' => 10,
+            'roles_filled' => 5,
             'notes' => 'Bemerkung',
         ]);
     }
@@ -73,6 +77,8 @@ class HoerbuchControllerTest extends TestCase
             'status' => 'Skript wird erstellt',
             'responsible_user_id' => null,
             'progress' => 10,
+            'roles_total' => 10,
+            'roles_filled' => 0,
             'notes' => null,
         ]);
 
@@ -84,6 +90,8 @@ class HoerbuchControllerTest extends TestCase
             'status' => 'Skript wird erstellt',
             'responsible_user_id' => null,
             'progress' => 20,
+            'roles_total' => 10,
+            'roles_filled' => 0,
             'notes' => null,
         ];
 
@@ -113,6 +121,8 @@ class HoerbuchControllerTest extends TestCase
             'status' => 'Skript wird erstellt',
             'responsible_user_id' => null,
             'progress' => 50,
+            'roles_total' => 10,
+            'roles_filled' => 5,
             'notes' => 'Bemerkung',
         ]);
 
@@ -123,6 +133,7 @@ class HoerbuchControllerTest extends TestCase
             ->assertSee($episode->planned_release_date)
             ->assertSee('Bemerkung')
             ->assertSee('50%')
+            ->assertSee('5/10')
             ->assertSee(route('hoerbuecher.create'))
             ->assertSee('data-href="' . route('hoerbuecher.show', $episode) . '"', false)
             ->assertSee('role="button"', false)
@@ -144,6 +155,8 @@ class HoerbuchControllerTest extends TestCase
             'status' => 'Skript wird erstellt',
             'responsible_user_id' => $responsible->id,
             'progress' => 40,
+            'roles_total' => 8,
+            'roles_filled' => 2,
             'notes' => 'Notiz',
         ]);
 
@@ -153,6 +166,7 @@ class HoerbuchControllerTest extends TestCase
             ->assertSee('Detailfolge')
             ->assertSee($responsible->name)
             ->assertSee('Notiz')
+            ->assertSee('2/8')
             ->assertSee(route('hoerbuecher.edit', $episode));
     }
 
@@ -170,6 +184,8 @@ class HoerbuchControllerTest extends TestCase
             'status' => 'Skript wird erstellt',
             'responsible_user_id' => null,
             'progress' => 0,
+            'roles_total' => 0,
+            'roles_filled' => 0,
             'notes' => $malicious,
         ]);
 
@@ -211,6 +227,8 @@ class HoerbuchControllerTest extends TestCase
             'status' => 'Skript wird erstellt',
             'responsible_user_id' => null,
             'progress' => 0,
+            'roles_total' => 0,
+            'roles_filled' => 0,
             'notes' => null,
         ]);
 
@@ -222,6 +240,8 @@ class HoerbuchControllerTest extends TestCase
             'status' => 'Skript wird erstellt',
             'responsible_user_id' => null,
             'progress' => 0,
+            'roles_total' => 0,
+            'roles_filled' => 0,
             'notes' => null,
         ]);
 
@@ -233,6 +253,8 @@ class HoerbuchControllerTest extends TestCase
             'status' => 'Skript wird erstellt',
             'responsible_user_id' => null,
             'progress' => 0,
+            'roles_total' => 0,
+            'roles_filled' => 0,
             'notes' => null,
         ]);
 
@@ -257,6 +279,8 @@ class HoerbuchControllerTest extends TestCase
             'status' => 'Skript wird erstellt',
             'responsible_user_id' => null,
             'progress' => 0,
+            'roles_total' => 10,
+            'roles_filled' => 5,
             'notes' => null,
         ]);
 
@@ -268,6 +292,8 @@ class HoerbuchControllerTest extends TestCase
             'status' => 'Veröffentlicht',
             'responsible_user_id' => null,
             'progress' => 100,
+            'roles_total' => 20,
+            'roles_filled' => 20,
             'notes' => 'Aktualisiert',
         ];
 
@@ -282,6 +308,8 @@ class HoerbuchControllerTest extends TestCase
             'status' => 'Veröffentlicht',
             'planned_release_date' => '2025',
             'progress' => 100,
+            'roles_total' => 20,
+            'roles_filled' => 20,
             'notes' => 'Aktualisiert',
         ]);
     }
@@ -298,6 +326,8 @@ class HoerbuchControllerTest extends TestCase
             'status' => 'Skript wird erstellt',
             'responsible_user_id' => null,
             'progress' => 0,
+            'roles_total' => 0,
+            'roles_filled' => 0,
             'notes' => null,
         ]);
 
@@ -325,6 +355,8 @@ class HoerbuchControllerTest extends TestCase
                 'status' => 'Skript wird erstellt',
                 'responsible_user_id' => null,
                 'progress' => 0,
+                'roles_total' => 0,
+                'roles_filled' => 0,
                 'notes' => null,
             ];
 
@@ -346,6 +378,8 @@ class HoerbuchControllerTest extends TestCase
             'status' => 'Skript wird erstellt',
             'responsible_user_id' => null,
             'progress' => 0,
+            'roles_total' => 0,
+            'roles_filled' => 0,
             'notes' => null,
         ]);
 

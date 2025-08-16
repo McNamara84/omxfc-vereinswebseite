@@ -21,6 +21,7 @@
                             <th class="px-4 py-2 text-left text-gray-800 dark:text-gray-200">Ziel-EVT</th>
                             <th class="px-4 py-2 text-left text-gray-800 dark:text-gray-200">Status</th>
                             <th class="px-4 py-2 text-left text-gray-800 dark:text-gray-200">Fortschritt</th>
+                            <th class="px-4 py-2 text-left text-gray-800 dark:text-gray-200">Rollen besetzt</th>
                             <th class="px-4 py-2 text-left text-gray-800 dark:text-gray-200">Bemerkungen</th>
                         </tr>
                     </thead>
@@ -44,11 +45,18 @@
                                         </div>
                                     </div>
                                 </td>
+                                <td class="px-4 py-2">
+                                    <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4">
+                                        <div class="h-4 rounded-full text-xs font-medium text-center leading-none text-white" style="width: {{ $episode->rolesFilledPercent() }}%; background-color: hsl({{ $episode->rolesHue() }}, 100%, 40%);">
+                                            {{ $episode->roles_filled }}/{{ $episode->roles_total }}
+                                        </div>
+                                    </div>
+                                </td>
                                 <td class="px-4 py-2 text-gray-700 dark:text-gray-300">{{ $episode->notes }}</td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="5" class="px-4 py-2 text-center text-gray-700 dark:text-gray-300">Keine Hörbuchfolgen vorhanden.</td>
+                                <td colspan="6" class="px-4 py-2 text-center text-gray-700 dark:text-gray-300">Keine Hörbuchfolgen vorhanden.</td>
                             </tr>
                         @endforelse
                     </tbody>

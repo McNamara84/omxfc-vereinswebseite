@@ -92,6 +92,8 @@ class HoerbuchController extends Controller
             'responsible_user_id',
             'progress',
             'notes',
+            'roles_total',
+            'roles_filled',
         ]);
 
         $data['notes'] = $this->sanitizeNotes($data['notes'] ?? null);
@@ -128,6 +130,8 @@ class HoerbuchController extends Controller
             'status' => 'required|in:' . implode(',', AudiobookEpisode::STATUSES),
             'responsible_user_id' => 'nullable|exists:users,id',
             'progress' => 'required|integer|min:0|max:100',
+            'roles_total' => 'required|integer|min:0',
+            'roles_filled' => 'required|integer|min:0|lte:roles_total',
             'notes' => 'nullable|string',
         ]);
         AudiobookEpisode::create($this->episodeDataFromRequest($request));
@@ -184,6 +188,8 @@ class HoerbuchController extends Controller
             'status' => 'required|in:' . implode(',', AudiobookEpisode::STATUSES),
             'responsible_user_id' => 'nullable|exists:users,id',
             'progress' => 'required|integer|min:0|max:100',
+            'roles_total' => 'required|integer|min:0',
+            'roles_filled' => 'required|integer|min:0|lte:roles_total',
             'notes' => 'nullable|string',
         ]);
         $episode->update($this->episodeDataFromRequest($request));

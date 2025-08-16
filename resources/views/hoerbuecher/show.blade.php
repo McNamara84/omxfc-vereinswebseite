@@ -16,6 +16,14 @@
                         </div>
                     </div>
                 </div>
+                <div class="md:col-span-2">
+                    <span class="font-medium">Rollen besetzt:</span>
+                    <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4 mt-1">
+                        <div class="h-4 rounded-full text-xs font-medium text-center leading-none text-white" style="width: {{ $episode->rolesFilledPercent() }}%; background-color: hsl({{ $episode->rolesHue() }}, 100%, 40%);">
+                            {{ $episode->roles_filled }}/{{ $episode->roles_total }}
+                        </div>
+                    </div>
+                </div>
                 <div class="md:col-span-2"><span class="font-medium">Verantwortlich:</span> {{ $episode->responsible?->name ?? '-' }}</div>
                 <div class="md:col-span-2">
                     <span class="font-medium">Anmerkungen:</span>
