@@ -23,10 +23,10 @@
         </div>
         <template x-for="(topic, index) in topics" :key="index">
             <div class="mb-4">
-                <x-label :for="'topic-title-' + index" value="Thema" />
-                <x-input :id="'topic-title-' + index" type="text" class="mt-1 block w-full" :name="'topics[' + index + '][title]'" required />
-                <x-label :for="'topic-content-' + index" value="Text" class="mt-2" />
-                <textarea :id="'topic-content-' + index" class="mt-1 block w-full border-gray-300 rounded-md" rows="3" :name="'topics[' + index + '][content]'" required></textarea>
+                <x-label x-bind:for="'topic-title-' + index" value="Thema" />
+                <x-input x-bind:id="'topic-title-' + index" type="text" class="mt-1 block w-full" x-bind:name="'topics[' + index + '][title]'" required />
+                <x-label x-bind:for="'topic-content-' + index" value="Text" class="mt-2" />
+                <textarea x-bind:id="'topic-content-' + index" class="mt-1 block w-full border-gray-300 rounded-md" rows="3" x-bind:name="'topics[' + index + '][content]'" required></textarea>
             </div>
         </template>
         <x-button type="button" class="mt-2" @click="addTopic">Thema hinzufügen</x-button>
