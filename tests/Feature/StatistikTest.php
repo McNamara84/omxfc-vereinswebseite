@@ -73,10 +73,12 @@ class StatistikTest extends TestCase
     {
         $data = [];
         for ($i = 1; $i <= 30; $i++) {
+            // Start ratings at 3.1 and increment by 0.1 for each hardcover
+            $rating = 3.0 + ($i * 0.1);
             $data[] = [
                 'nummer' => $i,
                 'titel' => 'HC' . $i,
-                'bewertung' => 3 + $i / 10,
+                'bewertung' => $rating,
             ];
         }
         $path = storage_path('app/private/hardcovers.json');

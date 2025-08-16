@@ -61,9 +61,9 @@ describe('statistik module', () => {
     jest.resetModules();
     const chartModule = await import('chart.js/auto');
     const datatableModule = await import('simple-datatables');
-    const mockChartLocal = chartModule.default;
+    mockChart = chartModule.default;
     datatableModule.DataTable.mockClear();
-    mockChartLocal.mockClear();
+    mockChart.mockClear();
 
     document.body.innerHTML = '<canvas id="hardcoverChart"></canvas>';
     window.hardcoverChartLabels = ['1'];
@@ -72,8 +72,8 @@ describe('statistik module', () => {
     await import('../../resources/js/statistik.js');
     document.dispatchEvent(new Event('DOMContentLoaded'));
 
-    expect(mockChartLocal).toHaveBeenCalled();
-    const config = mockChartLocal.mock.calls[0][1];
+    expect(mockChart).toHaveBeenCalled();
+    const config = mockChart.mock.calls[0][1];
     expect(config.type).toBe('line');
   });
 });
