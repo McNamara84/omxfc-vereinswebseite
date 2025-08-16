@@ -72,3 +72,14 @@ Die Datei wird unter `public/sitemap.xml` abgelegt und sollte regelmäßig aktua
 
 Stellen Sie sicher, dass `APP_URL` in der `.env`-Datei auf eine gültige, öffentlich erreichbare URL gesetzt ist.
 
+## Scheduler in Produktion
+
+Damit geplante Aufgaben ausgeführt werden können, muss auf dem Produktionsserver der Laravel Scheduler laufen.
+Richten Sie dazu einen Cronjob ein, der den Scheduler jede Minute aufruft:
+
+```bash
+* * * * * php /path/to/artisan schedule:run >> /dev/null 2>&1
+```
+
+Der Scheduler führt stündlich das Kommando `member-map:refresh` aus und aktualisiert so den Cache der Mitgliederkarte.
+
