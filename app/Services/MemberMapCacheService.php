@@ -17,6 +17,7 @@ class MemberMapCacheService
         }
 
         $members = $team->users()
+            ->as('pivot')
             ->select('users.id', 'users.name', 'users.plz', 'users.land', 'users.stadt')
             ->withPivot('role')
             ->wherePivotNotIn('role', ['Anwärter'])
@@ -41,7 +42,7 @@ class MemberMapCacheService
                     $memberData[] = [
                         'name' => $member->name,
                         'city' => $member->stadt,
-                        'role' => $member->membership->role,
+                        'role' => $member->pivot->role,
                         'lat' => $jitter['lat'],
                         'lon' => $jitter['lon'],
                         'profile_url' => route('profile.view', $member->id),
@@ -95,7 +96,7 @@ class MemberMapCacheService
             'country' => $country,
             'format' => 'json',
             'limit' => 1,
-            'email' => config('app.url'),
+            'email' => config('mail.from.address'),
         ]);
 
         if ($response->successful() && count($response->json()) > 0) {
