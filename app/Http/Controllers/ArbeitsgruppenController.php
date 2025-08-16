@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ArbeitsgruppenController extends Controller
 {
@@ -48,8 +49,13 @@ class ArbeitsgruppenController extends Controller
 
         // Attach leader to team with existing role if available
         $memberTeam = Team::where('name', 'Mitglieder')->first();
-        $membership = $memberTeam?->users()->where('user_id', $validated['leader_id'])->first();
-        $leaderRole = $membership ? $membership->membership->role : null;
+        $membership = $memberTeam
+            ? DB::table('team_user')
+                ->where('team_id', $memberTeam->id)
+                ->where('user_id', $validated['leader_id'])
+                ->first()
+            : null;
+        $leaderRole = $membership->role ?? null;
 
         $team->users()->attach($validated['leader_id'], ['role' => $leaderRole]);
 

@@ -53,7 +53,7 @@
 
                 <div class="mb-6">
                     <label for="logo" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Logo</label>
-                    <input type="file" name="logo" id="logo" class="w-full text-gray-700 dark:text-gray-300">
+                    <input type="file" name="logo" id="logo" accept="image/*" class="w-full text-gray-700 dark:text-gray-300">
                     @error('logo')
                         <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                     @enderror
