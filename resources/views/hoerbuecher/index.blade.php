@@ -26,7 +26,7 @@
                     </thead>
                     <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
                         @forelse($episodes as $episode)
-                            <tr onclick="window.location='{{ route('hoerbuecher.show', $episode) }}'" class="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700">
+                            <tr class="hover:bg-gray-100 dark:hover:bg-gray-700">
                                 <td class="px-4 py-2 text-gray-700 dark:text-gray-300">
                                     <a href="{{ route('hoerbuecher.show', $episode) }}" class="block w-full h-full">{{ $episode->episode_number }}</a>
                                 </td>

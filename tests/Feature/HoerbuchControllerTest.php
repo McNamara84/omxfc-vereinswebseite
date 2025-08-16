@@ -152,6 +152,33 @@ class HoerbuchControllerTest extends TestCase
             ->assertSee(route('hoerbuecher.edit', $episode));
     }
 
+    public function test_notes_are_escaped_in_views(): void
+    {
+        $user = $this->actingMember('Admin');
+        $malicious = '<script>alert("xss")</script>';
+
+        $episode = AudiobookEpisode::create([
+            'episode_number' => 'F5',
+            'title' => 'XSS Test',
+            'author' => 'Autor',
+            'planned_release_date' => '2025',
+            'status' => 'Skript wird erstellt',
+            'responsible_user_id' => null,
+            'progress' => 0,
+            'notes' => $malicious,
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('hoerbuecher.index'))
+            ->assertDontSee($malicious, false)
+            ->assertSee($malicious);
+
+        $this->actingAs($user)
+            ->get(route('hoerbuecher.show', $episode))
+            ->assertDontSee($malicious, false)
+            ->assertSee($malicious);
+    }
+
     public function test_member_cannot_view_index(): void
     {
         $user = $this->actingMember('Mitglied');
