@@ -69,6 +69,17 @@ class HoerbuchController extends Controller
 
         return null;
     }
+
+    private function sanitizeNotes(?string $notes): ?string
+    {
+        if ($notes === null) {
+            return null;
+        }
+
+        $notes = trim(strip_tags($notes));
+
+        return $notes === '' ? null : $notes;
+    }
     /**
      * Formular zum Erstellen einer neuen Hörbuchfolge.
      */
@@ -113,12 +124,7 @@ class HoerbuchController extends Controller
             'notes',
         ]);
 
-        if (array_key_exists('notes', $data) && $data['notes'] !== null) {
-            $data['notes'] = trim(strip_tags($data['notes']));
-            if ($data['notes'] === '') {
-                $data['notes'] = null;
-            }
-        }
+        $data['notes'] = $this->sanitizeNotes($data['notes'] ?? null);
 
         AudiobookEpisode::create($data);
 
@@ -188,12 +194,7 @@ class HoerbuchController extends Controller
             'notes',
         ]);
 
-        if (array_key_exists('notes', $data) && $data['notes'] !== null) {
-            $data['notes'] = trim(strip_tags($data['notes']));
-            if ($data['notes'] === '') {
-                $data['notes'] = null;
-            }
-        }
+        $data['notes'] = $this->sanitizeNotes($data['notes'] ?? null);
 
         $episode->update($data);
 
