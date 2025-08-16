@@ -219,4 +219,13 @@ class HoerbuchControllerTest extends TestCase
             'id' => $episode->id,
         ]);
     }
+
+    public function test_admin_sees_eardrax_dashboard_link_in_navigation(): void
+    {
+        $user = $this->actingMember('Admin');
+
+        $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertSee('EARDRAX Dashboard');
+    }
 }
