@@ -156,12 +156,13 @@ class HoerbuchControllerTest extends TestCase
             ->assertSee(route('hoerbuecher.edit', $episode));
     }
 
-    public function test_notes_are_escaped_in_views(): void
+    public function test_notes_are_sanitized_and_escaped_in_views(): void
     {
         $user = $this->actingMember('Admin');
         $malicious = '<script>alert("xss")</script>';
+        $sanitized = 'alert("xss")';
 
-        $episode = AudiobookEpisode::create([
+        $this->actingAs($user)->post(route('hoerbuecher.store'), [
             'episode_number' => 'F5',
             'title' => 'XSS Test',
             'author' => 'Autor',
@@ -172,15 +173,22 @@ class HoerbuchControllerTest extends TestCase
             'notes' => $malicious,
         ]);
 
+        $episode = AudiobookEpisode::first();
+
+        $this->assertDatabaseHas('audiobook_episodes', [
+            'id' => $episode->id,
+            'notes' => $sanitized,
+        ]);
+
         $this->actingAs($user)
             ->get(route('hoerbuecher.index'))
             ->assertDontSee($malicious, false)
-            ->assertSee($malicious);
+            ->assertSee($sanitized);
 
         $this->actingAs($user)
             ->get(route('hoerbuecher.show', $episode))
             ->assertDontSee($malicious, false)
-            ->assertSee($malicious);
+            ->assertSee($sanitized);
     }
 
     public function test_member_cannot_view_index(): void

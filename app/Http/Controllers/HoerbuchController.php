@@ -102,7 +102,7 @@ class HoerbuchController extends Controller
             'notes' => 'nullable|string',
         ]);
 
-        AudiobookEpisode::create($request->only([
+        $data = $request->only([
             'episode_number',
             'title',
             'author',
@@ -111,7 +111,16 @@ class HoerbuchController extends Controller
             'responsible_user_id',
             'progress',
             'notes',
-        ]));
+        ]);
+
+        if (array_key_exists('notes', $data) && $data['notes'] !== null) {
+            $data['notes'] = trim(strip_tags($data['notes']));
+            if ($data['notes'] === '') {
+                $data['notes'] = null;
+            }
+        }
+
+        AudiobookEpisode::create($data);
 
         return redirect()->route('hoerbuecher.index')
             ->with('status', 'Hörbuchfolge wurde gespeichert.');
@@ -168,7 +177,7 @@ class HoerbuchController extends Controller
             'notes' => 'nullable|string',
         ]);
 
-        $episode->update($request->only([
+        $data = $request->only([
             'episode_number',
             'title',
             'author',
@@ -177,7 +186,16 @@ class HoerbuchController extends Controller
             'responsible_user_id',
             'progress',
             'notes',
-        ]));
+        ]);
+
+        if (array_key_exists('notes', $data) && $data['notes'] !== null) {
+            $data['notes'] = trim(strip_tags($data['notes']));
+            if ($data['notes'] === '') {
+                $data['notes'] = null;
+            }
+        }
+
+        $episode->update($data);
 
         return redirect()->route('hoerbuecher.index')
             ->with('status', 'Hörbuchfolge wurde aktualisiert.');
