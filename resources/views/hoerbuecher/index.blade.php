@@ -35,23 +35,20 @@
                                 <td class="px-4 py-2 text-gray-700 dark:text-gray-300">{{ $episode->status }}</td>
                                 <td class="px-4 py-2">
                                     <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4">
-                                        <div class="h-4 rounded-full text-xs font-medium text-center leading-none text-white" style="width: {{ $episode->progress }}%; background-color: hsl({{ $episode->progress * 1.2 }}, 100%, 40%);">
-                                            {{ $episode->progress }}%
-                                        </div>
-                                    </div>
-                                </td>
-                                <td class="px-4 py-2 text-gray-700 dark:text-gray-300">{{ $episode->notes }}</td>
-                                <td class="px-4 py-2 text-gray-700 dark:text-gray-300">{{ $episode->responsible?->name }}</td>
-                                <td class="px-4 py-2 text-center">
-                                    <a href="{{ route('hoerbuecher.edit', $episode) }}" class="text-blue-600 dark:text-blue-400 hover:underline">Bearbeiten</a>
-                                    <form action="{{ route('hoerbuecher.destroy', $episode) }}" method="POST" class="inline-block ml-2" onsubmit="return confirm('Wirklich löschen?');">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="text-red-600 dark:text-red-400 hover:underline">Löschen</button>
-                                    </form>
-                                </td>
-                            </tr>
-                        @empty
+                                      {{-- Map 0–100% progress to a hue range of 0–120 (red → green). --}}
+                                      <div class="h-4 rounded-full text-xs font-medium text-center leading-none text-white" style="width: {{ $episode->progress }}%; background-color: hsl({{ $episode->progress * 1.2 }}, 100%, 40%);">
+                                          {{ $episode->progress }}%
+                                      </div>
+                                  </div>
+                              </td>
+                              <td class="px-4 py-2 text-gray-700 dark:text-gray-300">{{ $episode->notes }}</td>
+                              <td class="px-4 py-2 text-gray-700 dark:text-gray-300">{{ $episode->responsible?->name }}</td>
+                              <td class="px-4 py-2 text-center">
+                                  <a href="{{ route('hoerbuecher.edit', $episode) }}" class="text-blue-600 dark:text-blue-400 hover:underline">Bearbeiten</a>
+                                      <x-confirm-delete :action="route('hoerbuecher.destroy', $episode)" />
+                              </td>
+                          </tr>
+                      @empty
                             <tr>
                                 <td colspan="8" class="px-4 py-2 text-center text-gray-700 dark:text-gray-300">Keine Hörbuchfolgen vorhanden.</td>
                             </tr>
