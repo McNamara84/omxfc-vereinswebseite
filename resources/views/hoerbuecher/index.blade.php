@@ -22,40 +22,39 @@
                             <th class="px-4 py-2 text-left text-gray-800 dark:text-gray-200">Status</th>
                             <th class="px-4 py-2 text-left text-gray-800 dark:text-gray-200">Fortschritt</th>
                             <th class="px-4 py-2 text-left text-gray-800 dark:text-gray-200">Bemerkungen</th>
-                            <th class="px-4 py-2 text-left text-gray-800 dark:text-gray-200">Verantwortlich</th>
-                            <th class="px-4 py-2 text-center text-gray-800 dark:text-gray-200">Aktionen</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
                         @forelse($episodes as $episode)
-                            <tr>
+                            <tr
+                                class="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
+                                role="button"
+                                tabindex="0"
+                                data-href="{{ route('hoerbuecher.show', $episode) }}"
+                            >
                                 <td class="px-4 py-2 text-gray-700 dark:text-gray-300">{{ $episode->episode_number }}</td>
                                 <td class="px-4 py-2 text-gray-700 dark:text-gray-300">{{ $episode->title }}</td>
                                 <td class="px-4 py-2 text-gray-700 dark:text-gray-300">{{ $episode->planned_release_date }}</td>
                                 <td class="px-4 py-2 text-gray-700 dark:text-gray-300">{{ $episode->status }}</td>
                                 <td class="px-4 py-2">
                                     <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4">
-                                      {{-- Map 0–100% progress to a hue range of 0–120 (red → green). --}}
-                                      <div class="h-4 rounded-full text-xs font-medium text-center leading-none text-white" style="width: {{ $episode->progress }}%; background-color: hsl({{ $episode->progressHue() }}, 100%, 40%);">
-                                          {{ $episode->progress }}%
-                                      </div>
-                                  </div>
-                              </td>
-                              <td class="px-4 py-2 text-gray-700 dark:text-gray-300">{{ $episode->notes }}</td>
-                              <td class="px-4 py-2 text-gray-700 dark:text-gray-300">{{ $episode->responsible?->name }}</td>
-                              <td class="px-4 py-2 text-center">
-                                  <a href="{{ route('hoerbuecher.edit', $episode) }}" class="text-blue-600 dark:text-blue-400 hover:underline">Bearbeiten</a>
-                                      <x-confirm-delete :action="route('hoerbuecher.destroy', $episode)" />
-                              </td>
-                          </tr>
-                      @empty
+                                        {{-- Map 0–100% progress to a hue range of 0–120 (red → green). --}}
+                                        <div class="h-4 rounded-full text-xs font-medium text-center leading-none text-white" style="width: {{ $episode->progress }}%; background-color: hsl({{ $episode->progressHue() }}, 100%, 40%);">
+                                            {{ $episode->progress }}%
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-4 py-2 text-gray-700 dark:text-gray-300">{{ $episode->notes }}</td>
+                            </tr>
+                        @empty
                             <tr>
-                                <td colspan="8" class="px-4 py-2 text-center text-gray-700 dark:text-gray-300">Keine Hörbuchfolgen vorhanden.</td>
+                                <td colspan="5" class="px-4 py-2 text-center text-gray-700 dark:text-gray-300">Keine Hörbuchfolgen vorhanden.</td>
                             </tr>
                         @endforelse
                     </tbody>
                 </table>
             </div>
         </div>
+        @vite(['resources/js/hoerbuecher.js'])
     </x-member-page>
 </x-app-layout>

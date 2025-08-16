@@ -123,7 +123,72 @@ class HoerbuchControllerTest extends TestCase
             ->assertSee($episode->planned_release_date)
             ->assertSee('Bemerkung')
             ->assertSee('50%')
-            ->assertSee(route('hoerbuecher.create'));
+            ->assertSee(route('hoerbuecher.create'))
+            ->assertSee('data-href="' . route('hoerbuecher.show', $episode) . '"', false)
+            ->assertSee('role="button"', false)
+            ->assertSee('tabindex="0"', false)
+            ->assertDontSee('onclick="window.location', false)
+            ->assertDontSee('onkeydown', false);
+    }
+
+    public function test_admin_can_view_episode_details(): void
+    {
+        $user = $this->actingMember('Admin');
+        $responsible = $this->actingMember();
+
+        $episode = AudiobookEpisode::create([
+            'episode_number' => 'F9',
+            'title' => 'Detailfolge',
+            'author' => 'Autor',
+            'planned_release_date' => '2025',
+            'status' => 'Skript wird erstellt',
+            'responsible_user_id' => $responsible->id,
+            'progress' => 40,
+            'notes' => 'Notiz',
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('hoerbuecher.show', $episode))
+            ->assertOk()
+            ->assertSee('Detailfolge')
+            ->assertSee($responsible->name)
+            ->assertSee('Notiz')
+            ->assertSee(route('hoerbuecher.edit', $episode));
+    }
+
+    public function test_notes_are_sanitized_and_escaped_in_views(): void
+    {
+        $user = $this->actingMember('Admin');
+        $malicious = '<script>alert("xss")</script>';
+        $sanitized = 'alert("xss")';
+
+        $this->actingAs($user)->post(route('hoerbuecher.store'), [
+            'episode_number' => 'F5',
+            'title' => 'XSS Test',
+            'author' => 'Autor',
+            'planned_release_date' => '2025',
+            'status' => 'Skript wird erstellt',
+            'responsible_user_id' => null,
+            'progress' => 0,
+            'notes' => $malicious,
+        ]);
+
+        $episode = AudiobookEpisode::first();
+
+        $this->assertDatabaseHas('audiobook_episodes', [
+            'id' => $episode->id,
+            'notes' => $sanitized,
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('hoerbuecher.index'))
+            ->assertDontSee($malicious, false)
+            ->assertSee($sanitized);
+
+        $this->actingAs($user)
+            ->get(route('hoerbuecher.show', $episode))
+            ->assertDontSee($malicious, false)
+            ->assertSee($sanitized);
     }
 
     public function test_member_cannot_view_index(): void

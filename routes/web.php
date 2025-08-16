@@ -102,6 +102,7 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
         Route::get('/', 'index')->name('index');
         Route::get('erstellen', 'create')->name('create');
         Route::post('/', 'store')->name('store');
+        Route::get('{episode}', 'show')->name('show');
         Route::get('{episode}/bearbeiten', 'edit')->name('edit');
         Route::put('{episode}', 'update')->name('update');
         Route::delete('{episode}', 'destroy')->name('destroy');

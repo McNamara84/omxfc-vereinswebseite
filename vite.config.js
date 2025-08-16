@@ -11,6 +11,7 @@ export default defineConfig({
                 'resources/js/maddraxiversum.js',
                 'resources/js/statistik.js',
                 'resources/js/changelog.js',
+                'resources/js/hoerbuecher.js',
             ],
             refresh: true,
             // Explizit den public-Pfad setzen
