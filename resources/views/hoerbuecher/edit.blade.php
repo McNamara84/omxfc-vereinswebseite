@@ -9,7 +9,7 @@
 
                 <div class="mb-4">
                     <label for="episode_number" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Folgenummer</label>
-                    <input type="text" name="episode_number" id="episode_number" value="{{ old('episode_number', $episode->episode_number) }}" required class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
+                    <input type="text" name="episode_number" id="episode_number" value="{{ old('episode_number', $episode->episode_number) }}" required class="w-full md:max-w-xs rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
                     @error('episode_number')
                         <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                     @enderror
@@ -32,8 +32,8 @@
                 </div>
 
                 <div class="mb-4">
-                    <label for="planned_release_date" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Geplantes Veröffentlichungsdatum</label>
-                    <input type="date" name="planned_release_date" id="planned_release_date" value="{{ old('planned_release_date', $episode->planned_release_date?->format('Y-m-d')) }}" required class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
+                    <label for="planned_release_date" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Geplanter Veröffentlichungszeitpunkt</label>
+                    <input type="text" name="planned_release_date" id="planned_release_date" value="{{ old('planned_release_date', $episode->planned_release_date) }}" required placeholder="JJJJ, MM.JJJJ oder JJJJ-MM-TT" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
                     @error('planned_release_date')
                         <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                     @enderror

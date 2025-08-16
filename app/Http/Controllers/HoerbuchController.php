@@ -61,7 +61,7 @@ class HoerbuchController extends Controller
             'episode_number' => 'required|string|max:10|unique:audiobook_episodes,episode_number',
             'title' => 'required|string|max:255',
             'author' => 'required|string|max:255',
-            'planned_release_date' => 'required|date',
+            'planned_release_date' => ['required', 'string', 'regex:/^(\d{4}-\d{2}-\d{2}|\d{2}\.\d{4}|\d{4})$/'],
             'status' => 'required|in:' . implode(',', AudiobookEpisode::STATUSES),
             'responsible_user_id' => 'nullable|exists:users,id',
             'progress' => 'required|integer|min:0|max:100',
@@ -79,7 +79,7 @@ class HoerbuchController extends Controller
             'notes',
         ]));
 
-        return redirect()->route('hoerbuecher.create')
+        return redirect()->route('hoerbuecher.index')
             ->with('status', 'Hörbuchfolge wurde gespeichert.');
     }
 
@@ -115,7 +115,7 @@ class HoerbuchController extends Controller
             ],
             'title' => 'required|string|max:255',
             'author' => 'required|string|max:255',
-            'planned_release_date' => 'required|date',
+            'planned_release_date' => ['required', 'string', 'regex:/^(\d{4}-\d{2}-\d{2}|\d{2}\.\d{4}|\d{4})$/'],
             'status' => 'required|in:' . implode(',', AudiobookEpisode::STATUSES),
             'responsible_user_id' => 'nullable|exists:users,id',
             'progress' => 'required|integer|min:0|max:100',

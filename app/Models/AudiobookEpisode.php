@@ -38,13 +38,6 @@ class AudiobookEpisode extends Model
         'notes',
     ];
 
-    protected function casts(): array
-    {
-        return [
-            'planned_release_date' => 'date',
-        ];
-    }
-
     public function responsible(): BelongsTo
     {
         return $this->belongsTo(User::class, 'responsible_user_id');
