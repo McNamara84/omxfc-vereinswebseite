@@ -61,4 +61,15 @@ class RewardControllerTest extends TestCase
         $this->assertEquals(25, $rewards[1]['percentage']);
         $this->assertEquals(25, $rewards[2]['percentage']);
     }
+
+    public function test_hardcover_reward_visible(): void
+    {
+        $user = $this->actingMember(40);
+        $this->actingAs($user);
+
+        $response = $this->get('/belohnungen');
+
+        $response->assertOk();
+        $response->assertSee('Statistik - Bewertungen der Hardcover');
+    }
 }

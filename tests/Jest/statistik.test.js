@@ -56,4 +56,24 @@ describe('statistik module', () => {
     const instance = mockDataTable.mock.instances[0];
     expect(instance.sortColumn).toHaveBeenCalledWith(3, 'desc');
   });
+
+  test('DOMContentLoaded draws hardcover chart', async () => {
+    jest.resetModules();
+    const chartModule = await import('chart.js/auto');
+    const datatableModule = await import('simple-datatables');
+    const mockChartLocal = chartModule.default;
+    datatableModule.DataTable.mockClear();
+    mockChartLocal.mockClear();
+
+    document.body.innerHTML = '<canvas id="hardcoverChart"></canvas>';
+    window.hardcoverChartLabels = ['1'];
+    window.hardcoverChartValues = [4];
+
+    await import('../../resources/js/statistik.js');
+    document.dispatchEvent(new Event('DOMContentLoaded'));
+
+    expect(mockChartLocal).toHaveBeenCalled();
+    const config = mockChartLocal.mock.calls[0][1];
+    expect(config.type).toBe('line');
+  });
 });

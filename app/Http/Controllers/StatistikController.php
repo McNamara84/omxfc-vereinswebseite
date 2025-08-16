@@ -29,6 +29,12 @@ class StatistikController extends Controller
         }
         $romane = collect(json_decode(file_get_contents($jsonPath), true));
 
+        $hardcoverPath = storage_path('app/private/hardcovers.json');
+        $hardcovers = collect();
+        if (is_readable($hardcoverPath)) {
+            $hardcovers = collect(json_decode(file_get_contents($hardcoverPath), true));
+        }
+
         // ── Card 1 – Grundstatistiken ──────────────────────────────────────────────
         $averageRating = round($romane->avg('bewertung'), 2);
         $totalVotes = $romane->sum('stimmen');
@@ -261,6 +267,11 @@ class StatistikController extends Controller
             return $roman['bewertung'] ?? null;
         });
 
+        // ── Card 28 – Bewertungen der Hardcover ───────────────────
+        $hardcoverCycle = $hardcovers->sortBy('nummer')->take(30);
+        $hardcoverLabels = $hardcoverCycle->pluck('nummer');
+        $hardcoverValues = $hardcoverCycle->pluck('bewertung');
+
         // ── Card 7 – Rezensionen unserer Mitglieder ───────────────────────────
         $totalReviews = 0;
         $averageReviewsPerBook = 0;
@@ -386,6 +397,8 @@ class StatistikController extends Controller
             'amrakaValues' => $amrakaValues,
             'weltratLabels' => $weltratLabels,
             'weltratValues' => $weltratValues,
+            'hardcoverLabels' => $hardcoverLabels,
+            'hardcoverValues' => $hardcoverValues,
             'totalReviews' => $totalReviews,
             'averageReviewsPerBook' => $averageReviewsPerBook,
             'topReviewers' => $topReviewers,

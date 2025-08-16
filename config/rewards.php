@@ -162,6 +162,11 @@ return [
         'points' => 32,
     ],
     [
+        'title' => 'Statistik - Bewertungen der Hardcover',
+        'description' => 'Zeigt Bewertungen der Hardcover aus dem Maddraxikon in einem Liniendiagramm.',
+        'points' => 40,
+    ],
+    [
         'title' => 'Kompendium-Suche',
         'description' => 'Erlaubt die Volltextsuche im Maddrax-Kompendium.',
         'points' => 100,

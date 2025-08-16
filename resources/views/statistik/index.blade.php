@@ -556,6 +556,21 @@
                 </script>
             @endif
 
+            {{-- Card 28 – Bewertungen der Hardcover (≥ 40 Baxx) --}}
+            @if ($userPoints >= 40)
+                <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
+                    <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                        Bewertungen der Hardcover
+                    </h2>
+                    <canvas id="hardcoverChart" height="140"></canvas>
+                </div>
+
+                <script>
+                    window.hardcoverChartLabels = @json($hardcoverLabels);
+                    window.hardcoverChartValues = @json($hardcoverValues);
+                </script>
+            @endif
+
             @if ($userPoints >= 1)
                 @vite(['resources/js/statistik.js'])
             @endif
