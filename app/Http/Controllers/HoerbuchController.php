@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use App\Rules\ValidReleaseTime;
+use Carbon\Carbon;
 
 class HoerbuchController extends Controller
 {
@@ -30,11 +31,43 @@ class HoerbuchController extends Controller
     {
         $this->ensureAdminOrVorstand();
 
-        $episodes = AudiobookEpisode::orderBy('episode_number')->get();
+        $episodes = AudiobookEpisode::all()
+            ->sortBy(function ($episode) {
+                return $this->parsePlannedReleaseDate($episode->planned_release_date) ?? Carbon::create(9999, 12, 31);
+            })
+            ->values();
 
         return view('hoerbuecher.index', [
             'episodes' => $episodes,
         ]);
+    }
+
+    private function parsePlannedReleaseDate(?string $value): ?Carbon
+    {
+        if (!$value) {
+            return null;
+        }
+
+        $formats = ['d.m.Y', 'm.Y', 'Y'];
+
+        foreach ($formats as $format) {
+            try {
+                $date = Carbon::createFromFormat($format, $value);
+            } catch (\Exception $e) {
+                continue;
+            }
+
+            if ($format === 'm.Y') {
+                $date->day = 1;
+            } elseif ($format === 'Y') {
+                $date->month = 1;
+                $date->day = 1;
+            }
+
+            return $date;
+        }
+
+        return null;
     }
     /**
      * Formular zum Erstellen einer neuen Hörbuchfolge.

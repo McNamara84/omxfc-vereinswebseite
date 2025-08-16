@@ -66,7 +66,6 @@
                             <div id="vorstand-menu" x-show="open" x-cloak class="absolute left-0 top-full mt-px w-48 bg-white dark:bg-gray-700 rounded-md shadow-lg z-50 py-2 group-hover:block" role="menu" aria-labelledby="vorstand-button">
                                 <x-dropdown-link href="{{ route('admin.index') }}">Admin</x-dropdown-link>
                                 <x-dropdown-link href="{{ route('hoerbuecher.index') }}">EARDRAX Dashboard</x-dropdown-link>
-                                <x-dropdown-link href="{{ route('hoerbuecher.create') }}">Neue Hörbuchfolge</x-dropdown-link>
                                 <x-dropdown-link href="{{ route('arbeitsgruppen.create') }}">Neue AG</x-dropdown-link>
                             </div>
                         </div>
@@ -166,7 +165,6 @@
             <div id="vorstand-mobile-menu" x-show="openMenu === 'vorstand'" x-cloak class="italic" aria-labelledby="vorstand-mobile-button">
                 <x-responsive-nav-link href="{{ route('admin.index') }}">Admin</x-responsive-nav-link>
                 <x-responsive-nav-link href="{{ route('hoerbuecher.index') }}">EARDRAX Dashboard</x-responsive-nav-link>
-                <x-responsive-nav-link href="{{ route('hoerbuecher.create') }}">Neue Hörbuchfolge</x-responsive-nav-link>
                 <x-responsive-nav-link href="{{ route('arbeitsgruppen.create') }}">Neue AG</x-responsive-nav-link>
             </div>
             @endif

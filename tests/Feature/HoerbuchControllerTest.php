@@ -134,6 +134,52 @@ class HoerbuchControllerTest extends TestCase
             ->assertForbidden();
     }
 
+    public function test_index_sorts_by_planned_release_date(): void
+    {
+        $user = $this->actingMember('Admin');
+
+        $e1 = AudiobookEpisode::create([
+            'episode_number' => 'F1',
+            'title' => 'Späteste',
+            'author' => 'Autor',
+            'planned_release_date' => '2025',
+            'status' => 'Skript wird erstellt',
+            'responsible_user_id' => null,
+            'progress' => 0,
+            'notes' => null,
+        ]);
+
+        $e2 = AudiobookEpisode::create([
+            'episode_number' => 'F2',
+            'title' => 'Monat',
+            'author' => 'Autor',
+            'planned_release_date' => '05.2024',
+            'status' => 'Skript wird erstellt',
+            'responsible_user_id' => null,
+            'progress' => 0,
+            'notes' => null,
+        ]);
+
+        $e3 = AudiobookEpisode::create([
+            'episode_number' => 'F3',
+            'title' => 'Tag',
+            'author' => 'Autor',
+            'planned_release_date' => '15.03.2024',
+            'status' => 'Skript wird erstellt',
+            'responsible_user_id' => null,
+            'progress' => 0,
+            'notes' => null,
+        ]);
+
+        $response = $this->actingAs($user)->get(route('hoerbuecher.index'));
+
+        $episodes = $response->viewData('episodes');
+
+        $this->assertEquals([
+            'F3', 'F2', 'F1',
+        ], $episodes->pluck('episode_number')->toArray());
+    }
+
     public function test_admin_can_update_episode(): void
     {
         $user = $this->actingMember('Admin');
