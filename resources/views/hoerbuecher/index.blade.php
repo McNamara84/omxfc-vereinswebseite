@@ -21,7 +21,7 @@
                             <th class="px-4 py-2 text-left text-gray-800 dark:text-gray-200">Ziel-EVT</th>
                             <th class="px-4 py-2 text-left text-gray-800 dark:text-gray-200">Status</th>
                             <th class="px-4 py-2 text-left text-gray-800 dark:text-gray-200">Fortschritt</th>
-                            <th class="px-4 py-2 text-left text-gray-800 dark:text-gray-200">Rollen besetzt</th>
+                            <th class="px-4 py-2 text-left text-gray-800 dark:text-gray-200">Rollen</th>
                             <th class="px-4 py-2 text-left text-gray-800 dark:text-gray-200">Bemerkungen</th>
                         </tr>
                     </thead>
