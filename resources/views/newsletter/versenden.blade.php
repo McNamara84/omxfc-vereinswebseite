@@ -3,7 +3,7 @@
     @if(session('status'))
         <div class="mb-4 text-green-600">{{ session('status') }}</div>
     @endif
-    <form id="newsletterForm" x-data="newsletterForm()" x-ref="form" method="POST" action="{{ route('newsletter.send') }}">
+    <form x-data="newsletterForm()" x-ref="form" method="POST" action="{{ route('newsletter.send') }}">
         @csrf
         <div class="mb-4">
             <x-label for="subject" value="Betreff" />
@@ -14,7 +14,8 @@
             <div class="mt-2 space-y-2">
                 @foreach($roles as $role)
                     <label class="flex items-center">
-                        <input type="checkbox" name="roles[]" value="{{ $role }}" class="rounded" {{ $role === 'Mitglied' ? 'checked' : '' }}>
+                        {{-- Mitglied is the typical target audience and therefore pre-selected --}}
+                        <input type="checkbox" name="roles[]" value="{{ $role }}" class="rounded" {{ $role === $defaultRole ? 'checked' : '' }}>
                         <span class="ml-2">{{ $role }}</span>
                     </label>
                 @endforeach
@@ -36,7 +37,7 @@
                 <p class="mb-4">Wirklich Newsletter versenden?</p>
                 <div class="flex justify-end">
                     <x-secondary-button type="button" @click="showConfirm = false">Abbrechen</x-secondary-button>
-                    <x-button type="button" class="ml-2" @click="document.getElementById('newsletterForm').submit()">Ja, versenden</x-button>
+                    <x-button type="button" class="ml-2" @click="$refs.form.submit()">Ja, versenden</x-button>
                 </div>
             </div>
         </div>

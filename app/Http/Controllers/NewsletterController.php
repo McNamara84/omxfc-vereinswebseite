@@ -7,9 +7,20 @@ use App\Models\Team;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Validation\Rule;
 
 class NewsletterController extends Controller
 {
+    /**
+     * Roles that can receive newsletters.
+     */
+    private const ROLES = ['Mitglied', 'Ehrenmitglied', 'Kassenwart', 'Vorstand', 'Admin'];
+
+    /**
+     * Default role pre-selected on the form. Members are the usual audience.
+     */
+    private const DEFAULT_ROLE = 'Mitglied';
+
     /**
      * Display the newsletter form.
      */
@@ -21,9 +32,10 @@ class NewsletterController extends Controller
             abort(403);
         }
 
-        $roles = ['Mitglied', 'Ehrenmitglied', 'Kassenwart', 'Vorstand', 'Admin'];
+        $roles = self::ROLES;
+        $defaultRole = self::DEFAULT_ROLE;
 
-        return view('newsletter.versenden', compact('roles'));
+        return view('newsletter.versenden', compact('roles', 'defaultRole'));
     }
 
     /**
@@ -38,12 +50,12 @@ class NewsletterController extends Controller
         }
 
         $data = $request->validate([
-            'roles' => 'required|array',
-            'roles.*' => 'in:Mitglied,Ehrenmitglied,Kassenwart,Vorstand,Admin',
-            'subject' => 'required|string',
-            'topics' => 'required|array|min:1',
-            'topics.*.title' => 'required|string',
-            'topics.*.content' => 'required|string',
+            'roles' => ['required', 'array'],
+            'roles.*' => ['string', Rule::in(self::ROLES)],
+            'subject' => ['required', 'string'],
+            'topics' => ['required', 'array', 'min:1'],
+            'topics.*.title' => ['required', 'string'],
+            'topics.*.content' => ['required', 'string'],
         ]);
 
         $membersTeam = Team::where('name', 'Mitglieder')->first();
