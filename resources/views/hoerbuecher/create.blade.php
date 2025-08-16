@@ -7,14 +7,6 @@
                 @csrf
 
                 <div class="mb-4">
-                    <label for="episode_number" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Folgenummer</label>
-                    <input type="text" name="episode_number" id="episode_number" value="{{ old('episode_number') }}" required class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
-                    @error('episode_number')
-                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <div class="mb-4">
                     <label for="title" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Titel</label>
                     <input type="text" name="title" id="title" value="{{ old('title') }}" required class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
                     @error('title')
@@ -22,54 +14,66 @@
                     @enderror
                 </div>
 
-                <div class="mb-4">
-                    <label for="author" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Autor</label>
-                    <input type="text" name="author" id="author" value="{{ old('author') }}" required class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
-                    @error('author')
-                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                    @enderror
+                <div class="mb-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label for="episode_number" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Folgenummer</label>
+                        <input type="text" name="episode_number" id="episode_number" value="{{ old('episode_number') }}" required class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
+                        @error('episode_number')
+                            <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div>
+                        <label for="status" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Status</label>
+                        <select name="status" id="status" required class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
+                            <option value="">-- Status wählen --</option>
+                            @foreach($statuses as $status)
+                                <option value="{{ $status }}" {{ old('status') === $status ? 'selected' : '' }}>{{ $status }}</option>
+                            @endforeach
+                        </select>
+                        @error('status')
+                            <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div>
+                        <label for="planned_release_date" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Geplanter Veröffentlichungszeitpunkt</label>
+                        <input type="text" name="planned_release_date" id="planned_release_date" value="{{ old('planned_release_date') }}" required placeholder="JJJJ, MM.JJJJ oder TT.MM.JJJJ" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
+                        @error('planned_release_date')
+                            <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                        @enderror
+                    </div>
                 </div>
 
-                <div class="mb-4">
-                    <label for="planned_release_date" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Geplantes Veröffentlichungsdatum</label>
-                    <input type="date" name="planned_release_date" id="planned_release_date" value="{{ old('planned_release_date') }}" required class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
-                    @error('planned_release_date')
-                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                    @enderror
-                </div>
+                <div class="mb-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label for="author" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Autor</label>
+                        <input type="text" name="author" id="author" value="{{ old('author') }}" required class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
+                        @error('author')
+                            <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                        @enderror
+                    </div>
 
-                <div class="mb-4">
-                    <label for="status" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Status</label>
-                    <select name="status" id="status" required class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
-                        <option value="">-- Status wählen --</option>
-                        @foreach($statuses as $status)
-                            <option value="{{ $status }}" {{ old('status') === $status ? 'selected' : '' }}>{{ $status }}</option>
-                        @endforeach
-                    </select>
-                    @error('status')
-                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                    @enderror
-                </div>
+                    <div>
+                        <label for="responsible_user_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Verantwortlicher Bearbeiter</label>
+                        <select name="responsible_user_id" id="responsible_user_id" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
+                            <option value="">-- Mitglied wählen --</option>
+                            @foreach($users as $member)
+                                <option value="{{ $member->id }}" {{ old('responsible_user_id') == $member->id ? 'selected' : '' }}>{{ $member->name }}</option>
+                            @endforeach
+                        </select>
+                        @error('responsible_user_id')
+                            <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                        @enderror
+                    </div>
 
-                <div class="mb-4">
-                    <label for="responsible_user_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Verantwortlicher Bearbeiter</label>
-                    <select name="responsible_user_id" id="responsible_user_id" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
-                        <option value="">-- Mitglied wählen --</option>
-                        @foreach($users as $member)
-                            <option value="{{ $member->id }}" {{ old('responsible_user_id') == $member->id ? 'selected' : '' }}>{{ $member->name }}</option>
-                        @endforeach
-                    </select>
-                    @error('responsible_user_id')
-                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <div class="mb-4">
-                    <label for="progress" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Fortschritt (%)</label>
-                    <input type="number" name="progress" id="progress" value="{{ old('progress', 0) }}" min="0" max="100" required class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
-                    @error('progress')
-                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                    @enderror
+                    <div>
+                        <label for="progress" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Fortschritt (%)</label>
+                        <input type="number" name="progress" id="progress" value="{{ old('progress', 0) }}" min="0" max="100" required class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
+                        @error('progress')
+                            <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                        @enderror
+                    </div>
                 </div>
 
                 <div class="mb-6">

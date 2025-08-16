@@ -39,7 +39,7 @@ class HoerbuchControllerTest extends TestCase
             'episode_number' => 'F30',
             'title' => 'Test Titel',
             'author' => 'Autor',
-            'planned_release_date' => '2025-12-24',
+            'planned_release_date' => '12.2025',
             'status' => 'Skript wird erstellt',
             'responsible_user_id' => $responsible->id,
             'progress' => 50,
@@ -48,11 +48,12 @@ class HoerbuchControllerTest extends TestCase
 
         $response = $this->actingAs($user)->post(route('hoerbuecher.store'), $data);
 
-        $response->assertRedirect(route('hoerbuecher.create'));
+        $response->assertRedirect(route('hoerbuecher.index'));
         $this->assertDatabaseHas('audiobook_episodes', [
             'episode_number' => 'F30',
             'title' => 'Test Titel',
             'author' => 'Autor',
+            'planned_release_date' => '12.2025',
             'status' => 'Skript wird erstellt',
             'responsible_user_id' => $responsible->id,
             'progress' => 50,
@@ -68,7 +69,7 @@ class HoerbuchControllerTest extends TestCase
             'episode_number' => 'F30',
             'title' => 'Vorhandene Folge',
             'author' => 'Autor',
-            'planned_release_date' => '2025-12-24',
+            'planned_release_date' => '24.12.2025',
             'status' => 'Skript wird erstellt',
             'responsible_user_id' => null,
             'progress' => 10,
@@ -79,7 +80,7 @@ class HoerbuchControllerTest extends TestCase
             'episode_number' => 'F30',
             'title' => 'Duplikat',
             'author' => 'Zweiter Autor',
-            'planned_release_date' => '2025-12-24',
+            'planned_release_date' => '24.12.2025',
             'status' => 'Skript wird erstellt',
             'responsible_user_id' => null,
             'progress' => 20,
@@ -108,7 +109,7 @@ class HoerbuchControllerTest extends TestCase
             'episode_number' => 'F1',
             'title' => 'Erste Folge',
             'author' => 'Autor',
-            'planned_release_date' => '2025-01-01',
+            'planned_release_date' => '2025',
             'status' => 'Skript wird erstellt',
             'responsible_user_id' => null,
             'progress' => 50,
@@ -119,7 +120,7 @@ class HoerbuchControllerTest extends TestCase
             ->get(route('hoerbuecher.index'))
             ->assertOk()
             ->assertSee('Erste Folge')
-            ->assertSee($episode->planned_release_date->format('d.m.Y'))
+            ->assertSee($episode->planned_release_date)
             ->assertSee('Bemerkung')
             ->assertSee('50%')
             ->assertSee(route('hoerbuecher.create'));
@@ -141,7 +142,7 @@ class HoerbuchControllerTest extends TestCase
             'episode_number' => 'F2',
             'title' => 'Alte Folge',
             'author' => 'Autor',
-            'planned_release_date' => '2025-01-01',
+            'planned_release_date' => '12.2025',
             'status' => 'Skript wird erstellt',
             'responsible_user_id' => null,
             'progress' => 0,
@@ -152,7 +153,7 @@ class HoerbuchControllerTest extends TestCase
             'episode_number' => 'F2',
             'title' => 'Neue Folge',
             'author' => 'Neuer Autor',
-            'planned_release_date' => '2025-02-01',
+            'planned_release_date' => '2025',
             'status' => 'Veröffentlicht',
             'responsible_user_id' => null,
             'progress' => 100,
@@ -168,6 +169,7 @@ class HoerbuchControllerTest extends TestCase
             'title' => 'Neue Folge',
             'author' => 'Neuer Autor',
             'status' => 'Veröffentlicht',
+            'planned_release_date' => '2025',
             'progress' => 100,
             'notes' => 'Aktualisiert',
         ]);
@@ -181,7 +183,7 @@ class HoerbuchControllerTest extends TestCase
             'episode_number' => 'F3',
             'title' => 'Lösch mich',
             'author' => 'Autor',
-            'planned_release_date' => '2025-01-01',
+            'planned_release_date' => '01.01.2025',
             'status' => 'Skript wird erstellt',
             'responsible_user_id' => null,
             'progress' => 0,
@@ -197,6 +199,30 @@ class HoerbuchControllerTest extends TestCase
         ]);
     }
 
+    public function test_invalid_planned_release_date_is_rejected(): void
+    {
+        $user = $this->actingMember('Admin');
+
+        $invalidDates = ['13.2025', '99.9999', '3025', '01.13.2025', '30.02.2025', '31.04.2025', '2025-01-01'];
+
+        foreach ($invalidDates as $date) {
+            $data = [
+                'episode_number' => 'FX' . $date,
+                'title' => 'Titel',
+                'author' => 'Autor',
+                'planned_release_date' => $date,
+                'status' => 'Skript wird erstellt',
+                'responsible_user_id' => null,
+                'progress' => 0,
+                'notes' => null,
+            ];
+
+            $response = $this->actingAs($user)->post(route('hoerbuecher.store'), $data);
+
+            $response->assertSessionHasErrors('planned_release_date');
+        }
+    }
+
     public function test_member_cannot_delete_episode(): void
     {
         $user = $this->actingMember('Mitglied');
@@ -205,7 +231,7 @@ class HoerbuchControllerTest extends TestCase
             'episode_number' => 'F4',
             'title' => 'Gesichert',
             'author' => 'Autor',
-            'planned_release_date' => '2025-01-01',
+            'planned_release_date' => '01.01.2025',
             'status' => 'Skript wird erstellt',
             'responsible_user_id' => null,
             'progress' => 0,
