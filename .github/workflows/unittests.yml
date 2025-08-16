@@ -62,7 +62,12 @@ jobs:
         restore-keys: ${{ runner.os }}-composer-
 
     - name: Install Composer dependencies
-      run: composer install --no-progress --prefer-dist --optimize-autoloader --no-interaction
+      run: |
+        if [ "${{ matrix.php-version }}" = "8.5" ]; then
+          composer install --no-progress --prefer-dist --optimize-autoloader --no-interaction --ignore-platform-req=php
+        else
+          composer install --no-progress --prefer-dist --optimize-autoloader --no-interaction
+        fi
 
     - name: Install NPM dependencies
       run: npm ci
