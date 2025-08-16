@@ -21,6 +21,7 @@
                             <th class="px-4 py-2 text-left text-gray-800 dark:text-gray-200">Ziel-EVT</th>
                             <th class="px-4 py-2 text-left text-gray-800 dark:text-gray-200">Status</th>
                             <th class="px-4 py-2 text-left text-gray-800 dark:text-gray-200">Fortschritt</th>
+                            <th class="px-4 py-2 text-left text-gray-800 dark:text-gray-200">Rollen</th>
                             <th class="px-4 py-2 text-left text-gray-800 dark:text-gray-200">Bemerkungen</th>
                             <th class="px-4 py-2 text-left text-gray-800 dark:text-gray-200">Verantwortlich</th>
                             <th class="px-4 py-2 text-center text-gray-800 dark:text-gray-200">Aktionen</th>
@@ -41,16 +42,23 @@
                                       </div>
                                   </div>
                               </td>
-                              <td class="px-4 py-2 text-gray-700 dark:text-gray-300">{{ $episode->notes }}</td>
-                              <td class="px-4 py-2 text-gray-700 dark:text-gray-300">{{ $episode->responsible?->name }}</td>
-                              <td class="px-4 py-2 text-center">
-                                  <a href="{{ route('hoerbuecher.edit', $episode) }}" class="text-blue-600 dark:text-blue-400 hover:underline">Bearbeiten</a>
-                                      <x-confirm-delete :action="route('hoerbuecher.destroy', $episode)" />
+                                <td class="px-4 py-2">
+                                    <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4">
+                                        <div class="h-4 rounded-full text-xs font-medium text-center leading-none text-white" style="width: {{ $episode->rolesProgress() }}%; background-color: hsl({{ $episode->rolesProgressHue() }}, 100%, 40%);">
+                                            {{ $episode->filled_roles }}/{{ $episode->total_roles }}
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-4 py-2 text-gray-700 dark:text-gray-300">{{ $episode->notes }}</td>
+                                <td class="px-4 py-2 text-gray-700 dark:text-gray-300">{{ $episode->responsible?->name }}</td>
+                                <td class="px-4 py-2 text-center">
+                                    <a href="{{ route('hoerbuecher.edit', $episode) }}" class="text-blue-600 dark:text-blue-400 hover:underline">Bearbeiten</a>
+                                        <x-confirm-delete :action="route('hoerbuecher.destroy', $episode)" />
                               </td>
                           </tr>
                       @empty
                             <tr>
-                                <td colspan="8" class="px-4 py-2 text-center text-gray-700 dark:text-gray-300">Keine Hörbuchfolgen vorhanden.</td>
+                                <td colspan="9" class="px-4 py-2 text-center text-gray-700 dark:text-gray-300">Keine Hörbuchfolgen vorhanden.</td>
                             </tr>
                         @endforelse
                     </tbody>

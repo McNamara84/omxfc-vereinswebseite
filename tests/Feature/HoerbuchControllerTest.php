@@ -44,6 +44,8 @@ class HoerbuchControllerTest extends TestCase
             'responsible_user_id' => $responsible->id,
             'progress' => 50,
             'notes' => 'Bemerkung',
+            'total_roles' => 10,
+            'filled_roles' => 3,
         ];
 
         $response = $this->actingAs($user)->post(route('hoerbuecher.store'), $data);
@@ -58,6 +60,8 @@ class HoerbuchControllerTest extends TestCase
             'responsible_user_id' => $responsible->id,
             'progress' => 50,
             'notes' => 'Bemerkung',
+            'total_roles' => 10,
+            'filled_roles' => 3,
         ]);
     }
 
@@ -74,6 +78,8 @@ class HoerbuchControllerTest extends TestCase
             'responsible_user_id' => null,
             'progress' => 10,
             'notes' => null,
+            'total_roles' => 5,
+            'filled_roles' => 1,
         ]);
 
         $data = [
@@ -85,6 +91,8 @@ class HoerbuchControllerTest extends TestCase
             'responsible_user_id' => null,
             'progress' => 20,
             'notes' => null,
+            'total_roles' => 5,
+            'filled_roles' => 2,
         ];
 
         $response = $this->actingAs($user)->post(route('hoerbuecher.store'), $data);
@@ -114,6 +122,8 @@ class HoerbuchControllerTest extends TestCase
             'responsible_user_id' => null,
             'progress' => 50,
             'notes' => 'Bemerkung',
+            'total_roles' => 4,
+            'filled_roles' => 2,
         ]);
 
         $this->actingAs($user)
@@ -123,6 +133,7 @@ class HoerbuchControllerTest extends TestCase
             ->assertSee($episode->planned_release_date)
             ->assertSee('Bemerkung')
             ->assertSee('50%')
+            ->assertSee('2/4')
             ->assertSee(route('hoerbuecher.create'));
     }
 
@@ -147,6 +158,8 @@ class HoerbuchControllerTest extends TestCase
             'responsible_user_id' => null,
             'progress' => 0,
             'notes' => null,
+            'total_roles' => 0,
+            'filled_roles' => 0,
         ]);
 
         $e2 = AudiobookEpisode::create([
@@ -158,6 +171,8 @@ class HoerbuchControllerTest extends TestCase
             'responsible_user_id' => null,
             'progress' => 0,
             'notes' => null,
+            'total_roles' => 0,
+            'filled_roles' => 0,
         ]);
 
         $e3 = AudiobookEpisode::create([
@@ -169,6 +184,8 @@ class HoerbuchControllerTest extends TestCase
             'responsible_user_id' => null,
             'progress' => 0,
             'notes' => null,
+            'total_roles' => 0,
+            'filled_roles' => 0,
         ]);
 
         $response = $this->actingAs($user)->get(route('hoerbuecher.index'));
@@ -193,6 +210,8 @@ class HoerbuchControllerTest extends TestCase
             'responsible_user_id' => null,
             'progress' => 0,
             'notes' => null,
+            'total_roles' => 5,
+            'filled_roles' => 2,
         ]);
 
         $data = [
@@ -204,6 +223,8 @@ class HoerbuchControllerTest extends TestCase
             'responsible_user_id' => null,
             'progress' => 100,
             'notes' => 'Aktualisiert',
+            'total_roles' => 6,
+            'filled_roles' => 6,
         ];
 
         $this->actingAs($user)
@@ -218,6 +239,8 @@ class HoerbuchControllerTest extends TestCase
             'planned_release_date' => '2025',
             'progress' => 100,
             'notes' => 'Aktualisiert',
+            'total_roles' => 6,
+            'filled_roles' => 6,
         ]);
     }
 
@@ -234,6 +257,8 @@ class HoerbuchControllerTest extends TestCase
             'responsible_user_id' => null,
             'progress' => 0,
             'notes' => null,
+            'total_roles' => 1,
+            'filled_roles' => 0,
         ]);
 
         $this->actingAs($user)
@@ -261,6 +286,8 @@ class HoerbuchControllerTest extends TestCase
                 'responsible_user_id' => null,
                 'progress' => 0,
                 'notes' => null,
+                'total_roles' => 0,
+                'filled_roles' => 0,
             ];
 
             $response = $this->actingAs($user)->post(route('hoerbuecher.store'), $data);
@@ -282,6 +309,8 @@ class HoerbuchControllerTest extends TestCase
             'responsible_user_id' => null,
             'progress' => 0,
             'notes' => null,
+            'total_roles' => 1,
+            'filled_roles' => 0,
         ]);
 
         $this->actingAs($user)

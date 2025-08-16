@@ -100,6 +100,8 @@ class HoerbuchController extends Controller
             'responsible_user_id' => 'nullable|exists:users,id',
             'progress' => 'required|integer|min:0|max:100',
             'notes' => 'nullable|string',
+            'total_roles' => 'required|integer|min:0',
+            'filled_roles' => 'required|integer|min:0|lte:total_roles',
         ]);
 
         AudiobookEpisode::create($request->only([
@@ -111,6 +113,8 @@ class HoerbuchController extends Controller
             'responsible_user_id',
             'progress',
             'notes',
+            'total_roles',
+            'filled_roles',
         ]));
 
         return redirect()->route('hoerbuecher.index')
@@ -154,6 +158,8 @@ class HoerbuchController extends Controller
             'responsible_user_id' => 'nullable|exists:users,id',
             'progress' => 'required|integer|min:0|max:100',
             'notes' => 'nullable|string',
+            'total_roles' => 'required|integer|min:0',
+            'filled_roles' => 'required|integer|min:0|lte:total_roles',
         ]);
 
         $episode->update($request->only([
@@ -165,6 +171,8 @@ class HoerbuchController extends Controller
             'responsible_user_id',
             'progress',
             'notes',
+            'total_roles',
+            'filled_roles',
         ]));
 
         return redirect()->route('hoerbuecher.index')

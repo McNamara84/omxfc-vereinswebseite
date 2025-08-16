@@ -36,6 +36,8 @@ class AudiobookEpisode extends Model
         'responsible_user_id',
         'progress',
         'notes',
+        'total_roles',
+        'filled_roles',
     ];
 
     public function responsible(): BelongsTo
@@ -49,5 +51,18 @@ class AudiobookEpisode extends Model
     public function progressHue(): float
     {
         return $this->progress * self::PROGRESS_HUE_FACTOR;
+    }
+
+    public function rolesProgress(): float
+    {
+        if (!$this->total_roles) {
+            return 0;
+        }
+        return ($this->filled_roles / $this->total_roles) * 100;
+    }
+
+    public function rolesProgressHue(): float
+    {
+        return $this->rolesProgress() * self::PROGRESS_HUE_FACTOR;
     }
 }
