@@ -11,10 +11,6 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if (! Schema::hasTable('audiobook_episodes')) {
-            return;
-        }
-
         $mapping = [
             'Skript wird erstellt' => 'Skripterstellung',
             'In Korrekturlesung' => 'Korrekturlesung',
@@ -36,10 +32,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        if (! Schema::hasTable('audiobook_episodes')) {
-            return;
-        }
-
         $mapping = [
             'Skripterstellung' => 'Skript wird erstellt',
             'Korrekturlesung' => 'In Korrekturlesung',
