@@ -15,8 +15,6 @@ return new class extends Migration
             return;
         }
 
-        $driver = Schema::getConnection()->getDriverName();
-
         $mapping = [
             'Skript wird erstellt' => 'Skripterstellung',
             'In Korrekturlesung' => 'Korrekturlesung',
@@ -31,24 +29,6 @@ return new class extends Migration
         foreach ($mapping as $old => $new) {
             DB::table('audiobook_episodes')->where('status', $old)->update(['status' => $new]);
         }
-
-        $statuses = [
-            'Skripterstellung',
-            'Korrekturlesung',
-            'Rollenbesetzung',
-            'Aufnahmensammlung',
-            'Musikerstellung',
-            'Audiobearbeitung',
-            'Videobearbeitung',
-            'Grafiken',
-            'Veröffentlichungsplanung',
-            'Veröffentlichung',
-        ];
-
-        if ($driver !== 'sqlite') {
-            $list = "'" . implode("','", $statuses) . "'";
-            DB::statement("ALTER TABLE audiobook_episodes MODIFY COLUMN status ENUM($list) NOT NULL");
-        }
     }
 
     /**
@@ -59,8 +39,6 @@ return new class extends Migration
         if (! Schema::hasTable('audiobook_episodes')) {
             return;
         }
-
-        $driver = Schema::getConnection()->getDriverName();
 
         $mapping = [
             'Skripterstellung' => 'Skript wird erstellt',
@@ -77,22 +55,6 @@ return new class extends Migration
 
         foreach ($mapping as $new => $old) {
             DB::table('audiobook_episodes')->where('status', $new)->update(['status' => $old]);
-        }
-
-        $statuses = [
-            'Skript wird erstellt',
-            'In Korrekturlesung',
-            'Aufnahmen in Arbeit',
-            'Audiobearbeitung gestartet',
-            'Videobearbeitung gestartet',
-            'Cover und Thumbnail in Arbeit',
-            'Veröffentlichung geplant',
-            'Veröffentlicht',
-        ];
-
-        if ($driver !== 'sqlite') {
-            $list = "'" . implode("','", $statuses) . "'";
-            DB::statement("ALTER TABLE audiobook_episodes MODIFY COLUMN status ENUM($list) NOT NULL");
         }
     }
 };
