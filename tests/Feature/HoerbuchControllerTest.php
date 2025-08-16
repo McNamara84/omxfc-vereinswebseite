@@ -111,14 +111,16 @@ class HoerbuchControllerTest extends TestCase
             'planned_release_date' => '2025-01-01',
             'status' => 'Skript wird erstellt',
             'responsible_user_id' => null,
-            'progress' => 0,
-            'notes' => null,
+            'progress' => 50,
+            'notes' => 'Bemerkung',
         ]);
 
         $this->actingAs($user)
             ->get(route('hoerbuecher.index'))
             ->assertOk()
             ->assertSee('Erste Folge')
+            ->assertSee('Bemerkung')
+            ->assertSee('50%')
             ->assertSee(route('hoerbuecher.create'));
     }
 
