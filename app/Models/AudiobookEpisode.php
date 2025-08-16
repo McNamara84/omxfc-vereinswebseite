@@ -21,6 +21,12 @@ class AudiobookEpisode extends Model
         'Veröffentlicht',
     ];
 
+    /**
+     * Scale factor mapping 0–100% progress to a 0–120° hue range,
+     * which covers red (0°) to green (120°) on the HSL color wheel.
+     */
+    private const PROGRESS_HUE_FACTOR = 1.2;
+
     protected $fillable = [
         'episode_number',
         'title',
@@ -42,5 +48,13 @@ class AudiobookEpisode extends Model
     public function responsible(): BelongsTo
     {
         return $this->belongsTo(User::class, 'responsible_user_id');
+    }
+
+    /**
+     * Hue value from 0° (red) to 120° (green) representing completion level.
+     */
+    public function progressHue(): float
+    {
+        return $this->progress * self::PROGRESS_HUE_FACTOR;
     }
 }
