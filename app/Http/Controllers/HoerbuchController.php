@@ -11,10 +11,7 @@ use Illuminate\Validation\Rule;
 
 class HoerbuchController extends Controller
 {
-    /**
-     * Übersicht aller Hörbuchfolgen.
-     */
-    public function index()
+    private function ensureAdminOrVorstand(): void
     {
         $user = Auth::user();
         $memberTeam = Team::where('name', 'Mitglieder')->first();
@@ -24,6 +21,13 @@ class HoerbuchController extends Controller
         if (!in_array($userRole, ['Vorstand', 'Admin'], true)) {
             abort(403);
         }
+    }
+    /**
+     * Übersicht aller Hörbuchfolgen.
+     */
+    public function index()
+    {
+        $this->ensureAdminOrVorstand();
 
         $episodes = AudiobookEpisode::orderBy('episode_number')->get();
 
@@ -36,14 +40,7 @@ class HoerbuchController extends Controller
      */
     public function create()
     {
-        $user = Auth::user();
-        $memberTeam = Team::where('name', 'Mitglieder')->first();
-        $membership = $memberTeam?->users()->where('user_id', $user->id)->first();
-        $userRole = $membership ? $membership->membership->role : null;
-
-        if (!in_array($userRole, ['Vorstand', 'Admin'], true)) {
-            abort(403);
-        }
+        $this->ensureAdminOrVorstand();
 
         $users = User::orderBy('name')->get();
 
@@ -58,14 +55,7 @@ class HoerbuchController extends Controller
      */
     public function store(Request $request)
     {
-        $user = Auth::user();
-        $memberTeam = Team::where('name', 'Mitglieder')->first();
-        $membership = $memberTeam?->users()->where('user_id', $user->id)->first();
-        $userRole = $membership ? $membership->membership->role : null;
-
-        if (!in_array($userRole, ['Vorstand', 'Admin'], true)) {
-            abort(403);
-        }
+        $this->ensureAdminOrVorstand();
 
         $request->validate([
             'episode_number' => 'required|string|max:10|unique:audiobook_episodes,episode_number',
@@ -98,14 +88,7 @@ class HoerbuchController extends Controller
      */
     public function edit(AudiobookEpisode $episode)
     {
-        $user = Auth::user();
-        $memberTeam = Team::where('name', 'Mitglieder')->first();
-        $membership = $memberTeam?->users()->where('user_id', $user->id)->first();
-        $userRole = $membership ? $membership->membership->role : null;
-
-        if (!in_array($userRole, ['Vorstand', 'Admin'], true)) {
-            abort(403);
-        }
+        $this->ensureAdminOrVorstand();
 
         $users = User::orderBy('name')->get();
 
@@ -121,14 +104,7 @@ class HoerbuchController extends Controller
      */
     public function update(Request $request, AudiobookEpisode $episode)
     {
-        $user = Auth::user();
-        $memberTeam = Team::where('name', 'Mitglieder')->first();
-        $membership = $memberTeam?->users()->where('user_id', $user->id)->first();
-        $userRole = $membership ? $membership->membership->role : null;
-
-        if (!in_array($userRole, ['Vorstand', 'Admin'], true)) {
-            abort(403);
-        }
+        $this->ensureAdminOrVorstand();
 
         $request->validate([
             'episode_number' => [
@@ -166,14 +142,7 @@ class HoerbuchController extends Controller
      */
     public function destroy(AudiobookEpisode $episode)
     {
-        $user = Auth::user();
-        $memberTeam = Team::where('name', 'Mitglieder')->first();
-        $membership = $memberTeam?->users()->where('user_id', $user->id)->first();
-        $userRole = $membership ? $membership->membership->role : null;
-
-        if (!in_array($userRole, ['Vorstand', 'Admin'], true)) {
-            abort(403);
-        }
+        $this->ensureAdminOrVorstand();
 
         $episode->delete();
 
