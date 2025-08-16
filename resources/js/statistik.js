@@ -86,9 +86,12 @@ document.addEventListener('DOMContentLoaded', () => {
         drawCycleChart(`${cycle}Chart`, cycleLabels, cycleValues);
     });
 
-    const hardcoverLabels = window.hardcoverChartLabels ?? [];
-    const hardcoverValues = window.hardcoverChartValues ?? [];
-    drawCycleChart('hardcoverChart', hardcoverLabels, hardcoverValues);
+    const hardcoverCanvas = document.getElementById('hardcoverChart');
+    if (hardcoverCanvas) {
+        const hardcoverLabels = window.hardcoverChartLabels ?? [];
+        const hardcoverValues = window.hardcoverChartValues ?? [];
+        drawCycleChart('hardcoverChart', hardcoverLabels, hardcoverValues);
+    }
 
     initRomaneTable();
 });
