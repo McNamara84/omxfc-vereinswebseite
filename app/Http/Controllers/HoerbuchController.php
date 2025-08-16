@@ -118,6 +118,18 @@ class HoerbuchController extends Controller
     }
 
     /**
+     * Detailansicht einer Hörbuchfolge.
+     */
+    public function show(AudiobookEpisode $episode)
+    {
+        $this->ensureAdminOrVorstand();
+
+        return view('hoerbuecher.show', [
+            'episode' => $episode,
+        ]);
+    }
+
+    /**
      * Formular zum Bearbeiten einer Hörbuchfolge.
      */
     public function edit(AudiobookEpisode $episode)

@@ -123,7 +123,33 @@ class HoerbuchControllerTest extends TestCase
             ->assertSee($episode->planned_release_date)
             ->assertSee('Bemerkung')
             ->assertSee('50%')
-            ->assertSee(route('hoerbuecher.create'));
+            ->assertSee(route('hoerbuecher.create'))
+            ->assertSee(route('hoerbuecher.show', $episode));
+    }
+
+    public function test_admin_can_view_episode_details(): void
+    {
+        $user = $this->actingMember('Admin');
+        $responsible = $this->actingMember();
+
+        $episode = AudiobookEpisode::create([
+            'episode_number' => 'F9',
+            'title' => 'Detailfolge',
+            'author' => 'Autor',
+            'planned_release_date' => '2025',
+            'status' => 'Skript wird erstellt',
+            'responsible_user_id' => $responsible->id,
+            'progress' => 40,
+            'notes' => 'Notiz',
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('hoerbuecher.show', $episode))
+            ->assertOk()
+            ->assertSee('Detailfolge')
+            ->assertSee($responsible->name)
+            ->assertSee('Notiz')
+            ->assertSee(route('hoerbuecher.edit', $episode));
     }
 
     public function test_member_cannot_view_index(): void
