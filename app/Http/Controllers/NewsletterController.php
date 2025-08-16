@@ -65,7 +65,7 @@ class NewsletterController extends Controller
 
         $recipients = $membersTeam->users()->wherePivotIn('role', $data['roles'])->get();
 
-        if ($request->has('test')) {
+        if ($request->boolean('test')) {
             $recipients = $membersTeam->users()->wherePivot('role', 'Admin')->get();
 
             if ($recipients->isEmpty()) {
@@ -80,7 +80,7 @@ class NewsletterController extends Controller
 
         return redirect()->route('newsletter.create')->with(
             'status',
-            $request->has('test') ? 'Newsletter-Test versendet.' : 'Newsletter versendet.'
+            $request->boolean('test') ? 'Newsletter-Test versendet.' : 'Newsletter versendet.'
         );
     }
 }
