@@ -18,6 +18,7 @@ class MitgliederKarteMembershipTest extends TestCase
         $team->users()->attach($user, ['role' => 'Mitglied']);
 
         $members = $team->users()
+            ->as('pivot')
             ->select('users.id', 'users.name', 'users.plz', 'users.land', 'users.stadt')
             ->withPivot('role')
             ->wherePivotNotIn('role', ['Anwärter'])
@@ -26,7 +27,7 @@ class MitgliederKarteMembershipTest extends TestCase
         $member = $members->first();
 
         $this->assertNotNull($member);
-        $this->assertSame('Mitglied', $member->membership->role);
+        $this->assertSame('Mitglied', $member->pivot->role);
     }
 }
 
