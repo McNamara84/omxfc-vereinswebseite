@@ -30,8 +30,7 @@
                                 class="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
                                 role="button"
                                 tabindex="0"
-                                onclick="window.location='{{ route('hoerbuecher.show', $episode) }}'"
-                                onkeydown="if(event.key==='Enter'){ window.location='{{ route('hoerbuecher.show', $episode) }}' }"
+                                data-href="{{ route('hoerbuecher.show', $episode) }}"
                             >
                                 <td class="px-4 py-2 text-gray-700 dark:text-gray-300">{{ $episode->episode_number }}</td>
                                 <td class="px-4 py-2 text-gray-700 dark:text-gray-300">{{ $episode->title }}</td>
@@ -56,5 +55,17 @@
                 </table>
             </div>
         </div>
+        <script>
+            document.querySelectorAll('tr[data-href]').forEach(row => {
+                row.addEventListener('click', () => {
+                    window.location.href = row.dataset.href;
+                });
+                row.addEventListener('keydown', e => {
+                    if (e.key === 'Enter') {
+                        window.location.href = row.dataset.href;
+                    }
+                });
+            });
+        </script>
     </x-member-page>
 </x-app-layout>
