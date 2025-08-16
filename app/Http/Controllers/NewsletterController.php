@@ -67,6 +67,11 @@ class NewsletterController extends Controller
 
         if ($request->has('test')) {
             $recipients = $membersTeam->users()->wherePivot('role', 'Admin')->get();
+
+            if ($recipients->isEmpty()) {
+                return redirect()->route('newsletter.create')
+                    ->with('status', 'Keine Admin-Empfänger gefunden.');
+            }
         }
 
         foreach ($recipients as $recipient) {
