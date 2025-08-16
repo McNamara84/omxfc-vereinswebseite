@@ -69,6 +69,25 @@ class StatistikTest extends TestCase
         file_put_contents($path, json_encode($data));
     }
 
+    private function createHardcoversFile(): void
+    {
+        $data = [];
+        for ($i = 1; $i <= 30; $i++) {
+            // Start ratings at 3.1 and increment by 0.1 for each hardcover
+            $rating = 3.1 + (($i - 1) * 0.1); // subtract 1 because loop starts at 1
+            $data[] = [
+                'nummer' => $i,
+                'titel' => 'HC' . $i,
+                'bewertung' => $rating,
+            ];
+        }
+        $path = storage_path('app/private/hardcovers.json');
+        if (!is_dir(dirname($path))) {
+            mkdir(dirname($path), 0777, true);
+        }
+        file_put_contents($path, json_encode($data));
+    }
+
     public function test_statistics_page_shows_computed_values(): void
     {
         $this->createDataFile();
@@ -504,5 +523,31 @@ class StatistikTest extends TestCase
 
         $response->assertOk();
         $response->assertDontSee('Bewertungen des Weltrat-Zyklus');
+    }
+
+    public function test_hardcover_chart_visible_with_enough_points(): void
+    {
+        $this->createDataFile();
+        $this->createHardcoversFile();
+        $user = $this->actingMemberWithPoints(40);
+        $this->actingAs($user);
+
+        $response = $this->get('/statistik');
+
+        $response->assertOk();
+        $response->assertSee('Bewertungen der Hardcover');
+    }
+
+    public function test_hardcover_chart_hidden_below_threshold(): void
+    {
+        $this->createDataFile();
+        $this->createHardcoversFile();
+        $user = $this->actingMemberWithPoints(39);
+        $this->actingAs($user);
+
+        $response = $this->get('/statistik');
+
+        $response->assertOk();
+        $response->assertDontSee('Bewertungen der Hardcover');
     }
 }
