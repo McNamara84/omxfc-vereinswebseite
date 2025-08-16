@@ -30,14 +30,16 @@
             </div>
         </template>
         <x-button type="button" class="mt-2" @click="addTopic">Thema hinzufügen</x-button>
-        <x-button type="button" class="mt-2 ml-2" @click="confirmSend">Versenden</x-button>
+        <x-button type="button" class="mt-2 ml-2" @click="confirmSend()">Versenden</x-button>
+        <x-button type="button" class="mt-2 ml-2" @click="confirmSend(true)">Newsletter testen</x-button>
+        <input type="hidden" name="test" value="0" x-ref="test" />
 
         <div x-show="showConfirm" class="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-75" x-cloak>
             <div class="bg-white dark:bg-gray-800 p-6 rounded shadow-lg">
-                <p class="mb-4">Wirklich Newsletter versenden?</p>
+                <p class="mb-4" x-text="pendingTest ? 'Testnewsletter wirklich versenden?' : 'Wirklich Newsletter versenden?'"></p>
                 <div class="flex justify-end">
                     <x-secondary-button type="button" @click="showConfirm = false">Abbrechen</x-secondary-button>
-                    <x-button type="button" class="ml-2" @click="$refs.form.submit()">Ja, versenden</x-button>
+                    <x-button type="button" class="ml-2" @click="submit">Ja, versenden</x-button>
                 </div>
             </div>
         </div>
@@ -49,8 +51,18 @@ function newsletterForm() {
     return {
         topics: [{}],
         showConfirm: false,
+        pendingTest: false,
         addTopic() { this.topics.push({}); },
-        confirmSend() { this.showConfirm = true; }
+        confirmSend(isTest = false) {
+            this.pendingTest = isTest;
+            this.showConfirm = true;
+        },
+        submit() {
+            if (this.pendingTest) {
+                this.$refs.test.value = 1;
+            }
+            this.$refs.form.submit();
+        }
     }
 }
 </script>
