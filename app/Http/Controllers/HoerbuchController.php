@@ -7,9 +7,30 @@ use App\Models\Team;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 
 class HoerbuchController extends Controller
 {
+    /**
+     * Übersicht aller Hörbuchfolgen.
+     */
+    public function index()
+    {
+        $user = Auth::user();
+        $memberTeam = Team::where('name', 'Mitglieder')->first();
+        $membership = $memberTeam?->users()->where('user_id', $user->id)->first();
+        $userRole = $membership ? $membership->membership->role : null;
+
+        if (!in_array($userRole, ['Vorstand', 'Admin'], true)) {
+            abort(403);
+        }
+
+        $episodes = AudiobookEpisode::orderBy('episode_number')->get();
+
+        return view('hoerbuecher.index', [
+            'episodes' => $episodes,
+        ]);
+    }
     /**
      * Formular zum Erstellen einer neuen Hörbuchfolge.
      */
@@ -70,5 +91,93 @@ class HoerbuchController extends Controller
 
         return redirect()->route('hoerbuecher.create')
             ->with('status', 'Hörbuchfolge wurde gespeichert.');
+    }
+
+    /**
+     * Formular zum Bearbeiten einer Hörbuchfolge.
+     */
+    public function edit(AudiobookEpisode $episode)
+    {
+        $user = Auth::user();
+        $memberTeam = Team::where('name', 'Mitglieder')->first();
+        $membership = $memberTeam?->users()->where('user_id', $user->id)->first();
+        $userRole = $membership ? $membership->membership->role : null;
+
+        if (!in_array($userRole, ['Vorstand', 'Admin'], true)) {
+            abort(403);
+        }
+
+        $users = User::orderBy('name')->get();
+
+        return view('hoerbuecher.edit', [
+            'episode' => $episode,
+            'users' => $users,
+            'statuses' => AudiobookEpisode::STATUSES,
+        ]);
+    }
+
+    /**
+     * Aktualisiert eine bestehende Hörbuchfolge.
+     */
+    public function update(Request $request, AudiobookEpisode $episode)
+    {
+        $user = Auth::user();
+        $memberTeam = Team::where('name', 'Mitglieder')->first();
+        $membership = $memberTeam?->users()->where('user_id', $user->id)->first();
+        $userRole = $membership ? $membership->membership->role : null;
+
+        if (!in_array($userRole, ['Vorstand', 'Admin'], true)) {
+            abort(403);
+        }
+
+        $request->validate([
+            'episode_number' => [
+                'required',
+                'string',
+                'max:10',
+                Rule::unique('audiobook_episodes', 'episode_number')->ignore($episode->id),
+            ],
+            'title' => 'required|string|max:255',
+            'author' => 'required|string|max:255',
+            'planned_release_date' => 'required|date',
+            'status' => 'required|in:' . implode(',', AudiobookEpisode::STATUSES),
+            'responsible_user_id' => 'nullable|exists:users,id',
+            'progress' => 'required|integer|min:0|max:100',
+            'notes' => 'nullable|string',
+        ]);
+
+        $episode->update($request->only([
+            'episode_number',
+            'title',
+            'author',
+            'planned_release_date',
+            'status',
+            'responsible_user_id',
+            'progress',
+            'notes',
+        ]));
+
+        return redirect()->route('hoerbuecher.index')
+            ->with('status', 'Hörbuchfolge wurde aktualisiert.');
+    }
+
+    /**
+     * Löscht eine Hörbuchfolge.
+     */
+    public function destroy(AudiobookEpisode $episode)
+    {
+        $user = Auth::user();
+        $memberTeam = Team::where('name', 'Mitglieder')->first();
+        $membership = $memberTeam?->users()->where('user_id', $user->id)->first();
+        $userRole = $membership ? $membership->membership->role : null;
+
+        if (!in_array($userRole, ['Vorstand', 'Admin'], true)) {
+            abort(403);
+        }
+
+        $episode->delete();
+
+        return redirect()->route('hoerbuecher.index')
+            ->with('status', 'Hörbuchfolge wurde gelöscht.');
     }
 }

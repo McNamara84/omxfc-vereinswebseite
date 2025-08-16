@@ -98,8 +98,12 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
         Route::post('{todo}/freigeben', 'release')->name('release');
     });
     Route::prefix('hoerbuecher')->name('hoerbuecher.')->controller(HoerbuchController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
         Route::get('erstellen', 'create')->name('create');
         Route::post('/', 'store')->name('store');
+        Route::get('{episode}/bearbeiten', 'edit')->name('edit');
+        Route::put('{episode}', 'update')->name('update');
+        Route::delete('{episode}', 'destroy')->name('destroy');
     });
 
 
