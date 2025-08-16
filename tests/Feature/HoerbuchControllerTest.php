@@ -69,7 +69,7 @@ class HoerbuchControllerTest extends TestCase
             'episode_number' => 'F30',
             'title' => 'Vorhandene Folge',
             'author' => 'Autor',
-            'planned_release_date' => '2025-12-24',
+            'planned_release_date' => '24.12.2025',
             'status' => 'Skript wird erstellt',
             'responsible_user_id' => null,
             'progress' => 10,
@@ -80,7 +80,7 @@ class HoerbuchControllerTest extends TestCase
             'episode_number' => 'F30',
             'title' => 'Duplikat',
             'author' => 'Zweiter Autor',
-            'planned_release_date' => '2025-12-24',
+            'planned_release_date' => '24.12.2025',
             'status' => 'Skript wird erstellt',
             'responsible_user_id' => null,
             'progress' => 20,
@@ -183,7 +183,7 @@ class HoerbuchControllerTest extends TestCase
             'episode_number' => 'F3',
             'title' => 'Lösch mich',
             'author' => 'Autor',
-            'planned_release_date' => '2025-01-01',
+            'planned_release_date' => '01.01.2025',
             'status' => 'Skript wird erstellt',
             'responsible_user_id' => null,
             'progress' => 0,
@@ -203,7 +203,7 @@ class HoerbuchControllerTest extends TestCase
     {
         $user = $this->actingMember('Admin');
 
-        $invalidDates = ['13.2025', '99.9999', '3025', '2025-13-01', '2025-02-30', '2025-04-31'];
+        $invalidDates = ['13.2025', '99.9999', '3025', '01.13.2025', '30.02.2025', '31.04.2025', '2025-01-01'];
 
         foreach ($invalidDates as $date) {
             $data = [
@@ -231,7 +231,7 @@ class HoerbuchControllerTest extends TestCase
             'episode_number' => 'F4',
             'title' => 'Gesichert',
             'author' => 'Autor',
-            'planned_release_date' => '2025-01-01',
+            'planned_release_date' => '01.01.2025',
             'status' => 'Skript wird erstellt',
             'responsible_user_id' => null,
             'progress' => 0,
