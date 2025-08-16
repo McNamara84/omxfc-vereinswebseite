@@ -22,6 +22,7 @@ use App\Http\Controllers\StatistikController;
 use App\Http\Controllers\TodoController;
 use App\Http\Controllers\HoerbuchController;
 use App\Http\Controllers\ArbeitsgruppenController;
+use App\Http\Controllers\NewsletterController;
 use App\Http\Middleware\RedirectIfAnwaerter;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -65,6 +66,11 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
     });
 
     Route::get('/fotogalerie', [PhotoGalleryController::class, 'index'])->name('fotogalerie');
+
+    Route::prefix('newsletter')->name('newsletter.')->controller(NewsletterController::class)->group(function () {
+        Route::get('versenden', 'create')->name('create');
+        Route::post('versenden', 'send')->name('send');
+    });
 
     Route::prefix('mitglieder')->name('mitglieder.')->controller(MitgliederController::class)->group(function () {
         Route::get('/', 'index')->name('index');
