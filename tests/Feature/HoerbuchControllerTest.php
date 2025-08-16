@@ -119,7 +119,7 @@ class HoerbuchControllerTest extends TestCase
             ->get(route('hoerbuecher.index'))
             ->assertOk()
             ->assertSee('Erste Folge')
-            ->assertSee('01.01.2025')
+            ->assertSee($episode->planned_release_date->format('d.m.Y'))
             ->assertSee('Bemerkung')
             ->assertSee('50%')
             ->assertSee(route('hoerbuecher.create'));

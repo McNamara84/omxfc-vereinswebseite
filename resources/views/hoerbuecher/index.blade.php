@@ -36,7 +36,7 @@
                                 <td class="px-4 py-2">
                                     <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4">
                                       {{-- Map 0–100% progress to a hue range of 0–120 (red → green). --}}
-                                      <div class="h-4 rounded-full text-xs font-medium text-center leading-none text-white" style="width: {{ $episode->progress }}%; background-color: hsl({{ $episode->progress * 1.2 }}, 100%, 40%);">
+                                      <div class="h-4 rounded-full text-xs font-medium text-center leading-none text-white" style="width: {{ $episode->progress }}%; background-color: hsl({{ $episode->progressHue() }}, 100%, 40%);">
                                           {{ $episode->progress }}%
                                       </div>
                                   </div>
