@@ -79,12 +79,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const values = window.authorChartValues ?? [];
     drawAuthorChart('authorChart', labels, values);
 
-    const cycles = ['euree', 'meeraka', 'expedition', 'kratersee', 'daaMuren', 'wandler', 'mars', 'ausala', 'afra', 'antarktis', 'schatten', 'ursprung', 'streiter', 'archivar', 'zeitsprung', 'fremdwelt', 'parallelwelt', 'weltenriss', 'amraka', 'weltrat', 'hardcover'];
+    const cycles = ['euree', 'meeraka', 'expedition', 'kratersee', 'daaMuren', 'wandler', 'mars', 'ausala', 'afra', 'antarktis', 'schatten', 'ursprung', 'streiter', 'archivar', 'zeitsprung', 'fremdwelt', 'parallelwelt', 'weltenriss', 'amraka', 'weltrat'];
     cycles.forEach((cycle) => {
         const cycleLabels = window[`${cycle}ChartLabels`] ?? [];
         const cycleValues = window[`${cycle}ChartValues`] ?? [];
         drawCycleChart(`${cycle}Chart`, cycleLabels, cycleValues);
     });
+
+    const hardcoverLabels = window.hardcoverChartLabels ?? [];
+    const hardcoverValues = window.hardcoverChartValues ?? [];
+    drawCycleChart('hardcoverChart', hardcoverLabels, hardcoverValues);
 
     initRomaneTable();
 });
