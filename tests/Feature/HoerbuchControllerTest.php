@@ -199,6 +199,30 @@ class HoerbuchControllerTest extends TestCase
         ]);
     }
 
+    public function test_invalid_planned_release_date_is_rejected(): void
+    {
+        $user = $this->actingMember('Admin');
+
+        $invalidDates = ['13.2025', '99.9999', '3025', '2025-13-01'];
+
+        foreach ($invalidDates as $date) {
+            $data = [
+                'episode_number' => 'FX' . $date,
+                'title' => 'Titel',
+                'author' => 'Autor',
+                'planned_release_date' => $date,
+                'status' => 'Skript wird erstellt',
+                'responsible_user_id' => null,
+                'progress' => 0,
+                'notes' => null,
+            ];
+
+            $response = $this->actingAs($user)->post(route('hoerbuecher.store'), $data);
+
+            $response->assertSessionHasErrors('planned_release_date');
+        }
+    }
+
     public function test_member_cannot_delete_episode(): void
     {
         $user = $this->actingMember('Mitglied');
