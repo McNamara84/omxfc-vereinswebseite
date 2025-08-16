@@ -18,14 +18,16 @@ return new class extends Migration
             $table->string('author');
             $table->date('planned_release_date')->nullable();
             $table->enum('status', [
-                'Skript wird erstellt',
-                'In Korrekturlesung',
-                'Aufnahmen in Arbeit',
-                'Audiobearbeitung gestartet',
-                'Videobearbeitung gestartet',
-                'Cover und Thumbnail in Arbeit',
-                'Veröffentlichung geplant',
-                'Veröffentlicht',
+                'Skripterstellung',
+                'Korrekturlesung',
+                'Rollenbesetzung',
+                'Aufnahmensammlung',
+                'Musikerstellung',
+                'Audiobearbeitung',
+                'Videobearbeitung',
+                'Grafiken',
+                'Veröffentlichungsplanung',
+                'Veröffentlichung',
             ]);
             $table->foreignId('responsible_user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->unsignedTinyInteger('progress')->default(0);
