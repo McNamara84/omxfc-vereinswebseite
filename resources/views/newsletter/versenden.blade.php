@@ -31,6 +31,7 @@
         </template>
         <x-button type="button" class="mt-2" @click="addTopic">Thema hinzufügen</x-button>
         <x-button type="button" class="mt-2 ml-2" @click="confirmSend">Versenden</x-button>
+        <x-button type="submit" name="test" value="1" class="mt-2 ml-2">Newsletter testen</x-button>
 
         <div x-show="showConfirm" class="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-75" x-cloak>
             <div class="bg-white dark:bg-gray-800 p-6 rounded shadow-lg">

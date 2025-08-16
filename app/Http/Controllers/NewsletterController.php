@@ -65,11 +65,18 @@ class NewsletterController extends Controller
 
         $recipients = $membersTeam->users()->wherePivotIn('role', $data['roles'])->get();
 
+        if ($request->has('test')) {
+            $recipients = $membersTeam->users()->wherePivot('role', 'Admin')->get();
+        }
+
         foreach ($recipients as $recipient) {
             Mail::to($recipient->email)->queue(new Newsletter($data['subject'], $data['topics']));
         }
 
-        return redirect()->route('newsletter.create')->with('status', 'Newsletter versendet.');
+        return redirect()->route('newsletter.create')->with(
+            'status',
+            $request->has('test') ? 'Newsletter-Test versendet.' : 'Newsletter versendet.'
+        );
     }
 }
 
