@@ -55,7 +55,7 @@ class ArbeitsgruppenController extends Controller
                 ->where('user_id', $validated['leader_id'])
                 ->first()
             : null;
-        $leaderRole = $membership->role ?? null;
+        $leaderRole = $membership?->role;
 
         $team->users()->attach($validated['leader_id'], ['role' => $leaderRole]);
 
