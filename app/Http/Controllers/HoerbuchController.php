@@ -80,6 +80,24 @@ class HoerbuchController extends Controller
 
         return $notes === '' ? null : $notes;
     }
+
+    private function episodeDataFromRequest(Request $request): array
+    {
+        $data = $request->only([
+            'episode_number',
+            'title',
+            'author',
+            'planned_release_date',
+            'status',
+            'responsible_user_id',
+            'progress',
+            'notes',
+        ]);
+
+        $data['notes'] = $this->sanitizeNotes($data['notes'] ?? null);
+
+        return $data;
+    }
     /**
      * Formular zum Erstellen einer neuen Hörbuchfolge.
      */
@@ -112,21 +130,7 @@ class HoerbuchController extends Controller
             'progress' => 'required|integer|min:0|max:100',
             'notes' => 'nullable|string',
         ]);
-
-        $data = $request->only([
-            'episode_number',
-            'title',
-            'author',
-            'planned_release_date',
-            'status',
-            'responsible_user_id',
-            'progress',
-            'notes',
-        ]);
-
-        $data['notes'] = $this->sanitizeNotes($data['notes'] ?? null);
-
-        AudiobookEpisode::create($data);
+        AudiobookEpisode::create($this->episodeDataFromRequest($request));
 
         return redirect()->route('hoerbuecher.index')
             ->with('status', 'Hörbuchfolge wurde gespeichert.');
@@ -182,21 +186,7 @@ class HoerbuchController extends Controller
             'progress' => 'required|integer|min:0|max:100',
             'notes' => 'nullable|string',
         ]);
-
-        $data = $request->only([
-            'episode_number',
-            'title',
-            'author',
-            'planned_release_date',
-            'status',
-            'responsible_user_id',
-            'progress',
-            'notes',
-        ]);
-
-        $data['notes'] = $this->sanitizeNotes($data['notes'] ?? null);
-
-        $episode->update($data);
+        $episode->update($this->episodeDataFromRequest($request));
 
         return redirect()->route('hoerbuecher.index')
             ->with('status', 'Hörbuchfolge wurde aktualisiert.');
