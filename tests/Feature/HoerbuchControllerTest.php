@@ -124,7 +124,9 @@ class HoerbuchControllerTest extends TestCase
             ->assertSee('Bemerkung')
             ->assertSee('50%')
             ->assertSee(route('hoerbuecher.create'))
-            ->assertSee(route('hoerbuecher.show', $episode));
+            ->assertSee(route('hoerbuecher.show', $episode))
+            ->assertSee('role="button"', false)
+            ->assertSee('tabindex="0"', false);
     }
 
     public function test_admin_can_view_episode_details(): void

@@ -26,24 +26,28 @@
                     </thead>
                     <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
                         @forelse($episodes as $episode)
-                            <tr class="hover:bg-gray-100 dark:hover:bg-gray-700">
-                                <td class="px-4 py-2 text-gray-700 dark:text-gray-300">
-                                    <a href="{{ route('hoerbuecher.show', $episode) }}" class="block w-full h-full">{{ $episode->episode_number }}</a>
-                                </td>
+                            <tr
+                                class="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
+                                role="button"
+                                tabindex="0"
+                                onclick="window.location='{{ route('hoerbuecher.show', $episode) }}'"
+                                onkeydown="if(event.key==='Enter'){ window.location='{{ route('hoerbuecher.show', $episode) }}' }"
+                            >
+                                <td class="px-4 py-2 text-gray-700 dark:text-gray-300">{{ $episode->episode_number }}</td>
                                 <td class="px-4 py-2 text-gray-700 dark:text-gray-300">{{ $episode->title }}</td>
                                 <td class="px-4 py-2 text-gray-700 dark:text-gray-300">{{ $episode->planned_release_date }}</td>
                                 <td class="px-4 py-2 text-gray-700 dark:text-gray-300">{{ $episode->status }}</td>
                                 <td class="px-4 py-2">
                                     <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4">
-                                      {{-- Map 0–100% progress to a hue range of 0–120 (red → green). --}}
-                                      <div class="h-4 rounded-full text-xs font-medium text-center leading-none text-white" style="width: {{ $episode->progress }}%; background-color: hsl({{ $episode->progressHue() }}, 100%, 40%);">
-                                          {{ $episode->progress }}%
-                                      </div>
-                                  </div>
-                              </td>
-                              <td class="px-4 py-2 text-gray-700 dark:text-gray-300">{{ $episode->notes }}</td>
-                          </tr>
-                      @empty
+                                        {{-- Map 0–100% progress to a hue range of 0–120 (red → green). --}}
+                                        <div class="h-4 rounded-full text-xs font-medium text-center leading-none text-white" style="width: {{ $episode->progress }}%; background-color: hsl({{ $episode->progressHue() }}, 100%, 40%);">
+                                            {{ $episode->progress }}%
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-4 py-2 text-gray-700 dark:text-gray-300">{{ $episode->notes }}</td>
+                            </tr>
+                        @empty
                             <tr>
                                 <td colspan="6" class="px-4 py-2 text-center text-gray-700 dark:text-gray-300">Keine Hörbuchfolgen vorhanden.</td>
                             </tr>
