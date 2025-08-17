@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -91,5 +92,44 @@ class AudiobookEpisode extends Model
     public function getEpisodeTypeAttribute(): string
     {
         return $this->isSpecialEdition() ? 'se' : 'regular';
+    }
+
+    /**
+     * Parse the planned release date into a Carbon instance.
+     */
+    public function getPlannedReleaseDateParsedAttribute(): ?Carbon
+    {
+        if (!$this->planned_release_date) {
+            return null;
+        }
+
+        $formats = ['d.m.Y', 'm.Y', 'Y'];
+
+        foreach ($formats as $format) {
+            try {
+                $date = Carbon::createFromFormat($format, $this->planned_release_date);
+            } catch (\Exception $e) {
+                continue;
+            }
+
+            if ($format === 'm.Y') {
+                $date->day = 1;
+            } elseif ($format === 'Y') {
+                $date->month = 1;
+                $date->day = 1;
+            }
+
+            return $date;
+        }
+
+        return null;
+    }
+
+    /**
+     * Year extracted from the planned release date.
+     */
+    public function getReleaseYearAttribute(): ?int
+    {
+        return $this->planned_release_date_parsed?->year;
     }
 }

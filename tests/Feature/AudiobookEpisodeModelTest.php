@@ -75,4 +75,50 @@ class AudiobookEpisodeModelTest extends TestCase
         $this->assertTrue($complete->all_roles_filled);
         $this->assertFalse($incomplete->all_roles_filled);
     }
+
+    public function test_release_year_accessor(): void
+    {
+        $fullDate = AudiobookEpisode::create([
+            'episode_number' => 'F4',
+            'title' => 'Full',
+            'author' => 'Author',
+            'planned_release_date' => '15.06.2024',
+            'status' => 'Skripterstellung',
+            'responsible_user_id' => null,
+            'progress' => 0,
+            'roles_total' => 0,
+            'roles_filled' => 0,
+            'notes' => null,
+        ]);
+
+        $monthYear = AudiobookEpisode::create([
+            'episode_number' => 'F5',
+            'title' => 'MonthYear',
+            'author' => 'Author',
+            'planned_release_date' => '06.2024',
+            'status' => 'Skripterstellung',
+            'responsible_user_id' => null,
+            'progress' => 0,
+            'roles_total' => 0,
+            'roles_filled' => 0,
+            'notes' => null,
+        ]);
+
+        $yearOnly = AudiobookEpisode::create([
+            'episode_number' => 'F6',
+            'title' => 'YearOnly',
+            'author' => 'Author',
+            'planned_release_date' => '2024',
+            'status' => 'Skripterstellung',
+            'responsible_user_id' => null,
+            'progress' => 0,
+            'roles_total' => 0,
+            'roles_filled' => 0,
+            'notes' => null,
+        ]);
+
+        $this->assertSame(2024, $fullDate->release_year);
+        $this->assertSame(2024, $monthYear->release_year);
+        $this->assertSame(2024, $yearOnly->release_year);
+    }
 }

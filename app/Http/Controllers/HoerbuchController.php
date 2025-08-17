@@ -18,51 +18,19 @@ class HoerbuchController extends Controller
      */
     public function index()
     {
-        $episodes = AudiobookEpisode::all()->map(function ($episode) {
-            $date = $this->parsePlannedReleaseDate($episode->planned_release_date);
-            $episode->year = $date?->year;
-            return $episode;
-        })
+        $episodes = AudiobookEpisode::all()
             ->sortBy(function ($episode) {
-                return $this->parsePlannedReleaseDate($episode->planned_release_date) ?? Carbon::create(9999, 12, 31);
+                return $episode->planned_release_date_parsed ?? Carbon::create(9999, 12, 31);
             })
             ->values();
 
-        $years = $episodes->pluck('year')->filter()->unique()->sort()->values();
+        $years = $episodes->pluck('release_year')->filter()->unique()->sort()->values();
 
         return view('hoerbuecher.index', [
             'episodes' => $episodes,
             'statuses' => AudiobookEpisode::STATUSES,
             'years' => $years,
         ]);
-    }
-
-    private function parsePlannedReleaseDate(?string $value): ?Carbon
-    {
-        if (!$value) {
-            return null;
-        }
-
-        $formats = ['d.m.Y', 'm.Y', 'Y'];
-
-        foreach ($formats as $format) {
-            try {
-                $date = Carbon::createFromFormat($format, $value);
-            } catch (\Exception $e) {
-                continue;
-            }
-
-            if ($format === 'm.Y') {
-                $date->day = 1;
-            } elseif ($format === 'Y') {
-                $date->month = 1;
-                $date->day = 1;
-            }
-
-            return $date;
-        }
-
-        return null;
     }
 
     private function sanitizeNotes(?string $notes): ?string
