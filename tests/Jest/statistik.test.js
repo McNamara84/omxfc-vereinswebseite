@@ -36,15 +36,17 @@ describe('statistik module', () => {
     expect(config.data.datasets[0].data).toEqual([1, 2]);
   });
 
-  test('drawCycleChart renders line chart with given labels', () => {
+  test('drawCycleChart renders line chart with given labels and average line', () => {
     document.body.innerHTML = '<canvas id="cycle"></canvas>';
-    drawCycleChart('cycle', ['X'], [5]);
+    drawCycleChart('cycle', ['X', 'Y'], [4, 6]);
 
     expect(mockChart).toHaveBeenCalledTimes(1);
     const config = mockChart.mock.calls[0][1];
     expect(config.type).toBe('line');
-    expect(config.data.labels).toEqual(['X']);
-    expect(config.data.datasets[0].data).toEqual([5]);
+    expect(config.data.labels).toEqual(['X', 'Y']);
+    expect(config.data.datasets[0].data).toEqual([4, 6]);
+    expect(config.data.datasets[1].data).toEqual([5, 5]);
+    expect(config.options.plugins.legend.display).toBe(true);
   });
 
   test('initRomaneTable initializes DataTable and sorts column', () => {
