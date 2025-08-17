@@ -18,14 +18,22 @@ class HoerbuchController extends Controller
      */
     public function index()
     {
-        $episodes = AudiobookEpisode::all()
+        $episodes = AudiobookEpisode::all()->map(function ($episode) {
+            $date = $this->parsePlannedReleaseDate($episode->planned_release_date);
+            $episode->year = $date?->year;
+            return $episode;
+        })
             ->sortBy(function ($episode) {
                 return $this->parsePlannedReleaseDate($episode->planned_release_date) ?? Carbon::create(9999, 12, 31);
             })
             ->values();
 
+        $years = $episodes->pluck('year')->filter()->unique()->sort()->values();
+
         return view('hoerbuecher.index', [
             'episodes' => $episodes,
+            'statuses' => AudiobookEpisode::STATUSES,
+            'years' => $years,
         ]);
     }
 
