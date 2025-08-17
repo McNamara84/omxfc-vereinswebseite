@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Carbon\Carbon;
 use Carbon\Exceptions\InvalidFormatException;
+use InvalidArgumentException;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -109,7 +110,11 @@ class AudiobookEpisode extends Model
         foreach ($formats as $format) {
             try {
                 $date = Carbon::createFromFormat($format, $this->planned_release_date);
-            } catch (InvalidFormatException $e) {
+            } catch (InvalidArgumentException | InvalidFormatException $e) {
+                continue;
+            }
+
+            if ($date === false || $date->format($format) !== $this->planned_release_date) {
                 continue;
             }
 
