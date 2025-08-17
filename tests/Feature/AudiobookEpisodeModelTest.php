@@ -121,4 +121,23 @@ class AudiobookEpisodeModelTest extends TestCase
         $this->assertSame(2024, $monthYear->release_year);
         $this->assertSame(2024, $yearOnly->release_year);
     }
+
+    public function test_release_year_accessor_handles_invalid_date(): void
+    {
+        $invalid = AudiobookEpisode::create([
+            'episode_number' => 'F7',
+            'title' => 'Invalid',
+            'author' => 'Author',
+            'planned_release_date' => 'not-a-date',
+            'status' => 'Skripterstellung',
+            'responsible_user_id' => null,
+            'progress' => 0,
+            'roles_total' => 0,
+            'roles_filled' => 0,
+            'notes' => null,
+        ]);
+
+        $this->assertNull($invalid->planned_release_date_parsed);
+        $this->assertNull($invalid->release_year);
+    }
 }
