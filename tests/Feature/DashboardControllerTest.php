@@ -96,7 +96,7 @@ class DashboardControllerTest extends TestCase
         $team->users()->attach($member2, ['role' => 'Mitglied']);
 
         $category = \App\Models\TodoCategory::first() ?? \App\Models\TodoCategory::create(['name' => 'Test', 'slug' => 'test']);
-        \App\Models\Todo::create([
+        $firstTodo = \App\Models\Todo::create([
             'team_id' => $team->id,
             'created_by' => $admin->id,
             'title' => 'Open',
@@ -113,9 +113,9 @@ class DashboardControllerTest extends TestCase
             'category_id' => $category->id,
         ]);
 
-        \App\Models\UserPoint::create(['user_id' => $admin->id, 'team_id' => $team->id, 'todo_id' => 1, 'points' => 5]);
-        \App\Models\UserPoint::create(['user_id' => $member1->id, 'team_id' => $team->id, 'todo_id' => 1, 'points' => 10]);
-        \App\Models\UserPoint::create(['user_id' => $member2->id, 'team_id' => $team->id, 'todo_id' => 1, 'points' => 7]);
+        \App\Models\UserPoint::create(['user_id' => $admin->id, 'team_id' => $team->id, 'todo_id' => $firstTodo->id, 'points' => 5]);
+        \App\Models\UserPoint::create(['user_id' => $member1->id, 'team_id' => $team->id, 'todo_id' => $firstTodo->id, 'points' => 10]);
+        \App\Models\UserPoint::create(['user_id' => $member2->id, 'team_id' => $team->id, 'todo_id' => $firstTodo->id, 'points' => 7]);
 
         $book = \App\Models\Book::create(['roman_number' => 1, 'title' => 'B1', 'author' => 'A']);
         \App\Models\Review::create(['team_id' => $team->id, 'user_id' => $admin->id, 'book_id' => $book->id, 'title' => 'T', 'content' => 'X']);
