@@ -28,7 +28,7 @@ class NewsletterController extends Controller
     {
         $user = Auth::user();
         $team = $user?->currentTeam;
-        if (! $team || ! ($team->hasUserWithRole($user, 'Vorstand') || $team->hasUserWithRole($user, 'Admin'))) {
+        if (! $team || ! $team->hasUserWithRole($user, 'Admin')) {
             abort(403);
         }
 
@@ -45,7 +45,7 @@ class NewsletterController extends Controller
     {
         $user = Auth::user();
         $team = $user?->currentTeam;
-        if (! $team || ! ($team->hasUserWithRole($user, 'Vorstand') || $team->hasUserWithRole($user, 'Admin'))) {
+        if (! $team || ! $team->hasUserWithRole($user, 'Admin')) {
             abort(403);
         }
 

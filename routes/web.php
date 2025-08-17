@@ -67,7 +67,7 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
 
     Route::get('/fotogalerie', [PhotoGalleryController::class, 'index'])->name('fotogalerie');
 
-    Route::prefix('newsletter')->name('newsletter.')->controller(NewsletterController::class)->group(function () {
+    Route::prefix('newsletter')->name('newsletter.')->controller(NewsletterController::class)->middleware('admin')->group(function () {
         Route::get('versenden', 'create')->name('create');
         Route::post('versenden', 'send')->name('send');
     });
@@ -104,7 +104,7 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
         Route::post('{todo}/pruefen', 'verify')->name('verify');
         Route::post('{todo}/freigeben', 'release')->name('release');
     });
-    Route::prefix('hoerbuecher')->name('hoerbuecher.')->controller(HoerbuchController::class)->group(function () {
+    Route::prefix('hoerbuecher')->name('hoerbuecher.')->controller(HoerbuchController::class)->middleware('admin')->group(function () {
         Route::get('/', 'index')->name('index');
         Route::get('erstellen', 'create')->name('create');
         Route::post('/', 'store')->name('store');
