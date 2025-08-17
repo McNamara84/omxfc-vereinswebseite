@@ -20,11 +20,16 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     function applyFilters() {
+        const statusVal = filters.status?.value;
+        const typeVal = filters.type?.value;
+        const yearVal = filters.year?.value;
+        const rolesChecked = filters.roles?.checked;
+
         rows.forEach(row => {
-            const matchStatus = !filters.status?.value || row.dataset.status === filters.status?.value;
-            const matchType = !filters.type?.value || row.dataset.type === filters.type?.value;
-            const matchYear = !filters.year?.value || row.dataset.year === filters.year?.value;
-            const matchRoles = !filters.roles?.checked || row.dataset.rolesFilled === '1';
+            const matchStatus = !statusVal || row.dataset.status === statusVal;
+            const matchType = !typeVal || row.dataset.type === typeVal;
+            const matchYear = !yearVal || row.dataset.year === yearVal;
+            const matchRoles = !rolesChecked || row.dataset.rolesFilled === '1';
 
             row.style.display = matchStatus && matchType && matchYear && matchRoles ? '' : 'none';
         });

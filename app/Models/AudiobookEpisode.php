@@ -112,6 +112,11 @@ class AudiobookEpisode extends Model
             } catch (InvalidFormatException $e) {
                 continue;
             }
+
+            if ($date === false) {
+                continue;
+            }
+
             if ($format === 'm.Y') {
                 $date->day = 1;
             } elseif ($format === 'Y') {
