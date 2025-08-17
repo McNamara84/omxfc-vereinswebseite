@@ -47,8 +47,8 @@
                     <div class="bg-white dark:bg-gray-800 p-6 rounded-lg">
                         <p class="mb-4 text-gray-800 dark:text-gray-200" x-text="pendingTest ? 'Testnewsletter wirklich versenden?' : 'Wirklich Newsletter versenden?'"></p>
                         <div class="flex justify-end">
-                            <button type="button" class="inline-flex items-center px-4 py-2 bg-gray-300 dark:bg-gray-600 border border-transparent rounded-md font-semibold text-gray-800 dark:text-white hover:bg-gray-400 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500" @click="showConfirm = false">Abbrechen</button>
-                            <button type="button" class="ml-2 inline-flex items-center px-4 py-2 bg-[#8B0116] dark:bg-[#C41E3A] border border-transparent rounded-md font-semibold text-white hover:bg-[#A50019] dark:hover:bg-[#D63A4D] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#8B0116] dark:focus:ring-[#FF6B81]" @click="submit">Ja, versenden</button>
+                            <button type="button" class="btn-secondary" @click="showConfirm = false">Abbrechen</button>
+                            <button type="button" class="ml-2 btn-primary" @click="submit">Ja, versenden</button>
                         </div>
                     </div>
                 </div>
