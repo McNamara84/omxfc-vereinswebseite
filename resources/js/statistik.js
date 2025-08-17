@@ -4,7 +4,7 @@ import { DataTable } from 'simple-datatables';
 import 'simple-datatables/dist/style.css';
 
 /**
- * Rendert das Balkendiagramm „Romane je Autor:in“,
+ * Rendert ein Balkendiagramm,
  * wenn das Canvas existiert.
  */
 function drawAuthorChart(canvasId, labels, data) {
@@ -78,6 +78,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const labels = window.authorChartLabels ?? [];
     const values = window.authorChartValues ?? [];
     drawAuthorChart('authorChart', labels, values);
+
+    const hcAuthorLabels = window.hardcoverAuthorChartLabels ?? [];
+    const hcAuthorValues = window.hardcoverAuthorChartValues ?? [];
+    drawAuthorChart('hardcoverAuthorChart', hcAuthorLabels, hcAuthorValues);
 
     const cycles = ['euree', 'meeraka', 'expedition', 'kratersee', 'daaMuren', 'wandler', 'mars', 'ausala', 'afra', 'antarktis', 'schatten', 'ursprung', 'streiter', 'archivar', 'zeitsprung', 'fremdwelt', 'parallelwelt', 'weltenriss', 'amraka', 'weltrat'];
     cycles.forEach((cycle) => {

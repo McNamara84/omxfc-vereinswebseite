@@ -49,6 +49,15 @@ class StatistikController extends Controller
             ->countBy()                // Anzahl pro Autor
             ->sortDesc();              // nach Häufigkeit absteigend
 
+        // ── Card 29 – Hardcover je Autor (inkl. Co-Autor:innen) ────────────────
+        $hardcoverAuthorCounts = $hardcovers
+            ->pluck('text')
+            ->flatten()
+            ->map(fn($a) => trim($a))
+            ->filter()
+            ->countBy()
+            ->sortDesc();
+
         // ── Card 3 – Top Teamplayer ─────────────────────────────────────────
         $teamplayerTable = $romane
             ->filter(fn($r) => collect($r['text'])->filter()->count() > 1)
@@ -399,6 +408,7 @@ class StatistikController extends Controller
             'weltratValues' => $weltratValues,
             'hardcoverLabels' => $hardcoverLabels,
             'hardcoverValues' => $hardcoverValues,
+            'hardcoverAuthorCounts' => $hardcoverAuthorCounts,
             'totalReviews' => $totalReviews,
             'averageReviewsPerBook' => $averageReviewsPerBook,
             'topReviewers' => $topReviewers,

@@ -12,7 +12,7 @@
             @if ($userPoints >= 2)
                 <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
                     <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
-                        Romane je Autor:in
+                        Maddrax-Romane je Autor:in
                     </h2>
                     <canvas id="authorChart" height="140"></canvas>
                 </div>
@@ -568,6 +568,21 @@
                 <script>
                     window.hardcoverChartLabels = @json($hardcoverLabels);
                     window.hardcoverChartValues = @json($hardcoverValues);
+                </script>
+            @endif
+
+            {{-- Card 29 – Hardcover je Autor:in (≥ 41 Baxx) --}}
+            @if ($userPoints >= 41)
+                <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
+                    <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                        Maddrax-Hardcover je Autor:in
+                    </h2>
+                    <canvas id="hardcoverAuthorChart" height="140"></canvas>
+                </div>
+
+                <script>
+                    window.hardcoverAuthorChartLabels = @json($hardcoverAuthorCounts->keys());
+                    window.hardcoverAuthorChartValues = @json($hardcoverAuthorCounts->values());
                 </script>
             @endif
 
