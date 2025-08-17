@@ -114,7 +114,7 @@ class AudiobookEpisode extends Model
                 continue;
             }
 
-            if ($date === false || $date->format($format) !== $this->planned_release_date) {
+            if ($date->format($format) !== $this->planned_release_date) {
                 continue;
             }
 
