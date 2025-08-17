@@ -104,14 +104,17 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
         Route::post('{todo}/pruefen', 'verify')->name('verify');
         Route::post('{todo}/freigeben', 'release')->name('release');
     });
-    Route::prefix('hoerbuecher')->name('hoerbuecher.')->controller(HoerbuchController::class)->middleware('admin')->group(function () {
-        Route::get('/', 'index')->name('index');
-        Route::get('erstellen', 'create')->name('create');
-        Route::post('/', 'store')->name('store');
-        Route::get('{episode}', 'show')->name('show');
-        Route::get('{episode}/bearbeiten', 'edit')->name('edit');
-        Route::put('{episode}', 'update')->name('update');
-        Route::delete('{episode}', 'destroy')->name('destroy');
+    Route::prefix('hoerbuecher')->name('hoerbuecher.')->controller(HoerbuchController::class)->group(function () {
+        Route::get('/', 'index')->name('index')->middleware('vorstand');
+
+        Route::middleware('admin')->group(function () {
+            Route::get('erstellen', 'create')->name('create');
+            Route::post('/', 'store')->name('store');
+            Route::get('{episode}', 'show')->name('show');
+            Route::get('{episode}/bearbeiten', 'edit')->name('edit');
+            Route::put('{episode}', 'update')->name('update');
+            Route::delete('{episode}', 'destroy')->name('destroy');
+        });
     });
 
     Route::prefix('arbeitsgruppen')->name('arbeitsgruppen.')->controller(ArbeitsgruppenController::class)->middleware('admin')->group(function () {

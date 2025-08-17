@@ -16,6 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'redirect.if.anwaerter' => \App\Http\Middleware\RedirectIfAnwaerter::class,
             'admin' => \App\Http\Middleware\EnsureAdmin::class,
+            'vorstand' => \App\Http\Middleware\EnsureVorstand::class,
         ]);
         $middleware->appendToGroup('web', \App\Http\Middleware\UpdateLastActivity::class);
         $middleware->appendToGroup('web', \App\Http\Middleware\LogPageVisit::class);

@@ -408,4 +408,47 @@ class HoerbuchControllerTest extends TestCase
             ->get(route('dashboard'))
             ->assertSee('EARDRAX Dashboard');
     }
+
+    public function test_vorstand_sees_eardrax_dashboard_link_in_navigation(): void
+    {
+        $user = $this->actingMember('Vorstand');
+
+        $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertSee('EARDRAX Dashboard');
+    }
+
+    public function test_kassenwart_sees_eardrax_dashboard_link_in_navigation(): void
+    {
+        $user = $this->actingMember('Kassenwart');
+
+        $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertSee('EARDRAX Dashboard');
+    }
+
+    public function test_member_does_not_see_eardrax_dashboard_link_in_navigation(): void
+    {
+        $user = $this->actingMember('Mitglied');
+
+        $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertDontSee('EARDRAX Dashboard');
+    }
+
+    public function test_vorstand_can_view_index(): void
+    {
+        $user = $this->actingMember('Vorstand');
+
+        $this->actingAs($user)->get(route('hoerbuecher.index'))
+            ->assertOk();
+    }
+
+    public function test_kassenwart_can_view_index(): void
+    {
+        $user = $this->actingMember('Kassenwart');
+
+        $this->actingAs($user)->get(route('hoerbuecher.index'))
+            ->assertOk();
+    }
 }
