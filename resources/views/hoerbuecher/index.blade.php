@@ -12,6 +12,29 @@
             </a>
         </div>
         <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
+            <div class="mb-4 flex flex-wrap gap-4">
+                <select id="status-filter" class="border-gray-300 dark:border-gray-600 rounded-md">
+                    <option value="">Alle Status</option>
+                    @foreach($statuses as $status)
+                        <option value="{{ $status }}">{{ $status }}</option>
+                    @endforeach
+                </select>
+                <select id="type-filter" class="border-gray-300 dark:border-gray-600 rounded-md">
+                    <option value="">Alle Typen</option>
+                    <option value="regular">Reguläre Folge</option>
+                    <option value="se">Sonderedition</option>
+                </select>
+                <select id="year-filter" class="border-gray-300 dark:border-gray-600 rounded-md">
+                    <option value="">Alle Jahre</option>
+                    @foreach($years as $year)
+                        <option value="{{ $year }}">{{ $year }}</option>
+                    @endforeach
+                </select>
+                <label class="inline-flex items-center">
+                    <input type="checkbox" id="roles-filter" class="form-checkbox">
+                    <span class="ml-2">Alle Rollen besetzt</span>
+                </label>
+            </div>
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                     <thead>
@@ -31,6 +54,10 @@
                                 role="button"
                                 tabindex="0"
                                 data-href="{{ route('hoerbuecher.show', $episode) }}"
+                                data-status="{{ $episode->status }}"
+                                data-type="{{ $episode->episode_type }}"
+                                data-roles-filled="{{ $episode->all_roles_filled ? '1' : '0' }}"
+                                data-year="{{ $episode->release_year ?? '' }}"
                             >
                                 <td class="px-4 py-2 text-gray-700 dark:text-gray-300">{{ $episode->episode_number }}</td>
                                 <td class="px-4 py-2 text-gray-700 dark:text-gray-300">{{ $episode->title }}</td>

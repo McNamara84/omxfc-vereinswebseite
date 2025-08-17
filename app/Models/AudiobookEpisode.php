@@ -2,6 +2,9 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
+use Carbon\Exceptions\InvalidFormatException;
+use InvalidArgumentException;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -67,5 +70,72 @@ class AudiobookEpisode extends Model
     public function rolesHue(): float
     {
         return $this->rolesFilledPercent() * self::PROGRESS_HUE_FACTOR;
+    }
+
+    /**
+     * Determine whether all roles for the episode are filled.
+     */
+    public function getAllRolesFilledAttribute(): bool
+    {
+        return $this->roles_total > 0 && $this->roles_filled === $this->roles_total;
+    }
+
+    /**
+     * Determine if the episode is a special edition.
+     */
+    public function isSpecialEdition(): bool
+    {
+        return str_starts_with($this->episode_number, 'SE');
+    }
+
+    /**
+     * Accessor for the episode type ("se" or "regular").
+     */
+    public function getEpisodeTypeAttribute(): string
+    {
+        return $this->isSpecialEdition() ? 'se' : 'regular';
+    }
+
+    /**
+     * Parse the planned release date into a Carbon instance.
+     */
+    public function getPlannedReleaseDateParsedAttribute(): ?Carbon
+    {
+        if (!$this->planned_release_date) {
+            return null;
+        }
+
+        $formats = ['d.m.Y', 'm.Y', 'Y'];
+
+        foreach ($formats as $format) {
+            try {
+                $date = Carbon::createFromFormat($format, $this->planned_release_date);
+            } catch (InvalidArgumentException | InvalidFormatException $e) {
+                continue;
+            }
+
+            if ($date->format($format) !== $this->planned_release_date) {
+                continue;
+            }
+
+            if ($format === 'm.Y') {
+                $date->day = 1;
+            } elseif ($format === 'Y') {
+                $date->month = 1;
+                $date->day = 1;
+            }
+
+            return $date;
+        }
+
+        return null;
+    }
+
+    /**
+     * Year extracted from the planned release date.
+     */
+    public function getReleaseYearAttribute(): ?int
+    {
+        return $this->planned_release_date_parsed?->year;
     }
 }
