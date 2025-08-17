@@ -36,8 +36,9 @@ class ImportMaddraxBooksCommandTest extends TestCase
         File::put(storage_path('app/private/hardcovers.json'), '[]');
 
         $this->artisan('books:import', ['--path' => 'private/missing.json'])
-            ->expectsOutput('JSON file not found at ' . storage_path('app/private/missing.json'))
-            ->assertExitCode(1);
+            ->expectsOutput('Import for ' . BookType::MaddraxDieDunkleZukunftDerErde->value . ' failed: JSON file not found at ' . storage_path('app/private/missing.json'))
+            ->expectsOutput(PHP_EOL . 'Import for ' . BookType::MaddraxHardcover->value . ' completed successfully.')
+            ->assertExitCode(0);
     }
 
     public function test_error_with_invalid_json(): void
@@ -46,8 +47,9 @@ class ImportMaddraxBooksCommandTest extends TestCase
         File::put(storage_path('app/private/hardcovers.json'), '[]');
 
         $this->artisan('books:import', ['--path' => 'private/maddrax.json'])
-            ->expectsOutput('Invalid JSON: Syntax error')
-            ->assertExitCode(1);
+            ->expectsOutput('Import for ' . BookType::MaddraxDieDunkleZukunftDerErde->value . ' failed: Invalid JSON - Syntax error')
+            ->expectsOutput(PHP_EOL . 'Import for ' . BookType::MaddraxHardcover->value . ' completed successfully.')
+            ->assertExitCode(0);
     }
 
     public function test_books_are_imported_and_invalid_entries_skipped(): void
@@ -96,5 +98,15 @@ class ImportMaddraxBooksCommandTest extends TestCase
         $this->assertDatabaseMissing('books', ['roman_number' => 3, 'type' => BookType::MaddraxDieDunkleZukunftDerErde->value]);
         $this->assertDatabaseMissing('books', ['roman_number' => null, 'type' => BookType::MaddraxHardcover->value]);
         $this->assertSame(3, Book::count());
+    }
+
+    protected function migrateFreshUsing(): array
+    {
+        return [
+            '--path' => [
+                'database/migrations/2025_05_18_065853_create_books_table.php',
+                'database/migrations/2025_09_19_000000_add_type_to_books_table.php',
+            ],
+        ];
     }
 }

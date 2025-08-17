@@ -33,7 +33,7 @@ class ImportMaddraxBooks extends Command
         $novelsResult = $this->importFile($novelsPath, BookType::MaddraxDieDunkleZukunftDerErde);
         $hardcoversResult = $this->importFile($hardcoversPath, BookType::MaddraxHardcover);
 
-        return ($novelsResult && $hardcoversResult) ? 0 : 1;
+        return ($novelsResult || $hardcoversResult) ? 0 : 1;
     }
 
     private function importFile(string $path, BookType $type): bool
@@ -41,7 +41,7 @@ class ImportMaddraxBooks extends Command
         $fullPath = storage_path("app/{$path}");
 
         if (!file_exists($fullPath)) {
-            $this->error("JSON file not found at {$fullPath}");
+            $this->error('Import for ' . $type->value . " failed: JSON file not found at {$fullPath}");
             return false;
         }
 
@@ -49,7 +49,7 @@ class ImportMaddraxBooks extends Command
         $data = json_decode($json, true);
 
         if (json_last_error() !== JSON_ERROR_NONE) {
-            $this->error('Invalid JSON: ' . json_last_error_msg());
+            $this->error('Import for ' . $type->value . ' failed: Invalid JSON - ' . json_last_error_msg());
             return false;
         }
 
@@ -59,7 +59,8 @@ class ImportMaddraxBooks extends Command
         foreach ($data as $item) {
             $romanNumber = $item['nummer'] ?? null;
             $title = $item['titel'] ?? null;
-            $author = is_array($item['text']) ? implode(', ', $item['text']) : ($item['text'] ?? null);
+            $authorData = $item['text'] ?? null;
+            $author = is_array($authorData) ? implode(', ', $authorData) : $authorData;
 
             if (!$romanNumber || !$title) {
                 $this->warn('Skipping invalid entry: ' . json_encode($item));
