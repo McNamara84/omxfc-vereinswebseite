@@ -36,7 +36,7 @@
                                 <td class="px-4 py-2 text-gray-700 dark:text-gray-300">{{ $episode->title }}</td>
                                 <td class="px-4 py-2 text-gray-700 dark:text-gray-300">{{ $episode->planned_release_date }}</td>
                                 <td class="px-4 py-2 text-gray-700 dark:text-gray-300">
-                                    <span id="episode-{{ $episode->id }}-status" role="status" aria-live="polite">{{ $episode->status }}</span>
+                                    <span id="episode-{{ $episode->id }}-status">{{ $episode->status }}</span>
                                     <div
                                         class="mt-1 w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4"
                                         role="progressbar"
