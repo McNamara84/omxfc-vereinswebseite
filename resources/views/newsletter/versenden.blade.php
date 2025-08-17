@@ -35,11 +35,12 @@
                         <textarea x-bind:id="'topic-content-' + index" class="mt-1 block w-full rounded bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-800 dark:text-gray-200" rows="3" x-bind:name="'topics[' + index + '][content]'" required></textarea>
                     </div>
                 </template>
-                <div class="flex flex-wrap gap-2">
-                    <button type="button" class="inline-flex items-center px-4 py-2 bg-[#8B0116] dark:bg-[#C41E3A] border border-transparent rounded-md font-semibold text-white hover:bg-[#A50019] dark:hover:bg-[#D63A4D] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#8B0116] dark:focus:ring-[#FF6B81]" @click="addTopic">Thema hinzufügen</button>
-                    <button type="button" class="inline-flex items-center px-4 py-2 bg-[#8B0116] dark:bg-[#C41E3A] border border-transparent rounded-md font-semibold text-white hover:bg-[#A50019] dark:hover:bg-[#D63A4D] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#8B0116] dark:focus:ring-[#FF6B81]" @click="confirmSend()">Versenden</button>
-                    <button type="button" class="inline-flex items-center px-4 py-2 bg-[#8B0116] dark:bg-[#C41E3A] border border-transparent rounded-md font-semibold text-white hover:bg-[#A50019] dark:hover:bg-[#D63A4D] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#8B0116] dark:focus:ring-[#FF6B81]" @click="confirmSend(true)">Newsletter testen</button>
-                </div>
+                <fieldset class="flex flex-wrap gap-2" role="group" aria-labelledby="newsletter-actions">
+                    <legend id="newsletter-actions" class="sr-only">Newsletter-Aktionen</legend>
+                    <button type="button" class="btn-primary" @click="addTopic">Thema hinzufügen</button>
+                    <button type="button" class="btn-primary" @click="confirmSend()">Versenden</button>
+                    <button type="button" class="btn-primary" @click="confirmSend(true)">Newsletter testen</button>
+                </fieldset>
                 <input type="hidden" name="test" value="0" x-ref="test" />
 
                 <div x-show="showConfirm" x-cloak class="fixed inset-0 flex items-center justify-center bg-black/50">
