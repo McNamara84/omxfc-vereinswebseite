@@ -20,7 +20,8 @@ class CreateNewUserActionTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        Schema::drop('users');
+        Schema::disableForeignKeyConstraints();
+        Schema::dropIfExists('users');
         Schema::create('users', function (Blueprint $table) {
             $table->id();
             $table->string('name');
@@ -28,6 +29,7 @@ class CreateNewUserActionTest extends TestCase
             $table->string('password');
             $table->timestamps();
         });
+        Schema::enableForeignKeyConstraints();
     }
 
     public function test_user_is_created_with_personal_team_when_terms_feature_disabled(): void
