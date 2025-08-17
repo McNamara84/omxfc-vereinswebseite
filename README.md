@@ -52,7 +52,7 @@ Die im Footer angezeigte Versionsnummer wird automatisch aus dem neuesten Git-Ta
 | Application Cache leeren | `php artisan cache:clear` |
 | Romane indexieren | `php artisan romane:index` |
 | Romane komplett neu indexieren | `php artisan romane:index --fresh` |
-| Romane importieren | `php artisan books:import` |
+| Romane & Hardcover importieren | `php artisan books:import` |
 | Rezensionen importieren | `php artisan reviews:import-old --fresh` |
 | Neue Romane crawlen | `php artisan crawlnovels` |
 | Neue Hardcover crawlen | `php artisan crawlhardcovers` |

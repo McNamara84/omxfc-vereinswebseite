@@ -3,8 +3,8 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Storage;
 use App\Models\Book;
+use App\Enums\BookType;
 
 class ImportMaddraxBooks extends Command
 {
@@ -13,34 +13,44 @@ class ImportMaddraxBooks extends Command
      *
      * @var string
      */
-    protected $signature = 'books:import {--path=private/maddrax.json : Path to JSON file relative to storage/app}';
+    protected $signature = 'books:import {--path=private/maddrax.json : Path to novels JSON file relative to storage/app} {--hardcovers-path=private/hardcovers.json : Path to hardcovers JSON file relative to storage/app}';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Import books from maddrax.json into the books table';
+    protected $description = 'Import books from maddrax.json and hardcovers.json into the books table';
 
     /**
      * Execute the console command.
      */
     public function handle()
     {
-        $path = $this->option('path');
+        $novelsPath = $this->option('path');
+        $hardcoversPath = $this->option('hardcovers-path');
+
+        $novelsResult = $this->importFile($novelsPath, BookType::MaddraxDieDunkleZukunftDerErde);
+        $hardcoversResult = $this->importFile($hardcoversPath, BookType::MaddraxHardcover);
+
+        return ($novelsResult || $hardcoversResult) ? 0 : 1;
+    }
+
+    private function importFile(string $path, BookType $type): bool
+    {
         $fullPath = storage_path("app/{$path}");
 
         if (!file_exists($fullPath)) {
-            $this->error("JSON file not found at {$fullPath}");
-            return 1;
+            $this->error('Import for ' . $type->value . " failed: JSON file not found at {$fullPath}");
+            return false;
         }
 
         $json = file_get_contents($fullPath);
         $data = json_decode($json, true);
 
         if (json_last_error() !== JSON_ERROR_NONE) {
-            $this->error('Invalid JSON: ' . json_last_error_msg());
-            return 1;
+            $this->error('Import for ' . $type->value . ' failed: Invalid JSON - ' . json_last_error_msg());
+            return false;
         }
 
         $bar = $this->output->createProgressBar(count($data));
@@ -49,7 +59,8 @@ class ImportMaddraxBooks extends Command
         foreach ($data as $item) {
             $romanNumber = $item['nummer'] ?? null;
             $title = $item['titel'] ?? null;
-            $author = is_array($item['text']) ? implode(', ', $item['text']) : ($item['text'] ?? null);
+            $authorData = $item['text'] ?? null;
+            $author = is_array($authorData) ? implode(', ', $authorData) : $authorData;
 
             if (!$romanNumber || !$title) {
                 $this->warn('Skipping invalid entry: ' . json_encode($item));
@@ -58,16 +69,16 @@ class ImportMaddraxBooks extends Command
             }
 
             Book::updateOrCreate(
-                ['roman_number' => $romanNumber],
-                ['title' => $title, 'author' => $author]
+                ['roman_number' => $romanNumber, 'type' => $type->value],
+                ['title' => $title, 'author' => $author, 'type' => $type->value]
             );
 
             $bar->advance();
         }
 
         $bar->finish();
-        $this->info(PHP_EOL . 'Import completed successfully.');
+        $this->info(PHP_EOL . 'Import for ' . $type->value . ' completed successfully.');
 
-        return 0;
+        return true;
     }
 }
