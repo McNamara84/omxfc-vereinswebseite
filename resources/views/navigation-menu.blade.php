@@ -58,14 +58,23 @@
                                 <x-dropdown-link href="{{ route('statistik.index') }}">Statistik</x-dropdown-link>
                             </div>
                         </div>
-                        @if(Auth::user()->currentTeam && Auth::user()->currentTeam->hasUserWithRole(Auth::user(), 'Admin'))
+                        @vorstand
+                        <div class="relative flex items-center ml-4 group" x-data="{ open: false }" @click="open = !open" @click.away="open = false" @keydown.escape="open = false">
+                            <button id="vorstand-button" type="button" class="px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition" :aria-expanded="open" aria-controls="vorstand-menu" @keydown.enter.prevent="open = !open" @keydown.space.prevent="open = !open">
+                                Vorstand
+                            </button>
+                            <div id="vorstand-menu" x-show="open" x-cloak class="absolute left-0 top-full mt-px w-48 bg-white dark:bg-gray-700 rounded-md shadow-lg z-50 py-2 group-hover:block" role="menu" aria-labelledby="vorstand-button">
+                                <x-dropdown-link href="{{ route('hoerbuecher.index') }}">EARDRAX Dashboard</x-dropdown-link>
+                            </div>
+                        </div>
+                        @endvorstand
+                        @if(Auth::user()->hasRole('Admin'))
                         <div class="relative flex items-center ml-4 group" x-data="{ open: false }" @click="open = !open" @click.away="open = false" @keydown.escape="open = false">
                             <button id="admin-button" type="button" class="px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition" :aria-expanded="open" aria-controls="admin-menu" @keydown.enter.prevent="open = !open" @keydown.space.prevent="open = !open">
                                 Admin
                             </button>
                             <div id="admin-menu" x-show="open" x-cloak class="absolute left-0 top-full mt-px w-48 bg-white dark:bg-gray-700 rounded-md shadow-lg z-50 py-2 group-hover:block" role="menu" aria-labelledby="admin-button">
                                 <x-dropdown-link href="{{ route('admin.index') }}">Admin</x-dropdown-link>
-                                <x-dropdown-link href="{{ route('hoerbuecher.index') }}">EARDRAX Dashboard</x-dropdown-link>
                                 <x-dropdown-link href="{{ route('newsletter.create') }}">Newsletter versenden</x-dropdown-link>
                                 <x-dropdown-link href="{{ route('arbeitsgruppen.create') }}">Neue AG</x-dropdown-link>
                             </div>
@@ -160,12 +169,18 @@
                 <x-responsive-nav-link href="{{ route('kompendium.index') }}">Kompendium</x-responsive-nav-link>
                 <x-responsive-nav-link href="{{ route('statistik.index') }}">Statistik</x-responsive-nav-link>
             </div>
-            @if(Auth::user()->currentTeam && Auth::user()->currentTeam->hasUserWithRole(Auth::user(), 'Admin'))
+            @vorstand
+            <button id="vorstand-mobile-button" type="button" @click="openMenu = (openMenu === 'vorstand' ? null : 'vorstand')" class="w-full text-left px-4 py-2 font-bold text-gray-600 dark:text-gray-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500" :class="{ 'bg-gray-100 dark:bg-gray-700': openMenu === 'vorstand' }" :aria-expanded="openMenu === 'vorstand'" aria-controls="vorstand-mobile-menu" @keydown.enter.prevent="openMenu = (openMenu === 'vorstand' ? null : 'vorstand')" @keydown.space.prevent="openMenu = (openMenu === 'vorstand' ? null : 'vorstand')">
+            Vorstand</button>
+            <div id="vorstand-mobile-menu" x-show="openMenu === 'vorstand'" x-cloak class="italic" aria-labelledby="vorstand-mobile-button">
+                <x-responsive-nav-link href="{{ route('hoerbuecher.index') }}">EARDRAX Dashboard</x-responsive-nav-link>
+            </div>
+            @endvorstand
+            @if(Auth::user()->hasRole('Admin'))
             <button id="admin-mobile-button" type="button" @click="openMenu = (openMenu === 'admin' ? null : 'admin')" class="w-full text-left px-4 py-2 font-bold text-gray-600 dark:text-gray-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500" :class="{ 'bg-gray-100 dark:bg-gray-700': openMenu === 'admin' }" :aria-expanded="openMenu === 'admin'" aria-controls="admin-mobile-menu" @keydown.enter.prevent="openMenu = (openMenu === 'admin' ? null : 'admin')" @keydown.space.prevent="openMenu = (openMenu === 'admin' ? null : 'admin')">
             Admin</button>
             <div id="admin-mobile-menu" x-show="openMenu === 'admin'" x-cloak class="italic" aria-labelledby="admin-mobile-button">
                 <x-responsive-nav-link href="{{ route('admin.index') }}">Admin</x-responsive-nav-link>
-                <x-responsive-nav-link href="{{ route('hoerbuecher.index') }}">EARDRAX Dashboard</x-responsive-nav-link>
                 <x-responsive-nav-link href="{{ route('newsletter.create') }}">Newsletter versenden</x-responsive-nav-link>
                 <x-responsive-nav-link href="{{ route('arbeitsgruppen.create') }}">Neue AG</x-responsive-nav-link>
             </div>

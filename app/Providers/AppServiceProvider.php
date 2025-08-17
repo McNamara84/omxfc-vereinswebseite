@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Facades\URL;
@@ -72,5 +73,7 @@ class AppServiceProvider extends ServiceProvider
 
             $view->with('socialImage', $socialImage);
         });
+
+        Blade::if('vorstand', fn () => auth()->check() && auth()->user()->hasVorstandRole());
     }
 }
