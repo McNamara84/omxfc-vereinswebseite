@@ -19,8 +19,7 @@
                             <th class="px-4 py-2 text-left text-gray-800 dark:text-gray-200">Folge</th>
                             <th class="px-4 py-2 text-left text-gray-800 dark:text-gray-200">Titel</th>
                             <th class="px-4 py-2 text-left text-gray-800 dark:text-gray-200">Ziel-EVT</th>
-                            <th class="px-4 py-2 text-left text-gray-800 dark:text-gray-200">Status</th>
-                            <th class="px-4 py-2 text-left text-gray-800 dark:text-gray-200">Fortschritt</th>
+                            <th class="px-4 py-2 text-left text-gray-800 dark:text-gray-200">Status & Fortschritt</th>
                             <th class="px-4 py-2 text-left text-gray-800 dark:text-gray-200">Rollen</th>
                             <th class="px-4 py-2 text-left text-gray-800 dark:text-gray-200">Bemerkungen</th>
                         </tr>
@@ -36,9 +35,15 @@
                                 <td class="px-4 py-2 text-gray-700 dark:text-gray-300">{{ $episode->episode_number }}</td>
                                 <td class="px-4 py-2 text-gray-700 dark:text-gray-300">{{ $episode->title }}</td>
                                 <td class="px-4 py-2 text-gray-700 dark:text-gray-300">{{ $episode->planned_release_date }}</td>
-                                <td class="px-4 py-2 text-gray-700 dark:text-gray-300">{{ $episode->status }}</td>
-                                <td class="px-4 py-2">
-                                    <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4">
+                                <td class="px-4 py-2 text-gray-700 dark:text-gray-300">
+                                    <span>{{ $episode->status }}</span>
+                                    <div
+                                        class="mt-1 w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4"
+                                        role="progressbar"
+                                        aria-valuenow="{{ $episode->progress }}"
+                                        aria-valuemin="0"
+                                        aria-valuemax="100"
+                                        aria-label="Episode progress: {{ $episode->status }}, {{ $episode->progress }}% complete">
                                         {{-- Map 0–100% progress to a hue range of 0–120 (red → green). --}}
                                         <div class="h-4 rounded-full text-xs font-medium text-center leading-none text-white" style="width: {{ $episode->progress }}%; background-color: hsl({{ $episode->progressHue() }}, 100%, 40%);">
                                             {{ $episode->progress }}%
