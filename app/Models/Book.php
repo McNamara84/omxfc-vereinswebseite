@@ -8,12 +8,14 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Collection;
 use App\Models\Review;
 use Carbon\Carbon;
+use App\Enums\BookType;
 
 /**
  * @property int $id
  * @property int $roman_number
  * @property string $title
  * @property string $author
+ * @property BookType $type
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read Collection<int, Review> $reviews
@@ -26,6 +28,11 @@ class Book extends Model
         'roman_number',
         'title',
         'author',
+        'type',
+    ];
+
+    protected $casts = [
+        'type' => BookType::class,
     ];
 
     /**

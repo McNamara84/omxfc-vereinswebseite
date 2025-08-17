@@ -6,6 +6,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 use App\Models\Book;
 use Illuminate\Support\Facades\File;
+use App\Enums\BookType;
 
 class ImportMaddraxBooksCommandTest extends TestCase
 {
@@ -32,6 +33,8 @@ class ImportMaddraxBooksCommandTest extends TestCase
 
     public function test_error_when_json_file_missing(): void
     {
+        File::put(storage_path('app/private/hardcovers.json'), '[]');
+
         $this->artisan('books:import', ['--path' => 'private/missing.json'])
             ->expectsOutput('JSON file not found at ' . storage_path('app/private/missing.json'))
             ->assertExitCode(1);
@@ -40,6 +43,7 @@ class ImportMaddraxBooksCommandTest extends TestCase
     public function test_error_with_invalid_json(): void
     {
         File::put(storage_path('app/private/maddrax.json'), '{ invalid json }');
+        File::put(storage_path('app/private/hardcovers.json'), '[]');
 
         $this->artisan('books:import', ['--path' => 'private/maddrax.json'])
             ->expectsOutput('Invalid JSON: Syntax error')
@@ -59,22 +63,38 @@ class ImportMaddraxBooksCommandTest extends TestCase
         ];
         File::put(storage_path('app/private/maddrax.json'), json_encode($data));
 
+        $hardcovers = [
+            ['nummer' => 1, 'titel' => 'HC1', 'text' => 'AuthorHC1'],
+            ['titel' => 'HC Invalid'],
+        ];
+        File::put(storage_path('app/private/hardcovers.json'), json_encode($hardcovers));
+
         $this->artisan('books:import', ['--path' => 'private/maddrax.json'])
-            ->expectsOutput(PHP_EOL . 'Import completed successfully.')
+            ->expectsOutput(PHP_EOL . 'Import for ' . BookType::MaddraxDieDunkleZukunftDerErde->value . ' completed successfully.')
+            ->expectsOutput(PHP_EOL . 'Import for ' . BookType::MaddraxHardcover->value . ' completed successfully.')
             ->assertExitCode(0);
 
         $this->assertDatabaseHas('books', [
             'roman_number' => 1,
             'title' => 'Roman1 new',
             'author' => 'Author1 new',
+            'type' => BookType::MaddraxDieDunkleZukunftDerErde->value,
         ]);
         $this->assertDatabaseHas('books', [
             'roman_number' => 4,
             'title' => 'Roman4',
             'author' => 'Author4',
+            'type' => BookType::MaddraxDieDunkleZukunftDerErde->value,
         ]);
-        $this->assertDatabaseMissing('books', ['roman_number' => 2]);
-        $this->assertDatabaseMissing('books', ['roman_number' => 3]);
-        $this->assertSame(2, Book::count());
+        $this->assertDatabaseHas('books', [
+            'roman_number' => 1,
+            'title' => 'HC1',
+            'author' => 'AuthorHC1',
+            'type' => BookType::MaddraxHardcover->value,
+        ]);
+        $this->assertDatabaseMissing('books', ['roman_number' => 2, 'type' => BookType::MaddraxDieDunkleZukunftDerErde->value]);
+        $this->assertDatabaseMissing('books', ['roman_number' => 3, 'type' => BookType::MaddraxDieDunkleZukunftDerErde->value]);
+        $this->assertDatabaseMissing('books', ['roman_number' => null, 'type' => BookType::MaddraxHardcover->value]);
+        $this->assertSame(3, Book::count());
     }
 }
