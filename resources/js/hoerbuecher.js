@@ -35,9 +35,11 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    Object.values(filters).forEach(el => {
-        el?.addEventListener('change', applyFilters);
-    });
+    Object.values(filters)
+        .filter(el => el)
+        .forEach(el => {
+            el.addEventListener('change', applyFilters);
+        });
 
     applyFilters();
 });
