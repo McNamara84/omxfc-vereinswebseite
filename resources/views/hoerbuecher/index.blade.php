@@ -56,7 +56,7 @@
                                 data-href="{{ route('hoerbuecher.show', $episode) }}"
                                 data-status="{{ $episode->status }}"
                                 data-type="{{ $episode->episode_type }}"
-                                data-roles-filled="{{ $episode->roles_filled === $episode->roles_total && $episode->roles_total > 0 ? '1' : '0' }}"
+                                data-roles-filled="{{ $episode->all_roles_filled ? '1' : '0' }}"
                                 data-year="{{ $episode->year }}"
                             >
                                 <td class="px-4 py-2 text-gray-700 dark:text-gray-300">{{ $episode->episode_number }}</td>

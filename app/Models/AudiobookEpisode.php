@@ -70,6 +70,14 @@ class AudiobookEpisode extends Model
     }
 
     /**
+     * Determine whether all roles for the episode are filled.
+     */
+    public function getAllRolesFilledAttribute(): bool
+    {
+        return $this->roles_total > 0 && $this->roles_filled === $this->roles_total;
+    }
+
+    /**
      * Determine if the episode is a special edition.
      */
     public function isSpecialEdition(): bool
