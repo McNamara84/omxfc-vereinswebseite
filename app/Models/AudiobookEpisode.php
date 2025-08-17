@@ -106,7 +106,12 @@ class AudiobookEpisode extends Model
         $formats = ['d.m.Y', 'm.Y', 'Y'];
 
         foreach ($formats as $format) {
-            $date = Carbon::createFromFormat($format, $this->planned_release_date);
+            try {
+                $date = Carbon::createFromFormat($format, $this->planned_release_date);
+            } catch (\Throwable $e) {
+                continue;
+            }
+
             if ($date === false) {
                 continue;
             }
