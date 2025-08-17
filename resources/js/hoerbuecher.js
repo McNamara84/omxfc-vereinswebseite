@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
         rows.forEach(row => {
             const matchStatus = !statusVal || row.dataset.status === statusVal;
             const matchType = !typeVal || row.dataset.type === typeVal;
-            const matchYear = !yearVal || row.dataset.year === yearVal;
+            const matchYear = !yearVal || (row.dataset.year ?? '') === yearVal;
             const matchRoles = !rolesChecked || row.dataset.rolesFilled === '1';
 
             row.style.display = matchStatus && matchType && matchYear && matchRoles ? '' : 'none';
