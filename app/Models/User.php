@@ -186,17 +186,6 @@ class User extends Authenticatable
     }
 
     /**
-     * Check if the user has any of the given roles on the current team.
-     *
-     * @param  array<string>  $roles
-     * @return bool
-     */
-    public function hasAnyRole(array $roles): bool
-    {
-        return in_array($this->role(), $roles, true);
-    }
-
-    /**
      * Check if the user has the given role on the current team.
      *
      * @param  string  $role
@@ -212,6 +201,8 @@ class User extends Authenticatable
      */
     public function hasVorstandRole(): bool
     {
-        return $this->hasAnyRole(['Admin', 'Vorstand', 'Kassenwart']);
+        return $this->hasRole('Admin')
+            || $this->hasRole('Vorstand')
+            || $this->hasRole('Kassenwart');
     }
 }
