@@ -11,14 +11,16 @@ class AudiobookEpisode extends Model
     use HasFactory;
 
     public const STATUSES = [
-        'Skript wird erstellt',
-        'In Korrekturlesung',
-        'Aufnahmen in Arbeit',
-        'Audiobearbeitung gestartet',
-        'Videobearbeitung gestartet',
-        'Cover und Thumbnail in Arbeit',
-        'Veröffentlichung geplant',
-        'Veröffentlicht',
+        'Skripterstellung',
+        'Korrekturlesung',
+        'Rollenbesetzung',
+        'Aufnahmensammlung',
+        'Musikerstellung',
+        'Audiobearbeitung',
+        'Videobearbeitung',
+        'Grafiken',
+        'Veröffentlichungsplanung',
+        'Veröffentlichung',
     ];
 
     /**
