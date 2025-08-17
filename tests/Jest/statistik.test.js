@@ -76,4 +76,24 @@ describe('statistik module', () => {
     const config = mockChart.mock.calls[0][1];
     expect(config.type).toBe('line');
   });
+
+  test('DOMContentLoaded draws hardcover author chart', async () => {
+    jest.resetModules();
+    const chartModule = await import('chart.js/auto');
+    const datatableModule = await import('simple-datatables');
+    mockChart = chartModule.default;
+    datatableModule.DataTable.mockClear();
+    mockChart.mockClear();
+
+    document.body.innerHTML = '<canvas id="hardcoverAuthorChart"></canvas>';
+    window.hardcoverAuthorChartLabels = ['A'];
+    window.hardcoverAuthorChartValues = [2];
+
+    await import('../../resources/js/statistik.js');
+    document.dispatchEvent(new Event('DOMContentLoaded'));
+
+    expect(mockChart).toHaveBeenCalled();
+    const config = mockChart.mock.calls[0][1];
+    expect(config.type).toBe('bar');
+  });
 });

@@ -7,8 +7,8 @@ return [
         'points' => 1,
     ],
     [
-        'title' => 'Statistik - Anzahl Romane je Autor:in',
-        'description' => 'Balkendiagramm mit der Anzahl Romane je Autor:in.',
+        'title' => 'Statistik - Maddrax-Romane je Autor:in',
+        'description' => 'Balkendiagramm mit der Anzahl Maddrax-Romane je Autor:in.',
         'points' => 2,
     ],
     [
@@ -165,6 +165,11 @@ return [
         'title' => 'Statistik - Bewertungen der Hardcover',
         'description' => 'Zeigt Bewertungen der Hardcover aus dem Maddraxikon in einem Liniendiagramm.',
         'points' => 40,
+    ],
+    [
+        'title' => 'Statistik - Maddrax-Hardcover je Autor:in',
+        'description' => 'Balkendiagramm mit der Anzahl der Maddrax-Hardcover je Autor:in.',
+        'points' => 41,
     ],
     [
         'title' => 'Kompendium-Suche',

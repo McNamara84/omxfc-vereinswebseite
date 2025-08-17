@@ -79,6 +79,7 @@ class StatistikTest extends TestCase
                 'nummer' => $i,
                 'titel' => 'HC' . $i,
                 'bewertung' => $rating,
+                'text' => ['HC Author' . (($i % 2) + 1)],
             ];
         }
         $path = storage_path('app/private/hardcovers.json');
@@ -549,5 +550,31 @@ class StatistikTest extends TestCase
 
         $response->assertOk();
         $response->assertDontSee('Bewertungen der Hardcover');
+    }
+
+    public function test_hardcover_author_chart_visible_with_enough_points(): void
+    {
+        $this->createDataFile();
+        $this->createHardcoversFile();
+        $user = $this->actingMemberWithPoints(41);
+        $this->actingAs($user);
+
+        $response = $this->get('/statistik');
+
+        $response->assertOk();
+        $response->assertSee('Maddrax-Hardcover je Autor:in');
+    }
+
+    public function test_hardcover_author_chart_hidden_below_threshold(): void
+    {
+        $this->createDataFile();
+        $this->createHardcoversFile();
+        $user = $this->actingMemberWithPoints(40);
+        $this->actingAs($user);
+
+        $response = $this->get('/statistik');
+
+        $response->assertOk();
+        $response->assertDontSee('Maddrax-Hardcover je Autor:in');
     }
 }
