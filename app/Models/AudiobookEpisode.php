@@ -68,4 +68,20 @@ class AudiobookEpisode extends Model
     {
         return $this->rolesFilledPercent() * self::PROGRESS_HUE_FACTOR;
     }
+
+    /**
+     * Determine if the episode is a special edition.
+     */
+    public function isSpecialEdition(): bool
+    {
+        return str_starts_with($this->episode_number, 'SE');
+    }
+
+    /**
+     * Accessor for the episode type ("se" or "regular").
+     */
+    public function getEpisodeTypeAttribute(): string
+    {
+        return $this->isSpecialEdition() ? 'se' : 'regular';
+    }
 }

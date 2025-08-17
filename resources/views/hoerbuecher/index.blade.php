@@ -55,7 +55,7 @@
                                 tabindex="0"
                                 data-href="{{ route('hoerbuecher.show', $episode) }}"
                                 data-status="{{ $episode->status }}"
-                                data-type="{{ str_starts_with($episode->episode_number, 'SE') ? 'se' : 'regular' }}"
+                                data-type="{{ $episode->episode_type }}"
                                 data-roles-filled="{{ $episode->roles_filled === $episode->roles_total && $episode->roles_total > 0 ? '1' : '0' }}"
                                 data-year="{{ $episode->year }}"
                             >
