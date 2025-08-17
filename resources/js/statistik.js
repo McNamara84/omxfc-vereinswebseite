@@ -37,19 +37,31 @@ function drawCycleChart(canvasId, labels, data) {
     const canvas = document.getElementById(canvasId);
     if (!canvas) return;
 
+    const average = data.length ? data.reduce((sum, val) => sum + val, 0) / data.length : 0;
+    const averageData = Array(labels.length).fill(average);
+
     new Chart(canvas.getContext('2d'), {
         type: 'line',
         data: {
             labels,
-            datasets: [{
-                data,
-                borderColor: 'rgba(139, 1, 22, .8)',
-                backgroundColor: 'rgba(139, 1, 22, .3)',
-                tension: 0.3,
-            }],
+            datasets: [
+                {
+                    data,
+                    borderColor: 'rgba(139, 1, 22, .8)',
+                    backgroundColor: 'rgba(139, 1, 22, .3)',
+                    tension: 0.3,
+                },
+                {
+                    data: averageData,
+                    borderColor: 'rgba(54, 162, 235, .8)',
+                    pointRadius: 0,
+                    fill: false,
+                    label: 'Durchschnitt',
+                },
+            ],
         },
         options: {
-            plugins: { legend: { display: false } },
+            plugins: { legend: { display: true } },
             scales:  { y: { beginAtZero: true, ticks: { stepSize: 1 } } },
         },
     });
