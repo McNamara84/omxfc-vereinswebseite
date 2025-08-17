@@ -206,4 +206,12 @@ class User extends Authenticatable
     {
         return $this->role() === $role;
     }
+
+    /**
+     * Determine if the user holds a Vorstand-level role.
+     */
+    public function hasVorstandRole(): bool
+    {
+        return $this->hasAnyRole(['Admin', 'Vorstand', 'Kassenwart']);
+    }
 }

@@ -17,15 +17,8 @@ class EnsureVorstand
     public function handle(Request $request, Closure $next): Response
     {
         $user = Auth::user();
-        $team = $user?->currentTeam;
 
-        if (
-            $team && (
-                $team->hasUserWithRole($user, 'Admin') ||
-                $team->hasUserWithRole($user, 'Vorstand') ||
-                $team->hasUserWithRole($user, 'Kassenwart')
-            )
-        ) {
+        if ($user?->hasVorstandRole()) {
             return $next($request);
         }
 
