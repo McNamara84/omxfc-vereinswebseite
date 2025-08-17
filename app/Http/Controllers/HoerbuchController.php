@@ -13,24 +13,11 @@ use Carbon\Carbon;
 
 class HoerbuchController extends Controller
 {
-    private function ensureAdminOrVorstand(): void
-    {
-        $user = Auth::user();
-        $memberTeam = Team::where('name', 'Mitglieder')->first();
-        $membership = $memberTeam?->users()->where('user_id', $user->id)->first();
-        $userRole = $membership ? $membership->membership->role : null;
-
-        if (!in_array($userRole, ['Vorstand', 'Admin'], true)) {
-            abort(403);
-        }
-    }
     /**
      * Übersicht aller Hörbuchfolgen.
      */
     public function index()
     {
-        $this->ensureAdminOrVorstand();
-
         $episodes = AudiobookEpisode::all()
             ->sortBy(function ($episode) {
                 return $this->parsePlannedReleaseDate($episode->planned_release_date) ?? Carbon::create(9999, 12, 31);
@@ -105,8 +92,6 @@ class HoerbuchController extends Controller
      */
     public function create()
     {
-        $this->ensureAdminOrVorstand();
-
         $users = User::orderBy('name')->get();
 
         return view('hoerbuecher.create', [
@@ -120,8 +105,6 @@ class HoerbuchController extends Controller
      */
     public function store(Request $request)
     {
-        $this->ensureAdminOrVorstand();
-
         $request->validate([
             'episode_number' => 'required|string|max:10|unique:audiobook_episodes,episode_number',
             'title' => 'required|string|max:255',
@@ -145,8 +128,6 @@ class HoerbuchController extends Controller
      */
     public function show(AudiobookEpisode $episode)
     {
-        $this->ensureAdminOrVorstand();
-
         return view('hoerbuecher.show', [
             'episode' => $episode,
         ]);
@@ -157,8 +138,6 @@ class HoerbuchController extends Controller
      */
     public function edit(AudiobookEpisode $episode)
     {
-        $this->ensureAdminOrVorstand();
-
         $users = User::orderBy('name')->get();
 
         return view('hoerbuecher.edit', [
@@ -173,8 +152,6 @@ class HoerbuchController extends Controller
      */
     public function update(Request $request, AudiobookEpisode $episode)
     {
-        $this->ensureAdminOrVorstand();
-
         $request->validate([
             'episode_number' => [
                 'required',
@@ -203,8 +180,6 @@ class HoerbuchController extends Controller
      */
     public function destroy(AudiobookEpisode $episode)
     {
-        $this->ensureAdminOrVorstand();
-
         $episode->delete();
 
         return redirect()->route('hoerbuecher.index')

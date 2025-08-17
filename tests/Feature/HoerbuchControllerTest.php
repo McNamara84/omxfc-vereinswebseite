@@ -109,6 +109,14 @@ class HoerbuchControllerTest extends TestCase
             ->assertForbidden();
     }
 
+    public function test_vorstand_cannot_view_create_form(): void
+    {
+        $user = $this->actingMember('Vorstand');
+
+        $this->actingAs($user)->get(route('hoerbuecher.create'))
+            ->assertForbidden();
+    }
+
     public function test_admin_can_view_index_and_episodes(): void
     {
         $user = $this->actingMember('Admin');
