@@ -40,8 +40,8 @@ class HoerbuchController extends Controller
 
         $daysUntilNextEvt = null;
         if ($nextEpisode?->planned_release_date_parsed) {
-            $seconds = Carbon::now()->diffInSeconds($nextEpisode->planned_release_date_parsed, false);
-            $daysUntilNextEvt = max(0, (int) round($seconds / 86400));
+            $hours = Carbon::now()->diffInHours($nextEpisode->planned_release_date_parsed, false);
+            $daysUntilNextEvt = max(0, (int) round($hours / Carbon::HOURS_PER_DAY));
         }
 
         return view('hoerbuecher.index', [
