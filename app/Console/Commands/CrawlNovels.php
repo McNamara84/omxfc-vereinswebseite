@@ -2,11 +2,11 @@
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;
 use DOMDocument;
 use DOMXPath;
+use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Storage;
 
 class CrawlNovels extends Command
 {
@@ -21,7 +21,8 @@ class CrawlNovels extends Command
     protected $description = 'Crawl maddraxikon.com for novel information';
 
     private const BASE_URL = 'https://de.maddraxikon.com/';
-    private const CATEGORY_URL = self::BASE_URL . 'index.php?title=Kategorie:Maddrax-Heftromane';
+
+    private const CATEGORY_URL = self::BASE_URL.'index.php?title=Kategorie:Maddrax-Heftromane';
 
     public function handle(): int
     {
@@ -31,6 +32,7 @@ class CrawlNovels extends Command
         $articleUrls = $this->getArticleUrls(self::CATEGORY_URL);
         if (empty($articleUrls)) {
             $this->error('No articles found.');
+
             return self::FAILURE;
         }
 
@@ -50,10 +52,12 @@ class CrawlNovels extends Command
         $path = Storage::disk('private')->path('maddrax.json');
         if ($this->writeHeftromane($data, $path)) {
             $this->info('maddrax.json updated.');
-            return self::SUCCESS;
+
+            return $this->call(CrawlHardcovers::class);
         }
 
         $this->error('Failed to write maddrax.json');
+
         return self::FAILURE;
     }
 
@@ -68,21 +72,22 @@ class CrawlNovels extends Command
         if ($html === false) {
             return [];
         }
-        $dom = new DOMDocument();
+        $dom = new DOMDocument;
         @$dom->loadHTML($html);
         $xpath = new DOMXPath($dom);
         $articles = $xpath->query("//div[@id='mw-pages']//a");
         $urls = [];
         foreach ($articles as $article) {
-            $urls[] = self::BASE_URL . $article->getAttribute('href');
+            $urls[] = self::BASE_URL.$article->getAttribute('href');
         }
         $nextPage = $xpath->query("//a[text()='nächste Seite']");
         if ($nextPage->length > 0) {
             $urls = array_merge(
                 $urls,
-                $this->getArticleUrls(self::BASE_URL . $nextPage->item(0)->getAttribute('href'))
+                $this->getArticleUrls(self::BASE_URL.$nextPage->item(0)->getAttribute('href'))
             );
         }
+
         return $urls;
     }
 
@@ -92,11 +97,11 @@ class CrawlNovels extends Command
         if ($html === false) {
             return null;
         }
-        $dom = new DOMDocument();
+        $dom = new DOMDocument;
         @$dom->loadHTML($html);
         $xpath = new DOMXPath($dom);
 
-        $numberNode = $xpath->query("//b[number(text()) >= 1 and number(text()) <= 999]");
+        $numberNode = $xpath->query('//b[number(text()) >= 1 and number(text()) <= 999]');
         $number = $numberNode->length > 0 ? $numberNode->item(0)->nodeValue : null;
 
         $evtNode = $xpath->query("//td[contains(text(), 'Erstmals\xC2\xA0erschienen:')]/following-sibling::td[1]");
@@ -159,7 +164,7 @@ class CrawlNovels extends Command
             if ($releaseDate && $releaseDate->isAfter(Carbon::today())) {
                 continue;
             }
-            $obj = new \stdClass();
+            $obj = new \stdClass;
             $obj->nummer = (int) $row[0];
             $obj->evt = $row[1];
             $obj->zyklus = $row[2];
@@ -172,8 +177,9 @@ class CrawlNovels extends Command
             $obj->orte = $row[9];
             $jsonData[] = $obj;
         }
-        usort($jsonData, fn($a, $b) => $a->nummer <=> $b->nummer);
+        usort($jsonData, fn ($a, $b) => $a->nummer <=> $b->nummer);
         $json = json_encode($jsonData, JSON_PRETTY_PRINT);
+
         return file_put_contents($filename, $json) !== false;
     }
 }
