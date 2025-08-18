@@ -7,6 +7,7 @@ use Tests\TestCase;
 use App\Models\User;
 use App\Models\Team;
 use App\Models\AudiobookEpisode;
+use Carbon\Carbon;
 
 class HoerbuchControllerTest extends TestCase
 {
@@ -275,6 +276,46 @@ class HoerbuchControllerTest extends TestCase
         ], $episodes->pluck('episode_number')->toArray());
     }
 
+    public function test_index_displays_statistics_cards(): void
+    {
+        Carbon::setTestNow('2025-01-01 12:00:00');
+
+        $user = $this->actingMember('Admin');
+
+        AudiobookEpisode::create([
+            'episode_number' => 'F1',
+            'title' => 'Erste',
+            'author' => 'Autor',
+            'planned_release_date' => '02.01.2025',
+            'status' => 'Rollenbesetzung',
+            'responsible_user_id' => null,
+            'progress' => 0,
+            'roles_total' => 5,
+            'roles_filled' => 2,
+            'notes' => null,
+        ]);
+
+        AudiobookEpisode::create([
+            'episode_number' => 'F2',
+            'title' => 'Zweite',
+            'author' => 'Autor',
+            'planned_release_date' => '05.01.2025',
+            'status' => 'Skripterstellung',
+            'responsible_user_id' => null,
+            'progress' => 0,
+            'roles_total' => 3,
+            'roles_filled' => 3,
+            'notes' => null,
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('hoerbuecher.index'))
+            ->assertSee('data-unfilled-roles="3"', false)
+            ->assertSee('data-open-episodes="1"', false)
+            ->assertSee('data-days-left="1"', false)
+            ->assertSee('Tage bis Folge Erste veröffentlicht wird (02.01.2025)', false);
+    }
+
     public function test_admin_can_update_episode(): void
     {
         $user = $this->actingMember('Admin');
@@ -450,5 +491,11 @@ class HoerbuchControllerTest extends TestCase
 
         $this->actingAs($user)->get(route('hoerbuecher.index'))
             ->assertOk();
+    }
+
+    protected function tearDown(): void
+    {
+        Carbon::setTestNow();
+        parent::tearDown();
     }
 }

@@ -11,6 +11,28 @@
                 Neue Folge
             </a>
         </div>
+        <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div id="card-unfilled-roles" data-unfilled-roles="{{ $totalUnfilledRoles }}" class="p-4 border border-gray-200 dark:border-gray-700 rounded cursor-pointer text-center hover:bg-gray-100 dark:hover:bg-gray-700">
+                    <div class="text-3xl font-bold text-gray-800 dark:text-gray-200">{{ $totalUnfilledRoles }}</div>
+                    <div class="text-gray-600 dark:text-gray-400">Unbesetzte Rollen</div>
+                </div>
+                <div id="card-next-event" data-episode-id="{{ $nextEpisode?->id }}" data-days-left="{{ $daysUntilNextEvt }}" class="p-4 border border-gray-200 dark:border-gray-700 rounded cursor-pointer text-center hover:bg-gray-100 dark:hover:bg-gray-700">
+                    @if($nextEpisode)
+                        <div class="text-3xl font-bold text-gray-800 dark:text-gray-200">{{ $daysUntilNextEvt }}</div>
+                        <div class="text-gray-600 dark:text-gray-400">
+                            Tage bis Folge {{ $nextEpisode->title }} veröffentlicht wird ({{ $nextEpisode->planned_release_date_parsed->format('d.m.Y') }})
+                        </div>
+                    @else
+                        <div class="text-gray-600 dark:text-gray-400">Kein Termin</div>
+                    @endif
+                </div>
+                <div id="card-open-episodes" data-open-episodes="{{ $openRolesEpisodes }}" class="p-4 border border-gray-200 dark:border-gray-700 rounded cursor-pointer text-center hover:bg-gray-100 dark:hover:bg-gray-700">
+                    <div class="text-3xl font-bold text-gray-800 dark:text-gray-200">{{ $openRolesEpisodes }}</div>
+                    <div class="text-gray-600 dark:text-gray-400">Folgen mit offenen Rollen</div>
+                </div>
+            </div>
+        </div>
         <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
             <div class="mb-4 flex flex-wrap gap-4">
                 <select id="status-filter" class="border-gray-300 dark:border-gray-600 rounded-md">
@@ -58,6 +80,7 @@
                                 data-type="{{ $episode->episode_type }}"
                                 data-roles-filled="{{ $episode->all_roles_filled ? '1' : '0' }}"
                                 data-year="{{ $episode->release_year ?? '' }}"
+                                data-episode-id="{{ $episode->id }}"
                             >
                                 <td class="px-4 py-2 text-gray-700 dark:text-gray-300">{{ $episode->episode_number }}</td>
                                 <td class="px-4 py-2 text-gray-700 dark:text-gray-300">{{ $episode->title }}</td>
