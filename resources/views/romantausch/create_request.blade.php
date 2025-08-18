@@ -56,12 +56,17 @@
 
             function filterBooks() {
                 const series = seriesSelect.value;
-                Array.from(bookSelect.options).forEach(option => {
-                    option.hidden = option.dataset.series !== series;
+                let firstVisibleIndex = -1;
+                Array.from(bookSelect.options).forEach((option, idx) => {
+                    const match = option.dataset.series === series;
+                    option.hidden = !match;
+                    option.disabled = !match;
+                    if (match && firstVisibleIndex === -1) {
+                        firstVisibleIndex = idx;
+                    }
                 });
-                const firstVisible = Array.from(bookSelect.options).find(option => !option.hidden);
-                if (firstVisible) {
-                    bookSelect.value = firstVisible.value;
+                if (firstVisibleIndex !== -1) {
+                    bookSelect.selectedIndex = firstVisibleIndex;
                 }
             }
 

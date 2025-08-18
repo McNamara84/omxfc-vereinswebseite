@@ -18,6 +18,10 @@ use App\Enums\BookType;
 
 class RomantauschController extends Controller
 {
+    private const ALLOWED_TYPES = [
+        BookType::MaddraxDieDunkleZukunftDerErde,
+        BookType::MaddraxHardcover,
+    ];
     // Übersicht
     public function index()
     {
@@ -32,8 +36,9 @@ class RomantauschController extends Controller
     // Formular für Angebot erstellen
     public function createOffer()
     {
-        $books = Book::orderBy('roman_number')->get();
-        $types = BookType::cases();
+        $typeValues = array_map(fn ($type) => $type->value, self::ALLOWED_TYPES);
+        $books = Book::whereIn('type', $typeValues)->orderBy('roman_number')->get();
+        $types = self::ALLOWED_TYPES;
 
         return view('romantausch.create_offer', compact('books', 'types'));
     }
@@ -42,7 +47,7 @@ class RomantauschController extends Controller
     public function storeOffer(Request $request)
     {
         $validated = $request->validate([
-            'series' => ['required', Rule::in(array_map(fn ($case) => $case->value, BookType::cases()))],
+            'series' => ['required', Rule::in(array_map(fn ($case) => $case->value, self::ALLOWED_TYPES))],
             'book_number' => 'required|integer',
             'condition' => 'required|string',
         ]);
@@ -82,8 +87,9 @@ class RomantauschController extends Controller
     // Formular für Gesuch erstellen
     public function createRequest()
     {
-        $books = Book::orderBy('roman_number')->get();
-        $types = BookType::cases();
+        $typeValues = array_map(fn ($type) => $type->value, self::ALLOWED_TYPES);
+        $books = Book::whereIn('type', $typeValues)->orderBy('roman_number')->get();
+        $types = self::ALLOWED_TYPES;
 
         return view('romantausch.create_request', compact('books', 'types'));
     }
@@ -92,7 +98,7 @@ class RomantauschController extends Controller
     public function storeRequest(Request $request)
     {
         $validated = $request->validate([
-            'series' => ['required', Rule::in(array_map(fn ($case) => $case->value, BookType::cases()))],
+            'series' => ['required', Rule::in(array_map(fn ($case) => $case->value, self::ALLOWED_TYPES))],
             'book_number' => 'required|integer',
             'condition' => 'required|string',
         ]);
