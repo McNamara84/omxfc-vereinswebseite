@@ -26,10 +26,30 @@ class HoerbuchController extends Controller
 
         $years = $episodes->pluck('release_year')->filter()->unique()->sort()->values();
 
+        $totalUnfilledRoles = $episodes
+            ->sum(fn ($e) => max($e->roles_total - $e->roles_filled, 0));
+
+        $openRolesEpisodes = $episodes
+            ->filter(fn ($e) => $e->roles_total > $e->roles_filled)
+            ->count();
+
+        $nextEpisode = $episodes
+            ->filter(fn ($e) => $e->planned_release_date_parsed?->isFuture())
+            ->sortBy('planned_release_date_parsed')
+            ->first();
+
+        $daysUntilNextEvt = $nextEpisode?->planned_release_date_parsed
+            ? $nextEpisode->planned_release_date_parsed->diffInDays(Carbon::now())
+            : null;
+
         return view('hoerbuecher.index', [
             'episodes' => $episodes,
             'statuses' => AudiobookEpisode::STATUSES,
             'years' => $years,
+            'totalUnfilledRoles' => $totalUnfilledRoles,
+            'openRolesEpisodes' => $openRolesEpisodes,
+            'nextEpisode' => $nextEpisode,
+            'daysUntilNextEvt' => $daysUntilNextEvt,
         ]);
     }
 

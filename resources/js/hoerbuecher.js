@@ -19,6 +19,9 @@ document.addEventListener('DOMContentLoaded', () => {
         roles: document.getElementById('roles-filter'),
     };
 
+    let showUnfilledRolesOnly = false;
+    let onlyEpisodeId = null;
+
     function applyFilters() {
         const statusVal = filters.status?.value;
         const typeVal = filters.type?.value;
@@ -30,8 +33,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const matchType = !typeVal || row.dataset.type === typeVal;
             const matchYear = !yearVal || (row.dataset.year ?? '') === yearVal;
             const matchRoles = !rolesChecked || row.dataset.rolesFilled === '1';
+            const matchUnfilled = !showUnfilledRolesOnly || row.dataset.rolesFilled === '0';
+            const matchEpisode = !onlyEpisodeId || row.dataset.episodeId === onlyEpisodeId;
 
-            row.style.display = matchStatus && matchType && matchYear && matchRoles ? '' : 'none';
+            row.style.display = matchStatus && matchType && matchYear && matchRoles && matchUnfilled && matchEpisode ? '' : 'none';
         });
     }
 
@@ -40,6 +45,40 @@ document.addEventListener('DOMContentLoaded', () => {
         .forEach(el => {
             el.addEventListener('change', applyFilters);
         });
+
+    const cardUnfilledRoles = document.getElementById('card-unfilled-roles');
+    const cardOpenEpisodes = document.getElementById('card-open-episodes');
+    const cardNextEvent = document.getElementById('card-next-event');
+
+    cardUnfilledRoles?.addEventListener('click', () => {
+        showUnfilledRolesOnly = true;
+        onlyEpisodeId = null;
+        if (filters.status) {
+            filters.status.value = '';
+        }
+        applyFilters();
+    });
+
+    cardOpenEpisodes?.addEventListener('click', () => {
+        showUnfilledRolesOnly = true;
+        onlyEpisodeId = null;
+        if (filters.status) {
+            filters.status.value = 'Rollenbesetzung';
+        }
+        applyFilters();
+    });
+
+    cardNextEvent?.addEventListener('click', () => {
+        const id = cardNextEvent.dataset.episodeId;
+        if (id) {
+            onlyEpisodeId = id;
+            showUnfilledRolesOnly = false;
+            if (filters.status) {
+                filters.status.value = '';
+            }
+            applyFilters();
+        }
+    });
 
     applyFilters();
 });
