@@ -40,14 +40,14 @@ class RomantauschControllerTest extends TestCase
         $other = User::factory()->create();
         $offer = BookOffer::create([
             'user_id' => $user->id,
-            'series' => 'Maddrax - Die dunkle Zukunft der Erde',
+            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
             'book_number' => 1,
             'book_title' => 'Roman1',
             'condition' => 'neu',
         ]);
         $request = BookRequest::create([
             'user_id' => $other->id,
-            'series' => 'Maddrax - Die dunkle Zukunft der Erde',
+            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
             'book_number' => 1,
             'book_title' => 'Roman1',
             'condition' => 'gebraucht',
@@ -111,7 +111,7 @@ class RomantauschControllerTest extends TestCase
         for ($i = 1; $i <= 9; $i++) {
             BookOffer::create([
                 'user_id' => $user->id,
-                'series' => 'Maddrax - Die dunkle Zukunft der Erde',
+                'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
                 'book_number' => $i,
                 'book_title' => 'Roman'.$i,
                 'condition' => 'neu',
@@ -156,7 +156,7 @@ class RomantauschControllerTest extends TestCase
 
         $offer = BookOffer::create([
             'user_id' => $user->id,
-            'series' => 'Maddrax - Die dunkle Zukunft der Erde',
+            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
             'book_number' => 1,
             'book_title' => 'Roman1',
             'condition' => 'neu',
@@ -164,7 +164,7 @@ class RomantauschControllerTest extends TestCase
 
         $request = BookRequest::create([
             'user_id' => $other->id,
-            'series' => 'Maddrax - Die dunkle Zukunft der Erde',
+            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
             'book_number' => 1,
             'book_title' => 'Roman1',
             'condition' => 'gebraucht',
@@ -244,7 +244,7 @@ class RomantauschControllerTest extends TestCase
         $user = $this->actingMember();
         $offer = BookOffer::create([
             'user_id' => $user->id,
-            'series' => 'Maddrax - Die dunkle Zukunft der Erde',
+            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
             'book_number' => 1,
             'book_title' => 'Roman1',
             'condition' => 'neu',
@@ -263,7 +263,7 @@ class RomantauschControllerTest extends TestCase
         $other = User::factory()->create();
         $offer = BookOffer::create([
             'user_id' => $other->id,
-            'series' => 'Maddrax - Die dunkle Zukunft der Erde',
+            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
             'book_number' => 1,
             'book_title' => 'Roman1',
             'condition' => 'neu',
@@ -280,7 +280,7 @@ class RomantauschControllerTest extends TestCase
         $user = $this->actingMember();
         $request = BookRequest::create([
             'user_id' => $user->id,
-            'series' => 'Maddrax - Die dunkle Zukunft der Erde',
+            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
             'book_number' => 1,
             'book_title' => 'Roman1',
             'condition' => 'neu',
@@ -299,7 +299,7 @@ class RomantauschControllerTest extends TestCase
         $other = User::factory()->create();
         $request = BookRequest::create([
             'user_id' => $other->id,
-            'series' => 'Maddrax - Die dunkle Zukunft der Erde',
+            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
             'book_number' => 1,
             'book_title' => 'Roman1',
             'condition' => 'neu',

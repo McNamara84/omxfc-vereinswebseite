@@ -154,7 +154,7 @@ class ActivityFeedTest extends TestCase
         ]);
         $offer = BookOffer::create([
             'user_id' => $user->id,
-            'series' => 'Maddrax - Die dunkle Zukunft der Erde',
+            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
             'book_number' => 1,
             'book_title' => 'Roman1',
             'condition' => 'neu',
@@ -167,7 +167,7 @@ class ActivityFeedTest extends TestCase
         ]);
         $requestModel = BookRequest::create([
             'user_id' => $user->id,
-            'series' => 'Maddrax - Die dunkle Zukunft der Erde',
+            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
             'book_number' => 1,
             'book_title' => 'Roman1',
             'condition' => 'neu',

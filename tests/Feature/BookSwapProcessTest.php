@@ -69,7 +69,7 @@ class BookSwapProcessTest extends TestCase
 
         $offer = BookOffer::create([
             'user_id' => $offerUser->id,
-            'series' => 'Maddrax - Die dunkle Zukunft der Erde',
+            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
             'book_number' => 1,
             'book_title' => 'Title',
             'condition' => 'neu',
@@ -77,7 +77,7 @@ class BookSwapProcessTest extends TestCase
 
         $request = BookRequest::create([
             'user_id' => $requestUser->id,
-            'series' => 'Maddrax - Die dunkle Zukunft der Erde',
+            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
             'book_number' => 1,
             'book_title' => 'Title',
             'condition' => 'neu',

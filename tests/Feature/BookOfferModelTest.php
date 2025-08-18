@@ -9,6 +9,7 @@ use App\Models\Team;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
+use App\Enums\BookType;
 
 class BookOfferModelTest extends TestCase
 {
@@ -29,7 +30,7 @@ class BookOfferModelTest extends TestCase
 
         $offer = BookOffer::create([
             'user_id' => $user->id,
-            'series' => 'Maddrax - Die dunkle Zukunft der Erde',
+            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
             'book_number' => 1,
             'book_title' => 'Roman1',
             'condition' => 'neu',
@@ -38,7 +39,7 @@ class BookOfferModelTest extends TestCase
         $this->assertDatabaseHas('book_offers', [
             'id' => $offer->id,
             'user_id' => $user->id,
-            'series' => 'Maddrax - Die dunkle Zukunft der Erde',
+            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
             'book_number' => 1,
             'book_title' => 'Roman1',
             'condition' => 'neu',
