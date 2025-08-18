@@ -50,23 +50,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const cardOpenEpisodes = document.getElementById('card-open-episodes');
     const cardNextEvent = document.getElementById('card-next-event');
 
-    cardUnfilledRoles?.addEventListener('click', () => {
+    function filterUnfilledRoles(status = '') {
         showUnfilledRolesOnly = true;
         onlyEpisodeId = null;
         if (filters.status) {
-            filters.status.value = '';
+            filters.status.value = status;
         }
         applyFilters();
-    });
+    }
 
-    cardOpenEpisodes?.addEventListener('click', () => {
-        showUnfilledRolesOnly = true;
-        onlyEpisodeId = null;
-        if (filters.status) {
-            filters.status.value = 'Rollenbesetzung';
-        }
-        applyFilters();
-    });
+    cardUnfilledRoles?.addEventListener('click', () => filterUnfilledRoles());
+
+    cardOpenEpisodes?.addEventListener('click', () =>
+        filterUnfilledRoles('Rollenbesetzung')
+    );
 
     cardNextEvent?.addEventListener('click', () => {
         const id = cardNextEvent.dataset.episodeId;

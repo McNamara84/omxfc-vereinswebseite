@@ -492,4 +492,10 @@ class HoerbuchControllerTest extends TestCase
         $this->actingAs($user)->get(route('hoerbuecher.index'))
             ->assertOk();
     }
+
+    protected function tearDown(): void
+    {
+        Carbon::setTestNow();
+        parent::tearDown();
+    }
 }
