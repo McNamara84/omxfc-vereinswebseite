@@ -7,6 +7,7 @@ use Tests\TestCase;
 use App\Models\Team;
 use App\Models\User;
 use App\Models\Book;
+use App\Enums\BookType;
 use App\Mail\NewReviewNotification;
 use Illuminate\Support\Facades\Mail;
 use App\Models\Review;
@@ -136,6 +137,31 @@ class RezensionControllerTest extends TestCase
         $this->get('/rezensionen')
             ->assertOk()
             ->assertSee('(2 Rezensionen)');
+    }
+
+    public function test_index_hides_hardcover_books(): void
+    {
+        Storage::fake('private');
+        Storage::disk('private')->put('maddrax.json', json_encode([
+            ['nummer' => 1, 'titel' => 'Roman1', 'zyklus' => 'Z1'],
+            ['nummer' => 2, 'titel' => 'Roman2', 'zyklus' => 'Z1'],
+        ]));
+
+        $book = Book::create(['roman_number' => 1, 'title' => 'Alpha', 'author' => 'A']);
+        Book::create([
+            'roman_number' => 2,
+            'title' => 'Hardcover Beta',
+            'author' => 'B',
+            'type' => BookType::MaddraxHardcover,
+        ]);
+
+        $user = $this->actingMember();
+        $this->actingAs($user);
+
+        $this->get('/rezensionen')
+            ->assertOk()
+            ->assertSee($book->title)
+            ->assertDontSee('Hardcover Beta');
     }
 
     public function test_show_redirects_when_user_has_no_permission(): void
