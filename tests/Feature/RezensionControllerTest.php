@@ -443,7 +443,7 @@ class RezensionControllerTest extends TestCase
         ]);
 
         Carbon::setTestNow(Carbon::create(2025, 7, 17, 17, 30));
-        $review->updateQuietly(['content' => str_repeat('B', 140)]);
+        $review->update(['content' => str_repeat('B', 140)]);
         Carbon::setTestNow();
 
         $response = $this->get(route('reviews.show', $book));
