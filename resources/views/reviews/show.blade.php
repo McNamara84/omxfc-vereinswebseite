@@ -13,7 +13,14 @@
             @forelse($reviews as $review)
                 <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
                     <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-200">{{ $review->title }}</h2>
-                    <p class="text-sm text-gray-500 dark:text-gray-400">von <a href="{{ route('profile.view', $review->user->id) }}" class="text-[#8B0116] hover:underline">{{ $review->user->name }}</a> am {{ $review->created_at->format('d.m.Y') }}</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">
+                        von
+                        <a href="{{ route('profile.view', $review->user->id) }}" class="text-[#8B0116] hover:underline">{{ $review->user->name }}</a>
+                        am {{ $review->created_at->format('d.m.Y H:i') }} Uhr
+                        @if(!$review->created_at->eq($review->updated_at))
+                            , geändert am {{ $review->updated_at->format('d.m.Y') }} um {{ $review->updated_at->format('H:i') }} Uhr
+                        @endif
+                    </p>
                     <div class="mt-4 text-gray-800 dark:text-gray-200">
                         {!! $review->formatted_content !!}
                     </div>
