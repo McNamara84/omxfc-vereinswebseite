@@ -38,9 +38,11 @@ class HoerbuchController extends Controller
             ->sortBy('planned_release_date_parsed')
             ->first();
 
-        $daysUntilNextEvt = $nextEpisode?->planned_release_date_parsed
-            ? $nextEpisode->planned_release_date_parsed->diffInDays(Carbon::now(), true)
-            : null;
+        $daysUntilNextEvt = null;
+        if ($nextEpisode?->planned_release_date_parsed) {
+            $seconds = Carbon::now()->diffInSeconds($nextEpisode->planned_release_date_parsed, false);
+            $daysUntilNextEvt = max(0, (int) round($seconds / 86400));
+        }
 
         return view('hoerbuecher.index', [
             'episodes' => $episodes,

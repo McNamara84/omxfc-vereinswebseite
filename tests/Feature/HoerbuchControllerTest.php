@@ -278,7 +278,7 @@ class HoerbuchControllerTest extends TestCase
 
     public function test_index_displays_statistics_cards(): void
     {
-        Carbon::setTestNow('2025-01-01');
+        Carbon::setTestNow('2025-01-01 12:00:00');
 
         $user = $this->actingMember('Admin');
 
@@ -312,7 +312,8 @@ class HoerbuchControllerTest extends TestCase
             ->get(route('hoerbuecher.index'))
             ->assertSee('data-unfilled-roles="3"', false)
             ->assertSee('data-open-episodes="1"', false)
-            ->assertSee('data-days-left="1"', false);
+            ->assertSee('data-days-left="1"', false)
+            ->assertSee('Tage bis Folge Erste veröffentlicht wird (02.01.2025)', false);
     }
 
     public function test_admin_can_update_episode(): void
