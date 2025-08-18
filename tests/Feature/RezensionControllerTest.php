@@ -433,6 +433,7 @@ class RezensionControllerTest extends TestCase
             'author' => 'Author',
         ]);
 
+        Carbon::setTestNow(Carbon::create(2025, 7, 16, 17, 0));
         $review = Review::create([
             'team_id' => $user->currentTeam->id,
             'user_id' => $user->id,
@@ -441,10 +442,9 @@ class RezensionControllerTest extends TestCase
             'content' => str_repeat('A', 140),
         ]);
 
-        $review->timestamps = false;
-        $review->created_at = Carbon::create(2025, 7, 16, 17, 0);
-        $review->updated_at = Carbon::create(2025, 7, 17, 17, 30);
-        $review->save();
+        Carbon::setTestNow(Carbon::create(2025, 7, 17, 17, 30));
+        $review->updateQuietly(['content' => str_repeat('B', 140)]);
+        Carbon::setTestNow();
 
         $response = $this->get(route('reviews.show', $book));
         $response->assertSee('am 16.07.2025 17:00 Uhr', false);
@@ -462,6 +462,7 @@ class RezensionControllerTest extends TestCase
             'author' => 'Author',
         ]);
 
+        Carbon::setTestNow(Carbon::create(2025, 7, 16, 17, 0));
         $review = Review::create([
             'team_id' => $user->currentTeam->id,
             'user_id' => $user->id,
@@ -469,11 +470,7 @@ class RezensionControllerTest extends TestCase
             'title' => 'R',
             'content' => str_repeat('A', 140),
         ]);
-
-        $review->timestamps = false;
-        $review->created_at = Carbon::create(2025, 7, 16, 17, 0);
-        $review->updated_at = Carbon::create(2025, 7, 16, 17, 0);
-        $review->save();
+        Carbon::setTestNow();
 
         $response = $this->get(route('reviews.show', $book));
         $response->assertSee('am 16.07.2025 17:00 Uhr', false);
