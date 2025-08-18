@@ -8,17 +8,12 @@ use App\Models\Team;
 use App\Models\User;
 use App\Models\BookOffer;
 use App\Models\BookRequest;
-use Illuminate\Support\Facades\Storage;
+use App\Models\Book;
+use App\Enums\BookType;
 
 class RomantauschControllerTest extends TestCase
 {
     use RefreshDatabase;
-
-    protected function setUp(): void
-    {
-        parent::setUp();
-        Storage::fake('private');
-    }
 
     private function actingMember(): User
     {
@@ -30,20 +25,12 @@ class RomantauschControllerTest extends TestCase
 
     private function putBookData(): void
     {
-        Storage::disk('private')->put('maddrax.json', json_encode([
-            ['nummer' => 1, 'titel' => 'Roman1']
-        ]));
-    }
-
-    public function test_create_offer_returns_error_if_json_missing(): void
-    {
-        $path = storage_path('app/private/maddrax.json');
-        rename($path, $path . '.bak');
-
-        $this->actingAs($this->actingMember());
-        $this->get('/romantauschboerse/angebot-erstellen')->assertStatus(500);
-
-        rename($path . '.bak', $path);
+        Book::create([
+            'roman_number' => 1,
+            'title' => 'Roman1',
+            'author' => 'Author',
+            'type' => BookType::MaddraxDieDunkleZukunftDerErde,
+        ]);
     }
 
     public function test_complete_swap_marks_entries_completed(): void
@@ -53,14 +40,14 @@ class RomantauschControllerTest extends TestCase
         $other = User::factory()->create();
         $offer = BookOffer::create([
             'user_id' => $user->id,
-            'series' => 'Maddrax - Die dunkle Zukunft der Erde',
+            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
             'book_number' => 1,
             'book_title' => 'Roman1',
             'condition' => 'neu',
         ]);
         $request = BookRequest::create([
             'user_id' => $other->id,
-            'series' => 'Maddrax - Die dunkle Zukunft der Erde',
+            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
             'book_number' => 1,
             'book_title' => 'Roman1',
             'condition' => 'gebraucht',
@@ -78,50 +65,27 @@ class RomantauschControllerTest extends TestCase
         $this->assertEquals(1, (int) $request->fresh()->completed);
     }
 
-    public function test_create_offer_loads_books_from_json(): void
+    public function test_create_offer_loads_books_from_database(): void
     {
-        $path = storage_path('app/private/maddrax.json');
-        rename($path, $path . '.bak');
-        file_put_contents($path, json_encode([
-            ['nummer' => 1, 'titel' => 'Roman1'],
-        ]));
+        $this->putBookData();
 
         $this->actingAs($this->actingMember());
         $response = $this->get('/romantauschboerse/angebot-erstellen');
 
         $response->assertOk();
         $response->assertViewIs('romantausch.create_offer');
-        $this->assertSame('Roman1', $response->viewData('books')[0]['titel']);
-
-        unlink($path);
-        rename($path . '.bak', $path);
-    }
-
-    public function test_create_offer_returns_error_on_invalid_json(): void
-    {
-        $path = storage_path('app/private/maddrax.json');
-        rename($path, $path . '.bak');
-        file_put_contents($path, '{invalid');
-
-        $this->actingAs($this->actingMember());
-        $this->get('/romantauschboerse/angebot-erstellen')->assertStatus(500);
-
-        unlink($path);
-        rename($path . '.bak', $path);
+        $this->assertSame('Roman1', $response->viewData('books')->first()->title);
     }
 
     public function test_store_offer_creates_entry_when_book_found(): void
     {
-        $path = storage_path('app/private/maddrax.json');
-        rename($path, $path . '.bak');
-        file_put_contents($path, json_encode([
-            ['nummer' => 1, 'titel' => 'Roman1'],
-        ]));
+        $this->putBookData();
 
         $user = $this->actingMember();
         $this->actingAs($user);
 
         $response = $this->post('/romantauschboerse/angebot-speichern', [
+            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
             'book_number' => 1,
             'condition' => 'neu',
         ]);
@@ -129,22 +93,16 @@ class RomantauschControllerTest extends TestCase
         $response->assertRedirect(route('romantausch.index', [], false));
         $this->assertDatabaseHas('book_offers', [
             'user_id' => $user->id,
+            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
             'book_number' => 1,
             'book_title' => 'Roman1',
             'condition' => 'neu',
         ]);
-
-        unlink($path);
-        rename($path . '.bak', $path);
     }
 
     public function test_point_awarded_on_every_tenth_offer(): void
     {
-        $path = storage_path('app/private/maddrax.json');
-        rename($path, $path . '.bak');
-        file_put_contents($path, json_encode([
-            ['nummer' => 1, 'titel' => 'Roman1'],
-        ]));
+        $this->putBookData();
 
         $user = $this->actingMember();
         $this->actingAs($user);
@@ -153,7 +111,7 @@ class RomantauschControllerTest extends TestCase
         for ($i = 1; $i <= 9; $i++) {
             BookOffer::create([
                 'user_id' => $user->id,
-                'series' => 'Maddrax - Die dunkle Zukunft der Erde',
+                'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
                 'book_number' => $i,
                 'book_title' => 'Roman'.$i,
                 'condition' => 'neu',
@@ -161,6 +119,7 @@ class RomantauschControllerTest extends TestCase
         }
 
         $this->post('/romantauschboerse/angebot-speichern', [
+            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
             'book_number' => 1,
             'condition' => 'neu',
         ]);
@@ -170,24 +129,16 @@ class RomantauschControllerTest extends TestCase
             'user_id' => $user->id,
             'points' => 1,
         ]);
-
-        unlink($path);
-        rename($path . '.bak', $path);
     }
 
     public function test_store_offer_returns_error_when_book_missing(): void
     {
-        $path = storage_path('app/private/maddrax.json');
-        rename($path, $path . '.bak');
-        file_put_contents($path, json_encode([
-            ['nummer' => 1, 'titel' => 'Roman1'],
-        ]));
-
         $user = $this->actingMember();
         $this->actingAs($user);
 
         $response = $this->from('/romantauschboerse/angebot-erstellen')
             ->post('/romantauschboerse/angebot-speichern', [
+                'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
                 'book_number' => 2,
                 'condition' => 'neu',
             ]);
@@ -195,9 +146,6 @@ class RomantauschControllerTest extends TestCase
         $response->assertRedirect('/romantauschboerse/angebot-erstellen');
         $response->assertSessionHas('error', 'Ausgewählter Roman nicht gefunden.');
         $this->assertDatabaseCount('book_offers', 0);
-
-        unlink($path);
-        rename($path . '.bak', $path);
     }
 
     public function test_index_displays_offers_requests_and_swaps(): void
@@ -208,7 +156,7 @@ class RomantauschControllerTest extends TestCase
 
         $offer = BookOffer::create([
             'user_id' => $user->id,
-            'series' => 'Maddrax - Die dunkle Zukunft der Erde',
+            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
             'book_number' => 1,
             'book_title' => 'Roman1',
             'condition' => 'neu',
@@ -216,7 +164,7 @@ class RomantauschControllerTest extends TestCase
 
         $request = BookRequest::create([
             'user_id' => $other->id,
-            'series' => 'Maddrax - Die dunkle Zukunft der Erde',
+            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
             'book_number' => 1,
             'book_title' => 'Roman1',
             'condition' => 'gebraucht',
@@ -239,61 +187,27 @@ class RomantauschControllerTest extends TestCase
         $this->assertTrue($response->viewData('completedSwaps')->first()->is($swap));
     }
 
-    public function test_create_request_returns_error_if_json_missing(): void
+    public function test_create_request_loads_books_from_database(): void
     {
-        $path = storage_path('app/private/maddrax.json');
-        rename($path, $path . '.bak');
-
-        $this->actingAs($this->actingMember());
-        $this->get('/romantauschboerse/anfrage-erstellen')->assertStatus(500);
-
-        rename($path . '.bak', $path);
-    }
-
-    public function test_create_request_loads_books_from_json(): void
-    {
-        $path = storage_path('app/private/maddrax.json');
-        rename($path, $path . '.bak');
-        file_put_contents($path, json_encode([
-            ['nummer' => 1, 'titel' => 'Roman1'],
-        ]));
+        $this->putBookData();
 
         $this->actingAs($this->actingMember());
         $response = $this->get('/romantauschboerse/anfrage-erstellen');
 
         $response->assertOk();
         $response->assertViewIs('romantausch.create_request');
-        $this->assertSame('Roman1', $response->viewData('books')[0]['titel']);
-
-        unlink($path);
-        rename($path . '.bak', $path);
-    }
-
-    public function test_create_request_returns_error_on_invalid_json(): void
-    {
-        $path = storage_path('app/private/maddrax.json');
-        rename($path, $path . '.bak');
-        file_put_contents($path, '{invalid');
-
-        $this->actingAs($this->actingMember());
-        $this->get('/romantauschboerse/anfrage-erstellen')->assertStatus(500);
-
-        unlink($path);
-        rename($path . '.bak', $path);
+        $this->assertSame('Roman1', $response->viewData('books')->first()->title);
     }
 
     public function test_store_request_creates_entry_when_book_found(): void
     {
-        $path = storage_path('app/private/maddrax.json');
-        rename($path, $path . '.bak');
-        file_put_contents($path, json_encode([
-            ['nummer' => 1, 'titel' => 'Roman1'],
-        ]));
+        $this->putBookData();
 
         $user = $this->actingMember();
         $this->actingAs($user);
 
         $response = $this->post('/romantauschboerse/anfrage-speichern', [
+            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
             'book_number' => 1,
             'condition' => 'neu',
         ]);
@@ -301,28 +215,21 @@ class RomantauschControllerTest extends TestCase
         $response->assertRedirect(route('romantausch.index', [], false));
         $this->assertDatabaseHas('book_requests', [
             'user_id' => $user->id,
+            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
             'book_number' => 1,
             'book_title' => 'Roman1',
             'condition' => 'neu',
         ]);
-
-        unlink($path);
-        rename($path . '.bak', $path);
     }
 
     public function test_store_request_returns_error_when_book_missing(): void
     {
-        $path = storage_path('app/private/maddrax.json');
-        rename($path, $path . '.bak');
-        file_put_contents($path, json_encode([
-            ['nummer' => 1, 'titel' => 'Roman1'],
-        ]));
-
         $user = $this->actingMember();
         $this->actingAs($user);
 
         $response = $this->from('/romantauschboerse/anfrage-erstellen')
             ->post('/romantauschboerse/anfrage-speichern', [
+                'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
                 'book_number' => 2,
                 'condition' => 'neu',
             ]);
@@ -330,9 +237,6 @@ class RomantauschControllerTest extends TestCase
         $response->assertRedirect('/romantauschboerse/anfrage-erstellen');
         $response->assertSessionHas('error', 'Ausgewählter Roman nicht gefunden.');
         $this->assertDatabaseCount('book_requests', 0);
-
-        unlink($path);
-        rename($path . '.bak', $path);
     }
 
     public function test_user_can_delete_own_offer(): void
@@ -340,7 +244,7 @@ class RomantauschControllerTest extends TestCase
         $user = $this->actingMember();
         $offer = BookOffer::create([
             'user_id' => $user->id,
-            'series' => 'Maddrax - Die dunkle Zukunft der Erde',
+            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
             'book_number' => 1,
             'book_title' => 'Roman1',
             'condition' => 'neu',
@@ -359,7 +263,7 @@ class RomantauschControllerTest extends TestCase
         $other = User::factory()->create();
         $offer = BookOffer::create([
             'user_id' => $other->id,
-            'series' => 'Maddrax - Die dunkle Zukunft der Erde',
+            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
             'book_number' => 1,
             'book_title' => 'Roman1',
             'condition' => 'neu',
@@ -376,7 +280,7 @@ class RomantauschControllerTest extends TestCase
         $user = $this->actingMember();
         $request = BookRequest::create([
             'user_id' => $user->id,
-            'series' => 'Maddrax - Die dunkle Zukunft der Erde',
+            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
             'book_number' => 1,
             'book_title' => 'Roman1',
             'condition' => 'neu',
@@ -395,7 +299,7 @@ class RomantauschControllerTest extends TestCase
         $other = User::factory()->create();
         $request = BookRequest::create([
             'user_id' => $other->id,
-            'series' => 'Maddrax - Die dunkle Zukunft der Erde',
+            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
             'book_number' => 1,
             'book_title' => 'Roman1',
             'condition' => 'neu',
