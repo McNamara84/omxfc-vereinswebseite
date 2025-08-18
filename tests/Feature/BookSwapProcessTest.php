@@ -8,9 +8,11 @@ use App\Models\User;
 use App\Models\BookOffer;
 use App\Models\BookRequest;
 use App\Models\BookSwap;
+use App\Models\Book;
 use App\Mail\BookSwapMatched;
 use Illuminate\Support\Facades\Mail;
 use App\Models\Team;
+use App\Enums\BookType;
 
 class BookSwapProcessTest extends TestCase
 {
@@ -31,9 +33,16 @@ class BookSwapProcessTest extends TestCase
         $requestUser = $this->createMember();
         $offerUser = $this->createMember();
 
+        Book::create([
+            'roman_number' => 1,
+            'title' => 'Title',
+            'author' => 'Author',
+            'type' => BookType::MaddraxDieDunkleZukunftDerErde,
+        ]);
+
         $request = BookRequest::create([
             'user_id' => $requestUser->id,
-            'series' => 'Series',
+            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
             'book_number' => 1,
             'book_title' => 'Title',
             'condition' => 'neu',
@@ -41,6 +50,7 @@ class BookSwapProcessTest extends TestCase
 
         $this->actingAs($offerUser);
         $this->post(route('romantausch.store-offer'), [
+            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
             'book_number' => 1,
             'condition' => 'neu',
         ]);
@@ -59,7 +69,7 @@ class BookSwapProcessTest extends TestCase
 
         $offer = BookOffer::create([
             'user_id' => $offerUser->id,
-            'series' => 'Series',
+            'series' => 'Maddrax - Die dunkle Zukunft der Erde',
             'book_number' => 1,
             'book_title' => 'Title',
             'condition' => 'neu',
@@ -67,7 +77,7 @@ class BookSwapProcessTest extends TestCase
 
         $request = BookRequest::create([
             'user_id' => $requestUser->id,
-            'series' => 'Series',
+            'series' => 'Maddrax - Die dunkle Zukunft der Erde',
             'book_number' => 1,
             'book_title' => 'Title',
             'condition' => 'neu',

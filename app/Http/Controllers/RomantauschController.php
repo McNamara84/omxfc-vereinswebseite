@@ -4,15 +4,17 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Validation\Rule;
 use App\Models\BookOffer;
 use App\Models\BookRequest;
 use App\Models\BookSwap;
+use App\Models\Book;
 use App\Mail\BookSwapMatched;
 use App\Models\Activity;
+use App\Enums\BookType;
 
 class RomantauschController extends Controller
 {
@@ -30,40 +32,24 @@ class RomantauschController extends Controller
     // Formular für Angebot erstellen
     public function createOffer()
     {
-        $jsonPath = storage_path('app/private/maddrax.json');
+        $books = Book::orderBy('roman_number')->get();
+        $types = BookType::cases();
 
-        if (!file_exists($jsonPath)) {
-            abort(500, "JSON-Datei wurde nicht gefunden: {$jsonPath}");
-        }
-
-        $jsonContent = file_get_contents($jsonPath);
-        $books = json_decode($jsonContent, true);
-
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            abort(500, 'Fehler beim JSON parsen: ' . json_last_error_msg());
-        }
-
-        return view('romantausch.create_offer', compact('books'));
+        return view('romantausch.create_offer', compact('books', 'types'));
     }
 
     // Angebot speichern
     public function storeOffer(Request $request)
     {
         $validated = $request->validate([
+            'series' => ['required', Rule::in(array_map(fn ($case) => $case->value, BookType::cases()))],
             'book_number' => 'required|integer',
             'condition' => 'required|string',
         ]);
 
-        $jsonPath = storage_path('app/private/maddrax.json');
-
-        if (!file_exists($jsonPath)) {
-            abort(500, "Romandaten konnten nicht geladen werden.");
-        }
-
-        $jsonContent = file_get_contents($jsonPath);
-        $books = json_decode($jsonContent, true);
-
-        $book = collect($books)->firstWhere('nummer', $validated['book_number']);
+        $book = Book::where('roman_number', $validated['book_number'])
+            ->where('type', $validated['series'])
+            ->first();
 
         if (!$book) {
             return redirect()->back()->with('error', 'Ausgewählter Roman nicht gefunden.');
@@ -71,9 +57,9 @@ class RomantauschController extends Controller
 
         $offer = BookOffer::create([
             'user_id' => Auth::id(),
-            'series' => 'Maddrax - Die dunkle Zukunft der Erde',
+            'series' => $validated['series'],
             'book_number' => $validated['book_number'],
-            'book_title' => $book['titel'],
+            'book_title' => $book->title,
             'condition' => $validated['condition'],
         ]);
 
@@ -96,40 +82,24 @@ class RomantauschController extends Controller
     // Formular für Gesuch erstellen
     public function createRequest()
     {
-        $jsonPath = storage_path('app/private/maddrax.json');
+        $books = Book::orderBy('roman_number')->get();
+        $types = BookType::cases();
 
-        if (!file_exists($jsonPath)) {
-            abort(500, "JSON-Datei wurde nicht gefunden: {$jsonPath}");
-        }
-
-        $jsonContent = file_get_contents($jsonPath);
-        $books = json_decode($jsonContent, true);
-
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            abort(500, 'Fehler beim JSON parsen: ' . json_last_error_msg());
-        }
-
-        return view('romantausch.create_request', compact('books'));
+        return view('romantausch.create_request', compact('books', 'types'));
     }
 
     // Gesuch speichern
     public function storeRequest(Request $request)
     {
         $validated = $request->validate([
+            'series' => ['required', Rule::in(array_map(fn ($case) => $case->value, BookType::cases()))],
             'book_number' => 'required|integer',
             'condition' => 'required|string',
         ]);
 
-        $jsonPath = storage_path('app/private/maddrax.json');
-
-        if (!file_exists($jsonPath)) {
-            abort(500, "Romandaten konnten nicht geladen werden.");
-        }
-
-        $jsonContent = file_get_contents($jsonPath);
-        $books = json_decode($jsonContent, true);
-
-        $book = collect($books)->firstWhere('nummer', $validated['book_number']);
+        $book = Book::where('roman_number', $validated['book_number'])
+            ->where('type', $validated['series'])
+            ->first();
 
         if (!$book) {
             return redirect()->back()->with('error', 'Ausgewählter Roman nicht gefunden.');
@@ -137,9 +107,9 @@ class RomantauschController extends Controller
 
         $requestModel = BookRequest::create([
             'user_id' => Auth::id(),
-            'series' => 'Maddrax - Die dunkle Zukunft der Erde',
+            'series' => $validated['series'],
             'book_number' => $validated['book_number'],
-            'book_title' => $book['titel'],
+            'book_title' => $book->title,
             'condition' => $validated['condition'],
         ]);
         $this->matchSwap($requestModel, 'request');
@@ -219,6 +189,7 @@ class RomantauschController extends Controller
     {
         if ($type === 'offer') {
             $match = BookRequest::where('book_number', $model->book_number)
+                ->where('series', $model->series)
                 ->where('completed', false)
                 ->doesntHave('swap')
                 ->first();
@@ -231,6 +202,7 @@ class RomantauschController extends Controller
             }
         } else {
             $match = BookOffer::where('book_number', $model->book_number)
+                ->where('series', $model->series)
                 ->where('completed', false)
                 ->doesntHave('swap')
                 ->first();

@@ -3,20 +3,24 @@
             <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
                 <h1 class="text-2xl font-bold text-[#8B0116] dark:text-[#FF6B81] mb-6">Neues Gesuch erstellen</h1>
 
-                <form action="{{ route('romantausch.store-request') }}" method="POST">
+                <form action="{{ route('romantausch.store-request') }}" method="POST" id="request-form">
                     @csrf
 
                     <div class="mb-4">
                         <label class="block font-medium text-gray-700 dark:text-gray-200 mb-2">Serie</label>
-                        <input type="text" class="w-full rounded bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300" value="Maddrax - Die dunkle Zukunft der Erde" disabled>
+                        <select name="series" id="series-select" class="w-full rounded bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-800 dark:text-gray-200">
+                            @foreach($types as $type)
+                                <option value="{{ $type->value }}">{{ $type->value }}</option>
+                            @endforeach
+                        </select>
                     </div>
 
                     <div class="mb-4">
                         <label class="block font-medium text-gray-700 dark:text-gray-200 mb-2">Gesuchter Roman</label>
-                        <select name="book_number" class="w-full rounded bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-800 dark:text-gray-200">
+                        <select name="book_number" id="book-select" class="w-full rounded bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-800 dark:text-gray-200">
                             @foreach($books as $book)
-                                <option value="{{ $book['nummer'] }}">
-                                    {{ $book['nummer'] }} - {{ $book['titel'] }}
+                                <option value="{{ $book->roman_number }}" data-series="{{ $book->type->value }}">
+                                    {{ $book->roman_number }} - {{ $book->title }}
                                 </option>
                             @endforeach
                         </select>
@@ -44,4 +48,25 @@
                 </form>
             </div>
     </x-member-page>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const seriesSelect = document.getElementById('series-select');
+            const bookSelect = document.getElementById('book-select');
+
+            function filterBooks() {
+                const series = seriesSelect.value;
+                Array.from(bookSelect.options).forEach(option => {
+                    option.hidden = option.dataset.series !== series;
+                });
+                const firstVisible = Array.from(bookSelect.options).find(option => !option.hidden);
+                if (firstVisible) {
+                    bookSelect.value = firstVisible.value;
+                }
+            }
+
+            filterBooks();
+            seriesSelect.addEventListener('change', filterBooks);
+        });
+    </script>
 </x-app-layout>

@@ -4,7 +4,6 @@ namespace Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
-use Illuminate\Support\Facades\Storage;
 use App\Models\User;
 use App\Models\Book;
 use App\Models\Review;
@@ -15,6 +14,7 @@ use App\Models\Team;
 use App\Models\Todo;
 use App\Models\TodoCategory;
 use App\Models\ReviewComment;
+use App\Enums\BookType;
 
 class ActivityFeedTest extends TestCase
 {
@@ -23,10 +23,12 @@ class ActivityFeedTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        Storage::fake('private');
-        Storage::disk('private')->put('maddrax.json', json_encode([
-            ['nummer' => 1, 'titel' => 'Roman1']
-        ]));
+        Book::create([
+            'roman_number' => 1,
+            'title' => 'Roman1',
+            'author' => 'Author',
+            'type' => BookType::MaddraxDieDunkleZukunftDerErde,
+        ]);
     }
 
     private function actingMember(string $role = 'Mitglied'): User
@@ -39,11 +41,7 @@ class ActivityFeedTest extends TestCase
 
     public function test_activity_created_for_new_review(): void
     {
-        $book = Book::create([
-            'roman_number' => 1,
-            'title' => 'Roman1',
-            'author' => 'Author',
-        ]);
+        $book = Book::first();
 
         $user = $this->actingMember();
         $this->actingAs($user);
@@ -68,6 +66,7 @@ class ActivityFeedTest extends TestCase
         $this->actingAs($user);
 
         $response = $this->post('/romantauschboerse/angebot-speichern', [
+            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
             'book_number' => 1,
             'condition' => 'neu',
         ]);
@@ -87,6 +86,7 @@ class ActivityFeedTest extends TestCase
         $this->actingAs($user);
 
         $response = $this->post('/romantauschboerse/anfrage-speichern', [
+            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
             'book_number' => 1,
             'condition' => 'neu',
         ]);
@@ -102,11 +102,7 @@ class ActivityFeedTest extends TestCase
 
     public function test_activity_created_for_new_review_comment(): void
     {
-        $book = Book::create([
-            'roman_number' => 1,
-            'title' => 'Roman1',
-            'author' => 'Author',
-        ]);
+        $book = Book::first();
 
         $user = $this->actingMember();
         $this->actingAs($user);
@@ -146,7 +142,7 @@ class ActivityFeedTest extends TestCase
         $review = Review::create([
             'team_id' => $user->currentTeam->id,
             'user_id' => $user->id,
-            'book_id' => Book::create(['roman_number' => 1, 'title' => 'B', 'author' => 'A'])->id,
+            'book_id' => Book::create(['roman_number' => 2, 'title' => 'B', 'author' => 'A', 'type' => BookType::MaddraxDieDunkleZukunftDerErde])->id,
             'title' => 'R',
             'content' => str_repeat('A', 140),
         ]);
