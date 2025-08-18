@@ -12,6 +12,7 @@ use App\Mail\NewReviewNotification;
 use Illuminate\Support\Facades\Mail;
 use App\Models\Review;
 use Illuminate\Support\Facades\Storage;
+use Carbon\Carbon;
 
 class RezensionControllerTest extends TestCase
 {
@@ -419,5 +420,60 @@ class RezensionControllerTest extends TestCase
         $this->delete(route('reviews.destroy', $review))
             ->assertStatus(403);
         $this->assertDatabaseHas('reviews', ['id' => $review->id, 'deleted_at' => null]);
+    }
+
+    public function test_show_displays_update_information_when_review_was_edited(): void
+    {
+        $user = $this->actingMember();
+        $this->actingAs($user);
+
+        $book = Book::create([
+            'roman_number' => 1,
+            'title' => 'Roman1',
+            'author' => 'Author',
+        ]);
+
+        Carbon::setTestNow(Carbon::create(2025, 7, 16, 17, 0));
+        $review = Review::create([
+            'team_id' => $user->currentTeam->id,
+            'user_id' => $user->id,
+            'book_id' => $book->id,
+            'title' => 'R',
+            'content' => str_repeat('A', 140),
+        ]);
+
+        Carbon::setTestNow(Carbon::create(2025, 7, 17, 17, 30));
+        $review->update(['content' => str_repeat('B', 140)]);
+        Carbon::setTestNow();
+
+        $response = $this->get(route('reviews.show', $book));
+        $response->assertSee('am 16.07.2025 17:00 Uhr', false);
+        $response->assertSee('geändert am 17.07.2025 um 17:30 Uhr', false);
+    }
+
+    public function test_show_does_not_display_update_information_when_review_not_edited(): void
+    {
+        $user = $this->actingMember();
+        $this->actingAs($user);
+
+        $book = Book::create([
+            'roman_number' => 1,
+            'title' => 'Roman1',
+            'author' => 'Author',
+        ]);
+
+        Carbon::setTestNow(Carbon::create(2025, 7, 16, 17, 0));
+        $review = Review::create([
+            'team_id' => $user->currentTeam->id,
+            'user_id' => $user->id,
+            'book_id' => $book->id,
+            'title' => 'R',
+            'content' => str_repeat('A', 140),
+        ]);
+        Carbon::setTestNow();
+
+        $response = $this->get(route('reviews.show', $book));
+        $response->assertSee('am 16.07.2025 17:00 Uhr', false);
+        $response->assertDontSee('geändert am');
     }
 }
