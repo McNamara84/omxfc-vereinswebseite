@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Book;
+use App\Enums\BookType;
 use App\Models\Review;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Team;
@@ -56,7 +57,7 @@ class RezensionController extends Controller
         $user = Auth::user();
         $teamId = $this->memberTeam()->id;
 
-        $query = Book::query();
+        $query = Book::query()->where('type', BookType::MaddraxDieDunkleZukunftDerErde);
 
         if ($request->filled('roman_number')) {
             $query->where('roman_number', $request->integer('roman_number'));
