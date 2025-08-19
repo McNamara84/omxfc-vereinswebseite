@@ -23,6 +23,21 @@ document.addEventListener('DOMContentLoaded', () => {
     let onlyEpisodeId = null;
 
     function applyFilters() {
+        if (filters.roles && filters.rolesUnfilled) {
+            if (filters.roles.checked) {
+                filters.rolesUnfilled.checked = false;
+                filters.rolesUnfilled.disabled = true;
+                filters.roles.disabled = false;
+            } else if (filters.rolesUnfilled.checked) {
+                filters.roles.checked = false;
+                filters.roles.disabled = true;
+                filters.rolesUnfilled.disabled = false;
+            } else {
+                filters.roles.disabled = false;
+                filters.rolesUnfilled.disabled = false;
+            }
+        }
+
         const statusVal = filters.status?.value;
         const typeVal = filters.type?.value;
         const yearVal = filters.year?.value;
