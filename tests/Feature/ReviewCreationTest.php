@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Models\Book;
 use Illuminate\Support\Facades\Mail;
 use App\Models\Review;
+use App\Enums\BookType;
 
 class ReviewCreationTest extends TestCase
 {
@@ -45,6 +46,35 @@ class ReviewCreationTest extends TestCase
             'book_id' => $book->id,
             'user_id' => $user->id,
             'title' => 'Tolles Buch',
+        ]);
+
+        Mail::assertNothingSent();
+    }
+
+    public function test_member_can_store_hardcover_review(): void
+    {
+        Mail::fake();
+
+        $book = Book::create([
+            'roman_number' => 1,
+            'title' => 'Hardcover1',
+            'author' => 'Author One',
+            'type' => BookType::MaddraxHardcover,
+        ]);
+
+        $user = $this->actingMember();
+        $this->actingAs($user);
+
+        $response = $this->post("/rezensionen/{$book->id}", [
+            'title' => 'Tolles Hardcover',
+            'content' => str_repeat('A', 150),
+        ]);
+
+        $response->assertRedirect(route('reviews.show', $book));
+        $this->assertDatabaseHas('reviews', [
+            'book_id' => $book->id,
+            'user_id' => $user->id,
+            'title' => 'Tolles Hardcover',
         ]);
 
         Mail::assertNothingSent();

@@ -140,7 +140,7 @@ class RezensionControllerTest extends TestCase
             ->assertSee('(2 Rezensionen)');
     }
 
-    public function test_index_hides_hardcover_books(): void
+    public function test_index_shows_hardcover_books(): void
     {
         Storage::fake('private');
         Storage::disk('private')->put('maddrax.json', json_encode([
@@ -162,7 +162,7 @@ class RezensionControllerTest extends TestCase
         $this->get('/rezensionen')
             ->assertOk()
             ->assertSee($book->title)
-            ->assertDontSee('Hardcover Beta');
+            ->assertSee('Hardcover Beta');
     }
 
     public function test_show_redirects_when_user_has_no_permission(): void
