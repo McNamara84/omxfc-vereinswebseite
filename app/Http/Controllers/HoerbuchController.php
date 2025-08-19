@@ -41,7 +41,7 @@ class HoerbuchController extends Controller
         $daysUntilNextEvt = null;
         if ($nextEpisode?->planned_release_date_parsed) {
             $diff = Carbon::now()->diffInDays($nextEpisode->planned_release_date_parsed, false);
-            $daysUntilNextEvt = (int) max(0, round($diff, 0, PHP_ROUND_HALF_UP));
+            $daysUntilNextEvt = (int) max(0, $diff);
         }
 
         return view('hoerbuecher.index', [
