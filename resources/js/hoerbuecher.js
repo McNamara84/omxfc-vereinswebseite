@@ -34,8 +34,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const matchType = !typeVal || row.dataset.type === typeVal;
             const matchYear = !yearVal || (row.dataset.year ?? '') === yearVal;
             const rolesFilled = row.dataset.rolesFilled === '1';
-            const matchRoles =
-                rolesChecked ? rolesFilled : rolesUnfilledChecked ? !rolesFilled : true;
+            let matchRoles = true;
+            if (rolesChecked) {
+                matchRoles = rolesFilled;
+            } else if (rolesUnfilledChecked) {
+                matchRoles = !rolesFilled;
+            }
             const matchEpisode = !onlyEpisodeId || row.dataset.episodeId === onlyEpisodeId;
 
             row.style.display =
@@ -89,12 +93,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (filters.status) {
             filters.status.value = status;
         }
-        if (filters.rolesUnfilled) {
-            filters.rolesUnfilled.checked = true;
-            handleRolesChange('rolesUnfilled');
-        } else {
-            applyFilters();
+        if (!filters.rolesUnfilled) {
+            return;
         }
+        filters.rolesUnfilled.checked = true;
+        handleRolesChange('rolesUnfilled');
     }
 
     cardUnfilledRoles?.addEventListener('click', () => filterUnfilledRoles());
