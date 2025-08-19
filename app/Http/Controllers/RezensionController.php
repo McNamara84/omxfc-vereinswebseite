@@ -96,7 +96,7 @@ class RezensionController extends Controller
                 $query->where('team_id', $teamId)
                     ->where('user_id', $user->id);
             }])
-            ->orderBy('roman_number')
+            ->orderByDesc('roman_number')
             ->get();
 
         $jsonPath = storage_path('app/private/maddrax.json');

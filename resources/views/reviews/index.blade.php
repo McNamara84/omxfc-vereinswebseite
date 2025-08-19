@@ -166,7 +166,7 @@
                                         </tr>
                                     </thead>
                                     <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-                                        @foreach($hardcovers->sortByDesc('roman_number') as $book)
+                                        @foreach($hardcovers as $book)
                                             <tr>
                                                 <td class="px-4 py-2">
                                                     <a href="{{ route('reviews.show', $book) }}" class="text-[#8B0116] hover:underline">
@@ -201,7 +201,7 @@
                                 </table>
                             </div>
                             <div class="md:hidden">
-                                @foreach($hardcovers->sortByDesc('roman_number') as $book)
+                                @foreach($hardcovers as $book)
                                     <div class="py-2 border-b border-gray-200 dark:border-gray-700 flex justify-between items-start">
                                         <div>
                                             <a href="{{ route('reviews.show', $book) }}" class="text-[#8B0116] hover:underline font-semibold">
