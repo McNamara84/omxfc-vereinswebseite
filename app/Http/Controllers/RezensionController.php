@@ -57,32 +57,46 @@ class RezensionController extends Controller
         $user = Auth::user();
         $teamId = $this->memberTeam()->id;
 
-        $query = Book::query()->where('type', BookType::MaddraxDieDunkleZukunftDerErde);
+        $applyFilters = function ($query) use ($request) {
+            if ($request->filled('roman_number')) {
+                $query->where('roman_number', $request->integer('roman_number'));
+            }
 
-        if ($request->filled('roman_number')) {
-            $query->where('roman_number', $request->integer('roman_number'));
-        }
+            if ($request->filled('title')) {
+                $query->where('title', 'like', '%' . $request->input('title') . '%');
+            }
 
-        if ($request->filled('title')) {
-            $query->where('title', 'like', '%' . $request->input('title') . '%');
-        }
+            if ($request->filled('author')) {
+                $query->where('author', 'like', '%' . $request->input('author') . '%');
+            }
 
-        if ($request->filled('author')) {
-            $query->where('author', 'like', '%' . $request->input('author') . '%');
-        }
+            if ($request->input('review_status') === 'with') {
+                $query->whereHas('reviews');
+            } elseif ($request->input('review_status') === 'without') {
+                $query->doesntHave('reviews');
+            }
+        };
 
-        if ($request->input('review_status') === 'with') {
-            $query->whereHas('reviews');
-        } elseif ($request->input('review_status') === 'without') {
-            $query->doesntHave('reviews');
-        }
+        $novelsQuery = Book::query()->where('type', BookType::MaddraxDieDunkleZukunftDerErde);
+        $applyFilters($novelsQuery);
 
-        $books = $query->withCount('reviews')
+        $hardcoversQuery = Book::query()->where('type', BookType::MaddraxHardcover);
+        $applyFilters($hardcoversQuery);
+
+        $books = $novelsQuery->withCount('reviews')
             ->withExists(['reviews as has_review' => function ($query) use ($user, $teamId) {
                 $query->where('team_id', $teamId)
                     ->where('user_id', $user->id);
             }])
             ->orderBy('roman_number')
+            ->get();
+
+        $hardcovers = $hardcoversQuery->withCount('reviews')
+            ->withExists(['reviews as has_review' => function ($query) use ($user, $teamId) {
+                $query->where('team_id', $teamId)
+                    ->where('user_id', $user->id);
+            }])
+            ->orderByDesc('roman_number')
             ->get();
 
         $jsonPath = storage_path('app/private/maddrax.json');
@@ -101,6 +115,7 @@ class RezensionController extends Controller
 
         return view('reviews.index', [
             'booksByCycle' => $booksByCycle,
+            'hardcovers' => $hardcovers,
             'title' => 'Rezensionen – Offizieller MADDRAX Fanclub e. V.',
             'description' => 'Alle Vereinsrezensionen zu den Maddrax-Romanen im Überblick.',
         ]);
