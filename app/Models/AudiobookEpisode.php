@@ -8,6 +8,7 @@ use InvalidArgumentException;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class AudiobookEpisode extends Model
 {
@@ -48,6 +49,11 @@ class AudiobookEpisode extends Model
     public function responsible(): BelongsTo
     {
         return $this->belongsTo(User::class, 'responsible_user_id');
+    }
+
+    public function roles(): HasMany
+    {
+        return $this->hasMany(AudiobookRole::class, 'episode_id');
     }
 
     /**

@@ -76,22 +76,18 @@
                     </div>
                 </div>
 
-                <div class="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label for="roles_total" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Anzahl Rollen</label>
-                        <input type="number" name="roles_total" id="roles_total" value="{{ old('roles_total', 0) }}" min="0" required class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
-                        @error('roles_total')
-                            <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <div>
-                        <label for="roles_filled" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Besetzte Rollen</label>
-                        <input type="number" name="roles_filled" id="roles_filled" value="{{ old('roles_filled', 0) }}" min="0" required class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
-                        @error('roles_filled')
-                            <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                        @enderror
-                    </div>
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Rollen</label>
+                    <div id="roles_list"></div>
+                    <button type="button" id="add_role" class="mt-2 inline-flex items-center px-2 py-1 bg-gray-200 dark:bg-gray-600 rounded">Rolle hinzufügen</button>
+                    <datalist id="members">
+                        @foreach($users as $member)
+                            <option data-id="{{ $member->id }}" value="{{ $member->name }}"></option>
+                        @endforeach
+                    </datalist>
+                    @error('roles')
+                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                    @enderror
                 </div>
 
                 <div class="mb-6">
@@ -109,4 +105,36 @@
             </form>
         </div>
     </x-member-page>
+    <script>
+        const members = Array.from(document.querySelectorAll('#members option')).map(o => ({id: o.dataset.id, name: o.value}));
+        let roleIndex = 0;
+
+        function addRole() {
+            const container = document.getElementById('roles_list');
+            const wrapper = document.createElement('div');
+            wrapper.className = 'grid grid-cols-5 gap-2 mb-2 items-start';
+            wrapper.innerHTML = `
+                <input type="text" name="roles[${roleIndex}][name]" placeholder="Rolle" class="col-span-1 w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50" />
+                <input type="text" name="roles[${roleIndex}][description]" placeholder="Beschreibung" class="col-span-1 w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50" />
+                <input type="number" name="roles[${roleIndex}][takes]" min="0" placeholder="Takes" class="col-span-1 w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50" />
+                <div class="col-span-1">
+                    <input type="text" name="roles[${roleIndex}][member_name]" list="members" placeholder="Sprecher" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50" />
+                    <input type="hidden" name="roles[${roleIndex}][member_id]" />
+                </div>
+                <button type="button" class="col-span-1 text-red-600" aria-label="Remove">&times;</button>
+            `;
+            const inputs = wrapper.querySelectorAll('input[list]');
+            inputs.forEach(input => {
+                input.addEventListener('input', (e) => {
+                    const option = members.find(m => m.name === e.target.value);
+                    e.target.nextElementSibling.value = option ? option.id : '';
+                });
+            });
+            wrapper.querySelector('button').addEventListener('click', () => wrapper.remove());
+            container.appendChild(wrapper);
+            roleIndex++;
+        }
+
+        document.getElementById('add_role').addEventListener('click', addRole);
+    </script>
 </x-app-layout>

@@ -44,8 +44,10 @@ class HoerbuchControllerTest extends TestCase
             'status' => 'Skripterstellung',
             'responsible_user_id' => $responsible->id,
             'progress' => 50,
-            'roles_total' => 10,
-            'roles_filled' => 5,
+            'roles' => [
+                ['name' => 'R1', 'description' => 'Desc1', 'takes' => 3, 'member_name' => 'Extern'],
+                ['name' => 'R2', 'description' => 'Desc2', 'takes' => 2, 'member_id' => $responsible->id],
+            ],
             'notes' => 'Bemerkung',
         ];
 
@@ -60,10 +62,12 @@ class HoerbuchControllerTest extends TestCase
             'status' => 'Skripterstellung',
             'responsible_user_id' => $responsible->id,
             'progress' => 50,
-            'roles_total' => 10,
-            'roles_filled' => 5,
+            'roles_total' => 2,
+            'roles_filled' => 2,
             'notes' => 'Bemerkung',
         ]);
+
+        $this->assertDatabaseCount('audiobook_roles', 2);
     }
 
     public function test_episode_number_must_be_unique(): void
@@ -91,8 +95,7 @@ class HoerbuchControllerTest extends TestCase
             'status' => 'Skripterstellung',
             'responsible_user_id' => null,
             'progress' => 20,
-            'roles_total' => 10,
-            'roles_filled' => 0,
+            'roles' => [],
             'notes' => null,
         ];
 
@@ -151,11 +154,13 @@ class HoerbuchControllerTest extends TestCase
             ->assertDontSee('onkeydown', false);
     }
 
+
     public function test_admin_can_view_episode_details(): void
     {
         $user = $this->actingMember('Admin');
         $responsible = $this->actingMember();
-
+        $speaker = $this->actingMember();
+    
         $episode = AudiobookEpisode::create([
             'episode_number' => 'F9',
             'title' => 'Detailfolge',
@@ -164,18 +169,37 @@ class HoerbuchControllerTest extends TestCase
             'status' => 'Skripterstellung',
             'responsible_user_id' => $responsible->id,
             'progress' => 40,
-            'roles_total' => 8,
+            'roles_total' => 2,
             'roles_filled' => 2,
             'notes' => 'Notiz',
         ]);
-
+    
+        $episode->roles()->create([
+            'name' => 'R1',
+            'description' => 'Desc1',
+            'takes' => 3,
+            'user_id' => $speaker->id,
+        ]);
+        $episode->roles()->create([
+            'name' => 'R2',
+            'description' => 'Desc2',
+            'takes' => 1,
+            'speaker_name' => 'Extern',
+        ]);
+    
         $this->actingAs($user)
             ->get(route('hoerbuecher.show', $episode))
             ->assertOk()
             ->assertSee('Detailfolge')
             ->assertSee($responsible->name)
             ->assertSee('Notiz')
-            ->assertSee('2/8')
+            ->assertSee('2/2')
+            ->assertSee('R1')
+            ->assertSee('Desc1')
+            ->assertSee($speaker->name)
+            ->assertSee('R2')
+            ->assertSee('Desc2')
+            ->assertSee('Extern')
             ->assertSee(route('hoerbuecher.edit', $episode));
     }
 
@@ -193,8 +217,7 @@ class HoerbuchControllerTest extends TestCase
             'status' => 'Skripterstellung',
             'responsible_user_id' => null,
             'progress' => 0,
-            'roles_total' => 0,
-            'roles_filled' => 0,
+            'roles' => [],
             'notes' => $malicious,
         ]);
 
@@ -341,8 +364,9 @@ class HoerbuchControllerTest extends TestCase
             'status' => 'Veröffentlichung',
             'responsible_user_id' => null,
             'progress' => 100,
-            'roles_total' => 20,
-            'roles_filled' => 20,
+            'roles' => [
+                ['name' => 'Neue Rolle', 'description' => 'desc', 'takes' => 1, 'member_name' => 'Extern'],
+            ],
             'notes' => 'Aktualisiert',
         ];
 
@@ -357,8 +381,8 @@ class HoerbuchControllerTest extends TestCase
             'status' => 'Veröffentlichung',
             'planned_release_date' => '2025',
             'progress' => 100,
-            'roles_total' => 20,
-            'roles_filled' => 20,
+            'roles_total' => 1,
+            'roles_filled' => 1,
             'notes' => 'Aktualisiert',
         ]);
     }
@@ -404,8 +428,7 @@ class HoerbuchControllerTest extends TestCase
                 'status' => 'Skripterstellung',
                 'responsible_user_id' => null,
                 'progress' => 0,
-                'roles_total' => 0,
-                'roles_filled' => 0,
+                'roles' => [],
                 'notes' => null,
             ];
 
