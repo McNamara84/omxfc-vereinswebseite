@@ -154,11 +154,13 @@ class HoerbuchControllerTest extends TestCase
             ->assertDontSee('onkeydown', false);
     }
 
+
     public function test_admin_can_view_episode_details(): void
     {
         $user = $this->actingMember('Admin');
         $responsible = $this->actingMember();
-
+        $speaker = $this->actingMember();
+    
         $episode = AudiobookEpisode::create([
             'episode_number' => 'F9',
             'title' => 'Detailfolge',
@@ -167,18 +169,37 @@ class HoerbuchControllerTest extends TestCase
             'status' => 'Skripterstellung',
             'responsible_user_id' => $responsible->id,
             'progress' => 40,
-            'roles_total' => 8,
+            'roles_total' => 2,
             'roles_filled' => 2,
             'notes' => 'Notiz',
         ]);
-
+    
+        $episode->roles()->create([
+            'name' => 'R1',
+            'description' => 'Desc1',
+            'takes' => 3,
+            'user_id' => $speaker->id,
+        ]);
+        $episode->roles()->create([
+            'name' => 'R2',
+            'description' => 'Desc2',
+            'takes' => 1,
+            'speaker_name' => 'Extern',
+        ]);
+    
         $this->actingAs($user)
             ->get(route('hoerbuecher.show', $episode))
             ->assertOk()
             ->assertSee('Detailfolge')
             ->assertSee($responsible->name)
             ->assertSee('Notiz')
-            ->assertSee('2/8')
+            ->assertSee('2/2')
+            ->assertSee('R1')
+            ->assertSee('Desc1')
+            ->assertSee($speaker->name)
+            ->assertSee('R2')
+            ->assertSee('Desc2')
+            ->assertSee('Extern')
             ->assertSee(route('hoerbuecher.edit', $episode));
     }
 
