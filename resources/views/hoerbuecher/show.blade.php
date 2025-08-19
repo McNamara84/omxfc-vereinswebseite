@@ -24,6 +24,33 @@
                         </div>
                     </div>
                 </div>
+                @if($episode->roles->isNotEmpty())
+                <div class="md:col-span-2">
+                    <span class="font-medium">Rollen:</span>
+                    <div class="mt-1 overflow-x-auto">
+                        <table class="min-w-full text-sm">
+                            <thead class="bg-gray-100 dark:bg-gray-700">
+                                <tr>
+                                    <th class="px-2 py-1 text-left">Rolle</th>
+                                    <th class="px-2 py-1 text-left">Beschreibung</th>
+                                    <th class="px-2 py-1 text-left">Takes</th>
+                                    <th class="px-2 py-1 text-left">Sprecher</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($episode->roles as $role)
+                                <tr class="border-t border-gray-200 dark:border-gray-700">
+                                    <td class="px-2 py-1">{{ $role->name }}</td>
+                                    <td class="px-2 py-1">{{ $role->description }}</td>
+                                    <td class="px-2 py-1">{{ $role->takes }}</td>
+                                    <td class="px-2 py-1">{{ $role->user?->name ?? $role->speaker_name ?? '-' }}</td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                @endif
                 <div class="md:col-span-2"><span class="font-medium">Verantwortlich:</span> {{ $episode->responsible?->name ?? '-' }}</div>
                 <div class="md:col-span-2">
                     <span class="font-medium">Anmerkungen:</span>

@@ -144,8 +144,11 @@ class HoerbuchController extends Controller
     /**
      * Detailansicht einer Hörbuchfolge.
      */
+    
     public function show(AudiobookEpisode $episode)
     {
+        $episode->load('roles.user');
+
         return view('hoerbuecher.show', [
             'episode' => $episode,
         ]);
