@@ -1,3 +1,16 @@
+{{--
+    Component: book-list
+
+    Renders a list of books for desktop (table) and mobile (cards) views.
+
+    Props:
+    - $books: iterable collection of book models or arrays. Each book is expected to provide:
+        - roman_number: string or integer displayed as the book number
+        - title: book title
+        - author: book author
+        - has_review: boolean indicating if at least one review exists
+        - reviews_count: integer number of reviews
+--}}
 <div class="hidden md:block overflow-x-auto">
     <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
         <thead>
