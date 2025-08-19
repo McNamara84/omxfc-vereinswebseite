@@ -21,7 +21,7 @@
                     @if($nextEpisode)
                         <div class="text-3xl font-bold text-gray-800 dark:text-gray-200">{{ $daysUntilNextEvt }}</div>
                         <div class="text-gray-600 dark:text-gray-400">
-                            Tage bis Folge {{ $nextEpisode->title }} veröffentlicht wird ({{ $nextEpisode->planned_release_date_parsed->format('d.m.Y') }})
+                            Tage bis {{ $nextEpisode->title }} veröffentlicht wird ({{ $nextEpisode->planned_release_date_parsed->format('d.m.Y') }})
                         </div>
                     @else
                         <div class="text-gray-600 dark:text-gray-400">Kein Termin</div>

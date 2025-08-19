@@ -315,7 +315,7 @@ class HoerbuchControllerTest extends TestCase
             ->assertSee('data-unfilled-roles="3"', false)
             ->assertSee('data-open-episodes="1"', false)
             ->assertSee('data-days-left="1"', false)
-            ->assertSee('Tage bis Folge Erste veröffentlicht wird (02.01.2025)', false);
+            ->assertSee('Tage bis Erste veröffentlicht wird (02.01.2025)', false);
     }
 
     public function test_admin_can_update_episode(): void
