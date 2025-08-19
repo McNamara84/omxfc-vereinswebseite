@@ -6,6 +6,8 @@ use Livewire\Component;
 use App\Actions\Fortify\UpdateUserSeriendaten;
 use Illuminate\Support\Facades\Auth;
 use App\Services\MaddraxDataService;
+use App\Models\Book;
+use App\Enums\BookType;
 
 class UpdateSeriendatenForm extends Component
 {
@@ -16,6 +18,7 @@ class UpdateSeriendatenForm extends Component
     public array $figuren = [];
     public array $schauplaetze = [];
     public array $schlagworte = [];
+    public array $hardcover = [];
 
     public function mount()
     {
@@ -29,6 +32,7 @@ class UpdateSeriendatenForm extends Component
             'lieblingsautor',
             'lieblingszyklus',
             'lieblingsthema',
+            'lieblingshardcover',
         ]);
         $this->autoren = MaddraxDataService::getAutoren();
         $this->zyklen = MaddraxDataService::getZyklen();
@@ -36,6 +40,11 @@ class UpdateSeriendatenForm extends Component
         $this->figuren = MaddraxDataService::getFiguren();
         $this->schauplaetze = MaddraxDataService::getSchauplaetze();
         $this->schlagworte = MaddraxDataService::getSchlagworte();
+        $this->hardcover = Book::where('type', BookType::MaddraxHardcover)
+            ->orderBy('roman_number')
+            ->get()
+            ->map(fn ($book) => ($book->roman_number ? $book->roman_number.' - ' : '').$book->title)
+            ->toArray();
     }
 
     public function updateSeriendaten(UpdateUserSeriendaten $updater)

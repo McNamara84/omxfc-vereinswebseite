@@ -57,6 +57,18 @@
             </select>
             <x-input-error for="lieblingsroman" class="mt-2" />
         </div>
+        <!-- Lieblingshardcover Dropdown -->
+        <div class="col-span-6 sm:col-span-4">
+            <x-label for="lieblingshardcover" value="{{ __('Lieblingshardcover (optional)') }}" />
+            <select id="lieblingshardcover" wire:model="state.lieblingshardcover"
+                class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-800 rounded-md shadow-sm">
+                <option value="">Hardcover auswählen</option>
+                @foreach($hardcover as $hc)
+                    <option value="{{ $hc }}">{{ $hc }}</option>
+                @endforeach
+            </select>
+            <x-input-error for="lieblingshardcover" class="mt-2" />
+        </div>
         <!-- Lieblingszyklus Dropdown -->
         <div class="col-span-6 sm:col-span-4">
             <x-label for="lieblingszyklus" value="{{ __('Lieblingszyklus (optional)') }}" />
