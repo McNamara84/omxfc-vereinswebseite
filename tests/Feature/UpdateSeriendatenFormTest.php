@@ -5,6 +5,8 @@ namespace Tests\Feature;
 use App\Livewire\Profile\UpdateSeriendatenForm;
 use App\Models\Team;
 use App\Models\User;
+use App\Models\Book;
+use App\Enums\BookType;
 use App\Services\MaddraxDataService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\File;
@@ -55,6 +57,10 @@ class UpdateSeriendatenFormTest extends TestCase
             ],
         ];
         File::put($this->testStoragePath . '/app/private/maddrax.json', json_encode($data));
+
+        // Create some hardcover books
+        Book::create(['roman_number' => 1, 'title' => 'Hardcover1', 'author' => 'Author1', 'type' => BookType::MaddraxHardcover]);
+        Book::create(['roman_number' => 2, 'title' => 'Hardcover2', 'author' => 'Author2', 'type' => BookType::MaddraxHardcover]);
     }
 
     protected function tearDown(): void
@@ -84,6 +90,7 @@ class UpdateSeriendatenFormTest extends TestCase
             'lieblingsautor' => 'Author1',
             'lieblingszyklus' => 'Z1',
             'lieblingsthema' => 'Thema1',
+            'lieblingshardcover' => '1 - Hardcover1',
         ])->save();
 
         $this->actingAs($user);
@@ -101,12 +108,14 @@ class UpdateSeriendatenFormTest extends TestCase
             ->assertSet('state.lieblingsautor', 'Author1')
             ->assertSet('state.lieblingszyklus', 'Z1')
             ->assertSet('state.lieblingsthema', 'Thema1')
+            ->assertSet('state.lieblingshardcover', '1 - Hardcover1')
             ->assertSet('autoren', ['Author1', 'Author2'])
             ->assertSet('zyklen', ['Z1', 'Z2'])
             ->assertSet('romane', ['1 - Roman1', '2 - Roman2'])
             ->assertSet('figuren', ['Figur1', 'Figur2'])
             ->assertSet('schauplaetze', ['Ort1', 'Ort2'])
-            ->assertSet('schlagworte', ['Thema1', 'Thema2']);
+            ->assertSet('schlagworte', ['Thema1', 'Thema2'])
+            ->assertSet('hardcover', ['1 - Hardcover1', '2 - Hardcover2']);
     }
 
     public function test_seriendaten_can_be_updated(): void
@@ -125,6 +134,7 @@ class UpdateSeriendatenFormTest extends TestCase
                 'lieblingsautor' => 'Author2',
                 'lieblingszyklus' => 'Z2',
                 'lieblingsthema' => 'Thema2',
+                'lieblingshardcover' => '2 - Hardcover2',
             ])
             ->call('updateSeriendaten')
             ->assertDispatched('saved');
@@ -140,5 +150,6 @@ class UpdateSeriendatenFormTest extends TestCase
         $this->assertSame('Author2', $user->lieblingsautor);
         $this->assertSame('Z2', $user->lieblingszyklus);
         $this->assertSame('Thema2', $user->lieblingsthema);
+        $this->assertSame('2 - Hardcover2', $user->lieblingshardcover);
     }
 }

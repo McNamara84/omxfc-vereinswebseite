@@ -27,6 +27,7 @@ use Carbon\Carbon;
  * @property string|null $lieblingsautor
  * @property string|null $lieblingszyklus
  * @property string|null $lieblingsthema
+ * @property string|null $lieblingshardcover
  */
 class User extends Authenticatable
 {
@@ -67,6 +68,7 @@ class User extends Authenticatable
         'lieblingsautor',
         'lieblingszyklus',
         'lieblingsthema',
+        'lieblingshardcover',
         'mitglied_seit',
         'bezahlt_bis',
         'notify_new_review',
