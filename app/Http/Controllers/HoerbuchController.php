@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\AudiobookEpisode;
+use App\Models\AudiobookRole;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -76,8 +77,6 @@ class HoerbuchController extends Controller
             'responsible_user_id',
             'progress',
             'notes',
-            'roles_total',
-            'roles_filled',
         ]);
 
         $data['notes'] = $this->sanitizeNotes($data['notes'] ?? null);
@@ -110,11 +109,32 @@ class HoerbuchController extends Controller
             'status' => 'required|in:' . implode(',', AudiobookEpisode::STATUSES),
             'responsible_user_id' => 'nullable|exists:users,id',
             'progress' => 'required|integer|min:0|max:100',
-            'roles_total' => 'required|integer|min:0',
-            'roles_filled' => 'required|integer|min:0|lte:roles_total',
             'notes' => 'nullable|string',
+            'roles' => 'array',
+            'roles.*.name' => 'required|string|max:255',
+            'roles.*.description' => 'nullable|string|max:1000',
+            'roles.*.takes' => 'required|integer|min:0',
+            'roles.*.member_id' => 'nullable|exists:users,id',
+            'roles.*.member_name' => 'nullable|string|max:255',
         ]);
-        AudiobookEpisode::create($this->episodeDataFromRequest($request));
+        $episode = AudiobookEpisode::create($this->episodeDataFromRequest($request));
+
+        $roles = $request->input('roles', []);
+        foreach ($roles as $role) {
+            AudiobookRole::create([
+                'episode_id' => $episode->id,
+                'name' => $role['name'],
+                'description' => $role['description'] ?? null,
+                'takes' => $role['takes'] ?? 0,
+                'user_id' => $role['member_id'] ?? null,
+                'speaker_name' => $role['member_name'] ?? null,
+            ]);
+        }
+
+        $episode->update([
+            'roles_total' => count($roles),
+            'roles_filled' => collect($roles)->filter(fn ($r) => ($r['member_id'] ?? null) || ($r['member_name'] ?? null))->count(),
+        ]);
 
         return redirect()->route('hoerbuecher.index')
             ->with('status', 'Hörbuchfolge wurde gespeichert.');
@@ -138,7 +158,7 @@ class HoerbuchController extends Controller
         $users = User::orderBy('name')->get();
 
         return view('hoerbuecher.edit', [
-            'episode' => $episode,
+            'episode' => $episode->load('roles'),
             'users' => $users,
             'statuses' => AudiobookEpisode::STATUSES,
         ]);
@@ -162,11 +182,32 @@ class HoerbuchController extends Controller
             'status' => 'required|in:' . implode(',', AudiobookEpisode::STATUSES),
             'responsible_user_id' => 'nullable|exists:users,id',
             'progress' => 'required|integer|min:0|max:100',
-            'roles_total' => 'required|integer|min:0',
-            'roles_filled' => 'required|integer|min:0|lte:roles_total',
             'notes' => 'nullable|string',
+            'roles' => 'array',
+            'roles.*.name' => 'required|string|max:255',
+            'roles.*.description' => 'nullable|string|max:1000',
+            'roles.*.takes' => 'required|integer|min:0',
+            'roles.*.member_id' => 'nullable|exists:users,id',
+            'roles.*.member_name' => 'nullable|string|max:255',
         ]);
         $episode->update($this->episodeDataFromRequest($request));
+
+        $roles = $request->input('roles', []);
+        $episode->roles()->delete();
+        foreach ($roles as $role) {
+            AudiobookRole::create([
+                'episode_id' => $episode->id,
+                'name' => $role['name'],
+                'description' => $role['description'] ?? null,
+                'takes' => $role['takes'] ?? 0,
+                'user_id' => $role['member_id'] ?? null,
+                'speaker_name' => $role['member_name'] ?? null,
+            ]);
+        }
+        $episode->update([
+            'roles_total' => count($roles),
+            'roles_filled' => collect($roles)->filter(fn ($r) => ($r['member_id'] ?? null) || ($r['member_name'] ?? null))->count(),
+        ]);
 
         return redirect()->route('hoerbuecher.index')
             ->with('status', 'Hörbuchfolge wurde aktualisiert.');
