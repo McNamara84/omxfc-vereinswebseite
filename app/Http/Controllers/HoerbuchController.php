@@ -96,10 +96,11 @@ class HoerbuchController extends Controller
         return AudiobookRole::whereIn('name', $names)
             ->where(fn ($q) => $q->whereNotNull('user_id')->orWhereNotNull('speaker_name'))
             ->with('user')
-            ->orderBy('id')
+            ->orderBy('name')
+            ->orderByDesc('id')
             ->get()
             ->groupBy('name')
-            ->map(fn ($r) => $r->last()->user?->name ?? $r->last()->speaker_name)
+            ->map(fn ($r) => $r->first()->user?->name ?? $r->first()->speaker_name)
             ->toArray();
     }
 

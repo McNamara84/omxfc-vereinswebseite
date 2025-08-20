@@ -32,7 +32,11 @@ if (data) {
                 return;
             }
             controller = new AbortController();
-            fetch(`${previousSpeakerUrl}?name=${encodeURIComponent(name)}`, { signal: controller.signal })
+            const token = document.querySelector('meta[name="csrf-token"]')?.content;
+            fetch(`${previousSpeakerUrl}?name=${encodeURIComponent(name)}`, {
+                signal: controller.signal,
+                headers: token ? { 'X-CSRF-TOKEN': token, 'X-Requested-With': 'XMLHttpRequest' } : { 'X-Requested-With': 'XMLHttpRequest' }
+            })
                 .then(r => {
                     if (r.status === 401) throw new Error('unauthorized');
                     if (!r.ok) throw new Error('request-failed');
