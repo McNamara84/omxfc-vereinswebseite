@@ -123,6 +123,7 @@
             const hidden = row.querySelector('input[type="hidden"]');
             const roleNameInput = row.querySelector('input[name$="[name]"]');
             const hint = row.querySelector('.previous-speaker');
+            let controller;
 
             memberInput.addEventListener('input', e => {
                 const option = members.find(m => m.name === e.target.value);
@@ -131,11 +132,13 @@
 
             function updateHint() {
                 const name = roleNameInput.value.trim();
+                controller?.abort();
                 if (!name) {
                     hint.textContent = '';
                     return;
                 }
-                fetch(`${previousSpeakerUrl}?name=${encodeURIComponent(name)}`)
+                controller = new AbortController();
+                fetch(`${previousSpeakerUrl}?name=${encodeURIComponent(name)}`, { signal: controller.signal })
                     .then(r => {
                         if (r.status === 401) throw new Error('unauthorized');
                         if (!r.ok) throw new Error('request-failed');
@@ -145,6 +148,7 @@
                         hint.textContent = data.speaker ? `Bisheriger Sprecher: ${data.speaker}` : '';
                     })
                     .catch(err => {
+                        if (err.name === 'AbortError') return;
                         hint.textContent = err.message === 'unauthorized'
                             ? 'Nicht berechtigt'
                             : 'Fehler beim Laden des bisherigen Sprechers';
