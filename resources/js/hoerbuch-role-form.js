@@ -33,7 +33,9 @@ if (data) {
             }
             controller = new AbortController();
             const token = document.querySelector('meta[name="csrf-token"]')?.content;
-            fetch(`${previousSpeakerUrl}?name=${encodeURIComponent(name)}`, {
+            const url = new URL(previousSpeakerUrl, window.location.origin);
+            url.search = new URLSearchParams({ name }).toString();
+            fetch(url, {
                 signal: controller.signal,
                 headers: token ? { 'X-CSRF-TOKEN': token, 'X-Requested-With': 'XMLHttpRequest' } : { 'X-Requested-With': 'XMLHttpRequest' }
             })
