@@ -223,7 +223,10 @@ class HoerbuchController extends Controller
      */
     public function previousSpeaker(Request $request): JsonResponse
     {
-        $name = $request->query('name');
+        $data = $request->validate([
+            'name' => 'nullable|string|max:255',
+        ]);
+        $name = $data['name'] ?? null;
 
         $role = null;
         if ($name) {

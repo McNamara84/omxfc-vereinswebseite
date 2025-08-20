@@ -143,9 +143,15 @@
                     return;
                 }
                 fetch(`${previousSpeakerUrl}?name=${encodeURIComponent(name)}`)
-                    .then(r => r.json())
+                    .then(r => {
+                        if (!r.ok) throw new Error('Request failed');
+                        return r.json();
+                    })
                     .then(data => {
                         hint.textContent = data.speaker ? `Bisheriger Sprecher: ${data.speaker}` : '';
+                    })
+                    .catch(() => {
+                        hint.textContent = 'Fehler beim Laden des bisherigen Sprechers';
                     });
             }
 
