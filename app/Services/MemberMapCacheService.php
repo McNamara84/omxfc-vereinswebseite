@@ -60,7 +60,7 @@ class MemberMapCacheService
             'centerLon' => $centerLon,
         ];
 
-        Cache::put($cacheKey, $data, now()->addHours(12));
+        Cache::put($cacheKey, $data, now()->addHours(24));
 
         return $data;
     }
