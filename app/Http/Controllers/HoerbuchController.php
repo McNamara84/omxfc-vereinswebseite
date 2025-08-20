@@ -224,18 +224,14 @@ class HoerbuchController extends Controller
     public function previousSpeaker(Request $request): JsonResponse
     {
         $data = $request->validate([
-            'name' => 'nullable|string|max:255',
+            'name' => 'required|string|max:255',
         ]);
-        $name = $data['name'] ?? null;
 
-        $role = null;
-        if ($name) {
-            $role = AudiobookRole::where('name', $name)
-                ->where(fn ($q) => $q->whereNotNull('user_id')->orWhereNotNull('speaker_name'))
-                ->with('user')
-                ->latest('id')
-                ->first();
-        }
+        $role = AudiobookRole::where('name', $data['name'])
+            ->where(fn ($q) => $q->whereNotNull('user_id')->orWhereNotNull('speaker_name'))
+            ->with('user')
+            ->latest('id')
+            ->first();
 
         return response()->json([
             'speaker' => $role?->user?->name ?? $role?->speaker_name,

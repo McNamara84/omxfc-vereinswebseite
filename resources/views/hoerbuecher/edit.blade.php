@@ -152,14 +152,17 @@
                 }
                 fetch(`${previousSpeakerUrl}?name=${encodeURIComponent(name)}`)
                     .then(r => {
-                        if (!r.ok) throw new Error('Request failed');
+                        if (r.status === 401) throw new Error('unauthorized');
+                        if (!r.ok) throw new Error('request-failed');
                         return r.json();
                     })
                     .then(data => {
                         hint.textContent = data.speaker ? `Bisheriger Sprecher: ${data.speaker}` : '';
                     })
-                    .catch(() => {
-                        hint.textContent = 'Fehler beim Laden des bisherigen Sprechers';
+                    .catch(err => {
+                        hint.textContent = err.message === 'unauthorized'
+                            ? 'Nicht berechtigt'
+                            : 'Fehler beim Laden des bisherigen Sprechers';
                     });
             }
 

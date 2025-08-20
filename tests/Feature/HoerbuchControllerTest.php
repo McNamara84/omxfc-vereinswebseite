@@ -577,6 +577,16 @@ class HoerbuchControllerTest extends TestCase
             ->assertJsonValidationErrors('name');
     }
 
+    public function test_previous_speaker_endpoint_requires_name(): void
+    {
+        $admin = $this->actingMember('Admin');
+
+        $this->actingAs($admin)
+            ->getJson(route('hoerbuecher.previous-speaker'))
+            ->assertStatus(422)
+            ->assertJsonValidationErrors('name');
+    }
+
     protected function tearDown(): void
     {
         Carbon::setTestNow();
