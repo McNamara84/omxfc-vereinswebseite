@@ -85,6 +85,25 @@ class HoerbuchController extends Controller
 
         return $data;
     }
+
+    private function previousSpeakersForEpisode(AudiobookEpisode $episode): array
+    {
+        $episode->loadMissing('roles');
+
+        $names = $episode->roles->pluck('name')->filter()->unique();
+        if ($names->isEmpty()) {
+            return [];
+        }
+
+        return AudiobookRole::whereIn('name', $names)
+            ->where(fn ($q) => $q->whereNotNull('user_id')->orWhereNotNull('speaker_name'))
+            ->with('user')
+            ->orderBy('id')
+            ->get()
+            ->groupBy('name')
+            ->map(fn ($r) => $r->last()->user?->name ?? $r->last()->speaker_name)
+            ->toArray();
+    }
     /**
      * Formular zum Erstellen einer neuen Hörbuchfolge.
      */
@@ -150,15 +169,7 @@ class HoerbuchController extends Controller
     {
         $episode->load('roles.user');
 
-        $names = $episode->roles->pluck('name')->filter()->unique();
-        $previous = AudiobookRole::whereIn('name', $names)
-            ->where(fn ($q) => $q->whereNotNull('user_id')->orWhereNotNull('speaker_name'))
-            ->with('user')
-            ->orderBy('id')
-            ->get()
-            ->groupBy('name')
-            ->map(fn ($r) => $r->last()->user?->name ?? $r->last()->speaker_name)
-            ->toArray();
+        $previous = $this->previousSpeakersForEpisode($episode);
 
         return view('hoerbuecher.show', [
             'episode' => $episode,
@@ -174,15 +185,7 @@ class HoerbuchController extends Controller
         $users = User::orderBy('name')->get();
 
         $episode = $episode->load('roles');
-        $names = $episode->roles->pluck('name')->filter()->unique();
-        $previous = AudiobookRole::whereIn('name', $names)
-            ->where(fn ($q) => $q->whereNotNull('user_id')->orWhereNotNull('speaker_name'))
-            ->with('user')
-            ->orderBy('id')
-            ->get()
-            ->groupBy('name')
-            ->map(fn ($r) => $r->last()->user?->name ?? $r->last()->speaker_name)
-            ->toArray();
+        $previous = $this->previousSpeakersForEpisode($episode);
 
         return view('hoerbuecher.edit', [
             'episode' => $episode,
