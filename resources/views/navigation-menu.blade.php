@@ -76,6 +76,7 @@
                             <div id="admin-menu" x-show="open" x-cloak class="absolute left-0 top-full mt-px w-48 bg-white dark:bg-gray-700 rounded-md shadow-lg z-50 py-2 group-hover:block" role="menu" aria-labelledby="admin-button">
                                 <x-dropdown-link href="{{ route('admin.index') }}">Admin</x-dropdown-link>
                                 <x-dropdown-link href="{{ route('newsletter.create') }}">Newsletter versenden</x-dropdown-link>
+                                <x-dropdown-link href="{{ route('arbeitsgruppen.index') }}">Arbeitsgruppen</x-dropdown-link>
                                 <x-dropdown-link href="{{ route('arbeitsgruppen.create') }}">Neue AG</x-dropdown-link>
                             </div>
                         </div>
@@ -83,7 +84,6 @@
                     @endauth
                     @guest
                         <x-nav-link href="{{ route('chronik') }}">Chronik</x-nav-link>
-                        <x-nav-link href="{{ route('arbeitsgruppen') }}">Arbeitsgruppen</x-nav-link>
                         <x-nav-link href="{{ route('ehrenmitglieder') }}">Ehrenmitglieder</x-nav-link>
                         <x-nav-link href="{{ route('termine') }}">Termine</x-nav-link>
                         <x-nav-link href="{{ route('satzung') }}">Satzung</x-nav-link>
@@ -182,6 +182,7 @@
             <div id="admin-mobile-menu" x-show="openMenu === 'admin'" x-cloak class="italic" aria-labelledby="admin-mobile-button">
                 <x-responsive-nav-link href="{{ route('admin.index') }}">Admin</x-responsive-nav-link>
                 <x-responsive-nav-link href="{{ route('newsletter.create') }}">Newsletter versenden</x-responsive-nav-link>
+                <x-responsive-nav-link href="{{ route('arbeitsgruppen.index') }}">Arbeitsgruppen</x-responsive-nav-link>
                 <x-responsive-nav-link href="{{ route('arbeitsgruppen.create') }}">Neue AG</x-responsive-nav-link>
             </div>
             @endif
@@ -190,7 +191,6 @@
 
         @guest
             <x-responsive-nav-link href="{{ route('chronik') }}">Chronik</x-responsive-nav-link>
-            <x-responsive-nav-link href="{{ route('arbeitsgruppen') }}">Arbeitsgruppen</x-responsive-nav-link>
             <x-responsive-nav-link href="{{ route('ehrenmitglieder') }}">Ehrenmitglieder</x-responsive-nav-link>
             <x-responsive-nav-link href="{{ route('termine') }}">Termine</x-responsive-nav-link>
             <x-responsive-nav-link href="{{ route('satzung') }}">Satzung</x-responsive-nav-link>
