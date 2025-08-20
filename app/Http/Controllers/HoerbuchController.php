@@ -238,7 +238,7 @@ class HoerbuchController extends Controller
         }
 
         return response()->json([
-            'speaker' => $role?->user->name ?? $role?->speaker_name,
+            'speaker' => $role?->user?->name ?? $role?->speaker_name,
         ]);
     }
 

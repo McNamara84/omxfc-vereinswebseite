@@ -125,6 +125,14 @@
         const previousSpeakerUrl = "{{ route('hoerbuecher.previous-speaker') }}";
         let roleIndex = document.querySelectorAll('#roles_list .role-row').length;
 
+        function debounce(fn, delay = 300) {
+            let timeout;
+            return (...args) => {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => fn(...args), delay);
+            };
+        }
+
         function bindRoleRow(row) {
             const memberInput = row.querySelector('input[list]');
             const hidden = row.querySelector('input[type="hidden"]');
@@ -155,7 +163,8 @@
                     });
             }
 
-            roleNameInput.addEventListener('change', updateHint);
+            const debouncedHint = debounce(updateHint);
+            roleNameInput.addEventListener('input', debouncedHint);
             roleNameInput.addEventListener('blur', updateHint);
 
             row.querySelector('button').addEventListener('click', () => row.remove());
