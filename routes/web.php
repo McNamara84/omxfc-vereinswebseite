@@ -32,7 +32,6 @@ Route::get('/', [PageController::class, 'home'])->name('home');
 Route::get('/satzung', [PageController::class, 'satzung'])->name('satzung');
 Route::get('/chronik', [PageController::class, 'chronik'])->name('chronik');
 Route::get('/ehrenmitglieder', [PageController::class, 'ehrenmitglieder'])->name('ehrenmitglieder');
-Route::get('/arbeitsgruppen', [PageController::class, 'arbeitsgruppen'])->name('arbeitsgruppen');
 Route::get('/termine', [PageController::class, 'termine'])->name('termine');
 Route::get('/mitglied-werden', [PageController::class, 'mitgliedWerden'])->name('mitglied.werden');
 Route::get('/impressum', [PageController::class, 'impressum'])->name('impressum');
@@ -118,6 +117,7 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
     });
 
     Route::prefix('arbeitsgruppen')->name('arbeitsgruppen.')->controller(ArbeitsgruppenController::class)->middleware('admin')->group(function () {
+        Route::get('/', 'index')->name('index');
         Route::get('erstellen', 'create')->name('create');
         Route::post('/', 'store')->name('store');
     });

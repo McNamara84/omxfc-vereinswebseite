@@ -10,6 +10,21 @@ use Illuminate\Support\Facades\DB;
 class ArbeitsgruppenController extends Controller
 {
     /**
+     * Display a listing of the AGs.
+     */
+    public function index()
+    {
+        $ags = Team::where('personal_team', false)
+            ->where('name', '!=', 'Mitglieder')
+            ->orderBy('name')
+            ->get();
+
+        return view('arbeitsgruppen.index', [
+            'ags' => $ags,
+        ]);
+    }
+
+    /**
      * Display form to create a new AG (team).
      */
     public function create()

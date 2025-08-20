@@ -19,7 +19,6 @@ class PageAccessibilityTest extends TestCase
             '/satzung',
             '/chronik',
             '/ehrenmitglieder',
-            '/arbeitsgruppen',
             '/termine',
             '/mitglied-werden',
             '/spenden',

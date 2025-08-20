@@ -122,11 +122,6 @@ class PageController extends Controller
         return view('pages.ehrenmitglieder');
     }
 
-    public function arbeitsgruppen()
-    {
-        return view('pages.arbeitsgruppen');
-    }
-
     public function termine()
     {
         $baseCalendarId = 'Nzk5YTNmNDU0Y2NlYWJlZjg4M2JiYTg4ZWJjMTI0NTUyYTcxMzFhZDc2OTA2OWJjZDJiNjJkYmZkYzcxMWMwZkBncm91cC5jYWxlbmRhci5nb29nbGUuY29t';
