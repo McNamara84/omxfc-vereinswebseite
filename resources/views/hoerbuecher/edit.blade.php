@@ -88,7 +88,10 @@
                                 <div class="col-span-1">
                                     <input type="text" name="roles[{{ $i }}][member_name]" value="{{ $role['speaker_name'] ?? ($role['member_name'] ?? '') }}" list="members" placeholder="Sprecher" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50" />
                                     <input type="hidden" name="roles[{{ $i }}][member_id]" value="{{ $role['user_id'] ?? ($role['member_id'] ?? '') }}" />
-                                    <div class="text-xs text-gray-500 mt-1 previous-speaker"></div>
+                                    @php($prev = $previousSpeakers[$role['name'] ?? ''] ?? null)
+                                    <div class="text-xs text-gray-500 mt-1 previous-speaker">
+                                        {{ $prev ? 'Bisheriger Sprecher: ' . $prev : '' }}
+                                    </div>
                                 </div>
                                 <button type="button" class="col-span-1 text-red-600" aria-label="Remove">&times;</button>
                             </div>
@@ -171,6 +174,7 @@
             roleNameInput.addEventListener('blur', updateHint);
 
             row.querySelector('button').addEventListener('click', () => row.remove());
+            updateHint();
         }
 
         document.querySelectorAll('#roles_list .role-row').forEach(bindRoleRow);

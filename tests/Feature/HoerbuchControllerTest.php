@@ -204,6 +204,98 @@ class HoerbuchControllerTest extends TestCase
             ->assertSee(route('hoerbuecher.edit', $episode));
     }
 
+    public function test_episode_show_displays_previous_speaker_hint(): void
+    {
+        $user = $this->actingMember('Admin');
+        $actor = $this->actingMember();
+
+        $earlier = AudiobookEpisode::create([
+            'episode_number' => 'F29',
+            'title' => 'Frühere',
+            'author' => 'Autor',
+            'planned_release_date' => '2024',
+            'status' => 'Skripterstellung',
+            'responsible_user_id' => null,
+            'progress' => 0,
+            'roles_total' => 1,
+            'roles_filled' => 1,
+            'notes' => null,
+        ]);
+        $earlier->roles()->create([
+            'name' => 'Matthew Drax',
+            'takes' => 1,
+            'user_id' => $actor->id,
+        ]);
+
+        $episode = AudiobookEpisode::create([
+            'episode_number' => 'F30',
+            'title' => 'Aktuelle',
+            'author' => 'Autor',
+            'planned_release_date' => '2025',
+            'status' => 'Skripterstellung',
+            'responsible_user_id' => null,
+            'progress' => 0,
+            'roles_total' => 1,
+            'roles_filled' => 0,
+            'notes' => null,
+        ]);
+        $episode->roles()->create([
+            'name' => 'Matthew Drax',
+            'takes' => 1,
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('hoerbuecher.show', $episode))
+            ->assertOk()
+            ->assertSee('Bisheriger Sprecher: ' . $actor->name);
+    }
+
+    public function test_edit_form_displays_previous_speaker_hint(): void
+    {
+        $user = $this->actingMember('Admin');
+        $actor = $this->actingMember();
+
+        $earlier = AudiobookEpisode::create([
+            'episode_number' => 'F29',
+            'title' => 'Frühere',
+            'author' => 'Autor',
+            'planned_release_date' => '2024',
+            'status' => 'Skripterstellung',
+            'responsible_user_id' => null,
+            'progress' => 0,
+            'roles_total' => 1,
+            'roles_filled' => 1,
+            'notes' => null,
+        ]);
+        $earlier->roles()->create([
+            'name' => 'Matthew Drax',
+            'takes' => 1,
+            'user_id' => $actor->id,
+        ]);
+
+        $episode = AudiobookEpisode::create([
+            'episode_number' => 'F30',
+            'title' => 'Aktuelle',
+            'author' => 'Autor',
+            'planned_release_date' => '2025',
+            'status' => 'Skripterstellung',
+            'responsible_user_id' => null,
+            'progress' => 0,
+            'roles_total' => 1,
+            'roles_filled' => 0,
+            'notes' => null,
+        ]);
+        $episode->roles()->create([
+            'name' => 'Matthew Drax',
+            'takes' => 1,
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('hoerbuecher.edit', $episode))
+            ->assertOk()
+            ->assertSee('Bisheriger Sprecher: ' . $actor->name);
+    }
+
     public function test_notes_are_sanitized_and_escaped_in_views(): void
     {
         $user = $this->actingMember('Admin');

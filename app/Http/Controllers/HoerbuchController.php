@@ -150,8 +150,19 @@ class HoerbuchController extends Controller
     {
         $episode->load('roles.user');
 
+        $names = $episode->roles->pluck('name')->filter()->unique();
+        $previous = AudiobookRole::whereIn('name', $names)
+            ->where(fn ($q) => $q->whereNotNull('user_id')->orWhereNotNull('speaker_name'))
+            ->with('user')
+            ->orderBy('id')
+            ->get()
+            ->groupBy('name')
+            ->map(fn ($r) => $r->last()->user?->name ?? $r->last()->speaker_name)
+            ->toArray();
+
         return view('hoerbuecher.show', [
             'episode' => $episode,
+            'previousSpeakers' => $previous,
         ]);
     }
 
@@ -162,10 +173,22 @@ class HoerbuchController extends Controller
     {
         $users = User::orderBy('name')->get();
 
+        $episode = $episode->load('roles');
+        $names = $episode->roles->pluck('name')->filter()->unique();
+        $previous = AudiobookRole::whereIn('name', $names)
+            ->where(fn ($q) => $q->whereNotNull('user_id')->orWhereNotNull('speaker_name'))
+            ->with('user')
+            ->orderBy('id')
+            ->get()
+            ->groupBy('name')
+            ->map(fn ($r) => $r->last()->user?->name ?? $r->last()->speaker_name)
+            ->toArray();
+
         return view('hoerbuecher.edit', [
-            'episode' => $episode->load('roles'),
+            'episode' => $episode,
             'users' => $users,
             'statuses' => AudiobookEpisode::STATUSES,
+            'previousSpeakers' => $previous,
         ]);
     }
 

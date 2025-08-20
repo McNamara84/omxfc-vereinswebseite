@@ -156,6 +156,7 @@
             roleNameInput.addEventListener('blur', updateHint);
 
             row.querySelector('button').addEventListener('click', () => row.remove());
+            updateHint();
         }
 
         function addRole() {
