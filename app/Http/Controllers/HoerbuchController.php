@@ -86,11 +86,9 @@ class HoerbuchController extends Controller
         return $data;
     }
 
-    private function previousSpeakersForEpisode(AudiobookEpisode $episode): array
+    private function latestSpeakersForNames($names): array
     {
-        $episode->loadMissing('roles');
-
-        $names = $episode->roles->pluck('name')->filter()->unique();
+        $names = collect($names)->filter()->unique();
         if ($names->isEmpty()) {
             return [];
         }
@@ -103,6 +101,12 @@ class HoerbuchController extends Controller
             ->groupBy('name')
             ->map(fn ($r) => $r->last()->user?->name ?? $r->last()->speaker_name)
             ->toArray();
+    }
+
+    private function previousSpeakersForEpisode(AudiobookEpisode $episode): array
+    {
+        $episode->loadMissing('roles');
+        return $this->latestSpeakersForNames($episode->roles->pluck('name'));
     }
     /**
      * Formular zum Erstellen einer neuen Hörbuchfolge.
@@ -253,14 +257,10 @@ class HoerbuchController extends Controller
             'name' => 'required|string|max:255',
         ]);
 
-        $role = AudiobookRole::where('name', $data['name'])
-            ->where(fn ($q) => $q->whereNotNull('user_id')->orWhereNotNull('speaker_name'))
-            ->with('user')
-            ->latest('id')
-            ->first();
+        $speakers = $this->latestSpeakersForNames([$data['name']]);
 
         return response()->json([
-            'speaker' => $role?->user?->name ?? $role?->speaker_name,
+            'speaker' => $speakers[$data['name']] ?? null,
         ]);
     }
 
