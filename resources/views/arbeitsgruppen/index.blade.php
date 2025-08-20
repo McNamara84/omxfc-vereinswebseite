@@ -1,4 +1,4 @@
-<x-app-layout>
+<x-app-layout title="Arbeitsgruppen – Admin – Offizieller MADDRAX Fanclub e. V." description="Tabellarische Übersicht aller Arbeitsgruppen für Administratoren.">
     <x-member-page>
         <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
             <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-6">Arbeitsgruppen</h2>
