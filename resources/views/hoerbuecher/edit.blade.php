@@ -88,6 +88,7 @@
                                 <div class="col-span-1">
                                     <input type="text" name="roles[{{ $i }}][member_name]" value="{{ $role['speaker_name'] ?? ($role['member_name'] ?? '') }}" list="members" placeholder="Sprecher" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50" />
                                     <input type="hidden" name="roles[{{ $i }}][member_id]" value="{{ $role['user_id'] ?? ($role['member_id'] ?? '') }}" />
+                                    <div class="text-xs text-gray-500 mt-1 previous-speaker"></div>
                                 </div>
                                 <button type="button" class="col-span-1 text-red-600" aria-label="Remove">&times;</button>
                             </div>
@@ -121,19 +122,40 @@
     </x-member-page>
     <script>
         const members = Array.from(document.querySelectorAll('#members option')).map(o => ({id: o.dataset.id, name: o.value}));
+        const previousSpeakerUrl = "{{ route('hoerbuecher.previous-speaker') }}";
         let roleIndex = document.querySelectorAll('#roles_list .role-row').length;
 
-        function bindAutocomplete(row) {
-            const input = row.querySelector('input[list]');
+        function bindRoleRow(row) {
+            const memberInput = row.querySelector('input[list]');
             const hidden = row.querySelector('input[type="hidden"]');
-            input.addEventListener('input', (e) => {
+            const roleNameInput = row.querySelector('input[name$="[name]"]');
+            const hint = row.querySelector('.previous-speaker');
+
+            memberInput.addEventListener('input', e => {
                 const option = members.find(m => m.name === e.target.value);
                 hidden.value = option ? option.id : '';
             });
+
+            function updateHint() {
+                const name = roleNameInput.value.trim();
+                if (!name) {
+                    hint.textContent = '';
+                    return;
+                }
+                fetch(`${previousSpeakerUrl}?name=${encodeURIComponent(name)}`)
+                    .then(r => r.json())
+                    .then(data => {
+                        hint.textContent = data.speaker ? `Bisheriger Sprecher: ${data.speaker}` : '';
+                    });
+            }
+
+            roleNameInput.addEventListener('change', updateHint);
+            roleNameInput.addEventListener('blur', updateHint);
+
             row.querySelector('button').addEventListener('click', () => row.remove());
         }
 
-        document.querySelectorAll('#roles_list .role-row').forEach(bindAutocomplete);
+        document.querySelectorAll('#roles_list .role-row').forEach(bindRoleRow);
 
         function addRole() {
             const container = document.getElementById('roles_list');
@@ -146,10 +168,11 @@
                 <div class="col-span-1">
                     <input type="text" name="roles[${roleIndex}][member_name]" list="members" placeholder="Sprecher" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50" />
                     <input type="hidden" name="roles[${roleIndex}][member_id]" />
+                    <div class="text-xs text-gray-500 mt-1 previous-speaker"></div>
                 </div>
                 <button type="button" class="col-span-1 text-red-600" aria-label="Remove">&times;</button>
             `;
-            bindAutocomplete(wrapper);
+            bindRoleRow(wrapper);
             container.appendChild(wrapper);
             roleIndex++;
         }

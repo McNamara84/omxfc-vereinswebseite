@@ -7,6 +7,7 @@ use App\Models\AudiobookRole;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use App\Rules\ValidReleaseTime;
@@ -215,6 +216,27 @@ class HoerbuchController extends Controller
 
         return redirect()->route('hoerbuecher.index')
             ->with('status', 'Hörbuchfolge wurde aktualisiert.');
+    }
+
+    /**
+     * Gibt den bisherigen Sprecher einer Rolle zurück.
+     */
+    public function previousSpeaker(Request $request): JsonResponse
+    {
+        $name = $request->query('name');
+
+        $role = null;
+        if ($name) {
+            $role = AudiobookRole::where('name', $name)
+                ->where(fn ($q) => $q->whereNotNull('user_id')->orWhereNotNull('speaker_name'))
+                ->with('user')
+                ->latest('id')
+                ->first();
+        }
+
+        return response()->json([
+            'speaker' => $role?->user->name ?? $role?->speaker_name,
+        ]);
     }
 
     /**

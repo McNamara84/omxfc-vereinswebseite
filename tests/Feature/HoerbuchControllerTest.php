@@ -7,6 +7,7 @@ use Tests\TestCase;
 use App\Models\User;
 use App\Models\Team;
 use App\Models\AudiobookEpisode;
+use App\Models\AudiobookRole;
 use Carbon\Carbon;
 
 class HoerbuchControllerTest extends TestCase
@@ -514,6 +515,55 @@ class HoerbuchControllerTest extends TestCase
 
         $this->actingAs($user)->get(route('hoerbuecher.index'))
             ->assertOk();
+    }
+
+    public function test_previous_speaker_endpoint_returns_last_assigned_member(): void
+    {
+        $admin = $this->actingMember('Admin');
+        $speaker1 = $this->actingMember();
+        $speaker2 = $this->actingMember();
+
+        $episode1 = AudiobookEpisode::create([
+            'episode_number' => 'F29',
+            'title' => 'Ep1',
+            'author' => 'Autor',
+            'planned_release_date' => '24.12.2025',
+            'status' => 'Skripterstellung',
+            'responsible_user_id' => null,
+            'progress' => 0,
+            'roles_total' => 1,
+            'roles_filled' => 1,
+            'notes' => null,
+        ]);
+        AudiobookRole::create([
+            'episode_id' => $episode1->id,
+            'name' => 'Matthew Drax',
+            'takes' => 0,
+            'user_id' => $speaker1->id,
+        ]);
+
+        $episode2 = AudiobookEpisode::create([
+            'episode_number' => 'F30',
+            'title' => 'Ep2',
+            'author' => 'Autor',
+            'planned_release_date' => '25.12.2025',
+            'status' => 'Skripterstellung',
+            'responsible_user_id' => null,
+            'progress' => 0,
+            'roles_total' => 1,
+            'roles_filled' => 1,
+            'notes' => null,
+        ]);
+        AudiobookRole::create([
+            'episode_id' => $episode2->id,
+            'name' => 'Matthew Drax',
+            'takes' => 0,
+            'user_id' => $speaker2->id,
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('hoerbuecher.previous-speaker', ['name' => 'Matthew Drax']))
+            ->assertJson(['speaker' => $speaker2->name]);
     }
 
     protected function tearDown(): void
