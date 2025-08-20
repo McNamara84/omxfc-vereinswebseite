@@ -16,7 +16,7 @@
                         @forelse($ags as $ag)
                             <tr>
                                 <td class="px-4 py-2 text-gray-700 dark:text-gray-300">{{ $ag->name }}</td>
-                                <td class="px-4 py-2 text-gray-700 dark:text-gray-300">{{ $ag->owner->name }}</td>
+                                <td class="px-4 py-2 text-gray-700 dark:text-gray-300">{{ $ag->owner?->name ?? '-' }}</td>
                                 <td class="px-4 py-2 text-gray-700 dark:text-gray-300">{{ $ag->email ?? '-' }}</td>
                                 <td class="px-4 py-2 text-gray-700 dark:text-gray-300">{{ $ag->meeting_schedule ?? '-' }}</td>
                             </tr>
