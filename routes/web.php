@@ -109,6 +109,7 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
         Route::middleware('admin')->group(function () {
             Route::get('erstellen', 'create')->name('create');
             Route::post('/', 'store')->name('store');
+            Route::get('previous-speaker', 'previousSpeaker')->name('previous-speaker');
             Route::get('{episode}', 'show')->name('show');
             Route::get('{episode}/bearbeiten', 'edit')->name('edit');
             Route::put('{episode}', 'update')->name('update');

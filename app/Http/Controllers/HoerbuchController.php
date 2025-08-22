@@ -7,6 +7,7 @@ use App\Models\AudiobookRole;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use App\Rules\ValidReleaseTime;
@@ -84,6 +85,31 @@ class HoerbuchController extends Controller
 
         return $data;
     }
+
+    private function latestSpeakersForNames($names): array
+    {
+        $names = collect($names)->filter()->unique();
+        if ($names->isEmpty()) {
+            return [];
+        }
+
+        return AudiobookRole::useIndex('audiobook_roles_name_user_speaker_index')
+            ->whereIn('name', $names)
+            ->where(fn ($q) => $q->whereNotNull('user_id')->orWhereNotNull('speaker_name'))
+            ->with('user')
+            ->orderByDesc('id')
+            ->orderBy('name')
+            ->get()
+            ->groupBy('name')
+            ->map(fn ($r) => $r->first()->user?->name ?? $r->first()->speaker_name)
+            ->toArray();
+    }
+
+    private function previousSpeakersForEpisode(AudiobookEpisode $episode): array
+    {
+        $episode->loadMissing('roles');
+        return $this->latestSpeakersForNames($episode->roles->pluck('name'));
+    }
     /**
      * Formular zum Erstellen einer neuen Hörbuchfolge.
      */
@@ -149,8 +175,11 @@ class HoerbuchController extends Controller
     {
         $episode->load('roles.user');
 
+        $previous = $this->previousSpeakersForEpisode($episode);
+
         return view('hoerbuecher.show', [
             'episode' => $episode,
+            'previousSpeakers' => $previous,
         ]);
     }
 
@@ -161,10 +190,14 @@ class HoerbuchController extends Controller
     {
         $users = User::orderBy('name')->get();
 
+        $episode = $episode->load('roles');
+        $previous = $this->previousSpeakersForEpisode($episode);
+
         return view('hoerbuecher.edit', [
-            'episode' => $episode->load('roles'),
+            'episode' => $episode,
             'users' => $users,
             'statuses' => AudiobookEpisode::STATUSES,
+            'previousSpeakers' => $previous,
         ]);
     }
 
@@ -215,6 +248,22 @@ class HoerbuchController extends Controller
 
         return redirect()->route('hoerbuecher.index')
             ->with('status', 'Hörbuchfolge wurde aktualisiert.');
+    }
+
+    /**
+     * Gibt den bisherigen Sprecher einer Rolle zurück.
+     */
+    public function previousSpeaker(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'name' => 'required|string|max:255',
+        ]);
+
+        $speakers = $this->latestSpeakersForNames([$data['name']]);
+
+        return response()->json([
+            'speaker' => $speakers[$data['name']] ?? null,
+        ]);
     }
 
     /**

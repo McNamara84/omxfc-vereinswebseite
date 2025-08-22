@@ -106,35 +106,11 @@
         </div>
     </x-member-page>
     <script>
-        const members = Array.from(document.querySelectorAll('#members option')).map(o => ({id: o.dataset.id, name: o.value}));
-        let roleIndex = 0;
-
-        function addRole() {
-            const container = document.getElementById('roles_list');
-            const wrapper = document.createElement('div');
-            wrapper.className = 'grid grid-cols-5 gap-2 mb-2 items-start';
-            wrapper.innerHTML = `
-                <input type="text" name="roles[${roleIndex}][name]" placeholder="Rolle" class="col-span-1 w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50" />
-                <input type="text" name="roles[${roleIndex}][description]" placeholder="Beschreibung" class="col-span-1 w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50" />
-                <input type="number" name="roles[${roleIndex}][takes]" min="0" placeholder="Takes" class="col-span-1 w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50" />
-                <div class="col-span-1">
-                    <input type="text" name="roles[${roleIndex}][member_name]" list="members" placeholder="Sprecher" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50" />
-                    <input type="hidden" name="roles[${roleIndex}][member_id]" />
-                </div>
-                <button type="button" class="col-span-1 text-red-600" aria-label="Remove">&times;</button>
-            `;
-            const inputs = wrapper.querySelectorAll('input[list]');
-            inputs.forEach(input => {
-                input.addEventListener('input', (e) => {
-                    const option = members.find(m => m.name === e.target.value);
-                    e.target.nextElementSibling.value = option ? option.id : '';
-                });
-            });
-            wrapper.querySelector('button').addEventListener('click', () => wrapper.remove());
-            container.appendChild(wrapper);
-            roleIndex++;
-        }
-
-        document.getElementById('add_role').addEventListener('click', addRole);
+        window.roleFormData = {
+            members: Array.from(document.querySelectorAll('#members option')).map(o => ({ id: o.dataset.id, name: o.value })),
+            previousSpeakerUrl: "{{ route('hoerbuecher.previous-speaker') }}",
+            roleIndex: 0,
+        };
     </script>
+    @vite(['resources/js/hoerbuch-role-form.js'])
 </x-app-layout>

@@ -43,7 +43,13 @@
                                     <td class="px-2 py-1">{{ $role->name }}</td>
                                     <td class="px-2 py-1">{{ $role->description }}</td>
                                     <td class="px-2 py-1">{{ $role->takes }}</td>
-                                    <td class="px-2 py-1">{{ $role->user?->name ?? $role->speaker_name ?? '-' }}</td>
+                                    <td class="px-2 py-1">
+                                        {{ $role->user?->name ?? $role->speaker_name ?? '-' }}
+                                        @php($prev = $previousSpeakers[$role->name] ?? null)
+                                        @if($prev)
+                                            <div class="text-xs text-gray-500">Bisheriger Sprecher: {{ $prev }}</div>
+                                        @endif
+                                    </td>
                                 </tr>
                                 @endforeach
                             </tbody>
