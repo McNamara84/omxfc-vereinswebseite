@@ -1,9 +1,11 @@
 <?php
 
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\ArbeitsgruppenController;
 use App\Http\Controllers\Auth\CustomEmailVerificationController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DownloadsController;
+use App\Http\Controllers\HoerbuchController;
 use App\Http\Controllers\KassenbuchController;
 use App\Http\Controllers\KompendiumController;
 use App\Http\Controllers\MaddraxiversumController;
@@ -11,6 +13,7 @@ use App\Http\Controllers\MeetingController;
 use App\Http\Controllers\MitgliederController;
 use App\Http\Controllers\MitgliederKarteController;
 use App\Http\Controllers\MitgliedschaftController;
+use App\Http\Controllers\NewsletterController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\PhotoGalleryController;
 use App\Http\Controllers\ProfileViewController;
@@ -20,9 +23,6 @@ use App\Http\Controllers\RezensionController;
 use App\Http\Controllers\RomantauschController;
 use App\Http\Controllers\StatistikController;
 use App\Http\Controllers\TodoController;
-use App\Http\Controllers\HoerbuchController;
-use App\Http\Controllers\ArbeitsgruppenController;
-use App\Http\Controllers\NewsletterController;
 use App\Http\Middleware\RedirectIfAnwaerter;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -106,7 +106,7 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
     Route::prefix('hoerbuecher')->name('hoerbuecher.')->controller(HoerbuchController::class)->group(function () {
         Route::get('/', 'index')->name('index')->middleware('vorstand');
 
-        Route::middleware('admin')->group(function () {
+        Route::middleware('admin-or-vorstand')->group(function () {
             Route::get('erstellen', 'create')->name('create');
             Route::post('/', 'store')->name('store');
             Route::get('previous-speaker', 'previousSpeaker')->name('previous-speaker');
@@ -122,7 +122,6 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
         Route::get('erstellen', 'create')->name('create');
         Route::post('/', 'store')->name('store');
     });
-
 
     Route::get('/belohnungen', [RewardController::class, 'index'])->name('rewards.index');
 

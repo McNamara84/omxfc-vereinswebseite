@@ -2,13 +2,13 @@
 
 namespace Tests\Feature;
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
-use App\Models\User;
-use App\Models\Team;
 use App\Models\AudiobookEpisode;
 use App\Models\AudiobookRole;
+use App\Models\Team;
+use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 
 class HoerbuchControllerTest extends TestCase
 {
@@ -19,6 +19,7 @@ class HoerbuchControllerTest extends TestCase
         $team = Team::where('name', 'Mitglieder')->first();
         $user = User::factory()->create(['current_team_id' => $team->id]);
         $team->users()->attach($user, ['role' => $role]);
+
         return $user;
     }
 
@@ -71,6 +72,32 @@ class HoerbuchControllerTest extends TestCase
         $this->assertDatabaseCount('audiobook_roles', 2);
     }
 
+    public function test_vorstand_can_store_episode(): void
+    {
+        $user = $this->actingMember('Vorstand');
+        $responsible = $this->actingMember();
+
+        $data = [
+            'episode_number' => 'F31',
+            'title' => 'Vorstand Folge',
+            'author' => 'Autor',
+            'planned_release_date' => '12.2025',
+            'status' => 'Skripterstellung',
+            'responsible_user_id' => $responsible->id,
+            'progress' => 50,
+            'roles' => [],
+            'notes' => null,
+        ];
+
+        $response = $this->actingAs($user)->post(route('hoerbuecher.store'), $data);
+
+        $response->assertRedirect(route('hoerbuecher.index'));
+        $this->assertDatabaseHas('audiobook_episodes', [
+            'episode_number' => 'F31',
+            'title' => 'Vorstand Folge',
+        ]);
+    }
+
     public function test_episode_number_must_be_unique(): void
     {
         $user = $this->actingMember('Admin');
@@ -114,12 +141,14 @@ class HoerbuchControllerTest extends TestCase
             ->assertForbidden();
     }
 
-    public function test_vorstand_cannot_view_create_form(): void
+    public function test_vorstand_can_view_create_form(): void
     {
         $user = $this->actingMember('Vorstand');
 
-        $this->actingAs($user)->get(route('hoerbuecher.create'))
-            ->assertForbidden();
+        $this->actingAs($user)
+            ->get(route('hoerbuecher.create'))
+            ->assertOk()
+            ->assertSee('Neue Hörbuchfolge');
     }
 
     public function test_admin_can_view_index_and_episodes(): void
@@ -148,20 +177,19 @@ class HoerbuchControllerTest extends TestCase
             ->assertSee('50%')
             ->assertSee('5/10')
             ->assertSee(route('hoerbuecher.create'))
-            ->assertSee('data-href="' . route('hoerbuecher.show', $episode) . '"', false)
+            ->assertSee('data-href="'.route('hoerbuecher.show', $episode).'"', false)
             ->assertSee('role="button"', false)
             ->assertSee('tabindex="0"', false)
             ->assertDontSee('onclick="window.location', false)
             ->assertDontSee('onkeydown', false);
     }
 
-
     public function test_admin_can_view_episode_details(): void
     {
         $user = $this->actingMember('Admin');
         $responsible = $this->actingMember();
         $speaker = $this->actingMember();
-    
+
         $episode = AudiobookEpisode::create([
             'episode_number' => 'F9',
             'title' => 'Detailfolge',
@@ -174,7 +202,7 @@ class HoerbuchControllerTest extends TestCase
             'roles_filled' => 2,
             'notes' => 'Notiz',
         ]);
-    
+
         $episode->roles()->create([
             'name' => 'R1',
             'description' => 'Desc1',
@@ -187,7 +215,7 @@ class HoerbuchControllerTest extends TestCase
             'takes' => 1,
             'speaker_name' => 'Extern',
         ]);
-    
+
         $this->actingAs($user)
             ->get(route('hoerbuecher.show', $episode))
             ->assertOk()
@@ -247,7 +275,7 @@ class HoerbuchControllerTest extends TestCase
         $this->actingAs($user)
             ->get(route('hoerbuecher.show', $episode))
             ->assertOk()
-            ->assertSee('Bisheriger Sprecher: ' . $actor->name);
+            ->assertSee('Bisheriger Sprecher: '.$actor->name);
     }
 
     public function test_edit_form_displays_previous_speaker_hint(): void
@@ -293,7 +321,7 @@ class HoerbuchControllerTest extends TestCase
         $this->actingAs($user)
             ->get(route('hoerbuecher.edit', $episode))
             ->assertOk()
-            ->assertSee('Bisheriger Sprecher: ' . $actor->name);
+            ->assertSee('Bisheriger Sprecher: '.$actor->name);
     }
 
     public function test_notes_are_sanitized_and_escaped_in_views(): void
@@ -514,7 +542,7 @@ class HoerbuchControllerTest extends TestCase
 
         foreach ($invalidDates as $date) {
             $data = [
-                'episode_number' => 'FX' . $date,
+                'episode_number' => 'FX'.$date,
                 'title' => 'Titel',
                 'author' => 'Autor',
                 'planned_release_date' => $date,
