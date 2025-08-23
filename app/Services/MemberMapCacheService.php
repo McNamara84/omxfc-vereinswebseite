@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Team;
+use App\Jobs\GeocodeUser;
 use Illuminate\Support\Facades\Cache;
 
 class MemberMapCacheService
@@ -28,21 +29,28 @@ class MemberMapCacheService
         $memberCount = 0;
 
         foreach ($members as $member) {
-            if (! empty($member->plz) && ! is_null($member->lat) && ! is_null($member->lon)) {
-                $totalLat += $member->lat;
-                $totalLon += $member->lon;
-                $memberCount++;
+            if (! empty($member->plz)) {
+                if (is_null($member->lat) || is_null($member->lon)) {
+                    GeocodeUser::dispatchSync($member);
+                    $member->refresh();
+                }
 
-                $jitter = $this->addJitter($member->lat, $member->lon);
+                if (! is_null($member->lat) && ! is_null($member->lon)) {
+                    $totalLat += $member->lat;
+                    $totalLon += $member->lon;
+                    $memberCount++;
 
-                $memberData[] = [
-                    'name' => $member->name,
-                    'city' => $member->stadt,
-                    'role' => $member->pivot->role,
-                    'lat' => $jitter['lat'],
-                    'lon' => $jitter['lon'],
-                    'profile_url' => route('profile.view', $member->id),
-                ];
+                    $jitter = $this->addJitter($member->lat, $member->lon);
+
+                    $memberData[] = [
+                        'name' => $member->name,
+                        'city' => $member->stadt,
+                        'role' => $member->pivot->role,
+                        'lat' => $jitter['lat'],
+                        'lon' => $jitter['lon'],
+                        'profile_url' => route('profile.view', $member->id),
+                    ];
+                }
             }
         }
 

@@ -13,6 +13,7 @@ use Laravel\Jetstream\HasTeams;
 use Laravel\Sanctum\HasApiTokens;
 use Carbon\Carbon;
 use App\Jobs\GeocodeUser;
+use Illuminate\Support\Facades\Schema;
 
 /**
  * @property-read Team|null $currentTeam
@@ -121,7 +122,11 @@ class User extends Authenticatable
     protected static function booted()
     {
         static::saved(function (User $user) {
-            if (($user->wasChanged('plz') || $user->wasChanged('land'))
+            if (! Schema::hasColumns('users', ['lat', 'lon'])) {
+                return;
+            }
+
+            if (($user->wasRecentlyCreated || $user->wasChanged('plz') || $user->wasChanged('land'))
                 && (is_null($user->lat) || is_null($user->lon))) {
                 GeocodeUser::dispatch($user);
             }
