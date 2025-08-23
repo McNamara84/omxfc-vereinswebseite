@@ -208,8 +208,13 @@ class StatistikTest extends TestCase
         $response = $this->get('/statistik');
 
         $response->assertOk();
-        $response->assertSee('Author10');
-        $response->assertDontSee('Author11');
+        $response->assertViewHas('teamplayerTable', function ($table) {
+            $authors = $table->pluck('author');
+
+            return $authors->count() === 10
+                && $authors->contains('Author10')
+                && ! $authors->contains('Author11');
+        });
     }
 
     public function test_character_table_visible_with_enough_points(): void
