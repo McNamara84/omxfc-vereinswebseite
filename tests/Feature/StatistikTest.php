@@ -2,20 +2,20 @@
 
 namespace Tests\Feature;
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
-use App\Models\Team;
-use App\Models\User;
-use Illuminate\Support\Facades\File;
 use App\Models\Book;
 use App\Models\Review;
 use App\Models\ReviewComment;
+use App\Models\Team;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\File;
+use Tests\TestCase;
 
 class StatistikTest extends TestCase
 {
     use RefreshDatabase;
 
-     private string $testStoragePath;
+    private string $testStoragePath;
 
     protected function setUp(): void
     {
@@ -23,7 +23,7 @@ class StatistikTest extends TestCase
 
         $this->testStoragePath = base_path('storage/testing');
         $this->app->useStoragePath($this->testStoragePath);
-        File::ensureDirectoryExists($this->testStoragePath . '/app/private');
+        File::ensureDirectoryExists($this->testStoragePath.'/app/private');
     }
 
     protected function tearDown(): void
@@ -39,6 +39,7 @@ class StatistikTest extends TestCase
         $user = User::factory()->create(['current_team_id' => $team->id]);
         $team->users()->attach($user, ['role' => 'Mitglied']);
         $user->incrementTeamPoints($points);
+
         return $user;
     }
 
@@ -46,24 +47,24 @@ class StatistikTest extends TestCase
     {
         $data = [
             [
-                'nummer'    => 1,
-                'titel'     => 'Roman1',
-                'text'      => ['Author1'],
+                'nummer' => 1,
+                'titel' => 'Roman1',
+                'text' => ['Author1'],
                 'bewertung' => 4.0,
-                'stimmen'   => 10,
-                'personen'  => ['Char1', 'Char2'],
+                'stimmen' => 10,
+                'personen' => ['Char1', 'Char2'],
             ],
             [
-                'nummer'    => 2,
-                'titel'     => 'Roman2',
-                'text'      => ['Author1', 'Author2'],
+                'nummer' => 2,
+                'titel' => 'Roman2',
+                'text' => ['Author1', 'Author2'],
                 'bewertung' => 5.0,
-                'stimmen'   => 20,
-                'personen'  => ['Char2', 'Char3'],
+                'stimmen' => 20,
+                'personen' => ['Char2', 'Char3'],
             ],
         ];
         $path = storage_path('app/private/maddrax.json');
-        if (!is_dir(dirname($path))) {
+        if (! is_dir(dirname($path))) {
             mkdir(dirname($path), 0777, true);
         }
         file_put_contents($path, json_encode($data));
@@ -77,13 +78,46 @@ class StatistikTest extends TestCase
             $rating = 3.1 + (($i - 1) * 0.1); // subtract 1 because loop starts at 1
             $data[] = [
                 'nummer' => $i,
-                'titel' => 'HC' . $i,
+                'titel' => 'HC'.$i,
                 'bewertung' => $rating,
-                'text' => ['HC Author' . (($i % 2) + 1)],
+                'text' => ['HC Author'.(($i % 2) + 1)],
             ];
         }
         $path = storage_path('app/private/hardcovers.json');
-        if (!is_dir(dirname($path))) {
+        if (! is_dir(dirname($path))) {
+            mkdir(dirname($path), 0777, true);
+        }
+        file_put_contents($path, json_encode($data));
+    }
+
+    private function createTeamplayerDataFile(): void
+    {
+        $data = [];
+        $coAuthor = 'Common';
+        // Authors 1-10 appear twice
+        for ($i = 1; $i <= 10; $i++) {
+            for ($j = 1; $j <= 2; $j++) {
+                $data[] = [
+                    'nummer' => count($data) + 1,
+                    'titel' => 'Roman'.$i.'-'.$j,
+                    'text' => ['Author'.$i, $coAuthor],
+                    'bewertung' => 4.0,
+                    'stimmen' => 10,
+                    'personen' => [],
+                ];
+            }
+        }
+        // Author11 appears once
+        $data[] = [
+            'nummer' => count($data) + 1,
+            'titel' => 'Roman-extra',
+            'text' => ['Author11', $coAuthor],
+            'bewertung' => 3.0,
+            'stimmen' => 5,
+            'personen' => [],
+        ];
+        $path = storage_path('app/private/maddrax.json');
+        if (! is_dir(dirname($path))) {
             mkdir(dirname($path), 0777, true);
         }
         file_put_contents($path, json_encode($data));
@@ -163,6 +197,23 @@ class StatistikTest extends TestCase
 
         $response->assertOk();
         $response->assertDontSee('Top Teamplayer');
+    }
+
+    public function test_teamplayer_table_limits_to_top_10(): void
+    {
+        $this->createTeamplayerDataFile();
+        $user = $this->actingMemberWithPoints(4);
+        $this->actingAs($user);
+
+        $response = $this->get('/statistik');
+
+        $response->assertOk();
+        $response->assertViewHas('teamplayerTable', function ($table) {
+            $authors = $table->pluck('author');
+
+            return $authors->count() === 10
+                && ! $authors->contains('Author11');
+        });
     }
 
     public function test_character_table_visible_with_enough_points(): void
