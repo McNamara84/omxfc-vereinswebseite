@@ -7,9 +7,11 @@
         @endif
         <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6 flex justify-between items-center">
             <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81]">Hörbuchfolgen</h2>
-            <a href="{{ route('hoerbuecher.create') }}" class="inline-flex items-center px-4 py-2 bg-[#8B0116] dark:bg-[#C41E3A] border border-transparent rounded-md font-semibold text-white hover:bg-[#A50019] dark:hover:bg-[#D63A4D] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#8B0116] dark:focus:ring-[#FF6B81]">
-                Neue Folge
-            </a>
+            @if(auth()->user()->hasRole('Admin') || auth()->user()->hasRole('Vorstand'))
+                <a href="{{ route('hoerbuecher.create') }}" class="inline-flex items-center px-4 py-2 bg-[#8B0116] dark:bg-[#C41E3A] border border-transparent rounded-md font-semibold text-white hover:bg-[#A50019] dark:hover:bg-[#D63A4D] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#8B0116] dark:focus:ring-[#FF6B81]">
+                    Neue Folge
+                </a>
+            @endif
         </div>
         <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
