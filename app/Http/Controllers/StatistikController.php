@@ -88,23 +88,25 @@ class StatistikController extends Controller
             ->take(10)
             ->values();
 
-        $romaneSorted = $romane->sort(function ($a, $b) {
-            // 1. Kriterium: Ø-Bewertung (absteigend)
-            if ($a['bewertung'] !== $b['bewertung']) {
-                return $b['bewertung'] <=> $a['bewertung'];
-            }
+        $romaneTable = $romane
+            ->filter(fn ($r) => ($r['stimmen'] ?? 0) >= 8)
+            ->sort(function ($a, $b) {
+                // 1. Kriterium: Ø-Bewertung (absteigend)
+                if ($a['bewertung'] !== $b['bewertung']) {
+                    return $b['bewertung'] <=> $a['bewertung'];
+                }
 
-            // 2. Kriterium: Stimmen (absteigend)
-            return $b['stimmen'] <=> $a['stimmen'];
-        });
-
-        $romaneTable = $romaneSorted->map(fn ($r) => [
-            'nummer' => $r['nummer'],
-            'titel' => $r['titel'],
-            'autor' => implode(', ', $r['text']),
-            'bewertung' => $r['bewertung'],
-            'stimmen' => $r['stimmen'],
-        ]);
+                // 2. Kriterium: Stimmen (absteigend)
+                return $b['stimmen'] <=> $a['stimmen'];
+            })
+            ->take(10)
+            ->map(fn ($r) => [
+                'nummer' => $r['nummer'],
+                'titel' => $r['titel'],
+                'autor' => implode(', ', $r['text']),
+                'bewertung' => $r['bewertung'],
+                'stimmen' => $r['stimmen'],
+            ]);
 
         // ── Card 5 – Top-Charaktere nach Auftritten ──────────────────────────
         $topCharacters = $romane
