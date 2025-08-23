@@ -28,7 +28,8 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
             'telefon' => ['nullable', 'string', 'max:20'],
             'mitgliedsbeitrag' => ['required', 'numeric', 'min:12', 'max:120'],
             'email' => ['required', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
-            'photo' => ['nullable', 'mimes:jpg,jpeg,png', 'max:4096'],
+            // Profilfoto: erlaubte Formate erweitern und maximale Größe erhöhen
+            'photo' => ['nullable', 'mimes:jpg,jpeg,png,gif,webp', 'max:8192'],
         ])->validateWithBag('updateProfileInformation');
 
         if (isset($input['photo'])) {

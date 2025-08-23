@@ -21,6 +21,9 @@
                                 " />
 
                 <x-label for="photo" value="{{ __('Foto') }}" />
+                <p class="mt-1 text-sm text-gray-600">
+                    {{ __('Erlaubte Dateiformate: jpg, jpeg, png, gif, webp. Max. Größe: 8 MB.') }}
+                </p>
 
                 <div class="mt-2" x-show="! photoPreview">
                     <img loading="lazy" src="{{ $this->user->profile_photo_url }}" alt="{{ $this->user->name }}"
