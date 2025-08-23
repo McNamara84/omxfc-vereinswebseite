@@ -12,6 +12,7 @@ use Laravel\Jetstream\HasProfilePhoto;
 use Laravel\Jetstream\HasTeams;
 use Laravel\Sanctum\HasApiTokens;
 use Carbon\Carbon;
+use App\Jobs\GeocodeUser;
 
 /**
  * @property-read Team|null $currentTeam
@@ -56,6 +57,8 @@ class User extends Authenticatable
         'plz',
         'stadt',
         'land',
+        'lat',
+        'lon',
         'telefon',
         'verein_gefunden',
         'mitgliedsbeitrag',
@@ -110,7 +113,19 @@ class User extends Authenticatable
             'bezahlt_bis' => 'date',
             'notify_new_review' => 'boolean',
             'last_activity' => 'integer',
+            'lat' => 'float',
+            'lon' => 'float',
         ];
+    }
+
+    protected static function booted()
+    {
+        static::saved(function (User $user) {
+            if (($user->wasChanged('plz') || $user->wasChanged('land'))
+                && (is_null($user->lat) || is_null($user->lon))) {
+                GeocodeUser::dispatch($user);
+            }
+        });
     }
 
     /**

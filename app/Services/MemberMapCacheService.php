@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\Models\Team;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Http;
 
 class MemberMapCacheService
 {
@@ -18,7 +17,7 @@ class MemberMapCacheService
 
         $members = $team->users()
             ->as('pivot')
-            ->select('users.id', 'users.name', 'users.plz', 'users.land', 'users.stadt')
+            ->select('users.id', 'users.name', 'users.plz', 'users.land', 'users.stadt', 'users.lat', 'users.lon')
             ->withPivot('role')
             ->wherePivotNotIn('role', ['Anwärter'])
             ->get();
@@ -29,25 +28,21 @@ class MemberMapCacheService
         $memberCount = 0;
 
         foreach ($members as $member) {
-            if (! empty($member->plz)) {
-                $coordinates = $this->getCoordinatesForPostalCode($member->plz, $member->land);
+            if (! empty($member->plz) && ! is_null($member->lat) && ! is_null($member->lon)) {
+                $totalLat += $member->lat;
+                $totalLon += $member->lon;
+                $memberCount++;
 
-                if ($coordinates) {
-                    $totalLat += $coordinates['lat'];
-                    $totalLon += $coordinates['lon'];
-                    $memberCount++;
+                $jitter = $this->addJitter($member->lat, $member->lon);
 
-                    $jitter = $this->addJitter($coordinates['lat'], $coordinates['lon']);
-
-                    $memberData[] = [
-                        'name' => $member->name,
-                        'city' => $member->stadt,
-                        'role' => $member->pivot->role,
-                        'lat' => $jitter['lat'],
-                        'lon' => $jitter['lon'],
-                        'profile_url' => route('profile.view', $member->id),
-                    ];
-                }
+                $memberData[] = [
+                    'name' => $member->name,
+                    'city' => $member->stadt,
+                    'role' => $member->pivot->role,
+                    'lat' => $jitter['lat'],
+                    'lon' => $jitter['lon'],
+                    'profile_url' => route('profile.view', $member->id),
+                ];
             }
         }
 
@@ -81,37 +76,6 @@ class MemberMapCacheService
             'lat' => $lat + $latJitter,
             'lon' => $lon + $lonJitter,
         ];
-    }
-
-    private function getCoordinatesForPostalCode($postalCode, $country = 'Deutschland')
-    {
-        $cacheKey = 'postal_code_'.$country.'_'.$postalCode;
-
-        if (Cache::has($cacheKey)) {
-            return Cache::get($cacheKey);
-        }
-
-        $response = Http::get('https://nominatim.openstreetmap.org/search', [
-            'postalcode' => $postalCode,
-            'country' => $country,
-            'format' => 'json',
-            'limit' => 1,
-            'email' => config('mail.from.address'),
-        ]);
-
-        if ($response->successful() && count($response->json()) > 0) {
-            $data = $response->json()[0];
-            $result = [
-                'lat' => (float) $data['lat'],
-                'lon' => (float) $data['lon'],
-            ];
-
-            Cache::put($cacheKey, $result, now()->addDays(30));
-
-            return $result;
-        }
-
-        return null;
     }
 }
 
