@@ -3,24 +3,17 @@ import { jest } from '@jest/globals';
 describe('statistik module', () => {
   let drawAuthorChart;
   let drawCycleChart;
-  let initRomaneTable;
   let mockChart;
-  let mockDataTable;
 
   beforeEach(async () => {
     jest.resetModules();
     const chartModule = await import('chart.js/auto');
-    const datatableModule = await import('simple-datatables');
     mockChart = chartModule.default;
-    mockDataTable = datatableModule.DataTable;
-
     mockChart.mockClear();
-    mockDataTable.mockClear();
 
     const mod = await import('../../resources/js/statistik.js');
     drawAuthorChart = mod.drawAuthorChart;
     drawCycleChart = mod.drawCycleChart;
-    initRomaneTable = mod.initRomaneTable;
 
     HTMLCanvasElement.prototype.getContext = jest.fn(() => ({}));
   });
@@ -49,22 +42,10 @@ describe('statistik module', () => {
     expect(config.options.plugins.legend.display).toBe(true);
   });
 
-  test('initRomaneTable initializes DataTable and sorts column', () => {
-    document.body.innerHTML = '<table id="romaneTable"></table>';
-    initRomaneTable();
-
-    expect(mockDataTable).toHaveBeenCalledTimes(1);
-    expect(mockDataTable.mock.calls[0][0].id).toBe('romaneTable');
-    const instance = mockDataTable.mock.instances[0];
-    expect(instance.sortColumn).toHaveBeenCalledWith(3, 'desc');
-  });
-
   test('DOMContentLoaded draws hardcover chart', async () => {
     jest.resetModules();
     const chartModule = await import('chart.js/auto');
-    const datatableModule = await import('simple-datatables');
     mockChart = chartModule.default;
-    datatableModule.DataTable.mockClear();
     mockChart.mockClear();
 
     document.body.innerHTML = '<canvas id="hardcoverChart"></canvas>';
@@ -82,9 +63,7 @@ describe('statistik module', () => {
   test('DOMContentLoaded draws hardcover author chart', async () => {
     jest.resetModules();
     const chartModule = await import('chart.js/auto');
-    const datatableModule = await import('simple-datatables');
     mockChart = chartModule.default;
-    datatableModule.DataTable.mockClear();
     mockChart.mockClear();
 
     document.body.innerHTML = '<canvas id="hardcoverAuthorChart"></canvas>';

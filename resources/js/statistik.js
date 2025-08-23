@@ -1,7 +1,5 @@
 /* resources/js/statistik.js */
 import Chart from 'chart.js/auto';
-import { DataTable } from 'simple-datatables';
-import 'simple-datatables/dist/style.css';
 
 /**
  * Rendert ein Balkendiagramm,
@@ -67,23 +65,6 @@ function drawCycleChart(canvasId, labels, data) {
     });
 }
 
-/**
- * Initialisiert die sortier-/paginierbare Romane-Tabelle.
- */
-function initRomaneTable() {
-    const tableEl = document.getElementById('romaneTable');
-    if (!tableEl) return;
-
-    const dt = new DataTable(tableEl, {
-        perPage:       25,
-        perPageSelect: [10, 25, 50, 100],
-        searchable:    true,
-        sortable:      true,
-    });
-
-    // nach Bewertung (Spalte 3) absteigend sortieren
-    dt.sortColumn(3, 'desc');
-}
 
 /* ── Autostart nach DOM-Load ───────────────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', () => {
@@ -109,8 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
         drawCycleChart('hardcoverChart', hardcoverLabels, hardcoverValues);
     }
 
-    initRomaneTable();
 });
 
 /* ── optionale Named-Exports (falls du die Funktionen woanders brauchst) */
-export { drawAuthorChart, drawCycleChart, initRomaneTable };
+export { drawAuthorChart, drawCycleChart };

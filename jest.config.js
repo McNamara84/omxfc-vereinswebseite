@@ -5,6 +5,5 @@ export default {
   moduleNameMapper: {
     '\\.(css)$': '<rootDir>/tests/Jest/__mocks__/styleMock.js',
     '^chart.js/auto$': '<rootDir>/tests/Jest/__mocks__/chartMock.js',
-    '^simple-datatables$': '<rootDir>/tests/Jest/__mocks__/datatablesMock.js',
   },
 };

@@ -52,15 +52,15 @@
                     </div>
                 </div>
             @endif
-            {{-- Card 3 – Romane-Tabelle (≥ 5 Baxx) --}}
+            {{-- Card 3 – Top 10 Maddrax-Romane (≥ 5 Baxx) --}}
             @if ($userPoints >= 5)
                 <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
                     <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
-                        Alle Romane
+                        Top 10 Maddrax-Romane
                     </h2>
 
                     <div class="overflow-x-auto">
-                        <table id="romaneTable" class="w-full text-left">
+                        <table class="w-full text-left">
                             <thead>
                                 <tr>
                                     <th>Nr.</th>
