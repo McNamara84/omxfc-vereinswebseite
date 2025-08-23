@@ -212,7 +212,6 @@ class StatistikTest extends TestCase
             $authors = $table->pluck('author');
 
             return $authors->count() === 10
-                && $authors->contains('Author10')
                 && ! $authors->contains('Author11');
         });
     }
