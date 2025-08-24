@@ -30,6 +30,7 @@ use Illuminate\Support\Facades\Schema;
  * @property string|null $lieblingszyklus
  * @property string|null $lieblingsthema
  * @property string|null $lieblingshardcover
+ * @property string|null $lieblingscover
  */
 class User extends Authenticatable
 {
@@ -73,6 +74,7 @@ class User extends Authenticatable
         'lieblingszyklus',
         'lieblingsthema',
         'lieblingshardcover',
+        'lieblingscover',
         'mitglied_seit',
         'bezahlt_bis',
         'notify_new_review',
