@@ -57,6 +57,7 @@ function drawCycleChart(canvasId, labels, data) {
                     borderColor: 'rgba(139, 1, 22, .8)',
                     backgroundColor: 'rgba(139, 1, 22, .3)',
                     tension: 0.3,
+                    label: '⌀ Bewertung',
                 },
                 {
                     data: averageData,
