@@ -118,10 +118,12 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
         });
     });
 
-    Route::prefix('admin/arbeitsgruppen')->name('arbeitsgruppen.')->controller(ArbeitsgruppenController::class)->middleware('admin')->group(function () {
+    Route::prefix('admin/arbeitsgruppen')->name('arbeitsgruppen.')->controller(ArbeitsgruppenController::class)->middleware('auth')->group(function () {
         Route::get('/', 'index')->name('index');
         Route::get('erstellen', 'create')->name('create');
         Route::post('/', 'store')->name('store');
+        Route::get('{team}/bearbeiten', 'edit')->name('edit');
+        Route::put('{team}', 'update')->name('update');
     });
 
     Route::get('/belohnungen', [RewardController::class, 'index'])->name('rewards.index');
