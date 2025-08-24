@@ -19,6 +19,7 @@ class UpdateSeriendatenForm extends Component
     public array $schauplaetze = [];
     public array $schlagworte = [];
     public array $hardcover = [];
+    public array $covers = [];
 
     public function mount()
     {
@@ -33,6 +34,7 @@ class UpdateSeriendatenForm extends Component
             'lieblingszyklus',
             'lieblingsthema',
             'lieblingshardcover',
+            'lieblingscover',
         ]);
         $this->autoren = MaddraxDataService::getAutoren();
         $this->zyklen = MaddraxDataService::getZyklen();
@@ -45,6 +47,19 @@ class UpdateSeriendatenForm extends Component
             ->get()
             ->map(fn ($book) => ($book->roman_number ? $book->roman_number.' - ' : '').$book->title)
             ->toArray();
+
+        $romanCoverNumbers = collect($this->romane)
+            ->map(fn ($roman) => 'Roman ' . explode(' - ', $roman)[0])
+            ->toArray();
+
+        $hardcoverCoverNumbers = Book::where('type', BookType::MaddraxHardcover)
+            ->whereNotNull('roman_number')
+            ->orderBy('roman_number')
+            ->pluck('roman_number')
+            ->map(fn ($num) => 'Hardcover ' . $num)
+            ->toArray();
+
+        $this->covers = array_merge($romanCoverNumbers, $hardcoverCoverNumbers);
     }
 
     public function updateSeriendaten(UpdateUserSeriendaten $updater)

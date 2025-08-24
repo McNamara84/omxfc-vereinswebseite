@@ -69,6 +69,18 @@
             </select>
             <x-input-error for="lieblingshardcover" class="mt-2" />
         </div>
+        <!-- Lieblingscover Dropdown -->
+        <div class="col-span-6 sm:col-span-4">
+            <x-label for="lieblingscover" value="{{ __('Lieblingscover (optional)') }}" />
+            <select id="lieblingscover" wire:model="state.lieblingscover"
+                class="mt-1 block w-full border-gray-300 dark:border-gray-700 dark:bg-gray-800 rounded-md shadow-sm">
+                <option value="">Cover auswählen</option>
+                @foreach($covers as $cover)
+                    <option value="{{ $cover }}">{{ $cover }}</option>
+                @endforeach
+            </select>
+            <x-input-error for="lieblingscover" class="mt-2" />
+        </div>
         <!-- Lieblingszyklus Dropdown -->
         <div class="col-span-6 sm:col-span-4">
             <x-label for="lieblingszyklus" value="{{ __('Lieblingszyklus (optional)') }}" />
