@@ -6,7 +6,8 @@
                     <!-- Profilbild -->
                     <div class="absolute left-8 bottom-0 transform translate-y-1/2">
                         <div
-                            class="h-36 w-36 border-4 border-white dark:border-gray-800 rounded-full overflow-hidden shadow-xl">
+                            class="h-36 w-36 border-4 border-white dark:border-gray-800 rounded-full overflow-hidden shadow-xl cursor-pointer"
+                            onclick="openProfilePhotoModal('{{ $user->profile_photo_url }}', '{{ $user->name }}')">
                             <img loading="lazy" class="h-full w-full object-cover" src="{{ $user->profile_photo_url }}"
                                 alt="{{ $user->name }}">
                         </div>
@@ -244,6 +245,39 @@
         </div>
     </div>
 
+    <!-- Profile Photo Modal -->
+    <div id="profilePhotoModal" class="fixed inset-0 z-50 hidden overflow-y-auto overflow-x-hidden">
+        <div class="min-h-screen px-4 flex items-center justify-center">
+            <div class="fixed inset-0 bg-black bg-opacity-75 transition-opacity" onclick="closeProfilePhotoModal()"></div>
+
+            <div
+                class="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-lg w-full mx-auto z-10 transform transition-all">
+                <div class="flex justify-end p-2">
+                    <button type="button" onclick="closeProfilePhotoModal()" class="text-gray-400 hover:text-gray-500 focus:outline-none">
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="p-6">
+                    <div class="flex justify-center mb-6">
+                        <div class="w-128 h-128">
+                            <img loading="lazy" id="profilePhotoModalImage" src="" alt="Profilbild" class="w-full h-full object-contain">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex justify-end">
+                    <button type="button" onclick="closeProfilePhotoModal()"
+                        class="px-4 py-2 bg-[#8B0116] text-white rounded-md hover:bg-[#a50119] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#8B0116]">
+                        Schließen
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Badge Modal -->
     <div id="badgeModal" class="fixed inset-0 z-50 hidden overflow-y-auto overflow-x-hidden">
         <div class="min-h-screen px-4 flex items-center justify-center">
@@ -282,6 +316,19 @@
     </div>
 
     <script>
+        function openProfilePhotoModal(imageUrl, altText) {
+            const img = document.getElementById('profilePhotoModalImage');
+            img.src = imageUrl;
+            img.alt = altText;
+            document.getElementById('profilePhotoModal').classList.remove('hidden');
+            document.body.classList.add('overflow-hidden');
+        }
+
+        function closeProfilePhotoModal() {
+            document.getElementById('profilePhotoModal').classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
+        }
+
         function openBadgeModal(name, description, imageUrl) {
             document.getElementById('badgeModalTitle').textContent = name;
             document.getElementById('badgeModalDescription').textContent = description;
@@ -297,8 +344,13 @@
 
         // Schließen mit der Escape-Taste
         document.addEventListener('keydown', function (event) {
-            if (event.key === 'Escape' && !document.getElementById('badgeModal').classList.contains('hidden')) {
-                closeBadgeModal();
+            if (event.key === 'Escape') {
+                if (!document.getElementById('badgeModal').classList.contains('hidden')) {
+                    closeBadgeModal();
+                }
+                if (!document.getElementById('profilePhotoModal').classList.contains('hidden')) {
+                    closeProfilePhotoModal();
+                }
             }
         });
     </script>
