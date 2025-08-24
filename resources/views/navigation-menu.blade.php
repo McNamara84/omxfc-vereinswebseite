@@ -85,6 +85,7 @@
                         <x-nav-link href="{{ route('chronik') }}">Chronik</x-nav-link>
                         <x-nav-link href="{{ route('ehrenmitglieder') }}">Ehrenmitglieder</x-nav-link>
                         <x-nav-link href="{{ route('termine') }}">Termine</x-nav-link>
+                        <x-nav-link href="{{ route('arbeitsgruppen') }}">Arbeitsgruppen</x-nav-link>
                         <x-nav-link href="{{ route('satzung') }}">Satzung</x-nav-link>
                         <x-nav-link href="{{ route('mitglied.werden') }}">Mitglied werden</x-nav-link>
                         <x-nav-link href="{{ route('spenden') }}">Spenden</x-nav-link>
@@ -191,6 +192,7 @@
             <x-responsive-nav-link href="{{ route('chronik') }}">Chronik</x-responsive-nav-link>
             <x-responsive-nav-link href="{{ route('ehrenmitglieder') }}">Ehrenmitglieder</x-responsive-nav-link>
             <x-responsive-nav-link href="{{ route('termine') }}">Termine</x-responsive-nav-link>
+            <x-responsive-nav-link href="{{ route('arbeitsgruppen') }}">Arbeitsgruppen</x-responsive-nav-link>
             <x-responsive-nav-link href="{{ route('satzung') }}">Satzung</x-responsive-nav-link>
             <x-responsive-nav-link href="{{ route('mitglied.werden') }}">Mitglied werden</x-responsive-nav-link>
             <x-responsive-nav-link href="{{ route('spenden') }}">Spenden</x-responsive-nav-link>
