@@ -11,6 +11,8 @@ use App\Models\Review;
 use App\Models\BookSwap;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use App\Services\MaddraxDataService;
+use Illuminate\Support\Str;
 
 class ProfileViewController extends Controller
 {
@@ -150,6 +152,31 @@ class ProfileViewController extends Controller
                     'description' => 'Hat 10 Rezensionen verfasst',
                     'image' => asset('images/badges/BadgeRezensator1.png'),
                 ];
+            }
+
+            // Weltrat-Kritiker Badge - für vollständige Rezension des Weltrat-Zyklus
+            $weltratNumbers = collect(MaddraxDataService::loadData())
+                ->filter(fn($row) => Str::contains($row['zyklus'] ?? '', 'Weltrat'))
+                ->pluck('nummer')
+                ->map(fn($n) => (int) $n);
+
+            if ($weltratNumbers->isNotEmpty()) {
+                $reviewedBooks = Review::where('team_id', $memberTeam->id)
+                    ->where('user_id', $user->id)
+                    ->whereHas('book', function ($q) use ($weltratNumbers) {
+                        $q->whereIn('roman_number', $weltratNumbers);
+                    })
+                    ->pluck('book_id')
+                    ->unique()
+                    ->count();
+
+                if ($reviewedBooks === $weltratNumbers->count()) {
+                    $badges[] = [
+                        'name' => 'Weltrat-Kritiker',
+                        'description' => 'Hat jeden Roman des Weltrat-Zyklus rezensiert',
+                        'image' => asset('images/badges/BadgeWeltratKritiker.png'),
+                    ];
+                }
             }
 
             // Händler Badges - für abgeschlossene Tauschtransaktionen
