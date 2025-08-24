@@ -68,6 +68,9 @@
                             </div>
                         </div>
                         @endvorstand
+                        @if(!Auth::user()->hasRole('Admin') && Auth::user()->ownedTeams()->where('personal_team', false)->exists())
+                            <x-nav-link href="{{ route('arbeitsgruppen.index') }}">Arbeitsgruppen</x-nav-link>
+                        @endif
                         @if(Auth::user()->hasRole('Admin'))
                         <div class="relative flex items-center ml-4 group" x-data="{ open: false }" @click="open = !open" @click.away="open = false" @keydown.escape="open = false">
                             <button id="admin-button" type="button" class="px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition" :aria-expanded="open" aria-controls="admin-menu" @keydown.enter.prevent="open = !open" @keydown.space.prevent="open = !open">
@@ -176,6 +179,9 @@
                 <x-responsive-nav-link href="{{ route('hoerbuecher.index') }}">EARDRAX Dashboard</x-responsive-nav-link>
             </div>
             @endvorstand
+            @if(!Auth::user()->hasRole('Admin') && Auth::user()->ownedTeams()->where('personal_team', false)->exists())
+                <x-responsive-nav-link href="{{ route('arbeitsgruppen.index') }}">Arbeitsgruppen</x-responsive-nav-link>
+            @endif
             @if(Auth::user()->hasRole('Admin'))
             <button id="admin-mobile-button" type="button" @click="openMenu = (openMenu === 'admin' ? null : 'admin')" class="w-full text-left px-4 py-2 font-bold text-gray-600 dark:text-gray-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500" :class="{ 'bg-gray-100 dark:bg-gray-700': openMenu === 'admin' }" :aria-expanded="openMenu === 'admin'" aria-controls="admin-mobile-menu" @keydown.enter.prevent="openMenu = (openMenu === 'admin' ? null : 'admin')" @keydown.space.prevent="openMenu = (openMenu === 'admin' ? null : 'admin')">
             Admin</button>
