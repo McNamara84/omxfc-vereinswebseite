@@ -179,6 +179,31 @@ class ProfileViewController extends Controller
                 }
             }
 
+            // Amraka-Kritiker Badge - für vollständige Rezension des Amraka-Zyklus
+            $amrakaNumbers = collect(MaddraxDataService::loadData())
+                ->filter(fn($row) => Str::contains($row['zyklus'] ?? '', 'Amraka'))
+                ->pluck('nummer')
+                ->map(fn($n) => (int) $n);
+
+            if ($amrakaNumbers->isNotEmpty()) {
+                $reviewedBooks = Review::where('team_id', $memberTeam->id)
+                    ->where('user_id', $user->id)
+                    ->whereHas('book', function ($q) use ($amrakaNumbers) {
+                        $q->whereIn('roman_number', $amrakaNumbers);
+                    })
+                    ->pluck('book_id')
+                    ->unique()
+                    ->count();
+
+                if ($reviewedBooks === $amrakaNumbers->count()) {
+                    $badges[] = [
+                        'name' => 'Amraka-Kritiker',
+                        'description' => 'Hat jeden Roman des Amraka-Zyklus rezensiert',
+                        'image' => asset('images/badges/BadgeAmrakaKritiker.png'),
+                    ];
+                }
+            }
+
             // Händler Badges - für abgeschlossene Tauschtransaktionen
             $tradeCount = BookSwap::whereNotNull('completed_at')
                 ->where(function ($query) use ($user) {
