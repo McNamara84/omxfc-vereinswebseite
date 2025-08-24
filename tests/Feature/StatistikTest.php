@@ -187,7 +187,7 @@ class StatistikTest extends TestCase
         $response->assertSee('Author2');
     }
 
-    public function test_teamplayer_table_hidden_below_threshold(): void
+    public function test_teamplayer_table_locked_below_threshold(): void
     {
         $this->createDataFile();
         $user = $this->actingMemberWithPoints(1);
@@ -196,7 +196,8 @@ class StatistikTest extends TestCase
         $response = $this->get('/statistik');
 
         $response->assertOk();
-        $response->assertDontSee('Top Teamplayer');
+        $response->assertSee('Top Teamplayer');
+        $response->assertSee('4 Baxx');
     }
 
     public function test_teamplayer_table_limits_to_top_10(): void
@@ -277,7 +278,7 @@ class StatistikTest extends TestCase
         $response->assertSee($viewer->name);
     }
 
-    public function test_review_statistics_hidden_below_threshold(): void
+    public function test_review_statistics_locked_below_threshold(): void
     {
         $this->createDataFile();
         $user = $this->actingMemberWithPoints(11);
@@ -286,7 +287,8 @@ class StatistikTest extends TestCase
         $response = $this->get('/statistik');
 
         $response->assertOk();
-        $response->assertDontSee('Rezensionen unserer Mitglieder');
+        $response->assertSee('Rezensionen unserer Mitglieder');
+        $response->assertSee('12 Baxx');
     }
 
     public function test_afra_cycle_chart_visible_with_enough_points(): void
@@ -301,7 +303,7 @@ class StatistikTest extends TestCase
         $response->assertSee('Bewertungen des Afra-Zyklus');
     }
 
-    public function test_afra_cycle_chart_hidden_below_threshold(): void
+    public function test_afra_cycle_chart_locked_below_threshold(): void
     {
         $this->createDataFile();
         $user = $this->actingMemberWithPoints(20);
@@ -310,7 +312,8 @@ class StatistikTest extends TestCase
         $response = $this->get('/statistik');
 
         $response->assertOk();
-        $response->assertDontSee('Bewertungen des Afra-Zyklus');
+        $response->assertSee('Bewertungen des Afra-Zyklus');
+        $response->assertSee('21 Baxx');
     }
 
     public function test_antarktis_cycle_chart_visible_with_enough_points(): void
@@ -325,7 +328,7 @@ class StatistikTest extends TestCase
         $response->assertSee('Bewertungen des Antarktis-Zyklus');
     }
 
-    public function test_antarktis_cycle_chart_hidden_below_threshold(): void
+    public function test_antarktis_cycle_chart_locked_below_threshold(): void
     {
         $this->createDataFile();
         $user = $this->actingMemberWithPoints(21);
@@ -334,7 +337,8 @@ class StatistikTest extends TestCase
         $response = $this->get('/statistik');
 
         $response->assertOk();
-        $response->assertDontSee('Bewertungen des Antarktis-Zyklus');
+        $response->assertSee('Bewertungen des Antarktis-Zyklus');
+        $response->assertSee('22 Baxx');
     }
 
     public function test_schatten_cycle_chart_visible_with_enough_points(): void
@@ -349,7 +353,7 @@ class StatistikTest extends TestCase
         $response->assertSee('Bewertungen des Schatten-Zyklus');
     }
 
-    public function test_schatten_cycle_chart_hidden_below_threshold(): void
+    public function test_schatten_cycle_chart_locked_below_threshold(): void
     {
         $this->createDataFile();
         $user = $this->actingMemberWithPoints(22);
@@ -358,7 +362,8 @@ class StatistikTest extends TestCase
         $response = $this->get('/statistik');
 
         $response->assertOk();
-        $response->assertDontSee('Bewertungen des Schatten-Zyklus');
+        $response->assertSee('Bewertungen des Schatten-Zyklus');
+        $response->assertSee('23 Baxx');
     }
 
     public function test_ursprung_cycle_chart_visible_with_enough_points(): void
@@ -373,7 +378,7 @@ class StatistikTest extends TestCase
         $response->assertSee('Bewertungen des Ursprung-Zyklus');
     }
 
-    public function test_ursprung_cycle_chart_hidden_below_threshold(): void
+    public function test_ursprung_cycle_chart_locked_below_threshold(): void
     {
         $this->createDataFile();
         $user = $this->actingMemberWithPoints(23);
@@ -382,7 +387,8 @@ class StatistikTest extends TestCase
         $response = $this->get('/statistik');
 
         $response->assertOk();
-        $response->assertDontSee('Bewertungen des Ursprung-Zyklus');
+        $response->assertSee('Bewertungen des Ursprung-Zyklus');
+        $response->assertSee('24 Baxx');
     }
 
     public function test_streiter_cycle_chart_visible_with_enough_points(): void
@@ -397,7 +403,7 @@ class StatistikTest extends TestCase
         $response->assertSee('Bewertungen des Streiter-Zyklus');
     }
 
-    public function test_streiter_cycle_chart_hidden_below_threshold(): void
+    public function test_streiter_cycle_chart_locked_below_threshold(): void
     {
         $this->createDataFile();
         $user = $this->actingMemberWithPoints(24);
@@ -406,7 +412,8 @@ class StatistikTest extends TestCase
         $response = $this->get('/statistik');
 
         $response->assertOk();
-        $response->assertDontSee('Bewertungen des Streiter-Zyklus');
+        $response->assertSee('Bewertungen des Streiter-Zyklus');
+        $response->assertSee('25 Baxx');
     }
 
     public function test_archivar_cycle_chart_visible_with_enough_points(): void
@@ -421,7 +428,7 @@ class StatistikTest extends TestCase
         $response->assertSee('Bewertungen des Archivar-Zyklus');
     }
 
-    public function test_archivar_cycle_chart_hidden_below_threshold(): void
+    public function test_archivar_cycle_chart_locked_below_threshold(): void
     {
         $this->createDataFile();
         $user = $this->actingMemberWithPoints(25);
@@ -430,7 +437,8 @@ class StatistikTest extends TestCase
         $response = $this->get('/statistik');
 
         $response->assertOk();
-        $response->assertDontSee('Bewertungen des Archivar-Zyklus');
+        $response->assertSee('Bewertungen des Archivar-Zyklus');
+        $response->assertSee('26 Baxx');
     }
 
     public function test_zeitsprung_cycle_chart_visible_with_enough_points(): void
@@ -445,7 +453,7 @@ class StatistikTest extends TestCase
         $response->assertSee('Bewertungen des Zeitsprung-Zyklus');
     }
 
-    public function test_zeitsprung_cycle_chart_hidden_below_threshold(): void
+    public function test_zeitsprung_cycle_chart_locked_below_threshold(): void
     {
         $this->createDataFile();
         $user = $this->actingMemberWithPoints(26);
@@ -454,7 +462,8 @@ class StatistikTest extends TestCase
         $response = $this->get('/statistik');
 
         $response->assertOk();
-        $response->assertDontSee('Bewertungen des Zeitsprung-Zyklus');
+        $response->assertSee('Bewertungen des Zeitsprung-Zyklus');
+        $response->assertSee('27 Baxx');
     }
 
     public function test_fremdwelt_cycle_chart_visible_with_enough_points(): void
@@ -469,7 +478,7 @@ class StatistikTest extends TestCase
         $response->assertSee('Bewertungen des Fremdwelt-Zyklus');
     }
 
-    public function test_fremdwelt_cycle_chart_hidden_below_threshold(): void
+    public function test_fremdwelt_cycle_chart_locked_below_threshold(): void
     {
         $this->createDataFile();
         $user = $this->actingMemberWithPoints(27);
@@ -478,7 +487,8 @@ class StatistikTest extends TestCase
         $response = $this->get('/statistik');
 
         $response->assertOk();
-        $response->assertDontSee('Bewertungen des Fremdwelt-Zyklus');
+        $response->assertSee('Bewertungen des Fremdwelt-Zyklus');
+        $response->assertSee('28 Baxx');
     }
 
     public function test_parallelwelt_cycle_chart_visible_with_enough_points(): void
@@ -493,7 +503,7 @@ class StatistikTest extends TestCase
         $response->assertSee('Bewertungen des Parallelwelt-Zyklus');
     }
 
-    public function test_parallelwelt_cycle_chart_hidden_below_threshold(): void
+    public function test_parallelwelt_cycle_chart_locked_below_threshold(): void
     {
         $this->createDataFile();
         $user = $this->actingMemberWithPoints(28);
@@ -502,7 +512,8 @@ class StatistikTest extends TestCase
         $response = $this->get('/statistik');
 
         $response->assertOk();
-        $response->assertDontSee('Bewertungen des Parallelwelt-Zyklus');
+        $response->assertSee('Bewertungen des Parallelwelt-Zyklus');
+        $response->assertSee('29 Baxx');
     }
 
     public function test_weltenriss_cycle_chart_visible_with_enough_points(): void
@@ -517,7 +528,7 @@ class StatistikTest extends TestCase
         $response->assertSee('Bewertungen des Weltenriss-Zyklus');
     }
 
-    public function test_weltenriss_cycle_chart_hidden_below_threshold(): void
+    public function test_weltenriss_cycle_chart_locked_below_threshold(): void
     {
         $this->createDataFile();
         $user = $this->actingMemberWithPoints(29);
@@ -526,7 +537,8 @@ class StatistikTest extends TestCase
         $response = $this->get('/statistik');
 
         $response->assertOk();
-        $response->assertDontSee('Bewertungen des Weltenriss-Zyklus');
+        $response->assertSee('Bewertungen des Weltenriss-Zyklus');
+        $response->assertSee('30 Baxx');
     }
 
     public function test_amraka_cycle_chart_visible_with_enough_points(): void
@@ -541,7 +553,7 @@ class StatistikTest extends TestCase
         $response->assertSee('Bewertungen des Amraka-Zyklus');
     }
 
-    public function test_amraka_cycle_chart_hidden_below_threshold(): void
+    public function test_amraka_cycle_chart_locked_below_threshold(): void
     {
         $this->createDataFile();
         $user = $this->actingMemberWithPoints(30);
@@ -550,7 +562,8 @@ class StatistikTest extends TestCase
         $response = $this->get('/statistik');
 
         $response->assertOk();
-        $response->assertDontSee('Bewertungen des Amraka-Zyklus');
+        $response->assertSee('Bewertungen des Amraka-Zyklus');
+        $response->assertSee('31 Baxx');
     }
 
     public function test_weltrat_cycle_chart_visible_with_enough_points(): void
@@ -565,7 +578,7 @@ class StatistikTest extends TestCase
         $response->assertSee('Bewertungen des Weltrat-Zyklus');
     }
 
-    public function test_weltrat_cycle_chart_hidden_below_threshold(): void
+    public function test_weltrat_cycle_chart_locked_below_threshold(): void
     {
         $this->createDataFile();
         $user = $this->actingMemberWithPoints(31);
@@ -574,7 +587,8 @@ class StatistikTest extends TestCase
         $response = $this->get('/statistik');
 
         $response->assertOk();
-        $response->assertDontSee('Bewertungen des Weltrat-Zyklus');
+        $response->assertSee('Bewertungen des Weltrat-Zyklus');
+        $response->assertSee('32 Baxx');
     }
 
     public function test_hardcover_chart_visible_with_enough_points(): void
@@ -590,7 +604,7 @@ class StatistikTest extends TestCase
         $response->assertSee('Bewertungen der Hardcover');
     }
 
-    public function test_hardcover_chart_hidden_below_threshold(): void
+    public function test_hardcover_chart_locked_below_threshold(): void
     {
         $this->createDataFile();
         $this->createHardcoversFile();
@@ -600,7 +614,8 @@ class StatistikTest extends TestCase
         $response = $this->get('/statistik');
 
         $response->assertOk();
-        $response->assertDontSee('Bewertungen der Hardcover');
+        $response->assertSee('Bewertungen der Hardcover');
+        $response->assertSee('40 Baxx');
     }
 
     public function test_hardcover_author_chart_visible_with_enough_points(): void
@@ -616,7 +631,7 @@ class StatistikTest extends TestCase
         $response->assertSee('Maddrax-Hardcover je Autor:in');
     }
 
-    public function test_hardcover_author_chart_hidden_below_threshold(): void
+    public function test_hardcover_author_chart_locked_below_threshold(): void
     {
         $this->createDataFile();
         $this->createHardcoversFile();
@@ -626,6 +641,7 @@ class StatistikTest extends TestCase
         $response = $this->get('/statistik');
 
         $response->assertOk();
-        $response->assertDontSee('Maddrax-Hardcover je Autor:in');
+        $response->assertSee('Maddrax-Hardcover je Autor:in');
+        $response->assertSee('41 Baxx');
     }
 }
