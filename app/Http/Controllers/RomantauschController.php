@@ -27,7 +27,15 @@ class RomantauschController extends Controller
     {
         $offers = BookOffer::with('user')->where('completed', false)->doesntHave('swap')->get();
         $requests = BookRequest::with('user')->where('completed', false)->doesntHave('swap')->get();
-        $activeSwaps = BookSwap::with(['offer.user', 'request.user'])->whereNull('completed_at')->get();
+
+        $userId = Auth::id();
+        $activeSwaps = BookSwap::with(['offer.user', 'request.user'])
+            ->whereNull('completed_at')
+            ->where(function ($query) use ($userId) {
+                $query->whereHas('offer', fn($q) => $q->where('user_id', $userId))
+                      ->orWhereHas('request', fn($q) => $q->where('user_id', $userId));
+            })->get();
+
         $completedSwaps = BookSwap::with(['offer.user', 'request.user'])->whereNotNull('completed_at')->latest()->get();
 
         return view('romantausch.index', compact('offers', 'requests', 'activeSwaps', 'completedSwaps'));
