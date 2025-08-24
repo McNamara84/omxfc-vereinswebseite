@@ -77,7 +77,6 @@
                                 <x-dropdown-link href="{{ route('admin.index') }}">Admin</x-dropdown-link>
                                 <x-dropdown-link href="{{ route('newsletter.create') }}">Newsletter versenden</x-dropdown-link>
                                 <x-dropdown-link href="{{ route('arbeitsgruppen.index') }}">Arbeitsgruppen</x-dropdown-link>
-                                <x-dropdown-link href="{{ route('arbeitsgruppen.create') }}">Neue AG</x-dropdown-link>
                             </div>
                         </div>
                         @endif
@@ -183,7 +182,6 @@
                 <x-responsive-nav-link href="{{ route('admin.index') }}">Admin</x-responsive-nav-link>
                 <x-responsive-nav-link href="{{ route('newsletter.create') }}">Newsletter versenden</x-responsive-nav-link>
                 <x-responsive-nav-link href="{{ route('arbeitsgruppen.index') }}">Arbeitsgruppen</x-responsive-nav-link>
-                <x-responsive-nav-link href="{{ route('arbeitsgruppen.create') }}">Neue AG</x-responsive-nav-link>
             </div>
             @endif
 
