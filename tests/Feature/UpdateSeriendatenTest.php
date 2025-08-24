@@ -25,7 +25,7 @@ class UpdateSeriendatenTest extends TestCase
             'lieblingszyklus' => 'Zyklus',
             'lieblingsthema' => 'Thema',
             'lieblingshardcover' => 'HC',
-            'lieblingscover' => 'Roman 1',
+            'lieblingscover' => 'MX 1 Roman',
         ]));
 
         $component = Livewire::test(UpdateSeriendatenForm::class);
@@ -40,7 +40,7 @@ class UpdateSeriendatenTest extends TestCase
         $this->assertSame('Zyklus', $component->get('state.lieblingszyklus'));
         $this->assertSame('Thema', $component->get('state.lieblingsthema'));
         $this->assertSame('HC', $component->get('state.lieblingshardcover'));
-        $this->assertSame('Roman 1', $component->get('state.lieblingscover'));
+        $this->assertSame('MX 1 Roman', $component->get('state.lieblingscover'));
     }
 
     public function test_seriendaten_can_be_updated(): void
