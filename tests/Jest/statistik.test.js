@@ -38,7 +38,9 @@ describe('statistik module', () => {
     expect(config.type).toBe('line');
     expect(config.data.labels).toEqual(['X', 'Y']);
     expect(config.data.datasets[0].data).toEqual([4, 6]);
+    expect(config.data.datasets[0].label).toBe('⌀ Bewertung');
     expect(config.data.datasets[1].data).toEqual([5, 5]);
+    expect(config.data.datasets[1].label).toBe('Durchschnitt');
     expect(config.options.plugins.legend.display).toBe(true);
   });
 
