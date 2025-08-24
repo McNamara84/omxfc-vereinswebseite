@@ -91,7 +91,7 @@ class UpdateSeriendatenFormTest extends TestCase
             'lieblingszyklus' => 'Z1',
             'lieblingsthema' => 'Thema1',
             'lieblingshardcover' => '1 - Hardcover1',
-            'lieblingscover' => 'Roman 1',
+            'lieblingscover' => 'MX 1 Roman1',
         ])->save();
 
         $this->actingAs($user);
@@ -110,7 +110,7 @@ class UpdateSeriendatenFormTest extends TestCase
             ->assertSet('state.lieblingszyklus', 'Z1')
             ->assertSet('state.lieblingsthema', 'Thema1')
             ->assertSet('state.lieblingshardcover', '1 - Hardcover1')
-            ->assertSet('state.lieblingscover', 'Roman 1')
+            ->assertSet('state.lieblingscover', 'MX 1 Roman1')
             ->assertSet('autoren', ['Author1', 'Author2'])
             ->assertSet('zyklen', ['Z1', 'Z2'])
             ->assertSet('romane', ['1 - Roman1', '2 - Roman2'])
@@ -118,7 +118,7 @@ class UpdateSeriendatenFormTest extends TestCase
             ->assertSet('schauplaetze', ['Ort1', 'Ort2'])
             ->assertSet('schlagworte', ['Thema1', 'Thema2'])
             ->assertSet('hardcover', ['1 - Hardcover1', '2 - Hardcover2'])
-            ->assertSet('covers', ['Roman 1', 'Roman 2', 'Hardcover 1', 'Hardcover 2']);
+            ->assertSet('covers', ['MX 1 Roman1', 'MX 2 Roman2', 'HC 1 Hardcover1', 'HC 2 Hardcover2']);
     }
 
     public function test_seriendaten_can_be_updated(): void
@@ -138,7 +138,7 @@ class UpdateSeriendatenFormTest extends TestCase
                 'lieblingszyklus' => 'Z2',
                 'lieblingsthema' => 'Thema2',
                 'lieblingshardcover' => '2 - Hardcover2',
-                'lieblingscover' => 'Hardcover 2',
+                'lieblingscover' => 'HC 2 Hardcover2',
             ])
             ->call('updateSeriendaten')
             ->assertDispatched('saved');
@@ -155,6 +155,6 @@ class UpdateSeriendatenFormTest extends TestCase
         $this->assertSame('Z2', $user->lieblingszyklus);
         $this->assertSame('Thema2', $user->lieblingsthema);
         $this->assertSame('2 - Hardcover2', $user->lieblingshardcover);
-        $this->assertSame('Hardcover 2', $user->lieblingscover);
+        $this->assertSame('HC 2 Hardcover2', $user->lieblingscover);
     }
 }

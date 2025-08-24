@@ -48,18 +48,21 @@ class UpdateSeriendatenForm extends Component
             ->map(fn ($book) => ($book->roman_number ? $book->roman_number.' - ' : '').$book->title)
             ->toArray();
 
-        $romanCoverNumbers = collect($this->romane)
-            ->map(fn ($roman) => 'Roman ' . explode(' - ', $roman)[0])
+        $romanCovers = collect($this->romane)
+            ->map(function ($roman) {
+                [$nummer, $titel] = explode(' - ', $roman, 2);
+                return 'MX ' . $nummer . ' ' . $titel;
+            })
             ->toArray();
 
-        $hardcoverCoverNumbers = Book::where('type', BookType::MaddraxHardcover)
+        $hardcoverCovers = Book::where('type', BookType::MaddraxHardcover)
             ->whereNotNull('roman_number')
             ->orderBy('roman_number')
-            ->pluck('roman_number')
-            ->map(fn ($num) => 'Hardcover ' . $num)
+            ->get()
+            ->map(fn ($book) => 'HC ' . $book->roman_number . ' ' . $book->title)
             ->toArray();
 
-        $this->covers = array_merge($romanCoverNumbers, $hardcoverCoverNumbers);
+        $this->covers = array_merge($romanCovers, $hardcoverCovers);
     }
 
     public function updateSeriendaten(UpdateUserSeriendaten $updater)
