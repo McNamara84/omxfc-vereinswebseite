@@ -44,6 +44,15 @@ describe('statistik module', () => {
     expect(config.options.plugins.legend.display).toBe(true);
   });
 
+  test('drawCycleChart ignores null values when calculating average', () => {
+    document.body.innerHTML = '<canvas id="cycle"></canvas>';
+    drawCycleChart('cycle', ['A', 'B', 'C'], [4, null, 6]);
+
+    const config = mockChart.mock.calls[0][1];
+    expect(config.data.datasets[0].data).toEqual([4, null, 6]);
+    expect(config.data.datasets[1].data).toEqual([5, 5, 5]);
+  });
+
   test('DOMContentLoaded draws hardcover chart', async () => {
     jest.resetModules();
     const chartModule = await import('chart.js/auto');

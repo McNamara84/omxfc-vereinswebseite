@@ -43,8 +43,8 @@ function drawCycleChart(canvasId, labels, data) {
     if (userPoints < min) {
         values = data.map(() => +(Math.random() * 6).toFixed(2));
     }
-
-    const average = values.length ? values.reduce((sum, val) => sum + val, 0) / values.length : 0;
+    const validValues = values.filter((val) => Number.isFinite(val));
+    const average = validValues.length ? validValues.reduce((sum, val) => sum + val, 0) / validValues.length : 0;
     const averageData = Array(labels.length).fill(average);
 
     new Chart(canvas.getContext('2d'), {
