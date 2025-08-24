@@ -35,7 +35,16 @@ function drawCycleChart(canvasId, labels, data) {
     const canvas = document.getElementById(canvasId);
     if (!canvas) return;
 
-    const average = data.length ? data.reduce((sum, val) => sum + val, 0) / data.length : 0;
+    const parent = canvas.closest('[data-min-points]');
+    const min = parent ? Number(parent.dataset.minPoints) : 0;
+    const userPoints = window.userPoints ?? 0;
+
+    let values = data;
+    if (userPoints < min) {
+        values = data.map(() => +(Math.random() * 6).toFixed(2));
+    }
+
+    const average = values.length ? values.reduce((sum, val) => sum + val, 0) / values.length : 0;
     const averageData = Array(labels.length).fill(average);
 
     new Chart(canvas.getContext('2d'), {
@@ -44,7 +53,7 @@ function drawCycleChart(canvasId, labels, data) {
             labels,
             datasets: [
                 {
-                    data,
+                    data: values,
                     borderColor: 'rgba(139, 1, 22, .8)',
                     backgroundColor: 'rgba(139, 1, 22, .3)',
                     tension: 0.3,

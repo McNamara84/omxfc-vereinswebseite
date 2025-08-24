@@ -22,6 +22,7 @@
 
                 {{-- Chart-Daten global für JS-Modul --}}
                 <script>
+                    window.userPoints = {{ $userPoints }};
                     window.authorChartLabels = @json($authorCounts->keys());
                     window.authorChartValues = @json($authorCounts->values());
                 </script>
