@@ -325,6 +325,61 @@ class ProfileViewControllerTest extends TestCase
         config(['filesystems.disks.local.root' => $originalLocalRoot]);
     }
 
+    public function test_amraka_kritiker_badge_for_full_cycle(): void
+    {
+        $admin = $this->createMember('Admin');
+        $member = $this->createMember();
+
+        $testStoragePath = base_path('storage/testing-amraka');
+        $originalStoragePath = $this->app->storagePath();
+        $this->app->useStoragePath($testStoragePath);
+        File::ensureDirectoryExists($testStoragePath . '/app/private');
+        $originalLocalRoot = config('filesystems.disks.local.root');
+        config(['filesystems.disks.local.root' => $testStoragePath . '/app/private']);
+
+        $ref = new \ReflectionClass(MaddraxDataService::class);
+        $property = $ref->getProperty('data');
+        $property->setAccessible(true);
+        $property->setValue(null, null);
+
+        $data = [
+            ['nummer' => 1, 'zyklus' => 'Amraka-Zyklus', 'titel' => 'Roman1', 'text' => []],
+            ['nummer' => 2, 'zyklus' => 'Amraka-Zyklus', 'titel' => 'Roman2', 'text' => []],
+        ];
+        File::put($testStoragePath . '/app/private/maddrax.json', json_encode($data));
+
+        $book1 = Book::create(['roman_number' => 1, 'title' => 'Roman1', 'author' => 'Author']);
+        $book2 = Book::create(['roman_number' => 2, 'title' => 'Roman2', 'author' => 'Author']);
+
+        Review::create([
+            'team_id' => $member->currentTeam->id,
+            'user_id' => $member->id,
+            'book_id' => $book1->id,
+            'title' => 'R1',
+            'content' => str_repeat('A', 140),
+        ]);
+
+        Review::create([
+            'team_id' => $member->currentTeam->id,
+            'user_id' => $member->id,
+            'book_id' => $book2->id,
+            'title' => 'R2',
+            'content' => str_repeat('A', 140),
+        ]);
+
+        $this->actingAs($admin);
+        $response = $this->get("/profil/{$member->id}");
+
+        $response->assertOk();
+        $badges = $response->viewData('badges');
+        $this->assertCount(1, $badges);
+        $this->assertEquals('Amraka-Kritiker', $badges[0]['name']);
+
+        File::deleteDirectory($testStoragePath);
+        $this->app->useStoragePath($originalStoragePath);
+        config(['filesystems.disks.local.root' => $originalLocalRoot]);
+    }
+
     public function test_online_status_is_true_for_recent_activity(): void
     {
         $viewer = $this->createMember();
