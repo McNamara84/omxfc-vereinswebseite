@@ -1,5 +1,32 @@
 [
   {
+    "version": "1.5.0",
+    "pub_date": "2025-08-24",
+    "notes": [
+      "[New] Zwei Statistiken zu Hardcovern ergänzt",
+      "[New] EARDRAX Dashboard mit Übersicht über EARDRAX-Projekt für Vorstand und Rollenverwaltung",
+      "[New] Hardcover tauschen in der Romantauschbörse",
+      "[New] Hardcover rezensieren",
+      "[New] Lieblingshardcover im Mitgliederprofil angeben",
+      "[New] Lieblingscover im Mitgliederprofil angeben",
+      "[New] Arbeitsgruppenverwaltung für AG-Leitungen",
+      "[New] Durchschnittliche Bewertung als zweite Linie in Zyklusstatistiken",
+      "[New] Neues Badge Amraka-Kritiker für Mitglieder, die den gesamten Amraka-Zyklus rezensiert haben, hinzugefügt",
+      "[New] Neues Badge Weltrat-Kritiker für Mitglieder, die den gesamten Weltrat-Zyklus rezensiert haben, hinzugefügt",
+      "[Improved] Fotos in Chronik via Klick vergrößerbar gemacht",
+      "[Improved] Ladezeiten der Mitgliederkarte optimiert",
+      "[Improved] Anzeige des Zeitstemepels der letzten bearbeitung von Rezensionen",
+      "[Improved] Anzeige neuer Mitgliedsanträge im Dashboard für Vorstand nach oben verschoben",
+      "[Improved] Statistik zu TOP 10 Maddrax-Romanen eingeschränkt auf Romane mit min. 8 Bewertungen",
+      "[Improved] Zusätzliche Dateiformate für Profilfotos erlaubt",
+      "[Improved] Max. Größe von Profilfotos auf 8MB erhöht",
+      "[Improved] Hinweis zu Voraussetzungen für Profilfoto neben Upload-Button ergänzt",
+      "[Improved] Challenges im Dashboard unter Aktivitäten verlinkt",
+      "[Improved] Verlinkung von Namen mit Mitgliederprofilen ausgeweitet",
+      "[Fixed] Anzeige der Hilfetexte in den profileinstellungen sind schlecht lesbar"
+    ]
+  },
+  {
     "version": "1.4.1",
     "pub_date": "2025-08-10",
     "notes": [
