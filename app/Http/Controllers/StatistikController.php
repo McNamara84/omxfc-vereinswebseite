@@ -124,6 +124,7 @@ class StatistikController extends Controller
 
         // ── Card 30 – TOP20 Maddrax-Themen ─────────────────────────────
         $topThemes = $romane
+            ->filter(fn ($r) => ($r['stimmen'] ?? 0) >= 8)
             ->flatMap(fn ($r) => collect($r['schlagworte'] ?? [])->map(fn ($s) => [
                 'keyword' => trim($s),
                 'rating' => $r['bewertung'],
