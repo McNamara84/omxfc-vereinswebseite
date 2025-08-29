@@ -37,17 +37,75 @@
 
                 <div class="mb-6">
                     <h2 class="text-xl font-semibold text-[#8B0116] dark:text-red-400 mb-2">Beschreibung</h2>
-                    <!-- Eingabefelder folgen -->
+                    <textarea name="description" id="description" rows="4" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50"></textarea>
                 </div>
 
                 <div class="mb-6">
                     <h2 class="text-xl font-semibold text-[#8B0116] dark:text-red-400 mb-2">Attribute</h2>
-                    <!-- Eingabefelder folgen -->
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                        <div>
+                            <label for="st" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Stärke (ST)</label>
+                            <input type="number" name="attributes[st]" id="st" min="-2" max="2" step="1" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
+                        </div>
+                        <div>
+                            <label for="ge" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Geschicklichkeit (GE)</label>
+                            <input type="number" name="attributes[ge]" id="ge" min="-2" max="2" step="1" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
+                        </div>
+                        <div>
+                            <label for="ro" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Robustheit (RO)</label>
+                            <input type="number" name="attributes[ro]" id="ro" min="-2" max="2" step="1" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
+                        </div>
+                        <div>
+                            <label for="wi" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Willenskraft (WI)</label>
+                            <input type="number" name="attributes[wi]" id="wi" min="-2" max="2" step="1" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
+                        </div>
+                        <div>
+                            <label for="wa" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Wahrnehmung (WA)</label>
+                            <input type="number" name="attributes[wa]" id="wa" min="-2" max="2" step="1" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
+                        </div>
+                        <div>
+                            <label for="in" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Intelligenz (IN)</label>
+                            <input type="number" name="attributes[in]" id="in" min="-2" max="2" step="1" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
+                        </div>
+                        <div>
+                            <label for="au" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Auftreten (AU)</label>
+                            <input type="number" name="attributes[au]" id="au" min="-2" max="2" step="1" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
+                        </div>
+                    </div>
                 </div>
 
                 <div class="mb-6">
                     <h2 class="text-xl font-semibold text-[#8B0116] dark:text-red-400 mb-2">Fertigkeiten</h2>
-                    <!-- Eingabefelder folgen -->
+                    <div id="skills-container" class="space-y-2">
+                        <div class="grid grid-cols-4 gap-2 items-center skill-row">
+                            <input type="text" list="skills-list" name="skills[0][name]" class="skill-name col-span-2 w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50" placeholder="Fertigkeit">
+                            <input type="number" name="skills[0][value]" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50" placeholder="FW" step="1">
+                            <button type="button" class="remove-skill px-2 py-1 bg-red-500 text-white rounded-md">-</button>
+                        </div>
+                    </div>
+                    <button type="button" id="add-skill" class="mt-2 inline-flex items-center px-3 py-1 bg-[#8B0116] dark:bg-red-400 text-white rounded-md">Fertigkeit hinzufügen</button>
+                    <datalist id="skills-list">
+                        <option value="Athletik" data-description="Klettern, Schwimmen, Laufen, Fitness; hilft beim Ausweichen. (ST, GE, RO)"></option>
+                        <option value="Beruf" data-description="erlernter Beruf (Bauer, Schmied, Pilot, etc.), mehrere möglich. (GE, IN, AU)"></option>
+                        <option value="Bildung" data-description="zivilisierte Ausbildung, Voraussetzung für Technik &amp; Waffen. (IN, WA)"></option>
+                        <option value="Diebeskunst" data-description="Taschendiebstahl, Schlösser knacken, Diebesgut einschätzen. (GE, WA)"></option>
+                        <option value="Fahren" data-description="Wagen, Boote, Fahrzeuge, auch High-Tech. (GE, WA)"></option>
+                        <option value="Fernkampf" data-description="Speere, Bögen, Schleudern, Armbrüste usw. (GE, WA)"></option>
+                        <option value="Feuerwaffen" data-description="Schuss- &amp; Energiewaffen. (GE, WA, abhängig von Bildung)"></option>
+                        <option value="Handeln" data-description="Feilschen, Warenkenntnis, Handelsrouten. (AU, IN)"></option>
+                        <option value="Heiler" data-description="Wundversorgung, Heilkunst, Rettung vor dem Tod. (IN)"></option>
+                        <option value="Heimlichkeit" data-description="Schleichen, Verbergen. (GE)"></option>
+                        <option value="Intuition" data-description="\u201esechster Sinn\u201c, Gefahren erspüren (Alternative zu Bildung). (WA)"></option>
+                        <option value="Kunde" data-description="Fachkenntnis in speziellen Bereichen (Regionen, Tiere, Pflanzen, Bräuche). (IN, WA)"></option>
+                        <option value="Nahkampf" data-description="unbewaffneter Kampf und Nahkampfwaffen. (ST, GE)"></option>
+                        <option value="Pilot" data-description="Flieger aller Art (vom Gleiter bis zum Jet). (GE, WA)"></option>
+                        <option value="Reiten" data-description="Reittiere lenken und zähmen. (GE)"></option>
+                        <option value="Sprachen" data-description="pro Punkt eine Sprache/Dialekt (mit Bildung auch Lesen/Schreiben). (IN)"></option>
+                        <option value="Techniker" data-description="technische Geräte bedienen, warten, reparieren. (IN, GE)"></option>
+                        <option value="Unterhalten" data-description="Geschichten, Musik, Tanz, Gaukeln, Schauspiel. (AU, IN, GE)"></option>
+                        <option value="Überleben" data-description="Orientierung, Nahrung, Leben in der Wildnis. (RO, WA)"></option>
+                        <option value="Wissenschaftler" data-description="wissenschaftliche Disziplinen (Physik, Chemie, Biologie ...). Maximalwert ≤ Bildung. (IN)"></option>
+                    </datalist>
                 </div>
 
                 <div class="mb-6">
@@ -66,6 +124,59 @@
                     </button>
                 </div>
             </form>
+            <script>
+                document.addEventListener('DOMContentLoaded', function () {
+                    const skillDescriptions = {
+                        "Athletik": "Klettern, Schwimmen, Laufen, Fitness; hilft beim Ausweichen. (ST, GE, RO)",
+                        "Beruf": "erlernter Beruf (Bauer, Schmied, Pilot, etc.), mehrere möglich. (GE, IN, AU)",
+                        "Bildung": "zivilisierte Ausbildung, Voraussetzung für Technik & Waffen. (IN, WA)",
+                        "Diebeskunst": "Taschendiebstahl, Schlösser knacken, Diebesgut einschätzen. (GE, WA)",
+                        "Fahren": "Wagen, Boote, Fahrzeuge, auch High-Tech. (GE, WA)",
+                        "Fernkampf": "Speere, Bögen, Schleudern, Armbrüste usw. (GE, WA)",
+                        "Feuerwaffen": "Schuss- & Energiewaffen. (GE, WA, abhängig von Bildung)",
+                        "Handeln": "Feilschen, Warenkenntnis, Handelsrouten. (AU, IN)",
+                        "Heiler": "Wundversorgung, Heilkunst, Rettung vor dem Tod. (IN)",
+                        "Heimlichkeit": "Schleichen, Verbergen. (GE)",
+                        "Intuition": "sechster Sinn, Gefahren erspüren (Alternative zu Bildung). (WA)",
+                        "Kunde": "Fachkenntnis in speziellen Bereichen (Regionen, Tiere, Pflanzen, Bräuche). (IN, WA)",
+                        "Nahkampf": "unbewaffneter Kampf und Nahkampfwaffen. (ST, GE)",
+                        "Pilot": "Flieger aller Art (vom Gleiter bis zum Jet). (GE, WA)",
+                        "Reiten": "Reittiere lenken und zähmen. (GE)",
+                        "Sprachen": "pro Punkt eine Sprache/Dialekt (mit Bildung auch Lesen/Schreiben). (IN)",
+                        "Techniker": "technische Geräte bedienen, warten, reparieren. (IN, GE)",
+                        "Unterhalten": "Geschichten, Musik, Tanz, Gaukeln, Schauspiel. (AU, IN, GE)",
+                        "Überleben": "Orientierung, Nahrung, Leben in der Wildnis. (RO, WA)",
+                        "Wissenschaftler": "wissenschaftliche Disziplinen (Physik, Chemie, Biologie ...). Maximalwert ≤ Bildung. (IN)"
+                    };
+
+                    const container = document.getElementById('skills-container');
+                    const addBtn = document.getElementById('add-skill');
+
+                    container.addEventListener('input', function (e) {
+                        if (e.target.classList.contains('skill-name')) {
+                            e.target.title = skillDescriptions[e.target.value] || '';
+                        }
+                    });
+
+                    container.addEventListener('click', function (e) {
+                        if (e.target.classList.contains('remove-skill')) {
+                            e.target.closest('.skill-row').remove();
+                        }
+                    });
+
+                    addBtn.addEventListener('click', function () {
+                        const index = container.querySelectorAll('.skill-row').length;
+                        const row = document.createElement('div');
+                        row.className = 'grid grid-cols-4 gap-2 items-center skill-row';
+                        row.innerHTML = `
+                            <input type="text" list="skills-list" name="skills[${index}][name]" class="skill-name col-span-2 w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50" placeholder="Fertigkeit">
+                            <input type="number" name="skills[${index}][value]" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50" placeholder="FW" step="1">
+                            <button type="button" class="remove-skill px-2 py-1 bg-red-500 text-white rounded-md">-</button>
+                        `;
+                        container.appendChild(row);
+                    });
+                });
+            </script>
         </div>
     </x-member-page>
 </x-app-layout>
