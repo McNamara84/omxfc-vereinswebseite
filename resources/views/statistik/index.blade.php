@@ -624,6 +624,37 @@
                     window.hardcoverAuthorChartLabels = @json($hardcoverAuthorCounts->keys());
                     window.hardcoverAuthorChartValues = @json($hardcoverAuthorCounts->values());
                 </script>
+            {{-- Card 30 – TOP20 Maddrax-Themen (≥ 42 Baxx) --}}
+                @php($min = 42)
+                <div data-min-points="{{ $min }}" class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
+                    <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                        TOP20 Maddrax-Themen
+                    </h2>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead>
+                                <tr>
+                                    <th>Rang</th>
+                                    <th>Schlagwort</th>
+                                    <th>Ø&nbsp;Bewertung</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($topThemes as $i => $row)
+                                    <tr>
+                                        <td>{{ $i + 1 }}</td>
+                                        <td>{{ $row['keyword'] }}</td>
+                                        <td>{{ number_format($row['average'], 2, ',', '.') }}</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                    @if($userPoints < $min)
+                        @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
+                    @endif
+                </div>
 
                 @vite(['resources/js/statistik.js'])
     </x-member-page>
