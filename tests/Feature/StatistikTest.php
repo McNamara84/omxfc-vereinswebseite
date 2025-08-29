@@ -671,4 +671,36 @@ class StatistikTest extends TestCase
         $response->assertSee('TOP20 Maddrax-Themen');
         $response->assertSee('42 Baxx');
     }
+
+    public function test_favorite_themes_visible_with_enough_points(): void
+    {
+        $this->createDataFile();
+        User::factory()->create(['lieblingsthema' => 'Thema1']);
+        User::factory()->create(['lieblingsthema' => 'Thema1']);
+        User::factory()->create(['lieblingsthema' => 'Thema2']);
+        User::factory()->create(['lieblingsthema' => 'Thema3']);
+        $user = $this->actingMemberWithPoints(50);
+        $this->actingAs($user);
+
+        $response = $this->get('/statistik');
+
+        $response->assertOk();
+        $response->assertSee('TOP10 Lieblingsthemen');
+        $response->assertSee('Thema1');
+        $response->assertSee('Thema2');
+        $response->assertSee('Thema3');
+    }
+
+    public function test_favorite_themes_locked_below_threshold(): void
+    {
+        $this->createDataFile();
+        $user = $this->actingMemberWithPoints(49);
+        $this->actingAs($user);
+
+        $response = $this->get('/statistik');
+
+        $response->assertOk();
+        $response->assertSee('TOP10 Lieblingsthemen');
+        $response->assertSee('50 Baxx');
+    }
 }

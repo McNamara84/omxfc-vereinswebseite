@@ -651,6 +651,38 @@
                             </tbody>
                         </table>
                     </div>
+                @if($userPoints < $min)
+                    @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
+                @endif
+            </div>
+
+            {{-- Card 31 – TOP10 Lieblingsthemen (≥ 50 Baxx) --}}
+                @php($min = 50)
+                <div data-min-points="{{ $min }}" class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
+                    <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                        TOP10 Lieblingsthemen
+                    </h2>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead>
+                                <tr>
+                                    <th>Rang</th>
+                                    <th>Thema</th>
+                                    <th>Anzahl</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($topFavoriteThemes as $i => $row)
+                                    <tr>
+                                        <td>{{ $i + 1 }}</td>
+                                        <td>{{ $row['thema'] }}</td>
+                                        <td>{{ $row['count'] }}</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
                     @if($userPoints < $min)
                         @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
                     @endif
