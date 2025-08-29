@@ -21,6 +21,7 @@ use App\Http\Controllers\ReviewCommentController;
 use App\Http\Controllers\RewardController;
 use App\Http\Controllers\RezensionController;
 use App\Http\Controllers\RomantauschController;
+use App\Http\Controllers\RpgCharEditorController;
 use App\Http\Controllers\StatistikController;
 use App\Http\Controllers\TodoController;
 use App\Http\Middleware\RedirectIfAnwaerter;
@@ -146,6 +147,10 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
         Route::post('/mission/status-pruefen', 'checkMissionStatus');
         Route::get('/mission/status', 'getMissionStatus');
     });
+
+    Route::get('/rpg/char-editor', [RpgCharEditorController::class, 'index'])
+        ->name('rpg.char-editor')
+        ->middleware('admin');
 
     Route::prefix('romantauschboerse')->name('romantausch.')->controller(RomantauschController::class)->group(function () {
         Route::get('/', 'index')->name('index');
