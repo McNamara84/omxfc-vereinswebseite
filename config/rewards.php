@@ -172,6 +172,11 @@ return [
         'points' => 41,
     ],
     [
+        'title' => 'Statistik - TOP20 Maddrax-Themen',
+        'description' => 'Zeigt die 20 am besten bewerteten MADDRAX-Themen im Maddraxikon.',
+        'points' => 42,
+    ],
+    [
         'title' => 'Statistik - TOP10 Lieblingsthemen',
         'description' => 'Zeigt die beliebtesten Lieblingsthemen der Mitglieder.',
         'points' => 50,

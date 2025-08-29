@@ -83,4 +83,15 @@ class RewardControllerTest extends TestCase
         $response->assertOk();
         $response->assertSee('Statistik - Maddrax-Hardcover je Autor:in');
     }
+
+    public function test_top20_themes_reward_visible(): void
+    {
+        $user = $this->actingMember(42);
+        $this->actingAs($user);
+
+        $response = $this->get('/belohnungen');
+
+        $response->assertOk();
+        $response->assertSee('Statistik - TOP20 Maddrax-Themen');
+    }
 }
