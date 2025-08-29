@@ -624,7 +624,7 @@
                     window.hardcoverAuthorChartLabels = @json($hardcoverAuthorCounts->keys());
                     window.hardcoverAuthorChartValues = @json($hardcoverAuthorCounts->values());
                 </script>
-            {{-- Card 30 – TOP20 Maddrax-Themen (≥ 42 Baxx) --}}
+            {{-- Card 30 – TOP20 Maddrax-Themen (≥ 42 Baxx, nur Romane mit ≥ 8 Bewertungen) --}}
                 @php($min = 42)
                 <div data-min-points="{{ $min }}" class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
                     <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">

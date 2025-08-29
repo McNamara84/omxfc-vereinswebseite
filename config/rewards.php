@@ -173,7 +173,7 @@ return [
     ],
     [
         'title' => 'Statistik - TOP20 Maddrax-Themen',
-        'description' => 'Zeigt die 20 am besten bewerteten MADDRAX-Themen im Maddraxikon.',
+        'description' => 'Zeigt die 20 am besten bewerteten MADDRAX-Themen im Maddraxikon. Berücksichtigt nur Romane mit mindestens 8 Bewertungen.',
         'points' => 42,
     ],
     [
