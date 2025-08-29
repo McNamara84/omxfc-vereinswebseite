@@ -121,6 +121,22 @@ class StatistikController extends Controller
             ])
             ->values();
 
+        // ── Card 30 – TOP20 Maddrax-Themen ─────────────────────────────
+        $topThemes = $romane
+            ->flatMap(fn ($r) => collect($r['schlagworte'] ?? [])->map(fn ($s) => [
+                'keyword' => trim($s),
+                'rating' => $r['bewertung'],
+            ]))
+            ->filter(fn ($row) => $row['keyword'] !== '')
+            ->groupBy('keyword')
+            ->map(fn ($rows, $keyword) => [
+                'keyword' => $keyword,
+                'average' => round(collect($rows)->avg('rating'), 2),
+            ])
+            ->sortByDesc('average')
+            ->take(20)
+            ->values();
+
         // ── Card 8 – Bewertungen des Euree-Zyklus ───────────────────────
         $eureeCycle = $romane
             ->filter(fn ($r) => ($r['nummer'] ?? 0) >= 1 && ($r['nummer'] ?? 0) <= 24)
@@ -369,6 +385,7 @@ class StatistikController extends Controller
             'teamplayerTable' => $teamplayerTable,
             'topAuthorRatings' => $topAuthorRatings,
             'topCharacters' => $topCharacters,
+            'topThemes' => $topThemes,
             'userPoints' => $userPoints,
             'romaneTable' => $romaneTable,
             'eureeLabels' => $eureeLabels,

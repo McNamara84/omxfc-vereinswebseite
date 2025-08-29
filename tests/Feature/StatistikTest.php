@@ -53,6 +53,7 @@ class StatistikTest extends TestCase
                 'bewertung' => 4.0,
                 'stimmen' => 10,
                 'personen' => ['Char1', 'Char2'],
+                'schlagworte' => ['Thema1', 'Thema2'],
             ],
             [
                 'nummer' => 2,
@@ -61,6 +62,7 @@ class StatistikTest extends TestCase
                 'bewertung' => 5.0,
                 'stimmen' => 20,
                 'personen' => ['Char2', 'Char3'],
+                'schlagworte' => ['Thema2', 'Thema3'],
             ],
         ];
         $path = storage_path('app/private/maddrax.json');
@@ -643,5 +645,30 @@ class StatistikTest extends TestCase
         $response->assertOk();
         $response->assertSee('Maddrax-Hardcover je Autor:in');
         $response->assertSee('41 Baxx');
+    }
+
+    public function test_top_themes_visible_with_enough_points(): void
+    {
+        $this->createDataFile();
+        $user = $this->actingMemberWithPoints(42);
+        $this->actingAs($user);
+
+        $response = $this->get('/statistik');
+
+        $response->assertOk();
+        $response->assertSee('TOP20 Maddrax-Themen');
+    }
+
+    public function test_top_themes_locked_below_threshold(): void
+    {
+        $this->createDataFile();
+        $user = $this->actingMemberWithPoints(41);
+        $this->actingAs($user);
+
+        $response = $this->get('/statistik');
+
+        $response->assertOk();
+        $response->assertSee('TOP20 Maddrax-Themen');
+        $response->assertSee('42 Baxx');
     }
 }
