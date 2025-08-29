@@ -172,6 +172,11 @@ return [
         'points' => 41,
     ],
     [
+        'title' => 'Statistik - TOP10 Lieblingsthemen',
+        'description' => 'Zeigt die beliebtesten Lieblingsthemen der Mitglieder.',
+        'points' => 50,
+    ],
+    [
         'title' => 'Kompendium-Suche',
         'description' => 'Erlaubt die Volltextsuche im Maddrax-Kompendium.',
         'points' => 100,

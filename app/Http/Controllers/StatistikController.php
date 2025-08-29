@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Review;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
@@ -135,6 +136,20 @@ class StatistikController extends Controller
             ])
             ->sortByDesc('average')
             ->take(20)
+            ->values();
+
+        // ── Card 31 – TOP10 Lieblingsthemen ────────────────────────────
+        $topFavoriteThemes = User::query()
+            ->whereNotNull('lieblingsthema')
+            ->pluck('lieblingsthema')
+            ->filter()
+            ->countBy()
+            ->sortDesc()
+            ->take(3)
+            ->map(fn ($count, $theme) => [
+                'thema' => $theme,
+                'count' => $count,
+            ])
             ->values();
 
         // ── Card 8 – Bewertungen des Euree-Zyklus ───────────────────────
@@ -431,6 +446,7 @@ class StatistikController extends Controller
             'hardcoverLabels' => $hardcoverLabels,
             'hardcoverValues' => $hardcoverValues,
             'hardcoverAuthorCounts' => $hardcoverAuthorCounts,
+            'topFavoriteThemes' => $topFavoriteThemes,
             'totalReviews' => $totalReviews,
             'averageReviewsPerBook' => $averageReviewsPerBook,
             'topReviewers' => $topReviewers,
