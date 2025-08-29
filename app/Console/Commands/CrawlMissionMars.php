@@ -8,21 +8,21 @@ use DOMXPath;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Storage;
 
-class CrawlNovels extends Command
+class CrawlMissionMars extends Command
 {
     /**
      * The name and signature of the console command.
      */
-    protected $signature = 'crawlnovels';
+    protected $signature = 'crawlmissionmars';
 
     /**
      * The console command description.
      */
-    protected $description = 'Crawl maddraxikon.com for novel information';
+    protected $description = 'Crawl maddraxikon.com for Mission Mars novel information';
 
     private const BASE_URL = 'https://de.maddraxikon.com/';
 
-    private const CATEGORY_URL = self::BASE_URL.'index.php?title=Kategorie:Maddrax-Heftromane';
+    private const CATEGORY_URL = self::BASE_URL.'index.php?title=Kategorie:Mission_Mars-Heftromane';
 
     public function handle(): int
     {
@@ -49,16 +49,14 @@ class CrawlNovels extends Command
         $bar->finish();
         $this->newLine();
 
-        $path = Storage::disk('private')->path('maddrax.json');
+        $path = Storage::disk('private')->path('missionmars.json');
         if ($this->writeHeftromane($data, $path)) {
-            $this->info('maddrax.json updated.');
+            $this->info('missionmars.json updated.');
 
-            $this->call(CrawlMissionMars::class);
-
-            return $this->call(CrawlHardcovers::class);
+            return self::SUCCESS;
         }
 
-        $this->error('Failed to write maddrax.json');
+        $this->error('Failed to write missionmars.json');
 
         return self::FAILURE;
     }
