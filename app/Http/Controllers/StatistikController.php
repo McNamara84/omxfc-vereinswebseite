@@ -131,6 +131,7 @@ class StatistikController extends Controller
             ]))
             ->filter(fn ($row) => $row['keyword'] !== '')
             ->groupBy('keyword')
+            ->filter(fn ($rows) => $rows->count() >= 5)
             ->map(fn ($rows, $keyword) => [
                 'keyword' => $keyword,
                 'average' => round(collect($rows)->avg('rating'), 2),

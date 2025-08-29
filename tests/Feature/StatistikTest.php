@@ -698,6 +698,35 @@ class StatistikTest extends TestCase
         $response->assertDontSee('LowVotesTheme');
     }
 
+    public function test_top_themes_require_minimum_book_count(): void
+    {
+        $this->createDataFile();
+        $path = storage_path('app/private/maddrax.json');
+        $data = json_decode(file_get_contents($path), true);
+        for ($i = 3; $i <= 7; $i++) {
+            $data[] = [
+                'nummer' => $i,
+                'titel' => 'Roman'.$i,
+                'text' => ['Author'.$i],
+                'bewertung' => 4.5,
+                'stimmen' => 10,
+                'personen' => [],
+                'schlagworte' => ['PopularTheme'],
+            ];
+        }
+        file_put_contents($path, json_encode($data));
+
+        $user = $this->actingMemberWithPoints(42);
+        $this->actingAs($user);
+
+        $response = $this->get('/statistik');
+
+        $response->assertOk();
+        $response->assertSee('TOP20 Maddrax-Themen');
+        $response->assertSee('PopularTheme');
+        $response->assertDontSee('Thema1');
+    }
+
     public function test_favorite_themes_visible_with_enough_points(): void
     {
         $this->createDataFile();
