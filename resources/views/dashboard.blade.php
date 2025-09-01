@@ -173,6 +173,8 @@
                                 <span class="text-sm">hat die Challenge <a href="{{ route('todos.show', $activity->subject->id) }}" class="text-blue-600 dark:text-blue-400 hover:underline">{{ $activity->subject->title }}</a> angenommen</span>
                             @elseif($activity->subject_type === \App\Models\Todo::class && $activity->action === 'completed')
                                 <span class="text-sm">hat die Challenge <a href="{{ route('todos.show', $activity->subject->id) }}" class="text-blue-600 dark:text-blue-400 hover:underline">{{ $activity->subject->title }}</a> erfolgreich abgeschlossen</span>
+                            @elseif($activity->subject_type === \App\Models\User::class && $activity->action === 'member_approved')
+                                <span class="text-sm">Wir begrüßen unser neues Mitglied <a href="{{ route('profile.view', $activity->subject->id) }}" class="text-[#8B0116] hover:underline">{{ $activity->subject->name }}</a></span>
                             @endif
                         </li>
                     @empty
