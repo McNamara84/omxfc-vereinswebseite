@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Mail\MitgliedGenehmigtMail;
+use App\Models\Activity;
 use App\Models\Review;
 use App\Models\ReviewComment;
 use App\Models\Team;
@@ -13,7 +14,6 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
-use App\Models\Activity;
 
 class DashboardController extends Controller
 {
@@ -160,7 +160,7 @@ class DashboardController extends Controller
                 ->count()
         );
 
-        $activities = Activity::with('user')
+        $activities = Activity::with(['user', 'subject'])
             ->latest()
             ->limit(10)
             ->get();

@@ -169,6 +169,17 @@
                                 <span class="text-sm">
                                     Kommentar zu <a href="{{ route('reviews.show', $activity->subject->review->book_id) }}" class="text-blue-600 dark:text-blue-400 hover:underline">{{ $activity->subject->review->title }}</a> von <a href="{{ route('profile.view', $activity->user->id) }}" class="text-[#8B0116] hover:underline">{{ $activity->user->name }}</a>
                                 </span>
+                            @elseif($activity->subject_type === \App\Models\AdminMessage::class)
+                                <span class="text-sm flex items-center">
+                                    {{ $activity->subject->message }}
+                                    @if(auth()->user()->hasRole('Admin'))
+                                        <form method="POST" action="{{ route('admin.messages.destroy', $activity->subject) }}" class="ml-2">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button class="text-red-500 text-xs" onclick="return confirm('Nachricht löschen?')">Löschen</button>
+                                        </form>
+                                    @endif
+                                </span>
                             @elseif($activity->subject_type === \App\Models\Todo::class && $activity->action === 'accepted')
                                 <span class="text-sm">hat die Challenge <a href="{{ route('todos.show', $activity->subject->id) }}" class="text-blue-600 dark:text-blue-400 hover:underline">{{ $activity->subject->title }}</a> angenommen</span>
                             @elseif($activity->subject_type === \App\Models\Todo::class && $activity->action === 'completed')
