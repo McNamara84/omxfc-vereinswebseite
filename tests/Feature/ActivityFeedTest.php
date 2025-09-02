@@ -15,6 +15,7 @@ use App\Models\Todo;
 use App\Models\TodoCategory;
 use App\Models\ReviewComment;
 use App\Enums\BookType;
+use Illuminate\Support\Facades\Mail;
 
 class ActivityFeedTest extends TestCase
 {
@@ -233,5 +234,26 @@ class ActivityFeedTest extends TestCase
             'subject_id' => $todo->id,
             'action' => 'completed',
         ]);
+    }
+
+    public function test_activity_created_when_member_application_is_approved(): void
+    {
+        Mail::fake();
+        $admin = $this->actingMember('Admin');
+        $team = $admin->currentTeam;
+        $anwaerter = User::factory()->create(['current_team_id' => $team->id]);
+        $team->users()->attach($anwaerter, ['role' => 'Anwärter']);
+
+        $this->actingAs($admin)->post(route('anwaerter.approve', $anwaerter));
+
+        $this->assertDatabaseHas('activities', [
+            'user_id' => $admin->id,
+            'subject_type' => User::class,
+            'subject_id' => $anwaerter->id,
+            'action' => 'member_approved',
+        ]);
+
+        $dashboard = $this->get('/dashboard');
+        $dashboard->assertSeeText('Wir begrüßen unser neues Mitglied ' . $anwaerter->name);
     }
 }

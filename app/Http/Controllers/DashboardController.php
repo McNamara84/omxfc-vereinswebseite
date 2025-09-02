@@ -191,6 +191,13 @@ class DashboardController extends Controller
         $user->save();
         Mail::to($user->email)->queue(new MitgliedGenehmigtMail($user));
 
+        Activity::create([
+            'user_id' => Auth::id(),
+            'subject_type' => User::class,
+            'subject_id' => $user->id,
+            'action' => 'member_approved',
+        ]);
+
         Cache::forget("member_count_{$team->id}");
         Cache::forget("anwaerter_{$team->id}");
 
