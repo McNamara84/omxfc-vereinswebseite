@@ -52,6 +52,7 @@ jobs:
         tools: composer:v2
 
     - name: Setup Node.js
+      if: matrix.php-version == '8.3'
       uses: actions/setup-node@v4
       with:
         node-version: '20'
@@ -72,9 +73,11 @@ jobs:
       run: composer install --no-progress --prefer-dist --optimize-autoloader --no-interaction
 
     - name: Install NPM dependencies
+      if: matrix.php-version == '8.3'
       run: npm ci
 
     - name: Build assets
+      if: matrix.php-version == '8.3'
       run: npm run build
 
     - name: Copy .env
@@ -98,6 +101,7 @@ jobs:
       run: php artisan test tests/Feature --coverage-clover=coverage.xml
 
     - name: Run Jest tests with coverage
+      if: matrix.php-version == '8.3'
       run: npm test -- --coverage --coverageReporters=json-summary --coverageDirectory=coverage
 
     - name: Create JS coverage badge
