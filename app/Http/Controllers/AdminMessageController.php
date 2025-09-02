@@ -39,7 +39,7 @@ class AdminMessageController extends Controller
 
     public function destroy(AdminMessage $message)
     {
-        $message->activity()->delete();
+        $message->activity?->delete();
         $message->delete();
 
         return back()->with('status', 'Nachricht gelöscht.');
