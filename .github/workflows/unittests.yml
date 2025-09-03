@@ -10,9 +10,61 @@ permissions:
   contents: write
 
 jobs:
-  laravel-tests:
+  build-frontend:
     runs-on: ubuntu-latest
-    
+    name: Build frontend assets
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+
+    - name: Install NPM dependencies
+      run: npm ci
+
+    - name: Build assets
+      run: npm run build
+
+    - name: Run Jest tests with coverage
+      run: npm test -- --coverage --coverageReporters=json-summary --coverageDirectory=coverage
+
+    - name: Create JS coverage badge
+      if: github.ref == 'refs/heads/main'
+      run: |
+        mkdir -p output
+        if [ ! -f "coverage/coverage-summary.json" ]; then
+          echo "coverage/coverage-summary.json not found" >&2
+          exit 1
+        fi
+        npx --yes make-coverage-badge --report-path=coverage/coverage-summary.json --output-path=output/js-coverage.svg
+        if [ ! -f output/js-coverage.svg ]; then
+          echo "JS coverage badge was not created" >&2
+          exit 1
+        fi
+        sed -i 's/Coverage/JS Coverage/' output/js-coverage.svg
+
+    - name: Upload built assets
+      uses: actions/upload-artifact@v3
+      with:
+        name: public-build
+        path: public/build
+
+    - name: Upload JS coverage badge
+      if: github.ref == 'refs/heads/main'
+      uses: actions/upload-artifact@v3
+      with:
+        name: js-coverage-badge
+        path: output/js-coverage.svg
+
+  laravel-tests:
+    needs: build-frontend
+    runs-on: ubuntu-latest
+
     strategy:
       fail-fast: false
       matrix:
@@ -43,6 +95,12 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
+    - name: Download built assets
+      uses: actions/download-artifact@v3
+      with:
+        name: public-build
+        path: public/build
+
     - name: Setup PHP ${{ matrix.php-version }}
       uses: shivammathur/setup-php@v2
       with:
@@ -50,13 +108,6 @@ jobs:
         extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite, bcmath, soap, intl, gd, exif, iconv, imagick, fileinfo, pdo_mysql, xdebug
         coverage: xdebug
         tools: composer:v2
-
-    - name: Setup Node.js
-      if: matrix.php-version == '8.3'
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20'
-        cache: 'npm'
 
     - name: Get composer cache directory
       id: composer-cache
@@ -71,14 +122,6 @@ jobs:
 
     - name: Install Composer dependencies
       run: composer install --no-progress --prefer-dist --optimize-autoloader --no-interaction
-
-    - name: Install NPM dependencies
-      if: matrix.php-version == '8.3'
-      run: npm ci
-
-    - name: Build assets
-      if: matrix.php-version == '8.3'
-      run: npm run build
 
     - name: Copy .env
       run: php -r "file_exists('.env') || copy('.env.example', '.env');"
@@ -100,25 +143,6 @@ jobs:
         XDEBUG_MODE: coverage
       run: php artisan test tests/Feature --coverage-clover=coverage.xml
 
-    - name: Run Jest tests with coverage
-      if: matrix.php-version == '8.3'
-      run: npm test -- --coverage --coverageReporters=json-summary --coverageDirectory=coverage
-
-    - name: Create JS coverage badge
-      if: matrix.php-version == '8.3' && github.ref == 'refs/heads/main'
-      run: |
-        mkdir -p output
-        if [ ! -f "coverage/coverage-summary.json" ]; then
-          echo "coverage/coverage-summary.json not found" >&2
-          exit 1
-        fi
-        npx --yes make-coverage-badge --report-path=coverage/coverage-summary.json --output-path=output/js-coverage.svg
-        if [ ! -f output/js-coverage.svg ]; then
-          echo "JS coverage badge was not created" >&2
-          exit 1
-        fi
-        sed -i 's/Coverage/JS Coverage/' output/js-coverage.svg
-
     - name: Create PHP coverage badge
       if: matrix.php-version == '8.3' && github.ref == 'refs/heads/main'
       uses: timkrase/phpunit-coverage-badge@v1.2.1
@@ -126,6 +150,13 @@ jobs:
         report: coverage.xml
         coverage_badge_path: output/php-coverage.svg
         push_badge: false
+
+    - name: Download JS coverage badge
+      if: matrix.php-version == '8.3' && github.ref == 'refs/heads/main'
+      uses: actions/download-artifact@v3
+      with:
+        name: js-coverage-badge
+        path: output
 
     - name: Customize PHP coverage badge label
       if: matrix.php-version == '8.3' && github.ref == 'refs/heads/main'
