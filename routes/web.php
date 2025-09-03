@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\AdminMessageController;
 use App\Http\Controllers\ArbeitsgruppenController;
 use App\Http\Controllers\Auth\CustomEmailVerificationController;
 use App\Http\Controllers\DashboardController;
@@ -71,6 +72,12 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
     Route::prefix('newsletter')->name('newsletter.')->controller(NewsletterController::class)->middleware('admin')->group(function () {
         Route::get('versenden', 'create')->name('create');
         Route::post('versenden', 'send')->name('send');
+    });
+
+    Route::prefix('admin/messages')->name('admin.messages.')->controller(AdminMessageController::class)->middleware('admin')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::post('/', 'store')->name('store');
+        Route::delete('{message}', 'destroy')->name('destroy');
     });
 
     Route::prefix('mitglieder')->name('mitglieder.')->controller(MitgliederController::class)->group(function () {
