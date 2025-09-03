@@ -13,14 +13,14 @@ class ImportMaddraxBooks extends Command
      *
      * @var string
      */
-    protected $signature = 'books:import {--path=private/maddrax.json : Path to novels JSON file relative to storage/app} {--hardcovers-path=private/hardcovers.json : Path to hardcovers JSON file relative to storage/app}';
+    protected $signature = 'books:import {--path=private/maddrax.json : Path to novels JSON file relative to storage/app} {--hardcovers-path=private/hardcovers.json : Path to hardcovers JSON file relative to storage/app} {--missionmars-path=private/missionmars.json : Path to Mission Mars novels JSON file relative to storage/app}';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Import books from maddrax.json and hardcovers.json into the books table';
+    protected $description = 'Import books from maddrax.json, hardcovers.json and missionmars.json into the books table';
 
     /**
      * Execute the console command.
@@ -29,11 +29,13 @@ class ImportMaddraxBooks extends Command
     {
         $novelsPath = $this->option('path');
         $hardcoversPath = $this->option('hardcovers-path');
+        $missionMarsPath = $this->option('missionmars-path');
 
         $novelsResult = $this->importFile($novelsPath, BookType::MaddraxDieDunkleZukunftDerErde);
         $hardcoversResult = $this->importFile($hardcoversPath, BookType::MaddraxHardcover);
+        $missionMarsResult = $this->importFile($missionMarsPath, BookType::MissionMars);
 
-        return ($novelsResult || $hardcoversResult) ? 0 : 1;
+        return ($novelsResult || $hardcoversResult || $missionMarsResult) ? 0 : 1;
     }
 
     private function importFile(string $path, BookType $type): bool
