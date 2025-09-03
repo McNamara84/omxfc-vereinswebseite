@@ -2358,7 +2358,7 @@
             "San Fernando Valley",
             "Bevvely",
             "Central Station",
-            "St. George Cathedrale"
+            "St. George Cathedral"
         ]
     },
     {
@@ -2768,9 +2768,7 @@
         "orte": [
             "Alaska Highway",
             "Vancouver",
-            "Polarkreis",
-            "Edmonton",
-            "Kratersee"
+            "Polarkreis"
         ]
     },
     {
@@ -5550,7 +5548,7 @@
             "Douglas Haverson",
             "Mr. Hacker",
             "Miller",
-            "Savage",
+            "Savage (Washington Rangers)",
             "Tiffany Jackson",
             "Wiliams",
             "Turnhout",
@@ -12968,7 +12966,6 @@
             "Miki Takeo",
             "Aiko Tsuyoshi",
             "Arthur Crow",
-            "Matthew Drax",
             "Westmoreland",
             "Obama",
             "McChrystal",
@@ -15467,7 +15464,18 @@
             "Try'kon",
             "Zar'kir"
         ],
-        "schlagworte": null,
+        "schlagworte": [
+            "Jenny Jensen",
+            "Skorm'ak",
+            "Hydriten",
+            "Hykton",
+            "Quan'rill",
+            "Ei'don",
+            "Gilam'esh",
+            "En'jak",
+            "Streiter",
+            "Bionetik"
+        ],
         "orte": [
             "Alanta-See",
             "En'jak",
@@ -15498,7 +15506,18 @@
             "Samugaar",
             "AV-01"
         ],
-        "schlagworte": null,
+        "schlagworte": [
+            "Miki Takeo",
+            "EMP-Strahler",
+            "Metallos",
+            "Verzerrte Indios",
+            "Pyramide",
+            "Waffenphalanx",
+            "AV-01",
+            "Entartetes Tor",
+            "Energiesph\u00e4re",
+            "Magtron-Schl\u00fcssel"
+        ],
         "orte": [
             "Mondshuttle",
             "Mond",
@@ -15536,7 +15555,18 @@
             "Leonard Pellam",
             "Albert Beggar"
         ],
-        "schlagworte": null,
+        "schlagworte": [
+            "Archivar",
+            "Aruula",
+            "Superior Magtron",
+            "Canduly Castle",
+            "Schlangengiftserum",
+            "Mondshuttle",
+            "Rulfan",
+            "Dreizehn Inseln",
+            "Hirnscanner",
+            "Mimikrypter"
+        ],
         "orte": [
             "Canduly Castle"
         ]
@@ -15564,7 +15594,18 @@
             "Aruula",
             "Meg"
         ],
-        "schlagworte": null,
+        "schlagworte": [
+            "Miki Takeo",
+            "General Fudoh",
+            "Arthur Crow",
+            "Keran",
+            "Amarillo",
+            "Androidenk\u00f6rper",
+            "Bewusstseins\u00fcbertragung",
+            "Aiko",
+            "Medical Science Center",
+            "Blitzwerfer"
+        ],
         "orte": [
             "Amarillo",
             "El'ay",
@@ -15607,7 +15648,18 @@
             "Skorm'ak",
             "Trashcan Kid"
         ],
-        "schlagworte": null,
+        "schlagworte": [
+            "Samugaar",
+            "Holo-Projektor",
+            "Superior Magtron",
+            "Hykton",
+            "Schlangengiftserum",
+            "Skorm'ak",
+            "Waashton",
+            "Pentagon",
+            "Aruula",
+            "Hydriten"
+        ],
         "orte": [
             "Meeko",
             "Naval Amphibious Base Little Creek",
@@ -15644,7 +15696,18 @@
             "Heedi",
             "Johnsy"
         ],
-        "schlagworte": null,
+        "schlagworte": [
+            "Frosen",
+            "Eisw\u00fcrmer",
+            "Nuu\u02bcork",
+            "Staydiom",
+            "Melter",
+            "Greevjard",
+            "K\u00f6nigin der Frosen",
+            "Tek",
+            "Thermonauten",
+            "Irving"
+        ],
         "orte": [
             "Waashton",
             "Nuu'ork",
@@ -15677,7 +15740,18 @@
             "Mellrich",
             "Winfryd"
         ],
-        "schlagworte": null,
+        "schlagworte": [
+            "Zeitschleife",
+            "Aruula",
+            "Samugaar",
+            "Ursprung",
+            "Streiter",
+            "Ursprungsw\u00c3\u00a4chter",
+            "Anti-Zeit",
+            "Tachyonen",
+            "CARTER IV",
+            "Exoskelett"
+        ],
         "orte": [
             "Ursprung",
             "Labor von Meinhart Steintrieb"
@@ -15725,7 +15799,18 @@
             "Sebastian Eisenmann",
             "Albert Beggar"
         ],
-        "schlagworte": null,
+        "schlagworte": [
+            "Buggs",
+            "Salisbury",
+            "Archivar",
+            "Daana",
+            "Ronn",
+            "PROTO",
+            "Bunker",
+            "Superior Magtron",
+            "Wasps",
+            "Sir Leonard Gabriel"
+        ],
         "orte": [
             "Amees",
             "Bilboo",
@@ -15769,7 +15854,18 @@
             "Samugaar",
             "Lucy Toons"
         ],
-        "schlagworte": null,
+        "schlagworte": [
+            "Gal'hal'ira",
+            "Archivar",
+            "Salisbury",
+            "Sir Leonard Gabriel",
+            "Ch'zzarak",
+            "Laserstrahl",
+            "PROTO",
+            "Todesrochen",
+            "Bilbao",
+            "Wespen"
+        ],
         "orte": [
             "Kratersee",
             "Salbuur",
@@ -15801,7 +15897,18 @@
             "Wallace Trace",
             "Alexander Pofski"
         ],
-        "schlagworte": null,
+        "schlagworte": [
+            "Nanobots",
+            "Steintriebs Labor",
+            "Retrologen",
+            "Zeitschleife",
+            "Exoskelett",
+            "Samugaar",
+            "Hunt",
+            "Schlangengiftserum",
+            "Todeszone",
+            "CF-Funkger\u00e4t"
+        ],
         "orte": [
             "Todeszone",
             "Labor von Meinhart Steintrieb",
@@ -15833,7 +15940,18 @@
             "Albert Beggar",
             "Gal'hal'ira"
         ],
-        "schlagworte": null,
+        "schlagworte": [
+            "Bor\u00e1n",
+            "Nanobots",
+            "Samugaar",
+            "Aruula",
+            "Mondshuttle",
+            "Canduly Castle",
+            "Raumanz\u00fcge",
+            "Puerto Rico",
+            "Elektrowellen-Echolot",
+            "Agartha"
+        ],
         "orte": [
             "Britana",
             "Alanta-See",
@@ -15882,7 +16000,18 @@
             "Wasel",
             "Norbu Kim"
         ],
-        "schlagworte": null,
+        "schlagworte": [
+            "Nanobots",
+            "Agartha",
+            "Warrior",
+            "J\u00fclzel",
+            "Samugaar",
+            "Aruula",
+            "Hemmkralle",
+            "Tsering Kyi",
+            "Lh\u00fcndrub",
+            "Rabten"
+        ],
         "orte": [
             "Agartha",
             "Lhaase",
@@ -15926,7 +16055,18 @@
             "Lotsawa",
             "\u00d6ser \u00d6sel"
         ],
-        "schlagworte": null,
+        "schlagworte": [
+            "Agartha",
+            "Warriors",
+            "Nanobots",
+            "Samugaar",
+            "Code Wangchug",
+            "Aruula",
+            "Khyentse",
+            "Geheime Kammern",
+            "Spinnennetz",
+            "Magtron-Schl\u00fcssel"
+        ],
         "orte": [
             "Puerto Rico",
             "Alanta-See",
@@ -15965,7 +16105,18 @@
             "Sam Yurti",
             "Anton Barbarossa Villaramos"
         ],
-        "schlagworte": null,
+        "schlagworte": [
+            "Miki Takeo",
+            "Arthur Crow",
+            "Amarillo",
+            "El'ay",
+            "Angelica Ironside",
+            "Brina",
+            "Jellos",
+            "Androidenk\u00f6rper",
+            "Ged\u00e4chtnischip",
+            "Stadtschutztruppe"
+        ],
         "orte": [
             "Amarillo",
             "El'ay",
@@ -16011,7 +16162,18 @@
             "Quart'ol",
             "Bel'ar"
         ],
-        "schlagworte": null,
+        "schlagworte": [
+            "Fish'manta'kan",
+            "Quartol",
+            "Augure",
+            "Zeitportal",
+            "Anquas",
+            "Hydriten",
+            "Samugaar",
+            "Hykton",
+            "Dapur",
+            "Tir'mesh"
+        ],
         "orte": [
             "Cuxhaven",
             "Dapur (Wasser-Welt)",
@@ -16046,7 +16208,18 @@
             "Tombe",
             "Zir'tek"
         ],
-        "schlagworte": null,
+        "schlagworte": [
+            "Quart'ol",
+            "Zeitblase",
+            "Fl\u00e4chenr\u00e4umer",
+            "Hykton",
+            "Nabisa",
+            "Jelam'gesh",
+            "Tor'dill",
+            "HydRat",
+            "Geistverschmelzung",
+            "Tom Ericson"
+        ],
         "orte": [
             "Fl\u00e4chenr\u00e4umer",
             "Hykton",
@@ -16075,7 +16248,18 @@
             "Quart'ol",
             "AV-02"
         ],
-        "schlagworte": null,
+        "schlagworte": [
+            "Samugaar",
+            "Zeitloser Raum",
+            "Archivare",
+            "Waffenphalanx",
+            "Superior Magtron",
+            "Tom Ericson",
+            "Aruula",
+            "Matthew Drax",
+            "Nanobots",
+            "Wolkeninduktor"
+        ],
         "orte": [
             "Alanta-See",
             "Campeche",
@@ -16103,7 +16287,18 @@
             "Zuul",
             "H\u00f6chster Dom\u00e4nenw\u00e4chter"
         ],
-        "schlagworte": null,
+        "schlagworte": [
+            "Zeitloser Raum",
+            "Samugaar",
+            "Dom\u00e4ne",
+            "Wolkeninduktor",
+            "Aruula",
+            "Archivare",
+            "Riskarium",
+            "Artefakte",
+            "Tom Ericson",
+            "Lebender Stein"
+        ],
         "orte": [
             "Zeitloser Raum",
             "Dom\u00e4ne",
@@ -16137,7 +16332,18 @@
             "Wudans Auge",
             "Yaaba"
         ],
-        "schlagworte": null,
+        "schlagworte": [
+            "Transkommunikator",
+            "Papa Anastaa",
+            "Nuuoleens",
+            "Wudans Auge",
+            "Queen Latifeeh",
+            "Olman'riva",
+            "Wichard Tymbel",
+            "Artefakte",
+            "zeitloser Raum",
+            "Scanner"
+        ],
         "orte": [
             "Campeche",
             "Nuu'oleens"
@@ -16151,8 +16357,8 @@
         "text": [
             "Christian Schwarz"
         ],
-        "bewertung": 2.92,
-        "stimmen": 13,
+        "bewertung": 2.93,
+        "stimmen": 14,
         "personen": [
             "Aruula",
             "Bertree",
@@ -16164,15 +16370,26 @@
             "Morgan Watts",
             "Asgan Pourt Tsuyoshi"
         ],
-        "schlagworte": null,
-        "orte": [
-            "Niagara",
-            "Nigaara Falls",
-            "New Orleans",
+        "schlagworte": [
+            "Eluu",
+            "Artefakt-Scanner",
             "AKINA",
-            "Waashton",
-            "Maine",
-            "Puerto Rico"
+            "Nigaara",
+            "Creens",
+            "Nanobots-Ausschalter",
+            "Wudans Weissagung",
+            "Eissegler",
+            "Journey behind the Falls",
+            "Dexter Wang"
+        ],
+        "orte": [
+            "Nigaara",
+            "Nigaara Falls",
+            "Skoon-Turm",
+            "Miinta-Turm",
+            "Journey behind the Falls",
+            "Nuu'oleens",
+            "AKINA"
         ]
     },
     {
@@ -16183,29 +16400,45 @@
         "text": [
             "Ansgar Back"
         ],
-        "bewertung": 3.42,
-        "stimmen": 12,
+        "bewertung": 3.38,
+        "stimmen": 13,
         "personen": [
-            "Aruula",
             "Matthew Drax",
-            "Ole Jenkins",
-            "Karras",
+            "Aruula",
+            "Ulzanos",
+            "Tarnak",
             "Lykar",
-            "Moose",
+            "Zargoth",
+            "Wladroc",
+            "Dramaar",
+            "Karras",
             "Angus Scott",
             "Malcolm Scott",
-            "Tarnak",
+            "Ole Jenkins",
+            "Moose",
+            "Eli",
             "Toble",
-            "Ulzanos",
-            "Wladroc",
-            "Zargoth",
-            "Eli"
+            "Carmelita",
+            "Dutch",
+            "Hank"
         ],
-        "schlagworte": null,
+        "schlagworte": [
+            "ELF-Generator",
+            "Wulfanen",
+            "Gridlock",
+            "Toecutta",
+            "Maine",
+            "Creoks",
+            "Kraftwerk",
+            "Retrologe",
+            "Shuttle",
+            "Ulzanos"
+        ],
         "orte": [
             "Maine",
             "Gridlock",
-            "Toecutta"
+            "Toecutta",
+            "Dedd Piig"
         ]
     },
     {
@@ -16243,15 +16476,32 @@
             "Trashcan Kid",
             "Rev'rend Vengeance"
         ],
-        "schlagworte": null,
+        "schlagworte": [
+            "Arthur Crow",
+            "Androidenk\u00f6rper",
+            "Supersoldaten-Chip",
+            "Waashton",
+            "Jellos",
+            "Angelica Ironside",
+            "Schatten",
+            "Pentagon-Bunker",
+            "Crootu",
+            "Miki Takeo"
+        ],
         "orte": [
             "El'ay",
             "Waashton",
             "Pentagon-Bunker",
             "St. Patricks Church",
             "Astalavista-Bar",
+            "Madison Avenue",
             "Wei\u00dfes Haus",
-            "Waashton Monument"
+            "Waashton Monument",
+            "City Hall",
+            "Union Station",
+            "Central Station",
+            "Theodore Roosevelt Memorial Bridge",
+            "Potomac River"
         ]
     },
     {
@@ -16265,6 +16515,7 @@
         "bewertung": 3.62,
         "stimmen": 13,
         "personen": [
+            "Samuel Aiko Hardy-Bosh",
             "Aruula",
             "Sigur Bosh",
             "Hedda Buckfield",
@@ -16273,6 +16524,7 @@
             "Crootu",
             "Matthew Drax",
             "Johanna Dylan",
+            "Diego Garrett",
             "Kareen Hardy",
             "Yanna Hitking",
             "Chan Huh",
@@ -16295,17 +16547,35 @@
             "Miki Takeo",
             "Trashcan Kid"
         ],
-        "schlagworte": null,
+        "schlagworte": [
+            "Waashton Monument",
+            "Arthur Crow",
+            "Androidenk\u00f6rper",
+            "Befreiungsaktion",
+            "Jellos",
+            "Buckfield-Ranch",
+            "Pentagon",
+            "Trashcan Kids",
+            "WCA Freedom",
+            "Shuttle"
+        ],
         "orte": [
             "Waashton",
             "Waashton Monument",
             "Capitol",
             "Zur durstigen Wisaau",
-            "Umerziehungslager",
             "Buckfield-Ranch",
-            "Pentagon",
+            "Pentagon-Bunker",
             "Appalachen",
-            "Cinnatown"
+            "Cinnatown",
+            "Wei\u00dfes Haus",
+            "Ellipse",
+            "14th Street Bridge",
+            "St. Patricks Church",
+            "Renwick Gallery",
+            "Octagon Museum",
+            "Potomac",
+            "Umerziehungslager"
         ]
     },
     {
@@ -16335,16 +16605,32 @@
             "Rebecca Spencer",
             "Taroo",
             "Waruu",
-            "Enni"
+            "Enni",
+            "Teriis",
+            "Maluu",
+            "Moony"
         ],
-        "schlagworte": null,
+        "schlagworte": [
+            "Artefakte",
+            "Nanobots",
+            "Bestienkrieger",
+            "Wudans Prophezeiung",
+            "Emotiorekorder",
+            "Cliffs of Moher",
+            "Galhal'ira",
+            "Hyeenas",
+            "Kratersee",
+            "Sklavenhandel"
+        ],
         "orte": [
             "Puerto Rico",
+            "Ponce",
             "Eirii",
             "Corkaich",
             "Cliffs of Moher",
             "Hazieenda",
-            "Kratersee"
+            "Kratersee",
+            "Dublin"
         ]
     },
     {
@@ -16364,9 +16650,21 @@
             "Sebastian Eisenmann",
             "Myrial",
             "Rulfan (Person)",
-            "Soloona"
+            "Soloona",
+            "Juefaan"
         ],
-        "schlagworte": null,
+        "schlagworte": [
+            "AKINA",
+            "K\u00e4lteschlaf",
+            "Riesenmilbe",
+            "Soloona",
+            "Mars",
+            "Artefakte",
+            "Canduly Castle",
+            "Zwergbatera",
+            "Shuttle",
+            "Artefaktscanner"
+        ],
         "orte": [
             "AKINA",
             "Corkaich",
@@ -16402,9 +16700,21 @@
             "Windt\u00e4nzer",
             "Leto Jolar Angelis",
             "Moby",
-            "Loreen"
+            "Loreen",
+            "Schwarzwurzel"
         ],
-        "schlagworte": null,
+        "schlagworte": [
+            "Windt\u00e4nzer",
+            "Elysium",
+            "Widerstand",
+            "Waldleute",
+            "St\u00e4dter",
+            "Dunkle Tage",
+            "Chandra Tsuyoshi",
+            "Regierungstower",
+            "Mars",
+            "Londo"
+        ],
         "orte": [
             "Elysium",
             "Regierungstower in Elysium",
@@ -16441,9 +16751,24 @@
             "Londo Lorres Tsuyoshi",
             "Nomi Marlyn Tsuyoshi",
             "Windt\u00e4nzer",
-            "Leto Jolar Angelis"
+            "Leto Jolar Angelis",
+            "Trevor Ynis",
+            "Molly Singh",
+            "Moby",
+            "Loreen"
         ],
-        "schlagworte": null,
+        "schlagworte": [
+            "Windt\u00e4nzer",
+            "Zeitstrahl",
+            "Rebellion",
+            "Raumwerft",
+            "Streiter",
+            "Schwarze Kristalle",
+            "Waldleute",
+            "Dunkle Tage",
+            "Matthew Drax",
+            "Regierungstower"
+        ],
         "orte": [
             "Raumwerft auf Phobos",
             "Elysium",
@@ -16451,7 +16776,12 @@
             "Tunnelfeldanlage",
             "Elysium Mons",
             "Tartaros",
-            "AKINA"
+            "AKINA",
+            "Utopia",
+            "Phoenix",
+            "Bradbury",
+            "Hope",
+            "Noctis Labyrinthus"
         ]
     },
     {
@@ -16479,12 +16809,29 @@
             "Vanja",
             "Vulkin",
             "Staanlas",
-            "Oleef"
+            "Oleef",
+            "Ronjak",
+            "Jussip",
+            "Nezra"
         ],
-        "schlagworte": null,
+        "schlagworte": [
+            "Triffids",
+            "Gdaans",
+            "Marcin Ogromnek",
+            "Zeitstrahl",
+            "Amazonen",
+            "Magnetschweber",
+            "Antidot",
+            "Alekksa",
+            "Rebellen",
+            "2544"
+        ],
         "orte": [
             "Gdaans",
-            "Zeltstadt"
+            "Zeltstadt",
+            "Festung von Gdaans",
+            "Zum goldenen Anker",
+            "Avarron"
         ]
     },
     {
@@ -16507,15 +16854,45 @@
             "Tem\u00fcdschin",
             "Usmarow",
             "Vladimiir",
-            "Wochow"
+            "Wochow",
+            "Kamil",
+            "Soflak",
+            "Arek",
+            "Edyta Razuschkoij",
+            "Marek Rada",
+            "Ivan",
+            "Pratportschik"
         ],
-        "schlagworte": null,
+        "schlagworte": [
+            "Erh\u00f6her",
+            "Tem\u00fcdschin",
+            "Telekinese",
+            "Moska",
+            "Bluttempler",
+            "Bunker Ramenki",
+            "Gehorsamsserum",
+            "Tscheenen",
+            "Schwarze Philosophen",
+            "Navok"
+        ],
         "orte": [
             "Moska",
             "Ordensburg",
             "Bolschoi-Theater",
             "Ramenki",
-            "Dorf der Tscheenen"
+            "Dorf der Tscheenen",
+            "Roter Grund",
+            "Uliza Twerska",
+            "Kitaigorod",
+            "Arbatskaja",
+            "Moscow City",
+            "Zaritsch-Puutin-Herberge",
+            "Borschtsch",
+            "Rasputin 4",
+            "Arbatskaja",
+            "Moskwa",
+            "Karakorum",
+            "Nowodewitschi"
         ]
     },
     {
@@ -16529,6 +16906,8 @@
         "bewertung": 3.18,
         "stimmen": 11,
         "personen": [
+            "Matthew Drax",
+            "Aruula",
             "Archi",
             "Karchi Bhawnaa",
             "Crik",
@@ -16543,15 +16922,27 @@
             "Taylor",
             "Kir'iye",
             "Sichaa",
-            "Karchi Bhawnaa"
+            "Meks"
         ],
-        "schlagworte": null,
+        "schlagworte": [
+            "Kratersee",
+            "Todesrochen",
+            "Wei\u00dfe Stadt",
+            "Daa'muren",
+            "PROTO",
+            "Antarktis",
+            "Kir'iye",
+            "Kraterseev\u00f6lker",
+            "Gal'hal'ira",
+            "Grao'sil'aana"
+        ],
         "orte": [
             "Kratersee",
             "Antakis",
             "Induu",
             "Astaana",
-            "Hydrabaa"
+            "Hydrabaa",
+            "MISS DAISE"
         ]
     },
     {
@@ -16578,13 +16969,31 @@
             "Kisho Kurokawa",
             "Nasarbajew",
             "Nastir'die",
-            "Igor Pekez"
+            "Igor Pekez",
+            "Kir'iye",
+            "Inon\u00fcr",
+            "Oleg (Astana)"
         ],
-        "schlagworte": null,
+        "schlagworte": [
+            "Nano-Assembler",
+            "Astaana",
+            "Bionetik",
+            "Kratersee",
+            "Christopher-Floyd",
+            "Igor Pekez",
+            "Koo'kesh",
+            "Galhal'ira",
+            "Bajterek-Turm",
+            "Hiltesh"
+        ],
         "orte": [
             "Astaana",
             "Kratersee",
-            "Canduly Castle"
+            "Canduly Castle",
+            "Bajterek-Turm",
+            "Esil",
+            "Astana Tower",
+            "Pyramide des Friedens"
         ]
     },
     {
@@ -16607,14 +17016,32 @@
             "Sepp N\u00fcssli",
             "Pabst",
             "Siebenter Sekret\u00e4r",
-            "Wanja (R\u00e4uber)"
+            "Wanja (R\u00e4uber)",
+            "Gennadi",
+            "Ninozka",
+            "Iwo",
+            "Wlaadi",
+            "Aleex"
         ],
-        "schlagworte": null,
+        "schlagworte": [
+            "Sepp N\u00fcssli",
+            "Vatikanischer Geheimdienst",
+            "Kristianer",
+            "Pleskawitza",
+            "Festung Skunsa",
+            "Algis",
+            "Zerophiler",
+            "Goldbarren",
+            "Tsaarewytz Mischa",
+            "Wanja"
+        ],
         "orte": [
             "Pleskawitza",
             "Zum durstigen Nosfera",
             "Skunsa",
-            "Zum l\u00fcsternen Kosaken"
+            "Zum l\u00fcsternen Kosaken",
+            "Kloster des Niklassianer-Ordens",
+            "Pitza-Patza"
         ]
     },
     {
@@ -16646,12 +17073,28 @@
             "Lucy Toons",
             "Damon Marshall Tsuyoshi"
         ],
-        "schlagworte": null,
+        "schlagworte": [
+            "Schwarze Philosophen",
+            "Artefakte",
+            "Symbiont",
+            "Aleister Crowley",
+            "Ritter der Scheiben",
+            "Canduly Castle",
+            "Eibrex",
+            "Dunkler Ritter",
+            "Zeitsprung",
+            "Ged\u00e4chtnisl\u00f6schung"
+        ],
         "orte": [
+            "Ausala",
             "Canduly Castle",
             "Glesgo",
+            "EIBREX",
             "Loch Lomond",
-            "Luss Parish Church"
+            "Luss Parish Church",
+            "Zur hungrigen Ziege",
+            "Luss Parish Church",
+            "Prototyp XP-1"
         ]
     },
     {
@@ -16670,14 +17113,38 @@
             "Xij Hamlet",
             "Samugaar",
             "Xaana",
-            "Zuul"
+            "Zuul",
+            "Matthew Drax",
+            "Aruula",
+            "Zack'ne",
+            "Bun'daa"
         ],
-        "schlagworte": null,
+        "schlagworte": [
+            "Zeitloser Raum",
+            "Archivare",
+            "M\u00f6biustor",
+            "Projekt Individualit\u00e4t",
+            "Aversionstherapie",
+            "Tom Ericson",
+            "Matthew Drax",
+            "Artefakte",
+            "\u00c4u\u00dfere Dom\u00e4ne",
+            "Emotionsmodulator"
+        ],
         "orte": [
             "Dom\u00e4ne",
+            "\u00c4u\u00dfere Dom\u00e4ne",
+            "Wissensdom",
+            "Institut f\u00fcr K\u00f6rperaufbereitung",
+            "Neuz\u00fcchtung und Wiederbeseelung",
+            "Riskarium",
             "Garrth-Welt",
             "Liverdon-Welt",
-            "Zeitloser Raum"
+            "Zeitloser Raum",
+            "Resozialisierungskammer",
+            "Architektenklause",
+            "Glasgow",
+            "EIBREX"
         ]
     },
     {
@@ -16699,7 +17166,7 @@
             "Friedrich",
             "Gustav",
             "Annegret",
-            "Blazkowicz",
+            "B. J. Blazkowicz",
             "Himmbeer",
             "K\u00fcbbels",
             "Matthew Drax",
@@ -16709,13 +17176,29 @@
             "Jaira McDuncan",
             "Aleister Crowley",
             "Adolf Hitler",
-            "Margarete"
+            "Margarete",
+            "Sepp K\u00fcbbels",
+            "Heinz Himmbeer"
         ],
-        "schlagworte": null,
+        "schlagworte": [
+            "Sonnenscheibe",
+            "Wewelsburg",
+            "Schwarze Philosophen",
+            "Robot-Hitler",
+            "Reichsflugscheiben",
+            "Parallelwelt",
+            "Translokator",
+            "Nazi-Enklave",
+            "Schwarze Sonne",
+            "Symbiont"
+        ],
         "orte": [
+            "Doyzland",
+            "Prototyp XP-1",
             "Wewelsburg",
             "Wewelsburg (Faschisten-Welt)",
-            "Faschisten-Welt"
+            "Faschisten-Welt",
+            "Teutoburger Wald"
         ]
     },
     {
@@ -16753,19 +17236,49 @@
             "Sabeen",
             "Staffan",
             "Suusa",
-            "Tumaara"
+            "Tumaara",
+            "Oloof",
+            "Wudans Auge",
+            "Elisuu",
+            "Wudan",
+            "Berghain",
+            "Kurriehwuust"
         ],
-        "schlagworte": null,
+        "schlagworte": [
+            "Wudansburg",
+            "PROTO",
+            "Anastaasa",
+            "VR-Maschine",
+            "Amazonen",
+            "Sebezaans",
+            "Elnak",
+            "Wudan essen",
+            "Beelinn",
+            "Dreizehn Inseln"
+        ],
         "orte": [
             "Beelinn",
+            "Gendarmenmarkt",
+            "Kanzleramt",
+            "Flughafen Berlin-Brandenburg",
+            "Deutsches Technikmuseum",
+            "Spreeya",
             "Dreizehn Inseln",
             "Kalter Sund",
             "K\u00f6niginneninsel",
+            "Astrid-Insel",
+            "Eselinsel",
             "Lokiraaburg",
             "Malmee",
+            "Gamla V\u00e4ster",
+            "Zoemme Eebrahimowitsch",
+            "Hoher Turm",
+            "Rosengaad",
+            "Lokiraas Wald",
+            "\u00d6resund-Br\u00fccke",
+            "Lillatorg",
             "Teeglersee",
-            "Turning Torso",
-            "Zoemme Eebrahimotisch"
+            "Turning Torso"
         ]
     },
     {
@@ -16788,14 +17301,35 @@
             "Aruula",
             "Juefaan",
             "Saamuel",
-            "Lukkas"
+            "Lukkas",
+            "Bench",
+            "Pjeer",
+            "Caala",
+            "Jacob Smythe",
+            "David McKenzie",
+            "Jennifer Jensen",
+            "Irvin Chester",
+            "Hank Williams",
+            "Alrin"
         ],
-        "schlagworte": null,
+        "schlagworte": [
+            "CERN",
+            "Antimaterie",
+            "Christopher-Floyd",
+            "Gott-Maschine",
+            "Russin",
+            "Mordicai Singh",
+            "Barrage de Verbois",
+            "Teilchenbeschleuniger",
+            "Schale Gottes",
+            "PROTO"
+        ],
         "orte": [
             "CERN",
             "Russin",
             "Barrage de Verbois",
-            "Meyrin"
+            "Meyrin",
+            "Aire-la-Ville"
         ]
     },
     {
@@ -16817,7 +17351,7 @@
             "Sid",
             "Sad",
             "Kaifas",
-            "Utek",
+            "Utek MacDiarmid",
             "Aruula",
             "Juefaan",
             "Elroose",
@@ -16826,12 +17360,29 @@
             "LeCobb",
             "Delpho",
             "Prospero",
-            "Quarthoon"
+            "Quarthoon",
+            "Kallen",
+            "Kyle",
+            "Radja",
+            "Schaggue Vaudeville"
         ],
-        "schlagworte": null,
+        "schlagworte": [
+            "Zeitreise",
+            "Antimaterie",
+            "CERN",
+            "Stonehenge",
+            "MacDiarmid-Clan",
+            "Dom\u00e4ne",
+            "Matthew Drax",
+            "Menschenfresser",
+            "X-Quads",
+            "Eibrex"
+        ],
         "orte": [
             "Stonehenge",
             "Salbuur",
+            "Scheffeld",
+            "Edinburgh",
             "Caalaj",
             "CERN",
             "Glesgo"
@@ -16860,9 +17411,23 @@
             "Surya Bahadur",
             "Mellon"
         ],
-        "schlagworte": null,
+        "schlagworte": [
+            "Tarnkappe",
+            "Artefakt",
+            "Schwarze Philosophen",
+            "Nosfera",
+            "Diebesgilde",
+            "Marseille",
+            "Symbiont",
+            "PROTO",
+            "Clodo",
+            "Metallspinne"
+        ],
         "orte": [
-            "Marseii"
+            "Marseii",
+            "Notre Dame de la Garde",
+            "Oper von Marseii",
+            "Prototyp XP-1"
         ]
     },
     {
@@ -16884,11 +17449,25 @@
             "Nahasape Mapeetilon",
             "Ettmon",
             "Schakkostoo",
-            "Surya Bahadur"
+            "Surya Bahadur",
+            "Adhira",
+            "Indiira"
         ],
-        "schlagworte": null,
+        "schlagworte": [
+            "Ch\u00e2teau d'If",
+            "Schwarze Philosophen",
+            "Artefakte",
+            "Nahasape Mapeetilon",
+            "Nosfera",
+            "Symbiont",
+            "Scanner",
+            "Surya Bahadur",
+            "Bewusstseinseinbruch",
+            "Ettmon"
+        ],
         "orte": [
             "Marseii",
+            "\u00cele d'If",
             "Ch\u00e2teau d'If",
             "Hafen von Marseii",
             "Tunnel zwischen Marseii und Ch\u00e2teau d'If",
@@ -16920,9 +17499,22 @@
             "Matthew Drax",
             "Aruula",
             "Peroon",
-            "Santoo"
+            "Santoo",
+            "Juuan",
+            "Siraa"
         ],
-        "schlagworte": null,
+        "schlagworte": [
+            "Vulkantaucher",
+            "Heilige Tiere",
+            "Azoren",
+            "Vulkaana",
+            "Sklavenh\u00e4ndler",
+            "Derfuus",
+            "Grande Picoo",
+            "Prinzesalis",
+            "Opferzeremonie",
+            "Vulkangeist"
+        ],
         "orte": [
             "Alanta-See",
             "Prinzesalis",
@@ -16930,7 +17522,12 @@
             "Areaa",
             "Nunoos Haus",
             "SIWEES",
-            "S\u00e3o Miguel"
+            "S\u00e3o Miguel",
+            "Vulkaa-Areaa",
+            "PINTAA",
+            "SEERPA",
+            "ANGUULO",
+            "Prototyp XP-1"
         ]
     },
     {
@@ -16953,9 +17550,35 @@
             "Yaaba",
             "Krishna Deuba",
             "Mohan Koirala",
-            "Ann Drax"
+            "Ann Drax",
+            "Santoo",
+            "Peroon",
+            "Jade",
+            "Jack (Nuu'oleens)",
+            "Simmala",
+            "Chazzrazz",
+            "Laaweau",
+            "Sowosamma",
+            "Marie Leklerkk",
+            "Joey Leklerkk",
+            "Zoey Leklerkk",
+            "Jacob Smythe",
+            "Dunnah",
+            "Kyle",
+            "Kezztok"
         ],
-        "schlagworte": null,
+        "schlagworte": [
+            "Transkommunikator",
+            "Ring des Suchers",
+            "Schwarze Philosophen",
+            "Projekt Statthalter",
+            "Nuu'oleens",
+            "Papa Anastaa",
+            "Totengespr\u00e4che",
+            "R\u00fcckkehrer",
+            "Tempel des Totengespr\u00e4chs",
+            "Herr der Seelen"
+        ],
         "orte": [
             "Dhuramatan",
             "Nuu'oleens",
@@ -16963,7 +17586,18 @@
             "Michoud Assembly Facility",
             "Tempel des Totengespr\u00e4chs",
             "Schwarzes Kloster",
-            "Waashton"
+            "Waashton",
+            "Mississippi",
+            "Lake St. Catherine",
+            "Lake Michoud",
+            "Jacksonville",
+            "Gulfport",
+            "Azoren",
+            "Wuduuraum",
+            "Raum der Lobpreisung",
+            "SIWEES",
+            "Prototyp XP-1",
+            "Dwyer Blvd"
         ]
     },
     {
@@ -25989,7 +26623,8 @@
             "Triell",
             "Victorius de Rozier",
             "Matthew Drax",
-            "Aruula"
+            "Aruula",
+            "Ei'don (Person)"
         ],
         "schlagworte": null,
         "orte": [
@@ -29281,8 +29916,8 @@
         "text": [
             "Michael Blihall"
         ],
-        "bewertung": 2.13,
-        "stimmen": 15,
+        "bewertung": 2.19,
+        "stimmen": 16,
         "personen": [
             "Lisa Colton",
             "Silas Ochoa",
@@ -29332,8 +29967,8 @@
         "text": [
             "Jana Paradigi"
         ],
-        "bewertung": 3.47,
-        "stimmen": 15,
+        "bewertung": 3.5,
+        "stimmen": 16,
         "personen": [
             "Cari'sam",
             "Quesra'kul",
@@ -29389,8 +30024,8 @@
         "text": [
             "Ian Rolf Hill"
         ],
-        "bewertung": 2.64,
-        "stimmen": 14,
+        "bewertung": 2.8,
+        "stimmen": 15,
         "personen": [
             "Matthew Drax",
             "Aruula",
@@ -29506,8 +30141,8 @@
         "text": [
             "Christian Schwarz"
         ],
-        "bewertung": 3.23,
-        "stimmen": 13,
+        "bewertung": 3.29,
+        "stimmen": 14,
         "personen": [
             "Matthew Drax",
             "Aruula",
@@ -29555,8 +30190,8 @@
         "text": [
             "Michael Edelbrock"
         ],
-        "bewertung": 3.92,
-        "stimmen": 12,
+        "bewertung": 3.79,
+        "stimmen": 14,
         "personen": [
             "Matthew Drax",
             "Aruula",
@@ -29648,8 +30283,8 @@
         "text": [
             "Lucy Guth"
         ],
-        "bewertung": 4.43,
-        "stimmen": 7,
+        "bewertung": 4,
+        "stimmen": 9,
         "personen": [
             "Matthew Drax",
             "Aruula",
@@ -29690,6 +30325,61 @@
             "Winchester-Haus",
             "Oase der Hundert",
             "Penitencia Creek"
+        ]
+    },
+    {
+        "nummer": 668,
+        "evt": "23.08.2025",
+        "zyklus": "Weltrat",
+        "titel": "Das Methusalem-Syndrom",
+        "text": [
+            "Marc Tannous"
+        ],
+        "bewertung": 3.25,
+        "stimmen": 8,
+        "personen": [
+            "Matthew Drax",
+            "Aruula",
+            "Abraam",
+            "Ezekieel",
+            "Osgaar",
+            "Noora (Meeraka)",
+            "Ayleen",
+            "Caan",
+            "Timotee",
+            "Aureel",
+            "Samta",
+            "Erikk",
+            "Riico",
+            "Joona",
+            "Alfreed",
+            "Taliaa",
+            "Terees",
+            "Edgaar",
+            "Deevid",
+            "Mira",
+            "Mikkel",
+            "Elviira",
+            "Olivaa"
+        ],
+        "schlagworte": [
+            "Trinity",
+            "Graue Pest",
+            "Ambroosia",
+            "Ezekieel",
+            "Pilz-Symbiont",
+            "Beschleunigte Alterung",
+            "PROTO",
+            "Haus jenseits des Flusses",
+            "Osgaar",
+            "Sporen"
+        ],
+        "orte": [
+            "Trinity",
+            "Lachender Kojote",
+            "Ginty-Farm",
+            "Ezekieels H\u00fctte",
+            "Prototyp XP-1"
         ]
     }
 ]
