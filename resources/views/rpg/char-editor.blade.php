@@ -154,8 +154,8 @@
                 </div>
 
                 <div class="mb-6">
-                    <h2 class="text-xl font-semibold text-[#8B0116] dark:text-red-400 mb-2">Ausrüstung</h2>
-                    <!-- Eingabefelder folgen -->
+                    <h2 id="equipment-heading" class="text-xl font-semibold text-[#8B0116] dark:text-red-400 mb-2">Ausrüstung</h2>
+                    <textarea name="equipment" id="equipment" rows="4" aria-labelledby="equipment-heading" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50"></textarea>
                 </div>
 
                 <div class="flex justify-end">
