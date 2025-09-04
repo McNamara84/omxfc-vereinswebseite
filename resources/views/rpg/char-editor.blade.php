@@ -110,7 +110,45 @@
 
                 <div class="mb-6">
                     <h2 class="text-xl font-semibold text-[#8B0116] dark:text-red-400 mb-2">Besonderheiten</h2>
-                    <!-- Eingabefelder folgen -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="advantages" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Vorteile</label>
+                            <select name="advantages[]" id="advantages" multiple class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
+                                <option value="Anführer" title="+2 auf Proben zum Befehlen/Überzeugen">Anführer</option>
+                                <option value="Gestaltwandler" title="Körper/Stimme verändern">Gestaltwandler</option>
+                                <option value="Gesteigertes Attribut" title="+1 auf ein Attribut nach Wahl (muss begründet werden (Mutation, Cyborg, Nanotech etc.))">Gesteigertes Attribut</option>
+                                <option value="Gesteigerter Sinn" title="+3 auf WA-Proben für einen Sinn (muss begründet werden (Mutation, Cyborg, Nanotech etc.))">Gesteigerter Sinn</option>
+                                <option value="High-Tech-Ausrüstung" title="4 High-Tech-Gegenstände (SL-Zustimmung)">High-Tech-Ausrüstung</option>
+                                <option value="Kampfreflexe" title="+2 Bonus auf alle Ausweichen-Proben">Kampfreflexe</option>
+                                <option value="Kaltblütig" title="+1 auf Verteidigungswürfe">Kaltblütig</option>
+                                <option value="Kiemen" title="unbegrenzt unter Wasser atmen">Kiemen</option>
+                                <option value="Kind zweier Welten" title="darf sowohl Bildung als auch Intuition lernen">Kind zweier Welten</option>
+                                <option value="Nachtsicht" title="ohne Abzüge im Dunkeln sehen (muss begründet werden (Mutation, Cyborg, Nanotech etc.))">Nachtsicht</option>
+                                <option value="Natürliche Waffen" title="+1 Schaden im Nahkampf (muss begründet werden (Mutation, Cyborg, Nanotech etc.))">Natürliche Waffen</option>
+                                <option value="Panzerung" title="besitzt Schutzfaktor 1 (kumulativ) (muss begründet werden (Mutation, Cyborg, Nanotech etc.))">Panzerung</option>
+                                <option value="Psychische Kraft" title="Zugriff auf psychische Kräfte (S. 37)">Psychische Kraft</option>
+                                <option value="Psychisches Reservoir" title="höchster psychischer FW zählt doppelt bei PEP">Psychisches Reservoir</option>
+                                <option value="Regeneration" title="heilt 10× schneller (stapelbar) (muss begründet werden (Mutation, Cyborg, Nanotech etc.))">Regeneration</option>
+                                <option value="Scharfschütze" title="+1 auf Fernkampfangriffe, +1 Schaden auf kurze Distanz">Scharfschütze</option>
+                                <option value="Schnell" title="+2 Grundbewegung, +1 Initiative (muss begründet werden (Mutation, Cyborg, Nanotech etc.))">Schnell</option>
+                                <option value="Sprachbegabt" title="kann bis zu 3 Sprachen pro Fertigkeitspunkt lernen">Sprachbegabt</option>
+                                <option value="Tiergefährte" title="treuer Tierbegleiter (SL-Zustimmung)">Tiergefährte</option>
+                                <option value="Zäh" title="Schutzfaktor +1 durch Zähigkeit">Zäh</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="disadvantages" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nachteile</label>
+                            <select name="disadvantages[]" id="disadvantages" multiple class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
+                                <option value="Abergläubisch" title="mind. 3 abergläubische Eigenarten wählen">Abergläubisch</option>
+                                <option value="Abhängige" title="muss Angehörige/Familie beschützen">Abhängige</option>
+                                <option value="Anfälligkeit gegen Wahnsinn" title="geht bei Triggern in Wahnsinn über (SL übernimmt Figur)">Anfälligkeit gegen Wahnsinn</option>
+                                <option value="Auffällig" title="stark erkennbar, −4 auf Verkleiden">Auffällig</option>
+                                <option value="Blutdurst" title="braucht alle 24h frisches Blut, sonst −1 kumulativ auf Proben">Blutdurst</option>
+                                <option value="Ehrenkodex" title="strenger Moralkodex, schränkt Handlungen ein">Ehrenkodex</option>
+                                <option value="Feind" title="mächtiger Feind (Volk oder Person) bedroht das Leben ständig">Feind</option>
+                            </select>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="mb-6">
