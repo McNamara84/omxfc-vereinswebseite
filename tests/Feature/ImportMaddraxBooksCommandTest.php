@@ -2,11 +2,11 @@
 
 namespace Tests\Feature;
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
-use App\Models\Book;
-use Illuminate\Support\Facades\File;
 use App\Enums\BookType;
+use App\Models\Book;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\File;
+use Tests\TestCase;
 
 class ImportMaddraxBooksCommandTest extends TestCase
 {
@@ -20,8 +20,8 @@ class ImportMaddraxBooksCommandTest extends TestCase
 
         $this->testStoragePath = base_path('storage/testing');
         $this->app->useStoragePath($this->testStoragePath);
-        File::ensureDirectoryExists($this->testStoragePath . '/app/private');
-        File::ensureDirectoryExists($this->testStoragePath . '/framework/views');
+        File::ensureDirectoryExists($this->testStoragePath.'/app/private');
+        File::ensureDirectoryExists($this->testStoragePath.'/framework/views');
     }
 
     protected function tearDown(): void
@@ -37,9 +37,9 @@ class ImportMaddraxBooksCommandTest extends TestCase
         File::put(storage_path('app/private/missionmars.json'), '[]');
 
         $this->artisan('books:import', ['--path' => 'private/missing.json'])
-            ->expectsOutput('Import for ' . BookType::MaddraxDieDunkleZukunftDerErde->value . ' failed: JSON file not found at ' . storage_path('app/private/missing.json'))
-            ->expectsOutput(PHP_EOL . 'Import for ' . BookType::MaddraxHardcover->value . ' completed successfully.')
-            ->expectsOutput(PHP_EOL . 'Import for ' . BookType::MissionMars->value . ' completed successfully.')
+            ->expectsOutput('Import for '.BookType::MaddraxDieDunkleZukunftDerErde->value.' failed: JSON file not found at '.storage_path('app/private/missing.json'))
+            ->expectsOutput(PHP_EOL.'Import for '.BookType::MaddraxHardcover->value.' completed successfully.')
+            ->expectsOutput(PHP_EOL.'Import for '.BookType::MissionMars->value.' completed successfully.')
             ->assertExitCode(0);
     }
 
@@ -50,9 +50,9 @@ class ImportMaddraxBooksCommandTest extends TestCase
         File::put(storage_path('app/private/missionmars.json'), '[]');
 
         $this->artisan('books:import', ['--path' => 'private/maddrax.json'])
-            ->expectsOutput('Import for ' . BookType::MaddraxDieDunkleZukunftDerErde->value . ' failed: Invalid JSON - Syntax error')
-            ->expectsOutput(PHP_EOL . 'Import for ' . BookType::MaddraxHardcover->value . ' completed successfully.')
-            ->expectsOutput(PHP_EOL . 'Import for ' . BookType::MissionMars->value . ' completed successfully.')
+            ->expectsOutput('Import for '.BookType::MaddraxDieDunkleZukunftDerErde->value.' failed: Invalid JSON - Syntax error')
+            ->expectsOutput(PHP_EOL.'Import for '.BookType::MaddraxHardcover->value.' completed successfully.')
+            ->expectsOutput(PHP_EOL.'Import for '.BookType::MissionMars->value.' completed successfully.')
             ->assertExitCode(0);
     }
 
@@ -82,9 +82,9 @@ class ImportMaddraxBooksCommandTest extends TestCase
         File::put(storage_path('app/private/missionmars.json'), json_encode($missionMars));
 
         $this->artisan('books:import', ['--path' => 'private/maddrax.json'])
-            ->expectsOutput(PHP_EOL . 'Import for ' . BookType::MaddraxDieDunkleZukunftDerErde->value . ' completed successfully.')
-            ->expectsOutput(PHP_EOL . 'Import for ' . BookType::MaddraxHardcover->value . ' completed successfully.')
-            ->expectsOutput(PHP_EOL . 'Import for ' . BookType::MissionMars->value . ' completed successfully.')
+            ->expectsOutput(PHP_EOL.'Import for '.BookType::MaddraxDieDunkleZukunftDerErde->value.' completed successfully.')
+            ->expectsOutput(PHP_EOL.'Import for '.BookType::MaddraxHardcover->value.' completed successfully.')
+            ->expectsOutput(PHP_EOL.'Import for '.BookType::MissionMars->value.' completed successfully.')
             ->assertExitCode(0);
 
         $this->assertDatabaseHas('books', [
@@ -124,6 +124,7 @@ class ImportMaddraxBooksCommandTest extends TestCase
             '--path' => [
                 'database/migrations/2025_05_18_065853_create_books_table.php',
                 'database/migrations/2025_09_19_000000_add_type_to_books_table.php',
+                'database/migrations/2025_10_01_000000_update_book_type_enum.php',
             ],
         ];
     }
