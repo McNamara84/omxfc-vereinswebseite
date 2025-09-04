@@ -110,7 +110,47 @@
 
                 <div class="mb-6">
                     <h2 class="text-xl font-semibold text-[#8B0116] dark:text-red-400 mb-2">Besonderheiten</h2>
-                    <!-- Eingabefelder folgen -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="advantages" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Vorteile</label>
+                            <select name="advantages[]" id="advantages" multiple aria-describedby="advantage-description" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
+                                <option value="Anführer" data-description="+2 auf Proben zum Befehlen/Überzeugen">Anführer</option>
+                                <option value="Gestaltwandler" data-description="Körper/Stimme verändern">Gestaltwandler</option>
+                                <option value="Gesteigertes Attribut" data-description="+1 auf ein Attribut nach Wahl (muss begründet werden (Mutation, Cyborg, Nanotech etc.))">Gesteigertes Attribut</option>
+                                <option value="Gesteigerter Sinn" data-description="+3 auf WA-Proben für einen Sinn (muss begründet werden (Mutation, Cyborg, Nanotech etc.))">Gesteigerter Sinn</option>
+                                <option value="High-Tech-Ausrüstung" data-description="4 High-Tech-Gegenstände (SL-Zustimmung)">High-Tech-Ausrüstung</option>
+                                <option value="Kampfreflexe" data-description="+2 Bonus auf alle Ausweichen-Proben">Kampfreflexe</option>
+                                <option value="Kaltblütig" data-description="+1 auf Verteidigungswürfe">Kaltblütig</option>
+                                <option value="Kiemen" data-description="unbegrenzt unter Wasser atmen">Kiemen</option>
+                                <option value="Kind zweier Welten" data-description="darf sowohl Bildung als auch Intuition lernen">Kind zweier Welten</option>
+                                <option value="Nachtsicht" data-description="ohne Abzüge im Dunkeln sehen (muss begründet werden (Mutation, Cyborg, Nanotech etc.))">Nachtsicht</option>
+                                <option value="Natürliche Waffen" data-description="+1 Schaden im Nahkampf (muss begründet werden (Mutation, Cyborg, Nanotech etc.))">Natürliche Waffen</option>
+                                <option value="Panzerung" data-description="besitzt Schutzfaktor 1 (kumulativ) (muss begründet werden (Mutation, Cyborg, Nanotech etc.))">Panzerung</option>
+                                <option value="Psychische Kraft" data-description="Zugriff auf psychische Kräfte (S. 37)">Psychische Kraft</option>
+                                <option value="Psychisches Reservoir" data-description="höchster psychischer FW zählt doppelt bei PEP">Psychisches Reservoir</option>
+                                <option value="Regeneration" data-description="heilt 10× schneller (stapelbar) (muss begründet werden (Mutation, Cyborg, Nanotech etc.))">Regeneration</option>
+                                <option value="Scharfschütze" data-description="+1 auf Fernkampfangriffe, +1 Schaden auf kurze Distanz">Scharfschütze</option>
+                                <option value="Schnell" data-description="+2 Grundbewegung, +1 Initiative (muss begründet werden (Mutation, Cyborg, Nanotech etc.))">Schnell</option>
+                                <option value="Sprachbegabt" data-description="kann bis zu 3 Sprachen pro Fertigkeitspunkt lernen">Sprachbegabt</option>
+                                <option value="Tiergefährte" data-description="treuer Tierbegleiter (SL-Zustimmung)">Tiergefährte</option>
+                                <option value="Zäh" data-description="Schutzfaktor +1 durch Zähigkeit">Zäh</option>
+                            </select>
+                            <p id="advantage-description" class="mt-1 text-sm text-gray-600 dark:text-gray-400" aria-live="polite"></p>
+                        </div>
+                        <div>
+                            <label for="disadvantages" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nachteile</label>
+                            <select name="disadvantages[]" id="disadvantages" multiple aria-describedby="disadvantage-description" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
+                                <option value="Abergläubisch" data-description="mind. 3 abergläubische Eigenarten wählen">Abergläubisch</option>
+                                <option value="Abhängige" data-description="muss Angehörige/Familie beschützen">Abhängige</option>
+                                <option value="Anfälligkeit gegen Wahnsinn" data-description="geht bei Triggern in Wahnsinn über (SL übernimmt Figur)">Anfälligkeit gegen Wahnsinn</option>
+                                <option value="Auffällig" data-description="stark erkennbar, −4 auf Verkleiden">Auffällig</option>
+                                <option value="Blutdurst" data-description="braucht alle 24h frisches Blut, sonst −1 kumulativ auf Proben">Blutdurst</option>
+                                <option value="Ehrenkodex" data-description="strenger Moralkodex, schränkt Handlungen ein">Ehrenkodex</option>
+                                <option value="Feind" data-description="mächtiger Feind (Volk oder Person) bedroht das Leben ständig">Feind</option>
+                            </select>
+                            <p id="disadvantage-description" class="mt-1 text-sm text-gray-600 dark:text-gray-400" aria-live="polite"></p>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="mb-6">
@@ -175,6 +215,26 @@
                         `;
                         container.appendChild(row);
                     });
+
+                    function attachOptionDescriptions(selectId, descriptionId) {
+                        const select = document.getElementById(selectId);
+                        const descEl = document.getElementById(descriptionId);
+
+                        function updateDescription(option) {
+                            descEl.textContent = option ? option.getAttribute('data-description') : '';
+                        }
+
+                        select.addEventListener('change', () => updateDescription(select.options[select.selectedIndex]));
+                        select.addEventListener('focus', () => updateDescription(select.options[select.selectedIndex]));
+                        select.addEventListener('blur', () => updateDescription(null));
+                        Array.from(select.options).forEach(option => {
+                            option.addEventListener('mouseenter', () => updateDescription(option));
+                            option.addEventListener('mouseleave', () => updateDescription(select.options[select.selectedIndex]));
+                        });
+                    }
+
+                    attachOptionDescriptions('advantages', 'advantage-description');
+                    attachOptionDescriptions('disadvantages', 'disadvantage-description');
                 });
             </script>
         </div>
