@@ -97,13 +97,7 @@
                             <option value="Fernkampf">Fernkampf (+1)</option>
                         </select>
                     </div>
-                    <div id="skills-container" class="space-y-2">
-                        <div class="grid grid-cols-1 sm:grid-cols-4 gap-2 items-center skill-row">
-                            <input type="text" list="skills-list" name="skills[0][name]" class="skill-name sm:col-span-2 w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50" placeholder="Fertigkeit">
-                            <input type="number" name="skills[0][value]" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50" placeholder="FW" step="1">
-                            <button type="button" class="remove-skill px-2 py-1 bg-red-500 text-white rounded-md">-</button>
-                        </div>
-                    </div>
+                    <div id="skills-container" class="space-y-2"></div>
                     <button type="button" id="add-skill" class="mt-2 inline-flex items-center px-3 py-1 bg-[#8B0116] dark:bg-red-400 text-white rounded-md">Fertigkeit hinzufügen</button>
                     <datalist id="skills-list">
                         <option value="Athletik" data-description="Klettern, Schwimmen, Laufen, Fitness; hilft beim Ausweichen. (ST, GE, RO)"></option>
