@@ -118,7 +118,7 @@
                         <option value="Handeln" data-description="Feilschen, Warenkenntnis, Handelsrouten. (AU, IN)"></option>
                         <option value="Heiler" data-description="Wundversorgung, Heilkunst, Rettung vor dem Tod. (IN)"></option>
                         <option value="Heimlichkeit" data-description="Schleichen, Verbergen. (GE)"></option>
-                        <option value="Intuition" data-description="\u201esechster Sinn\u201c, Gefahren erspüren (Alternative zu Bildung). (WA)"></option>
+                        <option value="Intuition" data-description="„sechster Sinn“, Gefahren erspüren (Alternative zu Bildung). (WA)"></option>
                         <option value="Kunde" data-description="Fachkenntnis in speziellen Bereichen (Regionen, Tiere, Pflanzen, Bräuche). (IN, WA)"></option>
                         <option value="Nahkampf" data-description="unbewaffneter Kampf und Nahkampfwaffen. (ST, GE)"></option>
                         <option value="Pilot" data-description="Flieger aller Art (vom Gleiter bis zum Jet). (GE, WA)"></option>

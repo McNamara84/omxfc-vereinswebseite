@@ -3,7 +3,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     const state = {
         niveau: 3,
-        base: { AP: 2, FP: 20, maxFW: 4, freeAdvantages: 1, autoAdvantages: ['Z\u00e4h'] },
+        base: { AP: 2, FP: 20, maxFW: 4, freeAdvantages: 1, autoAdvantages: ['Zäh'] },
         race: null,
         culture: null,
         raceGrants: { attributePick: null, skills: {} },
@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // element references
     const attributeIds = ['st','ge','ro','wi','wa','in','au'];
-    const attributeLabels = { st: 'St\u00e4rke', ge: 'Geschicklichkeit', ro: 'Robustheit', wi: 'Willenskraft', wa: 'Wahrnehmung', in: 'Intelligenz', au: 'Auftreten' };
+    const attributeLabels = { st: 'Stärke', ge: 'Geschicklichkeit', ro: 'Robustheit', wi: 'Willenskraft', wa: 'Wahrnehmung', in: 'Intelligenz', au: 'Auftreten' };
     const attributeInputs = {};
     attributeIds.forEach(id => {
         const el = document.getElementById(id);
@@ -67,7 +67,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    lockAdvantage('Z\u00e4h');
+    lockAdvantage('Zäh');
     recomputeAll();
 
     // === Attribute handling ===
@@ -305,10 +305,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // === Counters ===
     function updateAPCounter(val) {
-        if (attributePointsEl) attributePointsEl.textContent = `Verf\u00fcgbare Attributspunkte: ${val}`;
+        if (attributePointsEl) attributePointsEl.textContent = `Verfügbare Attributspunkte: ${val}`;
     }
     function updateFPCounter(val) {
-        if (skillPointsEl) skillPointsEl.textContent = `Verf\u00fcgbare Fertigkeitspunkte: ${val}`;
+        if (skillPointsEl) skillPointsEl.textContent = `Verfügbare Fertigkeitspunkte: ${val}`;
     }
     function updateAdvantageCounter(val) {
         if (advantageInput) advantageInput.value = val;
@@ -343,7 +343,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function applyRaceBarbar() {
         state.race = 'Barbar';
         showAttributePickUI();
-        setFreeMin('\u00dcberleben', 1, 'Rasse');
+        setFreeMin('Überleben', 1, 'Rasse');
         setFreeMin('Intuition', 1, 'Rasse');
         setCombatToggle();
     }
@@ -388,16 +388,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function applyCultureLandbewohner() {
         state.culture = 'Landbewohner';
-        setFreeExact('Beruf: Viehz\u00fcchter', 2, 'Kultur');
+        setFreeExact('Beruf: Viehzüchter', 2, 'Kultur');
         setFreeExact('Beruf: Landwirt', 2, 'Kultur');
         setFreeMin('Kunde: Wetter', 1, 'Kultur');
     }
 
     // === Main recompute ===
     function recomputeAll() {
-        lockAdvantage('Z\u00e4h');
+        lockAdvantage('Zäh');
         state.hasKindZweierWelten = isAdvantageChosen('Kind zweier Welten');
-        updateAdvantageCounter(state.base.freeAdvantages - countChosenAdvantagesExcl('Z\u00e4h'));
+        updateAdvantageCounter(state.base.freeAdvantages - countChosenAdvantagesExcl('Zäh'));
 
         applyRaceAttributePick();
         enforceAttributeCaps();

@@ -1,4 +1,4 @@
-<!-- resources\views\profile\update-seriendaten-form.blade.php -->
+<!-- resources/views/profile/update-seriendaten-form.blade.php -->
 <x-form-section submit="updateSeriendaten">
     <x-slot name="title">
         {{ __('Serienspezifische Daten') }}
