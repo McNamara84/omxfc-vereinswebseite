@@ -6,14 +6,14 @@ document.addEventListener('DOMContentLoaded', () => {
         base: { AP: 2, FP: 20, maxFW: 4, freeAdvantages: 1, autoAdvantages: ['Zäh'] },
         race: null,
         culture: null,
-        raceGrants: { attributePick: null, skills: {} },
+        raceAPBonus: 0,
+        raceGrants: { skills: {} },
         cultureGrants: { skills: {} },
         hasKindZweierWelten: false
     };
 
     // element references
     const attributeIds = ['st','ge','ro','wi','wa','in','au'];
-    const attributeLabels = { st: 'Stärke', ge: 'Geschicklichkeit', ro: 'Robustheit', wi: 'Willenskraft', wa: 'Wahrnehmung', in: 'Intelligenz', au: 'Auftreten' };
     const attributeInputs = {};
     attributeIds.forEach(id => {
         const el = document.getElementById(id);
@@ -33,14 +33,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const advantageInput = document.getElementById('available_advantage_points');
     const raceSelect = document.getElementById('race');
     const cultureSelect = document.getElementById('culture');
+    const descriptionField = document.getElementById('description');
+    const playerName = document.getElementById('player_name');
+    const characterName = document.getElementById('character_name');
+    const continueBtn = document.getElementById('continue-button');
+    const advancedFields = document.getElementById('advanced-fields');
 
-    const barbarAttrPickContainer = document.getElementById('barbar-attribute-pick');
-    const barbarAttrSelect = document.getElementById('barbar-attribute-select');
     const barbarCombatContainer = document.getElementById('barbar-combat-toggle');
     const barbarCombatSelect = document.getElementById('barbar-combat-select');
 
     const skillsContainer = document.getElementById('skills-container');
     const addSkillBtn = document.getElementById('add-skill');
+
+    const raceDescriptions = {
+        Barbar: 'Barbaren sind wilde Krieger.'
+    };
 
     // initialise counters
     updateAPCounter(state.base.AP);
@@ -52,10 +59,22 @@ document.addEventListener('DOMContentLoaded', () => {
     if (cultureSelect) cultureSelect.addEventListener('change', handleCultureChange);
     if (advantagesSelect) advantagesSelect.addEventListener('change', recomputeAll);
     if (addSkillBtn) addSkillBtn.addEventListener('click', addSkillRow);
+    if (playerName) playerName.addEventListener('input', updateContinueVisibility);
+    if (characterName) characterName.addEventListener('input', updateContinueVisibility);
+    if (raceSelect) raceSelect.addEventListener('change', updateContinueVisibility);
+    if (cultureSelect) cultureSelect.addEventListener('change', updateContinueVisibility);
+    if (continueBtn) continueBtn.addEventListener('click', () => {
+        advancedFields.disabled = false;
+        advancedFields.classList.remove('opacity-50');
+        continueBtn.classList.add('hidden');
+    });
     if (skillsContainer) {
         skillsContainer.addEventListener('input', e => {
             if (e.target.classList.contains('skill-name')) {
                 // nothing for now
+            }
+            if (e.target.type === 'number') {
+                enforceSkillSpend(e.target);
             }
             recomputeAll();
         });
@@ -68,30 +87,23 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     lockAdvantage('Zäh');
+    updateContinueVisibility();
     recomputeAll();
 
     // === Attribute handling ===
     function onAttributeInput(e) {
         const id = e.target.id;
-        const bonus = state.raceGrants.attributePick === id ? 1 : 0;
-        let val = parseInt(e.target.value, 10);
-        if (isNaN(val)) val = 0;
-        let base = val - bonus;
+        let base = parseInt(e.target.value, 10);
+        if (isNaN(base)) base = 0;
         if (base > 1) base = 1;
         if (base < -1) base = -1;
-        e.target.dataset.base = base;
-        e.target.value = base + bonus;
+        const old = parseInt(attributeInputs[id].dataset.base || '0', 10);
+        const sumOthers = sumUserAttributeIncrements() - Math.max(old, 0);
+        const maxForThis = state.base.AP + state.raceAPBonus - sumOthers;
+        if (base > maxForThis) base = maxForThis;
+        attributeInputs[id].dataset.base = base;
+        e.target.value = base;
         recomputeAll();
-    }
-
-    function applyRaceAttributePick() {
-        attributeIds.forEach(id => {
-            const el = attributeInputs[id];
-            const bonus = state.raceGrants.attributePick === id ? 1 : 0;
-            const base = parseInt(el.dataset.base || '0', 10);
-            el.value = base + bonus;
-            el.max = bonus ? 2 : 1;
-        });
     }
 
     function enforceAttributeCaps() {
@@ -101,9 +113,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (base > 1) base = 1;
             if (base < -1) base = -1;
             el.dataset.base = base;
-            const bonus = state.raceGrants.attributePick === id ? 1 : 0;
-            el.value = base + bonus;
-            el.max = bonus ? 2 : 1;
+            el.value = base;
+            el.max = 1;
         });
     }
 
@@ -147,6 +158,22 @@ document.addEventListener('DOMContentLoaded', () => {
             row.appendChild(badge);
         }
         badge.textContent = text;
+    }
+
+    function enforceSkillSpend(input) {
+        const row = input.closest('.skill-row');
+        const name = row.querySelector('.skill-name').value;
+        const grant = getGrant(name);
+        const start = grant ? grant.value : 0;
+        let val = parseInt(input.value, 10) || 0;
+        if (val < start) val = start;
+        const total = sumUserFPSpends();
+        const diff = Math.max(val - start, 0);
+        const maxForThis = state.base.FP - (total - diff);
+        if (diff > maxForThis) {
+            val = start + maxForThis;
+        }
+        input.value = val;
     }
 
     function setFreeMin(name, value, source) {
@@ -286,6 +313,19 @@ document.addEventListener('DOMContentLoaded', () => {
         return null;
     }
 
+    function basicsFilled() {
+        return playerName.value.trim() && characterName.value.trim() && raceSelect.value && cultureSelect.value;
+    }
+
+    function updateContinueVisibility() {
+        if (!continueBtn) return;
+        if (basicsFilled()) {
+            continueBtn.classList.remove('hidden');
+        } else {
+            continueBtn.classList.add('hidden');
+        }
+    }
+
     // === Advantage handling ===
     function lockAdvantage(name) {
         const option = [...advantagesSelect.options].find(o => o.value === name);
@@ -328,35 +368,27 @@ document.addEventListener('DOMContentLoaded', () => {
     function handleRaceChange() {
         clearRace();
         if (raceSelect.value === 'Barbar') applyRaceBarbar();
+        if (descriptionField && raceDescriptions[raceSelect.value] && !descriptionField.value.trim()) {
+            descriptionField.value = raceDescriptions[raceSelect.value];
+        }
+        updateContinueVisibility();
         recomputeAll();
     }
 
     function clearRace() {
         state.race = null;
-        state.raceGrants.attributePick = null;
+        state.raceAPBonus = 0;
         state.raceGrants.skills = {};
-        barbarAttrPickContainer.classList.add('hidden');
         barbarCombatContainer.classList.add('hidden');
         removeSkillBadgeSource('Rasse');
     }
 
     function applyRaceBarbar() {
         state.race = 'Barbar';
-        showAttributePickUI();
+        state.raceAPBonus = 1;
         setFreeMin('Überleben', 1, 'Rasse');
         setFreeMin('Intuition', 1, 'Rasse');
         setCombatToggle();
-    }
-
-    function showAttributePickUI() {
-        barbarAttrPickContainer.classList.remove('hidden');
-        barbarAttrSelect.innerHTML = attributeIds.map(id => `<option value="${id}">${attributeLabels[id]}</option>`).join('');
-        barbarAttrSelect.value = attributeIds[0];
-        state.raceGrants.attributePick = barbarAttrSelect.value;
-        barbarAttrSelect.addEventListener('change', () => {
-            state.raceGrants.attributePick = barbarAttrSelect.value;
-            recomputeAll();
-        });
     }
 
     function setCombatToggle() {
@@ -377,6 +409,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function handleCultureChange() {
         clearCulture();
         if (cultureSelect.value === 'Landbewohner') applyCultureLandbewohner();
+        updateContinueVisibility();
         recomputeAll();
     }
 
@@ -399,9 +432,8 @@ document.addEventListener('DOMContentLoaded', () => {
         state.hasKindZweierWelten = isAdvantageChosen('Kind zweier Welten');
         updateAdvantageCounter(state.base.freeAdvantages - countChosenAdvantagesExcl('Zäh'));
 
-        applyRaceAttributePick();
         enforceAttributeCaps();
-        const apRemaining = state.base.AP - sumUserAttributeIncrements();
+        const apRemaining = state.base.AP + state.raceAPBonus - sumUserAttributeIncrements();
         updateAPCounter(apRemaining);
 
         enforceEducationIntuitionExclusivity();

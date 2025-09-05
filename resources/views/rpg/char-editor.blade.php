@@ -46,19 +46,20 @@
                         <input type="file" name="portrait" id="portrait" accept="image/*" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
                     </div>
 
-                    <div class="md:col-span-2">
-                        <h2 class="text-xl font-semibold text-[#8B0116] dark:text-red-400 mb-2">Beschreibung</h2>
-                        <textarea name="description" id="description" rows="4" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50"></textarea>
-                    </div>
+                <div class="md:col-span-2">
+                    <h2 class="text-xl font-semibold text-[#8B0116] dark:text-red-400 mb-2">Beschreibung</h2>
+                    <textarea name="description" id="description" rows="4" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50"></textarea>
                 </div>
+            </div>
 
-                <div class="mb-6">
-                    <h2 class="text-xl font-semibold text-[#8B0116] dark:text-red-400 mb-2">Attribute</h2>
-                    <div id="barbar-attribute-pick" class="hidden mb-4">
-                        <label for="barbar-attribute-select" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Barbar: +1 auf</label>
-                        <select id="barbar-attribute-select" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50"></select>
-                    </div>
-                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div class="flex justify-end mb-6">
+                <button id="continue-button" type="button" class="hidden inline-flex items-center px-4 py-2 bg-[#8B0116] dark:bg-red-400 text-white rounded-md">Weiter, bei Wudan</button>
+            </div>
+
+            <fieldset id="advanced-fields" disabled class="opacity-50">
+            <div class="mb-6">
+                <h2 class="text-xl font-semibold text-[#8B0116] dark:text-red-400 mb-2">Attribute</h2>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
                         <div>
                             <label for="st" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Stärke (ST)</label>
                             <input type="number" name="attributes[st]" id="st" min="-1" max="1" step="1" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
@@ -186,6 +187,7 @@
                         Speichern
                     </button>
                 </div>
+            </fieldset>
             </form>
                     </div>
     </x-member-page>
