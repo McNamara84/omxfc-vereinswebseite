@@ -195,6 +195,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const n = row.querySelector('.skill-name').value.trim();
             if (n) used.add(n);
         });
+        if (!state.hasKindZweierWelten) {
+            if (state.raceGrants.skills['Intuition']) used.add('Bildung');
+            if (state.raceGrants.skills['Bildung']) used.add('Intuition');
+        }
         [...skillsDatalist.options].forEach(o => {
             o.disabled = used.has(o.value);
         });
@@ -310,32 +314,45 @@ document.addEventListener('DOMContentLoaded', () => {
     function enforceEducationIntuitionExclusivity() {
         const intuitionRow = findSkillRow('Intuition');
         const bildungRow = findSkillRow('Bildung');
+        const tooltip = "Ohne 'Kind zweier Welten' darf anfangs entweder Intuition oder Bildung > 0 sein.";
+        const intuitionRaceGrant = !!state.raceGrants.skills['Intuition'];
+        const bildungRaceGrant = !!state.raceGrants.skills['Bildung'];
+
+        if (state.hasKindZweierWelten) {
+            if (bildungRow) {
+                const valInput = bildungRow.querySelector('input[type="number"]');
+                valInput.disabled = false;
+                valInput.title = '';
+            }
+            if (intuitionRow) {
+                const valInput = intuitionRow.querySelector('input[type="number"]');
+                valInput.disabled = false;
+                valInput.title = '';
+            }
+            return;
+        }
+
+        if (intuitionRaceGrant) {
+            if (bildungRow) bildungRow.remove();
+            return;
+        }
+        if (bildungRaceGrant) {
+            if (intuitionRow) intuitionRow.remove();
+            return;
+        }
+
         const intuitionVal = intuitionRow ? parseInt(intuitionRow.querySelector('input[type="number"]').value, 10) || 0 : 0;
         const bildungVal = bildungRow ? parseInt(bildungRow.querySelector('input[type="number"]').value, 10) || 0 : 0;
-        const tooltip = "Ohne 'Kind zweier Welten' darf anfangs entweder Intuition oder Bildung > 0 sein.";
-        if (!state.hasKindZweierWelten) {
-            if (intuitionVal >= 1 && bildungRow) {
-                const valInput = bildungRow.querySelector('input[type="number"]');
-                valInput.value = 0;
-                valInput.disabled = true;
-                valInput.title = tooltip;
-            } else if (bildungVal >= 1 && intuitionRow) {
-                const valInput = intuitionRow.querySelector('input[type="number"]');
-                valInput.value = 0;
-                valInput.disabled = true;
-                valInput.title = tooltip;
-            } else {
-                if (bildungRow) {
-                    const valInput = bildungRow.querySelector('input[type="number"]');
-                    valInput.disabled = false;
-                    valInput.title = '';
-                }
-                if (intuitionRow) {
-                    const valInput = intuitionRow.querySelector('input[type="number"]');
-                    valInput.disabled = false;
-                    valInput.title = '';
-                }
-            }
+        if (intuitionVal >= 1 && bildungRow) {
+            const valInput = bildungRow.querySelector('input[type="number"]');
+            valInput.value = 0;
+            valInput.disabled = true;
+            valInput.title = tooltip;
+        } else if (bildungVal >= 1 && intuitionRow) {
+            const valInput = intuitionRow.querySelector('input[type="number"]');
+            valInput.value = 0;
+            valInput.disabled = true;
+            valInput.title = tooltip;
         } else {
             if (bildungRow) {
                 const valInput = bildungRow.querySelector('input[type="number"]');
