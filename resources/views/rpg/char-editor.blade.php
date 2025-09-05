@@ -216,6 +216,7 @@
                     const advantagesSelect = document.getElementById('advantages');
 
                     function updateAttributePoints() {
+                        if (!attributePointsEl) return;
                         let spent = 0;
                         attributeInputs.forEach(input => {
                             const val = parseInt(input.value, 10);
@@ -229,6 +230,7 @@
                     }
 
                     function updateSkillPoints() {
+                        if (!skillPointsEl || !container) return;
                         let spent = 0;
                         container.querySelectorAll('input[name$="[value]"]').forEach(input => {
                             const val = parseInt(input.value, 10);
@@ -241,50 +243,60 @@
                     }
 
                     function updateAdvantagePoints() {
+                        if (!advantageInput || !advantagesSelect) return;
                         const selected = advantagesSelect.selectedOptions.length;
                         advantageInput.value = ADVANTAGE_POINTS_TOTAL - selected;
                     }
 
                     function updateFigureStrength() {
-                        const stVal = parseInt(document.getElementById('st').value, 10) || 0;
-                        figureStrengthInput.value = FIGURE_STRENGTH_BASE + stVal;
+                        if (!figureStrengthInput) return;
+                        const stEl = document.getElementById('st');
+                        const stVal = stEl ? parseInt(stEl.value, 10) : 0;
+                        figureStrengthInput.value = FIGURE_STRENGTH_BASE + (isNaN(stVal) ? 0 : stVal);
                     }
 
-                    container.addEventListener('input', function (e) {
-                        if (e.target.classList.contains('skill-name')) {
-                            e.target.title = skillDescriptions[e.target.value] || '';
-                        }
-                        updateSkillPoints();
-                    });
-
-                    container.addEventListener('click', function (e) {
-                        if (e.target.classList.contains('remove-skill')) {
-                            e.target.closest('.skill-row').remove();
+                    if (container) {
+                        container.addEventListener('input', function (e) {
+                            if (e.target.classList.contains('skill-name')) {
+                                e.target.title = skillDescriptions[e.target.value] || '';
+                            }
                             updateSkillPoints();
-                        }
-                    });
+                        });
 
-                    addBtn.addEventListener('click', function () {
-                        const index = container.querySelectorAll('.skill-row').length;
-                        const row = document.createElement('div');
-                        row.className = 'grid grid-cols-1 sm:grid-cols-4 gap-2 items-center skill-row';
-                        row.innerHTML = `
-                            <input type="text" list="skills-list" name="skills[${index}][name]" class="skill-name sm:col-span-2 w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50" placeholder="Fertigkeit">
-                            <input type="number" name="skills[${index}][value]" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50" placeholder="FW" step="1">
-                            <button type="button" class="remove-skill px-2 py-1 bg-red-500 text-white rounded-md">-</button>
-                        `;
-                        container.appendChild(row);
-                        updateSkillPoints();
-                    });
+                        container.addEventListener('click', function (e) {
+                            if (e.target.classList.contains('remove-skill')) {
+                                e.target.closest('.skill-row').remove();
+                                updateSkillPoints();
+                            }
+                        });
+                    }
+
+                    if (addBtn && container) {
+                        addBtn.addEventListener('click', function () {
+                            const index = container.querySelectorAll('.skill-row').length;
+                            const row = document.createElement('div');
+                            row.className = 'grid grid-cols-1 sm:grid-cols-4 gap-2 items-center skill-row';
+                            row.innerHTML = `
+                                <input type="text" list="skills-list" name="skills[${index}][name]" class="skill-name sm:col-span-2 w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50" placeholder="Fertigkeit">
+                                <input type="number" name="skills[${index}][value]" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50" placeholder="FW" step="1">
+                                <button type="button" class="remove-skill px-2 py-1 bg-red-500 text-white rounded-md">-</button>
+                            `;
+                            container.appendChild(row);
+                            updateSkillPoints();
+                        });
+                    }
 
                     attributeInputs.forEach(input => {
                         input.addEventListener('input', updateAttributePoints);
                     });
-                    advantagesSelect.addEventListener('change', updateAdvantagePoints);
+                    if (advantagesSelect) {
+                        advantagesSelect.addEventListener('change', updateAdvantagePoints);
+                    }
 
                     function attachOptionDescriptions(selectId, descriptionId) {
                         const select = document.getElementById(selectId);
                         const descEl = document.getElementById(descriptionId);
+                        if (!select || !descEl) return;
 
                         function updateDescription(option) {
                             descEl.textContent = option ? option.getAttribute('data-description') : '';
