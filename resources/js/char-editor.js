@@ -9,7 +9,8 @@ document.addEventListener('DOMContentLoaded', () => {
         raceAPBonus: 0,
         raceGrants: { skills: {} },
         cultureGrants: { skills: {} },
-        hasKindZweierWelten: false
+        hasKindZweierWelten: false,
+        barbarCombatSkill: null
     };
 
     // element references
@@ -183,10 +184,17 @@ document.addEventListener('DOMContentLoaded', () => {
         const grants = source === 'Rasse' ? state.raceGrants.skills : state.cultureGrants.skills;
         grants[name] = { type: 'min', value };
         const row = ensureSkillRow(name);
+        const nameInput = row.querySelector('.skill-name');
         const valInput = row.querySelector('input[type="number"]');
+        nameInput.value = name;
+        if (source === 'Rasse') nameInput.disabled = true;
         valInput.min = value;
         if (parseInt(valInput.value, 10) < value || isNaN(parseInt(valInput.value, 10))) {
             valInput.value = value;
+        }
+        if (source === 'Rasse') {
+            const removeBtn = row.querySelector('.remove-skill');
+            if (removeBtn) removeBtn.remove();
         }
         addSkillBadge(row, source);
     }
@@ -234,6 +242,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else {
                     valInput.disabled = false;
                     valInput.max = maxFW;
+                    valInput.min = start;
                     if (parseInt(valInput.value, 10) < start) valInput.value = start;
                     if (parseInt(valInput.value, 10) > maxFW) valInput.value = maxFW;
                 }
@@ -383,6 +392,7 @@ document.addEventListener('DOMContentLoaded', () => {
         state.raceAPBonus = 0;
         state.raceGrants.skills = {};
         barbarCombatContainer.classList.add('hidden');
+        state.barbarCombatSkill = null;
         removeSkillBadgeSource('Rasse');
     }
 
@@ -397,14 +407,21 @@ document.addEventListener('DOMContentLoaded', () => {
     function setCombatToggle() {
         barbarCombatContainer.classList.remove('hidden');
         barbarCombatSelect.addEventListener('change', () => {
+            const newSkill = barbarCombatSelect.value;
+            const prevSkill = state.barbarCombatSkill;
             delete state.raceGrants.skills['Nahkampf'];
             delete state.raceGrants.skills['Fernkampf'];
-            const skill = barbarCombatSelect.value;
-            state.raceGrants.skills[skill] = { type: 'min', value: 1 };
-            setFreeMin(skill, 1, 'Rasse');
+            if (prevSkill && prevSkill !== newSkill) {
+                const prevRow = findSkillRow(prevSkill);
+                if (prevRow) prevRow.remove();
+            }
+            state.barbarCombatSkill = newSkill;
+            state.raceGrants.skills[newSkill] = { type: 'min', value: 1 };
+            setFreeMin(newSkill, 1, 'Rasse');
             recomputeAll();
         });
         barbarCombatSelect.value = 'Nahkampf';
+        state.barbarCombatSkill = 'Nahkampf';
         state.raceGrants.skills['Nahkampf'] = { type: 'min', value: 1 };
         setFreeMin('Nahkampf', 1, 'Rasse');
     }
