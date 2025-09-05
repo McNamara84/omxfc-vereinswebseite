@@ -95,11 +95,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const id = e.target.id;
         let base = parseInt(e.target.value, 10);
         if (isNaN(base)) base = 0;
-        if (base > 1) base = 1;
+        const max = state.race === 'Barbar' ? 2 : 1;
+        if (base > max) base = max;
         if (base < -1) base = -1;
         const old = parseInt(attributeInputs[id].dataset.base || '0', 10);
         const sumOthers = sumUserAttributeIncrements() - Math.max(old, 0);
-        const maxForThis = state.base.AP + state.raceAPBonus - sumOthers;
+        let maxForThis = state.base.AP + state.raceAPBonus - sumOthers;
+        if (maxForThis > max) maxForThis = max;
         if (base > maxForThis) base = maxForThis;
         attributeInputs[id].dataset.base = base;
         e.target.value = base;
@@ -107,14 +109,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function enforceAttributeCaps() {
+        const max = state.race === 'Barbar' ? 2 : 1;
         attributeIds.forEach(id => {
             const el = attributeInputs[id];
             let base = parseInt(el.dataset.base || '0', 10);
-            if (base > 1) base = 1;
+            if (base > max) base = max;
             if (base < -1) base = -1;
             el.dataset.base = base;
             el.value = base;
-            el.max = 1;
+            el.max = max;
         });
     }
 
