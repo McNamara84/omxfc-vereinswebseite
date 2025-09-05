@@ -7,8 +7,8 @@
                 @csrf
 
                 <div class="mb-4 text-sm text-gray-700 dark:text-gray-300">
-                    <p id="attribute-points">Verfügbare Attributspunkte: 5</p>
-                    <p id="skill-points">Verfügbare Fertigkeitspunkte: 10</p>
+                    <p id="attribute-points"></p>
+                    <p id="skill-points"></p>
                 </div>
 
                 <input type="hidden" name="available_advantage_points" id="available_advantage_points" value="1">
@@ -54,40 +54,51 @@
 
                 <div class="mb-6">
                     <h2 class="text-xl font-semibold text-[#8B0116] dark:text-red-400 mb-2">Attribute</h2>
+                    <div id="barbar-attribute-pick" class="hidden mb-4">
+                        <label for="barbar-attribute-select" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Barbar: +1 auf</label>
+                        <select id="barbar-attribute-select" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50"></select>
+                    </div>
                     <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
                         <div>
                             <label for="st" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Stärke (ST)</label>
-                            <input type="number" name="attributes[st]" id="st" min="-2" max="2" step="1" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
+                            <input type="number" name="attributes[st]" id="st" min="-1" max="1" step="1" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
                         </div>
                         <div>
                             <label for="ge" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Geschicklichkeit (GE)</label>
-                            <input type="number" name="attributes[ge]" id="ge" min="-2" max="2" step="1" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
+                            <input type="number" name="attributes[ge]" id="ge" min="-1" max="1" step="1" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
                         </div>
                         <div>
                             <label for="ro" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Robustheit (RO)</label>
-                            <input type="number" name="attributes[ro]" id="ro" min="-2" max="2" step="1" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
+                            <input type="number" name="attributes[ro]" id="ro" min="-1" max="1" step="1" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
                         </div>
                         <div>
                             <label for="wi" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Willenskraft (WI)</label>
-                            <input type="number" name="attributes[wi]" id="wi" min="-2" max="2" step="1" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
+                            <input type="number" name="attributes[wi]" id="wi" min="-1" max="1" step="1" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
                         </div>
                         <div>
                             <label for="wa" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Wahrnehmung (WA)</label>
-                            <input type="number" name="attributes[wa]" id="wa" min="-2" max="2" step="1" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
+                            <input type="number" name="attributes[wa]" id="wa" min="-1" max="1" step="1" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
                         </div>
                         <div>
                             <label for="in" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Intelligenz (IN)</label>
-                            <input type="number" name="attributes[in]" id="in" min="-2" max="2" step="1" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
+                            <input type="number" name="attributes[in]" id="in" min="-1" max="1" step="1" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
                         </div>
                         <div>
                             <label for="au" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Auftreten (AU)</label>
-                            <input type="number" name="attributes[au]" id="au" min="-2" max="2" step="1" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
+                            <input type="number" name="attributes[au]" id="au" min="-1" max="1" step="1" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
                         </div>
                     </div>
                 </div>
 
                 <div class="mb-6">
                     <h2 class="text-xl font-semibold text-[#8B0116] dark:text-red-400 mb-2">Fertigkeiten</h2>
+                    <div id="barbar-combat-toggle" class="hidden mb-2">
+                        <label for="barbar-combat-select" class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Barbar Kampfbonus</label>
+                        <select id="barbar-combat-select" class="w-full sm:w-auto rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
+                            <option value="Nahkampf">Nahkampf (+1)</option>
+                            <option value="Fernkampf">Fernkampf (+1)</option>
+                        </select>
+                    </div>
                     <div id="skills-container" class="space-y-2">
                         <div class="grid grid-cols-1 sm:grid-cols-4 gap-2 items-center skill-row">
                             <input type="text" list="skills-list" name="skills[0][name]" class="skill-name sm:col-span-2 w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50" placeholder="Fertigkeit">
@@ -171,156 +182,12 @@
                 </div>
 
                 <div class="flex justify-end">
-                    <button type="submit" disabled class="inline-flex items-center px-4 py-2 bg-gray-400 dark:bg-gray-600 border border-transparent rounded-md font-semibold text-white cursor-not-allowed">
+                    <button id="submit-button" type="submit" disabled class="inline-flex items-center px-4 py-2 bg-gray-400 dark:bg-gray-600 border border-transparent rounded-md font-semibold text-white cursor-not-allowed">
                         Speichern
                     </button>
                 </div>
             </form>
-            <script>
-                document.addEventListener('DOMContentLoaded', function () {
-                    const skillDescriptions = {
-                        "Athletik": "Klettern, Schwimmen, Laufen, Fitness; hilft beim Ausweichen. (ST, GE, RO)",
-                        "Beruf": "erlernter Beruf (Bauer, Schmied, Pilot, etc.), mehrere möglich. (GE, IN, AU)",
-                        "Bildung": "zivilisierte Ausbildung, Voraussetzung für Technik & Waffen. (IN, WA)",
-                        "Diebeskunst": "Taschendiebstahl, Schlösser knacken, Diebesgut einschätzen. (GE, WA)",
-                        "Fahren": "Wagen, Boote, Fahrzeuge, auch High-Tech. (GE, WA)",
-                        "Fernkampf": "Speere, Bögen, Schleudern, Armbrüste usw. (GE, WA)",
-                        "Feuerwaffen": "Schuss- & Energiewaffen. (GE, WA, abhängig von Bildung)",
-                        "Handeln": "Feilschen, Warenkenntnis, Handelsrouten. (AU, IN)",
-                        "Heiler": "Wundversorgung, Heilkunst, Rettung vor dem Tod. (IN)",
-                        "Heimlichkeit": "Schleichen, Verbergen. (GE)",
-                        "Intuition": "sechster Sinn, Gefahren erspüren (Alternative zu Bildung). (WA)",
-                        "Kunde": "Fachkenntnis in speziellen Bereichen (Regionen, Tiere, Pflanzen, Bräuche). (IN, WA)",
-                        "Nahkampf": "unbewaffneter Kampf und Nahkampfwaffen. (ST, GE)",
-                        "Pilot": "Flieger aller Art (vom Gleiter bis zum Jet). (GE, WA)",
-                        "Reiten": "Reittiere lenken und zähmen. (GE)",
-                        "Sprachen": "pro Punkt eine Sprache/Dialekt (mit Bildung auch Lesen/Schreiben). (IN)",
-                        "Techniker": "technische Geräte bedienen, warten, reparieren. (IN, GE)",
-                        "Unterhalten": "Geschichten, Musik, Tanz, Gaukeln, Schauspiel. (AU, IN, GE)",
-                        "Überleben": "Orientierung, Nahrung, Leben in der Wildnis. (RO, WA)",
-                        "Wissenschaftler": "wissenschaftliche Disziplinen (Physik, Chemie, Biologie ...). Maximalwert ≤ Bildung. (IN)"
-                    };
-
-                    const ATTRIBUTE_POINTS_TOTAL = 5;
-                    const SKILL_POINTS_TOTAL = 10;
-                    const ADVANTAGE_POINTS_TOTAL = 1;
-                    const FIGURE_STRENGTH_BASE = 1;
-
-                    const container = document.getElementById('skills-container');
-                    const addBtn = document.getElementById('add-skill');
-                    const attributePointsEl = document.getElementById('attribute-points');
-                    const skillPointsEl = document.getElementById('skill-points');
-                    const advantageInput = document.getElementById('available_advantage_points');
-                    const figureStrengthInput = document.getElementById('figurenstaerke');
-                    const attributeInputs = document.querySelectorAll('input[name^="attributes"]');
-                    const advantagesSelect = document.getElementById('advantages');
-
-                    function updateAttributePoints() {
-                        if (!attributePointsEl) return;
-                        let spent = 0;
-                        attributeInputs.forEach(input => {
-                            const val = parseInt(input.value, 10);
-                            if (!isNaN(val)) {
-                                spent += val;
-                            }
-                        });
-                        const remaining = ATTRIBUTE_POINTS_TOTAL - spent;
-                        attributePointsEl.textContent = `Verfügbare Attributspunkte: ${remaining}`;
-                        updateFigureStrength();
-                    }
-
-                    function updateSkillPoints() {
-                        if (!skillPointsEl || !container) return;
-                        let spent = 0;
-                        container.querySelectorAll('input[name$="[value]"]').forEach(input => {
-                            const val = parseInt(input.value, 10);
-                            if (!isNaN(val)) {
-                                spent += val;
-                            }
-                        });
-                        const remaining = SKILL_POINTS_TOTAL - spent;
-                        skillPointsEl.textContent = `Verfügbare Fertigkeitspunkte: ${remaining}`;
-                    }
-
-                    function updateAdvantagePoints() {
-                        if (!advantageInput || !advantagesSelect) return;
-                        const selected = advantagesSelect.selectedOptions.length;
-                        advantageInput.value = ADVANTAGE_POINTS_TOTAL - selected;
-                    }
-
-                    function updateFigureStrength() {
-                        if (!figureStrengthInput) return;
-                        const stEl = document.getElementById('st');
-                        const stVal = stEl ? parseInt(stEl.value, 10) : 0;
-                        figureStrengthInput.value = FIGURE_STRENGTH_BASE + (isNaN(stVal) ? 0 : stVal);
-                    }
-
-                    if (container) {
-                        container.addEventListener('input', function (e) {
-                            if (e.target.classList.contains('skill-name')) {
-                                e.target.title = skillDescriptions[e.target.value] || '';
-                            }
-                            updateSkillPoints();
-                        });
-
-                        container.addEventListener('click', function (e) {
-                            if (e.target.classList.contains('remove-skill')) {
-                                e.target.closest('.skill-row').remove();
-                                updateSkillPoints();
-                            }
-                        });
-                    }
-
-                    if (addBtn && container) {
-                        addBtn.addEventListener('click', function () {
-                            const index = container.querySelectorAll('.skill-row').length;
-                            const row = document.createElement('div');
-                            row.className = 'grid grid-cols-1 sm:grid-cols-4 gap-2 items-center skill-row';
-                            row.innerHTML = `
-                                <input type="text" list="skills-list" name="skills[${index}][name]" class="skill-name sm:col-span-2 w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50" placeholder="Fertigkeit">
-                                <input type="number" name="skills[${index}][value]" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50" placeholder="FW" step="1">
-                                <button type="button" class="remove-skill px-2 py-1 bg-red-500 text-white rounded-md">-</button>
-                            `;
-                            container.appendChild(row);
-                            updateSkillPoints();
-                        });
-                    }
-
-                    attributeInputs.forEach(input => {
-                        input.addEventListener('input', updateAttributePoints);
-                    });
-                    if (advantagesSelect) {
-                        advantagesSelect.addEventListener('change', updateAdvantagePoints);
-                    }
-
-                    function attachOptionDescriptions(selectId, descriptionId) {
-                        const select = document.getElementById(selectId);
-                        const descEl = document.getElementById(descriptionId);
-                        if (!select || !descEl) return;
-
-                        function updateDescription(option) {
-                            descEl.textContent = option ? option.getAttribute('data-description') : '';
-                        }
-
-                        select.addEventListener('change', () => updateDescription(select.options[select.selectedIndex]));
-                        select.addEventListener('focus', () => updateDescription(select.options[select.selectedIndex]));
-                        select.addEventListener('blur', () => updateDescription(null));
-                        Array.from(select.options).forEach(option => {
-                            option.addEventListener('mouseenter', () => updateDescription(option));
-                            option.addEventListener('mouseleave', () => updateDescription(select.options[select.selectedIndex]));
-                        });
-                    }
-
-                    attachOptionDescriptions('advantages', 'advantage-description');
-                    attachOptionDescriptions('disadvantages', 'disadvantage-description');
-
-                    updateAttributePoints();
-                    updateSkillPoints();
-                    updateAdvantagePoints();
-                    updateFigureStrength();
-                });
-            </script>
-        </div>
+                    </div>
     </x-member-page>
 </x-app-layout>
 

@@ -13,3 +13,4 @@ import 'leaflet/dist/leaflet.css';
 window.L = L;
 
 import './chronik';
+import './char-editor';
