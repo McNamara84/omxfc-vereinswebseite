@@ -45,6 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const skillsContainer = document.getElementById('skills-container');
     const addSkillBtn = document.getElementById('add-skill');
+    const skillsDatalist = document.getElementById('skills-list');
 
     const raceDescriptions = {
         Barbar: 'Barbaren sind wilde Krieger.'
@@ -72,7 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (skillsContainer) {
         skillsContainer.addEventListener('input', e => {
             if (e.target.classList.contains('skill-name')) {
-                // nothing for now
+                handleSkillNameInput(e.target);
             }
             if (e.target.type === 'number') {
                 enforceSkillSpend(e.target);
@@ -162,6 +163,41 @@ document.addEventListener('DOMContentLoaded', () => {
             row.appendChild(badge);
         }
         badge.textContent = text;
+    }
+
+    function handleSkillNameInput(input) {
+        const name = input.value.trim();
+        const used = new Set([
+            ...Object.keys(state.raceGrants.skills),
+            ...Object.keys(state.cultureGrants.skills)
+        ]);
+        const rows = skillsContainer.querySelectorAll('.skill-row');
+        rows.forEach(row => {
+            const nInput = row.querySelector('.skill-name');
+            if (nInput !== input) {
+                const n = nInput.value.trim();
+                if (n) used.add(n);
+            }
+        });
+        if (used.has(name)) {
+            input.value = '';
+        }
+        updateSkillOptions();
+    }
+
+    function updateSkillOptions() {
+        if (!skillsDatalist) return;
+        const used = new Set([
+            ...Object.keys(state.raceGrants.skills),
+            ...Object.keys(state.cultureGrants.skills)
+        ]);
+        skillsContainer.querySelectorAll('.skill-row').forEach(row => {
+            const n = row.querySelector('.skill-name').value.trim();
+            if (n) used.add(n);
+        });
+        [...skillsDatalist.options].forEach(o => {
+            o.disabled = used.has(o.value);
+        });
     }
 
     function enforceSkillSpend(input) {
@@ -475,6 +511,8 @@ document.addEventListener('DOMContentLoaded', () => {
         enforceSkillCaps(state.base.maxFW);
         const fpRemaining = state.base.FP - sumUserFPSpends();
         updateFPCounter(fpRemaining);
+
+        updateSkillOptions();
 
         const valid = apRemaining >= 0 && fpRemaining >= 0;
         updateSubmitButton(valid);
