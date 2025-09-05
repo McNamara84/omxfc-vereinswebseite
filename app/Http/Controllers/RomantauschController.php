@@ -21,6 +21,7 @@ class RomantauschController extends Controller
     private const ALLOWED_TYPES = [
         BookType::MaddraxDieDunkleZukunftDerErde,
         BookType::MaddraxHardcover,
+        BookType::MissionMars,
     ];
     // Übersicht
     public function index()

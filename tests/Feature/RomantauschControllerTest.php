@@ -31,6 +31,12 @@ class RomantauschControllerTest extends TestCase
             'author' => 'Author',
             'type' => BookType::MaddraxDieDunkleZukunftDerErde,
         ]);
+        Book::create([
+            'roman_number' => 2,
+            'title' => 'MM Roman',
+            'author' => 'Author',
+            'type' => BookType::MissionMars,
+        ]);
     }
 
     public function test_complete_swap_marks_entries_completed(): void
@@ -96,6 +102,29 @@ class RomantauschControllerTest extends TestCase
             'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
             'book_number' => 1,
             'book_title' => 'Roman1',
+            'condition' => 'neu',
+        ]);
+    }
+
+    public function test_store_offer_creates_entry_for_mission_mars(): void
+    {
+        $this->putBookData();
+
+        $user = $this->actingMember();
+        $this->actingAs($user);
+
+        $response = $this->post('/romantauschboerse/angebot-speichern', [
+            'series' => BookType::MissionMars->value,
+            'book_number' => 2,
+            'condition' => 'neu',
+        ]);
+
+        $response->assertRedirect(route('romantausch.index', [], false));
+        $this->assertDatabaseHas('book_offers', [
+            'user_id' => $user->id,
+            'series' => BookType::MissionMars->value,
+            'book_number' => 2,
+            'book_title' => 'MM Roman',
             'condition' => 'neu',
         ]);
     }
@@ -218,6 +247,29 @@ class RomantauschControllerTest extends TestCase
             'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
             'book_number' => 1,
             'book_title' => 'Roman1',
+            'condition' => 'neu',
+        ]);
+    }
+
+    public function test_store_request_creates_entry_for_mission_mars(): void
+    {
+        $this->putBookData();
+
+        $user = $this->actingMember();
+        $this->actingAs($user);
+
+        $response = $this->post('/romantauschboerse/anfrage-speichern', [
+            'series' => BookType::MissionMars->value,
+            'book_number' => 2,
+            'condition' => 'neu',
+        ]);
+
+        $response->assertRedirect(route('romantausch.index', [], false));
+        $this->assertDatabaseHas('book_requests', [
+            'user_id' => $user->id,
+            'series' => BookType::MissionMars->value,
+            'book_number' => 2,
+            'book_title' => 'MM Roman',
             'condition' => 'neu',
         ]);
     }
