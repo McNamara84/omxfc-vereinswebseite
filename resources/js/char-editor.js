@@ -187,15 +187,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const nameInput = row.querySelector('.skill-name');
         const valInput = row.querySelector('input[type="number"]');
         nameInput.value = name;
-        if (source === 'Rasse') nameInput.disabled = true;
+        nameInput.disabled = true;
         valInput.min = value;
         if (parseInt(valInput.value, 10) < value || isNaN(parseInt(valInput.value, 10))) {
             valInput.value = value;
         }
-        if (source === 'Rasse') {
-            const removeBtn = row.querySelector('.remove-skill');
-            if (removeBtn) removeBtn.remove();
-        }
+        const removeBtn = row.querySelector('.remove-skill');
+        if (removeBtn) removeBtn.remove();
         addSkillBadge(row, source);
     }
 
