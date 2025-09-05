@@ -353,6 +353,22 @@ document.addEventListener('DOMContentLoaded', () => {
         return [...advantagesSelect.selectedOptions].filter(o => o.value !== excl).length;
     }
 
+    function enforceAdvantageLimit() {
+        const free = state.base.freeAdvantages;
+        let chosen = countChosenAdvantagesExcl('Zäh');
+        if (chosen > free) {
+            const selected = [...advantagesSelect.selectedOptions].filter(o => o.value !== 'Zäh');
+            for (let i = free; i < selected.length; i++) {
+                selected[i].selected = false;
+            }
+            chosen = free;
+        }
+        [...advantagesSelect.options].forEach(o => {
+            if (o.value === 'Zäh') return;
+            o.disabled = !o.selected && chosen >= free;
+        });
+    }
+
     // === Counters ===
     function updateAPCounter(val) {
         if (attributePointsEl) attributePointsEl.textContent = `Verfügbare Attributspunkte: ${val}`;
@@ -449,6 +465,7 @@ document.addEventListener('DOMContentLoaded', () => {
         lockAdvantage('Zäh');
         state.hasKindZweierWelten = isAdvantageChosen('Kind zweier Welten');
         updateAdvantageCounter(state.base.freeAdvantages - countChosenAdvantagesExcl('Zäh'));
+        enforceAdvantageLimit();
 
         enforceAttributeCaps();
         const apRemaining = state.base.AP + state.raceAPBonus - sumUserAttributeIncrements();
