@@ -6,11 +6,6 @@
             <form action="#" method="POST" enctype="multipart/form-data">
                 @csrf
 
-                <div class="mb-4 text-sm text-gray-700 dark:text-gray-300">
-                    <p id="attribute-points"></p>
-                    <p id="skill-points"></p>
-                </div>
-
                 <input type="hidden" name="available_advantage_points" id="available_advantage_points" value="1">
                 <input type="hidden" name="figurenstaerke" id="figurenstaerke" value="1">
 
@@ -59,6 +54,7 @@
             <fieldset id="advanced-fields" disabled class="opacity-50">
             <div class="mb-6">
                 <h2 class="text-xl font-semibold text-[#8B0116] dark:text-red-400 mb-2">Attribute</h2>
+                <p id="attribute-points" class="text-sm text-gray-700 dark:text-gray-300 mb-2"></p>
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
                         <div>
                             <label for="st" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Stärke (ST)</label>
@@ -93,6 +89,7 @@
 
                 <div class="mb-6">
                     <h2 class="text-xl font-semibold text-[#8B0116] dark:text-red-400 mb-2">Fertigkeiten</h2>
+                    <p id="skill-points" class="text-sm text-gray-700 dark:text-gray-300 mb-2"></p>
                     <div id="barbar-combat-toggle" class="hidden mb-2">
                         <label for="barbar-combat-select" class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Barbar Kampfbonus</label>
                         <select id="barbar-combat-select" class="w-full sm:w-auto rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
