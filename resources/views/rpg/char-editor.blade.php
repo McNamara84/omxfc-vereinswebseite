@@ -6,6 +6,14 @@
             <form action="#" method="POST" enctype="multipart/form-data">
                 @csrf
 
+                <div class="mb-4 text-sm text-gray-700 dark:text-gray-300">
+                    <p id="attribute-points">Verfügbare Attributspunkte: 5</p>
+                    <p id="skill-points">Verfügbare Fertigkeitspunkte: 10</p>
+                </div>
+
+                <input type="hidden" name="available_advantage_points" id="available_advantage_points" value="1">
+                <input type="hidden" name="figurenstaerke" id="figurenstaerke" value="1">
+
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                     <div>
                         <label for="player_name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Spielername</label>
@@ -193,18 +201,66 @@
                         "Wissenschaftler": "wissenschaftliche Disziplinen (Physik, Chemie, Biologie ...). Maximalwert ≤ Bildung. (IN)"
                     };
 
+                    const ATTRIBUTE_POINTS_TOTAL = 5;
+                    const SKILL_POINTS_TOTAL = 10;
+                    const ADVANTAGE_POINTS_TOTAL = 1;
+                    const FIGURE_STRENGTH_BASE = 1;
+
                     const container = document.getElementById('skills-container');
                     const addBtn = document.getElementById('add-skill');
+                    const attributePointsEl = document.getElementById('attribute-points');
+                    const skillPointsEl = document.getElementById('skill-points');
+                    const advantageInput = document.getElementById('available_advantage_points');
+                    const figureStrengthInput = document.getElementById('figurenstaerke');
+                    const attributeInputs = document.querySelectorAll('input[name^="attributes"]');
+                    const advantagesSelect = document.getElementById('advantages');
+
+                    function updateAttributePoints() {
+                        let spent = 0;
+                        attributeInputs.forEach(input => {
+                            const val = parseInt(input.value, 10);
+                            if (!isNaN(val)) {
+                                spent += val;
+                            }
+                        });
+                        const remaining = ATTRIBUTE_POINTS_TOTAL - spent;
+                        attributePointsEl.textContent = `Verfügbare Attributspunkte: ${remaining}`;
+                        updateFigureStrength();
+                    }
+
+                    function updateSkillPoints() {
+                        let spent = 0;
+                        container.querySelectorAll('input[name$="[value]"]').forEach(input => {
+                            const val = parseInt(input.value, 10);
+                            if (!isNaN(val)) {
+                                spent += val;
+                            }
+                        });
+                        const remaining = SKILL_POINTS_TOTAL - spent;
+                        skillPointsEl.textContent = `Verfügbare Fertigkeitspunkte: ${remaining}`;
+                    }
+
+                    function updateAdvantagePoints() {
+                        const selected = advantagesSelect.selectedOptions.length;
+                        advantageInput.value = ADVANTAGE_POINTS_TOTAL - selected;
+                    }
+
+                    function updateFigureStrength() {
+                        const stVal = parseInt(document.getElementById('st').value, 10) || 0;
+                        figureStrengthInput.value = FIGURE_STRENGTH_BASE + stVal;
+                    }
 
                     container.addEventListener('input', function (e) {
                         if (e.target.classList.contains('skill-name')) {
                             e.target.title = skillDescriptions[e.target.value] || '';
                         }
+                        updateSkillPoints();
                     });
 
                     container.addEventListener('click', function (e) {
                         if (e.target.classList.contains('remove-skill')) {
                             e.target.closest('.skill-row').remove();
+                            updateSkillPoints();
                         }
                     });
 
@@ -218,7 +274,13 @@
                             <button type="button" class="remove-skill px-2 py-1 bg-red-500 text-white rounded-md">-</button>
                         `;
                         container.appendChild(row);
+                        updateSkillPoints();
                     });
+
+                    attributeInputs.forEach(input => {
+                        input.addEventListener('input', updateAttributePoints);
+                    });
+                    advantagesSelect.addEventListener('change', updateAdvantagePoints);
 
                     function attachOptionDescriptions(selectId, descriptionId) {
                         const select = document.getElementById(selectId);
@@ -239,6 +301,11 @@
 
                     attachOptionDescriptions('advantages', 'advantage-description');
                     attachOptionDescriptions('disadvantages', 'disadvantage-description');
+
+                    updateAttributePoints();
+                    updateSkillPoints();
+                    updateAdvantagePoints();
+                    updateFigureStrength();
                 });
             </script>
         </div>
