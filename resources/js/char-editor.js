@@ -140,6 +140,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // === Skill handling ===
     function addSkillRow() {
+        if (state.base.FP - sumUserFPSpends() <= 0) return;
         const index = skillsContainer.querySelectorAll('.skill-row').length;
         const row = document.createElement('div');
         row.className = 'grid grid-cols-1 sm:grid-cols-4 gap-2 items-center skill-row';
@@ -149,6 +150,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <button type="button" class="remove-skill px-2 py-1 bg-red-500 text-white rounded-md">-</button>
         `;
         skillsContainer.appendChild(row);
+        recomputeAll();
     }
 
     function ensureSkillRow(name) {
@@ -456,6 +458,17 @@ document.addEventListener('DOMContentLoaded', () => {
         submitButton.classList.toggle('dark:bg-red-400', valid);
     }
 
+    function updateAddSkillButton(fpRemaining) {
+        if (!addSkillBtn) return;
+        const disabled = fpRemaining <= 0;
+        addSkillBtn.disabled = disabled;
+        addSkillBtn.classList.toggle('cursor-not-allowed', disabled);
+        addSkillBtn.classList.toggle('bg-gray-400', disabled);
+        addSkillBtn.classList.toggle('dark:bg-gray-600', disabled);
+        addSkillBtn.classList.toggle('bg-[#8B0116]', !disabled);
+        addSkillBtn.classList.toggle('dark:bg-red-400', !disabled);
+    }
+
     // === Race/Culture handlers ===
     function handleRaceChange() {
         clearRace();
@@ -544,6 +557,7 @@ document.addEventListener('DOMContentLoaded', () => {
         enforceSkillCaps(state.base.maxFW);
         const fpRemaining = state.base.FP - sumUserFPSpends();
         updateFPCounter(fpRemaining);
+        updateAddSkillButton(fpRemaining);
 
         updateSkillOptions();
 
