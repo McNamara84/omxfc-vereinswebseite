@@ -31,6 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const skillPointsEl = document.getElementById('skill-points');
     const submitButton = document.getElementById('submit-button');
     const advantagesSelect = document.getElementById('advantages');
+    const disadvantagesSelect = document.getElementById('disadvantages');
     const advantageInput = document.getElementById('available_advantage_points');
     const raceSelect = document.getElementById('race');
     const cultureSelect = document.getElementById('culture');
@@ -61,6 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (raceSelect) raceSelect.addEventListener('change', handleRaceChange);
     if (cultureSelect) cultureSelect.addEventListener('change', handleCultureChange);
     if (advantagesSelect) advantagesSelect.addEventListener('change', recomputeAll);
+    if (disadvantagesSelect) disadvantagesSelect.addEventListener('change', recomputeAll);
     if (addSkillBtn) addSkillBtn.addEventListener('click', addSkillRow);
     if (playerName) playerName.addEventListener('input', updateContinueVisibility);
     if (characterName) characterName.addEventListener('input', updateContinueVisibility);
@@ -429,6 +431,27 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    function countDisadvantages() {
+        if (!disadvantagesSelect) return 0;
+        return [...disadvantagesSelect.selectedOptions].length;
+    }
+
+    function enforceDisadvantageRequirement(advCount) {
+        if (!disadvantagesSelect) return 0;
+        let chosen = countDisadvantages();
+        if (chosen > advCount) {
+            const selected = [...disadvantagesSelect.selectedOptions];
+            for (let i = advCount; i < selected.length; i++) {
+                selected[i].selected = false;
+            }
+            chosen = advCount;
+        }
+        [...disadvantagesSelect.options].forEach(o => {
+            o.disabled = !o.selected && chosen >= advCount;
+        });
+        return chosen;
+    }
+
     // === Counters ===
     function updateAPCounter(val) {
         if (attributePointsEl) attributePointsEl.textContent = `Verfügbare Attributspunkte: ${val}`;
@@ -524,8 +547,11 @@ document.addEventListener('DOMContentLoaded', () => {
     function recomputeAll() {
         lockAdvantage('Zäh');
         state.hasKindZweierWelten = isAdvantageChosen('Kind zweier Welten');
-        updateAdvantageCounter(state.base.freeAdvantages - countChosenAdvantagesExcl('Zäh'));
+        let chosenAdv = countChosenAdvantagesExcl('Zäh');
+        updateAdvantageCounter(state.base.freeAdvantages - chosenAdv);
         enforceAdvantageLimit();
+        chosenAdv = countChosenAdvantagesExcl('Zäh');
+        const chosenDisadv = enforceDisadvantageRequirement(chosenAdv);
 
         enforceAttributeCaps();
         const apRemaining = state.base.AP + state.raceAPBonus - sumUserAttributeIncrements();
@@ -538,7 +564,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         updateSkillOptions();
 
-        const valid = apRemaining >= 0 && fpRemaining >= 0;
+        const valid = apRemaining >= 0 && fpRemaining >= 0 && chosenDisadv === chosenAdv;
         updateSubmitButton(valid);
     }
 });
