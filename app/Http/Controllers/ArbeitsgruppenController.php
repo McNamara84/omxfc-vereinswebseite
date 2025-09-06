@@ -4,11 +4,22 @@ namespace App\Http\Controllers;
 
 use App\Models\Team;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class ArbeitsgruppenController extends Controller
 {
+    /**
+     * Base query for all AG listings.
+     */
+    private function agQuery(): Builder
+    {
+        return Team::where('personal_team', false)
+            ->where('name', '!=', 'Mitglieder')
+            ->orderBy('name');
+    }
+
     /**
      * Display a listing of the AGs.
      */
@@ -16,17 +27,16 @@ class ArbeitsgruppenController extends Controller
     {
         $user = $request->user();
 
-        $query = Team::where('personal_team', false)
-            ->where('name', '!=', 'Mitglieder');
+        $query = $this->agQuery();
 
         if (!$user->hasRole('Admin')) {
-            if (!Team::where('user_id', $user->id)->where('personal_team', false)->exists()) {
+            if (!$this->agQuery()->where('user_id', $user->id)->exists()) {
                 abort(403);
             }
             $query->where('user_id', $user->id);
         }
 
-        $ags = $query->orderBy('name')->get();
+        $ags = $query->get();
 
         return view('arbeitsgruppen.index', [
             'ags' => $ags,
@@ -40,10 +50,8 @@ class ArbeitsgruppenController extends Controller
     {
         $user = $request->user();
 
-        $ags = Team::where('personal_team', false)
-            ->where('name', '!=', 'Mitglieder')
+        $ags = $this->agQuery()
             ->where('user_id', $user->id)
-            ->orderBy('name')
             ->get();
 
         if ($ags->isEmpty()) {
@@ -60,10 +68,7 @@ class ArbeitsgruppenController extends Controller
      */
     public function publicIndex()
     {
-        $ags = Team::where('personal_team', false)
-            ->where('name', '!=', 'Mitglieder')
-            ->orderBy('name')
-            ->get();
+        $ags = $this->agQuery()->get();
 
         return view('pages.arbeitsgruppen', [
             'ags' => $ags,
