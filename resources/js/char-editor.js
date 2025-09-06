@@ -436,22 +436,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return [...disadvantagesSelect.selectedOptions].length;
     }
 
-    function enforceDisadvantageRequirement(advCount) {
-        if (!disadvantagesSelect) return 0;
-        let chosen = countDisadvantages();
-        if (chosen > advCount) {
-            const selected = [...disadvantagesSelect.selectedOptions];
-            for (let i = advCount; i < selected.length; i++) {
-                selected[i].selected = false;
-            }
-            chosen = advCount;
-        }
-        [...disadvantagesSelect.options].forEach(o => {
-            o.disabled = !o.selected && chosen >= advCount;
-        });
-        return chosen;
-    }
-
     // === Counters ===
     function updateAPCounter(val) {
         if (attributePointsEl) attributePointsEl.textContent = `Verfügbare Attributspunkte: ${val}`;
@@ -551,7 +535,7 @@ document.addEventListener('DOMContentLoaded', () => {
         updateAdvantageCounter(state.base.freeAdvantages - chosenAdv);
         enforceAdvantageLimit();
         chosenAdv = countChosenAdvantagesExcl('Zäh');
-        const chosenDisadv = enforceDisadvantageRequirement(chosenAdv);
+        const chosenDisadv = countDisadvantages();
 
         enforceAttributeCaps();
         const apRemaining = state.base.AP + state.raceAPBonus - sumUserAttributeIncrements();
@@ -564,7 +548,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         updateSkillOptions();
 
-        const valid = apRemaining >= 0 && fpRemaining >= 0 && chosenDisadv === chosenAdv;
+        const valid = apRemaining >= 0 && fpRemaining >= 0 && chosenDisadv >= chosenAdv;
         updateSubmitButton(valid);
     }
 });
