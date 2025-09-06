@@ -12,6 +12,11 @@ class ArbeitsgruppenController extends Controller
 {
     /**
      * Base query for all AG listings.
+     *
+     * In this application an AG (Arbeitsgruppe) is any team that is not a
+     * personal team and is different from the global "Mitglieder" team. This
+     * helper centralizes that filtering so all listings operate on the same
+     * definition.
      */
     private function agQuery(): Builder
     {
@@ -30,10 +35,11 @@ class ArbeitsgruppenController extends Controller
         $query = $this->agQuery();
 
         if (!$user->hasRole('Admin')) {
-            if (!$this->agQuery()->where('user_id', $user->id)->exists()) {
+            $query = $query->where('user_id', $user->id);
+
+            if (!(clone $query)->exists()) {
                 abort(403);
             }
-            $query->where('user_id', $user->id);
         }
 
         $ags = $query->get();
@@ -50,16 +56,14 @@ class ArbeitsgruppenController extends Controller
     {
         $user = $request->user();
 
-        $ags = $this->agQuery()
-            ->where('user_id', $user->id)
-            ->get();
+        $query = $this->agQuery()->where('user_id', $user->id);
 
-        if ($ags->isEmpty()) {
+        if (!(clone $query)->exists()) {
             abort(403);
         }
 
         return view('arbeitsgruppen.index', [
-            'ags' => $ags,
+            'ags' => $query->get(),
         ]);
     }
 
