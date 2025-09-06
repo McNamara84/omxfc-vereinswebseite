@@ -24,7 +24,7 @@
                         <label for="race" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Rasse</label>
                         <select name="race" id="race" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
                             <option value="" disabled selected>Rasse wählen</option>
-                            <option value="Barbar">Barbar</option>
+                            <option value="Barbar" title="Im 26. Jahrhundert besteht die Zivilisation zum größten Teil aus Barbaren. Sie leben in unterschiedlichen Kulturen, beispielsweise als Seefahrer (die Disuuslachter), Nomaden (die Wandernden Völker) oder Ruinenbewohner (die Loords von Landán). Die zeichnen sich durch Zähigkeit, Wildheit und Kampflust aus, sind zumeist primitiv und leben in Clans. Ehre und Mut werden hoch geschätzt. Technologisch bewegen sich die meisten Barbaren zwischen der späten Steinzeit und dem frühen Mittelalter.">Barbar</option>
                         </select>
                     </div>
 
@@ -32,7 +32,7 @@
                         <label for="culture" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Kultur</label>
                         <select name="culture" id="culture" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
                             <option value="" disabled selected>Kultur wählen</option>
-                            <option value="Landbewohner">Landbewohner</option>
+                            <option value="Landbewohner" title="Landbewohner bewirtschaften den Boden und versuchen als Bauern und Viehzüchter ihren Lebensunterhalt zu verdienen. Die meisten sind einfache Menschen, die Ruhe und Frieden suchen, nicht viel von der Welt wissen und einfache Landgötter anbeten. Aberglauben ist weit verbreitet.">Landbewohner</option>
                         </select>
                     </div>
 
