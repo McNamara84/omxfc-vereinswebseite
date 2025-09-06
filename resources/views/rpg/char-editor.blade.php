@@ -6,26 +6,21 @@
             <form action="#" method="POST" enctype="multipart/form-data">
                 @csrf
 
-                <div class="mb-4 text-sm text-gray-700 dark:text-gray-300">
-                    <p id="attribute-points"></p>
-                    <p id="skill-points"></p>
-                </div>
-
-                <input type="hidden" name="available_advantage_points" id="available_advantage_points" value="1">
+                <input type="hidden" name="available_advantage_points" id="available_advantage_points" value="2">
                 <input type="hidden" name="figurenstaerke" id="figurenstaerke" value="1">
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                    <div>
+                    <div data-lockable>
                         <label for="player_name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Spielername</label>
                         <input type="text" name="player_name" id="player_name" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
                     </div>
 
-                    <div>
+                    <div data-lockable>
                         <label for="character_name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Charaktername</label>
                         <input type="text" name="character_name" id="character_name" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
                     </div>
 
-                    <div>
+                    <div data-lockable>
                         <label for="race" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Rasse</label>
                         <select name="race" id="race" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
                             <option value="" disabled selected>Rasse wählen</option>
@@ -33,7 +28,7 @@
                         </select>
                     </div>
 
-                    <div>
+                    <div data-lockable>
                         <label for="culture" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Kultur</label>
                         <select name="culture" id="culture" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
                             <option value="" disabled selected>Kultur wählen</option>
@@ -41,24 +36,26 @@
                         </select>
                     </div>
 
-                    <div class="md:col-span-2">
+                    <div class="md:col-span-2" data-lockable>
                         <label for="portrait" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Porträt/Symbol</label>
                         <input type="file" name="portrait" id="portrait" accept="image/*" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
                     </div>
 
-                    <div class="md:col-span-2">
-                        <h2 class="text-xl font-semibold text-[#8B0116] dark:text-red-400 mb-2">Beschreibung</h2>
-                        <textarea name="description" id="description" rows="4" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50"></textarea>
-                    </div>
+                <div class="md:col-span-2">
+                    <h2 class="text-xl font-semibold text-[#8B0116] dark:text-red-400 mb-2">Beschreibung</h2>
+                    <textarea name="description" id="description" rows="4" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50"></textarea>
                 </div>
+            </div>
 
-                <div class="mb-6">
-                    <h2 class="text-xl font-semibold text-[#8B0116] dark:text-red-400 mb-2">Attribute</h2>
-                    <div id="barbar-attribute-pick" class="hidden mb-4">
-                        <label for="barbar-attribute-select" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Barbar: +1 auf</label>
-                        <select id="barbar-attribute-select" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50"></select>
-                    </div>
-                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div class="flex justify-end mb-6">
+                <button id="continue-button" type="button" class="hidden inline-flex items-center px-4 py-2 bg-[#8B0116] dark:bg-red-400 text-white rounded-md">Weiter, bei Wudan</button>
+            </div>
+
+            <fieldset id="advanced-fields" disabled class="opacity-50">
+            <div class="mb-6">
+                <h2 class="text-xl font-semibold text-[#8B0116] dark:text-red-400 mb-2">Attribute</h2>
+                <p id="attribute-points" class="text-sm text-gray-700 dark:text-gray-300 mb-2"></p>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
                         <div>
                             <label for="st" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Stärke (ST)</label>
                             <input type="number" name="attributes[st]" id="st" min="-1" max="1" step="1" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
@@ -92,6 +89,7 @@
 
                 <div class="mb-6">
                     <h2 class="text-xl font-semibold text-[#8B0116] dark:text-red-400 mb-2">Fertigkeiten</h2>
+                    <p id="skill-points" class="text-sm text-gray-700 dark:text-gray-300 mb-2"></p>
                     <div id="barbar-combat-toggle" class="hidden mb-2">
                         <label for="barbar-combat-select" class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Barbar Kampfbonus</label>
                         <select id="barbar-combat-select" class="w-full sm:w-auto rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
@@ -99,13 +97,7 @@
                             <option value="Fernkampf">Fernkampf (+1)</option>
                         </select>
                     </div>
-                    <div id="skills-container" class="space-y-2">
-                        <div class="grid grid-cols-1 sm:grid-cols-4 gap-2 items-center skill-row">
-                            <input type="text" list="skills-list" name="skills[0][name]" class="skill-name sm:col-span-2 w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50" placeholder="Fertigkeit">
-                            <input type="number" name="skills[0][value]" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50" placeholder="FW" step="1">
-                            <button type="button" class="remove-skill px-2 py-1 bg-red-500 text-white rounded-md">-</button>
-                        </div>
-                    </div>
+                    <div id="skills-container" class="space-y-2"></div>
                     <button type="button" id="add-skill" class="mt-2 inline-flex items-center px-3 py-1 bg-[#8B0116] dark:bg-red-400 text-white rounded-md">Fertigkeit hinzufügen</button>
                     <datalist id="skills-list">
                         <option value="Athletik" data-description="Klettern, Schwimmen, Laufen, Fitness; hilft beim Ausweichen. (ST, GE, RO)"></option>
@@ -186,6 +178,7 @@
                         Speichern
                     </button>
                 </div>
+            </fieldset>
             </form>
                     </div>
     </x-member-page>
