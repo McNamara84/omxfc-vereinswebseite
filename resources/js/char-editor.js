@@ -548,7 +548,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         updateSkillOptions();
 
-        const valid = apRemaining >= 0 && fpRemaining >= 0 && chosenDisadv >= chosenAdv;
+        const valid = apRemaining === 0 && fpRemaining === 0 && chosenDisadv >= chosenAdv;
         updateSubmitButton(valid);
     }
 });
