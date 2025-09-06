@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const descriptionField = document.getElementById('description');
     const playerName = document.getElementById('player_name');
     const characterName = document.getElementById('character_name');
-    const portraitInput = document.getElementById('portrait');
+    const lockableWrappers = document.querySelectorAll('[data-lockable]');
     const continueBtn = document.getElementById('continue-button');
     const advancedFields = document.getElementById('advanced-fields');
 
@@ -72,11 +72,10 @@ document.addEventListener('DOMContentLoaded', () => {
         advancedFields.disabled = false;
         advancedFields.classList.remove('opacity-50');
         continueBtn.classList.add('hidden');
-        [playerName, characterName, raceSelect, cultureSelect, portraitInput].forEach(el => {
-            if (!el) return;
-            el.disabled = true;
-            const wrapper = el.closest('div');
-            if (wrapper) wrapper.classList.add('opacity-50');
+        lockableWrappers.forEach(wrapper => {
+            const field = wrapper.querySelector('input, select, textarea');
+            if (field) field.disabled = true;
+            wrapper.classList.add('opacity-50');
         });
     });
     if (skillsContainer) {

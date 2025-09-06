@@ -10,17 +10,17 @@
                 <input type="hidden" name="figurenstaerke" id="figurenstaerke" value="1">
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                    <div>
+                    <div data-lockable>
                         <label for="player_name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Spielername</label>
                         <input type="text" name="player_name" id="player_name" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
                     </div>
 
-                    <div>
+                    <div data-lockable>
                         <label for="character_name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Charaktername</label>
                         <input type="text" name="character_name" id="character_name" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
                     </div>
 
-                    <div>
+                    <div data-lockable>
                         <label for="race" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Rasse</label>
                         <select name="race" id="race" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
                             <option value="" disabled selected>Rasse wählen</option>
@@ -28,7 +28,7 @@
                         </select>
                     </div>
 
-                    <div>
+                    <div data-lockable>
                         <label for="culture" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Kultur</label>
                         <select name="culture" id="culture" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
                             <option value="" disabled selected>Kultur wählen</option>
@@ -36,7 +36,7 @@
                         </select>
                     </div>
 
-                    <div class="md:col-span-2">
+                    <div class="md:col-span-2" data-lockable>
                         <label for="portrait" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Porträt/Symbol</label>
                         <input type="file" name="portrait" id="portrait" accept="image/*" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
                     </div>
