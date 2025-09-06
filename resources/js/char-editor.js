@@ -3,7 +3,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     const state = {
         niveau: 3,
-        base: { AP: 2, FP: 20, maxFW: 4, freeAdvantages: 1, autoAdvantages: ['Zäh'] },
+        base: { AP: 2, FP: 20, maxFW: 4, freeAdvantages: 2, autoAdvantages: ['Zäh'] },
         race: null,
         culture: null,
         raceAPBonus: 0,

@@ -6,7 +6,7 @@
             <form action="#" method="POST" enctype="multipart/form-data">
                 @csrf
 
-                <input type="hidden" name="available_advantage_points" id="available_advantage_points" value="1">
+                <input type="hidden" name="available_advantage_points" id="available_advantage_points" value="2">
                 <input type="hidden" name="figurenstaerke" id="figurenstaerke" value="1">
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
