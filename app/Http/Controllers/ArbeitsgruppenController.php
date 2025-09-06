@@ -34,6 +34,28 @@ class ArbeitsgruppenController extends Controller
     }
 
     /**
+     * Display a listing of the AGs for leaders only.
+     */
+    public function leaderIndex(Request $request)
+    {
+        $user = $request->user();
+
+        $ags = Team::where('personal_team', false)
+            ->where('name', '!=', 'Mitglieder')
+            ->where('user_id', $user->id)
+            ->orderBy('name')
+            ->get();
+
+        if ($ags->isEmpty()) {
+            abort(403);
+        }
+
+        return view('arbeitsgruppen.index', [
+            'ags' => $ags,
+        ]);
+    }
+
+    /**
      * Display a listing of the AGs for the public page.
      */
     public function publicIndex()

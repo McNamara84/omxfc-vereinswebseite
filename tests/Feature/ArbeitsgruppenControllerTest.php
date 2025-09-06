@@ -91,4 +91,39 @@ class ArbeitsgruppenControllerTest extends TestCase
             'user_id' => $admin->id,
         ]);
     }
+
+    public function test_ag_leader_can_access_ag_page(): void
+    {
+        $leader = $this->createMemberWithRole();
+        $ag = Team::factory()->create([
+            'user_id' => $leader->id,
+            'personal_team' => false,
+            'name' => 'Meine AG',
+        ]);
+        $ag->users()->attach($leader, ['role' => 'Mitglied']);
+
+        $this->actingAs($leader);
+
+        $this->get(route('ag.index'))
+            ->assertOk()
+            ->assertSee('Meine AG');
+    }
+
+    public function test_non_leader_cannot_access_ag_page(): void
+    {
+        $member = $this->createMemberWithRole();
+
+        $this->actingAs($member);
+
+        $this->get(route('ag.index'))->assertForbidden();
+    }
+
+    public function test_admin_not_leader_cannot_access_ag_page(): void
+    {
+        $admin = $this->createMemberWithRole('Admin');
+
+        $this->actingAs($admin);
+
+        $this->get(route('ag.index'))->assertForbidden();
+    }
 }

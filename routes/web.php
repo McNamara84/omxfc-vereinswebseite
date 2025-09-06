@@ -134,6 +134,8 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
         Route::put('{team}', 'update')->name('update');
     });
 
+    Route::get('/ag', [ArbeitsgruppenController::class, 'leaderIndex'])->name('ag.index');
+
     Route::get('/belohnungen', [RewardController::class, 'index'])->name('rewards.index');
 
     Route::prefix('treffen')->controller(MeetingController::class)->group(function () {
