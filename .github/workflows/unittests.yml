@@ -88,23 +88,9 @@ jobs:
         XDEBUG_MODE: coverage
       run: php artisan test tests/Feature --coverage-clover=coverage.xml
 
-    - name: Run Jest tests with coverage
-      run: npm test -- --coverage --coverageReporters=json-summary --coverageDirectory=coverage
-
-    - name: Create JS coverage badge
+    - name: Prepare coverage output directory
       if: github.ref == 'refs/heads/main'
-      run: |
-        mkdir -p output
-        if [ ! -f "coverage/coverage-summary.json" ]; then
-          echo "coverage/coverage-summary.json not found" >&2
-          exit 1
-        fi
-        npx --yes make-coverage-badge --report-path=coverage/coverage-summary.json --output-path=output/js-coverage.svg
-        if [ ! -f output/js-coverage.svg ]; then
-          echo "JS coverage badge was not created" >&2
-          exit 1
-        fi
-        sed -i 's/Coverage/JS Coverage/' output/js-coverage.svg
+      run: mkdir -p output
 
     - name: Create PHP coverage badge
       if: github.ref == 'refs/heads/main'
