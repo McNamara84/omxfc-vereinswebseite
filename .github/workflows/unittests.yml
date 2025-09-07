@@ -100,6 +100,10 @@ jobs:
     - name: Run Jest tests with coverage
       run: npm test -- --coverage --coverageReporters=json-summary --coverageDirectory=coverage
 
+    - name: Run Vitest unit tests
+      if: matrix.php-version == '8.3'
+      run: npm run test:vitest
+
     - name: Create JS coverage badge
       if: matrix.php-version == '8.3' && github.ref == 'refs/heads/main'
       run: |
