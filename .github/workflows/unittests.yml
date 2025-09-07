@@ -86,7 +86,7 @@ jobs:
     - name: Directory Permissions
       run: chmod -R 755 storage bootstrap/cache
     - name: Run migrations
-      run: php artisan migrate --force
+      run: php artisan migrate --force --seed
 
     - name: Execute tests (Feature tests only)
       run: php artisan test tests/Feature

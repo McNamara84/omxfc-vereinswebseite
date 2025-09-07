@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
         ]);
         $this->call([
             // Andere Seeder
+            TeamSeeder::class,
             TodoCategorySeeder::class,
         ]);
     }
