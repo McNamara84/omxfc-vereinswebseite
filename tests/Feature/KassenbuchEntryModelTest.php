@@ -65,7 +65,7 @@ class KassenbuchEntryModelTest extends TestCase
         $entry->refresh();
 
         $this->assertNotEquals(999, $entry->id);
-        $this->assertSame(KassenbuchEntryType::Ausgabe, $entry->typ);
+        $this->assertSame(KassenbuchEntryType::Ausgabe->value, $entry->typ->value);
         $this->assertEquals('Einkauf', $entry->beschreibung);
     }
 
