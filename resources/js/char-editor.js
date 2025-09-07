@@ -50,8 +50,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const skillsDatalist = document.getElementById('skills-list');
 
     const raceDescriptions = {
-        Barbar: 'Barbaren sind wilde Krieger.'
+        Barbar: 'Im 26. Jahrhundert besteht die Zivilisation zum größten Teil aus Barbaren. Sie leben in unterschiedlichen Kulturen, beispielsweise als Seefahrer (die Disuuslachter), Nomaden (die Wandernden Völker) oder Ruinenbewohner (die Loords von Landán). Die zeichnen sich durch Zähigkeit, Wildheit und Kampflust aus, sind zumeist primitiv und leben in Clans. Ehre und Mut werden hoch geschätzt. Technologisch bewegen sich die meisten Barbaren zwischen der späten Steinzeit und dem frühen Mittelalter.'
     };
+
+    const cultureDescriptions = {
+        Landbewohner: 'Landbewohner bewirtschaften den Boden und versuchen als Bauern und Viehzüchter ihren Lebensunterhalt zu verdienen. Die meisten sind einfache Menschen, die Ruhe und Frieden suchen, nicht viel von der Welt wissen und einfache Landgötter anbeten. Aberglauben ist weit verbreitet.'
+    };
+
+    if (descriptionField) {
+        descriptionField.addEventListener('input', () => {
+            descriptionField.dataset.userEdited = 'true';
+        });
+    }
 
     // initialise counters
     updateAPCounter(state.base.AP);
@@ -473,8 +483,12 @@ document.addEventListener('DOMContentLoaded', () => {
     function handleRaceChange() {
         clearRace();
         if (raceSelect.value === 'Barbar') applyRaceBarbar();
-        if (descriptionField && raceDescriptions[raceSelect.value] && !descriptionField.value.trim()) {
-            descriptionField.value = raceDescriptions[raceSelect.value];
+        if (descriptionField && descriptionField.dataset.userEdited !== 'true') {
+            let text = raceDescriptions[raceSelect.value] || '';
+            if (cultureDescriptions[cultureSelect.value]) {
+                text += (text ? '\n\n' : '') + cultureDescriptions[cultureSelect.value];
+            }
+            descriptionField.value = text;
         }
         updateContinueVisibility();
         recomputeAll();
@@ -522,6 +536,13 @@ document.addEventListener('DOMContentLoaded', () => {
     function handleCultureChange() {
         clearCulture();
         if (cultureSelect.value === 'Landbewohner') applyCultureLandbewohner();
+        if (descriptionField && descriptionField.dataset.userEdited !== 'true') {
+            let text = raceDescriptions[raceSelect.value] || '';
+            if (cultureDescriptions[cultureSelect.value]) {
+                text += (text ? '\n\n' : '') + cultureDescriptions[cultureSelect.value];
+            }
+            descriptionField.value = text;
+        }
         updateContinueVisibility();
         recomputeAll();
     }
