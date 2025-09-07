@@ -83,10 +83,7 @@ jobs:
     - name: Run migrations
       run: php artisan migrate --force
 
-    - name: Execute tests (Feature tests only)
-      run: php artisan test tests/Feature
-
-    - name: Execute tests with coverage
+    - name: Run feature tests with coverage
       env:
         XDEBUG_MODE: coverage
       run: php artisan test tests/Feature --coverage-clover=coverage.xml
