@@ -301,7 +301,7 @@ class TodoController extends Controller
         }
 
         $todo->update([
-            'status' => 'completed',
+            'status' => TodoStatus::Completed->value,
             'completed_at' => now(),
         ]);
 
