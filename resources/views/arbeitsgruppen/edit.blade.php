@@ -10,10 +10,7 @@
 
                 <div class="mb-4">
                     <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Name der AG</label>
-                    <input type="text" name="name" id="name" value="{{ old('name', $team->name) }}" @if(!$isAdmin) disabled @endif required class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
-                    @unless($isAdmin)
-                        <input type="hidden" name="name" value="{{ old('name', $team->name) }}">
-                    @endunless
+                    <input type="text" name="name" id="name" value="{{ old('name', $team->name) }}" @unless($isAdmin) readonly @endunless required class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50 {{ !$isAdmin ? 'bg-gray-100 dark:bg-gray-600' : '' }}">
                     @error('name')
                         <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                     @enderror
@@ -21,7 +18,7 @@
 
                 <div class="mb-4">
                     <label for="leader_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">AG-Leiter</label>
-                    <select name="leader_id" id="leader_id" @if(!$isAdmin) disabled @endif required class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
+                    <select @if($isAdmin) name="leader_id" @endif id="leader_id" @unless($isAdmin) disabled @endunless required class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50 {{ !$isAdmin ? 'bg-gray-100 dark:bg-gray-600' : '' }}">
                         @foreach($users as $member)
                             <option value="{{ $member->id }}" {{ old('leader_id', $team->user_id) == $member->id ? 'selected' : '' }}>{{ $member->name }}</option>
                         @endforeach
