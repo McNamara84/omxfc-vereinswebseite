@@ -343,7 +343,7 @@ class TodoController extends Controller
         ]);
 
         $todo->update([
-            'status' => 'verified',
+            'status' => TodoStatus::Verified->value,
             'verified_by' => $user->id,
             'verified_at' => now(),
         ]);
