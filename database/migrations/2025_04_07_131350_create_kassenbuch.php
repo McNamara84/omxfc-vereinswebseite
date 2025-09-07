@@ -4,7 +4,8 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      */
@@ -17,7 +18,7 @@ return new class extends Migration {
             $table->date('buchungsdatum');
             $table->decimal('betrag', 10, 2); // Positiv für Einnahmen, negativ für Ausgaben
             $table->string('beschreibung');
-            $table->enum('typ', ['einnahme', 'ausgabe']);
+            $table->string('typ');
             $table->timestamps();
         });
 
