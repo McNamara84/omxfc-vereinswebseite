@@ -17,18 +17,7 @@ return new class extends Migration
             $table->string('title');
             $table->string('author');
             $table->date('planned_release_date')->nullable();
-            $table->enum('status', [
-                'Skripterstellung',
-                'Korrekturlesung',
-                'Rollenbesetzung',
-                'Aufnahmensammlung',
-                'Musikerstellung',
-                'Audiobearbeitung',
-                'Videobearbeitung',
-                'Grafiken',
-                'Veröffentlichungsplanung',
-                'Veröffentlichung',
-            ]);
+            $table->string('status');
             $table->foreignId('responsible_user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->unsignedTinyInteger('progress')->default(0);
             $table->text('notes')->nullable();

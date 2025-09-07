@@ -2,16 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\AudiobookEpisodeStatus;
 use App\Models\AudiobookEpisode;
 use App\Models\AudiobookRole;
-use App\Models\Team;
 use App\Models\User;
-use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Validation\Rule;
 use App\Rules\ValidReleaseTime;
 use Carbon\Carbon;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class HoerbuchController extends Controller
 {
@@ -48,7 +47,7 @@ class HoerbuchController extends Controller
 
         return view('hoerbuecher.index', [
             'episodes' => $episodes,
-            'statuses' => AudiobookEpisode::STATUSES,
+            'statuses' => AudiobookEpisodeStatus::values(),
             'years' => $years,
             'totalUnfilledRoles' => $totalUnfilledRoles,
             'openRolesEpisodes' => $openRolesEpisodes,
@@ -108,8 +107,10 @@ class HoerbuchController extends Controller
     private function previousSpeakersForEpisode(AudiobookEpisode $episode): array
     {
         $episode->loadMissing('roles');
+
         return $this->latestSpeakersForNames($episode->roles->pluck('name'));
     }
+
     /**
      * Formular zum Erstellen einer neuen Hörbuchfolge.
      */
@@ -119,7 +120,7 @@ class HoerbuchController extends Controller
 
         return view('hoerbuecher.create', [
             'users' => $users,
-            'statuses' => AudiobookEpisode::STATUSES,
+            'statuses' => AudiobookEpisodeStatus::values(),
         ]);
     }
 
@@ -132,8 +133,8 @@ class HoerbuchController extends Controller
             'episode_number' => 'required|string|max:10|unique:audiobook_episodes,episode_number',
             'title' => 'required|string|max:255',
             'author' => 'required|string|max:255',
-            'planned_release_date' => ['required', 'string', new ValidReleaseTime()],
-            'status' => 'required|in:' . implode(',', AudiobookEpisode::STATUSES),
+            'planned_release_date' => ['required', 'string', new ValidReleaseTime],
+            'status' => 'required|in:'.implode(',', AudiobookEpisodeStatus::values()),
             'responsible_user_id' => 'nullable|exists:users,id',
             'progress' => 'required|integer|min:0|max:100',
             'notes' => 'nullable|string',
@@ -170,7 +171,6 @@ class HoerbuchController extends Controller
     /**
      * Detailansicht einer Hörbuchfolge.
      */
-    
     public function show(AudiobookEpisode $episode)
     {
         $episode->load('roles.user');
@@ -196,7 +196,7 @@ class HoerbuchController extends Controller
         return view('hoerbuecher.edit', [
             'episode' => $episode,
             'users' => $users,
-            'statuses' => AudiobookEpisode::STATUSES,
+            'statuses' => AudiobookEpisodeStatus::values(),
             'previousSpeakers' => $previous,
         ]);
     }
@@ -215,8 +215,8 @@ class HoerbuchController extends Controller
             ],
             'title' => 'required|string|max:255',
             'author' => 'required|string|max:255',
-            'planned_release_date' => ['required', 'string', new ValidReleaseTime()],
-            'status' => 'required|in:' . implode(',', AudiobookEpisode::STATUSES),
+            'planned_release_date' => ['required', 'string', new ValidReleaseTime],
+            'status' => 'required|in:'.implode(',', AudiobookEpisodeStatus::values()),
             'responsible_user_id' => 'nullable|exists:users,id',
             'progress' => 'required|integer|min:0|max:100',
             'notes' => 'nullable|string',

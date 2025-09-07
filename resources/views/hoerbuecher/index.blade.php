@@ -82,7 +82,7 @@
                                 role="button"
                                 tabindex="0"
                                 data-href="{{ route('hoerbuecher.show', $episode) }}"
-                                data-status="{{ $episode->status }}"
+                                data-status="{{ $episode->status->value }}"
                                 data-type="{{ $episode->episode_type }}"
                                 data-roles-filled="{{ $episode->all_roles_filled ? '1' : '0' }}"
                                 data-year="{{ $episode->release_year ?? '' }}"
@@ -92,14 +92,14 @@
                                 <td class="px-4 py-2 text-gray-700 dark:text-gray-300">{{ $episode->title }}</td>
                                 <td class="px-4 py-2 text-gray-700 dark:text-gray-300">{{ $episode->planned_release_date }}</td>
                                 <td class="px-4 py-2 text-gray-700 dark:text-gray-300">
-                                    <span>{{ $episode->status }}</span>
+                                    <span>{{ $episode->status->value }}</span>
                                     <div
                                         class="mt-1 w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4"
                                         role="progressbar"
                                         aria-valuenow="{{ $episode->progress }}"
                                         aria-valuemin="0"
                                         aria-valuemax="100"
-                                        aria-label="Episode progress: {{ $episode->status }}, {{ $episode->progress }}% complete">
+                                        aria-label="Episode progress: {{ $episode->status->value }}, {{ $episode->progress }}% complete">
                                         {{-- Map 0–100% progress to a hue range of 0–120 (red → green). --}}
                                         <div class="h-4 rounded-full text-xs font-medium text-center leading-none text-white" style="width: {{ $episode->progress }}%; background-color: hsl({{ $episode->progressHue() }}, 100%, 40%);">
                                             {{ $episode->progress }}%

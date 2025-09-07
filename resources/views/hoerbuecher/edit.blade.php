@@ -29,7 +29,7 @@
                         <select name="status" id="status" required class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
                             <option value="">-- Status wählen --</option>
                             @foreach($statuses as $status)
-                                <option value="{{ $status }}" {{ old('status', $episode->status) === $status ? 'selected' : '' }}>{{ $status }}</option>
+                                <option value="{{ $status }}" {{ old('status', $episode->status->value) === $status ? 'selected' : '' }}>{{ $status }}</option>
                             @endforeach
                         </select>
                         @error('status')

@@ -7,7 +7,7 @@
                 <div><span class="font-medium">Folge:</span> {{ $episode->episode_number }}</div>
                 <div><span class="font-medium">Autor:</span> {{ $episode->author }}</div>
                 <div><span class="font-medium">Ziel-EVT:</span> {{ $episode->planned_release_date }}</div>
-                <div><span class="font-medium">Status:</span> {{ $episode->status }}</div>
+                <div><span class="font-medium">Status:</span> {{ $episode->status->value }}</div>
                 <div class="md:col-span-2">
                     <span class="font-medium">Fortschritt:</span>
                     <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4 mt-1">

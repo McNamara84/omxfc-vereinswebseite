@@ -2,11 +2,12 @@
 
 namespace Tests\Feature;
 
+use App\Enums\KassenbuchEntryType;
+use App\Models\KassenbuchEntry;
+use App\Models\Team;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
-use App\Models\KassenbuchEntry;
-use App\Models\User;
-use App\Models\Team;
 
 class KassenbuchEntryModelTest extends TestCase
 {
@@ -32,7 +33,7 @@ class KassenbuchEntryModelTest extends TestCase
             'buchungsdatum' => '2025-05-01',
             'betrag' => 10.50,
             'beschreibung' => 'Mitgliedsbeitrag',
-            'typ' => 'einnahme',
+            'typ' => KassenbuchEntryType::Einnahme->value,
         ]);
 
         $this->assertDatabaseHas('kassenbuch_entries', [
@@ -42,7 +43,7 @@ class KassenbuchEntryModelTest extends TestCase
             'buchungsdatum' => '2025-05-01 00:00:00',
             'betrag' => 10.50,
             'beschreibung' => 'Mitgliedsbeitrag',
-            'typ' => 'einnahme',
+            'typ' => KassenbuchEntryType::Einnahme->value,
         ]);
     }
 
@@ -57,14 +58,14 @@ class KassenbuchEntryModelTest extends TestCase
             'buchungsdatum' => '2025-05-02',
             'betrag' => 5,
             'beschreibung' => 'Einkauf',
-            'typ' => 'ausgabe',
+            'typ' => KassenbuchEntryType::Ausgabe->value,
             'id' => 999,
         ]);
 
         $entry->refresh();
 
         $this->assertNotEquals(999, $entry->id);
-        $this->assertEquals('ausgabe', $entry->typ);
+        $this->assertSame(KassenbuchEntryType::Ausgabe, $entry->typ);
         $this->assertEquals('Einkauf', $entry->beschreibung);
     }
 
@@ -79,7 +80,7 @@ class KassenbuchEntryModelTest extends TestCase
             'buchungsdatum' => now(),
             'betrag' => 12,
             'beschreibung' => 'Test',
-            'typ' => 'einnahme',
+            'typ' => KassenbuchEntryType::Einnahme->value,
         ]);
 
         $this->assertTrue($entry->team->is($team));
@@ -96,7 +97,7 @@ class KassenbuchEntryModelTest extends TestCase
             'buchungsdatum' => now(),
             'betrag' => 8,
             'beschreibung' => 'Test',
-            'typ' => 'einnahme',
+            'typ' => KassenbuchEntryType::Einnahme->value,
         ]);
 
         $this->assertTrue($entry->creator->is($user));
@@ -113,7 +114,7 @@ class KassenbuchEntryModelTest extends TestCase
             'buchungsdatum' => '2025-06-01',
             'betrag' => '123.45',
             'beschreibung' => 'Cast Test',
-            'typ' => 'einnahme',
+            'typ' => KassenbuchEntryType::Einnahme->value,
         ]);
 
         $this->assertInstanceOf(\Carbon\Carbon::class, $entry->buchungsdatum);

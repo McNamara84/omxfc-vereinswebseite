@@ -2,10 +2,11 @@
 
 namespace Tests\Feature;
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
+use App\Enums\KassenbuchEntryType;
 use App\Models\Team;
 use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 
 class KassenbuchControllerTest extends TestCase
 {
@@ -16,6 +17,7 @@ class KassenbuchControllerTest extends TestCase
         $team = Team::where('name', 'Mitglieder')->first();
         $user = User::factory()->create(['current_team_id' => $team->id]);
         $team->users()->attach($user, ['role' => $role]);
+
         return $user;
     }
 
@@ -31,7 +33,7 @@ class KassenbuchControllerTest extends TestCase
             'buchungsdatum' => '2025-01-01',
             'betrag' => 5,
             'beschreibung' => 'Beitrag',
-            'typ' => 'einnahme',
+            'typ' => KassenbuchEntryType::Einnahme->value,
         ]);
 
         $response->assertRedirect();
@@ -111,7 +113,7 @@ class KassenbuchControllerTest extends TestCase
             'buchungsdatum' => now(),
             'betrag' => 5,
             'beschreibung' => 'Beitrag',
-            'typ' => 'einnahme',
+            'typ' => KassenbuchEntryType::Einnahme->value,
         ]);
 
         $response = $this->get('/kassenbuch');
@@ -164,7 +166,7 @@ class KassenbuchControllerTest extends TestCase
             'buchungsdatum' => '2025-01-01',
             'betrag' => 5,
             'beschreibung' => 'Beitrag',
-            'typ' => 'einnahme',
+            'typ' => KassenbuchEntryType::Einnahme->value,
         ]);
 
         $response->assertRedirect('/kassenbuch');

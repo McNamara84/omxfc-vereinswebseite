@@ -2,30 +2,18 @@
 
 namespace App\Models;
 
+use App\Enums\AudiobookEpisodeStatus;
 use Carbon\Carbon;
 use Carbon\Exceptions\InvalidFormatException;
-use InvalidArgumentException;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use InvalidArgumentException;
 
 class AudiobookEpisode extends Model
 {
     use HasFactory;
-
-    public const STATUSES = [
-        'Skripterstellung',
-        'Korrekturlesung',
-        'Rollenbesetzung',
-        'Aufnahmensammlung',
-        'Musikerstellung',
-        'Audiobearbeitung',
-        'Videobearbeitung',
-        'Grafiken',
-        'Veröffentlichungsplanung',
-        'Veröffentlichung',
-    ];
 
     /**
      * Scale factor mapping 0–100% progress to a 0–120° hue range,
@@ -44,6 +32,10 @@ class AudiobookEpisode extends Model
         'notes',
         'roles_total',
         'roles_filled',
+    ];
+
+    protected $casts = [
+        'status' => AudiobookEpisodeStatus::class,
     ];
 
     public function responsible(): BelongsTo
@@ -107,7 +99,7 @@ class AudiobookEpisode extends Model
      */
     public function getPlannedReleaseDateParsedAttribute(): ?Carbon
     {
-        if (!$this->planned_release_date) {
+        if (! $this->planned_release_date) {
             return null;
         }
 
@@ -120,7 +112,7 @@ class AudiobookEpisode extends Model
                 } else {
                     $date = Carbon::createFromFormat($format, $this->planned_release_date);
                 }
-            } catch (InvalidArgumentException | InvalidFormatException $e) {
+            } catch (InvalidArgumentException|InvalidFormatException $e) {
                 continue;
             }
 
