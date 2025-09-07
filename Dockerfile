@@ -7,7 +7,7 @@ COPY . .
 RUN npm run build
 
 # PHP Production Stage
-FROM php:8.2-fpm
+FROM php:8.4-fpm
 
 # Install required system packages
 RUN apt-get update && apt-get install -y \
