@@ -71,7 +71,7 @@ jobs:
     - name: Directory Permissions
       run: chmod -R 755 storage bootstrap/cache
     - name: Create SQLite database
-      run: touch database/database.sqlite
+      run: mkdir -p database && touch database/database.sqlite
     - name: Run migrations
       run: php artisan migrate --force
 
