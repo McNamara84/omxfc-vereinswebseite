@@ -373,7 +373,7 @@ class TodoController extends Controller
 
         $todo->update([
             'assigned_to' => null,
-            'status' => 'open',
+            'status' => TodoStatus::Open->value,
         ]);
 
         return redirect()->route('todos.index')
