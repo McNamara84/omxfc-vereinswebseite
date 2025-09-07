@@ -176,6 +176,7 @@ class ArbeitsgruppenController extends Controller
 
         if (!$user->hasRole('Admin')) {
             $validated['leader_id'] = $team->user_id;
+            $validated['name'] = $team->name;
         }
 
         $logoPath = $request->file('logo')?->store('ag-logos', 'public') ?? $team->logo_path;
