@@ -53,8 +53,10 @@ class TodoController extends Controller
 
         $assignedTodos = $todos->where('assigned_to', $user->id);
         $unassignedTodos = $todos->where('status', 'open');
-        $completedTodos = $todos->whereIn('status', ['completed', 'verified'])
-            ->where('assigned_to', '!=', $user->id);
+        $completedTodos = $todos->filter(fn ($todo) =>
+            in_array($todo->status->value, ['completed', 'verified'], true) &&
+            $todo->assigned_to !== $user->id
+        );
 
         $userPoints = UserPoint::where('user_id', $user->id)
             ->where('team_id', $memberTeam->id)
