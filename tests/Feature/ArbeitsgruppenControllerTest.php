@@ -19,9 +19,10 @@ class ArbeitsgruppenControllerTest extends TestCase
         return $user;
     }
 
-    public function test_ag_leader_can_update_own_team(): void
+    public function test_ag_leader_cannot_change_name_or_leader(): void
     {
         $leader = $this->createMemberWithRole();
+        $otherLeader = $this->createMemberWithRole();
         $ag = Team::factory()->create([
             'user_id' => $leader->id,
             'personal_team' => false,
@@ -33,7 +34,7 @@ class ArbeitsgruppenControllerTest extends TestCase
 
         $response = $this->put(route('arbeitsgruppen.update', $ag), [
             'name' => 'AG Neu',
-            'leader_id' => $leader->id,
+            'leader_id' => $otherLeader->id,
             'description' => 'Desc',
             'email' => 'ag@example.com',
             'meeting_schedule' => 'montags',
@@ -42,7 +43,8 @@ class ArbeitsgruppenControllerTest extends TestCase
         $response->assertRedirect(route('arbeitsgruppen.index'));
         $this->assertDatabaseHas('teams', [
             'id' => $ag->id,
-            'name' => 'AG Neu',
+            'name' => 'AG Test',
+            'user_id' => $leader->id,
             'description' => 'Desc',
             'email' => 'ag@example.com',
             'meeting_schedule' => 'montags',
