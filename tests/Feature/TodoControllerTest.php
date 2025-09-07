@@ -63,7 +63,7 @@ class TodoControllerTest extends TestCase
 
         $response->assertRedirect(route('todos.show', $todo, false));
         $todo->refresh();
-        $this->assertSame(TodoStatus::Completed, $todo->status);
+        $this->assertSame(TodoStatus::Completed->value, $todo->status->value);
         $this->assertNotNull($todo->completed_at);
     }
 
