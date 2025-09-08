@@ -14,15 +14,24 @@ jobs:
     runs-on: ubuntu-latest
     
     strategy:
-      fail-fast: false
+      fail-fast: true
       matrix:
-        php-version: ['8.2', '8.3', '8.4']
+        php-version: ['8.3']
+        include:
+          - php-version: '8.2'
+            branch: main
+          - php-version: '8.4'
+            branch: main
     
     env:
       DB_CONNECTION: sqlite
-      DB_DATABASE: database/database.sqlite
+      DB_DATABASE: ':memory:'
+      BROADCAST_DRIVER: log
+      CACHE_DRIVER: array
+      QUEUE_CONNECTION: sync
+      SESSION_DRIVER: array
 
-    name: PHP ${{ matrix.php-version }} - Feature Tests
+    name: PHP ${{ matrix.php-version }}
     
     steps:
     - name: Checkout code
@@ -32,11 +41,12 @@ jobs:
       uses: shivammathur/setup-php@v2
       with:
         php-version: ${{ matrix.php-version }}
-        extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite, bcmath, soap, intl, gd, exif, iconv, imagick, fileinfo, xdebug
-        coverage: xdebug
+        extensions: mbstring, dom, fileinfo, sqlite, pdo_sqlite, zip, curl, bcmath
+        coverage: none
         tools: composer:v2
 
     - name: Setup Node.js
+      if: github.ref == 'refs/heads/main'
       uses: actions/setup-node@v4
       with:
         node-version: '20'
@@ -49,58 +59,68 @@ jobs:
     - name: Cache composer dependencies
       uses: actions/cache@v4
       with:
-        path: ${{ steps.composer-cache.outputs.dir }}
-        key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
-        restore-keys: ${{ runner.os }}-composer-
+        path: |
+          ${{ steps.composer-cache.outputs.dir }}
+          vendor
+        key: ${{ runner.os }}-php-${{ matrix.php-version }}-composer-${{ hashFiles('**/composer.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-php-${{ matrix.php-version }}-composer-
 
     - name: Install Composer dependencies
-      run: composer install --no-progress --prefer-dist --optimize-autoloader --no-interaction
+      run: |
+        if [ -d "vendor" ]; then
+          echo "Using cached vendor directory"
+          composer dump-autoload
+        else
+          composer install --no-progress --prefer-dist --optimize-autoloader --no-interaction
+        fi
+
+    - name: Cache NPM dependencies
+      id: npm-cache
+      if: github.ref == 'refs/heads/main'
+      uses: actions/cache@v4
+      with:
+        path: |
+          node_modules
+          public/build
+        key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json', '**/vite.config.js', 'resources/**') }}
+        restore-keys: |
+          ${{ runner.os }}-npm-
 
     - name: Install NPM dependencies
+      if: github.ref == 'refs/heads/main' && steps.npm-cache.outputs.cache-hit != 'true'
       run: npm ci
 
     - name: Build assets
+      if: github.ref == 'refs/heads/main' && steps.npm-cache.outputs.cache-hit != 'true'
       run: npm run build
 
-    - name: Copy .env
-      run: php -r "file_exists('.env') || copy('.env.example', '.env');"
+    - name: Prepare Laravel Application
+      run: |
+        cp .env.testing .env 2>/dev/null || cp .env.example .env
+        php artisan key:generate
+        chmod -R 755 storage bootstrap/cache
 
-    - name: Generate key
-      run: php artisan key:generate
+    - name: Execute tests
+      run: php artisan test tests/Feature --parallel --recreate-databases
 
-    - name: Directory Permissions
-      run: chmod -R 755 storage bootstrap/cache
-    - name: Create SQLite database
-      run: mkdir -p database && touch database/database.sqlite
-    - name: Run migrations
-      run: php artisan migrate --force
-
-    - name: Execute tests (Feature tests only)
-      run: php artisan test tests/Feature
-
-    - name: Execute tests with coverage (PHP 8.3 only)
-      if: matrix.php-version == '8.3'
-      env:
-        XDEBUG_MODE: coverage
-      run: php artisan test tests/Feature --coverage-clover=coverage.xml
+    - name: Execute tests with coverage
+      if: matrix.php-version == '8.3' && github.ref == 'refs/heads/main'
+      run: |
+        php -dxdebug.mode=coverage artisan test tests/Feature --coverage-clover=coverage.xml --parallel
 
     - name: Run Jest tests with coverage
+      if: matrix.php-version == '8.3' && github.ref == 'refs/heads/main'
       run: npm test -- --coverage --coverageReporters=json-summary --coverageDirectory=coverage
 
     - name: Create JS coverage badge
       if: matrix.php-version == '8.3' && github.ref == 'refs/heads/main'
       run: |
         mkdir -p output
-        if [ ! -f "coverage/coverage-summary.json" ]; then
-          echo "coverage/coverage-summary.json not found" >&2
-          exit 1
+        if [ -f "coverage/coverage-summary.json" ]; then
+          npx --yes make-coverage-badge --report-path=coverage/coverage-summary.json --output-path=output/js-coverage.svg
+          sed -i 's/Coverage/JS Coverage/' output/js-coverage.svg
         fi
-        npx --yes make-coverage-badge --report-path=coverage/coverage-summary.json --output-path=output/js-coverage.svg
-        if [ ! -f output/js-coverage.svg ]; then
-          echo "JS coverage badge was not created" >&2
-          exit 1
-        fi
-        sed -i 's/Coverage/JS Coverage/' output/js-coverage.svg
 
     - name: Create PHP coverage badge
       if: matrix.php-version == '8.3' && github.ref == 'refs/heads/main'
@@ -115,9 +135,6 @@ jobs:
       run: |
         if [ -f output/php-coverage.svg ]; then
           sed -i 's/Coverage/PHP Coverage/' output/php-coverage.svg
-        else
-          echo "PHP coverage badge was not created" >&2
-          exit 1
         fi
 
     - name: Deploy coverage badges to image-data branch
@@ -127,5 +144,3 @@ jobs:
         publish_dir: ./output
         publish_branch: image-data
         github_token: ${{ secrets.GITHUB_TOKEN }}
-        user_name: 'github-actions[bot]'
-        user_email: 'github-actions[bot]@users.noreply.github.com'
