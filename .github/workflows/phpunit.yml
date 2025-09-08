@@ -21,7 +21,7 @@ jobs:
     
     env:
       DB_CONNECTION: sqlite
-      DB_DATABASE: ':memory:'
+      DB_DATABASE: database/database.sqlite
       BROADCAST_DRIVER: log
       CACHE_DRIVER: array
       QUEUE_CONNECTION: sync
@@ -67,6 +67,11 @@ jobs:
 
     - name: Build assets
       run: npm run build
+
+    - name: Prepare database file
+      run: |
+        mkdir -p database
+        touch database/database.sqlite
 
     - name: Prepare Laravel Application
       run: |
@@ -129,7 +134,7 @@ jobs:
     
     env:
       DB_CONNECTION: sqlite
-      DB_DATABASE: ':memory:'
+      DB_DATABASE: database/database.sqlite
       BROADCAST_DRIVER: log
       CACHE_DRIVER: array
       QUEUE_CONNECTION: sync
@@ -163,6 +168,11 @@ jobs:
 
     - name: Install Composer dependencies
       run: composer install --no-progress --prefer-dist --optimize-autoloader --no-interaction
+
+    - name: Prepare database file
+      run: |
+        mkdir -p database
+        touch database/database.sqlite
 
     - name: Prepare Laravel Application
       run: |
