@@ -1,4 +1,4 @@
-name: Unit Tests
+name: PHP Unit Tests
 
 on:
   push:
@@ -41,15 +41,15 @@ jobs:
       uses: shivammathur/setup-php@v2
       with:
         php-version: ${{ matrix.php-version }}
-        extensions: mbstring, dom, fileinfo, sqlite, pdo_sqlite, zip, curl, bcmath
+        extensions: mbstring, dom, fileinfo, sqlite, pdo_sqlite, zip, curl, bcmath, pcntl
         coverage: none
         tools: composer:v2
 
     - name: Setup Node.js
       if: github.ref == 'refs/heads/main'
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v5
       with:
-        node-version: '20'
+        node-version: '24'
         cache: 'npm'
 
     - name: Get composer cache directory
@@ -102,12 +102,12 @@ jobs:
         chmod -R 755 storage bootstrap/cache
 
     - name: Execute tests
-      run: php artisan test tests/Feature --parallel --recreate-databases
+      run: php artisan test tests/Feature
 
     - name: Execute tests with coverage
       if: matrix.php-version == '8.3' && github.ref == 'refs/heads/main'
       run: |
-        php -dxdebug.mode=coverage artisan test tests/Feature --coverage-clover=coverage.xml --parallel
+        php -dxdebug.mode=coverage artisan test tests/Feature --coverage-clover=coverage.xml
 
     - name: Run Jest tests with coverage
       if: matrix.php-version == '8.3' && github.ref == 'refs/heads/main'
