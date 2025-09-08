@@ -76,7 +76,7 @@ jobs:
     - name: Prepare Laravel Application
       run: |
         cp .env.testing .env 2>/dev/null || cp .env.example .env
-        php artisan key:generate
+        php artisan key:generate --env=testing
         chmod -R 755 storage bootstrap/cache
 
     - name: Execute tests
@@ -177,7 +177,7 @@ jobs:
     - name: Prepare Laravel Application
       run: |
         cp .env.testing .env 2>/dev/null || cp .env.example .env
-        php artisan key:generate
+        php artisan key:generate --env=testing
         chmod -R 755 storage bootstrap/cache
 
     - name: Execute tests
