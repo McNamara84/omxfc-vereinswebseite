@@ -17,11 +17,7 @@ jobs:
       fail-fast: true
       matrix:
         php-version: ['8.3']
-        include:
-          - php-version: '8.2'
-            branch: main
-          - php-version: '8.4'
-            branch: main
+        exclude: []
     
     env:
       DB_CONNECTION: sqlite
@@ -31,25 +27,24 @@ jobs:
       QUEUE_CONNECTION: sync
       SESSION_DRIVER: array
 
-    name: PHP ${{ matrix.php-version }}
+    name: PHP ${{ matrix.php-version }} - Tests
     
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Setup PHP ${{ matrix.php-version }}
+    - name: Setup PHP
       uses: shivammathur/setup-php@v2
       with:
         php-version: ${{ matrix.php-version }}
-        extensions: mbstring, dom, fileinfo, sqlite, pdo_sqlite, zip, curl, bcmath, pcntl
+        extensions: mbstring, dom, fileinfo, sqlite, pdo_sqlite, zip, curl, bcmath, pcntl, intl, gd, exif, iconv
         coverage: none
         tools: composer:v2
 
     - name: Setup Node.js
-      if: github.ref == 'refs/heads/main'
       uses: actions/setup-node@v5
       with:
-        node-version: '24'
+        node-version: '22'
         cache: 'npm'
 
     - name: Get composer cache directory
@@ -59,40 +54,18 @@ jobs:
     - name: Cache composer dependencies
       uses: actions/cache@v4
       with:
-        path: |
-          ${{ steps.composer-cache.outputs.dir }}
-          vendor
+        path: ${{ steps.composer-cache.outputs.dir }}
         key: ${{ runner.os }}-php-${{ matrix.php-version }}-composer-${{ hashFiles('**/composer.lock') }}
         restore-keys: |
           ${{ runner.os }}-php-${{ matrix.php-version }}-composer-
 
     - name: Install Composer dependencies
-      run: |
-        if [ -d "vendor" ]; then
-          echo "Using cached vendor directory"
-          composer dump-autoload
-        else
-          composer install --no-progress --prefer-dist --optimize-autoloader --no-interaction
-        fi
-
-    - name: Cache NPM dependencies
-      id: npm-cache
-      if: github.ref == 'refs/heads/main'
-      uses: actions/cache@v4
-      with:
-        path: |
-          node_modules
-          public/build
-        key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json', '**/vite.config.js', 'resources/**') }}
-        restore-keys: |
-          ${{ runner.os }}-npm-
+      run: composer install --no-progress --prefer-dist --optimize-autoloader --no-interaction
 
     - name: Install NPM dependencies
-      if: github.ref == 'refs/heads/main' && steps.npm-cache.outputs.cache-hit != 'true'
       run: npm ci
 
     - name: Build assets
-      if: github.ref == 'refs/heads/main' && steps.npm-cache.outputs.cache-hit != 'true'
       run: npm run build
 
     - name: Prepare Laravel Application
@@ -139,8 +112,63 @@ jobs:
 
     - name: Deploy coverage badges to image-data branch
       if: matrix.php-version == '8.3' && github.ref == 'refs/heads/main'
-      uses: peaceiris/actions-gh-pages@v3
+      uses: peaceiris/actions-gh-pages@v4
       with:
         publish_dir: ./output
         publish_branch: image-data
         github_token: ${{ secrets.GITHUB_TOKEN }}
+
+  additional-php-versions:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        php-version: ['8.2', '8.4']
+    
+    env:
+      DB_CONNECTION: sqlite
+      DB_DATABASE: ':memory:'
+      BROADCAST_DRIVER: log
+      CACHE_DRIVER: array
+      QUEUE_CONNECTION: sync
+      SESSION_DRIVER: array
+
+    name: PHP ${{ matrix.php-version }} - Additional Tests
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: ${{ matrix.php-version }}
+        extensions: mbstring, dom, fileinfo, sqlite, pdo_sqlite, zip, curl, bcmath, pcntl, intl
+        coverage: none
+        tools: composer:v2
+
+    - name: Get composer cache directory
+      id: composer-cache
+      run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+    - name: Cache composer dependencies
+      uses: actions/cache@v4
+      with:
+        path: ${{ steps.composer-cache.outputs.dir }}
+        key: ${{ runner.os }}-php-${{ matrix.php-version }}-composer-${{ hashFiles('**/composer.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-php-${{ matrix.php-version }}-composer-
+
+    - name: Install Composer dependencies
+      run: composer install --no-progress --prefer-dist --optimize-autoloader --no-interaction
+
+    - name: Prepare Laravel Application
+      run: |
+        cp .env.testing .env 2>/dev/null || cp .env.example .env
+        php artisan key:generate
+        chmod -R 755 storage bootstrap/cache
+
+    - name: Execute tests
+      run: php artisan test tests/Feature
