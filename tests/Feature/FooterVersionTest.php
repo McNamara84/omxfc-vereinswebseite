@@ -12,11 +12,11 @@ class FooterVersionTest extends TestCase
 
     public function test_footer_displays_version_and_changelog_link(): void
     {
-        $version = config('app.version');
+        config(['app.key' => 'base64:' . base64_encode(random_bytes(32))]);
 
-        if ($version === null || $version === '0.0.0') {
-            $version = '0.0.0';
+        $version = config('app.version', '0.0.0');
 
+        if ($version === '0.0.0') {
             $revList = Process::run(['git', 'rev-list', '--tags', '--max-count=1']);
 
             if ($revList->successful()) {
@@ -26,7 +26,11 @@ class FooterVersionTest extends TestCase
                     $describe = Process::run(['git', 'describe', '--tags', $commit]);
 
                     if ($describe->successful()) {
-                        $version = trim($describe->output());
+                        $gitVersion = trim($describe->output());
+
+                        if ($gitVersion !== '') {
+                            $version = $gitVersion;
+                        }
                     }
                 }
             }
