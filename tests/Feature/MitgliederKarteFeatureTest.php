@@ -6,7 +6,6 @@ use App\Models\Team;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
 class MitgliederKarteFeatureTest extends TestCase
@@ -37,42 +36,26 @@ class MitgliederKarteFeatureTest extends TestCase
     public function test_coordinates_are_cached(): void
     {
         Cache::flush();
-        $count = 0;
-        $responses = ['12345' => ['lat' => '48.0', 'lon' => '11.0']];
-        Http::fake(function ($request) use (&$count, $responses) {
-            $count++;
-            parse_str(parse_url($request->url(), PHP_URL_QUERY), $query);
 
-            return Http::response([$responses[$query['postalcode']]], 200);
-        });
-
-        $user = $this->actingMember('Mitglied', ['plz' => '12345', 'land' => 'Deutschland']);
+        $user = $this->actingMember('Mitglied', ['plz' => '12345', 'land' => 'Deutschland', 'lat' => 48.0, 'lon' => 11.0]);
         $user->incrementTeamPoints();
         $this->actingAs($user);
 
         $this->get('/mitglieder/karte');
         $this->get('/mitglieder/karte');
 
-        $this->assertEquals(1, $count);
+        $team = $user->currentTeam;
+        $this->assertTrue(Cache::has("member_map_data_team_{$team->id}"));
     }
 
     public function test_member_center_coordinates_are_average(): void
     {
         Cache::flush();
-        $responses = [
-            '11111' => ['lat' => '50.0', 'lon' => '8.0'],
-            '22222' => ['lat' => '52.0', 'lon' => '10.0'],
-            '12345' => ['lat' => '53.0', 'lon' => '11.0'],
-        ];
-        Http::fake(function ($request) use ($responses) {
-            parse_str(parse_url($request->url(), PHP_URL_QUERY), $query);
 
-            return Http::response([$responses[$query['postalcode']]], 200);
-        });
-
-        $user = $this->actingMember('Mitglied', ['plz' => '11111', 'land' => 'Deutschland']);
+        $user = $this->actingMember('Mitglied', ['plz' => '11111', 'land' => 'Deutschland', 'lat' => 50.0, 'lon' => 8.0]);
         $user->incrementTeamPoints();
-        $this->actingMember('Mitglied', ['plz' => '22222', 'land' => 'Deutschland']);
+        $this->actingMember('Mitglied', ['plz' => '22222', 'land' => 'Deutschland', 'lat' => 52.0, 'lon' => 10.0]);
+        $this->actingMember('Mitglied', ['plz' => '12345', 'land' => 'Deutschland', 'lat' => 53.0, 'lon' => 11.0]);
 
         $this->actingAs($user);
         $response = $this->get('/mitglieder/karte');
@@ -89,9 +72,8 @@ class MitgliederKarteFeatureTest extends TestCase
     public function test_map_data_is_cached(): void
     {
         Cache::flush();
-        Http::fake(['*' => Http::response([['lat' => '48.0', 'lon' => '11.0']], 200)]);
 
-        $user = $this->actingMember('Mitglied', ['plz' => '12345', 'land' => 'Deutschland']);
+        $user = $this->actingMember('Mitglied', ['plz' => '12345', 'land' => 'Deutschland', 'lat' => 48.0, 'lon' => 11.0]);
         $user->incrementTeamPoints();
         $this->actingAs($user);
 
