@@ -84,6 +84,7 @@
                     <form action="{{ route('arbeitsgruppen.add-member', $team) }}" method="POST" class="flex flex-col sm:flex-row sm:items-center gap-2">
                         @csrf
                         <select name="user_id" required class="flex-1 rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
+                            <option value="" disabled selected>Mitglied auswählen</option>
                             @foreach($availableMembers as $member)
                                 <option value="{{ $member->id }}">{{ $member->name }}</option>
                             @endforeach
