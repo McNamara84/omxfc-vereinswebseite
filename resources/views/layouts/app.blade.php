@@ -27,7 +27,9 @@
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
     <!-- Styles (NUR CSS) -->
-    @vite(['resources/css/app.css'])
+    @unless(app()->environment('testing'))
+        @vite(['resources/css/app.css'])
+    @endunless
     @livewireStyles
 </head>
 
@@ -60,6 +62,8 @@
     @stack('modals')
 
     <!-- Alpine/JS -->
-    @vite(['resources/js/app.js'])
+    @unless(app()->environment('testing'))
+        @vite(['resources/js/app.js'])
+    @endunless
 </body>
 </html>
