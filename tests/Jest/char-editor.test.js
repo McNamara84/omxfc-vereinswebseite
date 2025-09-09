@@ -41,9 +41,13 @@ const BASE_HTML = `
   <input id="au" />
 `;
 
-async function loadEditor(html = BASE_HTML) {
+async function loadEditor(values = {}) {
   jest.resetModules();
-  document.body.innerHTML = html;
+  document.body.innerHTML = BASE_HTML;
+  for (const [id, value] of Object.entries(values)) {
+    const el = document.getElementById(id);
+    if (el) el.value = value;
+  }
   await import('../../resources/js/char-editor.js');
   document.dispatchEvent(new Event('DOMContentLoaded'));
 }
@@ -65,9 +69,7 @@ describe('char-editor module', () => {
   });
 
   test('selecting Barbar race reveals combat toggle and adds skills', async () => {
-    const html = BASE_HTML.replace('<input id="player_name" />', '<input id="player_name" value="Alice" />')
-      .replace('<input id="character_name" />', '<input id="character_name" value="Bob" />');
-    await loadEditor(html);
+    await loadEditor({ player_name: 'Alice', character_name: 'Bob' });
     const race = document.getElementById('race');
     race.value = 'Barbar';
     race.dispatchEvent(new Event('change'));
