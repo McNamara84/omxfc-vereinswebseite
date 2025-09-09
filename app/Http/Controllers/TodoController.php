@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\TodoStatus;
+use App\Models\Activity;
+use App\Models\Team;
+use App\Models\Todo;
+use App\Models\TodoCategory;
+use App\Models\UserPoint;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\Todo;
-use App\Models\Team;
-use App\Models\UserPoint;
-use App\Models\TodoCategory;
-use App\Models\Activity;
 
 class TodoController extends Controller
 {
@@ -20,12 +21,12 @@ class TodoController extends Controller
         $user = Auth::user();
         $memberTeam = Team::where('name', 'Mitglieder')->first();
 
-        if (!$memberTeam) {
+        if (! $memberTeam) {
             return view('todos.index', [
                 'todos' => collect([]),
                 'canCreateTodos' => false,
                 'userPoints' => 0,
-                'memberTeam' => null
+                'memberTeam' => null,
             ]);
         }
 
@@ -52,8 +53,10 @@ class TodoController extends Controller
 
         $assignedTodos = $todos->where('assigned_to', $user->id);
         $unassignedTodos = $todos->where('status', 'open');
-        $completedTodos = $todos->whereIn('status', ['completed', 'verified'])
-            ->where('assigned_to', '!=', $user->id);
+        $completedTodos = $todos->filter(fn ($todo) =>
+            in_array($todo->status->value, ['completed', 'verified'], true) &&
+            $todo->assigned_to !== $user->id
+        );
 
         $userPoints = UserPoint::where('user_id', $user->id)
             ->where('team_id', $memberTeam->id)
@@ -69,7 +72,7 @@ class TodoController extends Controller
             'userPoints' => $userPoints,
             'memberTeam' => $memberTeam,
             'userRole' => $userRole,
-            'filter' => $filter
+            'filter' => $filter,
         ]);
     }
 
@@ -81,7 +84,7 @@ class TodoController extends Controller
         $user = Auth::user();
         $memberTeam = Team::where('name', 'Mitglieder')->first();
 
-        if (!$memberTeam) {
+        if (! $memberTeam) {
             return redirect()->route('todos.index')
                 ->with('error', 'Team "Mitglieder" nicht gefunden.');
         }
@@ -89,7 +92,7 @@ class TodoController extends Controller
         $membership = $memberTeam->users()->where('user_id', $user->id)->first();
         $userRole = $membership ? $membership->membership->role : null;
 
-        if (!in_array($userRole, ['Kassenwart', 'Vorstand', 'Admin'])) {
+        if (! in_array($userRole, ['Kassenwart', 'Vorstand', 'Admin'])) {
             return redirect()->route('todos.index')
                 ->with('error', 'Du hast keine Berechtigung, Challenges zu erstellen.');
         }
@@ -98,7 +101,7 @@ class TodoController extends Controller
 
         return view('todos.create', [
             'memberTeam' => $memberTeam,
-            'categories' => $categories
+            'categories' => $categories,
         ]);
     }
 
@@ -110,7 +113,7 @@ class TodoController extends Controller
         $user = Auth::user();
         $memberTeam = Team::where('name', 'Mitglieder')->first();
 
-        if (!$memberTeam) {
+        if (! $memberTeam) {
             return redirect()->route('todos.index')
                 ->with('error', 'Team "Mitglieder" nicht gefunden.');
         }
@@ -118,7 +121,7 @@ class TodoController extends Controller
         $membership = $memberTeam->users()->where('user_id', $user->id)->first();
         $userRole = $membership ? $membership->membership->role : null;
 
-        if (!in_array($userRole, ['Kassenwart', 'Vorstand', 'Admin'])) {
+        if (! in_array($userRole, ['Kassenwart', 'Vorstand', 'Admin'])) {
             return redirect()->route('todos.index')
                 ->with('error', 'Du hast keine Berechtigung, Challenges zu erstellen.');
         }
@@ -152,7 +155,7 @@ class TodoController extends Controller
         $user = Auth::user();
         $memberTeam = Team::where('name', 'Mitglieder')->first();
 
-        if (!$memberTeam || $todo->team_id !== $memberTeam->id) {
+        if (! $memberTeam || $todo->team_id !== $memberTeam->id) {
             return redirect()->route('todos.index')
                 ->with('error', 'Challenge nicht gefunden.');
         }
@@ -160,13 +163,13 @@ class TodoController extends Controller
         $membership = $memberTeam->users()->where('user_id', $user->id)->first();
         $userRole = $membership ? $membership->membership->role : null;
 
-        $canAssign = !$todo->assigned_to && $todo->status === 'open' && in_array($userRole, ['Mitglied', 'Ehrenmitglied', 'Kassenwart', 'Vorstand', 'Admin']);
+        $canAssign = ! $todo->assigned_to && $todo->status === TodoStatus::Open && in_array($userRole, ['Mitglied', 'Ehrenmitglied', 'Kassenwart', 'Vorstand', 'Admin']);
 
         $canEdit = $todo->created_by === $user->id || in_array($userRole, ['Kassenwart', 'Vorstand', 'Admin']);
 
-        $canComplete = $todo->assigned_to === $user->id && $todo->status === 'assigned';
+        $canComplete = $todo->assigned_to === $user->id && $todo->status === TodoStatus::Assigned;
 
-        $canVerify = $todo->status === 'completed' &&
+        $canVerify = $todo->status === TodoStatus::Completed &&
             in_array($userRole, ['Kassenwart', 'Vorstand', 'Admin']);
 
         return view('todos.show', [
@@ -187,7 +190,7 @@ class TodoController extends Controller
         $user = Auth::user();
         $memberTeam = Team::where('name', 'Mitglieder')->first();
 
-        if (!$memberTeam || $todo->team_id !== $memberTeam->id) {
+        if (! $memberTeam || $todo->team_id !== $memberTeam->id) {
             return redirect()->route('todos.index')
                 ->with('error', 'Challenge nicht gefunden.');
         }
@@ -195,7 +198,7 @@ class TodoController extends Controller
         $membership = $memberTeam->users()->where('user_id', $user->id)->first();
         $userRole = $membership ? $membership->membership->role : null;
 
-        if ($todo->created_by !== $user->id && !in_array($userRole, ['Kassenwart', 'Vorstand', 'Admin'])) {
+        if ($todo->created_by !== $user->id && ! in_array($userRole, ['Kassenwart', 'Vorstand', 'Admin'])) {
             abort(403);
         }
 
@@ -215,7 +218,7 @@ class TodoController extends Controller
         $user = Auth::user();
         $memberTeam = Team::where('name', 'Mitglieder')->first();
 
-        if (!$memberTeam || $todo->team_id !== $memberTeam->id) {
+        if (! $memberTeam || $todo->team_id !== $memberTeam->id) {
             return redirect()->route('todos.index')
                 ->with('error', 'Challenge nicht gefunden.');
         }
@@ -223,7 +226,7 @@ class TodoController extends Controller
         $membership = $memberTeam->users()->where('user_id', $user->id)->first();
         $userRole = $membership ? $membership->membership->role : null;
 
-        if ($todo->created_by !== $user->id && !in_array($userRole, ['Kassenwart', 'Vorstand', 'Admin'])) {
+        if ($todo->created_by !== $user->id && ! in_array($userRole, ['Kassenwart', 'Vorstand', 'Admin'])) {
             abort(403);
         }
 
@@ -253,12 +256,12 @@ class TodoController extends Controller
         $user = Auth::user();
         $memberTeam = Team::where('name', 'Mitglieder')->first();
 
-        if (!$memberTeam || $todo->team_id !== $memberTeam->id) {
+        if (! $memberTeam || $todo->team_id !== $memberTeam->id) {
             return redirect()->route('todos.index')
                 ->with('error', 'Challenge nicht gefunden.');
         }
 
-        if ($todo->assigned_to || $todo->status !== 'open') {
+        if ($todo->assigned_to || $todo->status !== TodoStatus::Open) {
             return redirect()->route('todos.show', $todo)
                 ->with('error', 'Diese Challenge wurde bereits übernommen oder ist nicht mehr verfügbar.');
         }
@@ -266,14 +269,14 @@ class TodoController extends Controller
         $membership = $memberTeam->users()->where('user_id', $user->id)->first();
         $userRole = $membership ? $membership->membership->role : null;
 
-        if (!in_array($userRole, ['Mitglied', 'Ehrenmitglied', 'Kassenwart', 'Vorstand', 'Admin'])) {
+        if (! in_array($userRole, ['Mitglied', 'Ehrenmitglied', 'Kassenwart', 'Vorstand', 'Admin'])) {
             return redirect()->route('todos.show', $todo)
                 ->with('error', 'Sie haben keine Berechtigung, diese Challenge zu übernehmen.');
         }
 
         $todo->update([
             'assigned_to' => $user->id,
-            'status' => 'assigned'
+            'status' => 'assigned',
         ]);
 
         Activity::create([
@@ -294,14 +297,14 @@ class TodoController extends Controller
     {
         $user = Auth::user();
 
-        if ($todo->assigned_to !== $user->id || $todo->status !== 'assigned') {
+        if ($todo->assigned_to !== $user->id || $todo->status !== TodoStatus::Assigned) {
             return redirect()->route('todos.show', $todo)
                 ->with('error', 'Sie können diese Challenge nicht als erledigt markieren.');
         }
 
         $todo->update([
-            'status' => 'completed',
-            'completed_at' => now()
+            'status' => TodoStatus::Completed->value,
+            'completed_at' => now(),
         ]);
 
         return redirect()->route('todos.show', $todo)
@@ -316,12 +319,12 @@ class TodoController extends Controller
         $user = Auth::user();
         $memberTeam = Team::where('name', 'Mitglieder')->first();
 
-        if (!$memberTeam || $todo->team_id !== $memberTeam->id) {
+        if (! $memberTeam || $todo->team_id !== $memberTeam->id) {
             return redirect()->route('todos.index')
                 ->with('error', 'Challenge nicht gefunden.');
         }
 
-        if ($todo->status !== 'completed') {
+        if ($todo->status !== TodoStatus::Completed) {
             return redirect()->route('todos.show', $todo)
                 ->with('error', 'Diese Challenge kann nicht verifiziert werden.');
         }
@@ -329,7 +332,7 @@ class TodoController extends Controller
         $membership = $memberTeam->users()->where('user_id', $user->id)->first();
         $userRole = $membership ? $membership->membership->role : null;
 
-        if (!in_array($userRole, ['Kassenwart', 'Vorstand', 'Admin'])) {
+        if (! in_array($userRole, ['Kassenwart', 'Vorstand', 'Admin'])) {
             abort(403);
         }
 
@@ -338,13 +341,13 @@ class TodoController extends Controller
             'user_id' => $todo->assigned_to,
             'team_id' => $todo->team_id,
             'todo_id' => $todo->id,
-            'points' => $todo->points
+            'points' => $todo->points,
         ]);
 
         $todo->update([
-            'status' => 'verified',
+            'status' => TodoStatus::Verified->value,
             'verified_by' => $user->id,
-            'verified_at' => now()
+            'verified_at' => now(),
         ]);
 
         Activity::create([
@@ -365,14 +368,14 @@ class TodoController extends Controller
     {
         $user = Auth::user();
 
-        if ($todo->assigned_to !== $user->id || $todo->status !== 'assigned') {
+        if ($todo->assigned_to !== $user->id || $todo->status !== TodoStatus::Assigned) {
             return redirect()->route('todos.show', $todo)
                 ->with('error', 'Du kannst diese Challenge nicht freigeben, da sie Ihnen nicht zugewiesen ist oder nicht im Bearbeitungsstatus ist.');
         }
 
         $todo->update([
             'assigned_to' => null,
-            'status' => 'open'
+            'status' => TodoStatus::Open->value,
         ]);
 
         return redirect()->route('todos.index')

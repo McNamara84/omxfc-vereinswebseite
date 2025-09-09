@@ -2,10 +2,11 @@
 
 namespace App\Models;
 
+use App\Enums\TodoStatus;
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Carbon\Carbon;
 
 /**
  * @property int $id
@@ -16,7 +17,7 @@ use Carbon\Carbon;
  * @property string $title
  * @property string|null $description
  * @property int $points
- * @property string $status
+ * @property TodoStatus $status
  * @property Carbon|null $completed_at
  * @property Carbon|null $verified_at
  * @property int|null $category_id
@@ -31,6 +32,7 @@ use Carbon\Carbon;
 class Todo extends Model
 {
     use HasFactory;
+
     protected $fillable = [
         'team_id',
         'created_by',
@@ -50,6 +52,7 @@ class Todo extends Model
         return [
             'completed_at' => 'datetime',
             'verified_at' => 'datetime',
+            'status' => TodoStatus::class,
         ];
     }
 
@@ -101,7 +104,7 @@ class Todo extends Model
         $eligibleRoles = ['Mitglied', 'Ehrenmitglied', 'Kassenwart', 'Vorstand', 'Admin'];
         $team = $this->team;
 
-        if (!$team) {
+        if (! $team) {
             return false;
         }
 
@@ -121,7 +124,7 @@ class Todo extends Model
         $eligibleRoles = ['Kassenwart', 'Vorstand', 'Admin'];
         $team = $this->team;
 
-        if (!$team) {
+        if (! $team) {
             return false;
         }
 
@@ -141,7 +144,7 @@ class Todo extends Model
         $eligibleRoles = ['Kassenwart', 'Vorstand', 'Admin'];
         $team = $this->team;
 
-        if (!$team) {
+        if (! $team) {
             return false;
         }
 

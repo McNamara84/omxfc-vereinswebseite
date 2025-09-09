@@ -20,18 +20,18 @@
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
                     <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81]">{{ $todo->title }}</h2>
                     <div class="mt-2 md:mt-0">
-                        @if($todo->status === 'open')
+                        @if($todo->status->value === 'open')
                             <span
                                 class="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-full text-sm">Offen</span>
-                        @elseif($todo->status === 'assigned')
+                        @elseif($todo->status->value === 'assigned')
                             <span
                                 class="px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full text-sm">In
                                 Bearbeitung</span>
-                        @elseif($todo->status === 'completed')
+                        @elseif($todo->status->value === 'completed')
                             <span
                                 class="px-2 py-1 bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 rounded-full text-sm">Wartet
                                 auf Verifizierung</span>
-                        @elseif($todo->status === 'verified')
+                        @elseif($todo->status->value === 'verified')
                             <span
                                 class="px-2 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded-full text-sm">Verifiziert</span>
                         @endif
@@ -156,7 +156,7 @@
                                 </button>
                             </form>
                         @endif
-                        @if($todo->assigned_to === Auth::id() && $todo->status === 'assigned')
+                        @if($todo->assigned_to === Auth::id() && $todo->status->value === 'assigned')
                             <form action="{{ route('todos.release', $todo) }}" method="POST" class="inline">
                                 @csrf
                                 <button type="submit"

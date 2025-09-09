@@ -57,15 +57,15 @@
                                     <tr>
                                         <td class="px-4 py-2 text-gray-700 dark:text-gray-300">{{ $todo->title }}</td>
                                         <td class="px-4 py-2">
-                                            @if($todo->status === 'assigned')
+                                            @if($todo->status->value === 'assigned')
                                                 <span
                                                     class="px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full text-xs">In
                                                     Bearbeitung</span>
-                                            @elseif($todo->status === 'completed')
+                                            @elseif($todo->status->value === 'completed')
                                                 <span
                                                     class="px-2 py-1 bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 rounded-full text-xs">Wartet
                                                     auf Verifizierung</span>
-                                            @elseif($todo->status === 'verified')
+                                            @elseif($todo->status->value === 'verified')
                                                 <span
                                                     class="px-2 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded-full text-xs">Verifiziert</span>
                                             @endif
@@ -79,7 +79,7 @@
                                             @if($todo->created_by === Auth::id())
                                                 <a href="{{ route('todos.edit', $todo) }}" class="ml-2 text-blue-600 dark:text-blue-400 hover:underline">Bearbeiten</a>
                                             @endif
-                                            @if($todo->status === 'assigned')
+                                            @if($todo->status->value === 'assigned')
                                                 <form action="{{ route('todos.complete', $todo) }}" method="POST" class="inline-block ml-2">
                                                     @csrf
                                                     <button type="submit" class="text-green-600 dark:text-green-400 hover:underline">Als erledigt markieren</button>
@@ -105,15 +105,15 @@
                                 <div class="mb-2">
                                     <span class="text-sm text-gray-600 dark:text-gray-400">Status:</span>
                                     <div class="mt-1">
-                                        @if($todo->status === 'assigned')
+                                        @if($todo->status->value === 'assigned')
                                             <span
                                                 class="px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full text-xs">In
                                                 Bearbeitung</span>
-                                        @elseif($todo->status === 'completed')
+                                        @elseif($todo->status->value === 'completed')
                                             <span
                                                 class="px-2 py-1 bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 rounded-full text-xs">Wartet
                                                 auf Verifizierung</span>
-                                        @elseif($todo->status === 'verified')
+                                        @elseif($todo->status->value === 'verified')
                                             <span
                                                 class="px-2 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded-full text-xs">Verifiziert</span>
                                         @endif
@@ -131,7 +131,7 @@
                                     @if($todo->created_by === Auth::id())
                                         <a href="{{ route('todos.edit', $todo) }}" class="inline-block bg-blue-500 hover:bg-blue-600 text-white py-1 px-3 rounded text-sm">Bearbeiten</a>
                                     @endif
-                                    @if($todo->status === 'assigned')
+                                    @if($todo->status->value === 'assigned')
                                         <div class="flex gap-2 mt-2">
                                             <form action="{{ route('todos.complete', $todo) }}" method="POST">
                                                 @csrf

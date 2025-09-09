@@ -2,12 +2,13 @@
 
 namespace Tests\Feature;
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
+use App\Enums\TodoStatus;
 use App\Models\Team;
-use App\Models\User;
 use App\Models\Todo;
 use App\Models\TodoCategory;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 
 class TodoControllerTest extends TestCase
 {
@@ -18,6 +19,7 @@ class TodoControllerTest extends TestCase
         $team = Team::where('name', 'Mitglieder')->first();
         $user = User::factory()->create(['current_team_id' => $team->id]);
         $team->users()->attach($user, ['role' => $role]);
+
         return $user;
     }
 
@@ -25,6 +27,7 @@ class TodoControllerTest extends TestCase
     {
         $team = Team::where('name', 'Mitglieder')->first();
         $category = TodoCategory::first() ?? TodoCategory::create(['name' => 'Test', 'slug' => 'test']);
+
         return Todo::create(array_merge([
             'team_id' => $team->id,
             'created_by' => $creator->id,
@@ -32,7 +35,7 @@ class TodoControllerTest extends TestCase
             'description' => 'desc',
             'points' => 5,
             'category_id' => $category->id,
-            'status' => 'open',
+            'status' => TodoStatus::Open->value,
         ], $attrs));
     }
 
@@ -46,21 +49,21 @@ class TodoControllerTest extends TestCase
 
         $response->assertRedirect(route('todos.show', $todo, false));
         $todo->refresh();
-        $this->assertSame('assigned', $todo->status);
+        $this->assertSame(TodoStatus::Assigned, $todo->status);
         $this->assertSame($user->id, $todo->assigned_to);
     }
 
     public function test_assigned_user_can_complete_todo(): void
     {
         $user = $this->actingMember();
-        $todo = $this->createTodo($user, ['assigned_to' => $user->id, 'status' => 'assigned']);
+        $todo = $this->createTodo($user, ['assigned_to' => $user->id, 'status' => TodoStatus::Assigned->value]);
         $this->actingAs($user);
 
         $response = $this->post(route('todos.complete', $todo));
 
         $response->assertRedirect(route('todos.show', $todo, false));
         $todo->refresh();
-        $this->assertSame('completed', $todo->status);
+        $this->assertSame(TodoStatus::Completed, $todo->status);
         $this->assertNotNull($todo->completed_at);
     }
 
@@ -70,7 +73,7 @@ class TodoControllerTest extends TestCase
         $admin = $this->actingMember('Admin');
         $todo = $this->createTodo($admin, [
             'assigned_to' => $assignee->id,
-            'status' => 'completed',
+            'status' => TodoStatus::Completed->value,
             'completed_at' => now(),
         ]);
         $this->actingAs($admin);
@@ -79,7 +82,7 @@ class TodoControllerTest extends TestCase
 
         $response->assertRedirect(route('todos.show', $todo, false));
         $todo->refresh();
-        $this->assertSame('verified', $todo->status);
+        $this->assertSame(TodoStatus::Verified, $todo->status);
         $this->assertSame($admin->id, $todo->verified_by);
         $this->assertDatabaseHas('user_points', [
             'user_id' => $assignee->id,
@@ -94,7 +97,7 @@ class TodoControllerTest extends TestCase
         $admin = $this->actingMember('Admin');
         $todo = $this->createTodo($admin, [
             'assigned_to' => $assignee->id,
-            'status' => 'completed',
+            'status' => TodoStatus::Completed->value,
             'completed_at' => now(),
         ]);
         $member = $this->actingMember();
@@ -103,14 +106,14 @@ class TodoControllerTest extends TestCase
         $this->post(route('todos.verify', $todo))->assertForbidden();
 
         $todo->refresh();
-        $this->assertSame('completed', $todo->status);
+        $this->assertSame(TodoStatus::Completed, $todo->status);
         $this->assertNull($todo->verified_by);
     }
 
     public function test_assigned_user_can_release_todo(): void
     {
         $user = $this->actingMember();
-        $todo = $this->createTodo($user, ['assigned_to' => $user->id, 'status' => 'assigned']);
+        $todo = $this->createTodo($user, ['assigned_to' => $user->id, 'status' => TodoStatus::Assigned->value]);
         $this->actingAs($user);
 
         $response = $this->post(route('todos.release', $todo));
@@ -118,7 +121,7 @@ class TodoControllerTest extends TestCase
         $response->assertRedirect(route('todos.index', [], false));
         $todo->refresh();
         $this->assertNull($todo->assigned_to);
-        $this->assertSame('open', $todo->status);
+        $this->assertSame(TodoStatus::Open, $todo->status);
     }
 
     public function test_creator_can_update_todo(): void
@@ -166,8 +169,8 @@ class TodoControllerTest extends TestCase
         $user = $this->actingMember();
         $other = $this->actingMember();
         $todoOpen = $this->createTodo($user);
-        $todoAssigned = $this->createTodo($user, ['assigned_to' => $user->id, 'status' => 'assigned']);
-        $todoCompleted = $this->createTodo($user, ['assigned_to' => $other->id, 'status' => 'completed']);
+        $todoAssigned = $this->createTodo($user, ['assigned_to' => $user->id, 'status' => TodoStatus::Assigned->value]);
+        $todoCompleted = $this->createTodo($user, ['assigned_to' => $other->id, 'status' => TodoStatus::Completed->value]);
 
         \App\Models\UserPoint::create([
             'user_id' => $user->id,
