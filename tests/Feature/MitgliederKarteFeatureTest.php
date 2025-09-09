@@ -38,7 +38,7 @@ class MitgliederKarteFeatureTest extends TestCase
     {
         Cache::flush();
         $count = 0;
-        $responses = ['12345' => ['lat' => '48.0', 'lon' => '11.0']];
+        $responses = ['12345' => ['lat' => self::DEFAULT_LAT, 'lon' => self::DEFAULT_LON]];
         Http::swap(new \Illuminate\Http\Client\Factory());
         Http::fake([
             'nominatim.openstreetmap.org/*' => function ($request) use (&$count, $responses) {
@@ -97,7 +97,7 @@ class MitgliederKarteFeatureTest extends TestCase
         Cache::flush();
         Http::swap(new \Illuminate\Http\Client\Factory());
         Http::fake([
-            'nominatim.openstreetmap.org/*' => Http::response([['lat' => '48.0', 'lon' => '11.0']], 200),
+            'nominatim.openstreetmap.org/*' => Http::response([['lat' => self::DEFAULT_LAT, 'lon' => self::DEFAULT_LON]], 200),
         ]);
 
         $user = $this->actingMember('Mitglied', ['plz' => '12345', 'land' => 'Deutschland']);
