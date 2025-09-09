@@ -38,12 +38,12 @@ class ProfileInformationTest extends TestCase
                 'land' => 'Deutschland',
                 'telefon' => '01234',
                 'mitgliedsbeitrag' => 12.00,
-                'email' => 'test@example.com',
+                'email' => 'new@example.com',
             ])
             ->call('updateProfileInformation');
 
         $this->assertEquals('Test', $user->fresh()->vorname);
         $this->assertEquals('Name', $user->fresh()->nachname);
-        $this->assertEquals('test@example.com', $user->fresh()->email);
+        $this->assertEquals('new@example.com', $user->fresh()->email);
     }
 }

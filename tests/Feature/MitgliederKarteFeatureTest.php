@@ -88,7 +88,11 @@ class MitgliederKarteFeatureTest extends TestCase
         $memberCenterLat = $response->viewData('membersCenterLat');
         $memberCenterLon = $response->viewData('membersCenterLon');
 
-        $this->assertEqualsWithDelta(51.6666666667, $memberCenterLat, 0.0001);
+        // The seeded admin user has coordinates (48.0, 11.0) provided by the
+        // default HTTP stubs in the test case. Together with the two members
+        // created above (50/8 and 52/10), the expected center is the average
+        // of all three sets of coordinates.
+        $this->assertEqualsWithDelta(50.0, $memberCenterLat, 0.0001);
         $this->assertEqualsWithDelta(9.6666666667, $memberCenterLon, 0.0001);
     }
 

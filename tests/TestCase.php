@@ -13,6 +13,7 @@ abstract class TestCase extends BaseTestCase
     protected const DEFAULT_LAT = '48.0';
     protected const DEFAULT_LON = '11.0';
 
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -23,5 +24,10 @@ abstract class TestCase extends BaseTestCase
                 'lon' => self::DEFAULT_LON,
             ]], 200),
         ]);
+
+        // Seed the database so default entities such as the "Mitglieder" team
+        // are available to the tests. Seeding occurs after HTTP calls are
+        // faked to avoid real network requests.
+        $this->seed();
     }
 }
