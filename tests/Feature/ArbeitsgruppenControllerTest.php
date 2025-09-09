@@ -144,7 +144,7 @@ class ArbeitsgruppenControllerTest extends TestCase
         $this->actingAs($leader);
 
         $response = $this->post(route('arbeitsgruppen.add-member', $ag), [
-            'email' => $newUser->email,
+            'user_id' => $newUser->id,
         ]);
 
         $response->assertRedirect(route('arbeitsgruppen.edit', $ag));
@@ -172,11 +172,11 @@ class ArbeitsgruppenControllerTest extends TestCase
 
         $response = $this->from(route('arbeitsgruppen.edit', $ag))
             ->post(route('arbeitsgruppen.add-member', $ag), [
-                'email' => $extra->email,
+                'user_id' => $extra->id,
             ]);
 
         $response->assertRedirect(route('arbeitsgruppen.edit', $ag));
-        $response->assertSessionHasErrors('email', null, 'addTeamMember');
+        $response->assertSessionHasErrors('user_id', null, 'addTeamMember');
         $this->assertFalse($ag->fresh()->hasUser($extra));
     }
 

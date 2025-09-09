@@ -83,10 +83,15 @@
                 @can('addTeamMember', $team)
                     <form action="{{ route('arbeitsgruppen.add-member', $team) }}" method="POST" class="flex flex-col sm:flex-row sm:items-center gap-2">
                         @csrf
-                        <input type="email" name="email" placeholder="E-Mail des Mitglieds" required class="flex-1 rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
+                        <select name="user_id" required class="flex-1 rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
+                            <option value="" disabled selected>Mitglied auswählen</option>
+                            @foreach($availableMembers as $member)
+                                <option value="{{ $member->id }}">{{ $member->name }}</option>
+                            @endforeach
+                        </select>
                         <button type="submit" class="inline-flex items-center px-4 py-2 bg-[#8B0116] dark:bg-[#C41E3A] border border-transparent rounded-md font-semibold text-white hover:bg-[#A50019] dark:hover:bg-[#D63A4D] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#8B0116] dark:focus:ring-[#FF6B81]">Hinzufügen</button>
                     </form>
-                    @error('email', 'addTeamMember')
+                    @error('user_id', 'addTeamMember')
                         <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                     @enderror
                 @endcan
