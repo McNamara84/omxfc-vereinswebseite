@@ -47,7 +47,7 @@ class TeamPolicy
      */
     public function addTeamMember(User $user, Team $team): bool
     {
-        return $user->ownsTeam($team);
+        return $user->hasRole('Admin') || $user->ownsTeam($team);
     }
 
     /**

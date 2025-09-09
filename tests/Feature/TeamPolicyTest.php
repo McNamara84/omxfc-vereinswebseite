@@ -6,6 +6,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 use App\Models\User;
 use App\Policies\TeamPolicy;
+use App\Models\Team;
 
 class TeamPolicyTest extends TestCase
 {
@@ -19,6 +20,10 @@ class TeamPolicyTest extends TestCase
         $team->users()->attach($member, ['role' => 'Member']);
         $outsider = User::factory()->create();
 
+        $adminTeam = Team::where('name', 'Mitglieder')->first();
+        $admin = User::factory()->create(['current_team_id' => $adminTeam->id]);
+        $adminTeam->users()->attach($admin, ['role' => 'Admin']);
+
         $policy = new TeamPolicy();
 
         $this->assertTrue($policy->viewAny($member));
@@ -30,6 +35,7 @@ class TeamPolicyTest extends TestCase
 
         $this->assertTrue($policy->addTeamMember($owner, $team));
         $this->assertFalse($policy->addTeamMember($member, $team));
+        $this->assertTrue($policy->addTeamMember($admin, $team));
 
         $this->assertTrue($policy->updateTeamMember($owner, $team));
         $this->assertFalse($policy->updateTeamMember($member, $team));
