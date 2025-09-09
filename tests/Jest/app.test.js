@@ -1,5 +1,9 @@
 import { jest } from '@jest/globals';
 
+// Using jest.unstable_mockModule because Jest's stable mock API currently
+// lacks full support for mocking ES modules loaded via dynamic import. This
+// lets us stub out side-effect-heavy dependencies when testing app.js.
+
 const originalMatchMedia = window.matchMedia;
 
 afterEach(() => {
