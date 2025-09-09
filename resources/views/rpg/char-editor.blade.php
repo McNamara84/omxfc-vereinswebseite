@@ -173,7 +173,10 @@
                     <textarea name="equipment" id="equipment" rows="4" aria-labelledby="equipment-heading" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50"></textarea>
                 </div>
 
-                <div class="flex justify-end">
+                <div class="flex justify-end space-x-2">
+                    <button id="pdf-button" type="button" disabled class="inline-flex items-center px-4 py-2 bg-gray-400 dark:bg-gray-600 border border-transparent rounded-md font-semibold text-white cursor-not-allowed">
+                        PDF drucken
+                    </button>
                     <button id="submit-button" type="submit" disabled class="inline-flex items-center px-4 py-2 bg-gray-400 dark:bg-gray-600 border border-transparent rounded-md font-semibold text-white cursor-not-allowed">
                         Speichern
                     </button>
