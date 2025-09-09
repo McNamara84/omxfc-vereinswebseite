@@ -41,4 +41,16 @@ describe('changelog module', () => {
     await domContentLoaded();
     expect(global.fetch).not.toHaveBeenCalled();
   });
+
+  test('shows error message on fetch failure', async () => {
+    document.body.innerHTML = '<div id="release-notes"></div>';
+    global.fetch.mockRejectedValue(new Error('fail'));
+    await import('../../resources/js/changelog.js');
+    await domContentLoaded();
+    await Promise.resolve();
+    expect(global.fetch).toHaveBeenCalledWith('/changelog.json');
+    const container = document.getElementById('release-notes');
+    const text = container.innerText || container.textContent;
+    expect(text).toBe('Fehler beim Laden des Changelogs.');
+  });
 });
