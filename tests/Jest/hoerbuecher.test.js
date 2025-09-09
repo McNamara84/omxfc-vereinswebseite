@@ -7,12 +7,15 @@ describe('hoerbuecher module', () => {
       <table>
         <tr data-href="/1" data-status="done" data-type="A" data-year="2024" data-roles-filled="1" data-episode-id="1"></tr>
         <tr data-href="/2" data-status="open" data-type="B" data-year="2023" data-roles-filled="0" data-episode-id="2"></tr>
+        <tr data-href="/3" data-status="Rollenbesetzung" data-type="C" data-year="2023" data-roles-filled="0" data-episode-id="3"></tr>
       </table>
-      <select id="status-filter"><option value=""></option><option value="open">open</option></select>
-      <select id="type-filter"><option value=""></option><option value="A">A</option><option value="B">B</option></select>
-      <select id="year-filter"><option value=""></option><option value="2023">2023</option></select>
+      <select id="status-filter"><option value=""></option><option value="open">open</option><option value="Rollenbesetzung">Rollenbesetzung</option></select>
+      <select id="type-filter"><option value=""></option><option value="A">A</option><option value="B">B</option><option value="C">C</option></select>
+      <select id="year-filter"><option value=""></option><option value="2023">2023</option><option value="2024">2024</option></select>
       <input type="checkbox" id="roles-filter" />
       <input type="checkbox" id="roles-unfilled-filter" />
+      <div id="card-unfilled-roles"></div>
+      <div id="card-open-episodes"></div>
       <div id="card-next-event" data-episode-id="2"></div>
     `;
     await import('../../resources/js/hoerbuecher.js');
@@ -63,6 +66,30 @@ describe('hoerbuecher module', () => {
     const rows = document.querySelectorAll('tr[data-href]');
     expect(rows[0].style.display).toBe('none');
     expect(rows[1].style.display).toBe('');
+  });
+
+  test('card-unfilled-roles shows only rows without roles filled', () => {
+    const card = document.getElementById('card-unfilled-roles');
+    card.click();
+    const rows = document.querySelectorAll('tr[data-href]');
+    expect(rows[0].style.display).toBe('none');
+    expect(rows[1].style.display).toBe('');
+    expect(rows[2].style.display).toBe('');
+    const roles = document.getElementById('roles-filter');
+    const rolesUnfilled = document.getElementById('roles-unfilled-filter');
+    expect(rolesUnfilled.checked).toBe(true);
+    expect(roles.disabled).toBe(true);
+  });
+
+  test('card-open-episodes filters by status and unfilled roles', () => {
+    const card = document.getElementById('card-open-episodes');
+    card.click();
+    const rows = document.querySelectorAll('tr[data-href]');
+    expect(rows[0].style.display).toBe('none');
+    expect(rows[1].style.display).toBe('none');
+    expect(rows[2].style.display).toBe('');
+    const statusFilter = document.getElementById('status-filter');
+    expect(statusFilter.value).toBe('Rollenbesetzung');
   });
 });
 
