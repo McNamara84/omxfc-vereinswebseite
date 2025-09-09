@@ -30,6 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const attributePointsEl = document.getElementById('attribute-points');
     const skillPointsEl = document.getElementById('skill-points');
     const submitButton = document.getElementById('submit-button');
+    const pdfButton = document.getElementById('pdf-button');
     const advantagesSelect = document.getElementById('advantages');
     const disadvantagesSelect = document.getElementById('disadvantages');
     const advantageInput = document.getElementById('available_advantage_points');
@@ -459,13 +460,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function updateSubmitButton(valid) {
-        if (!submitButton) return;
-        submitButton.disabled = !valid;
-        submitButton.classList.toggle('cursor-not-allowed', !valid);
-        submitButton.classList.toggle('bg-gray-400', !valid);
-        submitButton.classList.toggle('bg-gray-600', !valid);
-        submitButton.classList.toggle('bg-[#8B0116]', valid);
-        submitButton.classList.toggle('dark:bg-red-400', valid);
+        [submitButton, pdfButton].forEach(btn => {
+            if (!btn) return;
+            btn.disabled = !valid;
+            btn.classList.toggle('cursor-not-allowed', !valid);
+            btn.classList.toggle('bg-gray-400', !valid);
+            btn.classList.toggle('bg-gray-600', !valid);
+            btn.classList.toggle('bg-[#8B0116]', valid);
+            btn.classList.toggle('dark:bg-red-400', valid);
+        });
     }
 
     function updateAddSkillButton(fpRemaining) {

@@ -16,6 +16,7 @@ const BASE_HTML = `
   <span id="attribute-points"></span>
   <span id="skill-points"></span>
   <button id="submit-button"></button>
+  <button id="pdf-button"></button>
   <button id="add-skill"></button>
   <div id="barbar-combat-toggle" class="hidden">
     <select id="barbar-combat-select">
