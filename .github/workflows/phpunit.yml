@@ -33,6 +33,8 @@ jobs:
       run: |
         mkdir -p database
         touch database/database.sqlite
+    - name: Setup Node.js and build assets
+      uses: ./.github/actions/build-assets
     - name: Execute tests (Unit and Feature tests) via PHPUnit/Pest
       env:
         DB_CONNECTION: sqlite
@@ -132,5 +134,7 @@ jobs:
         php artisan key:generate --env=testing
         chmod -R 755 storage bootstrap/cache
 
+    - name: Setup Node.js and build assets
+      uses: ./.github/actions/build-assets
     - name: Execute tests
       run: php artisan test tests/Feature
