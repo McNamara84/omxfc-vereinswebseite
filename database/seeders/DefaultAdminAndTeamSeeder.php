@@ -1,19 +1,19 @@
 <?php
 
-use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
+namespace Database\Seeders;
+
+use Illuminate\Database\Seeder;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Laravel\Jetstream\Jetstream;
 
-return new class extends Migration {
+class DefaultAdminAndTeamSeeder extends Seeder
+{
     /**
-     * Run the migrations.
+     * Run the database seeds.
      */
-    public function up(): void
+    public function run(): void
     {
-        // Admin-Account anlegen
         $adminUser = User::create([
             'name' => 'Holger Ehrmann',
             'email' => 'info@maddraxikon.com',
@@ -28,10 +28,9 @@ return new class extends Migration {
             'land' => 'Deutschland',
             'telefon' => '0123456789',
             'verein_gefunden' => 'Sonstiges',
-            'mitgliedsbeitrag' => 36.00
+            'mitgliedsbeitrag' => 36.00,
         ]);
 
-        // Team „Mitglieder“ erstellen
         $team = Jetstream::newTeamModel()->forceFill([
             'name' => 'Mitglieder',
             'user_id' => $adminUser->id,
@@ -39,27 +38,10 @@ return new class extends Migration {
         ]);
         $team->save();
 
-        // Admin dem Team mit Rolle „Admin“ hinzufügen
         $team->users()->attach($adminUser, ['role' => 'Admin']);
 
         $adminUser->forceFill([
             'current_team_id' => $team->id,
         ])->save();
     }
-
-    /**
-     * Reverse the migrations.
-     */
-    public function down(): void
-    {
-        $teamModel = Jetstream::newTeamModel();
-        $team = $teamModel->where('name', 'Mitglieder')->first();
-        
-        if ($team) {
-            $team->users()->detach();
-            $team->delete();
-        }
-
-        User::where('email', 'info@maddraxikon.com')->delete();
-    }
-};
+}

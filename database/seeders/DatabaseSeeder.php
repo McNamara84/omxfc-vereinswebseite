@@ -20,7 +20,8 @@ class DatabaseSeeder extends Seeder
             'email' => 'test@example.com',
         ]);
         $this->call([
-            // Andere Seeder
+            DefaultAdminAndTeamSeeder::class,
+            UpdateAudiobookEpisodeStatusSeeder::class,
             TodoCategorySeeder::class,
         ]);
     }
