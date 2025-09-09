@@ -8,6 +8,7 @@ use App\Models\Team;
 use App\Models\User;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\MitgliedGenehmigtMail;
+use App\Enums\TodoStatus;
 
 class DashboardControllerTest extends TestCase
 {
@@ -101,7 +102,7 @@ class DashboardControllerTest extends TestCase
             'created_by' => $admin->id,
             'title' => 'Open',
             'points' => 5,
-            'status' => 'open',
+            'status' => TodoStatus::Open->value,
             'category_id' => $category->id,
         ]);
         \App\Models\Todo::create([
@@ -109,7 +110,7 @@ class DashboardControllerTest extends TestCase
             'created_by' => $admin->id,
             'title' => 'Pending',
             'points' => 3,
-            'status' => 'completed',
+            'status' => TodoStatus::Completed->value,
             'category_id' => $category->id,
         ]);
 

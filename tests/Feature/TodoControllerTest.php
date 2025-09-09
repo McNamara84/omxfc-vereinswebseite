@@ -169,8 +169,8 @@ class TodoControllerTest extends TestCase
         $user = $this->actingMember();
         $other = $this->actingMember();
         $todoOpen = $this->createTodo($user);
-        $todoAssigned = $this->createTodo($user, ['assigned_to' => $user->id, 'status' => 'assigned']);
-        $todoCompleted = $this->createTodo($user, ['assigned_to' => $other->id, 'status' => 'completed']);
+        $todoAssigned = $this->createTodo($user, ['assigned_to' => $user->id, 'status' => TodoStatus::Assigned->value]);
+        $todoCompleted = $this->createTodo($user, ['assigned_to' => $other->id, 'status' => TodoStatus::Completed->value]);
 
         \App\Models\UserPoint::create([
             'user_id' => $user->id,

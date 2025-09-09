@@ -15,6 +15,7 @@ use App\Models\Todo;
 use App\Models\TodoCategory;
 use App\Models\ReviewComment;
 use App\Enums\BookType;
+use App\Enums\TodoStatus;
 use Illuminate\Support\Facades\Mail;
 
 class ActivityFeedTest extends TestCase
@@ -197,10 +198,13 @@ class ActivityFeedTest extends TestCase
             'title' => 'Challenge',
             'points' => 5,
             'category_id' => $category->id,
-            'status' => 'open',
+            'status' => TodoStatus::Open->value,
         ]);
 
         $this->post(route('todos.assign', $todo));
+
+        $todo->refresh();
+        $this->assertSame(TodoStatus::Assigned, $todo->status);
 
         $this->assertDatabaseHas('activities', [
             'user_id' => $user->id,
@@ -222,11 +226,14 @@ class ActivityFeedTest extends TestCase
             'title' => 'Challenge',
             'points' => 5,
             'category_id' => $category->id,
-            'status' => 'completed',
+            'status' => TodoStatus::Completed->value,
             'completed_at' => now(),
         ]);
 
         $this->actingAs($admin)->post(route('todos.verify', $todo));
+
+        $todo->refresh();
+        $this->assertSame(TodoStatus::Verified, $todo->status);
 
         $this->assertDatabaseHas('activities', [
             'user_id' => $assignee->id,
