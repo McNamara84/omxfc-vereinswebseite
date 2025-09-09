@@ -49,7 +49,7 @@ class TodoControllerTest extends TestCase
 
         $response->assertRedirect(route('todos.show', $todo, false));
         $todo->refresh();
-        $this->assertSame(TodoStatus::Assigned->value, $todo->status->value);
+        $this->assertSame(TodoStatus::Assigned, $todo->status);
         $this->assertSame($user->id, $todo->assigned_to);
     }
 
@@ -63,7 +63,7 @@ class TodoControllerTest extends TestCase
 
         $response->assertRedirect(route('todos.show', $todo, false));
         $todo->refresh();
-        $this->assertSame(TodoStatus::Completed->value, $todo->status->value);
+        $this->assertSame(TodoStatus::Completed, $todo->status);
         $this->assertNotNull($todo->completed_at);
     }
 
