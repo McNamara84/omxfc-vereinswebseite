@@ -53,4 +53,24 @@ describe('changelog module', () => {
     const text = container.innerText || container.textContent;
     expect(text).toBe('Fehler beim Laden des Changelogs.');
   });
+
+  test('applies correct badge classes for note types', async () => {
+    document.body.innerHTML = '<div id="release-notes"></div>';
+    global.fetch.mockResolvedValue({
+      json: () => Promise.resolve([
+        {
+          version: '1.0.1',
+          pub_date: '2024-02-03',
+          notes: ['[Fixed] bug', '[Changed] tweak', '[Other] misc'],
+        },
+      ]),
+    });
+    await import('../../resources/js/changelog.js');
+    await domContentLoaded();
+    const items = Array.from(document.querySelectorAll('#release-notes li'));
+    const classes = items.map((li) => li.querySelector('span')?.className || '');
+    expect(classes[0]).toContain('bg-red-600');
+    expect(classes[1]).toContain('bg-blue-600');
+    expect(classes[2]).toContain('bg-gray-600');
+  });
 });

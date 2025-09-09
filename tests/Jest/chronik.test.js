@@ -59,5 +59,35 @@ describe('chronik module', () => {
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
     expect(modal.classList.contains('hidden')).toBe(true);
   });
+
+  test('close button hides modal', async () => {
+    document.body.innerHTML = `
+      <div id="chronik-modal" class="hidden">
+        <picture>
+          <source id="chronik-modal-avif" />
+          <source id="chronik-modal-webp" />
+          <img id="chronik-modal-img" />
+        </picture>
+        <button id="chronik-modal-close"></button>
+      </div>
+      <a class="chronik-image" data-avif="a.avif" data-webp="b.webp"><img alt="alt" /></a>
+    `;
+    await import('../../resources/js/chronik.js');
+    document.dispatchEvent(new Event('DOMContentLoaded'));
+
+    document.querySelector('.chronik-image').click();
+    document.getElementById('chronik-modal-close').click();
+    expect(document.getElementById('chronik-modal').classList.contains('hidden')).toBe(true);
+  });
+
+  test('ignores clicks without trigger and handles missing modal', async () => {
+    await import('../../resources/js/chronik.js');
+    document.dispatchEvent(new Event('DOMContentLoaded'));
+
+    const div = document.createElement('div');
+    document.body.appendChild(div);
+    div.click();
+    expect(document.querySelector('#chronik-modal')).toBeNull();
+  });
 });
 
