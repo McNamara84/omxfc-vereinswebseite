@@ -66,6 +66,10 @@ class JetstreamServiceProvider extends ServiceProvider
             'read',
         ])->description('Bestätigtes Vereinsmitglied.');
 
+        Jetstream::role('Mitwirkender', 'Mitwirkender', [
+            'read',
+        ])->description('Mitglied einer Arbeitsgruppe ohne Verwaltungsrechte.');
+
         Jetstream::role('Ehrenmitglied', 'Ehrenmitglied', [
             'read',
         ])->description('Ehrenmitglied mit denselben Zugriffsrechten wie ein reguläres Mitglied.');

@@ -128,4 +128,76 @@ class ArbeitsgruppenControllerTest extends TestCase
 
         $this->get(route('ag.index'))->assertForbidden();
     }
+
+    public function test_ag_leader_can_add_member_with_mitwirkender_role(): void
+    {
+        $leader = $this->createMemberWithRole();
+        $ag = Team::factory()->create([
+            'user_id' => $leader->id,
+            'personal_team' => false,
+            'name' => 'AG Test',
+        ]);
+        $ag->users()->attach($leader, ['role' => 'Mitglied']);
+
+        $newUser = $this->createMemberWithRole();
+
+        $this->actingAs($leader);
+
+        $response = $this->post(route('arbeitsgruppen.add-member', $ag), [
+            'email' => $newUser->email,
+        ]);
+
+        $response->assertRedirect(route('arbeitsgruppen.edit', $ag));
+        $this->assertTrue($ag->fresh()->hasUser($newUser));
+        $this->assertTrue($newUser->fresh()->hasTeamRole($ag->fresh(), 'Mitwirkender'));
+    }
+
+    public function test_ag_leader_cannot_add_more_than_five_members(): void
+    {
+        $leader = $this->createMemberWithRole();
+        $ag = Team::factory()->create([
+            'user_id' => $leader->id,
+            'personal_team' => false,
+            'name' => 'AG Test',
+        ]);
+        $ag->users()->attach($leader, ['role' => 'Mitglied']);
+
+        for ($i = 0; $i < 4; $i++) {
+            $user = $this->createMemberWithRole();
+            $ag->users()->attach($user, ['role' => 'Mitwirkender']);
+        }
+
+        $extra = $this->createMemberWithRole();
+        $this->actingAs($leader);
+
+        $response = $this->from(route('arbeitsgruppen.edit', $ag))
+            ->post(route('arbeitsgruppen.add-member', $ag), [
+                'email' => $extra->email,
+            ]);
+
+        $response->assertRedirect(route('arbeitsgruppen.edit', $ag));
+        $response->assertSessionHasErrors('email', null, 'addTeamMember');
+        $this->assertFalse($ag->fresh()->hasUser($extra));
+    }
+
+    public function test_ag_overview_does_not_show_members(): void
+    {
+        $leader = $this->createMemberWithRole();
+        $ag = Team::factory()->create([
+            'user_id' => $leader->id,
+            'personal_team' => false,
+            'name' => 'AG Test',
+        ]);
+        $ag->users()->attach($leader, ['role' => 'Mitglied']);
+
+        $member = $this->createMemberWithRole();
+        $ag->users()->attach($member, ['role' => 'Mitwirkender']);
+
+        $this->actingAs($leader);
+
+        $this->get(route('ag.index'))
+            ->assertOk()
+            ->assertSee('AG Test')
+            ->assertDontSee($member->name);
+    }
 }

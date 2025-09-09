@@ -71,6 +71,26 @@
                     <button type="submit" class="inline-flex items-center px-4 py-2 bg-[#8B0116] dark:bg-[#C41E3A] border border-transparent rounded-md font-semibold text-white hover:bg-[#A50019] dark:hover:bg-[#D63A4D] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#8B0116] dark:focus:ring-[#FF6B81]">Speichern</button>
                 </div>
             </form>
+
+            <div class="mt-6">
+                <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2">Mitglieder</h3>
+                <ul class="mb-4 list-disc list-inside">
+                    @foreach($team->users as $member)
+                        <li class="text-gray-700 dark:text-gray-300">{{ $member->name }}</li>
+                    @endforeach
+                </ul>
+
+                @can('addTeamMember', $team)
+                    <form action="{{ route('arbeitsgruppen.add-member', $team) }}" method="POST" class="flex flex-col sm:flex-row sm:items-center gap-2">
+                        @csrf
+                        <input type="email" name="email" placeholder="E-Mail des Mitglieds" required class="flex-1 rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
+                        <button type="submit" class="inline-flex items-center px-4 py-2 bg-[#8B0116] dark:bg-[#C41E3A] border border-transparent rounded-md font-semibold text-white hover:bg-[#A50019] dark:hover:bg-[#D63A4D] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#8B0116] dark:focus:ring-[#FF6B81]">Hinzufügen</button>
+                    </form>
+                    @error('email', 'addTeamMember')
+                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                    @enderror
+                @endcan
+            </div>
         </div>
     </x-member-page>
 </x-app-layout>

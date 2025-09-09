@@ -7,6 +7,9 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
+use App\Actions\Jetstream\AddTeamMember;
 
 class ArbeitsgruppenController extends Controller
 {
@@ -149,6 +152,8 @@ class ArbeitsgruppenController extends Controller
 
         $users = User::orderBy('name')->get();
 
+        $team->load('users');
+
         return view('arbeitsgruppen.edit', [
             'team' => $team,
             'users' => $users,
@@ -204,5 +209,31 @@ class ArbeitsgruppenController extends Controller
 
         return redirect()->route('arbeitsgruppen.index')
             ->with('status', 'Arbeitsgruppe wurde aktualisiert.');
+    }
+
+    /**
+     * Add a member to the specified AG.
+     */
+    public function addMember(Request $request, Team $team, AddTeamMember $adder)
+    {
+        $user = $request->user();
+        if (!$user->hasRole('Admin') && $team->user_id !== $user->id) {
+            abort(403);
+        }
+
+        Validator::make($request->all(), [
+            'email' => ['required', 'email'],
+        ])->validateWithBag('addTeamMember');
+
+        if ($team->users()->count() >= 5) {
+            throw ValidationException::withMessages([
+                'email' => 'Eine AG kann maximal 5 Mitglieder haben.',
+            ])->errorBag('addTeamMember');
+        }
+
+        $adder->add($user, $team, $request->input('email'), 'Mitwirkender');
+
+        return redirect()->route('arbeitsgruppen.edit', $team)
+            ->with('status', 'Mitglied hinzugefügt.');
     }
 }

@@ -132,6 +132,7 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
         Route::post('/', 'store')->name('store');
         Route::get('{team}/bearbeiten', 'edit')->name('edit');
         Route::put('{team}', 'update')->name('update');
+        Route::post('{team}/mitglied-hinzufuegen', 'addMember')->name('add-member');
     });
 
     Route::get('/ag', [ArbeitsgruppenController::class, 'leaderIndex'])->name('ag.index');
