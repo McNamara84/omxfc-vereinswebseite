@@ -150,13 +150,22 @@ class ArbeitsgruppenController extends Controller
             abort(403);
         }
 
+        $team->load('users');
+
         $users = User::orderBy('name')->get();
 
-        $team->load('users');
+        $memberTeam = Team::where('name', 'Mitglieder')->first();
+        $availableMembers = $memberTeam
+            ? $memberTeam->users()
+                ->whereNotIn('users.id', $team->users->pluck('id'))
+                ->orderBy('name')
+                ->get()
+            : collect();
 
         return view('arbeitsgruppen.edit', [
             'team' => $team,
             'users' => $users,
+            'availableMembers' => $availableMembers,
         ]);
     }
 
@@ -222,16 +231,17 @@ class ArbeitsgruppenController extends Controller
         }
 
         Validator::make($request->all(), [
-            'email' => ['required', 'email'],
+            'user_id' => ['required', 'exists:users,id'],
         ])->validateWithBag('addTeamMember');
 
         if ($team->users()->count() >= 5) {
             throw ValidationException::withMessages([
-                'email' => 'Eine AG kann maximal 5 Mitglieder haben.',
+                'user_id' => 'Eine AG kann maximal 5 Mitglieder haben.',
             ])->errorBag('addTeamMember');
         }
 
-        $adder->add($user, $team, $request->input('email'), 'Mitwirkender');
+        $member = User::findOrFail($request->input('user_id'));
+        $adder->add($user, $team, $member->email, 'Mitwirkender');
 
         return redirect()->route('arbeitsgruppen.edit', $team)
             ->with('status', 'Mitglied hinzugefügt.');
