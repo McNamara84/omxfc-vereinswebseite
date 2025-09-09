@@ -39,12 +39,15 @@ class MitgliederKarteFeatureTest extends TestCase
         Cache::flush();
         $count = 0;
         $responses = ['12345' => ['lat' => '48.0', 'lon' => '11.0']];
-        Http::fake(function ($request) use (&$count, $responses) {
-            $count++;
-            parse_str(parse_url($request->url(), PHP_URL_QUERY), $query);
+        Http::swap(new \Illuminate\Http\Client\Factory());
+        Http::fake([
+            'nominatim.openstreetmap.org/*' => function ($request) use (&$count, $responses) {
+                $count++;
+                parse_str(parse_url($request->url(), PHP_URL_QUERY), $query);
 
-            return Http::response([$responses[$query['postalcode']]], 200);
-        });
+                return Http::response([$responses[$query['postalcode']]], 200);
+            },
+        ]);
 
         $user = $this->actingMember('Mitglied', ['plz' => '12345', 'land' => 'Deutschland']);
         $user->incrementTeamPoints();
@@ -64,11 +67,14 @@ class MitgliederKarteFeatureTest extends TestCase
             '22222' => ['lat' => '52.0', 'lon' => '10.0'],
             '12345' => ['lat' => '53.0', 'lon' => '11.0'],
         ];
-        Http::fake(function ($request) use ($responses) {
-            parse_str(parse_url($request->url(), PHP_URL_QUERY), $query);
+        Http::swap(new \Illuminate\Http\Client\Factory());
+        Http::fake([
+            'nominatim.openstreetmap.org/*' => function ($request) use ($responses) {
+                parse_str(parse_url($request->url(), PHP_URL_QUERY), $query);
 
-            return Http::response([$responses[$query['postalcode']]], 200);
-        });
+                return Http::response([$responses[$query['postalcode']]], 200);
+            },
+        ]);
 
         $user = $this->actingMember('Mitglied', ['plz' => '11111', 'land' => 'Deutschland']);
         $user->incrementTeamPoints();
@@ -89,7 +95,10 @@ class MitgliederKarteFeatureTest extends TestCase
     public function test_map_data_is_cached(): void
     {
         Cache::flush();
-        Http::fake(['*' => Http::response([['lat' => '48.0', 'lon' => '11.0']], 200)]);
+        Http::swap(new \Illuminate\Http\Client\Factory());
+        Http::fake([
+            'nominatim.openstreetmap.org/*' => Http::response([['lat' => '48.0', 'lon' => '11.0']], 200),
+        ]);
 
         $user = $this->actingMember('Mitglied', ['plz' => '12345', 'land' => 'Deutschland']);
         $user->incrementTeamPoints();
