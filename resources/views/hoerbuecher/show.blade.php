@@ -64,10 +64,12 @@
                 </div>
             </div>
 
+            @if(auth()->user()->hasVorstandRole() || auth()->user()->isOwnerOfTeam('AG Fanhörbücher'))
             <div class="mt-6 flex justify-end space-x-3">
                 <a href="{{ route('hoerbuecher.edit', $episode) }}" class="text-blue-600 dark:text-blue-400 hover:underline">Bearbeiten</a>
                 <x-confirm-delete :action="route('hoerbuecher.destroy', $episode)" />
             </div>
+            @endif
             <div class="mt-6">
                 <a href="{{ route('hoerbuecher.index') }}" class="text-gray-600 dark:text-gray-400 hover:underline">&laquo; Zurück zur Übersicht</a>
             </div>
