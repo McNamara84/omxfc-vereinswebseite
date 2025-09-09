@@ -49,7 +49,7 @@ class TodoControllerTest extends TestCase
 
         $response->assertRedirect(route('todos.show', $todo, false));
         $todo->refresh();
-        $this->assertSame(TodoStatus::Assigned->value, $todo->status->value);
+        $this->assertSame(TodoStatus::Assigned, $todo->status);
         $this->assertSame($user->id, $todo->assigned_to);
     }
 
@@ -63,7 +63,7 @@ class TodoControllerTest extends TestCase
 
         $response->assertRedirect(route('todos.show', $todo, false));
         $todo->refresh();
-        $this->assertSame(TodoStatus::Completed->value, $todo->status->value);
+        $this->assertSame(TodoStatus::Completed, $todo->status);
         $this->assertNotNull($todo->completed_at);
     }
 
@@ -169,8 +169,8 @@ class TodoControllerTest extends TestCase
         $user = $this->actingMember();
         $other = $this->actingMember();
         $todoOpen = $this->createTodo($user);
-        $todoAssigned = $this->createTodo($user, ['assigned_to' => $user->id, 'status' => 'assigned']);
-        $todoCompleted = $this->createTodo($user, ['assigned_to' => $other->id, 'status' => 'completed']);
+        $todoAssigned = $this->createTodo($user, ['assigned_to' => $user->id, 'status' => TodoStatus::Assigned->value]);
+        $todoCompleted = $this->createTodo($user, ['assigned_to' => $other->id, 'status' => TodoStatus::Completed->value]);
 
         \App\Models\UserPoint::create([
             'user_id' => $user->id,
