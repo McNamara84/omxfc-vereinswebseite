@@ -153,6 +153,30 @@ class ArbeitsgruppenControllerTest extends TestCase
         $this->assertTrue($newUser->fresh()->hasTeamRole($ag->fresh(), 'Mitwirkender'));
     }
 
+    public function test_admin_can_add_member_to_any_ag(): void
+    {
+        $admin = $this->createMemberWithRole('Admin');
+        $leader = $this->createMemberWithRole();
+        $ag = Team::factory()->create([
+            'user_id' => $leader->id,
+            'personal_team' => false,
+            'name' => 'AG Test',
+        ]);
+        $ag->users()->attach($leader, ['role' => 'Mitglied']);
+
+        $newUser = $this->createMemberWithRole();
+
+        $this->actingAs($admin);
+
+        $response = $this->post(route('arbeitsgruppen.add-member', $ag), [
+            'user_id' => $newUser->id,
+        ]);
+
+        $response->assertRedirect(route('arbeitsgruppen.edit', $ag));
+        $this->assertTrue($ag->fresh()->hasUser($newUser));
+        $this->assertTrue($newUser->fresh()->hasTeamRole($ag->fresh(), 'Mitwirkender'));
+    }
+
     public function test_ag_leader_cannot_add_more_than_five_members(): void
     {
         $leader = $this->createMemberWithRole();
