@@ -148,8 +148,14 @@ class ProfileViewControllerTest extends TestCase
         $admin = $this->createMember('Admin');
         $member = $this->createMember();
 
-        $general = TodoCategory::create(['name' => 'General', 'slug' => Str::slug('General')]);
-        $maddraxikon = TodoCategory::create(['name' => 'AG Maddraxikon', 'slug' => Str::slug('AG Maddraxikon')]);
+        $general = TodoCategory::firstOrCreate(
+            ['slug' => Str::slug('General')],
+            ['name' => 'General']
+        );
+        $maddraxikon = TodoCategory::firstOrCreate(
+            ['slug' => Str::slug('AG Maddraxikon')],
+            ['name' => 'AG Maddraxikon']
+        );
 
         $this->createTodoWithPoints($member, $general, 5);
         $this->createTodoWithPoints($member, $maddraxikon, 3);

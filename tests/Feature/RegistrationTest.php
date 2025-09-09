@@ -37,7 +37,8 @@ class RegistrationTest extends TestCase
             'plz' => '12345',
             'stadt' => 'Teststadt',
             'land' => 'Deutschland',
-            'mail' => 'test@example.com',
+            // Use a unique email to avoid clashing with seeded users
+            'mail' => 'newuser@example.com',
             'passwort' => 'password',
             'passwort_confirmation' => 'password',
             'mitgliedsbeitrag' => 12.00,
