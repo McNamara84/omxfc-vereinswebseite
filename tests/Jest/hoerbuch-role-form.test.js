@@ -64,5 +64,35 @@ describe('hoerbuch role form module', () => {
     const rows = document.querySelectorAll('#roles_list .role-row');
     expect(rows.length).toBe(2);
   });
+
+  test('remove button deletes role row', () => {
+    const row = document.querySelector('#roles_list .role-row');
+    row.querySelector('button').click();
+    expect(document.querySelectorAll('#roles_list .role-row').length).toBe(0);
+  });
+
+  test('shows unauthorized error message', async () => {
+    fetch.mockResolvedValueOnce({ ok: false, status: 401 });
+    const roleNameInput = document.querySelector('input[name$="[name]"]');
+    const hint = document.querySelector('.previous-speaker');
+    roleNameInput.value = 'Hero';
+    roleNameInput.dispatchEvent(new Event('blur'));
+    await fetch.mock.results[0].value;
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(hint.textContent).toBe('Nicht berechtigt');
+  });
+
+  test('shows generic error message on failure', async () => {
+    fetch.mockResolvedValueOnce({ ok: false, status: 500 });
+    const roleNameInput = document.querySelector('input[name$="[name]"]');
+    const hint = document.querySelector('.previous-speaker');
+    roleNameInput.value = 'Hero';
+    roleNameInput.dispatchEvent(new Event('blur'));
+    await fetch.mock.results[0].value;
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(hint.textContent).toBe('Fehler beim Laden des bisherigen Sprechers');
+  });
 });
 
