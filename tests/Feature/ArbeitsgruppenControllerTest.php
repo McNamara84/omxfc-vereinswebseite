@@ -16,6 +16,7 @@ class ArbeitsgruppenControllerTest extends TestCase
         $memberTeam = Team::where('name', 'Mitglieder')->first();
         $user = User::factory()->create(['current_team_id' => $memberTeam->id]);
         $memberTeam->users()->attach($user, ['role' => $role]);
+
         return $user;
     }
 
@@ -178,6 +179,27 @@ class ArbeitsgruppenControllerTest extends TestCase
         $response->assertRedirect(route('arbeitsgruppen.edit', $ag));
         $response->assertSessionHasErrors('user_id', null, 'addTeamMember');
         $this->assertFalse($ag->fresh()->hasUser($extra));
+    }
+
+    public function test_edit_page_shows_member_roles(): void
+    {
+        $leader = $this->createMemberWithRole();
+        $ag = Team::factory()->create([
+            'user_id' => $leader->id,
+            'personal_team' => false,
+            'name' => 'AG Test',
+        ]);
+        $ag->users()->attach($leader, ['role' => 'Mitglied']);
+
+        $member = $this->createMemberWithRole();
+        $ag->users()->attach($member, ['role' => 'Mitwirkender']);
+
+        $this->actingAs($leader);
+
+        $this->get(route('arbeitsgruppen.edit', $ag))
+            ->assertOk()
+            ->assertSee('AG-Leiter')
+            ->assertSee('Mitwirkender');
     }
 
     public function test_ag_overview_does_not_show_members(): void

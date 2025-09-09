@@ -74,11 +74,26 @@
 
             <div class="mt-6">
                 <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2">Mitglieder</h3>
-                <ul class="mb-4 list-disc list-inside">
-                    @foreach($team->users as $member)
-                        <li class="text-gray-700 dark:text-gray-300">{{ $member->name }}</li>
-                    @endforeach
-                </ul>
+                <div class="overflow-x-auto mb-4">
+                    <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                        <thead>
+                            <tr>
+                                <th class="px-4 py-2 text-left text-gray-800 dark:text-gray-200">Name</th>
+                                <th class="px-4 py-2 text-left text-gray-800 dark:text-gray-200">Rolle</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                            @foreach($team->users as $member)
+                                <tr>
+                                    <td class="px-4 py-2 text-gray-700 dark:text-gray-300">{{ $member->name }}</td>
+                                    <td class="px-4 py-2 text-gray-700 dark:text-gray-300">
+                                        {{ $member->id === $team->user_id ? 'AG-Leiter' : 'Mitwirkender' }}
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
 
                 @can('addTeamMember', $team)
                     <form action="{{ route('arbeitsgruppen.add-member', $team) }}" method="POST" class="flex flex-col sm:flex-row sm:items-center gap-2">
