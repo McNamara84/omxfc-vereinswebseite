@@ -23,6 +23,37 @@ class HoerbuchControllerTest extends TestCase
         return $user;
     }
 
+    private function createAgFanhoerbuchTeam(User $leader): Team
+    {
+        $ag = Team::factory()->create([
+            'user_id' => $leader->id,
+            'personal_team' => false,
+            'name' => 'AG Fanhörbücher',
+        ]);
+        $ag->users()->attach($leader, ['role' => 'Mitglied']);
+
+        return $ag;
+    }
+
+    private function actingAgMember(): User
+    {
+        $leader = $this->actingMember();
+        $ag = $this->createAgFanhoerbuchTeam($leader);
+
+        $member = $this->actingMember();
+        $ag->users()->attach($member, ['role' => 'Mitwirkender']);
+
+        return $member;
+    }
+
+    private function actingAgLeader(): User
+    {
+        $leader = $this->actingMember();
+        $this->createAgFanhoerbuchTeam($leader);
+
+        return $leader;
+    }
+
     public function test_admin_can_view_create_form(): void
     {
         $user = $this->actingMember('Admin');
@@ -612,6 +643,15 @@ class HoerbuchControllerTest extends TestCase
             ->assertSee('EARDRAX Dashboard');
     }
 
+    public function test_ag_member_sees_eardrax_dashboard_link_in_navigation(): void
+    {
+        $user = $this->actingAgMember();
+
+        $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertSee('EARDRAX Dashboard');
+    }
+
     public function test_member_does_not_see_eardrax_dashboard_link_in_navigation(): void
     {
         $user = $this->actingMember('Mitglied');
@@ -634,6 +674,51 @@ class HoerbuchControllerTest extends TestCase
         $user = $this->actingMember('Kassenwart');
 
         $this->actingAs($user)->get(route('hoerbuecher.index'))
+            ->assertOk();
+    }
+
+    public function test_ag_member_can_view_index_and_episode_but_not_edit(): void
+    {
+        $user = $this->actingAgMember();
+
+        $episode = AudiobookEpisode::create([
+            'episode_number' => 'F1',
+            'title' => 'Testfolge',
+            'author' => 'Autor',
+            'planned_release_date' => '01.01.2025',
+            'status' => 'Skripterstellung',
+            'responsible_user_id' => null,
+            'progress' => 0,
+            'roles_total' => 0,
+            'roles_filled' => 0,
+            'notes' => null,
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('hoerbuecher.index'))
+            ->assertOk()
+            ->assertDontSee(route('hoerbuecher.create'));
+
+        $this->actingAs($user)
+            ->get(route('hoerbuecher.show', $episode))
+            ->assertOk()
+            ->assertDontSee(route('hoerbuecher.edit', $episode));
+
+        $this->actingAs($user)
+            ->get(route('hoerbuecher.create'))
+            ->assertForbidden();
+
+        $this->actingAs($user)
+            ->get(route('hoerbuecher.edit', $episode))
+            ->assertForbidden();
+    }
+
+    public function test_ag_leader_can_view_create_form(): void
+    {
+        $user = $this->actingAgLeader();
+
+        $this->actingAs($user)
+            ->get(route('hoerbuecher.create'))
             ->assertOk();
     }
 

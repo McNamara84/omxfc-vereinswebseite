@@ -229,4 +229,20 @@ class User extends Authenticatable
             || $this->hasRole('Vorstand')
             || $this->hasRole('Kassenwart');
     }
+
+    /**
+     * Check if the user is a member of the given team.
+     */
+    public function isMemberOfTeam(string $teamName): bool
+    {
+        return $this->teams()->where('name', $teamName)->exists();
+    }
+
+    /**
+     * Check if the user owns the given team.
+     */
+    public function isOwnerOfTeam(string $teamName): bool
+    {
+        return $this->ownedTeams()->where('name', $teamName)->exists();
+    }
 }

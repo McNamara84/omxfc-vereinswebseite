@@ -58,23 +58,18 @@
                                 <x-dropdown-link href="{{ route('statistik.index') }}">Statistik</x-dropdown-link>
                             </div>
                         </div>
-                        @vorstand
-                        <div class="relative flex items-center ml-4 group" x-data="{ open: false }" @click="open = !open" @click.away="open = false" @keydown.escape="open = false">
-                            <button id="vorstand-button" type="button" class="px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition" :aria-expanded="open" aria-controls="vorstand-menu" @keydown.enter.prevent="open = !open" @keydown.space.prevent="open = !open">
-                                Vorstand
-                            </button>
-                            <div id="vorstand-menu" x-show="open" x-cloak class="absolute left-0 top-full mt-px w-48 bg-white dark:bg-gray-700 rounded-md shadow-lg z-50 py-2 group-hover:block" role="menu" aria-labelledby="vorstand-button">
-                                <x-dropdown-link href="{{ route('hoerbuecher.index') }}">EARDRAX Dashboard</x-dropdown-link>
-                            </div>
-                        </div>
-                        @endvorstand
-                        @if(Auth::user()->ownedTeams()->where('personal_team', false)->exists())
+                        @if(Auth::user()->teams()->where('personal_team', false)->exists() || Auth::user()->hasVorstandRole())
                         <div class="relative flex items-center ml-4 group" x-data="{ open: false }" @click="open = !open" @click.away="open = false" @keydown.escape="open = false">
                             <button id="ag-button" type="button" class="px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition" :aria-expanded="open" aria-controls="ag-menu" @keydown.enter.prevent="open = !open" @keydown.space.prevent="open = !open">
                                 AG
                             </button>
                             <div id="ag-menu" x-show="open" x-cloak class="absolute left-0 top-full mt-px w-48 bg-white dark:bg-gray-700 rounded-md shadow-lg z-50 py-2 group-hover:block" role="menu">
-                                <x-dropdown-link href="{{ route('ag.index') }}">AG verwalten</x-dropdown-link>
+                                @if(Auth::user()->hasVorstandRole() || Auth::user()->isMemberOfTeam('AG Fanhörbücher'))
+                                    <x-dropdown-link href="{{ route('hoerbuecher.index') }}">EARDRAX Dashboard</x-dropdown-link>
+                                @endif
+                                @if(Auth::user()->ownedTeams()->where('personal_team', false)->exists())
+                                    <x-dropdown-link href="{{ route('ag.index') }}">AG verwalten</x-dropdown-link>
+                                @endif
                             </div>
                         </div>
                         @endif
@@ -181,18 +176,16 @@
                 <x-responsive-nav-link href="{{ route('kompendium.index') }}">Kompendium</x-responsive-nav-link>
                 <x-responsive-nav-link href="{{ route('statistik.index') }}">Statistik</x-responsive-nav-link>
             </div>
-            @vorstand
-            <button id="vorstand-mobile-button" type="button" @click="openMenu = (openMenu === 'vorstand' ? null : 'vorstand')" class="w-full text-left px-4 py-2 font-bold text-gray-600 dark:text-gray-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500" :class="{ 'bg-gray-100 dark:bg-gray-700': openMenu === 'vorstand' }" :aria-expanded="openMenu === 'vorstand'" aria-controls="vorstand-mobile-menu" @keydown.enter.prevent="openMenu = (openMenu === 'vorstand' ? null : 'vorstand')" @keydown.space.prevent="openMenu = (openMenu === 'vorstand' ? null : 'vorstand')">
-            Vorstand</button>
-            <div id="vorstand-mobile-menu" x-show="openMenu === 'vorstand'" x-cloak class="italic" aria-labelledby="vorstand-mobile-button">
-                <x-responsive-nav-link href="{{ route('hoerbuecher.index') }}">EARDRAX Dashboard</x-responsive-nav-link>
-            </div>
-            @endvorstand
-            @if(Auth::user()->ownedTeams()->where('personal_team', false)->exists())
+            @if(Auth::user()->teams()->where('personal_team', false)->exists() || Auth::user()->hasVorstandRole())
             <button id="ag-mobile-button" type="button" @click="openMenu = (openMenu === 'ag' ? null : 'ag')" class="w-full text-left px-4 py-2 font-bold text-gray-600 dark:text-gray-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500" :class="{ 'bg-gray-100 dark:bg-gray-700': openMenu === 'ag' }" :aria-expanded="openMenu === 'ag'" aria-controls="ag-mobile-menu" @keydown.enter.prevent="openMenu = (openMenu === 'ag' ? null : 'ag')" @keydown.space.prevent="openMenu = (openMenu === 'ag' ? null : 'ag')">
             AG</button>
             <div id="ag-mobile-menu" x-show="openMenu === 'ag'" x-cloak class="italic">
-                <x-responsive-nav-link href="{{ route('ag.index') }}">AG verwalten</x-responsive-nav-link>
+                @if(Auth::user()->hasVorstandRole() || Auth::user()->isMemberOfTeam('AG Fanhörbücher'))
+                    <x-responsive-nav-link href="{{ route('hoerbuecher.index') }}">EARDRAX Dashboard</x-responsive-nav-link>
+                @endif
+                @if(Auth::user()->ownedTeams()->where('personal_team', false)->exists())
+                    <x-responsive-nav-link href="{{ route('ag.index') }}">AG verwalten</x-responsive-nav-link>
+                @endif
             </div>
             @endif
             @if(Auth::user()->hasRole('Admin'))

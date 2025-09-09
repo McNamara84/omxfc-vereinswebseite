@@ -113,17 +113,16 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
         Route::post('{todo}/freigeben', 'release')->name('release');
     });
     Route::prefix('hoerbuecher')->name('hoerbuecher.')->controller(HoerbuchController::class)->group(function () {
-        Route::get('/', 'index')->name('index')->middleware('vorstand');
-
-        Route::middleware('admin-or-vorstand')->group(function () {
+        Route::get('/', 'index')->name('index')->middleware('hoerbuch-access');
+        Route::get('previous-speaker', 'previousSpeaker')->name('previous-speaker')->middleware('hoerbuch-manage');
+        Route::middleware('hoerbuch-manage')->group(function () {
             Route::get('erstellen', 'create')->name('create');
             Route::post('/', 'store')->name('store');
-            Route::get('previous-speaker', 'previousSpeaker')->name('previous-speaker');
-            Route::get('{episode}', 'show')->name('show');
             Route::get('{episode}/bearbeiten', 'edit')->name('edit');
             Route::put('{episode}', 'update')->name('update');
             Route::delete('{episode}', 'destroy')->name('destroy');
         });
+        Route::get('{episode}', 'show')->name('show')->middleware('hoerbuch-access');
     });
 
     Route::prefix('admin/arbeitsgruppen')->name('arbeitsgruppen.')->controller(ArbeitsgruppenController::class)->middleware('auth')->group(function () {
