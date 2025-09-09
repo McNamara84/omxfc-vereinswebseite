@@ -1,4 +1,4 @@
-name: Vitest
+name: JS Unit Tests
 
 on:
   push:
@@ -12,7 +12,7 @@ permissions:
 jobs:
   vitest:
     runs-on: ubuntu-latest
-    name: JS Unit tests / Vitest under PHP 8.3
+    name: Vitest under PHP 8.3
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
