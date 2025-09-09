@@ -10,131 +10,100 @@ permissions:
   contents: write
 
 jobs:
-  laravel-tests:
-
+  tests:
     runs-on: ubuntu-latest
-
-    steps:
-    - uses: shivammathur/setup-php@15c43e89cdef867065b0213be354c2841860869e
-      with:
-        php-version: '8.2'
-    - uses: actions/checkout@v4
-    - name: Copy .env
-      run: php -r "file_exists('.env') || copy('.env.example', '.env');"
-    - name: Install Dependencies
-      run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
-    - name: Generate key
-      run: |
-        php artisan key:generate
-        php artisan key:generate --env=testing
-    - name: Directory Permissions
-      run: chmod -R 777 storage bootstrap/cache
-    - name: Create Database
-      run: |
-        mkdir -p database
-        touch database/database.sqlite
-    - name: Setup Node.js and build assets
-      uses: ./.github/actions/build-assets
-    - name: Execute tests (Unit and Feature tests) via PHPUnit/Pest
-      env:
-        DB_CONNECTION: sqlite
-        DB_DATABASE: database/database.sqlite
-      run: php artisan test
-
-
-    - name: Execute tests with coverage
-      run: |
-        php -dxdebug.mode=coverage artisan test tests/Feature --coverage-clover=coverage.xml
-
-    - name: Run Jest tests with coverage
-      run: npm test -- --coverage --coverageReporters=json-summary --coverageDirectory=coverage
-
-    - name: Create JS coverage badge
-      run: |
-        mkdir -p output
-        if [ -f "coverage/coverage-summary.json" ]; then
-          npx --yes make-coverage-badge --report-path=coverage/coverage-summary.json --output-path=output/js-coverage.svg
-          sed -i 's/Coverage/JS Coverage/' output/js-coverage.svg
-        fi
-
-    - name: Create PHP coverage badge
-      uses: timkrase/phpunit-coverage-badge@v1.2.1
-      with:
-        report: coverage.xml
-        coverage_badge_path: output/php-coverage.svg
-        push_badge: false
-
-    - name: Customize PHP coverage badge label
-      run: |
-        if [ -f output/php-coverage.svg ]; then
-          sed -i 's/Coverage/PHP Coverage/' output/php-coverage.svg
-        fi
-
-    - name: Deploy coverage badges to image-data branch
-      uses: peaceiris/actions-gh-pages@v4
-      with:
-        publish_dir: ./output
-        publish_branch: image-data
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-
-  additional-php-versions:
-    if: github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    
     strategy:
       fail-fast: false
       matrix:
-        php-version: ['8.2', '8.4']
-    
-    env:
-      DB_CONNECTION: sqlite
-      DB_DATABASE: database/database.sqlite
-      BROADCAST_DRIVER: log
-      CACHE_DRIVER: array
-      QUEUE_CONNECTION: sync
-      SESSION_DRIVER: array
+        php-version: ['8.2', '8.3']
+    name: PHP ${{ matrix.php-version }} Tests
 
-    name: PHP ${{ matrix.php-version }} - Additional Tests
-    
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@15c43e89cdef867065b0213be354c2841860869e
+        with:
+          php-version: ${{ matrix.php-version }}
+      - name: Copy .env
+        run: php -r "file_exists('.env') || copy('.env.example', '.env');"
+      - name: Install Dependencies
+        run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
+      - name: Generate key
+        run: |
+          php artisan key:generate
+          php artisan key:generate --env=testing
+      - name: Directory Permissions
+        run: chmod -R 777 storage bootstrap/cache
+      - name: Create Database
+        run: |
+          mkdir -p database
+          touch database/database.sqlite
+      - name: Setup Node.js and build assets
+        uses: ./.github/actions/build-assets
+      - name: Execute tests (Unit and Feature tests) via PHPUnit/Pest
+        env:
+          DB_CONNECTION: sqlite
+          DB_DATABASE: database/database.sqlite
+        run: php artisan test
 
-    - name: Setup PHP
-      uses: shivammathur/setup-php@v2
-      with:
-        php-version: ${{ matrix.php-version }}
-        extensions: mbstring, dom, fileinfo, sqlite, pdo_sqlite, zip, curl, bcmath, pcntl, intl
-        coverage: none
-        tools: composer:v2
+  coverage:
+    needs: tests
+    runs-on: ubuntu-latest
+    name: PHP 8.4 - Coverage
 
-    - name: Get composer cache directory
-      id: composer-cache
-      run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@15c43e89cdef867065b0213be354c2841860869e
+        with:
+          php-version: '8.4'
+      - name: Copy .env
+        run: php -r "file_exists('.env') || copy('.env.example', '.env');"
+      - name: Install Dependencies
+        run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
+      - name: Generate key
+        run: |
+          php artisan key:generate
+          php artisan key:generate --env=testing
+      - name: Directory Permissions
+        run: chmod -R 777 storage bootstrap/cache
+      - name: Create Database
+        run: |
+          mkdir -p database
+          touch database/database.sqlite
+      - name: Setup Node.js and build assets
+        uses: ./.github/actions/build-assets
+      - name: Execute tests with coverage
+        env:
+          DB_CONNECTION: sqlite
+          DB_DATABASE: database/database.sqlite
+        run: php -dxdebug.mode=coverage artisan test tests/Feature --coverage-clover=coverage.xml
+      - name: Run Jest tests with coverage
+        run: npm test -- --coverage --coverageReporters=json-summary --coverageDirectory=coverage
+      - name: Create JS coverage badge
+        if: github.ref == 'refs/heads/main'
+        run: |
+          mkdir -p output
+          if [ -f "coverage/coverage-summary.json" ]; then
+            npx --yes make-coverage-badge --report-path=coverage/coverage-summary.json --output-path=output/js-coverage.svg
+            sed -i 's/Coverage/JS Coverage/' output/js-coverage.svg
+          fi
+      - name: Create PHP coverage badge
+        if: github.ref == 'refs/heads/main'
+        uses: timkrase/phpunit-coverage-badge@v1.2.1
+        with:
+          report: coverage.xml
+          coverage_badge_path: output/php-coverage.svg
+          push_badge: false
+      - name: Customize PHP coverage badge label
+        if: github.ref == 'refs/heads/main'
+        run: |
+          if [ -f output/php-coverage.svg ]; then
+            sed -i 's/Coverage/PHP Coverage/' output/php-coverage.svg
+          fi
+      - name: Deploy coverage badges to image-data branch
+        if: github.ref == 'refs/heads/main'
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          publish_dir: ./output
+          publish_branch: image-data
+          github_token: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Cache composer dependencies
-      uses: actions/cache@v4
-      with:
-        path: ${{ steps.composer-cache.outputs.dir }}
-        key: ${{ runner.os }}-php-${{ matrix.php-version }}-composer-${{ hashFiles('**/composer.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-php-${{ matrix.php-version }}-composer-
-
-    - name: Install Composer dependencies
-      run: composer install --no-progress --prefer-dist --optimize-autoloader --no-interaction
-
-    - name: Prepare database file
-      run: |
-        mkdir -p database
-        touch database/database.sqlite
-
-    - name: Prepare Laravel Application
-      run: |
-        cp .env.testing .env 2>/dev/null || cp .env.example .env
-        php artisan key:generate --env=testing
-        chmod -R 755 storage bootstrap/cache
-
-    - name: Setup Node.js and build assets
-      uses: ./.github/actions/build-assets
-    - name: Execute tests
-      run: php artisan test tests/Feature
