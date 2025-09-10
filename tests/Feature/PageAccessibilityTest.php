@@ -39,7 +39,7 @@ class PageAccessibilityTest extends TestCase
         $team = Team::where('name', 'Mitglieder')->first();
 
         $team->users()->attach(User::factory()->create(), ['role' => 'Mitglied']);
-        $team->users()->attach(User::factory()->create(), ['role' => 'Anw\xC3\xA4rter']);
+        $team->users()->attach(User::factory()->create(), ['role' => 'Anwärter']);
 
         $response = $this->get('/');
         $response->assertOk();
