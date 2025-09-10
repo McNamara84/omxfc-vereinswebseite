@@ -33,7 +33,7 @@ class MitgliedschaftControllerTest extends TestCase
             'verein_gefunden' => 'Internet',
         ];
 
-        $response = $this->post(route('mitglied.store'), $data);
+        $response = $this->postJson(route('mitglied.store'), $data);
 
         $response->assertOk()->assertJson(['success' => true]);
 
