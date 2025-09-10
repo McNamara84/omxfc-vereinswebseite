@@ -65,13 +65,13 @@
     <div class="section">
         <strong>Vorteile</strong>
         <ul>
-            @foreach($advantages as $adv)
+            @foreach($advantages ?? [] as $adv)
                 <li>{{ $adv }}</li>
             @endforeach
         </ul>
         <strong>Nachteile</strong>
         <ul>
-            @foreach($disadvantages as $dis)
+            @foreach($disadvantages ?? [] as $dis)
                 <li>{{ $dis }}</li>
             @endforeach
         </ul>

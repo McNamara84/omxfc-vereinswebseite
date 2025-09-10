@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Spatie\LaravelPdf\Facades\Pdf;
 
 class RpgCharEditorController extends Controller
@@ -20,8 +21,12 @@ class RpgCharEditorController extends Controller
      */
     public function pdf(Request $request)
     {
+        $request->validate([
+            'portrait' => 'nullable|image|max:2048',
+        ]);
+
         $portrait = null;
-        if ($request->hasFile('portrait')) {
+        if ($request->hasFile('portrait') && $request->file('portrait')->isValid()) {
             $portrait = 'data:' . $request->file('portrait')->getMimeType() . ';base64,' . base64_encode($request->file('portrait')->get());
         }
 
@@ -34,7 +39,7 @@ class RpgCharEditorController extends Controller
             'portrait' => $portrait,
         ];
 
-        $name = $request->input('character_name', 'charakter');
+        $name = Str::slug($request->input('character_name', 'charakter')) ?: 'charakter';
 
         return Pdf::view('rpg.char-sheet', $data)->download($name . '.pdf');
     }
