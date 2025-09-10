@@ -2,34 +2,12 @@
 
 namespace Tests\Feature;
 
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class HomePageContentTest extends TestCase
 {
-    public function seed($class = 'Database\\Seeders\\DatabaseSeeder')
-    {
-        // Prevent automatic seeding during TestCase setup
-        return $this;
-    }
-
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        Schema::create('teams', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-        });
-    }
-
-    protected function tearDown(): void
-    {
-        Schema::dropIfExists('teams');
-
-        parent::tearDown();
-    }
+    use RefreshDatabase;
 
     public function test_home_page_displays_all_sections_and_projects(): void
     {
