@@ -1,7 +1,7 @@
 <x-app-layout title="Arbeitsgruppen – Offizieller MADDRAX Fanclub e. V." description="Tabellarische Übersicht aller Arbeitsgruppen.">
     <x-member-page>
         <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
-            <div class="flex justify-between items-center mb-6">
+            <div class="flex justify-between items-center {{ request()->routeIs('ag.index') ? 'mb-4' : 'mb-6' }}">
                 <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81]">Arbeitsgruppen</h2>
                 @if(Auth::user()->hasRole('Admin'))
                     <a href="{{ route('arbeitsgruppen.create') }}"
@@ -10,6 +10,9 @@
                     </a>
                 @endif
             </div>
+            @if(request()->routeIs('ag.index') && Auth::user()->ownedTeams()->where('personal_team', false)->exists())
+                <p class="mb-6 text-gray-700 dark:text-gray-300">Als AG-Leiter kannst du hier deine AG verwalten. Die Beschreibung, das Logo, der Termin für das regelmäßige AG-Treffen und die angegebene E-Mail-Adresse werden auch im öffentlichen Bereich für Nicht-Mitglieder angezeigt. Bitte halte diese Informationen daher stets aktuell.</p>
+            @endif
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                     <thead>
