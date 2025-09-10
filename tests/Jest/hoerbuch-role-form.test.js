@@ -58,6 +58,20 @@ describe('hoerbuch role form module', () => {
     expect(hint.textContent).toBe('Bisheriger Sprecher: Bob');
   });
 
+  test('role name input uses debounce before fetching', async () => {
+    jest.useFakeTimers();
+    const roleNameInput = document.querySelector('input[name$="[name]"]');
+    roleNameInput.value = 'Hero';
+    roleNameInput.dispatchEvent(new Event('input'));
+    expect(fetch).not.toHaveBeenCalled();
+    jest.advanceTimersByTime(300);
+    await Promise.resolve();
+    await fetch.mock.results[0].value;
+    await Promise.resolve();
+    expect(fetch).toHaveBeenCalled();
+    jest.useRealTimers();
+  });
+
   test('add_role appends new role row', () => {
     const addBtn = document.getElementById('add_role');
     addBtn.click();

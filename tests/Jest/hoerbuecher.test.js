@@ -41,6 +41,17 @@ describe('hoerbuecher module', () => {
     expect(rows[1].style.display).toBe('none');
   });
 
+  test('row click and Enter key navigate to dataset href', () => {
+    const rows = document.querySelectorAll('tr[data-href]');
+    rows[0].dataset.href = '#/1';
+    rows[1].dataset.href = '#/2';
+    rows[0].click();
+    expect(window.location.hash).toBe('#/1');
+    window.location.hash = '';
+    rows[1].dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
+    expect(window.location.hash).toBe('#/2');
+  });
+
   test('roles and rolesUnfilled filters are mutually exclusive', () => {
     const roles = document.getElementById('roles-filter');
     const rolesUnfilled = document.getElementById('roles-unfilled-filter');
@@ -58,6 +69,10 @@ describe('hoerbuecher module', () => {
     rolesUnfilled.dispatchEvent(new Event('change'));
     expect(roles.checked).toBe(false);
     expect(roles.disabled).toBe(true);
+
+    rolesUnfilled.checked = false;
+    rolesUnfilled.dispatchEvent(new Event('change'));
+    expect(roles.disabled).toBe(false);
   });
 
   test('clicking cardNextEvent filters only matching episode', () => {
@@ -90,6 +105,21 @@ describe('hoerbuecher module', () => {
     expect(rows[2].style.display).toBe('');
     const statusFilter = document.getElementById('status-filter');
     expect(statusFilter.value).toBe('Rollenbesetzung');
+  });
+
+  test('card-unfilled-roles handles missing roles-unfilled filter', async () => {
+    jest.resetModules();
+    document.body.innerHTML = `
+      <table>
+        <tr data-href="/1" data-status="done" data-type="A" data-year="2024" data-roles-filled="1" data-episode-id="1"></tr>
+      </table>
+      <select id="status-filter"><option value=""></option></select>
+      <div id="card-unfilled-roles"></div>
+    `;
+    await import('../../resources/js/hoerbuecher.js');
+    document.dispatchEvent(new Event('DOMContentLoaded'));
+    const card = document.getElementById('card-unfilled-roles');
+    expect(() => card.click()).not.toThrow();
   });
 });
 

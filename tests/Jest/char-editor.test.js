@@ -30,6 +30,9 @@ const BASE_HTML = `
     <option value="Intuition"></option>
     <option value="Nahkampf"></option>
     <option value="Fernkampf"></option>
+    <option value="Beruf: Viehzüchter"></option>
+    <option value="Beruf: Landwirt"></option>
+    <option value="Kunde: Wetter"></option>
   </datalist>
   <button id="continue-button" class="hidden"></button>
   <fieldset id="advanced-fields"></fieldset>
@@ -82,5 +85,32 @@ describe('char-editor module', () => {
     expect(zaeh.selected).toBe(true);
     expect(zaeh.disabled).toBe(true);
     expect(document.getElementById('attribute-points').textContent).toBe('Verfügbare Attributspunkte: 3');
+  });
+
+  test('changing barbar combat skill replaces previous skill', async () => {
+    await loadEditor({ player_name: 'Alice', character_name: 'Bob' });
+    const race = document.getElementById('race');
+    race.value = 'Barbar';
+    race.dispatchEvent(new Event('change'));
+    const combatSelect = document.getElementById('barbar-combat-select');
+    combatSelect.value = 'Fernkampf';
+    combatSelect.dispatchEvent(new Event('change'));
+    const skillNames = Array.from(document.querySelectorAll('.skill-row .skill-name')).map(i => i.value);
+    expect(skillNames).toEqual(expect.arrayContaining(['Fernkampf']));
+    expect(skillNames).not.toEqual(expect.arrayContaining(['Nahkampf']));
+  });
+
+  test('selecting Landbewohner culture adds culture skills', async () => {
+    await loadEditor({ player_name: 'Alice', character_name: 'Bob' });
+    const race = document.getElementById('race');
+    race.value = 'Barbar';
+    race.dispatchEvent(new Event('change'));
+    const culture = document.getElementById('culture');
+    culture.value = 'Landbewohner';
+    culture.dispatchEvent(new Event('change'));
+    const skillNames = Array.from(document.querySelectorAll('.skill-row .skill-name')).map(i => i.value);
+    expect(skillNames).toEqual(
+      expect.arrayContaining(['Beruf: Viehzüchter', 'Beruf: Landwirt', 'Kunde: Wetter'])
+    );
   });
 });
