@@ -119,4 +119,69 @@ describe('char-editor module', () => {
     const pdfBtn = document.getElementById('pdf-button');
     expect(pdfBtn.disabled).toBe(true);
   });
+
+  test('attribute inputs respect caps and available points', async () => {
+    await loadEditor({ player_name: 'A', character_name: 'B' });
+    const race = document.getElementById('race');
+    race.value = 'Barbar';
+    race.dispatchEvent(new Event('change'));
+    const st = document.getElementById('st');
+    st.value = '3';
+    st.dispatchEvent(new Event('input'));
+    expect(st.value).toBe('2');
+    const ge = document.getElementById('ge');
+    ge.value = '2';
+    ge.dispatchEvent(new Event('input'));
+    expect(ge.value).toBe('1');
+    expect(document.getElementById('attribute-points').textContent).toBe('Verfügbare Attributspunkte: 0');
+  });
+
+  test('advantage selection is limited by free points', async () => {
+    await loadEditor();
+    const adv = document.getElementById('advantages');
+    ['Extra1', 'Extra2'].forEach(v => {
+      const opt = document.createElement('option');
+      opt.value = v;
+      opt.textContent = v;
+      adv.appendChild(opt);
+    });
+    adv.options[1].selected = true; // Kind zweier Welten
+    adv.dispatchEvent(new Event('change'));
+    adv.options[2].selected = true; // Extra1
+    adv.dispatchEvent(new Event('change'));
+    adv.options[3].selected = true; // Extra2 - should be rejected
+    adv.dispatchEvent(new Event('change'));
+    expect(adv.options[3].selected).toBe(false);
+    expect(adv.options[3].disabled).toBe(true);
+    expect(document.getElementById('available_advantage_points').value).toBe('0');
+  });
+
+  test('bildung skill disabled when intuition > 0 without special advantage', async () => {
+    await loadEditor({ player_name: 'A', character_name: 'B' });
+    const addBtn = document.getElementById('add-skill');
+    addBtn.click();
+    let rows = document.querySelectorAll('.skill-row');
+    const intRow = rows[0];
+    const intName = intRow.querySelector('.skill-name');
+    const intVal = intRow.querySelector('input[type="number"]');
+    intName.value = 'Intuition';
+    intName.dispatchEvent(new Event('input', { bubbles: true }));
+    intVal.value = '1';
+    intVal.dispatchEvent(new Event('input', { bubbles: true }));
+    addBtn.click();
+    rows = document.querySelectorAll('.skill-row');
+    const bildRow = rows[1];
+    const bildName = bildRow.querySelector('.skill-name');
+    const bildVal = bildRow.querySelector('input[type="number"]');
+    bildName.value = 'Bildung';
+    bildName.dispatchEvent(new Event('input', { bubbles: true }));
+    bildVal.value = '1';
+    bildVal.dispatchEvent(new Event('input', { bubbles: true }));
+    document.getElementById('skills-container').dispatchEvent(new Event('input'));
+    rows = document.querySelectorAll('.skill-row');
+    const finalBildVal = rows[1].querySelector('input[type="number"]');
+    const finalIntVal = rows[0].querySelector('input[type="number"]');
+    expect(finalBildVal.value).toBe('0');
+    expect(finalIntVal.value).toBe('1');
+  });
 });

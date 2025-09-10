@@ -53,6 +53,22 @@ describe('statistik module', () => {
     expect(config.data.datasets[1].data).toEqual([5, 5, 5]);
   });
 
+  test('drawAuthorChart does nothing when canvas missing', () => {
+    drawAuthorChart('missing', ['A'], [1]);
+    expect(mockChart).not.toHaveBeenCalled();
+  });
+
+  test('drawCycleChart replaces data with random values when user points too low', () => {
+    document.body.innerHTML = '<div data-min-points="5"><canvas id="cycle"></canvas></div>';
+    window.userPoints = 0;
+    jest.spyOn(Math, 'random').mockReturnValue(0.5);
+    drawCycleChart('cycle', ['A', 'B'], [1, 2]);
+    const config = mockChart.mock.calls[0][1];
+    expect(config.data.datasets[0].data).toEqual([3, 3]);
+    Math.random.mockRestore();
+    delete window.userPoints;
+  });
+
   test('DOMContentLoaded draws hardcover chart', async () => {
     jest.resetModules();
     const chartModule = await import('chart.js/auto');
