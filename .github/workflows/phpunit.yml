@@ -17,6 +17,8 @@ jobs:
       matrix:
         php-version: ['8.2', '8.3']
     name: PHP ${{ matrix.php-version }} Tests
+    env:
+      APP_KEY: ${{ secrets.APP_KEY }}
 
     steps:
       - uses: actions/checkout@v4
@@ -27,10 +29,6 @@ jobs:
         run: php -r "file_exists('.env') || copy('.env.example', '.env');"
       - name: Install Dependencies
         run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
-      - name: Generate key
-        run: |
-          php artisan key:generate
-          php artisan key:generate --env=testing
       - name: Directory Permissions
         run: chmod -R 777 storage bootstrap/cache
       - name: Create Database
@@ -49,6 +47,8 @@ jobs:
     needs: tests
     runs-on: ubuntu-latest
     name: PHP 8.4 - Coverage
+    env:
+      APP_KEY: ${{ secrets.APP_KEY }}
 
     steps:
       - uses: actions/checkout@v4
@@ -59,10 +59,6 @@ jobs:
         run: php -r "file_exists('.env') || copy('.env.example', '.env');"
       - name: Install Dependencies
         run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
-      - name: Generate key
-        run: |
-          php artisan key:generate
-          php artisan key:generate --env=testing
       - name: Directory Permissions
         run: chmod -R 777 storage bootstrap/cache
       - name: Create Database
