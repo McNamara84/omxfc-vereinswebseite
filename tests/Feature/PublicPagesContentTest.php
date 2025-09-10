@@ -2,6 +2,8 @@
 
 namespace Tests\Feature;
 
+use App\Models\Team;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -53,6 +55,36 @@ class PublicPagesContentTest extends TestCase
         $this->get('/mitglied-werden/bestaetigt')
             ->assertOk()
             ->assertSee('Vielen Dank für deine Bestätigung!');
+    }
+
+    public function test_spenden_page_shows_heading_and_description(): void
+    {
+        $this->get('/spenden')
+            ->assertOk()
+            ->assertSee('Spenden')
+            ->assertSee('Spenden helfen uns bei der Finanzierung der jährlichen Fantreffen sowie der Serverkosten dieser Webseite')
+            ->assertSee('kassenwart@maddrax-fanclub.de');
+    }
+
+    public function test_arbeitsgruppen_page_shows_leader_schedule_and_contact(): void
+    {
+        $leader = User::factory()->create(['name' => 'Max Mustermann']);
+        Team::factory()->create([
+            'name' => 'AG Öffentlichkeit',
+            'user_id' => $leader->id,
+            'personal_team' => false,
+            'description' => 'Beschreibung der AG',
+            'meeting_schedule' => 'jeden Dienstag',
+            'email' => 'ag@example.com',
+        ]);
+
+        $this->get('/arbeitsgruppen')
+            ->assertOk()
+            ->assertSee('AG Öffentlichkeit')
+            ->assertSee('Beschreibung der AG')
+            ->assertSee('Max Mustermann')
+            ->assertSee('jeden Dienstag')
+            ->assertSee('ag@example.com');
     }
 }
 
