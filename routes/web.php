@@ -161,6 +161,10 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
         ->name('rpg.char-editor')
         ->middleware('admin');
 
+    Route::post('/rpg/char-editor/pdf', [RpgCharEditorController::class, 'pdf'])
+        ->name('rpg.char-editor.pdf')
+        ->middleware('admin');
+
     Route::prefix('romantauschboerse')->name('romantausch.')->controller(RomantauschController::class)->group(function () {
         Route::get('/', 'index')->name('index');
         Route::get('angebot-erstellen', 'createOffer')->name('create-offer');

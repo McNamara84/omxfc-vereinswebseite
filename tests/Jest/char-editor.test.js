@@ -112,5 +112,10 @@ describe('char-editor module', () => {
     expect(skillNames).toEqual(
       expect.arrayContaining(['Beruf: Viehzüchter', 'Beruf: Landwirt', 'Kunde: Wetter'])
     );
+    
+  test('pdf button disabled by default', async () => {
+    await loadEditor();
+    const pdfBtn = document.getElementById('pdf-button');
+    expect(pdfBtn.disabled).toBe(true);
   });
 });
