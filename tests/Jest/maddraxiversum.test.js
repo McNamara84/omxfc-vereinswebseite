@@ -113,3 +113,158 @@ describe('maddraxiversum', () => {
     logSpy.mockRestore();
   });
 });
+
+describe('maddraxiversum extended behaviour', () => {
+  let mod;
+  let mockMap;
+  let mockMarker;
+  let mockCluster;
+  let mockLatLngBounds;
+  let mockAxios;
+  let popupOpen;
+  let domReady;
+
+  async function setup({ cityResults = {}, statusResult = { data: { status: 'none' } } } = {}) {
+    jest.resetModules();
+    popupOpen = undefined;
+    mockMap = {
+      setView: jest.fn().mockReturnThis(),
+      addLayer: jest.fn(),
+      fitBounds: jest.fn(),
+      panTo: jest.fn(),
+      removeLayer: jest.fn(),
+      on: jest.fn((evt, cb) => {
+        if (evt === 'popupopen') popupOpen = cb;
+      }),
+    };
+    mockMarker = {
+      setLatLng: jest.fn(),
+      addTo: jest.fn().mockReturnThis(),
+      bindPopup: jest.fn().mockReturnThis(),
+    };
+    mockCluster = { addLayer: jest.fn() };
+    mockLatLngBounds = jest.fn(() => ({}));
+    mockAxios = {
+      get: jest.fn((url) =>
+        url === '/maddraxikon-staedte'
+          ? Promise.resolve({ data: { query: { results: cityResults } } })
+          : Promise.resolve(statusResult)
+      ),
+      post: jest.fn(() => Promise.resolve({ data: { status: 'completed', mission: {} } })),
+    };
+    const originalAdd = document.addEventListener;
+    document.addEventListener = (evt, cb) => {
+      if (evt === 'DOMContentLoaded') domReady = cb;
+    };
+
+    await jest.unstable_mockModule('leaflet', () => ({
+      default: {
+        map: jest.fn(() => mockMap),
+        tileLayer: jest.fn(() => ({ addTo: jest.fn() })),
+        icon: jest.fn(() => ({})),
+        markerClusterGroup: jest.fn(() => mockCluster),
+        marker: jest.fn(() => mockMarker),
+        divIcon: jest.fn(() => ({})),
+        latLngBounds: mockLatLngBounds,
+      },
+    }));
+    await jest.unstable_mockModule('leaflet.markercluster', () => ({}));
+    await jest.unstable_mockModule('axios', () => ({ default: mockAxios }));
+
+    document.body.innerHTML = `
+      <div id="mission-modal" class="hidden"></div>
+      <h3 id="mission-title"></h3>
+      <p id="mission-description"></p>
+      <span id="mission-duration"></span>
+      <button id="start-mission"></button>
+      <button id="close-mission-modal"></button>
+      <div id="map"></div>
+      <meta name="csrf-token" content="TOKEN" />
+    `;
+    global.tileUrl = 'http://tiles.example';
+    global.csrfToken = 'TOKEN';
+
+    mod = await import('../../resources/js/maddraxiversum.js');
+    document.addEventListener = originalAdd;
+  }
+
+  test('adds city markers and mission link opens modal', async () => {
+    await setup({
+      cityResults: {
+        Waashton: {
+          printouts: { Koordinaten: [{ lat: 1, lon: 2 }] },
+          fullurl: '/waashton',
+        },
+      },
+    });
+    expect(mockAxios.get).toHaveBeenCalledWith('/maddraxikon-staedte');
+    expect(mockMarker.bindPopup).toHaveBeenCalled();
+    expect(mockCluster.addLayer).toHaveBeenCalledWith(mockMarker);
+    expect(mockMap.addLayer).toHaveBeenCalledWith(mockCluster);
+
+    // simulate popup open and click mission link
+    const link = document.createElement('button');
+    link.className = 'mission-link';
+    link.dataset.city = 'Waashton';
+    link.dataset.index = '0';
+    document.body.appendChild(link);
+    popupOpen();
+    link.click();
+    const modalEl = document.getElementById('mission-modal');
+    expect(modalEl.classList.contains('flex')).toBe(true);
+  });
+
+  test('start mission button posts data and animates', async () => {
+    await setup();
+    const startBtn = document.getElementById('start-mission');
+    startBtn.dataset.mission = JSON.stringify({
+      name: 'Test',
+      destination: 'Salem',
+      travel_duration: 1,
+      mission_duration: 1,
+    });
+    global.alert = jest.fn();
+    jest.useFakeTimers();
+    startBtn.click();
+    await Promise.resolve();
+    jest.runAllTimers();
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(mockAxios.post).toHaveBeenCalledWith(
+      '/mission/starten',
+      expect.any(Object),
+      expect.objectContaining({ headers: { 'X-CSRF-TOKEN': 'TOKEN' } })
+    );
+    expect(mockMap.fitBounds).toHaveBeenCalled();
+    jest.useRealTimers();
+  });
+
+  test('loadMissionStatus animates ongoing mission', async () => {
+    const startedAt = new Date().toISOString();
+    await setup({
+      statusResult: {
+        data: {
+          status: 'traveling',
+          mission: {
+            origin: 'Waashton',
+            destination: 'Salem',
+            travel_duration: 1,
+            mission_duration: 1,
+            started_at: startedAt,
+          },
+          current_location: 'Waashton',
+        },
+      },
+    });
+    global.alert = jest.fn();
+    jest.useFakeTimers();
+    domReady();
+    jest.runAllTimers();
+    await Promise.resolve();
+    await Promise.resolve();
+    jest.useRealTimers();
+    expect(mockAxios.get).toHaveBeenCalledWith('/mission/status');
+    expect(mockMap.fitBounds).toHaveBeenCalled();
+  });
+});
+
