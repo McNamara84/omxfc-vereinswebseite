@@ -5,14 +5,17 @@ import { jest } from '@jest/globals';
 // lets us stub out side-effect-heavy dependencies when testing app.js.
 
 const originalMatchMedia = window.matchMedia;
+const originalL = window.L;
 
 afterEach(() => {
   window.matchMedia = originalMatchMedia;
+  window.L = originalL;
 });
 
 async function loadApp(matches) {
   jest.resetModules();
   document.documentElement.className = '';
+  delete window.L;
   let handler;
   window.matchMedia = jest.fn().mockReturnValue({
     matches,
@@ -41,5 +44,10 @@ describe('app module', () => {
     expect(document.documentElement.classList.contains('dark')).toBe(false);
     handler({ matches: true });
     expect(document.documentElement.classList.contains('dark')).toBe(true);
+  });
+
+  test('exposes Leaflet globally', async () => {
+    await loadApp(true);
+    expect(window.L).toEqual({});
   });
 });

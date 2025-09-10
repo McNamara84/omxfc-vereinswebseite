@@ -54,6 +54,19 @@ describe('changelog module', () => {
     expect(text).toBe('Fehler beim Laden des Changelogs.');
   });
 
+  test('renders note without type as plain text', async () => {
+    document.body.innerHTML = '<div id="release-notes"></div>';
+    global.fetch.mockResolvedValue({
+      json: () => Promise.resolve([
+        { version: '1.0.0', pub_date: '2024-01-02', notes: ['plain note'] },
+      ]),
+    });
+    await import('../../resources/js/changelog.js');
+    await domContentLoaded();
+    const item = document.querySelector('#release-notes li');
+    expect(item.textContent).toBe('plain note');
+  });
+
   test('applies correct badge classes for note types', async () => {
     document.body.innerHTML = '<div id="release-notes"></div>';
     global.fetch.mockResolvedValue({
