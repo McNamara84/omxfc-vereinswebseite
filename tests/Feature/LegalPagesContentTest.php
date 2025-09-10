@@ -2,12 +2,15 @@
 
 namespace Tests\Feature;
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class LegalPagesContentTest extends TestCase
 {
-    use RefreshDatabase;
+    public function seed($class = 'Database\\Seeders\\DatabaseSeeder')
+    {
+        // Prevent automatic seeding during TestCase setup
+        return $this;
+    }
 
     public function test_impressum_page_shows_register_information(): void
     {
