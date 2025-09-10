@@ -69,6 +69,15 @@ describe('statistik module', () => {
     delete window.userPoints;
   });
 
+  test('drawCycleChart keeps data when user points sufficient', () => {
+    document.body.innerHTML = '<div data-min-points="5"><canvas id="cycle"></canvas></div>';
+    window.userPoints = 5;
+    drawCycleChart('cycle', ['A', 'B'], [1, 2]);
+    const config = mockChart.mock.calls[0][1];
+    expect(config.data.datasets[0].data).toEqual([1, 2]);
+    delete window.userPoints;
+  });
+
   test('DOMContentLoaded draws hardcover chart', async () => {
     jest.resetModules();
     const chartModule = await import('chart.js/auto');

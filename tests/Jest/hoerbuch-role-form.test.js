@@ -110,3 +110,13 @@ describe('hoerbuch role form module', () => {
   });
 });
 
+describe('hoerbuch role form without initial data', () => {
+  test('skips initialization when roleFormData missing', async () => {
+    jest.resetModules();
+    delete window.roleFormData;
+    document.body.innerHTML = '<div id="roles_list"></div><button id="add_role"></button>';
+    await expect(import('../../resources/js/hoerbuch-role-form.js')).resolves.not.toThrow();
+    expect(document.querySelectorAll('#roles_list .role-row').length).toBe(0);
+  });
+});
+

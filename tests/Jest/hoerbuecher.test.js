@@ -83,6 +83,21 @@ describe('hoerbuecher module', () => {
     expect(rows[1].style.display).toBe('');
   });
 
+  test('cardNextEvent resets other filters', () => {
+    const roles = document.getElementById('roles-filter');
+    const rolesUnfilled = document.getElementById('roles-unfilled-filter');
+    const statusFilter = document.getElementById('status-filter');
+    roles.checked = true;
+    roles.dispatchEvent(new Event('change'));
+    statusFilter.value = 'open';
+    document.getElementById('card-next-event').click();
+    expect(roles.checked).toBe(false);
+    expect(roles.disabled).toBe(false);
+    expect(rolesUnfilled.checked).toBe(false);
+    expect(rolesUnfilled.disabled).toBe(false);
+    expect(statusFilter.value).toBe('');
+  });
+
   test('card-unfilled-roles shows only rows without roles filled', () => {
     const card = document.getElementById('card-unfilled-roles');
     card.click();
