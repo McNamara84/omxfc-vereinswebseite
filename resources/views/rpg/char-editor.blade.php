@@ -174,7 +174,7 @@
                 </div>
 
                 <div class="flex justify-end space-x-2">
-                    <button id="pdf-button" type="button" disabled class="inline-flex items-center px-4 py-2 bg-gray-400 dark:bg-gray-600 border border-transparent rounded-md font-semibold text-white cursor-not-allowed">
+                    <button id="pdf-button" type="submit" formaction="{{ route('rpg.char-editor.pdf') }}" formtarget="_blank" disabled class="inline-flex items-center px-4 py-2 bg-gray-400 dark:bg-gray-600 border border-transparent rounded-md font-semibold text-white cursor-not-allowed">
                         PDF drucken
                     </button>
                     <button id="submit-button" type="submit" disabled class="inline-flex items-center px-4 py-2 bg-gray-400 dark:bg-gray-600 border border-transparent rounded-md font-semibold text-white cursor-not-allowed">

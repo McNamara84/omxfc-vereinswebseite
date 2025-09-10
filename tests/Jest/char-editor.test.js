@@ -83,4 +83,10 @@ describe('char-editor module', () => {
     expect(zaeh.disabled).toBe(true);
     expect(document.getElementById('attribute-points').textContent).toBe('Verfügbare Attributspunkte: 3');
   });
+
+  test('pdf button disabled by default', async () => {
+    await loadEditor();
+    const pdfBtn = document.getElementById('pdf-button');
+    expect(pdfBtn.disabled).toBe(true);
+  });
 });
