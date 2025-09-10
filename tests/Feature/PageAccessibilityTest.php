@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
 use App\Models\Team;
 use App\Models\User;
@@ -20,6 +19,7 @@ class PageAccessibilityTest extends TestCase
             '/chronik',
             '/ehrenmitglieder',
             '/termine',
+            '/arbeitsgruppen',
             '/mitglied-werden',
             '/spenden',
             '/impressum',
@@ -44,5 +44,46 @@ class PageAccessibilityTest extends TestCase
         $response = $this->get('/');
         $response->assertOk();
         $response->assertSee('2');
+    }
+
+    public function test_impressum_page_shows_contact_information(): void
+    {
+        $this->get('/impressum')
+            ->assertOk()
+            ->assertSee('info@maddrax-fanclub.de')
+            ->assertSee('Angaben gemäß §5 TMG');
+    }
+
+    public function test_datenschutz_page_displays_data_protection_details(): void
+    {
+        $this->get('/datenschutz')
+            ->assertOk()
+            ->assertSee('Datenschutzerklärung')
+            ->assertSee('Verantwortlicher')
+            ->assertSee('Zweck der Verarbeitung');
+    }
+
+    public function test_spenden_page_contains_paypal_form(): void
+    {
+        $this->get('/spenden')
+            ->assertOk()
+            ->assertSee('kassenwart@maddrax-fanclub.de')
+            ->assertSee('paypal.com');
+    }
+
+    public function test_arbeitsgruppen_page_shows_ag_info(): void
+    {
+        $leader = User::factory()->create();
+        Team::factory()->create([
+            'name' => 'AG Test',
+            'user_id' => $leader->id,
+            'personal_team' => false,
+            'description' => 'Beschreibung der AG',
+        ]);
+
+        $this->get('/arbeitsgruppen')
+            ->assertOk()
+            ->assertSee('AG Test')
+            ->assertSee('Beschreibung der AG');
     }
 }
