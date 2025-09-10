@@ -137,8 +137,7 @@ describe('char-editor module', () => {
   });
 
   test('advantage selection is limited by free points', async () => {
-    jest.resetModules();
-    document.body.innerHTML = BASE_HTML;
+    await loadEditor();
     const adv = document.getElementById('advantages');
     ['Extra1', 'Extra2'].forEach(v => {
       const opt = document.createElement('option');
@@ -146,8 +145,6 @@ describe('char-editor module', () => {
       opt.textContent = v;
       adv.appendChild(opt);
     });
-    await import('../../resources/js/char-editor.js');
-    document.dispatchEvent(new Event('DOMContentLoaded'));
     adv.options[1].selected = true; // Kind zweier Welten
     adv.dispatchEvent(new Event('change'));
     adv.options[2].selected = true; // Extra1
