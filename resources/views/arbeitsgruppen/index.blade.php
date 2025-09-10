@@ -10,7 +10,7 @@
                     </a>
                 @endif
             </div>
-            @if(request()->routeIs('ag.index'))
+            @if(request()->routeIs('ag.index') && Auth::user()->ownedTeams()->where('personal_team', false)->exists())
                 <p class="mb-6 text-gray-700 dark:text-gray-300">Als AG-Leiter kannst du hier deine AG verwalten. Die Beschreibung, das Logo, der Termin für das regelmäßige AG-Treffen und die angegebene E-Mail-Adresse werden auch im öffentlichen Bereich für Nicht-Mitglieder angezeigt. Bitte halte diese Informationen daher stets aktuell.</p>
             @endif
             <div class="overflow-x-auto">
