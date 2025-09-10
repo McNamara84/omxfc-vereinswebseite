@@ -119,6 +119,7 @@ describe('maddraxiversum extended behaviour', () => {
   let axios;
   let popupOpen;
   let domReady;
+  let addEventListenerSpy;
 
   async function setup({ cityResults = {}, statusResult = { data: { status: 'none' } } } = {}) {
     jest.resetModules();
@@ -141,9 +142,15 @@ describe('maddraxiversum extended behaviour', () => {
     mockCluster = { addLayer: jest.fn() };
     mockLatLngBounds = jest.fn(() => ({}));
     const originalAdd = document.addEventListener;
-    document.addEventListener = (evt, cb) => {
-      if (evt === 'DOMContentLoaded') domReady = cb;
-    };
+    addEventListenerSpy = jest
+      .spyOn(document, 'addEventListener')
+      .mockImplementation((evt, cb, opts) => {
+        if (evt === 'DOMContentLoaded') {
+          domReady = cb;
+          return;
+        }
+        return originalAdd.call(document, evt, cb, opts);
+      });
 
     await jest.unstable_mockModule('leaflet', () => ({
       default: {
@@ -179,8 +186,11 @@ describe('maddraxiversum extended behaviour', () => {
     global.csrfToken = 'TOKEN';
 
     mod = await import('../../resources/js/maddraxiversum.js');
-    document.addEventListener = originalAdd;
   }
+
+  afterEach(() => {
+    addEventListenerSpy?.mockRestore();
+  });
 
   test('adds city markers and mission link opens modal', async () => {
     await setup({
