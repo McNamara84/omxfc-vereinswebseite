@@ -5,7 +5,6 @@ describe('maddraxiversum', () => {
   let mockMap;
   let mockMarker;
   let mockLatLngBounds;
-  let mockAxios;
 
   beforeEach(async () => {
     jest.resetModules();
@@ -22,11 +21,6 @@ describe('maddraxiversum', () => {
       addTo: jest.fn().mockReturnThis(),
     };
     mockLatLngBounds = jest.fn(() => ({}));
-    mockAxios = {
-      get: jest.fn(() => Promise.resolve({ data: { query: { results: {} } } })),
-      post: jest.fn(() => Promise.resolve({ data: { status: 'completed', mission: {} } })),
-    };
-
     await jest.unstable_mockModule('leaflet', () => ({
       default: {
         map: jest.fn(() => mockMap),
@@ -41,7 +35,9 @@ describe('maddraxiversum', () => {
 
     await jest.unstable_mockModule('leaflet.markercluster', () => ({}));
 
-    await jest.unstable_mockModule('axios', () => ({ default: mockAxios }));
+    const axios = (await import('axios')).default;
+    jest.spyOn(axios, 'get').mockResolvedValue({ data: { query: { results: {} } } });
+    jest.spyOn(axios, 'post').mockResolvedValue({ data: { status: 'completed', mission: {} } });
 
     document.body.innerHTML = `
       <div id="mission-modal" class="hidden"></div>
@@ -120,7 +116,7 @@ describe('maddraxiversum extended behaviour', () => {
   let mockMarker;
   let mockCluster;
   let mockLatLngBounds;
-  let mockAxios;
+  let axios;
   let popupOpen;
   let domReady;
 
@@ -144,14 +140,6 @@ describe('maddraxiversum extended behaviour', () => {
     };
     mockCluster = { addLayer: jest.fn() };
     mockLatLngBounds = jest.fn(() => ({}));
-    mockAxios = {
-      get: jest.fn((url) =>
-        url === '/maddraxikon-staedte'
-          ? Promise.resolve({ data: { query: { results: cityResults } } })
-          : Promise.resolve(statusResult)
-      ),
-      post: jest.fn(() => Promise.resolve({ data: { status: 'completed', mission: {} } })),
-    };
     const originalAdd = document.addEventListener;
     document.addEventListener = (evt, cb) => {
       if (evt === 'DOMContentLoaded') domReady = cb;
@@ -169,7 +157,13 @@ describe('maddraxiversum extended behaviour', () => {
       },
     }));
     await jest.unstable_mockModule('leaflet.markercluster', () => ({}));
-    await jest.unstable_mockModule('axios', () => ({ default: mockAxios }));
+    axios = (await import('axios')).default;
+    jest.spyOn(axios, 'get').mockImplementation((url) =>
+      url === '/maddraxikon-staedte'
+        ? Promise.resolve({ data: { query: { results: cityResults } } })
+        : Promise.resolve(statusResult)
+    );
+    jest.spyOn(axios, 'post').mockResolvedValue({ data: { status: 'completed', mission: {} } });
 
     document.body.innerHTML = `
       <div id="mission-modal" class="hidden"></div>
@@ -197,7 +191,7 @@ describe('maddraxiversum extended behaviour', () => {
         },
       },
     });
-    expect(mockAxios.get).toHaveBeenCalledWith('/maddraxikon-staedte');
+    expect(axios.get).toHaveBeenCalledWith('/maddraxikon-staedte');
     expect(mockMarker.bindPopup).toHaveBeenCalled();
     expect(mockCluster.addLayer).toHaveBeenCalledWith(mockMarker);
     expect(mockMap.addLayer).toHaveBeenCalledWith(mockCluster);
@@ -226,11 +220,8 @@ describe('maddraxiversum extended behaviour', () => {
     global.alert = jest.fn();
     jest.useFakeTimers();
     startBtn.click();
-    await Promise.resolve();
-    jest.runAllTimers();
-    await Promise.resolve();
-    await Promise.resolve();
-    expect(mockAxios.post).toHaveBeenCalledWith(
+    await jest.runAllTimersAsync();
+    expect(axios.post).toHaveBeenCalledWith(
       '/mission/starten',
       expect.any(Object),
       expect.objectContaining({ headers: { 'X-CSRF-TOKEN': 'TOKEN' } })
@@ -259,11 +250,9 @@ describe('maddraxiversum extended behaviour', () => {
     global.alert = jest.fn();
     jest.useFakeTimers();
     domReady();
-    jest.runAllTimers();
-    await Promise.resolve();
-    await Promise.resolve();
+    await jest.runAllTimersAsync();
     jest.useRealTimers();
-    expect(mockAxios.get).toHaveBeenCalledWith('/mission/status');
+    expect(axios.get).toHaveBeenCalledWith('/mission/status');
     expect(mockMap.fitBounds).toHaveBeenCalled();
   });
 });
