@@ -27,6 +27,7 @@
         "jest": "^30.0.5",
         "jest-environment-jsdom": "^30.0.5",
         "leaflet": "^1.9.4",
-        "leaflet.markercluster": "^1.5.3"
+        "leaflet.markercluster": "^1.5.3",
+        "puppeteer": "^23.11.1"
     }
 }
