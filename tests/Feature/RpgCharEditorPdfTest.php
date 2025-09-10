@@ -50,4 +50,25 @@ class RpgCharEditorPdfTest extends TestCase
 
         $response->assertSessionHasErrors('portrait');
     }
+
+    public function test_pdf_generates_without_portrait(): void
+    {
+        $admin = $this->adminUser();
+
+        Pdf::shouldReceive('view')
+            ->once()
+            ->with('rpg.char-sheet', \Mockery::on(fn ($data) => array_key_exists('portrait', $data) && is_null($data['portrait'])))
+            ->andReturn(new class extends \Spatie\LaravelPdf\PdfBuilder {
+                public function toResponse($request): \Illuminate\Http\Response
+                {
+                    return response('PDF', 200, $this->responseHeaders);
+                }
+            });
+
+        $response = $this->actingAs($admin)->post('/rpg/char-editor/pdf', [
+            'character_name' => 'Foo',
+        ]);
+
+        $response->assertOk();
+    }
 }
