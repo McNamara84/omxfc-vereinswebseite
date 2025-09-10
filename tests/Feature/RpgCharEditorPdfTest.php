@@ -71,4 +71,9 @@ class RpgCharEditorPdfTest extends TestCase
 
         $response->assertOk();
     }
+
+    public function test_laravel_pdf_is_configured(): void
+    {
+        $this->assertSame(base_path('node_modules'), config('laravel-pdf.browsershot.node_modules_path'));
+    }
 }
