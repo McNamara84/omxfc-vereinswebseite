@@ -17,6 +17,7 @@ abstract class TestCase extends BaseTestCase
     protected function setUp(): void
     {
         parent::setUp();
+        config(['app.key' => 'base64:' . base64_encode(random_bytes(32))]);
 
         Http::fake([
             'nominatim.openstreetmap.org/*' => Http::response([[
