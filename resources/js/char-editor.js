@@ -545,20 +545,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 input.value = val;
             }
         });
-        if (race === 'Barbar' && cache.barbarCombatSkill) {
-            barbarCombatSelect.value = cache.barbarCombatSkill;
-            delete state.raceGrants.skills['Nahkampf'];
-            delete state.raceGrants.skills['Fernkampf'];
-            const other = cache.barbarCombatSkill === 'Nahkampf' ? 'Fernkampf' : 'Nahkampf';
-            const otherRow = findSkillRow(other);
-            if (otherRow) otherRow.remove();
-            state.barbarCombatSkill = cache.barbarCombatSkill;
-            state.raceGrants.skills[cache.barbarCombatSkill] = { type: 'min', value: 1 };
-            setFreeMin(cache.barbarCombatSkill, 1, 'Rasse');
-            const row = findSkillRow(cache.barbarCombatSkill);
-            if (row && cache.skills[cache.barbarCombatSkill] !== undefined) {
-                row.querySelector('input[type="number"]').value = cache.skills[cache.barbarCombatSkill];
-            }
+        if (race === 'Barbar') restoreBarbarSpecificState(cache);
+    }
+
+    function restoreBarbarSpecificState(cache) {
+        if (!cache.barbarCombatSkill) return;
+        barbarCombatSelect.value = cache.barbarCombatSkill;
+        delete state.raceGrants.skills['Nahkampf'];
+        delete state.raceGrants.skills['Fernkampf'];
+        const other = cache.barbarCombatSkill === 'Nahkampf' ? 'Fernkampf' : 'Nahkampf';
+        const otherRow = findSkillRow(other);
+        if (otherRow) otherRow.remove();
+        state.barbarCombatSkill = cache.barbarCombatSkill;
+        state.raceGrants.skills[cache.barbarCombatSkill] = { type: 'min', value: 1 };
+        setFreeMin(cache.barbarCombatSkill, 1, 'Rasse');
+        const row = findSkillRow(cache.barbarCombatSkill);
+        if (row && cache.skills[cache.barbarCombatSkill] !== undefined) {
+            row.querySelector('input[type="number"]').value = cache.skills[cache.barbarCombatSkill];
         }
     }
 
