@@ -5,6 +5,8 @@ const BASE_HTML = `
   <input id="character_name" />
   <select id="race"><option value=""></option><option value="Barbar">Barbar</option><option value="Guul">Guul</option></select>
   <select id="culture"><option value=""></option><option value="Landbewohner">Landbewohner</option></select>
+  <input id="portrait" type="file" />
+  <img id="portrait-preview" class="hidden" />
   <select id="advantages" multiple>
     <option value="Zäh">Zäh</option>
   </select>

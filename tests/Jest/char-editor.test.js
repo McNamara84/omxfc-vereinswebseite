@@ -5,6 +5,8 @@ const BASE_HTML = `
   <input id="character_name" />
   <select id="race"><option value=""></option><option value="Barbar">Barbar</option><option value="Guul">Guul</option></select>
   <select id="culture"><option value=""></option><option value="Landbewohner">Landbewohner</option></select>
+  <input id="portrait" type="file" />
+  <img id="portrait-preview" class="hidden" />
   <select id="advantages" multiple>
     <option value="Zäh">Zäh</option>
     <option value="Kind zweier Welten">Kind zweier Welten</option>
@@ -142,6 +144,27 @@ describe('char-editor module', () => {
     await loadEditor();
     const pdfBtn = document.getElementById('pdf-button');
     expect(pdfBtn.disabled).toBe(true);
+  });
+
+  test('portrait preview updates on file selection', async () => {
+    await loadEditor();
+    const OriginalFileReader = global.FileReader;
+    global.FileReader = class {
+      readAsDataURL() {
+        this.onload({ target: { result: 'data:image/png;base64,abc' } });
+      }
+    };
+    const input = document.getElementById('portrait');
+    const preview = document.getElementById('portrait-preview');
+    const file = new File(['dummy'], 'avatar.png', { type: 'image/png' });
+    Object.defineProperty(input, 'files', {
+      value: [file],
+      configurable: true,
+    });
+    input.dispatchEvent(new Event('change'));
+    expect(preview.src).toContain('data:image/png;base64,abc');
+    expect(preview.classList.contains('hidden')).toBe(false);
+    global.FileReader = OriginalFileReader;
   });
 
   test('attribute inputs respect caps and available points', async () => {
