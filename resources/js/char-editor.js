@@ -10,8 +10,13 @@ document.addEventListener('DOMContentLoaded', () => {
         raceGrants: { skills: {} },
         cultureGrants: { skills: {} },
         hasKindZweierWelten: false,
-        barbarCombatSkill: null
+        barbarCombatSkill: null,
+        citySkill: null
     };
+
+    if (typeof window !== 'undefined') {
+        window.__charEditorState = state;
+    }
 
     // element references
     const attributeIds = ['st','ge','ro','wi','wa','in','au'];
@@ -47,6 +52,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const barbarCombatContainer = document.getElementById('barbar-combat-toggle');
     const barbarCombatSelect = document.getElementById('barbar-combat-select');
+    const citySkillContainer = document.getElementById('city-skill-toggle');
+    const citySkillSelect = document.getElementById('city-skill-select');
 
     const skillsContainer = document.getElementById('skills-container');
     const addSkillBtn = document.getElementById('add-skill');
@@ -60,7 +67,8 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const cultureDescriptions = {
-        Landbewohner: 'Landbewohner bewirtschaften den Boden und versuchen als Bauern und Viehzüchter ihren Lebensunterhalt zu verdienen. Die meisten sind einfache Menschen, die Ruhe und Frieden suchen, nicht viel von der Welt wissen und einfache Landgötter anbeten. Aberglauben ist weit verbreitet.'
+        Landbewohner: 'Landbewohner bewirtschaften den Boden und versuchen als Bauern und Viehzüchter ihren Lebensunterhalt zu verdienen. Die meisten sind einfache Menschen, die Ruhe und Frieden suchen, nicht viel von der Welt wissen und einfache Landgötter anbeten. Aberglauben ist weit verbreitet.',
+        Stadtbewohner: 'Stadtbewohner versuchen in der dunklen Zukunft der Erde neues Leben erblühen zu lassen. Dazu haben sie sich in neu erbauten Siedlungen (zuweilen auf Ruinen aus der Zeit vor dem Kometen) angesiedelt und leben als Händler, Handwerker und Bauern. Die Mauern ihrer Siedlungen schützen sie vor den Gefahren der Wildnis. Ihre Siedlungen sind somit Lichter der Hoffnung in der Dunkelheit.'
     };
 
     if (descriptionField) {
@@ -653,6 +661,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function handleCultureChange() {
         clearCulture();
         if (cultureSelect.value === 'Landbewohner') applyCultureLandbewohner();
+        if (cultureSelect.value === 'Stadtbewohner') applyCultureStadtbewohner();
         if (descriptionField && descriptionField.dataset.userEdited !== 'true') {
             let text = raceDescriptions[raceSelect.value] || '';
             if (cultureDescriptions[cultureSelect.value]) {
@@ -668,6 +677,9 @@ document.addEventListener('DOMContentLoaded', () => {
         state.culture = null;
         state.cultureGrants.skills = {};
         removeSkillBadgeSource('Kultur');
+        if (citySkillContainer) citySkillContainer.classList.add('hidden');
+        if (citySkillSelect) citySkillSelect.onchange = null;
+        state.citySkill = null;
     }
 
     function applyCultureLandbewohner() {
@@ -675,6 +687,35 @@ document.addEventListener('DOMContentLoaded', () => {
         setFreeExact('Beruf: Viehzüchter', 2, 'Kultur');
         setFreeExact('Beruf: Landwirt', 2, 'Kultur');
         setFreeMin('Kunde: Wetter', 1, 'Kultur');
+    }
+
+    function setCitySkillToggle() {
+        if (!citySkillContainer || !citySkillSelect) return;
+        citySkillContainer.classList.remove('hidden');
+        citySkillSelect.onchange = () => {
+            const newSkill = citySkillSelect.value;
+            if (state.citySkill && state.citySkill !== newSkill) {
+                const prevRow = findSkillRow(state.citySkill);
+                if (prevRow) prevRow.remove();
+            }
+            delete state.cultureGrants.skills['Unterhalten'];
+            delete state.cultureGrants.skills['Sprachen'];
+            state.citySkill = newSkill;
+            state.cultureGrants.skills[newSkill] = { type: 'min', value: 1 };
+            setFreeMin(newSkill, 1, 'Kultur');
+            recomputeAll();
+        };
+        citySkillSelect.value = 'Unterhalten';
+        state.citySkill = 'Unterhalten';
+        state.cultureGrants.skills['Unterhalten'] = { type: 'min', value: 1 };
+        setFreeMin('Unterhalten', 1, 'Kultur');
+    }
+
+    function applyCultureStadtbewohner() {
+        state.culture = 'Stadtbewohner';
+        setCitySkillToggle();
+        setFreeMin('Beruf', 1, 'Kultur');
+        setFreeMin('Kunde', 1, 'Kultur');
     }
 
     // === Main recompute ===

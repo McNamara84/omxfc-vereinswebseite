@@ -4,7 +4,7 @@ const BASE_HTML = `
   <input id="player_name" />
   <input id="character_name" />
   <select id="race"><option value=""></option><option value="Barbar">Barbar</option><option value="Guul">Guul</option></select>
-  <select id="culture"><option value=""></option><option value="Landbewohner">Landbewohner</option></select>
+  <select id="culture"><option value=""></option><option value="Landbewohner">Landbewohner</option><option value="Stadtbewohner">Stadtbewohner</option></select>
   <input id="portrait" type="file" />
   <img id="portrait-preview" class="hidden" />
   <select id="advantages" multiple>
@@ -26,6 +26,12 @@ const BASE_HTML = `
       <option value="Fernkampf">Fernkampf</option>
     </select>
   </div>
+  <div id="city-skill-toggle" class="hidden">
+    <select id="city-skill-select">
+      <option value="Unterhalten">Unterhalten</option>
+      <option value="Sprachen">Sprachen</option>
+    </select>
+  </div>
   <div id="skills-container"></div>
   <datalist id="skills-list">
     <option value="Überleben"></option>
@@ -37,6 +43,10 @@ const BASE_HTML = `
     <option value="Beruf: Viehzüchter"></option>
     <option value="Beruf: Landwirt"></option>
     <option value="Kunde: Wetter"></option>
+    <option value="Unterhalten"></option>
+    <option value="Sprachen"></option>
+    <option value="Beruf"></option>
+    <option value="Kunde"></option>
   </datalist>
   <button id="continue-button" class="hidden"></button>
   <fieldset id="advanced-fields"></fieldset>
@@ -138,6 +148,27 @@ describe('char-editor module', () => {
     expect(skillNames).toEqual(
       expect.arrayContaining(['Beruf: Viehzüchter', 'Beruf: Landwirt', 'Kunde: Wetter'])
     );
+  });
+
+  test('selecting Stadtbewohner culture adds selectable skill bonus', async () => {
+    await loadEditor({ player_name: 'Alice', character_name: 'Bob' });
+    const race = document.getElementById('race');
+    race.value = 'Barbar';
+    race.dispatchEvent(new Event('change'));
+    const culture = document.getElementById('culture');
+    culture.value = 'Stadtbewohner';
+    culture.dispatchEvent(new Event('change'));
+    let skillNames = Array.from(document.querySelectorAll('.skill-row .skill-name')).map(i => i.value);
+    expect(skillNames).toEqual(expect.arrayContaining(['Unterhalten', 'Beruf', 'Kunde']));
+    const citySelect = document.getElementById('city-skill-select');
+    citySelect.value = 'Sprachen';
+    citySelect.dispatchEvent(new Event('change'));
+    skillNames = Array.from(document.querySelectorAll('.skill-row .skill-name')).map(i => i.value);
+    expect(skillNames).toEqual(expect.arrayContaining(['Sprachen', 'Beruf', 'Kunde']));
+    expect(skillNames).not.toEqual(expect.arrayContaining(['Unterhalten']));
+    const state = window.__charEditorState;
+    expect(state.cultureGrants.skills['Unterhalten']).toBeUndefined();
+    expect(state.cultureGrants.skills['Sprachen']).toBeDefined();
   });
 
   test('pdf button disabled by default', async () => {

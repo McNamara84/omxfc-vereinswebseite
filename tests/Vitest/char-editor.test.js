@@ -4,7 +4,7 @@ const BASE_HTML = `
   <input id="player_name" />
   <input id="character_name" />
   <select id="race"><option value=""></option><option value="Barbar">Barbar</option><option value="Guul">Guul</option></select>
-  <select id="culture"><option value=""></option><option value="Landbewohner">Landbewohner</option></select>
+  <select id="culture"><option value=""></option><option value="Landbewohner">Landbewohner</option><option value="Stadtbewohner">Stadtbewohner</option></select>
   <input id="portrait" type="file" />
   <img id="portrait-preview" class="hidden" />
   <select id="advantages" multiple>
@@ -24,12 +24,22 @@ const BASE_HTML = `
       <option value="Nahkampf">Nahkampf</option>
     </select>
   </div>
+  <div id="city-skill-toggle" class="hidden">
+    <select id="city-skill-select">
+      <option value="Unterhalten">Unterhalten</option>
+      <option value="Sprachen">Sprachen</option>
+    </select>
+  </div>
   <div id="skills-container"></div>
   <datalist id="skills-list">
     <option value="Überleben"></option>
     <option value="Heimlichkeit"></option>
     <option value="Intuition"></option>
     <option value="Natürliche Waffen"></option>
+    <option value="Unterhalten"></option>
+    <option value="Sprachen"></option>
+    <option value="Beruf"></option>
+    <option value="Kunde"></option>
   </datalist>
   <button id="continue-button" class="hidden"></button>
   <fieldset id="advanced-fields"></fieldset>
