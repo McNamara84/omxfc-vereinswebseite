@@ -39,6 +39,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const descriptionField = document.getElementById('description');
     const playerName = document.getElementById('player_name');
     const characterName = document.getElementById('character_name');
+    const portraitInput = document.getElementById('portrait');
+    const portraitPreview = document.getElementById('portrait-preview');
     const lockableWrappers = document.querySelectorAll('[data-lockable]');
     const continueBtn = document.getElementById('continue-button');
     const advancedFields = document.getElementById('advanced-fields');
@@ -78,6 +80,22 @@ document.addEventListener('DOMContentLoaded', () => {
     if (advantagesSelect) advantagesSelect.addEventListener('change', recomputeAll);
     if (disadvantagesSelect) disadvantagesSelect.addEventListener('change', recomputeAll);
     if (addSkillBtn) addSkillBtn.addEventListener('click', addSkillRow);
+    if (portraitInput && portraitPreview) {
+        portraitInput.addEventListener('change', () => {
+            const file = portraitInput.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = e => {
+                    portraitPreview.src = e.target.result;
+                    portraitPreview.classList.remove('hidden');
+                };
+                reader.readAsDataURL(file);
+            } else {
+                portraitPreview.src = '';
+                portraitPreview.classList.add('hidden');
+            }
+        });
+    }
     if (playerName) playerName.addEventListener('input', updateContinueVisibility);
     if (characterName) characterName.addEventListener('input', updateContinueVisibility);
     if (raceSelect) raceSelect.addEventListener('change', updateContinueVisibility);
