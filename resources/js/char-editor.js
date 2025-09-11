@@ -14,6 +14,10 @@ document.addEventListener('DOMContentLoaded', () => {
         citySkill: null
     };
 
+    if (typeof window !== 'undefined') {
+        window.__charEditorState = state;
+    }
+
     // element references
     const attributeIds = ['st','ge','ro','wi','wa','in','au'];
     const attributeInputs = {};
@@ -690,12 +694,12 @@ document.addEventListener('DOMContentLoaded', () => {
         citySkillContainer.classList.remove('hidden');
         citySkillSelect.onchange = () => {
             const newSkill = citySkillSelect.value;
-            delete state.cultureGrants.skills['Unterhalten'];
-            delete state.cultureGrants.skills['Sprachen'];
             if (state.citySkill && state.citySkill !== newSkill) {
                 const prevRow = findSkillRow(state.citySkill);
                 if (prevRow) prevRow.remove();
             }
+            delete state.cultureGrants.skills['Unterhalten'];
+            delete state.cultureGrants.skills['Sprachen'];
             state.citySkill = newSkill;
             state.cultureGrants.skills[newSkill] = { type: 'min', value: 1 };
             setFreeMin(newSkill, 1, 'Kultur');

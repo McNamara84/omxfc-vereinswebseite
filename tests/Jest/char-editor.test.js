@@ -166,6 +166,9 @@ describe('char-editor module', () => {
     skillNames = Array.from(document.querySelectorAll('.skill-row .skill-name')).map(i => i.value);
     expect(skillNames).toEqual(expect.arrayContaining(['Sprachen', 'Beruf', 'Kunde']));
     expect(skillNames).not.toEqual(expect.arrayContaining(['Unterhalten']));
+    const state = window.__charEditorState;
+    expect(state.cultureGrants.skills['Unterhalten']).toBeUndefined();
+    expect(state.cultureGrants.skills['Sprachen']).toBeDefined();
   });
 
   test('pdf button disabled by default', async () => {
