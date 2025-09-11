@@ -167,28 +167,32 @@ class RezensionControllerTest extends TestCase
 
     public function test_index_shows_mission_mars_books(): void
     {
-        $original = file_get_contents(storage_path('app/private/maddrax.json'));
-        file_put_contents(storage_path('app/private/maddrax.json'), json_encode([
-            ['nummer' => 1, 'titel' => 'Roman1', 'zyklus' => 'Wandler'],
-        ]));
+        $path = storage_path('app/private/maddrax.json');
+        $original = file_get_contents($path);
 
-        $book = Book::create(['roman_number' => 1, 'title' => 'Alpha', 'author' => 'A']);
-        Book::create([
-            'roman_number' => 2,
-            'title' => 'Mission Mars Beta',
-            'author' => 'B',
-            'type' => BookType::MissionMars,
-        ]);
+        try {
+            file_put_contents($path, json_encode([
+                ['nummer' => 1, 'titel' => 'Roman1', 'zyklus' => 'Wandler'],
+            ]));
 
-        $user = $this->actingMember();
-        $this->actingAs($user);
+            $book = Book::create(['roman_number' => 1, 'title' => 'Alpha', 'author' => 'A']);
+            Book::create([
+                'roman_number' => 2,
+                'title' => 'Mission Mars Beta',
+                'author' => 'B',
+                'type' => BookType::MissionMars,
+            ]);
 
-        $this->get('/rezensionen')
-            ->assertOk()
-            ->assertSee($book->title)
-            ->assertSee('Mission Mars Beta');
+            $user = $this->actingMember();
+            $this->actingAs($user);
 
-        file_put_contents(storage_path('app/private/maddrax.json'), $original);
+            $this->get('/rezensionen')
+                ->assertOk()
+                ->assertSee($book->title)
+                ->assertSee('Mission Mars Beta');
+        } finally {
+            file_put_contents($path, $original);
+        }
     }
 
     public function test_show_redirects_when_user_has_no_permission(): void
