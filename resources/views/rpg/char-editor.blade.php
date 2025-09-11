@@ -25,6 +25,7 @@
                         <select name="race" id="race" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
                             <option value="" disabled selected>Rasse wählen</option>
                             <option value="Barbar" title="Im 26. Jahrhundert besteht die Zivilisation zum größten Teil aus Barbaren. Sie leben in unterschiedlichen Kulturen, beispielsweise als Seefahrer (die Disuuslachter), Nomaden (die Wandernden Völker) oder Ruinenbewohner (die Loords von Landán). Die zeichnen sich durch Zähigkeit, Wildheit und Kampflust aus, sind zumeist primitiv und leben in Clans. Ehre und Mut werden hoch geschätzt. Technologisch bewegen sich die meisten Barbaren zwischen der späten Steinzeit und dem frühen Mittelalter.">Barbar</option>
+                            <option value="Guul" title="Guule sind bedauernswerte Mutationen des Homo Sapiens. Sie sind dürr, fast zwei Meter groß und völlig unbehaart. Ihre langen knochigen Arme enden in Krallen. Die verhornten Füße laufen an den Fersen in einem fingerdicken Stachel aus. Aus dem Maul tropft weißlicher Schleim, was ihr abstoßendes Äußeres zusätzlich verstärkt. Guule sind meist nur mit einem Lendenschurz bekleidet. Sie ernähren sich von Aas und Gebeinen, die sie u.a. aus Gräbern holen.">Guul</option>
                         </select>
                     </div>
 
@@ -113,6 +114,7 @@
                         <option value="Intuition" data-description="„sechster Sinn“, Gefahren erspüren (Alternative zu Bildung). (WA)"></option>
                         <option value="Kunde" data-description="Fachkenntnis in speziellen Bereichen (Regionen, Tiere, Pflanzen, Bräuche). (IN, WA)"></option>
                         <option value="Nahkampf" data-description="unbewaffneter Kampf und Nahkampfwaffen. (ST, GE)"></option>
+                        <option value="Natürliche Waffen" data-description="Schläge, Bisse, Krallen und andere natürliche Angriffe. (ST, GE)"></option>
                         <option value="Pilot" data-description="Flieger aller Art (vom Gleiter bis zum Jet). (GE, WA)"></option>
                         <option value="Reiten" data-description="Reittiere lenken und zähmen. (GE)"></option>
                         <option value="Sprachen" data-description="pro Punkt eine Sprache/Dialekt (mit Bildung auch Lesen/Schreiben). (IN)"></option>
@@ -162,6 +164,8 @@
                                 <option value="Blutdurst" data-description="braucht alle 24h frisches Blut, sonst −1 kumulativ auf Proben">Blutdurst</option>
                                 <option value="Ehrenkodex" data-description="strenger Moralkodex, schränkt Handlungen ein">Ehrenkodex</option>
                                 <option value="Feind" data-description="mächtiger Feind (Volk oder Person) bedroht das Leben ständig">Feind</option>
+                                <option value="Primitiv" data-description="kann keine komplexe Technologie nutzen">Primitiv</option>
+                                <option value="Gejagt" data-description="wird von Feinden verfolgt">Gejagt</option>
                             </select>
                             <p id="disadvantage-description" class="mt-1 text-sm text-gray-600 dark:text-gray-400" aria-live="polite"></p>
                         </div>
