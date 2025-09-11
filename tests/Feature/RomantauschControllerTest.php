@@ -13,6 +13,9 @@ use App\Models\BookSwap;
 use App\Enums\BookType;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\UploadedFile;
+use App\Http\Controllers\RomantauschController;
+use Symfony\Component\HttpKernel\Exception\HttpException;
+use Illuminate\View\View;
 use Mockery;
 
 class RomantauschControllerTest extends TestCase
@@ -277,6 +280,33 @@ class RomantauschControllerTest extends TestCase
 
         $this->actingAs($other);
         $this->get(route('romantausch.show-offer', $offer))->assertForbidden();
+    }
+
+    public function test_offer_detail_handles_swap_with_missing_request(): void
+    {
+        $this->putBookData();
+        $offerUser = $this->actingMember();
+        $otherUser = User::factory()->create();
+
+        $offer = BookOffer::create([
+            'user_id' => $offerUser->id,
+            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
+            'book_number' => 1,
+            'book_title' => 'Roman1',
+            'condition' => 'neu',
+        ]);
+
+        $swap = new BookSwap(['offer_id' => $offer->id, 'request_id' => 999]);
+        $swap->setRelation('request', null);
+        $offer->setRelation('swap', $swap);
+
+        $this->actingAs($offerUser);
+        $response = app(RomantauschController::class)->showOffer($offer);
+        $this->assertInstanceOf(View::class, $response);
+
+        $this->actingAs($otherUser);
+        $this->expectException(HttpException::class);
+        app(RomantauschController::class)->showOffer($offer);
     }
 
     public function test_store_offer_returns_error_when_book_missing(): void

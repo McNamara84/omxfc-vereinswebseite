@@ -225,7 +225,7 @@ class RomantauschController extends Controller
         $user = Auth::user();
 
         $isOwner = $user->id === $offer->user_id;
-        $isSwapPartner = $swap && $user->id === $swap->request->user_id;
+        $isSwapPartner = $swap && $swap->request && $user->id === $swap->request->user_id;
 
         abort_unless($isOwner || $isSwapPartner, 403);
 
