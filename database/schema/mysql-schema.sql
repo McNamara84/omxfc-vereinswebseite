@@ -88,6 +88,7 @@ CREATE TABLE `book_offers` (
   `book_number` int(11) NOT NULL,
   `book_title` varchar(255) NOT NULL,
   `condition` varchar(255) NOT NULL,
+  `photos` json DEFAULT NULL,
   `completed` tinyint(1) NOT NULL DEFAULT 0,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,

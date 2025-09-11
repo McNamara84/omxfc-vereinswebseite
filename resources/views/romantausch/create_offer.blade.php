@@ -1,9 +1,14 @@
 <x-app-layout>
     <x-member-page class="max-w-4xl">
+            @if(session('error'))
+                <div class="mb-4 p-4 bg-red-100 border border-red-400 text-red-800 dark:bg-red-800 dark:border-red-700 dark:text-red-100 rounded">
+                    {{ session('error') }}
+                </div>
+            @endif
             <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
                 <h1 class="text-2xl font-bold text-[#8B0116] dark:text-[#FF6B81] mb-6">Neues Angebot erstellen</h1>
 
-                <form action="{{ route('romantausch.store-offer') }}" method="POST" id="offer-form">
+                <form action="{{ route('romantausch.store-offer') }}" method="POST" enctype="multipart/form-data" id="offer-form">
                     @csrf
 
                     <div class="mb-4">
@@ -39,6 +44,11 @@
                             <option value="Z3-4">Z3-4 - Sehr stark gebraucht</option>
                             <option value="Z4">Z4 - Sehr schlecht erhalten</option>
                         </select>
+                    </div>
+
+                    <div class="mb-6">
+                        <label class="block font-medium text-gray-700 dark:text-gray-200 mb-2">Fotos (max. 3)</label>
+                        <input type="file" name="photos[]" multiple accept="image/*" class="w-full rounded bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-800 dark:text-gray-200" />
                     </div>
 
                     <button type="submit"

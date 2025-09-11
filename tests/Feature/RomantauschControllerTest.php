@@ -9,11 +9,25 @@ use App\Models\User;
 use App\Models\BookOffer;
 use App\Models\BookRequest;
 use App\Models\Book;
+use App\Models\BookSwap;
 use App\Enums\BookType;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Http\UploadedFile;
+use App\Http\Controllers\RomantauschController;
+use Symfony\Component\HttpKernel\Exception\HttpException;
+use Illuminate\View\View;
+use Mockery;
+use Illuminate\Support\Str;
 
 class RomantauschControllerTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function tearDown(): void
+    {
+        Mockery::close();
+        parent::tearDown();
+    }
 
     private function actingMember(): User
     {
@@ -158,6 +172,232 @@ class RomantauschControllerTest extends TestCase
             'user_id' => $user->id,
             'points' => 1,
         ]);
+    }
+
+    public function test_store_offer_saves_photos(): void
+    {
+        $this->putBookData();
+        $user = $this->actingMember();
+        $this->actingAs($user);
+
+        Storage::fake('public');
+
+        $response = $this->post('/romantauschboerse/angebot-speichern', [
+            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
+            'book_number' => 1,
+            'condition' => 'neu',
+            'photos' => [
+                UploadedFile::fake()->image('a.jpg'),
+                UploadedFile::fake()->image('b.jpg'),
+            ],
+        ]);
+
+        $response->assertRedirect(route('romantausch.index', [], false));
+        $offer = BookOffer::first();
+        $this->assertCount(2, $offer->photos);
+        Storage::disk('public')->assertExists($offer->photos[0]);
+    }
+
+    public function test_store_offer_accepts_all_allowed_photo_extensions(): void
+    {
+        $this->putBookData();
+        $user = $this->actingMember();
+        $this->actingAs($user);
+
+        Storage::fake('public');
+
+        foreach (RomantauschController::ALLOWED_PHOTO_EXTENSIONS as $ext) {
+            $response = $this->post('/romantauschboerse/angebot-speichern', [
+                'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
+                'book_number' => 1,
+                'condition' => 'neu',
+                'photos' => [UploadedFile::fake()->image("a.$ext")],
+            ]);
+
+            $response->assertRedirect(route('romantausch.index', [], false));
+        }
+    }
+
+    public function test_store_offer_rejects_invalid_photo_extension(): void
+    {
+        $this->putBookData();
+        $user = $this->actingMember();
+        $this->actingAs($user);
+
+        Storage::fake('public');
+
+        $response = $this->from(route('romantausch.create-offer', [], false))->post('/romantauschboerse/angebot-speichern', [
+            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
+            'book_number' => 1,
+            'condition' => 'neu',
+            'photos' => [
+                UploadedFile::fake()->create('evil.txt', 10, 'text/plain'),
+            ],
+        ]);
+
+        $response->assertRedirect(route('romantausch.create-offer', [], false));
+        $response->assertSessionHasErrors('photos.0');
+        $this->assertDatabaseCount('book_offers', 0);
+        $this->assertCount(0, Storage::disk('public')->allFiles());
+    }
+
+    public function test_store_offer_sanitizes_photo_filenames(): void
+    {
+        $this->putBookData();
+        $user = $this->actingMember();
+        $this->actingAs($user);
+
+        Storage::fake('public');
+
+        $response = $this->post('/romantauschboerse/angebot-speichern', [
+            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
+            'book_number' => 1,
+            'condition' => 'neu',
+            'photos' => [UploadedFile::fake()->image('räum lich!.JPG')],
+        ]);
+
+        $response->assertRedirect(route('romantausch.index', [], false));
+        $offer = BookOffer::first();
+        $this->assertCount(1, $offer->photos);
+        $path = $offer->photos[0];
+        $expectedSlug = Str::slug('räum lich!');
+        $this->assertMatchesRegularExpression("/^book-offers\/{$expectedSlug}-[0-9a-f\-]{36}\.jpg$/", $path);
+        Storage::disk('public')->assertExists($path);
+    }
+
+    public function test_store_offer_uses_fallback_name_when_slug_empty(): void
+    {
+        $this->putBookData();
+        $user = $this->actingMember();
+        $this->actingAs($user);
+
+        Storage::fake('public');
+
+        $response = $this->post('/romantauschboerse/angebot-speichern', [
+            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
+            'book_number' => 1,
+            'condition' => 'neu',
+            'photos' => [UploadedFile::fake()->image('!!!.png')],
+        ]);
+
+        $response->assertRedirect(route('romantausch.index', [], false));
+        $offer = BookOffer::first();
+        $this->assertCount(1, $offer->photos);
+        $path = $offer->photos[0];
+        $this->assertMatchesRegularExpression('/^book-offers\/photo-[0-9a-f\-]{36}\.png$/', $path);
+        Storage::disk('public')->assertExists($path);
+    }
+
+    public function test_store_offer_handles_photo_upload_failure(): void
+    {
+        $this->putBookData();
+        $user = $this->actingMember();
+        $this->actingAs($user);
+
+        Storage::fake('public');
+
+        $first = UploadedFile::fake()->image('a.jpg');
+        $failingFile = UploadedFile::fake()->image('b.jpg');
+        $failing = Mockery::mock($failingFile)->makePartial();
+        $failing->shouldReceive('storeAs')->once()->andThrow(new \Exception('fail'));
+
+        $response = $this->from(route('romantausch.create-offer', [], false))->post('/romantauschboerse/angebot-speichern', [
+            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
+            'book_number' => 1,
+            'condition' => 'neu',
+            'photos' => [$first, $failing],
+        ]);
+
+        $response->assertRedirect(route('romantausch.create-offer', [], false));
+        $response->assertSessionHas('error', 'Foto-Upload fehlgeschlagen. Bitte versuche es erneut.');
+        $this->assertDatabaseCount('book_offers', 0);
+        $this->assertCount(0, Storage::disk('public')->allFiles());
+
+        $this->get(route('romantausch.create-offer', [], false))
+            ->assertSee('Foto-Upload fehlgeschlagen. Bitte versuche es erneut.');
+    }
+
+    public function test_offer_detail_view_requires_match(): void
+    {
+        $this->putBookData();
+        $offerUser = $this->actingMember();
+        $requestUser = User::factory()->create();
+
+        $offer = BookOffer::create([
+            'user_id' => $offerUser->id,
+            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
+            'book_number' => 1,
+            'book_title' => 'Roman1',
+            'condition' => 'neu',
+        ]);
+
+        $request = BookRequest::create([
+            'user_id' => $requestUser->id,
+            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
+            'book_number' => 1,
+            'book_title' => 'Roman1',
+            'condition' => 'gebraucht',
+        ]);
+
+        BookSwap::create([
+            'offer_id' => $offer->id,
+            'request_id' => $request->id,
+        ]);
+
+        $this->actingAs($requestUser);
+        $this->get(route('romantausch.show-offer', $offer))->assertOk();
+
+        $other = User::factory()->create();
+        $this->actingAs($other);
+        $this->get(route('romantausch.show-offer', $offer))->assertForbidden();
+    }
+
+    public function test_offer_owner_can_view_offer_without_swap(): void
+    {
+        $this->putBookData();
+        $user = $this->actingMember();
+        $offer = BookOffer::create([
+            'user_id' => $user->id,
+            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
+            'book_number' => 1,
+            'book_title' => 'Roman1',
+            'condition' => 'neu',
+        ]);
+
+        $other = User::factory()->create();
+
+        $this->actingAs($user);
+        $this->get(route('romantausch.show-offer', $offer))->assertOk();
+
+        $this->actingAs($other);
+        $this->get(route('romantausch.show-offer', $offer))->assertForbidden();
+    }
+
+    public function test_offer_detail_handles_swap_with_missing_request(): void
+    {
+        $this->putBookData();
+        $offerUser = $this->actingMember();
+        $otherUser = User::factory()->create();
+
+        $offer = BookOffer::create([
+            'user_id' => $offerUser->id,
+            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
+            'book_number' => 1,
+            'book_title' => 'Roman1',
+            'condition' => 'neu',
+        ]);
+
+        $swap = new BookSwap(['offer_id' => $offer->id, 'request_id' => 999]);
+        $swap->setRelation('request', null);
+        $offer->setRelation('swap', $swap);
+
+        $this->actingAs($offerUser);
+        $response = app(RomantauschController::class)->showOffer($offer);
+        $this->assertInstanceOf(View::class, $response);
+
+        $this->actingAs($otherUser);
+        $this->expectException(HttpException::class);
+        app(RomantauschController::class)->showOffer($offer);
     }
 
     public function test_store_offer_returns_error_when_book_missing(): void

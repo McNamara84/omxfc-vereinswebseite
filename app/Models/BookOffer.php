@@ -13,6 +13,7 @@ use Carbon\Carbon;
  * @property int $book_number
  * @property string $book_title
  * @property string $condition
+ * @property array|null $photos
  * @property bool $completed
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
@@ -29,7 +30,12 @@ class BookOffer extends Model
         'book_number',
         'book_title',
         'condition',
+        'photos',
         'completed',
+    ];
+
+    protected $casts = [
+        'photos' => 'array',
     ];
 
     public function user()

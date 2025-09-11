@@ -15,6 +15,8 @@ use App\Models\Book;
 use App\Mail\BookSwapMatched;
 use App\Models\Activity;
 use App\Enums\BookType;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class RomantauschController extends Controller
 {
@@ -23,6 +25,7 @@ class RomantauschController extends Controller
         BookType::MaddraxHardcover,
         BookType::MissionMars,
     ];
+    public const ALLOWED_PHOTO_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
     // Übersicht
     public function index()
     {
@@ -59,6 +62,8 @@ class RomantauschController extends Controller
             'series' => ['required', Rule::in(array_map(fn ($case) => $case->value, self::ALLOWED_TYPES))],
             'book_number' => 'required|integer',
             'condition' => 'required|string',
+            'photos' => 'nullable|array|max:3',
+            'photos.*' => 'file|max:2048|mimes:' . implode(',', self::ALLOWED_PHOTO_EXTENSIONS),
         ]);
 
         $book = Book::where('roman_number', $validated['book_number'])
@@ -69,12 +74,33 @@ class RomantauschController extends Controller
             return redirect()->back()->with('error', 'Ausgewählter Roman nicht gefunden.');
         }
 
+        $photoPaths = [];
+        if ($request->hasFile('photos')) {
+            foreach ($request->file('photos') as $photo) {
+                try {
+                    $extension = strtolower($photo->getClientOriginalExtension());
+                    $name = Str::slug(pathinfo($photo->getClientOriginalName(), PATHINFO_FILENAME));
+                    if ($name === '') {
+                        $name = 'photo';
+                    }
+                    $filename = $name . '-' . Str::uuid() . '.' . $extension;
+                    $photoPaths[] = $photo->storeAs('book-offers', $filename, 'public');
+                } catch (\Throwable $e) {
+                    foreach ($photoPaths as $path) {
+                        Storage::disk('public')->delete($path);
+                    }
+                    return redirect()->back()->withInput()->with('error', 'Foto-Upload fehlgeschlagen. Bitte versuche es erneut.');
+                }
+            }
+        }
+
         $offer = BookOffer::create([
             'user_id' => Auth::id(),
             'series' => $validated['series'],
             'book_number' => $validated['book_number'],
             'book_title' => $book->title,
             'condition' => $validated['condition'],
+            'photos' => $photoPaths,
         ]);
 
         $offerCount = BookOffer::where('user_id', Auth::id())->count();
@@ -198,6 +224,20 @@ class RomantauschController extends Controller
         }
 
         return redirect()->route('romantausch.index');
+    }
+
+    // Detailansicht eines Angebots, nur für beteiligte Nutzer
+    public function showOffer(BookOffer $offer)
+    {
+        $swap = $offer->swap;
+        $user = Auth::user();
+
+        $isOwner = $user->id === $offer->user_id;
+        $isSwapPartner = $swap && $swap->request !== null && $user->id === $swap->request->user_id;
+
+        abort_unless($isOwner || $isSwapPartner, 403);
+
+        return view('romantausch.show_offer', compact('offer'));
     }
 
     private function matchSwap(Model $model, string $type): void
