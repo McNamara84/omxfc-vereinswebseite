@@ -13,6 +13,7 @@ use App\Models\User;
 use App\Mail\NewReviewNotification;
 use Illuminate\Support\Facades\Mail;
 use App\Models\Activity;
+use Illuminate\Database\Eloquent\Builder;
 
 class RezensionController extends Controller
 {
@@ -42,6 +43,20 @@ class RezensionController extends Controller
             ->where('team_id', $team->id)
             ->where('user_id', Auth::id())
             ->value('role');
+    }
+
+    /**
+     * Standardabfragen für Buchlisten.
+     */
+    protected function prepareBookQuery(Builder $query, User $user, int $teamId, string $direction = 'asc')
+    {
+        return $query->withCount('reviews')
+            ->withExists(['reviews as has_review' => function ($query) use ($user, $teamId) {
+                $query->where('team_id', $teamId)
+                    ->where('user_id', $user->id);
+            }])
+            ->orderBy('roman_number', $direction)
+            ->get();
     }
 
     /**
@@ -86,29 +101,11 @@ class RezensionController extends Controller
         $missionMarsQuery = Book::query()->where('type', BookType::MissionMars);
         $applyFilters($missionMarsQuery);
 
-        $books = $novelsQuery->withCount('reviews')
-            ->withExists(['reviews as has_review' => function ($query) use ($user, $teamId) {
-                $query->where('team_id', $teamId)
-                    ->where('user_id', $user->id);
-            }])
-            ->orderBy('roman_number')
-            ->get();
+        $books = $this->prepareBookQuery($novelsQuery, $user, $teamId);
 
-        $hardcovers = $hardcoversQuery->withCount('reviews')
-            ->withExists(['reviews as has_review' => function ($query) use ($user, $teamId) {
-                $query->where('team_id', $teamId)
-                    ->where('user_id', $user->id);
-            }])
-            ->orderByDesc('roman_number')
-            ->get();
+        $hardcovers = $this->prepareBookQuery($hardcoversQuery, $user, $teamId, 'desc');
 
-        $missionMars = $missionMarsQuery->withCount('reviews')
-            ->withExists(['reviews as has_review' => function ($query) use ($user, $teamId) {
-                $query->where('team_id', $teamId)
-                    ->where('user_id', $user->id);
-            }])
-            ->orderByDesc('roman_number')
-            ->get();
+        $missionMars = $this->prepareBookQuery($missionMarsQuery, $user, $teamId, 'desc');
 
         $jsonPath = storage_path('app/private/maddrax.json');
         if (!is_readable($jsonPath)) {
