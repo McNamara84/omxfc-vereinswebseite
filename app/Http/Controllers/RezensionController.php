@@ -14,6 +14,7 @@ use App\Mail\NewReviewNotification;
 use Illuminate\Support\Facades\Mail;
 use App\Models\Activity;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
 
 class RezensionController extends Controller
 {
@@ -46,10 +47,21 @@ class RezensionController extends Controller
     }
 
     /**
-     * Standardabfragen für Buchlisten.
+     * Prepare standardized book query with review counts and user-specific review existence.
+     *
+     * @param Builder $query     Base query to augment.
+     * @param User    $user      Authenticated user for review existence check.
+     * @param int     $teamId    Team identifier used for scoping reviews.
+     * @param string  $direction Sort direction for roman numbers (asc or desc).
+     *
+     * @return Collection Books matching the query with review metadata.
      */
-    protected function prepareBookQuery(Builder $query, User $user, int $teamId, string $direction = 'asc')
-    {
+    protected function prepareBookQuery(
+        Builder $query,
+        User $user,
+        int $teamId,
+        string $direction = 'asc'
+    ): Collection {
         return $query->withCount('reviews')
             ->withExists(['reviews as has_review' => function ($query) use ($user, $teamId) {
                 $query->where('team_id', $teamId)
