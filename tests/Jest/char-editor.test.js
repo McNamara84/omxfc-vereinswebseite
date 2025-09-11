@@ -3,7 +3,7 @@ import { jest } from '@jest/globals';
 const BASE_HTML = `
   <input id="player_name" />
   <input id="character_name" />
-  <select id="race"><option value=""></option><option value="Barbar">Barbar</option></select>
+  <select id="race"><option value=""></option><option value="Barbar">Barbar</option><option value="Guul">Guul</option></select>
   <select id="culture"><option value=""></option><option value="Landbewohner">Landbewohner</option></select>
   <select id="advantages" multiple>
     <option value="Zäh">Zäh</option>
@@ -30,6 +30,8 @@ const BASE_HTML = `
     <option value="Intuition"></option>
     <option value="Nahkampf"></option>
     <option value="Fernkampf"></option>
+    <option value="Heimlichkeit"></option>
+    <option value="Natürliche Waffen"></option>
     <option value="Beruf: Viehzüchter"></option>
     <option value="Beruf: Landwirt"></option>
     <option value="Kunde: Wetter"></option>
@@ -98,6 +100,28 @@ describe('char-editor module', () => {
     const skillNames = Array.from(document.querySelectorAll('.skill-row .skill-name')).map(i => i.value);
     expect(skillNames).toEqual(expect.arrayContaining(['Fernkampf']));
     expect(skillNames).not.toEqual(expect.arrayContaining(['Nahkampf']));
+  });
+
+  test('switching to Guul and back restores Barbar values', async () => {
+    await loadEditor({ player_name: 'Alice', character_name: 'Bob' });
+    const race = document.getElementById('race');
+    race.value = 'Barbar';
+    race.dispatchEvent(new Event('change'));
+    const st = document.getElementById('st');
+    st.value = '2';
+    st.dispatchEvent(new Event('input'));
+    const combatSelect = document.getElementById('barbar-combat-select');
+    combatSelect.value = 'Fernkampf';
+    combatSelect.dispatchEvent(new Event('change'));
+    race.value = 'Guul';
+    race.dispatchEvent(new Event('change'));
+    const stInput = document.getElementById('st');
+    expect(stInput.value).toBe('1');
+    expect(stInput.max).toBe('1');
+    race.value = 'Barbar';
+    race.dispatchEvent(new Event('change'));
+    expect(document.getElementById('barbar-combat-select').value).toBe('Fernkampf');
+    expect(document.getElementById('st').max).toBe('2');
   });
 
   test('selecting Landbewohner culture adds culture skills', async () => {

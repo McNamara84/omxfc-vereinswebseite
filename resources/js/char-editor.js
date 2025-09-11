@@ -50,8 +50,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const addSkillBtn = document.getElementById('add-skill');
     const skillsDatalist = document.getElementById('skills-list');
 
+    const raceCache = {};
+
     const raceDescriptions = {
-        Barbar: 'Im 26. Jahrhundert besteht die Zivilisation zum größten Teil aus Barbaren. Sie leben in unterschiedlichen Kulturen, beispielsweise als Seefahrer (die Disuuslachter), Nomaden (die Wandernden Völker) oder Ruinenbewohner (die Loords von Landán). Die zeichnen sich durch Zähigkeit, Wildheit und Kampflust aus, sind zumeist primitiv und leben in Clans. Ehre und Mut werden hoch geschätzt. Technologisch bewegen sich die meisten Barbaren zwischen der späten Steinzeit und dem frühen Mittelalter.'
+        Barbar: 'Im 26. Jahrhundert besteht die Zivilisation zum größten Teil aus Barbaren. Sie leben in unterschiedlichen Kulturen, beispielsweise als Seefahrer (die Disuuslachter), Nomaden (die Wandernden Völker) oder Ruinenbewohner (die Loords von Landán). Die zeichnen sich durch Zähigkeit, Wildheit und Kampflust aus, sind zumeist primitiv und leben in Clans. Ehre und Mut werden hoch geschätzt. Technologisch bewegen sich die meisten Barbaren zwischen der späten Steinzeit und dem frühen Mittelalter.',
+        Guul: 'Guule sind bedauernswerte Mutationen des Homo Sapiens. Sie sind dürr, fast zwei Meter groß und völlig unbehaart. Ihre langen knochigen Arme enden in Krallen. Die verhornten Füße laufen an den Fersen in einem fingerdicken Stachel aus. Aus dem Maul tropft weißlicher Schleim, was ihr abstoßendes Äußeres zusätzlich verstärkt. Guule sind meist nur mit einem Lendenschurz bekleidet. Sie ernähren sich von Aas und Gebeinen, die sie u.a. aus Gräbern holen.'
     };
 
     const cultureDescriptions = {
@@ -112,11 +115,26 @@ document.addEventListener('DOMContentLoaded', () => {
     recomputeAll();
 
     // === Attribute handling ===
+    function getAttributeMaxForRace(race) {
+        return race === 'Barbar' ? 2 : 1;
+    }
+
+    function setAttributeBase(attributeId, value, race = state.race) {
+        const el = attributeInputs[attributeId];
+        if (!el) return;
+        const max = getAttributeMaxForRace(race);
+        if (value > max) value = max;
+        if (value < -1) value = -1;
+        el.dataset.base = value;
+        el.value = value;
+        el.max = max;
+    }
+
     function onAttributeInput(e) {
         const id = e.target.id;
         let base = parseInt(e.target.value, 10);
         if (isNaN(base)) base = 0;
-        const max = state.race === 'Barbar' ? 2 : 1;
+        const max = getAttributeMaxForRace(state.race);
         if (base > max) base = max;
         if (base < -1) base = -1;
         const old = parseInt(attributeInputs[id].dataset.base || '0', 10);
@@ -124,21 +142,14 @@ document.addEventListener('DOMContentLoaded', () => {
         let maxForThis = state.base.AP + state.raceAPBonus - sumOthers;
         if (maxForThis > max) maxForThis = max;
         if (base > maxForThis) base = maxForThis;
-        attributeInputs[id].dataset.base = base;
-        e.target.value = base;
+        setAttributeBase(id, base);
         recomputeAll();
     }
 
     function enforceAttributeCaps() {
-        const max = state.race === 'Barbar' ? 2 : 1;
         attributeIds.forEach(id => {
-            const el = attributeInputs[id];
-            let base = parseInt(el.dataset.base || '0', 10);
-            if (base > max) base = max;
-            if (base < -1) base = -1;
-            el.dataset.base = base;
-            el.value = base;
-            el.max = max;
+            const base = parseInt(attributeInputs[id].dataset.base || '0', 10);
+            setAttributeBase(id, base);
         });
     }
 
@@ -419,6 +430,27 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    function lockDisadvantage(name) {
+        if (!disadvantagesSelect) return;
+        const option = [...disadvantagesSelect.options].find(o => o.value === name);
+        if (option) {
+            option.selected = true;
+            option.disabled = true;
+            option.dataset.locked = 'race';
+        }
+    }
+
+    function unlockRaceDisadvantages() {
+        if (!disadvantagesSelect) return;
+        [...disadvantagesSelect.options].forEach(o => {
+            if (o.dataset.locked === 'race') {
+                o.disabled = false;
+                o.selected = false;
+                delete o.dataset.locked;
+            }
+        });
+    }
+
     function isAdvantageChosen(name) {
         return [...advantagesSelect.selectedOptions].some(o => o.value === name);
     }
@@ -483,9 +515,62 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // === Race/Culture handlers ===
+    function cacheRaceState() {
+        const cache = { attributes: {}, skills: {}, barbarCombatSkill: state.barbarCombatSkill };
+        attributeIds.forEach(id => {
+            cache.attributes[id] = attributeInputs[id].dataset.base;
+        });
+        Object.keys(state.raceGrants.skills).forEach(name => {
+            const row = findSkillRow(name);
+            if (row) {
+                const val = row.querySelector('input[type="number"]').value;
+                cache.skills[name] = val;
+            }
+        });
+        raceCache[state.race] = cache;
+    }
+
+    function restoreRaceState(race) {
+        const cache = raceCache[race];
+        if (!cache) return;
+        attributeIds.forEach(id => {
+            if (cache.attributes[id] !== undefined) {
+                setAttributeBase(id, parseInt(cache.attributes[id], 10), race);
+            }
+        });
+        Object.entries(cache.skills).forEach(([name, val]) => {
+            const row = findSkillRow(name);
+            if (row) {
+                const input = row.querySelector('input[type="number"]');
+                input.value = val;
+            }
+        });
+        if (race === 'Barbar') restoreBarbarSpecificState(cache);
+    }
+
+    function restoreBarbarSpecificState(cache) {
+        if (!cache.barbarCombatSkill) return;
+        barbarCombatSelect.value = cache.barbarCombatSkill;
+        delete state.raceGrants.skills['Nahkampf'];
+        delete state.raceGrants.skills['Fernkampf'];
+        const other = cache.barbarCombatSkill === 'Nahkampf' ? 'Fernkampf' : 'Nahkampf';
+        const otherRow = findSkillRow(other);
+        if (otherRow) otherRow.remove();
+        state.barbarCombatSkill = cache.barbarCombatSkill;
+        state.raceGrants.skills[cache.barbarCombatSkill] = { type: 'min', value: 1 };
+        setFreeMin(cache.barbarCombatSkill, 1, 'Rasse');
+        const row = findSkillRow(cache.barbarCombatSkill);
+        if (row && cache.skills[cache.barbarCombatSkill] !== undefined) {
+            row.querySelector('input[type="number"]').value = cache.skills[cache.barbarCombatSkill];
+        }
+    }
+
     function handleRaceChange() {
+        if (state.race) cacheRaceState();
         clearRace();
         if (raceSelect.value === 'Barbar') applyRaceBarbar();
+        if (raceSelect.value === 'Guul') applyRaceGuul();
+        restoreRaceState(raceSelect.value);
         if (descriptionField && descriptionField.dataset.userEdited !== 'true') {
             let text = raceDescriptions[raceSelect.value] || '';
             if (cultureDescriptions[cultureSelect.value]) {
@@ -504,6 +589,7 @@ document.addEventListener('DOMContentLoaded', () => {
         barbarCombatContainer.classList.add('hidden');
         state.barbarCombatSkill = null;
         removeSkillBadgeSource('Rasse');
+        unlockRaceDisadvantages();
     }
 
     function applyRaceBarbar() {
@@ -512,6 +598,16 @@ document.addEventListener('DOMContentLoaded', () => {
         setFreeMin('Überleben', 1, 'Rasse');
         setFreeMin('Intuition', 1, 'Rasse');
         setCombatToggle();
+    }
+
+    function applyRaceGuul() {
+        state.race = 'Guul';
+        setAttributeBase('au', -1);
+        setFreeMin('Heimlichkeit', 2, 'Rasse');
+        setFreeMin('Intuition', 1, 'Rasse');
+        setFreeMin('Natürliche Waffen', 1, 'Rasse');
+        lockDisadvantage('Primitiv');
+        lockDisadvantage('Gejagt');
     }
 
     function setCombatToggle() {

@@ -3,7 +3,7 @@ import { describe, it, expect, vi } from 'vitest';
 const BASE_HTML = `
   <input id="player_name" />
   <input id="character_name" />
-  <select id="race"><option value=""></option><option value="Barbar">Barbar</option></select>
+  <select id="race"><option value=""></option><option value="Barbar">Barbar</option><option value="Guul">Guul</option></select>
   <select id="culture"><option value=""></option><option value="Landbewohner">Landbewohner</option></select>
   <select id="advantages" multiple>
     <option value="Zäh">Zäh</option>
@@ -25,6 +25,9 @@ const BASE_HTML = `
   <div id="skills-container"></div>
   <datalist id="skills-list">
     <option value="Überleben"></option>
+    <option value="Heimlichkeit"></option>
+    <option value="Intuition"></option>
+    <option value="Natürliche Waffen"></option>
   </datalist>
   <button id="continue-button" class="hidden"></button>
   <fieldset id="advanced-fields"></fieldset>
