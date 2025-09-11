@@ -19,7 +19,7 @@ class ArbeitsgruppenLeaderIndexTest extends TestCase
         return $user;
     }
 
-    public function test_leader_can_view_own_groups(): void
+    private function groupWithLeader(): array
     {
         $leader = $this->member();
         $ag = Team::factory()->create([
@@ -28,6 +28,13 @@ class ArbeitsgruppenLeaderIndexTest extends TestCase
             'personal_team' => false,
         ]);
         $ag->users()->attach($leader, ['role' => 'Mitglied']);
+
+        return [$leader, $ag];
+    }
+
+    public function test_leader_can_view_own_groups(): void
+    {
+        [$leader] = $this->groupWithLeader();
 
         $this->actingAs($leader)
             ->get('/ag')
@@ -37,13 +44,7 @@ class ArbeitsgruppenLeaderIndexTest extends TestCase
 
     public function test_non_leader_gets_forbidden(): void
     {
-        $leader = $this->member();
-        $ag = Team::factory()->create([
-            'name' => 'AG Test',
-            'user_id' => $leader->id,
-            'personal_team' => false,
-        ]);
-        $ag->users()->attach($leader, ['role' => 'Mitglied']);
+        [$leader] = $this->groupWithLeader();
 
         $other = $this->member();
 
