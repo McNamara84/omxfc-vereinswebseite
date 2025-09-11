@@ -34,6 +34,7 @@
                         <select name="culture" id="culture" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
                             <option value="" disabled selected>Kultur wählen</option>
                             <option value="Landbewohner" title="Landbewohner bewirtschaften den Boden und versuchen als Bauern und Viehzüchter ihren Lebensunterhalt zu verdienen. Die meisten sind einfache Menschen, die Ruhe und Frieden suchen, nicht viel von der Welt wissen und einfache Landgötter anbeten. Aberglauben ist weit verbreitet.">Landbewohner</option>
+                            <option value="Stadtbewohner" title="Stadtbewohner versuchen in der dunklen Zukunft der Erde neues Leben erblühen zu lassen. Dazu haben sie sich in neu erbauten Siedlungen (zuweilen auf Ruinen aus der Zeit vor dem Kometen) angesiedelt und leben als Händler, Handwerker und Bauern. Die Mauern ihrer Siedlungen schützen sie vor den Gefahren der Wildnis. Ihre Siedlungen sind somit Lichter der Hoffnung in der Dunkelheit.">Stadtbewohner</option>
                         </select>
                     </div>
 
@@ -97,6 +98,13 @@
                         <select id="barbar-combat-select" class="w-full sm:w-auto rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
                             <option value="Nahkampf">Nahkampf (+1)</option>
                             <option value="Fernkampf">Fernkampf (+1)</option>
+                        </select>
+                    </div>
+                    <div id="city-skill-toggle" class="hidden mb-2">
+                        <label for="city-skill-select" class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Stadtbewohner Bonus</label>
+                        <select id="city-skill-select" class="w-full sm:w-auto rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
+                            <option value="Unterhalten">Unterhalten (+1)</option>
+                            <option value="Sprachen">Sprachen (+1)</option>
                         </select>
                     </div>
                     <div id="skills-container" class="space-y-2"></div>
