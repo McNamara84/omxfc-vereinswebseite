@@ -197,6 +197,52 @@ class RomantauschControllerTest extends TestCase
         Storage::disk('public')->assertExists($offer->photos[0]);
     }
 
+    public function test_store_offer_rejects_invalid_photo_extension(): void
+    {
+        $this->putBookData();
+        $user = $this->actingMember();
+        $this->actingAs($user);
+
+        Storage::fake('public');
+
+        $response = $this->from(route('romantausch.create-offer', [], false))->post('/romantauschboerse/angebot-speichern', [
+            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
+            'book_number' => 1,
+            'condition' => 'neu',
+            'photos' => [
+                UploadedFile::fake()->create('evil.txt', 10, 'text/plain'),
+            ],
+        ]);
+
+        $response->assertRedirect(route('romantausch.create-offer', [], false));
+        $response->assertSessionHasErrors('photos.0');
+        $this->assertDatabaseCount('book_offers', 0);
+        $this->assertCount(0, Storage::disk('public')->allFiles());
+    }
+
+    public function test_store_offer_sanitizes_photo_filenames(): void
+    {
+        $this->putBookData();
+        $user = $this->actingMember();
+        $this->actingAs($user);
+
+        Storage::fake('public');
+
+        $response = $this->post('/romantauschboerse/angebot-speichern', [
+            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
+            'book_number' => 1,
+            'condition' => 'neu',
+            'photos' => [UploadedFile::fake()->image('räum lich!.JPG')],
+        ]);
+
+        $response->assertRedirect(route('romantausch.index', [], false));
+        $offer = BookOffer::first();
+        $this->assertCount(1, $offer->photos);
+        $path = $offer->photos[0];
+        $this->assertMatchesRegularExpression('/^book-offers\/raum-lich-[0-9a-f\-]{36}\.jpg$/', $path);
+        Storage::disk('public')->assertExists($path);
+    }
+
     public function test_store_offer_handles_photo_upload_failure(): void
     {
         $this->putBookData();
@@ -208,7 +254,7 @@ class RomantauschControllerTest extends TestCase
         $first = UploadedFile::fake()->image('a.jpg');
         $failingFile = UploadedFile::fake()->image('b.jpg');
         $failing = Mockery::mock($failingFile)->makePartial();
-        $failing->shouldReceive('store')->once()->andThrow(new \Exception('fail'));
+        $failing->shouldReceive('storeAs')->once()->andThrow(new \Exception('fail'));
 
         $response = $this->from(route('romantausch.create-offer', [], false))->post('/romantauschboerse/angebot-speichern', [
             'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,

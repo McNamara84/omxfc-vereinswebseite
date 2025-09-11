@@ -16,6 +16,7 @@ use App\Mail\BookSwapMatched;
 use App\Models\Activity;
 use App\Enums\BookType;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class RomantauschController extends Controller
 {
@@ -61,7 +62,7 @@ class RomantauschController extends Controller
             'book_number' => 'required|integer',
             'condition' => 'required|string',
             'photos' => 'nullable|array|max:3',
-            'photos.*' => 'image|max:2048',
+            'photos.*' => 'file|max:2048|mimes:jpg,jpeg,png,gif,webp',
         ]);
 
         $book = Book::where('roman_number', $validated['book_number'])
@@ -76,7 +77,14 @@ class RomantauschController extends Controller
         if ($request->hasFile('photos')) {
             foreach ($request->file('photos') as $photo) {
                 try {
-                    $photoPaths[] = $photo->store('book-offers', 'public');
+                    $extension = strtolower($photo->getClientOriginalExtension());
+                    if (!in_array($extension, ['jpg', 'jpeg', 'png', 'gif', 'webp'])) {
+                        throw new \RuntimeException('Ungültige Dateiendung');
+                    }
+
+                    $name = Str::slug(pathinfo($photo->getClientOriginalName(), PATHINFO_FILENAME));
+                    $filename = $name . '-' . Str::uuid() . '.' . $extension;
+                    $photoPaths[] = $photo->storeAs('book-offers', $filename, 'public');
                 } catch (\Throwable $e) {
                     foreach ($photoPaths as $path) {
                         Storage::disk('public')->delete($path);
