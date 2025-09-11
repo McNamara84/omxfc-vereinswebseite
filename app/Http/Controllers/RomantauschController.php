@@ -25,6 +25,7 @@ class RomantauschController extends Controller
         BookType::MaddraxHardcover,
         BookType::MissionMars,
     ];
+    public const ALLOWED_PHOTO_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
     // Übersicht
     public function index()
     {
@@ -62,7 +63,7 @@ class RomantauschController extends Controller
             'book_number' => 'required|integer',
             'condition' => 'required|string',
             'photos' => 'nullable|array|max:3',
-            'photos.*' => 'file|max:2048|mimes:jpg,jpeg,png,gif,webp',
+            'photos.*' => 'file|max:2048|mimes:' . implode(',', self::ALLOWED_PHOTO_EXTENSIONS),
         ]);
 
         $book = Book::where('roman_number', $validated['book_number'])
@@ -78,7 +79,7 @@ class RomantauschController extends Controller
             foreach ($request->file('photos') as $photo) {
                 try {
                     $extension = strtolower($photo->getClientOriginalExtension());
-                    if (!in_array($extension, ['jpg', 'jpeg', 'png', 'gif', 'webp'])) {
+                    if (!in_array($extension, self::ALLOWED_PHOTO_EXTENSIONS, true)) {
                         throw new \RuntimeException('Ungültige Dateiendung');
                     }
 
@@ -233,7 +234,7 @@ class RomantauschController extends Controller
         $user = Auth::user();
 
         $isOwner = $user->id === $offer->user_id;
-        $isSwapPartner = $swap && $swap->request && $user->id === $swap->request->user_id;
+        $isSwapPartner = $swap && $swap->request !== null && $user->id === $swap->request->user_id;
 
         abort_unless($isOwner || $isSwapPartner, 403);
 

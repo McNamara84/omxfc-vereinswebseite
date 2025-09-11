@@ -197,6 +197,26 @@ class RomantauschControllerTest extends TestCase
         Storage::disk('public')->assertExists($offer->photos[0]);
     }
 
+    public function test_store_offer_accepts_all_allowed_photo_extensions(): void
+    {
+        $this->putBookData();
+        $user = $this->actingMember();
+        $this->actingAs($user);
+
+        Storage::fake('public');
+
+        foreach (RomantauschController::ALLOWED_PHOTO_EXTENSIONS as $ext) {
+            $response = $this->post('/romantauschboerse/angebot-speichern', [
+                'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
+                'book_number' => 1,
+                'condition' => 'neu',
+                'photos' => [UploadedFile::fake()->image("a.$ext")],
+            ]);
+
+            $response->assertRedirect(route('romantausch.index', [], false));
+        }
+    }
+
     public function test_store_offer_rejects_invalid_photo_extension(): void
     {
         $this->putBookData();
