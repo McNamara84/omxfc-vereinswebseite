@@ -17,6 +17,7 @@ use App\Http\Controllers\RomantauschController;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Illuminate\View\View;
 use Mockery;
+use Illuminate\Support\Str;
 
 class RomantauschControllerTest extends TestCase
 {
@@ -259,7 +260,31 @@ class RomantauschControllerTest extends TestCase
         $offer = BookOffer::first();
         $this->assertCount(1, $offer->photos);
         $path = $offer->photos[0];
-        $this->assertMatchesRegularExpression('/^book-offers\/raum-lich-[0-9a-f\-]{36}\.jpg$/', $path);
+        $expectedSlug = Str::slug('räum lich!');
+        $this->assertMatchesRegularExpression("/^book-offers\/{$expectedSlug}-[0-9a-f\-]{36}\.jpg$/", $path);
+        Storage::disk('public')->assertExists($path);
+    }
+
+    public function test_store_offer_uses_fallback_name_when_slug_empty(): void
+    {
+        $this->putBookData();
+        $user = $this->actingMember();
+        $this->actingAs($user);
+
+        Storage::fake('public');
+
+        $response = $this->post('/romantauschboerse/angebot-speichern', [
+            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
+            'book_number' => 1,
+            'condition' => 'neu',
+            'photos' => [UploadedFile::fake()->image('!!!.png')],
+        ]);
+
+        $response->assertRedirect(route('romantausch.index', [], false));
+        $offer = BookOffer::first();
+        $this->assertCount(1, $offer->photos);
+        $path = $offer->photos[0];
+        $this->assertMatchesRegularExpression('/^book-offers\/photo-[0-9a-f\-]{36}\.png$/', $path);
         Storage::disk('public')->assertExists($path);
     }
 

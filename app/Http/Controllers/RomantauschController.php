@@ -79,11 +79,10 @@ class RomantauschController extends Controller
             foreach ($request->file('photos') as $photo) {
                 try {
                     $extension = strtolower($photo->getClientOriginalExtension());
-                    if (!in_array($extension, self::ALLOWED_PHOTO_EXTENSIONS, true)) {
-                        throw new \RuntimeException('Ungültige Dateiendung');
-                    }
-
                     $name = Str::slug(pathinfo($photo->getClientOriginalName(), PATHINFO_FILENAME));
+                    if ($name === '') {
+                        $name = 'photo';
+                    }
                     $filename = $name . '-' . Str::uuid() . '.' . $extension;
                     $photoPaths[] = $photo->storeAs('book-offers', $filename, 'public');
                 } catch (\Throwable $e) {
