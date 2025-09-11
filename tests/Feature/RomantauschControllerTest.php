@@ -222,6 +222,27 @@ class RomantauschControllerTest extends TestCase
         $this->get(route('romantausch.show-offer', $offer))->assertForbidden();
     }
 
+    public function test_offer_owner_can_view_offer_without_swap(): void
+    {
+        $this->putBookData();
+        $user = $this->actingMember();
+        $offer = BookOffer::create([
+            'user_id' => $user->id,
+            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
+            'book_number' => 1,
+            'book_title' => 'Roman1',
+            'condition' => 'neu',
+        ]);
+
+        $other = User::factory()->create();
+
+        $this->actingAs($user);
+        $this->get(route('romantausch.show-offer', $offer))->assertOk();
+
+        $this->actingAs($other);
+        $this->get(route('romantausch.show-offer', $offer))->assertForbidden();
+    }
+
     public function test_store_offer_returns_error_when_book_missing(): void
     {
         $user = $this->actingMember();

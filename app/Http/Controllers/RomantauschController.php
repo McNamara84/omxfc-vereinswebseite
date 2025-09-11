@@ -216,7 +216,10 @@ class RomantauschController extends Controller
         $swap = $offer->swap;
         $user = Auth::user();
 
-        abort_unless($swap && ($user->id === $offer->user_id || $user->id === $swap->request->user_id), 403);
+        $isOwner = $user->id === $offer->user_id;
+        $isSwapPartner = $swap && $user->id === $swap->request->user_id;
+
+        abort_unless($isOwner || $isSwapPartner, 403);
 
         return view('romantausch.show_offer', compact('offer'));
     }
