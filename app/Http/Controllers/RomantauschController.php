@@ -76,11 +76,7 @@ class RomantauschController extends Controller
         if ($request->hasFile('photos')) {
             foreach ($request->file('photos') as $photo) {
                 try {
-                    $stored = $photo->store('book-offers', 'public');
-                    if (!$stored) {
-                        throw new \RuntimeException('Foto konnte nicht gespeichert werden.');
-                    }
-                    $photoPaths[] = $stored;
+                    $photoPaths[] = $photo->store('book-offers', 'public');
                 } catch (\Throwable $e) {
                     foreach ($photoPaths as $path) {
                         Storage::disk('public')->delete($path);

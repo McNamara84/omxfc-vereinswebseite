@@ -205,7 +205,7 @@ class RomantauschControllerTest extends TestCase
         $first = UploadedFile::fake()->image('a.jpg');
         $failingFile = UploadedFile::fake()->image('b.jpg');
         $failing = Mockery::mock($failingFile)->makePartial();
-        $failing->shouldReceive('store')->once()->andReturnFalse();
+        $failing->shouldReceive('store')->once()->andThrow(new \Exception('fail'));
 
         $response = $this->from(route('romantausch.create-offer', [], false))->post('/romantauschboerse/angebot-speichern', [
             'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
