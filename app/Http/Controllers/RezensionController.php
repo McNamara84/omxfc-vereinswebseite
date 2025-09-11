@@ -13,6 +13,8 @@ use App\Models\User;
 use App\Mail\NewReviewNotification;
 use Illuminate\Support\Facades\Mail;
 use App\Models\Activity;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
 
 class RezensionController extends Controller
 {
@@ -42,6 +44,31 @@ class RezensionController extends Controller
             ->where('team_id', $team->id)
             ->where('user_id', Auth::id())
             ->value('role');
+    }
+
+    /**
+     * Prepare standardized book query with review counts and user-specific review existence.
+     *
+     * @param Builder $query     Base query to augment.
+     * @param User    $user      Authenticated user for review existence check.
+     * @param int     $teamId    Team identifier used for scoping reviews.
+     * @param string  $direction Sort direction for roman numbers (asc or desc).
+     *
+     * @return Collection Books matching the query with review metadata.
+     */
+    protected function prepareBookQuery(
+        Builder $query,
+        User $user,
+        int $teamId,
+        string $direction = 'asc'
+    ): Collection {
+        return $query->withCount('reviews')
+            ->withExists(['reviews as has_review' => function ($query) use ($user, $teamId) {
+                $query->where('team_id', $teamId)
+                    ->where('user_id', $user->id);
+            }])
+            ->orderBy('roman_number', $direction)
+            ->get();
     }
 
     /**
@@ -83,21 +110,14 @@ class RezensionController extends Controller
         $hardcoversQuery = Book::query()->where('type', BookType::MaddraxHardcover);
         $applyFilters($hardcoversQuery);
 
-        $books = $novelsQuery->withCount('reviews')
-            ->withExists(['reviews as has_review' => function ($query) use ($user, $teamId) {
-                $query->where('team_id', $teamId)
-                    ->where('user_id', $user->id);
-            }])
-            ->orderBy('roman_number')
-            ->get();
+        $missionMarsQuery = Book::query()->where('type', BookType::MissionMars);
+        $applyFilters($missionMarsQuery);
 
-        $hardcovers = $hardcoversQuery->withCount('reviews')
-            ->withExists(['reviews as has_review' => function ($query) use ($user, $teamId) {
-                $query->where('team_id', $teamId)
-                    ->where('user_id', $user->id);
-            }])
-            ->orderByDesc('roman_number')
-            ->get();
+        $books = $this->prepareBookQuery($novelsQuery, $user, $teamId);
+
+        $hardcovers = $this->prepareBookQuery($hardcoversQuery, $user, $teamId, 'desc');
+
+        $missionMars = $this->prepareBookQuery($missionMarsQuery, $user, $teamId, 'desc');
 
         $jsonPath = storage_path('app/private/maddrax.json');
         if (!is_readable($jsonPath)) {
@@ -116,6 +136,7 @@ class RezensionController extends Controller
         return view('reviews.index', [
             'booksByCycle' => $booksByCycle,
             'hardcovers' => $hardcovers,
+            'missionMars' => $missionMars,
             'title' => 'Rezensionen – Offizieller MADDRAX Fanclub e. V.',
             'description' => 'Alle Vereinsrezensionen zu den Maddrax-Romanen im Überblick.',
         ]);

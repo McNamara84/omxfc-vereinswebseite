@@ -165,6 +165,36 @@ class RezensionControllerTest extends TestCase
             ->assertSee('Hardcover Beta');
     }
 
+    public function test_index_shows_mission_mars_books(): void
+    {
+        $path = storage_path('app/private/maddrax.json');
+        $original = file_get_contents($path);
+
+        try {
+            file_put_contents($path, json_encode([
+                ['nummer' => 1, 'titel' => 'Roman1', 'zyklus' => 'Wandler'],
+            ]));
+
+            $book = Book::create(['roman_number' => 1, 'title' => 'Alpha', 'author' => 'A']);
+            Book::create([
+                'roman_number' => 2,
+                'title' => 'Mission Mars Beta',
+                'author' => 'B',
+                'type' => BookType::MissionMars,
+            ]);
+
+            $user = $this->actingMember();
+            $this->actingAs($user);
+
+            $this->get('/rezensionen')
+                ->assertOk()
+                ->assertSee($book->title)
+                ->assertSee('Mission Mars Beta');
+        } finally {
+            file_put_contents($path, $original);
+        }
+    }
+
     public function test_show_redirects_when_user_has_no_permission(): void
     {
         $user = $this->actingMember();
