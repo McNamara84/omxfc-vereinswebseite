@@ -115,10 +115,13 @@ describe('char-editor module', () => {
     combatSelect.dispatchEvent(new Event('change'));
     race.value = 'Guul';
     race.dispatchEvent(new Event('change'));
-    expect(document.getElementById('st').value).toBe('1');
+    const stInput = document.getElementById('st');
+    expect(stInput.value).toBe('1');
+    expect(stInput.max).toBe('1');
     race.value = 'Barbar';
     race.dispatchEvent(new Event('change'));
     expect(document.getElementById('barbar-combat-select').value).toBe('Fernkampf');
+    expect(document.getElementById('st').max).toBe('2');
   });
 
   test('selecting Landbewohner culture adds culture skills', async () => {

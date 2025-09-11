@@ -115,11 +115,26 @@ document.addEventListener('DOMContentLoaded', () => {
     recomputeAll();
 
     // === Attribute handling ===
+    function getAttributeMaxForRace(race) {
+        return race === 'Barbar' ? 2 : 1;
+    }
+
+    function setAttributeBase(attributeId, value, race = state.race) {
+        const el = attributeInputs[attributeId];
+        if (!el) return;
+        const max = getAttributeMaxForRace(race);
+        if (value > max) value = max;
+        if (value < -1) value = -1;
+        el.dataset.base = value;
+        el.value = value;
+        el.max = max;
+    }
+
     function onAttributeInput(e) {
         const id = e.target.id;
         let base = parseInt(e.target.value, 10);
         if (isNaN(base)) base = 0;
-        const max = state.race === 'Barbar' ? 2 : 1;
+        const max = getAttributeMaxForRace(state.race);
         if (base > max) base = max;
         if (base < -1) base = -1;
         const old = parseInt(attributeInputs[id].dataset.base || '0', 10);
@@ -127,21 +142,14 @@ document.addEventListener('DOMContentLoaded', () => {
         let maxForThis = state.base.AP + state.raceAPBonus - sumOthers;
         if (maxForThis > max) maxForThis = max;
         if (base > maxForThis) base = maxForThis;
-        attributeInputs[id].dataset.base = base;
-        e.target.value = base;
+        setAttributeBase(id, base);
         recomputeAll();
     }
 
     function enforceAttributeCaps() {
-        const max = state.race === 'Barbar' ? 2 : 1;
         attributeIds.forEach(id => {
-            const el = attributeInputs[id];
-            let base = parseInt(el.dataset.base || '0', 10);
-            if (base > max) base = max;
-            if (base < -1) base = -1;
-            el.dataset.base = base;
-            el.value = base;
-            el.max = max;
+            const base = parseInt(attributeInputs[id].dataset.base || '0', 10);
+            setAttributeBase(id, base);
         });
     }
 
@@ -527,9 +535,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!cache) return;
         attributeIds.forEach(id => {
             if (cache.attributes[id] !== undefined) {
-                attributeInputs[id].max = state.race === 'Barbar' ? 2 : 1;
-                attributeInputs[id].dataset.base = cache.attributes[id];
-                attributeInputs[id].value = cache.attributes[id];
+                setAttributeBase(id, parseInt(cache.attributes[id], 10), race);
             }
         });
         Object.entries(cache.skills).forEach(([name, val]) => {
@@ -593,8 +599,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function applyRaceGuul() {
         state.race = 'Guul';
-        attributeInputs['au'].dataset.base = -1;
-        attributeInputs['au'].value = -1;
+        setAttributeBase('au', -1);
         setFreeMin('Heimlichkeit', 2, 'Rasse');
         setFreeMin('Intuition', 1, 'Rasse');
         setFreeMin('Natürliche Waffen', 1, 'Rasse');
