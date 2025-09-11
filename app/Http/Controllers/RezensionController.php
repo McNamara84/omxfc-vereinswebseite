@@ -83,6 +83,9 @@ class RezensionController extends Controller
         $hardcoversQuery = Book::query()->where('type', BookType::MaddraxHardcover);
         $applyFilters($hardcoversQuery);
 
+        $missionMarsQuery = Book::query()->where('type', BookType::MissionMars);
+        $applyFilters($missionMarsQuery);
+
         $books = $novelsQuery->withCount('reviews')
             ->withExists(['reviews as has_review' => function ($query) use ($user, $teamId) {
                 $query->where('team_id', $teamId)
@@ -92,6 +95,14 @@ class RezensionController extends Controller
             ->get();
 
         $hardcovers = $hardcoversQuery->withCount('reviews')
+            ->withExists(['reviews as has_review' => function ($query) use ($user, $teamId) {
+                $query->where('team_id', $teamId)
+                    ->where('user_id', $user->id);
+            }])
+            ->orderByDesc('roman_number')
+            ->get();
+
+        $missionMars = $missionMarsQuery->withCount('reviews')
             ->withExists(['reviews as has_review' => function ($query) use ($user, $teamId) {
                 $query->where('team_id', $teamId)
                     ->where('user_id', $user->id);
@@ -116,6 +127,7 @@ class RezensionController extends Controller
         return view('reviews.index', [
             'booksByCycle' => $booksByCycle,
             'hardcovers' => $hardcovers,
+            'missionMars' => $missionMars,
             'title' => 'Rezensionen – Offizieller MADDRAX Fanclub e. V.',
             'description' => 'Alle Vereinsrezensionen zu den Maddrax-Romanen im Überblick.',
         ]);

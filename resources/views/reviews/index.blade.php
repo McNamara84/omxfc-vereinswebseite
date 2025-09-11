@@ -65,6 +65,23 @@
                             <x-book-list :books="$cycleBooks->sortByDesc('roman_number')" />
                         </div>
                     </div>
+                    @if($cycle === 'Wandler' && $missionMars->isNotEmpty())
+                        @php
+                            $id = 'mission-mars';
+                            $reviewCount = $missionMars->sum('reviews_count');
+                        @endphp
+                        <div class="mb-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+                            <h2>
+                                <button type="button" class="w-full flex justify-between items-center bg-gray-100 dark:bg-gray-700 px-4 py-3 rounded-t-lg font-semibold" onclick="toggleAccordion('{{ $id }}')">
+                                    Mission Mars-Heftromane ({{ $reviewCount }} {{ $reviewCount === 1 ? 'Rezension' : 'Rezensionen' }})
+                                    <span id="icon-{{ $id }}">+</span>
+                                </button>
+                            </h2>
+                            <div id="content-{{ $id }}" class="hidden bg-white dark:bg-gray-900 px-4 py-2 rounded-b-lg">
+                                <x-book-list :books="$missionMars" />
+                            </div>
+                        </div>
+                    @endif
                 @endforeach
                 @if($hardcovers->isNotEmpty())
                     @php
