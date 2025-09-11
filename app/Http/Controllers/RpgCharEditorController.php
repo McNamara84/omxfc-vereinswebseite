@@ -41,6 +41,6 @@ class RpgCharEditorController extends Controller
 
         $name = Str::slug($request->input('character_name', 'charakter')) ?: 'charakter';
 
-        return Pdf::view('rpg.char-sheet', $data)->download($name . '.pdf');
+        return Pdf::view('rpg.char-sheet', $data)->inline($name . '.pdf');
     }
 }
