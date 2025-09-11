@@ -13,10 +13,17 @@ use App\Models\BookSwap;
 use App\Enums\BookType;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\UploadedFile;
+use Mockery;
 
 class RomantauschControllerTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function tearDown(): void
+    {
+        Mockery::close();
+        parent::tearDown();
+    }
 
     private function actingMember(): User
     {
@@ -185,6 +192,35 @@ class RomantauschControllerTest extends TestCase
         $offer = BookOffer::first();
         $this->assertCount(2, $offer->photos);
         Storage::disk('public')->assertExists($offer->photos[0]);
+    }
+
+    public function test_store_offer_handles_photo_upload_failure(): void
+    {
+        $this->putBookData();
+        $user = $this->actingMember();
+        $this->actingAs($user);
+
+        Storage::fake('public');
+
+        $first = UploadedFile::fake()->image('a.jpg');
+        $failingFile = UploadedFile::fake()->image('b.jpg');
+        $failing = Mockery::mock($failingFile)->makePartial();
+        $failing->shouldReceive('store')->once()->andReturnFalse();
+
+        $response = $this->from(route('romantausch.create-offer', [], false))->post('/romantauschboerse/angebot-speichern', [
+            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
+            'book_number' => 1,
+            'condition' => 'neu',
+            'photos' => [$first, $failing],
+        ]);
+
+        $response->assertRedirect(route('romantausch.create-offer', [], false));
+        $response->assertSessionHas('error', 'Foto-Upload fehlgeschlagen. Bitte versuche es erneut.');
+        $this->assertDatabaseCount('book_offers', 0);
+        $this->assertCount(0, Storage::disk('public')->allFiles());
+
+        $this->get(route('romantausch.create-offer', [], false))
+            ->assertSee('Foto-Upload fehlgeschlagen. Bitte versuche es erneut.');
     }
 
     public function test_offer_detail_view_requires_match(): void

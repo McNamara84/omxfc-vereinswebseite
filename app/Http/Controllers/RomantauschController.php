@@ -15,6 +15,7 @@ use App\Models\Book;
 use App\Mail\BookSwapMatched;
 use App\Models\Activity;
 use App\Enums\BookType;
+use Illuminate\Support\Facades\Storage;
 
 class RomantauschController extends Controller
 {
@@ -74,7 +75,18 @@ class RomantauschController extends Controller
         $photoPaths = [];
         if ($request->hasFile('photos')) {
             foreach ($request->file('photos') as $photo) {
-                $photoPaths[] = $photo->store('book-offers', 'public');
+                try {
+                    $stored = $photo->store('book-offers', 'public');
+                    if (!$stored) {
+                        throw new \RuntimeException('Foto konnte nicht gespeichert werden.');
+                    }
+                    $photoPaths[] = $stored;
+                } catch (\Throwable $e) {
+                    foreach ($photoPaths as $path) {
+                        Storage::disk('public')->delete($path);
+                    }
+                    return redirect()->back()->withInput()->with('error', 'Foto-Upload fehlgeschlagen. Bitte versuche es erneut.');
+                }
             }
         }
 
