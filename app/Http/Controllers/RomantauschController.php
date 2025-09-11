@@ -59,6 +59,8 @@ class RomantauschController extends Controller
             'series' => ['required', Rule::in(array_map(fn ($case) => $case->value, self::ALLOWED_TYPES))],
             'book_number' => 'required|integer',
             'condition' => 'required|string',
+            'photos' => 'nullable|array|max:3',
+            'photos.*' => 'image|max:2048',
         ]);
 
         $book = Book::where('roman_number', $validated['book_number'])
@@ -69,12 +71,20 @@ class RomantauschController extends Controller
             return redirect()->back()->with('error', 'Ausgewählter Roman nicht gefunden.');
         }
 
+        $photoPaths = [];
+        if ($request->hasFile('photos')) {
+            foreach ($request->file('photos') as $photo) {
+                $photoPaths[] = $photo->store('book-offers', 'public');
+            }
+        }
+
         $offer = BookOffer::create([
             'user_id' => Auth::id(),
             'series' => $validated['series'],
             'book_number' => $validated['book_number'],
             'book_title' => $book->title,
             'condition' => $validated['condition'],
+            'photos' => $photoPaths,
         ]);
 
         $offerCount = BookOffer::where('user_id', Auth::id())->count();
@@ -198,6 +208,17 @@ class RomantauschController extends Controller
         }
 
         return redirect()->route('romantausch.index');
+    }
+
+    // Detailansicht eines Angebots, nur für beteiligte Nutzer
+    public function showOffer(BookOffer $offer)
+    {
+        $swap = $offer->swap;
+        $user = Auth::user();
+
+        abort_unless($swap && ($user->id === $offer->user_id || $user->id === $swap->request->user_id), 403);
+
+        return view('romantausch.show_offer', compact('offer'));
     }
 
     private function matchSwap(Model $model, string $type): void

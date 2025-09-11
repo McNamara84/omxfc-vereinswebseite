@@ -23,7 +23,9 @@
                     <ul class="space-y-4">
                         @foreach($activeSwaps as $swap)
                             <li class="bg-gray-100 dark:bg-gray-700 p-3 rounded">
-                                <div class="font-semibold mb-1">{{ $swap->offer->series }} {{ $swap->offer->book_number }} - {{ $swap->offer->book_title }}</div>
+                                <div class="font-semibold mb-1">
+                                    <a href="{{ route('romantausch.show-offer', $swap->offer) }}" class="text-[#8B0116] hover:underline">{{ $swap->offer->series }} {{ $swap->offer->book_number }} - {{ $swap->offer->book_title }}</a>
+                                </div>
                                 <div class="text-sm text-gray-600 dark:text-gray-300 mb-2">
                                     <a href="{{ route('profile.view', $swap->offer->user->id) }}" class="text-[#8B0116] hover:underline">{{ $swap->offer->user->name }}</a> ({{ $swap->offer->user->email }}) ↔ <a href="{{ route('profile.view', $swap->request->user->id) }}" class="text-[#8B0116] hover:underline">{{ $swap->request->user->name }}</a> ({{ $swap->request->user->email }})
                                 </div>

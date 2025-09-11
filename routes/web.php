@@ -169,6 +169,7 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
         Route::get('/', 'index')->name('index');
         Route::get('angebot-erstellen', 'createOffer')->name('create-offer');
         Route::post('angebot-speichern', 'storeOffer')->name('store-offer');
+        Route::get('angebot/{offer}', 'showOffer')->name('show-offer');
         Route::get('anfrage-erstellen', 'createRequest')->name('create-request');
         Route::post('anfrage-speichern', 'storeRequest')->name('store-request');
         Route::post('{offer}/angebot-loeschen', 'deleteOffer')->name('delete-offer');

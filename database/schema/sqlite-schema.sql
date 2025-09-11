@@ -251,6 +251,7 @@ CREATE TABLE IF NOT EXISTS "book_offers"(
   "book_number" integer not null,
   "book_title" varchar not null,
   "condition" varchar not null,
+  "photos" text,
   "completed" tinyint(1) not null default '0',
   "created_at" datetime,
   "updated_at" datetime,
