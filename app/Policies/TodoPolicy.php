@@ -35,7 +35,7 @@ class TodoPolicy
         return $role && in_array($role, [Role::Mitglied, Role::Ehrenmitglied, Role::Kassenwart, Role::Vorstand, Role::Admin], true);
     }
 
-    public function verify(User $user, Todo $todo = null): bool
+    public function verify(User $user): bool
     {
         $role = $this->role($user);
         return $role && in_array($role, [Role::Kassenwart, Role::Vorstand, Role::Admin], true);

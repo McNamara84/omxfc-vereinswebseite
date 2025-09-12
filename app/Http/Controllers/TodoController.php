@@ -161,7 +161,7 @@ class TodoController extends Controller
 
         $canComplete = $todo->assigned_to === $user->id && $todo->status === TodoStatus::Assigned;
 
-        $canVerify = $todo->status === TodoStatus::Completed && $user->can('verify', $todo);
+        $canVerify = $todo->status === TodoStatus::Completed && $user->can('verify', Todo::class);
 
         return view('todos.show', [
             'todo' => $todo,
@@ -304,7 +304,7 @@ class TodoController extends Controller
                 ->with('error', 'Diese Challenge kann nicht verifiziert werden.');
         }
 
-        $this->authorize('verify', $todo);
+        $this->authorize('verify', Todo::class);
 
         // Punkte gutschreiben
         UserPoint::create([
