@@ -97,13 +97,27 @@ class Team extends JetstreamTeam
         return $this->hasMany(UserPoint::class);
     }
 
+    /**
+     * Retrieve the "Mitglieder" team if it exists.
+     *
+     * The result is cached for an hour when present. Missing teams are not
+     * cached to avoid persisting a null value.
+     */
     public static function membersTeam(): ?self
     {
-        return Cache::remember(
-            self::MEMBERS_TEAM_CACHE_KEY,
-            now()->addHour(),
-            fn () => self::where('name', 'Mitglieder')->first()
-        );
+        $cached = Cache::get(self::MEMBERS_TEAM_CACHE_KEY);
+
+        if ($cached instanceof self) {
+            return $cached;
+        }
+
+        $team = self::where('name', 'Mitglieder')->first();
+
+        if ($team) {
+            Cache::put(self::MEMBERS_TEAM_CACHE_KEY, $team, now()->addHour());
+        }
+
+        return $team;
     }
 
     public static function clearMembersTeamCache(): void
@@ -114,7 +128,10 @@ class Team extends JetstreamTeam
     protected static function booted(): void
     {
         static::updated(function (self $team) {
-            if ($team->getOriginal('name') === 'Mitglieder' || $team->name === 'Mitglieder') {
+            if (
+                $team->wasChanged('name') &&
+                ($team->getOriginal('name') === 'Mitglieder' || $team->name === 'Mitglieder')
+            ) {
                 self::clearMembersTeamCache();
             }
         });

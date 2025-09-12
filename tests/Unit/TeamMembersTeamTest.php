@@ -44,21 +44,42 @@ class TeamMembersTeamTest extends TestCase
         $this->assertCount(2, DB::getQueryLog());
     }
 
-    public function test_members_team_cache_cleared_on_team_update(): void
+    public function test_members_team_cache_not_cleared_when_description_updated(): void
     {
         $team = Team::membersTeam();
         $team->update(['description' => 'updated']);
 
         DB::enableQueryLog();
-        $updatedTeam = Team::membersTeam();
-
-        $this->assertCount(1, DB::getQueryLog());
-        $this->assertSame('updated', $updatedTeam->description);
-
-        DB::flushQueryLog();
-        Team::membersTeam();
+        $cachedTeam = Team::membersTeam();
 
         $this->assertCount(0, DB::getQueryLog());
+        $this->assertSame('updated', $cachedTeam->description);
+    }
+
+    public function test_members_team_cache_cleared_when_name_changes(): void
+    {
+        $team = Team::membersTeam();
+        $team->update(['name' => 'Mitglieder-renamed']);
+
+        DB::enableQueryLog();
+        $renamedTeam = Team::membersTeam();
+
+        $this->assertCount(1, DB::getQueryLog());
+        $this->assertSame('Mitglieder-renamed', $renamedTeam->name);
+    }
+
+    public function test_members_team_returns_null_when_not_found(): void
+    {
+        $team = Team::membersTeam();
+        $team->delete();
+
+        DB::enableQueryLog();
+        $firstCall = Team::membersTeam();
+        $secondCall = Team::membersTeam();
+
+        $this->assertNull($firstCall);
+        $this->assertNull($secondCall);
+        $this->assertCount(2, DB::getQueryLog());
     }
 
     public function test_members_team_cache_cleared_on_team_delete(): void
