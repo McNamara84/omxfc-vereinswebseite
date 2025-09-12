@@ -73,6 +73,20 @@ class RewardControllerTest extends TestCase
         $response->assertSee('Statistik - Bewertungen der Hardcover');
     }
 
+    public function test_hardcover_reward_hidden_when_points_insufficient(): void
+    {
+        $user = $this->actingMember(39);
+        $this->actingAs($user);
+
+        $response = $this->get('/belohnungen');
+
+        $response->assertOk();
+        $rewards = $response->viewData('rewards');
+        $reward = collect($rewards)->firstWhere('title', 'Statistik - Bewertungen der Hardcover');
+        $this->assertNotNull($reward);
+        $this->assertEquals(0, $reward['percentage']);
+    }
+
     public function test_hardcover_author_reward_visible(): void
     {
         $user = $this->actingMember(41);
@@ -84,6 +98,20 @@ class RewardControllerTest extends TestCase
         $response->assertSee('Statistik - Maddrax-Hardcover je Autor:in');
     }
 
+    public function test_hardcover_author_reward_hidden_when_points_insufficient(): void
+    {
+        $user = $this->actingMember(40);
+        $this->actingAs($user);
+
+        $response = $this->get('/belohnungen');
+
+        $response->assertOk();
+        $rewards = $response->viewData('rewards');
+        $reward = collect($rewards)->firstWhere('title', 'Statistik - Maddrax-Hardcover je Autor:in');
+        $this->assertNotNull($reward);
+        $this->assertEquals(0, $reward['percentage']);
+    }
+
     public function test_top20_themes_reward_visible(): void
     {
         $user = $this->actingMember(42);
@@ -93,5 +121,19 @@ class RewardControllerTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('Statistik - TOP20 Maddrax-Themen');
+    }
+
+    public function test_top20_themes_reward_hidden_when_points_insufficient(): void
+    {
+        $user = $this->actingMember(41);
+        $this->actingAs($user);
+
+        $response = $this->get('/belohnungen');
+
+        $response->assertOk();
+        $rewards = $response->viewData('rewards');
+        $reward = collect($rewards)->firstWhere('title', 'Statistik - TOP20 Maddrax-Themen');
+        $this->assertNotNull($reward);
+        $this->assertEquals(0, $reward['percentage']);
     }
 }
