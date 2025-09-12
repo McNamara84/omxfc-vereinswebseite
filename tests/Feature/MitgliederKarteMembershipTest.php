@@ -15,7 +15,7 @@ class MitgliederKarteMembershipTest extends TestCase
     {
         $team = Team::factory()->create();
         $user = User::factory()->create();
-        $team->users()->attach($user, ['role' => 'Mitglied']);
+        $team->users()->attach($user, ['role' => \App\Enums\Role::Mitglied->value]);
 
         $members = $team->users()
             ->as('pivot')

@@ -10,6 +10,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use App\Enums\Role;
 
 class KassenbuchController extends Controller
 {
@@ -19,11 +20,13 @@ class KassenbuchController extends Controller
         $team = $user->currentTeam;
 
         // Benutzerrolle ermitteln
-        $userRole = $team->users()
-            ->where('user_id', $user->id)
-            ->first()
-            ->membership
-            ->role;
+        $userRole = Role::from(
+            $team->users()
+                ->where('user_id', $user->id)
+                ->first()
+                ->membership
+                ->role
+        );
 
         // Aktuellen Kassenstand abrufen
         $kassenstand = Kassenstand::where('team_id', $team->id)->first();
@@ -41,7 +44,7 @@ class KassenbuchController extends Controller
         $members = null;
         $kassenbuchEntries = null;
 
-        if (in_array($userRole, ['Vorstand', 'Admin', 'Kassenwart'])) {
+        if (in_array($userRole, [Role::Vorstand, Role::Admin, Role::Kassenwart], true)) {
             $members = $team->users()
                 ->wherePivotNotIn('role', ['Anwärter'])
                 ->orderBy('bezahlt_bis')
@@ -91,13 +94,15 @@ class KassenbuchController extends Controller
         $team = $currentUser->currentTeam;
 
         // Prüfen, ob der aktuelle Benutzer die Rolle "Kassenwart" hat
-        $userRole = $team->users()
-            ->where('user_id', $currentUser->id)
-            ->first()
-            ->membership
-            ->role;
+        $userRole = Role::from(
+            $team->users()
+                ->where('user_id', $currentUser->id)
+                ->first()
+                ->membership
+                ->role
+        );
 
-        if (! in_array($userRole, ['Kassenwart', 'Admin'])) {
+        if (! in_array($userRole, [Role::Kassenwart, Role::Admin], true)) {
             return back()->with('error', 'Du hast keine Berechtigung, Zahlungsdaten zu aktualisieren.');
         }
 
@@ -124,13 +129,15 @@ class KassenbuchController extends Controller
         $team = $user->currentTeam;
 
         // Prüfen, ob der aktuelle Benutzer die Rolle "Kassenwart" hat
-        $userRole = $team->users()
-            ->where('user_id', $user->id)
-            ->first()
-            ->membership
-            ->role;
+        $userRole = Role::from(
+            $team->users()
+                ->where('user_id', $user->id)
+                ->first()
+                ->membership
+                ->role
+        );
 
-        if (! in_array($userRole, ['Kassenwart', 'Admin'])) {
+        if (! in_array($userRole, [Role::Kassenwart, Role::Admin], true)) {
             return back()->with('error', 'Du hast keine Berechtigung, Kassenbucheinträge hinzuzufügen.');
         }
 

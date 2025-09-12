@@ -33,7 +33,7 @@ class RomantauschControllerTest extends TestCase
     {
         $team = Team::membersTeam();
         $user = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($user, ['role' => 'Mitglied']);
+        $team->users()->attach($user, ['role' => \App\Enums\Role::Mitglied->value]);
         return $user;
     }
 

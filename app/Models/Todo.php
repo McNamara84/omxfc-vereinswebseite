@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\TodoStatus;
+use App\Enums\Role;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -101,7 +102,13 @@ class Todo extends Model
      */
     public function canBeAssignedTo(User $user): bool
     {
-        $eligibleRoles = ['Mitglied', 'Ehrenmitglied', 'Kassenwart', 'Vorstand', 'Admin'];
+        $eligibleRoles = [
+            Role::Mitglied->value,
+            Role::Ehrenmitglied->value,
+            Role::Kassenwart->value,
+            Role::Vorstand->value,
+            Role::Admin->value,
+        ];
         $team = $this->team;
 
         if (! $team) {
@@ -121,7 +128,11 @@ class Todo extends Model
      */
     public function canBeCreatedBy(User $user): bool
     {
-        $eligibleRoles = ['Kassenwart', 'Vorstand', 'Admin'];
+        $eligibleRoles = [
+            Role::Kassenwart->value,
+            Role::Vorstand->value,
+            Role::Admin->value,
+        ];
         $team = $this->team;
 
         if (! $team) {
@@ -141,7 +152,11 @@ class Todo extends Model
      */
     public function canBeVerifiedBy(User $user): bool
     {
-        $eligibleRoles = ['Kassenwart', 'Vorstand', 'Admin'];
+        $eligibleRoles = [
+            Role::Kassenwart->value,
+            Role::Vorstand->value,
+            Role::Admin->value,
+        ];
         $team = $this->team;
 
         if (! $team) {

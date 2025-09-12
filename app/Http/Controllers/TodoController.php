@@ -10,6 +10,7 @@ use App\Models\TodoCategory;
 use App\Models\UserPoint;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Enums\Role;
 
 class TodoController extends Controller
 {
@@ -31,10 +32,10 @@ class TodoController extends Controller
         }
 
         $membership = $memberTeam->users()->where('user_id', $user->id)->first();
-        $userRole = $membership ? $membership->membership->role : null;
+        $userRole = $membership ? Role::from($membership->membership->role) : null;
 
-        $canCreateTodos = in_array($userRole, ['Kassenwart', 'Vorstand', 'Admin']);
-        $canVerifyTodos = in_array($userRole, ['Kassenwart', 'Vorstand', 'Admin']);
+        $canCreateTodos = $userRole && in_array($userRole, [Role::Kassenwart, Role::Vorstand, Role::Admin], true);
+        $canVerifyTodos = $userRole && in_array($userRole, [Role::Kassenwart, Role::Vorstand, Role::Admin], true);
 
         // Query-Builder für Todos
         $todosQuery = Todo::where('team_id', $memberTeam->id)
@@ -90,9 +91,9 @@ class TodoController extends Controller
         }
 
         $membership = $memberTeam->users()->where('user_id', $user->id)->first();
-        $userRole = $membership ? $membership->membership->role : null;
+        $userRole = $membership ? Role::from($membership->membership->role) : null;
 
-        if (! in_array($userRole, ['Kassenwart', 'Vorstand', 'Admin'])) {
+        if (! $userRole || ! in_array($userRole, [Role::Kassenwart, Role::Vorstand, Role::Admin], true)) {
             return redirect()->route('todos.index')
                 ->with('error', 'Du hast keine Berechtigung, Challenges zu erstellen.');
         }
@@ -119,9 +120,9 @@ class TodoController extends Controller
         }
 
         $membership = $memberTeam->users()->where('user_id', $user->id)->first();
-        $userRole = $membership ? $membership->membership->role : null;
+        $userRole = $membership ? Role::from($membership->membership->role) : null;
 
-        if (! in_array($userRole, ['Kassenwart', 'Vorstand', 'Admin'])) {
+        if (! $userRole || ! in_array($userRole, [Role::Kassenwart, Role::Vorstand, Role::Admin], true)) {
             return redirect()->route('todos.index')
                 ->with('error', 'Du hast keine Berechtigung, Challenges zu erstellen.');
         }
@@ -161,16 +162,16 @@ class TodoController extends Controller
         }
 
         $membership = $memberTeam->users()->where('user_id', $user->id)->first();
-        $userRole = $membership ? $membership->membership->role : null;
+        $userRole = $membership ? Role::from($membership->membership->role) : null;
 
-        $canAssign = ! $todo->assigned_to && $todo->status === TodoStatus::Open && in_array($userRole, ['Mitglied', 'Ehrenmitglied', 'Kassenwart', 'Vorstand', 'Admin']);
+        $canAssign = ! $todo->assigned_to && $todo->status === TodoStatus::Open && $userRole && in_array($userRole, [Role::Mitglied, Role::Ehrenmitglied, Role::Kassenwart, Role::Vorstand, Role::Admin], true);
 
-        $canEdit = $todo->created_by === $user->id || in_array($userRole, ['Kassenwart', 'Vorstand', 'Admin']);
+        $canEdit = $todo->created_by === $user->id || ($userRole && in_array($userRole, [Role::Kassenwart, Role::Vorstand, Role::Admin], true));
 
         $canComplete = $todo->assigned_to === $user->id && $todo->status === TodoStatus::Assigned;
 
-        $canVerify = $todo->status === TodoStatus::Completed &&
-            in_array($userRole, ['Kassenwart', 'Vorstand', 'Admin']);
+        $canVerify = $todo->status === TodoStatus::Completed && $userRole &&
+            in_array($userRole, [Role::Kassenwart, Role::Vorstand, Role::Admin], true);
 
         return view('todos.show', [
             'todo' => $todo,
@@ -196,9 +197,9 @@ class TodoController extends Controller
         }
 
         $membership = $memberTeam->users()->where('user_id', $user->id)->first();
-        $userRole = $membership ? $membership->membership->role : null;
+        $userRole = $membership ? Role::from($membership->membership->role) : null;
 
-        if ($todo->created_by !== $user->id && ! in_array($userRole, ['Kassenwart', 'Vorstand', 'Admin'])) {
+        if ($todo->created_by !== $user->id && (! $userRole || ! in_array($userRole, [Role::Kassenwart, Role::Vorstand, Role::Admin], true))) {
             abort(403);
         }
 
@@ -224,9 +225,9 @@ class TodoController extends Controller
         }
 
         $membership = $memberTeam->users()->where('user_id', $user->id)->first();
-        $userRole = $membership ? $membership->membership->role : null;
+        $userRole = $membership ? Role::from($membership->membership->role) : null;
 
-        if ($todo->created_by !== $user->id && ! in_array($userRole, ['Kassenwart', 'Vorstand', 'Admin'])) {
+        if ($todo->created_by !== $user->id && (! $userRole || ! in_array($userRole, [Role::Kassenwart, Role::Vorstand, Role::Admin], true))) {
             abort(403);
         }
 
@@ -267,9 +268,9 @@ class TodoController extends Controller
         }
 
         $membership = $memberTeam->users()->where('user_id', $user->id)->first();
-        $userRole = $membership ? $membership->membership->role : null;
+        $userRole = $membership ? Role::from($membership->membership->role) : null;
 
-        if (! in_array($userRole, ['Mitglied', 'Ehrenmitglied', 'Kassenwart', 'Vorstand', 'Admin'])) {
+        if (! $userRole || ! in_array($userRole, [Role::Mitglied, Role::Ehrenmitglied, Role::Kassenwart, Role::Vorstand, Role::Admin], true)) {
             return redirect()->route('todos.show', $todo)
                 ->with('error', 'Sie haben keine Berechtigung, diese Challenge zu übernehmen.');
         }
@@ -330,9 +331,9 @@ class TodoController extends Controller
         }
 
         $membership = $memberTeam->users()->where('user_id', $user->id)->first();
-        $userRole = $membership ? $membership->membership->role : null;
+        $userRole = $membership ? Role::from($membership->membership->role) : null;
 
-        if (! in_array($userRole, ['Kassenwart', 'Vorstand', 'Admin'])) {
+        if (! $userRole || ! in_array($userRole, [Role::Kassenwart, Role::Vorstand, Role::Admin], true)) {
             abort(403);
         }
 

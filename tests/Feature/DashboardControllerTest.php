@@ -18,7 +18,7 @@ class DashboardControllerTest extends TestCase
     {
         $team = Team::membersTeam();
         $user = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($user, ['role' => 'Admin']);
+        $team->users()->attach($user, ['role' => \App\Enums\Role::Admin->value]);
         return $user;
     }
 
@@ -43,7 +43,7 @@ class DashboardControllerTest extends TestCase
 
         $this->assertDatabaseHas('team_user', [
             'user_id' => $applicant->id,
-            'role' => 'Mitglied',
+            'role' => \App\Enums\Role::Mitglied->value,
         ]);
         $this->assertNotNull($applicant->fresh()->mitglied_seit);
         Mail::assertQueued(MitgliedGenehmigtMail::class);
@@ -86,15 +86,15 @@ class DashboardControllerTest extends TestCase
     {
         $team = Team::membersTeam();
         $admin = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($admin, ['role' => 'Admin']);
+        $team->users()->attach($admin, ['role' => \App\Enums\Role::Admin->value]);
 
         $applicant = User::factory()->create(['current_team_id' => $team->id]);
         $team->users()->attach($applicant, ['role' => 'Anwärter']);
 
         $member1 = User::factory()->create(['current_team_id' => $team->id]);
         $member2 = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($member1, ['role' => 'Mitglied']);
-        $team->users()->attach($member2, ['role' => 'Mitglied']);
+        $team->users()->attach($member1, ['role' => \App\Enums\Role::Mitglied->value]);
+        $team->users()->attach($member2, ['role' => \App\Enums\Role::Mitglied->value]);
 
         $category = \App\Models\TodoCategory::first() ?? \App\Models\TodoCategory::create(['name' => 'Test', 'slug' => 'test']);
         $firstTodo = \App\Models\Todo::create([

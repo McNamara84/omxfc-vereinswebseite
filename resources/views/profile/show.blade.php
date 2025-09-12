@@ -12,7 +12,7 @@
             @livewire('profile.update-seriendaten-form')
             <x-section-border />
 
-            @if (Auth::user()->hasRole('Ehrenmitglied'))
+            @if (Auth::user()->hasRole(\App\Enums\Role::Ehrenmitglied))
                 @livewire('profile.update-review-notification-form')
                 <x-section-border />
             @endif

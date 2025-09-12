@@ -172,7 +172,7 @@
                             @elseif($activity->subject_type === \App\Models\AdminMessage::class)
                                 <span class="text-sm flex items-center">
                                     {{ $activity->subject->message }}
-                                    @if(auth()->user()->hasRole('Admin'))
+                                    @if(auth()->user()->hasRole(\App\Enums\Role::Admin))
                                         <form method="POST" action="{{ route('admin.messages.destroy', $activity->subject) }}" class="ml-2">
                                             @csrf
                                             @method('DELETE')

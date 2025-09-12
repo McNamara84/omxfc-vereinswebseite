@@ -62,7 +62,7 @@ class AddTeamMemberTest extends TestCase
         $otherUser = User::factory()->create();
 
         // Add the user once
-        $user->currentTeam->users()->attach($otherUser, ['role' => 'Admin']);
+        $user->currentTeam->users()->attach($otherUser, ['role' => \App\Enums\Role::Admin->value]);
 
         $this->expectException(ValidationException::class);
 

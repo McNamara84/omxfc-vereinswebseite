@@ -3,7 +3,7 @@
         <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
             <div class="flex justify-between items-center {{ request()->routeIs('ag.index') ? 'mb-4' : 'mb-6' }}">
                 <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81]">Arbeitsgruppen</h2>
-                @if(Auth::user()->hasRole('Admin'))
+                @if(Auth::user()->hasRole(\App\Enums\Role::Admin))
                     <a href="{{ route('arbeitsgruppen.create') }}"
                        class="inline-flex items-center px-4 py-2 bg-[#8B0116] dark:bg-[#C41E3A] border border-transparent rounded-md font-semibold text-white hover:bg-[#A50019] dark:hover:bg-[#D63A4D]">
                         AG erstellen

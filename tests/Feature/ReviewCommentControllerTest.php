@@ -31,7 +31,7 @@ class ReviewCommentControllerTest extends TestCase
 
         $team = Team::membersTeam();
         $author = User::factory()->create(['current_team_id' => $team->id, 'notify_new_review' => true]);
-        $team->users()->attach($author, ['role' => 'Mitglied']);
+        $team->users()->attach($author, ['role' => \App\Enums\Role::Mitglied->value]);
         $book = Book::create(['roman_number' => 1, 'title' => 'Roman1', 'author' => 'Foo']);
         $review = Review::create([
             'team_id' => $team->id,

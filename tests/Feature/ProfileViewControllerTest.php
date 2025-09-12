@@ -18,6 +18,7 @@ use App\Models\BookRequest;
 use App\Models\BookSwap;
 use App\Services\MaddraxDataService;
 use Illuminate\Support\Facades\File;
+use App\Enums\Role;
 
 class ProfileViewControllerTest extends TestCase
 {
@@ -27,7 +28,7 @@ class ProfileViewControllerTest extends TestCase
     {
         $team = Team::membersTeam();
         $user = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($user, ['role' => $role]);
+        $team->users()->attach($user, ['role' => Role::from($role)->value]);
         return $user;
     }
 
@@ -86,7 +87,7 @@ class ProfileViewControllerTest extends TestCase
 
         $response->assertOk();
         $response->assertViewHas('isOwnProfile', true);
-        $response->assertViewHas('memberRole', 'Mitglied');
+        $response->assertViewHas('memberRole', Role::Mitglied);
         $response->assertViewHas('canViewDetails', true);
     }
 
@@ -100,7 +101,7 @@ class ProfileViewControllerTest extends TestCase
 
         $response->assertOk();
         $response->assertViewHas('isOwnProfile', false);
-        $response->assertViewHas('memberRole', 'Mitglied');
+        $response->assertViewHas('memberRole', Role::Mitglied);
         $response->assertViewHas('canViewDetails', false);
     }
 
@@ -121,7 +122,7 @@ class ProfileViewControllerTest extends TestCase
         $viewer = $this->createMember();
         $otherTeam = Team::factory()->create(['personal_team' => false, 'name' => 'Other']);
         $target = User::factory()->create(['current_team_id' => $otherTeam->id]);
-        $otherTeam->users()->attach($target, ['role' => 'Mitglied']);
+        $otherTeam->users()->attach($target, ['role' => \App\Enums\Role::Mitglied->value]);
         $this->actingAs($viewer);
 
         $response = $this->get("/profil/{$target->id}");

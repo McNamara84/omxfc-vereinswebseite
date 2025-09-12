@@ -15,7 +15,7 @@ class ArbeitsgruppenLeaderIndexTest extends TestCase
     {
         $team = Team::membersTeam();
         $user = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($user, ['role' => 'Mitglied']);
+        $team->users()->attach($user, ['role' => \App\Enums\Role::Mitglied->value]);
         return $user;
     }
 
@@ -27,7 +27,7 @@ class ArbeitsgruppenLeaderIndexTest extends TestCase
             'user_id' => $leader->id,
             'personal_team' => false,
         ]);
-        $ag->users()->attach($leader, ['role' => 'Mitglied']);
+        $ag->users()->attach($leader, ['role' => \App\Enums\Role::Mitglied->value]);
 
         return [$leader, $ag];
     }

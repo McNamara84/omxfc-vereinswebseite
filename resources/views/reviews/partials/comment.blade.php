@@ -33,7 +33,7 @@
         </div>
     @endif
 
-    @if(auth()->id() === $comment->user_id || in_array($role ?? null, ['Vorstand','Admin'], true))
+    @if(auth()->id() === $comment->user_id || in_array($role ?? null, [\App\Enums\Role::Vorstand, \App\Enums\Role::Admin], true))
         <form method="POST" action="{{ route('reviews.comments.destroy', $comment) }}" class="mt-2">
             @csrf
             @method('DELETE')

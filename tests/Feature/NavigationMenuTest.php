@@ -31,7 +31,7 @@ class NavigationMenuTest extends TestCase
     {
         $team = Team::membersTeam();
         $user = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($user, ['role' => 'Admin']);
+        $team->users()->attach($user, ['role' => \App\Enums\Role::Admin->value]);
 
         $response = $this->actingAs($user)->get('/');
 
@@ -42,7 +42,7 @@ class NavigationMenuTest extends TestCase
     {
         $team = Team::membersTeam();
         $user = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($user, ['role' => 'Mitglied']);
+        $team->users()->attach($user, ['role' => \App\Enums\Role::Mitglied->value]);
 
         $response = $this->actingAs($user)->get('/');
 
@@ -52,7 +52,7 @@ class NavigationMenuTest extends TestCase
     {
         $team = Team::membersTeam();
         $user = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($user, ['role' => 'Admin']);
+        $team->users()->attach($user, ['role' => \App\Enums\Role::Admin->value]);
 
         $response = $this->actingAs($user)->get('/');
         $response->assertDontSee(route('hoerbuecher.create'));
@@ -62,7 +62,7 @@ class NavigationMenuTest extends TestCase
     {
         $team = Team::membersTeam();
         $user = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($user, ['role' => 'Mitglied']);
+        $team->users()->attach($user, ['role' => \App\Enums\Role::Mitglied->value]);
 
         $response = $this->actingAs($user)->get('/');
 

@@ -29,7 +29,7 @@ class ArbeitsgruppenControllerTest extends TestCase
             'personal_team' => false,
             'name' => 'AG Test',
         ]);
-        $ag->users()->attach($leader, ['role' => 'Mitglied']);
+        $ag->users()->attach($leader, ['role' => \App\Enums\Role::Mitglied->value]);
 
         $this->actingAs($leader);
 
@@ -103,7 +103,7 @@ class ArbeitsgruppenControllerTest extends TestCase
             'personal_team' => false,
             'name' => 'Meine AG',
         ]);
-        $ag->users()->attach($leader, ['role' => 'Mitglied']);
+        $ag->users()->attach($leader, ['role' => \App\Enums\Role::Mitglied->value]);
 
         $this->actingAs($leader);
 
@@ -138,7 +138,7 @@ class ArbeitsgruppenControllerTest extends TestCase
             'personal_team' => false,
             'name' => 'AG Test',
         ]);
-        $ag->users()->attach($leader, ['role' => 'Mitglied']);
+        $ag->users()->attach($leader, ['role' => \App\Enums\Role::Mitglied->value]);
 
         $newUser = $this->createMemberWithRole();
 
@@ -162,7 +162,7 @@ class ArbeitsgruppenControllerTest extends TestCase
             'personal_team' => false,
             'name' => 'AG Test',
         ]);
-        $ag->users()->attach($leader, ['role' => 'Mitglied']);
+        $ag->users()->attach($leader, ['role' => \App\Enums\Role::Mitglied->value]);
 
         $newUser = $this->createMemberWithRole();
 
@@ -185,7 +185,7 @@ class ArbeitsgruppenControllerTest extends TestCase
             'personal_team' => false,
             'name' => 'AG Test',
         ]);
-        $ag->users()->attach($leader, ['role' => 'Mitglied']);
+        $ag->users()->attach($leader, ['role' => \App\Enums\Role::Mitglied->value]);
 
         for ($i = 0; $i < 4; $i++) {
             $user = $this->createMemberWithRole();
@@ -213,7 +213,7 @@ class ArbeitsgruppenControllerTest extends TestCase
             'personal_team' => false,
             'name' => 'AG Test',
         ]);
-        $ag->users()->attach($leader, ['role' => 'Mitglied']);
+        $ag->users()->attach($leader, ['role' => \App\Enums\Role::Mitglied->value]);
 
         $member = $this->createMemberWithRole();
         $ag->users()->attach($member, ['role' => 'Mitwirkender']);
@@ -234,7 +234,7 @@ class ArbeitsgruppenControllerTest extends TestCase
             'personal_team' => false,
             'name' => 'AG Test',
         ]);
-        $ag->users()->attach($leader, ['role' => 'Mitglied']);
+        $ag->users()->attach($leader, ['role' => \App\Enums\Role::Mitglied->value]);
 
         $member = $this->createMemberWithRole();
         $ag->users()->attach($member, ['role' => 'Mitwirkender']);

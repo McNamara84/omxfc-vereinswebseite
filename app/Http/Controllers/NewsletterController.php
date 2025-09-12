@@ -8,18 +8,19 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rule;
+use App\Enums\Role;
 
 class NewsletterController extends Controller
 {
     /**
      * Roles that can receive newsletters.
      */
-    private const ROLES = ['Mitglied', 'Ehrenmitglied', 'Kassenwart', 'Vorstand', 'Admin'];
+    private const ROLES = [Role::Mitglied, Role::Ehrenmitglied, Role::Kassenwart, Role::Vorstand, Role::Admin];
 
     /**
      * Default role pre-selected on the form. Members are the usual audience.
      */
-    private const DEFAULT_ROLE = 'Mitglied';
+    private const DEFAULT_ROLE = Role::Mitglied;
 
     /**
      * Display the newsletter form.
@@ -28,10 +29,9 @@ class NewsletterController extends Controller
     {
         $user = Auth::user();
         $team = $user?->currentTeam;
-        if (! $team || ! $team->hasUserWithRole($user, 'Admin')) {
+        if (! $team || ! $team->hasUserWithRole($user, Role::Admin->value)) {
             abort(403);
         }
-
         $roles = self::ROLES;
         $defaultRole = self::DEFAULT_ROLE;
 
@@ -45,13 +45,13 @@ class NewsletterController extends Controller
     {
         $user = Auth::user();
         $team = $user?->currentTeam;
-        if (! $team || ! $team->hasUserWithRole($user, 'Admin')) {
+        if (! $team || ! $team->hasUserWithRole($user, Role::Admin->value)) {
             abort(403);
         }
 
         $data = $request->validate([
             'roles' => ['required', 'array'],
-            'roles.*' => ['string', Rule::in(self::ROLES)],
+            'roles.*' => ['string', Rule::in(array_map(fn(Role $r) => $r->value, self::ROLES))],
             'subject' => ['required', 'string'],
             'topics' => ['required', 'array', 'min:1'],
             'topics.*.title' => ['required', 'string'],
@@ -66,7 +66,7 @@ class NewsletterController extends Controller
         $recipients = $membersTeam->users()->wherePivotIn('role', $data['roles'])->get();
 
         if ($request->boolean('test')) {
-            $recipients = $membersTeam->users()->wherePivot('role', 'Admin')->get();
+            $recipients = $membersTeam->users()->wherePivot('role', Role::Admin->value)->get();
 
             if ($recipients->isEmpty()) {
                 return redirect()->route('newsletter.create')

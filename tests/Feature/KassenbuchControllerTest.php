@@ -7,6 +7,7 @@ use App\Models\Team;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
+use App\Enums\Role;
 
 class KassenbuchControllerTest extends TestCase
 {
@@ -16,7 +17,7 @@ class KassenbuchControllerTest extends TestCase
     {
         $team = Team::membersTeam();
         $user = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($user, ['role' => $role]);
+        $team->users()->attach($user, ['role' => Role::from($role)->value]);
 
         return $user;
     }
@@ -53,7 +54,7 @@ class KassenbuchControllerTest extends TestCase
 
         $team = $kassenwart->currentTeam;
         $member = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($member, ['role' => 'Mitglied']);
+        $team->users()->attach($member, ['role' => \App\Enums\Role::Mitglied->value]);
 
         $response = $this->from('/kassenbuch')->put("/kassenbuch/zahlung-aktualisieren/{$member->id}", [
             'mitgliedsbeitrag' => 42,
@@ -81,7 +82,7 @@ class KassenbuchControllerTest extends TestCase
         $response->assertOk();
         $this->assertDatabaseHas('kassenstand', ['team_id' => $user->currentTeam->id, 'betrag' => 0.00]);
 
-        $response->assertViewHas('userRole', 'Mitglied');
+        $response->assertViewHas('userRole', Role::Mitglied);
         $this->assertNull($response->viewData('members'));
         $this->assertNull($response->viewData('kassenbuchEntries'));
     }
@@ -105,7 +106,7 @@ class KassenbuchControllerTest extends TestCase
 
         $team = $kassenwart->currentTeam;
         $member = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($member, ['role' => 'Mitglied']);
+        $team->users()->attach($member, ['role' => \App\Enums\Role::Mitglied->value]);
 
         \App\Models\KassenbuchEntry::create([
             'team_id' => $team->id,
@@ -119,7 +120,7 @@ class KassenbuchControllerTest extends TestCase
         $response = $this->get('/kassenbuch');
 
         $response->assertOk();
-        $response->assertViewHas('userRole', 'Kassenwart');
+        $response->assertViewHas('userRole', Role::Kassenwart);
         $this->assertNotNull($response->viewData('members'));
         $entries = $response->viewData('kassenbuchEntries');
         $this->assertCount(1, $entries);
@@ -137,7 +138,7 @@ class KassenbuchControllerTest extends TestCase
             'mitglied_seit' => '2020-01-01',
             'mitgliedsbeitrag' => 36.00,
         ]);
-        $team->users()->attach($target, ['role' => 'Mitglied']);
+        $team->users()->attach($target, ['role' => \App\Enums\Role::Mitglied->value]);
 
         $response = $this->from('/kassenbuch')->put("/kassenbuch/zahlung-aktualisieren/{$target->id}", [
             'mitgliedsbeitrag' => 42,

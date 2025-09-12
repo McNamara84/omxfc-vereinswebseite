@@ -77,7 +77,7 @@
                 let icon;
                 
                 // Rollenbasierte Marker-Zuweisung (vereinfacht)
-                if (member.role === 'Vorstand' || member.role === 'Kassenwart') {
+                if (member.role === '{{ \App\Enums\Role::Vorstand->value }}' || member.role === '{{ \App\Enums\Role::Kassenwart->value }}') {
                     icon = vorstandIcon;
                 } else if (member.role === 'Ehrenmitglied') {
                     icon = ehrenmitgliedIcon;

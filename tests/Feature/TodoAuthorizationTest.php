@@ -17,7 +17,7 @@ class TodoAuthorizationTest extends TestCase
     {
         $team = Team::membersTeam();
         $user = User::factory()->create();
-        $team->users()->attach($user, ['role' => 'Mitglied']);
+        $team->users()->attach($user, ['role' => \App\Enums\Role::Mitglied->value]);
         $this->actingAs($user);
 
         $response = $this->get('/aufgaben/erstellen');
@@ -30,7 +30,7 @@ class TodoAuthorizationTest extends TestCase
     {
         $team = Team::membersTeam();
         $user = User::factory()->create();
-        $team->users()->attach($user, ['role' => 'Admin']);
+        $team->users()->attach($user, ['role' => \App\Enums\Role::Admin->value]);
         $this->actingAs($user);
 
         TodoCategory::create(['name' => 'Test', 'slug' => 'test']);

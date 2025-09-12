@@ -6,6 +6,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
+use App\Enums\Role;
 
 class EnsureAdminOrVorstand
 {
@@ -18,7 +19,7 @@ class EnsureAdminOrVorstand
     {
         $user = Auth::user();
 
-        if ($user && ($user->hasRole('Admin') || $user->hasRole('Vorstand'))) {
+        if ($user && ($user->hasRole(Role::Admin) || $user->hasRole(Role::Vorstand))) {
             return $next($request);
         }
 

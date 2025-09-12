@@ -5,6 +5,7 @@ namespace App\Policies;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Auth\Access\HandlesAuthorization;
+use App\Enums\Role;
 
 class TeamPolicy
 {
@@ -47,7 +48,7 @@ class TeamPolicy
      */
     public function addTeamMember(User $user, Team $team): bool
     {
-        return $user->hasRole('Admin') || $user->ownsTeam($team);
+        return $user->hasRole(Role::Admin) || $user->ownsTeam($team);
     }
 
     /**

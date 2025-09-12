@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use App\Services\MaddraxDataService;
 use Illuminate\Support\Str;
+use App\Enums\Role;
 
 class ProfileViewController extends Controller
 {
@@ -35,13 +36,13 @@ class ProfileViewController extends Controller
             }
 
             // Korrekte Ermittlung der Rolle des anzuzeigenden Nutzers
-            $memberRole = $membershipInTeam->membership->role;
+            $memberRole = Role::from($membershipInTeam->membership->role);
         } else {
             // Bei eigenem Profil die eigene Rolle anzeigen
             $membershipInTeam = $team->users()
                 ->where('user_id', $currentUser->id)
                 ->first();
-            $memberRole = $membershipInTeam ? $membershipInTeam->membership->role : 'Mitglied';
+            $memberRole = $membershipInTeam ? Role::from($membershipInTeam->membership->role) : Role::Mitglied;
         }
 
         // Korrekte Ermittlung der Rolle des eingeloggten Nutzers
@@ -53,11 +54,11 @@ class ProfileViewController extends Controller
             return redirect()->route('dashboard')->with('error', 'Teamzugehörigkeit nicht gefunden.');
         }
 
-        $currentUserRole = $currentUserMembership->membership->role;
+        $currentUserRole = Role::from($currentUserMembership->membership->role);
 
         // Prüfe, ob der Benutzer erweiterte Rechte hat (für detaillierte Ansicht)
-        $allowedRoles = ['Kassenwart', 'Vorstand', 'Admin'];
-        $canViewDetails = $isOwnProfile || in_array($currentUserRole, $allowedRoles);
+        $allowedRoles = [Role::Kassenwart, Role::Vorstand, Role::Admin];
+        $canViewDetails = $isOwnProfile || in_array($currentUserRole, $allowedRoles, true);
 
         $lastActivity = DB::table('sessions')
             ->where('user_id', $user->id)

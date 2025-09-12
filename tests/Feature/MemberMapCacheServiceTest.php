@@ -35,8 +35,8 @@ class MemberMapCacheServiceTest extends TestCase
             'current_team_id' => $team->id,
         ]);
 
-        $team->users()->attach($user1, ['role' => 'Mitglied']);
-        $team->users()->attach($user2, ['role' => 'Mitglied']);
+        $team->users()->attach($user1, ['role' => \App\Enums\Role::Mitglied->value]);
+        $team->users()->attach($user2, ['role' => \App\Enums\Role::Mitglied->value]);
 
         $service = new MemberMapCacheService();
 
@@ -71,7 +71,7 @@ class MemberMapCacheServiceTest extends TestCase
             'current_team_id' => $team->id,
         ]);
 
-        $team->users()->attach($user, ['role' => 'Mitglied']);
+        $team->users()->attach($user, ['role' => \App\Enums\Role::Mitglied->value]);
 
         $service = new MemberMapCacheService();
 
@@ -110,9 +110,9 @@ class MemberMapCacheServiceTest extends TestCase
             'current_team_id' => $team->id,
         ]);
 
-        $team->users()->attach($valid, ['role' => 'Mitglied']);
+        $team->users()->attach($valid, ['role' => \App\Enums\Role::Mitglied->value]);
         $team->users()->attach($anwaerter, ['role' => 'Anwärter']);
-        $team->users()->attach($noPlz, ['role' => 'Mitglied']);
+        $team->users()->attach($noPlz, ['role' => \App\Enums\Role::Mitglied->value]);
 
         $service = new MemberMapCacheService();
 
@@ -140,7 +140,7 @@ class MemberMapCacheServiceTest extends TestCase
             'current_team_id' => $team->id,
         ]);
 
-        $team->users()->attach($user, ['role' => 'Mitglied']);
+        $team->users()->attach($user, ['role' => \App\Enums\Role::Mitglied->value]);
 
         $service = new MemberMapCacheService();
 
@@ -170,7 +170,7 @@ class MemberMapCacheServiceTest extends TestCase
             'current_team_id' => $team->id,
         ]);
 
-        $team->users()->attach($user, ['role' => 'Mitglied']);
+        $team->users()->attach($user, ['role' => \App\Enums\Role::Mitglied->value]);
 
         $service = new MemberMapCacheService();
 

@@ -22,7 +22,7 @@ class DeleteTeamTest extends TestCase
         ]));
 
         $team->users()->attach(
-            $otherUser = User::factory()->create(), ['role' => 'Mitglied']
+            $otherUser = User::factory()->create(), ['role' => \App\Enums\Role::Mitglied->value]
         );
 
         Livewire::test(DeleteTeamForm::class, ['team' => $team->fresh()])

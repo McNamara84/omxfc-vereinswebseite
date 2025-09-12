@@ -6,7 +6,7 @@
             <form action="{{ route('arbeitsgruppen.update', $team) }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 @method('PUT')
-                @php($isAdmin = Auth::user()->hasRole('Admin'))
+                @php($isAdmin = Auth::user()->hasRole(\App\Enums\Role::Admin))
 
                 <div class="mb-4">
                     <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Name der AG</label>

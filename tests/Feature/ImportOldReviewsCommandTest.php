@@ -37,7 +37,7 @@ class ImportOldReviewsCommandTest extends TestCase
         $team = Team::membersTeam();
         $book = Book::create(['roman_number' => 1, 'title' => 'Roman1', 'author' => 'Autor1']);
         $user = User::factory()->create(['email' => 'user@example.com', 'current_team_id' => $team->id]);
-        $team->users()->attach($user, ['role' => 'Mitglied']);
+        $team->users()->attach($user, ['role' => \App\Enums\Role::Mitglied->value]);
 
         // create nine existing reviews so that the import triggers the 10th point
         for ($i = 1; $i <= 9; $i++) {

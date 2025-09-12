@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 use App\Actions\Jetstream\AddTeamMember;
+use App\Enums\Role;
 
 class ArbeitsgruppenController extends Controller
 {
@@ -37,7 +38,7 @@ class ArbeitsgruppenController extends Controller
 
         $query = $this->agQuery();
 
-        if (!$user->hasRole('Admin')) {
+        if (! $user->hasRole(Role::Admin)) {
             $query = $query->where('user_id', $user->id);
 
             if (!(clone $query)->exists()) {
@@ -87,7 +88,7 @@ class ArbeitsgruppenController extends Controller
      */
     public function create(Request $request)
     {
-        abort_unless($request->user()->hasRole('Admin'), 403);
+        abort_unless($request->user()->hasRole(Role::Admin), 403);
 
         $users = User::orderBy('name')->get();
 
@@ -101,7 +102,7 @@ class ArbeitsgruppenController extends Controller
      */
     public function store(Request $request)
     {
-        abort_unless($request->user()->hasRole('Admin'), 403);
+        abort_unless($request->user()->hasRole(Role::Admin), 403);
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
@@ -146,7 +147,7 @@ class ArbeitsgruppenController extends Controller
     public function edit(Request $request, Team $team)
     {
         $user = $request->user();
-        if (!$user->hasRole('Admin') && $team->user_id !== $user->id) {
+        if (! $user->hasRole(Role::Admin) && $team->user_id !== $user->id) {
             abort(403);
         }
 
@@ -175,7 +176,7 @@ class ArbeitsgruppenController extends Controller
     public function update(Request $request, Team $team)
     {
         $user = $request->user();
-        if (!$user->hasRole('Admin') && $team->user_id !== $user->id) {
+        if (! $user->hasRole(Role::Admin) && $team->user_id !== $user->id) {
             abort(403);
         }
 
@@ -188,7 +189,7 @@ class ArbeitsgruppenController extends Controller
             'logo' => 'nullable|image|max:2048',
         ]);
 
-        if (!$user->hasRole('Admin')) {
+        if (! $user->hasRole(Role::Admin)) {
             $validated['leader_id'] = $team->user_id;
             $validated['name'] = $team->name;
         }
@@ -204,7 +205,7 @@ class ArbeitsgruppenController extends Controller
             'logo_path' => $logoPath,
         ]);
 
-        if ($user->hasRole('Admin') && $team->wasChanged('user_id')) {
+        if ($user->hasRole(Role::Admin) && $team->wasChanged('user_id')) {
             $memberTeam = Team::membersTeam();
             $membership = $memberTeam
                 ? DB::table('team_user')
@@ -226,7 +227,7 @@ class ArbeitsgruppenController extends Controller
     public function addMember(Request $request, Team $team, AddTeamMember $adder)
     {
         $user = $request->user();
-        if (!$user->hasRole('Admin') && $team->user_id !== $user->id) {
+        if (! $user->hasRole(Role::Admin) && $team->user_id !== $user->id) {
             abort(403);
         }
 

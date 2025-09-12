@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
+use App\Enums\Role;
 
 class ReviewCommentController extends Controller
 {
@@ -25,17 +26,19 @@ class ReviewCommentController extends Controller
     /**
      * Liest die Rolle des eingeloggten Nutzers im Team "Mitglieder" aus der Pivot-Tabelle.
      */
-    protected function getRoleInMemberTeam(): ?string
+    protected function getRoleInMemberTeam(): ?Role
     {
         $team = Team::membersTeam();
         if (! $team) {
             return null;
         }
 
-        return DB::table('team_user')
+        $role = DB::table('team_user')
             ->where('team_id', $team->id)
             ->where('user_id', Auth::id())
             ->value('role');
+
+        return Role::tryFrom($role);
     }
 
     /**
@@ -52,7 +55,7 @@ class ReviewCommentController extends Controller
             ->where('user_id', $user->id)
             ->exists();
 
-        if (! ($hasOwn || in_array($role, ['Ehrenmitglied', 'Vorstand'], true))) {
+        if (! ($hasOwn || in_array($role, [Role::Ehrenmitglied, Role::Vorstand], true))) {
             abort(403);
         }
 
@@ -111,7 +114,7 @@ class ReviewCommentController extends Controller
         $user = Auth::user();
         $role = $this->getRoleInMemberTeam();
 
-        if ($user->id !== $comment->user_id && ! in_array($role, ['Vorstand', 'Admin'], true)) {
+        if ($user->id !== $comment->user_id && ! in_array($role, [Role::Vorstand, Role::Admin], true)) {
             abort(403);
         }
 
