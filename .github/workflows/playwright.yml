@@ -20,6 +20,12 @@ jobs:
       - run: composer install --no-interaction --prefer-dist
       - run: cp .env.example .env
       - run: php artisan key:generate
+      - name: Configure SQLite
+        run: |
+          sed -i 's/^DB_CONNECTION=.*/DB_CONNECTION=sqlite/' .env
+          sed -i 's/^DB_DATABASE=.*/DB_DATABASE=database\/database.sqlite/' .env
+          touch database/database.sqlite
+      - run: php artisan migrate --force
       - run: npm ci
       - run: npx playwright install --with-deps
       - run: npx playwright test
