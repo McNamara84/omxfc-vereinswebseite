@@ -17,7 +17,7 @@ class BookOfferModelTest extends TestCase
 
     private function createMember(): User
     {
-        $team = Team::where('name', 'Mitglieder')->first();
+        $team = Team::membersTeam();
         $user = User::factory()->create(['current_team_id' => $team->id]);
         $team->users()->attach($user, ['role' => 'Mitglied']);
 

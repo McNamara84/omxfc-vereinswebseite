@@ -13,6 +13,7 @@ use App\Models\UserPoint;
 use App\Models\User;
 use Carbon\Carbon;
 use Laravel\Jetstream\Team as JetstreamTeam;
+use Illuminate\Support\Facades\Cache;
 
 /**
  * @property int $id
@@ -28,6 +29,10 @@ class Team extends JetstreamTeam
 {
     /** @use HasFactory<\Database\Factories\TeamFactory> */
     use HasFactory;
+
+    public const MEMBERS_TEAM_CACHE_KEY = 'team.members';
+
+    protected static ?self $membersTeamCache = null;
 
     /**
      * The attributes that are mass assignable.
@@ -92,5 +97,17 @@ class Team extends JetstreamTeam
     public function userPoints(): HasMany
     {
         return $this->hasMany(UserPoint::class);
+    }
+
+    public static function membersTeam(): self
+    {
+        if (static::$membersTeamCache) {
+            return static::$membersTeamCache;
+        }
+
+        return static::$membersTeamCache = Cache::rememberForever(
+            self::MEMBERS_TEAM_CACHE_KEY,
+            fn () => self::where('name', 'Mitglieder')->firstOrFail()
+        );
     }
 }

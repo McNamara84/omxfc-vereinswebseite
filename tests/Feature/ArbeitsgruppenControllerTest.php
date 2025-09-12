@@ -13,7 +13,7 @@ class ArbeitsgruppenControllerTest extends TestCase
 
     private function createMemberWithRole(string $role = 'Mitglied'): User
     {
-        $memberTeam = Team::where('name', 'Mitglieder')->first();
+        $memberTeam = Team::membersTeam();
         $user = User::factory()->create(['current_team_id' => $memberTeam->id]);
         $memberTeam->users()->attach($user, ['role' => $role]);
 

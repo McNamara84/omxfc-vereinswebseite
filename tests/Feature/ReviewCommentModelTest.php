@@ -16,7 +16,7 @@ class ReviewCommentModelTest extends TestCase
 
     private function createMember(string $role = 'Mitglied'): User
     {
-        $team = Team::where('name', 'Mitglieder')->first();
+        $team = Team::membersTeam();
         $user = User::factory()->create(['current_team_id' => $team->id]);
         $team->users()->attach($user, ['role' => $role]);
 
@@ -25,7 +25,7 @@ class ReviewCommentModelTest extends TestCase
 
     private function createReview(?User $author = null): Review
     {
-        $team = Team::where('name', 'Mitglieder')->first();
+        $team = Team::membersTeam();
         $author = $author ?: $this->createMember();
         $book = Book::create([
             'roman_number' => 1,

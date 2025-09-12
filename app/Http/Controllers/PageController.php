@@ -54,7 +54,7 @@ class PageController extends Controller
         ];
 
 
-        $team = Team::where('name', 'Mitglieder')->first();
+        $team = Team::membersTeam();
 
         if ($team) {
             $memberCount = $team->users()

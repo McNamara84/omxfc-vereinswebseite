@@ -15,7 +15,7 @@ class KassenbuchEntryModelTest extends TestCase
 
     private function createMember(string $role = 'Kassenwart'): User
     {
-        $team = Team::where('name', 'Mitglieder')->first();
+        $team = Team::membersTeam();
         $user = User::factory()->create(['current_team_id' => $team->id]);
         $team->users()->attach($user, ['role' => $role]);
 
@@ -25,7 +25,7 @@ class KassenbuchEntryModelTest extends TestCase
     public function test_kassenbuch_entry_can_be_created(): void
     {
         $user = $this->createMember();
-        $team = Team::where('name', 'Mitglieder')->first();
+        $team = Team::membersTeam();
 
         $entry = KassenbuchEntry::create([
             'team_id' => $team->id,
@@ -50,7 +50,7 @@ class KassenbuchEntryModelTest extends TestCase
     public function test_mass_assignment_sets_attributes(): void
     {
         $user = $this->createMember();
-        $team = Team::where('name', 'Mitglieder')->first();
+        $team = Team::membersTeam();
 
         $entry = KassenbuchEntry::create([
             'team_id' => $team->id,
@@ -72,7 +72,7 @@ class KassenbuchEntryModelTest extends TestCase
     public function test_kassenbuch_entry_belongs_to_team(): void
     {
         $user = $this->createMember();
-        $team = Team::where('name', 'Mitglieder')->first();
+        $team = Team::membersTeam();
 
         $entry = KassenbuchEntry::create([
             'team_id' => $team->id,
@@ -89,7 +89,7 @@ class KassenbuchEntryModelTest extends TestCase
     public function test_kassenbuch_entry_belongs_to_creator(): void
     {
         $user = $this->createMember();
-        $team = Team::where('name', 'Mitglieder')->first();
+        $team = Team::membersTeam();
 
         $entry = KassenbuchEntry::create([
             'team_id' => $team->id,
@@ -106,7 +106,7 @@ class KassenbuchEntryModelTest extends TestCase
     public function test_casts_transform_attributes(): void
     {
         $user = $this->createMember();
-        $team = Team::where('name', 'Mitglieder')->first();
+        $team = Team::membersTeam();
 
         $entry = KassenbuchEntry::create([
             'team_id' => $team->id,

@@ -13,7 +13,7 @@ class RedirectIfAnwaerterTest extends TestCase
 
     private function createUser(string $role): User
     {
-        $team = Team::where('name', 'Mitglieder')->first();
+        $team = Team::membersTeam();
         $user = User::factory()->create(['current_team_id' => $team->id]);
         $team->users()->attach($user, ['role' => $role]);
         return $user;

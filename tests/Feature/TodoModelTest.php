@@ -15,7 +15,7 @@ class TodoModelTest extends TestCase
 
     private function createMember(string $role = 'Mitglied'): User
     {
-        $team = Team::where('name', 'Mitglieder')->first();
+        $team = Team::membersTeam();
         $user = User::factory()->create(['current_team_id' => $team->id]);
         $team->users()->attach($user, ['role' => $role]);
         return $user;
@@ -23,7 +23,7 @@ class TodoModelTest extends TestCase
 
     private function createTodo(User $creator, array $attrs = []): Todo
     {
-        $team = Team::where('name', 'Mitglieder')->first();
+        $team = Team::membersTeam();
         $category = TodoCategory::first() ?? TodoCategory::create(['name' => 'Test', 'slug' => 'test']);
         return Todo::create(array_merge([
             'team_id' => $team->id,

@@ -35,7 +35,7 @@ class ActivityFeedTest extends TestCase
 
     private function actingMember(string $role = 'Mitglied'): User
     {
-        $team = Team::where('name', 'Mitglieder')->first();
+        $team = Team::membersTeam();
         $user = User::factory()->create(['current_team_id' => $team->id]);
         $team->users()->attach($user, ['role' => $role]);
         return $user;

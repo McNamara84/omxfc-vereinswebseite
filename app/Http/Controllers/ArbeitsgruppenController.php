@@ -125,7 +125,7 @@ class ArbeitsgruppenController extends Controller
         ]);
 
         // Attach leader to team with existing role if available
-        $memberTeam = Team::where('name', 'Mitglieder')->first();
+        $memberTeam = Team::membersTeam();
         $membership = $memberTeam
             ? DB::table('team_user')
                 ->where('team_id', $memberTeam->id)
@@ -154,7 +154,7 @@ class ArbeitsgruppenController extends Controller
 
         $users = User::orderBy('name')->get();
 
-        $memberTeam = Team::where('name', 'Mitglieder')->first();
+        $memberTeam = Team::membersTeam();
         $availableMembers = $memberTeam
             ? $memberTeam->users()
                 ->whereNotIn('users.id', $team->users->pluck('id'))
@@ -205,7 +205,7 @@ class ArbeitsgruppenController extends Controller
         ]);
 
         if ($user->hasRole('Admin') && $team->wasChanged('user_id')) {
-            $memberTeam = Team::where('name', 'Mitglieder')->first();
+            $memberTeam = Team::membersTeam();
             $membership = $memberTeam
                 ? DB::table('team_user')
                     ->where('team_id', $memberTeam->id)

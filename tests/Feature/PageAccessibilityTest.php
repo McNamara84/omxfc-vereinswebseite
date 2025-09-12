@@ -36,7 +36,7 @@ class PageAccessibilityTest extends TestCase
 
     public function test_home_page_shows_correct_member_count(): void
     {
-        $team = Team::where('name', 'Mitglieder')->first();
+        $team = Team::membersTeam();
 
         $team->users()->attach(User::factory()->create(), ['role' => 'Mitglied']);
         $team->users()->attach(User::factory()->create(), ['role' => 'Anwärter']);

@@ -15,7 +15,7 @@ class MitgliederKarteFeatureTest extends TestCase
 
     private function actingMember(string $role = 'Mitglied', array $attributes = []): User
     {
-        $team = Team::where('name', 'Mitglieder')->first();
+        $team = Team::membersTeam();
         $user = User::factory()->create(array_merge(['current_team_id' => $team->id], $attributes));
         $team->users()->attach($user, ['role' => $role]);
 

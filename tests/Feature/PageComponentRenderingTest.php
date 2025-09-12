@@ -21,7 +21,7 @@ class PageComponentRenderingTest extends TestCase
 
     public function test_member_page_component_renders_for_dashboard(): void
     {
-        $team = Team::where('name', 'Mitglieder')->first();
+        $team = Team::membersTeam();
         $user = User::factory()->create(['current_team_id' => $team->id]);
         $team->users()->attach($user, ['role' => 'Mitglied']);
 

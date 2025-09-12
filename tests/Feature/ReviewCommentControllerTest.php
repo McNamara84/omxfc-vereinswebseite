@@ -18,7 +18,7 @@ class ReviewCommentControllerTest extends TestCase
 
     private function actingMember(string $role = 'Mitglied'): User
     {
-        $team = Team::where('name', 'Mitglieder')->first();
+        $team = Team::membersTeam();
         $user = User::factory()->create(['current_team_id' => $team->id]);
         $team->users()->attach($user, ['role' => $role]);
 
@@ -29,7 +29,7 @@ class ReviewCommentControllerTest extends TestCase
     {
         Mail::fake();
 
-        $team = Team::where('name', 'Mitglieder')->first();
+        $team = Team::membersTeam();
         $author = User::factory()->create(['current_team_id' => $team->id, 'notify_new_review' => true]);
         $team->users()->attach($author, ['role' => 'Mitglied']);
         $book = Book::create(['roman_number' => 1, 'title' => 'Roman1', 'author' => 'Foo']);
@@ -59,7 +59,7 @@ class ReviewCommentControllerTest extends TestCase
 
     public function test_member_without_own_review_cannot_comment(): void
     {
-        $team = Team::where('name', 'Mitglieder')->first();
+        $team = Team::membersTeam();
         $author = $this->actingMember();
         $book = Book::create(['roman_number' => 1, 'title' => 'Roman1', 'author' => 'Foo']);
         $review = Review::create([
@@ -85,7 +85,7 @@ class ReviewCommentControllerTest extends TestCase
 
     public function test_member_without_required_role_cannot_comment(): void
     {
-        $team = Team::where('name', 'Mitglieder')->first();
+        $team = Team::membersTeam();
         $author = $this->actingMember();
         $book = Book::create(['roman_number' => 1, 'title' => 'Roman1', 'author' => 'Foo']);
         $review = Review::create([
@@ -111,7 +111,7 @@ class ReviewCommentControllerTest extends TestCase
 
     public function test_author_can_update_own_comment(): void
     {
-        $team = Team::where('name', 'Mitglieder')->first();
+        $team = Team::membersTeam();
         $author = $this->actingMember();
         $book = Book::create(['roman_number' => 1, 'title' => 'Roman1', 'author' => 'Foo']);
         $review = Review::create([
@@ -141,7 +141,7 @@ class ReviewCommentControllerTest extends TestCase
 
     public function test_other_member_cannot_update_comment(): void
     {
-        $team = Team::where('name', 'Mitglieder')->first();
+        $team = Team::membersTeam();
         $author = $this->actingMember();
         $book = Book::create(['roman_number' => 1, 'title' => 'Roman1', 'author' => 'Foo']);
         $review = Review::create([
@@ -172,7 +172,7 @@ class ReviewCommentControllerTest extends TestCase
 
     public function test_author_can_delete_own_comment(): void
     {
-        $team = Team::where('name', 'Mitglieder')->first();
+        $team = Team::membersTeam();
         $author = $this->actingMember();
         $book = Book::create(['roman_number' => 1, 'title' => 'Roman1', 'author' => 'Foo']);
         $review = Review::create([
@@ -199,7 +199,7 @@ class ReviewCommentControllerTest extends TestCase
 
     public function test_vorstand_can_delete_any_comment(): void
     {
-        $team = Team::where('name', 'Mitglieder')->first();
+        $team = Team::membersTeam();
         $author = $this->actingMember();
         $book = Book::create(['roman_number' => 1, 'title' => 'Roman1', 'author' => 'Foo']);
         $review = Review::create([
@@ -227,7 +227,7 @@ class ReviewCommentControllerTest extends TestCase
 
     public function test_comment_forms_have_unique_ids(): void
     {
-        $team = Team::where('name', 'Mitglieder')->first();
+        $team = Team::membersTeam();
         $user = $this->actingMember();
         $book = Book::create(['roman_number' => 1, 'title' => 'Roman1', 'author' => 'Foo']);
         $review = Review::create([

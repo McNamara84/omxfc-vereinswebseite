@@ -35,7 +35,7 @@ class StatistikTest extends TestCase
 
     private function actingMemberWithPoints(int $points): User
     {
-        $team = Team::where('name', 'Mitglieder')->first();
+        $team = Team::membersTeam();
         $user = User::factory()->create(['current_team_id' => $team->id]);
         $team->users()->attach($user, ['role' => 'Mitglied']);
         $user->incrementTeamPoints($points);
@@ -248,7 +248,7 @@ class StatistikTest extends TestCase
     public function test_review_statistics_visible_with_enough_points(): void
     {
         $this->createDataFile();
-        $team = Team::where('name', 'Mitglieder')->first();
+        $team = Team::membersTeam();
 
         $viewer = $this->actingMemberWithPoints(12);
         $this->actingAs($viewer);

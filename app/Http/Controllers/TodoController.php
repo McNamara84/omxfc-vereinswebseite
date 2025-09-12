@@ -19,7 +19,7 @@ class TodoController extends Controller
     public function index(Request $request)
     {
         $user = Auth::user();
-        $memberTeam = Team::where('name', 'Mitglieder')->first();
+        $memberTeam = Team::membersTeam();
 
         if (! $memberTeam) {
             return view('todos.index', [
@@ -82,7 +82,7 @@ class TodoController extends Controller
     public function create()
     {
         $user = Auth::user();
-        $memberTeam = Team::where('name', 'Mitglieder')->first();
+        $memberTeam = Team::membersTeam();
 
         if (! $memberTeam) {
             return redirect()->route('todos.index')
@@ -111,7 +111,7 @@ class TodoController extends Controller
     public function store(Request $request)
     {
         $user = Auth::user();
-        $memberTeam = Team::where('name', 'Mitglieder')->first();
+        $memberTeam = Team::membersTeam();
 
         if (! $memberTeam) {
             return redirect()->route('todos.index')
@@ -153,7 +153,7 @@ class TodoController extends Controller
     public function show(Todo $todo)
     {
         $user = Auth::user();
-        $memberTeam = Team::where('name', 'Mitglieder')->first();
+        $memberTeam = Team::membersTeam();
 
         if (! $memberTeam || $todo->team_id !== $memberTeam->id) {
             return redirect()->route('todos.index')
@@ -188,7 +188,7 @@ class TodoController extends Controller
     public function edit(Todo $todo)
     {
         $user = Auth::user();
-        $memberTeam = Team::where('name', 'Mitglieder')->first();
+        $memberTeam = Team::membersTeam();
 
         if (! $memberTeam || $todo->team_id !== $memberTeam->id) {
             return redirect()->route('todos.index')
@@ -216,7 +216,7 @@ class TodoController extends Controller
     public function update(Request $request, Todo $todo)
     {
         $user = Auth::user();
-        $memberTeam = Team::where('name', 'Mitglieder')->first();
+        $memberTeam = Team::membersTeam();
 
         if (! $memberTeam || $todo->team_id !== $memberTeam->id) {
             return redirect()->route('todos.index')
@@ -254,7 +254,7 @@ class TodoController extends Controller
     public function assign(Todo $todo)
     {
         $user = Auth::user();
-        $memberTeam = Team::where('name', 'Mitglieder')->first();
+        $memberTeam = Team::membersTeam();
 
         if (! $memberTeam || $todo->team_id !== $memberTeam->id) {
             return redirect()->route('todos.index')
@@ -317,7 +317,7 @@ class TodoController extends Controller
     public function verify(Todo $todo)
     {
         $user = Auth::user();
-        $memberTeam = Team::where('name', 'Mitglieder')->first();
+        $memberTeam = Team::membersTeam();
 
         if (! $memberTeam || $todo->team_id !== $memberTeam->id) {
             return redirect()->route('todos.index')
