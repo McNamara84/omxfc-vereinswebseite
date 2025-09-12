@@ -18,6 +18,8 @@ jobs:
         with:
           node-version: '20'
       - run: composer install --no-interaction --prefer-dist
+      - run: cp .env.example .env
+      - run: php artisan key:generate
       - run: npm ci
       - run: npx playwright install --with-deps
       - run: npx playwright test
