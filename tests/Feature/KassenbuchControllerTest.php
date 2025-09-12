@@ -178,4 +178,29 @@ class KassenbuchControllerTest extends TestCase
             'betrag' => 0.00,
         ]);
     }
+
+    public function test_kassenbuch_forms_have_accessibility_attributes(): void
+    {
+        $kassenwart = $this->actingMember('Kassenwart');
+        $this->actingAs($kassenwart);
+
+        $response = $this->get('/kassenbuch');
+
+        $response->assertSee('aria-describedby="mitgliedsbeitrag-error"', false);
+        $response->assertSee('aria-describedby="buchungsdatum-error"', false);
+    }
+
+    public function test_add_entry_requires_fields(): void
+    {
+        $kassenwart = $this->actingMember('Kassenwart');
+        $this->actingAs($kassenwart);
+
+        // initialize kassenstand
+        $this->get('/kassenbuch');
+
+        $response = $this->from('/kassenbuch')->post('/kassenbuch/eintrag-hinzufuegen', []);
+
+        $response->assertRedirect('/kassenbuch');
+        $response->assertSessionHasErrors(['buchungsdatum', 'betrag', 'beschreibung', 'typ']);
+    }
 }

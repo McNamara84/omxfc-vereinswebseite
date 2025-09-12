@@ -9,25 +9,14 @@
                     @csrf
                     @method('PUT')
 
-                    <div class="mb-4">
-                        <label for="title" class="block text-gray-700 dark:text-gray-300 font-medium">Rezensionstitel</label>
-                        <input type="text" name="title" id="title" value="{{ old('title', $review->title) }}"
-                               class="mt-1 block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 rounded" required>
-                        @error('title')
-                            <p class="text-red-600 dark:text-red-400 text-sm mt-1">{{ $message }}</p>
-                        @enderror
-                    </div>
+                    <x-form name="title" label="Rezensionstitel" class="mb-4">
+                        <input id="title" name="title" aria-describedby="title-error" type="text" value="{{ old('title', $review->title) }}" class="mt-1 block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 rounded" required />
+                    </x-form>
 
-                    <div class="mb-4">
-                        <label for="content" class="block text-gray-700 dark:text-gray-300 font-medium">Rezensionstext</label>
-                        <textarea name="content" id="content" rows="8"
-                                  class="mt-1 block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 rounded"
-                                  required>{{ old('content', $review->content) }}</textarea>
+                    <x-form name="content" label="Rezensionstext" class="mb-4">
+                        <textarea id="content" name="content" aria-describedby="content-error" rows="8" class="mt-1 block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 rounded" required>{{ old('content', $review->content) }}</textarea>
                         <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Mindestens 140 Zeichen.</p>
-                        @error('content')
-                            <p class="text-red-600 dark:text-red-400 text-sm mt-1">{{ $message }}</p>
-                        @enderror
-                    </div>
+                    </x-form>
 
                     <div class="flex flex-col sm:flex-row sm:justify-between gap-4">
                         <a href="{{ route('reviews.show', $review->book) }}" class="text-gray-600 dark:text-gray-400 hover:underline">Abbrechen</a>

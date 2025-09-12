@@ -277,18 +277,15 @@
                         <form :action="'/kassenbuch/zahlung-aktualisieren/' + user_id" method="POST">
                             @csrf
                             @method('PUT')
-                            <div class="mb-4">
-                                <label for="mitgliedsbeitrag" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Mitgliedsbeitrag (€)</label>
-                                <input type="number" step="0.01" min="0" id="mitgliedsbeitrag" name="mitgliedsbeitrag" x-model="mitgliedsbeitrag" class="shadow-sm focus:ring-[#8B0116] focus:border-[#8B0116] block w-full sm:text-sm border-gray-300 dark:border-gray-700 dark:bg-gray-700 dark:text-white rounded-md">
-                            </div>
-                            <div class="mb-4">
-                                <label for="bezahlt_bis" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Bezahlt bis</label>
-                                <input type="date" id="bezahlt_bis" name="bezahlt_bis" x-model="bezahlt_bis" class="shadow-sm focus:ring-[#8B0116] focus:border-[#8B0116] block w-full sm:text-sm border-gray-300 dark:border-gray-700 dark:bg-gray-700 dark:text-white rounded-md">
-                            </div>
-                            <div class="mb-4">
-                                <label for="mitglied_seit" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Mitglied seit</label>
-                                <input type="date" id="mitglied_seit" name="mitglied_seit" x-model="mitglied_seit" class="shadow-sm focus:ring-[#8B0116] focus:border-[#8B0116] block w-full sm:text-sm border-gray-300 dark:border-gray-700 dark:bg-gray-700 dark:text-white rounded-md">
-                            </div>
+                              <x-form name="mitgliedsbeitrag" label="Mitgliedsbeitrag (€)" class="mb-4">
+                                  <input id="mitgliedsbeitrag" name="mitgliedsbeitrag" aria-describedby="mitgliedsbeitrag-error" type="number" step="0.01" min="0" x-model="mitgliedsbeitrag" class="shadow-sm focus:ring-[#8B0116] focus:border-[#8B0116] block w-full sm:text-sm border-gray-300 dark:border-gray-700 dark:bg-gray-700 dark:text-white rounded-md" />
+                              </x-form>
+                              <x-form name="bezahlt_bis" label="Bezahlt bis" class="mb-4">
+                                  <input id="bezahlt_bis" name="bezahlt_bis" aria-describedby="bezahlt_bis-error" type="date" x-model="bezahlt_bis" class="shadow-sm focus:ring-[#8B0116] focus:border-[#8B0116] block w-full sm:text-sm border-gray-300 dark:border-gray-700 dark:bg-gray-700 dark:text-white rounded-md" />
+                              </x-form>
+                              <x-form name="mitglied_seit" label="Mitglied seit" class="mb-4">
+                                  <input id="mitglied_seit" name="mitglied_seit" aria-describedby="mitglied_seit-error" type="date" x-model="mitglied_seit" class="shadow-sm focus:ring-[#8B0116] focus:border-[#8B0116] block w-full sm:text-sm border-gray-300 dark:border-gray-700 dark:bg-gray-700 dark:text-white rounded-md" />
+                              </x-form>
                             <div class="mt-6 flex justify-end">
                                 <button type="button" @click="open = false" class="mr-3 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none">
                                     Abbrechen
@@ -342,20 +339,17 @@
                         <form action="{{ route('kassenbuch.add-entry') }}" method="POST">
                             @csrf
                             
-                            <div class="mb-4">
-                                <label for="buchungsdatum" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Buchungsdatum</label>
-                                <input type="date" id="buchungsdatum" name="buchungsdatum" required value="{{ date('Y-m-d') }}" class="shadow-sm focus:ring-[#8B0116] focus:border-[#8B0116] block w-full sm:text-sm border-gray-300 dark:border-gray-700 dark:bg-gray-700 dark:text-white rounded-md">
-                            </div>
-                            
-                            <div class="mb-4">
-                                <label for="beschreibung" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Beschreibung</label>
-                                <input type="text" id="beschreibung" name="beschreibung" required class="shadow-sm focus:ring-[#8B0116] focus:border-[#8B0116] block w-full sm:text-sm border-gray-300 dark:border-gray-700 dark:bg-gray-700 dark:text-white rounded-md">
-                            </div>
-                            
-                            <div class="mb-4">
-                                <label for="betrag" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Betrag (€)</label>
-                                <input type="number" step="0.01" min="0.01" id="betrag" name="betrag" required class="shadow-sm focus:ring-[#8B0116] focus:border-[#8B0116] block w-full sm:text-sm border-gray-300 dark:border-gray-700 dark:bg-gray-700 dark:text-white rounded-md">
-                            </div>
+                                <x-form name="buchungsdatum" label="Buchungsdatum" class="mb-4">
+                                    <input id="buchungsdatum" name="buchungsdatum" aria-describedby="buchungsdatum-error" type="date" required value="{{ date('Y-m-d') }}" class="shadow-sm focus:ring-[#8B0116] focus:border-[#8B0116] block w-full sm:text-sm border-gray-300 dark:border-gray-700 dark:bg-gray-700 dark:text-white rounded-md" />
+                                </x-form>
+
+                                <x-form name="beschreibung" label="Beschreibung" class="mb-4">
+                                    <input id="beschreibung" name="beschreibung" aria-describedby="beschreibung-error" type="text" required class="shadow-sm focus:ring-[#8B0116] focus:border-[#8B0116] block w-full sm:text-sm border-gray-300 dark:border-gray-700 dark:bg-gray-700 dark:text-white rounded-md" />
+                                </x-form>
+
+                                <x-form name="betrag" label="Betrag (€)" class="mb-4">
+                                    <input id="betrag" name="betrag" aria-describedby="betrag-error" type="number" step="0.01" min="0.01" required class="shadow-sm focus:ring-[#8B0116] focus:border-[#8B0116] block w-full sm:text-sm border-gray-300 dark:border-gray-700 dark:bg-gray-700 dark:text-white rounded-md" />
+                                </x-form>
                             
                             <div class="mb-4">
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Typ</label>

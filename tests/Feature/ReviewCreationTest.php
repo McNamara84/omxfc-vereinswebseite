@@ -138,4 +138,38 @@ class ReviewCreationTest extends TestCase
             'content' => str_repeat('B', 150),
         ])->assertForbidden();
     }
+
+    public function test_create_review_form_has_accessibility_attributes(): void
+    {
+        $book = Book::create([
+            'roman_number' => 99,
+            'title' => 'Acc Test',
+            'author' => 'Author',
+        ]);
+
+        $user = $this->actingMember();
+        $this->actingAs($user);
+
+        $response = $this->get("/rezensionen/{$book->id}/erstellen");
+
+        $response->assertSee('aria-describedby="title-error"', false);
+        $response->assertSee('aria-describedby="content-error"', false);
+    }
+
+    public function test_review_creation_validation_errors(): void
+    {
+        $book = Book::create([
+            'roman_number' => 100,
+            'title' => 'Val Test',
+            'author' => 'Author',
+        ]);
+
+        $user = $this->actingMember();
+        $this->actingAs($user);
+
+        $response = $this->from("/rezensionen/{$book->id}/erstellen")->post("/rezensionen/{$book->id}", []);
+
+        $response->assertRedirect("/rezensionen/{$book->id}/erstellen");
+        $response->assertSessionHasErrors(['title', 'content']);
+    }
 }

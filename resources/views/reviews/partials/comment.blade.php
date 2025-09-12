@@ -21,7 +21,9 @@
             <form x-show="editing" method="POST" action="{{ route('reviews.comments.update', $comment) }}" class="mt-2">
                 @csrf
                 @method('PUT')
-                <textarea name="content" rows="2" class="w-full border-gray-300 dark:border-gray-600 dark:bg-gray-800 rounded mt-1" required>{{ old('content', $comment->content) }}</textarea>
+                <x-form name="content" label="Kommentar">
+                    <textarea id="content" name="content" aria-describedby="content-error" rows="2" class="w-full border-gray-300 dark:border-gray-600 dark:bg-gray-800 rounded mt-1" required>{{ old('content', $comment->content) }}</textarea>
+                </x-form>
                 <div class="mt-2 flex flex-col sm:flex-row gap-2">
                     <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded">Speichern</button>
                     <button type="button" @click="editing = false" class="bg-gray-600 hover:bg-gray-700 text-white px-3 py-1 rounded">Abbrechen</button>
@@ -61,7 +63,9 @@
     <form method="POST" action="{{ route('reviews.comments.store', $comment->review) }}" class="mt-2">
         @csrf
         <input type="hidden" name="parent_id" value="{{ $comment->id }}">
-        <textarea name="content" rows="2" class="w-full border-gray-300 dark:border-gray-600 dark:bg-gray-800 rounded mt-1" required></textarea>
+        <x-form name="content" label="Kommentar">
+            <textarea id="content" name="content" aria-describedby="content-error" rows="2" class="w-full border-gray-300 dark:border-gray-600 dark:bg-gray-800 rounded mt-1" required></textarea>
+        </x-form>
         <button type="submit" class="mt-2 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded">Antworten</button>
     </form>
 </div>

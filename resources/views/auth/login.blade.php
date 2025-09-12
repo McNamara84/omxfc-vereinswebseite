@@ -11,16 +11,12 @@
         @endsession
         <form method="POST" action="{{ route('login') }}">
             @csrf
-            <div>
-                <x-label for="email" value="{{ __('E-Mail') }}" />
-                <x-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required
-                    autofocus autocomplete="username" />
-            </div>
-            <div class="mt-4">
-                <x-label for="password" value="{{ __('Passwort') }}" />
-                <x-input id="password" class="block mt-1 w-full" type="password" name="password" required
-                    autocomplete="current-password" />
-            </div>
+            <x-form name="email" label="{{ __('E-Mail') }}">
+                <input id="email" name="email" aria-describedby="email-error" type="email" value="{{ old('email') }}" required autofocus autocomplete="username" class="block mt-1 w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm" />
+            </x-form>
+            <x-form name="password" label="{{ __('Passwort') }}" class="mt-4">
+                <input id="password" name="password" aria-describedby="password-error" type="password" required autocomplete="current-password" class="block mt-1 w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm" />
+            </x-form>
             <div class="block mt-4">
                 <label for="remember_me" class="flex items-center">
                     <x-checkbox id="remember_me" name="remember" />
