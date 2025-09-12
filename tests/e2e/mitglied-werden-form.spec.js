@@ -18,7 +18,7 @@ test('form requires acceptance of Satzung before enabling submit', async ({ page
   await fillRequiredFields(page);
   const submitButton = page.getByRole('button', { name: 'Antrag absenden' });
   await expect(submitButton).toBeDisabled();
-  await page.getByLabel(/Satzung/).check();
+  await page.locator('#satzung_check').check();
   await expect(submitButton).toBeEnabled();
 });
 
@@ -32,7 +32,8 @@ test('updates membership fee output when slider changes', async ({ page }) => {
 
 test('shows error message for invalid email address', async ({ page }) => {
   await page.goto('/mitglied-werden');
-  await page.getByLabel('Mailadresse').fill('not-an-email');
-  await page.getByLabel('Vorname').click();
+  const email = page.getByLabel('Mailadresse');
+  await email.fill('not-an-email');
+  await email.blur();
   await expect(page.locator('#error-mail')).toHaveText('Bitte gültige Mailadresse eingeben.');
 });
