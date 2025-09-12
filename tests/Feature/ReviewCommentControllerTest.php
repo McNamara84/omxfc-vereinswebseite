@@ -224,4 +224,40 @@ class ReviewCommentControllerTest extends TestCase
             'id' => $comment->id,
         ]);
     }
+
+    public function test_comment_forms_have_unique_ids(): void
+    {
+        $team = Team::where('name', 'Mitglieder')->first();
+        $user = $this->actingMember();
+        $book = Book::create(['roman_number' => 1, 'title' => 'Roman1', 'author' => 'Foo']);
+        $review = Review::create([
+            'team_id' => $team->id,
+            'user_id' => $user->id,
+            'book_id' => $book->id,
+            'title' => 'Review',
+            'content' => str_repeat('B', 140),
+        ]);
+        $commentOne = ReviewComment::create([
+            'review_id' => $review->id,
+            'user_id' => $user->id,
+            'content' => 'First',
+        ]);
+        $commentTwo = ReviewComment::create([
+            'review_id' => $review->id,
+            'user_id' => $user->id,
+            'content' => 'Second',
+        ]);
+
+        $this->actingAs($user);
+        $response = $this->get(route('reviews.show', $book));
+        $html = $response->getContent();
+
+        $this->assertSame(1, substr_count($html, 'id="content"'));
+        foreach ([$commentOne, $commentTwo] as $comment) {
+            $this->assertStringContainsString('id="edit-content-' . $comment->id . '"', $html);
+            $this->assertStringContainsString('aria-describedby="edit-content-' . $comment->id . '-error"', $html);
+            $this->assertStringContainsString('id="reply-content-' . $comment->id . '"', $html);
+            $this->assertStringContainsString('aria-describedby="reply-content-' . $comment->id . '-error"', $html);
+        }
+    }
 }
