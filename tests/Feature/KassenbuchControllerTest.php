@@ -146,8 +146,7 @@ class KassenbuchControllerTest extends TestCase
             'mitglied_seit' => '2024-01-01',
         ]);
 
-        $response->assertRedirect('/kassenbuch');
-        $response->assertSessionHas('error');
+        $response->assertForbidden();
 
         $target->refresh();
         $this->assertEquals('2024-06-30', $target->bezahlt_bis->format('Y-m-d'));
@@ -170,8 +169,7 @@ class KassenbuchControllerTest extends TestCase
             'typ' => KassenbuchEntryType::Einnahme->value,
         ]);
 
-        $response->assertRedirect('/kassenbuch');
-        $response->assertSessionHas('error');
+        $response->assertForbidden();
 
         $this->assertDatabaseCount('kassenbuch_entries', 0);
         $this->assertDatabaseHas('kassenstand', [

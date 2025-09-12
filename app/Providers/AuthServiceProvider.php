@@ -7,9 +7,15 @@ use Illuminate\Support\Facades\Gate;
 use App\Models\Team;
 use App\Models\BookOffer;
 use App\Models\BookRequest;
+use App\Models\Todo;
+use App\Models\KassenbuchEntry;
+use App\Models\User;
 use App\Policies\TeamPolicy;
 use App\Policies\BookOfferPolicy;
 use App\Policies\BookRequestPolicy;
+use App\Policies\TodoPolicy;
+use App\Policies\KassenbuchEntryPolicy;
+use App\Policies\UserPolicy;
 
 class AuthServiceProvider extends ServiceProvider
 {
@@ -22,6 +28,9 @@ class AuthServiceProvider extends ServiceProvider
         Team::class => TeamPolicy::class,
         BookOffer::class => BookOfferPolicy::class,
         BookRequest::class => BookRequestPolicy::class,
+        Todo::class => TodoPolicy::class,
+        KassenbuchEntry::class => KassenbuchEntryPolicy::class,
+        User::class => UserPolicy::class,
     ];
 
     /**

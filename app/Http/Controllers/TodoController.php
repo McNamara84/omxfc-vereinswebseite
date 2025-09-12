@@ -39,8 +39,8 @@ class TodoController extends Controller
         $membership = $memberTeam->users()->where('user_id', $user->id)->first();
         $userRole = $membership ? Role::from($membership->membership->role) : null;
 
-        $canCreateTodos = $userRole && in_array($userRole, [Role::Kassenwart, Role::Vorstand, Role::Admin], true);
-        $canVerifyTodos = $userRole && in_array($userRole, [Role::Kassenwart, Role::Vorstand, Role::Admin], true);
+        $canCreateTodos = $user->can('create', Todo::class);
+        $canVerifyTodos = $user->can('verify', Todo::class);
 
         // Query-Builder für Todos
         $todosQuery = Todo::where('team_id', $memberTeam->id)
@@ -93,13 +93,7 @@ class TodoController extends Controller
                 ->with('error', 'Team "Mitglieder" nicht gefunden.');
         }
 
-        $membership = $memberTeam->users()->where('user_id', $user->id)->first();
-        $userRole = $membership ? Role::from($membership->membership->role) : null;
-
-        if (! $userRole || ! in_array($userRole, [Role::Kassenwart, Role::Vorstand, Role::Admin], true)) {
-            return redirect()->route('todos.index')
-                ->with('error', 'Du hast keine Berechtigung, Challenges zu erstellen.');
-        }
+        $this->authorize('create', Todo::class);
 
         $categories = TodoCategory::orderBy('name')->get();
 
@@ -122,13 +116,7 @@ class TodoController extends Controller
                 ->with('error', 'Team "Mitglieder" nicht gefunden.');
         }
 
-        $membership = $memberTeam->users()->where('user_id', $user->id)->first();
-        $userRole = $membership ? Role::from($membership->membership->role) : null;
-
-        if (! $userRole || ! in_array($userRole, [Role::Kassenwart, Role::Vorstand, Role::Admin], true)) {
-            return redirect()->route('todos.index')
-                ->with('error', 'Du hast keine Berechtigung, Challenges zu erstellen.');
-        }
+        $this->authorize('create', Todo::class);
 
         $request->validate([
             'title' => 'required|string|max:255',
@@ -167,14 +155,13 @@ class TodoController extends Controller
         $membership = $memberTeam->users()->where('user_id', $user->id)->first();
         $userRole = $membership ? Role::from($membership->membership->role) : null;
 
-        $canAssign = ! $todo->assigned_to && $todo->status === TodoStatus::Open && $userRole && in_array($userRole, [Role::Mitglied, Role::Ehrenmitglied, Role::Kassenwart, Role::Vorstand, Role::Admin], true);
+        $canAssign = ! $todo->assigned_to && $todo->status === TodoStatus::Open && $user->can('assign', $todo);
 
-        $canEdit = $todo->created_by === $user->id || ($userRole && in_array($userRole, [Role::Kassenwart, Role::Vorstand, Role::Admin], true));
+        $canEdit = $user->can('update', $todo);
 
         $canComplete = $todo->assigned_to === $user->id && $todo->status === TodoStatus::Assigned;
 
-        $canVerify = $todo->status === TodoStatus::Completed && $userRole &&
-            in_array($userRole, [Role::Kassenwart, Role::Vorstand, Role::Admin], true);
+        $canVerify = $todo->status === TodoStatus::Completed && $user->can('verify', Todo::class);
 
         return view('todos.show', [
             'todo' => $todo,
@@ -199,12 +186,7 @@ class TodoController extends Controller
                 ->with('error', 'Challenge nicht gefunden.');
         }
 
-        $membership = $memberTeam->users()->where('user_id', $user->id)->first();
-        $userRole = $membership ? Role::from($membership->membership->role) : null;
-
-        if ($todo->created_by !== $user->id && (! $userRole || ! in_array($userRole, [Role::Kassenwart, Role::Vorstand, Role::Admin], true))) {
-            abort(403);
-        }
+        $this->authorize('update', $todo);
 
         $categories = TodoCategory::orderBy('name')->get();
 
@@ -227,12 +209,7 @@ class TodoController extends Controller
                 ->with('error', 'Challenge nicht gefunden.');
         }
 
-        $membership = $memberTeam->users()->where('user_id', $user->id)->first();
-        $userRole = $membership ? Role::from($membership->membership->role) : null;
-
-        if ($todo->created_by !== $user->id && (! $userRole || ! in_array($userRole, [Role::Kassenwart, Role::Vorstand, Role::Admin], true))) {
-            abort(403);
-        }
+        $this->authorize('update', $todo);
 
         $request->validate([
             'title' => 'required|string|max:255',
@@ -270,13 +247,7 @@ class TodoController extends Controller
                 ->with('error', 'Diese Challenge wurde bereits übernommen oder ist nicht mehr verfügbar.');
         }
 
-        $membership = $memberTeam->users()->where('user_id', $user->id)->first();
-        $userRole = $membership ? Role::from($membership->membership->role) : null;
-
-        if (! $userRole || ! in_array($userRole, [Role::Mitglied, Role::Ehrenmitglied, Role::Kassenwart, Role::Vorstand, Role::Admin], true)) {
-            return redirect()->route('todos.show', $todo)
-                ->with('error', 'Sie haben keine Berechtigung, diese Challenge zu übernehmen.');
-        }
+        $this->authorize('assign', $todo);
 
         $todo->update([
             'assigned_to' => $user->id,
@@ -333,12 +304,7 @@ class TodoController extends Controller
                 ->with('error', 'Diese Challenge kann nicht verifiziert werden.');
         }
 
-        $membership = $memberTeam->users()->where('user_id', $user->id)->first();
-        $userRole = $membership ? Role::from($membership->membership->role) : null;
-
-        if (! $userRole || ! in_array($userRole, [Role::Kassenwart, Role::Vorstand, Role::Admin], true)) {
-            abort(403);
-        }
+        $this->authorize('verify', Todo::class);
 
         // Punkte gutschreiben
         UserPoint::create([

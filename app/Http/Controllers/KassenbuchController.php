@@ -44,7 +44,7 @@ class KassenbuchController extends Controller
         $members = null;
         $kassenbuchEntries = null;
 
-        if (in_array($userRole, [Role::Vorstand, Role::Admin, Role::Kassenwart], true)) {
+        if ($user->can('viewAll', KassenbuchEntry::class)) {
             $members = $team->users()
                 ->wherePivotNotIn('role', ['Anwärter'])
                 ->orderBy('bezahlt_bis')
@@ -93,18 +93,7 @@ class KassenbuchController extends Controller
         $currentUser = Auth::user();
         $team = $currentUser->currentTeam;
 
-        // Prüfen, ob der aktuelle Benutzer die Rolle "Kassenwart" hat
-        $userRole = Role::from(
-            $team->users()
-                ->where('user_id', $currentUser->id)
-                ->first()
-                ->membership
-                ->role
-        );
-
-        if (! in_array($userRole, [Role::Kassenwart, Role::Admin], true)) {
-            return back()->with('error', 'Du hast keine Berechtigung, Zahlungsdaten zu aktualisieren.');
-        }
+        $this->authorize('manage', KassenbuchEntry::class);
 
         // Zahlungsdaten aktualisieren
         $user->update([
@@ -128,18 +117,7 @@ class KassenbuchController extends Controller
         $user = Auth::user();
         $team = $user->currentTeam;
 
-        // Prüfen, ob der aktuelle Benutzer die Rolle "Kassenwart" hat
-        $userRole = Role::from(
-            $team->users()
-                ->where('user_id', $user->id)
-                ->first()
-                ->membership
-                ->role
-        );
-
-        if (! in_array($userRole, [Role::Kassenwart, Role::Admin], true)) {
-            return back()->with('error', 'Du hast keine Berechtigung, Kassenbucheinträge hinzuzufügen.');
-        }
+        $this->authorize('manage', KassenbuchEntry::class);
 
         // Betrag anpassen (positiv für Einnahmen, negativ für Ausgaben)
         $amount = abs($data['betrag']);
