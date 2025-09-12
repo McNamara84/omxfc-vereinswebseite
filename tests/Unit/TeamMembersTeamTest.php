@@ -3,7 +3,6 @@
 namespace Tests\Unit;
 
 use App\Models\Team;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
@@ -39,17 +38,6 @@ class TeamMembersTeamTest extends TestCase
 
         Team::membersTeam();
         Team::clearMembersTeamCache();
-        Team::membersTeam();
-
-        $this->assertCount(2, DB::getQueryLog());
-    }
-
-    public function test_members_team_recaches_when_cache_cleared_externally(): void
-    {
-        DB::enableQueryLog();
-
-        Team::membersTeam();
-        Cache::forget(Team::MEMBERS_TEAM_CACHE_KEY);
         Team::membersTeam();
 
         $this->assertCount(2, DB::getQueryLog());

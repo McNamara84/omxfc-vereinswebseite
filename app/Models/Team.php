@@ -101,7 +101,7 @@ class Team extends JetstreamTeam
 
     public static function membersTeam(): self
     {
-        if (static::$membersTeamCache && Cache::has(self::MEMBERS_TEAM_CACHE_KEY)) {
+        if (static::$membersTeamCache) {
             return static::$membersTeamCache;
         }
 
