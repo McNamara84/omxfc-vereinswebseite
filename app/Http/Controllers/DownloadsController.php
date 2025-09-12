@@ -6,9 +6,13 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use App\Models\User;
+use App\Services\TeamPointService;
 
 class DownloadsController extends Controller
 {
+    public function __construct(private TeamPointService $teamPointService)
+    {
+    }
     /**
      * Gesamte Download‑Konfiguration (Kategorie → Dateien).
      * Jede Datei enthält den Titel, den Dateinamen im privaten Storage
@@ -43,8 +47,7 @@ class DownloadsController extends Controller
     {
         /** @var User $user */
         $user = Auth::user();
-        $currentTeam = $user->currentTeam;
-        $userPoints = $currentTeam ? $user->totalPointsForTeam($currentTeam) : 0;
+        $userPoints = $this->teamPointService->getUserPoints($user);
 
         return view('pages.downloads', [
             'downloads' => $this->downloads,
@@ -70,8 +73,7 @@ class DownloadsController extends Controller
 
         /** @var User $user */
         $user = Auth::user();
-        $currentTeam = $user->currentTeam;
-        $userPoints = $currentTeam ? $user->totalPointsForTeam($currentTeam) : 0;
+        $userPoints = $this->teamPointService->getUserPoints($user);
 
         if ($userPoints < $meta['punkte']) {
             return back()->withErrors('Du hast nicht genügend Punkte für diesen Download.');

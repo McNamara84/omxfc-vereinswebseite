@@ -7,9 +7,13 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
+use App\Services\TeamPointService;
 
 class StatistikController extends Controller
 {
+    public function __construct(private TeamPointService $teamPointService)
+    {
+    }
     /**
      * Zeigt die Statistik-Unterseite.
      *
@@ -21,7 +25,7 @@ class StatistikController extends Controller
         /** @var \App\Models\User $user */
         $user = Auth::user();
         $currentTeam = $user->currentTeam;
-        $userPoints = $currentTeam ? $user->totalPointsForTeam($currentTeam) : 0;
+        $userPoints = $this->teamPointService->getUserPoints($user);
 
         // ── JSON einlesen ──────────────────────────────────────────────────────────
         $jsonPath = storage_path('app/private/maddrax.json');

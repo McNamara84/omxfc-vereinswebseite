@@ -10,9 +10,14 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Http\JsonResponse;
 use Illuminate\View\View;
 use App\Models\RomanExcerpt;
+use App\Services\TeamPointService;
 
 class KompendiumController extends Controller
 {
+    public function __construct(private TeamPointService $teamPointService)
+    {
+    }
+
     /** Mindest-Punktzahl für die Suche */
     private const REQUIRED_POINTS = 100;
 
@@ -22,8 +27,7 @@ class KompendiumController extends Controller
     public function index(Request $request): View
     {
         $user = Auth::user();
-        $currentTeam = $user->currentTeam;
-        $userPoints = $currentTeam ? $user->totalPointsForTeam($currentTeam) : 0;
+        $userPoints = $this->teamPointService->getUserPoints($user);
 
         return view('pages.kompendium', [
             'userPoints' => $userPoints,
@@ -39,8 +43,7 @@ class KompendiumController extends Controller
     {
         /* ----- Punkte-Check ------------------------------------------------ */
         $user = Auth::user();
-        $currentTeam = $user->currentTeam;
-        $userPoints = $currentTeam ? $user->totalPointsForTeam($currentTeam) : 0;
+        $userPoints = $this->teamPointService->getUserPoints($user);
 
         if ($userPoints < self::REQUIRED_POINTS) {
             return response()->json([
