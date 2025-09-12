@@ -27,5 +27,6 @@ jobs:
           touch database/database.sqlite
       - run: php artisan migrate --force
       - run: npm ci
+      - run: npm run build --if-present
       - run: npx playwright install --with-deps
       - run: npx playwright test
