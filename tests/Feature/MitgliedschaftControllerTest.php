@@ -40,7 +40,7 @@ class MitgliedschaftControllerTest extends TestCase
         $user = User::where('email', 'max@example.com')->first();
         $this->assertNotNull($user);
 
-        $team = Team::where('name', 'Mitglieder')->first();
+        $team = Team::membersTeam();
         $this->assertTrue($team->users()->where('user_id', $user->id)->wherePivot('role', 'Anwärter')->exists());
 
         Mail::assertQueued(MitgliedAntragEingereicht::class, function ($mail) use ($user) {

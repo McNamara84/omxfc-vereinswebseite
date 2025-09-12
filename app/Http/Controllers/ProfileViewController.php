@@ -67,7 +67,7 @@ class ProfileViewController extends Controller
         $isOnline = $lastSeen && $lastSeen->gt(now()->subMinutes(5));
 
         // Punkte-Informationen abrufen
-        $memberTeam = Team::where('name', 'Mitglieder')->first();
+        $memberTeam = Team::membersTeam();
 
         $userPoints = 0;
         $completedTasks = 0;

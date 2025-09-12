@@ -16,7 +16,7 @@ class UserPointModelTest extends TestCase
 
     private function createMember(): User
     {
-        $team = Team::where('name', 'Mitglieder')->first();
+        $team = Team::membersTeam();
         $user = User::factory()->create(['current_team_id' => $team->id]);
         $team->users()->attach($user, ['role' => 'Mitglied']);
         return $user;
@@ -24,7 +24,7 @@ class UserPointModelTest extends TestCase
 
     private function createTodo(User $creator): Todo
     {
-        $team = Team::where('name', 'Mitglieder')->first();
+        $team = Team::membersTeam();
         $category = TodoCategory::first() ?? TodoCategory::create(['name' => 'Test', 'slug' => 'test']);
         return Todo::create([
             'team_id' => $team->id,

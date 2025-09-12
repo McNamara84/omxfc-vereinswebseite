@@ -15,7 +15,7 @@ class MitgliederControllerTest extends TestCase
 
     private function actingMember(string $role = 'Mitglied'): User
     {
-        $team = Team::where('name', 'Mitglieder')->first();
+        $team = Team::membersTeam();
         $user = User::factory()->create(['current_team_id' => $team->id]);
         $team->users()->attach($user, ['role' => $role]);
         return $user;
@@ -38,7 +38,7 @@ class MitgliederControllerTest extends TestCase
         $user = $this->actingMember('Kassenwart');
         $this->actingAs($user);
 
-        Team::where('name', 'Mitglieder')->first()->users()->attach(
+        Team::membersTeam()->users()->attach(
             User::factory()->create(), ['role' => 'Mitglied']
         );
 
@@ -54,7 +54,7 @@ class MitgliederControllerTest extends TestCase
 
     public function test_get_all_emails_returns_only_for_privileged_roles(): void
     {
-        $team = Team::where('name', 'Mitglieder')->first();
+        $team = Team::membersTeam();
         $team->users()->attach(User::factory()->create(['email' => 'a@a.de']), ['role' => 'Mitglied']);
         $team->users()->attach(User::factory()->create(['email' => 'b@a.de']), ['role' => 'Mitglied']);
 
@@ -72,7 +72,7 @@ class MitgliederControllerTest extends TestCase
 
     public function test_higher_rank_user_can_change_member_role(): void
     {
-        $team = Team::where('name', 'Mitglieder')->first();
+        $team = Team::membersTeam();
         $board = User::factory()->create(['current_team_id' => $team->id]);
         $team->users()->attach($board, ['role' => 'Vorstand']);
         $member = User::factory()->create(['current_team_id' => $team->id]);
@@ -92,7 +92,7 @@ class MitgliederControllerTest extends TestCase
 
     public function test_cannot_assign_role_higher_than_own(): void
     {
-        $team = Team::where('name', 'Mitglieder')->first();
+        $team = Team::membersTeam();
         $board = User::factory()->create(['current_team_id' => $team->id]);
         $team->users()->attach($board, ['role' => 'Vorstand']);
         $member = User::factory()->create(['current_team_id' => $team->id]);
@@ -113,7 +113,7 @@ class MitgliederControllerTest extends TestCase
 
     public function test_user_cannot_remove_self(): void
     {
-        $team = Team::where('name', 'Mitglieder')->first();
+        $team = Team::membersTeam();
         $board = User::factory()->create(['current_team_id' => $team->id]);
         $team->users()->attach($board, ['role' => 'Vorstand']);
         $this->actingAs($board);
@@ -127,7 +127,7 @@ class MitgliederControllerTest extends TestCase
 
     public function test_higher_rank_user_can_remove_member(): void
     {
-        $team = Team::where('name', 'Mitglieder')->first();
+        $team = Team::membersTeam();
         $board = User::factory()->create(['current_team_id' => $team->id]);
         $team->users()->attach($board, ['role' => 'Vorstand']);
         $member = User::factory()->create(['current_team_id' => $team->id]);
@@ -143,7 +143,7 @@ class MitgliederControllerTest extends TestCase
 
     public function test_index_sorts_members_by_role_desc(): void
     {
-        $team = Team::where('name', 'Mitglieder')->first();
+        $team = Team::membersTeam();
 
         $vorstand = User::factory()->create(['name' => 'Victor Vorstand', 'current_team_id' => $team->id]);
         $team->users()->attach($vorstand, ['role' => 'Vorstand']);
@@ -175,7 +175,7 @@ class MitgliederControllerTest extends TestCase
 
     public function test_index_sorts_members_by_nachname_asc(): void
     {
-        $team = Team::where('name', 'Mitglieder')->first();
+        $team = Team::membersTeam();
 
         $a = User::factory()->create([
             'name' => 'Anna Alpha',
@@ -217,7 +217,7 @@ class MitgliederControllerTest extends TestCase
 
     public function test_index_sorts_members_by_last_activity_desc(): void
     {
-        $team = Team::where('name', 'Mitglieder')->first();
+        $team = Team::membersTeam();
 
         $recent = User::factory()->create(['name' => 'Ralf Recent', 'current_team_id' => $team->id]);
         $team->users()->attach($recent, ['role' => 'Mitglied']);
@@ -244,7 +244,7 @@ class MitgliederControllerTest extends TestCase
 
     public function test_index_falls_back_to_nachname_on_invalid_sort(): void
     {
-        $team = Team::where('name', 'Mitglieder')->first();
+        $team = Team::membersTeam();
 
         $first = User::factory()->create([
             'name' => 'Alice First',
@@ -288,7 +288,7 @@ class MitgliederControllerTest extends TestCase
 
     public function test_filter_shows_only_online_members(): void
     {
-        $team = Team::where('name', 'Mitglieder')->first();
+        $team = Team::membersTeam();
 
         $online = User::factory()->create(['current_team_id' => $team->id]);
         $team->users()->attach($online, ['role' => 'Mitglied']);

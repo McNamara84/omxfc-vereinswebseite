@@ -15,7 +15,7 @@ class MaddraxiversumControllerTest extends TestCase
 
     private function actingMember(string $role = 'Mitglied', int $points = 0): User
     {
-        $team = Team::where('name', 'Mitglieder')->first();
+        $team = Team::membersTeam();
         $user = User::factory()->create(['current_team_id' => $team->id]);
         $team->users()->attach($user, ['role' => $role]);
         if ($points > 0) {

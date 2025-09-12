@@ -16,7 +16,7 @@ class DashboardControllerTest extends TestCase
 
     private function actingAdmin(): User
     {
-        $team = Team::where('name', 'Mitglieder')->first();
+        $team = Team::membersTeam();
         $user = User::factory()->create(['current_team_id' => $team->id]);
         $team->users()->attach($user, ['role' => 'Admin']);
         return $user;
@@ -24,7 +24,7 @@ class DashboardControllerTest extends TestCase
 
     private function createApplicant(): User
     {
-        $team = Team::where('name', 'Mitglieder')->first();
+        $team = Team::membersTeam();
         $user = User::factory()->create(['current_team_id' => $team->id]);
         $team->users()->attach($user, ['role' => 'Anwärter']);
         return $user;
@@ -84,7 +84,7 @@ class DashboardControllerTest extends TestCase
 
     public function test_index_displays_dashboard_statistics(): void
     {
-        $team = Team::where('name', 'Mitglieder')->first();
+        $team = Team::membersTeam();
         $admin = User::factory()->create(['current_team_id' => $team->id]);
         $team->users()->attach($admin, ['role' => 'Admin']);
 
@@ -143,7 +143,7 @@ class DashboardControllerTest extends TestCase
 
     public function test_redirect_when_membership_missing(): void
     {
-        $team = Team::where('name', 'Mitglieder')->first();
+        $team = Team::membersTeam();
         $user = User::factory()->create(['current_team_id' => $team->id]);
         $this->actingAs($user);
 

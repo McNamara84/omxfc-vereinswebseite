@@ -25,7 +25,7 @@ class ProfileViewControllerTest extends TestCase
 
     private function createMember(string $role = 'Mitglied'): User
     {
-        $team = Team::where('name', 'Mitglieder')->first();
+        $team = Team::membersTeam();
         $user = User::factory()->create(['current_team_id' => $team->id]);
         $team->users()->attach($user, ['role' => $role]);
         return $user;
@@ -33,7 +33,7 @@ class ProfileViewControllerTest extends TestCase
 
     private function createTodoWithPoints(User $user, TodoCategory $category, int $points): void
     {
-        $team = Team::where('name', 'Mitglieder')->first();
+        $team = Team::membersTeam();
         $todo = Todo::create([
             'team_id' => $team->id,
             'created_by' => $user->id,
@@ -132,7 +132,7 @@ class ProfileViewControllerTest extends TestCase
 
     public function test_redirect_when_current_user_membership_missing(): void
     {
-        $team = Team::where('name', 'Mitglieder')->first();
+        $team = Team::membersTeam();
         $viewer = User::factory()->create(['current_team_id' => $team->id]);
         $target = $this->createMember();
         $this->actingAs($viewer);

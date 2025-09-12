@@ -15,7 +15,7 @@ class RpgCharEditorPdfTest extends TestCase
 
     private function adminUser(): User
     {
-        $team = Team::where('name', 'Mitglieder')->first();
+        $team = Team::membersTeam();
         $user = User::factory()->create(['current_team_id' => $team->id]);
         $team->users()->attach($user, ['role' => 'Admin']);
         return $user;

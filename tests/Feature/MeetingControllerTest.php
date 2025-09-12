@@ -15,7 +15,7 @@ class MeetingControllerTest extends TestCase
 
     private function actingMember(): User
     {
-        $team = Team::where('name', 'Mitglieder')->first();
+        $team = Team::membersTeam();
         $user = User::factory()->create(['current_team_id' => $team->id]);
         $team->users()->attach($user, ['role' => 'Mitglied']);
         return $user;

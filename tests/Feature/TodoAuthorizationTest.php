@@ -15,7 +15,7 @@ class TodoAuthorizationTest extends TestCase
 
     public function test_member_cannot_access_create_page(): void
     {
-        $team = Team::where('name', 'Mitglieder')->first();
+        $team = Team::membersTeam();
         $user = User::factory()->create();
         $team->users()->attach($user, ['role' => 'Mitglied']);
         $this->actingAs($user);
@@ -28,7 +28,7 @@ class TodoAuthorizationTest extends TestCase
 
     public function test_admin_can_access_create_page(): void
     {
-        $team = Team::where('name', 'Mitglieder')->first();
+        $team = Team::membersTeam();
         $user = User::factory()->create();
         $team->users()->attach($user, ['role' => 'Admin']);
         $this->actingAs($user);

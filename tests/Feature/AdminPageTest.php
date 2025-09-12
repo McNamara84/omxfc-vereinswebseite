@@ -13,7 +13,7 @@ class AdminPageTest extends TestCase
 
     private function adminUser(): User
     {
-        $team = Team::where('name', 'Mitglieder')->first();
+        $team = Team::membersTeam();
         $user = User::factory()->create(['current_team_id' => $team->id]);
         $team->users()->attach($user, ['role' => 'Admin']);
         return $user;
@@ -21,7 +21,7 @@ class AdminPageTest extends TestCase
 
     private function memberUser(): User
     {
-        $team = Team::where('name', 'Mitglieder')->first();
+        $team = Team::membersTeam();
         $user = User::factory()->create(['current_team_id' => $team->id]);
         $team->users()->attach($user, ['role' => 'Mitglied']);
         return $user;

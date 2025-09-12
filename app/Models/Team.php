@@ -13,6 +13,7 @@ use App\Models\UserPoint;
 use App\Models\User;
 use Carbon\Carbon;
 use Laravel\Jetstream\Team as JetstreamTeam;
+use Illuminate\Support\Facades\Cache;
 
 /**
  * @property int $id
@@ -28,6 +29,8 @@ class Team extends JetstreamTeam
 {
     /** @use HasFactory<\Database\Factories\TeamFactory> */
     use HasFactory;
+
+    public const MEMBERS_TEAM_CACHE_KEY = 'team.members';
 
     /**
      * The attributes that are mass assignable.
@@ -92,5 +95,51 @@ class Team extends JetstreamTeam
     public function userPoints(): HasMany
     {
         return $this->hasMany(UserPoint::class);
+    }
+
+    /**
+     * Retrieve the "Mitglieder" team if it exists.
+     *
+     * The result is cached for an hour when present. Missing teams are not
+     * cached to avoid persisting a null value.
+     */
+    public static function membersTeam(): ?self
+    {
+        $cached = Cache::get(self::MEMBERS_TEAM_CACHE_KEY);
+
+        if ($cached instanceof self) {
+            return $cached;
+        }
+
+        $team = self::where('name', 'Mitglieder')->first();
+
+        if ($team) {
+            Cache::put(self::MEMBERS_TEAM_CACHE_KEY, $team, now()->addHour());
+        }
+
+        return $team;
+    }
+
+    public static function clearMembersTeamCache(): void
+    {
+        Cache::forget(self::MEMBERS_TEAM_CACHE_KEY);
+    }
+
+    protected static function booted(): void
+    {
+        static::updated(function (self $team) {
+            if (
+                $team->wasChanged('name') &&
+                ($team->getOriginal('name') === 'Mitglieder' || $team->name === 'Mitglieder')
+            ) {
+                self::clearMembersTeamCache();
+            }
+        });
+
+        static::deleted(function (self $team) {
+            if ($team->getOriginal('name') === 'Mitglieder' || $team->name === 'Mitglieder') {
+                self::clearMembersTeamCache();
+            }
+        });
     }
 }

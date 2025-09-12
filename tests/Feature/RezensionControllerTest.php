@@ -20,7 +20,7 @@ class RezensionControllerTest extends TestCase
 
     private function actingMember(string $role = 'Mitglied'): User
     {
-        $team = Team::where('name', 'Mitglieder')->first();
+        $team = Team::membersTeam();
         $user = User::factory()->create(['current_team_id' => $team->id]);
         $team->users()->attach($user, ['role' => $role]);
         return $user;
@@ -116,7 +116,7 @@ class RezensionControllerTest extends TestCase
         $book1 = Book::create(['roman_number' => 1, 'title' => 'Alpha', 'author' => 'A']);
         $book2 = Book::create(['roman_number' => 2, 'title' => 'Beta', 'author' => 'B']);
 
-        $teamId = Team::where('name', 'Mitglieder')->first()->id;
+        $teamId = Team::membersTeam()->id;
         Review::create([
             'team_id' => $teamId,
             'user_id' => User::factory()->create()->id,

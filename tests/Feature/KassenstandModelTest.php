@@ -13,7 +13,7 @@ class KassenstandModelTest extends TestCase
 
     private function getTeam(): Team
     {
-        return Team::where('name', 'Mitglieder')->first();
+        return Team::membersTeam();
     }
 
     public function test_kassenstand_can_be_created(): void

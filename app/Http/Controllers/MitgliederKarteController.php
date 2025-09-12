@@ -19,7 +19,7 @@ class MitgliederKarteController extends Controller
         $team = $user->currentTeam;
 
         // Prüfen, ob der Nutzer mindestens einen Punkt oder eine erledigte Challenge hat
-        $memberTeam = Team::where('name', 'Mitglieder')->first();
+        $memberTeam = Team::membersTeam();
 
         if ($memberTeam) {
             $userPoints = UserPoint::where('user_id', $user->id)

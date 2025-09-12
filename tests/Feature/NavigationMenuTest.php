@@ -29,7 +29,7 @@ class NavigationMenuTest extends TestCase
 
     public function test_admin_users_see_admin_link_in_navigation_menu(): void
     {
-        $team = Team::where('name', 'Mitglieder')->first();
+        $team = Team::membersTeam();
         $user = User::factory()->create(['current_team_id' => $team->id]);
         $team->users()->attach($user, ['role' => 'Admin']);
 
@@ -40,7 +40,7 @@ class NavigationMenuTest extends TestCase
 
     public function test_non_admin_users_do_not_see_admin_link_in_navigation_menu(): void
     {
-        $team = Team::where('name', 'Mitglieder')->first();
+        $team = Team::membersTeam();
         $user = User::factory()->create(['current_team_id' => $team->id]);
         $team->users()->attach($user, ['role' => 'Mitglied']);
 
@@ -50,7 +50,7 @@ class NavigationMenuTest extends TestCase
     }
     public function test_admin_users_do_not_see_hoerbuch_create_link_in_navigation_menu(): void
     {
-        $team = Team::where('name', 'Mitglieder')->first();
+        $team = Team::membersTeam();
         $user = User::factory()->create(['current_team_id' => $team->id]);
         $team->users()->attach($user, ['role' => 'Admin']);
 
@@ -60,7 +60,7 @@ class NavigationMenuTest extends TestCase
 
     public function test_non_admin_users_do_not_see_hoerbuch_create_link(): void
     {
-        $team = Team::where('name', 'Mitglieder')->first();
+        $team = Team::membersTeam();
         $user = User::factory()->create(['current_team_id' => $team->id]);
         $team->users()->attach($user, ['role' => 'Mitglied']);
 

@@ -19,7 +19,7 @@ class ReviewCommentController extends Controller
      */
     protected function memberTeam(): Team
     {
-        return Team::where('name', 'Mitglieder')->firstOrFail();
+        return Team::membersTeam();
     }
 
     /**
@@ -27,7 +27,7 @@ class ReviewCommentController extends Controller
      */
     protected function getRoleInMemberTeam(): ?string
     {
-        $team = Team::where('name', 'Mitglieder')->first();
+        $team = Team::membersTeam();
         if (! $team) {
             return null;
         }

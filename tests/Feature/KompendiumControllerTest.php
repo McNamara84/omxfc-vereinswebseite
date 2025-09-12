@@ -13,7 +13,7 @@ class KompendiumControllerTest extends TestCase
 
     private function actingMember(int $points = 0): User
     {
-        $team = Team::where('name', 'Mitglieder')->first();
+        $team = Team::membersTeam();
         $user = User::factory()->create(['current_team_id' => $team->id]);
         $team->users()->attach($user, ['role' => 'Mitglied']);
         if ($points) {

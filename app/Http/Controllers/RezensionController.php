@@ -23,7 +23,7 @@ class RezensionController extends Controller
      */
     protected function memberTeam(): Team
     {
-        return Team::where('name', 'Mitglieder')->firstOrFail();
+        return Team::membersTeam();
     }
 
     /**
@@ -34,7 +34,7 @@ class RezensionController extends Controller
     protected function getRoleInMemberTeam(): ?string
     {
         // Stelle sicher, dass es das Team überhaupt gibt:
-        $team = Team::where('name', 'Mitglieder')->first();
+        $team = Team::membersTeam();
         if (!$team) {
             return null;
         }

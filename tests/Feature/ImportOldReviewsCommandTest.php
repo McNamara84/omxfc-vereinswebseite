@@ -34,7 +34,7 @@ class ImportOldReviewsCommandTest extends TestCase
 
     public function test_old_reviews_are_imported_from_csv(): void
     {
-        $team = Team::where('name', 'Mitglieder')->first();
+        $team = Team::membersTeam();
         $book = Book::create(['roman_number' => 1, 'title' => 'Roman1', 'author' => 'Autor1']);
         $user = User::factory()->create(['email' => 'user@example.com', 'current_team_id' => $team->id]);
         $team->users()->attach($user, ['role' => 'Mitglied']);

@@ -58,7 +58,7 @@ class NewsletterController extends Controller
             'topics.*.content' => ['required', 'string'],
         ]);
 
-        $membersTeam = Team::where('name', 'Mitglieder')->first();
+        $membersTeam = Team::membersTeam();
         if (! $membersTeam) {
             return back()->with('status', 'Team nicht gefunden.');
         }

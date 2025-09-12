@@ -20,7 +20,7 @@ class TeamPolicyTest extends TestCase
         $team->users()->attach($member, ['role' => 'Member']);
         $outsider = User::factory()->create();
 
-        $adminTeam = Team::where('name', 'Mitglieder')->first();
+        $adminTeam = Team::membersTeam();
         $admin = User::factory()->create(['current_team_id' => $adminTeam->id]);
         $adminTeam->users()->attach($admin, ['role' => 'Admin']);
 

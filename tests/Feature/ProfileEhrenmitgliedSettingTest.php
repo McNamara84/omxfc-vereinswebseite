@@ -13,7 +13,7 @@ class ProfileEhrenmitgliedSettingTest extends TestCase
 
     private function createEhrenmitglied(): User
     {
-        $team = Team::where('name', 'Mitglieder')->first();
+        $team = Team::membersTeam();
         $user = User::factory()->create(['current_team_id' => $team->id]);
         $team->users()->attach($user, ['role' => 'Ehrenmitglied']);
         return $user;
@@ -21,7 +21,7 @@ class ProfileEhrenmitgliedSettingTest extends TestCase
 
     private function createMitglied(): User
     {
-        $team = Team::where('name', 'Mitglieder')->first();
+        $team = Team::membersTeam();
         $user = User::factory()->create(['current_team_id' => $team->id]);
         $team->users()->attach($user, ['role' => 'Mitglied']);
         return $user;

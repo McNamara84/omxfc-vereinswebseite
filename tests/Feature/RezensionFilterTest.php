@@ -16,7 +16,7 @@ class RezensionFilterTest extends TestCase
 
     private function actingMember(): User
     {
-        $team = Team::where('name', 'Mitglieder')->first();
+        $team = Team::membersTeam();
         $user = User::factory()->create(['current_team_id' => $team->id]);
         $team->users()->attach($user, ['role' => 'Mitglied']);
         return $user;
@@ -52,7 +52,7 @@ class RezensionFilterTest extends TestCase
         $book1 = Book::create(['roman_number' => 1, 'title' => 'Alpha', 'author' => 'A']);
         $book2 = Book::create(['roman_number' => 2, 'title' => 'Beta', 'author' => 'B']);
         Review::create([
-            'team_id' => Team::where('name', 'Mitglieder')->first()->id,
+            'team_id' => Team::membersTeam()->id,
             'user_id' => User::factory()->create()->id,
             'book_id' => $book1->id,
             'title' => 'R',

@@ -59,7 +59,7 @@ class DashboardController extends Controller
         }
 
         // ToDo-Statistiken abrufen
-        $memberTeam = Team::where('name', 'Mitglieder')->first();
+        $memberTeam = Team::membersTeam();
 
         // Initialisierung der Variablen
         $openTodos = 0;
