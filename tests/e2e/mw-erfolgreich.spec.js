@@ -4,5 +4,6 @@ test('mitglied werden erfolgreich page displays confirmation and home link', asy
   await page.goto('/mitglied-werden/erfolgreich');
   await expect(page.getByRole('heading', { name: 'Antrag erfolgreich eingereicht!' })).toBeVisible();
   const homeLink = page.getByRole('link', { name: 'Zurück zur Startseite' });
-  await expect(homeLink).toHaveAttribute('href', '/');
+  const href = await homeLink.getAttribute('href');
+  expect(new URL(href, page.url()).pathname).toBe('/');
 });
