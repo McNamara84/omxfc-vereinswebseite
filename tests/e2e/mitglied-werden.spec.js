@@ -11,8 +11,8 @@ test('mitglied-werden form enables submit button after validation and terms acce
   await page.getByLabel('Stadt').fill('Berlin');
   await page.getByLabel('Land').selectOption('Deutschland');
   await page.getByLabel('Mailadresse').fill('max@example.com');
-  await page.getByLabel('Passwort').fill('Passwort1');
-  await page.getByLabel('Passwort wiederholen').fill('Passwort1');
+  await page.getByLabel('Passwort', { exact: true }).fill('Passwort1');
+  await page.getByLabel('Passwort wiederholen', { exact: true }).fill('Passwort1');
   const submitButton = page.getByRole('button', { name: 'Antrag absenden' });
   await expect(submitButton).toBeDisabled();
   await page.getByRole('checkbox', { name: /Satzung/ }).check();
