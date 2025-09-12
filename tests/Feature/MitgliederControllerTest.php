@@ -30,8 +30,7 @@ class MitgliederControllerTest extends TestCase
             'export_fields' => ['name', 'email']
         ]);
 
-        $response->assertRedirect('/mitglieder');
-        $response->assertSessionHas('error');
+        $response->assertStatus(403);
     }
 
     public function test_export_csv_returns_csv_for_kassenwart(): void
@@ -91,6 +90,21 @@ class MitgliederControllerTest extends TestCase
         ]);
     }
 
+    public function test_member_cannot_change_member_role(): void
+    {
+        $team = Team::membersTeam();
+        $acting = $this->actingMember('Mitglied');
+        $this->actingAs($acting);
+        $target = User::factory()->create(['current_team_id' => $team->id]);
+        $team->users()->attach($target, ['role' => \App\Enums\Role::Mitglied->value]);
+
+        $response = $this->from('/mitglieder')->put("/mitglieder/{$target->id}/role", [
+            'role' => \App\Enums\Role::Ehrenmitglied->value
+        ]);
+
+        $response->assertStatus(403);
+    }
+
     public function test_cannot_assign_role_higher_than_own(): void
     {
         $team = Team::membersTeam();
@@ -124,6 +138,20 @@ class MitgliederControllerTest extends TestCase
         $response->assertRedirect('/mitglieder');
         $response->assertSessionHas('error');
         $this->assertDatabaseHas('users', ['id' => $board->id]);
+    }
+
+    public function test_member_cannot_remove_member(): void
+    {
+        $team = Team::membersTeam();
+        $acting = $this->actingMember('Mitglied');
+        $this->actingAs($acting);
+        $target = User::factory()->create(['current_team_id' => $team->id]);
+        $team->users()->attach($target, ['role' => \App\Enums\Role::Mitglied->value]);
+
+        $response = $this->from('/mitglieder')->delete("/mitglieder/{$target->id}");
+
+        $response->assertStatus(403);
+        $this->assertDatabaseHas('users', ['id' => $target->id]);
     }
 
     public function test_higher_rank_user_can_remove_member(): void

@@ -16,20 +16,19 @@ class TodoAuthorizationTest extends TestCase
     public function test_member_cannot_access_create_page(): void
     {
         $team = Team::membersTeam();
-        $user = User::factory()->create();
+        $user = User::factory()->create(['current_team_id' => $team->id]);
         $team->users()->attach($user, ['role' => \App\Enums\Role::Mitglied->value]);
         $this->actingAs($user);
 
         $response = $this->get('/aufgaben/erstellen');
 
-        $response->assertRedirect(route('todos.index', [], false));
-        $response->assertSessionHas('error', 'Du hast keine Berechtigung, Challenges zu erstellen.');
+        $response->assertForbidden();
     }
 
     public function test_admin_can_access_create_page(): void
     {
         $team = Team::membersTeam();
-        $user = User::factory()->create();
+        $user = User::factory()->create(['current_team_id' => $team->id]);
         $team->users()->attach($user, ['role' => \App\Enums\Role::Admin->value]);
         $this->actingAs($user);
 

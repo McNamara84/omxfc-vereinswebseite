@@ -71,8 +71,7 @@ class MitgliederController extends Controller
         );
 
         // Prüft, ob der aktuelle Benutzer erweiterte Rechte hat
-        $allowedRoles = [Role::Kassenwart, Role::Vorstand, Role::Admin];
-        $canViewDetails = in_array($userRole, $allowedRoles, true);
+        $canViewDetails = $user->can('manage', User::class);
 
         // Rollenrangfolge festlegen (höhere Zahl = höherer Rang)
         $roleRanks = [
@@ -107,6 +106,8 @@ class MitgliederController extends Controller
 
         $currentUser = Auth::user();
         $team = $currentUser->currentTeam;
+
+        $this->authorize('manage', User::class);
 
         // Korrekte Ermittlung der Rolle des eingeloggten Nutzers
         $currentUserRole = Role::from(
@@ -160,6 +161,8 @@ class MitgliederController extends Controller
     {
         $currentUser = Auth::user();
         $team = $currentUser->currentTeam;
+
+        $this->authorize('manage', User::class);
 
         // Korrekte Ermittlung der Rolle des eingeloggten Nutzers
         $currentUserRole = Role::from(
@@ -215,19 +218,7 @@ class MitgliederController extends Controller
         $user = Auth::user();
         $team = $user->currentTeam;
 
-        // Überprüfen, ob der Benutzer berechtigt ist (Kassenwart, Vorstand oder Admin)
-        $allowedRoles = [Role::Kassenwart, Role::Vorstand, Role::Admin];
-        $userRole = Role::from(
-            $team->users()
-                ->where('user_id', $user->id)
-                ->first()
-                ->membership
-                ->role
-        );
-
-        if (! in_array($userRole, $allowedRoles, true)) {
-            return back()->with('error', 'Du hast keine Berechtigung zum Exportieren von Mitgliederdaten.');
-        }
+        $this->authorize('manage', User::class);
 
         // Felder validieren
         $request->validate([
@@ -316,19 +307,7 @@ class MitgliederController extends Controller
         $user = Auth::user();
         $team = $user->currentTeam;
 
-        // Überprüfen, ob der Benutzer berechtigt ist (Kassenwart, Vorstand oder Admin)
-        $allowedRoles = [Role::Kassenwart, Role::Vorstand, Role::Admin];
-        $userRole = Role::from(
-            $team->users()
-                ->where('user_id', $user->id)
-                ->first()
-                ->membership
-                ->role
-        );
-
-        if (! in_array($userRole, $allowedRoles, true)) {
-            return response()->json(['error' => 'Keine Berechtigung'], 403);
-        }
+        $this->authorize('manage', User::class);
 
         // E-Mail-Adressen abrufen
         $emails = $team->users()
