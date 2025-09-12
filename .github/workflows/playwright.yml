@@ -1,0 +1,31 @@
+name: Playwright E2E Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: composer install --no-interaction --prefer-dist
+      - run: cp .env.example .env
+      - run: php artisan key:generate
+      - name: Configure SQLite
+        run: |
+          sed -i 's/^DB_CONNECTION=.*/DB_CONNECTION=sqlite/' .env
+          sed -i 's/^DB_DATABASE=.*/DB_DATABASE=database\/database.sqlite/' .env
+          touch database/database.sqlite
+      - run: php artisan migrate --force
+      - run: npm ci
+      - run: npx playwright install --with-deps
+      - run: npx playwright test
