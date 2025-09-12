@@ -76,10 +76,12 @@ class TeamMembersTeamTest extends TestCase
         DB::enableQueryLog();
         $firstCall = Team::membersTeam();
         $secondCall = Team::membersTeam();
+        $thirdCall = Team::membersTeam();
 
         $this->assertNull($firstCall);
         $this->assertNull($secondCall);
-        $this->assertCount(2, DB::getQueryLog());
+        $this->assertNull($thirdCall);
+        $this->assertCount(3, DB::getQueryLog());
     }
 
     public function test_members_team_cache_cleared_on_team_delete(): void
