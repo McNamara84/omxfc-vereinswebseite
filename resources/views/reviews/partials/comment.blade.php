@@ -15,13 +15,16 @@
     </div>
 
     @if(auth()->id() === $comment->user_id)
+        @php $editId = 'edit-content-' . $comment->id; @endphp
         <div x-data="{ editing: false }" class="mt-2">
             <button type="button" @click="editing = !editing" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded">Bearbeiten</button>
 
             <form x-show="editing" method="POST" action="{{ route('reviews.comments.update', $comment) }}" class="mt-2">
                 @csrf
                 @method('PUT')
-                <textarea name="content" rows="2" class="w-full border-gray-300 dark:border-gray-600 dark:bg-gray-800 rounded mt-1" required>{{ old('content', $comment->content) }}</textarea>
+                <x-form name="content" label="Kommentar" :id="$editId">
+                    <textarea id="{{ $editId }}" name="content" aria-describedby="{{ $editId }}-error" rows="2" class="w-full border-gray-300 dark:border-gray-600 dark:bg-gray-800 rounded mt-1" required>{{ old('content', $comment->content) }}</textarea>
+                </x-form>
                 <div class="mt-2 flex flex-col sm:flex-row gap-2">
                     <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded">Speichern</button>
                     <button type="button" @click="editing = false" class="bg-gray-600 hover:bg-gray-700 text-white px-3 py-1 rounded">Abbrechen</button>
@@ -58,10 +61,13 @@
         </div>
     @endforeach
 
+    @php $replyId = 'reply-content-' . $comment->id; @endphp
     <form method="POST" action="{{ route('reviews.comments.store', $comment->review) }}" class="mt-2">
         @csrf
         <input type="hidden" name="parent_id" value="{{ $comment->id }}">
-        <textarea name="content" rows="2" class="w-full border-gray-300 dark:border-gray-600 dark:bg-gray-800 rounded mt-1" required></textarea>
+        <x-form name="content" label="Kommentar" :id="$replyId">
+            <textarea id="{{ $replyId }}" name="content" aria-describedby="{{ $replyId }}-error" rows="2" class="w-full border-gray-300 dark:border-gray-600 dark:bg-gray-800 rounded mt-1" required></textarea>
+        </x-form>
         <button type="submit" class="mt-2 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded">Antworten</button>
     </form>
 </div>

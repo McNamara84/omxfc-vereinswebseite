@@ -20,26 +20,22 @@
                 <div x-show="open" x-transition class="mt-4">
                     <form method="GET" action="{{ route('reviews.index') }}" class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
                         <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                            <div>
-                                <label for="roman_number" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Nr.</label>
-                                <input id="roman_number" name="roman_number" type="text" value="{{ request('roman_number') }}" class="mt-1 block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 rounded" />
-                            </div>
-                            <div>
-                                <label for="title" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Titel</label>
-                                <input id="title" name="title" type="text" value="{{ request('title') }}" class="mt-1 block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 rounded" />
-                            </div>
-                            <div>
-                                <label for="author" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Autor</label>
-                                <input id="author" name="author" type="text" value="{{ request('author') }}" class="mt-1 block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 rounded" />
-                            </div>
-                            <div>
-                                <label for="review_status" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Rezensionsstatus</label>
-                                <select id="review_status" name="review_status" class="mt-1 block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 rounded">
+                            <x-form name="roman_number" label="Nr.">
+                                <input id="roman_number" name="roman_number" aria-describedby="roman_number-error" type="text" value="{{ request('roman_number') }}" class="mt-1 block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 rounded" />
+                            </x-form>
+                            <x-form name="title" label="Titel">
+                                <input id="title" name="title" aria-describedby="title-error" type="text" value="{{ request('title') }}" class="mt-1 block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 rounded" />
+                            </x-form>
+                            <x-form name="author" label="Autor">
+                                <input id="author" name="author" aria-describedby="author-error" type="text" value="{{ request('author') }}" class="mt-1 block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 rounded" />
+                            </x-form>
+                            <x-form name="review_status" label="Rezensionsstatus">
+                                <select id="review_status" name="review_status" aria-describedby="review_status-error" class="mt-1 block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 rounded">
                                     <option value="">Alle</option>
                                     <option value="with" @selected(request('review_status') === 'with')>Mit Rezension</option>
                                     <option value="without" @selected(request('review_status') === 'without')>Ohne Rezension</option>
                                 </select>
-                            </div>
+                            </x-form>
                         </div>
                         <div class="mt-4 flex flex-col sm:flex-row sm:items-center gap-2">
                             <button type="submit" class="bg-[#8B0116] dark:bg-[#FCA5A5] text-white px-4 py-2 rounded">Filtern</button>

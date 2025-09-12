@@ -41,4 +41,20 @@ class AuthenticationTest extends TestCase
 
         $this->assertGuest();
     }
+
+    public function test_login_form_has_accessibility_attributes(): void
+    {
+        $response = $this->get('/login');
+
+        $response->assertSee('aria-describedby="email-error"', false);
+        $response->assertSee('aria-describedby="password-error"', false);
+    }
+
+    public function test_login_validation_errors(): void
+    {
+        $response = $this->from('/login')->post('/login', []);
+
+        $response->assertRedirect('/login');
+        $response->assertSessionHasErrors(['email', 'password']);
+    }
 }
