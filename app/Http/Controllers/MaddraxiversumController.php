@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
@@ -10,9 +11,14 @@ use Illuminate\Support\Facades\Http;
 use App\Models\Mission;
 use Carbon\Carbon;
 use App\Enums\Role;
+use App\Services\TeamPointService;
 
 class MaddraxiversumController extends Controller
 {
+    public function __construct(private TeamPointService $teamPointService)
+    {
+    }
+
     /**
      * Zeigt die Maddraxiversum-Seite mit der Karte an,
      * wenn der Benutzer genügend Punkte hat.
@@ -21,23 +27,18 @@ class MaddraxiversumController extends Controller
     {
         /** @var User $user */
         $user = Auth::user();
-        $currentTeam = $user->currentTeam; // Holt das aktuelle Team des Benutzers
         $requiredPoints = 9; // Mindestpunktzahl für den Zugriff
-        $userPoints = 0;
-        $showMap = false;
+        $userPoints = $this->teamPointService->getUserPoints($user);
+        $showMap = $user->hasRole(Role::Ehrenmitglied);
 
-        // Immer zeigen, wenn Ehrenmitglied
-        if ($user->hasRole(Role::Ehrenmitglied)) {
-            $showMap = true;
-            $userPoints = $currentTeam ? $user->totalPointsForTeam($currentTeam) : 0;
-        } elseif ($currentTeam) {
-            // Stelle sicher, dass der Benutzer einem Team zugeordnet ist
-            $userPoints = $user->totalPointsForTeam($currentTeam);
-            if ($userPoints >= $requiredPoints) {
+        if (! $showMap) {
+            try {
+                $this->teamPointService->assertMinPoints($requiredPoints);
                 $showMap = true;
+            } catch (AuthorizationException $e) {
+                $showMap = false;
             }
         }
-
 
         return view('maddraxiversum.index', [
             'showMap' => $showMap,

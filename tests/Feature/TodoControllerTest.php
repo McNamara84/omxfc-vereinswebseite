@@ -39,6 +39,18 @@ class TodoControllerTest extends TestCase
         ], $attrs));
     }
 
+    public function test_index_displays_user_points(): void
+    {
+        $user = $this->actingMember();
+        $user->incrementTeamPoints(3);
+        $this->actingAs($user);
+
+        $response = $this->get('/aufgaben');
+
+        $response->assertOk();
+        $response->assertViewHas('userPoints', 3);
+    }
+
     public function test_member_can_assign_todo(): void
     {
         $user = $this->actingMember();

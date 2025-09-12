@@ -8,12 +8,17 @@ use App\Models\Team;
 use App\Models\Todo;
 use App\Models\TodoCategory;
 use App\Models\UserPoint;
+use App\Services\TeamPointService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Enums\Role;
 
 class TodoController extends Controller
 {
+    public function __construct(private TeamPointService $teamPointService)
+    {
+    }
+
     /**
      * Zeigt die Übersicht der Todos an.
      */
@@ -59,9 +64,7 @@ class TodoController extends Controller
             $todo->assigned_to !== $user->id
         );
 
-        $userPoints = UserPoint::where('user_id', $user->id)
-            ->where('team_id', $memberTeam->id)
-            ->sum('points');
+        $userPoints = $this->teamPointService->getUserPoints($user);
 
         return view('todos.index', [
             'todos' => $todos,
