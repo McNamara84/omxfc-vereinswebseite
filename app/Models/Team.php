@@ -101,7 +101,7 @@ class Team extends JetstreamTeam
 
     public static function membersTeam(): self
     {
-        if (static::$membersTeamCache) {
+        if (static::$membersTeamCache && Cache::has(self::MEMBERS_TEAM_CACHE_KEY)) {
             return static::$membersTeamCache;
         }
 
@@ -109,5 +109,11 @@ class Team extends JetstreamTeam
             self::MEMBERS_TEAM_CACHE_KEY,
             fn () => self::where('name', 'Mitglieder')->firstOrFail()
         );
+    }
+
+    public static function clearMembersTeamCache(): void
+    {
+        static::$membersTeamCache = null;
+        Cache::forget(self::MEMBERS_TEAM_CACHE_KEY);
     }
 }

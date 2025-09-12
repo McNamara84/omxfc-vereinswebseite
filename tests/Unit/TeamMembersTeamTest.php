@@ -13,11 +13,7 @@ class TeamMembersTeamTest extends TestCase
     {
         parent::setUp();
 
-        Cache::forget(Team::MEMBERS_TEAM_CACHE_KEY);
-        $ref = new \ReflectionClass(Team::class);
-        $prop = $ref->getProperty('membersTeamCache');
-        $prop->setAccessible(true);
-        $prop->setValue(null);
+        Team::clearMembersTeamCache();
     }
 
     public function test_members_team_returns_correct_team(): void
@@ -35,5 +31,27 @@ class TeamMembersTeamTest extends TestCase
         Team::membersTeam();
 
         $this->assertCount(1, DB::getQueryLog());
+    }
+
+    public function test_clear_members_team_cache_resets_cache(): void
+    {
+        DB::enableQueryLog();
+
+        Team::membersTeam();
+        Team::clearMembersTeamCache();
+        Team::membersTeam();
+
+        $this->assertCount(2, DB::getQueryLog());
+    }
+
+    public function test_members_team_recaches_when_cache_cleared_externally(): void
+    {
+        DB::enableQueryLog();
+
+        Team::membersTeam();
+        Cache::forget(Team::MEMBERS_TEAM_CACHE_KEY);
+        Team::membersTeam();
+
+        $this->assertCount(2, DB::getQueryLog());
     }
 }
