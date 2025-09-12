@@ -32,8 +32,6 @@ class Team extends JetstreamTeam
 
     public const MEMBERS_TEAM_CACHE_KEY = 'team.members';
 
-    protected static ?self $membersTeamCache = null;
-
     /**
      * The attributes that are mass assignable.
      *
@@ -99,21 +97,32 @@ class Team extends JetstreamTeam
         return $this->hasMany(UserPoint::class);
     }
 
-    public static function membersTeam(): self
+    public static function membersTeam(): ?self
     {
-        if (static::$membersTeamCache) {
-            return static::$membersTeamCache;
-        }
-
-        return static::$membersTeamCache = Cache::rememberForever(
+        return Cache::remember(
             self::MEMBERS_TEAM_CACHE_KEY,
-            fn () => self::where('name', 'Mitglieder')->firstOrFail()
+            now()->addHour(),
+            fn () => self::where('name', 'Mitglieder')->first()
         );
     }
 
     public static function clearMembersTeamCache(): void
     {
-        static::$membersTeamCache = null;
         Cache::forget(self::MEMBERS_TEAM_CACHE_KEY);
+    }
+
+    protected static function booted(): void
+    {
+        static::updated(function (self $team) {
+            if ($team->getOriginal('name') === 'Mitglieder' || $team->name === 'Mitglieder') {
+                self::clearMembersTeamCache();
+            }
+        });
+
+        static::deleted(function (self $team) {
+            if ($team->getOriginal('name') === 'Mitglieder' || $team->name === 'Mitglieder') {
+                self::clearMembersTeamCache();
+            }
+        });
     }
 }

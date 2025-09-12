@@ -19,6 +19,7 @@ class TeamMembersTeamTest extends TestCase
     {
         $team = Team::membersTeam();
 
+        $this->assertNotNull($team);
         $this->assertSame('Mitglieder', $team->name);
     }
 
@@ -41,5 +42,35 @@ class TeamMembersTeamTest extends TestCase
         Team::membersTeam();
 
         $this->assertCount(2, DB::getQueryLog());
+    }
+
+    public function test_members_team_cache_cleared_on_team_update(): void
+    {
+        $team = Team::membersTeam();
+        $team->update(['description' => 'updated']);
+
+        DB::enableQueryLog();
+        $updatedTeam = Team::membersTeam();
+
+        $this->assertCount(1, DB::getQueryLog());
+        $this->assertSame('updated', $updatedTeam->description);
+
+        DB::flushQueryLog();
+        Team::membersTeam();
+
+        $this->assertCount(0, DB::getQueryLog());
+    }
+
+    public function test_members_team_cache_cleared_on_team_delete(): void
+    {
+        $team = Team::membersTeam();
+        $team->delete();
+        Team::factory()->create(['name' => 'Mitglieder']);
+
+        DB::enableQueryLog();
+        $newTeam = Team::membersTeam();
+
+        $this->assertCount(1, DB::getQueryLog());
+        $this->assertNotSame($team->id, $newTeam->id);
     }
 }
