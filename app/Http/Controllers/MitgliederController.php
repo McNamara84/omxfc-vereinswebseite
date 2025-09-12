@@ -7,6 +7,8 @@ use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\StreamedResponse;
+use App\Enums\Role;
+use Illuminate\Validation\Rule;
 
 class MitgliederController extends Controller
 {
@@ -60,27 +62,29 @@ class MitgliederController extends Controller
         }
 
         // Korrekte Ermittlung der Rolle des eingeloggten Nutzers
-        $userRole = $team->users()
-            ->where('user_id', $user->id)
-            ->first()
-            ->membership
-            ->role;
+        $userRole = Role::from(
+            $team->users()
+                ->where('user_id', $user->id)
+                ->first()
+                ->membership
+                ->role
+        );
 
         // Prüft, ob der aktuelle Benutzer erweiterte Rechte hat
-        $allowedRoles = ['Kassenwart', 'Vorstand', 'Admin'];
-        $canViewDetails = in_array($userRole, $allowedRoles);
+        $allowedRoles = [Role::Kassenwart, Role::Vorstand, Role::Admin];
+        $canViewDetails = in_array($userRole, $allowedRoles, true);
 
         // Rollenrangfolge festlegen (höhere Zahl = höherer Rang)
         $roleRanks = [
-            'Mitglied' => 1,
-            'Ehrenmitglied' => 2,
-            'Kassenwart' => 3,
-            'Vorstand' => 4,
-            'Admin' => 5
+            Role::Mitglied->value => 1,
+            Role::Ehrenmitglied->value => 2,
+            Role::Kassenwart->value => 3,
+            Role::Vorstand->value => 4,
+            Role::Admin->value => 5,
         ];
 
         // Aktuellen Rang des Users ermitteln
-        $currentUserRank = $roleRanks[$userRole] ?? 0;
+        $currentUserRank = $roleRanks[$userRole->value] ?? 0;
 
         return view('mitglieder.index', [
             'members' => $members,
@@ -98,38 +102,43 @@ class MitgliederController extends Controller
     public function changeRole(Request $request, User $user)
     {
         $request->validate([
-            'role' => 'required|string|in:Mitglied,Ehrenmitglied,Kassenwart,Vorstand,Admin',
+            'role' => ['required', 'string', Rule::in(array_map(fn(Role $r) => $r->value, Role::cases()))],
         ]);
 
         $currentUser = Auth::user();
         $team = $currentUser->currentTeam;
 
         // Korrekte Ermittlung der Rolle des eingeloggten Nutzers
-        $currentUserRole = $team->users()
-            ->where('user_id', $currentUser->id)
-            ->first()
-            ->membership
-            ->role;
+        $currentUserRole = Role::from(
+            $team->users()
+                ->where('user_id', $currentUser->id)
+                ->first()
+                ->membership
+                ->role
+        );
 
         // Rolle des zu ändernden Nutzers
-        $memberRole = $team->users()
-            ->where('user_id', $user->id)
-            ->first()
-            ->membership
-            ->role;
+        $memberRole = Role::from(
+            $team->users()
+                ->where('user_id', $user->id)
+                ->first()
+                ->membership
+                ->role
+        );
 
         // Rollenrangfolge festlegen (höhere Zahl = höherer Rang)
         $roleRanks = [
-            'Mitglied' => 1,
-            'Ehrenmitglied' => 2,
-            'Kassenwart' => 3,
-            'Vorstand' => 4,
-            'Admin' => 5
+            Role::Mitglied->value => 1,
+            Role::Ehrenmitglied->value => 2,
+            Role::Kassenwart->value => 3,
+            Role::Vorstand->value => 4,
+            Role::Admin->value => 5,
         ];
 
-        $currentUserRank = $roleRanks[$currentUserRole] ?? 0;
-        $memberRank = $roleRanks[$memberRole] ?? 0;
-        $newRoleRank = $roleRanks[$request->role] ?? 0;
+        $currentUserRank = $roleRanks[$currentUserRole->value] ?? 0;
+        $memberRank = $roleRanks[$memberRole->value] ?? 0;
+        $newRole = Role::from($request->role);
+        $newRoleRank = $roleRanks[$newRole->value] ?? 0;
 
         // Prüfen, ob der aktuelle Nutzer die Berechtigung hat
         if ($currentUserRank <= $memberRank) {
@@ -142,7 +151,7 @@ class MitgliederController extends Controller
         }
 
         // Rolle des Mitglieds ändern
-        $team->users()->updateExistingPivot($user->id, ['role' => $request->role]);
+        $team->users()->updateExistingPivot($user->id, ['role' => $newRole->value]);
 
         return back()->with('status', 'Die Rolle von ' . $user->name . ' wurde zu ' . $request->role . ' geändert.');
     }
@@ -153,30 +162,34 @@ class MitgliederController extends Controller
         $team = $currentUser->currentTeam;
 
         // Korrekte Ermittlung der Rolle des eingeloggten Nutzers
-        $currentUserRole = $team->users()
-            ->where('user_id', $currentUser->id)
-            ->first()
-            ->membership
-            ->role;
+        $currentUserRole = Role::from(
+            $team->users()
+                ->where('user_id', $currentUser->id)
+                ->first()
+                ->membership
+                ->role
+        );
 
         // Rolle des zu entfernenden Nutzers
-        $memberRole = $team->users()
-            ->where('user_id', $user->id)
-            ->first()
-            ->membership
-            ->role;
+        $memberRole = Role::from(
+            $team->users()
+                ->where('user_id', $user->id)
+                ->first()
+                ->membership
+                ->role
+        );
 
         // Rollenrangfolge festlegen (höhere Zahl = höherer Rang)
         $roleRanks = [
-            'Mitglied' => 1,
-            'Ehrenmitglied' => 2,
-            'Kassenwart' => 3,
-            'Vorstand' => 4,
-            'Admin' => 5
+            Role::Mitglied->value => 1,
+            Role::Ehrenmitglied->value => 2,
+            Role::Kassenwart->value => 3,
+            Role::Vorstand->value => 4,
+            Role::Admin->value => 5,
         ];
 
         // Prüfen, ob der aktuelle Nutzer die Berechtigung hat
-        if (($roleRanks[$currentUserRole] ?? 0) <= ($roleRanks[$memberRole] ?? 0)) {
+        if (($roleRanks[$currentUserRole->value] ?? 0) <= ($roleRanks[$memberRole->value] ?? 0)) {
             return back()->with('error', 'Du hast keine Berechtigung, dieses Mitglied zu entfernen.');
         }
 
@@ -203,14 +216,16 @@ class MitgliederController extends Controller
         $team = $user->currentTeam;
 
         // Überprüfen, ob der Benutzer berechtigt ist (Kassenwart, Vorstand oder Admin)
-        $allowedRoles = ['Kassenwart', 'Vorstand', 'Admin'];
-        $userRole = $team->users()
-            ->where('user_id', $user->id)
-            ->first()
-            ->membership
-            ->role;
+        $allowedRoles = [Role::Kassenwart, Role::Vorstand, Role::Admin];
+        $userRole = Role::from(
+            $team->users()
+                ->where('user_id', $user->id)
+                ->first()
+                ->membership
+                ->role
+        );
 
-        if (!in_array($userRole, $allowedRoles)) {
+        if (! in_array($userRole, $allowedRoles, true)) {
             return back()->with('error', 'Du hast keine Berechtigung zum Exportieren von Mitgliederdaten.');
         }
 
@@ -302,14 +317,16 @@ class MitgliederController extends Controller
         $team = $user->currentTeam;
 
         // Überprüfen, ob der Benutzer berechtigt ist (Kassenwart, Vorstand oder Admin)
-        $allowedRoles = ['Kassenwart', 'Vorstand', 'Admin'];
-        $userRole = $team->users()
-            ->where('user_id', $user->id)
-            ->first()
-            ->membership
-            ->role;
+        $allowedRoles = [Role::Kassenwart, Role::Vorstand, Role::Admin];
+        $userRole = Role::from(
+            $team->users()
+                ->where('user_id', $user->id)
+                ->first()
+                ->membership
+                ->role
+        );
 
-        if (!in_array($userRole, $allowedRoles)) {
+        if (! in_array($userRole, $allowedRoles, true)) {
             return response()->json(['error' => 'Keine Berechtigung'], 403);
         }
 

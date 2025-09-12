@@ -32,7 +32,7 @@ class AuthServiceProviderTest extends TestCase
     {
         $team = Team::factory()->create(['personal_team' => false]);
         $user = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($user, ['role' => 'Mitglied']);
+        $team->users()->attach($user, ['role' => \App\Enums\Role::Mitglied->value]);
 
         $this->assertTrue(Gate::forUser($user)->allows('access-dashboard'));
     }

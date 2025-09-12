@@ -19,10 +19,10 @@
                     <x-label value="Zielgruppen" />
                     <div class="mt-2 space-y-2">
                         @foreach($roles as $role)
-                            <label class="flex items-center">
+                            <label class="flex items-center text-gray-700 dark:text-gray-200">
                                 {{-- Mitglied is the typical target audience and therefore pre-selected --}}
-                                <x-checkbox name="roles[]" value="{{ $role }}" @checked($role === $defaultRole) />
-                                <span class="ml-2">{{ $role }}</span>
+                                <x-checkbox name="roles[]" value="{{ $role->value }}" @checked($role === $defaultRole) />
+                                <span class="ml-2">{{ $role->value }}</span>
                             </label>
                         @endforeach
                     </div>

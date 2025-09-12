@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
+use App\Enums\Role;
 
 class DashboardController extends Controller
 {
@@ -35,7 +36,7 @@ class DashboardController extends Controller
 
         // Anwärter abrufen, nur für Kassenwart, Vorstand, Admin
         $anwaerter = collect();
-        $allowedRoles = ['Kassenwart', 'Vorstand', 'Admin'];
+        $allowedRoles = [Role::Kassenwart, Role::Vorstand, Role::Admin];
 
         // Korrekte Ermittlung der Rolle des eingeloggten Nutzers:
         $userMembership = $team->users()
@@ -46,9 +47,9 @@ class DashboardController extends Controller
             return redirect()->route('home')->with('error', 'Teamzugehörigkeit nicht gefunden.');
         }
 
-        $userRole = $userMembership->membership->role;
+        $userRole = Role::from($userMembership->membership->role);
 
-        if (in_array($userRole, $allowedRoles)) {
+        if (in_array($userRole, $allowedRoles, true)) {
             $anwaerter = Cache::remember(
                 "anwaerter_{$team->id}",
                 $cacheFor,
@@ -100,7 +101,7 @@ class DashboardController extends Controller
             );
 
             // Aufgaben, die auf Verifizierung warten (nur für Admins sichtbar)
-            if (in_array($userRole, $allowedRoles)) {
+            if (in_array($userRole, $allowedRoles, true)) {
                 $pendingVerification = Cache::remember(
                     "pending_verification_{$memberTeam->id}",
                     $cacheFor,

@@ -37,7 +37,7 @@ class StatistikTest extends TestCase
     {
         $team = Team::membersTeam();
         $user = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($user, ['role' => 'Mitglied']);
+        $team->users()->attach($user, ['role' => \App\Enums\Role::Mitglied->value]);
         $user->incrementTeamPoints($points);
 
         return $user;
@@ -255,8 +255,8 @@ class StatistikTest extends TestCase
 
         $user2 = User::factory()->create(['current_team_id' => $team->id]);
         $user3 = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($user2, ['role' => 'Mitglied']);
-        $team->users()->attach($user3, ['role' => 'Mitglied']);
+        $team->users()->attach($user2, ['role' => \App\Enums\Role::Mitglied->value]);
+        $team->users()->attach($user3, ['role' => \App\Enums\Role::Mitglied->value]);
 
         $book1 = Book::create(['roman_number' => 1, 'title' => 'B1', 'author' => 'A1']);
         $book2 = Book::create(['roman_number' => 2, 'title' => 'B2', 'author' => 'A2']);

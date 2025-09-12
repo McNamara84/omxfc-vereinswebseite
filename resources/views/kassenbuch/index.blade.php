@@ -74,7 +74,7 @@
                     </div>
                 </div>
                 
-                @if(in_array($userRole, ['Vorstand', 'Admin', 'Kassenwart']))
+                @if(in_array($userRole, [\App\Enums\Role::Vorstand, \App\Enums\Role::Admin, \App\Enums\Role::Kassenwart], true))
                 <!-- Card 3: Mitgliederliste mit Zahlungsstatus (Für Vorstand und Kassenwart) -->
                 <div class="md:col-span-2 bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
                     <div class="flex justify-between items-center mb-4">
@@ -89,7 +89,7 @@
                                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">E-Mail</th>
                                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Beitrag</th>
                                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Bezahlt bis</th>
-                                    @if($userRole === 'Kassenwart' || $userRole === 'Admin')
+                                    @if($userRole === \App\Enums\Role::Kassenwart || $userRole === \App\Enums\Role::Admin)
                                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Aktionen</th>
                                     @endif
                                 </tr>
@@ -141,7 +141,7 @@
                                             </span>
                                         @endif
                                     </td>
-                                    @if($userRole === 'Kassenwart' || $userRole === 'Admin')
+                                    @if($userRole === \App\Enums\Role::Kassenwart || $userRole === \App\Enums\Role::Admin)
                                     <td class="px-4 py-3 whitespace-nowrap text-sm">
                                         <button type="button" onclick="openEditModal('{{ $member->id }}', '{{ $member->name }}', '{{ $member->mitgliedsbeitrag }}', '{{ $member->bezahlt_bis ? $member->bezahlt_bis->format('Y-m-d') : '' }}', '{{ $member->mitglied_seit ? $member->mitglied_seit->format('Y-m-d') : '' }}')" class="inline-flex items-center px-3 py-1 border border-transparent text-sm leading-5 font-medium rounded-md text-white bg-[#8B0116] hover:bg-red-700 focus:outline-none focus:border-red-700 focus:shadow-outline-red active:bg-red-800 transition ease-in-out duration-150">
                                             <svg class="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -163,7 +163,7 @@
                     <div class="flex justify-between items-center mb-4">
                         <h2 class="text-lg font-medium text-gray-900 dark:text-white">Kassenbuch</h2>
                         
-                        @if($userRole === 'Kassenwart' || $userRole === 'Admin')
+                        @if($userRole === \App\Enums\Role::Kassenwart || $userRole === \App\Enums\Role::Admin)
                         <button type="button" onclick="openKassenbuchModal()" class="inline-flex items-center px-4 py-2 border border-transparent text-sm leading-5 font-medium rounded-md text-white bg-[#8B0116] hover:bg-red-700 focus:outline-none focus:border-red-700 focus:shadow-outline-red active:bg-red-800 transition ease-in-out duration-150">
                             <svg class="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
@@ -227,7 +227,7 @@
                 @endif
             </div>
             
-            @if($userRole === 'Kassenwart' || $userRole === 'Admin')
+            @if($userRole === \App\Enums\Role::Kassenwart || $userRole === \App\Enums\Role::Admin)
             <!-- Modal für die Bearbeitung von Zahlungsdaten -->
             <div x-data="{ open: false, user_id: '', user_name: '', mitgliedsbeitrag: '', bezahlt_bis: '', mitglied_seit: '' }"
                  x-show="open" 

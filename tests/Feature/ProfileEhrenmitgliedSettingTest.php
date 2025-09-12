@@ -6,6 +6,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 use App\Models\Team;
 use App\Models\User;
+use App\Enums\Role;
 
 class ProfileEhrenmitgliedSettingTest extends TestCase
 {
@@ -15,7 +16,7 @@ class ProfileEhrenmitgliedSettingTest extends TestCase
     {
         $team = Team::membersTeam();
         $user = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($user, ['role' => 'Ehrenmitglied']);
+        $team->users()->attach($user, ['role' => Role::Ehrenmitglied->value]);
         return $user;
     }
 
@@ -23,7 +24,7 @@ class ProfileEhrenmitgliedSettingTest extends TestCase
     {
         $team = Team::membersTeam();
         $user = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($user, ['role' => 'Mitglied']);
+        $team->users()->attach($user, ['role' => Role::Mitglied->value]);
         return $user;
     }
 
@@ -36,10 +37,10 @@ class ProfileEhrenmitgliedSettingTest extends TestCase
 
         $response->assertOk();
         $user = $user->fresh();
-        $this->assertTrue($user->hasRole('Ehrenmitglied'));
+        $this->assertTrue($user->hasRole(Role::Ehrenmitglied));
         $this->assertDatabaseHas('team_user', [
             'user_id' => $user->id,
-            'role' => 'Ehrenmitglied',
+            'role' => \App\Enums\Role::Ehrenmitglied->value,
         ]);
         $response->assertSee('E-Mail bei neuer Rezension erhalten');
     }

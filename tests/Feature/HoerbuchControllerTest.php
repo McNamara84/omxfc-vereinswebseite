@@ -30,7 +30,7 @@ class HoerbuchControllerTest extends TestCase
             'personal_team' => false,
             'name' => 'AG Fanhörbücher',
         ]);
-        $ag->users()->attach($leader, ['role' => 'Mitglied']);
+        $ag->users()->attach($leader, ['role' => \App\Enums\Role::Mitglied->value]);
 
         return $ag;
     }

@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Mail;
 use App\Models\Activity;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
+use App\Enums\Role;
 
 class RezensionController extends Controller
 {
@@ -31,19 +32,21 @@ class RezensionController extends Controller
      *
      * @return string|null
      */
-    protected function getRoleInMemberTeam(): ?string
+    protected function getRoleInMemberTeam(): ?Role
     {
         // Stelle sicher, dass es das Team überhaupt gibt:
         $team = Team::membersTeam();
-        if (!$team) {
+        if (! $team) {
             return null;
         }
 
-        // Wert direkt aus der Pivot-Tabelle holen:
-        return DB::table('team_user')
+        // Wert direkt aus der Pivot-Tabelle holen und in Enum umwandeln:
+        $role = DB::table('team_user')
             ->where('team_id', $team->id)
             ->where('user_id', Auth::id())
             ->value('role');
+
+        return Role::tryFrom($role);
     }
 
     /**
@@ -77,7 +80,7 @@ class RezensionController extends Controller
     public function index(Request $request)
     {
         $role = $this->getRoleInMemberTeam();
-        if (!in_array($role, ['Mitglied', 'Ehrenmitglied', 'Kassenwart', 'Vorstand', 'Admin'], true)) {
+        if (! $role || ! in_array($role, [Role::Mitglied, Role::Ehrenmitglied, Role::Kassenwart, Role::Vorstand, Role::Admin], true)) {
             abort(403);
         }
 
@@ -156,7 +159,7 @@ class RezensionController extends Controller
             ->exists();
 
         // Ehrenmitglied & Vorstand dürfen immer sehen, alle anderen nur wenn eigene Rezension existiert
-        if ($hasOwn || in_array($role, ['Ehrenmitglied', 'Vorstand'], true)) {
+        if ($hasOwn || in_array($role, [Role::Ehrenmitglied, Role::Vorstand], true)) {
             $reviews = $book->reviews()
                 ->with(['user', 'comments' => function ($query) {
                     $query->with(['user', 'children.user'])->orderBy('created_at');
@@ -192,7 +195,7 @@ class RezensionController extends Controller
         }
 
         // Nur Mitglieder, Vorstand, Kassenwart oder Admin dürfen eine neue anlegen
-        if (!in_array($role, ['Mitglied', 'Vorstand', 'Kassenwart', 'Admin'], true)) {
+        if (! in_array($role, [Role::Mitglied, Role::Vorstand, Role::Kassenwart, Role::Admin], true)) {
             abort(403);
         }
 
@@ -217,7 +220,7 @@ class RezensionController extends Controller
             ->where('user_id', $user->id)
             ->exists();
 
-        if ($hasOwn || !in_array($role, ['Mitglied', 'Vorstand', 'Kassenwart', 'Admin'], true)) {
+        if ($hasOwn || ! in_array($role, [Role::Mitglied, Role::Vorstand, Role::Kassenwart, Role::Admin], true)) {
             abort(403);
         }
 
@@ -275,7 +278,7 @@ class RezensionController extends Controller
         $user = Auth::user();
         $role = $this->getRoleInMemberTeam();
 
-        if ($review->user_id === $user->id || in_array($role, ['Vorstand', 'Admin'], true)) {
+        if ($review->user_id === $user->id || in_array($role, [Role::Vorstand, Role::Admin], true)) {
             return view('reviews.edit', [
                 'review' => $review,
                 'title' => 'Rezension zu ' . $review->book->title . ' bearbeiten – Offizieller MADDRAX Fanclub e. V.',
@@ -294,7 +297,7 @@ class RezensionController extends Controller
         $user = Auth::user();
         $role = $this->getRoleInMemberTeam();
 
-        if ($review->user_id === $user->id || in_array($role, ['Vorstand', 'Admin'], true)) {
+        if ($review->user_id === $user->id || in_array($role, [Role::Vorstand, Role::Admin], true)) {
             $request->merge([
                 'content' => preg_replace('/^\\s*#+\\s*/m', '', (string) $request->input('content')),
             ]);
@@ -322,7 +325,7 @@ class RezensionController extends Controller
         $user = Auth::user();
         $role = $this->getRoleInMemberTeam();
 
-        if ($review->user_id === $user->id || in_array($role, ['Vorstand', 'Admin'], true)) {
+        if ($review->user_id === $user->id || in_array($role, [Role::Vorstand, Role::Admin], true)) {
             $review->delete();
             return back()->with('success', 'Rezension gelöscht.');
         }

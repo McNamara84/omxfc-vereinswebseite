@@ -17,7 +17,7 @@ class RemoveTeamMemberTest extends TestCase
         $this->actingAs($user = User::factory()->withPersonalTeam()->create());
 
         $user->currentTeam->users()->attach(
-            $otherUser = User::factory()->create(), ['role' => 'Admin']
+            $otherUser = User::factory()->create(), ['role' => \App\Enums\Role::Admin->value]
         );
 
         Livewire::test(TeamMemberManager::class, ['team' => $user->currentTeam])
@@ -32,7 +32,7 @@ class RemoveTeamMemberTest extends TestCase
         $user = User::factory()->withPersonalTeam()->create();
 
         $user->currentTeam->users()->attach(
-            $otherUser = User::factory()->create(), ['role' => 'Admin']
+            $otherUser = User::factory()->create(), ['role' => \App\Enums\Role::Admin->value]
         );
 
         $this->actingAs($otherUser);

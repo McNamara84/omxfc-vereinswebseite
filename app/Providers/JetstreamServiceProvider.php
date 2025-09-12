@@ -13,6 +13,7 @@ use Illuminate\Support\ServiceProvider;
 use Laravel\Jetstream\Jetstream;
 use Laravel\Fortify\Contracts\LoginResponse as LoginResponseContract;
 use App\Http\Responses\LoginResponse;
+use App\Enums\Role;
 
 class JetstreamServiceProvider extends ServiceProvider
 {
@@ -62,7 +63,7 @@ class JetstreamServiceProvider extends ServiceProvider
             // keine besonderen Rechte
         ])->description('Person, die einen Antrag auf Mitgliedschaft gestellt hat.');
 
-        Jetstream::role('Mitglied', 'Mitglied', [
+        Jetstream::role(Role::Mitglied->value, 'Mitglied', [
             'read',
         ])->description('Bestätigtes Vereinsmitglied.');
 
@@ -70,17 +71,17 @@ class JetstreamServiceProvider extends ServiceProvider
             'read',
         ])->description('Mitglied einer Arbeitsgruppe ohne Verwaltungsrechte.');
 
-        Jetstream::role('Ehrenmitglied', 'Ehrenmitglied', [
+        Jetstream::role(Role::Ehrenmitglied->value, 'Ehrenmitglied', [
             'read',
         ])->description('Ehrenmitglied mit denselben Zugriffsrechten wie ein reguläres Mitglied.');
 
-        Jetstream::role('Kassenwart', 'Kassenwart', [
+        Jetstream::role(Role::Kassenwart->value, 'Kassenwart', [
             'read',
             'manage-finances',
             'manage-members',
         ])->description('Kassenwart, der Mitgliedsbeiträge und Finanzen verwaltet sowie Mitgliederanträge bestätigen darf.');
 
-        Jetstream::role('Vorstand', 'Vorstand', [
+        Jetstream::role(Role::Vorstand->value, 'Vorstand', [
             'create',
             'read',
             'update',
@@ -89,7 +90,7 @@ class JetstreamServiceProvider extends ServiceProvider
             'manage-members',
         ])->description('Vorstand mit umfassenden administrativen Rechten.');
 
-        Jetstream::role('Admin', 'Admin', [
+        Jetstream::role(Role::Admin->value, 'Admin', [
             'create',
             'read',
             'update',

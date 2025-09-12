@@ -9,6 +9,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Http;
 use App\Models\Mission;
 use Carbon\Carbon;
+use App\Enums\Role;
 
 class MaddraxiversumController extends Controller
 {
@@ -26,7 +27,7 @@ class MaddraxiversumController extends Controller
         $showMap = false;
 
         // Immer zeigen, wenn Ehrenmitglied
-        if ($user->hasRole('Ehrenmitglied')) {
+        if ($user->hasRole(Role::Ehrenmitglied)) {
             $showMap = true;
             $userPoints = $currentTeam ? $user->totalPointsForTeam($currentTeam) : 0;
         } elseif ($currentTeam) {

@@ -15,7 +15,7 @@ class RewardControllerTest extends TestCase
     {
         $team = Team::membersTeam();
         $user = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($user, ['role' => 'Mitglied']);
+        $team->users()->attach($user, ['role' => \App\Enums\Role::Mitglied->value]);
         if ($points) {
             $user->incrementTeamPoints($points);
         }
@@ -43,15 +43,15 @@ class RewardControllerTest extends TestCase
         $team = Team::membersTeam();
 
         $user1 = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($user1, ['role' => 'Mitglied']);
+        $team->users()->attach($user1, ['role' => \App\Enums\Role::Mitglied->value]);
         $user1->incrementTeamPoints(1);
 
         $user2 = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($user2, ['role' => 'Mitglied']);
+        $team->users()->attach($user2, ['role' => \App\Enums\Role::Mitglied->value]);
         $user2->incrementTeamPoints(3);
 
         $user3 = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($user3, ['role' => 'Mitglied']);
+        $team->users()->attach($user3, ['role' => \App\Enums\Role::Mitglied->value]);
 
         $this->actingAs($user2);
 

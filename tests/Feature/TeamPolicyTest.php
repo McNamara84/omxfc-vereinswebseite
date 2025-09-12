@@ -22,7 +22,7 @@ class TeamPolicyTest extends TestCase
 
         $adminTeam = Team::membersTeam();
         $admin = User::factory()->create(['current_team_id' => $adminTeam->id]);
-        $adminTeam->users()->attach($admin, ['role' => 'Admin']);
+        $adminTeam->users()->attach($admin, ['role' => \App\Enums\Role::Admin->value]);
 
         $policy = new TeamPolicy();
 

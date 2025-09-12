@@ -38,7 +38,7 @@ class PageAccessibilityTest extends TestCase
     {
         $team = Team::membersTeam();
 
-        $team->users()->attach(User::factory()->create(), ['role' => 'Mitglied']);
+        $team->users()->attach(User::factory()->create(), ['role' => \App\Enums\Role::Mitglied->value]);
         $team->users()->attach(User::factory()->create(), ['role' => 'Anwärter']);
 
         $response = $this->get('/');

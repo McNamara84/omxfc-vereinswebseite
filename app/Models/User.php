@@ -14,6 +14,7 @@ use Laravel\Sanctum\HasApiTokens;
 use Carbon\Carbon;
 use App\Jobs\GeocodeUser;
 use Illuminate\Support\Facades\Schema;
+use App\Enums\Role;
 
 /**
  * @property-read Team|null $currentTeam
@@ -196,9 +197,9 @@ class User extends Authenticatable
      *
      * @return string|null
      */
-    public function role(): ?string
+    public function role(): ?Role
     {
-        if (!$this->currentTeam) {
+        if (! $this->currentTeam) {
             return null;
         }
 
@@ -206,18 +207,28 @@ class User extends Authenticatable
             ->wherePivot('team_id', $this->currentTeam->id)
             ->first();
 
-        return $membership->membership->role ?? null;
+        return Role::tryFrom($membership->membership->role ?? null);
     }
 
     /**
      * Check if the user has the given role on the current team.
      *
-     * @param  string  $role
+     * @param  Role  $role
      * @return bool
      */
-    public function hasRole(string $role): bool
+    public function hasRole(Role $role): bool
     {
         return $this->role() === $role;
+    }
+
+    /**
+     * Check if the user has any of the given roles on the current team.
+     */
+    public function hasAnyRole(Role ...$roles): bool
+    {
+        $userRole = $this->role();
+
+        return $userRole && in_array($userRole, $roles, true);
     }
 
     /**
@@ -225,9 +236,7 @@ class User extends Authenticatable
      */
     public function hasVorstandRole(): bool
     {
-        return $this->hasRole('Admin')
-            || $this->hasRole('Vorstand')
-            || $this->hasRole('Kassenwart');
+        return $this->hasAnyRole(Role::Admin, Role::Vorstand, Role::Kassenwart);
     }
 
     /**
