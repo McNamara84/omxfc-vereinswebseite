@@ -15,6 +15,7 @@ class HomePageContentTest extends TestCase
 
         $response->assertOk()
             ->assertSee('Willkommen beim Offiziellen MADDRAX Fanclub e. V.!')
+            ->assertSee('<title>Startseite – Offizieller MADDRAX Fanclub e. V.</title>', false)
             ->assertSee('Wer wir sind')
             ->assertSee('Wir Maddrax-Fans sind eine muntere Gruppe')
             ->assertSee('Was wir machen')
