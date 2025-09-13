@@ -165,6 +165,18 @@ class HoerbuchControllerTest extends TestCase
         $this->assertEquals(1, AudiobookEpisode::where('episode_number', 'F30')->count());
     }
 
+    public function test_store_validation_errors(): void
+    {
+        $user = $this->actingMember('Admin');
+
+        $response = $this->actingAs($user)
+            ->from(route('hoerbuecher.create'))
+            ->post(route('hoerbuecher.store'), []);
+
+        $response->assertRedirect(route('hoerbuecher.create', [], false));
+        $response->assertSessionHasErrors(['episode_number', 'title', 'author', 'planned_release_date', 'status', 'progress']);
+    }
+
     public function test_member_cannot_view_create_form(): void
     {
         $user = $this->actingMember('Mitglied');
@@ -538,6 +550,37 @@ class HoerbuchControllerTest extends TestCase
             'roles_filled' => 1,
             'notes' => 'Aktualisiert',
         ]);
+    }
+
+    public function test_update_validation_errors(): void
+    {
+        $user = $this->actingMember('Admin');
+        $episode = AudiobookEpisode::create([
+            'episode_number' => 'F2',
+            'title' => 'Alt',
+            'author' => 'Autor',
+            'planned_release_date' => '12.2025',
+            'status' => 'Skripterstellung',
+            'responsible_user_id' => null,
+            'progress' => 0,
+            'roles_total' => 0,
+            'roles_filled' => 0,
+            'notes' => null,
+        ]);
+
+        $response = $this->actingAs($user)
+            ->from(route('hoerbuecher.edit', $episode))
+            ->put(route('hoerbuecher.update', $episode), [
+                'episode_number' => '',
+                'title' => '',
+                'author' => '',
+                'planned_release_date' => '',
+                'status' => '',
+                'progress' => 200,
+            ]);
+
+        $response->assertRedirect(route('hoerbuecher.edit', $episode, false));
+        $response->assertSessionHasErrors(['episode_number', 'title', 'author', 'planned_release_date', 'status', 'progress']);
     }
 
     public function test_admin_can_delete_episode(): void

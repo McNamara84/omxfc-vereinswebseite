@@ -275,6 +275,33 @@ class RezensionControllerTest extends TestCase
         $this->assertSoftDeleted('reviews', ['id' => $review->id]);
     }
 
+    public function test_update_validation_errors(): void
+    {
+        $admin = $this->actingMember('Admin');
+        $book = Book::create([
+            'roman_number' => 1,
+            'title' => 'Test',
+            'author' => 'Autor',
+        ]);
+        $review = Review::create([
+            'team_id' => Team::membersTeam()->id,
+            'user_id' => $admin->id,
+            'book_id' => $book->id,
+            'title' => 'Old',
+            'content' => str_repeat('A', 140),
+        ]);
+
+        $response = $this->actingAs($admin)
+            ->from(route('reviews.edit', $review))
+            ->put(route('reviews.update', $review), [
+                'title' => '',
+                'content' => 'short',
+            ]);
+
+        $response->assertRedirect(route('reviews.edit', $review, false));
+        $response->assertSessionHasErrors(['title', 'content']);
+    }
+
     public function test_show_displays_review_for_author(): void
     {
         $user = $this->actingMember();
