@@ -167,4 +167,37 @@ class DashboardControllerTest extends TestCase
 
         $this->get('/dashboard')->assertOk();
     }
+
+    public function test_approve_uses_members_team_provider(): void
+    {
+        Mail::fake();
+        $admin = $this->actingAdmin();
+        $applicant = $this->createApplicant();
+        $team = Team::membersTeam();
+        $this->actingAs($admin);
+
+        $this->mock(MembersTeamProvider::class, function ($mock) use ($team) {
+            $mock->shouldReceive('getMembersTeamOrAbort')->once()->andReturn($team);
+        });
+
+        $this->from('/dashboard')
+            ->post(route('anwaerter.approve', $applicant))
+            ->assertRedirect('/dashboard');
+    }
+
+    public function test_reject_uses_members_team_provider(): void
+    {
+        $admin = $this->actingAdmin();
+        $applicant = $this->createApplicant();
+        $team = Team::membersTeam();
+        $this->actingAs($admin);
+
+        $this->mock(MembersTeamProvider::class, function ($mock) use ($team) {
+            $mock->shouldReceive('getMembersTeamOrAbort')->once()->andReturn($team);
+        });
+
+        $this->from('/dashboard')
+            ->post(route('anwaerter.reject', $applicant))
+            ->assertRedirect('/dashboard');
+    }
 }
