@@ -8,7 +8,6 @@ use App\Enums\BookType;
 use App\Models\Review;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Team;
-use Illuminate\Support\Facades\DB;
 use App\Models\User;
 use App\Mail\NewReviewNotification;
 use Illuminate\Support\Facades\Mail;
@@ -16,9 +15,15 @@ use App\Models\Activity;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use App\Enums\Role;
+use App\Services\UserRoleService;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class RezensionController extends Controller
-{
+{   
+    public function __construct(private UserRoleService $userRoleService)
+    {
+    }
+
     /**
      * Liefert das Team „Mitglieder“.
      */
@@ -34,19 +39,18 @@ class RezensionController extends Controller
      */
     protected function getRoleInMemberTeam(): ?Role
     {
-        // Stelle sicher, dass es das Team überhaupt gibt:
         $team = Team::membersTeam();
-        if (! $team) {
+        $user = Auth::user();
+
+        if (! $team || ! $user) {
             return null;
         }
 
-        // Wert direkt aus der Pivot-Tabelle holen und in Enum umwandeln:
-        $role = DB::table('team_user')
-            ->where('team_id', $team->id)
-            ->where('user_id', Auth::id())
-            ->value('role');
-
-        return Role::tryFrom($role);
+        try {
+            return $this->userRoleService->getRole($user, $team);
+        } catch (ModelNotFoundException) {
+            return null;
+        }
     }
 
     /**
