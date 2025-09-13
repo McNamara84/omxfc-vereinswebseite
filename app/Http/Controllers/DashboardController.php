@@ -6,7 +6,6 @@ use App\Mail\MitgliedGenehmigtMail;
 use App\Models\Activity;
 use App\Models\Review;
 use App\Models\ReviewComment;
-use App\Models\Team;
 use App\Models\Todo;
 use App\Models\User;
 use App\Models\UserPoint;
@@ -16,18 +15,21 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use App\Enums\Role;
 use App\Services\UserRoleService;
+use App\Services\MembersTeamProvider;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class DashboardController extends Controller
 {
-    public function __construct(private UserRoleService $userRoleService)
-    {
+    public function __construct(
+        private UserRoleService $userRoleService,
+        private MembersTeamProvider $membersTeamProvider
+    ) {
     }
 
     public function index()
     {
         $user = Auth::user();
-        $team = $user->currentTeam;
+        $team = $this->membersTeamProvider->getMembersTeamOrAbort();
 
         $cacheFor = now()->addMinutes(10);
 
@@ -60,7 +62,6 @@ class DashboardController extends Controller
         }
 
         // ToDo-Statistiken abrufen
-        $memberTeam = Team::membersTeam();
 
         // Initialisierung der Variablen
         $openTodos = 0;
@@ -72,91 +73,89 @@ class DashboardController extends Controller
         $myReviews = 0;
         $myReviewComments = 0;
 
-        if ($memberTeam) {
-            // Offene Aufgaben
-            $openTodos = Cache::remember(
-                "open_todos_{$memberTeam->id}",
+        // Offene Aufgaben
+        $openTodos = Cache::remember(
+            "open_todos_{$team->id}",
+            $cacheFor,
+            fn () => Todo::where('team_id', $team->id)
+                ->where('status', 'open')
+                ->count()
+        );
+
+        // Punkte des angemeldeten Nutzers
+        $userPoints = Cache::remember(
+            "user_points_{$team->id}_{$user->id}",
+            $cacheFor,
+            fn () => UserPoint::where('user_id', $user->id)
+                ->where('team_id', $team->id)
+                ->sum('points')
+        );
+
+        // Abgeschlossene Aufgaben des Nutzers
+        $completedTodos = Cache::remember(
+            "completed_todos_{$team->id}_{$user->id}",
+            $cacheFor,
+            fn () => UserPoint::where('user_id', $user->id)
+                ->where('team_id', $team->id)
+                ->count()
+        );
+
+        // Aufgaben, die auf Verifizierung warten (nur für Admins sichtbar)
+        if (in_array($userRole, $allowedRoles, true)) {
+            $pendingVerification = Cache::remember(
+                "pending_verification_{$team->id}",
                 $cacheFor,
-                fn () => Todo::where('team_id', $memberTeam->id)
-                    ->where('status', 'open')
+                fn () => Todo::where('team_id', $team->id)
+                    ->where('status', 'completed')
                     ->count()
-            );
-
-            // Punkte des angemeldeten Nutzers
-            $userPoints = Cache::remember(
-                "user_points_{$memberTeam->id}_{$user->id}",
-                $cacheFor,
-                fn () => UserPoint::where('user_id', $user->id)
-                    ->where('team_id', $memberTeam->id)
-                    ->sum('points')
-            );
-
-            // Abgeschlossene Aufgaben des Nutzers
-            $completedTodos = Cache::remember(
-                "completed_todos_{$memberTeam->id}_{$user->id}",
-                $cacheFor,
-                fn () => UserPoint::where('user_id', $user->id)
-                    ->where('team_id', $memberTeam->id)
-                    ->count()
-            );
-
-            // Aufgaben, die auf Verifizierung warten (nur für Admins sichtbar)
-            if (in_array($userRole, $allowedRoles, true)) {
-                $pendingVerification = Cache::remember(
-                    "pending_verification_{$memberTeam->id}",
-                    $cacheFor,
-                    fn () => Todo::where('team_id', $memberTeam->id)
-                        ->where('status', 'completed')
-                        ->count()
-                );
-            }
-
-            // TOP3 Nutzer mit den meisten Punkten
-            $topUsers = Cache::remember(
-                "top_users_{$memberTeam->id}",
-                $cacheFor,
-                function () use ($memberTeam) {
-                    return UserPoint::where('team_id', $memberTeam->id)
-                        ->select('user_id', DB::raw('SUM(points) as total_points'))
-                        ->groupBy('user_id')
-                        ->orderBy('total_points', 'desc')
-                        ->limit(3)
-                        ->get()
-                        ->map(function ($item) {
-                            $user = User::find($item->user_id);
-
-                            return [
-                                'id' => $user->id,
-                                'name' => $user->name,
-                                'profile_photo_url' => $user->profile_photo_url,
-                                'points' => $item->total_points,
-                            ];
-                        });
-                }
             );
         }
 
+        // TOP3 Nutzer mit den meisten Punkten
+        $topUsers = Cache::remember(
+            "top_users_{$team->id}",
+            $cacheFor,
+            function () use ($team) {
+                return UserPoint::where('team_id', $team->id)
+                    ->select('user_id', DB::raw('SUM(points) as total_points'))
+                    ->groupBy('user_id')
+                    ->orderBy('total_points', 'desc')
+                    ->limit(3)
+                    ->get()
+                    ->map(function ($item) {
+                        $user = User::find($item->user_id);
+
+                        return [
+                            'id' => $user->id,
+                            'name' => $user->name,
+                            'profile_photo_url' => $user->profile_photo_url,
+                            'points' => $item->total_points,
+                        ];
+                    });
+            }
+        );
+
         // Rezensionen zählen
         $allReviews = Cache::remember(
-            "all_reviews_{$memberTeam->id}",
+            "all_reviews_{$team->id}",
             $cacheFor,
-            fn () => Review::where('team_id', $memberTeam->id)->count()
+            fn () => Review::where('team_id', $team->id)->count()
         );
         $myReviews = Cache::remember(
-            "my_reviews_{$memberTeam->id}_{$user->id}",
+            "my_reviews_{$team->id}_{$user->id}",
             $cacheFor,
-            fn () => Review::where('team_id', $memberTeam->id)
+            fn () => Review::where('team_id', $team->id)
                 ->where('user_id', $user->id)
                 ->count()
         );
 
         // Eigene Kommentare auf Rezensionen
         $myReviewComments = Cache::remember(
-            "my_review_comments_{$memberTeam->id}_{$user->id}",
+            "my_review_comments_{$team->id}_{$user->id}",
             $cacheFor,
             fn () => ReviewComment::where('user_id', $user->id)
-                ->whereHas('review', function ($query) use ($memberTeam) {
-                    $query->where('team_id', $memberTeam->id);
+                ->whereHas('review', function ($query) use ($team) {
+                    $query->where('team_id', $team->id);
                 })
                 ->count()
         );
@@ -185,7 +184,7 @@ class DashboardController extends Controller
 
     public function approveAnwaerter(User $user)
     {
-        $team = $user->currentTeam;
+        $team = $this->membersTeamProvider->getMembersTeamOrAbort();
         $team->users()->updateExistingPivot($user->id, ['role' => Role::Mitglied->value]);
         // Mitgliedsdatum setzen
         $user->mitglied_seit = now()->toDateString();
@@ -207,7 +206,7 @@ class DashboardController extends Controller
 
     public function rejectAnwaerter(User $user)
     {
-        $team = $user->currentTeam;
+        $team = $this->membersTeamProvider->getMembersTeamOrAbort();
         $team->users()->detach($user->id);
         $user->delete();
 

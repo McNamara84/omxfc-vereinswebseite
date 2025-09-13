@@ -11,17 +11,20 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Services\UserRoleService;
+use App\Services\MembersTeamProvider;
 
 class KassenbuchController extends Controller
 {
-    public function __construct(private UserRoleService $userRoleService)
-    {
+    public function __construct(
+        private UserRoleService $userRoleService,
+        private MembersTeamProvider $membersTeamProvider
+    ) {
     }
 
     public function index()
     {
         $user = Auth::user();
-        $team = $user->currentTeam;
+        $team = $this->membersTeamProvider->getMembersTeamOrAbort();
 
         // Benutzerrolle ermitteln
         $userRole = $this->userRoleService->getRole($user, $team);
@@ -88,7 +91,7 @@ class KassenbuchController extends Controller
         ]);
 
         $currentUser = Auth::user();
-        $team = $currentUser->currentTeam;
+        $team = $this->membersTeamProvider->getMembersTeamOrAbort();
 
         $this->authorize('manage', KassenbuchEntry::class);
 
@@ -112,7 +115,7 @@ class KassenbuchController extends Controller
         ]);
 
         $user = Auth::user();
-        $team = $user->currentTeam;
+        $team = $this->membersTeamProvider->getMembersTeamOrAbort();
 
         $this->authorize('manage', KassenbuchEntry::class);
 

@@ -9,6 +9,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use App\Enums\Role;
+use App\Services\MembersTeamProvider;
 
 class MitgliederControllerTest extends TestCase
 {
@@ -342,5 +343,18 @@ class MitgliederControllerTest extends TestCase
         $members = $response->viewData('members');
         $this->assertCount(1, $members);
         $this->assertTrue($members->contains('id', $online->id));
+    }
+
+    public function test_index_uses_members_team_provider(): void
+    {
+        $team = Team::membersTeam();
+        $user = $this->actingMember();
+        $this->actingAs($user);
+
+        $this->mock(MembersTeamProvider::class, function ($mock) use ($team) {
+            $mock->shouldReceive('getMembersTeamOrAbort')->once()->andReturn($team);
+        });
+
+        $this->get('/mitglieder')->assertOk();
     }
 }

@@ -9,6 +9,7 @@ use App\Models\TodoCategory;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
+use App\Services\MembersTeamProvider;
 
 class TodoControllerTest extends TestCase
 {
@@ -280,5 +281,18 @@ class TodoControllerTest extends TestCase
 
         $response->assertOk();
         $response->assertViewIs('todos.edit');
+    }
+
+    public function test_index_uses_members_team_provider(): void
+    {
+        $team = Team::membersTeam();
+        $user = $this->actingMember();
+        $this->actingAs($user);
+
+        $this->mock(MembersTeamProvider::class, function ($mock) use ($team) {
+            $mock->shouldReceive('getMembersTeamOrAbort')->once()->andReturn($team);
+        });
+
+        $this->get('/aufgaben')->assertOk();
     }
 }
