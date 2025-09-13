@@ -63,7 +63,8 @@ class PublicPagesContentTest extends TestCase
             ->assertOk()
             ->assertSee('Spenden')
             ->assertSee('Spenden helfen uns bei der Finanzierung der jährlichen Fantreffen sowie der Serverkosten dieser Webseite')
-            ->assertSee('kassenwart@maddrax-fanclub.de');
+            ->assertSee('kassenwart@maddrax-fanclub.de')
+            ->assertSee('Spenden mit PayPal');
     }
 
     public function test_arbeitsgruppen_page_shows_leader_schedule_and_contact(): void
