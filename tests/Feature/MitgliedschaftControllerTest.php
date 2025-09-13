@@ -8,6 +8,7 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
+use App\Enums\Role;
 
 class MitgliedschaftControllerTest extends TestCase
 {
@@ -41,7 +42,7 @@ class MitgliedschaftControllerTest extends TestCase
         $this->assertNotNull($user);
 
         $team = Team::membersTeam();
-        $this->assertTrue($team->users()->where('user_id', $user->id)->wherePivot('role', 'Anwärter')->exists());
+        $this->assertTrue($team->users()->where('user_id', $user->id)->wherePivot('role', Role::Anwaerter->value)->exists());
 
         Mail::assertQueued(MitgliedAntragEingereicht::class, function ($mail) use ($user) {
             return $mail->hasTo($user->email);

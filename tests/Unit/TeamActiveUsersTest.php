@@ -6,6 +6,7 @@ use App\Models\Team;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
+use App\Enums\Role;
 
 class TeamActiveUsersTest extends TestCase
 {
@@ -19,8 +20,8 @@ class TeamActiveUsersTest extends TestCase
         $member = User::factory()->create();
         $applicant = User::factory()->create();
 
-        $team->users()->attach($member, ['role' => \App\Enums\Role::Mitglied->value]);
-        $team->users()->attach($applicant, ['role' => 'Anwärter']);
+        $team->users()->attach($member, ['role' => Role::Mitglied->value]);
+        $team->users()->attach($applicant, ['role' => Role::Anwaerter->value]);
 
         $active = $team->activeUsers()->get();
 

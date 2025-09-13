@@ -9,6 +9,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\MitgliedGenehmigtMail;
 use App\Enums\TodoStatus;
+use App\Enums\Role;
 
 class DashboardControllerTest extends TestCase
 {
@@ -18,7 +19,7 @@ class DashboardControllerTest extends TestCase
     {
         $team = Team::membersTeam();
         $user = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($user, ['role' => \App\Enums\Role::Admin->value]);
+        $team->users()->attach($user, ['role' => Role::Admin->value]);
         return $user;
     }
 
@@ -26,7 +27,7 @@ class DashboardControllerTest extends TestCase
     {
         $team = Team::membersTeam();
         $user = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($user, ['role' => 'Anwärter']);
+        $team->users()->attach($user, ['role' => Role::Anwaerter->value]);
         return $user;
     }
 
@@ -43,7 +44,7 @@ class DashboardControllerTest extends TestCase
 
         $this->assertDatabaseHas('team_user', [
             'user_id' => $applicant->id,
-            'role' => \App\Enums\Role::Mitglied->value,
+            'role' => Role::Mitglied->value,
         ]);
         $this->assertNotNull($applicant->fresh()->mitglied_seit);
         Mail::assertQueued(MitgliedGenehmigtMail::class);
@@ -86,15 +87,15 @@ class DashboardControllerTest extends TestCase
     {
         $team = Team::membersTeam();
         $admin = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($admin, ['role' => \App\Enums\Role::Admin->value]);
+        $team->users()->attach($admin, ['role' => Role::Admin->value]);
 
         $applicant = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($applicant, ['role' => 'Anwärter']);
+        $team->users()->attach($applicant, ['role' => Role::Anwaerter->value]);
 
         $member1 = User::factory()->create(['current_team_id' => $team->id]);
         $member2 = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($member1, ['role' => \App\Enums\Role::Mitglied->value]);
-        $team->users()->attach($member2, ['role' => \App\Enums\Role::Mitglied->value]);
+        $team->users()->attach($member1, ['role' => Role::Mitglied->value]);
+        $team->users()->attach($member2, ['role' => Role::Mitglied->value]);
 
         $category = \App\Models\TodoCategory::first() ?? \App\Models\TodoCategory::create(['name' => 'Test', 'slug' => 'test']);
         $firstTodo = \App\Models\Todo::create([

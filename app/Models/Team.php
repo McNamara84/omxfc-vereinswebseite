@@ -15,6 +15,7 @@ use App\Models\User;
 use Carbon\Carbon;
 use Laravel\Jetstream\Team as JetstreamTeam;
 use Illuminate\Support\Facades\Cache;
+use App\Enums\Role;
 
 /**
  * @property int $id
@@ -103,7 +104,7 @@ class Team extends JetstreamTeam
      */
     public function activeUsers(): BelongsToMany
     {
-        return $this->users()->wherePivotNotIn('role', ['Anwärter']);
+        return $this->users()->wherePivotNotIn('role', [Role::Anwaerter->value]);
     }
 
     /**

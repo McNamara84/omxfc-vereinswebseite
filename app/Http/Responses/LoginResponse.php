@@ -4,6 +4,7 @@ namespace App\Http\Responses;
 
 use Laravel\Fortify\Contracts\LoginResponse as LoginResponseContract;
 use Illuminate\Support\Facades\Auth;
+use App\Enums\Role;
 
 class LoginResponse implements LoginResponseContract
 {
@@ -11,7 +12,7 @@ class LoginResponse implements LoginResponseContract
     {
         $user = Auth::user();
         
-        if ($user->currentTeam && $user->currentTeam->users()->where('user_id', $user->id)->wherePivot('role', 'Anwärter')->exists()) {
+        if ($user->currentTeam && $user->currentTeam->users()->where('user_id', $user->id)->wherePivot('role', Role::Anwaerter->value)->exists()) {
             Auth::logout();
 
             return redirect()->route('login')->withErrors([

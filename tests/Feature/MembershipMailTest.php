@@ -7,6 +7,7 @@ use Tests\TestCase;
 use App\Mail\MitgliedAntragEingereicht;
 use Illuminate\Support\Facades\Mail;
 use App\Models\User;
+use App\Enums\Role;
 
 class MembershipMailTest extends TestCase
 {
@@ -39,7 +40,7 @@ class MembershipMailTest extends TestCase
         });
 
         $this->assertDatabaseHas('users', ['email' => 'applicant@example.com']);
-        $this->assertDatabaseHas('team_user', ['role' => 'Anwärter']);
+        $this->assertDatabaseHas('team_user', ['role' => Role::Anwaerter->value]);
     }
 
     public function test_application_fails_when_first_name_missing(): void
@@ -65,7 +66,7 @@ class MembershipMailTest extends TestCase
         $response->assertStatus(422);
         Mail::assertNothingSent();
         $this->assertDatabaseMissing('users', ['email' => 'applicant@example.com']);
-        $this->assertDatabaseMissing('team_user', ['role' => 'Anwärter']);
+        $this->assertDatabaseMissing('team_user', ['role' => Role::Anwaerter->value]);
     }
 
     public function test_application_fails_when_email_already_exists(): void
@@ -93,6 +94,6 @@ class MembershipMailTest extends TestCase
         $response->assertStatus(422);
         Mail::assertNothingSent();
         $this->assertSame(1, User::where('email', 'applicant@example.com')->count());
-        $this->assertDatabaseMissing('team_user', ['role' => 'Anwärter']);
+        $this->assertDatabaseMissing('team_user', ['role' => Role::Anwaerter->value]);
     }
 }

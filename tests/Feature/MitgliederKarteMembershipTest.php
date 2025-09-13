@@ -6,6 +6,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 use App\Models\Team;
 use App\Models\User;
+use App\Enums\Role;
 
 class MitgliederKarteMembershipTest extends TestCase
 {
@@ -19,8 +20,8 @@ class MitgliederKarteMembershipTest extends TestCase
         $member = User::factory()->create();
         $applicant = User::factory()->create();
 
-        $team->users()->attach($member, ['role' => \App\Enums\Role::Mitglied->value]);
-        $team->users()->attach($applicant, ['role' => 'Anwärter']);
+        $team->users()->attach($member, ['role' => Role::Mitglied->value]);
+        $team->users()->attach($applicant, ['role' => Role::Anwaerter->value]);
 
         $members = $team->activeUsers()
             ->as('pivot')
@@ -32,7 +33,7 @@ class MitgliederKarteMembershipTest extends TestCase
         $retrieved = $members->first();
 
         $this->assertSame($member->id, $retrieved->id);
-        $this->assertSame('Mitglied', $retrieved->pivot->role);
+        $this->assertSame(Role::Mitglied->value, $retrieved->pivot->role);
     }
 }
 

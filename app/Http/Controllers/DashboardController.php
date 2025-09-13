@@ -52,7 +52,7 @@ class DashboardController extends Controller
                 "anwaerter_{$team->id}",
                 $cacheFor,
                 fn () => $team->users()
-                    ->wherePivot('role', 'Anwärter')
+                    ->wherePivot('role', Role::Anwaerter->value)
                     ->get()
             );
         }
@@ -184,7 +184,7 @@ class DashboardController extends Controller
     public function approveAnwaerter(User $user)
     {
         $team = $user->currentTeam;
-        $team->users()->updateExistingPivot($user->id, ['role' => 'Mitglied']);
+        $team->users()->updateExistingPivot($user->id, ['role' => Role::Mitglied->value]);
         // Mitgliedsdatum setzen
         $user->mitglied_seit = now()->toDateString();
         $user->save();
