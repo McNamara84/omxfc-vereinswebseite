@@ -18,12 +18,12 @@
                                 Verein
                             </button>
                             <div id="verein-menu" x-show="open" x-cloak class="absolute left-0 top-full mt-px w-48 bg-white dark:bg-gray-700 rounded-md shadow-lg z-50 py-2 group-hover:block" role="menu" aria-labelledby="verein-button">
-                                <x-dropdown-link x-ref="firstItem" :tabindex="open ? 0 : -1" role="menuitem" href="{{ route('mitglieder.index') }}">Mitgliederliste</x-dropdown-link>
-                                <x-dropdown-link :tabindex="open ? 0 : -1" role="menuitem" href="{{ route('mitglieder.karte') }}">Mitgliederkarte</x-dropdown-link>
-                                <x-dropdown-link :tabindex="open ? 0 : -1" role="menuitem" href="{{ route('protokolle') }}">Protokolle</x-dropdown-link>
-                                <x-dropdown-link :tabindex="open ? 0 : -1" role="menuitem" href="{{ route('kassenbuch.index') }}">Kassenbuch</x-dropdown-link>
-                                <x-dropdown-link :tabindex="open ? 0 : -1" role="menuitem" href="{{ route('reviews.index') }}">Rezensionen</x-dropdown-link>
-                                <x-dropdown-link :tabindex="open ? 0 : -1" role="menuitem" href="{{ route('romantausch.index') }}">Tauschbörse</x-dropdown-link>
+                                <x-dropdown-link x-ref="firstItem" x-bind:tabindex="open ? 0 : -1" role="menuitem" href="{{ route('mitglieder.index') }}">Mitgliederliste</x-dropdown-link>
+                                <x-dropdown-link x-bind:tabindex="open ? 0 : -1" role="menuitem" href="{{ route('mitglieder.karte') }}">Mitgliederkarte</x-dropdown-link>
+                                <x-dropdown-link x-bind:tabindex="open ? 0 : -1" role="menuitem" href="{{ route('protokolle') }}">Protokolle</x-dropdown-link>
+                                <x-dropdown-link x-bind:tabindex="open ? 0 : -1" role="menuitem" href="{{ route('kassenbuch.index') }}">Kassenbuch</x-dropdown-link>
+                                <x-dropdown-link x-bind:tabindex="open ? 0 : -1" role="menuitem" href="{{ route('reviews.index') }}">Rezensionen</x-dropdown-link>
+                                <x-dropdown-link x-bind:tabindex="open ? 0 : -1" role="menuitem" href="{{ route('romantausch.index') }}">Tauschbörse</x-dropdown-link>
                             </div>
                         </div>
                         <!-- Dropdown Veranstaltungen -->
@@ -32,9 +32,9 @@
                                 Veranstaltungen
                             </button>
                             <div id="veranstaltungen-menu" x-show="open" x-cloak class="absolute left-0 top-full mt-px w-48 bg-white dark:bg-gray-700 rounded-md shadow-lg z-50 py-2 group-hover:block" role="menu" aria-labelledby="veranstaltungen-button">
-                                <x-dropdown-link x-ref="firstItem" :tabindex="open ? 0 : -1" role="menuitem" href="{{ route('fotogalerie') }}">Fotos</x-dropdown-link>
-                                <x-dropdown-link :tabindex="open ? 0 : -1" role="menuitem" href="{{ route('meetings') }}">Meetings</x-dropdown-link>
-                                <x-dropdown-link :tabindex="open ? 0 : -1" role="menuitem" href="{{ route('termine') }}">Termine</x-dropdown-link>
+                                <x-dropdown-link x-ref="firstItem" x-bind:tabindex="open ? 0 : -1" role="menuitem" href="{{ route('fotogalerie') }}">Fotos</x-dropdown-link>
+                                <x-dropdown-link x-bind:tabindex="open ? 0 : -1" role="menuitem" href="{{ route('meetings') }}">Meetings</x-dropdown-link>
+                                <x-dropdown-link x-bind:tabindex="open ? 0 : -1" role="menuitem" href="{{ route('termine') }}">Termine</x-dropdown-link>
                             </div>
                         </div>
                         <div class="relative flex items-center ml-4 group" x-data="{ open: false }" @click.away="open = false" @keydown.escape="open = false; $refs.trigger.focus()">
@@ -42,8 +42,8 @@
                                 Baxx
                             </button>
                             <div id="baxx-menu" x-show="open" x-cloak class="absolute left-0 top-full mt-px w-48 bg-white dark:bg-gray-700 rounded-md shadow-lg z-50 py-2 group-hover:block" role="menu" aria-labelledby="baxx-button">
-                                <x-dropdown-link x-ref="firstItem" :tabindex="open ? 0 : -1" role="menuitem" href="{{ route('todos.index') }}">Challenges</x-dropdown-link>
-                                <x-dropdown-link :tabindex="open ? 0 : -1" role="menuitem" href="{{ route('rewards.index') }}">Belohnungen</x-dropdown-link>
+                                <x-dropdown-link x-ref="firstItem" x-bind:tabindex="open ? 0 : -1" role="menuitem" href="{{ route('todos.index') }}">Challenges</x-dropdown-link>
+                                <x-dropdown-link x-bind:tabindex="open ? 0 : -1" role="menuitem" href="{{ route('rewards.index') }}">Belohnungen</x-dropdown-link>
                             </div>
                         </div>
                         <!-- Dropdown Veranstaltungen -->
@@ -52,10 +52,10 @@
                                 Belohnungen
                             </button>
                             <div id="belohnungen-menu" x-show="open" x-cloak class="absolute left-0 top-full mt-px w-48 bg-white dark:bg-gray-700 rounded-md shadow-lg z-50 py-2 group-hover:block" role="menu" aria-labelledby="belohnungen-button">
-                                <x-dropdown-link x-ref="firstItem" :tabindex="open ? 0 : -1" role="menuitem" href="{{ route('maddraxiversum.index') }}">Maddraxiversum</x-dropdown-link>
-                                <x-dropdown-link :tabindex="open ? 0 : -1" role="menuitem" href="{{ route('downloads') }}">Downloads</x-dropdown-link>
-                                <x-dropdown-link :tabindex="open ? 0 : -1" role="menuitem" href="{{ route('kompendium.index') }}">Kompendium</x-dropdown-link>
-                                <x-dropdown-link :tabindex="open ? 0 : -1" role="menuitem" href="{{ route('statistik.index') }}">Statistik</x-dropdown-link>
+                                <x-dropdown-link x-ref="firstItem" x-bind:tabindex="open ? 0 : -1" role="menuitem" href="{{ route('maddraxiversum.index') }}">Maddraxiversum</x-dropdown-link>
+                                <x-dropdown-link x-bind:tabindex="open ? 0 : -1" role="menuitem" href="{{ route('downloads') }}">Downloads</x-dropdown-link>
+                                <x-dropdown-link x-bind:tabindex="open ? 0 : -1" role="menuitem" href="{{ route('kompendium.index') }}">Kompendium</x-dropdown-link>
+                                <x-dropdown-link x-bind:tabindex="open ? 0 : -1" role="menuitem" href="{{ route('statistik.index') }}">Statistik</x-dropdown-link>
                             </div>
                         </div>
                         @if(Auth::user()->teams()->where('personal_team', false)->exists() || Auth::user()->hasVorstandRole())
@@ -65,10 +65,10 @@
                             </button>
                             <div id="ag-menu" x-show="open" x-cloak class="absolute left-0 top-full mt-px w-48 bg-white dark:bg-gray-700 rounded-md shadow-lg z-50 py-2 group-hover:block" role="menu" aria-labelledby="ag-button">
                                 @if(Auth::user()->hasVorstandRole() || Auth::user()->isMemberOfTeam('AG Fanhörbücher'))
-                                    <x-dropdown-link x-ref="firstItem" :tabindex="open ? 0 : -1" role="menuitem" href="{{ route('hoerbuecher.index') }}">EARDRAX Dashboard</x-dropdown-link>
+                                    <x-dropdown-link x-ref="firstItem" x-bind:tabindex="open ? 0 : -1" role="menuitem" href="{{ route('hoerbuecher.index') }}">EARDRAX Dashboard</x-dropdown-link>
                                 @endif
                                 @if(Auth::user()->ownedTeams()->where('personal_team', false)->exists())
-                                    <x-dropdown-link :tabindex="open ? 0 : -1" role="menuitem" href="{{ route('ag.index') }}">AG verwalten</x-dropdown-link>
+                                    <x-dropdown-link x-bind:tabindex="open ? 0 : -1" role="menuitem" href="{{ route('ag.index') }}">AG verwalten</x-dropdown-link>
                                 @endif
                             </div>
                         </div>
@@ -79,11 +79,11 @@
                                 Admin
                             </button>
                             <div id="admin-menu" x-show="open" x-cloak class="absolute left-0 top-full mt-px w-48 bg-white dark:bg-gray-700 rounded-md shadow-lg z-50 py-2 group-hover:block" role="menu" aria-labelledby="admin-button">
-                                <x-dropdown-link x-ref="firstItem" :tabindex="open ? 0 : -1" role="menuitem" href="{{ route('admin.index') }}">Admin</x-dropdown-link>
-                                <x-dropdown-link :tabindex="open ? 0 : -1" role="menuitem" href="{{ route('newsletter.create') }}">Newsletter versenden</x-dropdown-link>
-                                <x-dropdown-link :tabindex="open ? 0 : -1" role="menuitem" href="{{ route('admin.messages.index') }}">Kurznachrichten</x-dropdown-link>
-                                <x-dropdown-link :tabindex="open ? 0 : -1" role="menuitem" href="{{ route('rpg.char-editor') }}">Charakter-Editor</x-dropdown-link>
-                                <x-dropdown-link :tabindex="open ? 0 : -1" role="menuitem" href="{{ route('arbeitsgruppen.index') }}">Arbeitsgruppen</x-dropdown-link>
+                                <x-dropdown-link x-ref="firstItem" x-bind:tabindex="open ? 0 : -1" role="menuitem" href="{{ route('admin.index') }}">Admin</x-dropdown-link>
+                                <x-dropdown-link x-bind:tabindex="open ? 0 : -1" role="menuitem" href="{{ route('newsletter.create') }}">Newsletter versenden</x-dropdown-link>
+                                <x-dropdown-link x-bind:tabindex="open ? 0 : -1" role="menuitem" href="{{ route('admin.messages.index') }}">Kurznachrichten</x-dropdown-link>
+                                <x-dropdown-link x-bind:tabindex="open ? 0 : -1" role="menuitem" href="{{ route('rpg.char-editor') }}">Charakter-Editor</x-dropdown-link>
+                                <x-dropdown-link x-bind:tabindex="open ? 0 : -1" role="menuitem" href="{{ route('arbeitsgruppen.index') }}">Arbeitsgruppen</x-dropdown-link>
                             </div>
                         </div>
                         @endif
@@ -111,10 +111,10 @@
                             </button>
                         </x-slot>
                         <x-slot name="content">
-                            <x-dropdown-link :tabindex="0" role="menuitem" href="{{ route('profile.show') }}">Profil</x-dropdown-link>
+                            <x-dropdown-link tabindex="0" role="menuitem" href="{{ route('profile.show') }}">Profil</x-dropdown-link>
                             <form method="POST" action="{{ route('logout') }}">
                                 @csrf
-                                <x-dropdown-link :tabindex="0" role="menuitem" href="{{ route('logout') }}" onclick="event.preventDefault(); this.closest('form').submit();">
+                                <x-dropdown-link tabindex="0" role="menuitem" href="{{ route('logout') }}" onclick="event.preventDefault(); this.closest('form').submit();">
                                     Ausloggen
                                 </x-dropdown-link>
                             </form>
