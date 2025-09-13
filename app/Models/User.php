@@ -126,6 +126,10 @@ class User extends Authenticatable
     protected static function booted()
     {
         static::saved(function (User $user) {
+            if (env('DISABLE_GEOCODING', false)) {
+                return;
+            }
+
             if (! Schema::hasColumns('users', ['lat', 'lon'])) {
                 return;
             }
