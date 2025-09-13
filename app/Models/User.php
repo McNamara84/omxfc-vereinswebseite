@@ -15,6 +15,7 @@ use Carbon\Carbon;
 use App\Jobs\GeocodeUser;
 use Illuminate\Support\Facades\Schema;
 use App\Enums\Role;
+use App\Models\Membership;
 
 /**
  * @property-read Team|null $currentTeam
@@ -203,11 +204,11 @@ class User extends Authenticatable
             return null;
         }
 
-        $membership = $this->teams()
-            ->wherePivot('team_id', $this->currentTeam->id)
+        $membership = Membership::where('team_id', $this->currentTeam->id)
+            ->where('user_id', $this->id)
             ->first();
 
-        return Role::tryFrom($membership->membership->role ?? null);
+        return Role::tryFrom($membership->role ?? null);
     }
 
     /**
