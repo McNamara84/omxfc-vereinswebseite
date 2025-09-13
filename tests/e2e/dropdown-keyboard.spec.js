@@ -2,9 +2,9 @@ import { test, expect } from '@playwright/test';
 
 async function login(page) {
   await page.goto('/login');
-  await page.getByLabel('Email').fill('test@example.com');
-  await page.getByLabel('Password').fill('password');
-  await page.getByRole('button', { name: /log in/i }).click();
+  await page.getByLabel('E-Mail').fill('test@example.com');
+  await page.getByLabel('Passwort').fill('password');
+  await page.getByRole('button', { name: 'Login' }).click();
   await expect(page).toHaveURL(/dashboard/);
 }
 
