@@ -13,77 +13,77 @@
                     @auth
                         <x-nav-link href="{{ route('dashboard') }}">Dashboard</x-nav-link>
                         <!-- Dropdown Verein -->
-                        <div class="relative flex items-center ml-4 group" x-data="{ open: false }" @click="open = !open" @click.away="open = false" @keydown.escape="open = false">
-                            <button id="verein-button" type="button" class="px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition" :aria-expanded="open" aria-controls="verein-menu" @keydown.enter.prevent="open = !open" @keydown.space.prevent="open = !open">
+                        <div class="relative flex items-center ml-4 group" x-data="{ open: false }" @click.away="open = false" @keydown.escape="open = false; $refs.trigger.focus()">
+                            <button x-ref="trigger" id="verein-button" type="button" class="px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition" :aria-expanded="open ? 'true' : 'false'" aria-controls="verein-menu" @click="open = !open; $nextTick(() => open && $refs.firstItem.focus())" @keydown.enter.prevent="open = !open; $nextTick(() => open && $refs.firstItem.focus())" @keydown.space.prevent="open = !open; $nextTick(() => open && $refs.firstItem.focus())">
                                 Verein
                             </button>
-                            <div id="verein-menu" x-show="open" x-cloak class="absolute left-0 top-full mt-px w-48 bg-white dark:bg-gray-700 rounded-md shadow-lg z-50 py-2 group-hover:block" role="menu">
-                                <x-dropdown-link href="{{ route('mitglieder.index') }}">Mitgliederliste</x-dropdown-link>
-                                <x-dropdown-link href="{{ route('mitglieder.karte') }}">Mitgliederkarte</x-dropdown-link>
-                                <x-dropdown-link href="{{ route('protokolle') }}">Protokolle</x-dropdown-link>
-                                <x-dropdown-link href="{{ route('kassenbuch.index') }}">Kassenbuch</x-dropdown-link>
-                                <x-dropdown-link href="{{ route('reviews.index') }}">Rezensionen</x-dropdown-link>
-                                <x-dropdown-link href="{{ route('romantausch.index') }}">Tauschbörse</x-dropdown-link>
+                            <div id="verein-menu" x-show="open" x-cloak class="absolute left-0 top-full mt-px w-48 bg-white dark:bg-gray-700 rounded-md shadow-lg z-50 py-2 group-hover:block" role="menu" aria-labelledby="verein-button">
+                                <x-dropdown-link x-ref="firstItem" :tabindex="open ? 0 : -1" role="menuitem" href="{{ route('mitglieder.index') }}">Mitgliederliste</x-dropdown-link>
+                                <x-dropdown-link :tabindex="open ? 0 : -1" role="menuitem" href="{{ route('mitglieder.karte') }}">Mitgliederkarte</x-dropdown-link>
+                                <x-dropdown-link :tabindex="open ? 0 : -1" role="menuitem" href="{{ route('protokolle') }}">Protokolle</x-dropdown-link>
+                                <x-dropdown-link :tabindex="open ? 0 : -1" role="menuitem" href="{{ route('kassenbuch.index') }}">Kassenbuch</x-dropdown-link>
+                                <x-dropdown-link :tabindex="open ? 0 : -1" role="menuitem" href="{{ route('reviews.index') }}">Rezensionen</x-dropdown-link>
+                                <x-dropdown-link :tabindex="open ? 0 : -1" role="menuitem" href="{{ route('romantausch.index') }}">Tauschbörse</x-dropdown-link>
                             </div>
                         </div>
                         <!-- Dropdown Veranstaltungen -->
-                        <div class="relative flex items-center ml-4 group" x-data="{ open: false }" @click="open = !open" @click.away="open = false" @keydown.escape="open = false">
-                            <button id="veranstaltungen-button" type="button" class="px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition" :aria-expanded="open" aria-controls="veranstaltungen-menu" @keydown.enter.prevent="open = !open" @keydown.space.prevent="open = !open">
+                        <div class="relative flex items-center ml-4 group" x-data="{ open: false }" @click.away="open = false" @keydown.escape="open = false; $refs.trigger.focus()">
+                            <button x-ref="trigger" id="veranstaltungen-button" type="button" class="px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition" :aria-expanded="open ? 'true' : 'false'" aria-controls="veranstaltungen-menu" @click="open = !open; $nextTick(() => open && $refs.firstItem.focus())" @keydown.enter.prevent="open = !open; $nextTick(() => open && $refs.firstItem.focus())" @keydown.space.prevent="open = !open; $nextTick(() => open && $refs.firstItem.focus())">
                                 Veranstaltungen
                             </button>
-                            <div id="veranstaltungen-menu" x-show="open" x-cloak class="absolute left-0 top-full mt-px w-48 bg-white dark:bg-gray-700 rounded-md shadow-lg z-50 py-2 group-hover:block" role="menu">
-                                <x-dropdown-link href="{{ route('fotogalerie') }}">Fotos</x-dropdown-link>
-                                <x-dropdown-link href="{{ route('meetings') }}">Meetings</x-dropdown-link>
-                                <x-dropdown-link href="{{ route('termine') }}">Termine</x-dropdown-link>
+                            <div id="veranstaltungen-menu" x-show="open" x-cloak class="absolute left-0 top-full mt-px w-48 bg-white dark:bg-gray-700 rounded-md shadow-lg z-50 py-2 group-hover:block" role="menu" aria-labelledby="veranstaltungen-button">
+                                <x-dropdown-link x-ref="firstItem" :tabindex="open ? 0 : -1" role="menuitem" href="{{ route('fotogalerie') }}">Fotos</x-dropdown-link>
+                                <x-dropdown-link :tabindex="open ? 0 : -1" role="menuitem" href="{{ route('meetings') }}">Meetings</x-dropdown-link>
+                                <x-dropdown-link :tabindex="open ? 0 : -1" role="menuitem" href="{{ route('termine') }}">Termine</x-dropdown-link>
                             </div>
                         </div>
-                        <div class="relative flex items-center ml-4 group" x-data="{ open: false }" @click="open = !open" @click.away="open = false" @keydown.escape="open = false">
-                            <button id="baxx-button" type="button" class="px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition" :aria-expanded="open" aria-controls="baxx-menu" @keydown.enter.prevent="open = !open" @keydown.space.prevent="open = !open">
+                        <div class="relative flex items-center ml-4 group" x-data="{ open: false }" @click.away="open = false" @keydown.escape="open = false; $refs.trigger.focus()">
+                            <button x-ref="trigger" id="baxx-button" type="button" class="px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition" :aria-expanded="open ? 'true' : 'false'" aria-controls="baxx-menu" @click="open = !open; $nextTick(() => open && $refs.firstItem.focus())" @keydown.enter.prevent="open = !open; $nextTick(() => open && $refs.firstItem.focus())" @keydown.space.prevent="open = !open; $nextTick(() => open && $refs.firstItem.focus())">
                                 Baxx
                             </button>
-                            <div id="baxx-menu" x-show="open" x-cloak class="absolute left-0 top-full mt-px w-48 bg-white dark:bg-gray-700 rounded-md shadow-lg z-50 py-2 group-hover:block" role="menu">
-                                <x-dropdown-link href="{{ route('todos.index') }}">Challenges</x-dropdown-link>
-                                <x-dropdown-link href="{{ route('rewards.index') }}">Belohnungen</x-dropdown-link>
+                            <div id="baxx-menu" x-show="open" x-cloak class="absolute left-0 top-full mt-px w-48 bg-white dark:bg-gray-700 rounded-md shadow-lg z-50 py-2 group-hover:block" role="menu" aria-labelledby="baxx-button">
+                                <x-dropdown-link x-ref="firstItem" :tabindex="open ? 0 : -1" role="menuitem" href="{{ route('todos.index') }}">Challenges</x-dropdown-link>
+                                <x-dropdown-link :tabindex="open ? 0 : -1" role="menuitem" href="{{ route('rewards.index') }}">Belohnungen</x-dropdown-link>
                             </div>
                         </div>
                         <!-- Dropdown Veranstaltungen -->
-                        <div class="relative flex items-center ml-4 group" x-data="{ open: false }" @click="open = !open" @click.away="open = false" @keydown.escape="open = false">
-                            <button id="belohnungen-button" type="button" class="px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition" :aria-expanded="open" aria-controls="belohnungen-menu" @keydown.enter.prevent="open = !open" @keydown.space.prevent="open = !open">
+                        <div class="relative flex items-center ml-4 group" x-data="{ open: false }" @click.away="open = false" @keydown.escape="open = false; $refs.trigger.focus()">
+                            <button x-ref="trigger" id="belohnungen-button" type="button" class="px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition" :aria-expanded="open ? 'true' : 'false'" aria-controls="belohnungen-menu" @click="open = !open; $nextTick(() => open && $refs.firstItem.focus())" @keydown.enter.prevent="open = !open; $nextTick(() => open && $refs.firstItem.focus())" @keydown.space.prevent="open = !open; $nextTick(() => open && $refs.firstItem.focus())">
                                 Belohnungen
                             </button>
-                            <div id="belohnungen-menu" x-show="open" x-cloak class="absolute left-0 top-full mt-px w-48 bg-white dark:bg-gray-700 rounded-md shadow-lg z-50 py-2 group-hover:block" role="menu">
-                                <x-dropdown-link href="{{ route('maddraxiversum.index') }}">Maddraxiversum</x-dropdown-link>
-                                <x-dropdown-link href="{{ route('downloads') }}">Downloads</x-dropdown-link>
-                                <x-dropdown-link href="{{ route('kompendium.index') }}">Kompendium</x-dropdown-link>
-                                <x-dropdown-link href="{{ route('statistik.index') }}">Statistik</x-dropdown-link>
+                            <div id="belohnungen-menu" x-show="open" x-cloak class="absolute left-0 top-full mt-px w-48 bg-white dark:bg-gray-700 rounded-md shadow-lg z-50 py-2 group-hover:block" role="menu" aria-labelledby="belohnungen-button">
+                                <x-dropdown-link x-ref="firstItem" :tabindex="open ? 0 : -1" role="menuitem" href="{{ route('maddraxiversum.index') }}">Maddraxiversum</x-dropdown-link>
+                                <x-dropdown-link :tabindex="open ? 0 : -1" role="menuitem" href="{{ route('downloads') }}">Downloads</x-dropdown-link>
+                                <x-dropdown-link :tabindex="open ? 0 : -1" role="menuitem" href="{{ route('kompendium.index') }}">Kompendium</x-dropdown-link>
+                                <x-dropdown-link :tabindex="open ? 0 : -1" role="menuitem" href="{{ route('statistik.index') }}">Statistik</x-dropdown-link>
                             </div>
                         </div>
                         @if(Auth::user()->teams()->where('personal_team', false)->exists() || Auth::user()->hasVorstandRole())
-                        <div class="relative flex items-center ml-4 group" x-data="{ open: false }" @click="open = !open" @click.away="open = false" @keydown.escape="open = false">
-                            <button id="ag-button" type="button" class="px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition" :aria-expanded="open" aria-controls="ag-menu" @keydown.enter.prevent="open = !open" @keydown.space.prevent="open = !open">
+                        <div class="relative flex items-center ml-4 group" x-data="{ open: false }" @click.away="open = false" @keydown.escape="open = false; $refs.trigger.focus()">
+                            <button x-ref="trigger" id="ag-button" type="button" class="px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition" :aria-expanded="open ? 'true' : 'false'" aria-controls="ag-menu" @click="open = !open; $nextTick(() => open && $refs.firstItem.focus())" @keydown.enter.prevent="open = !open; $nextTick(() => open && $refs.firstItem.focus())" @keydown.space.prevent="open = !open; $nextTick(() => open && $refs.firstItem.focus())">
                                 AG
                             </button>
-                            <div id="ag-menu" x-show="open" x-cloak class="absolute left-0 top-full mt-px w-48 bg-white dark:bg-gray-700 rounded-md shadow-lg z-50 py-2 group-hover:block" role="menu">
+                            <div id="ag-menu" x-show="open" x-cloak class="absolute left-0 top-full mt-px w-48 bg-white dark:bg-gray-700 rounded-md shadow-lg z-50 py-2 group-hover:block" role="menu" aria-labelledby="ag-button">
                                 @if(Auth::user()->hasVorstandRole() || Auth::user()->isMemberOfTeam('AG Fanhörbücher'))
-                                    <x-dropdown-link href="{{ route('hoerbuecher.index') }}">EARDRAX Dashboard</x-dropdown-link>
+                                    <x-dropdown-link x-ref="firstItem" :tabindex="open ? 0 : -1" role="menuitem" href="{{ route('hoerbuecher.index') }}">EARDRAX Dashboard</x-dropdown-link>
                                 @endif
                                 @if(Auth::user()->ownedTeams()->where('personal_team', false)->exists())
-                                    <x-dropdown-link href="{{ route('ag.index') }}">AG verwalten</x-dropdown-link>
+                                    <x-dropdown-link :tabindex="open ? 0 : -1" role="menuitem" href="{{ route('ag.index') }}">AG verwalten</x-dropdown-link>
                                 @endif
                             </div>
                         </div>
                         @endif
                         @if(Auth::user()->hasRole(\App\Enums\Role::Admin))
-                        <div class="relative flex items-center ml-4 group" x-data="{ open: false }" @click="open = !open" @click.away="open = false" @keydown.escape="open = false">
-                            <button id="admin-button" type="button" class="px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition" :aria-expanded="open" aria-controls="admin-menu" @keydown.enter.prevent="open = !open" @keydown.space.prevent="open = !open">
+                        <div class="relative flex items-center ml-4 group" x-data="{ open: false }" @click.away="open = false" @keydown.escape="open = false; $refs.trigger.focus()">
+                            <button x-ref="trigger" id="admin-button" type="button" class="px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition" :aria-expanded="open ? 'true' : 'false'" aria-controls="admin-menu" @click="open = !open; $nextTick(() => open && $refs.firstItem.focus())" @keydown.enter.prevent="open = !open; $nextTick(() => open && $refs.firstItem.focus())" @keydown.space.prevent="open = !open; $nextTick(() => open && $refs.firstItem.focus())">
                                 Admin
                             </button>
                             <div id="admin-menu" x-show="open" x-cloak class="absolute left-0 top-full mt-px w-48 bg-white dark:bg-gray-700 rounded-md shadow-lg z-50 py-2 group-hover:block" role="menu" aria-labelledby="admin-button">
-                                <x-dropdown-link href="{{ route('admin.index') }}">Admin</x-dropdown-link>
-                                <x-dropdown-link href="{{ route('newsletter.create') }}">Newsletter versenden</x-dropdown-link>
-                                <x-dropdown-link href="{{ route('admin.messages.index') }}">Kurznachrichten</x-dropdown-link>
-                                <x-dropdown-link href="{{ route('rpg.char-editor') }}">Charakter-Editor</x-dropdown-link>
-                                <x-dropdown-link href="{{ route('arbeitsgruppen.index') }}">Arbeitsgruppen</x-dropdown-link>
+                                <x-dropdown-link x-ref="firstItem" :tabindex="open ? 0 : -1" role="menuitem" href="{{ route('admin.index') }}">Admin</x-dropdown-link>
+                                <x-dropdown-link :tabindex="open ? 0 : -1" role="menuitem" href="{{ route('newsletter.create') }}">Newsletter versenden</x-dropdown-link>
+                                <x-dropdown-link :tabindex="open ? 0 : -1" role="menuitem" href="{{ route('admin.messages.index') }}">Kurznachrichten</x-dropdown-link>
+                                <x-dropdown-link :tabindex="open ? 0 : -1" role="menuitem" href="{{ route('rpg.char-editor') }}">Charakter-Editor</x-dropdown-link>
+                                <x-dropdown-link :tabindex="open ? 0 : -1" role="menuitem" href="{{ route('arbeitsgruppen.index') }}">Arbeitsgruppen</x-dropdown-link>
                             </div>
                         </div>
                         @endif
@@ -111,10 +111,10 @@
                             </button>
                         </x-slot>
                         <x-slot name="content">
-                            <x-dropdown-link href="{{ route('profile.show') }}">Profil</x-dropdown-link>
+                            <x-dropdown-link :tabindex="0" role="menuitem" href="{{ route('profile.show') }}">Profil</x-dropdown-link>
                             <form method="POST" action="{{ route('logout') }}">
                                 @csrf
-                                <x-dropdown-link href="{{ route('logout') }}" onclick="event.preventDefault(); this.closest('form').submit();">
+                                <x-dropdown-link :tabindex="0" role="menuitem" href="{{ route('logout') }}" onclick="event.preventDefault(); this.closest('form').submit();">
                                     Ausloggen
                                 </x-dropdown-link>
                             </form>
@@ -199,7 +199,6 @@
                 <x-responsive-nav-link href="{{ route('arbeitsgruppen.index') }}">Arbeitsgruppen</x-responsive-nav-link>
             </div>
             @endif
-
         @endauth
 
         @guest
@@ -211,7 +210,6 @@
             <x-responsive-nav-link href="{{ route('mitglied.werden') }}">Mitglied werden</x-responsive-nav-link>
             <x-responsive-nav-link href="{{ route('spenden') }}">Spenden</x-responsive-nav-link>
             <x-responsive-nav-link href="{{ route('changelog') }}">Changelog</x-responsive-nav-link>
-            <x-responsive-nav-link href="{{ route('login') }}">Login</x-responsive-nav-link>
         @endguest
     </div>
 </nav>
