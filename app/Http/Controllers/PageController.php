@@ -57,9 +57,7 @@ class PageController extends Controller
         $team = Team::membersTeam();
 
         if ($team) {
-            $memberCount = $team->users()
-                ->wherePivotNotIn('role', ['Anwärter'])
-                ->count();
+            $memberCount = $team->activeUsers()->count();
         } else {
             // Fallback, falls das Team nicht gefunden wird
             $memberCount = 0;

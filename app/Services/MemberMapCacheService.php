@@ -16,11 +16,10 @@ class MemberMapCacheService
             return Cache::get($cacheKey);
         }
 
-        $members = $team->users()
+        $members = $team->activeUsers()
             ->as('pivot')
             ->select('users.id', 'users.name', 'users.plz', 'users.land', 'users.stadt', 'users.lat', 'users.lon')
             ->withPivot('role')
-            ->wherePivotNotIn('role', ['Anwärter'])
             ->get();
 
         $memberData = [];

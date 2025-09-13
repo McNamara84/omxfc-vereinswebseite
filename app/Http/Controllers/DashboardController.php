@@ -29,9 +29,7 @@ class DashboardController extends Controller
         $memberCount = Cache::remember(
             "member_count_{$team->id}",
             $cacheFor,
-            fn () => $team->users()
-                ->wherePivotNotIn('role', ['Anwärter'])
-                ->count()
+            fn () => $team->activeUsers()->count()
         );
 
         // Anwärter abrufen, nur für Kassenwart, Vorstand, Admin

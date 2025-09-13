@@ -14,20 +14,25 @@ class MitgliederKarteMembershipTest extends TestCase
     public function test_pivot_role_is_accessible(): void
     {
         $team = Team::factory()->create();
-        $user = User::factory()->create();
-        $team->users()->attach($user, ['role' => \App\Enums\Role::Mitglied->value]);
+        $team->users()->detach();
 
-        $members = $team->users()
+        $member = User::factory()->create();
+        $applicant = User::factory()->create();
+
+        $team->users()->attach($member, ['role' => \App\Enums\Role::Mitglied->value]);
+        $team->users()->attach($applicant, ['role' => 'Anwärter']);
+
+        $members = $team->activeUsers()
             ->as('pivot')
             ->select('users.id', 'users.name', 'users.plz', 'users.land', 'users.stadt')
             ->withPivot('role')
-            ->wherePivotNotIn('role', ['Anwärter'])
             ->get();
 
-        $member = $members->first();
+        $this->assertCount(1, $members);
+        $retrieved = $members->first();
 
-        $this->assertNotNull($member);
-        $this->assertSame('Mitglied', $member->pivot->role);
+        $this->assertSame($member->id, $retrieved->id);
+        $this->assertSame('Mitglied', $retrieved->pivot->role);
     }
 }
 
