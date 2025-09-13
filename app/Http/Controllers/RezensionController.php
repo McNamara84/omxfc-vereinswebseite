@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ReviewRequest;
 use Illuminate\Http\Request;
 use App\Models\Book;
 use App\Enums\BookType;
@@ -213,7 +214,7 @@ class RezensionController extends Controller
     /**
      * Speichern einer neuen Rezension.
      */
-    public function store(Request $request, Book $book)
+    public function store(ReviewRequest $request, Book $book)
     {
         $user = Auth::user();
         $role = $this->getRoleInMemberTeam();
@@ -228,14 +229,7 @@ class RezensionController extends Controller
             abort(403);
         }
 
-        $request->merge([
-            'content' => preg_replace('/^\\s*#+\\s*/m', '', (string) $request->input('content')),
-        ]);
-
-        $data = $request->validate([
-            'title' => 'required|string|max:255',
-            'content' => 'required|string|min:140',
-        ]);
+        $data = $request->validated();
 
         $review = Review::create([
             'team_id' => $teamId,
@@ -296,20 +290,13 @@ class RezensionController extends Controller
     /**
      * Aktualisieren einer Rezension.
      */
-    public function update(Request $request, Review $review)
+    public function update(ReviewRequest $request, Review $review)
     {
         $user = Auth::user();
         $role = $this->getRoleInMemberTeam();
 
         if ($review->user_id === $user->id || in_array($role, [Role::Vorstand, Role::Admin], true)) {
-            $request->merge([
-                'content' => preg_replace('/^\\s*#+\\s*/m', '', (string) $request->input('content')),
-            ]);
-
-            $data = $request->validate([
-                'title' => 'required|string|max:255',
-                'content' => 'required|string|min:140',
-            ]);
+            $data = $request->validated();
 
             $review->update($data);
 

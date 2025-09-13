@@ -6,11 +6,10 @@ use App\Enums\AudiobookEpisodeStatus;
 use App\Models\AudiobookEpisode;
 use App\Models\AudiobookRole;
 use App\Models\User;
-use App\Rules\ValidReleaseTime;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
+use App\Http\Requests\AudiobookEpisodeRequest;
+use App\Http\Requests\AudiobookPreviousSpeakerRequest;
 
 class HoerbuchController extends Controller
 {
@@ -67,9 +66,9 @@ class HoerbuchController extends Controller
         return $notes === '' ? null : $notes;
     }
 
-    private function episodeDataFromRequest(Request $request): array
+    private function episodeDataFromRequest(AudiobookEpisodeRequest $request): array
     {
-        $data = $request->only([
+        $data = $request->safe()->only([
             'episode_number',
             'title',
             'author',
@@ -127,27 +126,11 @@ class HoerbuchController extends Controller
     /**
      * Speichert eine neue Hörbuchfolge.
      */
-    public function store(Request $request)
+    public function store(AudiobookEpisodeRequest $request)
     {
-        $request->validate([
-            'episode_number' => 'required|string|max:10|unique:audiobook_episodes,episode_number',
-            'title' => 'required|string|max:255',
-            'author' => 'required|string|max:255',
-            'planned_release_date' => ['required', 'string', new ValidReleaseTime],
-            'status' => 'required|in:'.implode(',', AudiobookEpisodeStatus::values()),
-            'responsible_user_id' => 'nullable|exists:users,id',
-            'progress' => 'required|integer|min:0|max:100',
-            'notes' => 'nullable|string',
-            'roles' => 'array',
-            'roles.*.name' => 'required|string|max:255',
-            'roles.*.description' => 'nullable|string|max:1000',
-            'roles.*.takes' => 'required|integer|min:0',
-            'roles.*.member_id' => 'nullable|exists:users,id',
-            'roles.*.member_name' => 'nullable|string|max:255',
-        ]);
         $episode = AudiobookEpisode::create($this->episodeDataFromRequest($request));
 
-        $roles = $request->input('roles', []);
+        $roles = $request->validated()['roles'] ?? [];
         foreach ($roles as $role) {
             AudiobookRole::create([
                 'episode_id' => $episode->id,
@@ -204,32 +187,11 @@ class HoerbuchController extends Controller
     /**
      * Aktualisiert eine bestehende Hörbuchfolge.
      */
-    public function update(Request $request, AudiobookEpisode $episode)
+    public function update(AudiobookEpisodeRequest $request, AudiobookEpisode $episode)
     {
-        $request->validate([
-            'episode_number' => [
-                'required',
-                'string',
-                'max:10',
-                Rule::unique('audiobook_episodes', 'episode_number')->ignore($episode->id),
-            ],
-            'title' => 'required|string|max:255',
-            'author' => 'required|string|max:255',
-            'planned_release_date' => ['required', 'string', new ValidReleaseTime],
-            'status' => 'required|in:'.implode(',', AudiobookEpisodeStatus::values()),
-            'responsible_user_id' => 'nullable|exists:users,id',
-            'progress' => 'required|integer|min:0|max:100',
-            'notes' => 'nullable|string',
-            'roles' => 'array',
-            'roles.*.name' => 'required|string|max:255',
-            'roles.*.description' => 'nullable|string|max:1000',
-            'roles.*.takes' => 'required|integer|min:0',
-            'roles.*.member_id' => 'nullable|exists:users,id',
-            'roles.*.member_name' => 'nullable|string|max:255',
-        ]);
         $episode->update($this->episodeDataFromRequest($request));
 
-        $roles = $request->input('roles', []);
+        $roles = $request->validated()['roles'] ?? [];
         $episode->roles()->delete();
         foreach ($roles as $role) {
             AudiobookRole::create([
@@ -253,16 +215,13 @@ class HoerbuchController extends Controller
     /**
      * Gibt den bisherigen Sprecher einer Rolle zurück.
      */
-    public function previousSpeaker(Request $request): JsonResponse
+    public function previousSpeaker(AudiobookPreviousSpeakerRequest $request): JsonResponse
     {
-        $data = $request->validate([
-            'name' => 'required|string|max:255',
-        ]);
-
-        $speakers = $this->latestSpeakersForNames([$data['name']]);
+        $name = $request->validated()['name'];
+        $speakers = $this->latestSpeakersForNames([$name]);
 
         return response()->json([
-            'speaker' => $speakers[$data['name']] ?? null,
+            'speaker' => $speakers[$name] ?? null,
         ]);
     }
 

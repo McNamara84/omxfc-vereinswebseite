@@ -10,6 +10,7 @@ use App\Models\TodoCategory;
 use App\Models\UserPoint;
 use App\Services\TeamPointService;
 use Illuminate\Http\Request;
+use App\Http\Requests\TodoRequest;
 use Illuminate\Support\Facades\Auth;
 use App\Enums\Role;
 use App\Services\UserRoleService;
@@ -113,7 +114,7 @@ class TodoController extends Controller
     /**
      * Speichert ein neues Todo.
      */
-    public function store(Request $request)
+    public function store(TodoRequest $request)
     {
         $user = Auth::user();
         $memberTeam = Team::membersTeam();
@@ -125,20 +126,15 @@ class TodoController extends Controller
 
         $this->authorize('create', Todo::class);
 
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'points' => 'required|integer|min:1|max:1000',
-            'category_id' => 'required|exists:todo_categories,id',
-        ]);
+        $data = $request->validated();
 
         Todo::create([
             'team_id' => $memberTeam->id,
             'created_by' => $user->id,
-            'title' => $request->title,
-            'description' => $request->description,
-            'points' => $request->points,
-            'category_id' => $request->category_id,
+            'title' => $data['title'],
+            'description' => $data['description'] ?? null,
+            'points' => $data['points'],
+            'category_id' => $data['category_id'],
             'status' => 'open',
         ]);
 
@@ -209,7 +205,7 @@ class TodoController extends Controller
     /**
      * Aktualisiert ein Todo.
      */
-    public function update(Request $request, Todo $todo)
+    public function update(TodoRequest $request, Todo $todo)
     {
         $user = Auth::user();
         $memberTeam = Team::membersTeam();
@@ -221,18 +217,13 @@ class TodoController extends Controller
 
         $this->authorize('update', $todo);
 
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'points' => 'required|integer|min:1|max:1000',
-            'category_id' => 'required|exists:todo_categories,id',
-        ]);
+        $data = $request->validated();
 
         $todo->update([
-            'title' => $request->title,
-            'description' => $request->description,
-            'points' => $request->points,
-            'category_id' => $request->category_id,
+            'title' => $data['title'],
+            'description' => $data['description'] ?? null,
+            'points' => $data['points'],
+            'category_id' => $data['category_id'],
         ]);
 
         return redirect()->route('todos.show', $todo)

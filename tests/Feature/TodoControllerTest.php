@@ -156,6 +156,23 @@ class TodoControllerTest extends TestCase
         $this->assertSame(10, $todo->points);
     }
 
+    public function test_update_validation_errors(): void
+    {
+        $user = $this->actingMember('Admin');
+        $todo = $this->createTodo($user);
+        $this->actingAs($user);
+
+        $response = $this->from(route('todos.edit', $todo))
+            ->put(route('todos.update', $todo), [
+                'title' => '',
+                'points' => 0,
+                'category_id' => null,
+            ]);
+
+        $response->assertRedirect(route('todos.edit', $todo, false));
+        $response->assertSessionHasErrors(['title', 'points', 'category_id']);
+    }
+
     public function test_non_creator_cannot_update_todo(): void
     {
         $creator = $this->actingMember('Admin');
@@ -225,6 +242,18 @@ class TodoControllerTest extends TestCase
             'title' => 'New Todo',
             'created_by' => $user->id,
         ]);
+    }
+
+    public function test_store_validation_errors(): void
+    {
+        $user = $this->actingMember('Admin');
+        $this->actingAs($user);
+
+        $response = $this->from(route('todos.index'))
+            ->post('/aufgaben', []);
+
+        $response->assertRedirect(route('todos.index', [], false));
+        $response->assertSessionHasErrors(['title', 'points', 'category_id']);
     }
 
     public function test_show_displays_todo_and_permissions(): void
