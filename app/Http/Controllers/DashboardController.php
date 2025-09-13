@@ -6,7 +6,6 @@ use App\Mail\MitgliedGenehmigtMail;
 use App\Models\Activity;
 use App\Models\Review;
 use App\Models\ReviewComment;
-use App\Models\Team;
 use App\Models\Todo;
 use App\Models\User;
 use App\Models\UserPoint;
@@ -16,12 +15,15 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use App\Enums\Role;
 use App\Services\UserRoleService;
+use App\Services\MembersTeamProvider;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class DashboardController extends Controller
 {
-    public function __construct(private UserRoleService $userRoleService)
-    {
+    public function __construct(
+        private UserRoleService $userRoleService,
+        private MembersTeamProvider $membersTeamProvider
+    ) {
     }
 
     public function index()
@@ -60,7 +62,7 @@ class DashboardController extends Controller
         }
 
         // ToDo-Statistiken abrufen
-        $memberTeam = Team::membersTeam();
+        $memberTeam = $this->membersTeamProvider->getMembersTeamOrAbort();
 
         // Initialisierung der Variablen
         $openTodos = 0;

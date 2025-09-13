@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Mail;
 use App\Mail\MitgliedGenehmigtMail;
 use App\Enums\TodoStatus;
 use App\Enums\Role;
+use App\Services\MembersTeamProvider;
 
 class DashboardControllerTest extends TestCase
 {
@@ -152,5 +153,18 @@ class DashboardControllerTest extends TestCase
 
         $response->assertRedirect('/');
         $response->assertSessionHas('error');
+    }
+
+    public function test_index_uses_members_team_provider(): void
+    {
+        $team = Team::membersTeam();
+        $user = $this->actingAdmin();
+        $this->actingAs($user);
+
+        $this->mock(MembersTeamProvider::class, function ($mock) use ($team) {
+            $mock->shouldReceive('getMembersTeamOrAbort')->once()->andReturn($team);
+        });
+
+        $this->get('/dashboard')->assertOk();
     }
 }

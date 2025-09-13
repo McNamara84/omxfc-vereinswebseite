@@ -4,15 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Enums\TodoStatus;
 use App\Models\Activity;
-use App\Models\Team;
 use App\Models\Todo;
 use App\Models\TodoCategory;
 use App\Models\UserPoint;
 use App\Services\TeamPointService;
+use App\Services\MembersTeamProvider;
 use Illuminate\Http\Request;
 use App\Http\Requests\TodoRequest;
 use Illuminate\Support\Facades\Auth;
-use App\Enums\Role;
 use App\Services\UserRoleService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
@@ -20,7 +19,8 @@ class TodoController extends Controller
 { 
     public function __construct(
         private TeamPointService $teamPointService,
-        private UserRoleService $userRoleService
+        private UserRoleService $userRoleService,
+        private MembersTeamProvider $membersTeamProvider,
     ) {
     }
 
@@ -30,16 +30,7 @@ class TodoController extends Controller
     public function index(Request $request)
     {
         $user = Auth::user();
-        $memberTeam = Team::membersTeam();
-
-        if (! $memberTeam) {
-            return view('todos.index', [
-                'todos' => collect([]),
-                'canCreateTodos' => false,
-                'userPoints' => 0,
-                'memberTeam' => null,
-            ]);
-        }
+        $memberTeam = $this->membersTeamProvider->getMembersTeamOrAbort();
 
         try {
             $userRole = $this->userRoleService->getRole($user, $memberTeam);
@@ -94,12 +85,7 @@ class TodoController extends Controller
     public function create()
     {
         $user = Auth::user();
-        $memberTeam = Team::membersTeam();
-
-        if (! $memberTeam) {
-            return redirect()->route('todos.index')
-                ->with('error', 'Team "Mitglieder" nicht gefunden.');
-        }
+        $memberTeam = $this->membersTeamProvider->getMembersTeamOrAbort();
 
         $this->authorize('create', Todo::class);
 
@@ -117,12 +103,7 @@ class TodoController extends Controller
     public function store(TodoRequest $request)
     {
         $user = Auth::user();
-        $memberTeam = Team::membersTeam();
-
-        if (! $memberTeam) {
-            return redirect()->route('todos.index')
-                ->with('error', 'Team "Mitglieder" nicht gefunden.');
-        }
+        $memberTeam = $this->membersTeamProvider->getMembersTeamOrAbort();
 
         $this->authorize('create', Todo::class);
 
@@ -148,9 +129,9 @@ class TodoController extends Controller
     public function show(Todo $todo)
     {
         $user = Auth::user();
-        $memberTeam = Team::membersTeam();
+        $memberTeam = $this->membersTeamProvider->getMembersTeamOrAbort();
 
-        if (! $memberTeam || $todo->team_id !== $memberTeam->id) {
+        if ($todo->team_id !== $memberTeam->id) {
             return redirect()->route('todos.index')
                 ->with('error', 'Challenge nicht gefunden.');
         }
@@ -185,9 +166,9 @@ class TodoController extends Controller
     public function edit(Todo $todo)
     {
         $user = Auth::user();
-        $memberTeam = Team::membersTeam();
+        $memberTeam = $this->membersTeamProvider->getMembersTeamOrAbort();
 
-        if (! $memberTeam || $todo->team_id !== $memberTeam->id) {
+        if ($todo->team_id !== $memberTeam->id) {
             return redirect()->route('todos.index')
                 ->with('error', 'Challenge nicht gefunden.');
         }
@@ -208,9 +189,9 @@ class TodoController extends Controller
     public function update(TodoRequest $request, Todo $todo)
     {
         $user = Auth::user();
-        $memberTeam = Team::membersTeam();
+        $memberTeam = $this->membersTeamProvider->getMembersTeamOrAbort();
 
-        if (! $memberTeam || $todo->team_id !== $memberTeam->id) {
+        if ($todo->team_id !== $memberTeam->id) {
             return redirect()->route('todos.index')
                 ->with('error', 'Challenge nicht gefunden.');
         }
@@ -236,9 +217,9 @@ class TodoController extends Controller
     public function assign(Todo $todo)
     {
         $user = Auth::user();
-        $memberTeam = Team::membersTeam();
+        $memberTeam = $this->membersTeamProvider->getMembersTeamOrAbort();
 
-        if (! $memberTeam || $todo->team_id !== $memberTeam->id) {
+        if ($todo->team_id !== $memberTeam->id) {
             return redirect()->route('todos.index')
                 ->with('error', 'Challenge nicht gefunden.');
         }
@@ -293,9 +274,9 @@ class TodoController extends Controller
     public function verify(Todo $todo)
     {
         $user = Auth::user();
-        $memberTeam = Team::membersTeam();
+        $memberTeam = $this->membersTeamProvider->getMembersTeamOrAbort();
 
-        if (! $memberTeam || $todo->team_id !== $memberTeam->id) {
+        if ($todo->team_id !== $memberTeam->id) {
             return redirect()->route('todos.index')
                 ->with('error', 'Challenge nicht gefunden.');
         }

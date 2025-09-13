@@ -10,17 +10,20 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 use App\Enums\Role;
 use Illuminate\Validation\Rule;
 use App\Services\UserRoleService;
+use App\Services\MembersTeamProvider;
 
 class MitgliederController extends Controller
 {
-    public function __construct(private UserRoleService $userRoleService)
-    {
+    public function __construct(
+        private UserRoleService $userRoleService,
+        private MembersTeamProvider $membersTeamProvider
+    ) {
     }
 
     public function index(Request $request)
     {
         $user = Auth::user();
-        $team = $user->currentTeam;
+        $team = $this->membersTeamProvider->getMembersTeamOrAbort();
 
         // Sortierparameter auslesen
         $sortBy = $request->input('sort', 'nachname'); // Standardsortierung: Nachname
@@ -103,7 +106,7 @@ class MitgliederController extends Controller
         ]);
 
         $currentUser = Auth::user();
-        $team = $currentUser->currentTeam;
+        $team = $this->membersTeamProvider->getMembersTeamOrAbort();
 
         $this->authorize('manage', User::class);
 
@@ -146,7 +149,7 @@ class MitgliederController extends Controller
     public function removeMember(User $user)
     {
         $currentUser = Auth::user();
-        $team = $currentUser->currentTeam;
+        $team = $this->membersTeamProvider->getMembersTeamOrAbort();
 
         $this->authorize('manage', User::class);
 
@@ -190,7 +193,7 @@ class MitgliederController extends Controller
     public function exportCsv(Request $request)
     {
         $user = Auth::user();
-        $team = $user->currentTeam;
+        $team = $this->membersTeamProvider->getMembersTeamOrAbort();
 
         $this->authorize('manage', User::class);
 
@@ -278,7 +281,7 @@ class MitgliederController extends Controller
     public function getAllEmails()
     {
         $user = Auth::user();
-        $team = $user->currentTeam;
+        $team = $this->membersTeamProvider->getMembersTeamOrAbort();
 
         $this->authorize('manage', User::class);
 
