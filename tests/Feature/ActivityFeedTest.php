@@ -17,6 +17,7 @@ use App\Models\ReviewComment;
 use App\Enums\BookType;
 use App\Enums\TodoStatus;
 use Illuminate\Support\Facades\Mail;
+use App\Enums\Role;
 
 class ActivityFeedTest extends TestCase
 {
@@ -33,11 +34,11 @@ class ActivityFeedTest extends TestCase
         ]);
     }
 
-    private function actingMember(string $role = 'Mitglied'): User
+    private function actingMember(Role $role = Role::Mitglied): User
     {
         $team = Team::membersTeam();
         $user = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($user, ['role' => $role]);
+        $team->users()->attach($user, ['role' => $role->value]);
         return $user;
     }
 
@@ -217,7 +218,7 @@ class ActivityFeedTest extends TestCase
     public function test_activity_created_when_challenge_is_verified(): void
     {
         $assignee = $this->actingMember();
-        $admin = $this->actingMember('Admin');
+        $admin = $this->actingMember(Role::Admin);
         $category = \App\Models\TodoCategory::create(['name' => 'Test2', 'slug' => 'test2']);
         $todo = \App\Models\Todo::create([
             'team_id' => $assignee->currentTeam->id,
@@ -246,10 +247,10 @@ class ActivityFeedTest extends TestCase
     public function test_activity_created_when_member_application_is_approved(): void
     {
         Mail::fake();
-        $admin = $this->actingMember('Admin');
+        $admin = $this->actingMember(Role::Admin);
         $team = $admin->currentTeam;
         $anwaerter = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($anwaerter, ['role' => 'Anwärter']);
+        $team->users()->attach($anwaerter, ['role' => Role::Anwaerter->value]);
 
         $this->actingAs($admin)->post(route('anwaerter.approve', $anwaerter));
 

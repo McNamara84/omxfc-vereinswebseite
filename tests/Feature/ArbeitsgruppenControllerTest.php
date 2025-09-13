@@ -6,6 +6,7 @@ use App\Models\Team;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
+use App\Enums\Role;
 
 class ArbeitsgruppenControllerTest extends TestCase
 {
@@ -29,7 +30,7 @@ class ArbeitsgruppenControllerTest extends TestCase
             'personal_team' => false,
             'name' => 'AG Test',
         ]);
-        $ag->users()->attach($leader, ['role' => \App\Enums\Role::Mitglied->value]);
+        $ag->users()->attach($leader, ['role' => Role::Mitglied->value]);
 
         $this->actingAs($leader);
 
@@ -103,7 +104,7 @@ class ArbeitsgruppenControllerTest extends TestCase
             'personal_team' => false,
             'name' => 'Meine AG',
         ]);
-        $ag->users()->attach($leader, ['role' => \App\Enums\Role::Mitglied->value]);
+        $ag->users()->attach($leader, ['role' => Role::Mitglied->value]);
 
         $this->actingAs($leader);
 
@@ -138,7 +139,7 @@ class ArbeitsgruppenControllerTest extends TestCase
             'personal_team' => false,
             'name' => 'AG Test',
         ]);
-        $ag->users()->attach($leader, ['role' => \App\Enums\Role::Mitglied->value]);
+        $ag->users()->attach($leader, ['role' => Role::Mitglied->value]);
 
         $newUser = $this->createMemberWithRole();
 
@@ -150,7 +151,7 @@ class ArbeitsgruppenControllerTest extends TestCase
 
         $response->assertRedirect(route('arbeitsgruppen.edit', $ag));
         $this->assertTrue($ag->fresh()->hasUser($newUser));
-        $this->assertTrue($newUser->fresh()->hasTeamRole($ag->fresh(), 'Mitwirkender'));
+        $this->assertTrue($newUser->fresh()->hasTeamRole($ag->fresh(), Role::Mitwirkender->value));
     }
 
     public function test_admin_can_add_member_to_any_ag(): void
@@ -162,7 +163,7 @@ class ArbeitsgruppenControllerTest extends TestCase
             'personal_team' => false,
             'name' => 'AG Test',
         ]);
-        $ag->users()->attach($leader, ['role' => \App\Enums\Role::Mitglied->value]);
+        $ag->users()->attach($leader, ['role' => Role::Mitglied->value]);
 
         $newUser = $this->createMemberWithRole();
 
@@ -174,7 +175,7 @@ class ArbeitsgruppenControllerTest extends TestCase
 
         $response->assertRedirect(route('arbeitsgruppen.edit', $ag));
         $this->assertTrue($ag->fresh()->hasUser($newUser));
-        $this->assertTrue($newUser->fresh()->hasTeamRole($ag->fresh(), 'Mitwirkender'));
+        $this->assertTrue($newUser->fresh()->hasTeamRole($ag->fresh(), Role::Mitwirkender->value));
     }
 
     public function test_ag_leader_cannot_add_more_than_five_members(): void
@@ -185,11 +186,11 @@ class ArbeitsgruppenControllerTest extends TestCase
             'personal_team' => false,
             'name' => 'AG Test',
         ]);
-        $ag->users()->attach($leader, ['role' => \App\Enums\Role::Mitglied->value]);
+        $ag->users()->attach($leader, ['role' => Role::Mitglied->value]);
 
         for ($i = 0; $i < 4; $i++) {
             $user = $this->createMemberWithRole();
-            $ag->users()->attach($user, ['role' => 'Mitwirkender']);
+            $ag->users()->attach($user, ['role' => Role::Mitwirkender->value]);
         }
 
         $extra = $this->createMemberWithRole();
@@ -213,10 +214,10 @@ class ArbeitsgruppenControllerTest extends TestCase
             'personal_team' => false,
             'name' => 'AG Test',
         ]);
-        $ag->users()->attach($leader, ['role' => \App\Enums\Role::Mitglied->value]);
+        $ag->users()->attach($leader, ['role' => Role::Mitglied->value]);
 
         $member = $this->createMemberWithRole();
-        $ag->users()->attach($member, ['role' => 'Mitwirkender']);
+        $ag->users()->attach($member, ['role' => Role::Mitwirkender->value]);
 
         $this->actingAs($leader);
 
@@ -234,10 +235,10 @@ class ArbeitsgruppenControllerTest extends TestCase
             'personal_team' => false,
             'name' => 'AG Test',
         ]);
-        $ag->users()->attach($leader, ['role' => \App\Enums\Role::Mitglied->value]);
+        $ag->users()->attach($leader, ['role' => Role::Mitglied->value]);
 
         $member = $this->createMemberWithRole();
-        $ag->users()->attach($member, ['role' => 'Mitwirkender']);
+        $ag->users()->attach($member, ['role' => Role::Mitwirkender->value]);
 
         $this->actingAs($leader);
 

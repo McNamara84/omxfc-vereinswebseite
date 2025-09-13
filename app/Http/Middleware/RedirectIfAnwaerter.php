@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
+use App\Enums\Role;
 
 class RedirectIfAnwaerter
 {
@@ -18,7 +19,7 @@ class RedirectIfAnwaerter
         $user = $request->user();
         $team = $user->currentTeam;
 
-        if ($team && $team->hasUserWithRole($user, 'Anwärter')) {
+        if ($team && $team->hasUserWithRole($user, Role::Anwaerter->value)) {
             auth()->logout();
 
             return redirect()->route('login')->withErrors('Dein Mitgliedschaftsantrag wird derzeit noch bearbeitet. Wir benachrichtigen dich per E-Mail, sobald du freigeschaltet wurdest.');

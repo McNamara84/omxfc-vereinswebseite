@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Mail;
 use App\Mail\MitgliedAntragEingereicht;
 use App\Mail\AntragAnVorstand;
 use App\Mail\AntragAnAdmin;
+use App\Enums\Role;
 
 class MitgliedschaftController extends Controller
 {
@@ -54,7 +55,7 @@ class MitgliedschaftController extends Controller
         );
 
         // Den User dem Team mit Rolle "Anwärter" zuweisen:
-        $team->users()->attach($user, ['role' => 'Anwärter']);
+        $team->users()->attach($user, ['role' => Role::Anwaerter->value]);
 
         // Mailversand
         Mail::to($user->email)->queue(new MitgliedAntragEingereicht($user));

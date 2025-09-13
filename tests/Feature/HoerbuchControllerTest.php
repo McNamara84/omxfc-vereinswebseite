@@ -9,6 +9,7 @@ use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
+use App\Enums\Role;
 
 class HoerbuchControllerTest extends TestCase
 {
@@ -30,7 +31,7 @@ class HoerbuchControllerTest extends TestCase
             'personal_team' => false,
             'name' => 'AG Fanhörbücher',
         ]);
-        $ag->users()->attach($leader, ['role' => \App\Enums\Role::Mitglied->value]);
+        $ag->users()->attach($leader, ['role' => Role::Mitglied->value]);
 
         return $ag;
     }
@@ -41,7 +42,7 @@ class HoerbuchControllerTest extends TestCase
         $ag = $this->createAgFanhoerbuchTeam($leader);
 
         $member = $this->actingMember();
-        $ag->users()->attach($member, ['role' => 'Mitwirkender']);
+        $ag->users()->attach($member, ['role' => Role::Mitwirkender->value]);
 
         return $member;
     }

@@ -8,6 +8,7 @@ use App\Services\MemberMapCacheService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Tests\TestCase;
+use App\Enums\Role;
 
 class MemberMapCacheServiceTest extends TestCase
 {
@@ -35,8 +36,8 @@ class MemberMapCacheServiceTest extends TestCase
             'current_team_id' => $team->id,
         ]);
 
-        $team->users()->attach($user1, ['role' => \App\Enums\Role::Mitglied->value]);
-        $team->users()->attach($user2, ['role' => \App\Enums\Role::Mitglied->value]);
+        $team->users()->attach($user1, ['role' => Role::Mitglied->value]);
+        $team->users()->attach($user2, ['role' => Role::Mitglied->value]);
 
         $service = new MemberMapCacheService();
 
@@ -71,7 +72,7 @@ class MemberMapCacheServiceTest extends TestCase
             'current_team_id' => $team->id,
         ]);
 
-        $team->users()->attach($user, ['role' => \App\Enums\Role::Mitglied->value]);
+        $team->users()->attach($user, ['role' => Role::Mitglied->value]);
 
         $service = new MemberMapCacheService();
 
@@ -110,9 +111,9 @@ class MemberMapCacheServiceTest extends TestCase
             'current_team_id' => $team->id,
         ]);
 
-        $team->users()->attach($valid, ['role' => \App\Enums\Role::Mitglied->value]);
-        $team->users()->attach($anwaerter, ['role' => 'Anwärter']);
-        $team->users()->attach($noPlz, ['role' => \App\Enums\Role::Mitglied->value]);
+        $team->users()->attach($valid, ['role' => Role::Mitglied->value]);
+        $team->users()->attach($anwaerter, ['role' => Role::Anwaerter->value]);
+        $team->users()->attach($noPlz, ['role' => Role::Mitglied->value]);
 
         $service = new MemberMapCacheService();
 
@@ -140,7 +141,7 @@ class MemberMapCacheServiceTest extends TestCase
             'current_team_id' => $team->id,
         ]);
 
-        $team->users()->attach($user, ['role' => \App\Enums\Role::Mitglied->value]);
+        $team->users()->attach($user, ['role' => Role::Mitglied->value]);
 
         $service = new MemberMapCacheService();
 
@@ -170,7 +171,7 @@ class MemberMapCacheServiceTest extends TestCase
             'current_team_id' => $team->id,
         ]);
 
-        $team->users()->attach($user, ['role' => \App\Enums\Role::Mitglied->value]);
+        $team->users()->attach($user, ['role' => Role::Mitglied->value]);
 
         $service = new MemberMapCacheService();
 

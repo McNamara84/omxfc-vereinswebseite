@@ -45,8 +45,7 @@ class KassenbuchController extends Controller
         $kassenbuchEntries = null;
 
         if ($user->can('viewAll', KassenbuchEntry::class)) {
-            $members = $team->users()
-                ->wherePivotNotIn('role', ['Anwärter'])
+            $members = $team->activeUsers()
                 ->orderBy('bezahlt_bis')
                 ->get();
 

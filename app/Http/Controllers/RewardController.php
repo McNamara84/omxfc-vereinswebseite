@@ -26,9 +26,7 @@ class RewardController extends Controller
         $rewards = config('rewards', []);
 
         if ($currentTeam) {
-            $members = $currentTeam->users()
-                ->wherePivotNotIn('role', ['Anwärter'])
-                ->get();
+            $members = $currentTeam->activeUsers()->get();
             $totalMembers = $members->count();
 
             foreach ($rewards as &$reward) {

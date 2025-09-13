@@ -8,6 +8,7 @@ use App\Providers\AuthServiceProvider;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Gate;
 use Tests\TestCase;
+use App\Enums\Role;
 
 class AuthServiceProviderTest extends TestCase
 {
@@ -32,7 +33,7 @@ class AuthServiceProviderTest extends TestCase
     {
         $team = Team::factory()->create(['personal_team' => false]);
         $user = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($user, ['role' => \App\Enums\Role::Mitglied->value]);
+        $team->users()->attach($user, ['role' => Role::Mitglied->value]);
 
         $this->assertTrue(Gate::forUser($user)->allows('access-dashboard'));
     }
@@ -41,7 +42,7 @@ class AuthServiceProviderTest extends TestCase
     {
         $team = Team::factory()->create(['personal_team' => false]);
         $user = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($user, ['role' => 'Anwärter']);
+        $team->users()->attach($user, ['role' => Role::Anwaerter->value]);
 
         $this->assertFalse(Gate::forUser($user)->allows('access-dashboard'));
     }

@@ -6,6 +6,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 use App\Models\Team;
 use App\Models\User;
+use App\Enums\Role;
 
 class PageAccessibilityTest extends TestCase
 {
@@ -38,8 +39,8 @@ class PageAccessibilityTest extends TestCase
     {
         $team = Team::membersTeam();
 
-        $team->users()->attach(User::factory()->create(), ['role' => \App\Enums\Role::Mitglied->value]);
-        $team->users()->attach(User::factory()->create(), ['role' => 'Anwärter']);
+        $team->users()->attach(User::factory()->create(), ['role' => Role::Mitglied->value]);
+        $team->users()->attach(User::factory()->create(), ['role' => Role::Anwaerter->value]);
 
         $response = $this->get('/');
         $response->assertOk();

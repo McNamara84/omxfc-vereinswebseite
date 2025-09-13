@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Laravel\Jetstream\Events\TeamCreated;
 use Laravel\Jetstream\Events\TeamDeleted;
 use Laravel\Jetstream\Events\TeamUpdated;
@@ -14,6 +15,7 @@ use App\Models\User;
 use Carbon\Carbon;
 use Laravel\Jetstream\Team as JetstreamTeam;
 use Illuminate\Support\Facades\Cache;
+use App\Enums\Role;
 
 /**
  * @property int $id
@@ -95,6 +97,14 @@ class Team extends JetstreamTeam
     public function userPoints(): HasMany
     {
         return $this->hasMany(UserPoint::class);
+    }
+
+    /**
+     * Get all team members except applicants ("Anwärter").
+     */
+    public function activeUsers(): BelongsToMany
+    {
+        return $this->users()->wherePivotNotIn('role', [Role::Anwaerter->value]);
     }
 
     /**

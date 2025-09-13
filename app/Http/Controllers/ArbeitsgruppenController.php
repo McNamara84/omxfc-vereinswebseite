@@ -242,7 +242,7 @@ class ArbeitsgruppenController extends Controller
         }
 
         $member = User::findOrFail($request->input('user_id'));
-        $adder->add($user, $team, $member->email, 'Mitwirkender');
+        $adder->add($user, $team, $member->email, Role::Mitwirkender->value);
 
         return redirect()->route('arbeitsgruppen.edit', $team)
             ->with('status', 'Mitglied hinzugefügt.');

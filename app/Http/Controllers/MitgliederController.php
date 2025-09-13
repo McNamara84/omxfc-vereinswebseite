@@ -36,8 +36,7 @@ class MitgliederController extends Controller
         }
 
         // Nur Nutzer mit Rollen außer "Anwärter" anzeigen
-        $membersQuery = $team->users()
-            ->wherePivotNotIn('role', ['Anwärter']);
+        $membersQuery = $team->activeUsers();
 
         $filters = (array) $request->input('filters', []);
 
@@ -227,8 +226,7 @@ class MitgliederController extends Controller
         ]);
 
         // Mitglieder abrufen (ohne Anwärter)
-        $members = $team->users()
-            ->wherePivotNotIn('role', ['Anwärter'])
+        $members = $team->activeUsers()
             ->orderBy('nachname')
             ->get();
 
@@ -310,8 +308,7 @@ class MitgliederController extends Controller
         $this->authorize('manage', User::class);
 
         // E-Mail-Adressen abrufen
-        $emails = $team->users()
-            ->wherePivotNotIn('role', ['Anwärter'])
+        $emails = $team->activeUsers()
             ->pluck('email')
             ->implode('; ');
 

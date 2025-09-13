@@ -59,7 +59,7 @@ class JetstreamServiceProvider extends ServiceProvider
             'admin',
         ]);
 
-        Jetstream::role('Anwärter', 'Anwärter', [
+        Jetstream::role(Role::Anwaerter->value, 'Anwärter', [
             // keine besonderen Rechte
         ])->description('Person, die einen Antrag auf Mitgliedschaft gestellt hat.');
 
@@ -67,7 +67,7 @@ class JetstreamServiceProvider extends ServiceProvider
             'read',
         ])->description('Bestätigtes Vereinsmitglied.');
 
-        Jetstream::role('Mitwirkender', 'Mitwirkender', [
+        Jetstream::role(Role::Mitwirkender->value, 'Mitwirkender', [
             'read',
         ])->description('Mitglied einer Arbeitsgruppe ohne Verwaltungsrechte.');
 
