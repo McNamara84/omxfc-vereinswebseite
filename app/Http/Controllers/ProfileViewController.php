@@ -14,9 +14,15 @@ use Carbon\Carbon;
 use App\Services\MaddraxDataService;
 use Illuminate\Support\Str;
 use App\Enums\Role;
+use App\Services\UserRoleService;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class ProfileViewController extends Controller
 {
+    public function __construct(private UserRoleService $userRoleService)
+    {
+    }
+
     public function show(User $user)
     {
         $currentUser = Auth::user();
@@ -25,36 +31,21 @@ class ProfileViewController extends Controller
         // Wir erlauben jetzt auch das Anzeigen des eigenen Profils
         $isOwnProfile = $currentUser->id === $user->id;
 
-        if (!$isOwnProfile) {
-            // Stelle sicher, dass der anzuzeigende Benutzer im gleichen Team ist
-            $membershipInTeam = $team->users()
-                ->where('user_id', $user->id)
-                ->first();
-
-            if (!$membershipInTeam) {
-                return redirect()->route('dashboard')->with('error', 'Profil nicht gefunden.');
-            }
-
-            // Korrekte Ermittlung der Rolle des anzuzeigenden Nutzers
-            $memberRole = Role::from($membershipInTeam->membership->role);
-        } else {
-            // Bei eigenem Profil die eigene Rolle anzeigen
-            $membershipInTeam = $team->users()
-                ->where('user_id', $currentUser->id)
-                ->first();
-            $memberRole = $membershipInTeam ? Role::from($membershipInTeam->membership->role) : Role::Mitglied;
-        }
-
-        // Korrekte Ermittlung der Rolle des eingeloggten Nutzers
-        $currentUserMembership = $team->users()
-            ->where('user_id', $currentUser->id)
-            ->first();
-
-        if (!$currentUserMembership) {
+        try {
+            $currentUserRole = $this->userRoleService->getRole($currentUser, $team);
+        } catch (ModelNotFoundException) {
             return redirect()->route('dashboard')->with('error', 'Teamzugehörigkeit nicht gefunden.');
         }
 
-        $currentUserRole = Role::from($currentUserMembership->membership->role);
+        if (! $isOwnProfile) {
+            try {
+                $memberRole = $this->userRoleService->getRole($user, $team);
+            } catch (ModelNotFoundException) {
+                return redirect()->route('dashboard')->with('error', 'Profil nicht gefunden.');
+            }
+        } else {
+            $memberRole = $currentUserRole;
+        }
 
         // Prüfe, ob der Benutzer erweiterte Rechte hat (für detaillierte Ansicht)
         $allowedRoles = [Role::Kassenwart, Role::Vorstand, Role::Admin];

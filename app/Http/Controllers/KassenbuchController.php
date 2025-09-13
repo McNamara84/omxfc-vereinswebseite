@@ -10,23 +10,21 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use App\Enums\Role;
+use App\Services\UserRoleService;
 
 class KassenbuchController extends Controller
 {
+    public function __construct(private UserRoleService $userRoleService)
+    {
+    }
+
     public function index()
     {
         $user = Auth::user();
         $team = $user->currentTeam;
 
         // Benutzerrolle ermitteln
-        $userRole = Role::from(
-            $team->users()
-                ->where('user_id', $user->id)
-                ->first()
-                ->membership
-                ->role
-        );
+        $userRole = $this->userRoleService->getRole($user, $team);
 
         // Aktuellen Kassenstand abrufen
         $kassenstand = Kassenstand::where('team_id', $team->id)->first();

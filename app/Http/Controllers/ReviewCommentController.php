@@ -9,12 +9,17 @@ use App\Models\Team;
 use App\Models\Activity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use App\Enums\Role;
+use App\Services\UserRoleService;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class ReviewCommentController extends Controller
 {
+    public function __construct(private UserRoleService $userRoleService)
+    {
+    }
+
     /**
      * Liefert das Team "Mitglieder".
      */
@@ -29,16 +34,17 @@ class ReviewCommentController extends Controller
     protected function getRoleInMemberTeam(): ?Role
     {
         $team = Team::membersTeam();
-        if (! $team) {
+        $user = Auth::user();
+
+        if (! $team || ! $user) {
             return null;
         }
 
-        $role = DB::table('team_user')
-            ->where('team_id', $team->id)
-            ->where('user_id', Auth::id())
-            ->value('role');
-
-        return Role::tryFrom($role);
+        try {
+            return $this->userRoleService->getRole($user, $team);
+        } catch (ModelNotFoundException) {
+            return null;
+        }
     }
 
     /**

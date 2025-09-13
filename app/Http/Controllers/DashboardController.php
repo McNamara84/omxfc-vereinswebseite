@@ -15,9 +15,15 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use App\Enums\Role;
+use App\Services\UserRoleService;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class DashboardController extends Controller
 {
+    public function __construct(private UserRoleService $userRoleService)
+    {
+    }
+
     public function index()
     {
         $user = Auth::user();
@@ -36,16 +42,12 @@ class DashboardController extends Controller
         $anwaerter = collect();
         $allowedRoles = [Role::Kassenwart, Role::Vorstand, Role::Admin];
 
-        // Korrekte Ermittlung der Rolle des eingeloggten Nutzers:
-        $userMembership = $team->users()
-            ->where('user_id', $user->id)
-            ->first();
-
-        if (! $userMembership) {
+        // Korrekte Ermittlung der Rolle des eingeloggten Nutzers
+        try {
+            $userRole = $this->userRoleService->getRole($user, $team);
+        } catch (ModelNotFoundException) {
             return redirect()->route('home')->with('error', 'Teamzugehörigkeit nicht gefunden.');
         }
-
-        $userRole = Role::from($userMembership->membership->role);
 
         if (in_array($userRole, $allowedRoles, true)) {
             $anwaerter = Cache::remember(

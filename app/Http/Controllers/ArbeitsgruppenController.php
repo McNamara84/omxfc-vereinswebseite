@@ -6,14 +6,19 @@ use App\Models\Team;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 use App\Actions\Jetstream\AddTeamMember;
 use App\Enums\Role;
+use App\Services\UserRoleService;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class ArbeitsgruppenController extends Controller
 {
+    public function __construct(private UserRoleService $userRoleService)
+    {
+    }
+
     /**
      * Base query for all AG listings.
      *
@@ -127,13 +132,15 @@ class ArbeitsgruppenController extends Controller
 
         // Attach leader to team with existing role if available
         $memberTeam = Team::membersTeam();
-        $membership = $memberTeam
-            ? DB::table('team_user')
-                ->where('team_id', $memberTeam->id)
-                ->where('user_id', $validated['leader_id'])
-                ->first()
-            : null;
-        $leaderRole = $membership?->role;
+        $leader = User::find($validated['leader_id']);
+        $leaderRole = null;
+        if ($memberTeam && $leader) {
+            try {
+                $leaderRole = $this->userRoleService->getRole($leader, $memberTeam)->value;
+            } catch (ModelNotFoundException) {
+                $leaderRole = null;
+            }
+        }
 
         $team->users()->attach($validated['leader_id'], ['role' => $leaderRole]);
 
@@ -207,14 +214,18 @@ class ArbeitsgruppenController extends Controller
 
         if ($user->hasRole(Role::Admin) && $team->wasChanged('user_id')) {
             $memberTeam = Team::membersTeam();
-            $membership = $memberTeam
-                ? DB::table('team_user')
-                    ->where('team_id', $memberTeam->id)
-                    ->where('user_id', $validated['leader_id'])
-                    ->first()
-                : null;
-            $leaderRole = $membership?->role;
-            $team->users()->syncWithoutDetaching([$validated['leader_id'] => ['role' => $leaderRole]]);
+            $leader = User::find($validated['leader_id']);
+            $leaderRole = null;
+            if ($memberTeam && $leader) {
+                try {
+                    $leaderRole = $this->userRoleService->getRole($leader, $memberTeam)->value;
+                } catch (ModelNotFoundException) {
+                    $leaderRole = null;
+                }
+            }
+            $team->users()->syncWithoutDetaching([
+                $validated['leader_id'] => ['role' => $leaderRole],
+            ]);
         }
 
         return redirect()->route('arbeitsgruppen.index')

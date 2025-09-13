@@ -12,11 +12,15 @@ use App\Services\TeamPointService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Enums\Role;
+use App\Services\UserRoleService;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class TodoController extends Controller
-{
-    public function __construct(private TeamPointService $teamPointService)
-    {
+{ 
+    public function __construct(
+        private TeamPointService $teamPointService,
+        private UserRoleService $userRoleService
+    ) {
     }
 
     /**
@@ -36,8 +40,11 @@ class TodoController extends Controller
             ]);
         }
 
-        $membership = $memberTeam->users()->where('user_id', $user->id)->first();
-        $userRole = $membership ? Role::from($membership->membership->role) : null;
+        try {
+            $userRole = $this->userRoleService->getRole($user, $memberTeam);
+        } catch (ModelNotFoundException) {
+            $userRole = null;
+        }
 
         $canCreateTodos = $user->can('create', Todo::class);
         $canVerifyTodos = $user->can('verify', Todo::class);
@@ -152,8 +159,11 @@ class TodoController extends Controller
                 ->with('error', 'Challenge nicht gefunden.');
         }
 
-        $membership = $memberTeam->users()->where('user_id', $user->id)->first();
-        $userRole = $membership ? Role::from($membership->membership->role) : null;
+        try {
+            $userRole = $this->userRoleService->getRole($user, $memberTeam);
+        } catch (ModelNotFoundException) {
+            $userRole = null;
+        }
 
         $canAssign = ! $todo->assigned_to && $todo->status === TodoStatus::Open && $user->can('assign', $todo);
 

@@ -9,9 +9,14 @@ use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use App\Enums\Role;
 use Illuminate\Validation\Rule;
+use App\Services\UserRoleService;
 
 class MitgliederController extends Controller
 {
+    public function __construct(private UserRoleService $userRoleService)
+    {
+    }
+
     public function index(Request $request)
     {
         $user = Auth::user();
@@ -61,13 +66,7 @@ class MitgliederController extends Controller
         }
 
         // Korrekte Ermittlung der Rolle des eingeloggten Nutzers
-        $userRole = Role::from(
-            $team->users()
-                ->where('user_id', $user->id)
-                ->first()
-                ->membership
-                ->role
-        );
+        $userRole = $this->userRoleService->getRole($user, $team);
 
         // Prüft, ob der aktuelle Benutzer erweiterte Rechte hat
         $canViewDetails = $user->can('manage', User::class);
@@ -109,22 +108,10 @@ class MitgliederController extends Controller
         $this->authorize('manage', User::class);
 
         // Korrekte Ermittlung der Rolle des eingeloggten Nutzers
-        $currentUserRole = Role::from(
-            $team->users()
-                ->where('user_id', $currentUser->id)
-                ->first()
-                ->membership
-                ->role
-        );
+        $currentUserRole = $this->userRoleService->getRole($currentUser, $team);
 
         // Rolle des zu ändernden Nutzers
-        $memberRole = Role::from(
-            $team->users()
-                ->where('user_id', $user->id)
-                ->first()
-                ->membership
-                ->role
-        );
+        $memberRole = $this->userRoleService->getRole($user, $team);
 
         // Rollenrangfolge festlegen (höhere Zahl = höherer Rang)
         $roleRanks = [
@@ -164,22 +151,10 @@ class MitgliederController extends Controller
         $this->authorize('manage', User::class);
 
         // Korrekte Ermittlung der Rolle des eingeloggten Nutzers
-        $currentUserRole = Role::from(
-            $team->users()
-                ->where('user_id', $currentUser->id)
-                ->first()
-                ->membership
-                ->role
-        );
+        $currentUserRole = $this->userRoleService->getRole($currentUser, $team);
 
         // Rolle des zu entfernenden Nutzers
-        $memberRole = Role::from(
-            $team->users()
-                ->where('user_id', $user->id)
-                ->first()
-                ->membership
-                ->role
-        );
+        $memberRole = $this->userRoleService->getRole($user, $team);
 
         // Rollenrangfolge festlegen (höhere Zahl = höherer Rang)
         $roleRanks = [
