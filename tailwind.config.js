@@ -18,9 +18,6 @@ export default {
             fontFamily: {
                 sans: ['Figtree', ...defaultTheme.fontFamily.sans],
             },
-            gridAutoRows: {
-                bento: 'minmax(0, 1fr)',
-            },
         },
     },
 

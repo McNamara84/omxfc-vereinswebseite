@@ -31,6 +31,9 @@ class DashboardTest extends TestCase
         ];
 
         $crawler = new Crawler($response->getContent());
+        $grid = $crawler->filter('div.grid.grid-flow-dense');
+        $this->assertGreaterThan(0, $grid->count());
+        $this->assertStringContainsString('auto-rows-fr', $grid->first()->attr('class'));
         foreach ($expectedTitles as $title) {
             $card = $crawler->filter('[role="region"]')->reduce(function (Crawler $node) use ($title) {
                 return $node->filter('h2')->count() && trim($node->filter('h2')->text()) === $title;

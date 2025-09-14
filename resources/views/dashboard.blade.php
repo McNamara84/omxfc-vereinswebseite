@@ -7,7 +7,7 @@
                 </div>
             @endif
             <!-- Dashboard Cards Grid -->
-            <div class="grid grid-flow-dense grid-cols-1 md:grid-cols-4 auto-rows-bento gap-6 mb-8">
+            <div class="grid grid-flow-dense grid-cols-1 md:grid-cols-4 auto-rows-fr gap-6 mb-8">
                 <!-- Mitgliederzahl Card -->
                 <x-bento-card title="Aktuelle Mitgliederzahl" class="md:col-span-2" sr-text="Aktuelle Mitgliederzahl: {{ $memberCount }}">
                     <div class="text-4xl font-bold text-gray-800 dark:text-gray-200 mt-auto">
