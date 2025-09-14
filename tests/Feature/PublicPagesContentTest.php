@@ -67,6 +67,14 @@ class PublicPagesContentTest extends TestCase
             ->assertSee('Spenden mit PayPal');
     }
 
+    public function test_termine_page_contains_google_calendar_link(): void
+    {
+        $this->get('/termine')
+            ->assertOk()
+            ->assertSee('Google Kalender')
+            ->assertSee('calendar.google.com');
+    }
+
     public function test_arbeitsgruppen_page_shows_leader_schedule_and_contact(): void
     {
         $leader = User::factory()->create(['name' => 'Max Mustermann']);

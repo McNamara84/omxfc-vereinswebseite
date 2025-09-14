@@ -10,6 +10,7 @@ export default defineConfig({
     timeout: 180000,
     env: {
       APP_ENV: 'testing',
+      APP_LOCALE: 'de',
       DISABLE_GEOCODING: 'true',
     },
   },
