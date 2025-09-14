@@ -7,35 +7,31 @@
                 </div>
             @endif
             <!-- Dashboard Cards Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="grid grid-flow-dense grid-cols-1 md:grid-cols-4 auto-rows-bento gap-6 mb-8">
                 <!-- Mitgliederzahl Card -->
-                <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 flex flex-col">
-                    <h2 class="text-lg font-semibold text-[#8B0116] dark:text-[#FCA5A5] mb-2">Aktuelle Mitgliederzahl</h2>
+                <x-bento-card title="Aktuelle Mitgliederzahl" class="md:col-span-2" sr-text="Aktuelle Mitgliederzahl: {{ $memberCount }}">
                     <div class="text-4xl font-bold text-gray-800 dark:text-gray-200 mt-auto">
                         {{ $memberCount }}
                     </div>
-                </div>
+                </x-bento-card>
                 <!-- Offene Aufgaben Card -->
-                <a href="{{ route('todos.index') }}" class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 flex flex-col hover:bg-gray-50 dark:hover:bg-gray-700 transition duration-200">
-                    <h2 class="text-lg font-semibold text-[#8B0116] dark:text-[#FCA5A5] mb-2">Offene Challenges</h2>
+                <x-bento-card href="{{ route('todos.index') }}" title="Offene Challenges" class="md:row-span-2" sr-text="Offene Challenges: {{ $openTodos }}">
                     <div class="text-4xl font-bold text-gray-800 dark:text-gray-200 mt-auto">
                         {{ $openTodos }}
                     </div>
-                </a>
+                </x-bento-card>
                 <!-- Baxx Card -->
-                <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 flex flex-col">
-                    <h2 class="text-lg font-semibold text-[#8B0116] dark:text-[#FCA5A5] mb-2">Meine Baxx</h2>
+                <x-bento-card title="Meine Baxx" sr-text="Meine Baxx: {{ $userPoints }}">
                     <div class="text-4xl font-bold text-gray-800 dark:text-gray-200 mt-auto">
                         {{ $userPoints }}
                     </div>
-                </div>
+                </x-bento-card>
                 <!-- Erledigte Aufgaben Card -->
-                <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 flex flex-col">
-                    <h2 class="text-lg font-semibold text-[#8B0116] dark:text-[#FCA5A5] mb-2">Abgeschlossene Challenges</h2>
+                <x-bento-card title="Abgeschlossene Challenges" class="md:col-span-2" sr-text="Abgeschlossene Challenges: {{ $completedTodos }}">
                     <div class="text-4xl font-bold text-gray-800 dark:text-gray-200 mt-auto">
                         {{ $completedTodos }}
                     </div>
-                </div>
+                </x-bento-card>
             </div>
             <!-- Anwärter-Liste für Kassenwart, Vorstand und Admin -->
             @if($anwaerter->isNotEmpty())
