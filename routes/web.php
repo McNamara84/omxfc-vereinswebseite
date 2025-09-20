@@ -55,7 +55,7 @@ Route::get('/email/bestaetigen/{id}/{hash}', CustomEmailVerificationController::
 
 // Nur für eingeloggte und verifizierte Mitglieder, die NICHT Anwärter sind
 Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function () {
-    Route::get('/admin', [AdminController::class, 'index'])->name('admin.index')->middleware('admin');
+    Route::get('/statistiken', [AdminController::class, 'index'])->name('statistiken.index')->middleware('admin');
     Route::controller(DashboardController::class)->group(function () {
         Route::get('/dashboard', 'index')->name('dashboard');
         Route::post('/anwaerter/{user}/freigeben', 'approveAnwaerter')->name('anwaerter.approve');
