@@ -7,7 +7,7 @@
                 </div>
             @endif
             <!-- Dashboard Cards Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
                 <!-- Persönliche offene Challenges Card -->
                 <x-bento-card href="{{ route('todos.index') }}" title="Offene Challenges" sr-text="Meine offenen Challenges: {{ $openTodos }}">
                     <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">Angenommene, noch nicht abgeschlossene Challenges</p>
@@ -20,6 +20,13 @@
                     <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">Aktueller Punktestand für deine Aktivitäten</p>
                     <div class="text-4xl font-bold text-gray-800 dark:text-gray-200 mt-auto" aria-live="polite">
                         {{ $userPoints }}
+                    </div>
+                </x-bento-card>
+                <!-- Matches in Tauschbörse Card -->
+                <x-bento-card href="{{ route('romantausch.index') }}" title="Matches in Tauschbörse" sr-text="Meine Matches in der Tauschbörse: {{ $romantauschMatches }}">
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">Offene Treffer aus Angeboten und Gesuchen in der Romantauschbörse</p>
+                    <div class="text-4xl font-bold text-gray-800 dark:text-gray-200 mt-auto" aria-live="polite">
+                        {{ $romantauschMatches }}
                     </div>
                 </x-bento-card>
             </div>
