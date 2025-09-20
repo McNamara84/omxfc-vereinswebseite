@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\Role;
+use App\Enums\TodoStatus;
 use App\Mail\MitgliedGenehmigtMail;
 use App\Models\Activity;
 use App\Models\Review;
@@ -9,14 +11,13 @@ use App\Models\ReviewComment;
 use App\Models\Todo;
 use App\Models\User;
 use App\Models\UserPoint;
+use App\Services\MembersTeamProvider;
+use App\Services\UserRoleService;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
-use App\Enums\Role;
-use App\Services\UserRoleService;
-use App\Services\MembersTeamProvider;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class DashboardController extends Controller
 {
@@ -32,13 +33,6 @@ class DashboardController extends Controller
         $team = $this->membersTeamProvider->getMembersTeamOrAbort();
 
         $cacheFor = now()->addMinutes(10);
-
-        // Mitglieder zählen (alle außer "Anwärter")
-        $memberCount = Cache::remember(
-            "member_count_{$team->id}",
-            $cacheFor,
-            fn () => $team->activeUsers()->count()
-        );
 
         // Anwärter abrufen, nur für Kassenwart, Vorstand, Admin
         $anwaerter = collect();
@@ -66,19 +60,18 @@ class DashboardController extends Controller
         // Initialisierung der Variablen
         $openTodos = 0;
         $userPoints = 0;
-        $completedTodos = 0;
         $pendingVerification = 0;
         $topUsers = [];
-        $allReviews = 0;
         $myReviews = 0;
         $myReviewComments = 0;
 
         // Offene Aufgaben
         $openTodos = Cache::remember(
-            "open_todos_{$team->id}",
+            "open_todos_{$team->id}_{$user->id}",
             $cacheFor,
             fn () => Todo::where('team_id', $team->id)
-                ->where('status', 'open')
+                ->where('assigned_to', $user->id)
+                ->where('status', TodoStatus::Assigned->value)
                 ->count()
         );
 
@@ -89,15 +82,6 @@ class DashboardController extends Controller
             fn () => UserPoint::where('user_id', $user->id)
                 ->where('team_id', $team->id)
                 ->sum('points')
-        );
-
-        // Abgeschlossene Aufgaben des Nutzers
-        $completedTodos = Cache::remember(
-            "completed_todos_{$team->id}_{$user->id}",
-            $cacheFor,
-            fn () => UserPoint::where('user_id', $user->id)
-                ->where('team_id', $team->id)
-                ->count()
         );
 
         // Aufgaben, die auf Verifizierung warten (nur für Admins sichtbar)
@@ -135,12 +119,6 @@ class DashboardController extends Controller
             }
         );
 
-        // Rezensionen zählen
-        $allReviews = Cache::remember(
-            "all_reviews_{$team->id}",
-            $cacheFor,
-            fn () => Review::where('team_id', $team->id)->count()
-        );
         $myReviews = Cache::remember(
             "my_reviews_{$team->id}_{$user->id}",
             $cacheFor,
@@ -166,16 +144,13 @@ class DashboardController extends Controller
             ->get();
 
         return view('dashboard', compact(
-            'memberCount',
             'anwaerter',
             'openTodos',
             'userPoints',
-            'completedTodos',
             'pendingVerification',
             'userRole',
             'allowedRoles',
             'topUsers',
-            'allReviews',
             'myReviews',
             'myReviewComments',
             'activities'
