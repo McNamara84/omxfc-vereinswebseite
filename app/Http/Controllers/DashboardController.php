@@ -11,6 +11,7 @@ use App\Models\ReviewComment;
 use App\Models\Todo;
 use App\Models\User;
 use App\Models\UserPoint;
+use App\Models\BookOffer;
 use App\Models\BookSwap;
 use App\Services\MembersTeamProvider;
 use App\Services\UserRoleService;
@@ -66,6 +67,7 @@ class DashboardController extends Controller
         $myReviews = 0;
         $myReviewComments = 0;
         $romantauschMatches = 0;
+        $romantauschOffers = 0;
 
         // Offene Aufgaben
         $openTodos = Cache::remember(
@@ -154,6 +156,15 @@ class DashboardController extends Controller
                 ->count()
         );
 
+        $romantauschOffers = Cache::remember(
+            "romantausch_offers_{$team->id}_{$user->id}",
+            $cacheFor,
+            fn () => BookOffer::query()
+                ->where('user_id', $user->id)
+                ->where('completed', false)
+                ->count()
+        );
+
         $activities = Activity::with(['user', 'subject'])
             ->latest()
             ->limit(10)
@@ -170,6 +181,7 @@ class DashboardController extends Controller
             'myReviews',
             'myReviewComments',
             'romantauschMatches',
+            'romantauschOffers',
             'activities'
         ));
     }
