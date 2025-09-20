@@ -175,6 +175,45 @@ class DashboardControllerTest extends TestCase
         $this->assertTrue($anwaerter->contains($applicant));
     }
 
+    public function test_dashboard_counts_book_swap_matches_for_request_owner(): void
+    {
+        $team = Team::membersTeam();
+        $requestingUser = User::factory()->create(['current_team_id' => $team->id]);
+        $team->users()->attach($requestingUser, ['role' => Role::Mitglied->value]);
+
+        $offeringUser = User::factory()->create(['current_team_id' => $team->id]);
+        $team->users()->attach($offeringUser, ['role' => Role::Mitglied->value]);
+
+        $offer = \App\Models\BookOffer::create([
+            'user_id' => $offeringUser->id,
+            'series' => \App\Enums\BookType::MaddraxDieDunkleZukunftDerErde->value,
+            'book_number' => 5,
+            'book_title' => 'Testroman',
+            'condition' => 'gut',
+        ]);
+
+        $request = \App\Models\BookRequest::create([
+            'user_id' => $requestingUser->id,
+            'series' => \App\Enums\BookType::MaddraxDieDunkleZukunftDerErde->value,
+            'book_number' => 5,
+            'book_title' => 'Testroman',
+            'condition' => 'gut',
+        ]);
+
+        \App\Models\BookSwap::create([
+            'offer_id' => $offer->id,
+            'request_id' => $request->id,
+        ]);
+
+        $this->actingAs($requestingUser);
+        Cache::flush();
+
+        $response = $this->get('/dashboard');
+
+        $response->assertOk();
+        $response->assertViewHas('romantauschMatches', 1);
+    }
+
     public function test_dashboard_counts_only_challenges_assigned_to_current_user(): void
     {
         $team = Team::membersTeam();

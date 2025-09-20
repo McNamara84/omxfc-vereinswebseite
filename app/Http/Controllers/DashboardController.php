@@ -143,10 +143,13 @@ class DashboardController extends Controller
         $romantauschMatches = Cache::remember(
             "romantausch_matches_{$team->id}_{$user->id}",
             $cacheFor,
-            fn () => BookSwap::whereNull('completed_at')
+            fn () => BookSwap::query()
+                ->join('book_offers', 'book_swaps.offer_id', '=', 'book_offers.id')
+                ->join('book_requests', 'book_swaps.request_id', '=', 'book_requests.id')
+                ->whereNull('book_swaps.completed_at')
                 ->where(function ($query) use ($user) {
-                    $query->whereHas('offer', fn ($q) => $q->where('user_id', $user->id))
-                        ->orWhereHas('request', fn ($q) => $q->where('user_id', $user->id));
+                    $query->where('book_offers.user_id', $user->id)
+                        ->orWhere('book_requests.user_id', $user->id);
                 })
                 ->count()
         );
