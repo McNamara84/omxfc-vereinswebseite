@@ -129,8 +129,17 @@
 
             <!-- Hamburger (Mobile) -->
             <div class="-mr-2 flex items-center sm:hidden">
-                <button @click="open = !open" class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700">
-                    <svg class="h-6 w-6" stroke="currentColor" fill="none">
+                <button
+                    type="button"
+                    @click="open = !open"
+                    :aria-expanded="open"
+                    aria-label="Menü öffnen"
+                    x-bind:aria-label="open ? 'Menü schließen' : 'Menü öffnen'"
+                    aria-controls="mobile-navigation"
+                    class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                >
+                    <span class="sr-only" x-text="open ? 'Menü schließen' : 'Menü öffnen'">Menü öffnen</span>
+                    <svg class="h-6 w-6" stroke="currentColor" fill="none" aria-hidden="true">
                         <path :class="{'hidden': open, 'inline-flex': !open}" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
                         <path :class="{'hidden': !open, 'inline-flex': open}" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                     </svg>
@@ -140,7 +149,7 @@
     </div>
 
     <!-- Mobile-Menü -->
-    <div :class="{'block': open, 'hidden': !open}" class="hidden sm:hidden">
+    <div id="mobile-navigation" :class="{'block': open, 'hidden': !open}" class="hidden sm:hidden">
         @auth
             <x-responsive-nav-link href="{{ route('dashboard') }}">Dashboard</x-responsive-nav-link>
             <button id="verein-mobile-button" type="button" @click="openMenu = (openMenu === 'verein' ? null : 'verein')" class="w-full text-left px-4 py-2 font-bold text-gray-600 dark:text-gray-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500" :class="{ 'bg-gray-100 dark:bg-gray-700': openMenu === 'verein' }" :aria-expanded="openMenu === 'verein'" aria-controls="verein-mobile-menu" @keydown.enter.prevent="openMenu = (openMenu === 'verein' ? null : 'verein')" @keydown.space.prevent="openMenu = (openMenu === 'verein' ? null : 'verein')">
