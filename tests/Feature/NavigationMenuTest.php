@@ -27,7 +27,7 @@ class NavigationMenuTest extends TestCase
         $response->assertSee(route('termine'));
     }
 
-    public function test_admin_users_see_statistik_link_in_navigation_menu(): void
+    public function test_admin_users_see_admin_menu_with_statistik_link(): void
     {
         $team = Team::membersTeam();
         $user = User::factory()->create(['current_team_id' => $team->id]);
@@ -36,11 +36,12 @@ class NavigationMenuTest extends TestCase
         $response = $this->actingAs($user)->get('/');
 
         $response->assertSee(route('statistiken.index'));
-        $response->assertSee('statistik-button');
-        $response->assertSee('statistik-mobile-button');
+        $response->assertSee('Admin');
+        $response->assertSee('admin-button');
+        $response->assertSee('admin-mobile-button');
     }
 
-    public function test_non_admin_users_do_not_see_statistik_link_in_navigation_menu(): void
+    public function test_non_admin_users_do_not_see_admin_menu(): void
     {
         $team = Team::membersTeam();
         $user = User::factory()->create(['current_team_id' => $team->id]);
@@ -49,8 +50,8 @@ class NavigationMenuTest extends TestCase
         $response = $this->actingAs($user)->get('/');
 
         $response->assertDontSee(route('statistiken.index'));
-        $response->assertDontSee('statistik-button');
-        $response->assertDontSee('statistik-mobile-button');
+        $response->assertDontSee('admin-button');
+        $response->assertDontSee('admin-mobile-button');
     }
     public function test_admin_users_do_not_see_hoerbuch_create_link_in_navigation_menu(): void
     {
