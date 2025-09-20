@@ -9,6 +9,9 @@ on:
 jobs:
   e2e:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        browser: [chromium, firefox, webkit]
     steps:
       - uses: actions/checkout@v4
       - uses: shivammathur/setup-php@v2
@@ -28,5 +31,5 @@ jobs:
       - run: php artisan migrate --force
       - run: npm ci
       - run: npm run build --if-present
-      - run: npx playwright install --with-deps
-      - run: npx playwright test
+      - run: npx playwright install --with-deps ${{ matrix.browser }}
+      - run: npx playwright test --browser=${{ matrix.browser }}
