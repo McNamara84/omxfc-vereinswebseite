@@ -29,6 +29,13 @@
                         {{ $romantauschMatches }}
                     </div>
                 </x-bento-card>
+                <!-- Angebote in Tauschbörse Card -->
+                <x-bento-card href="{{ route('romantausch.index') }}" title="Angebote in der Tauschbörse" sr-text="Meine Angebote in der Tauschbörse: {{ $romantauschOffers }}">
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">Aktive Angebote, die du für die Community bereitgestellt hast</p>
+                    <div class="text-4xl font-bold text-gray-800 dark:text-gray-200 mt-auto" aria-live="polite">
+                        {{ $romantauschOffers }}
+                    </div>
+                </x-bento-card>
             </div>
             <!-- Anwärter-Liste für Kassenwart, Vorstand und Admin -->
             @if($anwaerter->isNotEmpty())

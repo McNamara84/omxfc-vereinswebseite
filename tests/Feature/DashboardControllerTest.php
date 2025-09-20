@@ -169,6 +169,7 @@ class DashboardControllerTest extends TestCase
         $response->assertViewHas('myReviews', 1);
         $response->assertViewHas('myReviewComments', 1);
         $response->assertViewHas('romantauschMatches', 1);
+        $response->assertViewHas('romantauschOffers', 1);
         $topUsers = $response->viewData('topUsers');
         $this->assertEquals($member1->id, $topUsers[0]['id']);
         $anwaerter = $response->viewData('anwaerter');
@@ -212,6 +213,66 @@ class DashboardControllerTest extends TestCase
 
         $response->assertOk();
         $response->assertViewHas('romantauschMatches', 1);
+    }
+
+    public function test_dashboard_uses_cached_romantausch_offer_count_without_team_context(): void
+    {
+        Cache::flush();
+
+        $team = Team::membersTeam();
+        $admin = User::factory()->create(['current_team_id' => $team->id]);
+        $team->users()->attach($admin, ['role' => Role::Admin->value]);
+
+        Cache::put("romantausch_offers_{$admin->id}", 7, now()->addMinutes(10));
+
+        $this->actingAs($admin)
+            ->get('/dashboard')
+            ->assertViewHas('romantauschOffers', 7);
+    }
+
+    public function test_dashboard_counts_only_open_offers_of_current_user(): void
+    {
+        $team = Team::membersTeam();
+        $member = User::factory()->create(['current_team_id' => $team->id]);
+        $team->users()->attach($member, ['role' => Role::Mitglied->value]);
+
+        $otherMember = User::factory()->create(['current_team_id' => $team->id]);
+        $team->users()->attach($otherMember, ['role' => Role::Mitglied->value]);
+
+        \App\Models\BookOffer::create([
+            'user_id' => $member->id,
+            'series' => \App\Enums\BookType::MaddraxDieDunkleZukunftDerErde->value,
+            'book_number' => 10,
+            'book_title' => 'Offenes Angebot',
+            'condition' => 'gut',
+            'completed' => false,
+        ]);
+
+        \App\Models\BookOffer::create([
+            'user_id' => $member->id,
+            'series' => \App\Enums\BookType::MaddraxDieDunkleZukunftDerErde->value,
+            'book_number' => 11,
+            'book_title' => 'Abgeschlossen',
+            'condition' => 'gut',
+            'completed' => true,
+        ]);
+
+        \App\Models\BookOffer::create([
+            'user_id' => $otherMember->id,
+            'series' => \App\Enums\BookType::MaddraxDieDunkleZukunftDerErde->value,
+            'book_number' => 12,
+            'book_title' => 'Fremdes Angebot',
+            'condition' => 'gut',
+            'completed' => false,
+        ]);
+
+        $this->actingAs($member);
+        Cache::flush();
+
+        $response = $this->get('/dashboard');
+
+        $response->assertOk();
+        $response->assertViewHas('romantauschOffers', 1);
     }
 
     public function test_dashboard_counts_only_challenges_assigned_to_current_user(): void
