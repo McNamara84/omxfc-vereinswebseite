@@ -70,14 +70,19 @@ class DashboardController extends Controller
         $romantauschOffers = 0;
 
         // Offene Aufgaben
-        $openTodos = Cache::remember(
+        $openTodosByTeam = Cache::remember(
             "open_todos_{$user->id}",
             $cacheFor,
-            fn () => Todo::where('team_id', $team->id)
+            fn () => Todo::query()
+                ->select('team_id', DB::raw('COUNT(*) as total'))
                 ->where('assigned_to', $user->id)
                 ->where('status', TodoStatus::Assigned->value)
-                ->count()
+                ->groupBy('team_id')
+                ->pluck('total', 'team_id')
+                ->all()
         );
+
+        $openTodos = $openTodosByTeam[$team->id] ?? 0;
 
         // Punkte des angemeldeten Nutzers
         $userPoints = Cache::remember(
