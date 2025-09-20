@@ -7,29 +7,19 @@
                 </div>
             @endif
             <!-- Dashboard Cards Grid -->
-            <div class="grid grid-flow-dense grid-cols-1 md:grid-cols-4 auto-rows-fr gap-6 mb-8">
-                <!-- Mitgliederzahl Card -->
-                <x-bento-card title="Aktuelle Mitgliederzahl" class="md:col-span-2" sr-text="Aktuelle Mitgliederzahl: {{ $memberCount }}">
-                    <div class="text-4xl font-bold text-gray-800 dark:text-gray-200 mt-auto">
-                        {{ $memberCount }}
-                    </div>
-                </x-bento-card>
-                <!-- Offene Aufgaben Card -->
-                <x-bento-card href="{{ route('todos.index') }}" title="Offene Challenges" class="md:row-span-2" sr-text="Offene Challenges: {{ $openTodos }}">
-                    <div class="text-4xl font-bold text-gray-800 dark:text-gray-200 mt-auto">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <!-- Persönliche offene Challenges Card -->
+                <x-bento-card href="{{ route('todos.index') }}" title="Offene Challenges" sr-text="Meine offenen Challenges: {{ $openTodos }}">
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">Angenommene, noch nicht abgeschlossene Challenges</p>
+                    <div class="text-4xl font-bold text-gray-800 dark:text-gray-200 mt-auto" aria-live="polite">
                         {{ $openTodos }}
                     </div>
                 </x-bento-card>
                 <!-- Baxx Card -->
                 <x-bento-card title="Meine Baxx" sr-text="Meine Baxx: {{ $userPoints }}">
-                    <div class="text-4xl font-bold text-gray-800 dark:text-gray-200 mt-auto">
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">Aktueller Punktestand für deine Aktivitäten</p>
+                    <div class="text-4xl font-bold text-gray-800 dark:text-gray-200 mt-auto" aria-live="polite">
                         {{ $userPoints }}
-                    </div>
-                </x-bento-card>
-                <!-- Erledigte Aufgaben Card -->
-                <x-bento-card title="Abgeschlossene Challenges" class="md:col-span-2" sr-text="Abgeschlossene Challenges: {{ $completedTodos }}">
-                    <div class="text-4xl font-bold text-gray-800 dark:text-gray-200 mt-auto">
-                        {{ $completedTodos }}
                     </div>
                 </x-bento-card>
             </div>
@@ -118,13 +108,6 @@
             @endif
             <!-- Weitere Dashboard Cards -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-                <!-- Gesamtanzahl Rezensionen Card -->
-                <a href="{{ route('reviews.index') }}" class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 flex flex-col hover:bg-gray-50 dark:hover:bg-gray-700 transition duration-200">
-                    <h2 class="text-lg font-semibold text-[#8B0116] dark:text-[#FCA5A5] mb-2">Alle Rezensionen</h2>
-                    <div class="text-4xl font-bold text-gray-800 dark:text-gray-200 mt-auto">
-                        {{ $allReviews }}
-                    </div>
-                </a>
                 <!-- Meine Rezensionen Card -->
                 <a href="{{ route('reviews.index') }}" class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 flex flex-col hover:bg-gray-50 dark:hover:bg-gray-700 transition duration-200">
                     <h2 class="text-lg font-semibold text-[#8B0116] dark:text-[#FCA5A5] mb-2">Meine Rezensionen</h2>
