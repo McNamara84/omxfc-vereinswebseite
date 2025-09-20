@@ -6,6 +6,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 use App\Models\Team;
 use App\Models\User;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\MitgliedGenehmigtMail;
 use App\Enums\TodoStatus;
@@ -80,7 +81,7 @@ class DashboardControllerTest extends TestCase
 
         $response = $this->actingAs($admin)->get('/dashboard');
 
-        $response->assertViewHas('memberCount', 3);
+        $response->assertViewHas('openTodos');
         $this->assertFalse($response->viewData('anwaerter')->contains($applicant));
     }
 
@@ -99,48 +100,284 @@ class DashboardControllerTest extends TestCase
         $team->users()->attach($member2, ['role' => Role::Mitglied->value]);
 
         $category = \App\Models\TodoCategory::first() ?? \App\Models\TodoCategory::create(['name' => 'Test', 'slug' => 'test']);
-        $firstTodo = \App\Models\Todo::create([
+        $assignedTodo = \App\Models\Todo::create([
             'team_id' => $team->id,
             'created_by' => $admin->id,
-            'title' => 'Open',
+            'assigned_to' => $admin->id,
+            'title' => 'Akzeptiert',
             'points' => 5,
-            'status' => TodoStatus::Open->value,
+            'status' => TodoStatus::Assigned->value,
             'category_id' => $category->id,
         ]);
         \App\Models\Todo::create([
             'team_id' => $team->id,
             'created_by' => $admin->id,
-            'title' => 'Pending',
+            'assigned_to' => $member1->id,
+            'title' => 'Für anderes Mitglied',
+            'points' => 8,
+            'status' => TodoStatus::Assigned->value,
+            'category_id' => $category->id,
+        ]);
+        \App\Models\Todo::create([
+            'team_id' => $team->id,
+            'created_by' => $admin->id,
+            'assigned_to' => $admin->id,
+            'title' => 'Abgeschlossen',
             'points' => 3,
             'status' => TodoStatus::Completed->value,
             'category_id' => $category->id,
         ]);
 
-        \App\Models\UserPoint::create(['user_id' => $admin->id, 'team_id' => $team->id, 'todo_id' => $firstTodo->id, 'points' => 5]);
-        \App\Models\UserPoint::create(['user_id' => $member1->id, 'team_id' => $team->id, 'todo_id' => $firstTodo->id, 'points' => 10]);
-        \App\Models\UserPoint::create(['user_id' => $member2->id, 'team_id' => $team->id, 'todo_id' => $firstTodo->id, 'points' => 7]);
+        \App\Models\UserPoint::create(['user_id' => $admin->id, 'team_id' => $team->id, 'todo_id' => $assignedTodo->id, 'points' => 5]);
+        \App\Models\UserPoint::create(['user_id' => $member1->id, 'team_id' => $team->id, 'todo_id' => $assignedTodo->id, 'points' => 10]);
+        \App\Models\UserPoint::create(['user_id' => $member2->id, 'team_id' => $team->id, 'todo_id' => $assignedTodo->id, 'points' => 7]);
 
         $book = \App\Models\Book::create(['roman_number' => 1, 'title' => 'B1', 'author' => 'A']);
         \App\Models\Review::create(['team_id' => $team->id, 'user_id' => $admin->id, 'book_id' => $book->id, 'title' => 'T', 'content' => 'X']);
         $review2 = \App\Models\Review::create(['team_id' => $team->id, 'user_id' => $member1->id, 'book_id' => $book->id, 'title' => 'T2', 'content' => 'Y']);
         \App\Models\ReviewComment::create(['review_id' => $review2->id, 'user_id' => $admin->id, 'content' => 'C']);
 
+        $offer = \App\Models\BookOffer::create([
+            'user_id' => $admin->id,
+            'series' => \App\Enums\BookType::MaddraxDieDunkleZukunftDerErde->value,
+            'book_number' => 1,
+            'book_title' => 'B1',
+            'condition' => 'gut',
+        ]);
+
+        $request = \App\Models\BookRequest::create([
+            'user_id' => $member1->id,
+            'series' => \App\Enums\BookType::MaddraxDieDunkleZukunftDerErde->value,
+            'book_number' => 1,
+            'book_title' => 'B1',
+            'condition' => 'gut',
+        ]);
+
+        \App\Models\BookSwap::create([
+            'offer_id' => $offer->id,
+            'request_id' => $request->id,
+        ]);
+
         $this->actingAs($admin);
+        Cache::flush();
         $response = $this->get('/dashboard');
 
         $response->assertOk();
-        $response->assertViewHas('memberCount', 4);
         $response->assertViewHas('openTodos', 1);
         $response->assertViewHas('userPoints', 5);
-        $response->assertViewHas('completedTodos', 1);
         $response->assertViewHas('pendingVerification', 1);
-        $response->assertViewHas('allReviews', 2);
         $response->assertViewHas('myReviews', 1);
         $response->assertViewHas('myReviewComments', 1);
+        $response->assertViewHas('romantauschMatches', 1);
+        $response->assertViewHas('romantauschOffers', 1);
         $topUsers = $response->viewData('topUsers');
         $this->assertEquals($member1->id, $topUsers[0]['id']);
         $anwaerter = $response->viewData('anwaerter');
         $this->assertTrue($anwaerter->contains($applicant));
+    }
+
+    public function test_dashboard_counts_book_swap_matches_for_request_owner(): void
+    {
+        $team = Team::membersTeam();
+        $requestingUser = User::factory()->create(['current_team_id' => $team->id]);
+        $team->users()->attach($requestingUser, ['role' => Role::Mitglied->value]);
+
+        $offeringUser = User::factory()->create(['current_team_id' => $team->id]);
+        $team->users()->attach($offeringUser, ['role' => Role::Mitglied->value]);
+
+        $offer = \App\Models\BookOffer::create([
+            'user_id' => $offeringUser->id,
+            'series' => \App\Enums\BookType::MaddraxDieDunkleZukunftDerErde->value,
+            'book_number' => 5,
+            'book_title' => 'Testroman',
+            'condition' => 'gut',
+        ]);
+
+        $request = \App\Models\BookRequest::create([
+            'user_id' => $requestingUser->id,
+            'series' => \App\Enums\BookType::MaddraxDieDunkleZukunftDerErde->value,
+            'book_number' => 5,
+            'book_title' => 'Testroman',
+            'condition' => 'gut',
+        ]);
+
+        \App\Models\BookSwap::create([
+            'offer_id' => $offer->id,
+            'request_id' => $request->id,
+        ]);
+
+        $this->actingAs($requestingUser);
+        Cache::flush();
+
+        $response = $this->get('/dashboard');
+
+        $response->assertOk();
+        $response->assertViewHas('romantauschMatches', 1);
+    }
+
+    public function test_dashboard_uses_cached_romantausch_offer_count_without_team_context(): void
+    {
+        Cache::flush();
+
+        $team = Team::membersTeam();
+        $admin = User::factory()->create(['current_team_id' => $team->id]);
+        $team->users()->attach($admin, ['role' => Role::Admin->value]);
+
+        Cache::put("romantausch_offers_{$admin->id}", 7, now()->addMinutes(10));
+
+        $this->actingAs($admin)
+            ->get('/dashboard')
+            ->assertViewHas('romantauschOffers', 7);
+    }
+
+    public function test_dashboard_counts_only_open_offers_of_current_user(): void
+    {
+        $team = Team::membersTeam();
+        $member = User::factory()->create(['current_team_id' => $team->id]);
+        $team->users()->attach($member, ['role' => Role::Mitglied->value]);
+
+        $otherMember = User::factory()->create(['current_team_id' => $team->id]);
+        $team->users()->attach($otherMember, ['role' => Role::Mitglied->value]);
+
+        \App\Models\BookOffer::create([
+            'user_id' => $member->id,
+            'series' => \App\Enums\BookType::MaddraxDieDunkleZukunftDerErde->value,
+            'book_number' => 10,
+            'book_title' => 'Offenes Angebot',
+            'condition' => 'gut',
+            'completed' => false,
+        ]);
+
+        \App\Models\BookOffer::create([
+            'user_id' => $member->id,
+            'series' => \App\Enums\BookType::MaddraxDieDunkleZukunftDerErde->value,
+            'book_number' => 11,
+            'book_title' => 'Abgeschlossen',
+            'condition' => 'gut',
+            'completed' => true,
+        ]);
+
+        \App\Models\BookOffer::create([
+            'user_id' => $otherMember->id,
+            'series' => \App\Enums\BookType::MaddraxDieDunkleZukunftDerErde->value,
+            'book_number' => 12,
+            'book_title' => 'Fremdes Angebot',
+            'condition' => 'gut',
+            'completed' => false,
+        ]);
+
+        $this->actingAs($member);
+        Cache::flush();
+
+        $response = $this->get('/dashboard');
+
+        $response->assertOk();
+        $response->assertViewHas('romantauschOffers', 1);
+    }
+
+    public function test_dashboard_counts_only_challenges_assigned_to_current_user(): void
+    {
+        $team = Team::membersTeam();
+        $member = User::factory()->create(['current_team_id' => $team->id]);
+        $team->users()->attach($member, ['role' => Role::Mitglied->value]);
+
+        $otherMember = User::factory()->create(['current_team_id' => $team->id]);
+        $team->users()->attach($otherMember, ['role' => Role::Mitglied->value]);
+
+        $category = \App\Models\TodoCategory::first() ?? \App\Models\TodoCategory::create(['name' => 'Test', 'slug' => 'test']);
+
+        \App\Models\Todo::create([
+            'team_id' => $team->id,
+            'created_by' => $member->id,
+            'assigned_to' => $member->id,
+            'title' => 'Meine aktive Challenge',
+            'points' => 4,
+            'status' => TodoStatus::Assigned->value,
+            'category_id' => $category->id,
+        ]);
+
+        \App\Models\Todo::create([
+            'team_id' => $team->id,
+            'created_by' => $member->id,
+            'assigned_to' => $member->id,
+            'title' => 'Bereits abgeschlossen',
+            'points' => 6,
+            'status' => TodoStatus::Completed->value,
+            'category_id' => $category->id,
+        ]);
+
+        \App\Models\Todo::create([
+            'team_id' => $team->id,
+            'created_by' => $otherMember->id,
+            'assigned_to' => $otherMember->id,
+            'title' => 'Challenge anderer',
+            'points' => 3,
+            'status' => TodoStatus::Assigned->value,
+            'category_id' => $category->id,
+        ]);
+
+        \App\Models\Todo::create([
+            'team_id' => $team->id,
+            'created_by' => $member->id,
+            'title' => 'Noch offen',
+            'points' => 2,
+            'status' => TodoStatus::Open->value,
+            'category_id' => $category->id,
+        ]);
+
+        $this->actingAs($member);
+        Cache::flush();
+
+        $response = $this->get('/dashboard');
+
+        $response->assertOk();
+        $response->assertViewHas('openTodos', 1);
+    }
+
+    public function test_dashboard_caches_open_todos_grouped_by_team(): void
+    {
+        Cache::flush();
+
+        $team = Team::membersTeam();
+        $user = User::factory()->create(['current_team_id' => $team->id]);
+        $team->users()->attach($user, ['role' => Role::Mitglied->value]);
+
+        $category = \App\Models\TodoCategory::first()
+            ?? \App\Models\TodoCategory::create(['name' => 'Cache Test', 'slug' => 'cache-test']);
+
+        \App\Models\Todo::create([
+            'team_id' => $team->id,
+            'created_by' => $user->id,
+            'assigned_to' => $user->id,
+            'title' => 'Cache coverage',
+            'points' => 1,
+            'status' => TodoStatus::Assigned->value,
+            'category_id' => $category->id,
+        ]);
+
+        $otherTeam = Team::factory()->create();
+        $otherTeam->users()->attach($user, ['role' => Role::Mitglied->value]);
+
+        \App\Models\Todo::create([
+            'team_id' => $otherTeam->id,
+            'created_by' => $user->id,
+            'assigned_to' => $user->id,
+            'title' => 'Other team cache coverage',
+            'points' => 1,
+            'status' => TodoStatus::Assigned->value,
+            'category_id' => $category->id,
+        ]);
+
+        $this->actingAs($user)->get('/dashboard')->assertOk();
+
+        $this->assertTrue(Cache::has("open_todos_{$user->id}"));
+        $cachedCounts = Cache::get("open_todos_{$user->id}");
+        $this->assertIsArray($cachedCounts);
+        $this->assertArrayHasKey($team->id, $cachedCounts);
+        $this->assertArrayHasKey($otherTeam->id, $cachedCounts);
+        $this->assertSame(1, $cachedCounts[$team->id]);
+        $this->assertSame(1, $cachedCounts[$otherTeam->id]);
+        $this->assertFalse(Cache::has("open_todos_{$team->id}_{$user->id}"));
     }
 
     public function test_redirect_when_membership_missing(): void

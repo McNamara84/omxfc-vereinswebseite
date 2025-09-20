@@ -7,35 +7,49 @@
                 </div>
             @endif
             <!-- Dashboard Cards Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                <!-- Mitgliederzahl Card -->
-                <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 flex flex-col">
-                    <h2 class="text-lg font-semibold text-[#8B0116] dark:text-[#FCA5A5] mb-2">Aktuelle Mitgliederzahl</h2>
-                    <div class="text-4xl font-bold text-gray-800 dark:text-gray-200 mt-auto">
-                        {{ $memberCount }}
-                    </div>
-                </div>
-                <!-- Offene Aufgaben Card -->
-                <a href="{{ route('todos.index') }}" class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 flex flex-col hover:bg-gray-50 dark:hover:bg-gray-700 transition duration-200">
-                    <h2 class="text-lg font-semibold text-[#8B0116] dark:text-[#FCA5A5] mb-2">Offene Challenges</h2>
-                    <div class="text-4xl font-bold text-gray-800 dark:text-gray-200 mt-auto">
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-8 grid-flow-row-dense" aria-label="Überblick wichtiger Community-Kennzahlen">
+                <!-- Persönliche offene Challenges Card -->
+                <x-bento-card href="{{ route('todos.index') }}" title="Offene Challenges" sr-text="Meine offenen Challenges: {{ $openTodos }}">
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">Angenommene, noch nicht abgeschlossene Challenges</p>
+                    <div class="text-4xl font-bold text-gray-800 dark:text-gray-200 mt-auto" aria-live="polite">
                         {{ $openTodos }}
                     </div>
-                </a>
+                </x-bento-card>
                 <!-- Baxx Card -->
-                <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 flex flex-col">
-                    <h2 class="text-lg font-semibold text-[#8B0116] dark:text-[#FCA5A5] mb-2">Meine Baxx</h2>
-                    <div class="text-4xl font-bold text-gray-800 dark:text-gray-200 mt-auto">
+                <x-bento-card title="Meine Baxx" sr-text="Meine Baxx: {{ $userPoints }}">
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">Aktueller Punktestand für deine Aktivitäten</p>
+                    <div class="text-4xl font-bold text-gray-800 dark:text-gray-200 mt-auto" aria-live="polite">
                         {{ $userPoints }}
                     </div>
-                </div>
-                <!-- Erledigte Aufgaben Card -->
-                <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 flex flex-col">
-                    <h2 class="text-lg font-semibold text-[#8B0116] dark:text-[#FCA5A5] mb-2">Abgeschlossene Challenges</h2>
-                    <div class="text-4xl font-bold text-gray-800 dark:text-gray-200 mt-auto">
-                        {{ $completedTodos }}
+                </x-bento-card>
+                <!-- Matches in Tauschbörse Card -->
+                <x-bento-card href="{{ route('romantausch.index') }}" title="Matches in Tauschbörse" sr-text="Meine Matches in der Tauschbörse: {{ $romantauschMatches }}">
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">Offene Treffer aus Angeboten und Gesuchen in der Romantauschbörse</p>
+                    <div class="text-4xl font-bold text-gray-800 dark:text-gray-200 mt-auto" aria-live="polite">
+                        {{ $romantauschMatches }}
                     </div>
-                </div>
+                </x-bento-card>
+                <!-- Angebote in Tauschbörse Card -->
+                <x-bento-card href="{{ route('romantausch.index') }}" title="Angebote in der Tauschbörse" sr-text="Meine Angebote in der Tauschbörse: {{ $romantauschOffers }}">
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">Aktive Angebote, die du für die Community bereitgestellt hast</p>
+                    <div class="text-4xl font-bold text-gray-800 dark:text-gray-200 mt-auto" aria-live="polite">
+                        {{ $romantauschOffers }}
+                    </div>
+                </x-bento-card>
+                <!-- Meine Rezensionen Card -->
+                <x-bento-card href="{{ route('reviews.index') }}" title="Meine Rezensionen" sr-text="Meine Rezensionen: {{ $myReviews }}">
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">Überblick deiner veröffentlichten Rezensionen</p>
+                    <div class="text-4xl font-bold text-gray-800 dark:text-gray-200" aria-live="polite">
+                        {{ $myReviews }}
+                    </div>
+                </x-bento-card>
+                <!-- Meine Kommentare Card -->
+                <x-bento-card title="Meine Kommentare" sr-text="Meine Kommentare: {{ $myReviewComments }}">
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">Kommentare, die du zu Rezensionen verfasst hast</p>
+                    <div class="text-4xl font-bold text-gray-800 dark:text-gray-200" aria-live="polite">
+                        {{ $myReviewComments }}
+                    </div>
+                </x-bento-card>
             </div>
             <!-- Anwärter-Liste für Kassenwart, Vorstand und Admin -->
             @if($anwaerter->isNotEmpty())
@@ -120,30 +134,6 @@
                     </div>
                 </div>
             @endif
-            <!-- Weitere Dashboard Cards -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-                <!-- Gesamtanzahl Rezensionen Card -->
-                <a href="{{ route('reviews.index') }}" class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 flex flex-col hover:bg-gray-50 dark:hover:bg-gray-700 transition duration-200">
-                    <h2 class="text-lg font-semibold text-[#8B0116] dark:text-[#FCA5A5] mb-2">Alle Rezensionen</h2>
-                    <div class="text-4xl font-bold text-gray-800 dark:text-gray-200 mt-auto">
-                        {{ $allReviews }}
-                    </div>
-                </a>
-                <!-- Meine Rezensionen Card -->
-                <a href="{{ route('reviews.index') }}" class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 flex flex-col hover:bg-gray-50 dark:hover:bg-gray-700 transition duration-200">
-                    <h2 class="text-lg font-semibold text-[#8B0116] dark:text-[#FCA5A5] mb-2">Meine Rezensionen</h2>
-                    <div class="text-4xl font-bold text-gray-800 dark:text-gray-200 mt-auto">
-                        {{ $myReviews }}
-                    </div>
-                </a>
-                <!-- Meine Kommentare Card -->
-                <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 flex flex-col">
-                    <h2 class="text-lg font-semibold text-[#8B0116] dark:text-[#FCA5A5] mb-2">Meine Kommentare</h2>
-                    <div class="text-4xl font-bold text-gray-800 dark:text-gray-200 mt-auto">
-                        {{ $myReviewComments }}
-                    </div>
-                </div>
-            </div>
             <!-- Aktivitäten Card -->
             <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-8">
                 <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FCA5A5] mb-4">Aktivitäten</h2>
