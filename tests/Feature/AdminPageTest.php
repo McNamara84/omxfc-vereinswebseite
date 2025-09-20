@@ -91,5 +91,16 @@ class AdminPageTest extends TestCase
 
             return true;
         });
+
+        $response->assertViewHas('activityData', function ($data) {
+            $this->assertIsArray($data);
+            $this->assertArrayHasKey('all', $data);
+            $this->assertCount(24, $data['all']);
+
+            return true;
+        });
+
+        $response->assertSee("allOption.selected = true;", false);
+        $response->assertSee("updateActiveChart('all');", false);
     }
 }
