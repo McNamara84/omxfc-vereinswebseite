@@ -7,7 +7,7 @@
                 </div>
             @endif
             <!-- Dashboard Cards Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-8 grid-flow-row-dense" aria-label="Überblick wichtiger Community-Kennzahlen">
                 <!-- Persönliche offene Challenges Card -->
                 <x-bento-card href="{{ route('todos.index') }}" title="Offene Challenges" sr-text="Meine offenen Challenges: {{ $openTodos }}">
                     <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">Angenommene, noch nicht abgeschlossene Challenges</p>
@@ -34,6 +34,20 @@
                     <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">Aktive Angebote, die du für die Community bereitgestellt hast</p>
                     <div class="text-4xl font-bold text-gray-800 dark:text-gray-200 mt-auto" aria-live="polite">
                         {{ $romantauschOffers }}
+                    </div>
+                </x-bento-card>
+                <!-- Meine Rezensionen Card -->
+                <x-bento-card href="{{ route('reviews.index') }}" title="Meine Rezensionen" sr-text="Meine Rezensionen: {{ $myReviews }}">
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">Überblick deiner veröffentlichten Rezensionen</p>
+                    <div class="text-4xl font-bold text-gray-800 dark:text-gray-200" aria-live="polite">
+                        {{ $myReviews }}
+                    </div>
+                </x-bento-card>
+                <!-- Meine Kommentare Card -->
+                <x-bento-card title="Meine Kommentare" sr-text="Meine Kommentare: {{ $myReviewComments }}">
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">Kommentare, die du zu Rezensionen verfasst hast</p>
+                    <div class="text-4xl font-bold text-gray-800 dark:text-gray-200" aria-live="polite">
+                        {{ $myReviewComments }}
                     </div>
                 </x-bento-card>
             </div>
@@ -120,23 +134,6 @@
                     </div>
                 </div>
             @endif
-            <!-- Weitere Dashboard Cards -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-                <!-- Meine Rezensionen Card -->
-                <x-bento-card href="{{ route('reviews.index') }}" title="Meine Rezensionen" sr-text="Meine Rezensionen: {{ $myReviews }}">
-                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">Überblick deiner veröffentlichten Rezensionen</p>
-                    <div class="text-4xl font-bold text-gray-800 dark:text-gray-200" aria-live="polite">
-                        {{ $myReviews }}
-                    </div>
-                </x-bento-card>
-                <!-- Meine Kommentare Card -->
-                <x-bento-card title="Meine Kommentare" sr-text="Meine Kommentare: {{ $myReviewComments }}">
-                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">Kommentare, die du zu Rezensionen verfasst hast</p>
-                    <div class="text-4xl font-bold text-gray-800 dark:text-gray-200" aria-live="polite">
-                        {{ $myReviewComments }}
-                    </div>
-                </x-bento-card>
-            </div>
             <!-- Aktivitäten Card -->
             <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-8">
                 <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FCA5A5] mb-4">Aktivitäten</h2>
