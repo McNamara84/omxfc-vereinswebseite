@@ -33,10 +33,12 @@ class DashboardTest extends TestCase
         ];
 
         $crawler = new Crawler($response->getContent());
-        $grids = $crawler->filter('div.grid');
-        $this->assertGreaterThan(0, $grids->count());
-        $this->assertStringContainsString('md:grid-cols-2', $grids->first()->attr('class'));
-        $cards = $crawler->filter('[role="region"]');
+        $cardsContainer = $crawler->filter('div[aria-label="Überblick wichtiger Community-Kennzahlen"]');
+        $this->assertCount(1, $cardsContainer, 'Dashboard card container missing');
+        $this->assertStringContainsString('md:grid-cols-2', $cardsContainer->attr('class'));
+        $this->assertStringContainsString('grid-flow-row-dense', $cardsContainer->attr('class'));
+        $cards = $cardsContainer->filter('[role="region"]');
+        $this->assertCount(count($expectedTitles), $cards, 'Unexpected number of dashboard cards rendered');
         foreach ($expectedTitles as $title) {
             $card = $cards->reduce(function (Crawler $node) use ($title) {
                 return $node->filter('h2')->count() && trim($node->filter('h2')->text()) === $title;
