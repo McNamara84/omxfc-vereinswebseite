@@ -71,7 +71,7 @@ class DashboardController extends Controller
 
         // Offene Aufgaben
         $openTodos = Cache::remember(
-            "open_todos_{$team->id}_{$user->id}",
+            "open_todos_{$user->id}",
             $cacheFor,
             fn () => Todo::where('team_id', $team->id)
                 ->where('assigned_to', $user->id)

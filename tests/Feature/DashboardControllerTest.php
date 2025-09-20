@@ -334,6 +334,34 @@ class DashboardControllerTest extends TestCase
         $response->assertViewHas('openTodos', 1);
     }
 
+    public function test_dashboard_caches_open_todos_by_user_id_only(): void
+    {
+        Cache::flush();
+
+        $team = Team::membersTeam();
+        $user = User::factory()->create(['current_team_id' => $team->id]);
+        $team->users()->attach($user, ['role' => Role::Mitglied->value]);
+
+        $category = \App\Models\TodoCategory::first()
+            ?? \App\Models\TodoCategory::create(['name' => 'Cache Test', 'slug' => 'cache-test']);
+
+        \App\Models\Todo::create([
+            'team_id' => $team->id,
+            'created_by' => $user->id,
+            'assigned_to' => $user->id,
+            'title' => 'Cache coverage',
+            'points' => 1,
+            'status' => TodoStatus::Assigned->value,
+            'category_id' => $category->id,
+        ]);
+
+        $this->actingAs($user)->get('/dashboard')->assertOk();
+
+        $this->assertTrue(Cache::has("open_todos_{$user->id}"));
+        $this->assertSame(1, Cache::get("open_todos_{$user->id}"));
+        $this->assertFalse(Cache::has("open_todos_{$team->id}_{$user->id}"));
+    }
+
     public function test_redirect_when_membership_missing(): void
     {
         $team = Team::membersTeam();
