@@ -26,14 +26,19 @@ class DashboardTest extends TestCase
         $expectedTitles = [
             'Offene Challenges',
             'Meine Baxx',
+            'Matches in Tauschbörse',
+            'Angebote in der Tauschbörse',
+            'Meine Rezensionen',
+            'Meine Kommentare',
         ];
 
         $crawler = new Crawler($response->getContent());
-        $grid = $crawler->filter('div.grid')->first();
-        $this->assertGreaterThan(0, $grid->count());
-        $this->assertStringContainsString('md:grid-cols-2', $grid->attr('class'));
+        $grids = $crawler->filter('div.grid');
+        $this->assertGreaterThan(0, $grids->count());
+        $this->assertStringContainsString('md:grid-cols-2', $grids->first()->attr('class'));
+        $cards = $crawler->filter('[role="region"]');
         foreach ($expectedTitles as $title) {
-            $card = $crawler->filter('[role="region"]')->reduce(function (Crawler $node) use ($title) {
+            $card = $cards->reduce(function (Crawler $node) use ($title) {
                 return $node->filter('h2')->count() && trim($node->filter('h2')->text()) === $title;
             });
             $this->assertCount(1, $card, "Card {$title} missing");
