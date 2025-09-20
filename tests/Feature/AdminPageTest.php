@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\PageVisit;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -48,5 +49,58 @@ class AdminPageTest extends TestCase
         ]);
 
         $this->actingAs($admin)->get('/statistiken')->assertOk();
+    }
+
+    public function test_homepage_visits_are_separated_and_routes_are_grouped(): void
+    {
+        $admin = $this->adminUser();
+        $member = $this->memberUser();
+
+        PageVisit::create(['user_id' => $admin->id, 'path' => '/']);
+        PageVisit::create(['user_id' => $admin->id, 'path' => '/?ref=promo']);
+        PageVisit::create(['user_id' => $member->id, 'path' => '/']);
+
+        PageVisit::create(['user_id' => $admin->id, 'path' => '/rezensionen']);
+        PageVisit::create(['user_id' => $member->id, 'path' => '/rezensionen/660']);
+        PageVisit::create(['user_id' => $member->id, 'path' => '/rezensionen/660/edit']);
+
+        $response = $this->actingAs($admin)->get('/statistiken');
+
+        $response->assertOk();
+        $response->assertViewHas('homepageVisits', 3);
+
+        $response->assertViewHas('visitData', function ($data) {
+            $collection = collect($data);
+            $rezensionen = $collection->firstWhere('path', '/rezensionen');
+
+            $this->assertNotNull($rezensionen);
+            $this->assertSame(3, $rezensionen['total']);
+            $this->assertNull($collection->firstWhere('path', '/rezensionen/660'));
+            $this->assertFalse($collection->contains(fn ($row) => $row['path'] === '/'));
+
+            return true;
+        });
+
+        $response->assertViewHas('userVisitData', function ($data) use ($member) {
+            $collection = collect($data);
+            $memberEntry = $collection->firstWhere(fn ($row) => $row['path'] === '/rezensionen' && $row['user_id'] === $member->id);
+
+            $this->assertNotNull($memberEntry);
+            $this->assertSame(2, $memberEntry['total']);
+            $this->assertNull($collection->firstWhere('path', '/rezensionen/660'));
+
+            return true;
+        });
+
+        $response->assertViewHas('activityData', function ($data) {
+            $this->assertIsArray($data);
+            $this->assertArrayHasKey('all', $data);
+            $this->assertCount(24, $data['all']);
+
+            return true;
+        });
+
+        $response->assertSee("allOption.selected = true;", false);
+        $response->assertSee("updateActiveChart('all');", false);
     }
 }
