@@ -215,6 +215,21 @@ class DashboardControllerTest extends TestCase
         $response->assertViewHas('romantauschMatches', 1);
     }
 
+    public function test_dashboard_uses_cached_romantausch_offer_count_without_team_context(): void
+    {
+        Cache::flush();
+
+        $team = Team::membersTeam();
+        $admin = User::factory()->create(['current_team_id' => $team->id]);
+        $team->users()->attach($admin, ['role' => Role::Admin->value]);
+
+        Cache::put("romantausch_offers_{$admin->id}", 7, now()->addMinutes(10));
+
+        $this->actingAs($admin)
+            ->get('/dashboard')
+            ->assertViewHas('romantauschOffers', 7);
+    }
+
     public function test_dashboard_counts_only_open_offers_of_current_user(): void
     {
         $team = Team::membersTeam();

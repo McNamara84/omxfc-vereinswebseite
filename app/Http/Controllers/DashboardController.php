@@ -157,7 +157,7 @@ class DashboardController extends Controller
         );
 
         $romantauschOffers = Cache::remember(
-            "romantausch_offers_{$team->id}_{$user->id}",
+            "romantausch_offers_{$user->id}",
             $cacheFor,
             fn () => BookOffer::query()
                 ->where('user_id', $user->id)
