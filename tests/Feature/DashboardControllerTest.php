@@ -137,6 +137,27 @@ class DashboardControllerTest extends TestCase
         $review2 = \App\Models\Review::create(['team_id' => $team->id, 'user_id' => $member1->id, 'book_id' => $book->id, 'title' => 'T2', 'content' => 'Y']);
         \App\Models\ReviewComment::create(['review_id' => $review2->id, 'user_id' => $admin->id, 'content' => 'C']);
 
+        $offer = \App\Models\BookOffer::create([
+            'user_id' => $admin->id,
+            'series' => \App\Enums\BookType::MaddraxDieDunkleZukunftDerErde->value,
+            'book_number' => 1,
+            'book_title' => 'B1',
+            'condition' => 'gut',
+        ]);
+
+        $request = \App\Models\BookRequest::create([
+            'user_id' => $member1->id,
+            'series' => \App\Enums\BookType::MaddraxDieDunkleZukunftDerErde->value,
+            'book_number' => 1,
+            'book_title' => 'B1',
+            'condition' => 'gut',
+        ]);
+
+        \App\Models\BookSwap::create([
+            'offer_id' => $offer->id,
+            'request_id' => $request->id,
+        ]);
+
         $this->actingAs($admin);
         Cache::flush();
         $response = $this->get('/dashboard');
@@ -147,6 +168,7 @@ class DashboardControllerTest extends TestCase
         $response->assertViewHas('pendingVerification', 1);
         $response->assertViewHas('myReviews', 1);
         $response->assertViewHas('myReviewComments', 1);
+        $response->assertViewHas('romantauschMatches', 1);
         $topUsers = $response->viewData('topUsers');
         $this->assertEquals($member1->id, $topUsers[0]['id']);
         $anwaerter = $response->viewData('anwaerter');

@@ -11,6 +11,7 @@ use App\Models\ReviewComment;
 use App\Models\Todo;
 use App\Models\User;
 use App\Models\UserPoint;
+use App\Models\BookSwap;
 use App\Services\MembersTeamProvider;
 use App\Services\UserRoleService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -64,6 +65,7 @@ class DashboardController extends Controller
         $topUsers = [];
         $myReviews = 0;
         $myReviewComments = 0;
+        $romantauschMatches = 0;
 
         // Offene Aufgaben
         $openTodos = Cache::remember(
@@ -138,6 +140,17 @@ class DashboardController extends Controller
                 ->count()
         );
 
+        $romantauschMatches = Cache::remember(
+            "romantausch_matches_{$team->id}_{$user->id}",
+            $cacheFor,
+            fn () => BookSwap::whereNull('completed_at')
+                ->where(function ($query) use ($user) {
+                    $query->whereHas('offer', fn ($q) => $q->where('user_id', $user->id))
+                        ->orWhereHas('request', fn ($q) => $q->where('user_id', $user->id));
+                })
+                ->count()
+        );
+
         $activities = Activity::with(['user', 'subject'])
             ->latest()
             ->limit(10)
@@ -153,6 +166,7 @@ class DashboardController extends Controller
             'topUsers',
             'myReviews',
             'myReviewComments',
+            'romantauschMatches',
             'activities'
         ));
     }
