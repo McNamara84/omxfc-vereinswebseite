@@ -123,19 +123,19 @@
             <!-- Weitere Dashboard Cards -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
                 <!-- Meine Rezensionen Card -->
-                <a href="{{ route('reviews.index') }}" class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 flex flex-col hover:bg-gray-50 dark:hover:bg-gray-700 transition duration-200">
-                    <h2 class="text-lg font-semibold text-[#8B0116] dark:text-[#FCA5A5] mb-2">Meine Rezensionen</h2>
-                    <div class="text-4xl font-bold text-gray-800 dark:text-gray-200 mt-auto">
+                <x-bento-card href="{{ route('reviews.index') }}" title="Meine Rezensionen" sr-text="Meine Rezensionen: {{ $myReviews }}">
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">Überblick deiner veröffentlichten Rezensionen</p>
+                    <div class="text-4xl font-bold text-gray-800 dark:text-gray-200" aria-live="polite">
                         {{ $myReviews }}
                     </div>
-                </a>
+                </x-bento-card>
                 <!-- Meine Kommentare Card -->
-                <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 flex flex-col">
-                    <h2 class="text-lg font-semibold text-[#8B0116] dark:text-[#FCA5A5] mb-2">Meine Kommentare</h2>
-                    <div class="text-4xl font-bold text-gray-800 dark:text-gray-200 mt-auto">
+                <x-bento-card title="Meine Kommentare" sr-text="Meine Kommentare: {{ $myReviewComments }}">
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">Kommentare, die du zu Rezensionen verfasst hast</p>
+                    <div class="text-4xl font-bold text-gray-800 dark:text-gray-200" aria-live="polite">
                         {{ $myReviewComments }}
                     </div>
-                </div>
+                </x-bento-card>
             </div>
             <!-- Aktivitäten Card -->
             <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-8">
