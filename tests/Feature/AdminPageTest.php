@@ -32,7 +32,7 @@ class AdminPageTest extends TestCase
         $member = $this->memberUser();
 
         $this->actingAs($member)
-            ->get('/admin')
+            ->get('/statistiken')
             ->assertStatus(403);
     }
 
@@ -47,6 +47,6 @@ class AdminPageTest extends TestCase
             'path' => '/dashboard',
         ]);
 
-        $this->actingAs($admin)->get('/admin')->assertOk();
+        $this->actingAs($admin)->get('/statistiken')->assertOk();
     }
 }
