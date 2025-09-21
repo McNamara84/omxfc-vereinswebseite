@@ -186,11 +186,37 @@
             <!-- TOP 3 Mitglieder -->
             <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-8">
                 <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FCA5A5] mb-6">TOP 3 Baxx-Sammler</h2>
-                
-                @if(count($topUsers) > 0)
-                    <div class="flex flex-col md:flex-row items-center md:items-start justify-center gap-6 md:gap-10">
-                        @foreach($topUsers as $index => $topUser)
-                            <a href="{{ route('profile.view', $topUser['id']) }}" class="flex flex-col items-center group">
+
+                @php
+                    $topUsersCollection = collect($topUsers)->values();
+                    $topUsersSummary = $topUsersCollection->isNotEmpty()
+                        ? 'Top ' . $topUsersCollection->count() . ' Baxx-Sammler: '
+                            . $topUsersCollection->map(function ($user, $index) {
+                                $position = $index + 1;
+                                $points = number_format((int) $user['points'], 0, ',', '.');
+
+                                return $position . '. ' . $user['name'] . ' (' . $points . ' Baxx)';
+                            })->implode(', ')
+                        : null;
+                    $topUsersPayload = $topUsersCollection->map(function ($user) {
+                        return [
+                            'id' => $user['id'],
+                            'name' => $user['name'],
+                            'points' => (int) $user['points'],
+                        ];
+                    })->toArray();
+                @endphp
+
+                @if($topUsersCollection->isNotEmpty())
+                    <div
+                        class="flex flex-col md:flex-row items-center md:items-start justify-center gap-6 md:gap-10"
+                        data-dashboard-top-users='{{ json_encode($topUsersPayload, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE) }}'
+                        role="list"
+                        aria-label="{{ $topUsersSummary }}"
+                    >
+                        <p class="sr-only" data-dashboard-top-summary="true" aria-live="polite">{{ $topUsersSummary }}</p>
+                        @foreach($topUsersCollection as $index => $topUser)
+                            <a href="{{ route('profile.view', $topUser['id']) }}" class="flex flex-col items-center group" data-dashboard-top-user-item role="listitem">
                                 @if($index === 0)
                                     <!-- Gold Medaille für Platz 1 -->
                                     <div class="relative mb-2">

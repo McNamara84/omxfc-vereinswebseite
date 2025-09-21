@@ -29,4 +29,5 @@ export default async function globalSetup() {
     await runArtisan('migrate:fresh');
     await runArtisan('db:seed --class="Database\\\\Seeders\\\\TodoCategorySeeder"');
     await runArtisan('db:seed --class="Database\\\\Seeders\\\\TodoPlaywrightSeeder"');
+    await runArtisan('db:seed --class="Database\\\\Seeders\\\\DashboardSampleSeeder"');
 }
