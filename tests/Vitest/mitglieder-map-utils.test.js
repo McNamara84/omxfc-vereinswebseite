@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import {
     buildMemberPopup,
     createLegendMarkup,
@@ -27,6 +27,38 @@ describe('map utils role detection', () => {
     it('falls back to mitglied for other roles', () => {
         expect(getRoleIconType('Admin')).toBe('mitglied');
         expect(getRoleIconType(undefined)).toBe('mitglied');
+    });
+});
+
+describe('global exposure', () => {
+    it('preserves custom properties while updating helper methods', async () => {
+        vi.resetModules();
+        global.window = {
+            omxfcMemberMap: {
+                custom: 'value',
+                getRoleIconType: () => 'custom',
+            },
+        };
+
+        const module = await import('@/js/mitglieder/map-utils');
+
+        expect(window.omxfcMemberMap.custom).toBe('value');
+        expect(window.omxfcMemberMap.getRoleIconType).toBe(module.getRoleIconType);
+        expect(window.omxfcMemberMap.buildMemberPopup).toBe(module.buildMemberPopup);
+
+        delete global.window;
+    });
+
+    it('initializes helpers when an invalid map utils object exists', async () => {
+        vi.resetModules();
+        global.window = { omxfcMemberMap: 'invalid' };
+
+        const module = await import('@/js/mitglieder/map-utils');
+
+        expect(typeof window.omxfcMemberMap.getRoleIconType).toBe('function');
+        expect(window.omxfcMemberMap.defaultLegendItems).toEqual(module.defaultLegendItems);
+
+        delete global.window;
     });
 });
 

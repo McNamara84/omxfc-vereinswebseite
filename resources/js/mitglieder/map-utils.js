@@ -87,10 +87,16 @@ const mapUtils = {
 };
 
 if (typeof window !== 'undefined') {
-    window.omxfcMemberMap = {
-        ...(window.omxfcMemberMap ?? {}),
-        ...mapUtils,
-    };
+    const existing = window.omxfcMemberMap;
+    const target = existing && typeof existing === 'object' && !Array.isArray(existing)
+        ? existing
+        : {};
+
+    Object.entries(mapUtils).forEach(([key, value]) => {
+        target[key] = value;
+    });
+
+    window.omxfcMemberMap = target;
 }
 
 export default mapUtils;

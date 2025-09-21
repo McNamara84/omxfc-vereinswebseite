@@ -5,7 +5,7 @@ namespace Tests\Feature;
 use App\Models\Team;
 use App\Models\User;
 use Database\Seeders\DashboardSampleSeeder;
-use Database\Seeders\TodoPlaywrightSeeder;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -15,11 +15,14 @@ class DashboardSampleSeederCoordinatesTest extends TestCase
 
     public function test_dashboard_sample_seeder_sets_coordinates(): void
     {
-        $this->seed(TodoPlaywrightSeeder::class);
-        $this->seed(DashboardSampleSeeder::class);
+        Cache::forget(Team::MEMBERS_TEAM_CACHE_KEY);
 
-        $team = Team::membersTeam();
-        $this->assertNotNull($team);
+        Team::factory()->create([
+            'name' => 'Mitglieder',
+            'personal_team' => false,
+        ]);
+
+        $this->seed(DashboardSampleSeeder::class);
 
         $sampleUsers = User::whereIn('email', [
             'alex.beispiel@example.com',
@@ -28,6 +31,15 @@ class DashboardSampleSeederCoordinatesTest extends TestCase
         ])->get();
 
         $this->assertCount(3, $sampleUsers);
+
+        $membersTeam = Team::membersTeam();
+        $this->assertNotNull($membersTeam);
+
+        $membersTeam->loadMissing('users');
+        $this->assertTrue(
+            $sampleUsers->every(fn (User $user) => $membersTeam->users->contains($user)),
+            'Sample users should belong to the Mitglieder team',
+        );
 
         foreach ($sampleUsers as $user) {
             $this->assertNotNull($user->lat, "Lat missing for {$user->email}");
