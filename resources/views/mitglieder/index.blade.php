@@ -14,6 +14,33 @@
     
     <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
     <h2 class="text-2xl font-semibold text-[#8B0116] dark:text-red-400 mb-6">Mitgliederliste</h2>
+    @php
+        $sortLabels = [
+            'nachname' => 'Nachname',
+            'mitglied_seit' => 'Mitglied seit',
+            'role' => 'Rolle',
+            'last_activity' => 'Zuletzt online',
+            'mitgliedsbeitrag' => 'Beitrag',
+        ];
+        $sortLabel = $sortLabels[$sortBy] ?? $sortLabels['nachname'];
+        $directionLabel = $sortDir === 'desc' ? 'absteigender' : 'aufsteigender';
+        $filterOnlineActive = in_array('online', $filters ?? []);
+        $filterSummary = $filterOnlineActive
+            ? 'Es werden nur Mitglieder angezeigt, die aktuell online sind.'
+            : 'Es werden alle aktiven Mitglieder angezeigt.';
+        $memberCount = $members->count();
+        $memberCountSummary = $memberCount === 1
+            ? '1 Mitglied'
+            : $memberCount . ' Mitglieder';
+        $fallbackSummary = sprintf(
+            'Mitgliederliste, sortiert nach %s in %s Reihenfolge. %s Insgesamt sind %s sichtbar.',
+            $sortLabel,
+            $directionLabel,
+            $filterSummary,
+            $memberCountSummary
+        );
+    @endphp
+    <p id="members-table-summary" data-members-summary class="sr-only" aria-live="polite">{{ $fallbackSummary }}</p>
     <!-- Filter -->
     <form method="GET" action="{{ route('mitglieder.index') }}" class="mb-6" x-data>
         <input type="hidden" name="sort" value="{{ $sortBy }}">
@@ -117,14 +144,28 @@
     
     <!-- Desktop-Ansicht (versteckt auf Mobilgeräten) -->
     <div class="hidden md:block overflow-x-auto">
-    <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+    <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700"
+        data-members-table
+        data-members-sort="{{ $sortBy }}"
+        data-members-dir="{{ $sortDir }}"
+        data-members-filter-online="{{ $filterOnlineActive ? 'true' : 'false' }}"
+        data-members-total="{{ $memberCount }}"
+        data-members-summary-id="members-table-summary"
+        aria-describedby="members-table-summary">
     <thead>
     <tr>
-    <th class="px-4 py-2 text-left">
-    <a href="{{ route('mitglieder.index', array_merge(request()->query(), ['sort' => 'name', 'dir' => ($sortBy === 'name' && $sortDir === 'asc') ? 'desc' : 'asc'])) }}"
+    @php
+        $nachnameSortState = $sortBy === 'nachname' ? ($sortDir === 'desc' ? 'descending' : 'ascending') : 'none';
+        $mitgliedSeitSortState = $sortBy === 'mitglied_seit' ? ($sortDir === 'desc' ? 'descending' : 'ascending') : 'none';
+        $roleSortState = $sortBy === 'role' ? ($sortDir === 'desc' ? 'descending' : 'ascending') : 'none';
+        $lastActivitySortState = $sortBy === 'last_activity' ? ($sortDir === 'desc' ? 'descending' : 'ascending') : 'none';
+        $beitragSortState = $sortBy === 'mitgliedsbeitrag' ? ($sortDir === 'desc' ? 'descending' : 'ascending') : 'none';
+    @endphp
+    <th scope="col" class="px-4 py-2 text-left" data-members-sort-column="nachname" aria-sort="{{ $nachnameSortState }}">
+    <a href="{{ route('mitglieder.index', array_merge(request()->query(), ['sort' => 'nachname', 'dir' => ($sortBy === 'nachname' && $sortDir === 'asc') ? 'desc' : 'asc'])) }}"
     class="flex items-center group text-gray-700 dark:text-gray-300 hover:text-[#8B0116] dark:hover:text-red-400">
     Name
-    @if($sortBy === 'name')
+    @if($sortBy === 'nachname')
     <span class="ml-1">
     @if($sortDir === 'asc')
     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -139,8 +180,8 @@
     @endif
     </a>
     </th>
-    
-    <th class="px-4 py-2 text-left">
+
+    <th scope="col" class="px-4 py-2 text-left" data-members-sort-column="mitglied_seit" aria-sort="{{ $mitgliedSeitSortState }}">
     <a href="{{ route('mitglieder.index', array_merge(request()->query(), ['sort' => 'mitglied_seit', 'dir' => ($sortBy === 'mitglied_seit' && $sortDir === 'asc') ? 'desc' : 'asc'])) }}"
     class="flex items-center group text-gray-700 dark:text-gray-300 hover:text-[#8B0116] dark:hover:text-red-400">
     Mitglied seit
@@ -159,8 +200,8 @@
     @endif
     </a>
     </th>
-    
-    <th class="px-4 py-2 text-left">
+
+    <th scope="col" class="px-4 py-2 text-left" data-members-sort-column="role" aria-sort="{{ $roleSortState }}">
     <a href="{{ route('mitglieder.index', array_merge(request()->query(), ['sort' => 'role', 'dir' => ($sortBy === 'role' && $sortDir === 'asc') ? 'desc' : 'asc'])) }}"
     class="flex items-center group text-gray-700 dark:text-gray-300 hover:text-[#8B0116] dark:hover:text-red-400">
     Rolle
@@ -181,7 +222,7 @@
     </th>
     
     @if($canViewDetails)
-    <th class="px-4 py-2 text-left">
+    <th scope="col" class="px-4 py-2 text-left" data-members-sort-column="last_activity" aria-sort="{{ $lastActivitySortState }}">
     <a href="{{ route('mitglieder.index', array_merge(request()->query(), ['sort' => 'last_activity', 'dir' => ($sortBy === 'last_activity' && $sortDir === 'desc') ? 'asc' : 'desc'])) }}"
     class="flex items-center group text-gray-700 dark:text-gray-300 hover:text-[#8B0116] dark:hover:text-red-400">
     Zuletzt online
@@ -201,7 +242,7 @@
     </a>
     </th>
 
-    <th class="px-4 py-2 text-left">
+    <th scope="col" class="px-4 py-2 text-left" data-members-sort-column="mitgliedsbeitrag" aria-sort="{{ $beitragSortState }}">
     <a href="{{ route('mitglieder.index', array_merge(request()->query(), ['sort' => 'mitgliedsbeitrag', 'dir' => ($sortBy === 'mitgliedsbeitrag' && $sortDir === 'asc') ? 'desc' : 'asc'])) }}"
     class="flex items-center group text-gray-700 dark:text-gray-300 hover:text-[#8B0116] dark:hover:text-red-400">
     Beitrag
@@ -221,10 +262,10 @@
     </a>
     </th>
     
-    <th class="px-4 py-2 text-left text-gray-700 dark:text-gray-300 hidden lg:table-cell">Details</th>
+    <th scope="col" class="px-4 py-2 text-left text-gray-700 dark:text-gray-300 hidden lg:table-cell">Details</th>
     @endif
-    
-    <th class="px-4 py-2 text-center text-gray-700 dark:text-gray-300">Aktionen</th>
+
+    <th scope="col" class="px-4 py-2 text-center text-gray-700 dark:text-gray-300">Aktionen</th>
     </tr>
     </thead>
     <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
