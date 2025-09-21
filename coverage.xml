@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1758437033">
-  <project timestamp="1758437033" name="Clover Coverage">
+<coverage generated="1758438079">
+  <project timestamp="1758438079" name="Clover Coverage">
     <package name="App\Actions\Fortify">
       <file name="/home/runner/work/omxfc-vereinswebseite/omxfc-vereinswebseite/app/Actions/Fortify/CreateNewUser.php">
         <class name="App\Actions\Fortify\CreateNewUser" namespace="App\Actions\Fortify">
@@ -915,7 +915,7 @@
     <package name="App\Http\Controllers">
       <file name="/home/runner/work/omxfc-vereinswebseite/omxfc-vereinswebseite/app/Http/Controllers/AdminController.php">
         <class name="App\Http\Controllers\AdminController" namespace="App\Http\Controllers">
-          <metrics complexity="15" methods="3" coveredmethods="1" conditionals="0" coveredconditionals="0" statements="97" coveredstatements="91" elements="100" coveredelements="92"/>
+          <metrics complexity="15" methods="3" coveredmethods="1" conditionals="0" coveredconditionals="0" statements="109" coveredstatements="103" elements="112" coveredelements="104"/>
         </class>
         <line num="12" type="method" name="__construct" visibility="public" complexity="1" crap="1" count="4"/>
         <line num="15" type="stmt" count="4"/>
@@ -999,6 +999,7 @@
         <line num="111" type="stmt" count="4"/>
         <line num="113" type="stmt" count="4"/>
         <line num="116" type="stmt" count="4"/>
+        <line num="117" type="stmt" count="4"/>
         <line num="118" type="stmt" count="4"/>
         <line num="119" type="stmt" count="4"/>
         <line num="120" type="stmt" count="4"/>
@@ -1007,17 +1008,28 @@
         <line num="123" type="stmt" count="4"/>
         <line num="124" type="stmt" count="4"/>
         <line num="125" type="stmt" count="4"/>
-        <line num="128" type="method" name="normalizePath" visibility="private" complexity="6" crap="6.05" count="2"/>
-        <line num="130" type="stmt" count="2"/>
-        <line num="131" type="stmt" count="0"/>
-        <line num="134" type="stmt" count="2"/>
-        <line num="135" type="stmt" count="2"/>
-        <line num="137" type="stmt" count="2"/>
-        <line num="138" type="stmt" count="1"/>
-        <line num="141" type="stmt" count="2"/>
-        <line num="142" type="stmt" count="2"/>
-        <line num="144" type="stmt" count="2"/>
-        <metrics loc="147" ncloc="147" classes="1" methods="3" coveredmethods="1" conditionals="0" coveredconditionals="0" statements="97" coveredstatements="91" elements="100" coveredelements="92"/>
+        <line num="126" type="stmt" count="4"/>
+        <line num="128" type="stmt" count="4"/>
+        <line num="130" type="stmt" count="4"/>
+        <line num="131" type="stmt" count="4"/>
+        <line num="132" type="stmt" count="4"/>
+        <line num="133" type="stmt" count="4"/>
+        <line num="134" type="stmt" count="4"/>
+        <line num="135" type="stmt" count="4"/>
+        <line num="136" type="stmt" count="4"/>
+        <line num="137" type="stmt" count="4"/>
+        <line num="138" type="stmt" count="4"/>
+        <line num="141" type="method" name="normalizePath" visibility="private" complexity="6" crap="6.05" count="2"/>
+        <line num="143" type="stmt" count="2"/>
+        <line num="144" type="stmt" count="0"/>
+        <line num="147" type="stmt" count="2"/>
+        <line num="148" type="stmt" count="2"/>
+        <line num="150" type="stmt" count="2"/>
+        <line num="151" type="stmt" count="1"/>
+        <line num="154" type="stmt" count="2"/>
+        <line num="155" type="stmt" count="2"/>
+        <line num="157" type="stmt" count="2"/>
+        <metrics loc="160" ncloc="160" classes="1" methods="3" coveredmethods="1" conditionals="0" coveredconditionals="0" statements="109" coveredstatements="103" elements="112" coveredelements="104"/>
       </file>
       <file name="/home/runner/work/omxfc-vereinswebseite/omxfc-vereinswebseite/app/Http/Controllers/AdminMessageController.php">
         <class name="App\Http\Controllers\AdminMessageController" namespace="App\Http\Controllers">
@@ -2496,15 +2508,15 @@
         <line num="152" type="stmt" count="12"/>
         <line num="153" type="stmt" count="12"/>
         <line num="155" type="stmt" count="12"/>
-        <line num="156" type="stmt" count="6"/>
-        <line num="157" type="stmt" count="6"/>
-        <line num="158" type="stmt" count="6"/>
-        <line num="159" type="stmt" count="6"/>
-        <line num="160" type="stmt" count="6"/>
-        <line num="161" type="stmt" count="6"/>
-        <line num="162" type="stmt" count="6"/>
-        <line num="163" type="stmt" count="6"/>
-        <line num="165" type="stmt" count="6"/>
+        <line num="156" type="stmt" count="1"/>
+        <line num="157" type="stmt" count="1"/>
+        <line num="158" type="stmt" count="1"/>
+        <line num="159" type="stmt" count="1"/>
+        <line num="160" type="stmt" count="1"/>
+        <line num="161" type="stmt" count="1"/>
+        <line num="162" type="stmt" count="1"/>
+        <line num="163" type="stmt" count="1"/>
+        <line num="165" type="stmt" count="1"/>
         <line num="166" type="stmt" count="1"/>
         <line num="167" type="stmt" count="1"/>
         <line num="168" type="stmt" count="1"/>
@@ -2515,15 +2527,15 @@
         <line num="177" type="stmt" count="12"/>
         <line num="178" type="stmt" count="12"/>
         <line num="180" type="stmt" count="12"/>
-        <line num="181" type="stmt" count="11"/>
-        <line num="182" type="stmt" count="11"/>
-        <line num="183" type="stmt" count="11"/>
-        <line num="184" type="stmt" count="11"/>
-        <line num="185" type="stmt" count="11"/>
-        <line num="186" type="stmt" count="11"/>
-        <line num="187" type="stmt" count="11"/>
-        <line num="188" type="stmt" count="11"/>
-        <line num="190" type="stmt" count="11"/>
+        <line num="181" type="stmt" count="10"/>
+        <line num="182" type="stmt" count="10"/>
+        <line num="183" type="stmt" count="10"/>
+        <line num="184" type="stmt" count="10"/>
+        <line num="185" type="stmt" count="10"/>
+        <line num="186" type="stmt" count="10"/>
+        <line num="187" type="stmt" count="10"/>
+        <line num="188" type="stmt" count="10"/>
+        <line num="190" type="stmt" count="10"/>
         <line num="191" type="stmt" count="1"/>
         <line num="192" type="stmt" count="1"/>
         <line num="193" type="stmt" count="1"/>
@@ -3898,8 +3910,8 @@
         <line num="49" type="stmt" count="7"/>
         <line num="51" type="stmt" count="7"/>
         <line num="52" type="stmt" count="7"/>
-        <line num="53" type="stmt" count="4"/>
-        <line num="54" type="stmt" count="4"/>
+        <line num="53" type="stmt" count="7"/>
+        <line num="54" type="stmt" count="7"/>
         <line num="55" type="stmt" count="7"/>
         <line num="56" type="stmt" count="7"/>
         <line num="58" type="stmt" count="7"/>
@@ -4246,8 +4258,8 @@
         <class name="App\Models\Review" namespace="App\Models">
           <metrics complexity="8" methods="4" coveredmethods="3" conditionals="0" coveredconditionals="0" statements="23" coveredstatements="19" elements="27" coveredelements="22"/>
         </class>
-        <line num="44" type="method" name="book" visibility="public" complexity="1" crap="1" count="22"/>
-        <line num="46" type="stmt" count="22"/>
+        <line num="44" type="method" name="book" visibility="public" complexity="1" crap="1" count="21"/>
+        <line num="46" type="stmt" count="21"/>
         <line num="52" type="method" name="user" visibility="public" complexity="1" crap="1" count="6"/>
         <line num="54" type="stmt" count="6"/>
         <line num="60" type="method" name="comments" visibility="public" complexity="1" crap="1" count="51"/>
@@ -4885,7 +4897,7 @@
         <line num="90" type="stmt" count="8"/>
         <line num="91" type="stmt" count="8"/>
         <line num="93" type="stmt" count="8"/>
-        <line num="94" type="stmt" count="5"/>
+        <line num="94" type="stmt" count="8"/>
         <line num="95" type="stmt" count="8"/>
         <line num="99" type="stmt" count="8"/>
         <line num="105" type="method" name="getFiguren" visibility="public" complexity="1" crap="1" count="8"/>
@@ -5043,6 +5055,6 @@
         <metrics loc="25" ncloc="19" classes="1" methods="2" coveredmethods="2" conditionals="0" coveredconditionals="0" statements="2" coveredstatements="2" elements="4" coveredelements="4"/>
       </file>
     </package>
-    <metrics files="120" loc="9921" ncloc="8621" classes="115" methods="371" coveredmethods="277" conditionals="0" coveredconditionals="0" statements="3919" coveredstatements="3498" elements="4290" coveredelements="3775"/>
+    <metrics files="120" loc="9934" ncloc="8634" classes="115" methods="371" coveredmethods="277" conditionals="0" coveredconditionals="0" statements="3931" coveredstatements="3510" elements="4302" coveredelements="3787"/>
   </project>
 </coverage>
