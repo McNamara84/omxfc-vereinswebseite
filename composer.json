@@ -1,13 +1,16 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "laravel/laravel",
+    "name": "omxfc/omxfc",
     "type": "project",
-    "description": "The skeleton application for the Laravel framework.",
+    "description": "The official website of Offizieller MADDRAX Fanclub.",
     "keywords": [
+        "website",
         "laravel",
-        "framework"
+        "maddrax",
+        "fanclub",
+        "omxfc"
     ],
-    "license": "MIT",
+    "license": "GPL-3.0-or-later",
     "require": {
         "php": "^8.2",
         "laravel/framework": "^12.0",
@@ -71,7 +74,8 @@
         "allow-plugins": {
             "pestphp/pest-plugin": true,
             "php-http/discovery": true
-        }
+        },
+        "process-timeout": 0
     },
     "minimum-stability": "stable",
     "prefer-stable": true
