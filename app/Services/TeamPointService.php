@@ -12,7 +12,6 @@ use Illuminate\Support\Facades\Auth;
 
 class TeamPointService
 {
-    public const WEEKLY_GOAL_POINTS = 50;
 
     /**
      * Get the total points of a user in their current team.
@@ -47,6 +46,7 @@ class TeamPointService
         $trend = $this->getUserPointTrend($user, $team);
         $trendMax = collect($trend)->max(fn (array $entry) => $entry['points']) ?? 0;
         $weeklyTotal = array_sum(array_column($trend, 'points'));
+        $weeklyTarget = $this->calculateWeeklyTarget($user, $team);
 
         $leaderboardTotals = $this->getLeaderboardTotals($team);
         $teamAverage = $this->calculateTeamAverage($team, $leaderboardTotals);
@@ -63,8 +63,8 @@ class TeamPointService
             'trend_max' => $trendMax,
             'weekly' => [
                 'total' => $weeklyTotal,
-                'target' => self::WEEKLY_GOAL_POINTS,
-                'progress' => $this->calculateProgress($weeklyTotal, self::WEEKLY_GOAL_POINTS),
+                'target' => $weeklyTarget,
+                'progress' => $this->calculateProgress($weeklyTotal, $weeklyTarget),
             ],
             'team_average' => $teamAverage,
             'team_average_progress' => $teamAverage > 0
@@ -181,6 +181,36 @@ class TeamPointService
         $percentage = ($value / $target) * 100;
 
         return (int) max(0, min(100, round($percentage)));
+    }
+
+    private function calculateWeeklyTarget(User $user, Team $team, int $days = 7): int
+    {
+        $days = max($days, 1);
+
+        $memberIds = $team->activeUsers()->pluck('users.id');
+        $otherMemberIds = $memberIds->reject(fn (int $memberId) => $memberId === $user->id)->values();
+
+        if ($otherMemberIds->isEmpty()) {
+            return 0;
+        }
+
+        $endDate = Carbon::now()->endOfDay();
+        $startDate = Carbon::now()->subDays($days - 1)->startOfDay();
+
+        $totals = UserPoint::query()
+            ->where('team_id', $team->id)
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->selectRaw('user_id, SUM(points) as total_points')
+            ->groupBy('user_id')
+            ->pluck('total_points', 'user_id');
+
+        $sum = $otherMemberIds
+            ->map(fn (int $memberId) => (int) ($totals[$memberId] ?? 0))
+            ->sum();
+
+        $average = $sum / $otherMemberIds->count();
+
+        return (int) round($average);
     }
 
     /**

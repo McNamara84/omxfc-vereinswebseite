@@ -109,7 +109,8 @@ class TeamPointServiceTest extends TestCase
         $this->assertSame(10.0, $metrics['team_average']);
         $this->assertSame(100, $metrics['team_average_progress']);
         $this->assertSame(12, $metrics['weekly']['total']);
-        $this->assertSame(24, $metrics['weekly']['progress']);
+        $this->assertSame(9, $metrics['weekly']['target']);
+        $this->assertSame(100, $metrics['weekly']['progress']);
     }
 
     public function test_dashboard_metrics_exposes_leaderboard_and_rank_gap(): void
@@ -138,6 +139,24 @@ class TeamPointServiceTest extends TestCase
         $this->assertTrue($highlight['is_additional'] ?? false);
         $this->assertSame(5, $highlight['points']);
         $this->assertSame(4, $highlight['rank']);
+    }
+
+    public function test_weekly_target_uses_peer_average_from_last_seven_days(): void
+    {
+        Carbon::setTestNow(Carbon::create(2024, 1, 17, 8));
+
+        $user = $this->memberWithPoints();
+        $peerWithPoints = $this->memberWithPoints();
+        $peerWithoutPoints = $this->memberWithPoints();
+
+        $this->addPoints($user, 4, Carbon::now());
+        $this->addPoints($peerWithPoints, 10, Carbon::now()->subDays(2));
+        // $peerWithoutPoints intentionally collects no points this week to be part of the average.
+
+        $metrics = $this->service->getDashboardMetrics($user, $this->team);
+
+        $this->assertSame(5, $metrics['weekly']['target']);
+        $this->assertSame(80, $metrics['weekly']['progress']);
     }
 }
 
