@@ -16,7 +16,7 @@
       "[Improved] Dashboard erhält modernes Bento-Layout für bessere Orientierung",
       "[Improved] Barrierefreiheit erhöht durch Verwendung von ARIA Labels",
       "[Improved] Hauptmenü erweitert um Menüpunkt AG für die Verwaltung und Tools der Arbeitsgruppen",
-      "[Improved] Ladezeiten erhöht durch Caching von häufig genutzten Daten",
+      "[Improved] Ladezeiten verkürzt durch Caching von häufig genutzten Daten",
       "[Fixed] Dark Mode wird vor dem Rendern initialisiert, um Aufblitzen zu verhindern"
     ]
   },
