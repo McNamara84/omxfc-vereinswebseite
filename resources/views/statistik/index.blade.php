@@ -721,8 +721,8 @@
                     window.missionMarsChartValues = @json($missionMarsValues);
                 </script>
 
-            {{-- Card 31b – Mission Mars-Heftromane je Autor:in (≥ 43 Baxx) --}}
-                @php($min = 43)
+            {{-- Card 31b – Mission Mars-Heftromane je Autor:in (≥ 44 Baxx) --}}
+                @php($min = 44)
                 <div data-min-points="{{ $min }}" class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
                     <h2 id="missionMarsAuthorChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
                         Mission Mars-Heftromane je Autor:in

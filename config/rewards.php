@@ -182,6 +182,11 @@ return [
         'points' => 43,
     ],
     [
+        'title' => 'Statistik - Mission Mars-Heftromane je Autor:in',
+        'description' => 'Balkendiagramm mit der Anzahl der Mission Mars-Heftromane je Autor:in.',
+        'points' => 44,
+    ],
+    [
         'title' => 'Statistik - TOP10 Lieblingsthemen',
         'description' => 'Zeigt die beliebtesten Lieblingsthemen der Mitglieder.',
         'points' => 50,
