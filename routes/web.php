@@ -55,7 +55,7 @@ Route::get('/email/bestaetigen/{id}/{hash}', CustomEmailVerificationController::
 
 // Nur für eingeloggte und verifizierte Mitglieder, die NICHT Anwärter sind
 Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function () {
-    Route::get('/statistiken', [AdminController::class, 'index'])->name('statistiken.index')->middleware('admin');
+    Route::get('/admin/statistiken', [AdminController::class, 'index'])->name('admin.statistiken.index')->middleware('admin');
     Route::controller(DashboardController::class)->group(function () {
         Route::get('/dashboard', 'index')->name('dashboard');
         Route::post('/anwaerter/{user}/freigeben', 'approveAnwaerter')->name('anwaerter.approve');
@@ -188,7 +188,7 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
         Route::get('suche', 'search')->name('search');
     });
 
-    Route::get('/statistik', [StatistikController::class, 'index'])->name('statistik.index');
+    Route::get('/statistiken', [StatistikController::class, 'index'])->name('statistik.index');
 
     Route::prefix('rezensionen')->name('reviews.')->group(function () {
         Route::get('/', [RezensionController::class, 'index'])->name('index');

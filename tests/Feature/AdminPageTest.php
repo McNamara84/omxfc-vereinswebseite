@@ -33,7 +33,7 @@ class AdminPageTest extends TestCase
         $member = $this->memberUser();
 
         $this->actingAs($member)
-            ->get('/statistiken')
+            ->get('/admin/statistiken')
             ->assertStatus(403);
     }
 
@@ -48,14 +48,14 @@ class AdminPageTest extends TestCase
             'path' => '/dashboard',
         ]);
 
-        $this->actingAs($admin)->get('/statistiken')->assertOk();
+        $this->actingAs($admin)->get('/admin/statistiken')->assertOk();
     }
 
     public function test_statistik_charts_render_with_accessible_wrapper(): void
     {
         $admin = $this->adminUser();
 
-        $response = $this->actingAs($admin)->get('/statistiken');
+        $response = $this->actingAs($admin)->get('/admin/statistiken');
 
         $response->assertOk();
         $response->assertSee('data-chart-wrapper', false);
@@ -76,7 +76,7 @@ class AdminPageTest extends TestCase
         PageVisit::create(['user_id' => $member->id, 'path' => '/rezensionen/660']);
         PageVisit::create(['user_id' => $member->id, 'path' => '/rezensionen/660/edit']);
 
-        $response = $this->actingAs($admin)->get('/statistiken');
+        $response = $this->actingAs($admin)->get('/admin/statistiken');
 
         $response->assertOk();
         $response->assertViewHas('homepageVisits', 3);
