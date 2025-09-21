@@ -144,7 +144,9 @@ class TodoControllerTest extends TestCase
         $response->assertSeeText('Vereins-Dashboard');
         $response->assertSeeText('Vereinsdurchschnitt');
         $response->assertSeeText('So steht dein Verein aktuell da.');
+        $response->assertSeeText('Dein Punktestand');
         $response->assertDontSeeText('Teamdurchschnitt');
+        $response->assertDontSeeText('Deine Baxx');
     }
 
     public function test_assigned_user_can_release_todo(): void

@@ -15,14 +15,12 @@
             @php
                 $currentFilter = $activeFilter ?? 'all';
             @endphp
-            <!-- Kopfzeile mit Baxx und Aktionen -->
-            <div
-                class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <header class="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <div>
-                    <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-1">Deine Baxx</h2>
-                    <div class="text-4xl font-bold text-gray-800 dark:text-gray-200">
-                        {{ $userPoints }}
-                    </div>
+                    <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Challenges &amp; Baxx</h1>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">
+                        Behalte deine Fortschritte und die Ziele des Vereins im Blick.
+                    </p>
                 </div>
                 @if($canCreateTodos)
                     <div>
@@ -37,7 +35,7 @@
                         </a>
                     </div>
                 @endif
-            </div>
+            </header>
             @php
                 $dashboard = $dashboardMetrics ?? [
                     'trend' => [],
@@ -76,7 +74,7 @@
                 </div>
                 <div class="mt-6 grid gap-6 xl:grid-cols-3" data-todo-dashboard>
                     <div class="space-y-6 xl:col-span-2">
-                        <div class="grid gap-6 md:grid-cols-2">
+                        <div class="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
                             <article class="rounded-lg border border-gray-200 dark:border-gray-700 p-5 bg-gray-50 dark:bg-gray-900"
                                 aria-labelledby="weekly-goal-heading">
                                 <div class="flex items-center justify-between gap-4">
@@ -149,6 +147,36 @@
                                         @endif
                                     </p>
                                 </div>
+                            </article>
+                            <article class="rounded-lg border border-gray-200 dark:border-gray-700 p-5 bg-gray-50 dark:bg-gray-900"
+                                aria-labelledby="personal-points-heading">
+                                <div class="flex items-center justify-between gap-4">
+                                    <div>
+                                        <h3 id="personal-points-heading"
+                                            class="text-lg font-semibold text-[#8B0116] dark:text-[#FF6B81]">
+                                            Dein Punktestand
+                                        </h3>
+                                        <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                                            Alle gesammelten Baxx deines Vereinskontos.
+                                        </p>
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="text-3xl font-bold text-gray-900 dark:text-gray-100">
+                                            {{ $userTotalPoints }}
+                                        </span>
+                                        <p class="text-xs text-gray-600 dark:text-gray-400">gesammelte Baxx</p>
+                                    </div>
+                                </div>
+                                @if($teamAverage > 0)
+                                    <p class="mt-4 text-sm text-gray-600 dark:text-gray-400">
+                                        Du liegst {{ $userTotalPoints >= $teamAverage ? 'über' : 'unter' }} dem Vereinsdurchschnitt
+                                        von {{ number_format($teamAverage, 1, ',', '.') }} Baxx.
+                                    </p>
+                                @else
+                                    <p class="mt-4 text-sm text-gray-600 dark:text-gray-400">
+                                        Sobald Baxx gesammelt wurden, erscheint hier dein Vergleich zum Verein.
+                                    </p>
+                                @endif
                             </article>
                         </div>
                         <article class="rounded-lg border border-gray-200 dark:border-gray-700 p-5 bg-gray-50 dark:bg-gray-900"
