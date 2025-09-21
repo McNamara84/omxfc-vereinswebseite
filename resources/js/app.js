@@ -84,3 +84,4 @@ import './chronik';
 import './char-editor';
 import './todos';
 import './dashboard';
+import './mitglieder/accessibility';
