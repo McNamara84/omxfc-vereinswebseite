@@ -80,6 +80,45 @@ export function applyFilterState({
     return activeFilter;
 }
 
+function focusFirstInput(panel) {
+    if (!(panel instanceof HTMLElement)) {
+        return;
+    }
+
+    const focusTarget = panel.querySelector(
+        'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+    );
+
+    if (focusTarget instanceof HTMLElement && typeof focusTarget.focus === 'function') {
+        focusTarget.focus({ preventScroll: true });
+    }
+}
+
+function togglePanelVisibility({ toggle, panel, expanded }) {
+    const isExpanded = Boolean(expanded);
+    const labelElement = toggle.querySelector('[data-todo-filter-toggle-text]');
+    const openLabel = toggle.dataset.labelOpen || 'Filter anzeigen';
+    const closeLabel = toggle.dataset.labelClose || 'Filter verbergen';
+
+    toggle.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
+
+    if (isExpanded) {
+        panel.removeAttribute('hidden');
+        panel.setAttribute('aria-hidden', 'false');
+        panel.dataset.collapsed = 'false';
+    } else {
+        panel.setAttribute('hidden', '');
+        panel.setAttribute('aria-hidden', 'true');
+        panel.dataset.collapsed = 'true';
+    }
+
+    if (labelElement instanceof HTMLElement) {
+        labelElement.textContent = isExpanded ? closeLabel : openLabel;
+    } else {
+        toggle.textContent = isExpanded ? closeLabel : openLabel;
+    }
+}
+
 export function initTodoFilters(root = document) {
     if (!root || typeof root.querySelector !== 'function') {
         return;
@@ -98,7 +137,10 @@ export function initTodoFilters(root = document) {
     }
 
     const sections = Array.from(root.querySelectorAll('[data-todo-section]'));
-    const statusElement = form.querySelector('[data-todo-filter-status]');
+    const filterWrapper = form.closest('[data-todo-filter-wrapper]') || root;
+    const statusElement = filterWrapper.querySelector('[data-todo-filter-status]');
+    const toggle = filterWrapper.querySelector('[data-todo-filter-toggle]');
+    const panel = filterWrapper.querySelector('[data-todo-filter-panel]');
     const initialFilter = normaliseFilter(form.dataset.currentFilter || 'all');
 
     applyFilterState({
@@ -107,6 +149,28 @@ export function initTodoFilters(root = document) {
         statusElement,
         filter: initialFilter,
     });
+
+    if (toggle instanceof HTMLElement && panel instanceof HTMLElement) {
+        togglePanelVisibility({
+            toggle,
+            panel,
+            expanded: toggle.getAttribute('aria-expanded') === 'true',
+        });
+
+        toggle.addEventListener('click', () => {
+            const isCurrentlyExpanded = toggle.getAttribute('aria-expanded') === 'true';
+
+            togglePanelVisibility({
+                toggle,
+                panel,
+                expanded: !isCurrentlyExpanded,
+            });
+
+            if (!isCurrentlyExpanded) {
+                focusFirstInput(panel);
+            }
+        });
+    }
 
     form.addEventListener('click', (event) => {
         const target = event.target instanceof HTMLElement

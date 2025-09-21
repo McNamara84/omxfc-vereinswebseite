@@ -63,7 +63,7 @@ class TodoController extends Controller
             $todo->assigned_to !== $user->id
         );
 
-        $userPoints = $this->teamPointService->getUserPoints($user);
+        $dashboardMetrics = $this->teamPointService->getDashboardMetrics($user, $memberTeam);
 
         return view('todos.index', [
             'todos' => $todos,
@@ -72,11 +72,12 @@ class TodoController extends Controller
             'completedTodos' => $completedTodos,
             'canCreateTodos' => $canCreateTodos,
             'canVerifyTodos' => $canVerifyTodos,
-            'userPoints' => $userPoints,
+            'userPoints' => $dashboardMetrics['user_points'],
             'memberTeam' => $memberTeam,
             'userRole' => $userRole,
             'filter' => $filter,
             'activeFilter' => $filter === 'pending' ? 'pending' : 'all',
+            'dashboardMetrics' => $dashboardMetrics,
         ]);
     }
 

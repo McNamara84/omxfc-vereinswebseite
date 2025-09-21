@@ -133,6 +133,50 @@ class TodoControllerTest extends TestCase
         $this->assertNull($todo->verified_by);
     }
 
+    public function test_dashboard_copy_uses_club_language(): void
+    {
+        $user = $this->actingMember();
+        $this->actingAs($user);
+
+        $response = $this->get('/aufgaben');
+
+        $response->assertOk();
+        $response->assertSeeText('Vereins-Dashboard');
+        $response->assertSeeText('Vereinsdurchschnitt');
+        $response->assertSeeText('So steht dein Verein aktuell da.');
+        $response->assertSeeText('Dein Punktestand');
+        $response->assertDontSeeText('Teamdurchschnitt');
+        $response->assertDontSeeText('Deine Baxx');
+    }
+
+    public function test_dashboard_formats_large_numbers_and_hides_trend_card(): void
+    {
+        $user = $this->actingMember();
+        $this->actingAs($user);
+
+        $user->incrementTeamPoints(12345);
+
+        $response = $this->get('/aufgaben');
+
+        $response->assertOk();
+        $response->assertSeeText('12.345');
+        $response->assertDontSeeText('Aktivität der letzten 7 Tage');
+    }
+
+    public function test_dashboard_displays_leaderboard_without_goal_card(): void
+    {
+        $user = $this->actingMember();
+        $this->actingAs($user);
+
+        $response = $this->get('/aufgaben');
+
+        $response->assertOk();
+        $response->assertDontSeeText('Dein nächstes Ziel');
+        $response->assertSeeInOrder(['Dein Punktestand', 'Rangliste']);
+        $response->assertSee('data-todo-dashboard', false);
+        $response->assertSee('xl:grid-cols-4', false);
+    }
+
     public function test_assigned_user_can_release_todo(): void
     {
         $user = $this->actingMember();
