@@ -772,7 +772,7 @@ class StatistikTest extends TestCase
     {
         $this->createDataFile();
         $this->createMissionMarsFile();
-        $user = $this->actingMemberWithPoints(43);
+        $user = $this->actingMemberWithPoints(44);
         $this->actingAs($user);
 
         $response = $this->get('/statistiken');
@@ -788,7 +788,7 @@ class StatistikTest extends TestCase
     {
         $this->createDataFile();
         $this->createMissionMarsFile();
-        $user = $this->actingMemberWithPoints(42);
+        $user = $this->actingMemberWithPoints(43);
         $this->actingAs($user);
 
         $response = $this->get('/statistiken');
@@ -796,7 +796,7 @@ class StatistikTest extends TestCase
         $response->assertOk();
         $response->assertSee('Bewertungen der Mission Mars-Heftromane');
         $response->assertSee('Mission Mars-Heftromane je Autor:in');
-        $response->assertSee('43 Baxx');
+        $response->assertSee('44 Baxx');
     }
 
     public function test_top_themes_require_minimum_book_count(): void
