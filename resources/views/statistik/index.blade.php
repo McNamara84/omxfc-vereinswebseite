@@ -27,7 +27,103 @@
                     window.userPoints = {{ $userPoints }};
                     window.authorChartLabels = @json($authorCounts->keys());
                     window.authorChartValues = @json($authorCounts->values());
+                    window.browserUsageLabels = @json($browserUsageByBrowser->pluck('label'));
+                    window.browserUsageValues = @json($browserUsageByBrowser->pluck('value'));
+                    window.browserFamilyLabels = @json($browserUsageByFamily->pluck('label'));
+                    window.browserFamilyValues = @json($browserUsageByFamily->pluck('value'));
                 </script>
+            {{-- Card 1b – Browsernutzung unserer Mitglieder (≥ 3 Baxx) --}}
+                @php($min = 3)
+                <div data-min-points="{{ $min }}" class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
+                    <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] text-center">Browsernutzung unserer Mitglieder</h2>
+                    <p class="mt-3 text-sm text-gray-600 dark:text-gray-300 text-center max-w-3xl mx-auto">
+                        Wir werten die zuletzt verwendeten Browser jedes aktiven Mitglieds aus. So sehen wir, wie gut unsere Plattform auf den beliebtesten Engines funktioniert.
+                    </p>
+
+                    <div class="mt-6 grid grid-cols-1 xl:grid-cols-2 gap-8">
+                        <figure class="flex flex-col items-center">
+                            <h3 id="browserUsageChartTitle" class="text-lg font-semibold text-gray-900 dark:text-gray-100 text-center">
+                                Beliebteste Browser
+                            </h3>
+                            <canvas
+                                id="browserUsageChart"
+                                height="220"
+                                role="img"
+                                aria-labelledby="browserUsageChartTitle browserUsageChartSummary"
+                                class="mt-4 max-w-full"
+                            ></canvas>
+                            @if ($browserUsageByBrowser->isNotEmpty())
+                                @php($totalBrowserSessions = max($browserUsageByBrowser->sum('value'), 1))
+                                <ul
+                                    id="browserUsageChartSummary"
+                                    class="mt-5 w-full space-y-2 text-sm text-gray-700 dark:text-gray-300"
+                                >
+                                    @foreach ($browserUsageByBrowser as $entry)
+                                        @php($percentage = round(($entry['value'] / $totalBrowserSessions) * 100))
+                                        <li class="flex items-center justify-between gap-2 rounded-lg bg-gray-50/80 px-3 py-2 dark:bg-gray-900/50">
+                                            <span class="font-medium">{{ $entry['label'] }}</span>
+                                            <span class="flex items-baseline gap-1">
+                                                <span class="font-semibold text-gray-900 dark:text-gray-100">{{ $entry['value'] }}</span>
+                                                <span class="text-xs text-gray-500 dark:text-gray-400" aria-hidden="true">{{ $percentage }}&nbsp;%</span>
+                                                <span class="sr-only">{{ $percentage }} Prozent</span>
+                                            </span>
+                                        </li>
+                                    @endforeach
+                                </ul>
+                            @else
+                                <p
+                                    id="browserUsageChartSummary"
+                                    class="mt-5 text-sm text-gray-600 dark:text-gray-400 text-center"
+                                >
+                                    Noch keine Login-Daten vorhanden.
+                                </p>
+                            @endif
+                        </figure>
+
+                        <figure class="flex flex-col items-center">
+                            <h3 id="browserFamilyChartTitle" class="text-lg font-semibold text-gray-900 dark:text-gray-100 text-center">
+                                Browser-Familien
+                            </h3>
+                            <canvas
+                                id="browserFamilyChart"
+                                height="220"
+                                role="img"
+                                aria-labelledby="browserFamilyChartTitle browserFamilyChartSummary"
+                                class="mt-4 max-w-full"
+                            ></canvas>
+                            @if ($browserUsageByFamily->isNotEmpty())
+                                @php($totalBrowserFamilies = max($browserUsageByFamily->sum('value'), 1))
+                                <ul
+                                    id="browserFamilyChartSummary"
+                                    class="mt-5 w-full space-y-2 text-sm text-gray-700 dark:text-gray-300"
+                                >
+                                    @foreach ($browserUsageByFamily as $entry)
+                                        @php($percentage = round(($entry['value'] / $totalBrowserFamilies) * 100))
+                                        <li class="flex items-center justify-between gap-2 rounded-lg bg-gray-50/80 px-3 py-2 dark:bg-gray-900/50">
+                                            <span class="font-medium">{{ $entry['label'] }}</span>
+                                            <span class="flex items-baseline gap-1">
+                                                <span class="font-semibold text-gray-900 dark:text-gray-100">{{ $entry['value'] }}</span>
+                                                <span class="text-xs text-gray-500 dark:text-gray-400" aria-hidden="true">{{ $percentage }}&nbsp;%</span>
+                                                <span class="sr-only">{{ $percentage }} Prozent</span>
+                                            </span>
+                                        </li>
+                                    @endforeach
+                                </ul>
+                            @else
+                                <p
+                                    id="browserFamilyChartSummary"
+                                    class="mt-5 text-sm text-gray-600 dark:text-gray-400 text-center"
+                                >
+                                    Noch keine Login-Daten vorhanden.
+                                </p>
+                            @endif
+                        </figure>
+                    </div>
+
+                    @if($userPoints < $min)
+                        @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
+                    @endif
+                </div>
             {{-- Card 2 – Teamplayer-Tabelle (≥ 4 Baxx) --}}
                 @php($min = 4)
                 <div data-min-points="{{ $min }}" class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
