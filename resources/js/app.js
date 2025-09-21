@@ -85,3 +85,4 @@ import './char-editor';
 import './todos';
 import './dashboard';
 import './mitglieder/accessibility';
+import './mitglieder/map-utils';

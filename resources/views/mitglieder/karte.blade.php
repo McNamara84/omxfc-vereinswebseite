@@ -2,14 +2,22 @@
     <x-member-page>
             <div class="bg-white shadow-xl sm:rounded-lg p-6">
                 <h2 class="text-2xl font-semibold text-[#8B0116] mb-6">Mitgliederkarte</h2>
-                
-                <div class="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-md">
+
+                <div id="member-map-note" class="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-md" role="note">
                     <p class="text-sm text-yellow-800">
                         <strong>Hinweis:</strong> Aus Datenschutzgründen werden die Standorte der Mitglieder nicht exakt angezeigt.
                     </p>
                 </div>
                 <!-- Karten-Container -->
-                <div id="map" class="w-full h-[600px] rounded-lg border border-gray-300"></div>
+                <div
+                    id="map"
+                    class="w-full h-[600px] rounded-lg border border-gray-300"
+                    data-member-map
+                    role="region"
+                    aria-label="Mitgliederkarte"
+                    aria-describedby="member-map-note"
+                    tabindex="0"
+                ></div>
             </div>
         </div>
     </div>
@@ -27,7 +35,7 @@
         // Karte initialisieren
         document.addEventListener('DOMContentLoaded', function() {
             const map = L.map('map').setView([{{ $centerLat }}, {{ $centerLon }}], 6);
-            
+
             // OpenStreetMap Layer hinzufügen
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
@@ -41,21 +49,27 @@
                 iconSize: [30, 30],
                 iconAnchor: [15, 15]
             });
-            
+
             const ehrenmitgliedIcon = L.divIcon({
                 html: '<div class="marker-icon ehrenmitglied"></div>',
                 className: 'custom-div-icon',
                 iconSize: [30, 30],
                 iconAnchor: [15, 15]
             });
-            
+
             const mitgliedIcon = L.divIcon({
                 html: '<div class="marker-icon mitglied"></div>',
                 className: 'custom-div-icon',
                 iconSize: [30, 30],
                 iconAnchor: [15, 15]
             });
-            
+
+            const iconByType = {
+                vorstand: vorstandIcon,
+                ehrenmitglied: ehrenmitgliedIcon,
+                mitglied: mitgliedIcon,
+            };
+
             // Spezielles Icon für Regionalstammtische
             const stammtischIcon = L.divIcon({
                 html: '<div class="marker-icon stammtisch"><i class="fas fa-users"></i></div>',
@@ -74,31 +88,29 @@
             
             // Mitglieder auf Karte platzieren
             memberData.forEach(member => {
-                let icon;
-                
-                // Rollenbasierte Marker-Zuweisung (vereinfacht)
-                if (member.role === '{{ \App\Enums\Role::Vorstand->value }}' || member.role === '{{ \App\Enums\Role::Kassenwart->value }}') {
-                    icon = vorstandIcon;
-                } else if (member.role === 'Ehrenmitglied') {
-                    icon = ehrenmitgliedIcon;
-                } else {
-                    // Admin und Mitglied bekommen den gleichen Marker
-                    icon = mitgliedIcon;
-                }
-                
-                const marker = L.marker([member.lat, member.lon], {icon: icon}).addTo(map);
-                
+                const mapUtils = window.omxfcMemberMap ?? {};
+                const type = typeof mapUtils.getRoleIconType === 'function'
+                    ? mapUtils.getRoleIconType(member.role)
+                    : 'mitglied';
+                const icon = iconByType[type] ?? mitgliedIcon;
+
+                const marker = L.marker([member.lat, member.lon], {icon}).addTo(map);
+
+                const popupContent = typeof mapUtils.buildMemberPopup === 'function'
+                    ? mapUtils.buildMemberPopup(member)
+                    : `
+                        <div class="text-center">
+                            <strong>${member.name}</strong><br>
+                            ${member.city}<br>
+                            <em>${member.role}</em><br>
+                            <a href="${member.profile_url}" class="text-blue-500 hover:underline mt-2 inline-block">
+                                Zum Profil
+                            </a>
+                        </div>
+                    `;
+
                 // Popup mit Infos
-                marker.bindPopup(`
-                    <div class="text-center">
-                        <strong>${member.name}</strong><br>
-                        ${member.city}<br>
-                        <em>${member.role}</em><br>
-                        <a href="${member.profile_url}" class="text-blue-500 hover:underline mt-2 inline-block">
-                            Zum Profil
-                        </a>
-                    </div>
-                `);
+                marker.bindPopup(popupContent);
             });
             
             // Regionalstammtische auf Karte platzieren
@@ -133,29 +145,39 @@
             const legend = L.control({position: 'bottomright'});
             legend.onAdd = function(map) {
                 const div = L.DomUtil.create('div', 'legend bg-white p-2 rounded shadow');
-                div.innerHTML = `
-                    <h4 class="font-semibold mb-2">Legende</h4>
-                    <div class="flex items-center mb-1">
-                        <div class="marker-icon stammtisch mr-2" style="display:inline-block;"></div>
-                        <span>Regionalstammtisch</span>
-                    </div>
-                    <div class="flex items-center mb-1">
-                        <div class="marker-icon center mr-2" style="display:inline-block;"></div>
-                        <span>Mittelpunkt</span>
-                    </div>
-                    <div class="flex items-center mb-1">
-                        <div class="marker-icon vorstand mr-2" style="display:inline-block;"></div>
-                        <span>Vorstand</span>
-                    </div>
-                    <div class="flex items-center mb-1">
-                        <div class="marker-icon ehrenmitglied mr-2" style="display:inline-block;"></div>
-                        <span>Ehrenmitglied</span>
-                    </div>
-                    <div class="flex items-center">
-                        <div class="marker-icon mitglied mr-2" style="display:inline-block;"></div>
-                        <span>Mitglied</span>
-                    </div>
-                `;
+                div.setAttribute('role', 'complementary');
+                div.setAttribute('aria-label', 'Legende der Mitgliederkarte');
+                div.setAttribute('tabindex', '0');
+
+                const mapUtils = window.omxfcMemberMap ?? {};
+                if (typeof mapUtils.createLegendMarkup === 'function') {
+                    div.innerHTML = mapUtils.createLegendMarkup();
+                } else {
+                    div.innerHTML = `
+                        <h4 class="font-semibold mb-2">Legende</h4>
+                        <div class="flex items-center mb-1">
+                            <div class="marker-icon stammtisch mr-2" style="display:inline-block;"></div>
+                            <span>Regionalstammtisch</span>
+                        </div>
+                        <div class="flex items-center mb-1">
+                            <div class="marker-icon center mr-2" style="display:inline-block;"></div>
+                            <span>Mittelpunkt</span>
+                        </div>
+                        <div class="flex items-center mb-1">
+                            <div class="marker-icon vorstand mr-2" style="display:inline-block;"></div>
+                            <span>Vorstand</span>
+                        </div>
+                        <div class="flex items-center mb-1">
+                            <div class="marker-icon ehrenmitglied mr-2" style="display:inline-block;"></div>
+                            <span>Ehrenmitglied</span>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="marker-icon mitglied mr-2" style="display:inline-block;"></div>
+                            <span>Mitglied</span>
+                        </div>
+                    `;
+                }
+
                 return div;
             };
             legend.addTo(map);
