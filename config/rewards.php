@@ -177,6 +177,11 @@ return [
         'points' => 42,
     ],
     [
+        'title' => 'Statistik - Bewertungen der Mission Mars-Heftromane',
+        'description' => 'Zeigt Bewertungen der Mission Mars-Heftromane aus dem Maddraxikon in einem Liniendiagramm.',
+        'points' => 43,
+    ],
+    [
         'title' => 'Statistik - TOP10 Lieblingsthemen',
         'description' => 'Zeigt die beliebtesten Lieblingsthemen der Mitglieder.',
         'points' => 50,

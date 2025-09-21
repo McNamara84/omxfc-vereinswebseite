@@ -136,4 +136,29 @@ class RewardControllerTest extends TestCase
         $this->assertNotNull($reward);
         $this->assertEquals(0, $reward['percentage']);
     }
+
+    public function test_mission_mars_reward_visible(): void
+    {
+        $user = $this->actingMember(43);
+        $this->actingAs($user);
+
+        $response = $this->get('/belohnungen');
+
+        $response->assertOk();
+        $response->assertSee('Statistik - Bewertungen der Mission Mars-Heftromane');
+    }
+
+    public function test_mission_mars_reward_hidden_when_points_insufficient(): void
+    {
+        $user = $this->actingMember(42);
+        $this->actingAs($user);
+
+        $response = $this->get('/belohnungen');
+
+        $response->assertOk();
+        $rewards = $response->viewData('rewards');
+        $reward = collect($rewards)->firstWhere('title', 'Statistik - Bewertungen der Mission Mars-Heftromane');
+        $this->assertNotNull($reward);
+        $this->assertEquals(0, $reward['percentage']);
+    }
 }
