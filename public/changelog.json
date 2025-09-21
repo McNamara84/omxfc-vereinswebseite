@@ -1,4 +1,25 @@
-[
+[ 
+  {
+    "version": "1.6.0",
+    "pub_date": "2025-09-21",
+    "notes": [
+      "[New] Mission-Mars-Statistiken zu Bewertungen und Autor:innen als neue Belohnungen hinzugefügt",
+      "[New] Mission-Mars-Romane zur Romantauschbörse hinzugefügt",
+      "[New] Rezensionen für Mission-Mars-Romane ermöglicht",
+      "[New] Statistik zu Lieblingsthemen als Belohnung ergänzt",
+      "[New] Willkommensnachricht für neue Mitglieder im Dashboard unter Aktivitäten hinzugefügt",
+      "[New] EARDRAX Dashboard für AG Fanhörbücher ergänzt",
+      "[New] Dashboard-Elemente zu Baxx verschoben auf die Unterseite Challenges",
+      "[New] Foto-Uploads und Detailansichten für Angebote in der Romantauschbörse ergänzt",
+      "[New] Charaktereditor für AG Rollenspiel mit PDF-Export der Charakterbögen",
+      "[New] Neue Rolle AG-Leiter kann AG-Details auf öffentlichen Seiten selbständig bearbeiten und Mitglieder der AG hinzufügen und entfernen",
+      "[Improved] Dashboard erhält modernes Bento-Layout für bessere Orientierung",
+      "[Improved] Barrierefreiheit erhöht durch Verwendung von ARIA Labels",
+      "[Improved] Hauptmenü erweitert um Menüpunkt AG für die Verwaltung und Tools der Arbeitsgruppen",
+      "[Improved] Ladezeiten verkürzt durch Caching von häufig genutzten Daten",
+      "[Fixed] Dark Mode wird vor dem Rendern initialisiert, um Aufblitzen zu verhindern"
+    ]
+  },
   {
     "version": "1.5.0",
     "pub_date": "2025-08-24",
