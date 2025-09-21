@@ -5,7 +5,6 @@ namespace Tests\Unit;
 use App\Enums\Role;
 use App\Models\Team;
 use App\Models\User;
-use App\Models\UserPoint;
 use App\Services\TeamPointService;
 use Carbon\Carbon;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -24,6 +23,8 @@ class TeamPointServiceTest extends TestCase
         parent::setUp();
         $this->service = new TeamPointService();
         $this->team = Team::membersTeam();
+        $this->team->users()->detach();
+        $this->team->refresh();
     }
 
     protected function tearDown(): void
@@ -44,13 +45,12 @@ class TeamPointServiceTest extends TestCase
 
     private function addPoints(User $user, int $points, Carbon $createdAt): void
     {
-        UserPoint::create([
-            'user_id' => $user->id,
-            'team_id' => $this->team->id,
-            'points' => $points,
-            'created_at' => $createdAt,
-            'updated_at' => $createdAt,
-        ]);
+        $previousTestNow = Carbon::getTestNow();
+        Carbon::setTestNow($createdAt);
+
+        $user->incrementTeamPoints($points);
+
+        Carbon::setTestNow($previousTestNow);
     }
 
     public function test_get_user_points_returns_team_points(): void
@@ -136,9 +136,33 @@ class TeamPointServiceTest extends TestCase
         $highlight = collect($metrics['leaderboard'])->firstWhere('is_current_user');
         $this->assertNotNull($highlight);
         $this->assertSame($user->name, $highlight['name']);
-        $this->assertTrue($highlight['is_additional'] ?? false);
+        $this->assertFalse($highlight['is_additional'] ?? false);
         $this->assertSame(5, $highlight['points']);
         $this->assertSame(4, $highlight['rank']);
+    }
+
+    public function test_dashboard_metrics_appends_user_when_outside_leaderboard_limit(): void
+    {
+        Carbon::setTestNow(Carbon::create(2024, 1, 10, 12));
+
+        $user = $this->memberWithPoints();
+
+        foreach ([60, 55, 50, 45, 40, 35] as $points) {
+            $competitor = $this->memberWithPoints();
+            $this->addPoints($competitor, $points, Carbon::now());
+        }
+
+        $this->addPoints($user, 5, Carbon::now());
+
+        $metrics = $this->service->getDashboardMetrics($user, $this->team);
+
+        $this->assertSame(7, $metrics['user_rank']);
+
+        $highlight = collect($metrics['leaderboard'])->firstWhere('is_current_user');
+        $this->assertNotNull($highlight);
+        $this->assertTrue($highlight['is_additional'] ?? false);
+        $this->assertSame(7, $highlight['rank']);
+        $this->assertSame(5, $highlight['points']);
     }
 
     public function test_weekly_target_uses_peer_average_from_last_seven_days(): void

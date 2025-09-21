@@ -41,4 +41,26 @@ describe('todo dashboard utilities', () => {
         expect(bar?.getAttribute('aria-valuenow')).toBe('0');
         expect(fill?.style.width).toBe('0%');
     });
+
+    test('guards against invalid numeric attributes when calculating progress', () => {
+        const originalIsFinite = Number.isFinite;
+        Number.isFinite = () => true;
+
+        document.body.innerHTML = `
+            <div data-progress-bar data-progress-value="foo" data-progress-max="bar">
+                <div data-progress-fill></div>
+            </div>
+        `;
+
+        try {
+            initTodoDashboard(document);
+        } finally {
+            Number.isFinite = originalIsFinite;
+        }
+
+        const fill = document.querySelector('[data-progress-fill]');
+
+        expect(fill?.style.width).toBe('0%');
+        expect(fill?.style.getPropertyValue('--progress-percent')).toBe('0');
+    });
 });
