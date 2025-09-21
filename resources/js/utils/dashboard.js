@@ -31,7 +31,7 @@ export function initTodoDashboard(root = document) {
 
         const fill = bar.querySelector('[data-progress-fill]');
         if (fill) {
-            const percent = normalizedMax === 0 ? 0 : Math.round((clampedValue / normalizedMax) * 100);
+            const percent = normalizedMax > 0 ? Math.round((clampedValue / normalizedMax) * 100) : 0;
             fill.style.width = `${percent}%`;
             fill.style.setProperty('--progress-percent', String(percent));
         }
