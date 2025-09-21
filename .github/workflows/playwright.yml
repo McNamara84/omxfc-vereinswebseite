@@ -1,4 +1,4 @@
-name: Playwright E2E Tests
+name: Playwright Tests
 
 on:
   push:
