@@ -72,16 +72,6 @@ jobs:
           DB_CONNECTION: sqlite
           DB_DATABASE: database/database.sqlite
         run: php -dxdebug.mode=coverage artisan test tests/Feature --coverage-clover=coverage.xml
-      - name: Run Jest tests with coverage
-        run: npm test -- --coverage --coverageReporters=json-summary --coverageDirectory=coverage
-      - name: Create JS coverage badge
-        if: github.ref == 'refs/heads/main'
-        run: |
-          mkdir -p output
-          if [ -f "coverage/coverage-summary.json" ]; then
-            npx --yes make-coverage-badge --report-path=coverage/coverage-summary.json --output-path=output/js-coverage.svg
-            sed -i 's/Coverage/JS Coverage/' output/js-coverage.svg
-          fi
       - name: Create PHP coverage badge
         if: github.ref == 'refs/heads/main'
         uses: timkrase/phpunit-coverage-badge@v1.2.1
@@ -95,8 +85,102 @@ jobs:
           if [ -f output/php-coverage.svg ]; then
             sed -i 's/Coverage/PHP Coverage/' output/php-coverage.svg
           fi
-      - name: Deploy coverage badges to image-data branch
+      - name: Upload PHP coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: php-coverage-report
+          path: coverage.xml
+      - name: Upload PHP coverage badge
         if: github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@v4
+        with:
+          name: php-coverage-badge
+          path: output/php-coverage.svg
+          if-no-files-found: ignore
+
+  js-coverage:
+    needs: tests
+    runs-on: ubuntu-latest
+    name: JS Coverage
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: Install Node dependencies
+        run: npm ci
+      - name: Run Jest tests with coverage
+        run: npm test -- --coverage --coverageReporters=json-summary --coverageDirectory=coverage
+      - name: Create JS coverage badge
+        if: github.ref == 'refs/heads/main'
+        run: |
+          mkdir -p output
+          if [ -f "coverage/coverage-summary.json" ]; then
+            npx --yes make-coverage-badge --report-path=coverage/coverage-summary.json --output-path=output/js-coverage.svg
+            sed -i 's/Coverage/JS Coverage/' output/js-coverage.svg
+          fi
+      - name: Upload JS coverage summary
+        uses: actions/upload-artifact@v4
+        with:
+          name: js-coverage-summary
+          path: coverage/coverage-summary.json
+      - name: Upload JS coverage badge
+        if: github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@v4
+        with:
+          name: js-coverage-badge
+          path: output/js-coverage.svg
+          if-no-files-found: ignore
+
+  deploy-coverage:
+    needs:
+      - coverage
+      - js-coverage
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Determine deployment target
+        run: |
+          if [ "${{ github.event_name }}" = "push" ] && [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            echo "Coverage artifacts will be deployed to the image-data branch."
+          else
+            echo "Deployment skipped: coverage artifacts are only published for push events on the main branch."
+          fi
+      - name: Download coverage artifacts
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/download-artifact@v4
+        with:
+          pattern: '*-coverage-*'
+          path: artifacts
+          merge-multiple: true
+      - name: Download PHP coverage report
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/download-artifact@v4
+        with:
+          name: php-coverage-report
+          path: artifacts
+      - name: Prepare deployment directory
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          mkdir -p output
+          if [ -f artifacts/output/js-coverage.svg ]; then
+            cp artifacts/output/js-coverage.svg output/js-coverage.svg
+          fi
+          if [ -f artifacts/output/php-coverage.svg ]; then
+            cp artifacts/output/php-coverage.svg output/php-coverage.svg
+          fi
+          if [ -f artifacts/coverage/coverage-summary.json ]; then
+            mkdir -p output/coverage
+            cp artifacts/coverage/coverage-summary.json output/coverage/coverage-summary.json
+          fi
+          if [ -f artifacts/coverage.xml ]; then
+            cp artifacts/coverage.xml output/coverage.xml
+          fi
+      - name: Deploy coverage artifacts to image-data branch
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: peaceiris/actions-gh-pages@v4
         with:
           publish_dir: ./output
