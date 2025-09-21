@@ -215,18 +215,34 @@ jobs:
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
           mkdir -p output
-          if [ -f artifacts/js/badge/output/js-coverage.svg ]; then
-            cp artifacts/js/badge/output/js-coverage.svg output/js-coverage.svg
+
+          if [ -d artifacts/js/badge ]; then
+            js_badge=$(find artifacts/js/badge -name 'js-coverage.svg' -print -quit)
+            if [ -n "$js_badge" ]; then
+              cp "$js_badge" output/js-coverage.svg
+            fi
           fi
-          if [ -f artifacts/php/badge/badge-output/php-coverage.svg ]; then
-            cp artifacts/php/badge/badge-output/php-coverage.svg output/php-coverage.svg
+
+          if [ -d artifacts/php/badge ]; then
+            php_badge=$(find artifacts/php/badge -name 'php-coverage.svg' -print -quit)
+            if [ -n "$php_badge" ]; then
+              cp "$php_badge" output/php-coverage.svg
+            fi
           fi
-          if [ -f artifacts/js/summary/coverage/coverage-summary.json ]; then
-            mkdir -p output/coverage
-            cp artifacts/js/summary/coverage/coverage-summary.json output/coverage/coverage-summary.json
+
+          if [ -d artifacts/js/summary ]; then
+            js_summary=$(find artifacts/js/summary -name 'coverage-summary.json' -print -quit)
+            if [ -n "$js_summary" ]; then
+              mkdir -p output/coverage
+              cp "$js_summary" output/coverage/coverage-summary.json
+            fi
           fi
-          if [ -f artifacts/php/report/coverage.xml ]; then
-            cp artifacts/php/report/coverage.xml output/coverage.xml
+
+          if [ -d artifacts/php/report ]; then
+            php_report=$(find artifacts/php/report -name 'coverage.xml' -print -quit)
+            if [ -n "$php_report" ]; then
+              cp "$php_report" output/coverage.xml
+            fi
           fi
       - name: Deploy coverage artifacts to image-data branch
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
