@@ -214,7 +214,7 @@
                         role="list"
                         aria-label="{{ $topUsersSummary }}"
                     >
-                        <p class="sr-only" data-dashboard-top-summary aria-live="polite">{{ $topUsersSummary }}</p>
+                        <p class="sr-only" data-dashboard-top-summary="true" aria-live="polite">{{ $topUsersSummary }}</p>
                         @foreach($topUsersCollection as $index => $topUser)
                             <a href="{{ route('profile.view', $topUser['id']) }}" class="flex flex-col items-center group" data-dashboard-top-user-item role="listitem">
                                 @if($index === 0)
