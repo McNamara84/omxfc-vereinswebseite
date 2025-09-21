@@ -71,6 +71,15 @@ class StatistikController extends Controller
             ->countBy()
             ->sortDesc();
 
+        // ── Card 31b – Mission Mars-Heftromane je Autor (inkl. Co-Autor:innen) ─────
+        $missionMarsAuthorCounts = $missionMarsNovels
+            ->pluck('text')
+            ->flatten()
+            ->map(fn ($a) => trim($a))
+            ->filter()
+            ->countBy()
+            ->sortDesc();
+
         // ── Card 3 – Top Teamplayer ─────────────────────────────────────────
         $teamplayerTable = $romane
             ->filter(fn ($r) => collect($r['text'])->filter()->count() > 1)
@@ -466,6 +475,7 @@ class StatistikController extends Controller
             'hardcoverValues' => $hardcoverValues,
             'missionMarsLabels' => $missionMarsLabels,
             'missionMarsValues' => $missionMarsValues,
+            'missionMarsAuthorCounts' => $missionMarsAuthorCounts,
             'hardcoverAuthorCounts' => $hardcoverAuthorCounts,
             'topFavoriteThemes' => $topFavoriteThemes,
             'totalReviews' => $totalReviews,

@@ -721,6 +721,25 @@
                     window.missionMarsChartValues = @json($missionMarsValues);
                 </script>
 
+            {{-- Card 31b – Mission Mars-Heftromane je Autor:in (≥ 43 Baxx) --}}
+                @php($min = 43)
+                <div data-min-points="{{ $min }}" class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
+                    <h2 id="missionMarsAuthorChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                        Mission Mars-Heftromane je Autor:in
+                    </h2>
+                    <div data-chart-wrapper class="mt-4">
+                        <canvas id="missionMarsAuthorChart" height="140" role="img" aria-labelledby="missionMarsAuthorChartTitle"></canvas>
+                    </div>
+                    @if($userPoints < $min)
+                        @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
+                    @endif
+                </div>
+
+                <script>
+                    window.missionMarsAuthorChartLabels = @json($missionMarsAuthorCounts->keys());
+                    window.missionMarsAuthorChartValues = @json($missionMarsAuthorCounts->values());
+                </script>
+
             {{-- Card 32 – TOP10 Lieblingsthemen (≥ 50 Baxx) --}}
                 @php($min = 50)
                 <div data-min-points="{{ $min }}" class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
