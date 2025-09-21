@@ -212,6 +212,29 @@
                 ></canvas>
             </div>
         </section>
+
+        <section
+            class="bg-white dark:bg-gray-800 overflow-hidden shadow-xl sm:rounded-lg p-6 mt-8"
+            aria-labelledby="active-users-weekday-heading"
+            aria-describedby="active-users-weekday-description"
+        >
+            <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-2 mb-4">
+                <h2 id="active-users-weekday-heading" class="font-semibold text-lg text-[#8B0116] dark:text-[#FCA5A5]">
+                    Aktive Mitglieder nach Wochentag
+                </h2>
+                <p id="active-users-weekday-description" class="text-sm text-gray-600 dark:text-gray-400">
+                    Zeigt den Verlauf aktiver Mitglieder je Stunde, gruppiert nach Wochentag.
+                </p>
+            </div>
+            <div data-chart-wrapper class="mt-6">
+                <canvas
+                    id="activeUsersWeekdayChart"
+                    class="h-80 w-full"
+                    role="img"
+                    aria-label="Liniendiagramm der aktiven Mitglieder nach Wochentag und Uhrzeit"
+                ></canvas>
+            </div>
+        </section>
     </x-member-page>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -219,6 +242,7 @@
         const visitData = @json($visitData);
         const userVisitData = @json($userVisitData);
         const activityData = @json($activityData);
+        const activityTimeline = @json($activityTimeline);
         const browserUsageByBrowser = @json($browserUsageByBrowser);
         const browserUsageByFamily = @json($browserUsageByFamily);
 
@@ -496,6 +520,61 @@
 
             updateActiveChart('all');
             weekdaySelect?.addEventListener('change', (event) => updateActiveChart(event.target.value));
+        }
+
+        const activeUsersWeekdayElement = document.getElementById('activeUsersWeekdayChart');
+        const ctx4 = activeUsersWeekdayElement?.getContext?.('2d');
+        if (ctx4) {
+            const weekdayLabels = [];
+            const weekdayValues = [];
+
+            activityTimeline.forEach((entry) => {
+                const dayLabel = dayNames[entry.weekday] ?? '';
+                const hourLabel = hours[entry.hour] ?? '';
+                weekdayLabels.push(`${dayLabel}\n${hourLabel}`);
+                weekdayValues.push(entry.total ?? 0);
+            });
+
+            new Chart(ctx4, {
+                type: 'line',
+                data: {
+                    labels: weekdayLabels,
+                    datasets: [
+                        {
+                            label: 'Aktive Mitglieder',
+                            data: weekdayValues,
+                            ...lineDatasetStyles,
+                        },
+                    ],
+                },
+                options: getCommonOptions({
+                    additionalOptions: {
+                        scales: {
+                            x: {
+                                ticks: {
+                                    color: axisColor,
+                                    autoSkip: true,
+                                    maxRotation: 0,
+                                    callback(value) {
+                                        const label = this.getLabelForValue(value);
+                                        return typeof label === 'string' ? label.split('\n') : label;
+                                    },
+                                },
+                                grid: {
+                                    color: gridColor,
+                                    drawOnChartArea: false,
+                                },
+                            },
+                        },
+                        plugins: {
+                            legend: {
+                                display: true,
+                                labels: { color: axisColor },
+                            },
+                        },
+                    },
+                }),
+            });
         }
     </script>
 </x-app-layout>
