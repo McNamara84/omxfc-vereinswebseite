@@ -82,9 +82,10 @@ jobs:
       - name: Customize PHP coverage badge label
         if: github.ref == 'refs/heads/main'
         run: |
+          mkdir -p badge-output
           if [ -f output/php-coverage.svg ]; then
-            chmod u+w output output/php-coverage.svg
-            sed -i 's/Coverage/PHP Coverage/' output/php-coverage.svg
+            cp output/php-coverage.svg badge-output/php-coverage.svg
+            sed -i 's/Coverage/PHP Coverage/' badge-output/php-coverage.svg
           fi
       - name: Upload PHP coverage report
         uses: actions/upload-artifact@v4
@@ -96,7 +97,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: php-coverage-badge
-          path: output/php-coverage.svg
+          path: badge-output/php-coverage.svg
           if-no-files-found: ignore
 
   js-coverage:
@@ -170,8 +171,8 @@ jobs:
           if [ -f artifacts/output/js-coverage.svg ]; then
             cp artifacts/output/js-coverage.svg output/js-coverage.svg
           fi
-          if [ -f artifacts/output/php-coverage.svg ]; then
-            cp artifacts/output/php-coverage.svg output/php-coverage.svg
+          if [ -f artifacts/badge-output/php-coverage.svg ]; then
+            cp artifacts/badge-output/php-coverage.svg output/php-coverage.svg
           fi
           if [ -f artifacts/coverage/coverage-summary.json ]; then
             mkdir -p output/coverage
