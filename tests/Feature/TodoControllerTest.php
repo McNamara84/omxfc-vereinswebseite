@@ -64,6 +64,11 @@ class TodoControllerTest extends TestCase
         $todo->refresh();
         $this->assertSame(TodoStatus::Assigned, $todo->status);
         $this->assertSame($user->id, $todo->assigned_to);
+        $this->assertDatabaseHas('activities', [
+            'user_id' => $user->id,
+            'subject_id' => $todo->id,
+            'action' => 'accepted',
+        ]);
     }
 
     public function test_assigned_user_can_complete_todo(): void
@@ -101,6 +106,11 @@ class TodoControllerTest extends TestCase
             'user_id' => $assignee->id,
             'todo_id' => $todo->id,
             'points' => $todo->points,
+        ]);
+        $this->assertDatabaseHas('activities', [
+            'user_id' => $assignee->id,
+            'subject_id' => $todo->id,
+            'action' => 'completed',
         ]);
     }
 
@@ -294,5 +304,175 @@ class TodoControllerTest extends TestCase
         });
 
         $this->get('/aufgaben')->assertOk();
+    }
+
+    public function test_admin_can_view_create_form(): void
+    {
+        $admin = $this->actingMember('Admin');
+        $this->actingAs($admin);
+
+        $response = $this->get(route('todos.create'));
+
+        $response->assertOk();
+        $response->assertViewIs('todos.create');
+    }
+
+    public function test_regular_member_cannot_view_create_form(): void
+    {
+        $member = $this->actingMember();
+        $this->actingAs($member);
+
+        $this->get(route('todos.create'))->assertForbidden();
+    }
+
+    public function test_pending_filter_only_returns_completed_tasks(): void
+    {
+        $admin = $this->actingMember('Admin');
+        $assignee = $this->actingMember();
+        $completed = $this->createTodo($admin, [
+            'status' => TodoStatus::Completed->value,
+            'completed_at' => now(),
+            'assigned_to' => $assignee->id,
+        ]);
+        $this->createTodo($admin, [
+            'status' => TodoStatus::Open->value,
+        ]);
+        $this->actingAs($admin);
+
+        $response = $this->get('/aufgaben?filter=pending');
+
+        $response->assertOk();
+        $response->assertViewHas('todos', function ($todos) use ($completed) {
+            return $todos->count() === 1 && $todos->contains($completed);
+        });
+        $response->assertViewHas('activeFilter', 'pending');
+    }
+
+    public function test_pending_filter_is_ignored_for_members_without_verify_permission(): void
+    {
+        $member = $this->actingMember();
+        $other = $this->actingMember();
+        $open = $this->createTodo($member);
+        $completed = $this->createTodo($member, [
+            'assigned_to' => $other->id,
+            'status' => TodoStatus::Completed->value,
+            'completed_at' => now(),
+        ]);
+
+        $this->actingAs($member);
+
+        $response = $this->get('/aufgaben?filter=pending');
+
+        $response->assertOk();
+        $response->assertViewHas('canVerifyTodos', false);
+        $response->assertViewHas('todos', function ($todos) use ($open, $completed) {
+            return $todos->contains($open) && $todos->contains($completed);
+        });
+        $response->assertViewHas('activeFilter', 'pending');
+    }
+
+    public function test_all_filter_is_default_when_query_empty(): void
+    {
+        $member = $this->actingMember();
+        $this->actingAs($member);
+
+        $this->get('/aufgaben?filter=')->assertViewHas('activeFilter', 'all');
+    }
+
+    public function test_assigning_already_taken_todo_returns_error(): void
+    {
+        $member = $this->actingMember();
+        $other = $this->actingMember();
+        $todo = $this->createTodo($member, [
+            'assigned_to' => $other->id,
+            'status' => TodoStatus::Assigned->value,
+        ]);
+
+        $this->actingAs($member);
+
+        $response = $this->post(route('todos.assign', $todo));
+
+        $response->assertRedirect(route('todos.show', $todo, false));
+        $response->assertSessionHas('error');
+    }
+
+    public function test_user_cannot_complete_unassigned_todo(): void
+    {
+        $member = $this->actingMember();
+        $other = $this->actingMember();
+        $todo = $this->createTodo($other, [
+            'assigned_to' => $other->id,
+            'status' => TodoStatus::Assigned->value,
+        ]);
+
+        $this->actingAs($member);
+
+        $response = $this->post(route('todos.complete', $todo));
+
+        $response->assertRedirect(route('todos.show', $todo, false));
+        $response->assertSessionHas('error');
+        $todo->refresh();
+        $this->assertSame(TodoStatus::Assigned, $todo->status);
+    }
+
+    public function test_user_cannot_release_unassigned_todo(): void
+    {
+        $member = $this->actingMember();
+        $other = $this->actingMember();
+        $todo = $this->createTodo($other, [
+            'assigned_to' => $other->id,
+            'status' => TodoStatus::Assigned->value,
+        ]);
+
+        $this->actingAs($member);
+
+        $response = $this->post(route('todos.release', $todo));
+
+        $response->assertRedirect(route('todos.show', $todo, false));
+        $response->assertSessionHas('error');
+        $todo->refresh();
+        $this->assertSame($other->id, $todo->assigned_to);
+    }
+
+    public function test_verify_rejects_tasks_that_are_not_completed(): void
+    {
+        $admin = $this->actingMember('Admin');
+        $todo = $this->createTodo($admin);
+
+        $this->actingAs($admin);
+
+        $response = $this->post(route('todos.verify', $todo));
+
+        $response->assertRedirect(route('todos.show', $todo, false));
+        $response->assertSessionHas('error', 'Diese Challenge kann nicht verifiziert werden.');
+        $todo->refresh();
+        $this->assertSame(TodoStatus::Open, $todo->status);
+        $this->assertNull($todo->verified_by);
+    }
+
+    public function test_show_redirects_when_todo_belongs_to_different_team(): void
+    {
+        $member = $this->actingMember();
+        $otherTeam = Team::factory()->create([
+            'name' => 'Other Team',
+            'personal_team' => false,
+        ]);
+        $category = TodoCategory::first() ?? TodoCategory::create(['name' => 'Other', 'slug' => 'other']);
+        $foreignTodo = Todo::create([
+            'team_id' => $otherTeam->id,
+            'created_by' => $member->id,
+            'title' => 'Foreign Todo',
+            'description' => 'not accessible',
+            'points' => 4,
+            'category_id' => $category->id,
+            'status' => TodoStatus::Open->value,
+        ]);
+
+        $this->actingAs($member);
+
+        $response = $this->get(route('todos.show', $foreignTodo));
+
+        $response->assertRedirect(route('todos.index', [], false));
+        $response->assertSessionHas('error', 'Challenge nicht gefunden.');
     }
 }

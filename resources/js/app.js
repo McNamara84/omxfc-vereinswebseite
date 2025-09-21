@@ -82,3 +82,4 @@ window.L = L;
 
 import './chronik';
 import './char-editor';
+import './todos';

@@ -2,14 +2,14 @@
     <x-member-page class="max-w-3xl">
 
             @if(session('status'))
-                <div
+                <div role="status" aria-live="polite"
                     class="mb-4 p-4 bg-green-100 dark:bg-green-900 border border-green-400 dark:border-green-600 text-green-800 dark:text-green-200 rounded">
                     {{ session('status') }}
                 </div>
             @endif
 
             @if(session('error'))
-                <div
+                <div role="alert"
                     class="mb-4 p-4 bg-red-100 dark:bg-red-900 border border-red-400 dark:border-red-600 text-red-800 dark:text-red-200 rounded">
                     {{ session('error') }}
                 </div>
