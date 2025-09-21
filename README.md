@@ -6,6 +6,7 @@
 ![JS Coverage](https://raw.githubusercontent.com/McNamara84/omxfc-vereinswebseite/image-data/js-coverage.svg)
 ![PHP Coverage](https://raw.githubusercontent.com/McNamara84/omxfc-vereinswebseite/image-data/php-coverage.svg)
 [![License](https://img.shields.io/badge/license-GPLv3-green)](https://github.com/mcnamara84/omxfc-vereinswebseite/blob/main/LICENSE)
+[![Playwright E2E Tests](https://github.com/McNamara84/omxfc-vereinswebseite/actions/workflows/playwright.yml/badge.svg)](https://github.com/McNamara84/omxfc-vereinswebseite/actions/workflows/playwright.yml)
 
 Eine Laravel 12 Anwendung für die Vereinswebseite des OMFXC.
 
