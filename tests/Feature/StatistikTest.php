@@ -133,7 +133,7 @@ class StatistikTest extends TestCase
         $user = $this->actingMemberWithPoints(11);
         $this->actingAs($user);
 
-        $response = $this->get('/statistik');
+        $response = $this->get('/statistiken');
 
         $response->assertOk();
         $response->assertSee('4,50');
@@ -148,7 +148,7 @@ class StatistikTest extends TestCase
         $user = $this->actingMemberWithPoints(10);
         $this->actingAs($user);
 
-        $response = $this->get('/statistik');
+        $response = $this->get('/statistiken');
 
         $response->assertOk();
         $response->assertSee('Top 10 Autor');
@@ -161,7 +161,7 @@ class StatistikTest extends TestCase
         $user = $this->actingMemberWithPoints(7);
         $this->actingAs($user);
 
-        $response = $this->get('/statistik');
+        $response = $this->get('/statistiken');
 
         $response->assertOk();
         $response->assertSee('wird ab');
@@ -173,7 +173,7 @@ class StatistikTest extends TestCase
         $user = $this->actingMemberWithPoints(11);
         $this->actingAs($user);
 
-        $response = $this->get('/statistik');
+        $response = $this->get('/statistiken');
 
         $response->assertStatus(500);
     }
@@ -184,7 +184,7 @@ class StatistikTest extends TestCase
         $user = $this->actingMemberWithPoints(4);
         $this->actingAs($user);
 
-        $response = $this->get('/statistik');
+        $response = $this->get('/statistiken');
 
         $response->assertOk();
         $response->assertSee('Top Teamplayer');
@@ -197,7 +197,7 @@ class StatistikTest extends TestCase
         $user = $this->actingMemberWithPoints(1);
         $this->actingAs($user);
 
-        $response = $this->get('/statistik');
+        $response = $this->get('/statistiken');
 
         $response->assertOk();
         $response->assertSee('Top Teamplayer');
@@ -210,7 +210,7 @@ class StatistikTest extends TestCase
         $user = $this->actingMemberWithPoints(4);
         $this->actingAs($user);
 
-        $response = $this->get('/statistik');
+        $response = $this->get('/statistiken');
 
         $response->assertOk();
         $response->assertViewHas('teamplayerTable', function ($table) {
@@ -247,7 +247,7 @@ class StatistikTest extends TestCase
             'last_activity' => now()->timestamp,
         ]);
 
-        $response = $this->get('/statistik');
+        $response = $this->get('/statistiken');
 
         $response->assertOk();
         $response->assertSee('Browsernutzung unserer Mitglieder');
@@ -268,7 +268,7 @@ class StatistikTest extends TestCase
         $user = $this->actingMemberWithPoints(16);
         $this->actingAs($user);
 
-        $response = $this->get('/statistik');
+        $response = $this->get('/statistiken');
 
         $response->assertOk();
         $response->assertSee('Top 10 Charaktere');
@@ -281,7 +281,7 @@ class StatistikTest extends TestCase
         $user = $this->actingMemberWithPoints(9);
         $this->actingAs($user);
 
-        $response = $this->get('/statistik');
+        $response = $this->get('/statistiken');
 
         $response->assertOk();
         $response->assertSee('wird ab');
@@ -315,7 +315,7 @@ class StatistikTest extends TestCase
         ReviewComment::create(['review_id' => $reviewA->id, 'user_id' => $user3->id, 'content' => 'C2']);
         ReviewComment::create(['review_id' => $reviewB->id, 'user_id' => $user2->id, 'content' => 'C3']);
 
-        $response = $this->get('/statistik');
+        $response = $this->get('/statistiken');
 
         $response->assertOk();
         $response->assertSee('Rezensionen unserer Mitglieder');
@@ -329,7 +329,7 @@ class StatistikTest extends TestCase
         $user = $this->actingMemberWithPoints(11);
         $this->actingAs($user);
 
-        $response = $this->get('/statistik');
+        $response = $this->get('/statistiken');
 
         $response->assertOk();
         $response->assertSee('Rezensionen unserer Mitglieder');
@@ -342,7 +342,7 @@ class StatistikTest extends TestCase
         $user = $this->actingMemberWithPoints(21);
         $this->actingAs($user);
 
-        $response = $this->get('/statistik');
+        $response = $this->get('/statistiken');
 
         $response->assertOk();
         $response->assertSee('Bewertungen des Afra-Zyklus');
@@ -354,7 +354,7 @@ class StatistikTest extends TestCase
         $user = $this->actingMemberWithPoints(20);
         $this->actingAs($user);
 
-        $response = $this->get('/statistik');
+        $response = $this->get('/statistiken');
 
         $response->assertOk();
         $response->assertSee('Bewertungen des Afra-Zyklus');
@@ -367,7 +367,7 @@ class StatistikTest extends TestCase
         $user = $this->actingMemberWithPoints(22);
         $this->actingAs($user);
 
-        $response = $this->get('/statistik');
+        $response = $this->get('/statistiken');
 
         $response->assertOk();
         $response->assertSee('Bewertungen des Antarktis-Zyklus');
@@ -379,7 +379,7 @@ class StatistikTest extends TestCase
         $user = $this->actingMemberWithPoints(21);
         $this->actingAs($user);
 
-        $response = $this->get('/statistik');
+        $response = $this->get('/statistiken');
 
         $response->assertOk();
         $response->assertSee('Bewertungen des Antarktis-Zyklus');
@@ -392,7 +392,7 @@ class StatistikTest extends TestCase
         $user = $this->actingMemberWithPoints(23);
         $this->actingAs($user);
 
-        $response = $this->get('/statistik');
+        $response = $this->get('/statistiken');
 
         $response->assertOk();
         $response->assertSee('Bewertungen des Schatten-Zyklus');
@@ -404,7 +404,7 @@ class StatistikTest extends TestCase
         $user = $this->actingMemberWithPoints(22);
         $this->actingAs($user);
 
-        $response = $this->get('/statistik');
+        $response = $this->get('/statistiken');
 
         $response->assertOk();
         $response->assertSee('Bewertungen des Schatten-Zyklus');
@@ -417,7 +417,7 @@ class StatistikTest extends TestCase
         $user = $this->actingMemberWithPoints(24);
         $this->actingAs($user);
 
-        $response = $this->get('/statistik');
+        $response = $this->get('/statistiken');
 
         $response->assertOk();
         $response->assertSee('Bewertungen des Ursprung-Zyklus');
@@ -429,7 +429,7 @@ class StatistikTest extends TestCase
         $user = $this->actingMemberWithPoints(23);
         $this->actingAs($user);
 
-        $response = $this->get('/statistik');
+        $response = $this->get('/statistiken');
 
         $response->assertOk();
         $response->assertSee('Bewertungen des Ursprung-Zyklus');
@@ -442,7 +442,7 @@ class StatistikTest extends TestCase
         $user = $this->actingMemberWithPoints(25);
         $this->actingAs($user);
 
-        $response = $this->get('/statistik');
+        $response = $this->get('/statistiken');
 
         $response->assertOk();
         $response->assertSee('Bewertungen des Streiter-Zyklus');
@@ -454,7 +454,7 @@ class StatistikTest extends TestCase
         $user = $this->actingMemberWithPoints(24);
         $this->actingAs($user);
 
-        $response = $this->get('/statistik');
+        $response = $this->get('/statistiken');
 
         $response->assertOk();
         $response->assertSee('Bewertungen des Streiter-Zyklus');
@@ -467,7 +467,7 @@ class StatistikTest extends TestCase
         $user = $this->actingMemberWithPoints(26);
         $this->actingAs($user);
 
-        $response = $this->get('/statistik');
+        $response = $this->get('/statistiken');
 
         $response->assertOk();
         $response->assertSee('Bewertungen des Archivar-Zyklus');
@@ -479,7 +479,7 @@ class StatistikTest extends TestCase
         $user = $this->actingMemberWithPoints(25);
         $this->actingAs($user);
 
-        $response = $this->get('/statistik');
+        $response = $this->get('/statistiken');
 
         $response->assertOk();
         $response->assertSee('Bewertungen des Archivar-Zyklus');
@@ -492,7 +492,7 @@ class StatistikTest extends TestCase
         $user = $this->actingMemberWithPoints(27);
         $this->actingAs($user);
 
-        $response = $this->get('/statistik');
+        $response = $this->get('/statistiken');
 
         $response->assertOk();
         $response->assertSee('Bewertungen des Zeitsprung-Zyklus');
@@ -504,7 +504,7 @@ class StatistikTest extends TestCase
         $user = $this->actingMemberWithPoints(26);
         $this->actingAs($user);
 
-        $response = $this->get('/statistik');
+        $response = $this->get('/statistiken');
 
         $response->assertOk();
         $response->assertSee('Bewertungen des Zeitsprung-Zyklus');
@@ -517,7 +517,7 @@ class StatistikTest extends TestCase
         $user = $this->actingMemberWithPoints(28);
         $this->actingAs($user);
 
-        $response = $this->get('/statistik');
+        $response = $this->get('/statistiken');
 
         $response->assertOk();
         $response->assertSee('Bewertungen des Fremdwelt-Zyklus');
@@ -529,7 +529,7 @@ class StatistikTest extends TestCase
         $user = $this->actingMemberWithPoints(27);
         $this->actingAs($user);
 
-        $response = $this->get('/statistik');
+        $response = $this->get('/statistiken');
 
         $response->assertOk();
         $response->assertSee('Bewertungen des Fremdwelt-Zyklus');
@@ -542,7 +542,7 @@ class StatistikTest extends TestCase
         $user = $this->actingMemberWithPoints(29);
         $this->actingAs($user);
 
-        $response = $this->get('/statistik');
+        $response = $this->get('/statistiken');
 
         $response->assertOk();
         $response->assertSee('Bewertungen des Parallelwelt-Zyklus');
@@ -554,7 +554,7 @@ class StatistikTest extends TestCase
         $user = $this->actingMemberWithPoints(28);
         $this->actingAs($user);
 
-        $response = $this->get('/statistik');
+        $response = $this->get('/statistiken');
 
         $response->assertOk();
         $response->assertSee('Bewertungen des Parallelwelt-Zyklus');
@@ -567,7 +567,7 @@ class StatistikTest extends TestCase
         $user = $this->actingMemberWithPoints(30);
         $this->actingAs($user);
 
-        $response = $this->get('/statistik');
+        $response = $this->get('/statistiken');
 
         $response->assertOk();
         $response->assertSee('Bewertungen des Weltenriss-Zyklus');
@@ -579,7 +579,7 @@ class StatistikTest extends TestCase
         $user = $this->actingMemberWithPoints(29);
         $this->actingAs($user);
 
-        $response = $this->get('/statistik');
+        $response = $this->get('/statistiken');
 
         $response->assertOk();
         $response->assertSee('Bewertungen des Weltenriss-Zyklus');
@@ -592,7 +592,7 @@ class StatistikTest extends TestCase
         $user = $this->actingMemberWithPoints(31);
         $this->actingAs($user);
 
-        $response = $this->get('/statistik');
+        $response = $this->get('/statistiken');
 
         $response->assertOk();
         $response->assertSee('Bewertungen des Amraka-Zyklus');
@@ -604,7 +604,7 @@ class StatistikTest extends TestCase
         $user = $this->actingMemberWithPoints(30);
         $this->actingAs($user);
 
-        $response = $this->get('/statistik');
+        $response = $this->get('/statistiken');
 
         $response->assertOk();
         $response->assertSee('Bewertungen des Amraka-Zyklus');
@@ -617,7 +617,7 @@ class StatistikTest extends TestCase
         $user = $this->actingMemberWithPoints(32);
         $this->actingAs($user);
 
-        $response = $this->get('/statistik');
+        $response = $this->get('/statistiken');
 
         $response->assertOk();
         $response->assertSee('Bewertungen des Weltrat-Zyklus');
@@ -629,7 +629,7 @@ class StatistikTest extends TestCase
         $user = $this->actingMemberWithPoints(31);
         $this->actingAs($user);
 
-        $response = $this->get('/statistik');
+        $response = $this->get('/statistiken');
 
         $response->assertOk();
         $response->assertSee('Bewertungen des Weltrat-Zyklus');
@@ -643,7 +643,7 @@ class StatistikTest extends TestCase
         $user = $this->actingMemberWithPoints(40);
         $this->actingAs($user);
 
-        $response = $this->get('/statistik');
+        $response = $this->get('/statistiken');
 
         $response->assertOk();
         $response->assertSee('Bewertungen der Hardcover');
@@ -656,7 +656,7 @@ class StatistikTest extends TestCase
         $user = $this->actingMemberWithPoints(39);
         $this->actingAs($user);
 
-        $response = $this->get('/statistik');
+        $response = $this->get('/statistiken');
 
         $response->assertOk();
         $response->assertSee('Bewertungen der Hardcover');
@@ -670,7 +670,7 @@ class StatistikTest extends TestCase
         $user = $this->actingMemberWithPoints(41);
         $this->actingAs($user);
 
-        $response = $this->get('/statistik');
+        $response = $this->get('/statistiken');
 
         $response->assertOk();
         $response->assertSee('Maddrax-Hardcover je Autor:in');
@@ -683,7 +683,7 @@ class StatistikTest extends TestCase
         $user = $this->actingMemberWithPoints(40);
         $this->actingAs($user);
 
-        $response = $this->get('/statistik');
+        $response = $this->get('/statistiken');
 
         $response->assertOk();
         $response->assertSee('Maddrax-Hardcover je Autor:in');
@@ -696,7 +696,7 @@ class StatistikTest extends TestCase
         $user = $this->actingMemberWithPoints(42);
         $this->actingAs($user);
 
-        $response = $this->get('/statistik');
+        $response = $this->get('/statistiken');
 
         $response->assertOk();
         $response->assertSee('TOP20 Maddrax-Themen');
@@ -708,7 +708,7 @@ class StatistikTest extends TestCase
         $user = $this->actingMemberWithPoints(41);
         $this->actingAs($user);
 
-        $response = $this->get('/statistik');
+        $response = $this->get('/statistiken');
 
         $response->assertOk();
         $response->assertSee('TOP20 Maddrax-Themen');
@@ -734,7 +734,7 @@ class StatistikTest extends TestCase
         $user = $this->actingMemberWithPoints(42);
         $this->actingAs($user);
 
-        $response = $this->get('/statistik');
+        $response = $this->get('/statistiken');
 
         $response->assertOk();
         $response->assertSee('TOP20 Maddrax-Themen');
@@ -762,7 +762,7 @@ class StatistikTest extends TestCase
         $user = $this->actingMemberWithPoints(42);
         $this->actingAs($user);
 
-        $response = $this->get('/statistik');
+        $response = $this->get('/statistiken');
 
         $response->assertOk();
         $response->assertSee('TOP20 Maddrax-Themen');
@@ -780,7 +780,7 @@ class StatistikTest extends TestCase
         $user = $this->actingMemberWithPoints(50);
         $this->actingAs($user);
 
-        $response = $this->get('/statistik');
+        $response = $this->get('/statistiken');
 
         $response->assertOk();
         $response->assertSee('TOP10 Lieblingsthemen');
@@ -795,7 +795,7 @@ class StatistikTest extends TestCase
         $user = $this->actingMemberWithPoints(49);
         $this->actingAs($user);
 
-        $response = $this->get('/statistik');
+        $response = $this->get('/statistiken');
 
         $response->assertOk();
         $response->assertSee('TOP10 Lieblingsthemen');
