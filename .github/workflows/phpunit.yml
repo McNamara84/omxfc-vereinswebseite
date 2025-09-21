@@ -140,21 +140,30 @@ jobs:
       - coverage
       - js-coverage
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
 
     steps:
+      - name: Determine deployment target
+        run: |
+          if [ "${{ github.event_name }}" = "push" ] && [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            echo "Coverage artifacts will be deployed to the image-data branch."
+          else
+            echo "Deployment skipped: coverage artifacts are only published for push events on the main branch."
+          fi
       - name: Download coverage artifacts
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: actions/download-artifact@v4
         with:
           pattern: '*-coverage-*'
           path: artifacts
           merge-multiple: true
       - name: Download PHP coverage report
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: actions/download-artifact@v4
         with:
           name: php-coverage-report
           path: artifacts
       - name: Prepare deployment directory
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
           mkdir -p output
           if [ -f artifacts/output/js-coverage.svg ]; then
@@ -171,6 +180,7 @@ jobs:
             cp artifacts/coverage.xml output/coverage.xml
           fi
       - name: Deploy coverage artifacts to image-data branch
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: peaceiris/actions-gh-pages@v4
         with:
           publish_dir: ./output
