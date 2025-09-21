@@ -68,9 +68,9 @@
                 <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                         <h2 id="todo-dashboard-heading"
-                            class="text-xl font-semibold text-gray-900 dark:text-gray-100">Team-Dashboard</h2>
+                            class="text-xl font-semibold text-gray-900 dark:text-gray-100">Vereins-Dashboard</h2>
                         <p class="text-sm text-gray-600 dark:text-gray-400">
-                            Fortschritt, Vergleich und Ziele deines Teams auf einen Blick.
+                            Fortschritt, Vergleich und Ziele deines Vereins auf einen Blick.
                         </p>
                     </div>
                 </div>
@@ -118,22 +118,22 @@
                                     <div>
                                         <h3 id="team-average-heading"
                                             class="text-lg font-semibold text-[#8B0116] dark:text-[#FF6B81]">
-                                            Teamdurchschnitt
+                                            Vereinsdurchschnitt
                                         </h3>
                                         <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                                            Vergleiche deine Punkte mit dem Durchschnitt deines Teams.
+                                            Vergleiche deine Punkte mit dem Durchschnitt des Vereins.
                                         </p>
                                     </div>
                                     <div class="text-right">
                                         <span class="text-3xl font-bold text-gray-900 dark:text-gray-100">
                                             {{ number_format($teamAverage, 1, ',', '.') }}
                                         </span>
-                                        <p class="text-xs text-gray-600 dark:text-gray-400">Ø Team-Baxx</p>
+                                        <p class="text-xs text-gray-600 dark:text-gray-400">Ø Vereins-Baxx</p>
                                     </div>
                                 </div>
                                 <div class="mt-4" data-progress-bar data-progress-value="{{ $userTotalPoints }}"
                                     data-progress-max="{{ max($teamAverage, 1) }}"
-                                    data-progress-label="Vergleich zum Teamdurchschnitt">
+                                    data-progress-label="Vergleich zum Vereinsdurchschnitt">
                                     <div class="h-2 w-full bg-white dark:bg-gray-800 rounded-full overflow-hidden"
                                         aria-hidden="true">
                                         <div data-progress-fill
@@ -143,9 +143,9 @@
                                     <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
                                         @if(! is_null($teamAverageRatio))
                                             Du liegst bei {{ number_format($teamAverageRatio, 1, ',', '.') }} % des
-                                            Teamdurchschnitts.
+                                            Vereinsdurchschnitts.
                                         @else
-                                            Sobald das Team Punkte gesammelt hat, erscheint hier der Vergleich.
+                                            Sobald Vereinsmitglieder Punkte gesammelt haben, erscheint hier der Vergleich.
                                         @endif
                                     </p>
                                 </div>
@@ -191,7 +191,7 @@
                                 Rangliste
                             </h3>
                             <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                                So steht dein Team aktuell da.
+                                So steht dein Verein aktuell da.
                             </p>
                             <ol class="mt-4 space-y-3" role="list">
                                 @forelse($dashboard['leaderboard'] as $entry)

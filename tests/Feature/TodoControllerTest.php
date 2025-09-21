@@ -133,6 +133,20 @@ class TodoControllerTest extends TestCase
         $this->assertNull($todo->verified_by);
     }
 
+    public function test_dashboard_copy_uses_club_language(): void
+    {
+        $user = $this->actingMember();
+        $this->actingAs($user);
+
+        $response = $this->get('/aufgaben');
+
+        $response->assertOk();
+        $response->assertSeeText('Vereins-Dashboard');
+        $response->assertSeeText('Vereinsdurchschnitt');
+        $response->assertSeeText('So steht dein Verein aktuell da.');
+        $response->assertDontSeeText('Teamdurchschnitt');
+    }
+
     public function test_assigned_user_can_release_todo(): void
     {
         $user = $this->actingMember();
