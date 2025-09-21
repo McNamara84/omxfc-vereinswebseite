@@ -114,8 +114,24 @@ class AdminPageTest extends TestCase
             return true;
         });
 
+        $response->assertViewHas('activityTimeline', function ($data) {
+            $collection = collect($data);
+
+            $this->assertCount(7 * 24, $collection);
+
+            $firstEntry = $collection->first();
+            $this->assertIsArray($firstEntry);
+            $this->assertArrayHasKey('weekday', $firstEntry);
+            $this->assertArrayHasKey('hour', $firstEntry);
+            $this->assertArrayHasKey('total', $firstEntry);
+
+            return true;
+        });
+
         $response->assertSee("allOption.selected = true;", false);
         $response->assertSee("updateActiveChart('all');", false);
+        $response->assertSee('id="activeUsersWeekdayChart"', false);
+        $response->assertSee('aria-describedby="active-users-weekday-description"', false);
     }
 
     public function test_browser_usage_statistics_visible_for_admins(): void

@@ -113,12 +113,25 @@ class AdminController extends Controller
             $activityData['all'][$hour] = $sum / 7;
         }
 
+        $activityTimeline = collect(range(0, 6))
+            ->flatMap(function (int $day) use ($activityData) {
+                return collect(range(0, 23))->map(function (int $hour) use ($activityData, $day) {
+                    return [
+                        'weekday' => $day,
+                        'hour' => $hour,
+                        'total' => $activityData[$day][$hour] ?? 0,
+                    ];
+                });
+            })
+            ->values();
+
         $browserUsage = $this->browserStatsService->browserUsage();
 
         return view('admin.index', [
             'visitData' => $visitData,
             'userVisitData' => $userVisitData,
             'activityData' => $activityData,
+            'activityTimeline' => $activityTimeline,
             'homepageVisits' => $homepageVisits,
             'browserUsageByBrowser' => $browserUsage['browserCounts'],
             'browserUsageByFamily' => $browserUsage['familyCounts'],
