@@ -83,6 +83,7 @@ jobs:
         if: github.ref == 'refs/heads/main'
         run: |
           if [ -f output/php-coverage.svg ]; then
+            chmod u+w output output/php-coverage.svg
             sed -i 's/Coverage/PHP Coverage/' output/php-coverage.svg
           fi
       - name: Upload PHP coverage report
