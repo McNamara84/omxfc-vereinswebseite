@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Review;
 use App\Models\User;
-use App\Services\BrowserStatsService;
 use App\Services\TeamPointService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -13,8 +12,7 @@ use Illuminate\View\View;
 class StatistikController extends Controller
 {
     public function __construct(
-        private TeamPointService $teamPointService,
-        private BrowserStatsService $browserStatsService
+        private TeamPointService $teamPointService
     )
     {
     }
@@ -402,8 +400,6 @@ class StatistikController extends Controller
             }
         }
 
-        $browserUsage = $this->browserStatsService->browserUsage();
-
         return view('statistik.index', [
             'averageRating' => $averageRating,
             'totalVotes' => $totalVotes,
@@ -466,8 +462,6 @@ class StatistikController extends Controller
             'longestReviewAuthor' => $longestReviewAuthor,
             'avgCommentsPerReview' => $avgCommentsPerReview,
             'mostReviewedBook' => $mostReviewedBook,
-            'browserUsageByBrowser' => $browserUsage['browserCounts'],
-            'browserUsageByFamily' => $browserUsage['familyCounts'],
         ]);
     }
 }

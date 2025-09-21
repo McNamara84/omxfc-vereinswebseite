@@ -3,11 +3,17 @@
 namespace App\Http\Controllers;
 
 use App\Models\PageVisit;
-use Illuminate\Support\Facades\DB;
+use App\Services\BrowserStatsService;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 class AdminController extends Controller
 {
+    public function __construct(
+        private readonly BrowserStatsService $browserStatsService
+    ) {
+    }
+
     public function index()
     {
         $rawVisitData = PageVisit::select('path', DB::raw('COUNT(*) as total'))
@@ -107,7 +113,16 @@ class AdminController extends Controller
             $activityData['all'][$hour] = $sum / 7;
         }
 
-        return view('admin.index', compact('visitData', 'userVisitData', 'activityData', 'homepageVisits'));
+        $browserUsage = $this->browserStatsService->browserUsage();
+
+        return view('admin.index', [
+            'visitData' => $visitData,
+            'userVisitData' => $userVisitData,
+            'activityData' => $activityData,
+            'homepageVisits' => $homepageVisits,
+            'browserUsageByBrowser' => $browserUsage['browserCounts'],
+            'browserUsageByFamily' => $browserUsage['familyCounts'],
+        ]);
     }
 
     private function normalizePath(?string $path): string

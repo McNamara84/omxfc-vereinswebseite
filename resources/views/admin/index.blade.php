@@ -48,6 +48,107 @@
             </section>
         </div>
 
+        @php($hasBrowserUsageByBrowser = $browserUsageByBrowser->isNotEmpty())
+        @php($hasBrowserUsageByFamily = $browserUsageByFamily->isNotEmpty())
+        <section
+            class="bg-white dark:bg-gray-800 overflow-hidden shadow-xl sm:rounded-lg p-6 mt-8"
+            aria-labelledby="browser-usage-heading"
+        >
+            <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-2 mb-4">
+                <h2 id="browser-usage-heading" class="font-semibold text-lg text-[#8B0116] dark:text-[#FCA5A5]">
+                    Browsernutzung unserer Mitglieder
+                </h2>
+                <p class="text-sm text-gray-600 dark:text-gray-400 max-w-2xl">
+                    Wir berücksichtigen den jeweils zuletzt verwendeten Browser aktiver Mitglieder. Die Werte helfen uns,
+                    die Plattform für die wichtigsten Engines zu optimieren.
+                </p>
+            </div>
+
+            <div class="mt-6 grid grid-cols-1 gap-10 xl:grid-cols-2">
+                <figure class="flex flex-col items-center">
+                    <h3 id="browserUsageChartTitle" class="text-lg font-semibold text-gray-900 dark:text-gray-100 text-center">
+                        Beliebteste Browser
+                    </h3>
+                    <div data-chart-wrapper class="mt-4 w-full max-w-xl">
+                        <canvas
+                            id="browserUsageChart"
+                            class="h-72 w-full {{ $hasBrowserUsageByBrowser ? '' : 'opacity-50' }}"
+                            role="img"
+                            aria-labelledby="browserUsageChartTitle browserUsageChartSummary"
+                            aria-hidden="{{ $hasBrowserUsageByBrowser ? 'false' : 'true' }}"
+                        ></canvas>
+                    </div>
+                    @if ($hasBrowserUsageByBrowser)
+                        @php($totalBrowserSessions = max($browserUsageByBrowser->sum('value'), 1))
+                        <ul
+                            id="browserUsageChartSummary"
+                            class="mt-5 w-full space-y-2 text-sm text-gray-700 dark:text-gray-300"
+                        >
+                            @foreach ($browserUsageByBrowser as $entry)
+                                @php($percentage = round(($entry['value'] / $totalBrowserSessions) * 100))
+                                <li class="flex items-center justify-between gap-2 rounded-lg bg-gray-50/80 px-3 py-2 dark:bg-gray-900/50">
+                                    <span class="font-medium">{{ $entry['label'] }}</span>
+                                    <span class="flex items-baseline gap-1">
+                                        <span class="font-semibold text-gray-900 dark:text-gray-100">{{ $entry['value'] }}</span>
+                                        <span class="text-xs text-gray-500 dark:text-gray-400" aria-hidden="true">{{ $percentage }}&nbsp;%</span>
+                                        <span class="sr-only">{{ $percentage }} Prozent</span>
+                                    </span>
+                                </li>
+                            @endforeach
+                        </ul>
+                    @else
+                        <p
+                            id="browserUsageChartSummary"
+                            class="mt-5 text-sm text-gray-600 dark:text-gray-400 text-center"
+                        >
+                            Noch keine Login-Daten vorhanden.
+                        </p>
+                    @endif
+                </figure>
+
+                <figure class="flex flex-col items-center">
+                    <h3 id="browserFamilyChartTitle" class="text-lg font-semibold text-gray-900 dark:text-gray-100 text-center">
+                        Browser-Familien
+                    </h3>
+                    <div data-chart-wrapper class="mt-4 w-full max-w-xl">
+                        <canvas
+                            id="browserFamilyChart"
+                            class="h-72 w-full {{ $hasBrowserUsageByFamily ? '' : 'opacity-50' }}"
+                            role="img"
+                            aria-labelledby="browserFamilyChartTitle browserFamilyChartSummary"
+                            aria-hidden="{{ $hasBrowserUsageByFamily ? 'false' : 'true' }}"
+                        ></canvas>
+                    </div>
+                    @if ($hasBrowserUsageByFamily)
+                        @php($totalBrowserFamilies = max($browserUsageByFamily->sum('value'), 1))
+                        <ul
+                            id="browserFamilyChartSummary"
+                            class="mt-5 w-full space-y-2 text-sm text-gray-700 dark:text-gray-300"
+                        >
+                            @foreach ($browserUsageByFamily as $entry)
+                                @php($percentage = round(($entry['value'] / $totalBrowserFamilies) * 100))
+                                <li class="flex items-center justify-between gap-2 rounded-lg bg-gray-50/80 px-3 py-2 dark:bg-gray-900/50">
+                                    <span class="font-medium">{{ $entry['label'] }}</span>
+                                    <span class="flex items-baseline gap-1">
+                                        <span class="font-semibold text-gray-900 dark:text-gray-100">{{ $entry['value'] }}</span>
+                                        <span class="text-xs text-gray-500 dark:text-gray-400" aria-hidden="true">{{ $percentage }}&nbsp;%</span>
+                                        <span class="sr-only">{{ $percentage }} Prozent</span>
+                                    </span>
+                                </li>
+                            @endforeach
+                        </ul>
+                    @else
+                        <p
+                            id="browserFamilyChartSummary"
+                            class="mt-5 text-sm text-gray-600 dark:text-gray-400 text-center"
+                        >
+                            Noch keine Login-Daten vorhanden.
+                        </p>
+                    @endif
+                </figure>
+            </div>
+        </section>
+
         @php($hasUserVisitData = $userVisitData->isNotEmpty())
         <section
             class="bg-white dark:bg-gray-800 overflow-hidden shadow-xl sm:rounded-lg p-6 mt-8"
@@ -118,6 +219,8 @@
         const visitData = @json($visitData);
         const userVisitData = @json($userVisitData);
         const activityData = @json($activityData);
+        const browserUsageByBrowser = @json($browserUsageByBrowser);
+        const browserUsageByFamily = @json($browserUsageByFamily);
 
         const numberFormatter = new Intl.NumberFormat('de-DE');
         const isDarkMode = document.documentElement.classList.contains('dark');
@@ -135,6 +238,27 @@
             tension: 0.3,
             pointRadius: 3,
         });
+        const paletteBase = Object.freeze([
+            '#8B0116',
+            '#FF6B81',
+            '#1E3A8A',
+            '#0E7490',
+            '#2F855A',
+            '#CA8A04',
+            '#6B21A8',
+            '#BE123C',
+            '#2563EB',
+            '#F97316',
+            '#0891B2',
+            '#22C55E',
+            '#EAB308',
+            '#A21CAF',
+            '#DC2626',
+            '#0284C7',
+            '#C026D3',
+            '#14B8A6',
+            '#FB923C',
+        ]);
 
         const formatTooltipLabel = (context) => {
             const value = context.parsed.y ?? context.parsed;
@@ -183,6 +307,68 @@
             };
         };
 
+        const getPalette = (length) => {
+            if (length <= paletteBase.length) {
+                return paletteBase.slice(0, length);
+            }
+
+            const extended = [...paletteBase];
+            while (extended.length < length) {
+                extended.push(paletteBase[extended.length % paletteBase.length]);
+            }
+
+            return extended.slice(0, length);
+        };
+
+        const renderDoughnutChart = (canvasId, entries) => {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas || !Array.isArray(entries) || entries.length === 0) {
+                return;
+            }
+
+            const labels = entries.map(entry => entry.label);
+            const values = entries.map(entry => entry.value);
+            const colors = getPalette(labels.length);
+            const total = values.reduce((sum, value) => sum + value, 0) || 1;
+
+            new Chart(canvas.getContext('2d'), {
+                type: 'doughnut',
+                data: {
+                    labels,
+                    datasets: [
+                        {
+                            data: values,
+                            backgroundColor: colors,
+                            borderWidth: 0,
+                        },
+                    ],
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                color: axisColor,
+                                usePointStyle: true,
+                                padding: 16,
+                            },
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => {
+                                    const value = context.parsed;
+                                    const percentage = total === 0 ? 0 : ((value / total) * 100).toFixed(1);
+                                    return `${context.label}: ${numberFormatter.format(value)} Mitglieder (${percentage}%)`;
+                                },
+                            },
+                        },
+                    },
+                },
+            });
+        };
+
         const visitsChartElement = document.getElementById('visitsChart');
         if (visitsChartElement) {
             const labels = visitData.map(v => v.path);
@@ -201,6 +387,9 @@
                 options: getCommonOptions(),
             });
         }
+
+        renderDoughnutChart('browserUsageChart', browserUsageByBrowser);
+        renderDoughnutChart('browserFamilyChart', browserUsageByFamily);
 
         const userSelect = document.getElementById('userSelect');
         const userVisitsEmptyMessage = document.getElementById('userVisitsEmptyMessage');

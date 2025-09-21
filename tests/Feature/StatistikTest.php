@@ -221,7 +221,7 @@ class StatistikTest extends TestCase
         });
     }
 
-    public function test_browser_usage_statistics_visible_with_enough_points(): void
+    public function test_browser_usage_statistics_hidden_on_member_page(): void
     {
         $this->createDataFile();
         $viewer = $this->actingMemberWithPoints(3);
@@ -250,16 +250,11 @@ class StatistikTest extends TestCase
         $response = $this->get('/statistiken');
 
         $response->assertOk();
-        $response->assertSee('Browsernutzung unserer Mitglieder');
-        $response->assertSee('Beliebteste Browser');
-        $response->assertSee('Browser-Familien');
-        $response->assertSeeText('Google Chrome');
-        $response->assertSeeText('Safari');
-        $response->assertSeeText('Chromium');
-        $response->assertSeeText('WebKit');
-        $response->assertSee('window.browserUsageLabels', false);
-        $response->assertSee('window.browserFamilyLabels', false);
-        $response->assertDontSee('Noch keine Login-Daten vorhanden.');
+        $response->assertDontSee('Browsernutzung unserer Mitglieder');
+        $response->assertDontSee('Beliebteste Browser');
+        $response->assertDontSee('Browser-Familien');
+        $response->assertDontSee('window.browserUsageLabels', false);
+        $response->assertDontSee('window.browserFamilyLabels', false);
     }
 
     public function test_character_table_visible_with_enough_points(): void
