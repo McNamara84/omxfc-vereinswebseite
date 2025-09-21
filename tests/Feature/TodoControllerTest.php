@@ -149,6 +149,20 @@ class TodoControllerTest extends TestCase
         $response->assertDontSeeText('Deine Baxx');
     }
 
+    public function test_dashboard_formats_large_numbers_and_hides_trend_card(): void
+    {
+        $user = $this->actingMember();
+        $this->actingAs($user);
+
+        $user->incrementTeamPoints(12345);
+
+        $response = $this->get('/aufgaben');
+
+        $response->assertOk();
+        $response->assertSeeText('12.345');
+        $response->assertDontSeeText('Aktivität der letzten 7 Tage');
+    }
+
     public function test_assigned_user_can_release_todo(): void
     {
         $user = $this->actingMember();

@@ -73,11 +73,10 @@
                     </div>
                 </div>
                 <div class="mt-6 grid gap-6 xl:grid-cols-3" data-todo-dashboard>
-                    <div class="space-y-6 xl:col-span-2">
-                        <div class="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-                            <article class="rounded-lg border border-gray-200 dark:border-gray-700 p-5 bg-gray-50 dark:bg-gray-900"
+                    <div class="grid gap-6 md:grid-cols-2 xl:grid-cols-3 xl:col-span-2">
+                        <article class="rounded-lg border border-gray-200 dark:border-gray-700 p-5 bg-gray-50 dark:bg-gray-900"
                                 aria-labelledby="weekly-goal-heading">
-                                <div class="flex items-center justify-between gap-4">
+                                <div class="flex flex-wrap items-start justify-between gap-4">
                                     <div>
                                         <h3 id="weekly-goal-heading"
                                             class="text-lg font-semibold text-[#8B0116] dark:text-[#FF6B81]">
@@ -87,12 +86,12 @@
                                             Sammle kontinuierlich Baxx, um dein Wochenziel zu erreichen.
                                         </p>
                                     </div>
-                                    <div class="text-right">
-                                        <span class="text-3xl font-bold text-gray-900 dark:text-gray-100">
-                                            {{ $weeklyTotal }}
+                                    <div class="flex flex-col items-end text-right gap-1">
+                                        <span class="text-2xl font-bold leading-none tracking-tight text-gray-900 dark:text-gray-100 sm:text-3xl xl:text-4xl">
+                                            {{ number_format($weeklyTotal, 0, ',', '.') }}
                                         </span>
                                         <p class="text-xs text-gray-600 dark:text-gray-400">
-                                            von {{ $weeklyTarget }} Baxx
+                                            von {{ number_format($weeklyTarget, 0, ',', '.') }} Baxx
                                         </p>
                                     </div>
                                 </div>
@@ -106,13 +105,13 @@
                                             style="width: {{ $weeklyProgress }}%"></div>
                                     </div>
                                     <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-                                        {{ $weeklyTotal }} von {{ $weeklyTarget }} Baxx gesammelt.
+                                        {{ number_format($weeklyTotal, 0, ',', '.') }} von {{ number_format($weeklyTarget, 0, ',', '.') }} Baxx gesammelt.
                                     </p>
                                 </div>
                             </article>
-                            <article class="rounded-lg border border-gray-200 dark:border-gray-700 p-5 bg-gray-50 dark:bg-gray-900"
+                        <article class="rounded-lg border border-gray-200 dark:border-gray-700 p-5 bg-gray-50 dark:bg-gray-900"
                                 aria-labelledby="team-average-heading">
-                                <div class="flex items-center justify-between gap-4">
+                                <div class="flex flex-wrap items-start justify-between gap-4">
                                     <div>
                                         <h3 id="team-average-heading"
                                             class="text-lg font-semibold text-[#8B0116] dark:text-[#FF6B81]">
@@ -122,8 +121,8 @@
                                             Vergleiche deine Punkte mit dem Durchschnitt des Vereins.
                                         </p>
                                     </div>
-                                    <div class="text-right">
-                                        <span class="text-3xl font-bold text-gray-900 dark:text-gray-100">
+                                    <div class="flex flex-col items-end text-right gap-1">
+                                        <span class="text-2xl font-bold leading-none tracking-tight text-gray-900 dark:text-gray-100 sm:text-3xl xl:text-4xl">
                                             {{ number_format($teamAverage, 1, ',', '.') }}
                                         </span>
                                         <p class="text-xs text-gray-600 dark:text-gray-400">Ø Vereins-Baxx</p>
@@ -148,9 +147,9 @@
                                     </p>
                                 </div>
                             </article>
-                            <article class="rounded-lg border border-gray-200 dark:border-gray-700 p-5 bg-gray-50 dark:bg-gray-900"
+                        <article class="rounded-lg border border-gray-200 dark:border-gray-700 p-5 bg-gray-50 dark:bg-gray-900"
                                 aria-labelledby="personal-points-heading">
-                                <div class="flex items-center justify-between gap-4">
+                                <div class="flex flex-wrap items-start justify-between gap-4">
                                     <div>
                                         <h3 id="personal-points-heading"
                                             class="text-lg font-semibold text-[#8B0116] dark:text-[#FF6B81]">
@@ -160,9 +159,9 @@
                                             Alle gesammelten Baxx deines Vereinskontos.
                                         </p>
                                     </div>
-                                    <div class="text-right">
-                                        <span class="text-3xl font-bold text-gray-900 dark:text-gray-100">
-                                            {{ $userTotalPoints }}
+                                    <div class="flex flex-col items-end text-right gap-1">
+                                        <span class="text-2xl font-bold leading-none tracking-tight text-gray-900 dark:text-gray-100 sm:text-3xl xl:text-4xl">
+                                            {{ number_format($userTotalPoints, 0, ',', '.') }}
                                         </span>
                                         <p class="text-xs text-gray-600 dark:text-gray-400">gesammelte Baxx</p>
                                     </div>
@@ -179,37 +178,6 @@
                                 @endif
                             </article>
                         </div>
-                        <article class="rounded-lg border border-gray-200 dark:border-gray-700 p-5 bg-gray-50 dark:bg-gray-900"
-                            aria-labelledby="trend-heading">
-                            <h3 id="trend-heading"
-                                class="text-lg font-semibold text-[#8B0116] dark:text-[#FF6B81]">
-                                Aktivität der letzten 7 Tage
-                            </h3>
-                            <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                                Die Balken zeigen, an welchen Tagen du Baxx gesammelt hast.
-                            </p>
-                            <ul class="mt-6 grid gap-4 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-7" role="list">
-                                @foreach($dashboard['trend'] as $day)
-                                    @php
-                                        $barHeight = $trendMax > 0 ? round(($day['points'] / $trendMax) * 100) : 0;
-                                    @endphp
-                                    <li class="flex flex-col" role="listitem">
-                                        <div class="flex items-center justify-between text-sm font-medium text-gray-700 dark:text-gray-200">
-                                            <span aria-hidden="true">{{ $day['label'] }}</span>
-                                            <span>{{ $day['points'] }} Baxx</span>
-                                        </div>
-                                        <div class="mt-3 h-24 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md overflow-hidden"
-                                            aria-hidden="true">
-                                            <div class="flex items-end h-full">
-                                                <div class="w-full bg-[#8B0116] dark:bg-[#FF6B81] transition-all duration-500"
-                                                    style="height: {{ $barHeight }}%"></div>
-                                            </div>
-                                        </div>
-                                        <span class="sr-only">{{ $day['label'] }}: {{ $day['points'] }} Baxx</span>
-                                    </li>
-                                @endforeach
-                            </ul>
-                        </article>
                     </div>
                     <div class="space-y-6">
                         <article class="rounded-lg border border-gray-200 dark:border-gray-700 p-5 bg-gray-50 dark:bg-gray-900"
@@ -231,7 +199,7 @@
                                             </span>
                                             <span class="text-sm font-semibold">{{ $entry['name'] }}</span>
                                         </div>
-                                        <span class="text-sm font-semibold">{{ $entry['points'] }} Baxx</span>
+                                        <span class="text-sm font-semibold">{{ number_format($entry['points'], 0, ',', '.') }} Baxx</span>
                                     </li>
                                 @empty
                                     <li class="text-sm text-gray-600 dark:text-gray-400">
@@ -255,7 +223,7 @@
                                     </p>
                                     @if(! is_null($pointsToNext) && $userRank > 1)
                                         <p>Es fehlen dir
-                                            <span class="font-semibold text-gray-900 dark:text-gray-100">{{ $pointsToNext }} Baxx</span>
+                                            <span class="font-semibold text-gray-900 dark:text-gray-100">{{ number_format($pointsToNext, 0, ',', '.') }} Baxx</span>
                                             zu Platz #{{ $userRank - 1 }}.</p>
                                         @php
                                             $targetForNextRank = max($userTotalPoints + $pointsToNext, 1);
@@ -271,7 +239,7 @@
                                                     style="width: {{ $targetForNextRank > 0 ? min(100, round(($userTotalPoints / $targetForNextRank) * 100)) : 0 }}%"></div>
                                             </div>
                                             <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-                                                Ziel: {{ $targetForNextRank }} Baxx (Platz #{{ $userRank - 1 }})
+                                                Ziel: {{ number_format($targetForNextRank, 0, ',', '.') }} Baxx (Platz #{{ $userRank - 1 }})
                                             </p>
                                         </div>
                                     @else
@@ -286,7 +254,7 @@
                                                     style="width: {{ $weeklyProgress }}%"></div>
                                             </div>
                                             <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-                                                Halte dein Wochenziel von {{ $weeklyTarget }} Baxx, um vorne zu bleiben.
+                                                Halte dein Wochenziel von {{ number_format($weeklyTarget, 0, ',', '.') }} Baxx, um vorne zu bleiben.
                                             </p>
                                         </div>
                                     @endif
