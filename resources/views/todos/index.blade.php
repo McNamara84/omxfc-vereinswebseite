@@ -38,6 +38,236 @@
                     </div>
                 @endif
             </div>
+            @php
+                $dashboard = $dashboardMetrics ?? [
+                    'trend' => [],
+                    'trend_max' => 0,
+                    'weekly' => ['progress' => 0, 'target' => 0, 'total' => 0],
+                    'team_average' => 0,
+                    'team_average_progress' => 0,
+                    'team_average_ratio' => null,
+                    'leaderboard' => [],
+                    'user_rank' => null,
+                    'points_to_next_rank' => null,
+                    'next_rank_points' => null,
+                    'user_points' => $userPoints,
+                ];
+                $weeklyProgress = $dashboard['weekly']['progress'] ?? 0;
+                $weeklyTarget = $dashboard['weekly']['target'] ?? 0;
+                $weeklyTotal = $dashboard['weekly']['total'] ?? 0;
+                $teamAverage = $dashboard['team_average'] ?? 0;
+                $teamAverageProgress = $dashboard['team_average_progress'] ?? 0;
+                $teamAverageRatio = $dashboard['team_average_ratio'] ?? null;
+                $trendMax = max($dashboard['trend_max'] ?? 0, 1);
+                $userRank = $dashboard['user_rank'] ?? null;
+                $pointsToNext = $dashboard['points_to_next_rank'] ?? null;
+                $userTotalPoints = $dashboard['user_points'] ?? $userPoints;
+            @endphp
+            <section aria-labelledby="todo-dashboard-heading"
+                class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
+                <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                        <h2 id="todo-dashboard-heading"
+                            class="text-xl font-semibold text-gray-900 dark:text-gray-100">Team-Dashboard</h2>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">
+                            Fortschritt, Vergleich und Ziele deines Teams auf einen Blick.
+                        </p>
+                    </div>
+                </div>
+                <div class="mt-6 grid gap-6 xl:grid-cols-3" data-todo-dashboard>
+                    <div class="space-y-6 xl:col-span-2">
+                        <div class="grid gap-6 md:grid-cols-2">
+                            <article class="rounded-lg border border-gray-200 dark:border-gray-700 p-5 bg-gray-50 dark:bg-gray-900"
+                                aria-labelledby="weekly-goal-heading">
+                                <div class="flex items-center justify-between gap-4">
+                                    <div>
+                                        <h3 id="weekly-goal-heading"
+                                            class="text-lg font-semibold text-[#8B0116] dark:text-[#FF6B81]">
+                                            Wochenziel
+                                        </h3>
+                                        <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                                            Sammle kontinuierlich Baxx, um dein Wochenziel zu erreichen.
+                                        </p>
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="text-3xl font-bold text-gray-900 dark:text-gray-100">
+                                            {{ $weeklyTotal }}
+                                        </span>
+                                        <p class="text-xs text-gray-600 dark:text-gray-400">
+                                            von {{ $weeklyTarget }} Baxx
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="mt-4" data-progress-bar data-progress-value="{{ $weeklyTotal }}"
+                                    data-progress-max="{{ max($weeklyTarget, 1) }}"
+                                    data-progress-label="Fortschritt Richtung Wochenziel">
+                                    <div class="h-2 w-full bg-white dark:bg-gray-800 rounded-full overflow-hidden"
+                                        aria-hidden="true">
+                                        <div data-progress-fill
+                                            class="h-full bg-[#8B0116] dark:bg-[#FF6B81]"
+                                            style="width: {{ $weeklyProgress }}%"></div>
+                                    </div>
+                                    <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                                        {{ $weeklyTotal }} von {{ $weeklyTarget }} Baxx gesammelt.
+                                    </p>
+                                </div>
+                            </article>
+                            <article class="rounded-lg border border-gray-200 dark:border-gray-700 p-5 bg-gray-50 dark:bg-gray-900"
+                                aria-labelledby="team-average-heading">
+                                <div class="flex items-center justify-between gap-4">
+                                    <div>
+                                        <h3 id="team-average-heading"
+                                            class="text-lg font-semibold text-[#8B0116] dark:text-[#FF6B81]">
+                                            Teamdurchschnitt
+                                        </h3>
+                                        <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                                            Vergleiche deine Punkte mit dem Durchschnitt deines Teams.
+                                        </p>
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="text-3xl font-bold text-gray-900 dark:text-gray-100">
+                                            {{ number_format($teamAverage, 1, ',', '.') }}
+                                        </span>
+                                        <p class="text-xs text-gray-600 dark:text-gray-400">Ø Team-Baxx</p>
+                                    </div>
+                                </div>
+                                <div class="mt-4" data-progress-bar data-progress-value="{{ $userTotalPoints }}"
+                                    data-progress-max="{{ max($teamAverage, 1) }}"
+                                    data-progress-label="Vergleich zum Teamdurchschnitt">
+                                    <div class="h-2 w-full bg-white dark:bg-gray-800 rounded-full overflow-hidden"
+                                        aria-hidden="true">
+                                        <div data-progress-fill
+                                            class="h-full bg-[#006D77] dark:bg-[#33BBC5]"
+                                            style="width: {{ $teamAverageProgress }}%"></div>
+                                    </div>
+                                    <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                                        @if(! is_null($teamAverageRatio))
+                                            Du liegst bei {{ number_format($teamAverageRatio, 1, ',', '.') }} % des
+                                            Teamdurchschnitts.
+                                        @else
+                                            Sobald das Team Punkte gesammelt hat, erscheint hier der Vergleich.
+                                        @endif
+                                    </p>
+                                </div>
+                            </article>
+                        </div>
+                        <article class="rounded-lg border border-gray-200 dark:border-gray-700 p-5 bg-gray-50 dark:bg-gray-900"
+                            aria-labelledby="trend-heading">
+                            <h3 id="trend-heading"
+                                class="text-lg font-semibold text-[#8B0116] dark:text-[#FF6B81]">
+                                Aktivität der letzten 7 Tage
+                            </h3>
+                            <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                                Die Balken zeigen, an welchen Tagen du Baxx gesammelt hast.
+                            </p>
+                            <ul class="mt-6 grid gap-4 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-7" role="list">
+                                @foreach($dashboard['trend'] as $day)
+                                    @php
+                                        $barHeight = $trendMax > 0 ? round(($day['points'] / $trendMax) * 100) : 0;
+                                    @endphp
+                                    <li class="flex flex-col" role="listitem">
+                                        <div class="flex items-center justify-between text-sm font-medium text-gray-700 dark:text-gray-200">
+                                            <span aria-hidden="true">{{ $day['label'] }}</span>
+                                            <span>{{ $day['points'] }} Baxx</span>
+                                        </div>
+                                        <div class="mt-3 h-24 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md overflow-hidden"
+                                            aria-hidden="true">
+                                            <div class="flex items-end h-full">
+                                                <div class="w-full bg-[#8B0116] dark:bg-[#FF6B81] transition-all duration-500"
+                                                    style="height: {{ $barHeight }}%"></div>
+                                            </div>
+                                        </div>
+                                        <span class="sr-only">{{ $day['label'] }}: {{ $day['points'] }} Baxx</span>
+                                    </li>
+                                @endforeach
+                            </ul>
+                        </article>
+                    </div>
+                    <div class="space-y-6">
+                        <article class="rounded-lg border border-gray-200 dark:border-gray-700 p-5 bg-gray-50 dark:bg-gray-900"
+                            aria-labelledby="leaderboard-heading">
+                            <h3 id="leaderboard-heading"
+                                class="text-lg font-semibold text-[#8B0116] dark:text-[#FF6B81]">
+                                Rangliste
+                            </h3>
+                            <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                                So steht dein Team aktuell da.
+                            </p>
+                            <ol class="mt-4 space-y-3" role="list">
+                                @forelse($dashboard['leaderboard'] as $entry)
+                                    <li
+                                        class="flex items-center justify-between gap-3 rounded-md px-3 py-2 @if($entry['is_current_user']) bg-[#8B0116] text-white dark:bg-[#FF6B81] dark:text-gray-900 @else bg-white text-gray-800 dark:bg-gray-800 dark:text-gray-100 @endif border border-gray-200 dark:border-gray-700">
+                                        <div class="flex items-center gap-3">
+                                            <span class="text-sm font-semibold @if($entry['is_current_user']) text-white dark:text-gray-900 @else text-gray-600 dark:text-gray-400 @endif">
+                                                {{ $entry['rank'] ? '#' . $entry['rank'] : '–' }}
+                                            </span>
+                                            <span class="text-sm font-semibold">{{ $entry['name'] }}</span>
+                                        </div>
+                                        <span class="text-sm font-semibold">{{ $entry['points'] }} Baxx</span>
+                                    </li>
+                                @empty
+                                    <li class="text-sm text-gray-600 dark:text-gray-400">
+                                        Sobald Punkte gesammelt wurden, erscheint hier die Rangliste.
+                                    </li>
+                                @endforelse
+                            </ol>
+                        </article>
+                        <article class="rounded-lg border border-gray-200 dark:border-gray-700 p-5 bg-gray-50 dark:bg-gray-900"
+                            aria-labelledby="goal-heading">
+                            <h3 id="goal-heading"
+                                class="text-lg font-semibold text-[#8B0116] dark:text-[#FF6B81]">
+                                Dein nächstes Ziel
+                            </h3>
+                            <div class="mt-2 text-sm text-gray-600 dark:text-gray-400 space-y-3">
+                                @if(is_null($userRank))
+                                    <p>Du hast noch keine Baxx gesammelt. Starte jetzt eine Challenge und sichere dir einen Platz
+                                        in der Rangliste.</p>
+                                @else
+                                    <p>Aktuelle Platzierung: <span class="font-semibold text-gray-900 dark:text-gray-100">#{{ $userRank }}</span>
+                                    </p>
+                                    @if(! is_null($pointsToNext) && $userRank > 1)
+                                        <p>Es fehlen dir
+                                            <span class="font-semibold text-gray-900 dark:text-gray-100">{{ $pointsToNext }} Baxx</span>
+                                            zu Platz #{{ $userRank - 1 }}.</p>
+                                        @php
+                                            $targetForNextRank = max($userTotalPoints + $pointsToNext, 1);
+                                        @endphp
+                                        <div class="pt-1" data-progress-bar
+                                            data-progress-value="{{ $userTotalPoints }}"
+                                            data-progress-max="{{ $targetForNextRank }}"
+                                            data-progress-label="Fortschritt zum nächsten Rang">
+                                            <div class="h-2 w-full bg-white dark:bg-gray-800 rounded-full overflow-hidden"
+                                                aria-hidden="true">
+                                                <div data-progress-fill
+                                                    class="h-full bg-[#F4A261] dark:bg-[#FFB86C]"
+                                                    style="width: {{ $targetForNextRank > 0 ? min(100, round(($userTotalPoints / $targetForNextRank) * 100)) : 0 }}%"></div>
+                                            </div>
+                                            <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                                                Ziel: {{ $targetForNextRank }} Baxx (Platz #{{ $userRank - 1 }})
+                                            </p>
+                                        </div>
+                                    @else
+                                        <p>Starke Leistung! Du führst die Rangliste aktuell an.</p>
+                                        <div class="pt-1" data-progress-bar data-progress-value="{{ $userTotalPoints }}"
+                                            data-progress-max="{{ max($weeklyTarget, 1) }}"
+                                            data-progress-label="Stabilisiere deine Führung">
+                                            <div class="h-2 w-full bg-white dark:bg-gray-800 rounded-full overflow-hidden"
+                                                aria-hidden="true">
+                                                <div data-progress-fill
+                                                    class="h-full bg-[#2A9D8F] dark:bg-[#2DD4BF]"
+                                                    style="width: {{ $weeklyProgress }}%"></div>
+                                            </div>
+                                            <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                                                Halte dein Wochenziel von {{ $weeklyTarget }} Baxx, um vorne zu bleiben.
+                                            </p>
+                                        </div>
+                                    @endif
+                                @endif
+                            </div>
+                        </article>
+                    </div>
+                </div>
+            </section>
             <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6" data-todo-filter-wrapper>
                 <form method="GET" action="{{ route('todos.index') }}" data-todo-filter-form
                     data-current-filter="{{ $currentFilter }}">
