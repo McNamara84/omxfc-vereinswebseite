@@ -62,19 +62,28 @@ describe('todoFilters utilities', () => {
 
     test('initTodoFilters wires listeners and updates status message', () => {
         document.body.innerHTML = `
-            <div>
-                <form data-todo-filter-form data-current-filter="all">
-                    <div>
-                        <button type="button" data-todo-filter data-filter="assigned" data-active="false"></button>
-                        <button type="button" data-todo-filter data-filter="open" data-active="false"></button>
-                        <button type="submit" data-todo-filter data-filter="pending" data-active="false"></button>
-                    </div>
+            <section data-todo-filter-wrapper>
+                <div>
                     <p data-todo-filter-status></p>
-                </form>
-                <section data-todo-section="assigned"></section>
-                <section data-todo-section="open"></section>
-                <section data-todo-section="pending"></section>
-            </div>
+                    <button type="button" data-todo-filter-toggle aria-expanded="false"
+                        aria-controls="todo-panel" data-label-open="Filter anzeigen"
+                        data-label-close="Filter verbergen">
+                        <span data-todo-filter-toggle-text>Filter anzeigen</span>
+                    </button>
+                </div>
+                <div id="todo-panel" data-todo-filter-panel>
+                    <form data-todo-filter-form data-current-filter="all">
+                        <div>
+                            <button type="button" data-todo-filter data-filter="assigned" data-active="false"></button>
+                            <button type="button" data-todo-filter data-filter="open" data-active="false"></button>
+                            <button type="submit" data-todo-filter data-filter="pending" data-active="false"></button>
+                        </div>
+                    </form>
+                </div>
+                <div data-todo-section="assigned"></div>
+                <div data-todo-section="open"></div>
+                <div data-todo-section="pending"></div>
+            </section>
         `;
 
         const statusElement = document.querySelector('[data-todo-filter-status]');
@@ -94,6 +103,50 @@ describe('todoFilters utilities', () => {
         const pendingButton = document.querySelector('[data-filter="pending"]');
         pendingButton.dispatchEvent(new Event('click', { bubbles: true }));
         expect(statusElement.textContent).toContain('Verifizierung warten');
+    });
+
+    test('initTodoFilters toggles the disclosure panel and focuses the first control', () => {
+        document.body.innerHTML = `
+            <section data-todo-filter-wrapper>
+                <button type="button" data-todo-filter-toggle aria-expanded="false" aria-controls="filters"
+                    data-label-open="Filter anzeigen" data-label-close="Filter verbergen">
+                    <span data-todo-filter-toggle-text>Filter anzeigen</span>
+                </button>
+                <div id="filters" data-todo-filter-panel>
+                    <form data-todo-filter-form data-current-filter="all">
+                        <div>
+                            <button type="button" data-todo-filter data-filter="all" data-active="true"></button>
+                            <button type="button" data-todo-filter data-filter="open" data-active="false"></button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+        `;
+
+        const toggle = document.querySelector('[data-todo-filter-toggle]');
+        const panel = document.querySelector('[data-todo-filter-panel]');
+        const firstButton = panel.querySelector('[data-filter="all"]');
+
+        initTodoFilters(document);
+
+        expect(toggle.getAttribute('aria-expanded')).toBe('false');
+        expect(panel.hasAttribute('hidden')).toBe(true);
+        expect(panel.getAttribute('aria-hidden')).toBe('true');
+        expect(toggle.textContent).toContain('Filter anzeigen');
+
+        toggle.dispatchEvent(new Event('click'));
+
+        expect(toggle.getAttribute('aria-expanded')).toBe('true');
+        expect(panel.hasAttribute('hidden')).toBe(false);
+        expect(panel.getAttribute('aria-hidden')).toBe('false');
+        expect(toggle.textContent).toContain('Filter verbergen');
+        expect(document.activeElement).toBe(firstButton);
+
+        toggle.dispatchEvent(new Event('click'));
+
+        expect(toggle.getAttribute('aria-expanded')).toBe('false');
+        expect(panel.hasAttribute('hidden')).toBe(true);
+        expect(toggle.textContent).toContain('Filter anzeigen');
     });
 
     test('applyFilterState returns the active filter', () => {
@@ -154,15 +207,17 @@ describe('todoFilters utilities', () => {
         initTodoFilters({});
 
         document.body.innerHTML = `
-            <div>
-                <form data-todo-filter-form data-current-filter="open">
-                    <button type="button" data-todo-filter data-filter="open" data-active="true"></button>
-                    <button type="button" data-todo-filter data-filter="assigned" data-active="false"></button>
-                    <p data-todo-filter-status></p>
-                </form>
-                <section data-todo-section="open"></section>
-                <section data-todo-section="assigned"></section>
-            </div>
+            <section data-todo-filter-wrapper>
+                <p data-todo-filter-status></p>
+                <div data-todo-filter-panel>
+                    <form data-todo-filter-form data-current-filter="open">
+                        <button type="button" data-todo-filter data-filter="open" data-active="true"></button>
+                        <button type="button" data-todo-filter data-filter="assigned" data-active="false"></button>
+                    </form>
+                </div>
+                <div data-todo-section="open"></div>
+                <div data-todo-section="assigned"></div>
+            </section>
         `;
 
         initTodoFilters(document);
