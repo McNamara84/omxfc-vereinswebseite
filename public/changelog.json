@@ -1,4 +1,18 @@
-[
+[ 
+  {
+    "version": "1.6.0",
+    "pub_date": "2025-09-21",
+    "notes": [
+      "[New] Mission-Mars-Statistiken zu Bewertungen und Autor:innen inklusive neuer Belohnung hinzugefügt",
+      "[New] Dashboard-Aufgabenübersicht um Kennzahlen und Bestenliste erweitert",
+      "[New] Foto-Uploads und Detailansichten für Angebote in der Romantauschbörse ergänzt",
+      "[New] Charaktereditor mit neuer Guul-Rasse, Stadtbewohner-Kultur sowie PDF-Export mit Vorschau ausgestattet",
+      "[Improved] Dashboard erhält modernes Bento-Layout für bessere Orientierung",
+      "[Improved] Statistikseite zeigt neue Browser-Nutzungsdiagramme",
+      "[Improved] Dark Mode wird vor dem Rendern initialisiert, um Aufblitzen zu verhindern",
+      "[Fixed] PDF-Vorschau im Charaktereditor funktioniert wieder zuverlässig"
+    ]
+  },
   {
     "version": "1.5.0",
     "pub_date": "2025-08-24",
