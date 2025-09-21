@@ -187,35 +187,46 @@ jobs:
           else
             echo "Deployment skipped: coverage artifacts are only published for push events on the main branch."
           fi
-      - name: Download coverage artifacts
+      - name: Download PHP coverage badge
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: actions/download-artifact@v4
         with:
-          pattern: '*-coverage-*'
-          path: artifacts
-          merge-multiple: true
+          name: php-coverage-badge
+          path: artifacts/php/badge
+      - name: Download JS coverage badge
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/download-artifact@v4
+        with:
+          name: js-coverage-badge
+          path: artifacts/js/badge
+      - name: Download JS coverage summary
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/download-artifact@v4
+        with:
+          name: js-coverage-summary
+          path: artifacts/js/summary
       - name: Download PHP coverage report
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: actions/download-artifact@v4
         with:
           name: php-coverage-report
-          path: artifacts
+          path: artifacts/php/report
       - name: Prepare deployment directory
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
           mkdir -p output
-          if [ -f artifacts/output/js-coverage.svg ]; then
-            cp artifacts/output/js-coverage.svg output/js-coverage.svg
+          if [ -f artifacts/js/badge/output/js-coverage.svg ]; then
+            cp artifacts/js/badge/output/js-coverage.svg output/js-coverage.svg
           fi
-          if [ -f artifacts/badge-output/php-coverage.svg ]; then
-            cp artifacts/badge-output/php-coverage.svg output/php-coverage.svg
+          if [ -f artifacts/php/badge/badge-output/php-coverage.svg ]; then
+            cp artifacts/php/badge/badge-output/php-coverage.svg output/php-coverage.svg
           fi
-          if [ -f artifacts/coverage/coverage-summary.json ]; then
+          if [ -f artifacts/js/summary/coverage/coverage-summary.json ]; then
             mkdir -p output/coverage
-            cp artifacts/coverage/coverage-summary.json output/coverage/coverage-summary.json
+            cp artifacts/js/summary/coverage/coverage-summary.json output/coverage/coverage-summary.json
           fi
-          if [ -f artifacts/coverage.xml ]; then
-            cp artifacts/coverage.xml output/coverage.xml
+          if [ -f artifacts/php/report/coverage.xml ]; then
+            cp artifacts/php/report/coverage.xml output/coverage.xml
           fi
       - name: Deploy coverage artifacts to image-data branch
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
