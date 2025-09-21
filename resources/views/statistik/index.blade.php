@@ -11,10 +11,12 @@
             {{-- Card 1 – Balkendiagramm (≥ 2 Bakk) --}}
                 @php($min = 2)
                 <div data-min-points="{{ $min }}" class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
-                    <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                    <h2 id="authorChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
                         Maddrax-Romane je Autor:in
                     </h2>
-                    <canvas id="authorChart" height="140"></canvas>
+                    <div data-chart-wrapper class="mt-4">
+                        <canvas id="authorChart" height="140" role="img" aria-labelledby="authorChartTitle"></canvas>
+                    </div>
                     @if($userPoints < $min)
                         @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
                     @endif
@@ -254,10 +256,12 @@
             {{-- Card 8 – Bewertungen des Euree-Zyklus (≥ 13 Baxx) --}}
                 @php($min = 13)
                 <div data-min-points="{{ $min }}" class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
-                    <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                    <h2 id="eureeChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
                         Bewertungen des Euree-Zyklus
                     </h2>
-                    <canvas id="eureeChart" height="140"></canvas>
+                    <div data-chart-wrapper class="mt-4">
+                        <canvas id="eureeChart" height="140" role="img" aria-labelledby="eureeChartTitle"></canvas>
+                    </div>
                     @if($userPoints < $min)
                         @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
                     @endif
@@ -271,10 +275,12 @@
             {{-- Card 9 – Bewertungen des Meeraka-Zyklus (≥ 14 Baxx) --}}
                 @php($min = 14)
                 <div data-min-points="{{ $min }}" class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
-                    <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                    <h2 id="meerakaChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
                         Bewertungen des Meeraka-Zyklus
                     </h2>
-                    <canvas id="meerakaChart" height="140"></canvas>
+                    <div data-chart-wrapper class="mt-4">
+                        <canvas id="meerakaChart" height="140" role="img" aria-labelledby="meerakaChartTitle"></canvas>
+                    </div>
                     @if($userPoints < $min)
                         @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
                     @endif
@@ -288,10 +294,12 @@
             {{-- Card 10 – Bewertungen des Expeditions-Zyklus (≥ 15 Baxx) --}}
                 @php($min = 15)
                 <div data-min-points="{{ $min }}" class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
-                    <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                    <h2 id="expeditionChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
                         Bewertungen des Expeditions-Zyklus
                     </h2>
-                    <canvas id="expeditionChart" height="140"></canvas>
+                    <div data-chart-wrapper class="mt-4">
+                        <canvas id="expeditionChart" height="140" role="img" aria-labelledby="expeditionChartTitle"></canvas>
+                    </div>
                     @if($userPoints < $min)
                         @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
                     @endif
@@ -305,10 +313,12 @@
             {{-- Card 11 – Bewertungen des Kratersee-Zyklus (≥ 16 Baxx) --}}
                 @php($min = 16)
                 <div data-min-points="{{ $min }}" class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
-                    <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                    <h2 id="kraterseeChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
                         Bewertungen des Kratersee-Zyklus
                     </h2>
-                    <canvas id="kraterseeChart" height="140"></canvas>
+                    <div data-chart-wrapper class="mt-4">
+                        <canvas id="kraterseeChart" height="140" role="img" aria-labelledby="kraterseeChartTitle"></canvas>
+                    </div>
                     @if($userPoints < $min)
                         @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
                     @endif
@@ -322,10 +332,12 @@
             {{-- Card 12 – Bewertungen des Daa'muren-Zyklus (≥ 17 Baxx) --}}
                 @php($min = 17)
                 <div data-min-points="{{ $min }}" class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
-                    <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                    <h2 id="daaMurenChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
                         Bewertungen des Daa'muren-Zyklus
                     </h2>
-                    <canvas id="daaMurenChart" height="140"></canvas>
+                    <div data-chart-wrapper class="mt-4">
+                        <canvas id="daaMurenChart" height="140" role="img" aria-labelledby="daaMurenChartTitle"></canvas>
+                    </div>
                     @if($userPoints < $min)
                         @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
                     @endif
@@ -339,10 +351,12 @@
             {{-- Card 13 – Bewertungen des Wandler-Zyklus (≥ 18 Baxx) --}}
                 @php($min = 18)
                 <div data-min-points="{{ $min }}" class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
-                    <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                    <h2 id="wandlerChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
                         Bewertungen des Wandler-Zyklus
                     </h2>
-                    <canvas id="wandlerChart" height="140"></canvas>
+                    <div data-chart-wrapper class="mt-4">
+                        <canvas id="wandlerChart" height="140" role="img" aria-labelledby="wandlerChartTitle"></canvas>
+                    </div>
                     @if($userPoints < $min)
                         @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
                     @endif
@@ -356,10 +370,12 @@
             {{-- Card 14 – Bewertungen des Mars-Zyklus (≥ 19 Baxx) --}}
                 @php($min = 19)
                 <div data-min-points="{{ $min }}" class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
-                    <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                    <h2 id="marsChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
                         Bewertungen des Mars-Zyklus
                     </h2>
-                    <canvas id="marsChart" height="140"></canvas>
+                    <div data-chart-wrapper class="mt-4">
+                        <canvas id="marsChart" height="140" role="img" aria-labelledby="marsChartTitle"></canvas>
+                    </div>
                     @if($userPoints < $min)
                         @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
                     @endif
@@ -373,10 +389,12 @@
             {{-- Card 15 – Bewertungen des Ausala-Zyklus (≥ 20 Baxx) --}}
                 @php($min = 20)
                 <div data-min-points="{{ $min }}" class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
-                    <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                    <h2 id="ausalaChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
                         Bewertungen des Ausala-Zyklus
                     </h2>
-                    <canvas id="ausalaChart" height="140"></canvas>
+                    <div data-chart-wrapper class="mt-4">
+                        <canvas id="ausalaChart" height="140" role="img" aria-labelledby="ausalaChartTitle"></canvas>
+                    </div>
                     @if($userPoints < $min)
                         @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
                     @endif
@@ -390,10 +408,12 @@
             {{-- Card 16 – Bewertungen des Afra-Zyklus (≥ 21 Baxx) --}}
                 @php($min = 21)
                 <div data-min-points="{{ $min }}" class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
-                    <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                    <h2 id="afraChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
                         Bewertungen des Afra-Zyklus
                     </h2>
-                    <canvas id="afraChart" height="140"></canvas>
+                    <div data-chart-wrapper class="mt-4">
+                        <canvas id="afraChart" height="140" role="img" aria-labelledby="afraChartTitle"></canvas>
+                    </div>
                     @if($userPoints < $min)
                         @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
                     @endif
@@ -407,10 +427,12 @@
             {{-- Card 17 – Bewertungen des Antarktis-Zyklus (≥ 22 Baxx) --}}
                 @php($min = 22)
                 <div data-min-points="{{ $min }}" class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
-                    <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                    <h2 id="antarktisChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
                         Bewertungen des Antarktis-Zyklus
                     </h2>
-                    <canvas id="antarktisChart" height="140"></canvas>
+                    <div data-chart-wrapper class="mt-4">
+                        <canvas id="antarktisChart" height="140" role="img" aria-labelledby="antarktisChartTitle"></canvas>
+                    </div>
                     @if($userPoints < $min)
                         @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
                     @endif
@@ -424,10 +446,12 @@
             {{-- Card 18 – Bewertungen des Schatten-Zyklus (≥ 23 Baxx) --}}
                 @php($min = 23)
                 <div data-min-points="{{ $min }}" class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
-                    <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                    <h2 id="schattenChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
                         Bewertungen des Schatten-Zyklus
                     </h2>
-                    <canvas id="schattenChart" height="140"></canvas>
+                    <div data-chart-wrapper class="mt-4">
+                        <canvas id="schattenChart" height="140" role="img" aria-labelledby="schattenChartTitle"></canvas>
+                    </div>
                     @if($userPoints < $min)
                         @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
                     @endif
@@ -441,10 +465,12 @@
             {{-- Card 19 – Bewertungen des Ursprung-Zyklus (≥ 24 Baxx) --}}
                 @php($min = 24)
                 <div data-min-points="{{ $min }}" class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
-                    <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                    <h2 id="ursprungChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
                         Bewertungen des Ursprung-Zyklus
                     </h2>
-                    <canvas id="ursprungChart" height="140"></canvas>
+                    <div data-chart-wrapper class="mt-4">
+                        <canvas id="ursprungChart" height="140" role="img" aria-labelledby="ursprungChartTitle"></canvas>
+                    </div>
                     @if($userPoints < $min)
                         @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
                     @endif
@@ -458,10 +484,12 @@
             {{-- Card 20 – Bewertungen des Streiter-Zyklus (≥ 25 Baxx) --}}
                 @php($min = 25)
                 <div data-min-points="{{ $min }}" class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
-                    <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                    <h2 id="streiterChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
                         Bewertungen des Streiter-Zyklus
                     </h2>
-                    <canvas id="streiterChart" height="140"></canvas>
+                    <div data-chart-wrapper class="mt-4">
+                        <canvas id="streiterChart" height="140" role="img" aria-labelledby="streiterChartTitle"></canvas>
+                    </div>
                     @if($userPoints < $min)
                         @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
                     @endif
@@ -475,10 +503,12 @@
             {{-- Card 21 – Bewertungen des Archivar-Zyklus (≥ 26 Baxx) --}}
                 @php($min = 26)
                 <div data-min-points="{{ $min }}" class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
-                    <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                    <h2 id="archivarChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
                         Bewertungen des Archivar-Zyklus
                     </h2>
-                    <canvas id="archivarChart" height="140"></canvas>
+                    <div data-chart-wrapper class="mt-4">
+                        <canvas id="archivarChart" height="140" role="img" aria-labelledby="archivarChartTitle"></canvas>
+                    </div>
                     @if($userPoints < $min)
                         @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
                     @endif
@@ -492,10 +522,12 @@
             {{-- Card 22 – Bewertungen des Zeitsprung-Zyklus (≥ 27 Baxx) --}}
                 @php($min = 27)
                 <div data-min-points="{{ $min }}" class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
-                    <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                    <h2 id="zeitsprungChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
                         Bewertungen des Zeitsprung-Zyklus
                     </h2>
-                    <canvas id="zeitsprungChart" height="140"></canvas>
+                    <div data-chart-wrapper class="mt-4">
+                        <canvas id="zeitsprungChart" height="140" role="img" aria-labelledby="zeitsprungChartTitle"></canvas>
+                    </div>
                     @if($userPoints < $min)
                         @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
                     @endif
@@ -509,10 +541,12 @@
             {{-- Card 23 – Bewertungen des Fremdwelt-Zyklus (≥ 28 Baxx) --}}
                 @php($min = 28)
                 <div data-min-points="{{ $min }}" class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
-                    <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                    <h2 id="fremdweltChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
                         Bewertungen des Fremdwelt-Zyklus
                     </h2>
-                    <canvas id="fremdweltChart" height="140"></canvas>
+                    <div data-chart-wrapper class="mt-4">
+                        <canvas id="fremdweltChart" height="140" role="img" aria-labelledby="fremdweltChartTitle"></canvas>
+                    </div>
                     @if($userPoints < $min)
                         @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
                     @endif
@@ -526,10 +560,12 @@
             {{-- Card 24 – Bewertungen des Parallelwelt-Zyklus (≥ 29 Baxx) --}}
                 @php($min = 29)
                 <div data-min-points="{{ $min }}" class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
-                    <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                    <h2 id="parallelweltChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
                         Bewertungen des Parallelwelt-Zyklus
                     </h2>
-                    <canvas id="parallelweltChart" height="140"></canvas>
+                    <div data-chart-wrapper class="mt-4">
+                        <canvas id="parallelweltChart" height="140" role="img" aria-labelledby="parallelweltChartTitle"></canvas>
+                    </div>
                     @if($userPoints < $min)
                         @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
                     @endif
@@ -543,10 +579,12 @@
             {{-- Card 25 – Bewertungen des Weltenriss-Zyklus (≥ 30 Baxx) --}}
                 @php($min = 30)
                 <div data-min-points="{{ $min }}" class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
-                    <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                    <h2 id="weltenrissChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
                         Bewertungen des Weltenriss-Zyklus
                     </h2>
-                    <canvas id="weltenrissChart" height="140"></canvas>
+                    <div data-chart-wrapper class="mt-4">
+                        <canvas id="weltenrissChart" height="140" role="img" aria-labelledby="weltenrissChartTitle"></canvas>
+                    </div>
                     @if($userPoints < $min)
                         @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
                     @endif
@@ -560,10 +598,12 @@
             {{-- Card 26 – Bewertungen des Amraka-Zyklus (≥ 31 Baxx) --}}
                 @php($min = 31)
                 <div data-min-points="{{ $min }}" class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
-                    <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                    <h2 id="amrakaChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
                         Bewertungen des Amraka-Zyklus
                     </h2>
-                    <canvas id="amrakaChart" height="140"></canvas>
+                    <div data-chart-wrapper class="mt-4">
+                        <canvas id="amrakaChart" height="140" role="img" aria-labelledby="amrakaChartTitle"></canvas>
+                    </div>
                     @if($userPoints < $min)
                         @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
                     @endif
@@ -577,10 +617,12 @@
             {{-- Card 27 – Bewertungen des Weltrat-Zyklus (≥ 32 Baxx) --}}
                 @php($min = 32)
                 <div data-min-points="{{ $min }}" class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
-                    <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                    <h2 id="weltratChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
                         Bewertungen des Weltrat-Zyklus
                     </h2>
-                    <canvas id="weltratChart" height="140"></canvas>
+                    <div data-chart-wrapper class="mt-4">
+                        <canvas id="weltratChart" height="140" role="img" aria-labelledby="weltratChartTitle"></canvas>
+                    </div>
                     @if($userPoints < $min)
                         @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
                     @endif
@@ -594,10 +636,12 @@
             {{-- Card 28 – Bewertungen der Hardcover (≥ 40 Baxx) --}}
                 @php($min = 40)
                 <div data-min-points="{{ $min }}" class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
-                    <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                    <h2 id="hardcoverChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
                         Bewertungen der Hardcover
                     </h2>
-                    <canvas id="hardcoverChart" height="140"></canvas>
+                    <div data-chart-wrapper class="mt-4">
+                        <canvas id="hardcoverChart" height="140" role="img" aria-labelledby="hardcoverChartTitle"></canvas>
+                    </div>
                     @if($userPoints < $min)
                         @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
                     @endif
@@ -611,10 +655,12 @@
             {{-- Card 29 – Hardcover je Autor:in (≥ 41 Baxx) --}}
                 @php($min = 41)
                 <div data-min-points="{{ $min }}" class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
-                    <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                    <h2 id="hardcoverAuthorChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
                         Maddrax-Hardcover je Autor:in
                     </h2>
-                    <canvas id="hardcoverAuthorChart" height="140"></canvas>
+                    <div data-chart-wrapper class="mt-4">
+                        <canvas id="hardcoverAuthorChart" height="140" role="img" aria-labelledby="hardcoverAuthorChartTitle"></canvas>
+                    </div>
                     @if($userPoints < $min)
                         @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
                     @endif

@@ -36,13 +36,15 @@
                         Noch keine Seitenaufrufe außerhalb der Startseite erfasst.
                     </p>
                 @endif
-                <canvas
-                    id="visitsChart"
-                    class="h-80 {{ $hasRouteData ? '' : 'opacity-50' }}"
-                    role="img"
-                    aria-label="Balkendiagramm der Seitenaufrufe nach Route"
-                    aria-hidden="{{ $hasRouteData ? 'false' : 'true' }}"
-                ></canvas>
+                <div data-chart-wrapper class="mt-6">
+                    <canvas
+                        id="visitsChart"
+                        class="h-80 w-full {{ $hasRouteData ? '' : 'opacity-50' }}"
+                        role="img"
+                        aria-label="Balkendiagramm der Seitenaufrufe nach Route"
+                        aria-hidden="{{ $hasRouteData ? 'false' : 'true' }}"
+                    ></canvas>
+                </div>
             </section>
         </div>
 
@@ -71,13 +73,15 @@
             >
                 Noch keine Daten für Unterseiten verfügbar.
             </p>
-            <canvas
-                id="userVisitsChart"
-                class="h-80 {{ $hasUserVisitData ? '' : 'opacity-50' }}"
-                role="img"
-                aria-label="Balkendiagramm der Seitenaufrufe nach Nutzer:in"
-                aria-hidden="{{ $hasUserVisitData ? 'false' : 'true' }}"
-            ></canvas>
+            <div data-chart-wrapper class="mt-6">
+                <canvas
+                    id="userVisitsChart"
+                    class="h-80 w-full {{ $hasUserVisitData ? '' : 'opacity-50' }}"
+                    role="img"
+                    aria-label="Balkendiagramm der Seitenaufrufe nach Nutzer:in"
+                    aria-hidden="{{ $hasUserVisitData ? 'false' : 'true' }}"
+                ></canvas>
+            </div>
         </section>
 
         <section
@@ -98,12 +102,14 @@
                 class="mb-3 border-gray-300 dark:bg-gray-700 dark:border-gray-600 rounded-md focus:border-[#8B0116] focus:ring-[#8B0116]"
                 aria-label="Wochentag auswählen"
             ></select>
-            <canvas
-                id="activeUsersChart"
-                class="h-80"
-                role="img"
-                aria-label="Liniendiagramm der aktiven Mitglieder nach Uhrzeit"
-            ></canvas>
+            <div data-chart-wrapper class="mt-6">
+                <canvas
+                    id="activeUsersChart"
+                    class="h-80 w-full"
+                    role="img"
+                    aria-label="Liniendiagramm der aktiven Mitglieder nach Uhrzeit"
+                ></canvas>
+            </div>
         </section>
     </x-member-page>
 

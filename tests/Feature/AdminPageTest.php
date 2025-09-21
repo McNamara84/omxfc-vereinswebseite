@@ -51,6 +51,18 @@ class AdminPageTest extends TestCase
         $this->actingAs($admin)->get('/statistiken')->assertOk();
     }
 
+    public function test_statistik_charts_render_with_accessible_wrapper(): void
+    {
+        $admin = $this->adminUser();
+
+        $response = $this->actingAs($admin)->get('/statistiken');
+
+        $response->assertOk();
+        $response->assertSee('data-chart-wrapper', false);
+        $response->assertSee('role="img"', false);
+        $response->assertSee('aria-labelledby="homepage-visits-heading"', false);
+    }
+
     public function test_homepage_visits_are_separated_and_routes_are_grouped(): void
     {
         $admin = $this->adminUser();
