@@ -97,11 +97,24 @@ class StatistikTest extends TestCase
     private function createMissionMarsFile(): void
     {
         $data = [];
+        $authors = [
+            'Mission Mars Autor 1',
+            'Mission Mars Autor 2',
+            'Mission Mars Autor 3',
+        ];
         for ($i = 1; $i <= 12; $i++) {
+            $authorIndex = ($i - 1) % count($authors);
+            $entryAuthors = [$authors[$authorIndex]];
+
+            if ($i % 5 === 0) {
+                $entryAuthors[] = 'Mission Mars Co-Autor';
+            }
+
             $data[] = [
                 'nummer' => $i,
                 'titel' => 'Mission Mars '.$i,
                 'bewertung' => 3.5 + ($i * 0.05),
+                'text' => $entryAuthors,
             ];
         }
 
@@ -766,6 +779,9 @@ class StatistikTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('Bewertungen der Mission Mars-Heftromane');
+        $response->assertSee('Mission Mars-Heftromane je Autor:in');
+        $response->assertSee('Mission Mars Autor 1');
+        $response->assertSee('Mission Mars Co-Autor');
     }
 
     public function test_mission_mars_chart_locked_below_threshold(): void
@@ -779,6 +795,7 @@ class StatistikTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('Bewertungen der Mission Mars-Heftromane');
+        $response->assertSee('Mission Mars-Heftromane je Autor:in');
         $response->assertSee('43 Baxx');
     }
 

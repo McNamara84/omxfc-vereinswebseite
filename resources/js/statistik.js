@@ -86,6 +86,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const hcAuthorValues = window.hardcoverAuthorChartValues ?? [];
     drawAuthorChart('hardcoverAuthorChart', hcAuthorLabels, hcAuthorValues);
 
+    const missionMarsAuthorLabels = window.missionMarsAuthorChartLabels ?? [];
+    const missionMarsAuthorValues = window.missionMarsAuthorChartValues ?? [];
+    drawAuthorChart('missionMarsAuthorChart', missionMarsAuthorLabels, missionMarsAuthorValues);
+
     const cycles = ['euree', 'meeraka', 'expedition', 'kratersee', 'daaMuren', 'wandler', 'mars', 'ausala', 'afra', 'antarktis', 'schatten', 'ursprung', 'streiter', 'archivar', 'zeitsprung', 'fremdwelt', 'parallelwelt', 'weltenriss', 'amraka', 'weltrat', 'missionMars'];
     cycles.forEach((cycle) => {
         const cycleLabels = window[`${cycle}ChartLabels`] ?? [];
