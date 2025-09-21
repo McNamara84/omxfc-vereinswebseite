@@ -37,7 +37,7 @@ describe('todo dashboard utilities', () => {
         const bar = document.querySelector('[data-progress-bar]');
         const fill = document.querySelector('[data-progress-fill]');
 
-        expect(bar?.getAttribute('aria-valuemax')).toBe('10');
+        expect(bar?.getAttribute('aria-valuemax')).toBe('1');
         expect(bar?.getAttribute('aria-valuenow')).toBe('0');
         expect(fill?.style.width).toBe('0%');
     });

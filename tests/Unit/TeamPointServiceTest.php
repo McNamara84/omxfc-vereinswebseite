@@ -137,6 +137,7 @@ class TeamPointServiceTest extends TestCase
         $this->assertSame($user->name, $highlight['name']);
         $this->assertTrue($highlight['is_additional'] ?? false);
         $this->assertSame(5, $highlight['points']);
+        $this->assertSame(4, $highlight['rank']);
     }
 }
 

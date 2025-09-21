@@ -14,7 +14,7 @@ export function initTodoDashboard(root = document) {
         if (Number.isFinite(maxAttribute) && maxAttribute > 0) {
             normalizedMax = maxAttribute;
         } else {
-            const fallbackMax = Math.max(Math.abs(sanitizedValue), normalizedValue, 1);
+            const fallbackMax = Math.max(normalizedValue, 1);
             normalizedMax = fallbackMax;
         }
 

@@ -262,7 +262,7 @@ class TeamPointService
 
             if ($userEntry) {
                 $foundIndex = $totals->search($userEntry);
-                $position = is_int($foundIndex) ? $foundIndex + 1 : null;
+                $position = $foundIndex !== false ? $foundIndex + 1 : null;
             }
 
             $leaderboard[] = [
