@@ -14,7 +14,7 @@ class StatistikController extends Controller
 {
     public function __construct(
         private TeamPointService $teamPointService,
-        private BrowserStatsService $browserStatsService,
+        private BrowserStatsService $browserStatsService
     )
     {
     }

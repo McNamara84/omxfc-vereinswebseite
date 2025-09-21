@@ -193,4 +193,4 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 /* ── optionale Named-Exports (falls du die Funktionen woanders brauchst) */
-export { drawAuthorChart, drawCycleChart, drawPieChart };
+export { drawAuthorChart, drawCycleChart, drawPieChart, generatePalette };

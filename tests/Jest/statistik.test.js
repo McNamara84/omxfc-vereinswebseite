@@ -3,6 +3,7 @@ import { jest } from '@jest/globals';
 describe('statistik module', () => {
   let drawAuthorChart;
   let drawCycleChart;
+  let generatePalette;
   let mockChart;
 
   beforeEach(async () => {
@@ -12,10 +13,16 @@ describe('statistik module', () => {
     mockChart.mockClear();
 
     const mod = await import('../../resources/js/statistik.js');
-    drawAuthorChart = mod.drawAuthorChart;
-    drawCycleChart = mod.drawCycleChart;
+    ({ drawAuthorChart, drawCycleChart, generatePalette } = mod);
 
     HTMLCanvasElement.prototype.getContext = jest.fn(() => ({}));
+  });
+
+  test('generatePalette returns deterministic palette with requested length', () => {
+    expect(generatePalette(0)).toEqual([]);
+    expect(generatePalette(3)).toEqual(['#8B0116', '#FF6B81', '#1E3A8A']);
+    expect(generatePalette(21)).toHaveLength(21);
+    expect(generatePalette(21).slice(0, 19)).toEqual(generatePalette(19));
   });
 
   test('drawAuthorChart renders bar chart with given labels and data', () => {
