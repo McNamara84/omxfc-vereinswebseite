@@ -27,6 +27,84 @@ function drawAuthorChart(canvasId, labels, data) {
     });
 }
 
+function generatePalette(length) {
+    const base = [
+        '#8B0116',
+        '#FF6B81',
+        '#1E3A8A',
+        '#0E7490',
+        '#2F855A',
+        '#CA8A04',
+        '#6B21A8',
+        '#BE123C',
+        '#2563EB',
+        '#F97316',
+        '#0891B2',
+        '#22C55E',
+        '#EAB308',
+        '#A21CAF',
+        '#DC2626',
+        '#0284C7',
+        '#C026D3',
+        '#14B8A6',
+        '#FB923C',
+    ];
+
+    if (length <= base.length) {
+        return base.slice(0, length);
+    }
+
+    const extended = [...base];
+    while (extended.length < length) {
+        extended.push(base[extended.length % base.length]);
+    }
+
+    return extended.slice(0, length);
+}
+
+function drawPieChart(canvasId, labels, data) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas || !labels.length || !data.length) return;
+
+    const colors = generatePalette(labels.length);
+    const total = data.reduce((sum, value) => sum + value, 0) || 1;
+
+    new Chart(canvas.getContext('2d'), {
+        type: 'doughnut',
+        data: {
+            labels,
+            datasets: [
+                {
+                    data,
+                    backgroundColor: colors,
+                    hoverOffset: 8,
+                    borderWidth: 0,
+                },
+            ],
+        },
+        options: {
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        usePointStyle: true,
+                        font: { family: 'Inter, system-ui, sans-serif' },
+                    },
+                },
+                tooltip: {
+                    callbacks: {
+                        label: (context) => {
+                            const value = context.parsed;
+                            const percentage = ((value / total) * 100).toFixed(1);
+                            return `${context.label}: ${value} Mitglieder (${percentage}%)`;
+                        },
+                    },
+                },
+            },
+        },
+    });
+}
+
 /**
  * Rendert ein Liniendiagramm für die Zyklus-Bewertungen,
  * wenn das Canvas existiert.
@@ -100,7 +178,19 @@ document.addEventListener('DOMContentLoaded', () => {
         drawCycleChart('hardcoverChart', hardcoverLabels, hardcoverValues);
     }
 
+    drawPieChart(
+        'browserUsageChart',
+        window.browserUsageLabels ?? [],
+        window.browserUsageValues ?? []
+    );
+
+    drawPieChart(
+        'browserFamilyChart',
+        window.browserFamilyLabels ?? [],
+        window.browserFamilyValues ?? []
+    );
+
 });
 
 /* ── optionale Named-Exports (falls du die Funktionen woanders brauchst) */
-export { drawAuthorChart, drawCycleChart };
+export { drawAuthorChart, drawCycleChart, drawPieChart, generatePalette };

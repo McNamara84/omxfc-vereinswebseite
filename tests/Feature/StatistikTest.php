@@ -8,7 +8,9 @@ use App\Models\ReviewComment;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Str;
 use Tests\TestCase;
 
 class StatistikTest extends TestCase
@@ -217,6 +219,47 @@ class StatistikTest extends TestCase
             return $authors->count() === 10
                 && ! $authors->contains('Author11');
         });
+    }
+
+    public function test_browser_usage_statistics_visible_with_enough_points(): void
+    {
+        $this->createDataFile();
+        $viewer = $this->actingMemberWithPoints(3);
+        $this->actingAs($viewer);
+
+        $otherMember = $this->actingMemberWithPoints(3);
+
+        DB::table('sessions')->insert([
+            'id' => Str::uuid()->toString(),
+            'user_id' => $viewer->id,
+            'ip_address' => '127.0.0.1',
+            'user_agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'payload' => 'test',
+            'last_activity' => now()->timestamp,
+        ]);
+
+        DB::table('sessions')->insert([
+            'id' => Str::uuid()->toString(),
+            'user_id' => $otherMember->id,
+            'ip_address' => '127.0.0.1',
+            'user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15',
+            'payload' => 'test',
+            'last_activity' => now()->timestamp,
+        ]);
+
+        $response = $this->get('/statistik');
+
+        $response->assertOk();
+        $response->assertSee('Browsernutzung unserer Mitglieder');
+        $response->assertSee('Beliebteste Browser');
+        $response->assertSee('Browser-Familien');
+        $response->assertSeeText('Google Chrome');
+        $response->assertSeeText('Safari');
+        $response->assertSeeText('Chromium');
+        $response->assertSeeText('WebKit');
+        $response->assertSee('window.browserUsageLabels', false);
+        $response->assertSee('window.browserFamilyLabels', false);
+        $response->assertDontSee('Noch keine Login-Daten vorhanden.');
     }
 
     public function test_character_table_visible_with_enough_points(): void
