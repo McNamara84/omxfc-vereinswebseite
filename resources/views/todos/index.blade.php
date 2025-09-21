@@ -72,196 +72,138 @@
                         </p>
                     </div>
                 </div>
-                <div class="mt-6 grid gap-6 xl:grid-cols-3" data-todo-dashboard>
-                    <div class="grid gap-6 md:grid-cols-2 xl:grid-cols-3 xl:col-span-2">
-                        <article class="rounded-lg border border-gray-200 dark:border-gray-700 p-5 bg-gray-50 dark:bg-gray-900"
-                                aria-labelledby="weekly-goal-heading">
-                                <div class="flex flex-wrap items-start justify-between gap-4">
-                                    <div>
-                                        <h3 id="weekly-goal-heading"
-                                            class="text-lg font-semibold text-[#8B0116] dark:text-[#FF6B81]">
-                                            Wochenziel
-                                        </h3>
-                                        <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                                            Sammle kontinuierlich Baxx, um dein Wochenziel zu erreichen.
-                                        </p>
-                                    </div>
-                                    <div class="flex flex-col items-end text-right gap-1">
-                                        <span class="text-2xl font-bold leading-none tracking-tight text-gray-900 dark:text-gray-100 sm:text-3xl xl:text-4xl">
-                                            {{ number_format($weeklyTotal, 0, ',', '.') }}
-                                        </span>
-                                        <p class="text-xs text-gray-600 dark:text-gray-400">
-                                            von {{ number_format($weeklyTarget, 0, ',', '.') }} Baxx
-                                        </p>
-                                    </div>
-                                </div>
-                                <div class="mt-4" data-progress-bar data-progress-value="{{ $weeklyTotal }}"
-                                    data-progress-max="{{ max($weeklyTarget, 1) }}"
-                                    data-progress-label="Fortschritt Richtung Wochenziel">
-                                    <div class="h-2 w-full bg-white dark:bg-gray-800 rounded-full overflow-hidden"
-                                        aria-hidden="true">
-                                        <div data-progress-fill
-                                            class="h-full bg-[#8B0116] dark:bg-[#FF6B81]"
-                                            style="width: {{ $weeklyProgress }}%"></div>
-                                    </div>
-                                    <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-                                        {{ number_format($weeklyTotal, 0, ',', '.') }} von {{ number_format($weeklyTarget, 0, ',', '.') }} Baxx gesammelt.
-                                    </p>
-                                </div>
-                            </article>
-                        <article class="rounded-lg border border-gray-200 dark:border-gray-700 p-5 bg-gray-50 dark:bg-gray-900"
-                                aria-labelledby="team-average-heading">
-                                <div class="flex flex-wrap items-start justify-between gap-4">
-                                    <div>
-                                        <h3 id="team-average-heading"
-                                            class="text-lg font-semibold text-[#8B0116] dark:text-[#FF6B81]">
-                                            Vereinsdurchschnitt
-                                        </h3>
-                                        <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                                            Vergleiche deine Punkte mit dem Durchschnitt des Vereins.
-                                        </p>
-                                    </div>
-                                    <div class="flex flex-col items-end text-right gap-1">
-                                        <span class="text-2xl font-bold leading-none tracking-tight text-gray-900 dark:text-gray-100 sm:text-3xl xl:text-4xl">
-                                            {{ number_format($teamAverage, 1, ',', '.') }}
-                                        </span>
-                                        <p class="text-xs text-gray-600 dark:text-gray-400">Ø Vereins-Baxx</p>
-                                    </div>
-                                </div>
-                                <div class="mt-4" data-progress-bar data-progress-value="{{ $userTotalPoints }}"
-                                    data-progress-max="{{ max($teamAverage, 1) }}"
-                                    data-progress-label="Vergleich zum Vereinsdurchschnitt">
-                                    <div class="h-2 w-full bg-white dark:bg-gray-800 rounded-full overflow-hidden"
-                                        aria-hidden="true">
-                                        <div data-progress-fill
-                                            class="h-full bg-[#006D77] dark:bg-[#33BBC5]"
-                                            style="width: {{ $teamAverageProgress }}%"></div>
-                                    </div>
-                                    <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-                                        @if(! is_null($teamAverageRatio))
-                                            Du liegst bei {{ number_format($teamAverageRatio, 1, ',', '.') }} % des
-                                            Vereinsdurchschnitts.
-                                        @else
-                                            Sobald Vereinsmitglieder Punkte gesammelt haben, erscheint hier der Vergleich.
-                                        @endif
-                                    </p>
-                                </div>
-                            </article>
-                        <article class="rounded-lg border border-gray-200 dark:border-gray-700 p-5 bg-gray-50 dark:bg-gray-900"
-                                aria-labelledby="personal-points-heading">
-                                <div class="flex flex-wrap items-start justify-between gap-4">
-                                    <div>
-                                        <h3 id="personal-points-heading"
-                                            class="text-lg font-semibold text-[#8B0116] dark:text-[#FF6B81]">
-                                            Dein Punktestand
-                                        </h3>
-                                        <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                                            Alle gesammelten Baxx deines Vereinskontos.
-                                        </p>
-                                    </div>
-                                    <div class="flex flex-col items-end text-right gap-1">
-                                        <span class="text-2xl font-bold leading-none tracking-tight text-gray-900 dark:text-gray-100 sm:text-3xl xl:text-4xl">
-                                            {{ number_format($userTotalPoints, 0, ',', '.') }}
-                                        </span>
-                                        <p class="text-xs text-gray-600 dark:text-gray-400">gesammelte Baxx</p>
-                                    </div>
-                                </div>
-                                @if($teamAverage > 0)
-                                    <p class="mt-4 text-sm text-gray-600 dark:text-gray-400">
-                                        Du liegst {{ $userTotalPoints >= $teamAverage ? 'über' : 'unter' }} dem Vereinsdurchschnitt
-                                        von {{ number_format($teamAverage, 1, ',', '.') }} Baxx.
-                                    </p>
-                                @else
-                                    <p class="mt-4 text-sm text-gray-600 dark:text-gray-400">
-                                        Sobald Baxx gesammelt wurden, erscheint hier dein Vergleich zum Verein.
-                                    </p>
-                                @endif
-                            </article>
-                        </div>
-                    </div>
-                    <div class="space-y-6">
-                        <article class="rounded-lg border border-gray-200 dark:border-gray-700 p-5 bg-gray-50 dark:bg-gray-900"
-                            aria-labelledby="leaderboard-heading">
-                            <h3 id="leaderboard-heading"
-                                class="text-lg font-semibold text-[#8B0116] dark:text-[#FF6B81]">
-                                Rangliste
-                            </h3>
-                            <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                                So steht dein Verein aktuell da.
-                            </p>
-                            <ol class="mt-4 space-y-3" role="list">
-                                @forelse($dashboard['leaderboard'] as $entry)
-                                    <li
-                                        class="flex items-center justify-between gap-3 rounded-md px-3 py-2 @if($entry['is_current_user']) bg-[#8B0116] text-white dark:bg-[#FF6B81] dark:text-gray-900 @else bg-white text-gray-800 dark:bg-gray-800 dark:text-gray-100 @endif border border-gray-200 dark:border-gray-700">
-                                        <div class="flex items-center gap-3">
-                                            <span class="text-sm font-semibold @if($entry['is_current_user']) text-white dark:text-gray-900 @else text-gray-600 dark:text-gray-400 @endif">
-                                                {{ $entry['rank'] ? '#' . $entry['rank'] : '–' }}
-                                            </span>
-                                            <span class="text-sm font-semibold">{{ $entry['name'] }}</span>
-                                        </div>
-                                        <span class="text-sm font-semibold">{{ number_format($entry['points'], 0, ',', '.') }} Baxx</span>
-                                    </li>
-                                @empty
-                                    <li class="text-sm text-gray-600 dark:text-gray-400">
-                                        Sobald Punkte gesammelt wurden, erscheint hier die Rangliste.
-                                    </li>
-                                @endforelse
-                            </ol>
-                        </article>
-                        <article class="rounded-lg border border-gray-200 dark:border-gray-700 p-5 bg-gray-50 dark:bg-gray-900"
-                            aria-labelledby="goal-heading">
-                            <h3 id="goal-heading"
-                                class="text-lg font-semibold text-[#8B0116] dark:text-[#FF6B81]">
-                                Dein nächstes Ziel
-                            </h3>
-                            <div class="mt-2 text-sm text-gray-600 dark:text-gray-400 space-y-3">
-                                @if(is_null($userRank))
-                                    <p>Du hast noch keine Baxx gesammelt. Starte jetzt eine Challenge und sichere dir einen Platz
-                                        in der Rangliste.</p>
-                                @else
-                                    <p>Aktuelle Platzierung: <span class="font-semibold text-gray-900 dark:text-gray-100">#{{ $userRank }}</span>
-                                    </p>
-                                    @if(! is_null($pointsToNext) && $userRank > 1)
-                                        <p>Es fehlen dir
-                                            <span class="font-semibold text-gray-900 dark:text-gray-100">{{ number_format($pointsToNext, 0, ',', '.') }} Baxx</span>
-                                            zu Platz #{{ $userRank - 1 }}.</p>
-                                        @php
-                                            $targetForNextRank = max($userTotalPoints + $pointsToNext, 1);
-                                        @endphp
-                                        <div class="pt-1" data-progress-bar
-                                            data-progress-value="{{ $userTotalPoints }}"
-                                            data-progress-max="{{ $targetForNextRank }}"
-                                            data-progress-label="Fortschritt zum nächsten Rang">
-                                            <div class="h-2 w-full bg-white dark:bg-gray-800 rounded-full overflow-hidden"
-                                                aria-hidden="true">
-                                                <div data-progress-fill
-                                                    class="h-full bg-[#F4A261] dark:bg-[#FFB86C]"
-                                                    style="width: {{ $targetForNextRank > 0 ? min(100, round(($userTotalPoints / $targetForNextRank) * 100)) : 0 }}%"></div>
-                                            </div>
-                                            <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-                                                Ziel: {{ number_format($targetForNextRank, 0, ',', '.') }} Baxx (Platz #{{ $userRank - 1 }})
-                                            </p>
-                                        </div>
-                                    @else
-                                        <p>Starke Leistung! Du führst die Rangliste aktuell an.</p>
-                                        <div class="pt-1" data-progress-bar data-progress-value="{{ $userTotalPoints }}"
-                                            data-progress-max="{{ max($weeklyTarget, 1) }}"
-                                            data-progress-label="Stabilisiere deine Führung">
-                                            <div class="h-2 w-full bg-white dark:bg-gray-800 rounded-full overflow-hidden"
-                                                aria-hidden="true">
-                                                <div data-progress-fill
-                                                    class="h-full bg-[#2A9D8F] dark:bg-[#2DD4BF]"
-                                                    style="width: {{ $weeklyProgress }}%"></div>
-                                            </div>
-                                            <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-                                                Halte dein Wochenziel von {{ number_format($weeklyTarget, 0, ',', '.') }} Baxx, um vorne zu bleiben.
-                                            </p>
-                                        </div>
-                                    @endif
-                                @endif
+                <div class="mt-6 grid gap-6 md:grid-cols-2 xl:grid-cols-4" data-todo-dashboard>
+                    <article class="rounded-lg border border-gray-200 dark:border-gray-700 p-5 bg-gray-50 dark:bg-gray-900 md:col-span-2 xl:col-span-1"
+                        aria-labelledby="weekly-goal-heading">
+                        <div class="flex flex-wrap items-start justify-between gap-4">
+                            <div>
+                                <h3 id="weekly-goal-heading"
+                                    class="text-lg font-semibold text-[#8B0116] dark:text-[#FF6B81]">
+                                    Wochenziel
+                                </h3>
+                                <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                                    Sammle kontinuierlich Baxx, um dein Wochenziel zu erreichen.
+                                </p>
                             </div>
-                        </article>
-                    </div>
+                            <div class="flex flex-col items-end text-right gap-1">
+                                <span class="text-2xl font-bold leading-none tracking-tight text-gray-900 dark:text-gray-100 sm:text-3xl xl:text-4xl">
+                                    {{ number_format($weeklyTotal, 0, ',', '.') }}
+                                </span>
+                                <p class="text-xs text-gray-600 dark:text-gray-400">
+                                    von {{ number_format($weeklyTarget, 0, ',', '.') }} Baxx
+                                </p>
+                            </div>
+                        </div>
+                        <div class="mt-4" data-progress-bar data-progress-value="{{ $weeklyTotal }}"
+                            data-progress-max="{{ max($weeklyTarget, 1) }}"
+                            data-progress-label="Fortschritt Richtung Wochenziel">
+                            <div class="h-2 w-full bg-white dark:bg-gray-800 rounded-full overflow-hidden"
+                                aria-hidden="true">
+                                <div data-progress-fill
+                                    class="h-full bg-[#8B0116] dark:bg-[#FF6B81]"
+                                    style="width: {{ $weeklyProgress }}%"></div>
+                            </div>
+                            <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                                {{ number_format($weeklyTotal, 0, ',', '.') }} von {{ number_format($weeklyTarget, 0, ',', '.') }} Baxx gesammelt.
+                            </p>
+                        </div>
+                    </article>
+                    <article class="rounded-lg border border-gray-200 dark:border-gray-700 p-5 bg-gray-50 dark:bg-gray-900"
+                        aria-labelledby="team-average-heading">
+                        <div class="flex flex-wrap items-start justify-between gap-4">
+                            <div>
+                                <h3 id="team-average-heading"
+                                    class="text-lg font-semibold text-[#8B0116] dark:text-[#FF6B81]">
+                                    Vereinsdurchschnitt
+                                </h3>
+                                <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                                    Vergleiche deine Punkte mit dem Durchschnitt des Vereins.
+                                </p>
+                            </div>
+                            <div class="flex flex-col items-end text-right gap-1">
+                                <span class="text-2xl font-bold leading-none tracking-tight text-gray-900 dark:text-gray-100 sm:text-3xl xl:text-4xl">
+                                    {{ number_format($teamAverage, 1, ',', '.') }}
+                                </span>
+                                <p class="text-xs text-gray-600 dark:text-gray-400">Ø Vereins-Baxx</p>
+                            </div>
+                        </div>
+                        <div class="mt-4" data-progress-bar data-progress-value="{{ $userTotalPoints }}"
+                            data-progress-max="{{ max($teamAverage, 1) }}"
+                            data-progress-label="Vergleich zum Vereinsdurchschnitt">
+                            <div class="h-2 w-full bg-white dark:bg-gray-800 rounded-full overflow-hidden"
+                                aria-hidden="true">
+                                <div data-progress-fill
+                                    class="h-full bg-[#006D77] dark:bg-[#33BBC5]"
+                                    style="width: {{ $teamAverageProgress }}%"></div>
+                            </div>
+                            <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                                @if(! is_null($teamAverageRatio))
+                                    Du liegst bei {{ number_format($teamAverageRatio, 1, ',', '.') }} % des
+                                    Vereinsdurchschnitts.
+                                @else
+                                    Sobald Vereinsmitglieder Punkte gesammelt haben, erscheint hier der Vergleich.
+                                @endif
+                            </p>
+                        </div>
+                    </article>
+                    <article class="rounded-lg border border-gray-200 dark:border-gray-700 p-5 bg-gray-50 dark:bg-gray-900"
+                        aria-labelledby="personal-points-heading">
+                        <div class="flex flex-wrap items-start justify-between gap-4">
+                            <div>
+                                <h3 id="personal-points-heading"
+                                    class="text-lg font-semibold text-[#8B0116] dark:text-[#FF6B81]">
+                                    Dein Punktestand
+                                </h3>
+                                <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                                    Alle gesammelten Baxx deines Vereinskontos.
+                                </p>
+                            </div>
+                            <div class="flex flex-col items-end text-right gap-1">
+                                <span class="text-2xl font-bold leading-none tracking-tight text-gray-900 dark:text-gray-100 sm:text-3xl xl:text-4xl">
+                                    {{ number_format($userTotalPoints, 0, ',', '.') }}
+                                </span>
+                                <p class="text-xs text-gray-600 dark:text-gray-400">gesammelte Baxx</p>
+                            </div>
+                        </div>
+                        @if($teamAverage > 0)
+                            <p class="mt-4 text-sm text-gray-600 dark:text-gray-400">
+                                Du liegst {{ $userTotalPoints >= $teamAverage ? 'über' : 'unter' }} dem Vereinsdurchschnitt
+                                von {{ number_format($teamAverage, 1, ',', '.') }} Baxx.
+                            </p>
+                        @else
+                            <p class="mt-4 text-sm text-gray-600 dark:text-gray-400">
+                                Sobald Baxx gesammelt wurden, erscheint hier dein Vergleich zum Verein.
+                            </p>
+                        @endif
+                    </article>
+                    <article class="rounded-lg border border-gray-200 dark:border-gray-700 p-5 bg-gray-50 dark:bg-gray-900 md:col-span-2 xl:col-span-1"
+                        aria-labelledby="leaderboard-heading">
+                        <h3 id="leaderboard-heading"
+                            class="text-lg font-semibold text-[#8B0116] dark:text-[#FF6B81]">
+                            Rangliste
+                        </h3>
+                        <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                            So steht dein Verein aktuell da.
+                        </p>
+                        <ol class="mt-4 space-y-3" role="list">
+                            @forelse($dashboard['leaderboard'] as $entry)
+                                <li
+                                    class="flex items-center justify-between gap-3 rounded-md px-3 py-2 @if($entry['is_current_user']) bg-[#8B0116] text-white dark:bg-[#FF6B81] dark:text-gray-900 @else bg-white text-gray-800 dark:bg-gray-800 dark:text-gray-100 @endif border border-gray-200 dark:border-gray-700">
+                                    <div class="flex items-center gap-3">
+                                        <span class="text-sm font-semibold @if($entry['is_current_user']) text-white dark:text-gray-900 @else text-gray-600 dark:text-gray-400 @endif">
+                                            {{ $entry['rank'] ? '#' . $entry['rank'] : '–' }}
+                                        </span>
+                                        <span class="text-sm font-semibold">{{ $entry['name'] }}</span>
+                                    </div>
+                                    <span class="text-sm font-semibold">{{ number_format($entry['points'], 0, ',', '.') }} Baxx</span>
+                                </li>
+                            @empty
+                                <li class="text-sm text-gray-600 dark:text-gray-400">
+                                    Sobald Punkte gesammelt wurden, erscheint hier die Rangliste.
+                                </li>
+                            @endforelse
+                        </ol>
+                    </article>
                 </div>
             </section>
             <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6" data-todo-filter-wrapper>

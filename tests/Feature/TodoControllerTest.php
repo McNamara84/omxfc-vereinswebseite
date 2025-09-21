@@ -163,6 +163,20 @@ class TodoControllerTest extends TestCase
         $response->assertDontSeeText('Aktivität der letzten 7 Tage');
     }
 
+    public function test_dashboard_displays_leaderboard_without_goal_card(): void
+    {
+        $user = $this->actingMember();
+        $this->actingAs($user);
+
+        $response = $this->get('/aufgaben');
+
+        $response->assertOk();
+        $response->assertDontSeeText('Dein nächstes Ziel');
+        $response->assertSeeInOrder(['Dein Punktestand', 'Rangliste']);
+        $response->assertSee('data-todo-dashboard', false);
+        $response->assertSee('xl:grid-cols-4', false);
+    }
+
     public function test_assigned_user_can_release_todo(): void
     {
         $user = $this->actingMember();
