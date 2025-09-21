@@ -94,6 +94,25 @@ class StatistikTest extends TestCase
         file_put_contents($path, json_encode($data));
     }
 
+    private function createMissionMarsFile(): void
+    {
+        $data = [];
+        for ($i = 1; $i <= 12; $i++) {
+            $data[] = [
+                'nummer' => $i,
+                'titel' => 'Mission Mars '.$i,
+                'bewertung' => 3.5 + ($i * 0.05),
+            ];
+        }
+
+        $path = storage_path('app/private/missionmars.json');
+        if (! is_dir(dirname($path))) {
+            mkdir(dirname($path), 0777, true);
+        }
+
+        file_put_contents($path, json_encode($data));
+    }
+
     private function createTeamplayerDataFile(): void
     {
         $data = [];
@@ -734,6 +753,33 @@ class StatistikTest extends TestCase
         $response->assertOk();
         $response->assertSee('TOP20 Maddrax-Themen');
         $response->assertDontSee('LowVotesTheme');
+    }
+
+    public function test_mission_mars_chart_visible_with_enough_points(): void
+    {
+        $this->createDataFile();
+        $this->createMissionMarsFile();
+        $user = $this->actingMemberWithPoints(43);
+        $this->actingAs($user);
+
+        $response = $this->get('/statistiken');
+
+        $response->assertOk();
+        $response->assertSee('Bewertungen der Mission Mars-Heftromane');
+    }
+
+    public function test_mission_mars_chart_locked_below_threshold(): void
+    {
+        $this->createDataFile();
+        $this->createMissionMarsFile();
+        $user = $this->actingMemberWithPoints(42);
+        $this->actingAs($user);
+
+        $response = $this->get('/statistiken');
+
+        $response->assertOk();
+        $response->assertSee('Bewertungen der Mission Mars-Heftromane');
+        $response->assertSee('43 Baxx');
     }
 
     public function test_top_themes_require_minimum_book_count(): void

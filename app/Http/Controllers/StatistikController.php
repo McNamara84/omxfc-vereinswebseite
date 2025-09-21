@@ -42,6 +42,12 @@ class StatistikController extends Controller
             $hardcovers = collect(json_decode(file_get_contents($hardcoverPath), true));
         }
 
+        $missionMarsPath = storage_path('app/private/missionmars.json');
+        $missionMarsNovels = collect();
+        if (is_readable($missionMarsPath)) {
+            $missionMarsNovels = collect(json_decode(file_get_contents($missionMarsPath), true));
+        }
+
         // ── Card 1 – Grundstatistiken ──────────────────────────────────────────────
         $averageRating = round($romane->avg('bewertung'), 2);
         $totalVotes = $romane->sum('stimmen');
@@ -325,6 +331,11 @@ class StatistikController extends Controller
         $hardcoverLabels = $hardcoverCycle->pluck('nummer');
         $hardcoverValues = $hardcoverCycle->pluck('bewertung');
 
+        // ── Card 31 – Bewertungen der Mission Mars-Heftromane ──────────────
+        $missionMarsCycle = $missionMarsNovels->sortBy('nummer')->take(12);
+        $missionMarsLabels = $missionMarsCycle->pluck('nummer');
+        $missionMarsValues = $missionMarsCycle->pluck('bewertung');
+
         // ── Card 7 – Rezensionen unserer Mitglieder ───────────────────────────
         $totalReviews = 0;
         $averageReviewsPerBook = 0;
@@ -453,6 +464,8 @@ class StatistikController extends Controller
             'weltratValues' => $weltratValues,
             'hardcoverLabels' => $hardcoverLabels,
             'hardcoverValues' => $hardcoverValues,
+            'missionMarsLabels' => $missionMarsLabels,
+            'missionMarsValues' => $missionMarsValues,
             'hardcoverAuthorCounts' => $hardcoverAuthorCounts,
             'topFavoriteThemes' => $topFavoriteThemes,
             'totalReviews' => $totalReviews,

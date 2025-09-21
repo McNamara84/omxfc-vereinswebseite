@@ -702,7 +702,26 @@
                 @endif
             </div>
 
-            {{-- Card 31 – TOP10 Lieblingsthemen (≥ 50 Baxx) --}}
+            {{-- Card 31 – Bewertungen der Mission Mars-Heftromane (≥ 43 Baxx) --}}
+                @php($min = 43)
+                <div data-min-points="{{ $min }}" class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
+                    <h2 id="missionMarsChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                        Bewertungen der Mission Mars-Heftromane
+                    </h2>
+                    <div data-chart-wrapper class="mt-4">
+                        <canvas id="missionMarsChart" height="140" role="img" aria-labelledby="missionMarsChartTitle"></canvas>
+                    </div>
+                    @if($userPoints < $min)
+                        @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
+                    @endif
+                </div>
+
+                <script>
+                    window.missionMarsChartLabels = @json($missionMarsLabels);
+                    window.missionMarsChartValues = @json($missionMarsValues);
+                </script>
+
+            {{-- Card 32 – TOP10 Lieblingsthemen (≥ 50 Baxx) --}}
                 @php($min = 50)
                 <div data-min-points="{{ $min }}" class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
                     <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
