@@ -34,6 +34,8 @@ class TodoPlaywrightSeeder extends Seeder
                     'plz' => '12345',
                     'stadt' => 'Musterstadt',
                     'land' => 'Deutschland',
+                    'lat' => 48.137154,
+                    'lon' => 11.576124,
                     'telefon' => '0123456789',
                     'verein_gefunden' => 'Sonstiges',
                     'mitgliedsbeitrag' => 36.00,
@@ -54,6 +56,13 @@ class TodoPlaywrightSeeder extends Seeder
             ])->save();
         } else {
             $admin = User::firstWhere('email', 'info@maddraxikon.com');
+
+            if ($admin) {
+                $admin->forceFill([
+                    'lat' => 48.137154,
+                    'lon' => 11.576124,
+                ])->save();
+            }
         }
 
         if (! $admin) {
@@ -70,6 +79,8 @@ class TodoPlaywrightSeeder extends Seeder
                     'plz' => '12345',
                     'stadt' => 'Musterstadt',
                     'land' => 'Deutschland',
+                    'lat' => 48.137154,
+                    'lon' => 11.576124,
                     'telefon' => '0123456789',
                     'verein_gefunden' => 'Sonstiges',
                     'mitgliedsbeitrag' => 36.00,
@@ -94,6 +105,11 @@ class TodoPlaywrightSeeder extends Seeder
             'name' => 'Playwright Mitglied',
             'email' => 'playwright-member@example.com',
             'current_team_id' => $team->id,
+            'plz' => '50765',
+            'stadt' => 'Köln',
+            'land' => 'Deutschland',
+            'lat' => 50.9767,
+            'lon' => 6.8868,
         ]);
 
         $team->users()->attach($member, ['role' => 'Mitglied']);

@@ -45,6 +45,8 @@ class DashboardSampleSeeder extends Seeder
                     'plz' => '12345',
                     'stadt' => 'Musterstadt',
                     'land' => 'Deutschland',
+                    'lat' => 48.137154,
+                    'lon' => 11.576124,
                     'telefon' => '0123456789',
                     'verein_gefunden' => 'Sonstiges',
                     'mitgliedsbeitrag' => 36.00,
@@ -54,6 +56,11 @@ class DashboardSampleSeeder extends Seeder
             });
 
             $team->users()->attach($admin, ['role' => Role::Admin->value]);
+        } else {
+            $admin->forceFill([
+                'lat' => 48.137154,
+                'lon' => 11.576124,
+            ])->save();
         }
 
         if ($admin->current_team_id !== $team->id) {
@@ -61,9 +68,33 @@ class DashboardSampleSeeder extends Seeder
         }
 
         $members = collect([
-            ['name' => 'Alex Beispiel', 'email' => 'alex.beispiel@example.com', 'points' => 180],
-            ['name' => 'Bianca Beispiel', 'email' => 'bianca.beispiel@example.com', 'points' => 140],
-            ['name' => 'Chris Beispiel', 'email' => 'chris.beispiel@example.com', 'points' => 95],
+            [
+                'name' => 'Alex Beispiel',
+                'email' => 'alex.beispiel@example.com',
+                'points' => 180,
+                'plz' => '20095',
+                'stadt' => 'Hamburg',
+                'lat' => 53.551086,
+                'lon' => 9.993682,
+            ],
+            [
+                'name' => 'Bianca Beispiel',
+                'email' => 'bianca.beispiel@example.com',
+                'points' => 140,
+                'plz' => '50667',
+                'stadt' => 'Köln',
+                'lat' => 50.941278,
+                'lon' => 6.958281,
+            ],
+            [
+                'name' => 'Chris Beispiel',
+                'email' => 'chris.beispiel@example.com',
+                'points' => 95,
+                'plz' => '01067',
+                'stadt' => 'Dresden',
+                'lat' => 51.050407,
+                'lon' => 13.737262,
+            ],
         ])->map(function (array $attributes) use ($team) {
             $user = User::firstOrCreate(
                 ['email' => $attributes['email']],
@@ -75,16 +106,22 @@ class DashboardSampleSeeder extends Seeder
                     'nachname' => Arr::get(explode(' ', $attributes['name']), 1, 'Nachname'),
                     'strasse' => 'Musterstraße',
                     'hausnummer' => '1',
-                    'plz' => '12345',
-                    'stadt' => 'Musterstadt',
+                    'plz' => $attributes['plz'],
+                    'stadt' => $attributes['stadt'],
                     'land' => 'Deutschland',
+                    'lat' => $attributes['lat'],
+                    'lon' => $attributes['lon'],
                     'telefon' => '0123456789',
                     'verein_gefunden' => 'Sonstiges',
                     'mitgliedsbeitrag' => 36.00,
                 ]
             );
 
-            $user->forceFill(['current_team_id' => $team->id])->save();
+            $user->forceFill([
+                'current_team_id' => $team->id,
+                'lat' => $attributes['lat'],
+                'lon' => $attributes['lon'],
+            ])->save();
 
             $team->users()->syncWithoutDetaching([$user->id => ['role' => Role::Mitglied->value]]);
 

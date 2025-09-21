@@ -114,4 +114,40 @@ class MitgliederKarteFeatureTest extends TestCase
         $cacheKey = "member_map_data_team_{$team->id}";
         $this->assertTrue(Cache::has($cacheKey));
     }
+
+    public function test_map_view_contains_accessibility_attributes_and_data(): void
+    {
+        Cache::flush();
+        Http::swap(new \Illuminate\Http\Client\Factory());
+        Http::fake([
+            'nominatim.openstreetmap.org/*' => Http::response([['lat' => self::DEFAULT_LAT, 'lon' => self::DEFAULT_LON]], 200),
+        ]);
+
+        $user = $this->actingMember('Mitglied', [
+            'plz' => '12345',
+            'land' => 'Deutschland',
+            'stadt' => 'Musterstadt',
+        ]);
+        $user->incrementTeamPoints();
+        $this->actingAs($user);
+
+        $response = $this->get('/mitglieder/karte');
+
+        $response->assertOk();
+        $response->assertViewIs('mitglieder.karte');
+        $response->assertSee('data-member-map', false);
+        $response->assertSee('aria-label="Mitgliederkarte"', false);
+
+        $memberData = json_decode($response->viewData('memberData'), true);
+
+        $this->assertIsArray($memberData);
+        $this->assertNotEmpty($memberData);
+        $this->assertContains('Musterstadt', array_column($memberData, 'city'));
+        $this->assertContains(route('profile.view', $user->id), array_column($memberData, 'profile_url'));
+
+        $stammtischData = json_decode($response->viewData('stammtischData'), true);
+        $this->assertIsArray($stammtischData);
+        $this->assertCount(3, $stammtischData);
+        $this->assertSame('Regionalstammtisch München', $stammtischData[0]['name']);
+    }
 }
