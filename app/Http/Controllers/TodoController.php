@@ -76,6 +76,7 @@ class TodoController extends Controller
             'memberTeam' => $memberTeam,
             'userRole' => $userRole,
             'filter' => $filter,
+            'activeFilter' => $filter === 'pending' ? 'pending' : 'all',
         ]);
     }
 

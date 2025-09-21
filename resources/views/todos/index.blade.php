@@ -1,17 +1,20 @@
 <x-app-layout>
     <x-member-page>
             @if(session('status'))
-                <div
+                <div role="status" aria-live="polite"
                     class="mb-4 p-4 bg-green-100 dark:bg-green-900 border border-green-400 dark:border-green-600 text-green-800 dark:text-green-200 rounded">
                     {{ session('status') }}
                 </div>
             @endif
             @if(session('error'))
-                <div
+                <div role="alert"
                     class="mb-4 p-4 bg-red-100 dark:bg-red-900 border border-red-400 dark:border-red-600 text-red-800 dark:text-red-200 rounded">
                     {{ session('error') }}
                 </div>
             @endif
+            @php
+                $currentFilter = $activeFilter ?? 'all';
+            @endphp
             <!-- Kopfzeile mit Baxx und Aktionen -->
             <div
                 class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -35,9 +38,52 @@
                     </div>
                 @endif
             </div>
+            <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6" data-todo-filter-wrapper>
+                <form method="GET" action="{{ route('todos.index') }}" data-todo-filter-form
+                    data-current-filter="{{ $currentFilter }}">
+                    <fieldset>
+                        <legend class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+                            Challenges filtern
+                        </legend>
+                        <div class="flex flex-wrap gap-2" role="group" aria-label="Challenges filtern">
+                            <button type="submit" name="filter" value="" data-todo-filter data-filter="all"
+                                data-active="{{ $currentFilter === 'all' ? 'true' : 'false' }}"
+                                class="px-4 py-2 rounded-md border border-[#8B0116] text-[#8B0116] dark:text-[#FF6B81] dark:border-[#FF6B81] font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#8B0116] dark:focus-visible:outline-[#FF6B81] data-[active=true]:bg-[#8B0116] data-[active=true]:text-white dark:data-[active=true]:bg-[#FF6B81] dark:data-[active=true]:text-gray-900">
+                                Alle
+                            </button>
+                            <button type="button" data-todo-filter data-filter="assigned" data-active="false"
+                                class="px-4 py-2 rounded-md border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#8B0116] dark:focus-visible:outline-[#FF6B81] data-[active=true]:bg-[#8B0116] data-[active=true]:text-white dark:data-[active=true]:bg-[#FF6B81] dark:data-[active=true]:text-gray-900">
+                                Eigene Challenges
+                            </button>
+                            <button type="button" data-todo-filter data-filter="open" data-active="false"
+                                class="px-4 py-2 rounded-md border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#8B0116] dark:focus-visible:outline-[#FF6B81] data-[active=true]:bg-[#8B0116] data-[active=true]:text-white dark:data-[active=true]:bg-[#FF6B81] dark:data-[active=true]:text-gray-900">
+                                Offene Challenges
+                            </button>
+                            @if($canVerifyTodos)
+                                <button type="submit" name="filter" value="pending" data-todo-filter data-filter="pending"
+                                    data-active="{{ $currentFilter === 'pending' ? 'true' : 'false' }}"
+                                    class="px-4 py-2 rounded-md border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#8B0116] dark:focus-visible:outline-[#FF6B81] data-[active=true]:bg-[#8B0116] data-[active=true]:text-white dark:data-[active=true]:bg-[#FF6B81] dark:data-[active=true]:text-gray-900">
+                                    Zu verifizieren
+                                </button>
+                            @endif
+                        </div>
+                        <p id="todo-filter-status" data-todo-filter-status role="status" aria-live="polite"
+                            class="mt-3 text-sm text-gray-600 dark:text-gray-400">
+                            {{ $currentFilter === 'pending' ? 'Zeigt Challenges, die auf eine Verifizierung warten.' : 'Zeigt alle verfügbaren Challenges.' }}
+                        </p>
+                        <noscript>
+                            <p class="mt-3 text-xs text-gray-500 dark:text-gray-400">
+                                Für weitere Filteroptionen aktiviere JavaScript in deinem Browser.
+                            </p>
+                        </noscript>
+                    </fieldset>
+                </form>
+            </div>
             <!-- Deine Challenges -->
-            <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
-                <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4">Deine Challenges</h2>
+            <section data-todo-section="assigned" aria-labelledby="todo-assigned-heading"
+                class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
+                <h2 id="todo-assigned-heading"
+                    class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4">Deine Challenges</h2>
                 @if($assignedTodos->isEmpty())
                     <p class="text-gray-600 dark:text-gray-400">Du hast aktuell keine übernommenen Challenges.</p>
                 @else
@@ -148,10 +194,12 @@
                         @endforeach
                     </div>
                 @endif
-            </div>
+            </section>
             <!-- Offene Challenges -->
-            <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
-                <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4">Offene Challenges</h2>
+            <section data-todo-section="open" aria-labelledby="todo-open-heading"
+                class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
+                <h2 id="todo-open-heading"
+                    class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4">Offene Challenges</h2>
                 @if($unassignedTodos->isEmpty())
                     <p class="text-gray-600 dark:text-gray-400">Es sind aktuell keine offenen Challenges verfügbar.</p>
                 @else
@@ -234,11 +282,13 @@
                         @endforeach
                     </div>
                 @endif
-            </div>
+            </section>
             <!-- Erledigte Challenges (nur wenn Verifizierungsrechte vorhanden) -->
             @if($canVerifyTodos && $completedTodos->where('status', 'completed')->isNotEmpty())
-                <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
-                    <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4">Zu verifizierende Challenges
+                <section data-todo-section="pending" aria-labelledby="todo-pending-heading"
+                    class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
+                    <h2 id="todo-pending-heading"
+                        class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4">Zu verifizierende Challenges
                     </h2>
                     <!-- Desktop-Ansicht (versteckt auf Mobilgeräten) -->
                     <div class="hidden md:block">
@@ -321,7 +371,7 @@
                             </div>
                         @endforeach
                     </div>
-                </div>
+                </section>
             @endif
 
             <!-- In Bearbeitung befindliche Challenges - Nur anzeigen, wenn es welche gibt -->
@@ -329,8 +379,10 @@
                 $inProgressTodos = $todos->where('status', 'assigned')->where('assigned_to', '!=', Auth::id());
             @endphp
             @if($inProgressTodos->isNotEmpty())
-                <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
-                    <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4">In Bearbeitung befindliche Challenges</h2>
+                <section data-todo-section="in-progress" aria-labelledby="todo-progress-heading"
+                    class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
+                    <h2 id="todo-progress-heading"
+                        class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4">In Bearbeitung befindliche Challenges</h2>
                     <!-- Desktop-Ansicht (versteckt auf Mobilgeräten) -->
                     <div class="hidden md:block">
                         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
@@ -395,7 +447,7 @@
                             </div>
                         @endforeach
                     </div>
-                </div>
+                </section>
             @endif
     </x-member-page>
 </x-app-layout>
