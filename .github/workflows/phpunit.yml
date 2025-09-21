@@ -65,6 +65,8 @@ jobs:
         run: |
           mkdir -p database
           touch database/database.sqlite
+      - name: Setup Node.js and build assets
+        uses: ./.github/actions/build-assets
       - name: Execute tests with coverage
         env:
           DB_CONNECTION: sqlite
