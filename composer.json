@@ -10,6 +10,20 @@
         "fanclub",
         "omxfc"
     ],
+    "homepage": "https://maddrax-fanclub.de",
+    "authors": [
+        {
+            "name": "Holger Ehrmann",
+            "role": "Developer",
+            "email": "info@maddraxikon.com",
+            "homepage": "https://maddrax-fanclub.de"
+        }
+    ],
+    "support": {
+        "email": "info@maddraxikon.com",
+        "issues": "https://github.com/McNamara84/omxfc-vereinswebseite/issues",
+        "source": "https://github.com/McNamara84/omxfc-vereinswebseite"
+    },
     "license": "GPL-3.0-or-later",
     "require": {
         "php": "^8.2",
