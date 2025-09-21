@@ -1,7 +1,7 @@
 # OMFXC Vereinswebseite
 
 ![Laravel 12](https://img.shields.io/badge/laravel-12-red?logo=laravel&style=flat)
-![PHP 8](https://img.shields.io/badge/php-%5E8-blue?logo=php)
+![PHP 8](https://img.shields.io/badge/php-8-blue?logo=php)
 [![Build & Deploy](https://github.com/mcnamara84/omxfc-vereinswebseite/actions/workflows/deploy.yml/badge.svg?branch=main)](https://github.com/mcnamara84/omxfc-vereinswebseite/actions/workflows/deploy.yml)
 ![JS Coverage](https://raw.githubusercontent.com/McNamara84/omxfc-vereinswebseite/image-data/js-coverage.svg)
 ![PHP Coverage](https://raw.githubusercontent.com/McNamara84/omxfc-vereinswebseite/image-data/php-coverage.svg)
