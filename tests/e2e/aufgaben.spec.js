@@ -13,6 +13,16 @@ test('admin can filter and accept challenges', async ({ page }) => {
     await expect(page.getByRole('heading', { name: 'Deine Challenges' })).toBeVisible();
     await expect(page.locator('[data-todo-filter-status]')).toHaveText(/alle verfügbaren Challenges/i);
 
+    const filterToggle = page.getByRole('button', { name: /Filter (anzeigen|verbergen)/i });
+    const filterPanel = page.locator('#todo-filter-panel');
+
+    if ((await filterToggle.getAttribute('aria-expanded')) !== 'true') {
+        await filterToggle.click();
+    }
+
+    await expect(filterToggle).toHaveAttribute('aria-expanded', 'true');
+    await expect(filterPanel).toBeVisible();
+
     const verifyButton = page.getByRole('button', { name: 'Zu verifizieren', exact: true });
     await expect(verifyButton).toBeVisible();
 
@@ -41,6 +51,16 @@ test('member can focus on own challenges and release one', async ({ page }) => {
     await page.waitForURL(url => !url.pathname.endsWith('/login'));
 
     await page.goto('/aufgaben');
+
+    const filterToggle = page.getByRole('button', { name: /Filter (anzeigen|verbergen)/i });
+    const filterPanel = page.locator('#todo-filter-panel');
+
+    if ((await filterToggle.getAttribute('aria-expanded')) !== 'true') {
+        await filterToggle.click();
+    }
+
+    await expect(filterToggle).toHaveAttribute('aria-expanded', 'true');
+    await expect(filterPanel).toBeVisible();
 
     const ownButton = page.getByRole('button', { name: 'Eigene Challenges', exact: true });
     await ownButton.click();
