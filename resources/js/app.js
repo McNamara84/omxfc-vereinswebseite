@@ -88,3 +88,4 @@ import './mitglieder/accessibility';
 import './mitglieder/map-utils';
 import './protokolle/accordion';
 import './kassenbuch/modals';
+import './reviews/accordion';

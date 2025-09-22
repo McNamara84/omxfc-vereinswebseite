@@ -195,6 +195,22 @@ class RezensionControllerTest extends TestCase
         }
     }
 
+    public function test_index_returns_server_error_when_maddrax_file_missing(): void
+    {
+        $user = $this->actingMember();
+        $this->actingAs($user);
+
+        $path = storage_path('app/private/maddrax.json');
+        $backup = file_get_contents($path);
+
+        try {
+            unlink($path);
+            $this->get('/rezensionen')->assertStatus(500);
+        } finally {
+            file_put_contents($path, $backup);
+        }
+    }
+
     public function test_show_redirects_when_user_has_no_permission(): void
     {
         $user = $this->actingMember();

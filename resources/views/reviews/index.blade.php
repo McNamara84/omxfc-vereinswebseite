@@ -11,13 +11,25 @@
                 $filtersApplied = request()->filled('roman_number') || request()->filled('title') || request()->filled('author') || request()->filled('review_status');
             @endphp
             <div x-data="{ open: @js($filtersApplied) }" class="mb-6">
-                <button type="button" @click="open = !open" class="w-full flex justify-between items-center bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-4">
+                <button
+                    type="button"
+                    @click="open = !open"
+                    class="w-full flex justify-between items-center bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-4"
+                    :aria-expanded="open"
+                    aria-controls="reviews-filter-panel"
+                >
                     <span class="font-semibold text-gray-700 dark:text-gray-300" x-text="open ? 'Filter ausblenden' : 'Filter anzeigen'"></span>
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transform transition-transform" :class="{ 'rotate-180': open }" viewBox="0 0 20 20" fill="currentColor">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transform transition-transform" :class="{ 'rotate-180': open }" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                         <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.25 8.27a.75.75 0 01-.02-1.06z" clip-rule="evenodd" />
                     </svg>
                 </button>
-                <div x-show="open" x-transition class="mt-4">
+                <div
+                    id="reviews-filter-panel"
+                    x-show="open"
+                    x-transition
+                    class="mt-4"
+                    x-bind:aria-hidden="!open"
+                >
                     <form method="GET" action="{{ route('reviews.index') }}" class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
                         <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                             <x-form name="roman_number" label="Nr.">
@@ -50,14 +62,30 @@
                         $id = \Illuminate\Support\Str::slug($cycle);
                         $reviewCount = $cycleBooks->sum('reviews_count');
                     @endphp
-                    <div class="mb-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+                    <div
+                        class="mb-4 border border-gray-200 dark:border-gray-700 rounded-lg"
+                        data-reviews-accordion
+                        @if($loop->first) data-reviews-accordion-open="true" @endif
+                    >
                         <h2>
-                            <button type="button" class="w-full flex justify-between items-center bg-gray-100 dark:bg-gray-700 px-4 py-3 rounded-t-lg font-semibold" onclick="toggleAccordion('{{ $id }}')">
-                                {{ $cycle }}-Zyklus ({{ $reviewCount }} {{ $reviewCount === 1 ? 'Rezension' : 'Rezensionen' }})
-                                <span id="icon-{{ $id }}">{{ $loop->first ? '-' : '+' }}</span>
+                            <button
+                                type="button"
+                                class="w-full flex justify-between items-center bg-gray-100 dark:bg-gray-700 px-4 py-3 rounded-t-lg font-semibold"
+                                data-reviews-accordion-button
+                                aria-controls="content-{{ $id }}"
+                                aria-expanded="{{ $loop->first ? 'true' : 'false' }}"
+                            >
+                                <span>{{ $cycle }}-Zyklus ({{ $reviewCount }} {{ $reviewCount === 1 ? 'Rezension' : 'Rezensionen' }})</span>
+                                <span aria-hidden="true" data-reviews-accordion-icon>{{ $loop->first ? '−' : '+' }}</span>
                             </button>
                         </h2>
-                        <div id="content-{{ $id }}" class="{{ $loop->first ? '' : 'hidden' }} bg-white dark:bg-gray-900 px-4 py-2 rounded-b-lg">
+                        <div
+                            id="content-{{ $id }}"
+                            data-reviews-accordion-panel
+                            class="{{ $loop->first ? '' : 'hidden' }} bg-white dark:bg-gray-900 px-4 py-2 rounded-b-lg"
+                            @if(!$loop->first) hidden @endif
+                            aria-hidden="{{ $loop->first ? 'false' : 'true' }}"
+                        >
                             <x-book-list :books="$cycleBooks->sortByDesc('roman_number')" />
                         </div>
                     </div>
@@ -66,14 +94,26 @@
                             $id = 'mission-mars';
                             $reviewCount = $missionMars->sum('reviews_count');
                         @endphp
-                        <div class="mb-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+                        <div class="mb-4 border border-gray-200 dark:border-gray-700 rounded-lg" data-reviews-accordion>
                             <h2>
-                                <button type="button" class="w-full flex justify-between items-center bg-gray-100 dark:bg-gray-700 px-4 py-3 rounded-t-lg font-semibold" onclick="toggleAccordion('{{ $id }}')">
-                                    Mission Mars-Heftromane ({{ $reviewCount }} {{ $reviewCount === 1 ? 'Rezension' : 'Rezensionen' }})
-                                    <span id="icon-{{ $id }}">+</span>
+                                <button
+                                    type="button"
+                                    class="w-full flex justify-between items-center bg-gray-100 dark:bg-gray-700 px-4 py-3 rounded-t-lg font-semibold"
+                                    data-reviews-accordion-button
+                                    aria-controls="content-{{ $id }}"
+                                    aria-expanded="false"
+                                >
+                                    <span>Mission Mars-Heftromane ({{ $reviewCount }} {{ $reviewCount === 1 ? 'Rezension' : 'Rezensionen' }})</span>
+                                    <span aria-hidden="true" data-reviews-accordion-icon>+</span>
                                 </button>
                             </h2>
-                            <div id="content-{{ $id }}" class="hidden bg-white dark:bg-gray-900 px-4 py-2 rounded-b-lg">
+                            <div
+                                id="content-{{ $id }}"
+                                data-reviews-accordion-panel
+                                class="hidden bg-white dark:bg-gray-900 px-4 py-2 rounded-b-lg"
+                                hidden
+                                aria-hidden="true"
+                            >
                                 <x-book-list :books="$missionMars" />
                             </div>
                         </div>
@@ -84,14 +124,26 @@
                         $id = 'maddrax-hardcover';
                         $reviewCount = $hardcovers->sum('reviews_count');
                     @endphp
-                    <div class="mb-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+                    <div class="mb-4 border border-gray-200 dark:border-gray-700 rounded-lg" data-reviews-accordion>
                         <h2>
-                            <button type="button" class="w-full flex justify-between items-center bg-gray-100 dark:bg-gray-700 px-4 py-3 rounded-t-lg font-semibold" onclick="toggleAccordion('{{ $id }}')">
-                                Maddrax-Hardcover ({{ $reviewCount }} {{ $reviewCount === 1 ? 'Rezension' : 'Rezensionen' }})
-                                <span id="icon-{{ $id }}">+</span>
+                            <button
+                                type="button"
+                                class="w-full flex justify-between items-center bg-gray-100 dark:bg-gray-700 px-4 py-3 rounded-t-lg font-semibold"
+                                data-reviews-accordion-button
+                                aria-controls="content-{{ $id }}"
+                                aria-expanded="false"
+                            >
+                                <span>Maddrax-Hardcover ({{ $reviewCount }} {{ $reviewCount === 1 ? 'Rezension' : 'Rezensionen' }})</span>
+                                <span aria-hidden="true" data-reviews-accordion-icon>+</span>
                             </button>
                         </h2>
-                        <div id="content-{{ $id }}" class="hidden bg-white dark:bg-gray-900 px-4 py-2 rounded-b-lg">
+                        <div
+                            id="content-{{ $id }}"
+                            data-reviews-accordion-panel
+                            class="hidden bg-white dark:bg-gray-900 px-4 py-2 rounded-b-lg"
+                            hidden
+                            aria-hidden="true"
+                        >
                             <x-book-list :books="$hardcovers" />
                         </div>
                     </div>
@@ -99,14 +151,5 @@
             </div>
         </div>
     </div>
-
-    <script>
-        function toggleAccordion(id) {
-            const content = document.getElementById('content-' + id);
-            const icon = document.getElementById('icon-' + id);
-            content.classList.toggle('hidden');
-            icon.textContent = content.classList.contains('hidden') ? '+' : '-';
-        }
-    </script>
     </x-member-page>
 </x-app-layout>
