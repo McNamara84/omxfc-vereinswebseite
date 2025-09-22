@@ -31,7 +31,14 @@ test('admin can filter and accept challenges', async ({ page }) => {
     await expect(page.locator('[data-todo-filter-status]')).toHaveText(/Verifizierung warten/i);
     await expect(page.getByRole('heading', { name: 'Zu verifizierende Challenges' })).toBeVisible();
 
-    const allButton = page.getByRole('button', { name: 'Alle', exact: true });
+    if ((await filterToggle.getAttribute('aria-expanded')) !== 'true') {
+        await filterToggle.click();
+    }
+
+    await expect(filterToggle).toHaveAttribute('aria-expanded', 'true');
+    await expect(filterPanel).toBeVisible();
+
+    const allButton = filterPanel.getByRole('button', { name: 'Alle', exact: true });
     await allButton.click();
     await expect(page).not.toHaveURL(/filter=pending/);
 
