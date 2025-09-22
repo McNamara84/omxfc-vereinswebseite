@@ -29,7 +29,9 @@ test.describe('Rezensionen overview', () => {
         await expect(accordionButtons.first()).toHaveAttribute('aria-expanded', 'true');
         await expect(accordionButtons.nth(1)).toHaveAttribute('aria-expanded', 'false');
 
-        const hardcoverButton = page.getByRole('button', { name: /Maddrax-Hardcover/i });
+        const hardcoverButton = page.locator(
+            '[data-reviews-accordion-button][aria-controls="content-maddrax-hardcover"]'
+        );
         await hardcoverButton.click();
 
         await expect(hardcoverButton).toHaveAttribute('aria-expanded', 'true');
