@@ -4,7 +4,7 @@ vi.mock('chart.js/auto', () => ({
   default: vi.fn(),
 }));
 
-import { drawAuthorChart } from '@/js/statistik.js';
+import { drawAuthorChart } from '@/statistik.js';
 import Chart from 'chart.js/auto';
 
 describe('drawAuthorChart', () => {

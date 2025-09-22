@@ -74,7 +74,7 @@
                     </div>
                 </div>
                 
-                @if(in_array($userRole, [\App\Enums\Role::Vorstand, \App\Enums\Role::Admin, \App\Enums\Role::Kassenwart], true))
+                @if($canViewKassenbuch)
                 <!-- Card 3: Mitgliederliste mit Zahlungsstatus (Für Vorstand und Kassenwart) -->
                 <div class="md:col-span-2 bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
                     <div class="flex justify-between items-center mb-4">
@@ -143,7 +143,14 @@
                                     </td>
                                     @if($userRole === \App\Enums\Role::Kassenwart || $userRole === \App\Enums\Role::Admin)
                                     <td class="px-4 py-3 whitespace-nowrap text-sm">
-                                        <button type="button" onclick="openEditModal('{{ $member->id }}', '{{ $member->name }}', '{{ $member->mitgliedsbeitrag }}', '{{ $member->bezahlt_bis ? $member->bezahlt_bis->format('Y-m-d') : '' }}', '{{ $member->mitglied_seit ? $member->mitglied_seit->format('Y-m-d') : '' }}')" class="inline-flex items-center px-3 py-1 border border-transparent text-sm leading-5 font-medium rounded-md text-white bg-[#8B0116] hover:bg-red-700 focus:outline-none focus:border-red-700 focus:shadow-outline-red active:bg-red-800 transition ease-in-out duration-150">
+                                        <button type="button"
+                                                data-kassenbuch-edit="true"
+                                                data-user-id="{{ $member->id }}"
+                                                data-user-name="{{ $member->name }}"
+                                                data-mitgliedsbeitrag="{{ $member->mitgliedsbeitrag }}"
+                                                data-bezahlt-bis="{{ $member->bezahlt_bis ? $member->bezahlt_bis->format('Y-m-d') : '' }}"
+                                                data-mitglied-seit="{{ $member->mitglied_seit ? $member->mitglied_seit->format('Y-m-d') : '' }}"
+                                                class="inline-flex items-center px-3 py-1 border border-transparent text-sm leading-5 font-medium rounded-md text-white bg-[#8B0116] hover:bg-red-700 focus:outline-none focus:border-red-700 focus:shadow-outline-red active:bg-red-800 transition ease-in-out duration-150">
                                             <svg class="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
                                             </svg>
@@ -162,9 +169,9 @@
                 <div class="md:col-span-2 bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
                     <div class="flex justify-between items-center mb-4">
                         <h2 class="text-lg font-medium text-gray-900 dark:text-white">Kassenbuch</h2>
-                        
-                        @if($userRole === \App\Enums\Role::Kassenwart || $userRole === \App\Enums\Role::Admin)
-                        <button type="button" onclick="openKassenbuchModal()" class="inline-flex items-center px-4 py-2 border border-transparent text-sm leading-5 font-medium rounded-md text-white bg-[#8B0116] hover:bg-red-700 focus:outline-none focus:border-red-700 focus:shadow-outline-red active:bg-red-800 transition ease-in-out duration-150">
+
+                        @if($canManageKassenbuch)
+                        <button type="button" data-kassenbuch-modal-trigger="true" class="inline-flex items-center px-4 py-2 border border-transparent text-sm leading-5 font-medium rounded-md text-white bg-[#8B0116] hover:bg-red-700 focus:outline-none focus:border-red-700 focus:shadow-outline-red active:bg-red-800 transition ease-in-out duration-150">
                             <svg class="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                             </svg>
@@ -226,8 +233,8 @@
                 </div>
                 @endif
             </div>
-            
-            @if($userRole === \App\Enums\Role::Kassenwart || $userRole === \App\Enums\Role::Admin)
+
+            @if($canManageKassenbuch)
             <!-- Modal für die Bearbeitung von Zahlungsdaten -->
             <div x-data="{ open: false, user_id: '', user_name: '', mitgliedsbeitrag: '', bezahlt_bis: '', mitglied_seit: '' }"
                  x-show="open" 
@@ -255,24 +262,28 @@
                         <div class="absolute inset-0 bg-gray-500 dark:bg-gray-900 opacity-75"></div>
                     </div>
                     
-                    <div x-show="open" 
-                         x-transition:enter="ease-out duration-300" 
-                         x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" 
-                         x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100" 
-                         x-transition:leave="ease-in duration-200" 
-                         x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100" 
-                         x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" 
-                         class="bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:max-w-lg sm:w-full p-6">
+                    <div x-show="open"
+                         x-transition:enter="ease-out duration-300"
+                         x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                         x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                         x-transition:leave="ease-in duration-200"
+                         x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+                         x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                         class="bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:max-w-lg sm:w-full p-6"
+                         role="dialog"
+                         aria-modal="true"
+                         aria-labelledby="edit-payment-title"
+                         aria-describedby="edit-payment-description">
                         <div class="flex justify-between items-center mb-4">
-                            <h3 class="text-lg font-medium text-gray-900 dark:text-white">Zahlungsdaten bearbeiten</h3>
+                            <h3 id="edit-payment-title" class="text-lg font-medium text-gray-900 dark:text-white">Zahlungsdaten bearbeiten</h3>
                             <button @click="open = false" class="text-gray-400 hover:text-gray-500 dark:text-gray-300 dark:hover:text-gray-200">
                                 <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                                 </svg>
                             </button>
                         </div>
-                        
-                        <p class="text-sm text-gray-500 dark:text-gray-400 mb-4" x-text="'Mitglied: ' + user_name"></p>
+
+                        <p id="edit-payment-description" class="text-sm text-gray-500 dark:text-gray-400 mb-4" x-text="'Mitglied: ' + user_name"></p>
                         
                         <form :action="'/kassenbuch/zahlung-aktualisieren/' + user_id" method="POST">
                             @csrf
@@ -319,23 +330,31 @@
                         <div class="absolute inset-0 bg-gray-500 dark:bg-gray-900 opacity-75"></div>
                     </div>
                     
-                    <div x-show="open" 
-                         x-transition:enter="ease-out duration-300" 
-                         x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" 
-                         x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100" 
-                         x-transition:leave="ease-in duration-200" 
-                         x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100" 
-                         x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" 
-                         class="bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:max-w-lg sm:w-full p-6">
+                    <div x-show="open"
+                         x-transition:enter="ease-out duration-300"
+                         x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                         x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                         x-transition:leave="ease-in duration-200"
+                         x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+                         x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                         class="bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:max-w-lg sm:w-full p-6"
+                         role="dialog"
+                         aria-modal="true"
+                         aria-labelledby="kassenbuch-modal-title"
+                         aria-describedby="kassenbuch-modal-description">
                         <div class="flex justify-between items-center mb-4">
-                            <h3 class="text-lg font-medium text-gray-900 dark:text-white">Kassenbucheintrag hinzufügen</h3>
+                            <h3 id="kassenbuch-modal-title" class="text-lg font-medium text-gray-900 dark:text-white">Kassenbucheintrag hinzufügen</h3>
                             <button @click="open = false" class="text-gray-400 hover:text-gray-500 dark:text-gray-300 dark:hover:text-gray-200">
                                 <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                                 </svg>
                             </button>
                         </div>
-                        
+
+                        <p id="kassenbuch-modal-description" class="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                            Erfasse hier Einnahmen und Ausgaben des Vereins und halte die Finanzdaten aktuell.
+                        </p>
+
                         <form action="{{ route('kassenbuch.add-entry') }}" method="POST">
                             @csrf
                             
@@ -378,24 +397,6 @@
                 </div>
             </div>
             
-            <!-- JavaScript für Modals -->
-            <script>
-                function openEditModal(userId, userName, mitgliedsbeitrag, bezahltBis, mitgliedSeit) {
-                    window.dispatchEvent(new CustomEvent('edit-payment-modal', {
-                        detail: {
-                            user_id: userId,
-                            user_name: userName,
-                            mitgliedsbeitrag: mitgliedsbeitrag || '',
-                            bezahlt_bis: bezahltBis || '',
-                            mitglied_seit: mitgliedSeit || ''
-                        }
-                    }));
-                }
-                
-                function openKassenbuchModal() {
-                    window.dispatchEvent(new CustomEvent('kassenbuch-modal'));
-                }
-            </script>
             @endif
     </x-member-page>
 </x-app-layout>

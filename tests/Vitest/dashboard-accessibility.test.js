@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { buildTopUserSummary, enhanceTopUserList, setupDashboardAccessibility } from '@/js/dashboard/accessibility';
+import { buildTopUserSummary, enhanceTopUserList, setupDashboardAccessibility } from '@/dashboard/accessibility';
 
 describe('dashboard accessibility utilities', () => {
   const sampleUsers = [

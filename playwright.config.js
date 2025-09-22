@@ -21,6 +21,7 @@ export default defineConfig({
       CACHE_DRIVER: 'array',
       QUEUE_CONNECTION: 'database',
       MAIL_MAILER: 'array',
+      FORTIFY_DISABLE_LOGIN_RATE_LIMIT: 'true',
     },
   },
   use: {

@@ -59,6 +59,21 @@ class MitgliederIndexAccessibilityTest extends TestCase
         $this->assertMatchesRegularExpression('/Insgesamt sind \d+ Mitglied(?:er)? sichtbar\./', $html);
     }
 
+    public function test_members_heading_exposes_data_attribute_for_ui_tests(): void
+    {
+        $admin = $this->createMember(Role::Admin);
+        $this->actingAs($admin);
+
+        $response = $this->get('/mitglieder');
+        $response->assertOk();
+
+        $crawler = new Crawler($response->getContent());
+        $heading = $crawler->filter('[data-members-heading]')->first();
+
+        $this->assertSame('Mitgliederliste', trim($heading->text()));
+        $this->assertSame('H2', strtoupper($heading->nodeName()));
+    }
+
     public function test_table_headers_expose_aria_sort_attributes(): void
     {
         $admin = $this->createMember(Role::Admin);

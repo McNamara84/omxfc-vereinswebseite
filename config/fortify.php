@@ -121,6 +121,21 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Login Rate Limiting Overrides
+    |--------------------------------------------------------------------------
+    |
+    | During automated accessibility and end-to-end testing we need to perform
+    | significantly more login attempts than the default Fortify throttle
+    | allows.  The following flag lets us disable the limiter entirely when
+    | running in those controlled environments without affecting production
+    | behaviour.
+    |
+    */
+
+    'disable_login_rate_limit' => (bool) env('FORTIFY_DISABLE_LOGIN_RATE_LIMIT', false),
+
+    /*
+    |--------------------------------------------------------------------------
     | Register View Routes
     |--------------------------------------------------------------------------
     |
