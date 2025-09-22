@@ -23,19 +23,26 @@ export const applyReviewsAccordionState = (button, panel, icon, expanded) => {
     return nextState;
 };
 
-export const setupReviewsAccordion = () => {
-    if (window.__omxfcReviewsAccordionInitialised) {
-        return;
-    }
+const markAccordionReady = (accordion) => {
+    accordion.dataset.reviewsAccordionReady = 'true';
+};
 
+const isAccordionReady = (accordion) => accordion.dataset.reviewsAccordionReady === 'true';
+
+export const setupReviewsAccordion = () => {
     const accordions = document.querySelectorAll('[data-reviews-accordion]');
 
     accordions.forEach((accordion) => {
+        if (isAccordionReady(accordion)) {
+            return;
+        }
+
         const button = accordion.querySelector('[data-reviews-accordion-button]');
         const panel = accordion.querySelector('[data-reviews-accordion-panel]');
         const icon = accordion.querySelector('[data-reviews-accordion-icon]');
 
         if (!button || !panel) {
+            markAccordionReady(accordion);
             return;
         }
 
@@ -46,9 +53,9 @@ export const setupReviewsAccordion = () => {
             const isExpanded = button.getAttribute('aria-expanded') === 'true';
             applyReviewsAccordionState(button, panel, icon, !isExpanded);
         });
-    });
 
-    window.__omxfcReviewsAccordionInitialised = true;
+        markAccordionReady(accordion);
+    });
 };
 
 if (document.readyState === 'loading') {

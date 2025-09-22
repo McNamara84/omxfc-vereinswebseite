@@ -12,7 +12,6 @@ describe('Reviews accordion', () => {
                 <div id="panel-1" data-reviews-accordion-panel class="hidden" hidden aria-hidden="true"></div>
             </div>
         `;
-        window.__omxfcReviewsAccordionInitialised = false;
     });
 
     it('updates aria attributes and icon when applying accordion state', () => {
@@ -55,6 +54,25 @@ describe('Reviews accordion', () => {
 
         expect(button?.getAttribute('aria-expanded')).toBe('false');
         expect(panel?.classList.contains('hidden')).toBe(true);
-        expect(window.__omxfcReviewsAccordionInitialised).toBe(true);
+        expect(
+            document.querySelector('[data-reviews-accordion]')?.dataset.reviewsAccordionReady
+        ).toBe('true');
+    });
+
+    it('allows setup to run multiple times without duplicating handlers', () => {
+        setupReviewsAccordion();
+
+        const button = document.querySelector('[data-reviews-accordion-button]');
+
+        button?.click();
+        expect(button?.getAttribute('aria-expanded')).toBe('true');
+
+        setupReviewsAccordion();
+
+        button?.click();
+        expect(button?.getAttribute('aria-expanded')).toBe('false');
+
+        button?.click();
+        expect(button?.getAttribute('aria-expanded')).toBe('true');
     });
 });
