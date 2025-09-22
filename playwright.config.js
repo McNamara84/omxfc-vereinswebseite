@@ -14,7 +14,7 @@ export default defineConfig({
     env: {
       APP_ENV: 'testing',
       APP_DEBUG: 'false',
-      APP_KEY: process.env.APP_KEY ?? 'base64:oK0ZsJlI+o7C++h527lMcrrO4jzZrXqhouB/p0l+gFw=',
+      APP_KEY: process.env.APP_KEY,
       DB_CONNECTION: 'sqlite',
       DB_DATABASE: databasePath,
       SESSION_DRIVER: 'file',

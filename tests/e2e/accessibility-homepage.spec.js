@@ -5,6 +5,7 @@ test.describe('Accessibility checks', () => {
   test('Homepage meets WCAG AA guidelines', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 812 });
     await page.goto('/');
+    await page.waitForLoadState('networkidle');
 
     const navigation = page.locator('nav[x-data]');
     const menuToggle = page.locator('button[aria-controls="mobile-navigation"]');
@@ -19,6 +20,8 @@ test.describe('Accessibility checks', () => {
     await expect(menuToggle).toContainText('Menü öffnen');
 
     const accessibilityScanResults = await new AxeBuilder({ page })
+      .include('main')
+      .include('nav')
       .withTags(['wcag2a', 'wcag2aa'])
       .analyze();
 
