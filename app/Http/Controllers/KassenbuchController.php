@@ -29,6 +29,9 @@ class KassenbuchController extends Controller
         // Benutzerrolle ermitteln
         $userRole = $this->userRoleService->getRole($user, $team);
 
+        $canViewKassenbuch = $user->can('viewAll', KassenbuchEntry::class);
+        $canManageKassenbuch = $user->can('manage', KassenbuchEntry::class);
+
         // Aktuellen Kassenstand abrufen
         $kassenstand = Kassenstand::where('team_id', $team->id)->first();
 
@@ -45,7 +48,7 @@ class KassenbuchController extends Controller
         $members = null;
         $kassenbuchEntries = null;
 
-        if ($user->can('viewAll', KassenbuchEntry::class)) {
+        if ($canViewKassenbuch) {
             $members = $team->activeUsers()
                 ->orderBy('bezahlt_bis')
                 ->get();
@@ -74,6 +77,8 @@ class KassenbuchController extends Controller
 
         return view('kassenbuch.index', [
             'userRole' => $userRole,
+            'canViewKassenbuch' => $canViewKassenbuch,
+            'canManageKassenbuch' => $canManageKassenbuch,
             'kassenstand' => $kassenstand,
             'members' => $members,
             'kassenbuchEntries' => $kassenbuchEntries,

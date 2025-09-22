@@ -86,6 +86,8 @@ class KassenbuchControllerTest extends TestCase
         $this->assertDatabaseHas('kassenstand', ['team_id' => $user->currentTeam->id, 'betrag' => 0.00]);
 
         $response->assertViewHas('userRole', Role::Mitglied);
+        $response->assertViewHas('canViewKassenbuch', false);
+        $response->assertViewHas('canManageKassenbuch', false);
         $this->assertNull($response->viewData('members'));
         $this->assertNull($response->viewData('kassenbuchEntries'));
     }
@@ -149,6 +151,8 @@ class KassenbuchControllerTest extends TestCase
 
         $response->assertOk();
         $response->assertViewHas('userRole', Role::Kassenwart);
+        $response->assertViewHas('canViewKassenbuch', true);
+        $response->assertViewHas('canManageKassenbuch', true);
         $this->assertNotNull($response->viewData('members'));
         $entries = $response->viewData('kassenbuchEntries');
         $this->assertCount(1, $entries);

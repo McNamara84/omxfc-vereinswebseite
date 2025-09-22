@@ -74,7 +74,7 @@
                     </div>
                 </div>
                 
-                @if(in_array($userRole, [\App\Enums\Role::Vorstand, \App\Enums\Role::Admin, \App\Enums\Role::Kassenwart], true))
+                @if($canViewKassenbuch)
                 <!-- Card 3: Mitgliederliste mit Zahlungsstatus (Für Vorstand und Kassenwart) -->
                 <div class="md:col-span-2 bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
                     <div class="flex justify-between items-center mb-4">
@@ -170,8 +170,8 @@
                 <div class="md:col-span-2 bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
                     <div class="flex justify-between items-center mb-4">
                         <h2 class="text-lg font-medium text-gray-900 dark:text-white">Kassenbuch</h2>
-                        
-                        @if($userRole === \App\Enums\Role::Kassenwart || $userRole === \App\Enums\Role::Admin)
+
+                        @if($canManageKassenbuch)
                         <button type="button" data-kassenbuch-modal-trigger="true" onclick="openKassenbuchModal()" class="inline-flex items-center px-4 py-2 border border-transparent text-sm leading-5 font-medium rounded-md text-white bg-[#8B0116] hover:bg-red-700 focus:outline-none focus:border-red-700 focus:shadow-outline-red active:bg-red-800 transition ease-in-out duration-150">
                             <svg class="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
@@ -234,8 +234,8 @@
                 </div>
                 @endif
             </div>
-            
-            @if($userRole === \App\Enums\Role::Kassenwart || $userRole === \App\Enums\Role::Admin)
+
+            @if($canManageKassenbuch)
             <!-- Modal für die Bearbeitung von Zahlungsdaten -->
             <div x-data="{ open: false, user_id: '', user_name: '', mitgliedsbeitrag: '', bezahlt_bis: '', mitglied_seit: '' }"
                  x-show="open" 
