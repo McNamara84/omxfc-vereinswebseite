@@ -59,7 +59,7 @@ async function loadEditor(values = {}) {
     const el = document.getElementById(id);
     if (el) el.value = value;
   }
-  await import('@/js/char-editor.js');
+  await import('@/char-editor.js');
   document.dispatchEvent(new Event('DOMContentLoaded'));
 }
 

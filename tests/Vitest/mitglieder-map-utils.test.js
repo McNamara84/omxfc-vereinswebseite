@@ -6,7 +6,7 @@ import {
     escapeHtml,
     getRoleIconType,
     normalizeRole,
-} from '@/js/mitglieder/map-utils';
+} from '@/mitglieder/map-utils';
 
 describe('map utils role detection', () => {
     it('normalizes roles to lower case', () => {
@@ -40,7 +40,7 @@ describe('global exposure', () => {
             },
         };
 
-        const module = await import('@/js/mitglieder/map-utils');
+        const module = await import('@/mitglieder/map-utils');
 
         expect(window.omxfcMemberMap.custom).toBe('value');
         expect(window.omxfcMemberMap.getRoleIconType).toBe(module.getRoleIconType);
@@ -53,7 +53,7 @@ describe('global exposure', () => {
         vi.resetModules();
         global.window = { omxfcMemberMap: 'invalid' };
 
-        const module = await import('@/js/mitglieder/map-utils');
+        const module = await import('@/mitglieder/map-utils');
 
         expect(typeof window.omxfcMemberMap.getRoleIconType).toBe('function');
         expect(window.omxfcMemberMap.defaultLegendItems).toEqual(module.defaultLegendItems);

@@ -1,5 +1,5 @@
 import { describe, expect, it, beforeEach } from 'vitest';
-import { buildMembersTableSummary, enhanceMembersTable, setupMitgliederAccessibility } from '@/js/mitglieder/accessibility';
+import { buildMembersTableSummary, enhanceMembersTable, setupMitgliederAccessibility } from '@/mitglieder/accessibility';
 
 describe('buildMembersTableSummary', () => {
     it('describes sorting, filters and totals in German', () => {

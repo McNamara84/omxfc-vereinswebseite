@@ -4,11 +4,13 @@ import {
     emitKassenbuchModalEvent,
     openEditModal,
     openKassenbuchModal,
-} from '@/js/kassenbuch/modals';
+    registerKassenbuchModals,
+} from '@/kassenbuch/modals.js';
 
 describe('kassenbuch modal helpers', () => {
     beforeEach(() => {
         vi.restoreAllMocks();
+        document.body.innerHTML = '';
     });
 
     it('emits edit modal events with sanitized payloads', () => {
@@ -87,5 +89,53 @@ describe('kassenbuch modal helpers', () => {
             bezahlt_bis: '2025-02-01',
             mitglied_seit: '2021-01-01',
         });
+    });
+
+    it('binds click handlers that leverage dataset information for edit triggers', () => {
+        const removeHandlers = registerKassenbuchModals(document);
+
+        const button = document.createElement('button');
+        button.dataset.kassenbuchEdit = 'true';
+        button.dataset.userId = '88';
+        button.dataset.userName = 'Delegierter User';
+        button.dataset.mitgliedsbeitrag = '50.00';
+        button.dataset.bezahltBis = '2026-06-01';
+        button.dataset.mitgliedSeit = '2023-04-01';
+        document.body.appendChild(button);
+
+        const listener = vi.fn();
+        window.addEventListener('edit-payment-modal', listener);
+
+        button.click();
+
+        expect(listener).toHaveBeenCalledTimes(1);
+        expect(listener.mock.calls[0][0].detail).toEqual({
+            user_id: '88',
+            user_name: 'Delegierter User',
+            mitgliedsbeitrag: '50.00',
+            bezahlt_bis: '2026-06-01',
+            mitglied_seit: '2023-04-01',
+        });
+
+        window.removeEventListener('edit-payment-modal', listener);
+        removeHandlers();
+    });
+
+    it('binds modal trigger handlers that emit the modal event once clicked', () => {
+        const removeHandlers = registerKassenbuchModals(document);
+
+        const button = document.createElement('button');
+        button.dataset.kassenbuchModalTrigger = 'true';
+        document.body.appendChild(button);
+
+        const listener = vi.fn();
+        window.addEventListener('kassenbuch-modal', listener);
+
+        button.click();
+
+        expect(listener).toHaveBeenCalledTimes(1);
+
+        window.removeEventListener('kassenbuch-modal', listener);
+        removeHandlers();
     });
 });

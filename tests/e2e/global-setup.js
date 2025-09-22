@@ -14,7 +14,6 @@ export default async function globalSetup() {
     process.env.CACHE_DRIVER = 'array';
     process.env.QUEUE_CONNECTION = 'database';
     process.env.MAIL_MAILER = 'array';
-    process.env.FORTIFY_DISABLE_LOGIN_RATE_LIMIT = 'true';
 
     if (fs.existsSync(databasePath)) {
         fs.rmSync(databasePath);
