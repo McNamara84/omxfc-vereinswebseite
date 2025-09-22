@@ -13,7 +13,10 @@
     @endif
     
     <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
-    <h2 class="text-2xl font-semibold text-[#8B0116] dark:text-red-400 mb-6">Mitgliederliste</h2>
+        <h2
+            data-members-heading
+            class="text-2xl font-semibold text-[#8B0116] dark:text-red-400 mb-6"
+        >Mitgliederliste</h2>
     @php
         $sortLabels = [
             'nachname' => 'Nachname',

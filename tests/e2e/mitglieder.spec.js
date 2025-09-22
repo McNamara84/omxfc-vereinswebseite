@@ -15,8 +15,10 @@ test.describe('Mitgliederliste', () => {
         await login(page, 'info@maddraxikon.com');
 
         await page.goto('/mitglieder');
+        await expect(page).toHaveURL(/\/mitglieder$/);
 
-        await expect(page.getByRole('heading', { name: 'Mitgliederliste' })).toBeVisible();
+        const heading = page.locator('[data-members-heading]');
+        await expect(heading).toBeVisible();
         await expect(page.locator('[data-members-summary]')).toContainText('Mitgliederliste, sortiert nach Nachname');
         await expect(page.locator('[data-members-table]')).toHaveAttribute('data-members-sort', 'nachname');
 
@@ -55,8 +57,10 @@ test.describe('Mitgliederliste', () => {
         await login(page, 'playwright-member@example.com');
 
         await page.goto('/mitglieder');
+        await expect(page).toHaveURL(/\/mitglieder$/);
 
-        await expect(page.getByRole('heading', { name: 'Mitgliederliste' })).toBeVisible();
+        const heading = page.locator('[data-members-heading]');
+        await expect(heading).toBeVisible();
         await expect(page.locator('[data-members-summary]')).toContainText('Es werden alle aktiven Mitglieder angezeigt');
         await expect(page.locator('[data-members-table]')).toBeVisible();
         await expect(page.getByRole('button', { name: 'CSV Export' })).toHaveCount(0);
