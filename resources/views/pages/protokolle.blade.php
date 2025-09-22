@@ -4,42 +4,55 @@
             <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
                 <h1 class="text-2xl font-semibold text-[#8B0116] dark:text-[#ff4b63] mb-6">Protokolle</h1>
 
-                <div id="accordion">
+                <div id="accordion" data-protokolle-accordion>
                     @foreach($protokolle as $jahr => $dokumente)
-                        <div class="mb-4 border border-gray-200 dark:border-gray-700 rounded-lg">
-                            <h2>
-                                <button type="button"
-                                    class="w-full flex justify-between items-center bg-gray-100 dark:bg-gray-700 px-4 py-3 rounded-t-lg font-semibold"
-                                    onclick="toggleAccordion({{ $jahr }})">
-                                    Protokolle {{ $jahr }}
-                                    <span id="icon-{{ $jahr }}">+</span>
-                                </button>
-                            </h2>
+                        <details class="mb-4 border border-gray-200 dark:border-gray-700 rounded-lg" data-protokolle-accordion-item>
+                            <summary
+                                id="accordion-trigger-{{ $jahr }}"
+                                class="list-none w-full flex justify-between items-center gap-4 bg-gray-100 dark:bg-gray-700 px-4 py-3 rounded-t-lg font-semibold text-left cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
+                                data-protokolle-accordion-button
+                                aria-controls="content-{{ $jahr }}"
+                                aria-expanded="false"
+                                role="button"
+                            >
+                                <span class="flex flex-col sm:flex-row sm:items-center sm:gap-2">
+                                    <span>Protokolle {{ $jahr }}</span>
+                                    <span class="text-sm font-normal text-gray-600 dark:text-gray-300 sm:mt-0 mt-1">
+                                        {{ count($dokumente) }} {{ count($dokumente) === 1 ? 'Dokument' : 'Dokumente' }}
+                                    </span>
+                                </span>
+                                <span class="flex items-center gap-2 text-xl" aria-hidden="true">
+                                    <span data-protokolle-accordion-icon class="select-none">+</span>
+                                </span>
+                                <span class="sr-only" data-protokolle-accordion-label>Abschnitt Protokolle {{ $jahr }} umschalten</span>
+                            </summary>
 
-                            <div id="content-{{ $jahr }}" class="hidden bg-white dark:bg-gray-900 px-4 py-2 rounded-b-lg">
+                            <div
+                                id="content-{{ $jahr }}"
+                                class="bg-white dark:bg-gray-900 px-4 py-2 rounded-b-lg"
+                                role="region"
+                                aria-labelledby="accordion-trigger-{{ $jahr }}"
+                                aria-hidden="true"
+                                data-protokolle-accordion-panel
+                            >
                                 <ul class="space-y-2">
                                     @foreach($dokumente as $protokoll)
                                         <li>
-                                            <a href="{{ route('protokolle.download', $protokoll['datei']) }}" class="text-blue-600 hover:underline">
-                                                {{ $protokoll['datum'] }} – {{ $protokoll['titel'] }}
+                                            <a
+                                                href="{{ route('protokolle.download', $protokoll['datei']) }}"
+                                                class="inline-flex items-center gap-2 text-blue-600 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
+                                            >
+                                                <span aria-hidden="true">📄</span>
+                                                <span>{{ $protokoll['datum'] }} – {{ $protokoll['titel'] }}</span>
                                             </a>
                                         </li>
                                     @endforeach
                                 </ul>
                             </div>
-                        </div>
+                        </details>
                     @endforeach
                 </div>
             </div>
         </div>
     </div>
-
-    <script>
-        function toggleAccordion(jahr) {
-            const content = document.getElementById('content-' + jahr);
-            const icon = document.getElementById('icon-' + jahr);
-            content.classList.toggle('hidden');
-            icon.textContent = content.classList.contains('hidden') ? '+' : '-';
-        }
-    </script>
 </x-app-layout>

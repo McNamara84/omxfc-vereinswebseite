@@ -20,6 +20,13 @@ class ProtokolleTest extends TestCase
         return $user;
     }
 
+    public function test_guest_is_redirected_from_protokolle(): void
+    {
+        $response = $this->get('/protokolle');
+
+        $response->assertRedirect('/login');
+    }
+
     public function test_protokolle_page_is_accessible(): void
     {
         $this->actingAs($this->actingMember());
@@ -28,6 +35,21 @@ class ProtokolleTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('Gründungsversammlung');
+    }
+
+    public function test_protokolle_page_shows_document_count_and_years(): void
+    {
+        $this->actingAs($this->actingMember());
+
+        $response = $this->get('/protokolle');
+
+        $response->assertOk();
+        $response->assertViewHas('protokolle', function ($protokolle) {
+            return isset($protokolle[2024]) && count($protokolle[2024]) === 3;
+        });
+
+        $response->assertSee('3 Dokumente');
+        $response->assertSee('Protokolle 2025');
     }
 
     public function test_protokoll_can_be_downloaded_when_file_exists(): void
@@ -40,7 +62,7 @@ class ProtokolleTest extends TestCase
         $response = $this->get('/protokolle/download/test.pdf');
 
         $response->assertOk();
-        $response->assertHeader('content-disposition');
+        $response->assertDownload('test.pdf');
     }
 
     public function test_error_when_protokoll_is_missing(): void
@@ -51,5 +73,12 @@ class ProtokolleTest extends TestCase
 
         $response->assertRedirect('/protokolle');
         $response->assertSessionHasErrors();
+    }
+
+    public function test_protokolle_download_requires_authentication(): void
+    {
+        $response = $this->get('/protokolle/download/test.pdf');
+
+        $response->assertRedirect('/login');
     }
 }

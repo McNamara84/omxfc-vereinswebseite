@@ -86,3 +86,4 @@ import './todos';
 import './dashboard';
 import './mitglieder/accessibility';
 import './mitglieder/map-utils';
+import './protokolle/accordion';
