@@ -3,12 +3,14 @@
 namespace Tests\Feature;
 
 use App\Enums\KassenbuchEntryType;
+use App\Models\Kassenstand;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 use App\Enums\Role;
 use App\Services\MembersTeamProvider;
+use Carbon\Carbon;
 
 class KassenbuchControllerTest extends TestCase
 {
@@ -98,6 +100,31 @@ class KassenbuchControllerTest extends TestCase
 
         $response->assertOk();
         $response->assertViewHas('renewalWarning', true);
+    }
+
+    public function test_index_does_not_set_warning_when_membership_is_far_in_future(): void
+    {
+        $user = $this->actingMember();
+        $user->update(['bezahlt_bis' => now()->addDays(45)]);
+        $this->actingAs($user);
+
+        $response = $this->get('/kassenbuch');
+
+        $response->assertOk();
+        $response->assertViewHas('renewalWarning', false);
+    }
+
+    public function test_index_marks_membership_as_expired_without_warning(): void
+    {
+        $user = $this->actingMember();
+        $user->update(['bezahlt_bis' => now()->subDays(5)]);
+        $this->actingAs($user);
+
+        $response = $this->get('/kassenbuch');
+
+        $response->assertOk();
+        $response->assertViewHas('renewalWarning', false);
+        $response->assertSee('Deine Mitgliedschaft ist abgelaufen!', false);
     }
 
     public function test_index_returns_members_and_entries_for_kassenwart(): void
@@ -202,6 +229,156 @@ class KassenbuchControllerTest extends TestCase
 
         $response->assertRedirect('/kassenbuch');
         $response->assertSessionHasErrors(['buchungsdatum', 'betrag', 'beschreibung', 'typ']);
+    }
+
+    public function test_add_entry_rejects_zero_amount_value(): void
+    {
+        $kassenwart = $this->actingMember('Kassenwart');
+        $this->actingAs($kassenwart);
+
+        $this->get('/kassenbuch');
+
+        $response = $this->from('/kassenbuch')->post('/kassenbuch/eintrag-hinzufuegen', [
+            'buchungsdatum' => '2025-02-01',
+            'betrag' => 0,
+            'beschreibung' => 'Unzulässiger Eintrag',
+            'typ' => KassenbuchEntryType::Einnahme->value,
+        ]);
+
+        $response->assertRedirect('/kassenbuch');
+        $response->assertSessionHasErrors(['betrag']);
+        $this->assertDatabaseCount('kassenbuch_entries', 0);
+    }
+
+    public function test_add_entry_rejects_unknown_type(): void
+    {
+        $kassenwart = $this->actingMember('Kassenwart');
+        $this->actingAs($kassenwart);
+
+        $this->get('/kassenbuch');
+
+        $response = $this->from('/kassenbuch')->post('/kassenbuch/eintrag-hinzufuegen', [
+            'buchungsdatum' => '2025-02-02',
+            'betrag' => 10,
+            'beschreibung' => 'Ungültiger Typ',
+            'typ' => 'spende',
+        ]);
+
+        $response->assertRedirect('/kassenbuch');
+        $response->assertSessionHasErrors(['typ']);
+        $this->assertDatabaseCount('kassenbuch_entries', 0);
+    }
+
+    public function test_add_entry_normalizes_expense_amount(): void
+    {
+        $kassenwart = $this->actingMember('Kassenwart');
+        $this->actingAs($kassenwart);
+
+        $this->get('/kassenbuch');
+
+        $response = $this->post('/kassenbuch/eintrag-hinzufuegen', [
+            'buchungsdatum' => '2025-03-01',
+            'betrag' => 12.5,
+            'beschreibung' => 'Ausgabe für Material',
+            'typ' => KassenbuchEntryType::Ausgabe->value,
+        ]);
+
+        $response->assertRedirect();
+
+        $this->assertDatabaseHas('kassenbuch_entries', [
+            'beschreibung' => 'Ausgabe für Material',
+            'betrag' => -12.5,
+        ]);
+
+        $this->assertDatabaseHas('kassenstand', [
+            'team_id' => $kassenwart->currentTeam->id,
+            'betrag' => -12.5,
+        ]);
+    }
+
+    public function test_add_entry_makes_income_positive_even_when_negative_value_is_submitted(): void
+    {
+        $kassenwart = $this->actingMember('Kassenwart');
+        $this->actingAs($kassenwart);
+
+        $this->get('/kassenbuch');
+
+        $response = $this->post('/kassenbuch/eintrag-hinzufuegen', [
+            'buchungsdatum' => '2025-04-01',
+            'betrag' => -25,
+            'beschreibung' => 'Nachträgliche Einnahme',
+            'typ' => KassenbuchEntryType::Einnahme->value,
+        ]);
+
+        $response->assertRedirect();
+
+        $this->assertDatabaseHas('kassenbuch_entries', [
+            'beschreibung' => 'Nachträgliche Einnahme',
+            'betrag' => 25.00,
+        ]);
+
+        $this->assertDatabaseHas('kassenstand', [
+            'team_id' => $kassenwart->currentTeam->id,
+            'betrag' => 25.00,
+        ]);
+    }
+
+    public function test_add_entry_updates_kassenstand_timestamp_within_transaction(): void
+    {
+        $kassenwart = $this->actingMember('Kassenwart');
+        $this->actingAs($kassenwart);
+
+        $this->get('/kassenbuch');
+        $team = $kassenwart->currentTeam;
+
+        $kassenstand = Kassenstand::where('team_id', $team->id)->firstOrFail();
+        $originalTimestamp = $kassenstand->letzte_aktualisierung;
+
+        $freezeTime = Carbon::now()->addDay();
+        Carbon::setTestNow($freezeTime);
+
+        $response = $this->post('/kassenbuch/eintrag-hinzufuegen', [
+            'buchungsdatum' => '2025-05-01',
+            'betrag' => 10,
+            'beschreibung' => 'Zeitgesteuerte Einnahme',
+            'typ' => KassenbuchEntryType::Einnahme->value,
+        ]);
+
+        $response->assertRedirect();
+
+        $kassenstand->refresh();
+
+        Carbon::setTestNow();
+
+        $this->assertEquals('10.00', $kassenstand->betrag);
+        $this->assertTrue($kassenstand->letzte_aktualisierung->isSameDay($freezeTime));
+        $this->assertFalse($kassenstand->letzte_aktualisierung->isSameDay($originalTimestamp));
+    }
+
+    public function test_update_payment_accepts_null_membership_start(): void
+    {
+        $kassenwart = $this->actingMember('Kassenwart');
+        $this->actingAs($kassenwart);
+
+        $team = $kassenwart->currentTeam;
+        $member = User::factory()->create([
+            'current_team_id' => $team->id,
+            'mitglied_seit' => '2020-01-01',
+        ]);
+        $team->users()->attach($member, ['role' => \App\Enums\Role::Mitglied->value]);
+
+        $response = $this->from('/kassenbuch')->put("/kassenbuch/zahlung-aktualisieren/{$member->id}", [
+            'mitgliedsbeitrag' => 48,
+            'bezahlt_bis' => '2026-01-01',
+            'mitglied_seit' => null,
+        ]);
+
+        $response->assertRedirect('/kassenbuch');
+
+        $member->refresh();
+        $this->assertNull($member->mitglied_seit);
+        $this->assertEquals('2026-01-01', $member->bezahlt_bis->format('Y-m-d'));
+        $this->assertEquals(48.00, $member->mitgliedsbeitrag);
     }
 
     public function test_index_uses_members_team_provider(): void
