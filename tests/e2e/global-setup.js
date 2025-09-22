@@ -11,7 +11,7 @@ export default async function globalSetup() {
     process.env.DB_CONNECTION = 'sqlite';
     process.env.DB_DATABASE = databasePath;
     process.env.SESSION_DRIVER = 'file';
-    process.env.CACHE_DRIVER = 'array';
+    process.env.CACHE_STORE = 'array';
     process.env.QUEUE_CONNECTION = 'database';
     process.env.MAIL_MAILER = 'array';
 

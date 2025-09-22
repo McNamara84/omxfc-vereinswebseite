@@ -7,7 +7,7 @@ export default defineConfig({
   testDir: 'tests/e2e',
   globalSetup: './tests/e2e/global-setup.js',
   webServer: {
-    command: 'php -S 127.0.0.1:8000 -t public public/index.php',
+    command: 'php artisan serve --host=127.0.0.1 --port=8000',
     port: 8000,
     reuseExistingServer: !process.env.CI,
     timeout: 180000,
@@ -18,7 +18,7 @@ export default defineConfig({
       DB_CONNECTION: 'sqlite',
       DB_DATABASE: databasePath,
       SESSION_DRIVER: 'file',
-      CACHE_DRIVER: 'array',
+      CACHE_STORE: 'array',
       QUEUE_CONNECTION: 'database',
       MAIL_MAILER: 'array',
       FORTIFY_DISABLE_LOGIN_RATE_LIMIT: 'true',
