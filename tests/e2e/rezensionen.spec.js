@@ -15,7 +15,7 @@ test.describe('Rezensionen overview', () => {
         await page.goto('/rezensionen');
 
         await expect(page).toHaveURL(/\/rezensionen$/);
-        await expect(page.getByRole('heading', { name: 'Rezensionen' })).toBeVisible();
+        await expect(page.getByRole('heading', { level: 1, name: 'Rezensionen' })).toBeVisible();
 
         const filterToggle = page.getByRole('button', { name: /Filter anzeigen/i });
         await expect(filterToggle).toHaveAttribute('aria-expanded', 'false');
