@@ -143,7 +143,7 @@ class AdminPageTest extends TestCase
             'id' => Str::uuid()->toString(),
             'user_id' => $admin->id,
             'ip_address' => '127.0.0.1',
-            'user_agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, wie Gecko) Chrome/122.0.0.0 Safari/537.36',
+            'user_agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
             'payload' => 'test',
             'last_activity' => now()->timestamp,
         ]);
@@ -152,7 +152,7 @@ class AdminPageTest extends TestCase
             'id' => Str::uuid()->toString(),
             'user_id' => $member->id,
             'ip_address' => '127.0.0.1',
-            'user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, wie Gecko) Version/17.0 Safari/605.1.15',
+            'user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15',
             'payload' => 'test',
             'last_activity' => now()->timestamp,
         ]);
@@ -161,7 +161,7 @@ class AdminPageTest extends TestCase
             'id' => Str::uuid()->toString(),
             'user_id' => $member->id,
             'ip_address' => '127.0.0.1',
-            'user_agent' => 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, wie Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
+            'user_agent' => 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
             'payload' => 'test',
             'last_activity' => now()->addSecond()->timestamp,
         ]);
