@@ -38,6 +38,16 @@ class BrowserStatsServiceTest extends TestCase
         );
     }
 
+    public function test_detect_device_type_classifies_common_agents(): void
+    {
+        $service = app(BrowserStatsService::class);
+
+        $this->assertSame('Mobilgerät', $service->detectDeviceType('Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1'));
+        $this->assertSame('Mobilgerät', $service->detectDeviceType('Mozilla/5.0 (Linux; Android 13; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.6099.144 Mobile Safari/537.36'));
+        $this->assertSame('Festgerät', $service->detectDeviceType('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'));
+        $this->assertSame('Festgerät', $service->detectDeviceType(null));
+    }
+
     public function test_browser_usage_counts_latest_sessions_for_each_member(): void
     {
         $service = app(BrowserStatsService::class);
@@ -76,6 +86,7 @@ class BrowserStatsServiceTest extends TestCase
 
         $browserCounts = $usage['browserCounts']->pluck('value', 'label')->all();
         $familyCounts = $usage['familyCounts']->pluck('value', 'label')->all();
+        $deviceTypeCounts = $usage['deviceTypeCounts']->pluck('value', 'label')->all();
 
         $this->assertSame(1, $browserCounts['Google Chrome']);
         $this->assertSame(1, $browserCounts['Safari']);
@@ -83,5 +94,8 @@ class BrowserStatsServiceTest extends TestCase
 
         $this->assertSame(1, $familyCounts['Chromium']);
         $this->assertSame(1, $familyCounts['WebKit']);
+
+        $this->assertSame(1, $deviceTypeCounts['Festgerät']);
+        $this->assertSame(1, $deviceTypeCounts['Mobilgerät']);
     }
 }

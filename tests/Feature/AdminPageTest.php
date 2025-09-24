@@ -157,16 +157,28 @@ class AdminPageTest extends TestCase
             'last_activity' => now()->timestamp,
         ]);
 
+        DB::table('sessions')->insert([
+            'id' => Str::uuid()->toString(),
+            'user_id' => $member->id,
+            'ip_address' => '127.0.0.1',
+            'user_agent' => 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, wie Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
+            'payload' => 'test',
+            'last_activity' => now()->addSecond()->timestamp,
+        ]);
+
         $response = $this->actingAs($admin)->get('/admin/statistiken');
 
         $response->assertOk();
         $response->assertSee('Browsernutzung unserer Mitglieder');
         $response->assertSee('Beliebteste Browser');
         $response->assertSee('Browser-Familien');
+        $response->assertSee('Endgeräte unserer Mitglieder');
         $response->assertSeeText('Google Chrome');
         $response->assertSeeText('Safari');
         $response->assertSeeText('Chromium');
         $response->assertSeeText('WebKit');
+        $response->assertSeeText('Festgerät');
+        $response->assertSeeText('Mobilgerät');
         $response->assertDontSee('Noch keine Login-Daten vorhanden.');
     }
 }

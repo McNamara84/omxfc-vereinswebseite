@@ -50,6 +50,7 @@
 
         @php($hasBrowserUsageByBrowser = $browserUsageByBrowser->isNotEmpty())
         @php($hasBrowserUsageByFamily = $browserUsageByFamily->isNotEmpty())
+        @php($hasDeviceUsage = $deviceUsage->isNotEmpty())
         <section
             class="bg-white dark:bg-gray-800 overflow-hidden shadow-xl sm:rounded-lg p-6 mt-8"
             aria-labelledby="browser-usage-heading"
@@ -64,7 +65,7 @@
                 </p>
             </div>
 
-            <div class="mt-6 grid grid-cols-1 gap-10 xl:grid-cols-2">
+            <div class="mt-6 grid grid-cols-1 gap-10 xl:grid-cols-3">
                 <figure class="flex flex-col items-center">
                     <h3 id="browserUsageChartTitle" class="text-lg font-semibold text-gray-900 dark:text-gray-100 text-center">
                         Beliebteste Browser
@@ -140,6 +141,50 @@
                     @else
                         <p
                             id="browserFamilyChartSummary"
+                            class="mt-5 text-sm text-gray-600 dark:text-gray-400 text-center"
+                        >
+                            Noch keine Login-Daten vorhanden.
+                        </p>
+                    @endif
+                </figure>
+
+                <figure class="flex flex-col items-center">
+                    <h3 id="deviceUsageChartTitle" class="text-lg font-semibold text-gray-900 dark:text-gray-100 text-center">
+                        Endgeräte unserer Mitglieder
+                    </h3>
+                    <p class="mt-2 text-sm text-gray-600 dark:text-gray-400 text-center max-w-xl">
+                        Vergleicht den Anteil von Mobil- und Festgeräten auf Basis der zuletzt verwendeten Sitzungen.
+                    </p>
+                    <div data-chart-wrapper class="mt-4 w-full max-w-xl">
+                        <canvas
+                            id="deviceUsageChart"
+                            class="h-72 w-full {{ $hasDeviceUsage ? '' : 'opacity-50' }}"
+                            role="img"
+                            aria-labelledby="deviceUsageChartTitle deviceUsageChartSummary"
+                            aria-hidden="{{ $hasDeviceUsage ? 'false' : 'true' }}"
+                        ></canvas>
+                    </div>
+                    @if ($hasDeviceUsage)
+                        @php($totalDeviceUsage = max($deviceUsage->sum('value'), 1))
+                        <ul
+                            id="deviceUsageChartSummary"
+                            class="mt-5 w-full space-y-2 text-sm text-gray-700 dark:text-gray-300"
+                        >
+                            @foreach ($deviceUsage as $entry)
+                                @php($percentage = round(($entry['value'] / $totalDeviceUsage) * 100))
+                                <li class="flex items-center justify-between gap-2 rounded-lg bg-gray-50/80 px-3 py-2 dark:bg-gray-900/50">
+                                    <span class="font-medium">{{ $entry['label'] }}</span>
+                                    <span class="flex items-baseline gap-1">
+                                        <span class="font-semibold text-gray-900 dark:text-gray-100">{{ $entry['value'] }}</span>
+                                        <span class="text-xs text-gray-500 dark:text-gray-400" aria-hidden="true">{{ $percentage }}&nbsp;%</span>
+                                        <span class="sr-only">{{ $percentage }} Prozent</span>
+                                    </span>
+                                </li>
+                            @endforeach
+                        </ul>
+                    @else
+                        <p
+                            id="deviceUsageChartSummary"
                             class="mt-5 text-sm text-gray-600 dark:text-gray-400 text-center"
                         >
                             Noch keine Login-Daten vorhanden.
@@ -245,6 +290,7 @@
         const activityTimeline = @json($activityTimeline);
         const browserUsageByBrowser = @json($browserUsageByBrowser);
         const browserUsageByFamily = @json($browserUsageByFamily);
+        const deviceUsage = @json($deviceUsage);
 
         const numberFormatter = new Intl.NumberFormat('de-DE');
         const isDarkMode = document.documentElement.classList.contains('dark');
@@ -414,6 +460,7 @@
 
         renderDoughnutChart('browserUsageChart', browserUsageByBrowser);
         renderDoughnutChart('browserFamilyChart', browserUsageByFamily);
+        renderDoughnutChart('deviceUsageChart', deviceUsage);
 
         const userSelect = document.getElementById('userSelect');
         const userVisitsEmptyMessage = document.getElementById('userVisitsEmptyMessage');
