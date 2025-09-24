@@ -133,6 +133,38 @@ class BrowserStatsServiceTest extends TestCase
         $this->assertSame(1, $deviceTypeCounts['Festgerät']);
     }
 
+    public function test_browser_usage_handles_user_agents_with_pipe_characters(): void
+    {
+        $service = app(BrowserStatsService::class);
+
+        $user = User::factory()->create();
+
+        DB::table('sessions')->insert([
+            'id' => Str::uuid()->toString(),
+            'user_id' => $user->id,
+            'ip_address' => '127.0.0.1',
+            'user_agent' => 'Mozilla/5.0 (TestDevice|Special) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'payload' => 'test',
+            'last_activity' => now()->subMinutes(15)->timestamp,
+        ]);
+
+        DB::table('sessions')->insert([
+            'id' => Str::uuid()->toString(),
+            'user_id' => $user->id,
+            'ip_address' => '127.0.0.1',
+            'user_agent' => 'Mozilla/5.0 (Different Device) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15',
+            'payload' => 'test',
+            'last_activity' => now()->subMinutes(5)->timestamp,
+        ]);
+
+        $usage = $service->browserUsage();
+
+        $browserCounts = $usage['browserCounts']->pluck('value', 'label')->all();
+
+        $this->assertSame(1, $browserCounts['Google Chrome']);
+        $this->assertSame(1, $browserCounts['Safari']);
+    }
+
     public function test_browser_usage_ignores_sessions_older_than_thirty_days(): void
     {
         $service = app(BrowserStatsService::class);

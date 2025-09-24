@@ -127,7 +127,7 @@ class BrowserStatsService
             ->where('last_activity', '>=', $threshold)
             ->get()
             ->sortByDesc('last_activity')
-            ->unique(fn ($session) => $session->user_id.'|'.md5($session->user_agent))
+            ->unique(fn ($session) => [$session->user_id, $session->user_agent])
             ->values();
     }
 
