@@ -135,6 +135,7 @@ class AdminController extends Controller
             'homepageVisits' => $homepageVisits,
             'browserUsageByBrowser' => $browserUsage['browserCounts'],
             'browserUsageByFamily' => $browserUsage['familyCounts'],
+            'deviceUsage' => $browserUsage['deviceTypeCounts'],
         ]);
     }
 

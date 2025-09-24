@@ -9,9 +9,13 @@ use Illuminate\Support\Str;
 class BrowserStatsService
 {
     /**
-     * Liefert Statistiken zur Browsernutzung der Mitglieder basierend auf den aktuellsten Sitzungen.
+     * Liefert Statistiken zur Browser- und Gerätenutzung der Mitglieder basierend auf den aktuellsten Sitzungen.
      *
-     * @return array{browserCounts: Collection<int, array{label: string, value: int}>, familyCounts: Collection<int, array{label: string, value: int}>}
+     * @return array{
+     *     browserCounts: Collection<int, array{label: string, value: int}>,
+     *     familyCounts: Collection<int, array{label: string, value: int}>,
+     *     deviceTypeCounts: Collection<int, array{label: string, value: int}>,
+     * }
      */
     public function browserUsage(): array
     {
@@ -20,6 +24,9 @@ class BrowserStatsService
         $detected = $latestSessions
             ->filter(fn ($session) => filled($session->user_agent))
             ->map(fn ($session) => $this->detectBrowser($session->user_agent));
+
+        $deviceTypes = $latestSessions
+            ->map(fn ($session) => $this->detectDeviceType($session->user_agent ?? null));
 
         $browserCounts = $detected
             ->map(fn ($info) => $info['browser'])
@@ -35,9 +42,16 @@ class BrowserStatsService
             ->map(fn ($count, $label) => ['label' => $label, 'value' => (int) $count])
             ->values();
 
+        $deviceTypeCounts = $deviceTypes
+            ->countBy()
+            ->sortDesc()
+            ->map(fn ($count, $label) => ['label' => $label, 'value' => (int) $count])
+            ->values();
+
         return [
             'browserCounts' => $browserCounts,
             'familyCounts' => $familyCounts,
+            'deviceTypeCounts' => $deviceTypeCounts,
         ];
     }
 
@@ -66,6 +80,37 @@ class BrowserStatsService
             'browser' => 'Andere',
             'family' => 'Sonstige',
         ];
+    }
+
+    public function detectDeviceType(?string $userAgent): string
+    {
+        if (! is_string($userAgent) || trim($userAgent) === '') {
+            return 'Festgerät';
+        }
+
+        $haystack = Str::lower($userAgent);
+
+        $mobileKeywords = [
+            'mobile',
+            'iphone',
+            'ipad',
+            'ipod',
+            'android',
+            'opera mini',
+            'opera mobi',
+            'blackberry',
+            'windows phone',
+            'iemobile',
+            'silk',
+            'kindle',
+            'tablet',
+        ];
+
+        if (collect($mobileKeywords)->some(fn ($keyword) => str_contains($haystack, $keyword))) {
+            return 'Mobilgerät';
+        }
+
+        return 'Festgerät';
     }
 
     /**
