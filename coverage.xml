@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1758689242">
-  <project timestamp="1758689242" name="Clover Coverage">
+<coverage generated="1758691525">
+  <project timestamp="1758691525" name="Clover Coverage">
     <package name="App\Actions\Fortify">
       <file name="/home/runner/work/omxfc-vereinswebseite/omxfc-vereinswebseite/app/Actions/Fortify/CreateNewUser.php">
         <class name="App\Actions\Fortify\CreateNewUser" namespace="App\Actions\Fortify">
@@ -2513,15 +2513,15 @@
         <line num="152" type="stmt" count="12"/>
         <line num="153" type="stmt" count="12"/>
         <line num="155" type="stmt" count="12"/>
-        <line num="156" type="stmt" count="4"/>
-        <line num="157" type="stmt" count="4"/>
-        <line num="158" type="stmt" count="4"/>
-        <line num="159" type="stmt" count="4"/>
-        <line num="160" type="stmt" count="4"/>
-        <line num="161" type="stmt" count="4"/>
-        <line num="162" type="stmt" count="4"/>
-        <line num="163" type="stmt" count="4"/>
-        <line num="165" type="stmt" count="4"/>
+        <line num="156" type="stmt" count="7"/>
+        <line num="157" type="stmt" count="7"/>
+        <line num="158" type="stmt" count="7"/>
+        <line num="159" type="stmt" count="7"/>
+        <line num="160" type="stmt" count="7"/>
+        <line num="161" type="stmt" count="7"/>
+        <line num="162" type="stmt" count="7"/>
+        <line num="163" type="stmt" count="7"/>
+        <line num="165" type="stmt" count="7"/>
         <line num="166" type="stmt" count="1"/>
         <line num="167" type="stmt" count="1"/>
         <line num="168" type="stmt" count="1"/>
@@ -2532,15 +2532,15 @@
         <line num="177" type="stmt" count="12"/>
         <line num="178" type="stmt" count="12"/>
         <line num="180" type="stmt" count="12"/>
-        <line num="181" type="stmt" count="2"/>
-        <line num="182" type="stmt" count="2"/>
-        <line num="183" type="stmt" count="2"/>
-        <line num="184" type="stmt" count="2"/>
-        <line num="185" type="stmt" count="2"/>
-        <line num="186" type="stmt" count="2"/>
-        <line num="187" type="stmt" count="2"/>
-        <line num="188" type="stmt" count="2"/>
-        <line num="190" type="stmt" count="2"/>
+        <line num="181" type="stmt" count="1"/>
+        <line num="182" type="stmt" count="1"/>
+        <line num="183" type="stmt" count="1"/>
+        <line num="184" type="stmt" count="1"/>
+        <line num="185" type="stmt" count="1"/>
+        <line num="186" type="stmt" count="1"/>
+        <line num="187" type="stmt" count="1"/>
+        <line num="188" type="stmt" count="1"/>
+        <line num="190" type="stmt" count="1"/>
         <line num="191" type="stmt" count="1"/>
         <line num="192" type="stmt" count="1"/>
         <line num="193" type="stmt" count="1"/>
@@ -4281,8 +4281,8 @@
         <class name="App\Models\Review" namespace="App\Models">
           <metrics complexity="8" methods="4" coveredmethods="3" conditionals="0" coveredconditionals="0" statements="23" coveredstatements="19" elements="27" coveredelements="22"/>
         </class>
-        <line num="44" type="method" name="book" visibility="public" complexity="1" crap="1" count="16"/>
-        <line num="46" type="stmt" count="16"/>
+        <line num="44" type="method" name="book" visibility="public" complexity="1" crap="1" count="18"/>
+        <line num="46" type="stmt" count="18"/>
         <line num="52" type="method" name="user" visibility="public" complexity="1" crap="1" count="6"/>
         <line num="54" type="stmt" count="6"/>
         <line num="60" type="method" name="comments" visibility="public" complexity="1" crap="1" count="53"/>
@@ -4784,7 +4784,7 @@
     <package name="App\Services">
       <file name="/home/runner/work/omxfc-vereinswebseite/omxfc-vereinswebseite/app/Services/BrowserStatsService.php">
         <class name="App\Services\BrowserStatsService" namespace="App\Services">
-          <metrics complexity="14" methods="6" coveredmethods="4" conditionals="0" coveredconditionals="0" statements="110" coveredstatements="101" elements="116" coveredelements="105"/>
+          <metrics complexity="14" methods="6" coveredmethods="4" conditionals="0" coveredconditionals="0" statements="113" coveredstatements="104" elements="119" coveredelements="108"/>
         </class>
         <line num="20" type="method" name="browserUsage" visibility="public" complexity="1" crap="1" count="4"/>
         <line num="22" type="stmt" count="4"/>
@@ -4853,19 +4853,18 @@
         <line num="109" type="stmt" count="1"/>
         <line num="110" type="stmt" count="1"/>
         <line num="113" type="stmt" count="1"/>
-        <line num="119" type="method" name="latestSessions" visibility="private" complexity="1" crap="1" count="4"/>
+        <line num="119" type="method" name="recentSessions" visibility="private" complexity="1" crap="1" count="4"/>
         <line num="121" type="stmt" count="4"/>
-        <line num="122" type="stmt" count="4"/>
         <line num="123" type="stmt" count="4"/>
         <line num="124" type="stmt" count="4"/>
         <line num="125" type="stmt" count="4"/>
         <line num="126" type="stmt" count="4"/>
         <line num="127" type="stmt" count="4"/>
-        <line num="135" type="method" name="browserDefinitions" visibility="private" complexity="1" crap="1" count="1"/>
-        <line num="137" type="stmt" count="1"/>
-        <line num="138" type="stmt" count="1"/>
-        <line num="139" type="stmt" count="1"/>
-        <line num="140" type="stmt" count="1"/>
+        <line num="128" type="stmt" count="4"/>
+        <line num="129" type="stmt" count="4"/>
+        <line num="130" type="stmt" count="4"/>
+        <line num="131" type="stmt" count="4"/>
+        <line num="139" type="method" name="browserDefinitions" visibility="private" complexity="1" crap="1" count="1"/>
         <line num="141" type="stmt" count="1"/>
         <line num="142" type="stmt" count="1"/>
         <line num="143" type="stmt" count="1"/>
@@ -4892,17 +4891,21 @@
         <line num="164" type="stmt" count="1"/>
         <line num="165" type="stmt" count="1"/>
         <line num="166" type="stmt" count="1"/>
-        <line num="174" type="method" name="matchesDefinition" visibility="private" complexity="2" crap="2" count="1"/>
-        <line num="176" type="stmt" count="1"/>
-        <line num="177" type="stmt" count="1"/>
-        <line num="178" type="stmt" count="1"/>
-        <line num="179" type="stmt" count="1"/>
+        <line num="167" type="stmt" count="1"/>
+        <line num="168" type="stmt" count="1"/>
+        <line num="169" type="stmt" count="1"/>
+        <line num="170" type="stmt" count="1"/>
+        <line num="178" type="method" name="matchesDefinition" visibility="private" complexity="2" crap="2" count="1"/>
+        <line num="180" type="stmt" count="1"/>
         <line num="181" type="stmt" count="1"/>
         <line num="182" type="stmt" count="1"/>
+        <line num="183" type="stmt" count="1"/>
         <line num="185" type="stmt" count="1"/>
         <line num="186" type="stmt" count="1"/>
-        <line num="188" type="stmt" count="1"/>
-        <metrics loc="191" ncloc="166" classes="1" methods="6" coveredmethods="4" conditionals="0" coveredconditionals="0" statements="110" coveredstatements="101" elements="116" coveredelements="105"/>
+        <line num="189" type="stmt" count="1"/>
+        <line num="190" type="stmt" count="1"/>
+        <line num="192" type="stmt" count="1"/>
+        <metrics loc="195" ncloc="170" classes="1" methods="6" coveredmethods="4" conditionals="0" coveredconditionals="0" statements="113" coveredstatements="104" elements="119" coveredelements="108"/>
       </file>
       <file name="/home/runner/work/omxfc-vereinswebseite/omxfc-vereinswebseite/app/Services/MaddraxDataService.php">
         <class name="App\Services\MaddraxDataService" namespace="App\Services">
@@ -5261,6 +5264,6 @@
         <metrics loc="25" ncloc="19" classes="1" methods="2" coveredmethods="2" conditionals="0" coveredconditionals="0" statements="2" coveredstatements="2" elements="4" coveredelements="4"/>
       </file>
     </package>
-    <metrics files="120" loc="10284" ncloc="8934" classes="115" methods="382" coveredmethods="282" conditionals="0" coveredconditionals="0" statements="4126" coveredstatements="3694" elements="4508" coveredelements="3976"/>
+    <metrics files="120" loc="10288" ncloc="8938" classes="115" methods="382" coveredmethods="282" conditionals="0" coveredconditionals="0" statements="4129" coveredstatements="3697" elements="4511" coveredelements="3979"/>
   </project>
 </coverage>
