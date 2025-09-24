@@ -60,8 +60,8 @@
                     Browsernutzung unserer Mitglieder
                 </h2>
                 <p class="text-sm text-gray-600 dark:text-gray-400 max-w-2xl">
-                    Wir berücksichtigen den jeweils zuletzt verwendeten Browser aktiver Mitglieder. Die Werte helfen uns,
-                    die Plattform für die wichtigsten Engines zu optimieren.
+                    Wir berücksichtigen alle Browser und Gerätetypen, die aktive Mitglieder in den letzten 30 Tagen genutzt haben.
+                    Die Werte helfen uns, die Plattform für die wichtigsten Engines zu optimieren.
                 </p>
             </div>
 

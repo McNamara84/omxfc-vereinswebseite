@@ -9,7 +9,7 @@ use Illuminate\Support\Str;
 class BrowserStatsService
 {
     /**
-     * Liefert Statistiken zur Browser- und Gerätenutzung der Mitglieder basierend auf den aktuellsten Sitzungen.
+     * Liefert Statistiken zur Browser- und Gerätenutzung der Mitglieder basierend auf allen Sitzungen der letzten 30 Tage.
      *
      * @return array{
      *     browserCounts: Collection<int, array{label: string, value: int}>,
@@ -19,13 +19,13 @@ class BrowserStatsService
      */
     public function browserUsage(): array
     {
-        $latestSessions = $this->latestSessions();
+        $recentSessions = $this->recentSessions();
 
-        $detected = $latestSessions
+        $detected = $recentSessions
             ->filter(fn ($session) => filled($session->user_agent))
             ->map(fn ($session) => $this->detectBrowser($session->user_agent));
 
-        $deviceTypes = $latestSessions
+        $deviceTypes = $recentSessions
             ->map(fn ($session) => $this->detectDeviceType($session->user_agent ?? null));
 
         $browserCounts = $detected
@@ -114,17 +114,21 @@ class BrowserStatsService
     }
 
     /**
-     * Gibt die aktuellste Sitzung pro Mitglied zurück.
+     * Gibt alle eindeutigen Browser-Sitzungen der letzten 30 Tage pro Mitglied zurück.
      */
-    private function latestSessions(): Collection
+    private function recentSessions(): Collection
     {
+        $threshold = now()->subDays(30)->timestamp;
+
         return DB::table('sessions')
             ->select('user_id', 'user_agent', 'last_activity')
             ->whereNotNull('user_id')
             ->whereNotNull('user_agent')
+            ->where('last_activity', '>=', $threshold)
             ->get()
-            ->groupBy('user_id')
-            ->map(fn (Collection $rows) => $rows->sortByDesc('last_activity')->first());
+            ->sortByDesc('last_activity')
+            ->unique(fn ($session) => $session->user_id.'|'.md5($session->user_agent))
+            ->values();
     }
 
     /**
