@@ -616,3 +616,4 @@ INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (42,'2025_09_20_000
 INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (43,'2025_09_21_000000_create_audiobook_roles_table',1);
 INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (44,'2025_09_22_000000_add_name_user_speaker_index_to_audiobook_roles_table',1);
 INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (45,'2025_10_01_000000_update_book_type_enum',2);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (46,'2025_09_25_052816_create_member_client_snapshots_table',2);

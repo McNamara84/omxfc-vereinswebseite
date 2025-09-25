@@ -445,3 +445,4 @@ INSERT INTO migrations VALUES(42,'2025_09_20_000001_add_lieblingscover_to_users_
 INSERT INTO migrations VALUES(43,'2025_09_21_000000_create_audiobook_roles_table',1);
 INSERT INTO migrations VALUES(44,'2025_09_22_000000_add_name_user_speaker_index_to_audiobook_roles_table',1);
 INSERT INTO migrations VALUES(45,'2025_10_01_000000_update_book_type_enum',1);
+INSERT INTO migrations VALUES(46,'2025_09_25_052816_create_member_client_snapshots_table',2);
