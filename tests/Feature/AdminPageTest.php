@@ -2,12 +2,11 @@
 
 namespace Tests\Feature;
 
+use App\Models\MemberClientSnapshot;
 use App\Models\PageVisit;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 use Tests\TestCase;
 
 class AdminPageTest extends TestCase
@@ -30,6 +29,20 @@ class AdminPageTest extends TestCase
         return $user;
     }
 
+    private function createSnapshot(int $userId, ?string $userAgent, $lastSeenAt): void
+    {
+        MemberClientSnapshot::updateOrCreate(
+            [
+                'user_id' => $userId,
+                'user_agent_hash' => MemberClientSnapshot::hashUserAgent($userAgent),
+            ],
+            [
+                'user_agent' => $userAgent,
+                'last_seen_at' => $lastSeenAt,
+            ]
+        );
+    }
+
     public function test_admin_route_denied_for_non_admin(): void
     {
         $member = $this->memberUser();
@@ -43,11 +56,19 @@ class AdminPageTest extends TestCase
     {
         $admin = $this->adminUser();
 
-        $this->actingAs($admin)->get('/dashboard')->assertOk();
+        $this->actingAs($admin)
+            ->withHeader('User-Agent', 'TestAgent/1.0')
+            ->get('/dashboard')
+            ->assertOk();
 
         $this->assertDatabaseHas('page_visits', [
             'user_id' => $admin->id,
             'path' => '/dashboard',
+        ]);
+
+        $this->assertDatabaseHas('member_client_snapshots', [
+            'user_id' => $admin->id,
+            'user_agent' => 'TestAgent/1.0',
         ]);
 
         $this->actingAs($admin)->get('/admin/statistiken')->assertOk();
@@ -139,32 +160,9 @@ class AdminPageTest extends TestCase
         $admin = $this->adminUser();
         $member = $this->memberUser();
 
-        DB::table('sessions')->insert([
-            'id' => Str::uuid()->toString(),
-            'user_id' => $admin->id,
-            'ip_address' => '127.0.0.1',
-            'user_agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
-            'payload' => 'test',
-            'last_activity' => now()->timestamp,
-        ]);
-
-        DB::table('sessions')->insert([
-            'id' => Str::uuid()->toString(),
-            'user_id' => $member->id,
-            'ip_address' => '127.0.0.1',
-            'user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15',
-            'payload' => 'test',
-            'last_activity' => now()->timestamp,
-        ]);
-
-        DB::table('sessions')->insert([
-            'id' => Str::uuid()->toString(),
-            'user_id' => $member->id,
-            'ip_address' => '127.0.0.1',
-            'user_agent' => 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
-            'payload' => 'test',
-            'last_activity' => now()->addSecond()->timestamp,
-        ]);
+        $this->createSnapshot($admin->id, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, wie Gecko) Chrome/122.0.0.0 Safari/537.36', now());
+        $this->createSnapshot($member->id, 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, wie Gecko) Version/17.0 Safari/605.1.15', now());
+        $this->createSnapshot($member->id, 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, wie Gecko) Version/17.0 Mobile/15E148 Safari/604.1', now()->addSecond());
 
         $response = $this->actingAs($admin)->get('/admin/statistiken');
 

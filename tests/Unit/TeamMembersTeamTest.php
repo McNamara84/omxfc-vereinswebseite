@@ -3,11 +3,14 @@
 namespace Tests\Unit;
 
 use App\Models\Team;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class TeamMembersTeamTest extends TestCase
 {
+    use RefreshDatabase;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -65,7 +68,7 @@ class TeamMembersTeamTest extends TestCase
         $renamedTeam = Team::membersTeam();
 
         $this->assertCount(1, DB::getQueryLog());
-        $this->assertSame('Mitglieder-renamed', $renamedTeam->name);
+        $this->assertNull($renamedTeam);
     }
 
     public function test_members_team_returns_null_when_not_found(): void

@@ -1,37 +1,48 @@
 <?php
 
+namespace Tests\Unit;
+
 use App\Providers\FortifyServiceProvider;
 use Illuminate\Cache\RateLimiting\Unlimited;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Laravel\Fortify\Fortify;
+use Tests\TestCase;
 
-test('fortify login limiter keeps default rate limiting when not disabled', function () {
-    config(['fortify.disable_login_rate_limit' => false]);
+class FortifyLoginRateLimiterTest extends TestCase
+{
+    use RefreshDatabase;
 
-    app(FortifyServiceProvider::class)->boot();
+    public function test_login_rate_limiter_default_behavior(): void
+    {
+        config(['fortify.disable_login_rate_limit' => false]);
 
-    $limiter = RateLimiter::limiter('login');
-    $request = Request::create('/login', 'POST', [Fortify::username() => 'user@example.com']);
-    $request->server->set('REMOTE_ADDR', '127.0.0.1');
+        (new FortifyServiceProvider(app()))->boot();
 
-    $limit = $limiter($request);
+        $limiter = RateLimiter::limiter('login');
+        $request = Request::create('/login', 'POST', [Fortify::username() => 'user@example.com']);
+        $request->server->set('REMOTE_ADDR', '127.0.0.1');
 
-    expect($limit->maxAttempts)->toBe(5);
-});
+        $limit = $limiter($request);
 
-test('fortify login limiter can be disabled through configuration', function () {
-    config(['fortify.disable_login_rate_limit' => true]);
+        $this->assertSame(5, $limit->maxAttempts);
+    }
 
-    app(FortifyServiceProvider::class)->boot();
+    public function test_login_rate_limiter_can_be_disabled(): void
+    {
+        config(['fortify.disable_login_rate_limit' => true]);
 
-    $limiter = RateLimiter::limiter('login');
-    $request = Request::create('/login', 'POST', [Fortify::username() => 'user@example.com']);
-    $request->server->set('REMOTE_ADDR', '127.0.0.1');
+        (new FortifyServiceProvider(app()))->boot();
 
-    $limit = $limiter($request);
+        $limiter = RateLimiter::limiter('login');
+        $request = Request::create('/login', 'POST', [Fortify::username() => 'user@example.com']);
+        $request->server->set('REMOTE_ADDR', '127.0.0.1');
 
-    expect($limit)->toBeInstanceOf(Unlimited::class);
+        $limit = $limiter($request);
 
-    config(['fortify.disable_login_rate_limit' => false]);
-});
+        $this->assertInstanceOf(Unlimited::class, $limit);
+
+        config(['fortify.disable_login_rate_limit' => false]);
+    }
+}

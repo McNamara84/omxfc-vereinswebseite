@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\MemberClientSnapshot;
 use App\Models\PageVisit;
 use Closure;
 use Illuminate\Http\Request;
@@ -20,10 +21,25 @@ class LogPageVisit
         $response = $next($request);
 
         if (Auth::check()) {
+            $userId = Auth::id();
+            $userAgent = $request->userAgent();
+            $normalizedPath = '/' . ltrim($request->path(), '/');
+
             PageVisit::create([
-                'user_id' => Auth::id(),
-                'path' => '/' . ltrim($request->path(), '/'),
+                'user_id' => $userId,
+                'path' => $normalizedPath,
             ]);
+
+            MemberClientSnapshot::updateOrCreate(
+                [
+                    'user_id' => $userId,
+                    'user_agent_hash' => MemberClientSnapshot::hashUserAgent($userAgent),
+                ],
+                [
+                    'user_agent' => $userAgent,
+                    'last_seen_at' => now(),
+                ]
+            );
         }
 
         return $response;
