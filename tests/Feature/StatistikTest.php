@@ -274,8 +274,8 @@ class StatistikTest extends TestCase
 
         $otherMember = $this->actingMemberWithPoints(3);
 
-        $this->createSnapshot($viewer->id, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, wie Gecko) Chrome/120.0.0.0 Safari/537.36', now());
-        $this->createSnapshot($otherMember->id, 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, wie Gecko) Version/17.0 Safari/605.1.15', now());
+        $this->createSnapshot($viewer->id, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36', now());
+        $this->createSnapshot($otherMember->id, 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15', now());
 
         $response = $this->get('/statistiken');
 
