@@ -2,15 +2,16 @@
 
 namespace Tests\Feature;
 
-use App\Models\MemberClientSnapshot;
 use App\Models\PageVisit;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\CreatesMemberClientSnapshot;
 use Tests\TestCase;
 
 class AdminPageTest extends TestCase
 {
+    use CreatesMemberClientSnapshot;
     use RefreshDatabase;
 
     private function adminUser(): User
@@ -27,20 +28,6 @@ class AdminPageTest extends TestCase
         $user = User::factory()->create(['current_team_id' => $team->id]);
         $team->users()->attach($user, ['role' => \App\Enums\Role::Mitglied->value]);
         return $user;
-    }
-
-    private function createSnapshot(int $userId, ?string $userAgent, $lastSeenAt): void
-    {
-        MemberClientSnapshot::updateOrCreate(
-            [
-                'user_id' => $userId,
-                'user_agent_hash' => MemberClientSnapshot::hashUserAgent($userAgent),
-            ],
-            [
-                'user_agent' => $userAgent,
-                'last_seen_at' => $lastSeenAt,
-            ]
-        );
     }
 
     public function test_admin_route_denied_for_non_admin(): void

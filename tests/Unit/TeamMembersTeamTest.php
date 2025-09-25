@@ -68,7 +68,7 @@ class TeamMembersTeamTest extends TestCase
         $renamedTeam = Team::membersTeam();
 
         $this->assertCount(1, DB::getQueryLog());
-        $this->assertNull($renamedTeam);
+        $this->assertSame('Mitglieder-renamed', $renamedTeam->name);
     }
 
     public function test_members_team_returns_null_when_not_found(): void

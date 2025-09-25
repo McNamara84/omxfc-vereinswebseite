@@ -3,17 +3,18 @@
 namespace Tests\Feature;
 
 use App\Models\Book;
-use App\Models\MemberClientSnapshot;
 use App\Models\Review;
 use App\Models\ReviewComment;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\File;
+use Tests\Concerns\CreatesMemberClientSnapshot;
 use Tests\TestCase;
 
 class StatistikTest extends TestCase
 {
+    use CreatesMemberClientSnapshot;
     use RefreshDatabase;
 
     private string $testStoragePath;
@@ -71,20 +72,6 @@ class StatistikTest extends TestCase
             mkdir(dirname($path), 0777, true);
         }
         file_put_contents($path, json_encode($data));
-    }
-
-    private function createSnapshot(int $userId, ?string $userAgent, $lastSeenAt): void
-    {
-        MemberClientSnapshot::updateOrCreate(
-            [
-                'user_id' => $userId,
-                'user_agent_hash' => MemberClientSnapshot::hashUserAgent($userAgent),
-            ],
-            [
-                'user_agent' => $userAgent,
-                'last_seen_at' => $lastSeenAt,
-            ]
-        );
     }
 
     private function createHardcoversFile(): void

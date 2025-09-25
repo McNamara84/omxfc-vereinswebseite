@@ -33,6 +33,7 @@ class Team extends JetstreamTeam
     use HasFactory;
 
     public const MEMBERS_TEAM_CACHE_KEY = 'team.members';
+    public const MEMBERS_TEAM_ID_CACHE_KEY = 'team.members.id';
 
     /**
      * The attributes that are mass assignable.
@@ -121,10 +122,21 @@ class Team extends JetstreamTeam
             return $cached;
         }
 
-        $team = self::where('name', 'Mitglieder')->first();
+        $teamId = Cache::get(self::MEMBERS_TEAM_ID_CACHE_KEY);
+
+        $team = null;
+
+        if ($teamId) {
+            $team = self::query()->find($teamId);
+        }
+
+        if (! $team) {
+            $team = self::query()->where('name', 'Mitglieder')->first();
+        }
 
         if ($team) {
             Cache::put(self::MEMBERS_TEAM_CACHE_KEY, $team, now()->addHour());
+            Cache::forever(self::MEMBERS_TEAM_ID_CACHE_KEY, $team->id);
         }
 
         return $team;
@@ -149,6 +161,7 @@ class Team extends JetstreamTeam
         static::deleted(function (self $team) {
             if ($team->getOriginal('name') === 'Mitglieder' || $team->name === 'Mitglieder') {
                 self::clearMembersTeamCache();
+                Cache::forget(self::MEMBERS_TEAM_ID_CACHE_KEY);
             }
         });
     }

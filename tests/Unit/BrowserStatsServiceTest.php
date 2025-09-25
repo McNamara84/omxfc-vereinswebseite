@@ -2,14 +2,15 @@
 
 namespace Tests\Unit;
 
-use App\Models\MemberClientSnapshot;
 use App\Models\User;
 use App\Services\BrowserStatsService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\CreatesMemberClientSnapshot;
 use Tests\TestCase;
 
 class BrowserStatsServiceTest extends TestCase
 {
+    use CreatesMemberClientSnapshot;
     use RefreshDatabase;
 
     public function test_detect_browser_classifies_known_agents(): void
@@ -128,17 +129,4 @@ class BrowserStatsServiceTest extends TestCase
         $this->assertSame(1, $browserCounts['Safari']);
     }
 
-    private function createSnapshot(int $userId, ?string $userAgent, $lastSeenAt): void
-    {
-        MemberClientSnapshot::updateOrCreate(
-            [
-                'user_id' => $userId,
-                'user_agent_hash' => MemberClientSnapshot::hashUserAgent($userAgent),
-            ],
-            [
-                'user_agent' => $userAgent,
-                'last_seen_at' => $lastSeenAt,
-            ]
-        );
-    }
 }
