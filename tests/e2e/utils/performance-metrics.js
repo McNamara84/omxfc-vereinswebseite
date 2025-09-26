@@ -120,6 +120,15 @@ function toFiniteOrNull(value) {
   return typeof value === 'number' && Number.isFinite(value) ? value : null;
 }
 
+function average(values) {
+  if (values.length === 0) {
+    return null;
+  }
+
+  const sum = values.reduce((total, current) => total + current, 0);
+  return sum / values.length;
+}
+
 export function extractBenchmarkOutputs(summary) {
   const parsed = summarySchema.parse(summary);
   const navigation = parsed.raw?.navigation ?? null;
@@ -160,4 +169,60 @@ export function extractBenchmarkOutputs(summary) {
     domContentLoaded,
     runLoadTimes,
   };
+}
+
+export function combineBenchmarkRuns(runSummaries) {
+  if (!Array.isArray(runSummaries) || runSummaries.length === 0) {
+    throw new Error('Expected at least one benchmark run to combine.');
+  }
+
+  const parsedRuns = runSummaries.map((summary, index) => {
+    try {
+      return summarySchema.parse(summary);
+    } catch (error) {
+      throw new Error(`Invalid benchmark summary provided for run #${index + 1}: ${error.message}`);
+    }
+  });
+
+  const latest = parsedRuns[parsedRuns.length - 1];
+  const metricKeys = [
+    'totalLoadTime',
+    'domContentLoaded',
+    'timeToFirstByte',
+    'firstPaint',
+    'firstContentfulPaint',
+    'largestContentfulPaint',
+    'transferSize',
+    'encodedBodySize',
+    'decodedBodySize',
+  ];
+
+  const averagedMetrics = { ...latest.metrics };
+
+  for (const key of metricKeys) {
+    const values = parsedRuns
+      .map((run) => toFiniteOrNull(run.metrics?.[key] ?? null))
+      .filter((value) => value !== null);
+
+    averagedMetrics[key] = average(values);
+  }
+
+  const runs = parsedRuns.map((run, index) => ({
+    index: index + 1,
+    totalLoadTime: toFiniteOrNull(run.metrics?.totalLoadTime ?? null),
+    totalLoadTimeMs: toFiniteOrNull(run.metrics?.totalLoadTime ?? null),
+    domContentLoaded: toFiniteOrNull(run.metrics?.domContentLoaded ?? null),
+    timeToFirstByte: toFiniteOrNull(run.metrics?.timeToFirstByte ?? null),
+    metrics: run.metrics,
+    raw: run.raw,
+    recordedAt: run.recordedAt ?? null,
+  }));
+
+  const combined = {
+    ...latest,
+    metrics: averagedMetrics,
+    runs,
+  };
+
+  return summarySchema.parse(combined);
 }
