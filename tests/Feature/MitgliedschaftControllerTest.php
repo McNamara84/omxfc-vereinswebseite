@@ -34,6 +34,7 @@ class MitgliedschaftControllerTest extends TestCase
             'mail' => ['aria' => 'aria-describedby="error-mail"', 'ids' => ['error-mail']],
             'passwort' => ['aria' => 'aria-describedby="passwort-hint error-passwort"', 'ids' => ['passwort-hint', 'error-passwort']],
             'passwort_confirmation' => ['aria' => 'aria-describedby="passwort_confirmation-hint error-passwort_confirmation"', 'ids' => ['passwort_confirmation-hint', 'error-passwort_confirmation']],
+            'mitgliedsbeitrag' => ['aria' => 'aria-describedby="mitgliedsbeitrag-hint beitrag-output error-mitgliedsbeitrag"', 'ids' => ['mitgliedsbeitrag-hint', 'beitrag-output', 'error-mitgliedsbeitrag']],
             'telefon' => ['aria' => 'aria-describedby="telefon-hint error-telefon"', 'ids' => ['telefon-hint', 'error-telefon']],
             'verein_gefunden' => ['aria' => 'aria-describedby="error-verein_gefunden"', 'ids' => ['error-verein_gefunden']],
         ];
@@ -48,6 +49,9 @@ class MitgliedschaftControllerTest extends TestCase
 
             $this->assertStringContainsString('data-error-for="' . $field . '"', $html);
         }
+
+        $this->assertStringContainsString('data-output-target="beitrag-output"', $html);
+        $this->assertStringContainsString('data-output-suffix="€"', $html);
     }
 
     public function test_membership_application_creates_user_and_assigns_anwaerter_role(): void
@@ -118,6 +122,7 @@ class MitgliedschaftControllerTest extends TestCase
             ['input', 'vorname'],
             ['select', 'land'],
             ['select', 'verein_gefunden'],
+            ['input', 'mitgliedsbeitrag'],
         ];
 
         foreach ($fieldsToInspect as [$tag, $id]) {
@@ -143,7 +148,7 @@ class MitgliedschaftControllerTest extends TestCase
 
     private function extractClassAttribute(string $html, string $tag, string $id): ?string
     {
-        $pattern = sprintf('/<%s[^>]*id="%s"[^>]*class="([^"]*)"/m', $tag, $id);
+        $pattern = sprintf('/<%s[^>]*\bid="%s"[^>]*\bclass="([^"]*)"/m', $tag, $id);
 
         if (preg_match($pattern, $html, $matches)) {
             return $matches[1];

@@ -18,7 +18,7 @@
     $describedBy = collect([$hintId, $errorId])->filter()->implode(' ');
     $selectClasses = collect(['mt-1', 'block', 'w-full', $selectClass])->filter()->implode(' ');
     $selectedValue = old($name, $value);
-    $baseSelectClasses = 'border-gray-300 dark:border-gray-700 bg-white text-gray-900 dark:bg-gray-900 dark:text-gray-300 focus:border-[#8B0116] focus:ring-[#8B0116] dark:focus:border-[#ff4b63] dark:focus:ring-[#ff4b63] rounded-md shadow-sm transition-colors duration-150 ease-in-out';
+    $baseControlClasses = collect(config('forms.base_control_classes', []))->implode(' ');
 @endphp
 
 <x-form :name="$name" :label="$label" :id="$fieldId" {{ $attributes->class(['w-full space-y-1']) }}>
@@ -28,7 +28,7 @@
         aria-describedby="{{ $describedBy }}"
         @if($required) required @endif
         @if($autocomplete) autocomplete="{{ $autocomplete }}" @endif
-        class="{{ trim($baseSelectClasses . ' ' . $selectClasses) }}"
+        class="{{ trim($baseControlClasses . ' ' . $selectClasses) }}"
     >
         @if(! is_null($placeholder))
             <option value="" @selected($selectedValue === null || $selectedValue === '')>{{ $placeholder }}</option>

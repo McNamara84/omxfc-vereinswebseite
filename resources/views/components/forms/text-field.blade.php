@@ -18,7 +18,7 @@
     $describedBy = collect([$hintId, $errorId])->filter()->implode(' ');
     $inputClasses = collect(['mt-1', 'block', 'w-full', $inputClass])->filter()->implode(' ');
     $valueAttribute = $type === 'password' ? null : old($name, $value);
-    $baseInputClasses = 'border-gray-300 dark:border-gray-700 bg-white text-gray-900 dark:bg-gray-900 dark:text-gray-300 focus:border-[#8B0116] focus:ring-[#8B0116] dark:focus:border-[#ff4b63] dark:focus:ring-[#ff4b63] rounded-md shadow-sm transition-colors duration-150 ease-in-out';
+    $baseControlClasses = collect(config('forms.base_control_classes', []))->implode(' ');
 @endphp
 
 <x-form :name="$name" :label="$label" :id="$fieldId" {{ $attributes->class(['w-full space-y-1']) }}>
@@ -31,7 +31,7 @@
         @if($autocomplete) autocomplete="{{ $autocomplete }}" @endif
         @if($placeholder) placeholder="{{ $placeholder }}" @endif
         @if(! is_null($valueAttribute)) value="{{ $valueAttribute }}" @endif
-        class="{{ trim($baseInputClasses . ' ' . $inputClasses) }}"
+        class="{{ trim($baseControlClasses . ' ' . $inputClasses) }}"
     >
 
     @if($help)

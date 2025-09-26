@@ -35,20 +35,18 @@
                 <x-forms.text-field name="passwort" label="Passwort" type="password" required class="w-full" autocomplete="new-password" help="Mindestens 6 Zeichen." />
 
                 <x-forms.text-field name="passwort_confirmation" label="Passwort wiederholen" type="password" required class="w-full" autocomplete="new-password" help="Bitte wiederhole dein Passwort." />
-                <!-- Mitgliedsbeitrag über volle Breite -->
-                <div class="col-span-1 md:col-span-2 w-full">
-                    <label for="mitgliedsbeitrag" class="block font-semibold mb-1">
-                        Jährlicher Mitgliedsbeitrag: <span id="beitrag-output">12€</span>
-                    </label>
-                    <input type="range" id="mitgliedsbeitrag" name="mitgliedsbeitrag" min="12" max="120" value="{{ old('mitgliedsbeitrag', 12) }}"
-                        class="w-full">
-                    <p class="mt-2 text-sm text-gray-600 dark:text-gray-300">
-                        Du kannst deinen Mitgliedsbeitrag ab einem monatlichen Beitrag von 1€/Monat (12€/Jahr) selbst
-                        wählen. Diesen Mitgliedsbeitrag kannst du jederzeit in deinen Einstellungen im internen
-                        Mitgliederbereich ändern und so deinen nächsten Jahresbeitrag anpassen. Bei Fragen hierzu wende
-                        dich gerne an den Vorstand.
-                    </p>
-                </div>
+                <x-forms.range-field
+                    name="mitgliedsbeitrag"
+                    label="Jährlicher Mitgliedsbeitrag"
+                    class="col-span-1 md:col-span-2 w-full"
+                    min="12"
+                    max="120"
+                    step="1"
+                    value="12"
+                    output-id="beitrag-output"
+                    output-suffix="€"
+                    help="Du kannst deinen Mitgliedsbeitrag ab einem monatlichen Beitrag von 1€/Monat (12€/Jahr) selbst wählen. Diesen Mitgliedsbeitrag kannst du jederzeit in deinen Einstellungen im internen Mitgliederbereich ändern und so deinen nächsten Jahresbeitrag anpassen. Bei Fragen hierzu wende dich gerne an den Vorstand."
+                />
                 <x-forms.text-field name="telefon" label="Handynummer (optional)" type="tel" class="w-full" autocomplete="tel" placeholder="+49 170 1234567" help="Optional. Bitte im internationalen Format eingeben." />
 
                 <x-forms.select-field
@@ -96,7 +94,10 @@
         document.addEventListener('DOMContentLoaded', () => {
             const form = document.getElementById('mitgliedschaft-form');
             const beitrag = document.getElementById('mitgliedsbeitrag');
-            const beitragOutput = document.getElementById('beitrag-output');
+            const beitragOutputId = beitrag?.dataset.outputTarget || 'beitrag-output';
+            const beitragOutput = document.getElementById(beitragOutputId);
+            const beitragOutputPrefix = beitrag?.dataset.outputPrefix || '';
+            const beitragOutputSuffix = beitrag?.dataset.outputSuffix || '';
             const satzungCheck = document.getElementById('satzung_check');
             const submitButton = document.getElementById('submit-button');
             const missingFieldWarnings = new Set();
@@ -124,11 +125,19 @@
                 },
             };
 
-            beitragOutput.textContent = `${beitrag.value}€`;
+            function updateContributionOutput() {
+                if (!beitrag || !beitragOutput) {
+                    return;
+                }
 
-            beitrag.addEventListener('input', () => {
-                beitragOutput.textContent = beitrag.value + '€';
-            });
+                beitragOutput.textContent = `${beitragOutputPrefix}${beitrag.value}${beitragOutputSuffix}`;
+            }
+
+            updateContributionOutput();
+
+            if (beitrag) {
+                beitrag.addEventListener('input', updateContributionOutput);
+            }
 
             satzungCheck.addEventListener('change', toggleSubmit);
             form.addEventListener('input', validateForm);
