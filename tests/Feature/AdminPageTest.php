@@ -6,6 +6,7 @@ use App\Models\PageVisit;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
 use Tests\Concerns\CreatesMemberClientSnapshot;
 use Tests\TestCase;
 
@@ -165,5 +166,62 @@ class AdminPageTest extends TestCase
         $response->assertSeeText('Festgerät');
         $response->assertSeeText('Mobilgerät');
         $response->assertDontSee('Noch keine Login-Daten vorhanden.');
+    }
+
+    public function test_daily_active_users_card_displays_unique_logins(): void
+    {
+        Carbon::setTestNow('2024-05-10 12:00:00');
+
+        $admin = $this->adminUser();
+        $member = $this->memberUser();
+        $anotherMember = $this->memberUser();
+
+        PageVisit::query()->insert([
+            'user_id' => $admin->id,
+            'path' => '/dashboard',
+            'created_at' => Carbon::now()->subHours(2),
+            'updated_at' => Carbon::now()->subHours(2),
+        ]);
+
+        PageVisit::query()->insert([
+            'user_id' => $member->id,
+            'path' => '/dashboard',
+            'created_at' => Carbon::now()->subHours(1),
+            'updated_at' => Carbon::now()->subHours(1),
+        ]);
+
+        PageVisit::query()->insert([
+            'user_id' => $member->id,
+            'path' => '/dashboard',
+            'created_at' => Carbon::now()->subHours(1)->addMinutes(10),
+            'updated_at' => Carbon::now()->subHours(1)->addMinutes(10),
+        ]);
+
+        PageVisit::query()->insert([
+            'user_id' => $anotherMember->id,
+            'path' => '/dashboard',
+            'created_at' => Carbon::now()->subDay(),
+            'updated_at' => Carbon::now()->subDay(),
+        ]);
+
+        $response = $this->actingAs($admin)->get('/admin/statistiken');
+
+        $response->assertOk();
+        $response->assertViewHas('dailyActiveUsers', function ($card) {
+            $this->assertIsArray($card);
+            $this->assertSame(2, $card['today']);
+            $this->assertSame(1, $card['yesterday']);
+            $this->assertSame(2 - 1, $card['trend']);
+            $this->assertIsArray($card['series']);
+            $this->assertCount(30, $card['series']);
+
+            return true;
+        });
+
+        $response->assertSeeText('Daily Active Users');
+        $response->assertSeeText('Aktive Mitglieder heute');
+        $response->assertSeeText('7-Tage-Schnitt');
+
+        Carbon::setTestNow();
     }
 }

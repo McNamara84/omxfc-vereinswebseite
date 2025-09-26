@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\PageVisit;
 use App\Services\BrowserStatsService;
+use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -125,6 +126,8 @@ class AdminController extends Controller
             })
             ->values();
 
+        $dailyActiveUsers = $this->dailyActiveUsers();
+
         $browserUsage = $this->browserStatsService->browserUsage();
 
         return view('admin.index', [
@@ -133,10 +136,71 @@ class AdminController extends Controller
             'activityData' => $activityData,
             'activityTimeline' => $activityTimeline,
             'homepageVisits' => $homepageVisits,
+            'dailyActiveUsers' => $dailyActiveUsers,
             'browserUsageByBrowser' => $browserUsage['browserCounts'],
             'browserUsageByFamily' => $browserUsage['familyCounts'],
             'deviceUsage' => $browserUsage['deviceTypeCounts'],
         ]);
+    }
+
+    private function dailyActiveUsers(): array
+    {
+        $driver = DB::getDriverName();
+
+        $baseQuery = PageVisit::query();
+        if ($driver === 'sqlite') {
+            $baseQuery->selectRaw('date(created_at) as visit_date, COUNT(DISTINCT user_id) as total');
+        } else {
+            $baseQuery->selectRaw('DATE(created_at) as visit_date, COUNT(DISTINCT user_id) as total');
+        }
+
+        $raw = $baseQuery
+            ->where('created_at', '>=', now()->subDays(29)->startOfDay())
+            ->groupBy('visit_date')
+            ->orderByDesc('visit_date')
+            ->get();
+
+        $dates = collect(range(0, 29))->map(fn (int $offset) => Carbon::today()->subDays($offset));
+
+        $rawMap = $raw
+            ->mapWithKeys(function ($row) {
+                $date = Carbon::parse($row->visit_date)->toDateString();
+
+                return [
+                    $date => (int) $row->total,
+                ];
+            });
+
+        $series = $dates
+            ->map(function (Carbon $date) use ($rawMap) {
+                $dateString = $date->toDateString();
+
+                return [
+                    'date' => $dateString,
+                    'total' => $rawMap->get($dateString, 0),
+                ];
+            })
+            ->reverse()
+            ->values();
+
+        $today = Carbon::today()->toDateString();
+        $yesterday = Carbon::yesterday()->toDateString();
+
+        $todayTotal = $rawMap->get($today, 0);
+        $yesterdayTotal = $rawMap->get($yesterday, 0);
+
+        $sevenDayAverage = $dates
+            ->take(7)
+            ->map(fn (Carbon $date) => $rawMap->get($date->toDateString(), 0))
+            ->avg() ?? 0;
+
+        return [
+            'today' => $todayTotal,
+            'yesterday' => $yesterdayTotal,
+            'seven_day_average' => round($sevenDayAverage, 1),
+            'trend' => $todayTotal - $yesterdayTotal,
+            'series' => $series->all(),
+        ];
     }
 
     private function normalizePath(?string $path): string
