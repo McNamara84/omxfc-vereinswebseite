@@ -6,23 +6,29 @@ describe('hoerbuch role form module', () => {
     global.fetch = jest.fn(() =>
       Promise.resolve({ ok: true, json: () => Promise.resolve({ speaker: 'Bob' }) })
     );
-    window.roleFormData = {
-      members: [{ id: 1, name: 'Alice' }],
-      previousSpeakerUrl: '/prev',
-      roleIndex: 0,
-    };
     document.body.innerHTML = `
       <meta name="csrf-token" content="TOKEN" />
-      <div id="roles_list">
+      <div
+        id="roles_list"
+        data-members-target="#members"
+        data-previous-speaker-url="/prev"
+        data-role-index="1"
+      >
         <div class="role-row">
           <input type="text" list="members" />
           <input type="hidden" />
           <input type="text" name="roles[0][name]" />
+          <input type="hidden" name="roles[0][uploaded]" />
+          <label>
+            <input type="checkbox" name="roles[0][uploaded]" />
+          </label>
           <div class="previous-speaker"></div>
           <button type="button"></button>
         </div>
       </div>
-      <datalist id="members"></datalist>
+      <datalist id="members">
+        <option data-id="1" value="Alice"></option>
+      </datalist>
       <button id="add_role"></button>
     `;
     await import('../../resources/js/hoerbuch-role-form.js');
@@ -30,7 +36,6 @@ describe('hoerbuch role form module', () => {
   });
 
   afterEach(() => {
-    delete window.roleFormData;
     delete global.fetch;
   });
 
@@ -79,6 +84,15 @@ describe('hoerbuch role form module', () => {
     expect(rows.length).toBe(2);
   });
 
+  test('uploaded hidden input toggles disabled state', () => {
+    const checkbox = document.querySelector('input[type="checkbox"][name$="[uploaded]"]');
+    const hidden = document.querySelector('input[type="hidden"][name$="[uploaded]"]');
+    expect(hidden.disabled).toBe(false);
+    checkbox.checked = true;
+    checkbox.dispatchEvent(new Event('change'));
+    expect(hidden.disabled).toBe(true);
+  });
+
   test('remove button deletes role row', () => {
     const row = document.querySelector('#roles_list .role-row');
     row.querySelector('button').click();
@@ -111,9 +125,8 @@ describe('hoerbuch role form module', () => {
 });
 
 describe('hoerbuch role form without initial data', () => {
-  test('skips initialization when roleFormData missing', async () => {
+  test('skips initialization when container empty', async () => {
     jest.resetModules();
-    delete window.roleFormData;
     document.body.innerHTML = '<div id="roles_list"></div><button id="add_role"></button>';
     await expect(import('../../resources/js/hoerbuch-role-form.js')).resolves.not.toThrow();
     expect(document.querySelectorAll('#roles_list .role-row').length).toBe(0);

@@ -79,7 +79,12 @@
 
                 <div class="mb-6">
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Rollen</label>
-                    <div id="roles_list">
+                    <div
+                        id="roles_list"
+                        data-members-target="#members"
+                        data-previous-speaker-url="{{ route('hoerbuecher.previous-speaker') }}"
+                        data-role-index="{{ count(old('roles', $episode->roles->toArray())) }}"
+                    >
                         @foreach(old('roles', $episode->roles->toArray()) as $i => $role)
                             @php($uploaded = $role['uploaded'] ?? false)
                             @php($checkboxId = 'roles-' . $i . '-uploaded')
@@ -137,12 +142,5 @@
             </form>
         </div>
     </x-member-page>
-    <script>
-        window.roleFormData = {
-            members: Array.from(document.querySelectorAll('#members option')).map(o => ({ id: o.dataset.id, name: o.value })),
-            previousSpeakerUrl: "{{ route('hoerbuecher.previous-speaker') }}",
-            roleIndex: document.querySelectorAll('#roles_list .role-row').length,
-        };
-    </script>
     @vite(['resources/js/hoerbuch-role-form.js'])
 </x-app-layout>

@@ -78,7 +78,12 @@
 
                 <div class="mb-6">
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Rollen</label>
-                    <div id="roles_list"></div>
+                    <div
+                        id="roles_list"
+                        data-members-target="#members"
+                        data-previous-speaker-url="{{ route('hoerbuecher.previous-speaker') }}"
+                        data-role-index="{{ count(old('roles', [])) }}"
+                    ></div>
                     <button type="button" id="add_role" class="mt-2 inline-flex items-center px-2 py-1 bg-gray-200 dark:bg-gray-600 rounded">Rolle hinzufügen</button>
                     <datalist id="members">
                         @foreach($users as $member)
@@ -105,12 +110,5 @@
             </form>
         </div>
     </x-member-page>
-    <script>
-        window.roleFormData = {
-            members: Array.from(document.querySelectorAll('#members option')).map(o => ({ id: o.dataset.id, name: o.value })),
-            previousSpeakerUrl: "{{ route('hoerbuecher.previous-speaker') }}",
-            roleIndex: 0,
-        };
-    </script>
     @vite(['resources/js/hoerbuch-role-form.js'])
 </x-app-layout>

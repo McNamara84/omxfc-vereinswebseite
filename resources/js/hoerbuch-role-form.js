@@ -1,8 +1,17 @@
-const data = window.roleFormData;
-if (data) {
-    const members = data.members || [];
-    const previousSpeakerUrl = data.previousSpeakerUrl;
-    let roleIndex = data.roleIndex || 0;
+const container = document.getElementById('roles_list');
+
+if (container) {
+    const datalistSelector = container.dataset.membersTarget;
+    const datalist = datalistSelector ? document.querySelector(datalistSelector) : null;
+    const members = datalist ? Array.from(datalist.options).map(option => ({
+        id: option.dataset.id,
+        name: option.value,
+    })) : [];
+    const previousSpeakerUrl = container.dataset.previousSpeakerUrl;
+    let roleIndex = Number.parseInt(container.dataset.roleIndex || container.querySelectorAll('.role-row').length || '0', 10);
+    if (Number.isNaN(roleIndex)) {
+        roleIndex = 0;
+    }
 
     function debounce(fn, delay = 300) {
         let timeout;
@@ -17,7 +26,16 @@ if (data) {
         const hidden = row.querySelector('input[type="hidden"]');
         const roleNameInput = row.querySelector('input[name$="[name]"]');
         const hint = row.querySelector('.previous-speaker');
+        const uploadCheckbox = row.querySelector('input[type="checkbox"][name$="[uploaded]"]');
+        const uploadHidden = row.querySelector('input[type="hidden"][name$="[uploaded]"]');
         let controller;
+
+        if (uploadCheckbox && uploadHidden) {
+            uploadHidden.disabled = uploadCheckbox.checked;
+            uploadCheckbox.addEventListener('change', () => {
+                uploadHidden.disabled = uploadCheckbox.checked;
+            });
+        }
 
         memberInput.addEventListener('input', e => {
             const option = members.find(m => m.name === e.target.value);
@@ -27,7 +45,7 @@ if (data) {
         function updateHint() {
             const name = roleNameInput.value.trim();
             controller?.abort();
-            if (!name) {
+            if (!name || !previousSpeakerUrl) {
                 hint.textContent = '';
                 return;
             }
@@ -64,7 +82,6 @@ if (data) {
     }
 
     function addRole() {
-        const container = document.getElementById('roles_list');
         const wrapper = document.createElement('div');
         const checkboxId = `roles-${roleIndex}-uploaded`;
         wrapper.className = 'grid grid-cols-1 md:grid-cols-5 gap-2 mb-2 items-start role-row';
@@ -90,5 +107,5 @@ if (data) {
     }
 
     document.getElementById('add_role')?.addEventListener('click', addRole);
-    document.querySelectorAll('#roles_list .role-row').forEach(bindRoleRow);
+    container.querySelectorAll('.role-row').forEach(bindRoleRow);
 }

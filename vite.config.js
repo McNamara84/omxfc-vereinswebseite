@@ -13,6 +13,7 @@ export default defineConfig({
                 'resources/js/changelog.js',
                 'resources/js/hoerbuecher.js',
                 'resources/js/hoerbuch-role-form.js',
+                'resources/js/hoerbuch-role-upload-toggle.js',
             ],
             refresh: true,
             // Explizit den public-Pfad setzen

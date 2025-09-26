@@ -104,26 +104,5 @@
             </div>
         </div>
     </x-member-page>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            document.querySelectorAll('form[data-auto-submit="change"]').forEach(form => {
-                const checkbox = form.querySelector('input[type="checkbox"]');
-                const hidden = form.querySelector('input[type="hidden"][name="uploaded"]');
-                if (!checkbox) {
-                    return;
-                }
-
-                if (hidden) {
-                    hidden.disabled = checkbox.checked;
-                }
-
-                checkbox.addEventListener('change', () => {
-                    if (hidden) {
-                        hidden.disabled = checkbox.checked;
-                    }
-                    form.submit();
-                });
-            });
-        });
-    </script>
+    @vite(['resources/js/hoerbuch-role-upload-toggle.js'])
 </x-app-layout>
