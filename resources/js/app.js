@@ -132,5 +132,35 @@ import initMitgliedschaftForm from './mitgliedschaft/form';
 window.omxfc.initMitgliedschaftForm = (root = document, options = {}) =>
     initMitgliedschaftForm(root, options);
 
+const scheduleMitgliedschaftFormInit = () => {
+    const start = () => {
+        if (typeof window.omxfc.initMitgliedschaftForm !== 'function') {
+            return;
+        }
+
+        const form = document.getElementById('mitgliedschaft-form');
+
+        if (!form || form.dataset.enhanced === 'true') {
+            return;
+        }
+
+        window.omxfc.initMitgliedschaftForm();
+    };
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', start, { once: true });
+        return;
+    }
+
+    if (typeof queueMicrotask === 'function') {
+        queueMicrotask(start);
+        return;
+    }
+
+    start();
+};
+
+scheduleMitgliedschaftFormInit();
+
 window.omxfc.__appReady = true;
 flushInitQueue();
