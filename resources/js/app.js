@@ -27,6 +27,20 @@ const ensureMobileToggleRef = (root = document) => {
         if (!label || label.trim().length === 0) {
             toggle.setAttribute('aria-label', 'Menü öffnen');
         }
+
+        const srOnlyElements = toggle.querySelectorAll('.sr-only');
+
+        if (srOnlyElements.length > 0) {
+            srOnlyElements.forEach((element) => {
+                if (element && typeof element.remove === 'function') {
+                    element.remove();
+                }
+            });
+
+            if (toggle.textContent.trim().length === 0) {
+                toggle.textContent = 'Menü öffnen';
+            }
+        }
     };
 
     applyRef();

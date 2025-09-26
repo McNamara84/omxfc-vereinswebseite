@@ -158,4 +158,35 @@ describe('app module', () => {
     expect(toggle.getAttribute('aria-expanded')).toBe('false');
     expect(toggle.getAttribute('aria-label')).toBe('Menü öffnen');
   });
+
+  test('removes hidden sr-only labels but keeps the visible trigger text', async () => {
+    const toggle = document.createElement('button');
+    toggle.setAttribute('aria-controls', 'mobile-navigation');
+
+    const hiddenLabel = document.createElement('span');
+    hiddenLabel.className = 'sr-only';
+    hiddenLabel.textContent = 'Versteckter Menütext';
+
+    const visibleLabel = document.createElement('span');
+    visibleLabel.textContent = 'Menü öffnen';
+
+    toggle.append(hiddenLabel, visibleLabel);
+    document.body.appendChild(toggle);
+
+    await loadApp(false, {
+      setupDom: () => {
+        if (!document.body.contains(toggle)) {
+          document.body.appendChild(toggle);
+        }
+      },
+    });
+
+    await new Promise((resolve) => {
+      setTimeout(resolve, 0);
+    });
+
+    expect(toggle.querySelector('.sr-only')).toBeNull();
+    expect(toggle.textContent.trim()).toContain('Menü öffnen');
+    expect(toggle.getAttribute('aria-label')).toBe('Menü öffnen');
+  });
 });
