@@ -2,6 +2,70 @@ import './bootstrap';
 
 window.omxfc = window.omxfc || {};
 
+const ensureMobileToggleRef = (root = document) => {
+    if (!root || typeof root.querySelector !== 'function') {
+        return null;
+    }
+
+    const toggle = root.querySelector('button[aria-controls="mobile-navigation"]');
+
+    if (!toggle) {
+        return null;
+    }
+
+    const applyRef = () => {
+        if (toggle.getAttribute('x-ref') !== 'mobileToggle') {
+            toggle.setAttribute('x-ref', 'mobileToggle');
+        }
+    };
+
+    applyRef();
+
+    if (typeof MutationObserver !== 'function') {
+        return applyRef;
+    }
+
+    const observer = new MutationObserver((mutations) => {
+        for (const mutation of mutations) {
+            if (mutation.type === 'attributes' && mutation.attributeName === 'x-ref') {
+                applyRef();
+            }
+        }
+    });
+
+    observer.observe(toggle, { attributes: true, attributeFilter: ['x-ref'] });
+
+    return () => observer.disconnect();
+};
+
+const scheduleEnsureMobileToggleRef = () => {
+    const start = () => {
+        try {
+            const disconnect = ensureMobileToggleRef();
+
+            if (typeof disconnect === 'function') {
+                window.omxfc.__disconnectMobileToggleRefObserver = disconnect;
+            }
+        } catch (error) {
+            window.console?.error?.('Failed to ensure mobile toggle ref', error);
+        }
+    };
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', start, { once: true });
+        return;
+    }
+
+    if (typeof queueMicrotask === 'function') {
+        queueMicrotask(start);
+        return;
+    }
+
+    start();
+};
+
+scheduleEnsureMobileToggleRef();
+
 const initQueue = Array.isArray(window.omxfc.__initQueue)
     ? window.omxfc.__initQueue
     : [];

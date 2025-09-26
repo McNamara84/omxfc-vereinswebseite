@@ -8,8 +8,10 @@ const originalMatchMedia = window.matchMedia;
 const originalL = window.L;
 
 afterEach(() => {
+  document.body.innerHTML = '';
   window.matchMedia = originalMatchMedia;
   window.L = originalL;
+  delete window.omxfc;
 });
 
 async function loadApp(matches, options = {}) {
@@ -20,6 +22,7 @@ async function loadApp(matches, options = {}) {
   delete window.__omxfcPrefersDark;
   delete window.__omxfcApplySystemTheme;
   delete window.__omxfcApplyStoredTheme;
+  delete window.omxfc;
 
   document.documentElement.classList.toggle('dark', matches);
   document.documentElement.dataset.theme = matches ? 'dark' : 'light';
@@ -42,6 +45,11 @@ async function loadApp(matches, options = {}) {
   await jest.unstable_mockModule('../../resources/js/chronik.js', () => ({}));
   await jest.unstable_mockModule('../../resources/js/char-editor.js', () => ({}));
   await jest.unstable_mockModule('leaflet', () => ({ default: {} }));
+
+  if (typeof options.setupDom === 'function') {
+    options.setupDom();
+  }
+
   await import('../../resources/js/app.js');
   const mediaQueryList = window.matchMedia.mock.results[0].value;
   return { handler, mediaQueryList };
@@ -81,5 +89,29 @@ describe('app module', () => {
   test('exposes Leaflet globally', async () => {
     await loadApp(true);
     expect(window.L).toEqual({});
+  });
+
+  test('ensures the mobile navigation toggle keeps its x-ref', async () => {
+    const toggle = document.createElement('button');
+    toggle.setAttribute('aria-controls', 'mobile-navigation');
+    toggle.setAttribute('x-ref', '');
+    document.body.appendChild(toggle);
+
+    await loadApp(false, {
+      setupDom: () => {
+        if (!document.body.contains(toggle)) {
+          document.body.appendChild(toggle);
+        }
+      },
+    });
+
+    expect(toggle.getAttribute('x-ref')).toBe('mobileToggle');
+
+    toggle.setAttribute('x-ref', '');
+    await new Promise((resolve) => {
+      setTimeout(resolve, 0);
+    });
+
+    expect(toggle.getAttribute('x-ref')).toBe('mobileToggle');
   });
 });
