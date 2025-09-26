@@ -17,15 +17,18 @@
 
                 <x-forms.text-field name="stadt" label="Stadt" required class="w-full" autocomplete="address-level2" />
 
-                <x-form name="land" label="Land" class="w-full" id="land">
-                    <select id="land" name="land" aria-describedby="error-land" required
-                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm bg-white text-gray-900 dark:bg-gray-700 dark:text-gray-100 focus:border-[#8B0116] focus:ring-[#8B0116]">
-                        <option value="">Bitte wählen</option>
-                        <option value="Deutschland" @selected(old('land') === 'Deutschland')>Deutschland</option>
-                        <option value="Österreich" @selected(old('land') === 'Österreich')>Österreich</option>
-                        <option value="Schweiz" @selected(old('land') === 'Schweiz')>Schweiz</option>
-                    </select>
-                </x-form>
+                <x-forms.select-field
+                    name="land"
+                    label="Land"
+                    class="w-full"
+                    placeholder="Bitte wählen"
+                    :options="[
+                        'Deutschland' => 'Deutschland',
+                        'Österreich' => 'Österreich',
+                        'Schweiz' => 'Schweiz',
+                    ]"
+                    required
+                />
 
                 <x-forms.text-field name="mail" label="Mailadresse" type="email" required class="w-full" autocomplete="username" />
 
@@ -48,19 +51,21 @@
                 </div>
                 <x-forms.text-field name="telefon" label="Handynummer (optional)" type="tel" class="w-full" autocomplete="tel" placeholder="+49 170 1234567" help="Optional. Bitte im internationalen Format eingeben." />
 
-                <x-form name="verein_gefunden" label="Wie hast du von uns erfahren? (optional)" class="w-full" id="verein_gefunden">
-                    <select id="verein_gefunden" name="verein_gefunden" aria-describedby="error-verein_gefunden"
-                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm bg-white text-gray-900 dark:bg-gray-700 dark:text-gray-100 focus:border-[#8B0116] focus:ring-[#8B0116]">
-                        <option value="">Bitte auswählen</option>
-                        <option value="Facebook" @selected(old('verein_gefunden') === 'Facebook')>Facebook</option>
-                        <option value="Instagram" @selected(old('verein_gefunden') === 'Instagram')>Instagram</option>
-                        <option value="Leserkontaktseite" @selected(old('verein_gefunden') === 'Leserkontaktseite')>Leserkontaktseite</option>
-                        <option value="Befreundete Person" @selected(old('verein_gefunden') === 'Befreundete Person')>Befreundete Person</option>
-                        <option value="Fantreffen/MaddraxCon" @selected(old('verein_gefunden') === 'Fantreffen/MaddraxCon')>Fantreffen/MaddraxCon</option>
-                        <option value="Google" @selected(old('verein_gefunden') === 'Google')>Google</option>
-                        <option value="Sonstiges" @selected(old('verein_gefunden') === 'Sonstiges')>Sonstiges</option>
-                    </select>
-                </x-form>
+                <x-forms.select-field
+                    name="verein_gefunden"
+                    label="Wie hast du von uns erfahren? (optional)"
+                    class="w-full"
+                    placeholder="Bitte auswählen"
+                    :options="[
+                        'Facebook' => 'Facebook',
+                        'Instagram' => 'Instagram',
+                        'Leserkontaktseite' => 'Leserkontaktseite',
+                        'Befreundete Person' => 'Befreundete Person',
+                        'Fantreffen/MaddraxCon' => 'Fantreffen/MaddraxCon',
+                        'Google' => 'Google',
+                        'Sonstiges' => 'Sonstiges',
+                    ]"
+                />
 
                 <!-- Checkbox über volle Breite -->
                 <div class="col-span-1 md:col-span-2 flex items-start mt-2">
@@ -94,6 +99,7 @@
             const beitragOutput = document.getElementById('beitrag-output');
             const satzungCheck = document.getElementById('satzung_check');
             const submitButton = document.getElementById('submit-button');
+            const missingFieldWarnings = new Set();
 
             const fields = {
                 vorname: { regex: /.+/, error: 'Vorname ist erforderlich.' },
@@ -141,6 +147,18 @@
                 );
             }
 
+            function warnMissingField(id) {
+                if (missingFieldWarnings.has(id)) {
+                    return;
+                }
+
+                missingFieldWarnings.add(id);
+
+                if (typeof console !== 'undefined' && typeof console.warn === 'function') {
+                    console.warn(`[Mitgliedschaftsformular] Feld mit ID "${id}" wurde nicht gefunden. Bitte überprüfe die Formularstruktur.`);
+                }
+            }
+
             function setFieldError(input, message) {
                 const errorElem = getErrorElement(input.id);
 
@@ -166,6 +184,7 @@
                     const input = document.getElementById(id);
 
                     if (!input) {
+                        warnMissingField(id);
                         continue;
                     }
 
@@ -233,6 +252,7 @@
                             if (input) {
                                 setFieldError(input, message);
                             } else {
+                                warnMissingField(field);
                                 const errorElem = getErrorElement(field);
                                 if (errorElem) {
                                     errorElem.textContent = message;
