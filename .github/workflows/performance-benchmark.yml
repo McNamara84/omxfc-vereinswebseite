@@ -1,0 +1,88 @@
+name: Homepage Performance Benchmark
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install PHP dependencies
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Prepare environment
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+
+      - name: Configure SQLite
+        run: |
+          sed -i 's/^DB_CONNECTION=.*/DB_CONNECTION=sqlite/' .env
+          sed -i 's/^DB_DATABASE=.*/DB_DATABASE=database\/database.sqlite/' .env
+          touch database/database.sqlite
+
+      - name: Run database migrations
+        run: php artisan migrate --force
+
+      - name: Install Node dependencies
+        run: npm ci
+
+      - name: Build frontend assets
+        run: npm run build --if-present
+
+      - name: Install Playwright browsers
+        run: |
+          npx playwright install-deps chromium
+          npx playwright install chromium
+
+      - name: Run homepage performance benchmark
+        env:
+          PERFORMANCE_RESULTS_DIR: playwright-performance
+        run: npx playwright test tests/e2e/homepage-performance.spec.js --browser=chromium --reporter=line
+
+      - name: Publish benchmark summary
+        if: always()
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'fs';
+          import path from 'path';
+          import { pathToFileURL } from 'url';
+
+          const moduleUrl = pathToFileURL(path.resolve('tests/e2e/utils/performance-metrics.js')).href;
+          const { formatMetricsForSummary } = await import(moduleUrl);
+
+          const file = path.resolve('playwright-performance/homepage.json');
+          if (!fs.existsSync(file)) {
+            console.log('No performance results found.');
+          } else {
+            const data = JSON.parse(fs.readFileSync(file, 'utf8'));
+            const rows = formatMetricsForSummary(data);
+            const tableLines = ['| Metric | Value |', '| --- | --- |', ...rows.map(([label, value]) => `| ${label} | ${value} |`)];
+            const table = tableLines.join('\n');
+            console.log(table);
+            if (process.env.GITHUB_STEP_SUMMARY) {
+              fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, `## Homepage Performance\n\n${table}\n`);
+            }
+          }
+          NODE
+
+      - name: Upload performance artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: homepage-performance
+          path: playwright-performance/homepage.json
