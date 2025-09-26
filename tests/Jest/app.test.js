@@ -159,6 +159,31 @@ describe('app module', () => {
     expect(toggle.getAttribute('aria-label')).toBe('Menü öffnen');
   });
 
+  test('reapplies mobile toggle accessibility attributes after delayed removal', async () => {
+    const toggle = document.createElement('button');
+    toggle.setAttribute('aria-controls', 'mobile-navigation');
+    toggle.setAttribute('x-ref', '');
+    document.body.appendChild(toggle);
+
+    await loadApp(false, {
+      setupDom: () => {
+        if (!document.body.contains(toggle)) {
+          document.body.appendChild(toggle);
+        }
+      },
+    });
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    toggle.setAttribute('x-ref', '');
+    toggle.removeAttribute('aria-label');
+
+    await new Promise((resolve) => setTimeout(resolve, 80));
+
+    expect(toggle.getAttribute('x-ref')).toBe('mobileToggle');
+    expect(toggle.getAttribute('aria-label')).toBe('Menü öffnen');
+  });
+
   test('removes hidden sr-only labels but keeps the visible trigger text', async () => {
     const toggle = document.createElement('button');
     toggle.setAttribute('aria-controls', 'mobile-navigation');

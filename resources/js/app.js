@@ -43,13 +43,26 @@ const ensureMobileToggleRef = (root = document) => {
         }
     };
 
-    applyRef();
+    const scheduleReapply = (remainingAttempts) => {
+        if (remainingAttempts <= 0) {
+            return;
+        }
 
-    if (typeof requestAnimationFrame === 'function') {
-        requestAnimationFrame(applyRef);
-    } else {
-        setTimeout(applyRef, 0);
-    }
+        const callback = () => {
+            applyRef();
+            scheduleReapply(remainingAttempts - 1);
+        };
+
+        if (typeof requestAnimationFrame === 'function') {
+            requestAnimationFrame(callback);
+            return;
+        }
+
+        setTimeout(callback, 16);
+    };
+
+    applyRef();
+    scheduleReapply(6);
 
     if (typeof MutationObserver !== 'function') {
         return applyRef;
