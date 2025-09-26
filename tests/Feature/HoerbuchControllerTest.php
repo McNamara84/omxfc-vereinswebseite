@@ -65,6 +65,43 @@ class HoerbuchControllerTest extends TestCase
             ->assertSee('Neue Hörbuchfolge');
     }
 
+    public function test_edit_view_shows_compact_takes_column_and_checkbox_header(): void
+    {
+        $user = $this->actingMember('Admin');
+
+        $episode = AudiobookEpisode::create([
+            'episode_number' => 'F99',
+            'title' => 'Layout Test',
+            'author' => 'Autor',
+            'planned_release_date' => '12.2025',
+            'status' => 'Skripterstellung',
+            'responsible_user_id' => null,
+            'progress' => 10,
+            'notes' => null,
+            'roles_total' => 1,
+            'roles_filled' => 1,
+        ]);
+
+        $episode->roles()->create([
+            'name' => 'Testrolle',
+            'description' => 'Beschreibung',
+            'takes' => 3,
+            'speaker_name' => 'Test Sprecher',
+            'contact_email' => null,
+            'speaker_pseudonym' => null,
+            'uploaded' => true,
+        ]);
+
+        $response = $this->actingAs($user)->get(route('hoerbuecher.edit', $episode));
+
+        $response->assertOk();
+        $response->assertSee('id="roles-uploaded-header"', false);
+        $response->assertSee('aria-labelledby="roles-uploaded-header"', false);
+        $response->assertSee('md:max-w-[6rem]', false);
+        $response->assertSee('max="999"', false);
+        $this->assertStringNotContainsString('<span>Aufnahme hochgeladen</span></label>', $response->getContent());
+    }
+
     public function test_admin_can_store_episode(): void
     {
         $user = $this->actingMember('Admin');
