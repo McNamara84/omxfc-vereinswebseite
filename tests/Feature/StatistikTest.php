@@ -8,13 +8,13 @@ use App\Models\ReviewComment;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Str;
+use Tests\Concerns\CreatesMemberClientSnapshot;
 use Tests\TestCase;
 
 class StatistikTest extends TestCase
 {
+    use CreatesMemberClientSnapshot;
     use RefreshDatabase;
 
     private string $testStoragePath;
@@ -261,23 +261,8 @@ class StatistikTest extends TestCase
 
         $otherMember = $this->actingMemberWithPoints(3);
 
-        DB::table('sessions')->insert([
-            'id' => Str::uuid()->toString(),
-            'user_id' => $viewer->id,
-            'ip_address' => '127.0.0.1',
-            'user_agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-            'payload' => 'test',
-            'last_activity' => now()->timestamp,
-        ]);
-
-        DB::table('sessions')->insert([
-            'id' => Str::uuid()->toString(),
-            'user_id' => $otherMember->id,
-            'ip_address' => '127.0.0.1',
-            'user_agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15',
-            'payload' => 'test',
-            'last_activity' => now()->timestamp,
-        ]);
+        $this->createSnapshot($viewer->id, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36', now());
+        $this->createSnapshot($otherMember->id, 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15', now());
 
         $response = $this->get('/statistiken');
 

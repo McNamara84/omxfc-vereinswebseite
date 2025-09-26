@@ -33,7 +33,7 @@ class MembersTeamProviderTest extends TestCase
             $service->getMembersTeamOrAbort();
             $this->fail('Expected HttpResponseException not thrown');
         } catch (HttpResponseException $e) {
-            $this->assertEquals('/', $e->getResponse()->headers->get('Location'));
+            $this->assertEquals(url('/'), $e->getResponse()->headers->get('Location'));
             $this->assertEquals('Team "Mitglieder" nicht gefunden.', $e->getResponse()->getSession()->get('error'));
         }
     }

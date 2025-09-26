@@ -118,15 +118,13 @@ class BrowserStatsService
      */
     private function recentSessions(): Collection
     {
-        $threshold = now()->subDays(30)->timestamp;
+        $threshold = now()->subDays(30);
 
-        return DB::table('sessions')
-            ->select('user_id', 'user_agent', 'last_activity')
-            ->whereNotNull('user_id')
-            ->whereNotNull('user_agent')
-            ->where('last_activity', '>=', $threshold)
+        return DB::table('member_client_snapshots')
+            ->select('user_id', 'user_agent', 'last_seen_at')
+            ->where('last_seen_at', '>=', $threshold)
             ->get()
-            ->sortByDesc('last_activity')
+            ->sortByDesc('last_seen_at')
             ->unique(fn ($session) => [$session->user_id, $session->user_agent])
             ->values();
     }

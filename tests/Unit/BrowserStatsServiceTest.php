@@ -5,12 +5,12 @@ namespace Tests\Unit;
 use App\Models\User;
 use App\Services\BrowserStatsService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
+use Tests\Concerns\CreatesMemberClientSnapshot;
 use Tests\TestCase;
 
 class BrowserStatsServiceTest extends TestCase
 {
+    use CreatesMemberClientSnapshot;
     use RefreshDatabase;
 
     public function test_detect_browser_classifies_known_agents(): void
@@ -55,32 +55,9 @@ class BrowserStatsServiceTest extends TestCase
         $userA = User::factory()->create();
         $userB = User::factory()->create();
 
-        DB::table('sessions')->insert([
-            'id' => Str::uuid()->toString(),
-            'user_id' => $userA->id,
-            'ip_address' => '127.0.0.1',
-            'user_agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:120.0) Gecko/20100101 Firefox/120.0',
-            'payload' => 'test',
-            'last_activity' => now()->subDay()->timestamp,
-        ]);
-
-        DB::table('sessions')->insert([
-            'id' => Str::uuid()->toString(),
-            'user_id' => $userA->id,
-            'ip_address' => '127.0.0.1',
-            'user_agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-            'payload' => 'test',
-            'last_activity' => now()->timestamp,
-        ]);
-
-        DB::table('sessions')->insert([
-            'id' => Str::uuid()->toString(),
-            'user_id' => $userB->id,
-            'ip_address' => '127.0.0.1',
-            'user_agent' => 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
-            'payload' => 'test',
-            'last_activity' => now()->timestamp,
-        ]);
+        $this->createSnapshot($userA->id, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:120.0) Gecko/20100101 Firefox/120.0', now()->subDay());
+        $this->createSnapshot($userA->id, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36', now());
+        $this->createSnapshot($userB->id, 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1', now());
 
         $usage = $service->browserUsage();
 
@@ -106,23 +83,8 @@ class BrowserStatsServiceTest extends TestCase
 
         $user = User::factory()->create();
 
-        DB::table('sessions')->insert([
-            'id' => Str::uuid()->toString(),
-            'user_id' => $user->id,
-            'ip_address' => '127.0.0.1',
-            'user_agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-            'payload' => 'test',
-            'last_activity' => now()->subMinutes(10)->timestamp,
-        ]);
-
-        DB::table('sessions')->insert([
-            'id' => Str::uuid()->toString(),
-            'user_id' => $user->id,
-            'ip_address' => '127.0.0.1',
-            'user_agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-            'payload' => 'test',
-            'last_activity' => now()->subMinutes(5)->timestamp,
-        ]);
+        $this->createSnapshot($user->id, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36', now()->subMinutes(10));
+        $this->createSnapshot($user->id, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36', now()->subMinutes(5));
 
         $usage = $service->browserUsage();
 
@@ -139,23 +101,8 @@ class BrowserStatsServiceTest extends TestCase
 
         $user = User::factory()->create();
 
-        DB::table('sessions')->insert([
-            'id' => Str::uuid()->toString(),
-            'user_id' => $user->id,
-            'ip_address' => '127.0.0.1',
-            'user_agent' => 'Mozilla/5.0 (TestDevice|Special) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-            'payload' => 'test',
-            'last_activity' => now()->subMinutes(15)->timestamp,
-        ]);
-
-        DB::table('sessions')->insert([
-            'id' => Str::uuid()->toString(),
-            'user_id' => $user->id,
-            'ip_address' => '127.0.0.1',
-            'user_agent' => 'Mozilla/5.0 (Different Device) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15',
-            'payload' => 'test',
-            'last_activity' => now()->subMinutes(5)->timestamp,
-        ]);
+        $this->createSnapshot($user->id, 'Mozilla/5.0 (TestDevice|Special) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36', now()->subMinutes(15));
+        $this->createSnapshot($user->id, 'Mozilla/5.0 (Different Device) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15', now()->subMinutes(5));
 
         $usage = $service->browserUsage();
 
@@ -171,23 +118,8 @@ class BrowserStatsServiceTest extends TestCase
 
         $user = User::factory()->create();
 
-        DB::table('sessions')->insert([
-            'id' => Str::uuid()->toString(),
-            'user_id' => $user->id,
-            'ip_address' => '127.0.0.1',
-            'user_agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-            'payload' => 'test',
-            'last_activity' => now()->subDays(45)->timestamp,
-        ]);
-
-        DB::table('sessions')->insert([
-            'id' => Str::uuid()->toString(),
-            'user_id' => $user->id,
-            'ip_address' => '127.0.0.1',
-            'user_agent' => 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
-            'payload' => 'test',
-            'last_activity' => now()->subDays(2)->timestamp,
-        ]);
+        $this->createSnapshot($user->id, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36', now()->subDays(45));
+        $this->createSnapshot($user->id, 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1', now()->subDays(2));
 
         $usage = $service->browserUsage();
 
@@ -196,4 +128,5 @@ class BrowserStatsServiceTest extends TestCase
         $this->assertArrayNotHasKey('Google Chrome', $browserCounts);
         $this->assertSame(1, $browserCounts['Safari']);
     }
+
 }

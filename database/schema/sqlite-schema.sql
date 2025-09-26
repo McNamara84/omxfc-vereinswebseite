@@ -330,6 +330,18 @@ CREATE TABLE IF NOT EXISTS "activities"(
   foreign key("user_id") references "users"("id") on delete cascade
 );
 CREATE INDEX "users_last_activity_index" on "users"("last_activity");
+CREATE TABLE IF NOT EXISTS "member_client_snapshots"(
+  "id" integer primary key autoincrement not null,
+  "user_id" integer not null,
+  "user_agent_hash" varchar not null,
+  "user_agent" varchar,
+  "last_seen_at" datetime not null,
+  "created_at" datetime,
+  "updated_at" datetime,
+  foreign key("user_id") references "users"("id") on delete cascade
+);
+CREATE UNIQUE INDEX "member_client_snapshots_user_id_user_agent_hash_unique" on "member_client_snapshots"("user_id", "user_agent_hash");
+CREATE INDEX "member_client_snapshots_last_seen_at_index" on "member_client_snapshots"("last_seen_at");
 CREATE TABLE IF NOT EXISTS "page_visits"(
   "id" integer primary key autoincrement not null,
   "user_id" integer not null,
@@ -433,3 +445,4 @@ INSERT INTO migrations VALUES(42,'2025_09_20_000001_add_lieblingscover_to_users_
 INSERT INTO migrations VALUES(43,'2025_09_21_000000_create_audiobook_roles_table',1);
 INSERT INTO migrations VALUES(44,'2025_09_22_000000_add_name_user_speaker_index_to_audiobook_roles_table',1);
 INSERT INTO migrations VALUES(45,'2025_10_01_000000_update_book_type_enum',1);
+INSERT INTO migrations VALUES(46,'2025_09_25_052816_create_member_client_snapshots_table',2);

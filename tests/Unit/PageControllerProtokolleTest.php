@@ -3,12 +3,15 @@
 namespace Tests\Unit;
 
 use App\Http\Controllers\PageController;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Tests\TestCase;
 
 class PageControllerProtokolleTest extends TestCase
 {
+    use RefreshDatabase;
+
     public function test_protokolle_view_contains_expected_structure(): void
     {
         $controller = new PageController();
