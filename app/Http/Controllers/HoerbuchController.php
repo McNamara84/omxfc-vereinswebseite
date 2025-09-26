@@ -141,7 +141,7 @@ class HoerbuchController extends Controller
                 'takes' => $role['takes'] ?? 0,
                 'user_id' => $role['member_id'] ?? null,
                 'speaker_name' => $role['member_name'] ?? null,
-                'uploaded' => ! empty($role['uploaded']),
+                'uploaded' => (bool) ($role['uploaded'] ?? false),
             ]);
         }
 
@@ -204,7 +204,7 @@ class HoerbuchController extends Controller
                 'takes' => $role['takes'] ?? 0,
                 'user_id' => $role['member_id'] ?? null,
                 'speaker_name' => $role['member_name'] ?? null,
-                'uploaded' => ! empty($role['uploaded']),
+                'uploaded' => (bool) ($role['uploaded'] ?? false),
             ]);
         }
         $episode->update([

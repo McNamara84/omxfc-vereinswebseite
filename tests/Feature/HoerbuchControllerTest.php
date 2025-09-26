@@ -79,8 +79,8 @@ class HoerbuchControllerTest extends TestCase
             'responsible_user_id' => $responsible->id,
             'progress' => 50,
             'roles' => [
-                ['name' => 'R1', 'description' => 'Desc1', 'takes' => 3, 'member_name' => 'Extern', 'uploaded' => true],
-                ['name' => 'R2', 'description' => 'Desc2', 'takes' => 2, 'member_id' => $responsible->id],
+                ['name' => 'R1', 'description' => 'Desc1', 'takes' => 3, 'member_name' => 'Extern', 'uploaded' => '1'],
+                ['name' => 'R2', 'description' => 'Desc2', 'takes' => 2, 'member_id' => $responsible->id, 'uploaded' => '0'],
             ],
             'notes' => 'Bemerkung',
         ];
@@ -541,7 +541,7 @@ class HoerbuchControllerTest extends TestCase
             'responsible_user_id' => null,
             'progress' => 100,
             'roles' => [
-                ['name' => 'Neue Rolle', 'description' => 'desc', 'takes' => 1, 'member_name' => 'Extern'],
+                ['name' => 'Neue Rolle', 'description' => 'desc', 'takes' => 1, 'member_name' => 'Extern', 'uploaded' => '1'],
             ],
             'notes' => 'Aktualisiert',
         ];
@@ -560,6 +560,12 @@ class HoerbuchControllerTest extends TestCase
             'roles_total' => 1,
             'roles_filled' => 1,
             'notes' => 'Aktualisiert',
+        ]);
+
+        $this->assertDatabaseHas('audiobook_roles', [
+            'episode_id' => $episode->id,
+            'name' => 'Neue Rolle',
+            'uploaded' => true,
         ]);
     }
 
