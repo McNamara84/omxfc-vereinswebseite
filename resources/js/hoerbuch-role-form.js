@@ -79,7 +79,12 @@ if (container) {
         roleNameInput.addEventListener('input', debouncedHint);
         roleNameInput.addEventListener('blur', updateHint);
 
-        row.querySelector('[data-role-remove]')?.addEventListener('click', () => row.remove());
+        const removeButton = row.querySelector('[data-role-remove]');
+        if (removeButton) {
+            removeButton.addEventListener('click', () => row.remove());
+        } else {
+            console.warn('hoerbuch-role-form: missing [data-role-remove] button', row);
+        }
         updateHint();
     }
 

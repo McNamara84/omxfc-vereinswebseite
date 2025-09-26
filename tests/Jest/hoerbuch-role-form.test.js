@@ -1,11 +1,14 @@
 import { jest } from '@jest/globals';
 
 describe('hoerbuch role form module', () => {
+  let warnSpy;
+
   beforeEach(async () => {
     jest.resetModules();
     global.fetch = jest.fn(() =>
       Promise.resolve({ ok: true, json: () => Promise.resolve({ speaker: 'Bob' }) })
     );
+    warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
     document.body.innerHTML = `
       <meta name="csrf-token" content="TOKEN" />
       <div
@@ -15,15 +18,15 @@ describe('hoerbuch role form module', () => {
         data-role-index="1"
       >
         <div class="role-row">
-          <input type="text" list="members" />
-          <input type="hidden" />
+          <input type="text" name="roles[0][member_name]" list="members" />
+          <input type="hidden" name="roles[0][member_id]" />
           <input type="text" name="roles[0][name]" />
           <input type="hidden" name="roles[0][uploaded]" />
           <label>
             <input type="checkbox" name="roles[0][uploaded]" />
           </label>
           <div class="previous-speaker"></div>
-          <button type="button"></button>
+          <button type="button" data-role-remove></button>
         </div>
       </div>
       <datalist id="members">
@@ -37,11 +40,12 @@ describe('hoerbuch role form module', () => {
 
   afterEach(() => {
     delete global.fetch;
+    warnSpy.mockRestore();
   });
 
   test('member input sets hidden member id', () => {
     const memberInput = document.querySelector('input[list]');
-    const hidden = document.querySelector('input[type="hidden"]');
+    const hidden = document.querySelector('input[type="hidden"][name$="[member_id]"]');
     memberInput.value = 'Alice';
     memberInput.dispatchEvent(new Event('input'));
     expect(hidden.value).toBe('1');
@@ -95,7 +99,7 @@ describe('hoerbuch role form module', () => {
 
   test('remove button deletes role row', () => {
     const row = document.querySelector('#roles_list .role-row');
-    row.querySelector('button').click();
+    row.querySelector('[data-role-remove]').click();
     expect(document.querySelectorAll('#roles_list .role-row').length).toBe(0);
   });
 
@@ -130,6 +134,48 @@ describe('hoerbuch role form without initial data', () => {
     document.body.innerHTML = '<div id="roles_list"></div><button id="add_role"></button>';
     await expect(import('../../resources/js/hoerbuch-role-form.js')).resolves.not.toThrow();
     expect(document.querySelectorAll('#roles_list .role-row').length).toBe(0);
+  });
+});
+
+describe('hoerbuch role form without remove button', () => {
+  test('logs warning when remove button missing', async () => {
+    jest.resetModules();
+    global.fetch = jest.fn(() =>
+      Promise.resolve({ ok: true, json: () => Promise.resolve({ speaker: null }) })
+    );
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    document.body.innerHTML = `
+      <div
+        id="roles_list"
+        data-members-target="#members"
+        data-previous-speaker-url="/prev"
+      >
+        <div class="role-row">
+          <input type="text" name="roles[0][member_name]" list="members" />
+          <input type="hidden" name="roles[0][member_id]" />
+          <input type="text" name="roles[0][name]" />
+          <input type="hidden" name="roles[0][uploaded]" />
+          <label>
+            <input type="checkbox" name="roles[0][uploaded]" />
+          </label>
+          <div class="previous-speaker"></div>
+        </div>
+      </div>
+      <datalist id="members">
+        <option data-id="1" value="Alice"></option>
+      </datalist>
+      <button id="add_role"></button>
+    `;
+
+    await import('../../resources/js/hoerbuch-role-form.js');
+
+    expect(warnSpy).toHaveBeenCalledWith(
+      'hoerbuch-role-form: missing [data-role-remove] button',
+      expect.any(HTMLElement)
+    );
+
+    warnSpy.mockRestore();
+    delete global.fetch;
   });
 });
 
