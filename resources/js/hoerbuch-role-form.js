@@ -66,17 +66,23 @@ if (data) {
     function addRole() {
         const container = document.getElementById('roles_list');
         const wrapper = document.createElement('div');
-        wrapper.className = 'grid grid-cols-5 gap-2 mb-2 items-start role-row';
+        const checkboxId = `roles-${roleIndex}-uploaded`;
+        wrapper.className = 'grid grid-cols-1 md:grid-cols-5 gap-2 mb-2 items-start role-row';
         wrapper.innerHTML = `
-            <input type="text" name="roles[${roleIndex}][name]" placeholder="Rolle" class="col-span-1 w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50" />
-            <input type="text" name="roles[${roleIndex}][description]" placeholder="Beschreibung" class="col-span-1 w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50" />
-            <input type="number" name="roles[${roleIndex}][takes]" min="0" placeholder="Takes" class="col-span-1 w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50" />
-            <div class="col-span-1">
+            <input type="text" name="roles[${roleIndex}][name]" placeholder="Rolle" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50" />
+            <input type="text" name="roles[${roleIndex}][description]" placeholder="Beschreibung" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50" />
+            <input type="number" name="roles[${roleIndex}][takes]" min="0" placeholder="Takes" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50" />
+            <div>
                 <input type="text" name="roles[${roleIndex}][member_name]" list="members" placeholder="Sprecher" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50" />
                 <input type="hidden" name="roles[${roleIndex}][member_id]" />
+                <input type="hidden" name="roles[${roleIndex}][uploaded]" value="0" />
+                <label for="${checkboxId}" class="mt-2 inline-flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                    <input id="${checkboxId}" type="checkbox" name="roles[${roleIndex}][uploaded]" value="1" class="rounded border-gray-300 dark:border-gray-600 text-[#8B0116] focus:ring-[#8B0116] dark:focus:ring-[#FF6B81]" />
+                    <span>Aufnahme hochgeladen</span>
+                </label>
                 <div class="text-xs text-gray-500 mt-1 previous-speaker"></div>
             </div>
-            <button type="button" class="col-span-1 text-red-600" aria-label="Remove">&times;</button>
+            <button type="button" class="text-red-600" aria-label="Remove">&times;</button>
         `;
         bindRoleRow(wrapper);
         container.appendChild(wrapper);

@@ -68,6 +68,7 @@ CREATE TABLE `audiobook_roles` (
   `takes` smallint(5) unsigned NOT NULL DEFAULT 0,
   `user_id` bigint(20) unsigned DEFAULT NULL,
   `speaker_name` varchar(255) DEFAULT NULL,
+  `uploaded` tinyint(1) NOT NULL DEFAULT '0',
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
@@ -617,3 +618,4 @@ INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (43,'2025_09_21_000
 INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (44,'2025_09_22_000000_add_name_user_speaker_index_to_audiobook_roles_table',1);
 INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (45,'2025_10_01_000000_update_book_type_enum',2);
 INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (46,'2025_09_25_052816_create_member_client_snapshots_table',2);
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (47,'2025_09_26_094551_add_uploaded_to_audiobook_roles_table',2);

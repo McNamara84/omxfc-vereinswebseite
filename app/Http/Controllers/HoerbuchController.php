@@ -8,6 +8,8 @@ use App\Models\AudiobookRole;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use App\Http\Requests\AudiobookEpisodeRequest;
 use App\Http\Requests\AudiobookPreviousSpeakerRequest;
 
@@ -139,6 +141,7 @@ class HoerbuchController extends Controller
                 'takes' => $role['takes'] ?? 0,
                 'user_id' => $role['member_id'] ?? null,
                 'speaker_name' => $role['member_name'] ?? null,
+                'uploaded' => ! empty($role['uploaded']),
             ]);
         }
 
@@ -201,6 +204,7 @@ class HoerbuchController extends Controller
                 'takes' => $role['takes'] ?? 0,
                 'user_id' => $role['member_id'] ?? null,
                 'speaker_name' => $role['member_name'] ?? null,
+                'uploaded' => ! empty($role['uploaded']),
             ]);
         }
         $episode->update([
@@ -223,6 +227,26 @@ class HoerbuchController extends Controller
         return response()->json([
             'speaker' => $speakers[$name] ?? null,
         ]);
+    }
+
+    /**
+     * Aktualisiert den Upload-Status einer Rolle.
+     */
+    public function updateRoleUploaded(Request $request, AudiobookRole $role): RedirectResponse|JsonResponse
+    {
+        $validated = $request->validate([
+            'uploaded' => ['required', 'boolean'],
+        ]);
+
+        $role->update(['uploaded' => (bool) $validated['uploaded']]);
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'uploaded' => $role->uploaded,
+            ]);
+        }
+
+        return back()->with('status', 'Upload-Status wurde aktualisiert.');
     }
 
     /**

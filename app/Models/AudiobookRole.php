@@ -17,6 +17,11 @@ class AudiobookRole extends Model
         'takes',
         'user_id',
         'speaker_name',
+        'uploaded',
+    ];
+
+    protected $casts = [
+        'uploaded' => 'boolean',
     ];
 
     public function episode(): BelongsTo

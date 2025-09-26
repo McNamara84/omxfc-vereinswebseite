@@ -38,6 +38,7 @@ class AudiobookEpisodeRequest extends FormRequest
             'roles.*.takes' => 'required|integer|min:0',
             'roles.*.member_id' => 'nullable|exists:users,id',
             'roles.*.member_name' => 'nullable|string|max:255',
+            'roles.*.uploaded' => 'nullable|boolean',
         ];
     }
 }
