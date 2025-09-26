@@ -1,8 +1,17 @@
-const data = window.roleFormData;
-if (data) {
-    const members = data.members || [];
-    const previousSpeakerUrl = data.previousSpeakerUrl;
-    let roleIndex = data.roleIndex || 0;
+const container = document.getElementById('roles_list');
+
+if (container) {
+    const datalistSelector = container.dataset.membersTarget;
+    const datalist = datalistSelector ? document.querySelector(datalistSelector) : null;
+    const members = datalist ? Array.from(datalist.options).map(option => ({
+        id: option.dataset.id,
+        name: option.value,
+    })) : [];
+    const previousSpeakerUrl = container.dataset.previousSpeakerUrl;
+    let roleIndex = Number.parseInt(container.dataset.roleIndex || container.querySelectorAll('.role-row').length || '0', 10);
+    if (Number.isNaN(roleIndex)) {
+        roleIndex = 0;
+    }
 
     function debounce(fn, delay = 300) {
         let timeout;
@@ -17,7 +26,16 @@ if (data) {
         const hidden = row.querySelector('input[type="hidden"]');
         const roleNameInput = row.querySelector('input[name$="[name]"]');
         const hint = row.querySelector('.previous-speaker');
+        const uploadCheckbox = row.querySelector('input[type="checkbox"][name$="[uploaded]"]');
+        const uploadHidden = row.querySelector('input[type="hidden"][name$="[uploaded]"]');
         let controller;
+
+        if (uploadCheckbox && uploadHidden) {
+            uploadHidden.disabled = uploadCheckbox.checked;
+            uploadCheckbox.addEventListener('change', () => {
+                uploadHidden.disabled = uploadCheckbox.checked;
+            });
+        }
 
         memberInput.addEventListener('input', e => {
             const option = members.find(m => m.name === e.target.value);
@@ -27,7 +45,7 @@ if (data) {
         function updateHint() {
             const name = roleNameInput.value.trim();
             controller?.abort();
-            if (!name) {
+            if (!name || !previousSpeakerUrl) {
                 hint.textContent = '';
                 return;
             }
@@ -64,19 +82,24 @@ if (data) {
     }
 
     function addRole() {
-        const container = document.getElementById('roles_list');
         const wrapper = document.createElement('div');
-        wrapper.className = 'grid grid-cols-5 gap-2 mb-2 items-start role-row';
+        const checkboxId = `roles-${roleIndex}-uploaded`;
+        wrapper.className = 'grid grid-cols-1 md:grid-cols-5 gap-2 mb-2 items-start role-row';
         wrapper.innerHTML = `
-            <input type="text" name="roles[${roleIndex}][name]" placeholder="Rolle" class="col-span-1 w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50" />
-            <input type="text" name="roles[${roleIndex}][description]" placeholder="Beschreibung" class="col-span-1 w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50" />
-            <input type="number" name="roles[${roleIndex}][takes]" min="0" placeholder="Takes" class="col-span-1 w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50" />
-            <div class="col-span-1">
+            <input type="text" name="roles[${roleIndex}][name]" placeholder="Rolle" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50" />
+            <input type="text" name="roles[${roleIndex}][description]" placeholder="Beschreibung" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50" />
+            <input type="number" name="roles[${roleIndex}][takes]" min="0" placeholder="Takes" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50" />
+            <div>
                 <input type="text" name="roles[${roleIndex}][member_name]" list="members" placeholder="Sprecher" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50" />
                 <input type="hidden" name="roles[${roleIndex}][member_id]" />
+                <input type="hidden" name="roles[${roleIndex}][uploaded]" value="0" />
+                <label for="${checkboxId}" class="mt-2 inline-flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                    <input id="${checkboxId}" type="checkbox" name="roles[${roleIndex}][uploaded]" value="1" class="rounded border-gray-300 dark:border-gray-600 text-[#8B0116] focus:ring-[#8B0116] dark:focus:ring-[#FF6B81]" />
+                    <span>Aufnahme hochgeladen</span>
+                </label>
                 <div class="text-xs text-gray-500 mt-1 previous-speaker"></div>
             </div>
-            <button type="button" class="col-span-1 text-red-600" aria-label="Remove">&times;</button>
+            <button type="button" class="text-red-600" aria-label="Remove">&times;</button>
         `;
         bindRoleRow(wrapper);
         container.appendChild(wrapper);
@@ -84,5 +107,5 @@ if (data) {
     }
 
     document.getElementById('add_role')?.addEventListener('click', addRole);
-    document.querySelectorAll('#roles_list .role-row').forEach(bindRoleRow);
+    container.querySelectorAll('.role-row').forEach(bindRoleRow);
 }

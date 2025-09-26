@@ -79,21 +79,40 @@
 
                 <div class="mb-6">
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Rollen</label>
-                    <div id="roles_list">
+                    <div
+                        id="roles_list"
+                        data-members-target="#members"
+                        data-previous-speaker-url="{{ route('hoerbuecher.previous-speaker') }}"
+                        data-role-index="{{ count(old('roles', $episode->roles->toArray())) }}"
+                    >
                         @foreach(old('roles', $episode->roles->toArray()) as $i => $role)
-                            <div class="grid grid-cols-5 gap-2 mb-2 items-start role-row">
-                                <input type="text" name="roles[{{ $i }}][name]" value="{{ $role['name'] ?? '' }}" placeholder="Rolle" class="col-span-1 w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50" />
-                                <input type="text" name="roles[{{ $i }}][description]" value="{{ $role['description'] ?? '' }}" placeholder="Beschreibung" class="col-span-1 w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50" />
-                                <input type="number" name="roles[{{ $i }}][takes]" value="{{ $role['takes'] ?? 0 }}" min="0" placeholder="Takes" class="col-span-1 w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50" />
-                                <div class="col-span-1">
+                            @php($uploaded = $role['uploaded'] ?? false)
+                            @php($checkboxId = 'roles-' . $i . '-uploaded')
+                            <div class="grid grid-cols-1 md:grid-cols-5 gap-2 mb-2 items-start role-row">
+                                <input type="text" name="roles[{{ $i }}][name]" value="{{ $role['name'] ?? '' }}" placeholder="Rolle" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50" />
+                                <input type="text" name="roles[{{ $i }}][description]" value="{{ $role['description'] ?? '' }}" placeholder="Beschreibung" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50" />
+                                <input type="number" name="roles[{{ $i }}][takes]" value="{{ $role['takes'] ?? 0 }}" min="0" placeholder="Takes" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50" />
+                                <div>
                                     <input type="text" name="roles[{{ $i }}][member_name]" value="{{ $role['speaker_name'] ?? ($role['member_name'] ?? '') }}" list="members" placeholder="Sprecher" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50" />
                                     <input type="hidden" name="roles[{{ $i }}][member_id]" value="{{ $role['user_id'] ?? ($role['member_id'] ?? '') }}" />
+                                    <input type="hidden" name="roles[{{ $i }}][uploaded]" value="0">
+                                    <label for="{{ $checkboxId }}" class="mt-2 inline-flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                                        <input
+                                            id="{{ $checkboxId }}"
+                                            type="checkbox"
+                                            name="roles[{{ $i }}][uploaded]"
+                                            value="1"
+                                            {{ $uploaded ? 'checked' : '' }}
+                                            class="rounded border-gray-300 dark:border-gray-600 text-[#8B0116] focus:ring-[#8B0116] dark:focus:ring-[#FF6B81]"
+                                        >
+                                        <span>Aufnahme hochgeladen</span>
+                                    </label>
                                     @php($prev = $previousSpeakers[$role['name'] ?? ''] ?? null)
                                     <div class="text-xs text-gray-500 mt-1 previous-speaker">
                                         {{ $prev ? 'Bisheriger Sprecher: ' . $prev : '' }}
                                     </div>
                                 </div>
-                                <button type="button" class="col-span-1 text-red-600" aria-label="Remove">&times;</button>
+                                <button type="button" class="text-red-600" aria-label="Remove">&times;</button>
                             </div>
                         @endforeach
                     </div>
@@ -123,12 +142,5 @@
             </form>
         </div>
     </x-member-page>
-    <script>
-        window.roleFormData = {
-            members: Array.from(document.querySelectorAll('#members option')).map(o => ({ id: o.dataset.id, name: o.value })),
-            previousSpeakerUrl: "{{ route('hoerbuecher.previous-speaker') }}",
-            roleIndex: document.querySelectorAll('#roles_list .role-row').length,
-        };
-    </script>
     @vite(['resources/js/hoerbuch-role-form.js'])
 </x-app-layout>

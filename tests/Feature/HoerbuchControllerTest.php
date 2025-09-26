@@ -79,8 +79,8 @@ class HoerbuchControllerTest extends TestCase
             'responsible_user_id' => $responsible->id,
             'progress' => 50,
             'roles' => [
-                ['name' => 'R1', 'description' => 'Desc1', 'takes' => 3, 'member_name' => 'Extern'],
-                ['name' => 'R2', 'description' => 'Desc2', 'takes' => 2, 'member_id' => $responsible->id],
+                ['name' => 'R1', 'description' => 'Desc1', 'takes' => 3, 'member_name' => 'Extern', 'uploaded' => '1'],
+                ['name' => 'R2', 'description' => 'Desc2', 'takes' => 2, 'member_id' => $responsible->id, 'uploaded' => '0'],
             ],
             'notes' => 'Bemerkung',
         ];
@@ -102,6 +102,17 @@ class HoerbuchControllerTest extends TestCase
         ]);
 
         $this->assertDatabaseCount('audiobook_roles', 2);
+        $episodeId = AudiobookEpisode::where('episode_number', 'F30')->value('id');
+        $this->assertDatabaseHas('audiobook_roles', [
+            'episode_id' => $episodeId,
+            'name' => 'R1',
+            'uploaded' => true,
+        ]);
+        $this->assertDatabaseHas('audiobook_roles', [
+            'episode_id' => $episodeId,
+            'name' => 'R2',
+            'uploaded' => false,
+        ]);
     }
 
     public function test_vorstand_can_store_episode(): void
@@ -530,7 +541,7 @@ class HoerbuchControllerTest extends TestCase
             'responsible_user_id' => null,
             'progress' => 100,
             'roles' => [
-                ['name' => 'Neue Rolle', 'description' => 'desc', 'takes' => 1, 'member_name' => 'Extern'],
+                ['name' => 'Neue Rolle', 'description' => 'desc', 'takes' => 1, 'member_name' => 'Extern', 'uploaded' => '1'],
             ],
             'notes' => 'Aktualisiert',
         ];
@@ -549,6 +560,12 @@ class HoerbuchControllerTest extends TestCase
             'roles_total' => 1,
             'roles_filled' => 1,
             'notes' => 'Aktualisiert',
+        ]);
+
+        $this->assertDatabaseHas('audiobook_roles', [
+            'episode_id' => $episode->id,
+            'name' => 'Neue Rolle',
+            'uploaded' => true,
         ]);
     }
 
@@ -764,6 +781,83 @@ class HoerbuchControllerTest extends TestCase
         $this->actingAs($user)
             ->get(route('hoerbuecher.create'))
             ->assertOk();
+    }
+
+    public function test_ag_leader_can_toggle_role_uploaded(): void
+    {
+        $leader = $this->actingAgLeader();
+
+        $episode = AudiobookEpisode::create([
+            'episode_number' => 'F99',
+            'title' => 'Upload Test',
+            'author' => 'Autor',
+            'planned_release_date' => '01.01.2026',
+            'status' => 'Skripterstellung',
+            'responsible_user_id' => null,
+            'progress' => 0,
+            'roles_total' => 1,
+            'roles_filled' => 1,
+            'notes' => null,
+        ]);
+
+        $role = AudiobookRole::create([
+            'episode_id' => $episode->id,
+            'name' => 'Testrolle',
+            'description' => null,
+            'takes' => 0,
+            'user_id' => null,
+            'speaker_name' => 'Speaker',
+            'uploaded' => false,
+        ]);
+
+        $this->actingAs($leader)
+            ->from(route('hoerbuecher.show', $episode))
+            ->patch(route('hoerbuecher.roles.uploaded', $role), ['uploaded' => true])
+            ->assertRedirect();
+
+        $this->assertTrue($role->fresh()->uploaded);
+
+        $this->actingAs($leader)
+            ->from(route('hoerbuecher.show', $episode))
+            ->patch(route('hoerbuecher.roles.uploaded', $role), ['uploaded' => false])
+            ->assertRedirect();
+
+        $this->assertFalse($role->fresh()->uploaded);
+    }
+
+    public function test_ag_member_cannot_toggle_role_uploaded(): void
+    {
+        $member = $this->actingAgMember();
+
+        $episode = AudiobookEpisode::create([
+            'episode_number' => 'F98',
+            'title' => 'Upload Forbidden',
+            'author' => 'Autor',
+            'planned_release_date' => '01.02.2026',
+            'status' => 'Skripterstellung',
+            'responsible_user_id' => null,
+            'progress' => 0,
+            'roles_total' => 1,
+            'roles_filled' => 1,
+            'notes' => null,
+        ]);
+
+        $role = AudiobookRole::create([
+            'episode_id' => $episode->id,
+            'name' => 'Verboten',
+            'description' => null,
+            'takes' => 0,
+            'user_id' => null,
+            'speaker_name' => 'Speaker',
+            'uploaded' => false,
+        ]);
+
+        $this->actingAs($member)
+            ->from(route('hoerbuecher.show', $episode))
+            ->patch(route('hoerbuecher.roles.uploaded', $role), ['uploaded' => true])
+            ->assertForbidden();
+
+        $this->assertFalse($role->fresh()->uploaded);
     }
 
     public function test_previous_speaker_endpoint_returns_last_assigned_member(): void

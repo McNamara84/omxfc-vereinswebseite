@@ -118,6 +118,7 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
         Route::middleware('hoerbuch-manage')->group(function () {
             Route::get('erstellen', 'create')->name('create');
             Route::post('/', 'store')->name('store');
+            Route::patch('rollen/{role}/hochgeladen', 'updateRoleUploaded')->name('roles.uploaded');
             Route::get('{episode}/bearbeiten', 'edit')->name('edit');
             Route::put('{episode}', 'update')->name('update');
             Route::delete('{episode}', 'destroy')->name('destroy');
