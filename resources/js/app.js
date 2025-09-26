@@ -88,3 +88,8 @@ import './mitglieder/accessibility';
 import './mitglieder/map-utils';
 import './protokolle/accordion';
 import './kassenbuch/modals';
+import initMitgliedschaftForm from './mitgliedschaft/form';
+
+window.omxfc = window.omxfc || {};
+window.omxfc.initMitgliedschaftForm = (root = document, options = {}) =>
+    initMitgliedschaftForm(root, options);

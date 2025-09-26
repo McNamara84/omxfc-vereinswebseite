@@ -17,7 +17,7 @@ class MembershipMailTest extends TestCase
     {
         Mail::fake();
 
-        $response = $this->post(route('mitglied.store'), [
+        $response = $this->postJson(route('mitglied.store'), [
             'vorname' => 'Test',
             'nachname' => 'Applicant',
             'strasse' => 'Teststr',
@@ -31,9 +31,10 @@ class MembershipMailTest extends TestCase
             'mitgliedsbeitrag' => 12,
             'telefon' => null,
             'verein_gefunden' => null,
+            'satzung_check' => 'on',
         ]);
 
-        $response->assertJson(['success' => true]);
+        $response->assertOk()->assertJson(['success' => true]);
 
         Mail::assertQueued(MitgliedAntragEingereicht::class, function ($mail) {
             return $mail->user->email === 'applicant@example.com';
@@ -61,6 +62,7 @@ class MembershipMailTest extends TestCase
             'mitgliedsbeitrag' => 12,
             'telefon' => null,
             'verein_gefunden' => null,
+            'satzung_check' => 'on',
         ]);
 
         $response->assertStatus(422);
@@ -89,6 +91,7 @@ class MembershipMailTest extends TestCase
             'mitgliedsbeitrag' => 12,
             'telefon' => null,
             'verein_gefunden' => null,
+            'satzung_check' => 'on',
         ]);
 
         $response->assertStatus(422);

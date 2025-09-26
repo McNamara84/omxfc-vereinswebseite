@@ -44,9 +44,11 @@ class RegistrationTest extends TestCase
             'mitgliedsbeitrag' => 12.00,
             'telefon' => null,
             'verein_gefunden' => null,
+            'satzung_check' => 'on',
         ]);
 
-        $response->assertJson(['success' => true]);
+        $response->assertRedirect(route('mitglied.werden.erfolgreich'));
+        $response->assertSessionHasNoErrors();
         $this->assertGuest();
     }
 
@@ -72,6 +74,7 @@ class RegistrationTest extends TestCase
             'mitgliedsbeitrag' => 12.00,
             'telefon' => null,
             'verein_gefunden' => null,
+            'satzung_check' => 'on',
         ]);
 
         $response->assertRedirect('/register');
@@ -96,11 +99,12 @@ class RegistrationTest extends TestCase
             'passwort' => '',
             'passwort_confirmation' => '',
             'mitgliedsbeitrag' => '',
+            'satzung_check' => null,
         ]);
 
         $response->assertRedirect('/mitglied-werden');
         $response->assertSessionHasErrors([
-            'vorname', 'nachname', 'strasse', 'hausnummer', 'plz', 'stadt', 'land', 'mail', 'passwort', 'mitgliedsbeitrag'
+            'vorname', 'nachname', 'strasse', 'hausnummer', 'plz', 'stadt', 'land', 'mail', 'passwort', 'mitgliedsbeitrag', 'satzung_check'
         ]);
     }
 }

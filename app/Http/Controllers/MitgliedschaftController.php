@@ -29,6 +29,7 @@ class MitgliedschaftController extends Controller
             'mitgliedsbeitrag' => 'required|numeric|min:12|max:120',
             'telefon' => 'nullable|string|max:20',
             'verein_gefunden' => 'nullable|string|max:255',
+            'satzung_check' => 'accepted',
         ]);
 
         $user = User::create([
@@ -60,9 +61,13 @@ class MitgliedschaftController extends Controller
         // Mailversand
         Mail::to($user->email)->queue(new MitgliedAntragEingereicht($user));
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Mitgliedschaftsantrag erfolgreich eingereicht.'
-        ]);
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Mitgliedschaftsantrag erfolgreich eingereicht.'
+            ]);
+        }
+
+        return redirect()->route('mitglied.werden.erfolgreich');
     }
 }

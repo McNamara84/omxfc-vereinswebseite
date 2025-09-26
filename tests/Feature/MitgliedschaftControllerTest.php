@@ -22,6 +22,11 @@ class MitgliedschaftControllerTest extends TestCase
         $html = $response->getContent();
 
         $this->assertStringNotContainsString('<x-input', $html, 'Compiled view should not contain unresolved Blade components.');
+        $this->assertStringContainsString('action="' . route('mitglied.store') . '"', $html);
+        $this->assertStringContainsString('method="POST"', $html);
+        $this->assertStringContainsString('name="_token"', $html);
+        $this->assertMatchesRegularExpression('/<input[^>]*name="satzung_check"[^>]*required/mi', $html);
+        $this->assertStringContainsString('data-success-url="' . route('mitglied.werden.erfolgreich') . '"', $html);
 
         $fields = [
             'vorname' => ['aria' => 'aria-describedby="error-vorname"', 'ids' => ['error-vorname']],
@@ -72,6 +77,7 @@ class MitgliedschaftControllerTest extends TestCase
             'mitgliedsbeitrag' => 12,
             'telefon' => '0123456789',
             'verein_gefunden' => 'Internet',
+            'satzung_check' => 'on',
         ];
 
         $response = $this->postJson(route('mitglied.store'), $data);
@@ -104,11 +110,35 @@ class MitgliedschaftControllerTest extends TestCase
             'passwort' => 'secret123',
             'passwort_confirmation' => 'secret123',
             'mitgliedsbeitrag' => 12,
+            'satzung_check' => 'on',
         ];
 
         $response = $this->postJson(route('mitglied.store'), $data);
 
         $response->assertStatus(422)->assertJsonValidationErrors(['vorname']);
+    }
+
+    public function test_membership_application_requires_accepting_satzung(): void
+    {
+        Mail::fake();
+
+        $data = [
+            'vorname' => 'Max',
+            'nachname' => 'Mustermann',
+            'strasse' => 'Musterstraße',
+            'hausnummer' => '1',
+            'plz' => '12345',
+            'stadt' => 'Musterstadt',
+            'land' => 'Deutschland',
+            'mail' => 'max@example.com',
+            'passwort' => 'secret123',
+            'passwort_confirmation' => 'secret123',
+            'mitgliedsbeitrag' => 12,
+        ];
+
+        $response = $this->postJson(route('mitglied.store'), $data);
+
+        $response->assertStatus(422)->assertJsonValidationErrors(['satzung_check']);
     }
 
     public function test_membership_form_fields_share_brand_focus_styles(): void
@@ -143,7 +173,7 @@ class MitgliedschaftControllerTest extends TestCase
         $response->assertOk();
         $html = $response->getContent();
 
-        $this->assertStringContainsString('[Mitgliedschaftsformular] Feld mit ID "', $html);
+        $this->assertStringContainsString('window.omxfc?.initMitgliedschaftForm?.()', $html);
     }
 
     private function extractClassAttribute(string $html, string $tag, string $id): ?string
