@@ -71,7 +71,7 @@ jobs:
           const { formatMetricsForSummary, formatBenchmarkTitle } = await import(moduleUrl);
 
           const file = path.resolve('playwright-performance/homepage.json');
-          let benchmarkTitle = 'Website loaded in n/a ms';
+          let benchmarkTitle = 'Benchmark: Homepage loaded in n/a ms';
 
           if (!fs.existsSync(file)) {
             console.log('No performance results found.');

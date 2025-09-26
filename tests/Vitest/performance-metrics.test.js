@@ -87,7 +87,7 @@ describe('performance metrics utilities', () => {
 
   it('generates a benchmark title with rounded load time', () => {
     const summary = summarizeNavigationPerformance(baseMetrics);
-    expect(formatBenchmarkTitle(summary)).toBe('Website loaded in 2346 ms');
+    expect(formatBenchmarkTitle(summary)).toBe('Benchmark: Homepage loaded in 2346 ms');
   });
 
   it('falls back to n/a when load time is missing', () => {
@@ -96,6 +96,6 @@ describe('performance metrics utilities', () => {
       navigation: null,
     });
 
-    expect(formatBenchmarkTitle(summary)).toBe('Website loaded in n/a ms');
+    expect(formatBenchmarkTitle(summary)).toBe('Benchmark: Homepage loaded in n/a ms');
   });
 });

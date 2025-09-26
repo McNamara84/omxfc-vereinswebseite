@@ -103,5 +103,5 @@ export function formatBenchmarkTitle(summary) {
   const formattedValue =
     typeof totalLoadTime === 'number' ? `${Math.round(totalLoadTime)} ms` : 'n/a ms';
 
-  return `Website loaded in ${formattedValue}`;
+  return `Benchmark: Homepage loaded in ${formattedValue}`;
 }
