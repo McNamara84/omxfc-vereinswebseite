@@ -30,6 +30,16 @@ const rawMetricsSchema = z.object({
   largestContentfulPaint: z.number().nonnegative().nullable(),
 });
 
+const summarySchema = z
+  .object({
+    metrics: z
+      .object({
+        totalLoadTime: z.number().nonnegative().nullable(),
+      })
+      .passthrough(),
+  })
+  .passthrough();
+
 /**
  * Summarizes navigation timing metrics collected from the browser.
  *
@@ -81,4 +91,13 @@ export function formatMetricsForSummary(summary) {
     ['First Contentful Paint', format(metrics.firstContentfulPaint)],
     ['Largest Contentful Paint', format(metrics.largestContentfulPaint)],
   ];
+}
+
+export function formatBenchmarkTitle(summary) {
+  const { metrics } = summarySchema.parse(summary);
+  const totalLoadTime = metrics.totalLoadTime;
+  const formattedValue =
+    typeof totalLoadTime === 'number' ? `${Math.round(totalLoadTime)} ms` : 'n/a ms';
+
+  return `Benchmark: Homepage loaded in ${formattedValue}`;
 }

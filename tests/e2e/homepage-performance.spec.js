@@ -1,7 +1,10 @@
 import { test, expect } from '@playwright/test';
 import fs from 'fs';
 import path from 'path';
-import { summarizeNavigationPerformance } from './utils/performance-metrics.js';
+import {
+  summarizeNavigationPerformance,
+  formatBenchmarkTitle,
+} from './utils/performance-metrics.js';
 
 const OUTPUT_FILE = 'homepage.json';
 
@@ -67,7 +70,7 @@ test.describe('Homepage performance benchmark', () => {
       expect(summary.metrics.firstContentfulPaint).toBeGreaterThanOrEqual(0);
     }
 
-    console.log(`Homepage total load: ${summary.metrics.totalLoadTime?.toFixed(1) ?? 'n/a'} ms`);
+    console.log(formatBenchmarkTitle(summary));
     console.log(`Homepage LCP: ${summary.metrics.largestContentfulPaint?.toFixed(1) ?? 'n/a'} ms`);
   });
 });

@@ -1,5 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { summarizeNavigationPerformance, formatMetricsForSummary } from '../e2e/utils/performance-metrics.js';
+import {
+  summarizeNavigationPerformance,
+  formatMetricsForSummary,
+  formatBenchmarkTitle,
+} from '../e2e/utils/performance-metrics.js';
 
 describe('performance metrics utilities', () => {
   const baseMetrics = {
@@ -67,5 +71,19 @@ describe('performance metrics utilities', () => {
 
     const rows = formatMetricsForSummary(summary);
     expect(rows[0][1]).toBe('n/a');
+  });
+
+  it('generates a benchmark title with rounded load time', () => {
+    const summary = summarizeNavigationPerformance(baseMetrics);
+    expect(formatBenchmarkTitle(summary)).toBe('Benchmark: Homepage loaded in 2346 ms');
+  });
+
+  it('falls back to n/a when load time is missing', () => {
+    const summary = summarizeNavigationPerformance({
+      ...baseMetrics,
+      navigation: null,
+    });
+
+    expect(formatBenchmarkTitle(summary)).toBe('Benchmark: Homepage loaded in n/a ms');
   });
 });

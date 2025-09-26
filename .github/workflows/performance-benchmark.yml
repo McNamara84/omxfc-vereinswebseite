@@ -56,6 +56,7 @@ jobs:
 
       - name: Publish benchmark summary
         if: always()
+        id: publish_summary
         run: |
           node --input-type=module <<'NODE'
           import fs from 'fs';
@@ -63,9 +64,11 @@ jobs:
           import { pathToFileURL } from 'url';
 
           const moduleUrl = pathToFileURL(path.resolve('tests/e2e/utils/performance-metrics.js')).href;
-          const { formatMetricsForSummary } = await import(moduleUrl);
+          const { formatMetricsForSummary, formatBenchmarkTitle } = await import(moduleUrl);
 
           const file = path.resolve('playwright-performance/homepage.json');
+          let benchmarkTitle = 'Benchmark: Homepage loaded in n/a ms';
+
           if (!fs.existsSync(file)) {
             console.log('No performance results found.');
           } else {
@@ -74,11 +77,44 @@ jobs:
             const tableLines = ['| Metric | Value |', '| --- | --- |', ...rows.map(([label, value]) => `| ${label} | ${value} |`)];
             const table = tableLines.join('\n');
             console.log(table);
+            benchmarkTitle = formatBenchmarkTitle(data);
             if (process.env.GITHUB_STEP_SUMMARY) {
               fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, `## Homepage Performance\n\n${table}\n`);
             }
           }
+
+          if (process.env.GITHUB_OUTPUT) {
+            fs.appendFileSync(process.env.GITHUB_OUTPUT, `benchmark_title=${benchmarkTitle}\n`);
+          }
           NODE
+
+      - name: Update check run title
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BENCHMARK_TITLE: ${{ steps.publish_summary.outputs.benchmark_title }}
+        run: |
+          if [ -z "$BENCHMARK_TITLE" ]; then
+            echo "No benchmark title available.";
+            exit 0;
+          fi
+
+          echo "Updating check run title to: $BENCHMARK_TITLE"
+
+          check_run_url=$(gh api repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/jobs \
+            --jq ".jobs[] | select(.name == \"${{ github.job }}\") | .check_run_url")
+
+          if [ -z "$check_run_url" ]; then
+            echo "Unable to locate check run URL for this job.";
+            exit 0;
+          fi
+
+          check_run_id=${check_run_url##*/}
+
+          gh api repos/${{ github.repository }}/check-runs/$check_run_id \
+            --method PATCH \
+            -H "Accept: application/vnd.github+json" \
+            -f name="$BENCHMARK_TITLE"
 
       - name: Upload performance artifact
         if: always()
