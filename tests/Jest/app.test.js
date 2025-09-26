@@ -91,10 +91,12 @@ describe('app module', () => {
     expect(window.L).toEqual({});
   });
 
-  test('ensures the mobile navigation toggle keeps its x-ref', async () => {
+  test('ensures the mobile navigation toggle keeps accessibility attributes', async () => {
     const toggle = document.createElement('button');
     toggle.setAttribute('aria-controls', 'mobile-navigation');
     toggle.setAttribute('x-ref', '');
+    toggle.setAttribute('aria-expanded', '');
+    toggle.setAttribute('aria-label', '');
     document.body.appendChild(toggle);
 
     await loadApp(false, {
@@ -105,7 +107,22 @@ describe('app module', () => {
       },
     });
 
+    await new Promise((resolve) => {
+      if (typeof queueMicrotask === 'function') {
+        queueMicrotask(resolve);
+        return;
+      }
+
+      resolve();
+    });
+
+    await new Promise((resolve) => {
+      setTimeout(resolve, 0);
+    });
+
     expect(toggle.getAttribute('x-ref')).toBe('mobileToggle');
+    expect(toggle.getAttribute('aria-expanded')).toBe('false');
+    expect(toggle.getAttribute('aria-label')).toBe('Menü öffnen');
 
     toggle.setAttribute('x-ref', '');
     await new Promise((resolve) => {
@@ -113,5 +130,32 @@ describe('app module', () => {
     });
 
     expect(toggle.getAttribute('x-ref')).toBe('mobileToggle');
+
+    toggle.setAttribute('aria-expanded', 'true');
+    await new Promise((resolve) => {
+      setTimeout(resolve, 0);
+    });
+
+    expect(toggle.getAttribute('aria-expanded')).toBe('true');
+
+    toggle.removeAttribute('aria-expanded');
+    toggle.removeAttribute('aria-label');
+    await new Promise((resolve) => {
+      setTimeout(resolve, 0);
+    });
+    await new Promise((resolve) => {
+      setTimeout(resolve, 0);
+    });
+    await new Promise((resolve) => {
+      if (typeof queueMicrotask === 'function') {
+        queueMicrotask(resolve);
+        return;
+      }
+
+      resolve();
+    });
+
+    expect(toggle.getAttribute('aria-expanded')).toBe('false');
+    expect(toggle.getAttribute('aria-label')).toBe('Menü öffnen');
   });
 });

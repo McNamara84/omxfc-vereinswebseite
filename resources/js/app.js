@@ -17,23 +17,44 @@ const ensureMobileToggleRef = (root = document) => {
         if (toggle.getAttribute('x-ref') !== 'mobileToggle') {
             toggle.setAttribute('x-ref', 'mobileToggle');
         }
+
+        const expanded = toggle.getAttribute('aria-expanded');
+        if (expanded !== 'true' && expanded !== 'false') {
+            toggle.setAttribute('aria-expanded', 'false');
+        }
+
+        const label = toggle.getAttribute('aria-label');
+        if (!label || label.trim().length === 0) {
+            toggle.setAttribute('aria-label', 'Menü öffnen');
+        }
     };
 
     applyRef();
+
+    if (typeof requestAnimationFrame === 'function') {
+        requestAnimationFrame(applyRef);
+    } else {
+        setTimeout(applyRef, 0);
+    }
 
     if (typeof MutationObserver !== 'function') {
         return applyRef;
     }
 
+    const watchedAttributes = new Set(['x-ref', 'aria-expanded', 'aria-label']);
     const observer = new MutationObserver((mutations) => {
         for (const mutation of mutations) {
-            if (mutation.type === 'attributes' && mutation.attributeName === 'x-ref') {
+            if (mutation.type === 'attributes' && watchedAttributes.has(mutation.attributeName)) {
                 applyRef();
+                break;
             }
         }
     });
 
-    observer.observe(toggle, { attributes: true, attributeFilter: ['x-ref'] });
+    observer.observe(toggle, {
+        attributes: true,
+        attributeFilter: Array.from(watchedAttributes),
+    });
 
     return () => observer.disconnect();
 };
