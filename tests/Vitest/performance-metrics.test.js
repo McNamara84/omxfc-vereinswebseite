@@ -73,6 +73,18 @@ describe('performance metrics utilities', () => {
     expect(rows[0][1]).toBe('n/a');
   });
 
+  it('accepts negative requestStart values reported by some browsers', () => {
+    const summary = summarizeNavigationPerformance({
+      ...baseMetrics,
+      navigation: {
+        ...baseMetrics.navigation,
+        requestStart: -1,
+      },
+    });
+
+    expect(summary.metrics.timeToFirstByte).toBeCloseTo(151);
+  });
+
   it('generates a benchmark title with rounded load time', () => {
     const summary = summarizeNavigationPerformance(baseMetrics);
     expect(formatBenchmarkTitle(summary)).toBe('Benchmark: Homepage loaded in 2346 ms');

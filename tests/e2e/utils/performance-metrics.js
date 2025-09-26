@@ -7,7 +7,11 @@ const navigationSchema = z
     loadEventEnd: z.number().nonnegative().nullable().optional(),
     loadEventStart: z.number().nonnegative().nullable().optional(),
     duration: z.number().nonnegative().nullable().optional(),
-    requestStart: z.number().nonnegative().nullable().optional(),
+    // Firefox may report -1 when request timing is unavailable, so we only validate that a number is provided.
+    requestStart: z
+      .number()
+      .nullable()
+      .optional(),
     responseStart: z.number().nonnegative().nullable().optional(),
     startTime: z.number().nonnegative().nullable().optional(),
     transferSize: z.number().nonnegative().nullable().optional(),
