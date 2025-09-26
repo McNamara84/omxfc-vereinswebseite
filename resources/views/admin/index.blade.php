@@ -107,7 +107,7 @@
             </section>
 
             <section
-                class="lg:col-span-2 xl:col-span-2 bg-white dark:bg-gray-800 overflow-hidden shadow-xl sm:rounded-lg p-6"
+                class="lg:col-span-2 bg-white dark:bg-gray-800 overflow-hidden shadow-xl sm:rounded-lg p-6"
                 aria-labelledby="route-visits-heading"
             >
                 <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-2 mb-4">

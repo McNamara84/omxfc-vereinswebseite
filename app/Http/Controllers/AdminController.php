@@ -155,7 +155,7 @@ class AdminController extends Controller
         }
 
         $raw = $baseQuery
-            ->where('created_at', '>=', now()->subDays(29)->startOfDay())
+            ->where('created_at', '>=', Carbon::now()->subDays(29)->startOfDay())
             ->groupBy('visit_date')
             ->orderByDesc('visit_date')
             ->get();
