@@ -206,6 +206,39 @@ class HoerbuchControllerTest extends TestCase
             ->assertDontSee('Verborgene Stimme');
     }
 
+    public function test_detail_view_hides_upload_column_and_controls(): void
+    {
+        $user = $this->actingMember('Admin');
+
+        $episode = AudiobookEpisode::create([
+            'episode_number' => 'F42',
+            'title' => 'Keine Upload Checkbox',
+            'author' => 'Autor',
+            'planned_release_date' => '12.2025',
+            'status' => 'Skripterstellung',
+            'responsible_user_id' => null,
+            'progress' => 10,
+            'roles_total' => 1,
+            'roles_filled' => 1,
+            'notes' => null,
+        ]);
+
+        $episode->roles()->create([
+            'name' => 'Erzähler',
+            'description' => 'Erzählt die Geschichte',
+            'takes' => 4,
+            'uploaded' => true,
+        ]);
+
+        $response = $this->actingAs($user)->get(route('hoerbuecher.show', $episode));
+
+        $response->assertOk();
+        $response->assertSee('Sprecher');
+        $response->assertDontSee('Aufnahme hochgeladen');
+        $response->assertDontSee('uploaded-role-');
+        $response->assertDontSee('data-auto-submit');
+    }
+
     public function test_vorstand_can_store_episode(): void
     {
         $user = $this->actingMember('Vorstand');
