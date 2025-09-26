@@ -389,6 +389,9 @@ CREATE TABLE IF NOT EXISTS "audiobook_roles"(
   "takes" integer not null default '0',
   "user_id" integer,
   "speaker_name" varchar,
+  "contact_email" varchar,
+  "speaker_pseudonym" varchar,
+  "uploaded" integer not null default '0',
   "created_at" datetime,
   "updated_at" datetime,
   foreign key("episode_id") references "audiobook_episodes"("id") on delete cascade,
@@ -446,3 +449,5 @@ INSERT INTO migrations VALUES(43,'2025_09_21_000000_create_audiobook_roles_table
 INSERT INTO migrations VALUES(44,'2025_09_22_000000_add_name_user_speaker_index_to_audiobook_roles_table',1);
 INSERT INTO migrations VALUES(45,'2025_10_01_000000_update_book_type_enum',1);
 INSERT INTO migrations VALUES(46,'2025_09_25_052816_create_member_client_snapshots_table',2);
+INSERT INTO migrations VALUES(47,'2025_09_26_094551_add_uploaded_to_audiobook_roles_table',2);
+INSERT INTO migrations VALUES(48,'2025_09_26_130232_add_contact_and_pseudonym_to_audiobook_roles_table',2);

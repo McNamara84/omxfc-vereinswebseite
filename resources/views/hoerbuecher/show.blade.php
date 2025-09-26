@@ -104,5 +104,7 @@
             </div>
         </div>
     </x-member-page>
-    @vite(['resources/js/hoerbuch-role-upload-toggle.js'])
+    @unless(app()->environment('testing'))
+        @vite(['resources/js/hoerbuch-role-upload-toggle.js'])
+    @endunless
 </x-app-layout>

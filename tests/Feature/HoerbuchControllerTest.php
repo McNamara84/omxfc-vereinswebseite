@@ -79,8 +79,24 @@ class HoerbuchControllerTest extends TestCase
             'responsible_user_id' => $responsible->id,
             'progress' => 50,
             'roles' => [
-                ['name' => 'R1', 'description' => 'Desc1', 'takes' => 3, 'member_name' => 'Extern', 'uploaded' => '1'],
-                ['name' => 'R2', 'description' => 'Desc2', 'takes' => 2, 'member_id' => $responsible->id, 'uploaded' => '0'],
+                [
+                    'name' => 'R1',
+                    'description' => 'Desc1',
+                    'takes' => 3,
+                    'member_name' => 'Extern',
+                    'contact_email' => 'sprecher@example.com',
+                    'speaker_pseudonym' => 'Die Stimme',
+                    'uploaded' => '1',
+                ],
+                [
+                    'name' => 'R2',
+                    'description' => 'Desc2',
+                    'takes' => 2,
+                    'member_id' => $responsible->id,
+                    'contact_email' => null,
+                    'speaker_pseudonym' => null,
+                    'uploaded' => '0',
+                ],
             ],
             'notes' => 'Bemerkung',
         ];
@@ -106,13 +122,51 @@ class HoerbuchControllerTest extends TestCase
         $this->assertDatabaseHas('audiobook_roles', [
             'episode_id' => $episodeId,
             'name' => 'R1',
+            'contact_email' => 'sprecher@example.com',
+            'speaker_pseudonym' => 'Die Stimme',
             'uploaded' => true,
         ]);
         $this->assertDatabaseHas('audiobook_roles', [
             'episode_id' => $episodeId,
             'name' => 'R2',
+            'contact_email' => null,
+            'speaker_pseudonym' => null,
             'uploaded' => false,
         ]);
+    }
+
+    public function test_contact_and_pseudonym_are_hidden_in_detail_view(): void
+    {
+        $user = $this->actingMember('Admin');
+
+        $episode = AudiobookEpisode::create([
+            'episode_number' => 'F32',
+            'title' => 'Geheime Folge',
+            'author' => 'Autor',
+            'planned_release_date' => '12.2025',
+            'status' => 'Skripterstellung',
+            'responsible_user_id' => null,
+            'progress' => 10,
+            'roles_total' => 1,
+            'roles_filled' => 1,
+            'notes' => null,
+        ]);
+
+        $episode->roles()->create([
+            'name' => 'Geheimrolle',
+            'description' => 'Top secret',
+            'takes' => 1,
+            'speaker_name' => 'Öffentlicher Name',
+            'contact_email' => 'geheim@example.com',
+            'speaker_pseudonym' => 'Verborgene Stimme',
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('hoerbuecher.show', $episode))
+            ->assertOk()
+            ->assertSee('Öffentlicher Name')
+            ->assertDontSee('geheim@example.com')
+            ->assertDontSee('Verborgene Stimme');
     }
 
     public function test_vorstand_can_store_episode(): void
@@ -186,6 +240,37 @@ class HoerbuchControllerTest extends TestCase
 
         $response->assertRedirect(route('hoerbuecher.create', [], false));
         $response->assertSessionHasErrors(['episode_number', 'title', 'author', 'planned_release_date', 'status', 'progress']);
+    }
+
+    public function test_contact_email_must_be_valid(): void
+    {
+        $user = $this->actingMember('Admin');
+
+        $data = [
+            'episode_number' => 'F40',
+            'title' => 'Validierung',
+            'author' => 'Autor',
+            'planned_release_date' => '12.2025',
+            'status' => 'Skripterstellung',
+            'responsible_user_id' => null,
+            'progress' => 10,
+            'roles' => [
+                [
+                    'name' => 'Test',
+                    'description' => 'Test',
+                    'takes' => 1,
+                    'contact_email' => 'keine-mail',
+                ],
+            ],
+            'notes' => null,
+        ];
+
+        $response = $this->actingAs($user)
+            ->from(route('hoerbuecher.create'))
+            ->post(route('hoerbuecher.store'), $data);
+
+        $response->assertRedirect(route('hoerbuecher.create', [], false));
+        $response->assertSessionHasErrors(['roles.0.contact_email']);
     }
 
     public function test_member_cannot_view_create_form(): void
@@ -379,6 +464,37 @@ class HoerbuchControllerTest extends TestCase
             ->assertSee('Bisheriger Sprecher: '.$actor->name);
     }
 
+    public function test_edit_form_displays_contact_and_pseudonym_fields(): void
+    {
+        $user = $this->actingMember('Admin');
+
+        $episode = AudiobookEpisode::create([
+            'episode_number' => 'F33',
+            'title' => 'Bearbeitung',
+            'author' => 'Autor',
+            'planned_release_date' => '2026',
+            'status' => 'Skripterstellung',
+            'responsible_user_id' => null,
+            'progress' => 0,
+            'roles_total' => 1,
+            'roles_filled' => 1,
+            'notes' => null,
+        ]);
+
+        $episode->roles()->create([
+            'name' => 'Rolle',
+            'takes' => 1,
+            'contact_email' => 'sichtbar@example.net',
+            'speaker_pseudonym' => 'Alias X',
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('hoerbuecher.edit', $episode))
+            ->assertOk()
+            ->assertSee('value="sichtbar@example.net"', false)
+            ->assertSee('value="Alias X"', false);
+    }
+
     public function test_notes_are_sanitized_and_escaped_in_views(): void
     {
         $user = $this->actingMember('Admin');
@@ -541,7 +657,15 @@ class HoerbuchControllerTest extends TestCase
             'responsible_user_id' => null,
             'progress' => 100,
             'roles' => [
-                ['name' => 'Neue Rolle', 'description' => 'desc', 'takes' => 1, 'member_name' => 'Extern', 'uploaded' => '1'],
+                [
+                    'name' => 'Neue Rolle',
+                    'description' => 'desc',
+                    'takes' => 1,
+                    'member_name' => 'Extern',
+                    'contact_email' => 'rolle@example.org',
+                    'speaker_pseudonym' => 'Shadow Voice',
+                    'uploaded' => '1',
+                ],
             ],
             'notes' => 'Aktualisiert',
         ];
@@ -565,6 +689,8 @@ class HoerbuchControllerTest extends TestCase
         $this->assertDatabaseHas('audiobook_roles', [
             'episode_id' => $episode->id,
             'name' => 'Neue Rolle',
+            'contact_email' => 'rolle@example.org',
+            'speaker_pseudonym' => 'Shadow Voice',
             'uploaded' => true,
         ]);
     }
