@@ -1,7 +1,8 @@
 @props(['for'])
 
 @php
-    $message = $errors->first($for);
+    $errorBag = $errors ?? session()->get('errors');
+    $message = $errorBag?->first($for);
 @endphp
 
 <p
