@@ -100,9 +100,22 @@ const applyStoredTheme =
 window.__omxfcApplySystemTheme = applySystemPreference;
 window.__omxfcApplyStoredTheme = applyStoredTheme;
 
-prefersDark.addEventListener('change', (event) => {
-    applySystemPreference(event.matches);
-});
+const handlePrefersDarkChange = (event) => {
+    const matches =
+        typeof event === 'boolean'
+            ? event
+            : event && typeof event.matches === 'boolean'
+                ? event.matches
+                : getSystemPrefersDark();
+
+    applySystemPreference(matches);
+};
+
+if (typeof prefersDark.addEventListener === 'function') {
+    prefersDark.addEventListener('change', handlePrefersDarkChange);
+} else if (typeof prefersDark.addListener === 'function') {
+    prefersDark.addListener(handlePrefersDarkChange);
+}
 
 window.addEventListener('storage', (event) => {
     if (event.key !== 'theme') {

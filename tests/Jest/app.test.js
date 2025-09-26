@@ -12,7 +12,7 @@ afterEach(() => {
   window.L = originalL;
 });
 
-async function loadApp(matches) {
+async function loadApp(matches, options = {}) {
   jest.resetModules();
   document.documentElement.className = '';
   document.documentElement.dataset.theme = '';
@@ -27,21 +27,29 @@ async function loadApp(matches) {
   let handler;
   window.matchMedia = jest.fn().mockReturnValue({
     matches,
-    addEventListener: (event, cb) => {
-      if (event === 'change') handler = cb;
-    },
+    addEventListener: options.legacyListener
+      ? undefined
+      : jest.fn((event, cb) => {
+          if (event === 'change') handler = cb;
+        }),
+    addListener: options.legacyListener
+      ? jest.fn((cb) => {
+          handler = cb;
+        })
+      : undefined,
   });
   await jest.unstable_mockModule('../../resources/js/bootstrap.js', () => ({}));
   await jest.unstable_mockModule('../../resources/js/chronik.js', () => ({}));
   await jest.unstable_mockModule('../../resources/js/char-editor.js', () => ({}));
   await jest.unstable_mockModule('leaflet', () => ({ default: {} }));
   await import('../../resources/js/app.js');
-  return handler;
+  const mediaQueryList = window.matchMedia.mock.results[0].value;
+  return { handler, mediaQueryList };
 }
 
 describe('app module', () => {
   test('applies dark class based on preference', async () => {
-    const handler = await loadApp(true);
+    const { handler } = await loadApp(true);
     expect(document.documentElement.classList.contains('dark')).toBe(true);
     expect(document.documentElement.dataset.theme).toBe('dark');
     handler({ matches: false });
@@ -50,10 +58,22 @@ describe('app module', () => {
   });
 
   test('adds dark class when preference changes to dark', async () => {
-    const handler = await loadApp(false);
+    const { handler } = await loadApp(false);
     expect(document.documentElement.classList.contains('dark')).toBe(false);
     expect(document.documentElement.dataset.theme).toBe('light');
     handler({ matches: true });
+    expect(document.documentElement.classList.contains('dark')).toBe(true);
+    expect(document.documentElement.dataset.theme).toBe('dark');
+  });
+
+  test('uses legacy addListener hook when addEventListener is unavailable', async () => {
+    const { handler, mediaQueryList } = await loadApp(false, { legacyListener: true });
+
+    expect(mediaQueryList.addListener).toHaveBeenCalledTimes(1);
+    const registeredHandler = mediaQueryList.addListener.mock.calls[0][0];
+    expect(handler).toBe(registeredHandler);
+
+    registeredHandler({ matches: true });
     expect(document.documentElement.classList.contains('dark')).toBe(true);
     expect(document.documentElement.dataset.theme).toBe('dark');
   });
