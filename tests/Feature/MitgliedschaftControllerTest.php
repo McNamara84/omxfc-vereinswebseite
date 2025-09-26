@@ -174,6 +174,8 @@ class MitgliedschaftControllerTest extends TestCase
         $html = $response->getContent();
 
         $this->assertStringContainsString('window.omxfc?.initMitgliedschaftForm?.()', $html);
+        $this->assertStringContainsString("document.readyState === 'loading'", $html);
+        $this->assertStringContainsString('runInit();', $html);
     }
 
     private function extractClassAttribute(string $html, string $tag, string $id): ?string

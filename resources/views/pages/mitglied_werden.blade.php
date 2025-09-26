@@ -94,9 +94,18 @@
     </x-public-page>
     @push('scripts')
         <script>
-            document.addEventListener('DOMContentLoaded', () => {
-                window.omxfc?.initMitgliedschaftForm?.();
-            });
+            (function () {
+                const runInit = () => {
+                    window.omxfc?.initMitgliedschaftForm?.();
+                };
+
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', runInit, { once: true });
+                    return;
+                }
+
+                runInit();
+            })();
         </script>
     @endpush
 </x-app-layout>
