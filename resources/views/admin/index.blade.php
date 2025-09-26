@@ -2,7 +2,7 @@
     <x-member-page>
         <h1 class="text-2xl font-semibold text-[#8B0116] dark:text-[#FCA5A5] mb-6">Seitenaufrufe</h1>
 
-        <div class="grid gap-8 lg:grid-cols-3">
+        <div class="grid gap-8 lg:grid-cols-4">
             @php($hasRouteData = $visitData->isNotEmpty())
             <section
                 class="bg-white dark:bg-gray-800 overflow-hidden shadow-xl sm:rounded-lg p-6 flex flex-col justify-between"
@@ -17,6 +17,93 @@
                 <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
                     Gesamtzugriffe auf <span class="font-medium" aria-label="Root-Route">/</span>
                 </p>
+            </section>
+
+            @php($dailyActiveSeries = collect($dailyActiveUsers['series']))
+            @php($recentDailyActiveSeries = $dailyActiveSeries->slice(-7)->values())
+            @php($recentDailyActiveMax = max($recentDailyActiveSeries->max('total') ?? 0, 1))
+            <section
+                class="bg-white dark:bg-gray-800 overflow-hidden shadow-xl sm:rounded-lg p-6 flex flex-col"
+                aria-labelledby="daily-active-users-heading"
+                aria-describedby="daily-active-users-description"
+            >
+                <div>
+                    <h2 id="daily-active-users-heading" class="text-lg font-semibold text-[#8B0116] dark:text-[#FCA5A5]">
+                        Daily Active Users
+                    </h2>
+                    <p class="mt-6 text-4xl font-bold text-gray-900 dark:text-gray-100">
+                        {{ number_format($dailyActiveUsers['today'], 0, ',', '.') }}
+                    </p>
+                    <p id="daily-active-users-description" class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                        Aktive Mitglieder heute (einzigartige Logins).
+                    </p>
+                    @php($trendPositive = $dailyActiveUsers['trend'] > 0)
+                    @php($trendNegative = $dailyActiveUsers['trend'] < 0)
+                    @if($trendPositive || $trendNegative)
+                        <p class="mt-4 inline-flex items-center gap-2 text-sm {{ $trendPositive ? 'text-emerald-600' : 'text-rose-500' }}">
+                            <span aria-hidden="true" class="flex h-6 w-6 items-center justify-center rounded-full bg-current/10">
+                                @if($trendPositive)
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-4 w-4">
+                                        <path fill-rule="evenodd" d="M10 3a1 1 0 0 1 .832.445l5 7a1 1 0 0 1-1.664 1.11L11 6.882V16a1 1 0 1 1-2 0V6.882l-3.168 4.673a1 1 0 1 1-1.664-1.11l5-7A1 1 0 0 1 10 3Z" clip-rule="evenodd" />
+                                    </svg>
+                                @else
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-4 w-4">
+                                        <path fill-rule="evenodd" d="M10 17a1 1 0 0 1-.832-.445l-5-7a1 1 0 0 1 1.664-1.11L9 13.118V4a1 1 0 1 1 2 0v9.118l3.168-4.673a1 1 0 1 1 1.664 1.11l-5 7A1 1 0 0 1 10 17Z" clip-rule="evenodd" />
+                                    </svg>
+                                @endif
+                            </span>
+                            <span>
+                                {{ abs($dailyActiveUsers['trend']) }}
+                                {{ $trendPositive ? 'mehr' : 'weniger' }}
+                                aktive Mitglieder als gestern.
+                            </span>
+                            <span class="sr-only">Im Vergleich zu gestern.</span>
+                        </p>
+                    @else
+                        <p class="mt-4 text-sm text-gray-600 dark:text-gray-400">
+                            Genau so viele aktive Mitglieder wie gestern.
+                        </p>
+                    @endif
+                </div>
+
+                <dl class="mt-6 grid grid-cols-1 gap-3 text-sm text-gray-600 dark:text-gray-400">
+                    <div class="flex items-center justify-between">
+                        <dt>Gestern</dt>
+                        <dd class="font-semibold text-gray-900 dark:text-gray-100">
+                            {{ number_format($dailyActiveUsers['yesterday'], 0, ',', '.') }}
+                        </dd>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <dt>7-Tage-Schnitt</dt>
+                        <dd class="font-semibold text-gray-900 dark:text-gray-100">
+                            {{ number_format($dailyActiveUsers['seven_day_average'], 1, ',', '.') }}
+                        </dd>
+                    </div>
+                </dl>
+
+                <div class="mt-6" aria-hidden="true">
+                    @if($recentDailyActiveSeries->isEmpty())
+                        <p class="text-sm text-gray-500 dark:text-gray-400 text-center">
+                            Noch keine Login-Daten vorhanden.
+                        </p>
+                    @else
+                        <ul class="flex items-end justify-between gap-1 h-24">
+                            @foreach ($recentDailyActiveSeries as $entry)
+                                @php($barHeight = $recentDailyActiveMax > 0 ? (int) round(($entry['total'] / $recentDailyActiveMax) * 100) : 0)
+                                @php($dayLabel = \Carbon\Carbon::parse($entry['date'])->translatedFormat('D'))
+                                <li class="flex-1 flex flex-col items-center text-[11px] text-gray-500 dark:text-gray-400">
+                                    <span class="flex h-full w-full items-end">
+                                        <span
+                                            class="w-full rounded-t-md {{ $entry['total'] === 0 ? 'bg-gray-200 dark:bg-gray-700' : 'bg-gradient-to-t from-[#8B0116]/30 to-[#8B0116]' }}"
+                                            style="height: {{ $entry['total'] === 0 ? '4px' : max($barHeight, 12) . '%' }}"
+                                        ></span>
+                                    </span>
+                                    <span class="mt-1 block text-[10px] uppercase tracking-wide">{{ $dayLabel }}</span>
+                                </li>
+                            @endforeach
+                        </ul>
+                    @endif
+                </div>
             </section>
 
             <section
