@@ -44,4 +44,21 @@ describe('hoerbuch role upload toggle module', () => {
     expect(form.requestSubmit).toHaveBeenCalledTimes(1);
     expect(form.submit).not.toHaveBeenCalled();
   });
+
+  test('falls back to submit when requestSubmit throws', async () => {
+    const form = document.querySelector('form');
+    const checkbox = form.querySelector('input[type="checkbox"]');
+    form.requestSubmit = jest.fn(() => {
+      throw new Error('unsupported');
+    });
+    form.submit = jest.fn();
+
+    await import('../../resources/js/hoerbuch-role-upload-toggle.js');
+
+    checkbox.checked = true;
+    checkbox.dispatchEvent(new Event('change'));
+
+    expect(form.requestSubmit).toHaveBeenCalledTimes(1);
+    expect(form.submit).toHaveBeenCalledTimes(1);
+  });
 });

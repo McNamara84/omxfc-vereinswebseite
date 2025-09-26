@@ -21,9 +21,7 @@ function initializeUploadToggles() {
                     form.requestSubmit();
                     return;
                 } catch (error) {
-                    if (!(error && error.name === 'NotImplementedError')) {
-                        throw error;
-                    }
+                    // Some legacy browsers expose requestSubmit but throw immediately.
                 }
             }
 
