@@ -97,6 +97,9 @@ describe('initMitgliedschaftForm', () => {
             console: consoleMock,
         });
 
+        expect(submitButton.disabled).toBe(false);
+        expect(submitButton.getAttribute('aria-disabled')).toBe('false');
+
         const submitEvent = new Event('submit', { bubbles: true, cancelable: true });
         form.dispatchEvent(submitEvent);
 
@@ -108,6 +111,7 @@ describe('initMitgliedschaftForm', () => {
 
         expect(submitButton.classList.contains('hidden')).toBe(true);
         expect(loadingIndicator.classList.contains('hidden')).toBe(false);
+        expect(submitButton.getAttribute('aria-disabled')).toBe('true');
         await vi.waitFor(() =>
             expect(assignMock).toHaveBeenCalledWith('/mitglied-werden/erfolgreich'),
         );
@@ -138,6 +142,7 @@ describe('initMitgliedschaftForm', () => {
         expect(loadingIndicator.classList.contains('hidden')).toBe(true);
         expect(formMessages.className).not.toContain('hidden');
         expect(formMessages.textContent).toBe('Unbekannter Fehler aufgetreten.');
+        expect(submitButton.getAttribute('aria-disabled')).toBe('false');
     });
 
     it('falls back to native submission when fetch is unavailable', () => {
@@ -156,6 +161,7 @@ describe('initMitgliedschaftForm', () => {
 
         expect(preventDefault).not.toHaveBeenCalled();
         expect(submitButton.disabled).toBe(false);
+        expect(submitButton.getAttribute('aria-disabled')).toBe('false');
     });
 
     it('submits the form natively when fetch is aborted', async () => {
@@ -179,9 +185,10 @@ describe('initMitgliedschaftForm', () => {
         expect(fetchMock).toHaveBeenCalled();
         expect(submitButton.classList.contains('hidden')).toBe(false);
         expect(loadingIndicator.classList.contains('hidden')).toBe(true);
+        expect(submitButton.getAttribute('aria-disabled')).toBe('false');
     });
 
-    it('updates contribution output and validity when change events fire', () => {
+    it('updates contribution output and keeps the submit button responsive to Satzung consent', () => {
         const { submitButton } = setupDom();
         initMitgliedschaftForm(document, {
             window: { location: { assign: vi.fn(), origin: 'https://example.test' } },
@@ -191,8 +198,11 @@ describe('initMitgliedschaftForm', () => {
         const beitrag = document.getElementById('mitgliedsbeitrag');
         const output = document.getElementById('beitrag-output');
         const firstName = document.getElementById('vorname');
+        const satzung = document.getElementById('satzung_check');
 
         expect(output.textContent).toBe('12€');
+        expect(submitButton.disabled).toBe(false);
+        expect(submitButton.getAttribute('aria-disabled')).toBe('false');
 
         beitrag.value = '60';
         beitrag.dispatchEvent(new Event('change', { bubbles: true }));
@@ -202,11 +212,27 @@ describe('initMitgliedschaftForm', () => {
         firstName.value = '';
         firstName.dispatchEvent(new Event('change', { bubbles: true }));
 
-        expect(submitButton.disabled).toBe(true);
+        expect(firstName.getAttribute('aria-invalid')).toBe('true');
+        expect(submitButton.disabled).toBe(false);
+        expect(submitButton.getAttribute('aria-disabled')).toBe('false');
 
         firstName.value = 'Max';
         firstName.dispatchEvent(new Event('change', { bubbles: true }));
 
+        expect(firstName.hasAttribute('aria-invalid')).toBe(false);
         expect(submitButton.disabled).toBe(false);
+        expect(submitButton.getAttribute('aria-disabled')).toBe('false');
+
+        satzung.checked = false;
+        satzung.dispatchEvent(new Event('change', { bubbles: true }));
+
+        expect(submitButton.disabled).toBe(true);
+        expect(submitButton.getAttribute('aria-disabled')).toBe('true');
+
+        satzung.checked = true;
+        satzung.dispatchEvent(new Event('change', { bubbles: true }));
+
+        expect(submitButton.disabled).toBe(false);
+        expect(submitButton.getAttribute('aria-disabled')).toBe('false');
     });
 });

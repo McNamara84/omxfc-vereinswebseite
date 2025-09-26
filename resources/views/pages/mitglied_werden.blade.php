@@ -92,4 +92,40 @@
             </div>
         </form>
     </x-public-page>
+
+    @push('scripts')
+        <script>
+            window.omxfc = window.omxfc || {};
+
+            const registerMitgliedschaftInit = () => {
+                const start = () => {
+                    if (typeof window.omxfc.initMitgliedschaftForm !== 'function') {
+                        return;
+                    }
+
+                    window.omxfc.initMitgliedschaftForm();
+                };
+
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', start, { once: true });
+                    return;
+                }
+
+                if (typeof queueMicrotask === 'function') {
+                    queueMicrotask(start);
+                    return;
+                }
+
+                start();
+            };
+
+            if (typeof window.omxfc.queueInit === 'function') {
+                window.omxfc.queueInit(registerMitgliedschaftInit);
+            } else {
+                (window.omxfc.__initQueue = window.omxfc.__initQueue || []).push(
+                    registerMitgliedschaftInit,
+                );
+            }
+        </script>
+    @endpush
 </x-app-layout>

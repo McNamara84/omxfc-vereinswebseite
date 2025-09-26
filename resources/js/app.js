@@ -1,5 +1,44 @@
 import './bootstrap';
 
+window.omxfc = window.omxfc || {};
+
+const initQueue = Array.isArray(window.omxfc.__initQueue)
+    ? window.omxfc.__initQueue
+    : [];
+
+const flushInitQueue = () => {
+    while (initQueue.length > 0) {
+        const callback = initQueue.shift();
+
+        if (typeof callback !== 'function') {
+            continue;
+        }
+
+        try {
+            callback();
+        } catch (error) {
+            window.console?.error?.('OMXFC init callback failed', error);
+        }
+    }
+};
+
+if (typeof window.omxfc.queueInit !== 'function') {
+    window.omxfc.queueInit = (callback) => {
+        if (typeof callback !== 'function') {
+            return;
+        }
+
+        if (window.omxfc.__appReady) {
+            callback();
+            return;
+        }
+
+        initQueue.push(callback);
+    };
+}
+
+window.omxfc.__initQueue = initQueue;
+
 const prefersDark = window.__omxfcPrefersDark ?? window.matchMedia('(prefers-color-scheme: dark)');
 const getSystemPrefersDark = () => prefersDark.matches;
 window.__omxfcPrefersDark = prefersDark;
@@ -90,38 +129,8 @@ import './protokolle/accordion';
 import './kassenbuch/modals';
 import initMitgliedschaftForm from './mitgliedschaft/form';
 
-window.omxfc = window.omxfc || {};
 window.omxfc.initMitgliedschaftForm = (root = document, options = {}) =>
     initMitgliedschaftForm(root, options);
 
-const scheduleMitgliedschaftFormInit = () => {
-    if (typeof document === 'undefined') {
-        return;
-    }
-
-    const tryInit = () => {
-        if (typeof window.omxfc?.initMitgliedschaftForm !== 'function') {
-            return;
-        }
-
-        if (!document.getElementById('mitgliedschaft-form')) {
-            return;
-        }
-
-        window.omxfc.initMitgliedschaftForm();
-    };
-
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', tryInit, { once: true });
-        return;
-    }
-
-    if (typeof queueMicrotask === 'function') {
-        queueMicrotask(tryInit);
-        return;
-    }
-
-    setTimeout(tryInit, 0);
-};
-
-scheduleMitgliedschaftFormInit();
+window.omxfc.__appReady = true;
+flushInitQueue();

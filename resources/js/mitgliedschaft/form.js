@@ -67,15 +67,19 @@ export function createMitgliedschaftForm(root = document, options = {}) {
         beitragOutput.textContent = `${prefix}${beitrag.value}${suffix}`;
     }
 
-    function toggleSubmit() {
+    function toggleSubmit(forceDisabled) {
         if (!submitButton) {
             return;
         }
 
         const isCheckboxChecked = satzungCheck ? satzungCheck.checked : true;
-        submitButton.disabled = !isCheckboxChecked || !form.checkValidity();
-        submitButton.classList.toggle('opacity-50', submitButton.disabled);
-        submitButton.classList.toggle('cursor-not-allowed', submitButton.disabled);
+        const shouldDisable =
+            typeof forceDisabled === 'boolean' ? forceDisabled : !isCheckboxChecked;
+
+        submitButton.disabled = shouldDisable;
+        submitButton.setAttribute('aria-disabled', shouldDisable ? 'true' : 'false');
+        submitButton.classList.toggle('opacity-50', shouldDisable);
+        submitButton.classList.toggle('cursor-not-allowed', shouldDisable);
     }
 
     function getErrorElement(id) {
@@ -154,6 +158,7 @@ export function createMitgliedschaftForm(root = document, options = {}) {
 
         if (isLoading) {
             submitButton.disabled = true;
+            submitButton.setAttribute('aria-disabled', 'true');
             submitButton.classList.add('hidden');
             loadingIndicator.classList.remove('hidden');
             return;

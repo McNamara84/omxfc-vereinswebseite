@@ -166,14 +166,16 @@ class MitgliedschaftControllerTest extends TestCase
         }
     }
 
-    public function test_membership_form_is_initialized_via_app_bundle(): void
+    public function test_membership_form_is_initialized_via_script_stack(): void
     {
         $response = $this->get('/mitglied-werden');
 
         $response->assertOk();
         $html = $response->getContent();
 
-        $this->assertStringNotContainsString('initMitgliedschaftForm?.()', $html);
+        $this->assertStringContainsString('window.omxfc.queueInit', $html);
+        $this->assertStringContainsString('registerMitgliedschaftInit', $html);
+        $this->assertStringContainsString('window.omxfc.__initQueue', $html);
     }
 
     private function extractClassAttribute(string $html, string $tag, string $id): ?string
