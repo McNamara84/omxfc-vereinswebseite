@@ -5,108 +5,66 @@
         <div id="form-messages" class="mb-4 hidden"></div>
         <form id="mitgliedschaft-form" class="w-full">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-                <div class="w-full">
-                    <label for="vorname" class="block font-semibold mb-1">Vorname</label>
-                    <input type="text" id="vorname" name="vorname" required
-                        class="w-full rounded-md border-gray-300 shadow-sm bg-white text-gray-900 dark:bg-gray-700 dark:text-gray-100">
-                    <span class="text-sm text-red-600" id="error-vorname"></span>
-                </div>
-                <div class="w-full">
-                    <label for="nachname" class="block font-semibold mb-1">Nachname</label>
-                    <input type="text" id="nachname" name="nachname" required
-                        class="w-full rounded-md border-gray-300 shadow-sm bg-white text-gray-900 dark:bg-gray-700 dark:text-gray-100">
-                    <span class="text-sm text-red-600" id="error-nachname"></span>
-                </div>
-                <div class="w-full">
-                    <label for="strasse" class="block font-semibold mb-1">Straße</label>
-                    <input type="text" id="strasse" name="strasse" required
-                        class="w-full rounded-md border-gray-300 shadow-sm bg-white text-gray-900 dark:bg-gray-700 dark:text-gray-100">
-                    <span class="text-sm text-red-600" id="error-strasse"></span>
-                </div>
-                <div class="w-full">
-                    <label for="hausnummer" class="block font-semibold mb-1">Hausnummer</label>
-                    <input type="text" id="hausnummer" name="hausnummer" required
-                        class="w-full rounded-md border-gray-300 shadow-sm bg-white text-gray-900 dark:bg-gray-700 dark:text-gray-100">
-                    <span class="text-sm text-red-600" id="error-hausnummer"></span>
-                </div>
-                <div class="w-full">
-                    <label for="plz" class="block font-semibold mb-1">Postleitzahl</label>
-                    <input type="text" id="plz" name="plz" required
-                        class="w-full rounded-md border-gray-300 shadow-sm bg-white text-gray-900 dark:bg-gray-700 dark:text-gray-100">
-                    <span class="text-sm text-red-600" id="error-plz"></span>
-                </div>
-                <div class="w-full">
-                    <label for="stadt" class="block font-semibold mb-1">Stadt</label>
-                    <input type="text" id="stadt" name="stadt" required
-                        class="w-full rounded-md border-gray-300 shadow-sm bg-white text-gray-900 dark:bg-gray-700 dark:text-gray-100">
-                    <span class="text-sm text-red-600" id="error-stadt"></span>
-                </div>
-                <div class="w-full">
-                    <label for="land" class="block font-semibold mb-1">Land</label>
-                    <select id="land" name="land" required
-                        class="w-full rounded-md border-gray-300 shadow-sm bg-white text-gray-900 dark:bg-gray-700 dark:text-gray-100">
-                        <option value="">Bitte wählen</option>
-                        <option>Deutschland</option>
-                        <option>Österreich</option>
-                        <option>Schweiz</option>
-                    </select>
-                    <span class="text-sm text-red-600" id="error-land"></span>
-                </div>
-                <div class="w-full">
-                    <label for="mail" class="block font-semibold mb-1">Mailadresse</label>
-                    <input type="email" id="mail" name="mail" required autocomplete="username"
-                        class="w-full rounded-md border-gray-300 shadow-sm bg-white text-gray-900 dark:bg-gray-700 dark:text-gray-100">
-                    <span class="text-sm text-red-600" id="error-mail"></span>
-                </div>
-                <div class="w-full">
-                    <label for="passwort" class="block font-semibold mb-1">Passwort</label>
-                    <input type="password" id="passwort" name="passwort" required autocomplete="new-password"
-                        class="w-full rounded-md border-gray-300 shadow-sm bg-white text-gray-900 dark:bg-gray-700 dark:text-gray-100">
-                    <span class="text-sm text-red-600" id="error-passwort"></span>
-                </div>
-                <div class="w-full">
-                    <label for="passwort_confirmation" class="block font-semibold mb-1">Passwort wiederholen</label>
-                    <input type="password" id="passwort_confirmation" name="passwort_confirmation" required
-                        autocomplete="new-password"
-                        class="w-full rounded-md border-gray-300 shadow-sm bg-white text-gray-900 dark:bg-gray-700 dark:text-gray-100">
-                    <span class="text-sm text-red-600" id="error-passwort_confirmation"></span>
-                </div>
-                <!-- Mitgliedsbeitrag über volle Breite -->
-                <div class="col-span-1 md:col-span-2 w-full">
-                    <label for="mitgliedsbeitrag" class="block font-semibold mb-1">
-                        Jährlicher Mitgliedsbeitrag: <span id="beitrag-output">12€</span>
-                    </label>
-                    <input type="range" id="mitgliedsbeitrag" name="mitgliedsbeitrag" min="12" max="120" value="12"
-                        class="w-full">
-                    <p class="mt-2 text-sm text-gray-600 dark:text-gray-300">
-                        Du kannst deinen Mitgliedsbeitrag ab einem monatlichen Beitrag von 1€/Monat (12€/Jahr) selbst
-                        wählen. Diesen Mitgliedsbeitrag kannst du jederzeit in deinen Einstellungen im internen
-                        Mitgliederbereich ändern und so deinen nächsten Jahresbeitrag anpassen. Bei Fragen hierzu wende
-                        dich gerne an den Vorstand.
-                    </p>
-                </div>
-                <div class="w-full">
-                    <label for="telefon" class="block font-semibold mb-1">Handynummer (optional)</label>
-                    <input type="tel" id="telefon" name="telefon" placeholder="+49 170 1234567"
-                        class="w-full rounded-md border-gray-300 shadow-sm bg-white text-gray-900 dark:bg-gray-700 dark:text-gray-100">
-                    <span class="text-sm text-red-600" id="error-telefon"></span>
-                </div>
-                <div class="w-full">
-                    <label for="verein_gefunden" class="block font-semibold mb-1">Wie hast du von uns erfahren?
-                        (optional)</label>
-                    <select id="verein_gefunden" name="verein_gefunden"
-                        class="w-full rounded-md border-gray-300 shadow-sm bg-white text-gray-900 dark:bg-gray-700 dark:text-gray-100">
-                        <option value="">Bitte auswählen</option>
-                        <option>Facebook</option>
-                        <option>Instagram</option>
-                        <option>Leserkontaktseite</option>
-                        <option>Befreundete Person</option>
-                        <option>Fantreffen/MaddraxCon</option>
-                        <option>Google</option>
-                        <option>Sonstiges</option>
-                    </select>
-                    <span class="text-sm text-red-600" id="error-verein_gefunden"></span>
-                </div>
+                <x-forms.text-field name="vorname" label="Vorname" required class="w-full" autocomplete="given-name" />
+
+                <x-forms.text-field name="nachname" label="Nachname" required class="w-full" autocomplete="family-name" />
+
+                <x-forms.text-field name="strasse" label="Straße" required class="w-full" autocomplete="address-line1" />
+
+                <x-forms.text-field name="hausnummer" label="Hausnummer" required class="w-full" autocomplete="address-line2" />
+
+                <x-forms.text-field name="plz" label="Postleitzahl" required class="w-full" autocomplete="postal-code" />
+
+                <x-forms.text-field name="stadt" label="Stadt" required class="w-full" autocomplete="address-level2" />
+
+                <x-forms.select-field
+                    name="land"
+                    label="Land"
+                    class="w-full"
+                    placeholder="Bitte wählen"
+                    :options="[
+                        'Deutschland' => 'Deutschland',
+                        'Österreich' => 'Österreich',
+                        'Schweiz' => 'Schweiz',
+                    ]"
+                    required
+                />
+
+                <x-forms.text-field name="mail" label="Mailadresse" type="email" required class="w-full" autocomplete="username" />
+
+                <x-forms.text-field name="passwort" label="Passwort" type="password" required class="w-full" autocomplete="new-password" help="Mindestens 6 Zeichen." />
+
+                <x-forms.text-field name="passwort_confirmation" label="Passwort wiederholen" type="password" required class="w-full" autocomplete="new-password" help="Bitte wiederhole dein Passwort." />
+                <x-forms.range-field
+                    name="mitgliedsbeitrag"
+                    label="Jährlicher Mitgliedsbeitrag"
+                    class="col-span-1 md:col-span-2 w-full"
+                    min="12"
+                    max="120"
+                    step="1"
+                    value="12"
+                    output-id="beitrag-output"
+                    output-suffix="€"
+                    help="Du kannst deinen Mitgliedsbeitrag ab einem monatlichen Beitrag von 1€/Monat (12€/Jahr) selbst wählen. Diesen Mitgliedsbeitrag kannst du jederzeit in deinen Einstellungen im internen Mitgliederbereich ändern und so deinen nächsten Jahresbeitrag anpassen. Bei Fragen hierzu wende dich gerne an den Vorstand."
+                />
+                <x-forms.text-field name="telefon" label="Handynummer (optional)" type="tel" class="w-full" autocomplete="tel" placeholder="+49 170 1234567" help="Optional. Bitte im internationalen Format eingeben." />
+
+                <x-forms.select-field
+                    name="verein_gefunden"
+                    label="Wie hast du von uns erfahren? (optional)"
+                    class="w-full"
+                    placeholder="Bitte auswählen"
+                    :options="[
+                        'Facebook' => 'Facebook',
+                        'Instagram' => 'Instagram',
+                        'Leserkontaktseite' => 'Leserkontaktseite',
+                        'Befreundete Person' => 'Befreundete Person',
+                        'Fantreffen/MaddraxCon' => 'Fantreffen/MaddraxCon',
+                        'Google' => 'Google',
+                        'Sonstiges' => 'Sonstiges',
+                    ]"
+                />
+
                 <!-- Checkbox über volle Breite -->
                 <div class="col-span-1 md:col-span-2 flex items-start mt-2">
                     <input type="checkbox" id="satzung_check" name="satzung_check"
@@ -136,28 +94,50 @@
         document.addEventListener('DOMContentLoaded', () => {
             const form = document.getElementById('mitgliedschaft-form');
             const beitrag = document.getElementById('mitgliedsbeitrag');
-            const beitragOutput = document.getElementById('beitrag-output');
+            const beitragOutputId = beitrag?.dataset.outputTarget || 'beitrag-output';
+            const beitragOutput = document.getElementById(beitragOutputId);
+            const beitragOutputPrefix = beitrag?.dataset.outputPrefix || '';
+            const beitragOutputSuffix = beitrag?.dataset.outputSuffix || '';
             const satzungCheck = document.getElementById('satzung_check');
             const submitButton = document.getElementById('submit-button');
+            const missingFieldWarnings = new Set();
 
             const fields = {
-                vorname: { regex: /.+/, error: "Vorname ist erforderlich." },
-                nachname: { regex: /.+/, error: "Nachname ist erforderlich." },
-                strasse: { regex: /.+/, error: "Straße ist erforderlich." },
-                hausnummer: { regex: /.+/, error: "Hausnummer ist erforderlich." },
-                plz: { regex: /^\d{4,6}$/, error: "Bitte gültige PLZ eingeben (4-6 Zahlen)." },
-                stadt: { regex: /.+/, error: "Stadt ist erforderlich." },
-                land: { regex: /^(Deutschland|Österreich|Schweiz)$/, error: "Bitte wähle dein Land." },
-                mail: { regex: /^[^@\s]+@[^@\s]+\.[^@\s]+$/, error: "Bitte gültige Mailadresse eingeben." },
-                passwort: { regex: /^.{6,}$/, error: "Passwort mindestens 6 Zeichen." },
-                passwort_confirmation: { matchWith: 'passwort', error: "Passwörter stimmen nicht überein." },
-                telefon: { regex: /^(\+\d{1,3}\s?)?(\d{4,14})$/, error: "Bitte gültige Handynummer eingeben.", optional: true },
-                verein_gefunden: { regex: /^(Facebook|Instagram|Leserkontaktseite|Befreundete Person|Fantreffen\/MaddraxCon|Google|Sonstiges)$/, error: "Bitte wähle eine Option aus.", optional: true }
+                vorname: { regex: /.+/, error: 'Vorname ist erforderlich.' },
+                nachname: { regex: /.+/, error: 'Nachname ist erforderlich.' },
+                strasse: { regex: /.+/, error: 'Straße ist erforderlich.' },
+                hausnummer: { regex: /.+/, error: 'Hausnummer ist erforderlich.' },
+                plz: { regex: /^\d{4,6}$/, error: 'Bitte gültige PLZ eingeben (4-6 Zahlen).' },
+                stadt: { regex: /.+/, error: 'Stadt ist erforderlich.' },
+                land: { regex: /^(Deutschland|Österreich|Schweiz)$/, error: 'Bitte wähle dein Land.' },
+                mail: { regex: /^[^@\s]+@[^@\s]+\.[^@\s]+$/, error: 'Bitte gültige Mailadresse eingeben.' },
+                passwort: { regex: /^.{6,}$/, error: 'Passwort mindestens 6 Zeichen.' },
+                passwort_confirmation: { matchWith: 'passwort', error: 'Passwörter stimmen nicht überein.' },
+                telefon: {
+                    regex: /^(\+\d{1,3}\s?)?(\d{4,14})$/,
+                    error: 'Bitte gültige Handynummer eingeben.',
+                    optional: true,
+                },
+                verein_gefunden: {
+                    regex: /^(Facebook|Instagram|Leserkontaktseite|Befreundete Person|Fantreffen\/MaddraxCon|Google|Sonstiges)$/,
+                    error: 'Bitte wähle eine Option aus.',
+                    optional: true,
+                },
             };
 
-            beitrag.addEventListener('input', () => {
-                beitragOutput.textContent = beitrag.value + '€';
-            });
+            function updateContributionOutput() {
+                if (!beitrag || !beitragOutput) {
+                    return;
+                }
+
+                beitragOutput.textContent = `${beitragOutputPrefix}${beitrag.value}${beitragOutputSuffix}`;
+            }
+
+            updateContributionOutput();
+
+            if (beitrag) {
+                beitrag.addEventListener('input', updateContributionOutput);
+            }
 
             satzungCheck.addEventListener('change', toggleSubmit);
             form.addEventListener('input', validateForm);
@@ -169,31 +149,66 @@
                 submitButton.classList.toggle('cursor-not-allowed', submitButton.disabled);
             }
 
+            function getErrorElement(id) {
+                return (
+                    document.getElementById(`error-${id}`) ||
+                    document.querySelector(`[data-error-for="${id}"]`)
+                );
+            }
+
+            function warnMissingField(id) {
+                if (missingFieldWarnings.has(id)) {
+                    return;
+                }
+
+                missingFieldWarnings.add(id);
+
+                if (typeof console !== 'undefined' && typeof console.warn === 'function') {
+                    console.warn(`[Mitgliedschaftsformular] Feld mit ID "${id}" wurde nicht gefunden. Bitte überprüfe die Formularstruktur.`);
+                }
+            }
+
+            function setFieldError(input, message) {
+                const errorElem = getErrorElement(input.id);
+
+                if (errorElem) {
+                    errorElem.textContent = message;
+                }
+
+                if (message) {
+                    input.setCustomValidity(message);
+                    input.setAttribute('aria-invalid', 'true');
+                    return false;
+                }
+
+                input.setCustomValidity('');
+                input.removeAttribute('aria-invalid');
+                return true;
+            }
+
             function validateForm() {
                 let isValid = true;
 
                 for (const [id, rules] of Object.entries(fields)) {
                     const input = document.getElementById(id);
-                    const errorElem = document.getElementById(`error-${id}`);
+
+                    if (!input) {
+                        warnMissingField(id);
+                        continue;
+                    }
 
                     if (rules.optional && !input.value.trim()) {
-                        errorElem.textContent = '';
+                        setFieldError(input, '');
                         continue;
                     }
 
                     if (rules.matchWith) {
                         const matchElem = document.getElementById(rules.matchWith);
-                        if (input.value !== matchElem.value) {
-                            errorElem.textContent = rules.error;
-                            isValid = false;
-                        } else {
-                            errorElem.textContent = '';
-                        }
-                    } else if (!rules.regex.test(input.value.trim())) {
-                        errorElem.textContent = rules.error;
-                        isValid = false;
+                        const hasError = input.value !== matchElem.value;
+                        isValid = setFieldError(input, hasError ? rules.error : '') && isValid;
                     } else {
-                        errorElem.textContent = '';
+                        const hasError = !rules.regex.test(input.value.trim());
+                        isValid = setFieldError(input, hasError ? rules.error : '') && isValid;
                     }
                 }
 
@@ -241,9 +256,16 @@
                     } else if (response.status === 422 && result && result.errors) {
                         // Serverseitige Validierungsfehler den jeweiligen Feldern zuordnen
                         for (const [field, msgs] of Object.entries(result.errors)) {
-                            const errorElem = document.getElementById(`error-${field}`);
-                            if (errorElem) {
-                                errorElem.textContent = msgs.join(' ');
+                            const input = document.getElementById(field);
+                            const message = msgs.join(' ');
+                            if (input) {
+                                setFieldError(input, message);
+                            } else {
+                                warnMissingField(field);
+                                const errorElem = getErrorElement(field);
+                                if (errorElem) {
+                                    errorElem.textContent = message;
+                                }
                             }
                         }
 

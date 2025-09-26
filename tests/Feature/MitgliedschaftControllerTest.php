@@ -14,6 +14,46 @@ class MitgliedschaftControllerTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_membership_form_displays_accessible_fields(): void
+    {
+        $response = $this->get('/mitglied-werden');
+
+        $response->assertOk();
+        $html = $response->getContent();
+
+        $this->assertStringNotContainsString('<x-input', $html, 'Compiled view should not contain unresolved Blade components.');
+
+        $fields = [
+            'vorname' => ['aria' => 'aria-describedby="error-vorname"', 'ids' => ['error-vorname']],
+            'nachname' => ['aria' => 'aria-describedby="error-nachname"', 'ids' => ['error-nachname']],
+            'strasse' => ['aria' => 'aria-describedby="error-strasse"', 'ids' => ['error-strasse']],
+            'hausnummer' => ['aria' => 'aria-describedby="error-hausnummer"', 'ids' => ['error-hausnummer']],
+            'plz' => ['aria' => 'aria-describedby="error-plz"', 'ids' => ['error-plz']],
+            'stadt' => ['aria' => 'aria-describedby="error-stadt"', 'ids' => ['error-stadt']],
+            'land' => ['aria' => 'aria-describedby="error-land"', 'ids' => ['error-land']],
+            'mail' => ['aria' => 'aria-describedby="error-mail"', 'ids' => ['error-mail']],
+            'passwort' => ['aria' => 'aria-describedby="passwort-hint error-passwort"', 'ids' => ['passwort-hint', 'error-passwort']],
+            'passwort_confirmation' => ['aria' => 'aria-describedby="passwort_confirmation-hint error-passwort_confirmation"', 'ids' => ['passwort_confirmation-hint', 'error-passwort_confirmation']],
+            'mitgliedsbeitrag' => ['aria' => 'aria-describedby="mitgliedsbeitrag-hint beitrag-output error-mitgliedsbeitrag"', 'ids' => ['mitgliedsbeitrag-hint', 'beitrag-output', 'error-mitgliedsbeitrag']],
+            'telefon' => ['aria' => 'aria-describedby="telefon-hint error-telefon"', 'ids' => ['telefon-hint', 'error-telefon']],
+            'verein_gefunden' => ['aria' => 'aria-describedby="error-verein_gefunden"', 'ids' => ['error-verein_gefunden']],
+        ];
+
+        foreach ($fields as $field => $expectation) {
+            $this->assertStringContainsString('id="' . $field . '"', $html);
+            $this->assertStringContainsString($expectation['aria'], $html);
+
+            foreach ($expectation['ids'] as $id) {
+                $this->assertStringContainsString('id="' . $id . '"', $html);
+            }
+
+            $this->assertStringContainsString('data-error-for="' . $field . '"', $html);
+        }
+
+        $this->assertStringContainsString('data-output-target="beitrag-output"', $html);
+        $this->assertStringContainsString('data-output-suffix="€"', $html);
+    }
+
     public function test_membership_application_creates_user_and_assigns_anwaerter_role(): void
     {
         Mail::fake();
@@ -69,5 +109,51 @@ class MitgliedschaftControllerTest extends TestCase
         $response = $this->postJson(route('mitglied.store'), $data);
 
         $response->assertStatus(422)->assertJsonValidationErrors(['vorname']);
+    }
+
+    public function test_membership_form_fields_share_brand_focus_styles(): void
+    {
+        $response = $this->get('/mitglied-werden');
+
+        $response->assertOk();
+        $html = $response->getContent();
+
+        $fieldsToInspect = [
+            ['input', 'vorname'],
+            ['select', 'land'],
+            ['select', 'verein_gefunden'],
+            ['input', 'mitgliedsbeitrag'],
+        ];
+
+        foreach ($fieldsToInspect as [$tag, $id]) {
+            $classes = $this->extractClassAttribute($html, $tag, $id);
+
+            $this->assertNotNull($classes, sprintf('Erwartete %s#%s mit Klassenattribut.', $tag, $id));
+            $this->assertStringContainsString('focus:border-[#8B0116]', $classes);
+            $this->assertStringContainsString('focus:ring-[#8B0116]', $classes);
+            $this->assertStringContainsString('dark:focus:border-[#ff4b63]', $classes);
+            $this->assertStringContainsString('dark:focus:ring-[#ff4b63]', $classes);
+        }
+    }
+
+    public function test_membership_form_script_logs_missing_field_warnings(): void
+    {
+        $response = $this->get('/mitglied-werden');
+
+        $response->assertOk();
+        $html = $response->getContent();
+
+        $this->assertStringContainsString('[Mitgliedschaftsformular] Feld mit ID "', $html);
+    }
+
+    private function extractClassAttribute(string $html, string $tag, string $id): ?string
+    {
+        $pattern = sprintf('/<%s[^>]*\bid="%s"[^>]*\bclass="([^"]*)"/m', $tag, $id);
+
+        if (preg_match($pattern, $html, $matches)) {
+            return $matches[1];
+        }
+
+        return null;
     }
 }
