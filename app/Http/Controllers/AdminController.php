@@ -145,16 +145,8 @@ class AdminController extends Controller
 
     private function dailyActiveUsers(): array
     {
-        $driver = DB::getDriverName();
-
-        $baseQuery = PageVisit::query();
-        if ($driver === 'sqlite') {
-            $baseQuery->selectRaw('date(created_at) as visit_date, COUNT(DISTINCT user_id) as total');
-        } else {
-            $baseQuery->selectRaw('DATE(created_at) as visit_date, COUNT(DISTINCT user_id) as total');
-        }
-
-        $raw = $baseQuery
+        $raw = PageVisit::query()
+            ->selectRaw('DATE(created_at) as visit_date, COUNT(DISTINCT user_id) as total')
             ->where('created_at', '>=', Carbon::now()->subDays(29)->startOfDay())
             ->groupBy('visit_date')
             ->orderByDesc('visit_date')

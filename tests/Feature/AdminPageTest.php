@@ -91,8 +91,8 @@ class AdminPageTest extends TestCase
 
         $response->assertOk();
         $response->assertViewHas('homepageVisits', 3);
-        $response->assertSee('lg:col-span-2 bg-white', false);
-        $response->assertDontSee('xl:col-span-2', false);
+        $response->assertSeeText('Seitenaufrufe nach Route');
+        $response->assertSee('aria-labelledby="route-visits-heading"', false);
 
         $response->assertViewHas('visitData', function ($data) {
             $collection = collect($data);
