@@ -80,41 +80,52 @@
                 <div class="mb-6">
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Rollen</label>
                     <div
+                        class="grid grid-cols-1 gap-2"
                         id="roles_list"
                         data-members-target="#members"
                         data-previous-speaker-url="{{ route('hoerbuecher.previous-speaker') }}"
                         data-role-index="{{ count(old('roles', $episode->roles->toArray())) }}"
                     >
+                        <div class="grid grid-cols-1 md:grid-cols-[1.5fr_2fr_auto_2fr_2fr_2fr_auto_auto] gap-2 md:items-center text-xs font-semibold uppercase tracking-wide text-gray-600 dark:text-gray-300 role-row-header">
+                            <span>Rolle</span>
+                            <span>Beschreibung</span>
+                            <span class="md:text-center">Takes</span>
+                            <span>Kontakt (optional)</span>
+                            <span>Pseudonym (optional)</span>
+                            <span>Sprecher</span>
+                            <span id="roles-uploaded-header" class="md:text-center">Aufnahme hochgeladen</span>
+                            <span class="sr-only md:not-sr-only md:text-right">Aktionen</span>
+                        </div>
                         @foreach(old('roles', $episode->roles->toArray()) as $i => $role)
                             @php($uploaded = $role['uploaded'] ?? false)
-                            @php($checkboxId = 'roles-' . $i . '-uploaded')
-                            <div class="grid grid-cols-1 md:grid-cols-7 gap-2 mb-2 items-start role-row">
+                            <div class="grid grid-cols-1 md:grid-cols-[1.5fr_2fr_auto_2fr_2fr_2fr_auto_auto] gap-2 mb-2 items-start md:items-center role-row">
                                 <input type="text" name="roles[{{ $i }}][name]" value="{{ $role['name'] ?? '' }}" placeholder="Rolle" aria-label="Rollenname" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50" />
                                 <input type="text" name="roles[{{ $i }}][description]" value="{{ $role['description'] ?? '' }}" placeholder="Beschreibung" aria-label="Rollenbeschreibung" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50" />
-                                <input type="number" name="roles[{{ $i }}][takes]" value="{{ $role['takes'] ?? 0 }}" min="0" placeholder="Takes" aria-label="Anzahl Takes" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50" />
+                                <input type="number" name="roles[{{ $i }}][takes]" value="{{ $role['takes'] ?? 0 }}" min="0" max="999" inputmode="numeric" placeholder="Takes" aria-label="Anzahl Takes" class="w-full md:max-w-[6rem] rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50" />
                                 <input type="email" name="roles[{{ $i }}][contact_email]" value="{{ $role['contact_email'] ?? '' }}" placeholder="Kontakt (optional)" aria-label="Kontakt E-Mail" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50" />
                                 <input type="text" name="roles[{{ $i }}][speaker_pseudonym]" value="{{ $role['speaker_pseudonym'] ?? '' }}" placeholder="Pseudonym (optional)" aria-label="Sprecherpseudonym" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50" />
-                                <div>
-                                    <input type="text" name="roles[{{ $i }}][member_name]" value="{{ $role['speaker_name'] ?? ($role['member_name'] ?? '') }}" list="members" placeholder="Sprecher" aria-label="Name des Sprechers" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50" />
-                                    <input type="hidden" name="roles[{{ $i }}][member_id]" value="{{ $role['user_id'] ?? ($role['member_id'] ?? '') }}" />
-                                    <input type="hidden" name="roles[{{ $i }}][uploaded]" value="0">
-                                    <label for="{{ $checkboxId }}" class="mt-2 inline-flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
-                                        <input
-                                            id="{{ $checkboxId }}"
-                                            type="checkbox"
-                                            name="roles[{{ $i }}][uploaded]"
-                                            value="1"
-                                            {{ $uploaded ? 'checked' : '' }}
-                                            class="rounded border-gray-300 dark:border-gray-600 text-[#8B0116] focus:ring-[#8B0116] dark:focus:ring-[#FF6B81]"
-                                        >
-                                        <span>Aufnahme hochgeladen</span>
-                                    </label>
+                                <div class="flex flex-col gap-2">
+                                    <div>
+                                        <input type="text" name="roles[{{ $i }}][member_name]" value="{{ $role['speaker_name'] ?? ($role['member_name'] ?? '') }}" list="members" placeholder="Sprecher" aria-label="Name des Sprechers" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50" />
+                                        <input type="hidden" name="roles[{{ $i }}][member_id]" value="{{ $role['user_id'] ?? ($role['member_id'] ?? '') }}" />
+                                    </div>
                                     @php($prev = $previousSpeakers[$role['name'] ?? ''] ?? null)
-                                    <div class="text-xs text-gray-500 mt-1 previous-speaker">
+                                    <div class="text-xs text-gray-500 previous-speaker" aria-live="polite">
                                         {{ $prev ? 'Bisheriger Sprecher: ' . $prev : '' }}
                                     </div>
                                 </div>
-                                <button type="button" class="text-red-600" aria-label="Rolle entfernen">&times;</button>
+                                <div class="flex items-center md:justify-center">
+                                    <input type="hidden" name="roles[{{ $i }}][uploaded]" value="0">
+                                    <input
+                                        type="checkbox"
+                                        name="roles[{{ $i }}][uploaded]"
+                                        value="1"
+                                        {{ $uploaded ? 'checked' : '' }}
+                                        aria-labelledby="roles-uploaded-header"
+                                        class="rounded border-gray-300 dark:border-gray-600 text-[#8B0116] focus:ring-[#8B0116] dark:focus:ring-[#FF6B81]"
+                                    >
+                                </div>
+                                <button type="button" class="text-red-600 md:text-right" aria-label="Rolle entfernen" data-role-remove>&times;</button>
                             </div>
                         @endforeach
                     </div>
