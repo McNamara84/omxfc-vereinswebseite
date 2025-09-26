@@ -180,4 +180,33 @@ describe('initMitgliedschaftForm', () => {
         expect(submitButton.classList.contains('hidden')).toBe(false);
         expect(loadingIndicator.classList.contains('hidden')).toBe(true);
     });
+
+    it('updates contribution output and validity when change events fire', () => {
+        const { submitButton } = setupDom();
+        initMitgliedschaftForm(document, {
+            window: { location: { assign: vi.fn(), origin: 'https://example.test' } },
+            console: { warn: vi.fn(), error: vi.fn() },
+        });
+
+        const beitrag = document.getElementById('mitgliedsbeitrag');
+        const output = document.getElementById('beitrag-output');
+        const firstName = document.getElementById('vorname');
+
+        expect(output.textContent).toBe('12€');
+
+        beitrag.value = '60';
+        beitrag.dispatchEvent(new Event('change', { bubbles: true }));
+
+        expect(output.textContent).toBe('60€');
+
+        firstName.value = '';
+        firstName.dispatchEvent(new Event('change', { bubbles: true }));
+
+        expect(submitButton.disabled).toBe(true);
+
+        firstName.value = 'Max';
+        firstName.dispatchEvent(new Event('change', { bubbles: true }));
+
+        expect(submitButton.disabled).toBe(false);
+    });
 });

@@ -166,16 +166,14 @@ class MitgliedschaftControllerTest extends TestCase
         }
     }
 
-    public function test_membership_form_script_logs_missing_field_warnings(): void
+    public function test_membership_form_is_initialized_via_app_bundle(): void
     {
         $response = $this->get('/mitglied-werden');
 
         $response->assertOk();
         $html = $response->getContent();
 
-        $this->assertStringContainsString('window.omxfc?.initMitgliedschaftForm?.()', $html);
-        $this->assertStringContainsString("document.readyState === 'loading'", $html);
-        $this->assertStringContainsString('runInit();', $html);
+        $this->assertStringNotContainsString('initMitgliedschaftForm?.()', $html);
     }
 
     private function extractClassAttribute(string $html, string $tag, string $id): ?string

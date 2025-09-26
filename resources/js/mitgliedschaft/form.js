@@ -291,6 +291,7 @@ export function createMitgliedschaftForm(root = document, options = {}) {
 
         if (beitrag) {
             beitrag.addEventListener('input', updateContributionOutput);
+            beitrag.addEventListener('change', updateContributionOutput);
         }
 
         if (satzungCheck) {
@@ -298,6 +299,7 @@ export function createMitgliedschaftForm(root = document, options = {}) {
         }
 
         form.addEventListener('input', validateForm);
+        form.addEventListener('change', validateForm);
         form.addEventListener('submit', handleSubmit);
 
         toggleSubmit();
@@ -308,6 +310,7 @@ export function createMitgliedschaftForm(root = document, options = {}) {
     function destroy() {
         if (beitrag) {
             beitrag.removeEventListener('input', updateContributionOutput);
+            beitrag.removeEventListener('change', updateContributionOutput);
         }
 
         if (satzungCheck) {
@@ -315,6 +318,7 @@ export function createMitgliedschaftForm(root = document, options = {}) {
         }
 
         form.removeEventListener('input', validateForm);
+        form.removeEventListener('change', validateForm);
         form.removeEventListener('submit', handleSubmit);
 
         delete form.dataset.enhanced;
