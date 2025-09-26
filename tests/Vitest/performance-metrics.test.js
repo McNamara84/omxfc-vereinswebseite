@@ -3,6 +3,7 @@ import {
   summarizeNavigationPerformance,
   formatMetricsForSummary,
   formatBenchmarkTitle,
+  extractBenchmarkOutputs,
 } from '../e2e/utils/performance-metrics.js';
 
 describe('performance metrics utilities', () => {
@@ -97,5 +98,35 @@ describe('performance metrics utilities', () => {
     });
 
     expect(formatBenchmarkTitle(summary)).toBe('Benchmark: Homepage loaded in n/a ms');
+  });
+
+  it('extracts benchmark outputs for workflow reporting', () => {
+    const summary = summarizeNavigationPerformance(baseMetrics);
+    const outputs = extractBenchmarkOutputs(summary);
+
+    expect(outputs).toEqual({
+      loadTime: 2345.6,
+      navigationDuration: 2500.1,
+      domContentLoaded: 1234.5,
+      runLoadTimes: [],
+    });
+  });
+
+  it('provides null outputs when metrics are unavailable', () => {
+    const summary = summarizeNavigationPerformance({
+      ...baseMetrics,
+      navigation: null,
+      paint: [],
+      largestContentfulPaint: null,
+    });
+
+    const outputs = extractBenchmarkOutputs(summary);
+
+    expect(outputs).toEqual({
+      loadTime: null,
+      navigationDuration: null,
+      domContentLoaded: null,
+      runLoadTimes: [],
+    });
   });
 });

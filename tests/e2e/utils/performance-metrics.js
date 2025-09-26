@@ -39,8 +39,18 @@ const summarySchema = z
     metrics: z
       .object({
         totalLoadTime: z.number().nonnegative().nullable(),
+        domContentLoaded: z.number().nonnegative().nullable().optional(),
+        timeToFirstByte: z.number().nonnegative().nullable().optional(),
       })
       .passthrough(),
+    raw: z
+      .object({
+        navigation: navigationSchema,
+      })
+      .partial()
+      .passthrough()
+      .optional(),
+    runs: z.array(z.any()).optional(),
   })
   .passthrough();
 
@@ -104,4 +114,50 @@ export function formatBenchmarkTitle(summary) {
     typeof totalLoadTime === 'number' ? `${Math.round(totalLoadTime)} ms` : 'n/a ms';
 
   return `Benchmark: Homepage loaded in ${formattedValue}`;
+}
+
+function toFiniteOrNull(value) {
+  return typeof value === 'number' && Number.isFinite(value) ? value : null;
+}
+
+export function extractBenchmarkOutputs(summary) {
+  const parsed = summarySchema.parse(summary);
+  const navigation = parsed.raw?.navigation ?? null;
+  const metrics = parsed.metrics ?? {};
+
+  const runs = Array.isArray(parsed.runs) ? parsed.runs : [];
+  const runLoadTimes = runs
+    .map((run) => {
+      if (!run || typeof run !== 'object') {
+        return null;
+      }
+
+      if ('totalLoadTimeMs' in run) {
+        return toFiniteOrNull(run.totalLoadTimeMs);
+      }
+
+      if ('totalLoadTime' in run) {
+        return toFiniteOrNull(run.totalLoadTime);
+      }
+
+      if ('metrics' in run && run.metrics && typeof run.metrics === 'object') {
+        return toFiniteOrNull(run.metrics.totalLoadTime);
+      }
+
+      return null;
+    })
+    .filter((value) => value !== null);
+
+  const loadTime = toFiniteOrNull(metrics.totalLoadTime ?? null);
+  const navigationDuration = toFiniteOrNull(navigation?.duration ?? null);
+  const domContentLoaded = toFiniteOrNull(
+    metrics.domContentLoaded ?? navigation?.domContentLoadedEventEnd ?? null,
+  );
+
+  return {
+    loadTime,
+    navigationDuration,
+    domContentLoaded,
+    runLoadTimes,
+  };
 }
