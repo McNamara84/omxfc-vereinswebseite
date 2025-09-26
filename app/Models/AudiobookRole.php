@@ -17,6 +17,8 @@ class AudiobookRole extends Model
         'takes',
         'user_id',
         'speaker_name',
+        'contact_email',
+        'speaker_pseudonym',
         'uploaded',
     ];
 
