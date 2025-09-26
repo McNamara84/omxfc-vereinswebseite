@@ -25,7 +25,6 @@
                     </div>
                 </div>
                 @if($episode->roles->isNotEmpty())
-                @php($canManageRoles = auth()->user()->hasVorstandRole() || auth()->user()->isOwnerOfTeam('AG Fanhörbücher'))
                 <div class="md:col-span-2">
                     <span class="font-medium">Rollen:</span>
                     <div class="mt-1 overflow-x-auto">
@@ -36,7 +35,6 @@
                                     <th class="px-2 py-1 text-left">Beschreibung</th>
                                     <th class="px-2 py-1 text-left">Takes</th>
                                     <th class="px-2 py-1 text-left">Sprecher</th>
-                                    <th class="px-2 py-1 text-left">Aufnahme hochgeladen</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -50,33 +48,6 @@
                                         @php($prev = $previousSpeakers[$role->name] ?? null)
                                         @if($prev)
                                             <div class="text-xs text-gray-500">Bisheriger Sprecher: {{ $prev }}</div>
-                                        @endif
-                                    </td>
-                                    <td class="px-2 py-1">
-                                        @if($canManageRoles)
-                                            <form action="{{ route('hoerbuecher.roles.uploaded', $role) }}" method="POST" data-auto-submit="change" class="inline-flex items-center gap-2">
-                                                @csrf
-                                                @method('PATCH')
-                                                <input type="hidden" name="uploaded" value="0">
-                                                @php($checkboxId = 'uploaded-role-' . $role->id)
-                                                <label for="{{ $checkboxId }}" class="inline-flex items-center gap-2 text-gray-700 dark:text-gray-300">
-                                                    <input
-                                                        id="{{ $checkboxId }}"
-                                                        type="checkbox"
-                                                        name="uploaded"
-                                                        value="1"
-                                                        {{ $role->uploaded ? 'checked' : '' }}
-                                                        class="rounded border-gray-300 dark:border-gray-600 text-[#8B0116] focus:ring-[#8B0116] dark:focus:ring-[#FF6B81]"
-                                                        aria-describedby="{{ $checkboxId }}-hint"
-                                                    >
-                                                    <span id="{{ $checkboxId }}-hint" class="text-sm">Hochgeladen</span>
-                                                </label>
-                                                <button type="submit" class="sr-only">Status speichern</button>
-                                            </form>
-                                        @else
-                                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium {{ $role->uploaded ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : 'bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-300' }}">
-                                                {{ $role->uploaded ? 'Ja' : 'Nein' }}
-                                            </span>
                                         @endif
                                     </td>
                                 </tr>
@@ -104,7 +75,4 @@
             </div>
         </div>
     </x-member-page>
-    @unless(app()->environment('testing'))
-        @vite(['resources/js/hoerbuch-role-upload-toggle.js'])
-    @endunless
 </x-app-layout>
