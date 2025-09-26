@@ -21,6 +21,8 @@ class MitgliedschaftControllerTest extends TestCase
         $response->assertOk();
         $html = $response->getContent();
 
+        $this->assertStringNotContainsString('<x-input', $html, 'Compiled view should not contain unresolved Blade components.');
+
         $fields = [
             'vorname' => ['aria' => 'aria-describedby="vorname-error"', 'ids' => ['vorname-error']],
             'nachname' => ['aria' => 'aria-describedby="nachname-error"', 'ids' => ['nachname-error']],
