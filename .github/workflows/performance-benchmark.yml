@@ -1,0 +1,257 @@
+name: Benchmark
+
+permissions:
+  contents: read
+  checks: write
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install PHP dependencies
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Prepare environment
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+
+      - name: Configure SQLite
+        run: |
+          sed -i 's/^DB_CONNECTION=.*/DB_CONNECTION=sqlite/' .env
+          sed -i 's/^DB_DATABASE=.*/DB_DATABASE=database\/database.sqlite/' .env
+          touch database/database.sqlite
+
+      - name: Run database migrations
+        run: php artisan migrate --force
+
+      - name: Install Node dependencies
+        run: npm ci
+
+      - name: Build frontend assets
+        run: npm run build --if-present
+
+      - name: Install Playwright browsers
+        run: |
+          npx playwright install-deps chromium
+          npx playwright install chromium
+
+      - name: Run homepage performance benchmark
+        id: run_homepage_benchmark
+        env:
+          PERFORMANCE_RESULTS_DIR: playwright-performance
+        run: npx playwright test tests/e2e/homepage-performance.spec.js --browser=chromium --reporter=line
+
+      - name: Publish homepage performance metrics
+        if: always()
+        id: publish_performance_metrics
+        env:
+          PLAYWRIGHT_PROJECT: chromium
+          PERFORMANCE_RESULTS_DIR: playwright-performance
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'fs';
+          import path from 'path';
+          import { pathToFileURL } from 'url';
+
+          const project = process.env.PLAYWRIGHT_PROJECT || 'unknown';
+          const sanitized = project.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+          const metricsDir = process.env.PERFORMANCE_RESULTS_DIR
+            ? path.resolve(process.env.PERFORMANCE_RESULTS_DIR)
+            : path.resolve('playwright-performance');
+          const candidatePaths = [
+            path.join(metricsDir, 'homepage.json'),
+            path.join(metricsDir, `${sanitized}.json`),
+            path.join(metricsDir, `${project}.json`),
+          ];
+
+          const outputsFile = process.env.GITHUB_OUTPUT;
+          const summaryPath = process.env.GITHUB_STEP_SUMMARY;
+          const moduleUrl = pathToFileURL(path.resolve('tests/e2e/utils/performance-metrics.js')).href;
+          const {
+            formatMetricsForSummary,
+            formatBenchmarkTitle,
+            extractBenchmarkOutputs,
+          } = await import(moduleUrl);
+
+          const fallbackTitle = 'Benchmark: Homepage loaded in n/a ms';
+          const metricsPath = candidatePaths.find((candidate) => fs.existsSync(candidate));
+
+          if (!metricsPath) {
+            console.log(`::warning::Performance metrics not found for ${project}.`);
+            console.log(`Checked: ${candidatePaths.join(', ')}`);
+
+            if (outputsFile) {
+              fs.appendFileSync(outputsFile, `benchmark_title=${fallbackTitle}\n`);
+              fs.appendFileSync(outputsFile, 'load_time=n/a\n');
+              fs.appendFileSync(outputsFile, 'navigation_duration=n/a\n');
+              fs.appendFileSync(outputsFile, 'dom_content_loaded=n/a\n');
+              fs.appendFileSync(outputsFile, 'runs_summary=\n');
+              fs.appendFileSync(outputsFile, 'metrics_found=false\n');
+            }
+
+            process.exit(0);
+          }
+
+          const summary = JSON.parse(fs.readFileSync(metricsPath, 'utf8'));
+          const rows = formatMetricsForSummary(summary);
+          const outputs = extractBenchmarkOutputs(summary);
+          const benchmarkTitle = formatBenchmarkTitle(summary);
+
+          const toDisplay = (value) =>
+            typeof value === 'number' ? value.toFixed(0) : 'n/a';
+
+          const formattedLoad = toDisplay(outputs.loadTime);
+          const formattedNavigation = toDisplay(outputs.navigationDuration);
+          const formattedDom = toDisplay(outputs.domContentLoaded);
+
+          const tableLines = ['| Browser | Fully loaded (ms) | Navigation duration (ms) | DOMContentLoaded (ms) |', '| --- | ---: | ---: | ---: |'];
+          tableLines.push(`| ${project} | ${formattedLoad} | ${formattedNavigation} | ${formattedDom} |`);
+
+          if (summaryPath) {
+            const existing = fs.existsSync(summaryPath) ? fs.readFileSync(summaryPath, 'utf8') : '';
+            let summaryContent = '';
+            if (!existing.includes('| Browser | Fully loaded (ms) |')) {
+              summaryContent += tableLines.slice(0, 2).join('\n') + '\n';
+            }
+            summaryContent += tableLines[tableLines.length - 1] + '\n';
+
+            if (outputs.runLoadTimes.length > 0) {
+              const runDetails = outputs.runLoadTimes
+                .map((value, index) => `#${index + 1}: ${value.toFixed(0)} ms`)
+                .join(', ');
+              summaryContent += `> Individual runs (${outputs.runLoadTimes.length}): ${runDetails}\n`;
+            }
+
+            fs.appendFileSync(summaryPath, summaryContent);
+          }
+
+          const noticeParts = [`${project} fully loaded in ${formattedLoad} ms`];
+          if (formattedNavigation !== 'n/a') {
+            noticeParts.push(`navigation duration ${formattedNavigation} ms`);
+          }
+          if (formattedDom !== 'n/a') {
+            noticeParts.push(`DOMContentLoaded ${formattedDom} ms`);
+          }
+
+          if (outputs.runLoadTimes.length > 0) {
+            const formattedRuns = outputs.runLoadTimes
+              .map((value, index) => `run ${index + 1}: ${value.toFixed(0)} ms`)
+              .join(', ');
+            noticeParts.push(`runs ${formattedRuns}`);
+          }
+
+          console.log(`::notice title=Homepage load time::${noticeParts.join(' | ')}`);
+
+          if (outputsFile) {
+            fs.appendFileSync(outputsFile, `benchmark_title=${benchmarkTitle}\n`);
+            fs.appendFileSync(outputsFile, `load_time=${formattedLoad}\n`);
+            fs.appendFileSync(outputsFile, `navigation_duration=${formattedNavigation}\n`);
+            fs.appendFileSync(outputsFile, `dom_content_loaded=${formattedDom}\n`);
+            if (outputs.runLoadTimes.length > 0) {
+              const runDetails = outputs.runLoadTimes
+                .map((value, index) => `#${index + 1}: ${value.toFixed(0)} ms`)
+                .join(', ');
+              fs.appendFileSync(outputsFile, `runs_summary=${runDetails}\n`);
+            } else {
+              fs.appendFileSync(outputsFile, 'runs_summary=\n');
+            }
+            fs.appendFileSync(outputsFile, 'metrics_found=true\n');
+          }
+
+          console.log(tableLines.join('\n'));
+          NODE
+
+      - name: Report homepage benchmark check run
+        if: always()
+        uses: actions/github-script@v7
+        env:
+          PLAYWRIGHT_PROJECT: chromium
+          BENCHMARK_TITLE: ${{ steps.publish_performance_metrics.outputs.benchmark_title }}
+          LOAD_TIME_MS: ${{ steps.publish_performance_metrics.outputs.load_time }}
+          NAVIGATION_DURATION_MS: ${{ steps.publish_performance_metrics.outputs.navigation_duration }}
+          DOM_CONTENT_LOADED_MS: ${{ steps.publish_performance_metrics.outputs.dom_content_loaded }}
+          RUNS_SUMMARY: ${{ steps.publish_performance_metrics.outputs.runs_summary }}
+          PLAYWRIGHT_CONCLUSION: ${{ steps.run_homepage_benchmark.conclusion }}
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const project = process.env.PLAYWRIGHT_PROJECT || 'unknown';
+            const benchmarkTitle = process.env.BENCHMARK_TITLE;
+            const loadTime = process.env.LOAD_TIME_MS || 'n/a';
+            const navigationDuration = process.env.NAVIGATION_DURATION_MS || 'n/a';
+            const domContentLoaded = process.env.DOM_CONTENT_LOADED_MS || 'n/a';
+            const runsSummary = process.env.RUNS_SUMMARY || '';
+            const testConclusion = (process.env.PLAYWRIGHT_CONCLUSION || '').toLowerCase();
+
+            if (!benchmarkTitle) {
+              core.info(`No benchmark title available for ${project}. Skipping check run.`);
+              return;
+            }
+
+            const conclusionMap = {
+              success: 'success',
+              failure: 'failure',
+              cancelled: 'cancelled',
+              skipped: 'skipped',
+              timed_out: 'timed_out',
+              action_required: 'action_required',
+            };
+
+            const conclusion = conclusionMap[testConclusion] || (loadTime === 'n/a' ? 'neutral' : 'success');
+
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const headSha = context.sha;
+            const now = new Date().toISOString();
+
+            const metricsLines = [`• Fully loaded: ${loadTime} ms`];
+            if (navigationDuration && navigationDuration !== 'n/a') {
+              metricsLines.push(`• Navigation duration: ${navigationDuration} ms`);
+            }
+            if (domContentLoaded && domContentLoaded !== 'n/a') {
+              metricsLines.push(`• DOMContentLoaded: ${domContentLoaded} ms`);
+            }
+            if (runsSummary) {
+              metricsLines.push(`• Runs: ${runsSummary}`);
+            }
+
+            await github.rest.checks.create({
+              owner,
+              repo,
+              name: benchmarkTitle,
+              head_sha: headSha,
+              status: 'completed',
+              started_at: now,
+              completed_at: now,
+              conclusion,
+              output: {
+                title: benchmarkTitle,
+                summary: metricsLines.join('\n'),
+              },
+              details_url: `https://github.com/${owner}/${repo}/actions/runs/${context.runId}`,
+            });
+
+      - name: Upload performance artifact
+        if: always() && steps.publish_performance_metrics.outputs.metrics_found == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: homepage-performance
+          path: playwright-performance/homepage.json
