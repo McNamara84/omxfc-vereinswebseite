@@ -151,10 +151,16 @@ export function initTodoFilters(root = document) {
     });
 
     if (toggle instanceof HTMLElement && panel instanceof HTMLElement) {
+        const panelInitiallyHidden = panel.hasAttribute('hidden')
+            || panel.dataset.collapsed === 'true';
+        const initialExpanded = panelInitiallyHidden
+            ? toggle.getAttribute('aria-expanded') === 'true'
+            : true;
+
         togglePanelVisibility({
             toggle,
             panel,
-            expanded: toggle.getAttribute('aria-expanded') === 'true',
+            expanded: initialExpanded,
         });
 
         toggle.addEventListener('click', () => {

@@ -112,7 +112,7 @@ describe('todoFilters utilities', () => {
                     data-label-open="Filter anzeigen" data-label-close="Filter verbergen">
                     <span data-todo-filter-toggle-text>Filter anzeigen</span>
                 </button>
-                <div id="filters" data-todo-filter-panel>
+                <div id="filters" data-todo-filter-panel hidden data-collapsed="true">
                     <form data-todo-filter-form data-current-filter="all">
                         <div>
                             <button type="button" data-todo-filter data-filter="all" data-active="true"></button>
@@ -147,6 +147,38 @@ describe('todoFilters utilities', () => {
         expect(toggle.getAttribute('aria-expanded')).toBe('false');
         expect(panel.hasAttribute('hidden')).toBe(true);
         expect(toggle.textContent).toContain('Filter anzeigen');
+    });
+
+    test('initTodoFilters keeps an already visible panel expanded', () => {
+        document.body.innerHTML = `
+            <section data-todo-filter-wrapper>
+                <button type="button" data-todo-filter-toggle aria-expanded="false" aria-controls="filters"
+                    data-label-open="Filter anzeigen" data-label-close="Filter verbergen">
+                    <span data-todo-filter-toggle-text>Filter anzeigen</span>
+                </button>
+                <div id="filters" data-todo-filter-panel>
+                    <form data-todo-filter-form data-current-filter="all">
+                        <div>
+                            <button type="button" data-todo-filter data-filter="all" data-active="true"></button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+        `;
+
+        const toggle = document.querySelector('[data-todo-filter-toggle]');
+        const panel = document.querySelector('[data-todo-filter-panel]');
+
+        initTodoFilters(document);
+
+        expect(toggle.getAttribute('aria-expanded')).toBe('true');
+        expect(panel.hasAttribute('hidden')).toBe(false);
+        expect(panel.getAttribute('aria-hidden')).toBe('false');
+
+        toggle.dispatchEvent(new Event('click'));
+
+        expect(toggle.getAttribute('aria-expanded')).toBe('false');
+        expect(panel.hasAttribute('hidden')).toBe(true);
     });
 
     test('applyFilterState returns the active filter', () => {
