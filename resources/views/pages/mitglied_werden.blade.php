@@ -18,7 +18,7 @@
                 <x-forms.text-field name="stadt" label="Stadt" required class="w-full" autocomplete="address-level2" />
 
                 <x-form name="land" label="Land" class="w-full" id="land">
-                    <select id="land" name="land" aria-describedby="land-error" required
+                    <select id="land" name="land" aria-describedby="error-land" required
                         class="mt-1 block w-full rounded-md border-gray-300 shadow-sm bg-white text-gray-900 dark:bg-gray-700 dark:text-gray-100 focus:border-[#8B0116] focus:ring-[#8B0116]">
                         <option value="">Bitte wählen</option>
                         <option value="Deutschland" @selected(old('land') === 'Deutschland')>Deutschland</option>
@@ -49,7 +49,7 @@
                 <x-forms.text-field name="telefon" label="Handynummer (optional)" type="tel" class="w-full" autocomplete="tel" placeholder="+49 170 1234567" help="Optional. Bitte im internationalen Format eingeben." />
 
                 <x-form name="verein_gefunden" label="Wie hast du von uns erfahren? (optional)" class="w-full" id="verein_gefunden">
-                    <select id="verein_gefunden" name="verein_gefunden" aria-describedby="verein_gefunden-error"
+                    <select id="verein_gefunden" name="verein_gefunden" aria-describedby="error-verein_gefunden"
                         class="mt-1 block w-full rounded-md border-gray-300 shadow-sm bg-white text-gray-900 dark:bg-gray-700 dark:text-gray-100 focus:border-[#8B0116] focus:ring-[#8B0116]">
                         <option value="">Bitte auswählen</option>
                         <option value="Facebook" @selected(old('verein_gefunden') === 'Facebook')>Facebook</option>
@@ -136,7 +136,7 @@
 
             function getErrorElement(id) {
                 return (
-                    document.getElementById(`${id}-error`) ||
+                    document.getElementById(`error-${id}`) ||
                     document.querySelector(`[data-error-for="${id}"]`)
                 );
             }

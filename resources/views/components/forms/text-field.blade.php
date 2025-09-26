@@ -13,7 +13,7 @@
 
 @php
     $fieldId = $id ?? $name;
-    $errorId = $fieldId . '-error';
+    $errorId = 'error-' . $fieldId;
     $hintId = $help ? $fieldId . '-hint' : null;
     $describedBy = collect([$hintId, $errorId])->filter()->implode(' ');
     $inputClasses = collect(['mt-1', 'block', 'w-full', $inputClass])->filter()->implode(' ');
