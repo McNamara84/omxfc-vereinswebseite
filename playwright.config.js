@@ -7,7 +7,7 @@ export default defineConfig({
   testDir: 'tests/e2e',
   globalSetup: './tests/e2e/global-setup.js',
   webServer: {
-    command: 'php -S 127.0.0.1:8000 -t public public/index.php',
+    command: 'php -S 127.0.0.1:8000 -t public server.php',
     port: 8000,
     reuseExistingServer: !process.env.CI,
     timeout: 180000,

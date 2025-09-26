@@ -174,9 +174,7 @@ class MitgliedschaftControllerTest extends TestCase
         $html = $response->getContent();
 
         $this->assertStringContainsString('id="mitgliedschaft-form"', $html);
-        $this->assertStringNotContainsString('registerMitgliedschaftInit', $html);
-        $this->assertStringNotContainsString('window.omxfc.queueInit', $html);
-        $this->assertStringNotContainsString('window.omxfc.__initQueue', $html);
+        $this->assertMatchesRegularExpression('/build\/assets\/mitgliedschaft-page-[^\"\']+\.js/', $html);
     }
 
     private function extractClassAttribute(string $html, string $tag, string $id): ?string

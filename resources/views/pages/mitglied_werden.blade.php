@@ -93,4 +93,7 @@
         </form>
     </x-public-page>
 
+    @push('scripts')
+        @vite('resources/js/mitgliedschaft/mitgliedschaft-page.js')
+    @endpush
 </x-app-layout>
