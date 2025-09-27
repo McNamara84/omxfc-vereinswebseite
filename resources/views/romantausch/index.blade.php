@@ -23,8 +23,11 @@
                     <ul class="space-y-4">
                         @foreach($activeSwaps as $swap)
                             <li class="bg-gray-100 dark:bg-gray-700 p-3 rounded">
+                                @php
+                                    $activeOfferSeries = \App\Enums\BookType::tryFrom($swap->offer->series)?->label() ?? $swap->offer->series;
+                                @endphp
                                 <div class="font-semibold mb-1">
-                                    <a href="{{ route('romantausch.show-offer', $swap->offer) }}" class="text-[#8B0116] hover:underline">{{ $swap->offer->series }} {{ $swap->offer->book_number }} - {{ $swap->offer->book_title }}</a>
+                                    <a href="{{ route('romantausch.show-offer', $swap->offer) }}" class="text-[#8B0116] hover:underline">{{ $activeOfferSeries }} {{ $swap->offer->book_number }} - {{ $swap->offer->book_title }}</a>
                                 </div>
                                 <div class="text-sm text-gray-600 dark:text-gray-300 mb-2">
                                     <a href="{{ route('profile.view', $swap->offer->user->id) }}" class="text-[#8B0116] hover:underline">{{ $swap->offer->user->name }}</a> ({{ $swap->offer->user->email }}) ↔ <a href="{{ route('profile.view', $swap->request->user->id) }}" class="text-[#8B0116] hover:underline">{{ $swap->request->user->name }}</a> ({{ $swap->request->user->email }})
@@ -57,8 +60,11 @@
                 @else
                     <ul class="space-y-3">
                         @foreach($offers as $offer)
+                            @php
+                                $offerSeriesLabel = \App\Enums\BookType::tryFrom($offer->series)?->label() ?? $offer->series;
+                            @endphp
                             <li class="bg-gray-100 dark:bg-gray-700 p-3 rounded flex justify-between items-center">
-                                <span>{{ $offer->series }} {{ $offer->book_number }} - {{ $offer->book_title }} ({{ $offer->condition }})</span>
+                                <span>{{ $offerSeriesLabel }} {{ $offer->book_number }} - {{ $offer->book_title }} ({{ $offer->condition }})</span>
                                 <div class="flex items-center gap-2">
                                     <span class="text-sm text-gray-600 dark:text-gray-300">von <a href="{{ route('profile.view', $offer->user->id) }}" class="text-[#8B0116] hover:underline">{{ $offer->user->name }}</a></span>
                                     @if(auth()->id() === $offer->user_id)
@@ -87,8 +93,11 @@
                 @else
                     <ul class="space-y-3">
                         @foreach($requests as $request)
+                            @php
+                                $requestSeriesLabel = \App\Enums\BookType::tryFrom($request->series)?->label() ?? $request->series;
+                            @endphp
                             <li class="bg-gray-100 dark:bg-gray-700 p-3 rounded flex justify-between items-center">
-                                <span>{{ $request->series }} {{ $request->book_number }} - {{ $request->book_title }} ({{ $request->condition }} oder besser)</span>
+                                <span>{{ $requestSeriesLabel }} {{ $request->book_number }} - {{ $request->book_title }} ({{ $request->condition }} oder besser)</span>
                                 <div class="flex items-center gap-2">
                                     <span class="text-sm text-gray-600 dark:text-gray-300">von <a href="{{ route('profile.view', $request->user->id) }}" class="text-[#8B0116] hover:underline">{{ $request->user->name }}</a></span>
                                     @if(auth()->id() === $request->user_id)
@@ -111,8 +120,11 @@
                 @else
                     <ul class="space-y-3">
                         @foreach($completedSwaps as $swap)
+                            @php
+                                $completedSeriesLabel = \App\Enums\BookType::tryFrom($swap->offer->series)?->label() ?? $swap->offer->series;
+                            @endphp
                             <li class="bg-gray-100 dark:bg-gray-700 p-3 rounded">
-                                <span class="font-semibold">{{ $swap->offer->series }} {{ $swap->offer->book_number }} - {{ $swap->offer->book_title }}</span><br>
+                                <span class="font-semibold">{{ $completedSeriesLabel }} {{ $swap->offer->book_number }} - {{ $swap->offer->book_title }}</span><br>
                                 Getauscht zwischen <a href="{{ route('profile.view', $swap->offer->user->id) }}" class="text-[#8B0116] hover:underline">{{ $swap->offer->user->name }}</a> und <a href="{{ route('profile.view', $swap->request->user->id) }}" class="text-[#8B0116] hover:underline">{{ $swap->request->user->name }}</a> am {{ $swap->completed_at->format('d.m.Y') }}
                             </li>
                         @endforeach
