@@ -36,7 +36,7 @@
             </div>
         </div>
         <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
-            <div class="mb-4 flex flex-wrap gap-4">
+            <div class="mb-4 flex flex-wrap gap-4" aria-label="Filter für die Hörbuchfolgen">
                 <select id="status-filter" class="border-gray-300 dark:border-gray-600 rounded-md">
                     <option value="">Alle Status</option>
                     @foreach($statuses as $status)
@@ -62,6 +62,21 @@
                     <input type="checkbox" id="roles-unfilled-filter" class="form-checkbox">
                     <span class="ml-2">Rollen unbesetzt</span>
                 </label>
+                <label class="inline-flex items-center">
+                    <input
+                        type="checkbox"
+                        id="hide-released-filter"
+                        class="form-checkbox"
+                        checked
+                        aria-describedby="hide-released-hint"
+                    >
+                    <span class="ml-2">
+                        Veröffentlicht<span class="sr-only">e Folgen ausblenden</span>
+                    </span>
+                </label>
+                <p id="hide-released-hint" class="sr-only">
+                    Bereits veröffentlichte Folgen können angezeigt werden, indem der Filter deaktiviert wird.
+                </p>
             </div>
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
@@ -87,6 +102,7 @@
                                 data-roles-filled="{{ $episode->all_roles_filled ? '1' : '0' }}"
                                 data-year="{{ $episode->release_year ?? '' }}"
                                 data-episode-id="{{ $episode->id }}"
+                                data-planned-release-date="{{ optional($episode->planned_release_date_parsed)->toDateString() }}"
                             >
                                 <td class="px-4 py-2 text-gray-700 dark:text-gray-300">{{ $episode->episode_number }}</td>
                                 <td class="px-4 py-2 text-gray-700 dark:text-gray-300">{{ $episode->title }}</td>
