@@ -121,11 +121,15 @@ class RezensionController extends Controller
         $missionMarsQuery = Book::query()->where('type', BookType::MissionMars);
         $applyFilters($missionMarsQuery);
 
+        $volkDerTiefeQuery = Book::query()->where('type', BookType::DasVolkDerTiefe);
+        $applyFilters($volkDerTiefeQuery);
+
         $books = $this->prepareBookQuery($novelsQuery, $user, $teamId);
 
         $hardcovers = $this->prepareBookQuery($hardcoversQuery, $user, $teamId, 'desc');
 
         $missionMars = $this->prepareBookQuery($missionMarsQuery, $user, $teamId, 'desc');
+        $volkDerTiefe = $this->prepareBookQuery($volkDerTiefeQuery, $user, $teamId, 'desc');
 
         $jsonPath = storage_path('app/private/maddrax.json');
         if (!is_readable($jsonPath)) {
@@ -134,17 +138,25 @@ class RezensionController extends Controller
 
         $romanData = collect(json_decode(file_get_contents($jsonPath), true));
         $cycleMap = $romanData->pluck('zyklus', 'nummer');
+        $cycleOrder = $romanData->pluck('zyklus')->unique()->values();
 
         $books->each(function ($book) use ($cycleMap) {
             $book->cycle = $cycleMap[$book->roman_number] ?? 'Unbekannt';
         });
 
-        $booksByCycle = $books->sortByDesc('roman_number')->groupBy('cycle');
+        $booksByCycle = $books->sortByDesc('roman_number')
+            ->groupBy('cycle')
+            ->sortBy(function (Collection $group, string $cycle) use ($cycleOrder) {
+                $index = $cycleOrder->search($cycle);
+
+                return $index === false ? PHP_INT_MAX : $index;
+            });
 
         return view('reviews.index', [
             'booksByCycle' => $booksByCycle,
             'hardcovers' => $hardcovers,
             'missionMars' => $missionMars,
+            'volkDerTiefe' => $volkDerTiefe,
             'title' => 'Rezensionen – Offizieller MADDRAX Fanclub e. V.',
             'description' => 'Alle Vereinsrezensionen zu den Maddrax-Romanen im Überblick.',
         ]);

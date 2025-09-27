@@ -48,6 +48,12 @@ class StatistikController extends Controller
             $missionMarsNovels = collect(json_decode(file_get_contents($missionMarsPath), true));
         }
 
+        $volkDerTiefePath = storage_path('app/private/volkdertiefe.json');
+        $volkDerTiefeNovels = collect();
+        if (is_readable($volkDerTiefePath)) {
+            $volkDerTiefeNovels = collect(json_decode(file_get_contents($volkDerTiefePath), true));
+        }
+
         // ── Card 1 – Grundstatistiken ──────────────────────────────────────────────
         $averageRating = round($romane->avg('bewertung'), 2);
         $totalVotes = $romane->sum('stimmen');
@@ -73,6 +79,14 @@ class StatistikController extends Controller
 
         // ── Card 31b – Mission Mars-Heftromane je Autor (inkl. Co-Autor:innen) ─────
         $missionMarsAuthorCounts = $missionMarsNovels
+            ->pluck('text')
+            ->flatten()
+            ->map(fn ($a) => trim($a))
+            ->filter()
+            ->countBy()
+            ->sortDesc();
+
+        $volkDerTiefeAuthorCounts = $volkDerTiefeNovels
             ->pluck('text')
             ->flatten()
             ->map(fn ($a) => trim($a))
@@ -345,6 +359,10 @@ class StatistikController extends Controller
         $missionMarsLabels = $missionMarsCycle->pluck('nummer');
         $missionMarsValues = $missionMarsCycle->pluck('bewertung');
 
+        $volkDerTiefeCycle = $volkDerTiefeNovels->sortBy('nummer');
+        $volkDerTiefeLabels = $volkDerTiefeCycle->pluck('nummer');
+        $volkDerTiefeValues = $volkDerTiefeCycle->pluck('bewertung');
+
         // ── Card 7 – Rezensionen unserer Mitglieder ───────────────────────────
         $totalReviews = 0;
         $averageReviewsPerBook = 0;
@@ -476,6 +494,9 @@ class StatistikController extends Controller
             'missionMarsLabels' => $missionMarsLabels,
             'missionMarsValues' => $missionMarsValues,
             'missionMarsAuthorCounts' => $missionMarsAuthorCounts,
+            'volkDerTiefeLabels' => $volkDerTiefeLabels,
+            'volkDerTiefeValues' => $volkDerTiefeValues,
+            'volkDerTiefeAuthorCounts' => $volkDerTiefeAuthorCounts,
             'hardcoverAuthorCounts' => $hardcoverAuthorCounts,
             'topFavoriteThemes' => $topFavoriteThemes,
             'totalReviews' => $totalReviews,

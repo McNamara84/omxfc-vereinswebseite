@@ -90,7 +90,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const missionMarsAuthorValues = window.missionMarsAuthorChartValues ?? [];
     drawAuthorChart('missionMarsAuthorChart', missionMarsAuthorLabels, missionMarsAuthorValues);
 
-    const cycles = ['euree', 'meeraka', 'expedition', 'kratersee', 'daaMuren', 'wandler', 'mars', 'ausala', 'afra', 'antarktis', 'schatten', 'ursprung', 'streiter', 'archivar', 'zeitsprung', 'fremdwelt', 'parallelwelt', 'weltenriss', 'amraka', 'weltrat', 'missionMars'];
+    const volkDerTiefeAuthorLabels = window.volkDerTiefeAuthorChartLabels ?? [];
+    const volkDerTiefeAuthorValues = window.volkDerTiefeAuthorChartValues ?? [];
+    drawAuthorChart('volkDerTiefeAuthorChart', volkDerTiefeAuthorLabels, volkDerTiefeAuthorValues);
+
+    const cycles = ['euree', 'meeraka', 'expedition', 'kratersee', 'daaMuren', 'wandler', 'mars', 'ausala', 'afra', 'antarktis', 'schatten', 'ursprung', 'streiter', 'archivar', 'zeitsprung', 'fremdwelt', 'parallelwelt', 'weltenriss', 'amraka', 'weltrat', 'missionMars', 'volkDerTiefe'];
     cycles.forEach((cycle) => {
         const cycleLabels = window[`${cycle}ChartLabels`] ?? [];
         const cycleValues = window[`${cycle}ChartValues`] ?? [];
@@ -102,6 +106,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const hardcoverLabels = window.hardcoverChartLabels ?? [];
         const hardcoverValues = window.hardcoverChartValues ?? [];
         drawCycleChart('hardcoverChart', hardcoverLabels, hardcoverValues);
+    }
+
+    const volkDerTiefeCanvas = document.getElementById('volkDerTiefeChart');
+    if (volkDerTiefeCanvas) {
+        const volkDerTiefeLabels = window.volkDerTiefeChartLabels ?? [];
+        const volkDerTiefeValues = window.volkDerTiefeChartValues ?? [];
+        drawCycleChart('volkDerTiefeChart', volkDerTiefeLabels, volkDerTiefeValues);
     }
 });
 

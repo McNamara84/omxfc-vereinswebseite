@@ -15,7 +15,7 @@
                         <label class="block font-medium text-gray-700 dark:text-gray-200 mb-2">Serie</label>
                         <select name="series" id="series-select" class="w-full rounded bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-800 dark:text-gray-200">
                             @foreach($types as $type)
-                                <option value="{{ $type->value }}">{{ $type->value }}</option>
+                                <option value="{{ $type->value }}">{{ $type->label() }}</option>
                             @endforeach
                         </select>
                     </div>

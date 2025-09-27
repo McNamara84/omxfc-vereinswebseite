@@ -187,6 +187,16 @@ return [
         'points' => 44,
     ],
     [
+        'title' => 'Statistik - Bewertungen der Das Volk der Tiefe-Heftromane',
+        'description' => 'Zeigt Bewertungen der Das Volk der Tiefe-Heftromane aus dem Maddraxikon in einem Liniendiagramm.',
+        'points' => 45,
+    ],
+    [
+        'title' => 'Statistik - Das Volk der Tiefe-Heftromane je Autor:in',
+        'description' => 'Balkendiagramm mit der Anzahl der Das Volk der Tiefe-Heftromane je Autor:in.',
+        'points' => 46,
+    ],
+    [
         'title' => 'Statistik - TOP10 Lieblingsthemen',
         'description' => 'Zeigt die beliebtesten Lieblingsthemen der Mitglieder.',
         'points' => 50,

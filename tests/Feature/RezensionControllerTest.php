@@ -195,6 +195,44 @@ class RezensionControllerTest extends TestCase
         }
     }
 
+    public function test_index_shows_volk_der_tiefe_books(): void
+    {
+        $path = storage_path('app/private/maddrax.json');
+        $original = file_get_contents($path);
+
+        try {
+            file_put_contents($path, json_encode([
+                ['nummer' => 1, 'titel' => 'Roman1', 'zyklus' => 'Ausala'],
+                ['nummer' => 2, 'titel' => 'Roman2', 'zyklus' => 'Afra'],
+            ]));
+
+            $ausalaBook = Book::create(['roman_number' => 1, 'title' => 'Alpha', 'author' => 'A']);
+            $afraBook = Book::create(['roman_number' => 2, 'title' => 'Beta', 'author' => 'B']);
+            Book::create([
+                'roman_number' => 3,
+                'title' => 'Volk der Tiefe Gamma',
+                'author' => 'C',
+                'type' => BookType::DasVolkDerTiefe,
+            ]);
+
+            $user = $this->actingMember();
+            $this->actingAs($user);
+
+            $this->get('/rezensionen')
+                ->assertOk()
+                ->assertSee($ausalaBook->title)
+                ->assertSee($afraBook->title)
+                ->assertSee('Volk der Tiefe Gamma')
+                ->assertSeeInOrder([
+                    'Ausala-Zyklus',
+                    'Das Volk der Tiefe-Heftromane',
+                    'Afra-Zyklus',
+                ]);
+        } finally {
+            file_put_contents($path, $original);
+        }
+    }
+
     public function test_show_redirects_when_user_has_no_permission(): void
     {
         $user = $this->actingMember();

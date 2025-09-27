@@ -24,6 +24,7 @@ class RomantauschController extends Controller
         BookType::MaddraxDieDunkleZukunftDerErde,
         BookType::MaddraxHardcover,
         BookType::MissionMars,
+        BookType::DasVolkDerTiefe,
     ];
     public const ALLOWED_PHOTO_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
     // Übersicht

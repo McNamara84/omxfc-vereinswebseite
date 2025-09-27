@@ -8,21 +8,21 @@ use DOMXPath;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Storage;
 
-class CrawlNovels extends Command
+class CrawlVolkDerTiefe extends Command
 {
     /**
      * The name and signature of the console command.
      */
-    protected $signature = 'crawlnovels';
+    protected $signature = 'crawlvolkdertiefe';
 
     /**
      * The console command description.
      */
-    protected $description = 'Crawl maddraxikon.com for novel information';
+    protected $description = 'Crawl maddraxikon.com for Das Volk der Tiefe novel information';
 
     private const BASE_URL = 'https://de.maddraxikon.com/';
 
-    private const CATEGORY_URL = self::BASE_URL.'index.php?title=Kategorie:Maddrax-Heftromane';
+    private const CATEGORY_URL = self::BASE_URL.'index.php?title=Kategorie:Das_Volk_der_Tiefe-Heftromane';
 
     public function handle(): int
     {
@@ -49,14 +49,14 @@ class CrawlNovels extends Command
         $bar->finish();
         $this->newLine();
 
-        $path = Storage::disk('private')->path('maddrax.json');
+        $path = Storage::disk('private')->path('volkdertiefe.json');
         if ($this->writeHeftromane($data, $path)) {
-            $this->info('maddrax.json updated.');
+            $this->info('volkdertiefe.json updated.');
 
-            return $this->triggerFollowupCrawlers();
+            return self::SUCCESS;
         }
 
-        $this->error('Failed to write maddrax.json');
+        $this->error('Failed to write volkdertiefe.json');
 
         return self::FAILURE;
     }
@@ -181,20 +181,5 @@ class CrawlNovels extends Command
         $json = json_encode($jsonData, JSON_PRETTY_PRINT);
 
         return file_put_contents($filename, $json) !== false;
-    }
-
-    protected function triggerFollowupCrawlers(): int
-    {
-        $status = $this->call(CrawlMissionMars::class);
-        if ($status !== self::SUCCESS) {
-            return $status;
-        }
-
-        $status = $this->call(CrawlHardcovers::class);
-        if ($status !== self::SUCCESS) {
-            return $status;
-        }
-
-        return $this->call(CrawlVolkDerTiefe::class);
     }
 }

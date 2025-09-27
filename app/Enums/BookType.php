@@ -10,4 +10,12 @@ enum BookType: string
     case DasVolkDerTiefe = 'Das Volk der Tiefe';
     case ZweiTausendZwölfDasJahrDerApokalypse = '2012 - Das Jahr der Apokalypse';
     case DieAbenteurer = 'Die Abenteurer';
+
+    public function label(): string
+    {
+        return match ($this) {
+            self::DasVolkDerTiefe => 'Das Volk der Tiefe-Heftromane',
+            default => $this->value,
+        };
+    }
 }

@@ -51,6 +51,12 @@ class RomantauschControllerTest extends TestCase
             'author' => 'Author',
             'type' => BookType::MissionMars,
         ]);
+        Book::create([
+            'roman_number' => 3,
+            'title' => 'Volk Roman',
+            'author' => 'Author',
+            'type' => BookType::DasVolkDerTiefe,
+        ]);
     }
 
     public function test_complete_swap_marks_entries_completed(): void
@@ -95,6 +101,7 @@ class RomantauschControllerTest extends TestCase
         $response->assertOk();
         $response->assertViewIs('romantausch.create_offer');
         $this->assertSame('Roman1', $response->viewData('books')->first()->title);
+        $response->assertSee('Das Volk der Tiefe-Heftromane', false);
     }
 
     public function test_store_offer_creates_entry_when_book_found(): void
@@ -140,6 +147,29 @@ class RomantauschControllerTest extends TestCase
             'book_number' => 2,
             'book_title' => 'MM Roman',
             'condition' => 'neu',
+        ]);
+    }
+
+    public function test_store_offer_creates_entry_for_volk_der_tiefe(): void
+    {
+        $this->putBookData();
+
+        $user = $this->actingMember();
+        $this->actingAs($user);
+
+        $response = $this->post('/romantauschboerse/angebot-speichern', [
+            'series' => BookType::DasVolkDerTiefe->value,
+            'book_number' => 3,
+            'condition' => 'gut',
+        ]);
+
+        $response->assertRedirect(route('romantausch.index', [], false));
+        $this->assertDatabaseHas('book_offers', [
+            'user_id' => $user->id,
+            'series' => BookType::DasVolkDerTiefe->value,
+            'book_number' => 3,
+            'book_title' => 'Volk Roman',
+            'condition' => 'gut',
         ]);
     }
 
@@ -466,6 +496,7 @@ class RomantauschControllerTest extends TestCase
         $response->assertOk();
         $response->assertViewIs('romantausch.create_request');
         $this->assertSame('Roman1', $response->viewData('books')->first()->title);
+        $response->assertSee('Das Volk der Tiefe-Heftromane', false);
     }
 
     public function test_store_request_creates_entry_when_book_found(): void
@@ -514,6 +545,29 @@ class RomantauschControllerTest extends TestCase
         ]);
     }
 
+    public function test_store_request_creates_entry_for_volk_der_tiefe(): void
+    {
+        $this->putBookData();
+
+        $user = $this->actingMember();
+        $this->actingAs($user);
+
+        $response = $this->post('/romantauschboerse/anfrage-speichern', [
+            'series' => BookType::DasVolkDerTiefe->value,
+            'book_number' => 3,
+            'condition' => 'sehr gut',
+        ]);
+
+        $response->assertRedirect(route('romantausch.index', [], false));
+        $this->assertDatabaseHas('book_requests', [
+            'user_id' => $user->id,
+            'series' => BookType::DasVolkDerTiefe->value,
+            'book_number' => 3,
+            'book_title' => 'Volk Roman',
+            'condition' => 'sehr gut',
+        ]);
+    }
+
     public function test_store_request_returns_error_when_book_missing(): void
     {
         $user = $this->actingMember();
@@ -529,6 +583,91 @@ class RomantauschControllerTest extends TestCase
         $response->assertRedirect('/romantauschboerse/anfrage-erstellen');
         $response->assertSessionHas('error', 'Ausgewählter Roman nicht gefunden.');
         $this->assertDatabaseCount('book_requests', 0);
+    }
+
+    public function test_index_displays_volk_der_tiefe_labels_for_offers_and_requests(): void
+    {
+        $this->putBookData();
+        $user = $this->actingMember();
+        $other = User::factory()->create();
+
+        BookOffer::create([
+            'user_id' => $user->id,
+            'series' => BookType::DasVolkDerTiefe->value,
+            'book_number' => 3,
+            'book_title' => 'Volk Roman',
+            'condition' => 'neu',
+        ]);
+
+        BookRequest::create([
+            'user_id' => $other->id,
+            'series' => BookType::DasVolkDerTiefe->value,
+            'book_number' => 3,
+            'book_title' => 'Volk Roman',
+            'condition' => 'gebraucht',
+        ]);
+
+        $this->actingAs($user);
+        $response = $this->get('/romantauschboerse');
+
+        $response->assertOk();
+        $response->assertSee('Das Volk der Tiefe-Heftromane 3 - Volk Roman (neu)', false);
+        $response->assertSee('Das Volk der Tiefe-Heftromane 3 - Volk Roman (gebraucht oder besser)', false);
+    }
+
+    public function test_index_displays_volk_der_tiefe_labels_for_active_and_completed_swaps(): void
+    {
+        $this->putBookData();
+        $user = $this->actingMember();
+        $other = User::factory()->create();
+
+        $activeOffer = BookOffer::create([
+            'user_id' => $user->id,
+            'series' => BookType::DasVolkDerTiefe->value,
+            'book_number' => 3,
+            'book_title' => 'Aktiver Roman',
+            'condition' => 'gut',
+        ]);
+        $activeRequest = BookRequest::create([
+            'user_id' => $other->id,
+            'series' => BookType::DasVolkDerTiefe->value,
+            'book_number' => 3,
+            'book_title' => 'Aktiver Roman',
+            'condition' => 'gut',
+        ]);
+        BookSwap::create([
+            'offer_id' => $activeOffer->id,
+            'request_id' => $activeRequest->id,
+        ]);
+
+        $completedOffer = BookOffer::create([
+            'user_id' => $user->id,
+            'series' => BookType::DasVolkDerTiefe->value,
+            'book_number' => 3,
+            'book_title' => 'Abgeschlossener Roman',
+            'condition' => 'gut',
+            'completed' => true,
+        ]);
+        $completedRequest = BookRequest::create([
+            'user_id' => $other->id,
+            'series' => BookType::DasVolkDerTiefe->value,
+            'book_number' => 3,
+            'book_title' => 'Abgeschlossener Roman',
+            'condition' => 'gut',
+            'completed' => true,
+        ]);
+        BookSwap::create([
+            'offer_id' => $completedOffer->id,
+            'request_id' => $completedRequest->id,
+            'completed_at' => now(),
+        ]);
+
+        $this->actingAs($user);
+        $response = $this->get('/romantauschboerse');
+
+        $response->assertOk();
+        $response->assertSee('Das Volk der Tiefe-Heftromane 3 - Aktiver Roman', false);
+        $response->assertSee('Das Volk der Tiefe-Heftromane 3 - Abgeschlossener Roman', false);
     }
 
     public function test_user_can_delete_own_offer(): void
