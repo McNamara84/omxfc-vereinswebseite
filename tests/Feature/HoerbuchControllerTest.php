@@ -234,9 +234,11 @@ class HoerbuchControllerTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('Sprecher');
-        $response->assertDontSee('Aufnahme hochgeladen');
+        $response->assertDontSee('id="roles-uploaded-header"', false);
         $response->assertDontSee('uploaded-role-');
         $response->assertDontSee('data-auto-submit');
+        $response->assertSee('Upload vorhanden');
+        $response->assertSee('bg-green-100', false);
     }
 
     public function test_vorstand_can_store_episode(): void
