@@ -78,7 +78,7 @@
                             </div>
                         </div>
                     @endif
-                    @if($cycle === 'Wandler' && $volkDerTiefe->isNotEmpty())
+                    @if($cycle === 'Ausala' && $volkDerTiefe->isNotEmpty())
                         @php
                             $id = 'volk-der-tiefe';
                             $reviewCount = $volkDerTiefe->sum('reviews_count');

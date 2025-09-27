@@ -202,10 +202,12 @@ class RezensionControllerTest extends TestCase
 
         try {
             file_put_contents($path, json_encode([
-                ['nummer' => 1, 'titel' => 'Roman1', 'zyklus' => 'Wandler'],
+                ['nummer' => 1, 'titel' => 'Roman1', 'zyklus' => 'Ausala'],
+                ['nummer' => 2, 'titel' => 'Roman2', 'zyklus' => 'Afra'],
             ]));
 
-            $book = Book::create(['roman_number' => 1, 'title' => 'Alpha', 'author' => 'A']);
+            $ausalaBook = Book::create(['roman_number' => 1, 'title' => 'Alpha', 'author' => 'A']);
+            $afraBook = Book::create(['roman_number' => 2, 'title' => 'Beta', 'author' => 'B']);
             Book::create([
                 'roman_number' => 3,
                 'title' => 'Volk der Tiefe Gamma',
@@ -218,8 +220,14 @@ class RezensionControllerTest extends TestCase
 
             $this->get('/rezensionen')
                 ->assertOk()
-                ->assertSee($book->title)
-                ->assertSee('Volk der Tiefe Gamma');
+                ->assertSee($ausalaBook->title)
+                ->assertSee($afraBook->title)
+                ->assertSee('Volk der Tiefe Gamma')
+                ->assertSeeInOrder([
+                    'Ausala-Zyklus',
+                    'Das Volk der Tiefe-Heftromane',
+                    'Afra-Zyklus',
+                ]);
         } finally {
             file_put_contents($path, $original);
         }

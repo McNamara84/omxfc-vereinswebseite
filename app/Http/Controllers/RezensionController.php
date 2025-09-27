@@ -138,12 +138,19 @@ class RezensionController extends Controller
 
         $romanData = collect(json_decode(file_get_contents($jsonPath), true));
         $cycleMap = $romanData->pluck('zyklus', 'nummer');
+        $cycleOrder = $romanData->pluck('zyklus')->unique()->values();
 
         $books->each(function ($book) use ($cycleMap) {
             $book->cycle = $cycleMap[$book->roman_number] ?? 'Unbekannt';
         });
 
-        $booksByCycle = $books->sortByDesc('roman_number')->groupBy('cycle');
+        $booksByCycle = $books->sortByDesc('roman_number')
+            ->groupBy('cycle')
+            ->sortBy(function (Collection $group, string $cycle) use ($cycleOrder) {
+                $index = $cycleOrder->search($cycle);
+
+                return $index === false ? PHP_INT_MAX : $index;
+            });
 
         return view('reviews.index', [
             'booksByCycle' => $booksByCycle,
