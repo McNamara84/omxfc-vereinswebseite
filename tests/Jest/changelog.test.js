@@ -86,6 +86,9 @@ describe('changelog module', () => {
     await domContentLoaded();
     const items = Array.from(document.querySelectorAll('#release-notes li'));
     const classes = items.map((li) => li.querySelector('span')?.className || '');
+    classes.forEach((className) => {
+      expect(className).toContain('min-w-[7rem]');
+    });
     expect(classes[0]).toContain('bg-red-600');
     expect(classes[1]).toContain('bg-blue-600');
     expect(classes[2]).toContain('bg-gray-600');
