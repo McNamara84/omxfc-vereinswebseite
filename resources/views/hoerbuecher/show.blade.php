@@ -39,8 +39,29 @@
                             </thead>
                             <tbody>
                                 @foreach($episode->roles as $role)
-                                <tr class="border-t border-gray-200 dark:border-gray-700">
-                                    <td class="px-2 py-1">{{ $role->name }}</td>
+                                @php
+                                    $rowClasses = 'border-t border-gray-200 dark:border-gray-700 transition-colors';
+                                    if ($role->uploaded) {
+                                        $rowClasses .= ' bg-green-100 dark:bg-green-900/40 text-gray-900 dark:text-green-100';
+                                    } else {
+                                        $rowClasses .= ' hover:bg-gray-50 dark:hover:bg-gray-700/40';
+                                    }
+                                @endphp
+                                <tr class="{{ $rowClasses }}">
+                                    <td class="px-2 py-1 align-top">
+                                        <div class="flex flex-wrap items-center gap-2">
+                                            <span>{{ $role->name }}</span>
+                                            @if($role->uploaded)
+                                                <span class="inline-flex items-center gap-1 rounded-full bg-green-600/10 px-2 py-0.5 text-xs font-semibold text-green-700 dark:bg-green-500/20 dark:text-green-100" role="status" aria-label="Aufnahme für diese Rolle wurde hochgeladen">
+                                                    <svg class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 0 1 0 1.414l-7.25 7.25a1 1 0 0 1-1.414 0l-3-3a1 1 0 1 1 1.414-1.414L8.75 11.586l6.543-6.543a1 1 0 0 1 1.414 0Z" clip-rule="evenodd" />
+                                                    </svg>
+                                                    <span>Upload vorhanden</span>
+                                                </span>
+                                                <span class="sr-only">Für diese Rolle wurde bereits eine Aufnahme hochgeladen.</span>
+                                            @endif
+                                        </div>
+                                    </td>
                                     <td class="px-2 py-1">{{ $role->description }}</td>
                                     <td class="px-2 py-1">{{ $role->takes }}</td>
                                     <td class="px-2 py-1">
