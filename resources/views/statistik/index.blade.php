@@ -740,6 +740,44 @@
                     window.missionMarsAuthorChartValues = @json($missionMarsAuthorCounts->values());
                 </script>
 
+            {{-- Card 31c – Bewertungen der Das Volk der Tiefe-Heftromane (≥ 45 Baxx) --}}
+                @php($min = 45)
+                <div data-min-points="{{ $min }}" class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
+                    <h2 id="volkDerTiefeChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                        Bewertungen der Das Volk der Tiefe-Heftromane
+                    </h2>
+                    <div data-chart-wrapper class="mt-4">
+                        <canvas id="volkDerTiefeChart" height="140" role="img" aria-labelledby="volkDerTiefeChartTitle"></canvas>
+                    </div>
+                    @if($userPoints < $min)
+                        @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
+                    @endif
+                </div>
+
+                <script>
+                    window.volkDerTiefeChartLabels = @json($volkDerTiefeLabels);
+                    window.volkDerTiefeChartValues = @json($volkDerTiefeValues);
+                </script>
+
+            {{-- Card 31d – Das Volk der Tiefe-Heftromane je Autor:in (≥ 46 Baxx) --}}
+                @php($min = 46)
+                <div data-min-points="{{ $min }}" class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
+                    <h2 id="volkDerTiefeAuthorChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                        Das Volk der Tiefe-Heftromane je Autor:in
+                    </h2>
+                    <div data-chart-wrapper class="mt-4">
+                        <canvas id="volkDerTiefeAuthorChart" height="140" role="img" aria-labelledby="volkDerTiefeAuthorChartTitle"></canvas>
+                    </div>
+                    @if($userPoints < $min)
+                        @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
+                    @endif
+                </div>
+
+                <script>
+                    window.volkDerTiefeAuthorChartLabels = @json($volkDerTiefeAuthorCounts->keys());
+                    window.volkDerTiefeAuthorChartValues = @json($volkDerTiefeAuthorCounts->values());
+                </script>
+
             {{-- Card 32 – TOP10 Lieblingsthemen (≥ 50 Baxx) --}}
                 @php($min = 50)
                 <div data-min-points="{{ $min }}" class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">

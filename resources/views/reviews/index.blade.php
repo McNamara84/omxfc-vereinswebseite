@@ -78,6 +78,23 @@
                             </div>
                         </div>
                     @endif
+                    @if($cycle === 'Wandler' && $volkDerTiefe->isNotEmpty())
+                        @php
+                            $id = 'volk-der-tiefe';
+                            $reviewCount = $volkDerTiefe->sum('reviews_count');
+                        @endphp
+                        <div class="mb-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+                            <h2>
+                                <button type="button" class="w-full flex justify-between items-center bg-gray-100 dark:bg-gray-700 px-4 py-3 rounded-t-lg font-semibold" onclick="toggleAccordion('{{ $id }}')">
+                                    Das Volk der Tiefe-Heftromane ({{ $reviewCount }} {{ $reviewCount === 1 ? 'Rezension' : 'Rezensionen' }})
+                                    <span id="icon-{{ $id }}">+</span>
+                                </button>
+                            </h2>
+                            <div id="content-{{ $id }}" class="hidden bg-white dark:bg-gray-900 px-4 py-2 rounded-b-lg">
+                                <x-book-list :books="$volkDerTiefe" />
+                            </div>
+                        </div>
+                    @endif
                 @endforeach
                 @if($hardcovers->isNotEmpty())
                     @php
