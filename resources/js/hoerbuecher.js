@@ -18,6 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
         year: document.getElementById('year-filter'),
         roles: document.getElementById('roles-filter'),
         rolesUnfilled: document.getElementById('roles-unfilled-filter'),
+        hideReleased: document.getElementById('hide-released-filter'),
     };
 
     let onlyEpisodeId = null;
@@ -28,6 +29,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const yearVal = filters.year?.value;
         const rolesChecked = filters.roles?.checked;
         const rolesUnfilledChecked = filters.rolesUnfilled?.checked;
+        const hideReleasedChecked = filters.hideReleased?.checked;
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
 
         rows.forEach(row => {
             const matchStatus = !statusVal || row.dataset.status === statusVal;
@@ -40,6 +44,13 @@ document.addEventListener('DOMContentLoaded', () => {
             } else if (rolesUnfilledChecked) {
                 matchRoles = !rolesFilled;
             }
+            const plannedReleaseDate = row.dataset.plannedReleaseDate
+                ? new Date(row.dataset.plannedReleaseDate)
+                : null;
+            const isReleased =
+                hideReleasedChecked && plannedReleaseDate
+                    ? plannedReleaseDate.getTime() < today.getTime()
+                    : false;
             const matchEpisode = !onlyEpisodeId || row.dataset.episodeId === onlyEpisodeId;
 
             row.style.display =
@@ -47,7 +58,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 matchType &&
                 matchYear &&
                 matchRoles &&
-                matchEpisode
+                matchEpisode &&
+                !isReleased
                     ? ''
                     : 'none';
         });
@@ -83,6 +95,7 @@ document.addEventListener('DOMContentLoaded', () => {
     filters.rolesUnfilled?.addEventListener('change', () =>
         handleRolesChange('rolesUnfilled')
     );
+    filters.hideReleased?.addEventListener('change', applyFilters);
 
     const cardUnfilledRoles = document.getElementById('card-unfilled-roles');
     const cardOpenEpisodes = document.getElementById('card-open-episodes');

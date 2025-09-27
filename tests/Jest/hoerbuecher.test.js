@@ -3,23 +3,43 @@ import { jest } from '@jest/globals';
 describe('hoerbuecher module', () => {
   beforeEach(async () => {
     jest.resetModules();
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date('2024-01-15T00:00:00Z'));
     document.body.innerHTML = `
       <table>
-        <tr data-href="/1" data-status="done" data-type="A" data-year="2024" data-roles-filled="1" data-episode-id="1"></tr>
-        <tr data-href="/2" data-status="open" data-type="B" data-year="2023" data-roles-filled="0" data-episode-id="2"></tr>
-        <tr data-href="/3" data-status="Rollenbesetzung" data-type="C" data-year="2023" data-roles-filled="0" data-episode-id="3"></tr>
+        <tr data-href="/1" data-status="done" data-type="A" data-year="2024" data-roles-filled="1" data-episode-id="1" data-planned-release-date="2023-12-01"></tr>
+        <tr data-href="/2" data-status="open" data-type="B" data-year="2023" data-roles-filled="0" data-episode-id="2" data-planned-release-date="2024-02-01"></tr>
+        <tr data-href="/3" data-status="Rollenbesetzung" data-type="C" data-year="2023" data-roles-filled="0" data-episode-id="3" data-planned-release-date="2024-03-15"></tr>
       </table>
       <select id="status-filter"><option value=""></option><option value="open">open</option><option value="Rollenbesetzung">Rollenbesetzung</option></select>
       <select id="type-filter"><option value=""></option><option value="A">A</option><option value="B">B</option><option value="C">C</option></select>
       <select id="year-filter"><option value=""></option><option value="2023">2023</option><option value="2024">2024</option></select>
       <input type="checkbox" id="roles-filter" />
       <input type="checkbox" id="roles-unfilled-filter" />
+      <input type="checkbox" id="hide-released-filter" checked />
       <div id="card-unfilled-roles"></div>
       <div id="card-open-episodes"></div>
       <div id="card-next-event" data-episode-id="2"></div>
     `;
     await import('../../resources/js/hoerbuecher.js');
     document.dispatchEvent(new Event('DOMContentLoaded'));
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  test('hides released episodes by default and shows them when filter is disabled', () => {
+    const rows = document.querySelectorAll('tr[data-href]');
+    expect(rows[0].style.display).toBe('none');
+    expect(rows[1].style.display).toBe('');
+
+    const hideReleased = document.getElementById('hide-released-filter');
+    hideReleased.checked = false;
+    hideReleased.dispatchEvent(new Event('change'));
+
+    expect(rows[0].style.display).toBe('');
+    expect(rows[1].style.display).toBe('');
   });
 
   test('filters rows by status and type', () => {
