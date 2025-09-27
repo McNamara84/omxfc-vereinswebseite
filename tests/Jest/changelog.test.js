@@ -32,7 +32,11 @@ describe('changelog module', () => {
     await domContentLoaded();
     expect(global.fetch).toHaveBeenCalledWith('/changelog.json');
     const container = document.getElementById('release-notes');
-    expect(container.querySelectorAll('section').length).toBe(1);
+    const sections = container.querySelectorAll('section');
+    expect(sections.length).toBe(1);
+    const details = sections[0].querySelector('details');
+    expect(details).not.toBeNull();
+    expect(details?.open).toBe(true);
   });
 
   test('does nothing when container missing', async () => {
@@ -82,8 +86,35 @@ describe('changelog module', () => {
     await domContentLoaded();
     const items = Array.from(document.querySelectorAll('#release-notes li'));
     const classes = items.map((li) => li.querySelector('span')?.className || '');
+    classes.forEach((className) => {
+      expect(className).toContain('min-w-[7rem]');
+    });
     expect(classes[0]).toContain('bg-red-600');
     expect(classes[1]).toContain('bg-blue-600');
     expect(classes[2]).toContain('bg-gray-600');
+  });
+
+  test('only the most recent release is expanded on load', async () => {
+    document.body.innerHTML = '<div id="release-notes"></div>';
+    global.fetch.mockResolvedValue({
+      json: () => Promise.resolve([
+        { version: '1.0.0', pub_date: '2024-01-02', notes: [] },
+        { version: '1.1.0', pub_date: '2024-02-15', notes: [] },
+        { version: '0.9.5', pub_date: '2023-12-20', notes: [] },
+      ]),
+    });
+
+    await import('../../resources/js/changelog.js');
+    await domContentLoaded();
+
+    const detailElements = Array.from(document.querySelectorAll('#release-notes details'));
+    expect(detailElements.length).toBe(3);
+    expect(detailElements[0].open).toBe(true);
+    expect(detailElements.slice(1).every((el) => el.open === false)).toBe(true);
+
+    const summary = detailElements[0].querySelector('summary');
+    expect(summary?.getAttribute('aria-expanded')).toBe('true');
+    const collapsedSummary = detailElements[1].querySelector('summary');
+    expect(collapsedSummary?.getAttribute('aria-expanded')).toBe('false');
   });
 });
