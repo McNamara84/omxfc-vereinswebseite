@@ -36,6 +36,7 @@ class NavigationMenuTest extends TestCase
         $response = $this->actingAs($user)->get('/');
 
         $response->assertSee(route('admin.statistiken.index'));
+        $response->assertSee(route('admin.maddraxikon.index'));
         $response->assertSee('Admin');
         $response->assertSee('admin-button');
         $response->assertSee('admin-mobile-button');
@@ -50,6 +51,7 @@ class NavigationMenuTest extends TestCase
         $response = $this->actingAs($user)->get('/');
 
         $response->assertDontSee(route('admin.statistiken.index'));
+        $response->assertDontSee(route('admin.maddraxikon.index'));
         $response->assertDontSee('admin-button');
         $response->assertDontSee('admin-mobile-button');
     }

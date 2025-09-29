@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\AdminMaddraxikonController;
 use App\Http\Controllers\AdminMessageController;
 use App\Http\Controllers\ArbeitsgruppenController;
 use App\Http\Controllers\Auth\CustomEmailVerificationController;
@@ -56,6 +57,7 @@ Route::get('/email/bestaetigen/{id}/{hash}', CustomEmailVerificationController::
 // Nur für eingeloggte und verifizierte Mitglieder, die NICHT Anwärter sind
 Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function () {
     Route::get('/admin/statistiken', [AdminController::class, 'index'])->name('admin.statistiken.index')->middleware('admin');
+    Route::get('/admin/maddraxikon', [AdminMaddraxikonController::class, 'index'])->name('admin.maddraxikon.index')->middleware('admin');
     Route::controller(DashboardController::class)->group(function () {
         Route::get('/dashboard', 'index')->name('dashboard');
         Route::post('/anwaerter/{user}/freigeben', 'approveAnwaerter')->name('anwaerter.approve');
