@@ -16,6 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
         status: document.getElementById('status-filter'),
         type: document.getElementById('type-filter'),
         year: document.getElementById('year-filter'),
+        roleName: document.getElementById('role-name-filter'),
         roles: document.getElementById('roles-filter'),
         rolesUnfilled: document.getElementById('roles-unfilled-filter'),
         hideReleased: document.getElementById('hide-released-filter'),
@@ -27,6 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const statusVal = filters.status?.value;
         const typeVal = filters.type?.value;
         const yearVal = filters.year?.value;
+        const roleNameVal = filters.roleName?.value;
         const rolesChecked = filters.roles?.checked;
         const rolesUnfilledChecked = filters.rolesUnfilled?.checked;
         const hideReleasedChecked = filters.hideReleased?.checked;
@@ -37,6 +39,16 @@ document.addEventListener('DOMContentLoaded', () => {
             const matchStatus = !statusVal || row.dataset.status === statusVal;
             const matchType = !typeVal || row.dataset.type === typeVal;
             const matchYear = !yearVal || (row.dataset.year ?? '') === yearVal;
+            let roleNames = [];
+            const datasetRoleNames = row.dataset.roleNames;
+            if (datasetRoleNames) {
+                try {
+                    roleNames = JSON.parse(datasetRoleNames);
+                } catch (error) {
+                    roleNames = datasetRoleNames.split('|');
+                }
+            }
+            const matchRoleName = !roleNameVal || roleNames.includes(roleNameVal);
             const rolesFilled = row.dataset.rolesFilled === '1';
             let matchRoles = true;
             if (rolesChecked) {
@@ -57,6 +69,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 matchStatus &&
                 matchType &&
                 matchYear &&
+                matchRoleName &&
                 matchRoles &&
                 matchEpisode &&
                 !isReleased
@@ -65,7 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    ['status', 'type', 'year'].forEach(key => {
+    ['status', 'type', 'year', 'roleName'].forEach(key => {
         const el = filters[key];
         el?.addEventListener('change', applyFilters);
     });
@@ -106,6 +119,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (filters.status) {
             filters.status.value = status;
         }
+        if (filters.roleName) {
+            filters.roleName.value = '';
+        }
         if (!filters.rolesUnfilled) {
             return;
         }
@@ -133,6 +149,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             if (filters.status) {
                 filters.status.value = '';
+            }
+            if (filters.roleName) {
+                filters.roleName.value = '';
             }
             applyFilters();
         }

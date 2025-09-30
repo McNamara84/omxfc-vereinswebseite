@@ -20,13 +20,21 @@ class HoerbuchController extends Controller
      */
     public function index()
     {
-        $episodes = AudiobookEpisode::all()
+        $episodes = AudiobookEpisode::with(['roles:id,episode_id,name'])
+            ->get()
             ->sortBy(function ($episode) {
                 return $episode->planned_release_date_parsed ?? Carbon::create(9999, 12, 31);
             })
             ->values();
 
         $years = $episodes->pluck('release_year')->filter()->unique()->sort()->values();
+
+        $roleNames = $episodes
+            ->flatMap(fn ($episode) => $episode->roles->pluck('name'))
+            ->filter()
+            ->unique()
+            ->sort()
+            ->values();
 
         $totalUnfilledRoles = $episodes
             ->sum(fn ($e) => max($e->roles_total - $e->roles_filled, 0));
@@ -50,6 +58,7 @@ class HoerbuchController extends Controller
             'episodes' => $episodes,
             'statuses' => AudiobookEpisodeStatus::values(),
             'years' => $years,
+            'roleNames' => $roleNames,
             'totalUnfilledRoles' => $totalUnfilledRoles,
             'openRolesEpisodes' => $openRolesEpisodes,
             'nextEpisode' => $nextEpisode,

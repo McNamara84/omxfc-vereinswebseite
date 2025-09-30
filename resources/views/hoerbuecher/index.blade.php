@@ -54,6 +54,19 @@
                         <option value="{{ $year }}">{{ $year }}</option>
                     @endforeach
                 </select>
+                <div class="flex flex-col">
+                    <label for="role-name-filter" class="sr-only">Nach Rolle filtern</label>
+                    <select
+                        id="role-name-filter"
+                        class="border-gray-300 dark:border-gray-600 rounded-md"
+                        aria-label="Hörbuchfolgen nach Rolle filtern"
+                    >
+                        <option value="">Alle Rollen</option>
+                        @foreach($roleNames as $roleName)
+                            <option value="{{ $roleName }}">{{ $roleName }}</option>
+                        @endforeach
+                    </select>
+                </div>
                 <label class="inline-flex items-center">
                     <input type="checkbox" id="roles-filter" class="form-checkbox">
                     <span class="ml-2">Rollen besetzt</span>
@@ -103,6 +116,7 @@
                                 data-year="{{ $episode->release_year ?? '' }}"
                                 data-episode-id="{{ $episode->id }}"
                                 data-planned-release-date="{{ optional($episode->planned_release_date_parsed)->toDateString() }}"
+                                data-role-names='@json($episode->roles->pluck('name')->filter()->values())'
                             >
                                 <td class="px-4 py-2 text-gray-700 dark:text-gray-300">{{ $episode->episode_number }}</td>
                                 <td class="px-4 py-2 text-gray-700 dark:text-gray-300">{{ $episode->title }}</td>

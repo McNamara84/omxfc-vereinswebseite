@@ -396,6 +396,63 @@ class HoerbuchControllerTest extends TestCase
             ->assertDontSee('onkeydown', false);
     }
 
+    public function test_index_displays_role_filter_with_distinct_names(): void
+    {
+        $user = $this->actingMember('Admin');
+
+        $firstEpisode = AudiobookEpisode::create([
+            'episode_number' => 'F10',
+            'title' => 'Erzählung Eins',
+            'author' => 'Autorin',
+            'planned_release_date' => '2025',
+            'status' => 'Skripterstellung',
+            'responsible_user_id' => null,
+            'progress' => 20,
+            'roles_total' => 2,
+            'roles_filled' => 1,
+            'notes' => null,
+        ]);
+
+        $secondEpisode = AudiobookEpisode::create([
+            'episode_number' => 'F11',
+            'title' => 'Erzählung Zwei',
+            'author' => 'Autor',
+            'planned_release_date' => '2026',
+            'status' => 'Aufnahmensammlung',
+            'responsible_user_id' => null,
+            'progress' => 40,
+            'roles_total' => 3,
+            'roles_filled' => 2,
+            'notes' => null,
+        ]);
+
+        $firstEpisode->roles()->createMany([
+            ['name' => 'Protagonist'],
+            ['name' => 'Erzählerin'],
+        ]);
+
+        $secondEpisode->roles()->createMany([
+            ['name' => 'Antagonist'],
+            ['name' => 'Protagonist'],
+            ['name' => 'Gastauftritt'],
+        ]);
+
+        $response = $this->actingAs($user)->get(route('hoerbuecher.index'));
+
+        $response->assertOk();
+        $response->assertSee('id="role-name-filter"', false);
+        $response->assertSee('aria-label="Hörbuchfolgen nach Rolle filtern"', false);
+
+        $content = $response->getContent();
+        $this->assertStringContainsString('["Protagonist","Erz\\u00e4hlerin"]', $content);
+        $this->assertStringContainsString('["Antagonist","Protagonist","Gastauftritt"]', $content);
+
+        $this->assertSame(1, substr_count($content, 'value="Protagonist"'));
+        $this->assertSame(1, substr_count($content, 'value="Antagonist"'));
+        $this->assertSame(1, substr_count($content, 'value="Erzählerin"'));
+        $this->assertSame(1, substr_count($content, 'value="Gastauftritt"'));
+    }
+
     public function test_admin_can_view_episode_details(): void
     {
         $user = $this->actingMember('Admin');
