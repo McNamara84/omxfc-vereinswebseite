@@ -477,6 +477,19 @@ class HoerbuchControllerTest extends TestCase
         );
     }
 
+    public function test_index_uses_compact_role_filter_labels(): void
+    {
+        $user = $this->actingMember('Admin');
+
+        $response = $this->actingAs($user)->get(route('hoerbuecher.index'));
+
+        $response->assertOk();
+        $response->assertSee('<span class="ml-2">Besetzt</span>', false);
+        $response->assertSee('<span class="ml-2">Unbesetzt</span>', false);
+        $response->assertDontSee('Rollen besetzt');
+        $response->assertDontSee('Rollen unbesetzt');
+    }
+
     public function test_admin_can_view_episode_details(): void
     {
         $user = $this->actingMember('Admin');

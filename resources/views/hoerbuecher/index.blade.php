@@ -69,11 +69,11 @@
                 </div>
                 <label class="inline-flex items-center">
                     <input type="checkbox" id="roles-filter" class="form-checkbox">
-                    <span class="ml-2">Rollen besetzt</span>
+                    <span class="ml-2">Besetzt</span>
                 </label>
                 <label class="inline-flex items-center">
                     <input type="checkbox" id="roles-unfilled-filter" class="form-checkbox">
-                    <span class="ml-2">Rollen unbesetzt</span>
+                    <span class="ml-2">Unbesetzt</span>
                 </label>
                 <label class="inline-flex items-center">
                     <input
