@@ -43,9 +43,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const datasetRoleNames = row.dataset.roleNames;
             if (datasetRoleNames) {
                 try {
-                    roleNames = JSON.parse(datasetRoleNames);
+                    const parsed = JSON.parse(datasetRoleNames);
+                    if (Array.isArray(parsed)) {
+                        roleNames = parsed;
+                    }
                 } catch (error) {
-                    roleNames = datasetRoleNames.split('|');
+                    console.error('Konnte Rollenliste nicht parsen', error);
                 }
             }
             const matchRoleName = !roleNameVal || roleNames.includes(roleNameVal);

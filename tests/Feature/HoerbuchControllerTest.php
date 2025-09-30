@@ -10,6 +10,7 @@ use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 use App\Enums\Role;
+use Symfony\Component\DomCrawler\Crawler;
 
 class HoerbuchControllerTest extends TestCase
 {
@@ -443,14 +444,37 @@ class HoerbuchControllerTest extends TestCase
         $response->assertSee('id="role-name-filter"', false);
         $response->assertSee('aria-label="Hörbuchfolgen nach Rolle filtern"', false);
 
-        $content = $response->getContent();
-        $this->assertStringContainsString('["Protagonist","Erz\\u00e4hlerin"]', $content);
-        $this->assertStringContainsString('["Antagonist","Protagonist","Gastauftritt"]', $content);
+        $crawler = new Crawler($response->getContent());
 
-        $this->assertSame(1, substr_count($content, 'value="Protagonist"'));
-        $this->assertSame(1, substr_count($content, 'value="Antagonist"'));
-        $this->assertSame(1, substr_count($content, 'value="Erzählerin"'));
-        $this->assertSame(1, substr_count($content, 'value="Gastauftritt"'));
+        $firstRowRoles = $crawler
+            ->filter("tr[data-episode-id='{$firstEpisode->id}']")
+            ->attr('data-role-names');
+        $secondRowRoles = $crawler
+            ->filter("tr[data-episode-id='{$secondEpisode->id}']")
+            ->attr('data-role-names');
+
+        $this->assertSame(
+            ['Protagonist', 'Erzählerin'],
+            json_decode($firstRowRoles, true, 512, JSON_THROW_ON_ERROR)
+        );
+        $this->assertSame(
+            ['Antagonist', 'Protagonist', 'Gastauftritt'],
+            json_decode($secondRowRoles, true, 512, JSON_THROW_ON_ERROR)
+        );
+
+        $roleOptions = $crawler
+            ->filter('#role-name-filter option')
+            ->each(fn ($option) => $option->attr('value'));
+
+        $this->assertContains('', $roleOptions);
+        $this->assertContains('Protagonist', $roleOptions);
+        $this->assertContains('Antagonist', $roleOptions);
+        $this->assertContains('Erzählerin', $roleOptions);
+        $this->assertContains('Gastauftritt', $roleOptions);
+        $this->assertSame(
+            count($roleOptions) - 1,
+            count(array_unique(array_filter($roleOptions)))
+        );
     }
 
     public function test_admin_can_view_episode_details(): void
