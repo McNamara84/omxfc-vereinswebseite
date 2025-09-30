@@ -10,6 +10,7 @@ use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 use App\Enums\Role;
+use Symfony\Component\DomCrawler\Crawler;
 
 class HoerbuchControllerTest extends TestCase
 {
@@ -394,6 +395,86 @@ class HoerbuchControllerTest extends TestCase
             ->assertSee('tabindex="0"', false)
             ->assertDontSee('onclick="window.location', false)
             ->assertDontSee('onkeydown', false);
+    }
+
+    public function test_index_displays_role_filter_with_distinct_names(): void
+    {
+        $user = $this->actingMember('Admin');
+
+        $firstEpisode = AudiobookEpisode::create([
+            'episode_number' => 'F10',
+            'title' => 'Erzählung Eins',
+            'author' => 'Autorin',
+            'planned_release_date' => '2025',
+            'status' => 'Skripterstellung',
+            'responsible_user_id' => null,
+            'progress' => 20,
+            'roles_total' => 2,
+            'roles_filled' => 1,
+            'notes' => null,
+        ]);
+
+        $secondEpisode = AudiobookEpisode::create([
+            'episode_number' => 'F11',
+            'title' => 'Erzählung Zwei',
+            'author' => 'Autor',
+            'planned_release_date' => '2026',
+            'status' => 'Aufnahmensammlung',
+            'responsible_user_id' => null,
+            'progress' => 40,
+            'roles_total' => 3,
+            'roles_filled' => 2,
+            'notes' => null,
+        ]);
+
+        $firstEpisode->roles()->createMany([
+            ['name' => 'Protagonist'],
+            ['name' => 'Erzählerin'],
+        ]);
+
+        $secondEpisode->roles()->createMany([
+            ['name' => 'Antagonist'],
+            ['name' => 'Protagonist'],
+            ['name' => 'Gastauftritt'],
+        ]);
+
+        $response = $this->actingAs($user)->get(route('hoerbuecher.index'));
+
+        $response->assertOk();
+        $response->assertSee('id="role-name-filter"', false);
+        $response->assertSee('aria-label="Hörbuchfolgen nach Rolle filtern"', false);
+
+        $crawler = new Crawler($response->getContent());
+
+        $firstRowRoles = $crawler
+            ->filter("tr[data-episode-id='{$firstEpisode->id}']")
+            ->attr('data-role-names');
+        $secondRowRoles = $crawler
+            ->filter("tr[data-episode-id='{$secondEpisode->id}']")
+            ->attr('data-role-names');
+
+        $this->assertSame(
+            ['Protagonist', 'Erzählerin'],
+            json_decode($firstRowRoles, true, 512, JSON_THROW_ON_ERROR)
+        );
+        $this->assertSame(
+            ['Antagonist', 'Protagonist', 'Gastauftritt'],
+            json_decode($secondRowRoles, true, 512, JSON_THROW_ON_ERROR)
+        );
+
+        $roleOptions = $crawler
+            ->filter('#role-name-filter option')
+            ->each(fn ($option) => $option->attr('value'));
+
+        $this->assertContains('', $roleOptions);
+        $this->assertContains('Protagonist', $roleOptions);
+        $this->assertContains('Antagonist', $roleOptions);
+        $this->assertContains('Erzählerin', $roleOptions);
+        $this->assertContains('Gastauftritt', $roleOptions);
+        $this->assertSame(
+            count($roleOptions) - 1,
+            count(array_unique(array_filter($roleOptions)))
+        );
     }
 
     public function test_admin_can_view_episode_details(): void

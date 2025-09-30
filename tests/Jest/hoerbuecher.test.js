@@ -7,13 +7,14 @@ describe('hoerbuecher module', () => {
     jest.setSystemTime(new Date('2024-01-15T00:00:00Z'));
     document.body.innerHTML = `
       <table>
-        <tr data-href="/1" data-status="done" data-type="A" data-year="2024" data-roles-filled="1" data-episode-id="1" data-planned-release-date="2023-12-01"></tr>
-        <tr data-href="/2" data-status="open" data-type="B" data-year="2023" data-roles-filled="0" data-episode-id="2" data-planned-release-date="2024-02-01"></tr>
-        <tr data-href="/3" data-status="Rollenbesetzung" data-type="C" data-year="2023" data-roles-filled="0" data-episode-id="3" data-planned-release-date="2024-03-15"></tr>
+        <tr data-href="/1" data-status="done" data-type="A" data-year="2024" data-roles-filled="1" data-episode-id="1" data-planned-release-date="2023-12-01" data-role-names='["Held"]'></tr>
+        <tr data-href="/2" data-status="open" data-type="B" data-year="2023" data-roles-filled="0" data-episode-id="2" data-planned-release-date="2024-02-01" data-role-names='["Schurke","Nebenfigur"]'></tr>
+        <tr data-href="/3" data-status="Rollenbesetzung" data-type="C" data-year="2023" data-roles-filled="0" data-episode-id="3" data-planned-release-date="2024-03-15" data-role-names='[]'></tr>
       </table>
       <select id="status-filter"><option value=""></option><option value="open">open</option><option value="Rollenbesetzung">Rollenbesetzung</option></select>
       <select id="type-filter"><option value=""></option><option value="A">A</option><option value="B">B</option><option value="C">C</option></select>
       <select id="year-filter"><option value=""></option><option value="2023">2023</option><option value="2024">2024</option></select>
+      <select id="role-name-filter"><option value=""></option><option value="Held">Held</option><option value="Schurke">Schurke</option><option value="Nebenfigur">Nebenfigur</option></select>
       <input type="checkbox" id="roles-filter" />
       <input type="checkbox" id="roles-unfilled-filter" />
       <input type="checkbox" id="hide-released-filter" checked />
@@ -59,6 +60,25 @@ describe('hoerbuecher module', () => {
     typeFilter.value = 'A';
     typeFilter.dispatchEvent(new Event('change'));
     expect(rows[1].style.display).toBe('none');
+  });
+
+  test('filters rows by selected role name', () => {
+    const roleFilter = document.getElementById('role-name-filter');
+    const rows = document.querySelectorAll('tr[data-href]');
+
+    roleFilter.value = 'Schurke';
+    roleFilter.dispatchEvent(new Event('change'));
+
+    expect(rows[0].style.display).toBe('none');
+    expect(rows[1].style.display).toBe('');
+    expect(rows[2].style.display).toBe('none');
+
+    roleFilter.value = '';
+    roleFilter.dispatchEvent(new Event('change'));
+
+    expect(rows[0].style.display).toBe('none');
+    expect(rows[1].style.display).toBe('');
+    expect(rows[2].style.display).toBe('');
   });
 
   test('row click and Enter key navigate to dataset href', () => {
