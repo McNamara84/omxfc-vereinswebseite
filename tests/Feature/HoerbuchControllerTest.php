@@ -393,6 +393,7 @@ class HoerbuchControllerTest extends TestCase
             ->assertSee('data-href="'.route('hoerbuecher.show', $episode).'"', false)
             ->assertSee('role="button"', false)
             ->assertSee('tabindex="0"', false)
+            ->assertSee('Unveröffentlicht')
             ->assertDontSee('onclick="window.location', false)
             ->assertDontSee('onkeydown', false);
     }

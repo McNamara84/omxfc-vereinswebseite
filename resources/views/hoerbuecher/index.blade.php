@@ -84,7 +84,7 @@
                         aria-describedby="hide-released-hint"
                     >
                     <span class="ml-2">
-                        Veröffentlicht<span class="sr-only">e Folgen ausblenden</span>
+                        Unveröffentlicht<span class="sr-only">e Folgen anzeigen</span>
                     </span>
                 </label>
                 <p id="hide-released-hint" class="sr-only">
