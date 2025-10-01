@@ -390,9 +390,15 @@ class HoerbuchControllerTest extends TestCase
             ->assertSee('50%')
             ->assertSee('5/10')
             ->assertSee(route('hoerbuecher.create'))
+            ->assertSee('id="episode-select-filters"', false)
+            ->assertSee('<fieldset', false)
+            ->assertSee('id="episode-checkbox-filters"', false)
+            ->assertSee('<legend class="text-sm font-semibold text-gray-700 dark:text-gray-200 w-full mb-2">Checkbox-Filter</legend>', false)
             ->assertSee('data-href="'.route('hoerbuecher.show', $episode).'"', false)
             ->assertSee('role="button"', false)
             ->assertSee('tabindex="0"', false)
+            ->assertSee('Unveröffentlicht')
+            ->assertSee('Unveröffentlichte Folgen werden angezeigt, solange der Filter aktiv ist. Deaktiviere den Filter, um bereits veröffentlichte Folgen einzublenden.', false)
             ->assertDontSee('onclick="window.location', false)
             ->assertDontSee('onkeydown', false);
     }
