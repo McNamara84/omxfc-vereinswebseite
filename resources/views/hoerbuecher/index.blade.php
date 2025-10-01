@@ -36,57 +36,74 @@
             </div>
         </div>
         <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
-            <div class="mb-4 flex flex-wrap gap-4" aria-label="Filter für die Hörbuchfolgen">
-                <select id="status-filter" class="border-gray-300 dark:border-gray-600 rounded-md">
-                    <option value="">Alle Status</option>
-                    @foreach($statuses as $status)
-                        <option value="{{ $status }}">{{ $status }}</option>
-                    @endforeach
-                </select>
-                <select id="type-filter" class="border-gray-300 dark:border-gray-600 rounded-md">
-                    <option value="">Alle Typen</option>
-                    <option value="regular">Reguläre Folge</option>
-                    <option value="se">Sonderedition</option>
-                </select>
-                <select id="year-filter" class="border-gray-300 dark:border-gray-600 rounded-md">
-                    <option value="">Alle Jahre</option>
-                    @foreach($years as $year)
-                        <option value="{{ $year }}">{{ $year }}</option>
-                    @endforeach
-                </select>
-                <div class="flex flex-col">
-                    <label for="role-name-filter" class="sr-only">Nach Rolle filtern</label>
-                    <select
-                        id="role-name-filter"
-                        class="border-gray-300 dark:border-gray-600 rounded-md"
-                        aria-label="Hörbuchfolgen nach Rolle filtern"
-                    >
-                        <option value="">Alle Rollen</option>
-                        @foreach($roleNames as $roleName)
-                            <option value="{{ $roleName }}">{{ $roleName }}</option>
+            <div class="mb-4 space-y-4" aria-label="Filter für die Hörbuchfolgen">
+                <div
+                    id="episode-select-filters"
+                    class="flex flex-wrap gap-4 items-end"
+                    role="group"
+                    aria-label="Auswahlfilter"
+                >
+                    <select id="status-filter" class="border-gray-300 dark:border-gray-600 rounded-md">
+                        <option value="">Alle Status</option>
+                        @foreach($statuses as $status)
+                            <option value="{{ $status }}">{{ $status }}</option>
                         @endforeach
                     </select>
+                    <select id="type-filter" class="border-gray-300 dark:border-gray-600 rounded-md">
+                        <option value="">Alle Typen</option>
+                        <option value="regular">Reguläre Folge</option>
+                        <option value="se">Sonderedition</option>
+                    </select>
+                    <select id="year-filter" class="border-gray-300 dark:border-gray-600 rounded-md">
+                        <option value="">Alle Jahre</option>
+                        @foreach($years as $year)
+                            <option value="{{ $year }}">{{ $year }}</option>
+                        @endforeach
+                    </select>
+                    <div class="flex flex-col">
+                        <label for="role-name-filter" class="sr-only">Nach Rolle filtern</label>
+                        <select
+                            id="role-name-filter"
+                            class="border-gray-300 dark:border-gray-600 rounded-md"
+                            aria-label="Hörbuchfolgen nach Rolle filtern"
+                        >
+                            <option value="">Alle Rollen</option>
+                            @foreach($roleNames as $roleName)
+                                <option value="{{ $roleName }}">{{ $roleName }}</option>
+                            @endforeach
+                        </select>
+                    </div>
                 </div>
-                <label class="inline-flex items-center">
-                    <input type="checkbox" id="roles-filter" class="form-checkbox">
-                    <span class="ml-2">Besetzt</span>
-                </label>
-                <label class="inline-flex items-center">
-                    <input type="checkbox" id="roles-unfilled-filter" class="form-checkbox">
-                    <span class="ml-2">Unbesetzt</span>
-                </label>
-                <label class="inline-flex items-center">
-                    <input
-                        type="checkbox"
-                        id="hide-released-filter"
-                        class="form-checkbox"
-                        checked
-                        aria-describedby="hide-released-hint"
-                    >
-                    <span class="ml-2">
-                        Unveröffentlicht<span class="sr-only">e Folgen anzeigen</span>
-                    </span>
-                </label>
+                <fieldset
+                    id="episode-checkbox-filters"
+                    class="flex flex-wrap gap-4 border-0 p-0 m-0"
+                    aria-describedby="checkbox-filter-hint"
+                >
+                    <legend class="text-sm font-semibold text-gray-700 dark:text-gray-200 w-full mb-2">Checkbox-Filter</legend>
+                    <p id="checkbox-filter-hint" class="sr-only">
+                        Aktiviere einen oder mehrere Checkbox-Filter, um unveröffentlichte Folgen oder Episoden mit vollständig besetzten Rollen einzublenden.
+                    </p>
+                    <label class="inline-flex items-center">
+                        <input type="checkbox" id="roles-filter" class="form-checkbox">
+                        <span class="ml-2">Besetzt</span>
+                    </label>
+                    <label class="inline-flex items-center">
+                        <input type="checkbox" id="roles-unfilled-filter" class="form-checkbox">
+                        <span class="ml-2">Unbesetzt</span>
+                    </label>
+                    <label class="inline-flex items-center">
+                        <input
+                            type="checkbox"
+                            id="hide-released-filter"
+                            class="form-checkbox"
+                            checked
+                            aria-describedby="hide-released-hint"
+                        >
+                        <span class="ml-2">
+                            Unveröffentlicht<span class="sr-only">e Folgen anzeigen</span>
+                        </span>
+                    </label>
+                </fieldset>
                 <p id="hide-released-hint" class="sr-only">
                     Bereits veröffentlichte Folgen können angezeigt werden, indem der Filter deaktiviert wird.
                 </p>
