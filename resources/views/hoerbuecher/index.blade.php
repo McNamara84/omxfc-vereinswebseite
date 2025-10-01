@@ -105,7 +105,7 @@
                     </label>
                 </fieldset>
                 <p id="hide-released-hint" class="sr-only">
-                    Bereits veröffentlichte Folgen können angezeigt werden, indem der Filter deaktiviert wird.
+                    Unveröffentlichte Folgen werden angezeigt, solange der Filter aktiv ist. Deaktiviere den Filter, um bereits veröffentlichte Folgen einzublenden.
                 </p>
             </div>
             <div class="overflow-x-auto">

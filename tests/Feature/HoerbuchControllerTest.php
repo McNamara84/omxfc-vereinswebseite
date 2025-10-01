@@ -398,6 +398,7 @@ class HoerbuchControllerTest extends TestCase
             ->assertSee('role="button"', false)
             ->assertSee('tabindex="0"', false)
             ->assertSee('Unveröffentlicht')
+            ->assertSee('Unveröffentlichte Folgen werden angezeigt, solange der Filter aktiv ist. Deaktiviere den Filter, um bereits veröffentlichte Folgen einzublenden.', false)
             ->assertDontSee('onclick="window.location', false)
             ->assertDontSee('onkeydown', false);
     }
