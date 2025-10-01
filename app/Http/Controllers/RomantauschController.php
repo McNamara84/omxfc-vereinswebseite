@@ -302,13 +302,13 @@ class RomantauschController extends Controller
             return false;
         }
 
-        $matchingKey = $offerOwnerRequests->keys()->first(function ($key) use ($requestOwnerOffers) {
-            return $requestOwnerOffers->has($key);
-        });
+        $matchingEntries = $offerOwnerRequests->intersectByKeys($requestOwnerOffers);
 
-        if (!$matchingKey) {
+        if ($matchingEntries->isEmpty()) {
             return false;
         }
+
+        $matchingKey = $matchingEntries->keys()->first();
 
         $reciprocalRequest = $offerOwnerRequests->get($matchingKey);
         $reciprocalOffer = $requestOwnerOffers->get($matchingKey);
@@ -317,19 +317,18 @@ class RomantauschController extends Controller
             return false;
         }
 
-        $firstSwap = null;
-        $secondSwap = null;
-
-        DB::transaction(function () use ($offer, $request, $reciprocalOffer, $reciprocalRequest, &$firstSwap, &$secondSwap) {
-            $firstSwap = BookSwap::create([
+        [$firstSwap, $secondSwap] = DB::transaction(function () use ($offer, $request, $reciprocalOffer, $reciprocalRequest) {
+            $primarySwap = BookSwap::create([
                 'offer_id' => $offer->id,
                 'request_id' => $request->id,
             ]);
 
-            $secondSwap = BookSwap::create([
+            $reciprocalSwap = BookSwap::create([
                 'offer_id' => $reciprocalOffer->id,
                 'request_id' => $reciprocalRequest->id,
             ]);
+
+            return [$primarySwap, $reciprocalSwap];
         });
 
         Mail::to($request->user->email)->queue(new BookSwapMatched($firstSwap));

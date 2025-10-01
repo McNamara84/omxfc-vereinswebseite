@@ -116,6 +116,89 @@ class BookSwapProcessTest extends TestCase
         Mail::assertQueued(BookSwapMatched::class, 2);
     }
 
+    public function test_reciprocal_matching_uses_key_intersection_for_multiple_candidates(): void
+    {
+        Mail::fake();
+
+        $userA = $this->createMember();
+        $userB = $this->createMember();
+
+        $bookOne = Book::create([
+            'roman_number' => 1,
+            'title' => 'Roman Eins',
+            'author' => 'Autor Eins',
+            'type' => BookType::MaddraxDieDunkleZukunftDerErde,
+        ]);
+
+        $bookTwo = Book::create([
+            'roman_number' => 2,
+            'title' => 'Roman Zwei',
+            'author' => 'Autor Zwei',
+            'type' => BookType::MaddraxDieDunkleZukunftDerErde,
+        ]);
+
+        $bookThree = Book::create([
+            'roman_number' => 3,
+            'title' => 'Roman Drei',
+            'author' => 'Autor Drei',
+            'type' => BookType::MaddraxDieDunkleZukunftDerErde,
+        ]);
+
+        BookRequest::create([
+            'user_id' => $userA->id,
+            'series' => $bookTwo->type->value,
+            'book_number' => $bookTwo->roman_number,
+            'book_title' => $bookTwo->title,
+            'condition' => 'gut',
+        ]);
+
+        BookRequest::create([
+            'user_id' => $userA->id,
+            'series' => $bookThree->type->value,
+            'book_number' => $bookThree->roman_number,
+            'book_title' => $bookThree->title,
+            'condition' => 'gut',
+        ]);
+
+        $offerForBookTwo = BookOffer::create([
+            'user_id' => $userB->id,
+            'series' => $bookTwo->type->value,
+            'book_number' => $bookTwo->roman_number,
+            'book_title' => $bookTwo->title,
+            'condition' => 'gut',
+        ]);
+
+        $offerForBookThree = BookOffer::create([
+            'user_id' => $userB->id,
+            'series' => $bookThree->type->value,
+            'book_number' => $bookThree->roman_number,
+            'book_title' => $bookThree->title,
+            'condition' => 'gut',
+        ]);
+
+        $this->actingAs($userB)->post(route('romantausch.store-request'), [
+            'series' => $bookOne->type->value,
+            'book_number' => $bookOne->roman_number,
+            'condition' => 'gut',
+        ])->assertRedirect(route('romantausch.index'));
+
+        $this->actingAs($userA)->post(route('romantausch.store-offer'), [
+            'series' => $bookOne->type->value,
+            'book_number' => $bookOne->roman_number,
+            'condition' => 'gut',
+        ])->assertRedirect(route('romantausch.index'));
+
+        $this->assertDatabaseCount('book_swaps', 2);
+
+        $swaps = BookSwap::with(['offer', 'request'])->get();
+
+        $this->assertTrue($swaps->contains(fn ($swap) => $swap->offer->user_id === $userB->id && in_array($swap->offer->book_number, [$bookTwo->roman_number, $bookThree->roman_number], true)));
+        $this->assertTrue($swaps->contains(fn ($swap) => $swap->request->user_id === $userB->id && $swap->offer->user_id === $userA->id));
+        $this->assertTrue($swaps->contains(fn ($swap) => $swap->offer->user_id === $userB->id && $swap->request->user_id === $userA->id));
+
+        Mail::assertQueued(BookSwapMatched::class, 2);
+    }
+
     public function test_confirmations_complete_swap_and_award_points(): void
     {
         $offerUser = $this->createMember();
