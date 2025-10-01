@@ -1,16 +1,34 @@
 {{-- resources/views/statistik/index.blade.php --}}
 <x-app-layout>
     <x-member-page>
-            {{-- Kopfzeile --}}
-            <div
-                class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <h1 class="text-2xl font-semibold text-[#8B0116] dark:text-[#FF6B81]">
-                    Statistik
-                </h1>
+        {{-- Kopfzeile --}}
+        <div
+            class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <h1 class="text-2xl font-semibold text-[#8B0116] dark:text-[#FF6B81]">
+                Statistik
+            </h1>
+        </div>
+
+        @php
+            $statisticSections = collect($statisticSections ?? []);
+            $statisticSectionLookup = $statisticSections->keyBy('id');
+        @endphp
+
+        <div class="flex flex-col lg:flex-row lg:items-start gap-6">
+            <div class="w-full lg:w-72 lg:flex-shrink-0">
+                @include('statistik.partials.quicknav', ['sections' => $statisticSections])
             </div>
-            {{-- Card 1 – Balkendiagramm (≥ 2 Bakk) --}}
-                @php($min = 2)
-                <div data-min-points="{{ $min }}" class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
+
+            <div class="flex-1 space-y-6" data-statistik-sections-wrapper>
+                {{-- Card 1 – Balkendiagramm (≥ 2 Bakk) --}}
+                @php($section = $statisticSectionLookup->get('author-chart'))
+                @php($min = $section['minPoints'] ?? 0)
+                <div
+                    id="{{ $section['id'] }}"
+                    data-statistik-section
+                    data-min-points="{{ $min }}"
+                    tabindex="-1"
+                    class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
                     <h2 id="authorChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
                         Maddrax-Romane je Autor:in
                     </h2>
@@ -28,9 +46,16 @@
                     window.authorChartLabels = @json($authorCounts->keys());
                     window.authorChartValues = @json($authorCounts->values());
                 </script>
-            {{-- Card 2 – Teamplayer-Tabelle (≥ 4 Baxx) --}}
-                @php($min = 4)
-                <div data-min-points="{{ $min }}" class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
+
+                {{-- Card 2 – Teamplayer-Tabelle (≥ 4 Baxx) --}}
+                @php($section = $statisticSectionLookup->get('teamplayer'))
+                @php($min = $section['minPoints'] ?? 0)
+                <div
+                    id="{{ $section['id'] }}"
+                    data-statistik-section
+                    data-min-points="{{ $min }}"
+                    tabindex="-1"
+                    class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
                     <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
                         Top Teamplayer
                     </h2>
@@ -59,9 +84,16 @@
                         @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
                     @endif
                 </div>
-            {{-- Card 3 – Top 10 Maddrax-Romane (≥ 5 Baxx) --}}
-                @php($min = 5)
-                <div data-min-points="{{ $min }}" class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
+
+                {{-- Card 3 – Top 10 Maddrax-Romane (≥ 5 Baxx) --}}
+                @php($section = $statisticSectionLookup->get('top-romane'))
+                @php($min = $section['minPoints'] ?? 0)
+                <div
+                    id="{{ $section['id'] }}"
+                    data-statistik-section
+                    data-min-points="{{ $min }}"
+                    tabindex="-1"
+                    class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
                     <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
                         Top 10 Maddrax-Romane
                     </h2>
@@ -94,9 +126,15 @@
                         @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
                     @endif
                 </div>
-            {{-- Card 4 – Top-Autor:innen nach Ø‑Bewertung (≥ 7 Baxx) --}}
-                @php($min = 7)
-                <div data-min-points="{{ $min }}" class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
+                {{-- Card 4 – Top-Autor:innen nach Ø‑Bewertung (≥ 7 Baxx) --}}
+                @php($section = $statisticSectionLookup->get('top-autoren'))
+                @php($min = $section['minPoints'] ?? 0)
+                <div
+                    id="{{ $section['id'] }}"
+                    data-statistik-section
+                    data-min-points="{{ $min }}"
+                    tabindex="-1"
+                    class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
                     <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
                         Top 10 Autor:innen nach Ø-Bewertung
                     </h2>
@@ -125,9 +163,16 @@
                         @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
                     @endif
                 </div>
-            {{-- Card 5 – Top-Charaktere nach Auftritten (≥ 10 Baxx) --}}
-                @php($min = 10)
-                <div data-min-points="{{ $min }}" class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
+
+                {{-- Card 5 – Top-Charaktere nach Auftritten (≥ 10 Baxx) --}}
+                @php($section = $statisticSectionLookup->get('top-charaktere'))
+                @php($min = $section['minPoints'] ?? 0)
+                <div
+                    id="{{ $section['id'] }}"
+                    data-statistik-section
+                    data-min-points="{{ $min }}"
+                    tabindex="-1"
+                    class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
                     <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
                         Top 10 Charaktere nach Auftritten
                     </h2>
@@ -156,9 +201,16 @@
                         @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
                     @endif
                 </div>
-            {{-- Card 6 – Bewertungen im Maddraxikon (≥ 11 Baxx) --}}
-                @php($min = 11)
-                <div data-min-points="{{ $min }}" class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6 grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+
+                {{-- Card 6 – Bewertungen im Maddraxikon (≥ 11 Baxx) --}}
+                @php($section = $statisticSectionLookup->get('maddraxikon-bewertungen'))
+                @php($min = $section['minPoints'] ?? 0)
+                <div
+                    id="{{ $section['id'] }}"
+                    data-statistik-section
+                    data-min-points="{{ $min }}"
+                    tabindex="-1"
+                    class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
                     <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 col-span-1 md:col-span-3">
                         Bewertungen im Maddraxikon
                     </h2>
@@ -180,15 +232,21 @@
                         <div class="text-3xl font-bold text-gray-900 dark:text-gray-100">
                             {{ number_format($averageVotes, 2, ',', '.') }}
                         </div>
-                    <div class="text-gray-600 dark:text-gray-400">Ø-Stimmen pro Roman</div>
+                        <div class="text-gray-600 dark:text-gray-400">Ø-Stimmen pro Roman</div>
                     </div>
                     @if($userPoints < $min)
                         @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
                     @endif
                 </div>
             {{-- Card 7 – Rezensionen unserer Mitglieder (≥ 12 Baxx) --}}
-                @php($min = 12)
-                <div data-min-points="{{ $min }}" class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
+                @php($section = $statisticSectionLookup->get('mitglieds-rezensionen'))
+                @php($min = $section['minPoints'] ?? 0)
+                <div
+                    id="{{ $section['id'] }}"
+                    data-statistik-section
+                    data-min-points="{{ $min }}"
+                    tabindex="-1"
+                    class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
                     <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
                         Rezensionen unserer Mitglieder
                     </h2>
@@ -254,8 +312,14 @@
                     @endif
                 </div>
             {{-- Card 8 – Bewertungen des Euree-Zyklus (≥ 13 Baxx) --}}
-                @php($min = 13)
-                <div data-min-points="{{ $min }}" class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
+                @php($section = $statisticSectionLookup->get('zyklus-euree'))
+                @php($min = $section['minPoints'] ?? 0)
+                <div
+                    id="{{ $section['id'] }}"
+                    data-statistik-section
+                    data-min-points="{{ $min }}"
+                    tabindex="-1"
+                    class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
                     <h2 id="eureeChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
                         Bewertungen des Euree-Zyklus
                     </h2>
@@ -273,8 +337,14 @@
                 </script>
 
             {{-- Card 9 – Bewertungen des Meeraka-Zyklus (≥ 14 Baxx) --}}
-                @php($min = 14)
-                <div data-min-points="{{ $min }}" class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
+                @php($section = $statisticSectionLookup->get('zyklus-meeraka'))
+                @php($min = $section['minPoints'] ?? 0)
+                <div
+                    id="{{ $section['id'] }}"
+                    data-statistik-section
+                    data-min-points="{{ $min }}"
+                    tabindex="-1"
+                    class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
                     <h2 id="meerakaChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
                         Bewertungen des Meeraka-Zyklus
                     </h2>
@@ -292,8 +362,14 @@
                 </script>
 
             {{-- Card 10 – Bewertungen des Expeditions-Zyklus (≥ 15 Baxx) --}}
-                @php($min = 15)
-                <div data-min-points="{{ $min }}" class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
+                @php($section = $statisticSectionLookup->get('zyklus-expedition'))
+                @php($min = $section['minPoints'] ?? 0)
+                <div
+                    id="{{ $section['id'] }}"
+                    data-statistik-section
+                    data-min-points="{{ $min }}"
+                    tabindex="-1"
+                    class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
                     <h2 id="expeditionChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
                         Bewertungen des Expeditions-Zyklus
                     </h2>
@@ -311,8 +387,14 @@
                 </script>
 
             {{-- Card 11 – Bewertungen des Kratersee-Zyklus (≥ 16 Baxx) --}}
-                @php($min = 16)
-                <div data-min-points="{{ $min }}" class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
+                @php($section = $statisticSectionLookup->get('zyklus-kratersee'))
+                @php($min = $section['minPoints'] ?? 0)
+                <div
+                    id="{{ $section['id'] }}"
+                    data-statistik-section
+                    data-min-points="{{ $min }}"
+                    tabindex="-1"
+                    class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
                     <h2 id="kraterseeChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
                         Bewertungen des Kratersee-Zyklus
                     </h2>
@@ -330,8 +412,14 @@
                 </script>
 
             {{-- Card 12 – Bewertungen des Daa'muren-Zyklus (≥ 17 Baxx) --}}
-                @php($min = 17)
-                <div data-min-points="{{ $min }}" class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
+                @php($section = $statisticSectionLookup->get('zyklus-daamuren'))
+                @php($min = $section['minPoints'] ?? 0)
+                <div
+                    id="{{ $section['id'] }}"
+                    data-statistik-section
+                    data-min-points="{{ $min }}"
+                    tabindex="-1"
+                    class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
                     <h2 id="daaMurenChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
                         Bewertungen des Daa'muren-Zyklus
                     </h2>
@@ -349,8 +437,14 @@
                 </script>
 
             {{-- Card 13 – Bewertungen des Wandler-Zyklus (≥ 18 Baxx) --}}
-                @php($min = 18)
-                <div data-min-points="{{ $min }}" class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
+                @php($section = $statisticSectionLookup->get('zyklus-wandler'))
+                @php($min = $section['minPoints'] ?? 0)
+                <div
+                    id="{{ $section['id'] }}"
+                    data-statistik-section
+                    data-min-points="{{ $min }}"
+                    tabindex="-1"
+                    class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
                     <h2 id="wandlerChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
                         Bewertungen des Wandler-Zyklus
                     </h2>
@@ -368,8 +462,14 @@
                 </script>
 
             {{-- Card 14 – Bewertungen des Mars-Zyklus (≥ 19 Baxx) --}}
-                @php($min = 19)
-                <div data-min-points="{{ $min }}" class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
+                @php($section = $statisticSectionLookup->get('zyklus-mars'))
+                @php($min = $section['minPoints'] ?? 0)
+                <div
+                    id="{{ $section['id'] }}"
+                    data-statistik-section
+                    data-min-points="{{ $min }}"
+                    tabindex="-1"
+                    class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
                     <h2 id="marsChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
                         Bewertungen des Mars-Zyklus
                     </h2>
@@ -387,8 +487,14 @@
                 </script>
 
             {{-- Card 15 – Bewertungen des Ausala-Zyklus (≥ 20 Baxx) --}}
-                @php($min = 20)
-                <div data-min-points="{{ $min }}" class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
+                @php($section = $statisticSectionLookup->get('zyklus-ausala'))
+                @php($min = $section['minPoints'] ?? 0)
+                <div
+                    id="{{ $section['id'] }}"
+                    data-statistik-section
+                    data-min-points="{{ $min }}"
+                    tabindex="-1"
+                    class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
                     <h2 id="ausalaChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
                         Bewertungen des Ausala-Zyklus
                     </h2>
@@ -406,8 +512,14 @@
                 </script>
 
             {{-- Card 16 – Bewertungen des Afra-Zyklus (≥ 21 Baxx) --}}
-                @php($min = 21)
-                <div data-min-points="{{ $min }}" class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
+                @php($section = $statisticSectionLookup->get('zyklus-afra'))
+                @php($min = $section['minPoints'] ?? 0)
+                <div
+                    id="{{ $section['id'] }}"
+                    data-statistik-section
+                    data-min-points="{{ $min }}"
+                    tabindex="-1"
+                    class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
                     <h2 id="afraChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
                         Bewertungen des Afra-Zyklus
                     </h2>
@@ -425,8 +537,14 @@
                 </script>
 
             {{-- Card 17 – Bewertungen des Antarktis-Zyklus (≥ 22 Baxx) --}}
-                @php($min = 22)
-                <div data-min-points="{{ $min }}" class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
+                @php($section = $statisticSectionLookup->get('zyklus-antarktis'))
+                @php($min = $section['minPoints'] ?? 0)
+                <div
+                    id="{{ $section['id'] }}"
+                    data-statistik-section
+                    data-min-points="{{ $min }}"
+                    tabindex="-1"
+                    class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
                     <h2 id="antarktisChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
                         Bewertungen des Antarktis-Zyklus
                     </h2>
@@ -444,8 +562,14 @@
                 </script>
 
             {{-- Card 18 – Bewertungen des Schatten-Zyklus (≥ 23 Baxx) --}}
-                @php($min = 23)
-                <div data-min-points="{{ $min }}" class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
+                @php($section = $statisticSectionLookup->get('zyklus-schatten'))
+                @php($min = $section['minPoints'] ?? 0)
+                <div
+                    id="{{ $section['id'] }}"
+                    data-statistik-section
+                    data-min-points="{{ $min }}"
+                    tabindex="-1"
+                    class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
                     <h2 id="schattenChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
                         Bewertungen des Schatten-Zyklus
                     </h2>
@@ -463,8 +587,14 @@
                 </script>
 
             {{-- Card 19 – Bewertungen des Ursprung-Zyklus (≥ 24 Baxx) --}}
-                @php($min = 24)
-                <div data-min-points="{{ $min }}" class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
+                @php($section = $statisticSectionLookup->get('zyklus-ursprung'))
+                @php($min = $section['minPoints'] ?? 0)
+                <div
+                    id="{{ $section['id'] }}"
+                    data-statistik-section
+                    data-min-points="{{ $min }}"
+                    tabindex="-1"
+                    class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
                     <h2 id="ursprungChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
                         Bewertungen des Ursprung-Zyklus
                     </h2>
@@ -482,8 +612,14 @@
                 </script>
 
             {{-- Card 20 – Bewertungen des Streiter-Zyklus (≥ 25 Baxx) --}}
-                @php($min = 25)
-                <div data-min-points="{{ $min }}" class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
+                @php($section = $statisticSectionLookup->get('zyklus-streiter'))
+                @php($min = $section['minPoints'] ?? 0)
+                <div
+                    id="{{ $section['id'] }}"
+                    data-statistik-section
+                    data-min-points="{{ $min }}"
+                    tabindex="-1"
+                    class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
                     <h2 id="streiterChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
                         Bewertungen des Streiter-Zyklus
                     </h2>
@@ -501,8 +637,14 @@
                 </script>
 
             {{-- Card 21 – Bewertungen des Archivar-Zyklus (≥ 26 Baxx) --}}
-                @php($min = 26)
-                <div data-min-points="{{ $min }}" class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
+                @php($section = $statisticSectionLookup->get('zyklus-archivar'))
+                @php($min = $section['minPoints'] ?? 0)
+                <div
+                    id="{{ $section['id'] }}"
+                    data-statistik-section
+                    data-min-points="{{ $min }}"
+                    tabindex="-1"
+                    class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
                     <h2 id="archivarChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
                         Bewertungen des Archivar-Zyklus
                     </h2>
@@ -520,8 +662,14 @@
                 </script>
 
             {{-- Card 22 – Bewertungen des Zeitsprung-Zyklus (≥ 27 Baxx) --}}
-                @php($min = 27)
-                <div data-min-points="{{ $min }}" class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
+                @php($section = $statisticSectionLookup->get('zyklus-zeitsprung'))
+                @php($min = $section['minPoints'] ?? 0)
+                <div
+                    id="{{ $section['id'] }}"
+                    data-statistik-section
+                    data-min-points="{{ $min }}"
+                    tabindex="-1"
+                    class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
                     <h2 id="zeitsprungChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
                         Bewertungen des Zeitsprung-Zyklus
                     </h2>
@@ -539,8 +687,14 @@
                 </script>
 
             {{-- Card 23 – Bewertungen des Fremdwelt-Zyklus (≥ 28 Baxx) --}}
-                @php($min = 28)
-                <div data-min-points="{{ $min }}" class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
+                @php($section = $statisticSectionLookup->get('zyklus-fremdwelt'))
+                @php($min = $section['minPoints'] ?? 0)
+                <div
+                    id="{{ $section['id'] }}"
+                    data-statistik-section
+                    data-min-points="{{ $min }}"
+                    tabindex="-1"
+                    class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
                     <h2 id="fremdweltChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
                         Bewertungen des Fremdwelt-Zyklus
                     </h2>
@@ -558,8 +712,14 @@
                 </script>
 
             {{-- Card 24 – Bewertungen des Parallelwelt-Zyklus (≥ 29 Baxx) --}}
-                @php($min = 29)
-                <div data-min-points="{{ $min }}" class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
+                @php($section = $statisticSectionLookup->get('zyklus-parallelwelt'))
+                @php($min = $section['minPoints'] ?? 0)
+                <div
+                    id="{{ $section['id'] }}"
+                    data-statistik-section
+                    data-min-points="{{ $min }}"
+                    tabindex="-1"
+                    class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
                     <h2 id="parallelweltChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
                         Bewertungen des Parallelwelt-Zyklus
                     </h2>
@@ -577,8 +737,14 @@
                 </script>
 
             {{-- Card 25 – Bewertungen des Weltenriss-Zyklus (≥ 30 Baxx) --}}
-                @php($min = 30)
-                <div data-min-points="{{ $min }}" class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
+                @php($section = $statisticSectionLookup->get('zyklus-weltenriss'))
+                @php($min = $section['minPoints'] ?? 0)
+                <div
+                    id="{{ $section['id'] }}"
+                    data-statistik-section
+                    data-min-points="{{ $min }}"
+                    tabindex="-1"
+                    class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
                     <h2 id="weltenrissChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
                         Bewertungen des Weltenriss-Zyklus
                     </h2>
@@ -596,8 +762,14 @@
                 </script>
 
             {{-- Card 26 – Bewertungen des Amraka-Zyklus (≥ 31 Baxx) --}}
-                @php($min = 31)
-                <div data-min-points="{{ $min }}" class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
+                @php($section = $statisticSectionLookup->get('zyklus-amraka'))
+                @php($min = $section['minPoints'] ?? 0)
+                <div
+                    id="{{ $section['id'] }}"
+                    data-statistik-section
+                    data-min-points="{{ $min }}"
+                    tabindex="-1"
+                    class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
                     <h2 id="amrakaChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
                         Bewertungen des Amraka-Zyklus
                     </h2>
@@ -615,8 +787,14 @@
                 </script>
 
             {{-- Card 27 – Bewertungen des Weltrat-Zyklus (≥ 32 Baxx) --}}
-                @php($min = 32)
-                <div data-min-points="{{ $min }}" class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
+                @php($section = $statisticSectionLookup->get('zyklus-weltrat'))
+                @php($min = $section['minPoints'] ?? 0)
+                <div
+                    id="{{ $section['id'] }}"
+                    data-statistik-section
+                    data-min-points="{{ $min }}"
+                    tabindex="-1"
+                    class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
                     <h2 id="weltratChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
                         Bewertungen des Weltrat-Zyklus
                     </h2>
@@ -634,8 +812,14 @@
                 </script>
 
             {{-- Card 28 – Bewertungen der Hardcover (≥ 40 Baxx) --}}
-                @php($min = 40)
-                <div data-min-points="{{ $min }}" class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
+                @php($section = $statisticSectionLookup->get('hardcover-bewertungen'))
+                @php($min = $section['minPoints'] ?? 0)
+                <div
+                    id="{{ $section['id'] }}"
+                    data-statistik-section
+                    data-min-points="{{ $min }}"
+                    tabindex="-1"
+                    class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
                     <h2 id="hardcoverChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
                         Bewertungen der Hardcover
                     </h2>
@@ -653,8 +837,14 @@
                 </script>
 
             {{-- Card 29 – Hardcover je Autor:in (≥ 41 Baxx) --}}
-                @php($min = 41)
-                <div data-min-points="{{ $min }}" class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
+                @php($section = $statisticSectionLookup->get('hardcover-autoren'))
+                @php($min = $section['minPoints'] ?? 0)
+                <div
+                    id="{{ $section['id'] }}"
+                    data-statistik-section
+                    data-min-points="{{ $min }}"
+                    tabindex="-1"
+                    class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
                     <h2 id="hardcoverAuthorChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
                         Maddrax-Hardcover je Autor:in
                     </h2>
@@ -671,8 +861,14 @@
                     window.hardcoverAuthorChartValues = @json($hardcoverAuthorCounts->values());
                 </script>
             {{-- Card 30 – TOP20 Maddrax-Themen (≥ 42 Baxx, nur Romane mit ≥ 8 Bewertungen, Themen in ≥ 5 Romanen) --}}
-                @php($min = 42)
-                <div data-min-points="{{ $min }}" class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
+                @php($section = $statisticSectionLookup->get('top-themen'))
+                @php($min = $section['minPoints'] ?? 0)
+                <div
+                    id="{{ $section['id'] }}"
+                    data-statistik-section
+                    data-min-points="{{ $min }}"
+                    tabindex="-1"
+                    class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
                     <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
                         TOP20 Maddrax-Themen
                     </h2>
@@ -703,8 +899,14 @@
             </div>
 
             {{-- Card 31 – Bewertungen der Mission Mars-Heftromane (≥ 43 Baxx) --}}
-                @php($min = 43)
-                <div data-min-points="{{ $min }}" class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
+                @php($section = $statisticSectionLookup->get('mission-mars-bewertungen'))
+                @php($min = $section['minPoints'] ?? 0)
+                <div
+                    id="{{ $section['id'] }}"
+                    data-statistik-section
+                    data-min-points="{{ $min }}"
+                    tabindex="-1"
+                    class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
                     <h2 id="missionMarsChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
                         Bewertungen der Mission Mars-Heftromane
                     </h2>
@@ -722,8 +924,14 @@
                 </script>
 
             {{-- Card 31b – Mission Mars-Heftromane je Autor:in (≥ 44 Baxx) --}}
-                @php($min = 44)
-                <div data-min-points="{{ $min }}" class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
+                @php($section = $statisticSectionLookup->get('mission-mars-autoren'))
+                @php($min = $section['minPoints'] ?? 0)
+                <div
+                    id="{{ $section['id'] }}"
+                    data-statistik-section
+                    data-min-points="{{ $min }}"
+                    tabindex="-1"
+                    class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
                     <h2 id="missionMarsAuthorChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
                         Mission Mars-Heftromane je Autor:in
                     </h2>
@@ -741,8 +949,14 @@
                 </script>
 
             {{-- Card 32 – TOP10 Lieblingsthemen (≥ 50 Baxx) --}}
-                @php($min = 50)
-                <div data-min-points="{{ $min }}" class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
+                @php($section = $statisticSectionLookup->get('lieblingsthemen'))
+                @php($min = $section['minPoints'] ?? 0)
+                <div
+                    id="{{ $section['id'] }}"
+                    data-statistik-section
+                    data-min-points="{{ $min }}"
+                    tabindex="-1"
+                    class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
                     <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
                         TOP10 Lieblingsthemen
                     </h2>
@@ -771,7 +985,9 @@
                         @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
                     @endif
                 </div>
+            </div>
+        </div>
 
-                @vite(['resources/js/statistik.js'])
+        @vite(['resources/js/statistik.js'])
     </x-member-page>
 </x-app-layout>

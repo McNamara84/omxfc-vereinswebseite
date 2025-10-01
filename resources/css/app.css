@@ -39,6 +39,16 @@
             url('/images/design/dark/concrete_dark.webp') type('image/webp')
         );
     }
+
+    [data-statistik-section] {
+        scroll-margin-top: 6rem;
+    }
+
+    @screen lg {
+        [data-statistik-section] {
+            scroll-margin-top: 7rem;
+        }
+    }
 }
 
 @layer components {
