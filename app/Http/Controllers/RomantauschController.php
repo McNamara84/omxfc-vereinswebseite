@@ -17,6 +17,7 @@ use App\Models\Activity;
 use App\Enums\BookType;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
 
 class RomantauschController extends Controller
 {
@@ -243,31 +244,101 @@ class RomantauschController extends Controller
     private function matchSwap(Model $model, string $type): void
     {
         if ($type === 'offer') {
-            $match = BookRequest::where('book_number', $model->book_number)
-                ->where('series', $model->series)
+            $offer = $model;
+
+            $potentialRequests = BookRequest::where('book_number', $offer->book_number)
+                ->where('series', $offer->series)
                 ->where('completed', false)
+                ->where('user_id', '!=', $offer->user_id)
                 ->doesntHave('swap')
-                ->first();
-            if ($match) {
-                $swap = BookSwap::create([
-                    'offer_id' => $model->id,
-                    'request_id' => $match->id,
-                ]);
-                Mail::to($match->user->email)->queue(new BookSwapMatched($swap));
+                ->get();
+
+            foreach ($potentialRequests as $request) {
+                if ($this->attemptReciprocalSwap($offer, $request)) {
+                    break;
+                }
             }
         } else {
-            $match = BookOffer::where('book_number', $model->book_number)
-                ->where('series', $model->series)
+            $request = $model;
+
+            $potentialOffers = BookOffer::where('book_number', $request->book_number)
+                ->where('series', $request->series)
                 ->where('completed', false)
+                ->where('user_id', '!=', $request->user_id)
                 ->doesntHave('swap')
-                ->first();
-            if ($match) {
-                $swap = BookSwap::create([
-                    'offer_id' => $match->id,
-                    'request_id' => $model->id,
-                ]);
-                Mail::to($model->user->email)->queue(new BookSwapMatched($swap));
+                ->get();
+
+            foreach ($potentialOffers as $offer) {
+                if ($this->attemptReciprocalSwap($offer, $request)) {
+                    break;
+                }
             }
         }
+    }
+
+    private function attemptReciprocalSwap(BookOffer $offer, BookRequest $request): bool
+    {
+        if ($offer->user_id === $request->user_id) {
+            return false;
+        }
+
+        $offerOwnerRequests = BookRequest::where('user_id', $offer->user_id)
+            ->where('completed', false)
+            ->doesntHave('swap')
+            ->get()
+            ->keyBy(fn ($item) => $this->buildBookKey($item->series, $item->book_number));
+
+        if ($offerOwnerRequests->isEmpty()) {
+            return false;
+        }
+
+        $requestOwnerOffers = BookOffer::where('user_id', $request->user_id)
+            ->where('completed', false)
+            ->doesntHave('swap')
+            ->get()
+            ->keyBy(fn ($item) => $this->buildBookKey($item->series, $item->book_number));
+
+        if ($requestOwnerOffers->isEmpty()) {
+            return false;
+        }
+
+        $matchingEntries = $offerOwnerRequests->intersectByKeys($requestOwnerOffers);
+
+        if ($matchingEntries->isEmpty()) {
+            return false;
+        }
+
+        $matchingKey = $matchingEntries->keys()->first();
+
+        $reciprocalRequest = $offerOwnerRequests->get($matchingKey);
+        $reciprocalOffer = $requestOwnerOffers->get($matchingKey);
+
+        if (!$reciprocalRequest || !$reciprocalOffer) {
+            return false;
+        }
+
+        [$firstSwap, $secondSwap] = DB::transaction(function () use ($offer, $request, $reciprocalOffer, $reciprocalRequest) {
+            $primarySwap = BookSwap::create([
+                'offer_id' => $offer->id,
+                'request_id' => $request->id,
+            ]);
+
+            $reciprocalSwap = BookSwap::create([
+                'offer_id' => $reciprocalOffer->id,
+                'request_id' => $reciprocalRequest->id,
+            ]);
+
+            return [$primarySwap, $reciprocalSwap];
+        });
+
+        Mail::to($request->user->email)->queue(new BookSwapMatched($firstSwap));
+        Mail::to($reciprocalRequest->user->email)->queue(new BookSwapMatched($secondSwap));
+
+        return true;
+    }
+
+    private function buildBookKey(string $series, int $bookNumber): string
+    {
+        return serialize([$series, $bookNumber]);
     }
 }
