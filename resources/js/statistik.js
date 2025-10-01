@@ -1,5 +1,6 @@
 /* resources/js/statistik.js */
 import Chart from 'chart.js/auto';
+import './statistik-navigation';
 
 /**
  * Rendert ein Balkendiagramm,

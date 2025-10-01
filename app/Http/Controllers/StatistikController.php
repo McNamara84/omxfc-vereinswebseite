@@ -48,6 +48,42 @@ class StatistikController extends Controller
             $missionMarsNovels = collect(json_decode(file_get_contents($missionMarsPath), true));
         }
 
+        $statisticSections = [
+            ['id' => 'author-chart', 'label' => 'Maddrax-Romane je Autor:in', 'minPoints' => 2],
+            ['id' => 'teamplayer', 'label' => 'Top Teamplayer', 'minPoints' => 4],
+            ['id' => 'top-romane', 'label' => 'Top 10 Maddrax-Romane', 'minPoints' => 5],
+            ['id' => 'top-autoren', 'label' => 'Top 10 Autor:innen nach Ø-Bewertung', 'minPoints' => 7],
+            ['id' => 'top-charaktere', 'label' => 'Top 10 Charaktere nach Auftritten', 'minPoints' => 10],
+            ['id' => 'maddraxikon-bewertungen', 'label' => 'Bewertungen im Maddraxikon', 'minPoints' => 11],
+            ['id' => 'mitglieds-rezensionen', 'label' => 'Rezensionen unserer Mitglieder', 'minPoints' => 12],
+            ['id' => 'zyklus-euree', 'label' => 'Bewertungen des Euree-Zyklus', 'minPoints' => 13],
+            ['id' => 'zyklus-meeraka', 'label' => 'Bewertungen des Meeraka-Zyklus', 'minPoints' => 14],
+            ['id' => 'zyklus-expedition', 'label' => 'Bewertungen des Expeditions-Zyklus', 'minPoints' => 15],
+            ['id' => 'zyklus-kratersee', 'label' => 'Bewertungen des Kratersee-Zyklus', 'minPoints' => 16],
+            ['id' => 'zyklus-daamuren', 'label' => "Bewertungen des Daa'muren-Zyklus", 'minPoints' => 17],
+            ['id' => 'zyklus-wandler', 'label' => 'Bewertungen des Wandler-Zyklus', 'minPoints' => 18],
+            ['id' => 'zyklus-mars', 'label' => 'Bewertungen des Mars-Zyklus', 'minPoints' => 19],
+            ['id' => 'zyklus-ausala', 'label' => 'Bewertungen des Ausala-Zyklus', 'minPoints' => 20],
+            ['id' => 'zyklus-afra', 'label' => 'Bewertungen des Afra-Zyklus', 'minPoints' => 21],
+            ['id' => 'zyklus-antarktis', 'label' => 'Bewertungen des Antarktis-Zyklus', 'minPoints' => 22],
+            ['id' => 'zyklus-schatten', 'label' => 'Bewertungen des Schatten-Zyklus', 'minPoints' => 23],
+            ['id' => 'zyklus-ursprung', 'label' => 'Bewertungen des Ursprung-Zyklus', 'minPoints' => 24],
+            ['id' => 'zyklus-streiter', 'label' => 'Bewertungen des Streiter-Zyklus', 'minPoints' => 25],
+            ['id' => 'zyklus-archivar', 'label' => 'Bewertungen des Archivar-Zyklus', 'minPoints' => 26],
+            ['id' => 'zyklus-zeitsprung', 'label' => 'Bewertungen des Zeitsprung-Zyklus', 'minPoints' => 27],
+            ['id' => 'zyklus-fremdwelt', 'label' => 'Bewertungen des Fremdwelt-Zyklus', 'minPoints' => 28],
+            ['id' => 'zyklus-parallelwelt', 'label' => 'Bewertungen des Parallelwelt-Zyklus', 'minPoints' => 29],
+            ['id' => 'zyklus-weltenriss', 'label' => 'Bewertungen des Weltenriss-Zyklus', 'minPoints' => 30],
+            ['id' => 'zyklus-amraka', 'label' => 'Bewertungen des Amraka-Zyklus', 'minPoints' => 31],
+            ['id' => 'zyklus-weltrat', 'label' => 'Bewertungen des Weltrat-Zyklus', 'minPoints' => 32],
+            ['id' => 'hardcover-bewertungen', 'label' => 'Bewertungen der Hardcover', 'minPoints' => 40],
+            ['id' => 'hardcover-autoren', 'label' => 'Maddrax-Hardcover je Autor:in', 'minPoints' => 41],
+            ['id' => 'top-themen', 'label' => 'TOP20 Maddrax-Themen', 'minPoints' => 42],
+            ['id' => 'mission-mars-bewertungen', 'label' => 'Bewertungen der Mission Mars-Heftromane', 'minPoints' => 43],
+            ['id' => 'mission-mars-autoren', 'label' => 'Mission Mars-Heftromane je Autor:in', 'minPoints' => 44],
+            ['id' => 'lieblingsthemen', 'label' => 'TOP10 Lieblingsthemen', 'minPoints' => 50],
+        ];
+
         // ── Card 1 – Grundstatistiken ──────────────────────────────────────────────
         $averageRating = round($romane->avg('bewertung'), 2);
         $totalVotes = $romane->sum('stimmen');
@@ -485,6 +521,7 @@ class StatistikController extends Controller
             'longestReviewAuthor' => $longestReviewAuthor,
             'avgCommentsPerReview' => $avgCommentsPerReview,
             'mostReviewedBook' => $mostReviewedBook,
+            'statisticSections' => $statisticSections,
         ]);
     }
 }

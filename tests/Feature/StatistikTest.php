@@ -844,4 +844,49 @@ class StatistikTest extends TestCase
         $response->assertSee('TOP10 Lieblingsthemen');
         $response->assertSee('50 Baxx');
     }
+
+    public function test_statistic_quick_navigation_lists_all_sections(): void
+    {
+        $this->createDataFile();
+        $this->createHardcoversFile();
+        $this->createMissionMarsFile();
+
+        $user = $this->actingMemberWithPoints(50);
+        $this->actingAs($user);
+
+        $response = $this->get('/statistiken');
+
+        $response->assertOk();
+
+        /** @var array<int, array{id: string, label: string, minPoints?: int}> $sections */
+        $sections = $response->viewData('statisticSections');
+        $this->assertNotEmpty($sections);
+
+        $dom = new \DOMDocument();
+        \libxml_use_internal_errors(true);
+        $dom->loadHTML($response->getContent());
+        \libxml_clear_errors();
+        \libxml_use_internal_errors(false);
+
+        $xpath = new \DOMXPath($dom);
+        $navNodes = $xpath->query('//nav[@aria-label="Statistikabschnitte"]');
+        $this->assertSame(1, $navNodes->length);
+
+        $nav = $navNodes->item(0);
+        $links = $xpath->query('.//a[@data-statistik-nav-link]', $nav);
+        $this->assertSame(count($sections), $links->length);
+
+        foreach ($sections as $index => $section) {
+            $link = $links->item($index);
+            $this->assertNotNull($link);
+            $this->assertSame('#'.$section['id'], $link->getAttribute('href'));
+
+            $linkText = trim(preg_replace('/\s+/', ' ', $link->textContent));
+            $this->assertStringContainsString($section['label'], $linkText);
+
+            if (! empty($section['minPoints'])) {
+                $this->assertStringContainsString((string) $section['minPoints'], $linkText);
+            }
+        }
+    }
 }
