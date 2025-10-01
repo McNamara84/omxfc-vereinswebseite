@@ -286,7 +286,7 @@ class RomantauschController extends Controller
             ->where('completed', false)
             ->doesntHave('swap')
             ->get()
-            ->keyBy(fn ($item) => $item->series . '|' . $item->book_number);
+            ->keyBy(fn ($item) => $this->buildBookKey($item->series, $item->book_number));
 
         if ($offerOwnerRequests->isEmpty()) {
             return false;
@@ -296,7 +296,7 @@ class RomantauschController extends Controller
             ->where('completed', false)
             ->doesntHave('swap')
             ->get()
-            ->keyBy(fn ($item) => $item->series . '|' . $item->book_number);
+            ->keyBy(fn ($item) => $this->buildBookKey($item->series, $item->book_number));
 
         if ($requestOwnerOffers->isEmpty()) {
             return false;
@@ -335,5 +335,10 @@ class RomantauschController extends Controller
         Mail::to($reciprocalRequest->user->email)->queue(new BookSwapMatched($secondSwap));
 
         return true;
+    }
+
+    private function buildBookKey(string $series, int $bookNumber): string
+    {
+        return serialize([$series, $bookNumber]);
     }
 }

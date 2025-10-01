@@ -13,6 +13,8 @@ use App\Mail\BookSwapMatched;
 use Illuminate\Support\Facades\Mail;
 use App\Models\Team;
 use App\Enums\BookType;
+use App\Http\Controllers\RomantauschController;
+use ReflectionMethod;
 
 class BookSwapProcessTest extends TestCase
 {
@@ -195,6 +197,69 @@ class BookSwapProcessTest extends TestCase
         $this->assertTrue($swaps->contains(fn ($swap) => $swap->offer->user_id === $userB->id && in_array($swap->offer->book_number, [$bookTwo->roman_number, $bookThree->roman_number], true)));
         $this->assertTrue($swaps->contains(fn ($swap) => $swap->request->user_id === $userB->id && $swap->offer->user_id === $userA->id));
         $this->assertTrue($swaps->contains(fn ($swap) => $swap->offer->user_id === $userB->id && $swap->request->user_id === $userA->id));
+
+        Mail::assertQueued(BookSwapMatched::class, 2);
+    }
+
+    public function test_reciprocal_matching_handles_series_with_pipe_character(): void
+    {
+        Mail::fake();
+
+        $userA = $this->createMember();
+        $userB = $this->createMember();
+
+        $series = 'Custom|Series';
+
+        $offer = BookOffer::create([
+            'user_id' => $userA->id,
+            'series' => $series,
+            'book_number' => 1,
+            'book_title' => 'Custom Offer',
+            'condition' => 'gut',
+        ]);
+
+        $request = BookRequest::create([
+            'user_id' => $userB->id,
+            'series' => $series,
+            'book_number' => 1,
+            'book_title' => 'Custom Request',
+            'condition' => 'gut',
+        ]);
+
+        $reciprocalRequest = BookRequest::create([
+            'user_id' => $userA->id,
+            'series' => $series,
+            'book_number' => 2,
+            'book_title' => 'Custom Follow-Up',
+            'condition' => 'gut',
+        ]);
+
+        $reciprocalOffer = BookOffer::create([
+            'user_id' => $userB->id,
+            'series' => $series,
+            'book_number' => 2,
+            'book_title' => 'Custom Reciprocal',
+            'condition' => 'gut',
+        ]);
+
+        $controller = app(RomantauschController::class);
+        $method = new ReflectionMethod($controller, 'attemptReciprocalSwap');
+        $method->setAccessible(true);
+
+        $result = $method->invoke($controller, $offer, $request);
+
+        $this->assertTrue($result);
+        $this->assertDatabaseCount('book_swaps', 2);
+
+        $this->assertDatabaseHas('book_swaps', [
+            'offer_id' => $offer->id,
+            'request_id' => $request->id,
+        ]);
+
+        $this->assertDatabaseHas('book_swaps', [
+            'offer_id' => $reciprocalOffer->id,
+            'request_id' => $reciprocalRequest->id,
+        ]);
 
         Mail::assertQueued(BookSwapMatched::class, 2);
     }
