@@ -31,16 +31,17 @@ class HoerbuchController extends Controller
         $years = $episodes->pluck('release_year')->filter()->unique()->sort()->values();
 
         $roleNames = $episodes
-            ->flatMap(fn ($episode) => $episode->roles->pluck('name'))
+            ->flatMap->roles
+            ->pluck('name')
             ->filter()
             ->unique()
             ->sort()
             ->values();
 
-        // totalUnfilledRoles intentionally counts unique, case-insensitive role names that
-        // are missing both an assigned member and a speaker name across all episodes.
+        // totalUnfilledRoles counts unique, case-insensitive role names among roles that
+        // individually have neither an assigned member nor a speaker name.
         $totalUnfilledRoles = $episodes
-            ->flatMap(fn ($episode) => $episode->roles)
+            ->flatMap->roles
             ->map(function ($role) {
                 $normalizedName = trim((string) $role->name);
 
