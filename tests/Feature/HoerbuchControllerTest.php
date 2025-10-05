@@ -769,7 +769,7 @@ class HoerbuchControllerTest extends TestCase
 
         $user = $this->actingMember('Admin');
 
-        AudiobookEpisode::create([
+        $episodeWithOpenRoles = AudiobookEpisode::create([
             'episode_number' => 'F1',
             'title' => 'Erste',
             'author' => 'Autor',
@@ -782,7 +782,15 @@ class HoerbuchControllerTest extends TestCase
             'notes' => null,
         ]);
 
-        AudiobookEpisode::create([
+        $episodeWithOpenRoles?->roles()->createMany([
+            ['name' => 'Alpha'],
+            ['name' => 'Beta'],
+            ['name' => 'Gamma'],
+            ['name' => 'Delta', 'speaker_name' => 'Sprecherin Delta'],
+            ['name' => 'Epsilon', 'speaker_name' => 'Sprecher Epsilon'],
+        ]);
+
+        $episodeWithoutOpenRoles = AudiobookEpisode::create([
             'episode_number' => 'F2',
             'title' => 'Zweite',
             'author' => 'Autor',
@@ -795,12 +803,79 @@ class HoerbuchControllerTest extends TestCase
             'notes' => null,
         ]);
 
+        $episodeWithoutOpenRoles?->roles()->createMany([
+            ['name' => 'Zeta', 'speaker_name' => 'Sprecher Zeta'],
+            ['name' => 'Eta', 'speaker_name' => 'Sprecher Eta'],
+            ['name' => 'Theta', 'speaker_name' => 'Sprecher Theta'],
+        ]);
+
         $this->actingAs($user)
             ->get(route('hoerbuecher.index'))
             ->assertSee('data-unfilled-roles="3"', false)
             ->assertSee('data-open-episodes="1"', false)
             ->assertSee('data-days-left="1"', false)
             ->assertSee('Tage bis Erste veröffentlicht wird (02.01.2025)', false);
+    }
+
+    public function test_index_counts_unique_unfilled_role_names(): void
+    {
+        Carbon::setTestNow();
+
+        $user = $this->actingMember('Admin');
+
+        $firstEpisode = AudiobookEpisode::create([
+            'episode_number' => 'F10',
+            'title' => 'Doppelte Rolle',
+            'author' => 'Autorin',
+            'planned_release_date' => '2025',
+            'status' => 'Skripterstellung',
+            'responsible_user_id' => null,
+            'progress' => 0,
+            'roles_total' => 1,
+            'roles_filled' => 0,
+            'notes' => null,
+        ]);
+
+        $secondEpisode = AudiobookEpisode::create([
+            'episode_number' => 'F11',
+            'title' => 'Noch mehr Rollen',
+            'author' => 'Autor',
+            'planned_release_date' => '2026',
+            'status' => 'Rollenbesetzung',
+            'responsible_user_id' => null,
+            'progress' => 0,
+            'roles_total' => 2,
+            'roles_filled' => 0,
+            'notes' => null,
+        ]);
+
+        $thirdEpisode = AudiobookEpisode::create([
+            'episode_number' => 'F12',
+            'title' => 'Besetzte Rollen',
+            'author' => 'Autor',
+            'planned_release_date' => '2024',
+            'status' => 'Audiobearbeitung',
+            'responsible_user_id' => null,
+            'progress' => 0,
+            'roles_total' => 1,
+            'roles_filled' => 1,
+            'notes' => null,
+        ]);
+
+        $firstEpisode->roles()->create(['name' => 'Alex']);
+        $secondEpisode->roles()->createMany([
+            ['name' => 'Alex'],
+            ['name' => 'Chris'],
+        ]);
+        $thirdEpisode->roles()->create([
+            'name' => 'Chris',
+            'speaker_name' => 'Bereits Besetzt',
+        ]);
+
+        $response = $this->actingAs($user)->get(route('hoerbuecher.index'));
+
+        $response->assertViewHas('totalUnfilledRoles', 2);
+        $response->assertSee('data-unfilled-roles="2"', false);
     }
 
     public function test_admin_can_update_episode(): void

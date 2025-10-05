@@ -12,6 +12,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use App\Http\Requests\AudiobookEpisodeRequest;
 use App\Http\Requests\AudiobookPreviousSpeakerRequest;
+use Illuminate\Support\Str;
 
 class HoerbuchController extends Controller
 {
@@ -20,7 +21,7 @@ class HoerbuchController extends Controller
      */
     public function index()
     {
-        $episodes = AudiobookEpisode::with(['roles:id,episode_id,name'])
+        $episodes = AudiobookEpisode::with(['roles:id,episode_id,name,user_id,speaker_name'])
             ->get()
             ->sortBy(function ($episode) {
                 return $episode->planned_release_date_parsed ?? Carbon::create(9999, 12, 31);
@@ -37,7 +38,22 @@ class HoerbuchController extends Controller
             ->values();
 
         $totalUnfilledRoles = $episodes
-            ->sum(fn ($e) => max($e->roles_total - $e->roles_filled, 0));
+            ->flatMap(fn ($episode) => $episode->roles)
+            ->filter(function ($role) {
+                $name = trim((string) $role->name);
+
+                if ($name === '') {
+                    return false;
+                }
+
+                $hasAssignedMember = filled($role->user_id);
+                $hasSpeakerName = filled($role->speaker_name);
+
+                return ! $hasAssignedMember && ! $hasSpeakerName;
+            })
+            ->map(fn ($role) => Str::lower(trim((string) $role->name)))
+            ->unique()
+            ->count();
 
         $openRolesEpisodes = $episodes
             ->filter(fn ($e) => $e->roles_total > $e->roles_filled)
