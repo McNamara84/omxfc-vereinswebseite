@@ -12,6 +12,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use App\Http\Requests\AudiobookEpisodeRequest;
 use App\Http\Requests\AudiobookPreviousSpeakerRequest;
+use Illuminate\Support\Str;
 
 class HoerbuchController extends Controller
 {
@@ -20,7 +21,7 @@ class HoerbuchController extends Controller
      */
     public function index()
     {
-        $episodes = AudiobookEpisode::with(['roles:id,episode_id,name'])
+        $episodes = AudiobookEpisode::with(['roles:id,episode_id,name,user_id,speaker_name'])
             ->get()
             ->sortBy(function ($episode) {
                 return $episode->planned_release_date_parsed ?? Carbon::create(9999, 12, 31);
@@ -30,17 +31,37 @@ class HoerbuchController extends Controller
         $years = $episodes->pluck('release_year')->filter()->unique()->sort()->values();
 
         $roleNames = $episodes
-            ->flatMap(fn ($episode) => $episode->roles->pluck('name'))
+            ->flatMap->roles
+            ->pluck('name')
             ->filter()
             ->unique()
             ->sort()
             ->values();
 
+        // totalUnfilledRoles counts unique, case-insensitive role names among roles that
+        // individually have neither an assigned member nor a speaker name.
         $totalUnfilledRoles = $episodes
-            ->sum(fn ($e) => max($e->roles_total - $e->roles_filled, 0));
+            ->flatMap->roles
+            ->map(function ($role) {
+                $normalizedName = trim((string) $role->name);
 
-        $openRolesEpisodes = $episodes
-            ->filter(fn ($e) => $e->roles_total > $e->roles_filled)
+                return [
+                    'normalized' => Str::lower($normalizedName),
+                    'hasName' => $normalizedName !== '',
+                    'isAssigned' => filled($role->user_id) || filled($role->speaker_name),
+                ];
+            })
+            ->filter(fn ($role) => $role['hasName'] && ! $role['isAssigned'])
+            ->unique('normalized')
+            ->count();
+
+        // episodesWithUnassignedRoles counts episodes that contain at least one role
+        // without an assigned member or speaker name, mirroring the
+        // totalUnfilledRoles aggregation but on an episode basis.
+        $episodesWithUnassignedRoles = $episodes
+            ->filter(fn ($episode) => $episode->roles->contains(
+                fn ($role) => blank($role->user_id) && blank($role->speaker_name)
+            ))
             ->count();
 
         $nextEpisode = $episodes
@@ -60,7 +81,7 @@ class HoerbuchController extends Controller
             'years' => $years,
             'roleNames' => $roleNames,
             'totalUnfilledRoles' => $totalUnfilledRoles,
-            'openRolesEpisodes' => $openRolesEpisodes,
+            'episodesWithUnassignedRoles' => $episodesWithUnassignedRoles,
             'nextEpisode' => $nextEpisode,
             'daysUntilNextEvt' => $daysUntilNextEvt,
         ]);
