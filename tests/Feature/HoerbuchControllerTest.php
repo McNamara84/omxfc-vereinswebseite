@@ -777,8 +777,8 @@ class HoerbuchControllerTest extends TestCase
             'status' => 'Rollenbesetzung',
             'responsible_user_id' => null,
             'progress' => 0,
-            'roles_total' => 5,
-            'roles_filled' => 2,
+            'roles_total' => 0,
+            'roles_filled' => 0,
             'notes' => null,
         ]);
 
@@ -798,8 +798,8 @@ class HoerbuchControllerTest extends TestCase
             'status' => 'Skripterstellung',
             'responsible_user_id' => null,
             'progress' => 0,
-            'roles_total' => 3,
-            'roles_filled' => 3,
+            'roles_total' => 0,
+            'roles_filled' => 0,
             'notes' => null,
         ]);
 
@@ -819,7 +819,7 @@ class HoerbuchControllerTest extends TestCase
 
     public function test_index_counts_unique_unfilled_role_names(): void
     {
-        Carbon::setTestNow();
+        Carbon::setTestNow(null);
 
         $user = $this->actingMember('Admin');
 

@@ -56,7 +56,9 @@ class HoerbuchController extends Controller
             ->count();
 
         $openRolesEpisodes = $episodes
-            ->filter(fn ($e) => $e->roles_total > $e->roles_filled)
+            ->filter(fn ($episode) => $episode->roles->contains(
+                fn ($role) => blank($role->user_id) && blank($role->speaker_name)
+            ))
             ->count();
 
         $nextEpisode = $episodes
