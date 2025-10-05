@@ -37,22 +37,21 @@ class HoerbuchController extends Controller
             ->sort()
             ->values();
 
+        // totalUnfilledRoles intentionally counts unique, case-insensitive role names that
+        // are missing both an assigned member and a speaker name across all episodes.
         $totalUnfilledRoles = $episodes
             ->flatMap(fn ($episode) => $episode->roles)
-            ->filter(function ($role) {
-                $name = trim((string) $role->name);
+            ->map(function ($role) {
+                $normalizedName = trim((string) $role->name);
 
-                if ($name === '') {
-                    return false;
-                }
-
-                $hasAssignedMember = filled($role->user_id);
-                $hasSpeakerName = filled($role->speaker_name);
-
-                return ! $hasAssignedMember && ! $hasSpeakerName;
+                return [
+                    'normalized' => Str::lower($normalizedName),
+                    'hasName' => $normalizedName !== '',
+                    'isAssigned' => filled($role->user_id) || filled($role->speaker_name),
+                ];
             })
-            ->map(fn ($role) => Str::lower(trim((string) $role->name)))
-            ->unique()
+            ->filter(fn ($role) => $role['hasName'] && ! $role['isAssigned'])
+            ->unique('normalized')
             ->count();
 
         $openRolesEpisodes = $episodes

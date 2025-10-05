@@ -782,7 +782,7 @@ class HoerbuchControllerTest extends TestCase
             'notes' => null,
         ]);
 
-        $episodeWithOpenRoles?->roles()->createMany([
+        $episodeWithOpenRoles->roles()->createMany([
             ['name' => 'Alpha'],
             ['name' => 'Beta'],
             ['name' => 'Gamma'],
@@ -803,7 +803,7 @@ class HoerbuchControllerTest extends TestCase
             'notes' => null,
         ]);
 
-        $episodeWithoutOpenRoles?->roles()->createMany([
+        $episodeWithoutOpenRoles->roles()->createMany([
             ['name' => 'Zeta', 'speaker_name' => 'Sprecher Zeta'],
             ['name' => 'Eta', 'speaker_name' => 'Sprecher Eta'],
             ['name' => 'Theta', 'speaker_name' => 'Sprecher Theta'],
@@ -862,10 +862,10 @@ class HoerbuchControllerTest extends TestCase
             'notes' => null,
         ]);
 
-        $firstEpisode->roles()->create(['name' => 'Alex']);
+        $firstEpisode->roles()->create(['name' => '  Alex  ']);
         $secondEpisode->roles()->createMany([
-            ['name' => 'Alex'],
-            ['name' => 'Chris'],
+            ['name' => 'alex'],
+            ['name' => 'CHRIS'],
         ]);
         $thirdEpisode->roles()->create([
             'name' => 'Chris',
