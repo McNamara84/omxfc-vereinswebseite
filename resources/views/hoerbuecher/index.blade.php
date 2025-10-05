@@ -29,8 +29,8 @@
                         <div class="text-gray-600 dark:text-gray-400">Kein Termin</div>
                     @endif
                 </div>
-                <div id="card-open-episodes" data-open-episodes="{{ $openRolesEpisodes }}" class="p-4 border border-gray-200 dark:border-gray-700 rounded cursor-pointer text-center hover:bg-gray-100 dark:hover:bg-gray-700">
-                    <div class="text-3xl font-bold text-gray-800 dark:text-gray-200">{{ $openRolesEpisodes }}</div>
+                <div id="card-open-episodes" data-open-episodes="{{ $episodesWithUnassignedRoles }}" class="p-4 border border-gray-200 dark:border-gray-700 rounded cursor-pointer text-center hover:bg-gray-100 dark:hover:bg-gray-700">
+                    <div class="text-3xl font-bold text-gray-800 dark:text-gray-200">{{ $episodesWithUnassignedRoles }}</div>
                     <div class="text-gray-600 dark:text-gray-400">Folgen mit offenen Rollen</div>
                 </div>
             </div>

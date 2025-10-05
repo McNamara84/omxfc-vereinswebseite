@@ -809,12 +809,14 @@ class HoerbuchControllerTest extends TestCase
             ['name' => 'Theta', 'speaker_name' => 'Sprecher Theta'],
         ]);
 
-        $this->actingAs($user)
-            ->get(route('hoerbuecher.index'))
+        $response = $this->actingAs($user)->get(route('hoerbuecher.index'));
+
+        $response
             ->assertSee('data-unfilled-roles="3"', false)
             ->assertSee('data-open-episodes="1"', false)
             ->assertSee('data-days-left="1"', false)
-            ->assertSee('Tage bis Erste veröffentlicht wird (02.01.2025)', false);
+            ->assertSee('Tage bis Erste veröffentlicht wird (02.01.2025)', false)
+            ->assertViewHas('episodesWithUnassignedRoles', 1);
     }
 
     public function test_index_counts_unique_unfilled_role_names(): void

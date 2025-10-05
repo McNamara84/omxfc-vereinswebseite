@@ -55,7 +55,10 @@ class HoerbuchController extends Controller
             ->unique('normalized')
             ->count();
 
-        $openRolesEpisodes = $episodes
+        // episodesWithUnassignedRoles counts episodes that contain at least one role
+        // without an assigned member or speaker name, mirroring the
+        // totalUnfilledRoles aggregation but on an episode basis.
+        $episodesWithUnassignedRoles = $episodes
             ->filter(fn ($episode) => $episode->roles->contains(
                 fn ($role) => blank($role->user_id) && blank($role->speaker_name)
             ))
@@ -78,7 +81,7 @@ class HoerbuchController extends Controller
             'years' => $years,
             'roleNames' => $roleNames,
             'totalUnfilledRoles' => $totalUnfilledRoles,
-            'openRolesEpisodes' => $openRolesEpisodes,
+            'episodesWithUnassignedRoles' => $episodesWithUnassignedRoles,
             'nextEpisode' => $nextEpisode,
             'daysUntilNextEvt' => $daysUntilNextEvt,
         ]);
