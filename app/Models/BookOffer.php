@@ -84,19 +84,13 @@ class BookOffer extends Model
                 continue;
             }
 
-            $trimmed = trim($photo);
+            $normalizedPath = ltrim(trim($photo), '/');
 
-            if ($trimmed === '') {
+            if ($normalizedPath === '') {
                 continue;
             }
 
-            $path = ltrim($trimmed, '/');
-
-            if ($path === '') {
-                continue;
-            }
-
-            $normalized[] = $path;
+            $normalized[] = $normalizedPath;
         }
 
         return $normalized;

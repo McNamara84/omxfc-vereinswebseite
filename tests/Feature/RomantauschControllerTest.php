@@ -276,12 +276,13 @@ class RomantauschControllerTest extends TestCase
             'book_number' => 1,
             'book_title' => 'Roman1',
             'condition' => 'neu',
-            'photos' => [' /book-offers/foo.jpg ', 'book-offers/bar.jpg', '', null],
+            'photos' => [' /book-offers/foo.jpg ', '///', 'book-offers/bar.jpg', ' book-offers/baz.jpg ', '', null],
         ]);
 
         $this->assertSame([
             'book-offers/foo.jpg',
             'book-offers/bar.jpg',
+            'book-offers/baz.jpg',
         ], $offer->photos);
 
         $offer->refresh();
@@ -289,6 +290,7 @@ class RomantauschControllerTest extends TestCase
         $this->assertSame([
             'book-offers/foo.jpg',
             'book-offers/bar.jpg',
+            'book-offers/baz.jpg',
         ], $offer->photos);
 
         $this->assertDatabaseHas('book_offers', [
@@ -296,6 +298,7 @@ class RomantauschControllerTest extends TestCase
             'photos' => json_encode([
                 'book-offers/foo.jpg',
                 'book-offers/bar.jpg',
+                'book-offers/baz.jpg',
             ]),
         ]);
     }
@@ -656,6 +659,33 @@ class RomantauschControllerTest extends TestCase
 
         $response->assertSee('aria-label="Kein Foto vorhanden für ' . e($description) . '"', false);
         $response->assertSee('Kein Foto', false);
+    }
+
+    public function test_index_uses_first_photo_when_multiple_available(): void
+    {
+        $this->putBookData();
+        Storage::fake('public');
+
+        $viewer = $this->actingMember();
+        $offerOwner = User::factory()->create();
+
+        $firstPath = UploadedFile::fake()->image('first.jpg')->store('book-offers', 'public');
+        $secondPath = UploadedFile::fake()->image('second.jpg')->store('book-offers', 'public');
+
+        BookOffer::create([
+            'user_id' => $offerOwner->id,
+            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
+            'book_number' => 1,
+            'book_title' => 'Roman1',
+            'condition' => 'neu',
+            'photos' => [$firstPath, $secondPath],
+        ]);
+
+        $this->actingAs($viewer);
+        $response = $this->get('/romantauschboerse');
+
+        $response->assertSee('src="' . asset('storage/' . $firstPath) . '"', false);
+        $response->assertDontSee('src="' . asset('storage/' . $secondPath) . '"', false);
     }
 
     public function test_create_request_loads_books_from_database(): void

@@ -59,7 +59,8 @@
                     @foreach($offers as $offer)
                         @php
                             $bookDescription = trim($offer->series . ' ' . $offer->book_number . ' - ' . $offer->book_title);
-                            $firstPhoto = $offer->photos[0] ?? null;
+                            $photos = $offer->photos;
+                            $firstPhoto = $photos ? reset($photos) ?: null : null;
                         @endphp
                         <li class="bg-gray-100 dark:bg-gray-700 p-4 rounded">
                             <div class="flex flex-col sm:flex-row sm:items-center gap-4">
