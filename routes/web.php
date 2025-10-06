@@ -170,9 +170,13 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
         Route::get('/', 'index')->name('index');
         Route::get('angebot-erstellen', 'createOffer')->name('create-offer');
         Route::post('angebot-speichern', 'storeOffer')->name('store-offer');
+        Route::get('angebot/{offer}/bearbeiten', 'editOffer')->name('edit-offer');
+        Route::put('angebot/{offer}', 'updateOffer')->name('update-offer');
         Route::get('angebot/{offer}', 'showOffer')->name('show-offer');
         Route::get('anfrage-erstellen', 'createRequest')->name('create-request');
         Route::post('anfrage-speichern', 'storeRequest')->name('store-request');
+        Route::get('anfrage/{bookRequest}/bearbeiten', 'editRequest')->name('edit-request');
+        Route::put('anfrage/{bookRequest}', 'updateRequest')->name('update-request');
         Route::post('{offer}/angebot-loeschen', 'deleteOffer')->name('delete-offer');
         Route::post('{request}/anfrage-loeschen', 'deleteRequest')->name('delete-request');
         Route::post('{offer}/{request}/abschliessen', 'completeSwap')->name('complete-swap');

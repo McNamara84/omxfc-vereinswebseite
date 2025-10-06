@@ -7,8 +7,13 @@ use App\Models\User;
 
 class BookRequestPolicy
 {
-    public function delete(User $user, BookRequest $request): bool
+    public function update(User $user, BookRequest $bookRequest): bool
     {
-        return $user->id === $request->user_id;
+        return $user->id === $bookRequest->user_id;
+    }
+
+    public function delete(User $user, BookRequest $bookRequest): bool
+    {
+        return $user->id === $bookRequest->user_id;
     }
 }

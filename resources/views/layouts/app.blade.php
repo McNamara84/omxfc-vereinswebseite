@@ -59,6 +59,7 @@
     <!-- Footer hier einfügen -->
     <x-footer />
     @stack('modals')
+    @stack('scripts')
 
     <!-- Alpine/JS -->
     @vite(['resources/js/app.js'])
