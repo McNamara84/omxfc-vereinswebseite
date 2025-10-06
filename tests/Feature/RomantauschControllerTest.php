@@ -54,6 +54,30 @@ class RomantauschControllerTest extends TestCase
         ]);
     }
 
+    public function test_index_displays_structured_information_panel(): void
+    {
+        $this->putBookData();
+
+        $user = $this->actingMember();
+        $this->actingAs($user);
+
+        app()->setLocale('de');
+
+        $response = $this->get('/romantauschboerse');
+
+        $response->assertOk();
+        $response->assertSee('aria-label="' . __('romantausch.info.steps_aria_label') . '"', false);
+        $response->assertSeeText(__('romantausch.info.title'));
+        $response->assertSeeTextInOrder([
+            __('romantausch.info.steps.offer.title'),
+            __('romantausch.info.steps.request.title'),
+            __('romantausch.info.steps.match.title'),
+            __('romantausch.info.steps.confirm.title'),
+        ]);
+        $response->assertSeeText(__('romantausch.info.steps.offer.cta'));
+        $response->assertSeeText(__('romantausch.info.steps.request.cta'));
+    }
+
     public function test_complete_swap_marks_entries_completed(): void
     {
         $this->putBookData();
