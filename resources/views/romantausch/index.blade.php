@@ -16,36 +16,33 @@
                 jeweils <strong>2 Baxx</strong> zusätzlich gutgeschrieben.
             </p>
         </div>
-        @php
-            $info = \Illuminate\Support\Facades\Lang::get('romantausch.info', [], 'de');
-        @endphp
         <section class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6" aria-labelledby="swap-process-heading">
             <div class="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
                 <div>
                     <h2 id="swap-process-heading" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81]">
-                        {{ $info['title'] }}
+                        {{ $romantauschInfo['title'] }}
                     </h2>
                     <p class="mt-2 text-sm text-gray-600 dark:text-gray-400 max-w-3xl">
-                        {{ $info['intro'] }}
+                        {{ $romantauschInfo['intro'] }}
                     </p>
                 </div>
             </div>
-            <ol class="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4" aria-label="{{ $info['steps_aria_label'] }}">
+            <ol class="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4" aria-label="{{ $romantauschInfo['steps_aria_label'] }}">
                 <li class="flex h-full flex-col gap-3 rounded-lg border border-gray-200 bg-white/60 p-4 dark:border-gray-700 dark:bg-gray-800/60">
                     <div class="flex items-center gap-3">
                         <span class="flex h-10 w-10 items-center justify-center rounded-full bg-[#8B0116] text-sm font-semibold text-white dark:bg-[#FF6B81]">1</span>
                         <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                            {{ $info['steps']['offer']['title'] }}
+                            {{ $romantauschInfo['steps']['offer']['title'] }}
                         </h3>
                     </div>
                     <p class="text-sm text-gray-600 dark:text-gray-300">
-                        {{ $info['steps']['offer']['description'] }}
+                        {{ $romantauschInfo['steps']['offer']['description'] }}
                     </p>
                     <div class="mt-auto">
                         <a href="{{ route('romantausch.create-offer') }}"
                            class="inline-flex items-center justify-center rounded-md bg-[#8B0116] px-4 py-2 text-sm font-semibold text-white transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#8B0116] hover:bg-[#A50019] dark:bg-[#C41E3A] dark:hover:bg-[#D63A4D] dark:focus-visible:ring-[#FF6B81]"
-                           aria-label="{{ $info['steps']['offer']['cta_aria'] }}">
-                            {{ $info['steps']['offer']['cta'] }}
+                           aria-label="{{ $romantauschInfo['steps']['offer']['cta_aria'] }}">
+                            {{ $romantauschInfo['steps']['offer']['cta'] }}
                         </a>
                     </div>
                 </li>
@@ -53,17 +50,17 @@
                     <div class="flex items-center gap-3">
                         <span class="flex h-10 w-10 items-center justify-center rounded-full bg-[#8B0116] text-sm font-semibold text-white dark:bg-[#FF6B81]">2</span>
                         <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                            {{ $info['steps']['request']['title'] }}
+                            {{ $romantauschInfo['steps']['request']['title'] }}
                         </h3>
                     </div>
                     <p class="text-sm text-gray-600 dark:text-gray-300">
-                        {{ $info['steps']['request']['description'] }}
+                        {{ $romantauschInfo['steps']['request']['description'] }}
                     </p>
                     <div class="mt-auto">
                         <a href="{{ route('romantausch.create-request') }}"
                            class="inline-flex items-center justify-center rounded-md bg-gray-700 px-4 py-2 text-sm font-semibold text-white transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-gray-700 hover:bg-gray-800 dark:bg-gray-500 dark:hover:bg-gray-400 dark:focus-visible:ring-[#FF6B81]"
-                           aria-label="{{ $info['steps']['request']['cta_aria'] }}">
-                            {{ $info['steps']['request']['cta'] }}
+                           aria-label="{{ $romantauschInfo['steps']['request']['cta_aria'] }}">
+                            {{ $romantauschInfo['steps']['request']['cta'] }}
                         </a>
                     </div>
                 </li>
@@ -71,22 +68,22 @@
                     <div class="flex items-center gap-3">
                         <span class="flex h-10 w-10 items-center justify-center rounded-full bg-[#8B0116] text-sm font-semibold text-white dark:bg-[#FF6B81]">3</span>
                         <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                            {{ $info['steps']['match']['title'] }}
+                            {{ $romantauschInfo['steps']['match']['title'] }}
                         </h3>
                     </div>
                     <p class="text-sm text-gray-600 dark:text-gray-300">
-                        {{ $info['steps']['match']['description'] }}
+                        {{ $romantauschInfo['steps']['match']['description'] }}
                     </p>
                 </li>
                 <li class="flex h-full flex-col gap-3 rounded-lg border border-gray-200 bg-white/60 p-4 dark:border-gray-700 dark:bg-gray-800/60">
                     <div class="flex items-center gap-3">
                         <span class="flex h-10 w-10 items-center justify-center rounded-full bg-[#8B0116] text-sm font-semibold text-white dark:bg-[#FF6B81]">4</span>
                         <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                            {{ $info['steps']['confirm']['title'] }}
+                            {{ $romantauschInfo['steps']['confirm']['title'] }}
                         </h3>
                     </div>
                     <p class="text-sm text-gray-600 dark:text-gray-300">
-                        {{ $info['steps']['confirm']['description'] }}
+                        {{ $romantauschInfo['steps']['confirm']['description'] }}
                     </p>
                 </li>
             </ol>

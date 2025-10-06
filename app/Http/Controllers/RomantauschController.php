@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Lang;
 
 class RomantauschController extends Controller
 {
@@ -44,7 +45,15 @@ class RomantauschController extends Controller
 
         $completedSwaps = BookSwap::with(['offer.user', 'request.user'])->whereNotNull('completed_at')->latest()->get();
 
-        return view('romantausch.index', compact('offers', 'requests', 'activeSwaps', 'completedSwaps'));
+        $locale = config('romantausch.locale');
+        $romantauschInfo = Lang::get('romantausch.info', [], $locale);
+
+        if (!is_array($romantauschInfo)) {
+            $fallbackLocale = config('romantausch.fallback_locale', $locale);
+            $romantauschInfo = Lang::get('romantausch.info', [], $fallbackLocale);
+        }
+
+        return view('romantausch.index', compact('offers', 'requests', 'activeSwaps', 'completedSwaps', 'romantauschInfo'));
     }
 
     // Formular für Angebot erstellen

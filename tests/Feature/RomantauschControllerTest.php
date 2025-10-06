@@ -65,20 +65,26 @@ class RomantauschControllerTest extends TestCase
         $response = $this->get('/romantauschboerse');
 
         $response->assertOk();
-        $title = Lang::get('romantausch.info.title', [], 'de');
-        $stepsLabel = Lang::get('romantausch.info.steps_aria_label', [], 'de');
-        $steps = Lang::get('romantausch.info.steps', [], 'de');
+        $locale = config('romantausch.locale');
+        $info = Lang::get('romantausch.info', [], $locale);
+        if (!is_array($info)) {
+            $info = Lang::get('romantausch.info', [], config('romantausch.fallback_locale'));
+        }
 
-        $response->assertSee('aria-label="' . $stepsLabel . '"', false);
-        $response->assertSeeText($title);
+        $response->assertViewHas('romantauschInfo', function ($data) use ($info) {
+            return is_array($data) && $data['title'] === $info['title'];
+        });
+
+        $response->assertSee('aria-label="' . $info['steps_aria_label'] . '"', false);
+        $response->assertSeeText($info['title']);
         $response->assertSeeTextInOrder([
-            $steps['offer']['title'],
-            $steps['request']['title'],
-            $steps['match']['title'],
-            $steps['confirm']['title'],
+            $info['steps']['offer']['title'],
+            $info['steps']['request']['title'],
+            $info['steps']['match']['title'],
+            $info['steps']['confirm']['title'],
         ]);
-        $response->assertSeeText($steps['offer']['cta']);
-        $response->assertSeeText($steps['request']['cta']);
+        $response->assertSeeText($info['steps']['offer']['cta']);
+        $response->assertSeeText($info['steps']['request']['cta']);
     }
 
     public function test_complete_swap_marks_entries_completed(): void
