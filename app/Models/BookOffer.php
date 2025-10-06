@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 /**
  * @property int $id
@@ -34,10 +34,6 @@ class BookOffer extends Model
         'completed',
     ];
 
-    protected $casts = [
-        'photos' => 'array',
-    ];
-
     public function user()
     {
         return $this->belongsTo(User::class);
@@ -46,5 +42,57 @@ class BookOffer extends Model
     public function swap()
     {
         return $this->hasOne(BookSwap::class, 'offer_id');
+    }
+
+    public function getPhotosAttribute($value): array
+    {
+        if ($value === null || $value === '') {
+            return [];
+        }
+
+        $decoded = json_decode($value, true);
+        $photos = is_array($decoded) ? $decoded : [];
+
+        return $this->sanitizePhotoPaths($photos);
+    }
+
+    public function setPhotosAttribute($value): void
+    {
+        if ($value === null) {
+            $this->attributes['photos'] = null;
+            return;
+        }
+
+        if (!is_array($value)) {
+            $decoded = json_decode($value ?? '[]', true);
+            $value = is_array($decoded) ? $decoded : [];
+        }
+
+        $this->attributes['photos'] = json_encode($this->sanitizePhotoPaths($value));
+    }
+
+    /**
+     * @param array<int, mixed> $photos
+     * @return array<int, string>
+     */
+    private function sanitizePhotoPaths(array $photos): array
+    {
+        $normalized = [];
+
+        foreach ($photos as $photo) {
+            if (!is_string($photo)) {
+                continue;
+            }
+
+            $normalizedPath = ltrim(trim($photo), '/');
+
+            if ($normalizedPath === '') {
+                continue;
+            }
+
+            $normalized[] = $normalizedPath;
+        }
+
+        return $normalized;
     }
 }
