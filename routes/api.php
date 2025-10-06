@@ -1,8 +1,11 @@
 <?php
 
-use Illuminate\Http\Request;
+use App\Http\Controllers\Api\ElmoResourceTypeController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/nutzer', function (Request $request) {
-    return $request->user();
-})->middleware('auth:sanctum');
+Route::prefix('v1')->group(function () {
+    Route::middleware('elmo.api')->group(function () {
+        Route::get('resource-types/elmo', ElmoResourceTypeController::class)
+            ->name('api.resource-types.elmo');
+    });
+});
