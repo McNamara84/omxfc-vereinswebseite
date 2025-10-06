@@ -58,7 +58,15 @@
                     <ul class="space-y-3">
                         @foreach($offers as $offer)
                             @php
-                                $firstPhoto = collect($offer->photos ?? [])->filter()->first();
+                                $photoPaths = [];
+                                if (is_array($offer->photos)) {
+                                    foreach ($offer->photos as $photo) {
+                                        if (is_string($photo) && $photo !== '') {
+                                            $photoPaths[] = $photo;
+                                        }
+                                    }
+                                }
+                                $firstPhoto = $photoPaths[0] ?? null;
                                 $bookDescription = trim($offer->series . ' ' . $offer->book_number . ' - ' . $offer->book_title);
                             @endphp
                             <li class="bg-gray-100 dark:bg-gray-700 p-4 rounded">
@@ -66,7 +74,7 @@
                                     <div class="flex-shrink-0">
                                         @if($firstPhoto)
                                             <img
-                                                src="{{ asset('storage/' . ltrim($firstPhoto, '/')) }}"
+                                                src="{{ asset('storage/' . $firstPhoto) }}"
                                                 alt="Cover von {{ $bookDescription }}"
                                                 class="h-24 w-24 rounded-md object-cover shadow-sm ring-1 ring-inset ring-gray-200 dark:ring-gray-600"
                                                 loading="lazy"

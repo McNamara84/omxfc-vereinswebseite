@@ -266,6 +266,40 @@ class RomantauschControllerTest extends TestCase
         Storage::disk('public')->assertExists($path);
     }
 
+    public function test_photo_paths_are_normalized_when_setting_attribute(): void
+    {
+        $user = $this->actingMember();
+
+        $offer = BookOffer::create([
+            'user_id' => $user->id,
+            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
+            'book_number' => 1,
+            'book_title' => 'Roman1',
+            'condition' => 'neu',
+            'photos' => [' /book-offers/foo.jpg ', 'book-offers/bar.jpg', '', null],
+        ]);
+
+        $this->assertSame([
+            'book-offers/foo.jpg',
+            'book-offers/bar.jpg',
+        ], $offer->photos);
+
+        $offer->refresh();
+
+        $this->assertSame([
+            'book-offers/foo.jpg',
+            'book-offers/bar.jpg',
+        ], $offer->photos);
+
+        $this->assertDatabaseHas('book_offers', [
+            'id' => $offer->id,
+            'photos' => json_encode([
+                'book-offers/foo.jpg',
+                'book-offers/bar.jpg',
+            ]),
+        ]);
+    }
+
     public function test_store_offer_uses_fallback_name_when_slug_empty(): void
     {
         $this->putBookData();
