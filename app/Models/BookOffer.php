@@ -46,12 +46,12 @@ class BookOffer extends Model
 
     public function getPhotosAttribute($value): array
     {
-        if (is_array($value)) {
-            $photos = $value;
-        } else {
-            $decoded = json_decode($value ?? '[]', true);
-            $photos = is_array($decoded) ? $decoded : [];
+        if ($value === null || $value === '') {
+            return [];
         }
+
+        $decoded = json_decode($value, true);
+        $photos = is_array($decoded) ? $decoded : [];
 
         return $this->sanitizePhotoPaths($photos);
     }

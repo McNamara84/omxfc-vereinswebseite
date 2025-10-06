@@ -58,16 +58,8 @@
                     <ul class="space-y-3">
                         @foreach($offers as $offer)
                             @php
-                                $photoPaths = [];
-                                if (is_array($offer->photos)) {
-                                    foreach ($offer->photos as $photo) {
-                                        if (is_string($photo) && $photo !== '') {
-                                            $photoPaths[] = $photo;
-                                        }
-                                    }
-                                }
-                                $firstPhoto = $photoPaths[0] ?? null;
                                 $bookDescription = trim($offer->series . ' ' . $offer->book_number . ' - ' . $offer->book_title);
+                                $firstPhoto = $offer->photos[0] ?? null;
                             @endphp
                             <li class="bg-gray-100 dark:bg-gray-700 p-4 rounded">
                                 <div class="flex flex-col sm:flex-row sm:items-center gap-4">
