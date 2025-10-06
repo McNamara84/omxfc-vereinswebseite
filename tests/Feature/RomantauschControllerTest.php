@@ -602,4 +602,53 @@ class RomantauschControllerTest extends TestCase
 
         $this->assertDatabaseHas('book_requests', ['id' => $request->id]);
     }
+
+    public function test_store_offer_shows_validation_errors_for_missing_required_fields(): void
+    {
+        $this->putBookData();
+        $user = $this->actingMember();
+        $this->actingAs($user);
+
+        $response = $this->from(route('romantausch.create-offer'))
+            ->post(route('romantausch.store-offer'), []);
+
+        $response->assertRedirect(route('romantausch.create-offer'));
+        $response->assertSessionHasErrors(['series', 'book_number', 'condition']);
+
+        $followUp = $this->get(route('romantausch.create-offer'));
+        $followUp->assertSee('id="series-error"', false);
+        $followUp->assertSee('id="book_number-error"', false);
+        $followUp->assertSee('id="condition-error"', false);
+        $followUp->assertSee('aria-describedby="series-error"', false);
+        $followUp->assertSeeText(trans('validation.required', ['attribute' => 'series']));
+    }
+
+    public function test_store_request_shows_errors_and_preserves_old_values(): void
+    {
+        $this->putBookData();
+        $user = $this->actingMember();
+        $this->actingAs($user);
+
+        $response = $this->from(route('romantausch.create-request'))
+            ->post(route('romantausch.store-request'), [
+                'series' => BookType::MissionMars->value,
+                'book_number' => 2,
+            ]);
+
+        $response->assertRedirect(route('romantausch.create-request'));
+        $response->assertSessionHasErrors(['condition']);
+
+        $followUp = $this->get(route('romantausch.create-request'));
+        $followUp->assertSee('id="condition-error"', false);
+        $followUp->assertSee('aria-describedby="condition-error"', false);
+        $followUp->assertSeeText(trans('validation.required', ['attribute' => 'condition']));
+        $this->assertMatchesRegularExpression(
+            '/<option value="'.preg_quote(BookType::MissionMars->value, '/').'"[^>]*selected/si',
+            $followUp->getContent()
+        );
+        $this->assertMatchesRegularExpression(
+            '/<option\s+value="2"[^>]*data-series="'.preg_quote(BookType::MissionMars->value, '/').'"[^>]*selected/si',
+            $followUp->getContent()
+        );
+    }
 }
