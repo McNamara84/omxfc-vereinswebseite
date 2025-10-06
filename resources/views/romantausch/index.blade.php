@@ -131,19 +131,116 @@
                     @foreach($offers as $offer)
                         @php
                             $bookDescription = trim($offer->series . ' ' . $offer->book_number . ' - ' . $offer->book_title);
-                            $photos = $offer->photos;
-                            $firstPhoto = $photos ? reset($photos) ?: null : null;
+                            $photos = $offer->photos ?? [];
+                            $hasPhotos = count($photos) > 0;
                         @endphp
                         <li class="bg-gray-100 dark:bg-gray-700 p-4 rounded">
-                            <div class="flex flex-col sm:flex-row sm:items-center gap-4">
-                                <div class="flex-shrink-0">
-                                    @if($firstPhoto)
-                                        <img
-                                            src="{{ asset('storage/' . $firstPhoto) }}"
-                                            alt="Cover von {{ $bookDescription }}"
-                                            class="h-24 w-24 rounded-md object-cover shadow-sm ring-1 ring-inset ring-gray-200 dark:ring-gray-600"
-                                            loading="lazy"
+                            <div class="flex flex-col gap-4 sm:flex-row sm:items-center">
+                                <div class="flex w-full flex-col gap-3 sm:w-48" @if($hasPhotos) data-romantausch-gallery data-gallery-id="offer-{{ $offer->id }}" @endif>
+                                    @if($hasPhotos)
+                                        <ul class="grid grid-cols-3 gap-2 sm:grid-cols-2">
+                                            @foreach($photos as $photoIndex => $photoPath)
+                                                @php
+                                                    $thumbnailSrc = asset('storage/' . $photoPath);
+                                                    $photoNumber = $photoIndex + 1;
+                                                    $thumbnailLabel = "Foto {$photoNumber} von {$bookDescription}";
+                                                @endphp
+                                                <li>
+                                                    <button
+                                                        type="button"
+                                                        class="group relative block aspect-square w-full overflow-hidden rounded-md ring-1 ring-inset ring-gray-200 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#8B0116] dark:ring-gray-600 dark:focus-visible:ring-[#FF6B81]"
+                                                        data-photo-dialog-trigger
+                                                        data-photo-src="{{ $thumbnailSrc }}"
+                                                        data-photo-alt="{{ $thumbnailLabel }}"
+                                                        data-photo-index="{{ $photoIndex }}"
+                                                        data-photo-label="{{ $thumbnailLabel }}"
+                                                    >
+                                                        <span class="sr-only">{{ $thumbnailLabel }} vergrößert anzeigen</span>
+                                                        <img
+                                                            src="{{ $thumbnailSrc }}"
+                                                            alt="{{ $thumbnailLabel }}"
+                                                            class="h-full w-full object-cover transition duration-200 group-hover:scale-105"
+                                                            loading="lazy"
+                                                        >
+                                                    </button>
+                                                </li>
+                                            @endforeach
+                                        </ul>
+                                        <p class="text-xs text-gray-600 dark:text-gray-300">Zum Vergrößern ein Foto auswählen.</p>
+                                        <div id="offer-{{ $offer->id }}-dialog-title" class="sr-only">Fotoansicht für {{ $bookDescription }}</div>
+                                        <div
+                                            class="hidden"
+                                            data-photo-dialog
+                                            aria-hidden="true"
+                                            role="dialog"
+                                            aria-modal="true"
+                                            aria-labelledby="offer-{{ $offer->id }}-dialog-title"
                                         >
+                                            <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
+                                                <div class="absolute inset-0 bg-black/70" data-photo-dialog-overlay aria-hidden="true"></div>
+                                                <div
+                                                    class="relative z-10 flex w-full max-w-3xl flex-col overflow-hidden rounded-lg bg-white shadow-2xl outline-none focus-visible:outline-none dark:bg-gray-900"
+                                                    data-photo-dialog-panel
+                                                    tabindex="-1"
+                                                >
+                                                    <div class="flex items-center justify-between border-b border-gray-200 bg-gray-50 px-4 py-3 dark:border-gray-700 dark:bg-gray-800">
+                                                        <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100">{{ $bookDescription }}</h3>
+                                                        <button
+                                                            type="button"
+                                                            class="inline-flex items-center rounded-md p-2 text-gray-600 transition hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#8B0116] dark:text-gray-300 dark:hover:text-white dark:focus-visible:ring-[#FF6B81]"
+                                                            data-photo-dialog-close
+                                                            data-photo-dialog-initial-focus
+                                                            aria-label="Fotoansicht schließen"
+                                                        >
+                                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="h-5 w-5" aria-hidden="true">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" d="m6 6 12 12M18 6 6 18" />
+                                                            </svg>
+                                                        </button>
+                                                    </div>
+                                                    <div class="relative flex items-center justify-center bg-gray-900 px-8 py-10 dark:bg-black">
+                                                        <button
+                                                            type="button"
+                                                            class="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-white/90 p-2 text-gray-800 shadow transition hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#8B0116] disabled:pointer-events-none disabled:opacity-50 dark:bg-gray-800/90 dark:text-gray-100 dark:hover:bg-gray-700 dark:focus-visible:ring-[#FF6B81]"
+                                                            data-photo-dialog-prev
+                                                            aria-label="Vorheriges Foto"
+                                                        >
+                                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="h-5 w-5" aria-hidden="true">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" d="m15.75 19.5-7.5-7.5 7.5-7.5" />
+                                                            </svg>
+                                                        </button>
+                                                        <img
+                                                            src="{{ asset('storage/' . $photos[0]) }}"
+                                                            alt="{{ "Foto 1 von {$bookDescription}" }}"
+                                                            class="max-h-[70vh] w-full max-w-2xl object-contain"
+                                                            data-photo-dialog-image
+                                                        >
+                                                        <button
+                                                            type="button"
+                                                            class="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-white/90 p-2 text-gray-800 shadow transition hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#8B0116] disabled:pointer-events-none disabled:opacity-50 dark:bg-gray-800/90 dark:text-gray-100 dark:hover:bg-gray-700 dark:focus-visible:ring-[#FF6B81]"
+                                                            data-photo-dialog-next
+                                                            aria-label="Nächstes Foto"
+                                                        >
+                                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="h-5 w-5" aria-hidden="true">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+                                                            </svg>
+                                                        </button>
+                                                    </div>
+                                                    <div class="flex items-center justify-between gap-3 border-t border-gray-200 bg-gray-50 px-4 py-3 text-xs text-gray-600 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                                                        <span data-photo-dialog-counter>1 / {{ count($photos) }}</span>
+                                                        <span data-photo-dialog-caption>{{ "Foto 1 von {$bookDescription}" }}</span>
+                                                    </div>
+                                                    <div class="flex justify-end border-t border-gray-200 bg-gray-50 px-4 py-3 dark:border-gray-700 dark:bg-gray-800">
+                                                        <button
+                                                            type="button"
+                                                            class="inline-flex items-center rounded-md bg-[#8B0116] px-3 py-1.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#A50019] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#8B0116] dark:bg-[#C41E3A] dark:hover:bg-[#D63A4D] dark:focus-visible:ring-[#FF6B81]"
+                                                            data-photo-dialog-close
+                                                        >
+                                                            Schließen
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     @else
                                         <div
                                             class="flex h-24 w-24 items-center justify-center rounded-md border border-dashed border-gray-300 bg-gradient-to-br from-gray-50 to-gray-100 text-center text-xs font-medium text-gray-500 shadow-sm dark:border-gray-600 dark:from-gray-700 dark:to-gray-800 dark:text-gray-200"
