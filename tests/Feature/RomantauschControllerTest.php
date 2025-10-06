@@ -12,7 +12,6 @@ use App\Models\Book;
 use App\Models\BookSwap;
 use App\Enums\BookType;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Lang;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Http\UploadedFile;
 use App\Http\Controllers\RomantauschController;
@@ -20,6 +19,7 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 use Illuminate\View\View;
 use Mockery;
 use Illuminate\Support\Str;
+use App\Services\RomantauschInfoProvider;
 
 class RomantauschControllerTest extends TestCase
 {
@@ -65,14 +65,10 @@ class RomantauschControllerTest extends TestCase
         $response = $this->get('/romantauschboerse');
 
         $response->assertOk();
-        $locale = config('romantausch.locale');
-        $info = Lang::get('romantausch.info', [], $locale);
-        if (!is_array($info)) {
-            $info = Lang::get('romantausch.info', [], config('romantausch.fallback_locale'));
-        }
+        $info = app(RomantauschInfoProvider::class)->getInfo();
 
         $response->assertViewHas('romantauschInfo', function ($data) use ($info) {
-            return is_array($data) && $data['title'] === $info['title'];
+            return $data === $info;
         });
 
         $response->assertSee('aria-label="' . $info['steps_aria_label'] . '"', false);
