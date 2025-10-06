@@ -59,13 +59,26 @@
                         @foreach($offers as $offer)
                             <li class="bg-gray-100 dark:bg-gray-700 p-3 rounded flex justify-between items-center">
                                 <span>{{ $offer->series }} {{ $offer->book_number }} - {{ $offer->book_title }} ({{ $offer->condition }})</span>
-                                <div class="flex items-center gap-2">
+                                <div class="flex items-center gap-3">
                                     <span class="text-sm text-gray-600 dark:text-gray-300">von <a href="{{ route('profile.view', $offer->user->id) }}" class="text-[#8B0116] hover:underline">{{ $offer->user->name }}</a></span>
                                     @if(auth()->id() === $offer->user_id)
-                                        <form method="POST" action="{{ route('romantausch.delete-offer', $offer) }}">
-                                            @csrf
-                                            <button class="text-red-600 hover:underline" onclick="return confirm('Möchtest du dieses Angebot wirklich löschen?')">Löschen</button>
-                                        </form>
+                                        <div class="flex items-center gap-2">
+                                            <a href="{{ route('romantausch.edit-offer', $offer) }}" class="inline-flex items-center gap-2 rounded px-3 py-1.5 text-sm font-semibold text-[#8B0116] dark:text-[#FF6B81] border border-transparent hover:border-[#8B0116] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#8B0116] dark:focus-visible:ring-[#FF6B81]" aria-label="Angebot bearbeiten: {{ $offer->series }} {{ $offer->book_number }}">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.862 4.487z" />
+                                                </svg>
+                                                <span>Bearbeiten</span>
+                                            </a>
+                                            <form method="POST" action="{{ route('romantausch.delete-offer', $offer) }}" class="inline">
+                                                @csrf
+                                                <button class="inline-flex items-center gap-2 rounded px-3 py-1.5 text-sm font-semibold text-red-600 dark:text-red-400 border border-transparent hover:border-red-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-red-500" onclick="return confirm('Möchtest du dieses Angebot wirklich löschen?')">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                                                    </svg>
+                                                    <span>Löschen</span>
+                                                </button>
+                                            </form>
+                                        </div>
                                     @endif
                                 </div>
                             </li>
@@ -89,13 +102,26 @@
                         @foreach($requests as $request)
                             <li class="bg-gray-100 dark:bg-gray-700 p-3 rounded flex justify-between items-center">
                                 <span>{{ $request->series }} {{ $request->book_number }} - {{ $request->book_title }} ({{ $request->condition }} oder besser)</span>
-                                <div class="flex items-center gap-2">
+                                <div class="flex items-center gap-3">
                                     <span class="text-sm text-gray-600 dark:text-gray-300">von <a href="{{ route('profile.view', $request->user->id) }}" class="text-[#8B0116] hover:underline">{{ $request->user->name }}</a></span>
                                     @if(auth()->id() === $request->user_id)
-                                        <form method="POST" action="{{ route('romantausch.delete-request', $request) }}">
-                                            @csrf
-                                            <button class="text-red-600 hover:underline" onclick="return confirm('Möchtest du dieses Gesuch wirklich löschen?')">Löschen</button>
-                                        </form>
+                                        <div class="flex items-center gap-2">
+                                            <a href="{{ route('romantausch.edit-request', $request) }}" class="inline-flex items-center gap-2 rounded px-3 py-1.5 text-sm font-semibold text-[#8B0116] dark:text-[#FF6B81] border border-transparent hover:border-[#8B0116] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#8B0116] dark:focus-visible:ring-[#FF6B81]" aria-label="Gesuch bearbeiten: {{ $request->series }} {{ $request->book_number }}">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.862 4.487z" />
+                                                </svg>
+                                                <span>Bearbeiten</span>
+                                            </a>
+                                            <form method="POST" action="{{ route('romantausch.delete-request', $request) }}" class="inline">
+                                                @csrf
+                                                <button class="inline-flex items-center gap-2 rounded px-3 py-1.5 text-sm font-semibold text-red-600 dark:text-red-400 border border-transparent hover:border-red-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-red-500" onclick="return confirm('Möchtest du dieses Gesuch wirklich löschen?')">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                                                    </svg>
+                                                    <span>Löschen</span>
+                                                </button>
+                                            </form>
+                                        </div>
                                     @endif
                                 </div>
                             </li>

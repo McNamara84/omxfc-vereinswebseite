@@ -18,6 +18,7 @@ use App\Enums\BookType;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 
 class RomantauschController extends Controller
 {
@@ -54,6 +55,21 @@ class RomantauschController extends Controller
         $types = self::ALLOWED_TYPES;
 
         return view('romantausch.create_offer', compact('books', 'types'));
+    }
+
+    public function editOffer(BookOffer $offer)
+    {
+        $this->authorize('update', $offer);
+
+        if ($offer->completed || $offer->swap) {
+            return redirect()->route('romantausch.index')->with('error', 'Angebote in laufenden oder abgeschlossenen Tauschaktionen können nicht bearbeitet werden.');
+        }
+
+        $typeValues = array_map(fn ($type) => $type->value, self::ALLOWED_TYPES);
+        $books = Book::whereIn('type', $typeValues)->orderBy('roman_number')->get();
+        $types = self::ALLOWED_TYPES;
+
+        return view('romantausch.edit_offer', compact('books', 'types', 'offer'));
     }
 
     // Angebot speichern
@@ -120,6 +136,94 @@ class RomantauschController extends Controller
         return redirect()->route('romantausch.index')->with('success', 'Angebot erstellt.');
     }
 
+    public function updateOffer(Request $request, BookOffer $offer)
+    {
+        $this->authorize('update', $offer);
+
+        if ($offer->completed || $offer->swap) {
+            return redirect()->route('romantausch.index')->with('error', 'Angebote in laufenden oder abgeschlossenen Tauschaktionen können nicht bearbeitet werden.');
+        }
+
+        $validator = Validator::make($request->all(), [
+            'series' => ['required', Rule::in(array_map(fn ($case) => $case->value, self::ALLOWED_TYPES))],
+            'book_number' => 'required|integer',
+            'condition' => 'required|string',
+            'photos' => 'nullable|array',
+            'photos.*' => 'file|max:2048|mimes:' . implode(',', self::ALLOWED_PHOTO_EXTENSIONS),
+            'remove_photos' => 'nullable|array',
+            'remove_photos.*' => 'string',
+        ]);
+
+        $validator->after(function ($validator) use ($offer, $request) {
+            $removePhotos = collect($request->input('remove_photos', []));
+            $existingPhotos = collect($offer->photos ?? []);
+            $remainingCount = $existingPhotos->reject(fn ($path) => $removePhotos->contains($path))->count();
+            $newCount = collect($request->file('photos', []))->filter()->count();
+
+            if ($remainingCount + $newCount > 3) {
+                $validator->errors()->add('photos', 'Du kannst maximal drei Fotos für ein Angebot speichern.');
+            }
+        });
+
+        $validated = $validator->validate();
+
+        $book = Book::where('roman_number', $validated['book_number'])
+            ->where('type', $validated['series'])
+            ->first();
+
+        if (!$book) {
+            return redirect()->back()->with('error', 'Ausgewählter Roman nicht gefunden.');
+        }
+
+        $removePhotos = collect($request->input('remove_photos', []));
+        $existingPhotos = collect($offer->photos ?? []);
+
+        $photosToKeep = $existingPhotos->reject(fn ($path) => $removePhotos->contains($path))->values();
+
+        $removedPhotos = $existingPhotos->diff($photosToKeep);
+        foreach ($removedPhotos as $path) {
+            Storage::disk('public')->delete($path);
+        }
+
+        $newPhotoPaths = [];
+        if ($request->hasFile('photos')) {
+            foreach ($request->file('photos') as $photo) {
+                if (!$photo) {
+                    continue;
+                }
+                try {
+                    $extension = strtolower($photo->getClientOriginalExtension());
+                    $name = Str::slug(pathinfo($photo->getClientOriginalName(), PATHINFO_FILENAME));
+                    if ($name === '') {
+                        $name = 'photo';
+                    }
+                    $filename = $name . '-' . Str::uuid() . '.' . $extension;
+                    $newPhotoPaths[] = $photo->storeAs('book-offers', $filename, 'public');
+                } catch (\Throwable $e) {
+                    foreach ($newPhotoPaths as $path) {
+                        Storage::disk('public')->delete($path);
+                    }
+
+                    return redirect()->back()->withInput()->with('error', 'Foto-Upload fehlgeschlagen. Bitte versuche es erneut.');
+                }
+            }
+        }
+
+        $offer->update([
+            'series' => $validated['series'],
+            'book_number' => $validated['book_number'],
+            'book_title' => $book->title,
+            'condition' => $validated['condition'],
+            'photos' => array_values(array_merge($photosToKeep->toArray(), $newPhotoPaths)),
+        ]);
+
+        $offer->refresh();
+
+        $this->matchSwap($offer, 'offer');
+
+        return redirect()->route('romantausch.index')->with('success', 'Angebot aktualisiert.');
+    }
+
     // Formular für Gesuch erstellen
     public function createRequest()
     {
@@ -128,6 +232,23 @@ class RomantauschController extends Controller
         $types = self::ALLOWED_TYPES;
 
         return view('romantausch.create_request', compact('books', 'types'));
+    }
+
+    public function editRequest(BookRequest $bookRequest)
+    {
+        $this->authorize('update', $bookRequest);
+
+        if ($bookRequest->completed || $bookRequest->swap) {
+            return redirect()->route('romantausch.index')->with('error', 'Gesuche in laufenden oder abgeschlossenen Tauschaktionen können nicht bearbeitet werden.');
+        }
+
+        $typeValues = array_map(fn ($type) => $type->value, self::ALLOWED_TYPES);
+        $books = Book::whereIn('type', $typeValues)->orderBy('roman_number')->get();
+        $types = self::ALLOWED_TYPES;
+
+        $requestModel = $bookRequest;
+
+        return view('romantausch.edit_request', compact('books', 'types', 'requestModel'));
     }
 
     // Gesuch speichern
@@ -163,6 +284,40 @@ class RomantauschController extends Controller
         ]);
 
         return redirect()->route('romantausch.index')->with('success', 'Gesuch erstellt.');
+    }
+
+    public function updateRequest(Request $request, BookRequest $bookRequest)
+    {
+        $this->authorize('update', $bookRequest);
+
+        if ($bookRequest->completed || $bookRequest->swap) {
+            return redirect()->route('romantausch.index')->with('error', 'Gesuche in laufenden oder abgeschlossenen Tauschaktionen können nicht bearbeitet werden.');
+        }
+
+        $validated = $request->validate([
+            'series' => ['required', Rule::in(array_map(fn ($case) => $case->value, self::ALLOWED_TYPES))],
+            'book_number' => 'required|integer',
+            'condition' => 'required|string',
+        ]);
+
+        $book = Book::where('roman_number', $validated['book_number'])
+            ->where('type', $validated['series'])
+            ->first();
+
+        if (!$book) {
+            return redirect()->back()->with('error', 'Ausgewählter Roman nicht gefunden.');
+        }
+
+        $bookRequest->update([
+            'series' => $validated['series'],
+            'book_number' => $validated['book_number'],
+            'book_title' => $book->title,
+            'condition' => $validated['condition'],
+        ]);
+
+        $this->matchSwap($bookRequest, 'request');
+
+        return redirect()->route('romantausch.index')->with('success', 'Gesuch aktualisiert.');
     }
 
     // Angebot löschen
