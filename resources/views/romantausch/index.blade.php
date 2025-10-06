@@ -57,29 +57,61 @@
                 @else
                     <ul class="space-y-3">
                         @foreach($offers as $offer)
-                            <li class="bg-gray-100 dark:bg-gray-700 p-3 rounded flex justify-between items-center">
-                                <span>{{ $offer->series }} {{ $offer->book_number }} - {{ $offer->book_title }} ({{ $offer->condition }})</span>
-                                <div class="flex items-center gap-3">
-                                    <span class="text-sm text-gray-600 dark:text-gray-300">von <a href="{{ route('profile.view', $offer->user->id) }}" class="text-[#8B0116] hover:underline">{{ $offer->user->name }}</a></span>
-                                    @if(auth()->id() === $offer->user_id)
-                                        <div class="flex items-center gap-2">
-                                            <a href="{{ route('romantausch.edit-offer', $offer) }}" class="inline-flex items-center gap-2 rounded px-3 py-1.5 text-sm font-semibold text-[#8B0116] dark:text-[#FF6B81] border border-transparent hover:border-[#8B0116] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#8B0116] dark:focus-visible:ring-[#FF6B81]" aria-label="Angebot bearbeiten: {{ $offer->series }} {{ $offer->book_number }}">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.862 4.487z" />
-                                                </svg>
-                                                <span>Bearbeiten</span>
-                                            </a>
-                                            <form method="POST" action="{{ route('romantausch.delete-offer', $offer) }}" class="inline">
-                                                @csrf
-                                                <button class="inline-flex items-center gap-2 rounded px-3 py-1.5 text-sm font-semibold text-red-600 dark:text-red-400 border border-transparent hover:border-red-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-red-500" onclick="return confirm('Möchtest du dieses Angebot wirklich löschen?')">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                            @php
+                                $firstPhoto = collect($offer->photos ?? [])->filter()->first();
+                                $bookDescription = trim($offer->series . ' ' . $offer->book_number . ' - ' . $offer->book_title);
+                            @endphp
+                            <li class="bg-gray-100 dark:bg-gray-700 p-4 rounded">
+                                <div class="flex flex-col sm:flex-row sm:items-center gap-4">
+                                    <div class="flex-shrink-0">
+                                        @if($firstPhoto)
+                                            <img
+                                                src="{{ asset('storage/' . ltrim($firstPhoto, '/')) }}"
+                                                alt="Cover von {{ $bookDescription }}"
+                                                class="h-24 w-24 rounded-md object-cover shadow-sm ring-1 ring-inset ring-gray-200 dark:ring-gray-600"
+                                                loading="lazy"
+                                            >
+                                        @else
+                                            <div
+                                                class="flex h-24 w-24 items-center justify-center rounded-md border border-dashed border-gray-300 bg-gradient-to-br from-gray-50 to-gray-100 text-center text-xs font-medium text-gray-500 shadow-sm dark:border-gray-600 dark:from-gray-700 dark:to-gray-800 dark:text-gray-200"
+                                                role="img"
+                                                aria-label="Kein Foto vorhanden für {{ $bookDescription }}"
+                                            >
+                                                <div class="flex flex-col items-center gap-1">
+                                                    <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 16.5V7.125c0-.621.504-1.125 1.125-1.125H6.75m0 0L9 3.75h6l2.25 2.25m-11.25 0h11.25c.621 0 1.125.504 1.125 1.125V16.5c0 .621-.504 1.125-1.125 1.125H4.125A1.125 1.125 0 0 1 3 16.5Zm3.75-.375h.008v.008H6.75v-.008Zm0 0a2.625 2.625 0 1 0 5.25 0 2.625 2.625 0 0 0-5.25 0Zm9.75-7.5h.008v.008h-.008v-.008Z" />
                                                     </svg>
-                                                    <span>Löschen</span>
-                                                </button>
-                                            </form>
+                                                    <span class="leading-tight">Kein Foto</span>
+                                                </div>
+                                            </div>
+                                        @endif
+                                    </div>
+                                    <div class="flex flex-1 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                                        <div>
+                                            <p class="font-medium text-gray-900 dark:text-gray-100">{{ $offer->series }} {{ $offer->book_number }} - {{ $offer->book_title }}</p>
+                                            <p class="text-sm text-gray-600 dark:text-gray-300">Zustand: {{ $offer->condition }}</p>
+                                            <p class="mt-1 text-sm text-gray-600 dark:text-gray-300">von <a href="{{ route('profile.view', $offer->user->id) }}" class="text-[#8B0116] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#8B0116] dark:focus-visible:ring-[#FF6B81]">{{ $offer->user->name }}</a></p>
                                         </div>
-                                    @endif
+                                        @if(auth()->id() === $offer->user_id)
+                                            <div class="flex flex-wrap items-center gap-2">
+                                                <a href="{{ route('romantausch.edit-offer', $offer) }}" class="inline-flex items-center gap-2 rounded px-3 py-1.5 text-sm font-semibold text-[#8B0116] dark:text-[#FF6B81] border border-transparent hover:border-[#8B0116] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#8B0116] dark:focus-visible:ring-[#FF6B81]" aria-label="Angebot bearbeiten: {{ $offer->series }} {{ $offer->book_number }}">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.862 4.487z" />
+                                                    </svg>
+                                                    <span>Bearbeiten</span>
+                                                </a>
+                                                <form method="POST" action="{{ route('romantausch.delete-offer', $offer) }}" class="inline">
+                                                    @csrf
+                                                    <button class="inline-flex items-center gap-2 rounded px-3 py-1.5 text-sm font-semibold text-red-600 dark:text-red-400 border border-transparent hover:border-red-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-red-500" onclick="return confirm('Möchtest du dieses Angebot wirklich löschen?')">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                                                        </svg>
+                                                        <span>Löschen</span>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        @endif
+                                    </div>
                                 </div>
                             </li>
                         @endforeach

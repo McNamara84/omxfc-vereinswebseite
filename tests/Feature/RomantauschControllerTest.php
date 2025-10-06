@@ -572,6 +572,58 @@ class RomantauschControllerTest extends TestCase
         $this->assertTrue($response->viewData('completedSwaps')->first()->is($swap));
     }
 
+    public function test_index_renders_thumbnail_for_offer_with_photo(): void
+    {
+        $this->putBookData();
+        Storage::fake('public');
+
+        $user = $this->actingMember();
+        $other = User::factory()->create();
+
+        $photoPath = UploadedFile::fake()->image('cover.jpg')->store('book-offers', 'public');
+
+        BookOffer::create([
+            'user_id' => $other->id,
+            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
+            'book_number' => 1,
+            'book_title' => 'Roman1',
+            'condition' => 'neu',
+            'photos' => [$photoPath],
+        ]);
+
+        $this->actingAs($user);
+        $response = $this->get('/romantauschboerse');
+
+        $description = BookType::MaddraxDieDunkleZukunftDerErde->value . ' 1 - Roman1';
+
+        $response->assertSee('src="' . asset('storage/' . $photoPath) . '"', false);
+        $response->assertSee('alt="Cover von ' . e($description) . '"', false);
+    }
+
+    public function test_index_renders_placeholder_for_offer_without_photo(): void
+    {
+        $this->putBookData();
+
+        $user = $this->actingMember();
+
+        BookOffer::create([
+            'user_id' => $user->id,
+            'series' => BookType::MissionMars->value,
+            'book_number' => 2,
+            'book_title' => 'Roman ohne Foto',
+            'condition' => 'gebraucht',
+            'photos' => [],
+        ]);
+
+        $this->actingAs($user);
+        $response = $this->get('/romantauschboerse');
+
+        $description = BookType::MissionMars->value . ' 2 - Roman ohne Foto';
+
+        $response->assertSee('aria-label="Kein Foto vorhanden für ' . e($description) . '"', false);
+        $response->assertSee('Kein Foto', false);
+    }
+
     public function test_create_request_loads_books_from_database(): void
     {
         $this->putBookData();
