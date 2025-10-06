@@ -19,6 +19,7 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 use Illuminate\View\View;
 use Mockery;
 use Illuminate\Support\Str;
+use App\Services\RomantauschInfoProvider;
 
 class RomantauschControllerTest extends TestCase
 {
@@ -52,6 +53,34 @@ class RomantauschControllerTest extends TestCase
             'author' => 'Author',
             'type' => BookType::MissionMars,
         ]);
+    }
+
+    public function test_index_displays_structured_information_panel(): void
+    {
+        $this->putBookData();
+
+        $user = $this->actingMember();
+        $this->actingAs($user);
+
+        $response = $this->get('/romantauschboerse');
+
+        $response->assertOk();
+        $info = app(RomantauschInfoProvider::class)->getInfo();
+
+        $response->assertViewHas('romantauschInfo', function ($data) use ($info) {
+            return $data === $info;
+        });
+
+        $response->assertSee('aria-label="' . $info['steps_aria_label'] . '"', false);
+        $response->assertSeeText($info['title']);
+        $response->assertSeeTextInOrder([
+            $info['steps']['offer']['title'],
+            $info['steps']['request']['title'],
+            $info['steps']['match']['title'],
+            $info['steps']['confirm']['title'],
+        ]);
+        $response->assertSeeText($info['steps']['offer']['cta']);
+        $response->assertSeeText($info['steps']['request']['cta']);
     }
 
     public function test_complete_swap_marks_entries_completed(): void
