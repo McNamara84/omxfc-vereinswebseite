@@ -12,6 +12,7 @@ use App\Models\Book;
 use App\Models\BookSwap;
 use App\Enums\BookType;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Lang;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Http\UploadedFile;
 use App\Http\Controllers\RomantauschController;
@@ -61,21 +62,23 @@ class RomantauschControllerTest extends TestCase
         $user = $this->actingMember();
         $this->actingAs($user);
 
-        app()->setLocale('de');
-
         $response = $this->get('/romantauschboerse');
 
         $response->assertOk();
-        $response->assertSee('aria-label="' . __('romantausch.info.steps_aria_label') . '"', false);
-        $response->assertSeeText(__('romantausch.info.title'));
+        $title = Lang::get('romantausch.info.title', [], 'de');
+        $stepsLabel = Lang::get('romantausch.info.steps_aria_label', [], 'de');
+        $steps = Lang::get('romantausch.info.steps', [], 'de');
+
+        $response->assertSee('aria-label="' . $stepsLabel . '"', false);
+        $response->assertSeeText($title);
         $response->assertSeeTextInOrder([
-            __('romantausch.info.steps.offer.title'),
-            __('romantausch.info.steps.request.title'),
-            __('romantausch.info.steps.match.title'),
-            __('romantausch.info.steps.confirm.title'),
+            $steps['offer']['title'],
+            $steps['request']['title'],
+            $steps['match']['title'],
+            $steps['confirm']['title'],
         ]);
-        $response->assertSeeText(__('romantausch.info.steps.offer.cta'));
-        $response->assertSeeText(__('romantausch.info.steps.request.cta'));
+        $response->assertSeeText($steps['offer']['cta']);
+        $response->assertSeeText($steps['request']['cta']);
     }
 
     public function test_complete_swap_marks_entries_completed(): void
