@@ -136,7 +136,7 @@
                         @endphp
                         <li class="bg-gray-100 dark:bg-gray-700 p-4 rounded">
                             <div class="flex flex-col gap-4 sm:flex-row sm:items-center">
-                                <div class="flex w-full flex-col gap-3 sm:w-48" @if($hasPhotos) data-romantausch-gallery data-gallery-id="offer-{{ $offer->id }}" @endif>
+                                <div class="flex w-full flex-col gap-3 sm:w-48" @if($hasPhotos) data-romantausch-gallery @endif>
                                     @if($hasPhotos)
                                         <ul class="grid grid-cols-3 gap-2 sm:grid-cols-2">
                                             @foreach($photos as $photoIndex => $photoPath)

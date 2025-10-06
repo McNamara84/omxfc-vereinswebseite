@@ -20,7 +20,7 @@ class RomantauschPhotoGallery {
         this.photos = this.triggers.map((trigger) => ({
             src: trigger.getAttribute('data-photo-src'),
             alt: trigger.getAttribute('data-photo-alt'),
-            label: trigger.getAttribute('data-photo-label') ?? ''
+            label: trigger.getAttribute('data-photo-label') || ''
         })).filter((photo) => Boolean(photo.src));
         this.currentIndex = 0;
         this.isOpen = false;
@@ -67,7 +67,7 @@ class RomantauschPhotoGallery {
     handleTriggerClick(event) {
         event.preventDefault();
         const trigger = event.currentTarget;
-        const index = Number.parseInt(trigger.getAttribute('data-photo-index') ?? '0', 10);
+        const index = Number.parseInt(trigger.getAttribute('data-photo-index') || '0', 10);
         this.open(Number.isNaN(index) ? 0 : index);
     }
 

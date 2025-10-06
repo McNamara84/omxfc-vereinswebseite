@@ -111,7 +111,9 @@ class RomantauschControllerTest extends TestCase
             $response->assertSee('storage/' . $photoPath, false);
         }
 
+        $response->assertDontSee('data-gallery-id', false);
         $response->assertSee('data-photo-dialog-trigger', false);
+        $response->assertSee('data-photo-index="0"', false);
         $response->assertSee('role="dialog"', false);
         $response->assertSee('aria-modal="true"', false);
         $response->assertSee('Fotoansicht schließen', false);
