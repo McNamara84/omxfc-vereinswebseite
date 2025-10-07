@@ -16,12 +16,28 @@ export class RomantauschPhotoGallery {
         this.nextButton = this.dialog ? this.dialog.querySelector('[data-photo-dialog-next]') : null;
         this.closeButtons = this.dialog ? Array.from(this.dialog.querySelectorAll('[data-photo-dialog-close]')) : [];
         this.initialFocus = this.dialog ? this.dialog.querySelector('[data-photo-dialog-initial-focus]') : null;
-        this.triggers = Array.from(root.querySelectorAll('[data-photo-dialog-trigger]'));
-        this.photos = this.triggers.map((trigger) => ({
-            src: trigger.getAttribute('data-photo-src'),
-            alt: trigger.getAttribute('data-photo-alt'),
-            label: trigger.getAttribute('data-photo-label') || ''
-        })).filter((photo) => Boolean(photo.src));
+        this.triggerIndices = new WeakMap();
+
+        const triggerEntries = Array.from(root.querySelectorAll('[data-photo-dialog-trigger]'))
+            .map((trigger) => {
+                const src = trigger.getAttribute('data-photo-src');
+                if (!src) {
+                    return null;
+                }
+
+                return {
+                    trigger,
+                    photo: {
+                        src,
+                        alt: trigger.getAttribute('data-photo-alt'),
+                        label: trigger.getAttribute('data-photo-label') || ''
+                    }
+                };
+            })
+            .filter(Boolean);
+
+        this.triggers = triggerEntries.map((entry) => entry.trigger);
+        this.photos = triggerEntries.map((entry) => entry.photo);
         this.currentIndex = 0;
         this.isOpen = false;
         this.previouslyFocused = null;
@@ -37,7 +53,9 @@ export class RomantauschPhotoGallery {
             return;
         }
 
-        this.triggers.forEach((trigger) => {
+        this.triggers.forEach((trigger, index) => {
+            const resolvedIndex = this.resolveTriggerIndex(trigger, index);
+            this.triggerIndices.set(trigger, resolvedIndex);
             trigger.addEventListener('click', this.handleTriggerClick);
         });
 
@@ -67,9 +85,7 @@ export class RomantauschPhotoGallery {
     handleTriggerClick(event) {
         event.preventDefault();
         const trigger = event.currentTarget;
-        const index = Number.parseInt(trigger.getAttribute('data-photo-index') || '0', 10);
-        const targetIndex = Number.isNaN(index) ? 0 : index;
-        this.setCurrentIndex(targetIndex);
+        const targetIndex = this.getTriggerIndex(trigger);
         this.open(targetIndex);
     }
 
@@ -93,7 +109,11 @@ export class RomantauschPhotoGallery {
         const elementToFocus = this.initialFocus || this.closeButtons[0] || this.panel;
         window.requestAnimationFrame(() => {
             if (elementToFocus instanceof HTMLElement) {
-                elementToFocus.focus({ preventScroll: true });
+                try {
+                    elementToFocus.focus({ preventScroll: true });
+                } catch (error) {
+                    // Swallow focus errors to avoid crashing the gallery when the element is gone.
+                }
             }
         });
     }
@@ -111,9 +131,37 @@ export class RomantauschPhotoGallery {
         const toFocus = this.previouslyFocused;
         if (toFocus && typeof toFocus.focus === 'function') {
             window.requestAnimationFrame(() => {
-                toFocus.focus({ preventScroll: true });
+                try {
+                    toFocus.focus({ preventScroll: true });
+                } catch (error) {
+                    // Ignore focus errors triggered by removed or inert elements.
+                }
             });
         }
+    }
+
+    getTriggerIndex(trigger) {
+        const storedIndex = this.triggerIndices.get(trigger);
+        if (typeof storedIndex === 'number' && this.photos[storedIndex]) {
+            return storedIndex;
+        }
+
+        const fallbackIndex = this.triggers.indexOf(trigger);
+        if (fallbackIndex !== -1 && this.photos[fallbackIndex]) {
+            return fallbackIndex;
+        }
+
+        return 0;
+    }
+
+    resolveTriggerIndex(trigger, fallbackIndex) {
+        const attributeValue = trigger.getAttribute('data-photo-index');
+        const parsedIndex = attributeValue === null ? fallbackIndex : Number.parseInt(attributeValue, 10);
+        const candidate = Number.isNaN(parsedIndex) ? fallbackIndex : parsedIndex;
+        if (this.photos.length === 0) {
+            return 0;
+        }
+        return clamp(candidate, 0, this.photos.length - 1);
     }
 
     showPrevious() {
@@ -244,7 +292,9 @@ export class RomantauschPhotoGallery {
         }
 
         return Array.from(this.dialog.querySelectorAll(FOCUSABLE_SELECTOR))
-            .filter((element) => element instanceof HTMLElement && isElementVisible(element) && !element.hasAttribute('disabled'));
+            .filter((element) => element instanceof HTMLElement
+                && isElementVisible(element)
+                && !element.hasAttribute('disabled'));
     }
 }
 
@@ -271,6 +321,13 @@ const isElementVisible = (element) => {
     }
 
     return true;
+};
+
+const clamp = (value, min, max) => {
+    if (max < min) {
+        return min;
+    }
+    return Math.min(Math.max(value, min), max);
 };
 
 export const initialiseGalleries = () => {

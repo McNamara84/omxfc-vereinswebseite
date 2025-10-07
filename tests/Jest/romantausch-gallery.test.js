@@ -1,8 +1,10 @@
+import { jest } from '@jest/globals';
 import { RomantauschPhotoGallery } from '../../resources/js/romantausch-gallery.js';
 
 describe('RomantauschPhotoGallery', () => {
     let gallery;
     let root;
+    let originalRAF;
 
     const createGalleryMarkup = () => `
         <div data-romantausch-gallery>
@@ -55,12 +57,14 @@ describe('RomantauschPhotoGallery', () => {
         document.body.innerHTML = createGalleryMarkup();
         root = document.querySelector('[data-romantausch-gallery]');
         gallery = new RomantauschPhotoGallery(root);
+        originalRAF = window.requestAnimationFrame;
     });
 
     afterEach(() => {
         gallery.close();
         document.body.innerHTML = '';
         document.body.className = '';
+        window.requestAnimationFrame = originalRAF;
     });
 
     const clickTrigger = (index) => {
@@ -122,5 +126,58 @@ describe('RomantauschPhotoGallery', () => {
 
         expect(dialog.classList.contains('hidden')).toBe(true);
         expect(dialog.hasAttribute('aria-hidden')).toBe(false);
+    });
+
+    test('clicking a trigger uses the cached photo index', () => {
+        const trigger = root.querySelectorAll('[data-photo-dialog-trigger]')[1];
+        const originalGetAttribute = trigger.getAttribute.bind(trigger);
+        trigger.getAttribute = jest.fn(() => {
+            throw new Error('Unexpected attribute access after initialisation');
+        });
+
+        expect(() => clickTrigger(1)).not.toThrow();
+
+        const image = root.querySelector('[data-photo-dialog-image]');
+        expect(image.getAttribute('src')).toBe('https://example.com/photo-2.jpg');
+
+        trigger.getAttribute = originalGetAttribute;
+    });
+
+    test('opening the dialog swallows focus errors when the focus target disappears', () => {
+        const closeButton = root.querySelector('[data-photo-dialog-close]');
+        const originalFocus = closeButton.focus;
+
+        window.requestAnimationFrame = (callback) => {
+            callback();
+            return 1;
+        };
+
+        closeButton.focus = jest.fn(() => {
+            throw new Error('Focus failed');
+        });
+
+        expect(() => clickTrigger(0)).not.toThrow();
+
+        closeButton.focus = originalFocus;
+    });
+
+    test('closing the dialog ignores focus errors from the previously focused trigger', () => {
+        const trigger = root.querySelector('[data-photo-dialog-trigger]');
+        const originalFocus = trigger.focus;
+
+        window.requestAnimationFrame = (callback) => {
+            callback();
+            return 1;
+        };
+
+        clickTrigger(0);
+
+        trigger.focus = jest.fn(() => {
+            throw new Error('Focus failed on close');
+        });
+
+        expect(() => gallery.close()).not.toThrow();
+
+        trigger.focus = originalFocus;
     });
 });
