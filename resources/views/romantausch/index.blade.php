@@ -260,7 +260,7 @@
                                         <div class="flex flex-wrap items-center gap-2">
                                             <p class="font-medium text-gray-900 dark:text-gray-100">{{ $offer->series }} {{ $offer->book_number }} - {{ $offer->book_title }}</p>
                                             @if($offer->matches_user_request ?? false)
-                                                <span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-800 ring-1 ring-inset ring-emerald-500/60 dark:bg-emerald-900/70 dark:text-emerald-100 dark:ring-emerald-400/60" aria-live="polite">
+                                                <span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-800 ring-1 ring-inset ring-emerald-500/60 dark:bg-emerald-900/70 dark:text-emerald-100 dark:ring-emerald-400/60">
                                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="h-3.5 w-3.5" aria-hidden="true">
                                                         <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75 9 17.25l10.5-10.5" />
                                                     </svg>
@@ -317,7 +317,7 @@
                                 <div class="flex flex-col gap-2">
                                     <span class="font-medium text-gray-900 dark:text-gray-100">{{ $request->series }} {{ $request->book_number }} - {{ $request->book_title }} ({{ $request->condition }} oder besser)</span>
                                     @if($request->matches_user_offer ?? false)
-                                        <span class="inline-flex items-center gap-1.5 rounded-full bg-sky-100 px-2.5 py-1 text-xs font-semibold text-sky-800 ring-1 ring-inset ring-sky-500/60 dark:bg-sky-900/60 dark:text-sky-100 dark:ring-sky-400/60" aria-live="polite">
+                                        <span class="inline-flex items-center gap-1.5 rounded-full bg-sky-100 px-2.5 py-1 text-xs font-semibold text-sky-800 ring-1 ring-inset ring-sky-500/60 dark:bg-sky-900/60 dark:text-sky-100 dark:ring-sky-400/60">
                                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="h-3.5 w-3.5" aria-hidden="true">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6A2.25 2.25 0 0 0 5.25 5.25v13.5A2.25 2.25 0 0 0 7.5 21h9a2.25 2.25 0 0 0 2.25-2.25V9h-3Z" />
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 7.5h3" />

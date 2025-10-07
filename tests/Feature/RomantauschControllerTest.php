@@ -172,7 +172,7 @@ class RomantauschControllerTest extends TestCase
         $response->assertOk();
         $response->assertSeeText('Passt zu deinem Gesuch');
         $response->assertSeeText('Passt zu deinem Angebot');
-        $response->assertSee('aria-live="polite"', false);
+        $response->assertDontSee('aria-live="polite"', false);
     }
 
     public function test_index_does_not_highlight_entries_without_matching_counterpart(): void

@@ -47,11 +47,11 @@ class RomantauschController extends Controller
         if ($userId) {
             $ownOffers = $offers
                 ->filter(fn (BookOffer $offer) => (int) $offer->user_id === (int) $userId)
-                ->keyBy(fn (BookOffer $offer) => $this->buildBookKey($offer->series, $offer->book_number));
+                ->keyBy(fn (BookOffer $offer) => $this->buildBookKey($offer->series, (int) $offer->book_number));
 
             $ownRequests = $requests
                 ->filter(fn (BookRequest $request) => (int) $request->user_id === (int) $userId)
-                ->keyBy(fn (BookRequest $request) => $this->buildBookKey($request->series, $request->book_number));
+                ->keyBy(fn (BookRequest $request) => $this->buildBookKey($request->series, (int) $request->book_number));
         }
 
         $offers->each(function (BookOffer $offer) use ($userId, $ownRequests) {
@@ -61,7 +61,7 @@ class RomantauschController extends Controller
                 return;
             }
 
-            $bookKey = $this->buildBookKey($offer->series, $offer->book_number);
+            $bookKey = $this->buildBookKey($offer->series, (int) $offer->book_number);
             $offer->matches_user_request = $ownRequests->has($bookKey);
         });
 
@@ -72,7 +72,7 @@ class RomantauschController extends Controller
                 return;
             }
 
-            $bookKey = $this->buildBookKey($request->series, $request->book_number);
+            $bookKey = $this->buildBookKey($request->series, (int) $request->book_number);
             $request->matches_user_offer = $ownOffers->has($bookKey);
         });
 
@@ -484,7 +484,7 @@ class RomantauschController extends Controller
             ->where('completed', false)
             ->doesntHave('swap')
             ->get()
-            ->keyBy(fn ($item) => $this->buildBookKey($item->series, $item->book_number));
+            ->keyBy(fn ($item) => $this->buildBookKey($item->series, (int) $item->book_number));
 
         if ($offerOwnerRequests->isEmpty()) {
             return false;
@@ -494,7 +494,7 @@ class RomantauschController extends Controller
             ->where('completed', false)
             ->doesntHave('swap')
             ->get()
-            ->keyBy(fn ($item) => $this->buildBookKey($item->series, $item->book_number));
+            ->keyBy(fn ($item) => $this->buildBookKey($item->series, (int) $item->book_number));
 
         if ($requestOwnerOffers->isEmpty()) {
             return false;
@@ -535,8 +535,8 @@ class RomantauschController extends Controller
         return true;
     }
 
-    private function buildBookKey(string $series, int|string $bookNumber): string
+    private function buildBookKey(string $series, int $bookNumber): string
     {
-        return sprintf('%s::%s', $series, $bookNumber);
+        return sprintf('%s::%d', $series, $bookNumber);
     }
 }
