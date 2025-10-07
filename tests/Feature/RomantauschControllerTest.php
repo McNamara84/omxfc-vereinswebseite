@@ -125,6 +125,105 @@ class RomantauschControllerTest extends TestCase
         $response->assertSee('Zum Vergrößern ein Foto auswählen.', false);
     }
 
+    public function test_index_highlights_matching_offers_and_requests_for_authenticated_user(): void
+    {
+        $this->putBookData();
+
+        $user = $this->actingMember();
+        $this->actingAs($user);
+
+        $otherOfferUser = User::factory()->create();
+        $otherRequestUser = User::factory()->create();
+
+        BookRequest::create([
+            'user_id' => $user->id,
+            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
+            'book_number' => 1,
+            'book_title' => 'Roman1',
+            'condition' => 'gut',
+        ]);
+
+        BookOffer::create([
+            'user_id' => $otherOfferUser->id,
+            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
+            'book_number' => 1,
+            'book_title' => 'Roman1',
+            'condition' => 'sehr gut',
+        ]);
+
+        BookOffer::create([
+            'user_id' => $user->id,
+            'series' => BookType::MissionMars->value,
+            'book_number' => 2,
+            'book_title' => 'MM Roman',
+            'condition' => 'top',
+        ]);
+
+        BookRequest::create([
+            'user_id' => $otherRequestUser->id,
+            'series' => BookType::MissionMars->value,
+            'book_number' => 2,
+            'book_title' => 'MM Roman',
+            'condition' => 'gut',
+        ]);
+
+        $response = $this->get('/romantauschboerse');
+
+        $response->assertOk();
+        $response->assertSeeText('Passt zu deinem Gesuch');
+        $response->assertSeeText('Passt zu deinem Angebot');
+        $response->assertDontSee('aria-live="polite"', false);
+    }
+
+    public function test_index_does_not_highlight_entries_without_matching_counterpart(): void
+    {
+        $this->putBookData();
+
+        $user = $this->actingMember();
+        $this->actingAs($user);
+
+        $otherOfferUser = User::factory()->create();
+        $otherRequestUser = User::factory()->create();
+
+        BookRequest::create([
+            'user_id' => $user->id,
+            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
+            'book_number' => 1,
+            'book_title' => 'Roman1',
+            'condition' => 'gut',
+        ]);
+
+        BookOffer::create([
+            'user_id' => $otherOfferUser->id,
+            'series' => BookType::MissionMars->value,
+            'book_number' => 2,
+            'book_title' => 'MM Roman',
+            'condition' => 'gebraucht',
+        ]);
+
+        BookOffer::create([
+            'user_id' => $user->id,
+            'series' => BookType::MissionMars->value,
+            'book_number' => 2,
+            'book_title' => 'MM Roman',
+            'condition' => 'gut',
+        ]);
+
+        BookRequest::create([
+            'user_id' => $otherRequestUser->id,
+            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
+            'book_number' => 1,
+            'book_title' => 'Roman1',
+            'condition' => 'gut',
+        ]);
+
+        $response = $this->get('/romantauschboerse');
+
+        $response->assertOk();
+        $response->assertDontSeeText('Passt zu deinem Gesuch');
+        $response->assertDontSeeText('Passt zu deinem Angebot');
+    }
+
     public function test_complete_swap_marks_entries_completed(): void
     {
         $this->putBookData();
