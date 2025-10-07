@@ -264,8 +264,7 @@
                                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="h-3.5 w-3.5" aria-hidden="true">
                                                         <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75 9 17.25l10.5-10.5" />
                                                     </svg>
-                                                    <span aria-hidden="true">Passt zu deinem Gesuch</span>
-                                                    <span class="sr-only">Dieses Angebot passt zu deinem Gesuch.</span>
+                                                    <span>Passt zu deinem Gesuch</span>
                                                 </span>
                                             @endif
                                         </div>
@@ -324,8 +323,7 @@
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 10.5h6" />
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 13.5h6" />
                                             </svg>
-                                            <span aria-hidden="true">Passt zu deinem Angebot</span>
-                                            <span class="sr-only">Dieses Gesuch passt zu deinem Angebot.</span>
+                                            <span>Passt zu deinem Angebot</span>
                                         </span>
                                     @endif
                                 </div>
