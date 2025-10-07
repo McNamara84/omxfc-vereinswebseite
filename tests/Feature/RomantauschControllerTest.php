@@ -369,6 +369,31 @@ class RomantauschControllerTest extends TestCase
         Storage::disk('public')->assertExists($offer->photos[0]);
     }
 
+    public function test_store_offer_rejects_more_than_three_photos(): void
+    {
+        $this->putBookData();
+        Storage::fake('public');
+
+        $user = $this->actingMember();
+        $this->actingAs($user)
+            ->from(route('romantausch.create-offer', [], false))
+            ->post('/romantauschboerse/angebot-speichern', [
+                'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
+                'book_number' => 1,
+                'condition' => 'neu',
+                'photos' => [
+                    UploadedFile::fake()->image('one.jpg'),
+                    UploadedFile::fake()->image('two.jpg'),
+                    UploadedFile::fake()->image('three.jpg'),
+                    UploadedFile::fake()->image('four.jpg'),
+                ],
+            ])
+            ->assertRedirect(route('romantausch.create-offer', [], false))
+            ->assertSessionHasErrors('photos');
+
+        $this->assertDatabaseCount('book_offers', 0);
+    }
+
     public function test_store_offer_accepts_all_allowed_photo_extensions(): void
     {
         $this->putBookData();
@@ -584,6 +609,51 @@ class RomantauschControllerTest extends TestCase
 
         Storage::disk('public')->assertMissing($existingPath);
         Storage::disk('public')->assertExists($offer->photos[0]);
+    }
+
+    public function test_update_offer_allows_replacing_removed_photos_until_limit(): void
+    {
+        $this->putBookData();
+        Storage::fake('public');
+
+        $user = $this->actingMember();
+
+        $first = UploadedFile::fake()->image('first.jpg')->store('book-offers', 'public');
+        $second = UploadedFile::fake()->image('second.jpg')->store('book-offers', 'public');
+        $third = UploadedFile::fake()->image('third.jpg')->store('book-offers', 'public');
+
+        $offer = BookOffer::create([
+            'user_id' => $user->id,
+            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
+            'book_number' => 1,
+            'book_title' => 'Roman1',
+            'condition' => 'neu',
+            'photos' => [$first, $second, $third],
+        ]);
+
+        $this->actingAs($user)
+            ->put(route('romantausch.update-offer', $offer), [
+                'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
+                'book_number' => 1,
+                'condition' => 'neu',
+                'remove_photos' => [$second, $third],
+                'photos' => [
+                    UploadedFile::fake()->image('replacement-one.jpg'),
+                    UploadedFile::fake()->image('replacement-two.jpg'),
+                ],
+            ])
+            ->assertRedirect(route('romantausch.index'));
+
+        $offer->refresh();
+
+        $this->assertCount(3, $offer->photos);
+        $this->assertContains($first, $offer->photos);
+        $this->assertCount(2, array_filter($offer->photos, fn ($path) => $path !== $first));
+        foreach ($offer->photos as $path) {
+            Storage::disk('public')->assertExists($path);
+        }
+        Storage::disk('public')->assertMissing($second);
+        Storage::disk('public')->assertMissing($third);
     }
 
     public function test_update_offer_rejects_more_than_three_photos(): void
