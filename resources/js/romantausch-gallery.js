@@ -86,7 +86,6 @@ export class RomantauschPhotoGallery {
         this.isOpen = true;
         this.previouslyFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null;
         this.dialog.classList.remove('hidden');
-        this.dialog.removeAttribute('aria-hidden');
         this.dialog.setAttribute('data-open', 'true');
         document.body.classList.add('overflow-hidden');
         this.setCurrentIndex(index);
@@ -106,7 +105,6 @@ export class RomantauschPhotoGallery {
 
         this.isOpen = false;
         this.dialog.classList.add('hidden');
-        this.dialog.setAttribute('aria-hidden', 'true');
         this.dialog.removeAttribute('data-open');
         document.body.classList.remove('overflow-hidden');
 
@@ -218,13 +216,23 @@ export class RomantauschPhotoGallery {
         const activeElement = document.activeElement;
         const first = focusable[0];
         const last = focusable[focusable.length - 1];
+        const activeIndex = focusable.indexOf(activeElement);
 
         if (event.shiftKey) {
-            if (activeElement === first || !focusable.includes(activeElement)) {
+            if (activeIndex <= 0) {
                 event.preventDefault();
                 last.focus();
             }
-        } else if (activeElement === last) {
+            return;
+        }
+
+        if (activeIndex === -1) {
+            event.preventDefault();
+            first.focus();
+            return;
+        }
+
+        if (activeIndex === focusable.length - 1) {
             event.preventDefault();
             first.focus();
         }
@@ -236,9 +244,34 @@ export class RomantauschPhotoGallery {
         }
 
         return Array.from(this.dialog.querySelectorAll(FOCUSABLE_SELECTOR))
-            .filter((element) => element instanceof HTMLElement && element.offsetParent !== null && !element.hasAttribute('disabled'));
+            .filter((element) => element instanceof HTMLElement && isElementVisible(element) && !element.hasAttribute('disabled'));
     }
 }
+
+const isElementVisible = (element) => {
+    if (!(element instanceof HTMLElement)) {
+        return false;
+    }
+
+    if (typeof element.checkVisibility === 'function') {
+        try {
+            return element.checkVisibility();
+        } catch (error) {
+            // Fallback to computed styles below when checkVisibility throws in older browsers
+        }
+    }
+
+    if (element.hidden || element.closest('[hidden]')) {
+        return false;
+    }
+
+    const style = window.getComputedStyle(element);
+    if (style.display === 'none' || style.visibility === 'hidden' || style.opacity === '0') {
+        return false;
+    }
+
+    return true;
+};
 
 export const initialiseGalleries = () => {
     document.querySelectorAll(GALLERY_SELECTOR).forEach((root) => {

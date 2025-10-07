@@ -30,11 +30,12 @@ describe('RomantauschPhotoGallery', () => {
                 data-photo-label=""
                 data-photo-index="2"
             ></button>
-            <div class="hidden" data-photo-dialog aria-hidden="true">
+            <div class="hidden" data-photo-dialog>
                 <div data-photo-dialog-overlay></div>
                 <div data-photo-dialog-panel tabindex="-1">
                     <button data-photo-dialog-close></button>
                     <button data-photo-dialog-prev></button>
+                    <button hidden data-hidden-test></button>
                     <img
                         src="https://example.com/photo-1.jpg"
                         alt="Foto 1 von Beispiel"
@@ -92,5 +93,34 @@ describe('RomantauschPhotoGallery', () => {
         expect(image.getAttribute('src')).toBe('https://example.com/photo-3.jpg');
         expect(image.getAttribute('alt')).toBe('Foto 3');
         expect(caption.textContent).toBe('Foto 3');
+    });
+
+    test('focus trapping skips hidden controls and wraps correctly', () => {
+        clickTrigger(0);
+
+        const dialog = root.querySelector('[data-photo-dialog]');
+        const focusable = gallery.getFocusableElements();
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+
+        expect(focusable.some((el) => el.hasAttribute('data-hidden-test'))).toBe(false);
+
+        last.focus();
+        dialog.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true, cancelable: true }));
+        expect(document.activeElement).toBe(first);
+
+        first.focus();
+        dialog.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', shiftKey: true, bubbles: true, cancelable: true }));
+        expect(document.activeElement).toBe(last);
+    });
+
+    test('closing the dialog keeps aria-hidden off while hiding the panel', () => {
+        clickTrigger(0);
+        gallery.close();
+
+        const dialog = root.querySelector('[data-photo-dialog]');
+
+        expect(dialog.classList.contains('hidden')).toBe(true);
+        expect(dialog.hasAttribute('aria-hidden')).toBe(false);
     });
 });

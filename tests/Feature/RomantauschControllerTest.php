@@ -116,6 +116,7 @@ class RomantauschControllerTest extends TestCase
         $response->assertSee('data-photo-index="0"', false);
         $response->assertSee('role="dialog"', false);
         $response->assertSee('aria-modal="true"', false);
+        $this->assertSame(0, preg_match('/data-photo-dialog(?!-)[^>]*aria-hidden="true"/', $response->getContent()));
         $response->assertSee('Fotoansicht schließen', false);
         $response->assertSee('Zum Vergrößern ein Foto auswählen.', false);
     }

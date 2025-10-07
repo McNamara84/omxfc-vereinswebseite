@@ -171,7 +171,6 @@
                                         <div
                                             class="hidden"
                                             data-photo-dialog
-                                            aria-hidden="true"
                                             role="dialog"
                                             aria-modal="true"
                                             aria-labelledby="offer-{{ $offer->id }}-dialog-title"
