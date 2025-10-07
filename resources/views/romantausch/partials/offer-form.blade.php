@@ -140,24 +140,69 @@
                 @endif
 
                 <div>
-                    <label for="photos" class="block font-medium text-gray-700 dark:text-gray-200 mb-2">Neue Fotos hochladen</label>
+                    <label for="photos" data-dropzone-label class="block font-medium text-gray-700 dark:text-gray-200 mb-2">Neue Fotos hochladen</label>
                     <p id="photos-help" class="text-sm text-gray-600 dark:text-gray-400 mb-2">Du kannst bis zu {{ $maxNewPhotos }} neue Fotos hinzufügen. Insgesamt sind maximal drei Fotos erlaubt.</p>
-                    <input
-                        type="file"
-                        name="photos[]"
-                        id="photos"
-                        multiple
-                        accept="image/*"
-                        @class([
-                            'w-full rounded bg-gray-50 dark:bg-gray-700 border text-gray-800 dark:text-gray-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#8B0116] dark:focus-visible:ring-[#FF6B81]',
-                            'border-red-500 focus-visible:ring-red-500 dark:border-red-500' => $photosErrorMessage,
-                            'border-gray-300 dark:border-gray-600' => !$photosErrorMessage,
-                        ])
-                        aria-describedby="photos-help{{ $photosErrorMessage ? ' photos-error' : '' }}"
-                        @if($photosErrorMessage)
-                            aria-invalid="true"
-                        @endif
-                    />
+                    <p id="photos-size" class="text-xs text-gray-500 dark:text-gray-400 mb-4">Unterstützte Dateiformate: JPG, JPEG, PNG, GIF und WebP. Die maximale Dateigröße beträgt 2&nbsp;MB pro Foto.</p>
+
+                    <div
+                        data-romantausch-dropzone
+                        data-max-files="{{ $maxNewPhotos }}"
+                        class="space-y-4"
+                    >
+                        <div data-dropzone-ui class="hidden space-y-3">
+                            <div
+                                data-dropzone-area
+                                role="button"
+                                tabindex="0"
+                                aria-describedby="photos-help photos-size photos-status{{ $photosErrorMessage ? ' photos-error' : '' }}"
+                                class="relative flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 px-4 py-6 text-center transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8B0116] focus-visible:ring-offset-2 hover:border-[#8B0116] hover:bg-white dark:border-gray-600 dark:bg-gray-700 dark:hover:border-[#FF6B81] dark:hover:bg-gray-800"
+                            >
+                                <span data-dropzone-instruction-text class="font-medium text-gray-700 dark:text-gray-200">Ziehe deine Fotos hierher oder klicke, um sie auszuwählen.</span>
+                                <span class="text-sm text-gray-600 dark:text-gray-300">
+                                    <span data-dropzone-counter>0</span>
+                                    /
+                                    <span data-dropzone-max="true">{{ $maxNewPhotos }}</span>
+                                    Dateien ausgewählt
+                                    (<span data-dropzone-remaining>{{ $maxNewPhotos }}</span> frei)
+                                </span>
+                            </div>
+
+                            <div
+                                id="photos-status"
+                                data-dropzone-status
+                                class="text-sm text-gray-600 dark:text-gray-300"
+                                aria-live="polite"
+                                role="status"
+                            ></div>
+
+                            <ul
+                                data-dropzone-previews
+                                class="hidden grid gap-3 sm:grid-cols-2"
+                                aria-label="Ausgewählte Fotos"
+                            ></ul>
+                        </div>
+
+                        <div data-dropzone-fallback>
+                            <input
+                                type="file"
+                                name="photos[]"
+                                id="photos"
+                                data-dropzone-input
+                                multiple
+                                accept="image/*"
+                                @class([
+                                    'w-full rounded bg-gray-50 dark:bg-gray-700 border text-gray-800 dark:text-gray-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#8B0116] dark:focus-visible:ring-[#FF6B81]',
+                                    'border-red-500 focus-visible:ring-red-500 dark:border-red-500' => $photosErrorMessage,
+                                    'border-gray-300 dark:border-gray-600' => !$photosErrorMessage,
+                                ])
+                                aria-describedby="photos-help photos-size{{ $photosErrorMessage ? ' photos-error' : '' }}"
+                                @if($photosErrorMessage)
+                                    aria-invalid="true"
+                                @endif
+                            />
+                        </div>
+                    </div>
+
                     @if($photosErrorMessage)
                         <p id="photos-error" class="mt-2 text-sm text-red-600 dark:text-red-400" role="alert">{{ $photosErrorMessage }}</p>
                     @endif
