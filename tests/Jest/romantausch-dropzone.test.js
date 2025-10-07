@@ -125,4 +125,60 @@ describe('RomantauschDropzone', () => {
 
         expect(clickSpy).toHaveBeenCalledTimes(1);
     });
+
+    test('defaults to three files when max files attribute is invalid', () => {
+        document.body.innerHTML = buildMarkup('abc');
+        const root = document.querySelector('[data-romantausch-dropzone]');
+        const dropzone = new RomantauschDropzone(root);
+        dropzone.init();
+
+        expect(dropzone.maxFiles).toBe(3);
+        expect(root.querySelector('[data-dropzone-remaining]').textContent).toBe('3');
+        expect(root.querySelector('[data-dropzone-status]').textContent).toContain('3');
+    });
+
+    test('supports zero as max files to keep the dropzone disabled', () => {
+        document.body.innerHTML = buildMarkup(0);
+        const root = document.querySelector('[data-romantausch-dropzone]');
+        const dropzone = new RomantauschDropzone(root);
+        dropzone.init();
+
+        const area = root.querySelector('[data-dropzone-area]');
+        const status = root.querySelector('[data-dropzone-status]');
+
+        expect(dropzone.maxFiles).toBe(0);
+        expect(dropzone.isDisabled).toBe(true);
+        expect(area.getAttribute('aria-disabled')).toBe('true');
+        expect(status.textContent).toContain('keine weiteren Fotos');
+    });
+
+    test('reuses existing object URLs across rerenders', () => {
+        document.body.innerHTML = buildMarkup(2);
+        const root = document.querySelector('[data-romantausch-dropzone]');
+        const dropzone = new RomantauschDropzone(root);
+        dropzone.init();
+
+        dropzone.processFiles([createFile('one.jpg')]);
+
+        expect(global.URL.createObjectURL).toHaveBeenCalledTimes(1);
+
+        dropzone.renderPreviews();
+
+        expect(global.URL.createObjectURL).toHaveBeenCalledTimes(1);
+    });
+
+    test('throws when attempting to override the fallback files list', () => {
+        document.body.innerHTML = buildMarkup(2);
+        const root = document.querySelector('[data-romantausch-dropzone]');
+        const dropzone = new RomantauschDropzone(root);
+        dropzone.init();
+
+        dropzone.processFiles([createFile('one.jpg')]);
+
+        const input = root.querySelector('[data-dropzone-input]');
+
+        expect(() => {
+            input.files = [];
+        }).toThrow(/nicht unterstützt/);
+    });
 });

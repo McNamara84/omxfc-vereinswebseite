@@ -84,7 +84,8 @@ export class RomantauschDropzone {
         this.label = root.parentElement ? root.parentElement.querySelector('[data-dropzone-label]') : null;
         this.files = [];
         this.objectUrls = new Map();
-        this.maxFiles = Math.max(0, Number.parseInt(root.getAttribute('data-max-files') ?? '3', 10) || 0);
+        const parsedMaxFiles = Number.parseInt(root.getAttribute('data-max-files') ?? '', 10);
+        this.maxFiles = Number.isNaN(parsedMaxFiles) ? 3 : Math.max(0, parsedMaxFiles);
         this.isDisabled = this.maxFiles <= 0;
 
         this.handleInputChange = this.handleInputChange.bind(this);
@@ -313,8 +314,11 @@ export class RomantauschDropzone {
             imageWrapper.className = PREVIEW_IMAGE_WRAPPER_CLASS;
             const image = document.createElement('img');
             image.className = PREVIEW_IMAGE_CLASS;
-            const objectUrl = this.objectUrls.get(file) ?? URL.createObjectURL(file);
-            this.objectUrls.set(file, objectUrl);
+            let objectUrl = this.objectUrls.get(file);
+            if (!objectUrl) {
+                objectUrl = URL.createObjectURL(file);
+                this.objectUrls.set(file, objectUrl);
+            }
             image.src = objectUrl;
             image.alt = `${file.name} Vorschau`;
             imageWrapper.appendChild(image);
@@ -420,6 +424,9 @@ export class RomantauschDropzone {
             configurable: true,
             get() {
                 return fallback;
+            },
+            set() {
+                throw new Error('romantausch-dropzone: Das manuelle Setzen von files wird im Fallback-Modus nicht unterstützt.');
             },
         });
     }
