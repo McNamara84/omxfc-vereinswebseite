@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Team;
 use App\Models\User;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class PageController extends Controller
 {
@@ -71,6 +73,41 @@ class PageController extends Controller
             'https://www.youtube.com/@mxikon',
         ];
 
+        $kompendiumSearchRoute = Route::has('kompendium.search')
+            ? Route::getRoutes()->getByName('kompendium.search')
+            : null;
+
+        $isKompendiumSearchPublic = false;
+
+        if ($kompendiumSearchRoute) {
+            $isKompendiumSearchPublic = (bool) config('services.kompendium.public_search', false);
+
+            if (! $isKompendiumSearchPublic) {
+                $middleware = $kompendiumSearchRoute->gatherMiddleware();
+
+                $requiresAuthenticatedUser = collect($middleware)->contains(function ($middlewareName) {
+                    return Str::startsWith($middlewareName, 'auth')
+                        || Str::startsWith($middlewareName, 'verified');
+                });
+
+                $isKompendiumSearchPublic = ! $requiresAuthenticatedUser;
+            }
+        }
+
+        $webSiteStructuredData = [
+            '@type' => 'WebSite',
+            'name' => config('app.name', 'Offizieller MADDRAX Fanclub e. V.'),
+            'url' => $organizationUrl,
+        ];
+
+        if ($isKompendiumSearchPublic) {
+            $webSiteStructuredData['potentialAction'] = [
+                '@type' => 'SearchAction',
+                'target' => route('kompendium.search') . '?q={search_term_string}',
+                'query-input' => 'required name=search_term_string',
+            ];
+        }
+
         $structuredData = [
             '@context' => 'https://schema.org',
             '@graph' => [
@@ -81,16 +118,7 @@ class PageController extends Controller
                     'logo' => $logoUrl,
                     'sameAs' => $sameAs,
                 ],
-                [
-                    '@type' => 'WebSite',
-                    'name' => config('app.name', 'Offizieller MADDRAX Fanclub e. V.'),
-                    'url' => $organizationUrl,
-                    'potentialAction' => [
-                        '@type' => 'SearchAction',
-                        'target' => route('kompendium.search') . '?q={search_term_string}',
-                        'query-input' => 'required name=search_term_string',
-                    ],
-                ],
+                $webSiteStructuredData,
             ],
         ];
 
