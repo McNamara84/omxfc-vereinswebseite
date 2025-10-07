@@ -83,6 +83,48 @@ class RomantauschControllerTest extends TestCase
         $response->assertSeeText($info['steps']['request']['cta']);
     }
 
+    public function test_index_displays_offer_photo_thumbnails_with_accessible_dialog(): void
+    {
+        $this->putBookData();
+
+        $user = $this->actingMember();
+        $this->actingAs($user);
+
+        $offer = BookOffer::create([
+            'user_id' => $user->id,
+            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
+            'book_number' => 1,
+            'book_title' => 'Roman1',
+            'condition' => 'gebraucht',
+            'photos' => [
+                'offers/test-one.jpg',
+                'offers/test-two.jpg',
+                'offers/test-three.jpg',
+            ],
+        ]);
+
+        $response = $this->get('/romantauschboerse');
+
+        $response->assertOk();
+
+        foreach ($offer->photos as $photoPath) {
+            $response->assertSee('storage/' . $photoPath, false);
+        }
+
+        $response->assertDontSee('data-gallery-id', false);
+        $response->assertSee('data-photo-dialog-trigger', false);
+        $response->assertSee('data-photo-index="0"', false);
+        $response->assertSee('role="dialog"', false);
+        $response->assertSee('aria-modal="true"', false);
+        $response->assertSee('data-photo-dialog', false);
+        $this->assertStringNotContainsString(
+            'data-photo-dialog aria-hidden="true"',
+            str_replace(["\n", "\r"], ' ', $response->getContent())
+        );
+        $response->assertSee('Fotoansicht schließen', false);
+        $response->assertSee('Zum Vergrößern ein Foto auswählen.', false);
+    }
+
     public function test_complete_swap_marks_entries_completed(): void
     {
         $this->putBookData();
@@ -663,7 +705,8 @@ class RomantauschControllerTest extends TestCase
         $description = BookType::MaddraxDieDunkleZukunftDerErde->value . ' 1 - Roman1';
 
         $response->assertSee('src="' . asset('storage/' . $photoPath) . '"', false);
-        $response->assertSee('alt="Cover von ' . e($description) . '"', false);
+        $response->assertSee('alt="Foto 1 von ' . e($description) . '"', false);
+        $response->assertSee('data-photo-dialog-trigger', false);
     }
 
     public function test_index_renders_placeholder_for_offer_without_photo(): void
@@ -690,7 +733,7 @@ class RomantauschControllerTest extends TestCase
         $response->assertSee('Kein Foto', false);
     }
 
-    public function test_index_uses_first_photo_when_multiple_available(): void
+    public function test_index_renders_all_photos_when_multiple_available(): void
     {
         $this->putBookData();
         Storage::fake('public');
@@ -713,8 +756,12 @@ class RomantauschControllerTest extends TestCase
         $this->actingAs($viewer);
         $response = $this->get('/romantauschboerse');
 
-        $response->assertSee('src="' . asset('storage/' . $firstPath) . '"', false);
-        $response->assertDontSee('src="' . asset('storage/' . $secondPath) . '"', false);
+        foreach ([$firstPath, $secondPath] as $index => $path) {
+            $response->assertSee('src="' . asset('storage/' . $path) . '"', false);
+            $response->assertSee('data-photo-index="' . $index . '"', false);
+        }
+
+        $response->assertSee('data-photo-dialog-counter', false);
     }
 
     public function test_create_request_loads_books_from_database(): void
