@@ -40,6 +40,42 @@ class RomantauschController extends Controller
         $requests = BookRequest::with('user')->where('completed', false)->doesntHave('swap')->get();
 
         $userId = Auth::id();
+
+        $ownOffers = collect();
+        $ownRequests = collect();
+
+        if ($userId) {
+            $ownOffers = $offers
+                ->filter(fn (BookOffer $offer) => (int) $offer->user_id === (int) $userId)
+                ->keyBy(fn (BookOffer $offer) => $this->buildBookKey($offer->series, $offer->book_number));
+
+            $ownRequests = $requests
+                ->filter(fn (BookRequest $request) => (int) $request->user_id === (int) $userId)
+                ->keyBy(fn (BookRequest $request) => $this->buildBookKey($request->series, $request->book_number));
+        }
+
+        $offers->each(function (BookOffer $offer) use ($userId, $ownRequests) {
+            $offer->matches_user_request = false;
+
+            if (!$userId || (int) $offer->user_id === (int) $userId) {
+                return;
+            }
+
+            $bookKey = $this->buildBookKey($offer->series, $offer->book_number);
+            $offer->matches_user_request = $ownRequests->has($bookKey);
+        });
+
+        $requests->each(function (BookRequest $request) use ($userId, $ownOffers) {
+            $request->matches_user_offer = false;
+
+            if (!$userId || (int) $request->user_id === (int) $userId) {
+                return;
+            }
+
+            $bookKey = $this->buildBookKey($request->series, $request->book_number);
+            $request->matches_user_offer = $ownOffers->has($bookKey);
+        });
+
         $activeSwaps = BookSwap::with(['offer.user', 'request.user'])
             ->whereNull('completed_at')
             ->where(function ($query) use ($userId) {

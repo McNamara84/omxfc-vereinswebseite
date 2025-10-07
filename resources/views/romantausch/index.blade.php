@@ -255,11 +255,22 @@
                                         </div>
                                     @endif
                                 </div>
-                                <div class="flex flex-1 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                                    <div>
-                                        <p class="font-medium text-gray-900 dark:text-gray-100">{{ $offer->series }} {{ $offer->book_number }} - {{ $offer->book_title }}</p>
+                                <div class="flex flex-1 flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                                    <div class="flex flex-col gap-2">
+                                        <div class="flex flex-wrap items-center gap-2">
+                                            <p class="font-medium text-gray-900 dark:text-gray-100">{{ $offer->series }} {{ $offer->book_number }} - {{ $offer->book_title }}</p>
+                                            @if($offer->matches_user_request ?? false)
+                                                <span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-800 ring-1 ring-inset ring-emerald-500/60 dark:bg-emerald-900/70 dark:text-emerald-100 dark:ring-emerald-400/60" aria-live="polite">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="h-3.5 w-3.5" aria-hidden="true">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75 9 17.25l10.5-10.5" />
+                                                    </svg>
+                                                    <span aria-hidden="true">Passt zu deinem Gesuch</span>
+                                                    <span class="sr-only">Dieses Angebot passt zu deinem Gesuch.</span>
+                                                </span>
+                                            @endif
+                                        </div>
                                         <p class="text-sm text-gray-600 dark:text-gray-300">Zustand: {{ $offer->condition }}</p>
-                                        <p class="mt-1 text-sm text-gray-600 dark:text-gray-300">von <a href="{{ route('profile.view', $offer->user->id) }}" class="text-[#8B0116] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#8B0116] dark:focus-visible:ring-[#FF6B81]">{{ $offer->user->name }}</a></p>
+                                        <p class="text-sm text-gray-600 dark:text-gray-300">von <a href="{{ route('profile.view', $offer->user->id) }}" class="text-[#8B0116] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#8B0116] dark:focus-visible:ring-[#FF6B81]">{{ $offer->user->name }}</a></p>
                                     </div>
                                     @if(auth()->id() === $offer->user_id)
                                         <div class="flex flex-wrap items-center gap-2">
@@ -301,29 +312,45 @@
             @else
                 <ul class="space-y-3">
                     @foreach($requests as $request)
-                        <li class="bg-gray-100 dark:bg-gray-700 p-3 rounded flex justify-between items-center">
-                            <span>{{ $request->series }} {{ $request->book_number }} - {{ $request->book_title }} ({{ $request->condition }} oder besser)</span>
-                            <div class="flex items-center gap-3">
-                                <span class="text-sm text-gray-600 dark:text-gray-300">von <a href="{{ route('profile.view', $request->user->id) }}" class="text-[#8B0116] hover:underline">{{ $request->user->name }}</a></span>
-                                @if(auth()->id() === $request->user_id)
-                                    <div class="flex items-center gap-2">
-                                        <a href="{{ route('romantausch.edit-request', $request) }}" class="inline-flex items-center gap-2 rounded px-3 py-1.5 text-sm font-semibold text-[#8B0116] dark:text-[#FF6B81] border border-transparent hover:border-[#8B0116] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#8B0116] dark:focus-visible:ring-[#FF6B81]" aria-label="Gesuch bearbeiten: {{ $request->series }} {{ $request->book_number }}">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.862 4.487z" />
+                        <li class="bg-gray-100 dark:bg-gray-700 rounded p-4">
+                            <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                                <div class="flex flex-col gap-2">
+                                    <span class="font-medium text-gray-900 dark:text-gray-100">{{ $request->series }} {{ $request->book_number }} - {{ $request->book_title }} ({{ $request->condition }} oder besser)</span>
+                                    @if($request->matches_user_offer ?? false)
+                                        <span class="inline-flex items-center gap-1.5 rounded-full bg-sky-100 px-2.5 py-1 text-xs font-semibold text-sky-800 ring-1 ring-inset ring-sky-500/60 dark:bg-sky-900/60 dark:text-sky-100 dark:ring-sky-400/60" aria-live="polite">
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="h-3.5 w-3.5" aria-hidden="true">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6A2.25 2.25 0 0 0 5.25 5.25v13.5A2.25 2.25 0 0 0 7.5 21h9a2.25 2.25 0 0 0 2.25-2.25V9h-3Z" />
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 7.5h3" />
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 10.5h6" />
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 13.5h6" />
                                             </svg>
-                                            <span>Bearbeiten</span>
-                                        </a>
-                                        <form method="POST" action="{{ route('romantausch.delete-request', $request) }}" class="inline">
-                                            @csrf
-                                            <button class="inline-flex items-center gap-2 rounded px-3 py-1.5 text-sm font-semibold text-red-600 dark:text-red-400 border border-transparent hover:border-red-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-red-500" onclick="return confirm('Möchtest du dieses Gesuch wirklich löschen?')">
+                                            <span aria-hidden="true">Passt zu deinem Angebot</span>
+                                            <span class="sr-only">Dieses Gesuch passt zu deinem Angebot.</span>
+                                        </span>
+                                    @endif
+                                </div>
+                                <div class="flex flex-wrap items-center gap-3">
+                                    <span class="text-sm text-gray-600 dark:text-gray-300">von <a href="{{ route('profile.view', $request->user->id) }}" class="text-[#8B0116] hover:underline">{{ $request->user->name }}</a></span>
+                                    @if(auth()->id() === $request->user_id)
+                                        <div class="flex items-center gap-2">
+                                            <a href="{{ route('romantausch.edit-request', $request) }}" class="inline-flex items-center gap-2 rounded px-3 py-1.5 text-sm font-semibold text-[#8B0116] dark:text-[#FF6B81] border border-transparent hover:border-[#8B0116] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#8B0116] dark:focus-visible:ring-[#FF6B81]" aria-label="Gesuch bearbeiten: {{ $request->series }} {{ $request->book_number }}">
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.862 4.487z" />
                                                 </svg>
-                                                <span>Löschen</span>
-                                            </button>
-                                        </form>
-                                    </div>
-                                @endif
+                                                <span>Bearbeiten</span>
+                                            </a>
+                                            <form method="POST" action="{{ route('romantausch.delete-request', $request) }}" class="inline">
+                                                @csrf
+                                                <button class="inline-flex items-center gap-2 rounded px-3 py-1.5 text-sm font-semibold text-red-600 dark:text-red-400 border border-transparent hover:border-red-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-red-500" onclick="return confirm('Möchtest du dieses Gesuch wirklich löschen?')">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                                                    </svg>
+                                                    <span>Löschen</span>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    @endif
+                                </div>
                             </div>
                         </li>
                     @endforeach
