@@ -535,8 +535,8 @@ class RomantauschController extends Controller
         return true;
     }
 
-    private function buildBookKey(string $series, int $bookNumber): string
+    private function buildBookKey(string $series, int|string $bookNumber): string
     {
-        return serialize([$series, $bookNumber]);
+        return sprintf('%s::%s', $series, $bookNumber);
     }
 }
