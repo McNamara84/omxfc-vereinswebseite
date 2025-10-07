@@ -136,9 +136,17 @@ export class RomantauschDropzone {
         this.announceInitialState();
     }
 
+    getLimitAnnouncement() {
+        if (this.maxFiles === 0) {
+            return 'Du kannst aktuell keine weiteren Fotos hinzufügen. Entferne zuerst ein bestehendes Foto.';
+        }
+
+        return `Du kannst maximal ${this.maxFiles} ${this.maxFiles === 1 ? 'Foto' : 'Fotos'} auswählen.`;
+    }
+
     announceInitialState() {
         if (this.maxFiles === 0) {
-            this.announce('Du kannst aktuell keine weiteren Fotos hinzufügen. Entferne zuerst ein bestehendes Foto.');
+            this.announce(this.getLimitAnnouncement());
         } else {
             this.announce(`Bereit. Du kannst noch ${this.maxFiles} ${this.maxFiles === 1 ? 'Foto' : 'Fotos'} auswählen.`);
         }
@@ -206,7 +214,7 @@ export class RomantauschDropzone {
 
     openFileDialog() {
         if (this.isDisabled) {
-            this.announce(`Du kannst maximal ${this.maxFiles} ${this.maxFiles === 1 ? 'Foto' : 'Fotos'} auswählen.`);
+            this.announce(this.getLimitAnnouncement());
             return;
         }
 
@@ -227,7 +235,7 @@ export class RomantauschDropzone {
 
     processFiles(fileList) {
         if (this.isDisabled) {
-            this.announce(`Du kannst maximal ${this.maxFiles} ${this.maxFiles === 1 ? 'Foto' : 'Fotos'} auswählen.`);
+            this.announce(this.getLimitAnnouncement());
             return;
         }
 
@@ -253,7 +261,7 @@ export class RomantauschDropzone {
 
         let availableSlots = this.maxFiles - this.files.length;
         if (availableSlots <= 0) {
-            messages.push(`Du kannst maximal ${this.maxFiles} ${this.maxFiles === 1 ? 'Foto' : 'Fotos'} auswählen.`);
+            messages.push(this.getLimitAnnouncement());
             this.announce(messages.join(' '));
             return;
         }

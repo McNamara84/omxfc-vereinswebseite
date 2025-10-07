@@ -28,8 +28,6 @@ describe('RomantauschDropzone', () => {
 
     const createFile = (name) => new File(['content'], name, { type: 'image/jpeg' });
 
-    let urlCounter = 0;
-
     beforeAll(() => {
         if (!global.URL.createObjectURL) {
             global.URL.createObjectURL = () => `blob:mock-${Math.random().toString(36).slice(2)}`;
@@ -41,7 +39,7 @@ describe('RomantauschDropzone', () => {
 
     beforeEach(() => {
         document.body.innerHTML = '';
-        urlCounter = 0;
+        let urlCounter = 0;
         jest.spyOn(global.URL, 'createObjectURL').mockImplementation(() => {
             urlCounter += 1;
             return `blob:mock-${urlCounter}`;
@@ -149,7 +147,32 @@ describe('RomantauschDropzone', () => {
         expect(dropzone.maxFiles).toBe(0);
         expect(dropzone.isDisabled).toBe(true);
         expect(area.getAttribute('aria-disabled')).toBe('true');
-        expect(status.textContent).toContain('keine weiteren Fotos');
+        expect(status.textContent).toBe('Du kannst aktuell keine weiteren Fotos hinzufügen. Entferne zuerst ein bestehendes Foto.');
+    });
+
+    test('announces consistent message when opening file dialog while disabled', () => {
+        document.body.innerHTML = buildMarkup(0);
+        const root = document.querySelector('[data-romantausch-dropzone]');
+        const dropzone = new RomantauschDropzone(root);
+        dropzone.init();
+
+        dropzone.openFileDialog();
+
+        const status = root.querySelector('[data-dropzone-status]');
+        expect(status.textContent).toBe('Du kannst aktuell keine weiteren Fotos hinzufügen. Entferne zuerst ein bestehendes Foto.');
+    });
+
+    test('processing files while disabled reiterates the no-slots message', () => {
+        document.body.innerHTML = buildMarkup(0);
+        const root = document.querySelector('[data-romantausch-dropzone]');
+        const dropzone = new RomantauschDropzone(root);
+        dropzone.init();
+
+        dropzone.processFiles([createFile('ignored.jpg')]);
+
+        const status = root.querySelector('[data-dropzone-status]');
+        expect(status.textContent).toBe('Du kannst aktuell keine weiteren Fotos hinzufügen. Entferne zuerst ein bestehendes Foto.');
+        expect(global.URL.createObjectURL).not.toHaveBeenCalled();
     });
 
     test('reuses existing object URLs across rerenders', () => {
