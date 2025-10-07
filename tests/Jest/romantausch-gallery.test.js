@@ -1,0 +1,96 @@
+import { RomantauschPhotoGallery } from '../../resources/js/romantausch-gallery.js';
+
+describe('RomantauschPhotoGallery', () => {
+    let gallery;
+    let root;
+
+    const createGalleryMarkup = () => `
+        <div data-romantausch-gallery>
+            <button
+                type="button"
+                data-photo-dialog-trigger
+                data-photo-src="https://example.com/photo-1.jpg"
+                data-photo-alt="Foto 1 von Beispiel"
+                data-photo-label="Foto 1 von Beispiel"
+                data-photo-index="0"
+            ></button>
+            <button
+                type="button"
+                data-photo-dialog-trigger
+                data-photo-src="https://example.com/photo-2.jpg"
+                data-photo-alt="Foto 2 von Beispiel"
+                data-photo-label="Foto 2 von Beispiel"
+                data-photo-index="1"
+            ></button>
+            <button
+                type="button"
+                data-photo-dialog-trigger
+                data-photo-src="https://example.com/photo-3.jpg"
+                data-photo-alt=""
+                data-photo-label=""
+                data-photo-index="2"
+            ></button>
+            <div class="hidden" data-photo-dialog aria-hidden="true">
+                <div data-photo-dialog-overlay></div>
+                <div data-photo-dialog-panel tabindex="-1">
+                    <button data-photo-dialog-close></button>
+                    <button data-photo-dialog-prev></button>
+                    <img
+                        src="https://example.com/photo-1.jpg"
+                        alt="Foto 1 von Beispiel"
+                        data-photo-dialog-image
+                    >
+                    <button data-photo-dialog-next></button>
+                    <div>
+                        <span data-photo-dialog-counter>1 / 3</span>
+                        <span data-photo-dialog-caption>Foto 1 von Beispiel</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    beforeEach(() => {
+        document.body.innerHTML = createGalleryMarkup();
+        root = document.querySelector('[data-romantausch-gallery]');
+        gallery = new RomantauschPhotoGallery(root);
+    });
+
+    afterEach(() => {
+        gallery.close();
+        document.body.innerHTML = '';
+        document.body.className = '';
+    });
+
+    const clickTrigger = (index) => {
+        const trigger = root.querySelectorAll('[data-photo-dialog-trigger]')[index];
+        trigger.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+    };
+
+    test('opens the dialog with the clicked thumbnail image', () => {
+        clickTrigger(1);
+
+        const image = root.querySelector('[data-photo-dialog-image]');
+        const caption = root.querySelector('[data-photo-dialog-caption]');
+        const counter = root.querySelector('[data-photo-dialog-counter]');
+        const dialog = root.querySelector('[data-photo-dialog]');
+
+        expect(dialog.classList.contains('hidden')).toBe(false);
+        expect(dialog.getAttribute('aria-hidden')).toBeNull();
+        expect(image.getAttribute('src')).toBe('https://example.com/photo-2.jpg');
+        expect(image.getAttribute('alt')).toBe('Foto 2 von Beispiel');
+        expect(caption.textContent).toBe('Foto 2 von Beispiel');
+        expect(counter.textContent).toBe('2 / 3');
+    });
+
+    test('falls back to a generated caption when no label is provided', () => {
+        clickTrigger(2);
+
+        const image = root.querySelector('[data-photo-dialog-image]');
+        const caption = root.querySelector('[data-photo-dialog-caption]');
+
+        expect(image.getAttribute('src')).toBe('https://example.com/photo-3.jpg');
+        expect(image.getAttribute('alt')).toBe('Foto 3');
+        expect(caption.textContent).toBe('Foto 3');
+    });
+});

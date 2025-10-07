@@ -4,7 +4,7 @@ const FOCUSABLE_SELECTOR = [
     '[tabindex]:not([tabindex="-1"])'
 ].join(',');
 
-class RomantauschPhotoGallery {
+export class RomantauschPhotoGallery {
     constructor(root) {
         this.root = root;
         this.dialog = root.querySelector('[data-photo-dialog]');
@@ -68,7 +68,9 @@ class RomantauschPhotoGallery {
         event.preventDefault();
         const trigger = event.currentTarget;
         const index = Number.parseInt(trigger.getAttribute('data-photo-index') || '0', 10);
-        this.open(Number.isNaN(index) ? 0 : index);
+        const targetIndex = Number.isNaN(index) ? 0 : index;
+        this.setCurrentIndex(targetIndex);
+        this.open(targetIndex);
     }
 
     handleOverlayClick(event) {
@@ -141,10 +143,9 @@ class RomantauschPhotoGallery {
         const photo = this.photos[index];
 
         if (this.image) {
+            const altText = photo.alt || photo.label || `Foto ${index + 1}`;
             this.image.setAttribute('src', photo.src);
-            if (photo.alt) {
-                this.image.setAttribute('alt', photo.alt);
-            }
+            this.image.setAttribute('alt', altText);
         }
 
         if (this.counter) {
@@ -152,7 +153,7 @@ class RomantauschPhotoGallery {
         }
 
         if (this.caption) {
-            this.caption.textContent = photo.label ?? '';
+            this.caption.textContent = photo.label || photo.alt || `Foto ${index + 1}`;
         }
 
         this.updateNavigationState();
@@ -239,7 +240,7 @@ class RomantauschPhotoGallery {
     }
 }
 
-const initialiseGalleries = () => {
+export const initialiseGalleries = () => {
     document.querySelectorAll(GALLERY_SELECTOR).forEach((root) => {
         if (!root.__romantauschGallery) {
             root.__romantauschGallery = new RomantauschPhotoGallery(root);
@@ -252,5 +253,3 @@ if (document.readyState === 'loading') {
 } else {
     initialiseGalleries();
 }
-
-export {};
