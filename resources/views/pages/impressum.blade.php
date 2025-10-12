@@ -28,8 +28,8 @@
                 14480 Potsdam<br>
                 Deutschland</p>
 
-            <p class="mt-4">E-Mail: <a href="mailto:info@maddrax-fanclub.de"
-                    class="text-blue-600 hover:underline">info@maddrax-fanclub.de</a><br>
+            <p class="mt-4">E-Mail: <a href="mailto:vorstand@maddrax-fanclub.de"
+                    class="text-blue-600 hover:underline">vorstand@maddrax-fanclub.de</a><br>
                 Telefon: <a href="tel:+491794218330" class="text-blue-600 hover:underline">+49 179 4218330</a></p>
         </section>
 
@@ -57,7 +57,7 @@
                 'contactPoint' => [
                     '@type' => 'ContactPoint',
                     'telephone' => '+49 179 4218330',
-                    'email' => 'info@maddrax-fanclub.de',
+                    'email' => 'vorstand@maddrax-fanclub.de',
                     'contactType' => 'customer service',
                 ],
                 'sameAs' => [
