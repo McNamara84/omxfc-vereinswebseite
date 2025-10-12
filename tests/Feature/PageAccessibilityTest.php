@@ -51,7 +51,7 @@ class PageAccessibilityTest extends TestCase
     {
         $this->get('/impressum')
             ->assertOk()
-            ->assertSee('info@maddrax-fanclub.de')
+            ->assertSee('vorstand@maddrax-fanclub.de')
             ->assertSee('Angaben gemäß §5 TMG');
     }
 
