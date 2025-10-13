@@ -323,6 +323,47 @@ class TodoControllerTest extends TestCase
         $response->assertViewIs('todos.show');
         $response->assertViewHas('canAssign', true);
         $response->assertViewHas('canEdit', true);
+        $response->assertViewHas('canDelete', false);
+    }
+
+    public function test_vorstand_can_delete_todo(): void
+    {
+        $vorstand = $this->actingMember('Vorstand');
+        $todo = $this->createTodo($vorstand);
+        $this->actingAs($vorstand);
+
+        $response = $this->delete(route('todos.destroy', $todo));
+
+        $response->assertRedirect(route('todos.index', [], false));
+        $response->assertSessionHas('status', 'Challenge wurde erfolgreich gelöscht.');
+        $this->assertDatabaseMissing('todos', ['id' => $todo->id]);
+    }
+
+    public function test_admin_can_delete_todo(): void
+    {
+        $admin = $this->actingMember('Admin');
+        $creator = $this->actingMember('Vorstand');
+        $todo = $this->createTodo($creator);
+        $this->actingAs($admin);
+
+        $response = $this->delete(route('todos.destroy', $todo));
+
+        $response->assertRedirect(route('todos.index', [], false));
+        $response->assertSessionHas('status', 'Challenge wurde erfolgreich gelöscht.');
+        $this->assertDatabaseMissing('todos', ['id' => $todo->id]);
+    }
+
+    public function test_member_cannot_delete_todo(): void
+    {
+        $creator = $this->actingMember('Vorstand');
+        $todo = $this->createTodo($creator);
+        $member = $this->actingMember();
+        $this->actingAs($member);
+
+        $response = $this->delete(route('todos.destroy', $todo));
+
+        $response->assertForbidden();
+        $this->assertDatabaseHas('todos', ['id' => $todo->id]);
     }
 
     public function test_edit_page_loads_for_creator(): void

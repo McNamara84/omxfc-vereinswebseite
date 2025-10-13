@@ -26,7 +26,9 @@ class TodoPolicy
 
     public function delete(User $user, Todo $todo): bool
     {
-        return $this->update($user, $todo);
+        $role = $this->role($user);
+
+        return $role && in_array($role, [Role::Vorstand, Role::Admin], true);
     }
 
     public function assign(User $user, Todo $todo): bool

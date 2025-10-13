@@ -152,12 +152,15 @@ class TodoController extends Controller
 
         $canVerify = $todo->status === TodoStatus::Completed && $user->can('verify', Todo::class);
 
+        $canDelete = $user->can('delete', $todo);
+
         return view('todos.show', [
             'todo' => $todo,
             'canAssign' => $canAssign,
             'canComplete' => $canComplete,
             'canVerify' => $canVerify,
             'canEdit' => $canEdit,
+            'canDelete' => $canDelete,
             'userRole' => $userRole,
         ]);
     }
@@ -334,5 +337,26 @@ class TodoController extends Controller
 
         return redirect()->route('todos.index')
             ->with('status', 'Challenge wurde erfolgreich freigegeben und steht nun wieder zur Verfügung.');
+    }
+
+    /**
+     * Entfernt eine Challenge dauerhaft.
+     */
+    public function destroy(Todo $todo)
+    {
+        $user = Auth::user();
+        $memberTeam = $this->membersTeamProvider->getMembersTeamOrAbort();
+
+        if ($todo->team_id !== $memberTeam->id) {
+            return redirect()->route('todos.index')
+                ->with('error', 'Challenge nicht gefunden.');
+        }
+
+        $this->authorize('delete', $todo);
+
+        $todo->delete();
+
+        return redirect()->route('todos.index')
+            ->with('status', 'Challenge wurde erfolgreich gelöscht.');
     }
 }
