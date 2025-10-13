@@ -110,23 +110,25 @@
                 </div>
 
                 <!-- Aktionen -->
-                <div class="flex justify-between mt-8">
-                    <a href="{{ route('todos.index') }}"
-                        class="inline-flex items-center px-4 py-2 bg-gray-200 dark:bg-gray-700 border border-transparent rounded-md font-semibold text-gray-800 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
-                        <svg class="h-5 w-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                            xmlns="http://www.w3.org/2000/svg">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
-                        </svg>
-                        Zurück zur Übersicht
-                    </a>
-                    @if($canEdit)
-                        <a href="{{ route('todos.edit', $todo) }}"
-                            class="ml-2 inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                            Bearbeiten
+                <div class="mt-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <a href="{{ route('todos.index') }}"
+                            class="inline-flex items-center px-4 py-2 bg-gray-200 dark:bg-gray-700 border border-transparent rounded-md font-semibold text-gray-800 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+                            <svg class="h-5 w-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                            </svg>
+                            Zurück zur Übersicht
                         </a>
-                    @endif
-                    <div>
+                        @if($canEdit)
+                            <a href="{{ route('todos.edit', $todo) }}"
+                                class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                Bearbeiten
+                            </a>
+                        @endif
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2 md:justify-end">
                         @if($canAssign)
                             <form action="{{ route('todos.assign', $todo) }}" method="POST" class="inline">
                                 @csrf
@@ -162,6 +164,22 @@
                                 <button type="submit"
                                     class="inline-flex items-center px-4 py-2 bg-gray-500 border border-transparent rounded-md font-semibold text-white hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
                                     Challenge freigeben
+                                </button>
+                            </form>
+                        @endif
+                        @if($canDelete)
+                            <form action="{{ route('todos.destroy', $todo) }}" method="POST" class="inline"
+                                onsubmit="return confirm('Möchtest du diese Challenge wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.');">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit"
+                                    class="inline-flex items-center px-4 py-2 bg-red-600 border border-transparent rounded-md font-semibold text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                                    <svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                        xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5-4h4m-4 0a1 1 0 00-1 1v1h6V4a1 1 0 00-1-1m-4 0h4"></path>
+                                    </svg>
+                                    Challenge löschen
                                 </button>
                             </form>
                         @endif

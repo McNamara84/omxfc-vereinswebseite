@@ -111,6 +111,7 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
         Route::post('{todo}/abschliessen', 'complete')->name('complete');
         Route::post('{todo}/pruefen', 'verify')->name('verify');
         Route::post('{todo}/freigeben', 'release')->name('release');
+        Route::delete('{todo}', 'destroy')->name('destroy');
     });
     Route::prefix('hoerbuecher')->name('hoerbuecher.')->controller(HoerbuchController::class)->group(function () {
         Route::get('/', 'index')->name('index')->middleware('hoerbuch-access');
