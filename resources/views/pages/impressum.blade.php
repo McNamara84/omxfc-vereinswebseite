@@ -28,9 +28,17 @@
                 14480 Potsdam<br>
                 Deutschland</p>
 
-            <p class="mt-4">E-Mail: <a href="mailto:vorstand@maddrax-fanclub.de"
-                    class="text-blue-600 hover:underline">vorstand@maddrax-fanclub.de</a><br>
-                Telefon: <a href="tel:+491794218330" class="text-blue-600 hover:underline">+49 179 4218330</a></p>
+            <div class="mt-4 space-y-4">
+                <div class="space-y-2" aria-labelledby="contact-email-label">
+                    <p id="contact-email-label" class="text-sm font-semibold uppercase tracking-wide text-gray-600 dark:text-gray-300">
+                        {{ __('E-Mail') }}
+                    </p>
+                    <livewire:contact-email-reveal />
+                </div>
+                <p>
+                    Telefon: <a href="tel:+491794218330" class="text-blue-600 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-500">+49 179 4218330</a>
+                </p>
+            </div>
         </section>
 
         <section>
@@ -57,7 +65,7 @@
                 'contactPoint' => [
                     '@type' => 'ContactPoint',
                     'telephone' => '+49 179 4218330',
-                    'email' => 'vorstand@maddrax-fanclub.de',
+                    'email' => 'kontakt@example.invalid',
                     'contactType' => 'customer service',
                 ],
                 'sameAs' => [

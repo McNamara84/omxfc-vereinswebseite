@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Http\Livewire\ContactEmailReveal;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Process;
@@ -9,6 +10,7 @@ use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
+use Livewire\Livewire;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -75,5 +77,7 @@ class AppServiceProvider extends ServiceProvider
         });
 
         Blade::if('vorstand', fn () => auth()->check() && auth()->user()->hasVorstandRole());
+
+        Livewire::component('contact-email-reveal', ContactEmailReveal::class);
     }
 }

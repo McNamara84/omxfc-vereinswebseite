@@ -51,8 +51,10 @@ class PageAccessibilityTest extends TestCase
     {
         $this->get('/impressum')
             ->assertOk()
-            ->assertSee('vorstand@maddrax-fanclub.de')
-            ->assertSee('Angaben gemäß §5 TMG');
+            ->assertSee('E-Mail-Adresse anzeigen')
+            ->assertSee('Angaben gemäß §5 TMG')
+            ->assertSee('kontakt@example.invalid')
+            ->assertDontSee('vorstand@maddrax-fanclub.de');
     }
 
     public function test_datenschutz_page_displays_data_protection_details(): void

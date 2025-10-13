@@ -22,6 +22,11 @@ export default defineConfig({
       QUEUE_CONNECTION: 'database',
       MAIL_MAILER: 'array',
       FORTIFY_DISABLE_LOGIN_RATE_LIMIT: 'true',
+      HCAPTCHA_ENABLED: 'true',
+      HCAPTCHA_SITEKEY: 'test-sitekey',
+      HCAPTCHA_SECRET: 'test-secret',
+      HCAPTCHA_BYPASS_TOKEN: 'test-token',
+      CONTACT_EMAIL: 'vorstand@maddrax-fanclub.de',
     },
   },
   use: {

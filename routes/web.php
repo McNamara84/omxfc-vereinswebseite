@@ -47,6 +47,13 @@ Route::get('/mitglied-werden/bestaetigt', [PageController::class, 'mitgliedWerde
 // POST Route für Mitgliedschaftsantrag
 Route::post('/mitglied-werden', [MitgliedschaftController::class, 'store'])->name('mitglied.store');
 
+Route::get('/kontakt/email/reveal', function () {
+    return response()->json([
+        'email' => config('services.contact.email'),
+    ]);
+})->middleware(['signed', 'throttle:reveal-contact-email'])
+    ->name('contact.email.reveal');
+
 // Route für E-Mail-Verifizierung (Laravel Jetstream / Fortify)
 Route::get('/email/bestaetigen/{id}/{hash}', CustomEmailVerificationController::class)
     ->middleware(['signed', 'throttle:6,1'])
