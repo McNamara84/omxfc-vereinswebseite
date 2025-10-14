@@ -141,17 +141,17 @@
                     @forelse($activities as $activity)
                         @php
                             $subject = $activity->subject;
-                            $missingSubjectMessage = 'Gelöschter Eintrag – nicht mehr verfügbar';
-                            $hasSpecificFallback = in_array($activity->subject_type, [
-                                \App\Models\Todo::class,
-                                \App\Models\User::class,
-                            ], true);
+                            $missingSubjectMessages = [
+                                \App\Models\ReviewComment::class => 'Kommentar – Bezug nicht mehr verfügbar',
+                            ];
+                            $missingSubjectMessage = $missingSubjectMessages[$activity->subject_type]
+                                ?? 'Gelöschter Eintrag – nicht mehr verfügbar';
                         @endphp
                         <li class="py-2 flex justify-between">
                             <span class="text-sm text-gray-600 dark:text-gray-400">
                                 {{ $activity->created_at->format('d.m.Y H:i') }} - <a href="{{ route('profile.view', $activity->user->id) }}" class="text-[#8B0116] hover:underline">{{ $activity->user->name }}</a>
                             </span>
-                            @if(!$subject && ! $hasSpecificFallback)
+                            @if(!$subject)
                                 <span class="text-sm text-gray-500 dark:text-gray-300 italic" role="status" aria-live="polite">
                                     {{ $missingSubjectMessage }}
                                 </span>
@@ -171,56 +171,32 @@
                                 @php
                                     $review = $subject?->review;
                                 @endphp
-                                @if($subject && $review)
+                                @if($review)
                                     <span class="text-sm">
                                         Kommentar zu <a href="{{ route('reviews.show', $review->book_id) }}" class="text-blue-600 dark:text-blue-400 hover:underline">{{ $review->title }}</a> von <a href="{{ route('profile.view', $activity->user->id) }}" class="text-[#8B0116] hover:underline">{{ $activity->user->name }}</a>
                                     </span>
                                 @else
                                     <span class="text-sm text-gray-500 dark:text-gray-300 italic" role="status" aria-live="polite">
-                                        Kommentar – Bezug nicht mehr verfügbar
+                                        {{ $missingSubjectMessage }}
                                     </span>
                                 @endif
                             @elseif($activity->subject_type === \App\Models\AdminMessage::class)
-                                @if($subject)
-                                    <span class="text-sm flex items-center">
-                                        {{ $subject->message }}
-                                        @if(auth()->user()->hasRole(\App\Enums\Role::Admin))
-                                            <form method="POST" action="{{ route('admin.messages.destroy', $subject) }}" class="ml-2">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button class="text-red-500 text-xs" onclick="return confirm('Nachricht löschen?')">Löschen</button>
-                                            </form>
-                                        @endif
-                                    </span>
-                                @else
-                                    <span class="text-sm text-gray-500 dark:text-gray-300 italic" role="status" aria-live="polite">
-                                        {{ $missingSubjectMessage }}
-                                    </span>
-                                @endif
+                                <span class="text-sm flex items-center">
+                                    {{ $subject->message }}
+                                    @if(auth()->user()->hasRole(\App\Enums\Role::Admin))
+                                        <form method="POST" action="{{ route('admin.messages.destroy', $subject) }}" class="ml-2">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button class="text-red-500 text-xs" onclick="return confirm('Nachricht löschen?')">Löschen</button>
+                                        </form>
+                                    @endif
+                                </span>
                             @elseif($activity->subject_type === \App\Models\Todo::class && $activity->action === 'accepted')
-                                @if($subject)
-                                    <span class="text-sm">hat die Challenge <a href="{{ route('todos.show', $subject->id) }}" class="text-blue-600 dark:text-blue-400 hover:underline">{{ $subject->title }}</a> angenommen</span>
-                                @else
-                                    <span class="text-sm text-gray-500 dark:text-gray-300 italic" role="status" aria-live="polite">
-                                        {{ $missingSubjectMessage }}
-                                    </span>
-                                @endif
+                                <span class="text-sm">hat die Challenge <a href="{{ route('todos.show', $subject->id) }}" class="text-blue-600 dark:text-blue-400 hover:underline">{{ $subject->title }}</a> angenommen</span>
                             @elseif($activity->subject_type === \App\Models\Todo::class && $activity->action === 'completed')
-                                @if($subject)
-                                    <span class="text-sm">hat die Challenge <a href="{{ route('todos.show', $subject->id) }}" class="text-blue-600 dark:text-blue-400 hover:underline">{{ $subject->title }}</a> erfolgreich abgeschlossen</span>
-                                @else
-                                    <span class="text-sm text-gray-500 dark:text-gray-300 italic" role="status" aria-live="polite">
-                                        {{ $missingSubjectMessage }}
-                                    </span>
-                                @endif
+                                <span class="text-sm">hat die Challenge <a href="{{ route('todos.show', $subject->id) }}" class="text-blue-600 dark:text-blue-400 hover:underline">{{ $subject->title }}</a> erfolgreich abgeschlossen</span>
                             @elseif($activity->subject_type === \App\Models\User::class && $activity->action === 'member_approved')
-                                @if($subject)
-                                    <span class="text-sm">Wir begrüßen unser neues Mitglied <a href="{{ route('profile.view', $subject->id) }}" class="text-[#8B0116] hover:underline">{{ $subject->name }}</a></span>
-                                @else
-                                    <span class="text-sm text-gray-500 dark:text-gray-300 italic" role="status" aria-live="polite">
-                                        {{ $missingSubjectMessage }}
-                                    </span>
-                                @endif
+                                <span class="text-sm">Wir begrüßen unser neues Mitglied <a href="{{ route('profile.view', $subject->id) }}" class="text-[#8B0116] hover:underline">{{ $subject->name }}</a></span>
                             @endif
                         </li>
                     @empty
