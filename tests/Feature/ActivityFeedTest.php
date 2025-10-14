@@ -357,4 +357,27 @@ class ActivityFeedTest extends TestCase
         $response->assertSeeText('Gelöschter Eintrag – nicht mehr verfügbar');
         $response->assertDontSee('Nachricht löschen?');
     }
+
+    public function test_dashboard_handles_missing_member_subject(): void
+    {
+        $admin = $this->actingMember(Role::Admin);
+        $this->actingAs($admin);
+
+        $newMember = User::factory()->create(['current_team_id' => $admin->currentTeam->id]);
+
+        Activity::create([
+            'user_id' => $admin->id,
+            'subject_type' => User::class,
+            'subject_id' => $newMember->id,
+            'action' => 'member_approved',
+        ]);
+
+        $newMember->delete();
+
+        $response = $this->get('/dashboard');
+
+        $response->assertOk();
+        $response->assertSeeText('Gelöschter Eintrag – nicht mehr verfügbar');
+        $response->assertDontSee('Wir begrüßen unser neues Mitglied');
+    }
 }
