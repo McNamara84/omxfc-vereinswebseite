@@ -264,4 +264,36 @@ class ActivityFeedTest extends TestCase
         $dashboard = $this->get('/dashboard');
         $dashboard->assertSeeText('Wir begrüßen unser neues Mitglied ' . $anwaerter->name);
     }
+
+    public function test_dashboard_shows_fallback_when_activity_subject_missing(): void
+    {
+        $user = $this->actingMember();
+        $this->actingAs($user);
+
+        $category = TodoCategory::create(['name' => 'Fallback', 'slug' => 'fallback']);
+        $todo = Todo::create([
+            'team_id' => $user->currentTeam->id,
+            'created_by' => $user->id,
+            'title' => 'Vergängliche Challenge',
+            'points' => 3,
+            'category_id' => $category->id,
+            'status' => TodoStatus::Open->value,
+        ]);
+
+        $this->post(route('todos.assign', $todo));
+
+        $this->assertDatabaseHas('activities', [
+            'user_id' => $user->id,
+            'subject_type' => Todo::class,
+            'subject_id' => $todo->id,
+            'action' => 'accepted',
+        ]);
+
+        $todo->delete();
+
+        $response = $this->get('/dashboard');
+
+        $response->assertOk();
+        $response->assertSeeText('Eintrag nicht mehr verfügbar');
+    }
 }
