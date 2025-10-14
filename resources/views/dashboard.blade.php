@@ -163,20 +163,35 @@
                                     Neues Gesuch: {{ $subject->book_title }}
                                 </a>
                             @elseif($activity->subject_type === \App\Models\ReviewComment::class)
-                                <span class="text-sm">
-                                    Kommentar zu <a href="{{ route('reviews.show', $subject->review->book_id) }}" class="text-blue-600 dark:text-blue-400 hover:underline">{{ $subject->review->title }}</a> von <a href="{{ route('profile.view', $activity->user->id) }}" class="text-[#8B0116] hover:underline">{{ $activity->user->name }}</a>
-                                </span>
+                                @php
+                                    $review = optional($subject)->getRelationValue('review') ?? optional($subject)->review;
+                                @endphp
+                                @if($subject && $review)
+                                    <span class="text-sm">
+                                        Kommentar zu <a href="{{ route('reviews.show', $review->book_id) }}" class="text-blue-600 dark:text-blue-400 hover:underline">{{ $review->title }}</a> von <a href="{{ route('profile.view', $activity->user->id) }}" class="text-[#8B0116] hover:underline">{{ $activity->user->name }}</a>
+                                    </span>
+                                @else
+                                    <span class="text-sm text-gray-500 dark:text-gray-300 italic" role="status" aria-live="polite">
+                                        Kommentar – Bezug nicht mehr verfügbar
+                                    </span>
+                                @endif
                             @elseif($activity->subject_type === \App\Models\AdminMessage::class)
-                                <span class="text-sm flex items-center">
-                                    {{ $subject->message }}
-                                    @if(auth()->user()->hasRole(\App\Enums\Role::Admin))
-                                        <form method="POST" action="{{ route('admin.messages.destroy', $subject) }}" class="ml-2">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button class="text-red-500 text-xs" onclick="return confirm('Nachricht löschen?')">Löschen</button>
-                                        </form>
-                                    @endif
-                                </span>
+                                @if($subject)
+                                    <span class="text-sm flex items-center">
+                                        {{ $subject->message }}
+                                        @if(auth()->user()->hasRole(\App\Enums\Role::Admin))
+                                            <form method="POST" action="{{ route('admin.messages.destroy', $subject) }}" class="ml-2">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button class="text-red-500 text-xs" onclick="return confirm('Nachricht löschen?')">Löschen</button>
+                                            </form>
+                                        @endif
+                                    </span>
+                                @else
+                                    <span class="text-sm text-gray-500 dark:text-gray-300 italic" role="status" aria-live="polite">
+                                        Gelöschter Eintrag – nicht mehr verfügbar
+                                    </span>
+                                @endif
                             @elseif($activity->subject_type === \App\Models\Todo::class && $activity->action === 'accepted')
                                 <span class="text-sm">hat die Challenge <a href="{{ route('todos.show', $subject->id) }}" class="text-blue-600 dark:text-blue-400 hover:underline">{{ $subject->title }}</a> angenommen</span>
                             @elseif($activity->subject_type === \App\Models\Todo::class && $activity->action === 'completed')

@@ -14,6 +14,7 @@ use App\Models\Team;
 use App\Models\Todo;
 use App\Models\TodoCategory;
 use App\Models\ReviewComment;
+use App\Models\AdminMessage;
 use App\Enums\BookType;
 use App\Enums\TodoStatus;
 use Illuminate\Support\Facades\Mail;
@@ -295,5 +296,65 @@ class ActivityFeedTest extends TestCase
 
         $response->assertOk();
         $response->assertSeeText('Gelöschter Eintrag – nicht mehr verfügbar');
+    }
+
+    public function test_dashboard_handles_review_comment_with_deleted_review(): void
+    {
+        $user = $this->actingMember();
+        $this->actingAs($user);
+
+        $book = Book::first();
+
+        $review = Review::create([
+            'team_id' => $user->currentTeam->id,
+            'user_id' => $user->id,
+            'book_id' => $book->id,
+            'title' => 'Verwaiste Rezension',
+            'content' => str_repeat('B', 150),
+        ]);
+
+        $comment = ReviewComment::create([
+            'review_id' => $review->id,
+            'user_id' => $user->id,
+            'content' => 'Schade, dass sie weg ist.',
+        ]);
+
+        Activity::create([
+            'user_id' => $user->id,
+            'subject_type' => ReviewComment::class,
+            'subject_id' => $comment->id,
+        ]);
+
+        $review->delete();
+
+        $response = $this->get('/dashboard');
+
+        $response->assertOk();
+        $response->assertSeeText('Kommentar – Bezug nicht mehr verfügbar');
+    }
+
+    public function test_dashboard_handles_missing_admin_message_subject_without_delete_form(): void
+    {
+        $admin = $this->actingMember(Role::Admin);
+        $this->actingAs($admin);
+
+        $message = AdminMessage::create([
+            'user_id' => $admin->id,
+            'message' => 'Bitte beachtet die Regeln.',
+        ]);
+
+        Activity::create([
+            'user_id' => $admin->id,
+            'subject_type' => AdminMessage::class,
+            'subject_id' => $message->id,
+        ]);
+
+        $message->delete();
+
+        $response = $this->get('/dashboard');
+
+        $response->assertOk();
+        $response->assertSeeText('Gelöschter Eintrag – nicht mehr verfügbar');
+        $response->assertDontSee('Nachricht löschen?');
     }
 }
