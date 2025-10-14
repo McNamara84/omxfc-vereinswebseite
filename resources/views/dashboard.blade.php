@@ -140,7 +140,7 @@
                 <ul class="divide-y divide-gray-200 dark:divide-gray-700">
                     @forelse($activities as $activity)
                         @php
-                            $subject = $activity->getRelationValue('subject');
+                            $subject = $activity->subject;
                             $missingSubjectMessage = 'Gelöschter Eintrag – nicht mehr verfügbar';
                             $hasSpecificFallback = in_array($activity->subject_type, [
                                 \App\Models\Todo::class,
@@ -169,7 +169,7 @@
                                 </a>
                             @elseif($activity->subject_type === \App\Models\ReviewComment::class)
                                 @php
-                                    $review = optional($subject)->review;
+                                    $review = $subject?->review;
                                 @endphp
                                 @if($subject && $review)
                                     <span class="text-sm">

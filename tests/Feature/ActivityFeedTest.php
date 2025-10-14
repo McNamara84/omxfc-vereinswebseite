@@ -298,6 +298,35 @@ class ActivityFeedTest extends TestCase
         $response->assertSeeText('Gelöschter Eintrag – nicht mehr verfügbar');
     }
 
+    public function test_dashboard_shows_fallback_when_review_subject_soft_deleted(): void
+    {
+        $user = $this->actingMember();
+        $this->actingAs($user);
+
+        $book = Book::first();
+
+        $review = Review::create([
+            'team_id' => $user->currentTeam->id,
+            'user_id' => $user->id,
+            'book_id' => $book->id,
+            'title' => 'Kurzlebige Rezension',
+            'content' => str_repeat('C', 160),
+        ]);
+
+        Activity::create([
+            'user_id' => $user->id,
+            'subject_type' => Review::class,
+            'subject_id' => $review->id,
+        ]);
+
+        $review->delete();
+
+        $response = $this->get('/dashboard');
+
+        $response->assertOk();
+        $response->assertSeeText('Gelöschter Eintrag – nicht mehr verfügbar');
+    }
+
     public function test_dashboard_handles_review_comment_with_deleted_review(): void
     {
         $user = $this->actingMember();
