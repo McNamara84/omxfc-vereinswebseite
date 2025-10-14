@@ -142,7 +142,7 @@
                         @php
                             $subject = $activity->getRelationValue('subject');
                             $missingSubjectMessage = 'Gelöschter Eintrag – nicht mehr verfügbar';
-                            $skipGenericSubjectFallback = in_array($activity->subject_type, [
+                            $hasSpecificFallback = in_array($activity->subject_type, [
                                 \App\Models\Todo::class,
                                 \App\Models\User::class,
                             ], true);
@@ -151,7 +151,7 @@
                             <span class="text-sm text-gray-600 dark:text-gray-400">
                                 {{ $activity->created_at->format('d.m.Y H:i') }} - <a href="{{ route('profile.view', $activity->user->id) }}" class="text-[#8B0116] hover:underline">{{ $activity->user->name }}</a>
                             </span>
-                            @if(!$subject && ! $skipGenericSubjectFallback)
+                            @if(!$subject && ! $hasSpecificFallback)
                                 <span class="text-sm text-gray-500 dark:text-gray-300 italic" role="status" aria-live="polite">
                                     {{ $missingSubjectMessage }}
                                 </span>
