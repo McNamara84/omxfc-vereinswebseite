@@ -169,7 +169,7 @@
                                 </a>
                             @elseif($activity->subject_type === \App\Models\ReviewComment::class)
                                 @php
-                                    $review = optional($subject)->getRelationValue('review') ?? optional($subject)->review;
+                                    $review = optional($subject)->review;
                                 @endphp
                                 @if($subject && $review)
                                     <span class="text-sm">
