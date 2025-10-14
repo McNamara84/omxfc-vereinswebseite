@@ -294,6 +294,6 @@ class ActivityFeedTest extends TestCase
         $response = $this->get('/dashboard');
 
         $response->assertOk();
-        $response->assertSeeText('Eintrag nicht mehr verfügbar');
+        $response->assertSeeText('Gelöschter Eintrag – nicht mehr verfügbar');
     }
 }

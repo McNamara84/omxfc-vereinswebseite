@@ -139,14 +139,16 @@
                 <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FCA5A5] mb-4">Aktivitäten</h2>
                 <ul class="divide-y divide-gray-200 dark:divide-gray-700">
                     @forelse($activities as $activity)
+                        @php
+                            $subject = $activity->getRelationValue('subject');
+                        @endphp
                         <li class="py-2 flex justify-between">
                             <span class="text-sm text-gray-600 dark:text-gray-400">
                                 {{ $activity->created_at->format('d.m.Y H:i') }} - <a href="{{ route('profile.view', $activity->user->id) }}" class="text-[#8B0116] hover:underline">{{ $activity->user->name }}</a>
                             </span>
-                            @php $subject = $activity->subject; @endphp
                             @if(!$subject)
-                                <span class="text-sm text-gray-500 dark:text-gray-300 italic" role="status">
-                                    <span class="sr-only">Aktivitätseintrag:</span> Eintrag nicht mehr verfügbar
+                                <span class="text-sm text-gray-500 dark:text-gray-300 italic" role="status" aria-live="polite">
+                                    Gelöschter Eintrag – nicht mehr verfügbar
                                 </span>
                             @elseif($activity->subject_type === \App\Models\Review::class)
                                 <a href="{{ route('reviews.show', $subject->book_id) }}" class="text-sm text-blue-600 dark:text-blue-400 hover:underline">
