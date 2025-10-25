@@ -80,6 +80,24 @@ Offizielle Laravel-12-Anwendung für die Vereinswebseite des **Offizieller MADDR
    npm run build
    ```
 
+### hCaptcha & Kontaktadresse konfigurieren
+
+Für den neuen E-Mail-Reveal-Flow im Impressum werden folgende Environment-Variablen verwendet:
+
+| Variable | Beschreibung |
+|----------|--------------|
+| `HCAPTCHA_ENABLED` | Aktiviert die serverseitige hCaptcha-Prüfung für die E-Mail-Freigabe (`true`/`false`). |
+| `HCAPTCHA_SITEKEY` | Öffentlicher hCaptcha-Sitekey für das Frontend-Widget. |
+| `HCAPTCHA_SECRET` | Privater hCaptcha-Secret-Key für die serverseitige Verifizierung. |
+| `HCAPTCHA_BYPASS_TOKEN` | Optionaler Token für Tests/Preview-Umgebungen. Wenn gesetzt und als Captcha-Antwort übermittelt, wird die Prüfung übersprungen. |
+| `HCAPTCHA_THRESHOLD` | (Optional) Score-Schwelle für Enterprise-Accounts. |
+| `HCAPTCHA_TIMEOUT` | Timeout (Sek.) für die Anfrage an die hCaptcha-API. |
+| `HCAPTCHA_SIGNATURE_TTL` | Lebensdauer (Sek.) der signierten Reveal-Route. |
+| `HCAPTCHA_RATE_LIMIT_PER_MINUTE` | Maximale Anzahl an Reveal-Anfragen pro Minute und IP. |
+| `CONTACT_EMAIL` | Offizielle Kontaktadresse, die nach erfolgreicher Verifikation angezeigt wird. |
+
+> **Hinweis:** In lokalen oder automatisierten Testumgebungen kann `HCAPTCHA_ENABLED=false` belassen oder ein `HCAPTCHA_BYPASS_TOKEN` genutzt werden, um die Verifizierung zu simulieren.
+
 ### Entwicklungsumgebung starten
 
 - **Vite- und PHP-Server separat:**
