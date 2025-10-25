@@ -42,4 +42,8 @@ return [
         ],
     ],
 
+    'kompendium' => [
+        'public_search' => env('KOMPENDIUM_PUBLIC_SEARCH', false),
+    ],
+
 ];
