@@ -20,6 +20,19 @@ class NavigationMenuTest extends TestCase
         $response->assertSee(route('termine'));
     }
 
+    public function test_authenticated_users_see_satzung_between_protokolle_and_kassenbuch(): void
+    {
+        $user = User::factory()->withPersonalTeam()->create();
+
+        $response = $this->actingAs($user)->get('/');
+
+        $response->assertSeeInOrder([
+            '>Protokolle<',
+            '>Satzung<',
+            '>Kassenbuch<',
+        ], false);
+    }
+
     public function test_guests_see_termine_link_in_navigation(): void
     {
         $response = $this->get('/');

@@ -51,6 +51,7 @@
                                 <x-dropdown-link href="{{ route('mitglieder.index') }}">Mitgliederliste</x-dropdown-link>
                                 <x-dropdown-link href="{{ route('mitglieder.karte') }}">Mitgliederkarte</x-dropdown-link>
                                 <x-dropdown-link href="{{ route('protokolle') }}">Protokolle</x-dropdown-link>
+                                <x-dropdown-link href="{{ route('satzung') }}">Satzung</x-dropdown-link>
                                 <x-dropdown-link href="{{ route('kassenbuch.index') }}">Kassenbuch</x-dropdown-link>
                                 <x-dropdown-link href="{{ route('reviews.index') }}">Rezensionen</x-dropdown-link>
                                 <x-dropdown-link href="{{ route('romantausch.index') }}">Tauschbörse</x-dropdown-link>
@@ -187,6 +188,7 @@
                 <x-responsive-nav-link href="{{ route('mitglieder.index') }}">Mitgliederliste</x-responsive-nav-link>
                 <x-responsive-nav-link href="{{ route('mitglieder.karte') }}">Mitgliederkarte</x-responsive-nav-link>
                 <x-responsive-nav-link href="{{ route('protokolle') }}">Protokolle</x-responsive-nav-link>
+                <x-responsive-nav-link href="{{ route('satzung') }}">Satzung</x-responsive-nav-link>
                 <x-responsive-nav-link href="{{ route('kassenbuch.index') }}">Kassenbuch</x-responsive-nav-link>
                 <x-responsive-nav-link href="{{ route('reviews.index') }}">Rezensionen</x-responsive-nav-link>
                 <x-responsive-nav-link href="{{ route('romantausch.index') }}">Tauschbörse</x-responsive-nav-link>
