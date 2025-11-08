@@ -1,4 +1,4 @@
-﻿<div class="bg-gray-50 dark:bg-gray-900">
+﻿<div class="bg-gray-50 dark:bg-gray-900 -mt-8">
     <div class="relative bg-gradient-to-br from-[#8B0116] to-[#6b000e] text-white py-12 sm:py-16">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <h1 class="text-5xl font-bold mb-6">Maddrax-Fantreffen 2026</h1>
@@ -10,15 +10,15 @@
             <a href="https://maps.app.goo.gl/dzLHUqVHqJrkWDkr5" target="_blank" class="inline-block px-6 py-3 bg-white text-[#8B0116] font-semibold rounded-lg hover:bg-gray-100"> Route in Google Maps</a>
         </div>
     </div>
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         @if (session()->has('success'))
-            <div class="mb-8 p-4 bg-green-100 dark:bg-green-900 border-l-4 border-green-500 rounded">
+            <div class="mb-4 p-4 bg-green-100 dark:bg-green-900 border-l-4 border-green-500 rounded">
                 <p class="text-green-800 dark:text-green-200">{{ session('success') }}</p>
             </div>
         @endif
-        <div class="mb-8 p-4 bg-yellow-100 dark:bg-yellow-900 border-l-4 border-yellow-500 rounded">
+        <div class="mb-4 p-4 bg-yellow-100 dark:bg-yellow-900 border-l-4 border-yellow-500 rounded">
             <h3 class="font-bold mb-2">ColoniaCon am selben Wochenende!</h3>
-            <p>Am selben Wochenende findet auch die ColoniaCon statt. Der Offizielle MADDRAX Fanclub wird dort ebenfalls mit Programmpunkten vertreten sein.</p>
+            <p>Am selben Wochenende findet auch die <a href="https://www.coloniacon-tng.de/2026" target="_blank" rel="noopener noreferrer" class="text-yellow-900 dark:text-yellow-100 underline font-semibold hover:text-yellow-700 dark:hover:text-yellow-200">ColoniaCon</a> statt. Der Offizielle MADDRAX Fanclub wird dort ebenfalls mit Programmpunkten vertreten sein.</p>
         </div>
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div class="lg:col-span-2 space-y-8">
@@ -107,18 +107,18 @@
                                 <p class="text-xs text-gray-500 mt-1">Für WhatsApp-Updates</p>
                             </div>
                             @if (!$tshirtDeadlinePassed)
-                                <div class="border-t pt-4">
+                                <div class="border-t pt-4" wire:key="tshirt-section">
                                     <label class="flex items-start gap-2">
-                                        <input type="checkbox" wire:model.live="tshirt_bestellt" class="w-5 h-5 mt-0.5">
+                                        <input type="checkbox" wire:model.live="tshirt_bestellt" wire:key="tshirt-checkbox" class="w-5 h-5 mt-0.5">
                                         <div>
                                             <span class="font-medium">Event-T-Shirt bestellen</span>
                                             <p class="text-xs text-gray-500 mt-1">25,00 € Spende{{ !$isLoggedIn ? ' (zusammen mit Teilnahme: 30,00 €)' : '' }}</p>
                                         </div>
                                     </label>
                                     @if ($tshirt_bestellt)
-                                        <div class="mt-3">
+                                        <div class="mt-3" wire:key="tshirt-size-dropdown">
                                             <label class="block text-sm font-medium mb-2">T-Shirt-Größe *</label>
-                                            <select wire:model="tshirt_groesse" class="w-full px-3 py-2 border rounded dark:bg-gray-700" required>
+                                            <select wire:model.live="tshirt_groesse" wire:key="tshirt-groesse-select" class="w-full px-3 py-2 border rounded dark:bg-gray-700" required>
                                                 <option value="">Bitte wählen...</option>
                                                 <option value="XS">XS</option>
                                                 <option value="S">S</option>
