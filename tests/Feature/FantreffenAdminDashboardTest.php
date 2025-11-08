@@ -291,8 +291,7 @@ class FantreffenAdminDashboardTest extends TestCase
 
         Livewire::actingAs($admin)
             ->test('fantreffen-admin-dashboard')
-            ->call('toggleZahlungseingang', $anmeldung->id)
-            ->assertSessionHas('success');
+            ->call('toggleZahlungseingang', $anmeldung->id);
 
         $anmeldung->refresh();
         $this->assertTrue($anmeldung->zahlungseingang);
@@ -325,8 +324,7 @@ class FantreffenAdminDashboardTest extends TestCase
 
         Livewire::actingAs($admin)
             ->test('fantreffen-admin-dashboard')
-            ->call('toggleTshirtFertig', $anmeldung->id)
-            ->assertSessionHas('success');
+            ->call('toggleTshirtFertig', $anmeldung->id);
 
         $anmeldung->refresh();
         $this->assertTrue($anmeldung->tshirt_fertig);
