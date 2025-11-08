@@ -61,11 +61,11 @@ class FantreffenAnmeldungTest extends TestCase
             'payment_amount' => 5.00,
         ]);
 
-        Mail::assertSent(FantreffenAnmeldungBestaetigung::class, function ($mail) {
+        Mail::assertQueued(FantreffenAnmeldungBestaetigung::class, function ($mail) {
             return $mail->hasTo('max@example.com');
         });
 
-        Mail::assertSent(FantreffenNeueAnmeldung::class, function ($mail) {
+        Mail::assertQueued(FantreffenNeueAnmeldung::class, function ($mail) {
             return $mail->hasTo('vorstand@maddrax-fanclub.de');
         });
     }
