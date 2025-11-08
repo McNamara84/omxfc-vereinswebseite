@@ -3,7 +3,7 @@
         <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
             <h1 class="text-2xl font-semibold text-[#8B0116] dark:text-red-400 mb-6">Charakter-Editor</h1>
 
-            <form action="#" method="POST" enctype="multipart/form-data">
+            <form action="#" method="POST" enctype="multipart/form-data" data-char-editor>
                 @csrf
 
                 <input type="hidden" name="available_advantage_points" id="available_advantage_points" value="2">

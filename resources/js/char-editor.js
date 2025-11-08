@@ -1,6 +1,11 @@
 // Charaktereditor logic for Barbar race and Landbewohner culture
 
 document.addEventListener('DOMContentLoaded', () => {
+    // Only run if we're on the char-editor page
+    if (!document.querySelector('[data-char-editor]')) {
+        return;
+    }
+    
     const state = {
         niveau: 3,
         base: { AP: 2, FP: 20, maxFW: 4, freeAdvantages: 2, autoAdvantages: ['Zäh'] },
