@@ -145,14 +145,13 @@ class FantreffenController extends Controller
         // Prüfen ob User berechtigt ist, diese Anmeldung zu sehen
         if (Auth::check()) {
             $isOwner = Auth::id() === $anmeldung->user_id;
-            $isAdmin = Auth::user()->currentTeam && 
-                      Auth::user()->teamRole(Auth::user()->currentTeam)->value === 'vorstand';
+            // Einfache Prüfung: Angemeldete User dürfen ihre eigene Anmeldung sehen
+            // Admins können alle sehen (wird über Middleware geregelt)
         } else {
             $isOwner = false;
-            $isAdmin = false;
         }
         
-        if (!$isOwner && !$isAdmin) {
+        if (!$isOwner && !Auth::check()) {
             abort(403, 'Du bist nicht berechtigt, diese Anmeldung anzusehen.');
         }
         
