@@ -66,8 +66,8 @@ class FantreffenAnmeldung extends Component
         // Pre-fill data for logged-in users
         if (Auth::check()) {
             $user = Auth::user();
-            $this->vorname = $user->firstname;
-            $this->nachname = $user->lastname;
+            $this->vorname = $user->vorname;
+            $this->nachname = $user->nachname;
             $this->email = $user->email;
         }
     }

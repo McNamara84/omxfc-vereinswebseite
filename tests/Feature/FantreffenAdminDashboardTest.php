@@ -152,8 +152,8 @@ class FantreffenAdminDashboardTest extends TestCase
         // 1 Mitglied
         FantreffenAnmeldung::create([
             'user_id' => $member->id,
-            'vorname' => $member->firstname,
-            'nachname' => $member->lastname,
+            'vorname' => $member->vorname,
+            'nachname' => $member->nachname,
             'email' => $member->email,
             'ist_mitglied' => true,
             'payment_status' => 'free',
@@ -192,8 +192,8 @@ class FantreffenAdminDashboardTest extends TestCase
 
         FantreffenAnmeldung::create([
             'user_id' => $member->id,
-            'vorname' => $member->firstname,
-            'nachname' => $member->lastname,
+            'vorname' => $member->vorname,
+            'nachname' => $member->nachname,
             'email' => $member->email,
             'ist_mitglied' => true,
             'payment_status' => 'free',
@@ -204,7 +204,7 @@ class FantreffenAdminDashboardTest extends TestCase
         Livewire::actingAs($admin)
             ->test('fantreffen-admin-dashboard')
             ->set('filterMemberStatus', 'mitglieder')
-            ->assertSee($member->firstname)
+            ->assertSee($member->vorname)
             ->assertDontSee('Max Mustermann');
     }
 

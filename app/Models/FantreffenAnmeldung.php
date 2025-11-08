@@ -102,7 +102,7 @@ class FantreffenAnmeldung extends Model
     public function getFullNameAttribute(): string
     {
         if ($this->user) {
-            return $this->user->firstname . ' ' . $this->user->lastname;
+            return $this->user->vorname . ' ' . $this->user->nachname;
         }
 
         return $this->vorname . ' ' . $this->nachname;
