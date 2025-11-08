@@ -42,7 +42,7 @@ Es liegt eine neue Anmeldung für das Maddrax-Fantreffen am 9. Mai 2026 vor.
 
 ---
 
-<x-mail::button :url="route('admin.fantreffen-2026')">
+<x-mail::button :url="route('admin.fantreffen.2026')">
 Zur Admin-Übersicht
 </x-mail::button>
 

@@ -91,6 +91,16 @@ class FantreffenAdminDashboard extends Component
         session()->flash('success', 'T-Shirt-Status aktualisiert.');
     }
 
+    public function deleteAnmeldung($anmeldungId)
+    {
+        $anmeldung = FantreffenAnmeldung::findOrFail($anmeldungId);
+        $name = $anmeldung->full_name;
+        $anmeldung->delete();
+
+        $this->calculateStats();
+        session()->flash('success', "Anmeldung von {$name} wurde gelöscht.");
+    }
+
     public function exportCsv()
     {
         $anmeldungen = $this->getFilteredQuery()->get();

@@ -388,4 +388,72 @@ class FantreffenAdminDashboardTest extends TestCase
         $response->assertDontSee('Person21');
         $response->assertDontSee('Person25');
     }
+
+    /** @test */
+    public function admin_can_delete_registration()
+    {
+        $admin = $this->createUserWithRole(Role::Admin);
+
+        $anmeldung = FantreffenAnmeldung::create([
+            'vorname' => 'Max',
+            'nachname' => 'Mustermann',
+            'email' => 'max@example.com',
+            'ist_mitglied' => false,
+            'payment_status' => 'pending',
+            'payment_amount' => 5.00,
+            'tshirt_bestellt' => false,
+        ]);
+
+        $this->assertEquals(1, FantreffenAnmeldung::count());
+
+        Livewire::actingAs($admin)
+            ->test('fantreffen-admin-dashboard')
+            ->call('deleteAnmeldung', $anmeldung->id);
+
+        $this->assertEquals(0, FantreffenAnmeldung::count());
+    }
+
+    /** @test */
+    public function vorstand_can_delete_registration()
+    {
+        $vorstand = $this->createUserWithRole(Role::Vorstand);
+
+        $anmeldung = FantreffenAnmeldung::create([
+            'vorname' => 'Max',
+            'nachname' => 'Mustermann',
+            'email' => 'max@example.com',
+            'ist_mitglied' => false,
+            'payment_status' => 'pending',
+            'payment_amount' => 5.00,
+            'tshirt_bestellt' => false,
+        ]);
+
+        Livewire::actingAs($vorstand)
+            ->test('fantreffen-admin-dashboard')
+            ->call('deleteAnmeldung', $anmeldung->id);
+
+        $this->assertEquals(0, FantreffenAnmeldung::count());
+    }
+
+    /** @test */
+    public function kassenwart_can_delete_registration()
+    {
+        $kassenwart = $this->createUserWithRole(Role::Kassenwart);
+
+        $anmeldung = FantreffenAnmeldung::create([
+            'vorname' => 'Max',
+            'nachname' => 'Mustermann',
+            'email' => 'max@example.com',
+            'ist_mitglied' => false,
+            'payment_status' => 'pending',
+            'payment_amount' => 5.00,
+            'tshirt_bestellt' => false,
+        ]);
+
+        Livewire::actingAs($kassenwart)
+            ->test('fantreffen-admin-dashboard')
+            ->call('deleteAnmeldung', $anmeldung->id);
+
+        $this->assertEquals(0, FantreffenAnmeldung::count());
+    }
 }
