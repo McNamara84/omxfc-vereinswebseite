@@ -30,6 +30,7 @@ Offizielle Laravel-12-Anwendung für die Vereinswebseite des **Offizieller MADDR
 
 - **Öffentliche Vereinsseiten** für Chronik, Termine, Ehrenmitglieder, Satzung und Spendenkampagnen.
 - **Online-Mitgliedsantrag** inkl. automatisierter Bestätigungs- und Freigabeprozesse.
+- **Event-Management:** Maddrax-Fantreffen 2026 Anmeldesystem mit PayPal-Integration, T-Shirt-Bestellung und Admin-Dashboard für Vorstand/Kassenwart.
 - **Mitgliederbereich** mit Dashboard, Aufgabenverwaltung, Newslettern, Belohnungen und Audiobereich.
 - **Interaktive Mitgliederkarte** (Leaflet + MarkerCluster) mit aktualisiertem Cache via Scheduler.
 - **Arbeitsgruppen-Management** mit Rollen, Teamverwaltung und CSV-Export der Mitgliederlisten.
@@ -104,7 +105,44 @@ php artisan db:seed --class=TodoCategorySeeder
 php artisan db:seed
 ```
 
-Spezielle Seeder wie `TodoPlaywrightSeeder` bereiten End-to-End-Tests vor und sollten nur in Testumgebungen ausgeführt werden.
+Spezielle Seeder wie `TodoPlaywrightSeeder` und `FantreffenPlaywrightSeeder` bereiten End-to-End-Tests vor und sollten nur in Testumgebungen ausgeführt werden.
+
+## Maddrax-Fantreffen 2026 Event-System
+
+Das Anmeldesystem für das Maddrax-Fantreffen am 9. Mai 2026 bietet:
+
+### Funktionen
+
+- **Öffentliche Event-Seite** (`/maddrax-fantreffen-2026`) mit allen Veranstaltungsdetails
+- **Anmeldeformular** mit unterschiedlichen Feldern für Mitglieder und Gäste
+- **T-Shirt-Bestellung** mit Größenauswahl und Deadline-Tracking (28.02.2026)
+- **Automatische E-Mail-Benachrichtigungen** bei neuen Anmeldungen
+- **PayPal-Integration** über PayPal.me-Links (Freunde & Familie)
+- **Zahlungsbestätigungsseite** mit Session-Protection für Gäste
+- **Admin-Dashboard** (`/admin/fantreffen-2026`) für Vorstand und Kassenwart mit:
+  - Statistiken (Teilnehmer, T-Shirts, ausstehende Zahlungen)
+  - Filterbare Anmeldungsliste (Mitgliedsstatus, T-Shirt, Zahlung)
+  - Toggle-Buttons für Zahlungseingang und T-Shirt-Status
+  - CSV-Export aller Anmeldungen
+
+### Konfiguration
+
+Fügen Sie folgende Umgebungsvariablen zur `.env` hinzu:
+
+```env
+PAYPAL_ME_USERNAME=OfficialMaddraxFanclub
+PAYPAL_FANTREFFEN_EMAIL=vorstand@maddrax-fanclub.de
+```
+
+### Preisstruktur
+
+- Mitglieder: Kostenlos (nur Event-Teilnahme)
+- Gäste: 5,00 €
+- Event-T-Shirt: 25,00 € (für alle)
+
+### Zugriffskontrolle
+
+Das Admin-Dashboard ist nur für Benutzer mit den Rollen `Admin`, `Vorstand` oder `Kassenwart` zugänglich. Die Middleware `EnsureVorstandOrKassenwart` regelt den Zugriff.
 
 ## Tests & Qualitätssicherung
 
