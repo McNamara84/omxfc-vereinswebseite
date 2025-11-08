@@ -9,10 +9,12 @@ class FantreffenAnmeldung extends Model
 {
     /**
      * Pricing constants for the event.
+     * 
+     * Note: T-shirt price is always 25.00€ for both members and guests.
+     * Guests pay an additional 5.00€ participation fee (total: 30.00€ with t-shirt).
      */
     public const GUEST_FEE = 5.00;
-    public const TSHIRT_PRICE_MEMBER = 25.00;
-    public const TSHIRT_PRICE_GUEST = 30.00;
+    public const TSHIRT_PRICE = 25.00;
 
     /**
      * The table associated with the model.
@@ -149,17 +151,46 @@ class FantreffenAnmeldung extends Model
 
     /**
      * Get the t-shirt price for this registration.
+     * T-shirt price is always 25.00€, but the total amount differs:
+     * - Members: 25.00€ (t-shirt only)
+     * - Guests: 30.00€ (5.00€ guest fee + 25.00€ t-shirt)
      */
     public function getTshirtPrice(): float
     {
-        return $this->ist_mitglied ? self::TSHIRT_PRICE_MEMBER : self::TSHIRT_PRICE_GUEST;
+        return self::TSHIRT_PRICE;
     }
 
     /**
-     * Get the formatted t-shirt price for this registration.
+     * Get the total amount to pay for this registration.
+     * - Member without t-shirt: 0.00€ (free)
+     * - Member with t-shirt: 25.00€
+     * - Guest without t-shirt: 5.00€
+     * - Guest with t-shirt: 30.00€ (5.00€ + 25.00€)
+     */
+    public function getTotalAmount(): float
+    {
+        $amount = 0;
+
+        if (!$this->ist_mitglied) {
+            $amount += self::GUEST_FEE;
+        }
+
+        if ($this->tshirt_bestellt) {
+            $amount += self::TSHIRT_PRICE;
+        }
+
+        return $amount;
+    }
+
+    /**
+     * Get the formatted t-shirt price for display.
+     * Shows what the user pays for the t-shirt:
+     * - Members: "25,00 €"
+     * - Guests: "30,00 €" (includes guest fee)
      */
     public function getFormattedTshirtPrice(): string
     {
-        return number_format($this->getTshirtPrice(), 2, ',', '.') . ' €';
+        $price = $this->ist_mitglied ? self::TSHIRT_PRICE : (self::GUEST_FEE + self::TSHIRT_PRICE);
+        return number_format($price, 2, ',', '.') . ' €';
     }
 }

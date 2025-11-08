@@ -109,11 +109,11 @@ class FantreffenAnmeldung extends Component
         $amount = 0;
 
         if (!$isLoggedIn) {
-            $amount += 5.00; // Guest fee
+            $amount += FantreffenAnmeldungModel::GUEST_FEE;
         }
 
         if ($this->tshirt_bestellt) {
-            $amount += 25.00; // T-Shirt always 25€
+            $amount += FantreffenAnmeldungModel::TSHIRT_PRICE;
         }
 
         $this->paymentAmount = $amount;
