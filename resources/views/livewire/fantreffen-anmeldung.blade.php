@@ -109,12 +109,22 @@
                             @if (!$tshirtDeadlinePassed)
                                 <div class="border-t pt-4" wire:key="tshirt-section">
                                     <label class="flex items-start gap-2">
-                                        <input type="checkbox" wire:model.live="tshirt_bestellt" wire:key="tshirt-checkbox" class="w-5 h-5 mt-0.5">
+                                        <input type="checkbox" 
+                                               wire:model.live="tshirt_bestellt" 
+                                               wire:key="tshirt-checkbox" 
+                                               class="w-5 h-5 mt-0.5"
+                                               x-on:change="console.log('DEBUG: Checkbox changed, tshirt_bestellt =', $el.checked)">
                                         <div>
                                             <span class="font-medium">Event-T-Shirt bestellen</span>
                                             <p class="text-xs text-gray-500 mt-1">25,00 € Spende{{ !$isLoggedIn ? ' (zusammen mit Teilnahme: 30,00 €)' : '' }}</p>
                                         </div>
                                     </label>
+                                    
+                                    {{-- DEBUG: Show current state --}}
+                                    <div class="text-xs text-red-500 mt-2">
+                                        DEBUG: tshirt_bestellt = {{ $tshirt_bestellt ? 'true' : 'false' }} (type: {{ gettype($tshirt_bestellt) }})
+                                    </div>
+                                    
                                     @if ($tshirt_bestellt)
                                         <div class="mt-3" wire:key="tshirt-size-dropdown">
                                             <label class="block text-sm font-medium mb-2">T-Shirt-Größe *</label>

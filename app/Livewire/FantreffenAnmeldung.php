@@ -90,10 +90,20 @@ class FantreffenAnmeldung extends Component
 
     public function updatedTshirtBestellt()
     {
+        // DEBUG: Log T-Shirt checkbox change
+        \Log::info('FantreffenAnmeldung: tshirt_bestellt changed', [
+            'value' => $this->tshirt_bestellt,
+            'type' => gettype($this->tshirt_bestellt),
+        ]);
+        
         // Reset T-Shirt size if unchecked
         if (!$this->tshirt_bestellt) {
             $this->tshirt_groesse = '';
+            \Log::info('FantreffenAnmeldung: Reset tshirt_groesse to empty');
+        } else {
+            \Log::info('FantreffenAnmeldung: T-Shirt bestellt, should show dropdown');
         }
+        
         $this->calculatePayment();
     }
 
