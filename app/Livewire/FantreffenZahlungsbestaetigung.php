@@ -41,11 +41,9 @@ class FantreffenZahlungsbestaetigung extends Component
 
     public function render()
     {
-        return view('livewire.fantreffen-zahlungsbestaetigung');
-    }
-
-    public function layout()
-    {
-        return 'layouts.app';
+        return view('livewire.fantreffen-zahlungsbestaetigung')
+            ->layout('layouts.app', [
+                'title' => 'Anmeldung bestätigt - Maddrax-Fantreffen 2026',
+            ]);
     }
 }

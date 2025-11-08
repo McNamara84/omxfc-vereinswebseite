@@ -17,9 +17,15 @@ class FantreffenAdminDashboardTest extends TestCase
     protected function createUserWithRole(Role $role): User
     {
         $team = Team::factory()->create(['name' => 'Mitglieder']);
-        $user = User::factory()->create();
-        $user->teams()->attach($team);
-        $user->assignRole($role);
+        $user = User::factory()->create(['current_team_id' => $team->id]);
+        
+        // Attach user to team with role via pivot table
+        $user->teams()->attach($team->id, [
+            'role' => $role->value,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        
         return $user;
     }
 

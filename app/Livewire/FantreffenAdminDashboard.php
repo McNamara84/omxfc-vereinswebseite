@@ -207,11 +207,8 @@ class FantreffenAdminDashboard extends Component
 
         return view('livewire.fantreffen-admin-dashboard', [
             'anmeldungen' => $anmeldungen,
+        ])->layout('layouts.app', [
+            'title' => 'Fantreffen 2026 - Admin Dashboard',
         ]);
-    }
-
-    public function layout()
-    {
-        return 'layouts.app';
     }
 }
