@@ -16,13 +16,13 @@
                 <p class="text-green-800 dark:text-green-200">{{ session('success') }}</p>
             </div>
         @endif
-        <div class="mb-4 p-4 bg-yellow-100 dark:bg-yellow-900 border-l-4 border-yellow-500 rounded">
+        <div class="mb-4 p-4 bg-yellow-100 dark:bg-yellow-900 border-l-4 border-yellow-500 rounded" wire:key="coloniacon-banner">
             <h3 class="font-bold mb-2">ColoniaCon am selben Wochenende!</h3>
             <p>Am selben Wochenende findet auch die <a href="https://www.coloniacon-tng.de/2026" target="_blank" rel="noopener noreferrer" class="text-yellow-900 dark:text-yellow-100 underline font-semibold hover:text-yellow-700 dark:hover:text-yellow-200">ColoniaCon</a> statt. Der Offizielle MADDRAX Fanclub wird dort ebenfalls mit Programmpunkten vertreten sein.</p>
         </div>
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div class="lg:col-span-2 space-y-8">
-                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8" wire:key="main-grid">
+            <div class="lg:col-span-2 space-y-8" wire:key="info-section">
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6" wire:key="programm-card">
                     <h2 class="text-2xl font-bold mb-4 text-[#8B0116] dark:text-[#ff4b63]">Programm</h2>
                     <div class="space-y-4">
                         <div class="flex gap-4">
@@ -41,7 +41,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6" wire:key="kosten-card">
                     <h2 class="text-2xl font-bold mb-4 text-[#8B0116] dark:text-[#ff4b63]">Kosten</h2>
                     <div class="space-y-3">
                         <div class="p-3 bg-green-50 dark:bg-green-900/20 rounded">
@@ -108,12 +108,13 @@
                             </div>
                             @if (!$tshirtDeadlinePassed)
                                 <div class="border-t pt-4" wire:key="tshirt-section">
-                                    <div x-data="{ tshirtChecked: @entangle('tshirt_bestellt').live }">
+                                    <div x-data="{ tshirtChecked: @entangle('tshirt_bestellt') }">
                                         <label class="flex items-start gap-2">
                                             <input type="checkbox" 
                                                    x-model="tshirtChecked"
                                                    wire:key="tshirt-checkbox" 
-                                                   class="w-5 h-5 mt-0.5">
+                                                   class="w-5 h-5 mt-0.5"
+                                                   @change="$wire.set('tshirt_bestellt', tshirtChecked)">
                                             <div>
                                                 <span class="font-medium">Event-T-Shirt bestellen</span>
                                                 <p class="text-xs text-gray-500 mt-1">25,00 € Spende{{ !$isLoggedIn ? ' (zusammen mit Teilnahme: 30,00 €)' : '' }}</p>
