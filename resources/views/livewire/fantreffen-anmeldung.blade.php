@@ -1,4 +1,5 @@
-﻿<div class="bg-gray-50 dark:bg-gray-900 -mt-8">
+﻿<div>
+<div class="bg-gray-50 dark:bg-gray-900 -mt-8">
     <div class="relative bg-gradient-to-br from-[#8B0116] to-[#6b000e] text-white py-12 sm:py-16">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <h1 class="text-5xl font-bold mb-6">Maddrax-Fantreffen 2026</h1>
@@ -159,4 +160,5 @@
             </div>
         </div>
     </div>
+</div>
 </div>
