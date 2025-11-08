@@ -22,7 +22,7 @@ Es liegt eine neue Anmeldung für das Maddrax-Fantreffen am 9. Mai 2026 vor.
 @if($anmeldung->tshirt_bestellt)
 **T-Shirt:** ✅ Ja  
 **Größe:** {{ $anmeldung->tshirt_groesse }}  
-**T-Shirt-Spende:** {{ $anmeldung->ist_mitglied ? '25,00 €' : '30,00 €' }}
+**T-Shirt-Spende:** {{ $anmeldung->getFormattedTshirtPrice() }}
 @else
 **T-Shirt:** ❌ Nicht bestellt
 @endif

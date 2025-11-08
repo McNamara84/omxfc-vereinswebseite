@@ -22,12 +22,12 @@ Deine Anmeldung zum **Maddrax-Fantreffen 2026** ist bei uns eingegangen!
 **Kosten:** Kostenlose Teilnahme
 @else
 **Status:** Gast  
-**Kosten:** 5,00 € Spende erbeten
+**Kosten:** {{ number_format(\App\Models\FantreffenAnmeldung::GUEST_FEE, 2, ',', '.') }} € Spende erbeten
 @endif
 
 @if($anmeldung->tshirt_bestellt)
 **T-Shirt:** Ja, Größe {{ $anmeldung->tshirt_groesse }}  
-**T-Shirt-Spende:** {{ $anmeldung->ist_mitglied ? '25,00 €' : '30,00 €' }}
+**T-Shirt-Spende:** {{ $anmeldung->getFormattedTshirtPrice() }}
 @else
 **T-Shirt:** Nicht bestellt
 @endif

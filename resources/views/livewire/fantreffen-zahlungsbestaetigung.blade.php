@@ -106,7 +106,7 @@
                     </div>
 
                     <div class="text-sm text-gray-700 dark:text-gray-300 space-y-2">
-                        <p><strong>So gehts weiter:</strong></p>
+                        <p><strong>So geht's weiter:</strong></p>
                         <ol class="list-decimal list-inside space-y-1 ml-2">
                             <li>Klicke auf den PayPal-Button unten</li>
                             <li>Melde dich bei PayPal an</li>

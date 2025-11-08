@@ -8,6 +8,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class FantreffenAnmeldung extends Model
 {
     /**
+     * Pricing constants for the event.
+     */
+    public const GUEST_FEE = 5.00;
+    public const TSHIRT_PRICE_MEMBER = 25.00;
+    public const TSHIRT_PRICE_GUEST = 30.00;
+
+    /**
      * The table associated with the model.
      *
      * @var string
@@ -101,11 +108,15 @@ class FantreffenAnmeldung extends Model
      */
     public function getFullNameAttribute(): string
     {
-        if ($this->user) {
-            return $this->user->vorname . ' ' . $this->user->nachname;
+        if ($this->user && $this->user->vorname && $this->user->nachname) {
+            return trim($this->user->vorname . ' ' . $this->user->nachname);
         }
 
-        return $this->vorname . ' ' . $this->nachname;
+        if ($this->vorname && $this->nachname) {
+            return trim($this->vorname . ' ' . $this->nachname);
+        }
+
+        return $this->email ?? 'N/A';
     }
 
     /**
@@ -134,5 +145,21 @@ class FantreffenAnmeldung extends Model
             'zahlungseingang' => true,
             'paypal_transaction_id' => $transactionId,
         ]);
+    }
+
+    /**
+     * Get the t-shirt price for this registration.
+     */
+    public function getTshirtPrice(): float
+    {
+        return $this->ist_mitglied ? self::TSHIRT_PRICE_MEMBER : self::TSHIRT_PRICE_GUEST;
+    }
+
+    /**
+     * Get the formatted t-shirt price for this registration.
+     */
+    public function getFormattedTshirtPrice(): string
+    {
+        return number_format($this->getTshirtPrice(), 2, ',', '.') . ' €';
     }
 }

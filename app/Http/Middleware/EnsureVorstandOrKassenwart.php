@@ -19,7 +19,7 @@ class EnsureVorstandOrKassenwart
     {
         $user = Auth::user();
 
-        if ($user && ($user->hasRole(Role::Vorstand) || $user->hasRole(Role::Kassenwart) || $user->hasRole(Role::Admin))) {
+        if ($user && $user->hasAnyRole(Role::Admin, Role::Vorstand, Role::Kassenwart)) {
             return $next($request);
         }
 
