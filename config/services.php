@@ -42,4 +42,9 @@ return [
         ],
     ],
 
+    'paypal' => [
+        'me_username' => env('PAYPAL_ME_USERNAME', 'OfficialMaddraxFanclub'),
+        'fantreffen_email' => env('PAYPAL_FANTREFFEN_EMAIL', 'vorstand@maddrax-fanclub.de'),
+    ],
+
 ];

@@ -18,6 +18,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin' => \App\Http\Middleware\EnsureAdmin::class,
             'vorstand' => \App\Http\Middleware\EnsureVorstand::class,
             'admin-or-vorstand' => \App\Http\Middleware\EnsureAdminOrVorstand::class,
+            'vorstand-or-kassenwart' => \App\Http\Middleware\EnsureVorstandOrKassenwart::class,
             'hoerbuch-access' => \App\Http\Middleware\EnsureHoerbuchAccess::class,
             'hoerbuch-manage' => \App\Http\Middleware\EnsureHoerbuchManage::class,
         ]);
