@@ -14,6 +14,7 @@ export default defineConfig({
                 'resources/js/hoerbuecher.js',
                 'resources/js/hoerbuch-role-form.js',
                 'resources/js/hoerbuch-role-upload-toggle.js',
+                'resources/js/fantreffen.js',
             ],
             refresh: true,
             // Explizit den public-Pfad setzen
