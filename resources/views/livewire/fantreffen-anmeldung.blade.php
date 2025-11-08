@@ -82,7 +82,9 @@
                                 <p class="text-sm">Bist du Vereinsmitglied? <a href="{{ route('login') }}" class="underline font-bold">Jetzt einloggen</a> um kostenlos teilzunehmen!</p>
                             </div>
                         @endif
-                        <form wire:submit.prevent="submit" class="space-y-4">
+                        <form wire:submit="submit" 
+                              @submit.prevent="console.log('Form submit prevented, calling Livewire'); $wire.submit()" 
+                              class="space-y-4">
                             @if (!$isLoggedIn)
                                 <div>
                                     <label class="block text-sm font-medium mb-2">Vorname *</label>
