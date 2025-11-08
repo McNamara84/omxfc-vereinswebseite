@@ -6,6 +6,7 @@ use App\Http\Controllers\ArbeitsgruppenController;
 use App\Http\Controllers\Auth\CustomEmailVerificationController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DownloadsController;
+use App\Http\Controllers\FantreffenController;
 use App\Http\Controllers\HoerbuchController;
 use App\Http\Controllers\KassenbuchController;
 use App\Http\Controllers\KompendiumController;
@@ -45,9 +46,9 @@ Route::get('/mitglied-werden/erfolgreich', [PageController::class, 'mitgliedWerd
 Route::get('/mitglied-werden/bestaetigt', [PageController::class, 'mitgliedWerdenBestaetigt'])->name('mitglied.werden.bestaetigt');
 
 // Maddrax-Fantreffen 2026
-Route::get('/maddrax-fantreffen-2026', [\App\Http\Controllers\FantreffenController::class, 'create'])->name('fantreffen.2026');
-Route::post('/maddrax-fantreffen-2026', [\App\Http\Controllers\FantreffenController::class, 'store'])->name('fantreffen.2026.store');
-Route::get('/maddrax-fantreffen-2026/bestaetigung/{id}', [\App\Http\Controllers\FantreffenController::class, 'bestaetigung'])->name('fantreffen.2026.bestaetigung');
+Route::get('/maddrax-fantreffen-2026', [FantreffenController::class, 'create'])->name('fantreffen.2026');
+Route::post('/maddrax-fantreffen-2026', [FantreffenController::class, 'store'])->name('fantreffen.2026.store');
+Route::get('/maddrax-fantreffen-2026/bestaetigung/{id}', [FantreffenController::class, 'bestaetigung'])->name('fantreffen.2026.bestaetigung');
 
 // POST Route für Mitgliedschaftsantrag
 Route::post('/mitglied-werden', [MitgliedschaftController::class, 'store'])->name('mitglied.store');
