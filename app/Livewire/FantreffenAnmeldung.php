@@ -121,45 +121,84 @@ class FantreffenAnmeldung extends Component
 
     public function submit()
     {
-        // Validate form
-        $this->validate();
+        // DEBUG: Log form submission attempt
+        \Log::info('FantreffenAnmeldung: Form submit started', [
+            'tshirt_bestellt' => $this->tshirt_bestellt,
+            'tshirt_groesse' => $this->tshirt_groesse,
+            'mobile' => $this->mobile,
+            'isLoggedIn' => Auth::check(),
+        ]);
+
+        try {
+            // Validate form
+            $this->validate();
+            \Log::info('FantreffenAnmeldung: Validation passed');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            \Log::error('FantreffenAnmeldung: Validation failed', [
+                'errors' => $e->errors(),
+            ]);
+            throw $e;
+        }
 
         // Check T-Shirt deadline
         if ($this->tshirt_bestellt && $this->tshirtDeadlinePassed) {
+            \Log::warning('FantreffenAnmeldung: T-Shirt deadline passed');
             session()->flash('error', 'Die Deadline für T-Shirt-Bestellungen ist leider abgelaufen.');
             return;
         }
 
         // Calculate payment
         $this->calculatePayment();
+        \Log::info('FantreffenAnmeldung: Payment calculated', ['amount' => $this->paymentAmount]);
 
         // Create registration
-        $anmeldung = FantreffenAnmeldungModel::create([
-            'user_id' => Auth::id(),
-            'vorname' => Auth::check() ? Auth::user()->vorname : $this->vorname,
-            'nachname' => Auth::check() ? Auth::user()->nachname : $this->nachname,
-            'email' => Auth::check() ? Auth::user()->email : $this->email,
-            'mobile' => $this->mobile,
-            'tshirt_bestellt' => $this->tshirt_bestellt,
-            'tshirt_groesse' => $this->tshirt_bestellt ? $this->tshirt_groesse : null,
-            'payment_status' => $this->paymentAmount == 0 ? 'free' : 'pending',
-            'payment_amount' => $this->paymentAmount,
-            'ist_mitglied' => Auth::check(),
-        ]);
+        try {
+            $anmeldung = FantreffenAnmeldungModel::create([
+                'user_id' => Auth::id(),
+                'vorname' => Auth::check() ? Auth::user()->vorname : $this->vorname,
+                'nachname' => Auth::check() ? Auth::user()->nachname : $this->nachname,
+                'email' => Auth::check() ? Auth::user()->email : $this->email,
+                'mobile' => $this->mobile,
+                'tshirt_bestellt' => $this->tshirt_bestellt,
+                'tshirt_groesse' => $this->tshirt_bestellt ? $this->tshirt_groesse : null,
+                'payment_status' => $this->paymentAmount == 0 ? 'free' : 'pending',
+                'payment_amount' => $this->paymentAmount,
+                'ist_mitglied' => Auth::check(),
+            ]);
+            \Log::info('FantreffenAnmeldung: Registration created', ['id' => $anmeldung->id]);
+        } catch (\Exception $e) {
+            \Log::error('FantreffenAnmeldung: Failed to create registration', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            session()->flash('error', 'Fehler beim Speichern der Anmeldung: ' . $e->getMessage());
+            return;
+        }
 
         // Send confirmation email to participant
-        Mail::to($anmeldung->registrant_email)
-            ->send(new FantreffenAnmeldungBestaetigung($anmeldung));
+        try {
+            Mail::to($anmeldung->registrant_email)
+                ->send(new FantreffenAnmeldungBestaetigung($anmeldung));
+            \Log::info('FantreffenAnmeldung: Confirmation email sent');
+        } catch (\Exception $e) {
+            \Log::error('FantreffenAnmeldung: Failed to send confirmation email', ['error' => $e->getMessage()]);
+        }
 
         // Send notification to board
-        Mail::to('vorstand@maddrax-fanclub.de')
-            ->send(new FantreffenNeueAnmeldung($anmeldung));
+        try {
+            Mail::to('vorstand@maddrax-fanclub.de')
+                ->send(new FantreffenNeueAnmeldung($anmeldung));
+            \Log::info('FantreffenAnmeldung: Notification email sent to board');
+        } catch (\Exception $e) {
+            \Log::error('FantreffenAnmeldung: Failed to send notification email', ['error' => $e->getMessage()]);
+        }
 
         // Setze Session-Token für Zugriff auf Bestätigungsseite (für nicht eingeloggte Nutzer)
         if (!Auth::check()) {
             session()->put('fantreffen_anmeldung_' . $anmeldung->id, true);
         }
 
+        \Log::info('FantreffenAnmeldung: Redirecting to confirmation page');
         // Weiterleitung zur Zahlungsbestätigungsseite
         return redirect()->route('fantreffen.2026.bestaetigung', ['id' => $anmeldung->id]);
     }

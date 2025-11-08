@@ -70,6 +70,12 @@
                         <h2 class="text-2xl font-bold text-white">Anmeldung</h2>
                     </div>
                     <div class="p-6">
+                        @if (session()->has('error'))
+                            <div class="mb-4 p-4 bg-red-100 dark:bg-red-900 border-l-4 border-red-500 rounded">
+                                <p class="text-red-800 dark:text-red-200">{{ session('error') }}</p>
+                            </div>
+                        @endif
+                        
                         @if (!$isLoggedIn)
                             <div class="mb-4 p-3 bg-orange-100 dark:bg-orange-900 rounded">
                                 <p class="text-sm">Bist du Vereinsmitglied? <a href="{{ route('login') }}" class="underline font-bold">Jetzt einloggen</a> um kostenlos teilzunehmen!</p>
