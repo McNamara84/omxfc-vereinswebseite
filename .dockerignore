@@ -1,0 +1,46 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Laravel Cache and Build artifacts
+/bootstrap/cache/*.php
+/storage/framework/cache/*
+/storage/framework/sessions/*
+/storage/framework/views/*
+/storage/logs/*
+/storage/*.key
+
+# Node
+/node_modules
+npm-debug.log
+yarn-error.log
+
+# Testing
+/.phpunit.cache
+/coverage
+/phpunit.xml
+
+# Environment
+.env
+.env.backup
+.env.production
+
+# Deployment
+/deploy
+
+# Documentation
+/docs
+README.md
+CHANGELOG.md

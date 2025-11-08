@@ -40,6 +40,12 @@ COPY . .
 # Copy built assets from node stage
 COPY --from=node-builder /app/public/build /var/www/html/public/build
 
+# CRITICAL: Remove any cached config files that might contain old provider references
+RUN rm -rf bootstrap/cache/*.php \
+    && rm -rf storage/framework/cache/* \
+    && rm -rf storage/framework/sessions/* \
+    && rm -rf storage/framework/views/*
+
 # Generate optimized autoload files
 RUN composer dump-autoload --optimize
 
