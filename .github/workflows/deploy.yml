@@ -85,8 +85,12 @@ jobs:
             fi
             
             # Cache-Management - optimiert für neue Architektur
-            echo "Optimizing Laravel..."
-            docker exec maddrax-app php artisan optimize:clear
+            echo "Clearing all caches..."
+            docker exec maddrax-app php artisan optimize:clear || true
+            docker exec maddrax-app rm -f /var/www/html/bootstrap/cache/services.php || true
+            docker exec maddrax-app rm -f /var/www/html/bootstrap/cache/packages.php || true
+            
+            echo "Rebuilding caches..."
             docker exec maddrax-app php artisan config:cache
             docker exec maddrax-app php artisan route:cache
             docker exec maddrax-app php artisan view:cache
