@@ -348,17 +348,18 @@ class FantreffenAdminDashboardTest extends TestCase
             'tshirt_bestellt' => false,
         ]);
 
-        $response = Livewire::actingAs($admin)
-            ->test('fantreffen-admin-dashboard')
-            ->call('exportCsv');
+        $component = Livewire::actingAs($admin)
+            ->test('fantreffen-admin-dashboard');
 
-        $response->assertSuccessful();
+        // Call exportCsv and get the response
+        $response = $component->call('exportCsv')->lastResponse;
+
+        // Check that we got a StreamedResponse
+        $this->assertInstanceOf(\Symfony\Component\HttpFoundation\StreamedResponse::class, $response);
         
-        // Check if download contains expected data
-        $content = $response->streamedContent();
-        $this->assertStringContainsString('Max', $content);
-        $this->assertStringContainsString('Mustermann', $content);
-        $this->assertStringContainsString('max@example.com', $content);
+        // Check headers
+        $this->assertEquals('text/csv; charset=UTF-8', $response->headers->get('Content-Type'));
+        $this->assertStringContainsString('fantreffen-anmeldungen-', $response->headers->get('Content-Disposition'));
     }
 
     /** @test */

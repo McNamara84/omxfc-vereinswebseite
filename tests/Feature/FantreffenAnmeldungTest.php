@@ -101,8 +101,8 @@ class FantreffenAnmeldungTest extends TestCase
 
         $team = Team::factory()->create(['name' => 'Mitglieder']);
         $user = User::factory()->create([
-            'firstname' => 'Anna',
-            'lastname' => 'Schmidt',
+            'vorname' => 'Anna',
+            'nachname' => 'Schmidt',
             'email' => 'anna@example.com',
         ]);
         $user->teams()->attach($team);
@@ -253,14 +253,15 @@ class FantreffenAnmeldungTest extends TestCase
     {
         Mail::fake();
 
-        Livewire::test('fantreffen-anmeldung')
+        $component = Livewire::test('fantreffen-anmeldung')
             ->set('vorname', 'Max')
             ->set('nachname', 'Mustermann')
             ->set('email', 'max@example.com')
-            ->call('submit')
-            ->assertRedirect(function ($redirect) {
-                return str_contains($redirect, '/maddrax-fantreffen-2026/bestaetigung/');
-            });
+            ->call('submit');
+
+        $component->assertRedirect();
+        $redirectUrl = $component->effects['redirect'];
+        $this->assertStringContainsString('/maddrax-fantreffen-2026/bestaetigung/', $redirectUrl);
     }
 
     /** @test */
@@ -272,8 +273,8 @@ class FantreffenAnmeldungTest extends TestCase
 
         $anmeldung = FantreffenAnmeldung::create([
             'user_id' => $user->id,
-            'vorname' => $user->firstname,
-            'nachname' => $user->lastname,
+            'vorname' => $user->vorname,
+            'nachname' => $user->nachname,
             'email' => $user->email,
             'ist_mitglied' => true,
             'payment_status' => 'free',
@@ -342,8 +343,8 @@ class FantreffenAnmeldungTest extends TestCase
 
         $anmeldung = FantreffenAnmeldung::create([
             'user_id' => $user2->id,
-            'vorname' => $user2->firstname,
-            'nachname' => $user2->lastname,
+            'vorname' => $user2->vorname,
+            'nachname' => $user2->nachname,
             'email' => $user2->email,
             'ist_mitglied' => true,
             'payment_status' => 'free',
@@ -388,8 +389,8 @@ class FantreffenAnmeldungTest extends TestCase
 
         $anmeldung = FantreffenAnmeldung::create([
             'user_id' => $user->id,
-            'vorname' => $user->firstname,
-            'nachname' => $user->lastname,
+            'vorname' => $user->vorname,
+            'nachname' => $user->nachname,
             'email' => $user->email,
             'ist_mitglied' => true,
             'payment_status' => 'free',
