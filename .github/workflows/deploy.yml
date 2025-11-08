@@ -72,6 +72,12 @@ jobs:
             
             echo "Running Laravel setup commands..."
             
+            # CRITICAL: Clear ALL caches FIRST before ANY artisan command
+            echo "Clearing all caches BEFORE running any Laravel commands..."
+            docker exec maddrax-app rm -rf /var/www/html/bootstrap/cache/*.php || true
+            docker exec maddrax-app rm -rf /var/www/html/storage/framework/cache/* || true
+            docker exec maddrax-app rm -rf /var/www/html/storage/framework/views/* || true
+            
             # Erstelle den Storage-Link
             docker exec maddrax-app php artisan storage:link || true
             
@@ -84,12 +90,7 @@ jobs:
               exit 1
             fi
             
-            # Cache-Management - optimiert für neue Architektur
-            echo "Clearing all caches..."
-            docker exec maddrax-app php artisan optimize:clear || true
-            docker exec maddrax-app rm -f /var/www/html/bootstrap/cache/services.php || true
-            docker exec maddrax-app rm -f /var/www/html/bootstrap/cache/packages.php || true
-            
+            # Cache-Management - REBUILD caches after migrations
             echo "Rebuilding caches..."
             docker exec maddrax-app php artisan config:cache
             docker exec maddrax-app php artisan route:cache
