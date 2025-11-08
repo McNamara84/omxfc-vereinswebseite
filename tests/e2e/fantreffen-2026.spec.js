@@ -15,7 +15,7 @@ test.describe('Maddrax-Fantreffen 2026 - Public Registration Page', () => {
 
   test('displays ColoniaCon warning box', async ({ page }) => {
     await expect(page.getByText(/ColoniaCon/i)).toBeVisible();
-    const coloniaCon Link = page.getByRole('link', { name: /ColoniaCon/i });
+    const coloniaConLink = page.getByRole('link', { name: /ColoniaCon/i });
     await expect(coloniaConLink).toBeVisible();
     await expect(coloniaConLink).toHaveAttribute('href', /coloniacon/i);
   });
