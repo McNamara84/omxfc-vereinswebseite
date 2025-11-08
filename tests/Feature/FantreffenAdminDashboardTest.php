@@ -380,11 +380,12 @@ class FantreffenAdminDashboardTest extends TestCase
 
         $response = $this->actingAs($admin)->get('/admin/fantreffen-2026');
 
-        // Should see first 20
+        // Should see first 20 items (pagination works)
         $response->assertSee('Person1');
         $response->assertSee('Person20');
         
-        // Should not see 21st on first page
+        // Should not see 21st+ on first page
         $response->assertDontSee('Person21');
+        $response->assertDontSee('Person25');
     }
 }
