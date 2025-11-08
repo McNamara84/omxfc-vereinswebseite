@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1762613655">
-  <project timestamp="1762613655" name="Clover Coverage">
+<coverage generated="1762613919">
+  <project timestamp="1762613919" name="Clover Coverage">
     <package name="App\Actions\Fortify">
       <file name="/home/runner/work/omxfc-vereinswebseite/omxfc-vereinswebseite/app/Actions/Fortify/CreateNewUser.php">
         <class name="App\Actions\Fortify\CreateNewUser" namespace="App\Actions\Fortify">
@@ -2593,15 +2593,15 @@
         <line num="152" type="stmt" count="13"/>
         <line num="153" type="stmt" count="13"/>
         <line num="155" type="stmt" count="13"/>
-        <line num="156" type="stmt" count="10"/>
-        <line num="157" type="stmt" count="10"/>
-        <line num="158" type="stmt" count="10"/>
-        <line num="159" type="stmt" count="10"/>
-        <line num="160" type="stmt" count="10"/>
-        <line num="161" type="stmt" count="10"/>
-        <line num="162" type="stmt" count="10"/>
-        <line num="163" type="stmt" count="10"/>
-        <line num="165" type="stmt" count="10"/>
+        <line num="156" type="stmt" count="11"/>
+        <line num="157" type="stmt" count="11"/>
+        <line num="158" type="stmt" count="11"/>
+        <line num="159" type="stmt" count="11"/>
+        <line num="160" type="stmt" count="11"/>
+        <line num="161" type="stmt" count="11"/>
+        <line num="162" type="stmt" count="11"/>
+        <line num="163" type="stmt" count="11"/>
+        <line num="165" type="stmt" count="11"/>
         <line num="166" type="stmt" count="1"/>
         <line num="167" type="stmt" count="1"/>
         <line num="168" type="stmt" count="1"/>
@@ -2612,15 +2612,15 @@
         <line num="177" type="stmt" count="13"/>
         <line num="178" type="stmt" count="13"/>
         <line num="180" type="stmt" count="13"/>
-        <line num="181" type="stmt" count="5"/>
-        <line num="182" type="stmt" count="5"/>
-        <line num="183" type="stmt" count="5"/>
-        <line num="184" type="stmt" count="5"/>
-        <line num="185" type="stmt" count="5"/>
-        <line num="186" type="stmt" count="5"/>
-        <line num="187" type="stmt" count="5"/>
-        <line num="188" type="stmt" count="5"/>
-        <line num="190" type="stmt" count="5"/>
+        <line num="181" type="stmt" count="7"/>
+        <line num="182" type="stmt" count="7"/>
+        <line num="183" type="stmt" count="7"/>
+        <line num="184" type="stmt" count="7"/>
+        <line num="185" type="stmt" count="7"/>
+        <line num="186" type="stmt" count="7"/>
+        <line num="187" type="stmt" count="7"/>
+        <line num="188" type="stmt" count="7"/>
+        <line num="190" type="stmt" count="7"/>
         <line num="191" type="stmt" count="1"/>
         <line num="192" type="stmt" count="1"/>
         <line num="193" type="stmt" count="1"/>
