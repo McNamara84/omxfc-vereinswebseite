@@ -23,8 +23,6 @@ class FantreffenAnmeldung extends Component
 
     // UI state
     public $showEmailWarning = false;
-    public $registrationComplete = false;
-    public $showPayPalButton = false;
     public $paymentAmount = 0;
 
     // T-Shirt deadline
@@ -115,11 +113,10 @@ class FantreffenAnmeldung extends Component
         }
 
         if ($this->tshirt_bestellt) {
-            $amount += $isLoggedIn ? 25.00 : 30.00;
+            $amount += 25.00; // T-Shirt always 25€
         }
 
         $this->paymentAmount = $amount;
-        $this->showPayPalButton = $amount > 0;
     }
 
     public function submit()
@@ -158,15 +155,13 @@ class FantreffenAnmeldung extends Component
         Mail::to('vorstand@maddrax-fanclub.de')
             ->send(new FantreffenNeueAnmeldung($anmeldung));
 
-        // Show success message
-        if ($this->showPayPalButton) {
-            session()->flash('success', 'Deine Anmeldung wurde gespeichert! Bitte schließe die Zahlung ab.');
-            // PayPal form will be shown
-        } else {
-            $this->registrationComplete = true;
-            session()->flash('success', 'Deine Anmeldung wurde erfolgreich übermittelt! Du erhältst in Kürze eine Bestätigungsmail.');
-            $this->resetForm();
+        // Setze Session-Token für Zugriff auf Bestätigungsseite (für nicht eingeloggte Nutzer)
+        if (!Auth::check()) {
+            session()->put('fantreffen_anmeldung_' . $anmeldung->id, true);
         }
+
+        // Weiterleitung zur Zahlungsbestätigungsseite
+        return redirect()->route('fantreffen.2026.bestaetigung', ['id' => $anmeldung->id]);
     }
 
     private function resetForm()
@@ -180,7 +175,6 @@ class FantreffenAnmeldung extends Component
         $this->tshirt_bestellt = false;
         $this->tshirt_groesse = '';
         $this->showEmailWarning = false;
-        $this->showPayPalButton = false;
         $this->paymentAmount = 0;
     }
 

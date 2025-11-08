@@ -133,7 +133,13 @@
                                 </div>
                             @endif
                             <button type="submit" class="w-full px-6 py-3 bg-[#8B0116] text-white font-bold rounded-lg hover:bg-[#6b000e]" wire:loading.attr="disabled">
-                                <span wire:loading.remove>{{ $showPayPalButton ? 'Weiter zur Zahlung ('.number_format($paymentAmount, 2, ',', '.').' €)' : 'Jetzt anmelden' }}</span>
+                                <span wire:loading.remove>
+                                    @if($paymentAmount > 0)
+                                        Weiter zur Zahlung ({{ number_format($paymentAmount, 2, ',', '.') }} €)
+                                    @else
+                                        Jetzt anmelden
+                                    @endif
+                                </span>
                                 <span wire:loading>Wird verarbeitet...</span>
                             </button>
                         </form>

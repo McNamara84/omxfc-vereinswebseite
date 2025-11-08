@@ -42,12 +42,16 @@ Deine Anmeldung zum **Maddrax-Fantreffen 2026** ist bei uns eingegangen!
 
 **Zahlungsstatus:** {{ $anmeldung->payment_status === 'paid' ? 'Bezahlt' : 'Ausstehend' }}  
 @if($anmeldung->payment_status === 'paid')
-Vielen Dank für deine Spende von **{{ number_format($paymentAmount, 2, ',', '.') }} €**!
+Vielen Dank für deine Spende von **{{ number_format((float) $paymentAmount, 2, ',', '.') }} €**!
 @else
-**Zu zahlender Betrag:** {{ number_format($paymentAmount, 2, ',', '.') }} €
+**Zu zahlender Betrag:** {{ number_format((float) $paymentAmount, 2, ',', '.') }} €
 
-Bitte überweise die Spende an:
-- **PayPal:** vorstand@maddrax-fanclub.de (als Spende/Freunde & Familie)
+<x-mail::button :url="$zahlungsUrl">
+Jetzt mit PayPal zahlen
+</x-mail::button>
+
+Bitte wähle bei PayPal die Option **"Freunde & Familie"**, um Gebühren zu vermeiden.  
+Empfänger: vorstand@maddrax-fanclub.de
 @endif
 @endif
 

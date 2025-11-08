@@ -46,6 +46,7 @@ class FantreffenAnmeldungBestaetigung extends Mailable implements ShouldQueue
                 'fullName' => $this->anmeldung->full_name,
                 'paymentRequired' => $this->anmeldung->requiresPayment(),
                 'paymentAmount' => $this->anmeldung->payment_amount,
+                'zahlungsUrl' => route('fantreffen.2026.bestaetigung', ['id' => $this->anmeldung->id]),
             ],
         );
     }

@@ -46,6 +46,7 @@ Route::get('/mitglied-werden/bestaetigt', [PageController::class, 'mitgliedWerde
 
 // Maddrax-Fantreffen 2026
 Route::get('/maddrax-fantreffen-2026', \App\Livewire\FantreffenAnmeldung::class)->name('fantreffen.2026');
+Route::get('/maddrax-fantreffen-2026/bestaetigung/{id}', \App\Livewire\FantreffenZahlungsbestaetigung::class)->name('fantreffen.2026.bestaetigung');
 
 // POST Route für Mitgliedschaftsantrag
 Route::post('/mitglied-werden', [MitgliedschaftController::class, 'store'])->name('mitglied.store');
