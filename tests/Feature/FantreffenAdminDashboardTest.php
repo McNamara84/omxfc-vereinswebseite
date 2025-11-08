@@ -346,11 +346,11 @@ class FantreffenAdminDashboardTest extends TestCase
             'tshirt_bestellt' => false,
         ]);
 
-        $component = Livewire::actingAs($admin)
-            ->test('fantreffen-admin-dashboard');
-
-        // Call exportCsv and get the response
-        $response = $component->call('exportCsv')->lastResponse;
+        // Call exportCsv directly on the component instance
+        $this->actingAs($admin);
+        
+        $livewireComponent = new \App\Livewire\FantreffenAdminDashboard();
+        $response = $livewireComponent->exportCsv();
 
         // Check that we got a StreamedResponse
         $this->assertInstanceOf(\Symfony\Component\HttpFoundation\StreamedResponse::class, $response);
