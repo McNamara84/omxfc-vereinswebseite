@@ -136,8 +136,8 @@ class FantreffenAnmeldung extends Component
         // Create registration
         $anmeldung = FantreffenAnmeldungModel::create([
             'user_id' => Auth::id(),
-            'vorname' => Auth::check() ? Auth::user()->firstname : $this->vorname,
-            'nachname' => Auth::check() ? Auth::user()->lastname : $this->nachname,
+            'vorname' => Auth::check() ? Auth::user()->vorname : $this->vorname,
+            'nachname' => Auth::check() ? Auth::user()->nachname : $this->nachname,
             'email' => Auth::check() ? Auth::user()->email : $this->email,
             'mobile' => $this->mobile,
             'tshirt_bestellt' => $this->tshirt_bestellt,
