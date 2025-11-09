@@ -63,31 +63,35 @@
                     💳 Jetzt mit PayPal bezahlen ({{ number_format($anmeldung->payment_amount, 2, ',', '.') }} €)
                 </a>
 
-                <!-- Bankverbindung -->
+                <!-- PayPal-Gastzahlung Anleitung -->
                 <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                    <h3 class="font-semibold text-gray-900 dark:text-gray-100 mb-2">Oder per Banküberweisung:</h3>
-                    <dl class="space-y-2 text-sm">
-                        <div class="flex justify-between">
-                            <dt class="text-gray-600 dark:text-gray-400">Empfänger:</dt>
-                            <dd class="font-medium text-gray-900 dark:text-gray-100">OMXFC e. V.</dd>
-                        </div>
-                        <div class="flex justify-between">
-                            <dt class="text-gray-600 dark:text-gray-400">IBAN:</dt>
-                            <dd class="font-mono text-sm text-gray-900 dark:text-gray-100">DE89 3702 0500 0008 8158 00</dd>
-                        </div>
-                        <div class="flex justify-between">
-                            <dt class="text-gray-600 dark:text-gray-400">BIC:</dt>
-                            <dd class="font-mono text-sm text-gray-900 dark:text-gray-100">BFSWDE33XXX</dd>
-                        </div>
-                        <div class="flex justify-between">
-                            <dt class="text-gray-600 dark:text-gray-400">Verwendungszweck:</dt>
-                            <dd class="font-medium text-gray-900 dark:text-gray-100">Fantreffen 2026 - {{ $anmeldung->vorname }} {{ $anmeldung->nachname }}</dd>
-                        </div>
-                    </dl>
+                    <h3 class="font-semibold text-gray-900 dark:text-gray-100 mb-3">💡 Kein PayPal-Account? Kein Problem!</h3>
+                    <p class="text-sm text-gray-700 dark:text-gray-300 mb-3">
+                        Du kannst auch ohne PayPal-Konto oder Kreditkarte bezahlen, indem du PayPal als Gast nutzt. 
+                        So musst du kein Konto einrichten und zahlst einfach per SEPA-Lastschrift.
+                    </p>
+                    <ol class="space-y-2 text-sm text-gray-700 dark:text-gray-300">
+                        <li class="flex gap-2">
+                            <span class="font-semibold text-[#8B0116] flex-shrink-0">1.</span>
+                            <span>Klicke oben auf den PayPal-Button. Du wirst zur PayPal-Bezahlseite weitergeleitet.</span>
+                        </li>
+                        <li class="flex gap-2">
+                            <span class="font-semibold text-[#8B0116] flex-shrink-0">2.</span>
+                            <span>Unter der Login-Maske findest du den Link <strong>"Mit Debitkarte oder Bankkonto zahlen"</strong>. Klicke darauf.</span>
+                        </li>
+                        <li class="flex gap-2">
+                            <span class="font-semibold text-[#8B0116] flex-shrink-0">3.</span>
+                            <span>Fülle deine Bankdaten (IBAN) aus und aktiviere die Zustimmungs-Checkboxen.</span>
+                        </li>
+                        <li class="flex gap-2">
+                            <span class="font-semibold text-[#8B0116] flex-shrink-0">4.</span>
+                            <span>Schließe den Bezahlvorgang mit <strong>"Zustimmen und weiter"</strong> ab.</span>
+                        </li>
+                    </ol>
                 </div>
 
                 <p class="text-xs text-gray-500 dark:text-gray-400 mt-4 text-center">
-                    ⚠️ Wichtig: Bitte gib den Verwendungszweck genau so an, damit wir deine Zahlung zuordnen können.
+                    📧 Bei Fragen zur Zahlung wende dich bitte an <a href="mailto:kassenwart@maddrax-fanclub.de" class="underline hover:text-gray-700 dark:hover:text-gray-300">kassenwart@maddrax-fanclub.de</a>
                 </p>
             </div>
             @endif
