@@ -1,6 +1,7 @@
 import { jest } from '@jest/globals';
 
 const BASE_HTML = `
+<div data-char-editor>
   <input id="player_name" />
   <input id="character_name" />
   <select id="race"><option value=""></option><option value="Barbar">Barbar</option><option value="Guul">Guul</option></select>
@@ -57,6 +58,7 @@ const BASE_HTML = `
   <input id="wa" />
   <input id="in" />
   <input id="au" />
+</div>
 `;
 
 async function loadEditor(values = {}) {
@@ -171,10 +173,11 @@ describe('char-editor module', () => {
     expect(state.cultureGrants.skills['Sprachen']).toBeDefined();
   });
 
-  test('pdf button disabled by default', async () => {
+  test('pdf button exists and is enabled on load', async () => {
     await loadEditor();
     const pdfBtn = document.getElementById('pdf-button');
-    expect(pdfBtn.disabled).toBe(true);
+    expect(pdfBtn).toBeTruthy();
+    expect(pdfBtn.disabled).toBe(false); // Button is enabled, validation happens on click
   });
 
   test('portrait preview updates on file selection', async () => {
