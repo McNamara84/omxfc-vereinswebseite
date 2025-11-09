@@ -43,15 +43,13 @@
                 </dl>
             </div>
 
-            <!-- DEBUG: Betrag = {{ $anmeldung->betrag }} (Typ: {{ gettype($anmeldung->betrag) }}) -->
-            
             <!-- Zahlungsinformationen -->
-            @if($anmeldung->betrag > 0)
+            @if($anmeldung->payment_amount > 0)
             <div class="border-t border-gray-200 dark:border-gray-700 mt-6 pt-6">
                 <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">💳 Zahlungsinformationen</h2>
                 <div class="bg-blue-50 dark:bg-blue-900 border border-blue-200 dark:border-blue-700 rounded-lg p-4 mb-4">
                     <p class="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-2">
-                        Zu zahlender Betrag: {{ number_format($anmeldung->betrag, 2, ',', '.') }} €
+                        Zu zahlender Betrag: {{ number_format($anmeldung->payment_amount, 2, ',', '.') }} €
                     </p>
                     <p class="text-sm text-blue-800 dark:text-blue-200">
                         Bitte überweise den Betrag auf unser Vereinskonto oder nutze PayPal.me
@@ -59,10 +57,10 @@
                 </div>
 
                 <!-- PayPal Button -->
-                <a href="https://www.paypal.com/paypalme/{{ config('services.paypal.me_username') }}/{{ number_format($anmeldung->betrag, 2, '.', '') }}EUR" 
+                <a href="https://www.paypal.com/paypalme/{{ config('services.paypal.me_username') }}/{{ number_format($anmeldung->payment_amount, 2, '.', '') }}EUR" 
                    target="_blank"
                    class="block w-full px-6 py-3 bg-[#0070ba] text-white font-semibold rounded-lg hover:bg-[#005a92] text-center mb-4">
-                    💳 Jetzt mit PayPal bezahlen ({{ number_format($anmeldung->betrag, 2, ',', '.') }} €)
+                    💳 Jetzt mit PayPal bezahlen ({{ number_format($anmeldung->payment_amount, 2, ',', '.') }} €)
                 </a>
 
                 <!-- Bankverbindung -->

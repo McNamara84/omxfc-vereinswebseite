@@ -112,8 +112,10 @@ class FantreffenController extends Controller
                 'mobile' => $validated['mobile'] ?? null,
                 'tshirt_bestellt' => $tshirtBestellt,
                 'tshirt_groesse' => $tshirtGroesse,
-                'betrag' => $paymentAmount,
-                'bezahlt' => false,
+                'payment_amount' => $paymentAmount,
+                'payment_status' => $paymentAmount > 0 ? 'pending' : 'free',
+                'ist_mitglied' => Auth::check(),
+                'zahlungseingang' => false,
             ]);
             
             Log::info('Fantreffen Anmeldung: Registration created', ['id' => $anmeldung->id]);
