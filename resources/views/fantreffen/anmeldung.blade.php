@@ -77,7 +77,7 @@
                         <h2 class="text-2xl font-bold text-white">Anmeldung</h2>
                     </div>
                     <div class="p-6">
-                        @if($errors->any())
+                        @if(isset($errors) && $errors->any())
                             <div class="mb-4 p-4 bg-red-100 dark:bg-red-900 border-l-4 border-red-500 rounded">
                                 <ul class="text-sm text-red-800 dark:text-red-200 space-y-1">
                                     @foreach($errors->all() as $error)
