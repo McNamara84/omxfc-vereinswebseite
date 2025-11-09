@@ -23,7 +23,8 @@ class FantreffenController extends Controller
         $tshirtDeadlinePassed = now()->isAfter($tshirtDeadline);
         $daysUntilDeadline = now()->diffInDays($tshirtDeadline, false);
         
-        // Kosten berechnen
+        // Hinweis: paymentAmount wird nur für Button-Text verwendet
+        // Die tatsächliche Berechnung erfolgt in store() basierend auf Auswahl
         $paymentAmount = 0;
         
         return view('fantreffen.anmeldung', [
@@ -87,8 +88,18 @@ class FantreffenController extends Controller
         
         // Kosten berechnen
         $paymentAmount = 0;
-        if ($tshirtBestellt) {
-            $paymentAmount += 15;
+        
+        if (Auth::check()) {
+            // Eingeloggte Mitglieder: Teilnahme kostenlos, nur T-Shirt 25€
+            if ($tshirtBestellt) {
+                $paymentAmount = 25;
+            }
+        } else {
+            // Gäste: Teilnahmegebühr 5€ + optional T-Shirt 25€
+            $paymentAmount = 5; // Basisgebühr für Gäste
+            if ($tshirtBestellt) {
+                $paymentAmount += 25; // T-Shirt-Preis
+            }
         }
         
         try {
