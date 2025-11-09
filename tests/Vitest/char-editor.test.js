@@ -64,9 +64,10 @@ async function loadEditor(values = {}) {
 }
 
 describe('char-editor pdf button', () => {
-  it('is disabled on load', async () => {
+  it('exists on load', async () => {
     await loadEditor();
     const pdfBtn = document.getElementById('pdf-button');
-    expect(pdfBtn.disabled).toBe(true);
+    expect(pdfBtn).toBeTruthy();
+    expect(pdfBtn.disabled).toBe(false); // Button is enabled, validation happens on click
   });
 });
