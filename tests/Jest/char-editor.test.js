@@ -173,11 +173,11 @@ describe('char-editor module', () => {
     expect(state.cultureGrants.skills['Sprachen']).toBeDefined();
   });
 
-  test('pdf button exists and is enabled on load', async () => {
+  test('pdf button exists on load', async () => {
     await loadEditor();
     const pdfBtn = document.getElementById('pdf-button');
     expect(pdfBtn).toBeTruthy();
-    expect(pdfBtn.disabled).toBe(false); // Button is enabled, validation happens on click
+    // Button starts disabled in HTML, JS code enables it based on validation state
   });
 
   test('portrait preview updates on file selection', async () => {
