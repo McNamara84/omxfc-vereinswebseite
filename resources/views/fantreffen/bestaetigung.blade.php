@@ -57,7 +57,7 @@
                 </div>
 
                 <!-- PayPal Button -->
-                <a href="https://www.paypal.com/paypalme/{{ config('services.paypal.me_username') }}/{{ number_format($anmeldung->payment_amount, 2, '.', '') }}EUR" 
+                <a href="https://www.paypal.com/paypalme/OMXFC/{{ number_format($anmeldung->payment_amount, 2, '.', '') }}" 
                    target="_blank"
                    class="block w-full px-6 py-3 bg-[#0070ba] text-white font-semibold rounded-lg hover:bg-[#005a92] text-center mb-4">
                     💳 Jetzt mit PayPal bezahlen ({{ number_format($anmeldung->payment_amount, 2, ',', '.') }} €)
