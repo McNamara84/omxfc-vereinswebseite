@@ -22,37 +22,71 @@
     </div>
 
     <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <!-- Erfolgs- und Fehlermeldungen -->
         @if(session('success'))
-            <div class="mb-6 p-4 bg-green-100 dark:bg-green-900 border border-green-400 dark:border-green-700 text-green-700 dark:text-green-200 rounded">
-                {{ session('success') }}
+            <div class="mb-4 p-4 bg-green-100 dark:bg-green-900 border-l-4 border-green-500 rounded">
+                <p class="text-green-800 dark:text-green-200">{{ session('success') }}</p>
             </div>
         @endif
 
-        @if($errors->any())
-            <div class="mb-6 p-4 bg-red-100 dark:bg-red-900 border border-red-400 dark:border-red-700 text-red-700 dark:text-red-200 rounded">
-                <ul class="list-disc list-inside">
-                    @foreach($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-            </div>
-        @endif
-
-        <!-- Info Box -->
-        <div class="mb-8 p-6 bg-white dark:bg-gray-800 rounded-lg shadow">
-            <h2 class="text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100">Programm</h2>
-            <ul class="space-y-2 text-gray-700 dark:text-gray-300">
-                <li>✍️ <strong>Signierstunde</strong> mit allen anwesenden Autoren</li>
-                <li>🏆 Verleihung der <strong>Goldenen Taratze</strong></li>
-                <li>🍕 Gemeinsames Essen (jeder zahlt sein Essen selbst)</li>
-                <li>🎉 Gemütliches Beisammensein mit anderen Fans</li>
-            </ul>
+        <div class="mb-4 p-4 bg-yellow-100 dark:bg-yellow-900 border-l-4 border-yellow-500 rounded">
+            <h3 class="font-bold mb-2">ColoniaCon am selben Wochenende!</h3>
+            <p>Am selben Wochenende findet auch die <a href="https://www.coloniacon-tng.de/2026" target="_blank" rel="noopener noreferrer" class="text-yellow-900 dark:text-yellow-100 underline font-semibold hover:text-yellow-700 dark:hover:text-yellow-200">ColoniaCon</a> statt. Der Offizielle MADDRAX Fanclub wird dort ebenfalls mit Programmpunkten vertreten sein.</p>
         </div>
 
-        <!-- Anmeldeformular -->
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-            <h2 class="text-2xl font-bold mb-6 text-gray-900 dark:text-gray-100">Anmeldung</h2>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Linke Seite: Programm & Kosten -->
+            <div class="lg:col-span-2 space-y-8">
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+                    <h2 class="text-2xl font-bold mb-4 text-[#8B0116] dark:text-[#ff4b63]">Programm</h2>
+                    <div class="space-y-4">
+                        <div class="flex gap-4">
+                            <span class="font-bold text-[#8B0116] dark:text-[#ff4b63]">19:00</span>
+                            <div>
+                                <h3 class="font-semibold">Signierstunde mit Autoren</h3>
+                                <p class="text-gray-600 dark:text-gray-300">Triff deine Lieblingsautoren!</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-4">
+                            <span class="font-bold text-[#8B0116] dark:text-[#ff4b63]">20:00</span>
+                            <div>
+                                <h3 class="font-semibold">Verleihung Goldene Taratze</h3>
+                                <p class="text-gray-600 dark:text-gray-300">Die große Preisverleihung!</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+                    <h2 class="text-2xl font-bold mb-4 text-[#8B0116] dark:text-[#ff4b63]">Kosten</h2>
+                    <div class="space-y-3">
+                        <div class="p-3 bg-green-50 dark:bg-green-900/20 rounded">
+                            <div class="font-semibold text-gray-900 dark:text-white mb-1">Vereinsmitglieder</div>
+                            <p class="text-sm text-gray-700 dark:text-gray-300">Teilnahme am Event: <strong class="text-green-600 dark:text-green-400">kostenlos</strong></p>
+                        </div>
+                        <div class="p-3 bg-blue-50 dark:bg-blue-900/20 rounded">
+                            <div class="font-semibold text-gray-900 dark:text-white mb-1">Gäste</div>
+                            <p class="text-sm text-gray-700 dark:text-gray-300">Teilnahme am Event: <strong class="text-blue-600 dark:text-blue-400">5,00 € Spende erbeten</strong></p>
+                        </div>
+                        <div class="p-3 bg-gray-50 dark:bg-gray-700/50 rounded">
+                            <div class="font-semibold text-gray-900 dark:text-white mb-1">Event-T-Shirt (optional)</div>
+                            <p class="text-sm text-gray-700 dark:text-gray-300">
+                                <strong>25,00 € Spende</strong> (zusammen mit Teilnahme: 30,00 €)<br>
+                                <span class="text-xs">Für Gäste zusammen mit Teilnahme: Teilnahme: 30,00 €</span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rechte Seite: Anmeldeformular -->
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+                <h2 class="text-2xl font-bold mb-4 text-[#8B0116] dark:text-[#ff4b63]">Anmeldung</h2>
+
+                @if(Auth::check())
+                    <div class="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded text-sm">
+                        Bist du Vereinsmitglied? <a href="{{ route('login') }}" class="text-blue-600 dark:text-blue-400 underline font-semibold hover:text-blue-800">Jetzt einloggen</a> um kostenlos teilzunehmen!
+                    </div>
+                @endif
 
             <form method="POST" action="{{ route('fantreffen.2026.store') }}" class="space-y-4" id="fantreffen-form">
                 @csrf
