@@ -118,7 +118,7 @@
 
                             <div>
                                 <label class="block text-sm font-medium mb-2">Mobile Rufnummer (optional)</label>
-                                <input type="tel" name="mobile" value="{{ old('mobile', $user->mobile ?? '') }}" class="w-full px-3 py-2 border rounded dark:bg-gray-700 dark:border-gray-600" placeholder="+49 123 456789">
+                                <input type="tel" name="mobile" value="{{ old('mobile', optional($user)->mobile ?? '') }}" class="w-full px-3 py-2 border rounded dark:bg-gray-700 dark:border-gray-600" placeholder="+49 123 456789">
                                 <p class="text-xs text-gray-500 mt-1">Für WhatsApp-Updates</p>
                             </div>
 
