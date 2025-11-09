@@ -43,6 +43,8 @@
                 </dl>
             </div>
 
+            <!-- DEBUG: Betrag = {{ $anmeldung->betrag }} (Typ: {{ gettype($anmeldung->betrag) }}) -->
+            
             <!-- Zahlungsinformationen -->
             @if($anmeldung->betrag > 0)
             <div class="border-t border-gray-200 dark:border-gray-700 mt-6 pt-6">
