@@ -1,10 +1,8 @@
-@extends('layouts.app', [
-    'title' => 'Maddrax-Fantreffen 2026 – Offizieller MADDRAX Fanclub e. V.',
-    'description' => 'Melde dich jetzt an zum Maddrax-Fantreffen am 9. Mai 2026 in Köln mit Signierstunde und Verleihung der Goldenen Taratze.',
-    'socialImage' => asset('build/assets/omxfc-logo-Df-1StAj.png'),
-])
-
-@section('content')
+<x-app-layout 
+    :title="'Maddrax-Fantreffen 2026 – Offizieller MADDRAX Fanclub e. V.'"
+    :description="'Melde dich jetzt an zum Maddrax-Fantreffen am 9. Mai 2026 in Köln mit Signierstunde und Verleihung der Goldenen Taratze.'"
+    :socialImage="asset('build/assets/omxfc-logo-Df-1StAj.png')">
+<x-slot name="slot">
 <div class="bg-gray-50 dark:bg-gray-900 -mt-8">
     <div class="relative bg-gradient-to-br from-[#8B0116] to-[#6b000e] text-white py-12 sm:py-16">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -166,4 +164,5 @@
 </div>
 
 @vite(['resources/js/fantreffen.js'])
-@endsection
+</x-slot>
+</x-app-layout>
