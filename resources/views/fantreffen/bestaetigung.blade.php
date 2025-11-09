@@ -1,10 +1,7 @@
-@extends('layouts.app', [
-    'title' => 'Anmeldebestätigung – Maddrax-Fantreffen 2026',
-    'description' => 'Deine Anmeldung zum Maddrax-Fantreffen 2026 wurde erfolgreich gespeichert.',
-    'socialImage' => asset('build/assets/omxfc-logo-Df-1StAj.png'),
-])
-
-@section('content')
+<x-app-layout
+    title="Anmeldebestätigung – Maddrax-Fantreffen 2026"
+    description="Deine Anmeldung zum Maddrax-Fantreffen 2026 wurde erfolgreich gespeichert."
+    :socialImage="asset('build/assets/omxfc-logo-Df-1StAj.png')">
 <div class="bg-gray-50 dark:bg-gray-900 -mt-8 min-h-screen py-12">
     <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
         <!-- Erfolgsbox -->
@@ -128,4 +125,4 @@
         </div>
     </div>
 </div>
-@endsection
+</x-app-layout>
