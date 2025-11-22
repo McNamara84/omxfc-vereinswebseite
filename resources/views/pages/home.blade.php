@@ -81,7 +81,7 @@
                     Derzeit liegen keine Rezensionen vor. Schau später noch einmal vorbei.
                 </p>
 
-                <ul id="latest-reviews-list" class="mt-4 divide-y divide-gray-200 dark:divide-gray-600 hidden" aria-live="polite" aria-busy="false" aria-label="Neueste Rezensionen">
+                <ul id="latest-reviews-list" class="mt-4 divide-y divide-gray-200 dark:divide-gray-600 hidden" aria-label="Neueste Rezensionen">
                 </ul>
             </div>
 
@@ -184,7 +184,6 @@
                     list.innerHTML = '';
                     data.forEach((review) => list.appendChild(renderReview(review)));
                     list.classList.remove('hidden');
-                    list.setAttribute('aria-busy', 'false');
                 })
                 .catch(() => {
                     loading.setAttribute('aria-busy', 'false');

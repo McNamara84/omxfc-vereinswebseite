@@ -189,6 +189,11 @@ class HomePageContentTest extends TestCase
             ->assertSee("loading.setAttribute('aria-busy', 'false');", false)
             ->assertSee("errorMessage.setAttribute('role', 'status');", false)
             ->assertSee("document.addEventListener('DOMContentLoaded', () => {", false);
+
+        $this->assertDoesNotMatchRegularExpression(
+            '/id="latest-reviews-list"[^>]+aria-live=/',
+            $response->getContent(),
+        );
     }
 
     public function test_latest_reviews_empty_state_is_announced_accessibly(): void

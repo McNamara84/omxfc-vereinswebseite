@@ -94,6 +94,41 @@ class LatestReviewsApiTest extends TestCase
         $this->assertStringEndsWith('…', $excerpt);
     }
 
+    public function test_latest_reviews_preview_is_cached_per_update_timestamp(): void
+    {
+        $team = Team::factory()->create(['name' => 'Mitglieder']);
+        $book = Book::factory()->create([
+            'roman_number' => 100,
+            'title' => 'Zeitsprung ins All',
+        ]);
+
+        Team::clearMembersTeamCache();
+        Cache::forever(Team::MEMBERS_TEAM_CACHE_KEY, $team);
+        Cache::forever(Team::MEMBERS_TEAM_ID_CACHE_KEY, $team->id);
+
+        $review = Review::factory()->create([
+            'team_id' => $team->id,
+            'book_id' => $book->id,
+            'content' => 'Erste Version des Textes mit markanter Einleitung.',
+        ]);
+
+        $firstResponse = $this->getJson('/api/reviews/latest');
+        $firstExcerpt = $firstResponse->json('0.excerpt');
+        $this->assertStringContainsString('Erste Version', $firstExcerpt);
+
+        sleep(1);
+
+        $review->update([
+            'content' => 'Aktualisierte Version der Rezension mit neuer Einleitung und Details.',
+        ]);
+
+        $secondResponse = $this->getJson('/api/reviews/latest');
+        $secondExcerpt = $secondResponse->json('0.excerpt');
+
+        $this->assertStringContainsString('Aktualisierte Version', $secondExcerpt);
+        $this->assertStringNotContainsString('Erste Version', $secondExcerpt);
+    }
+
     public function test_latest_reviews_endpoint_is_rate_limited(): void
     {
         $route = Route::getRoutes()
