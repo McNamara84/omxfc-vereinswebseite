@@ -62,7 +62,11 @@ class HomePageContentTest extends TestCase
 
         $response->assertOk()
             ->assertSeeTextInOrder(['Aktive Mitglieder', '3', 'aktive Mitglieder'])
-            ->assertSeeTextInOrder(['Rezensionen', '4', 'Rezensionen']);
+            ->assertSeeTextInOrder(['Rezensionen', '4', 'Rezensionen'])
+            ->assertSee('aria-describedby="stat-members-description"', false)
+            ->assertSee('id="stat-members-description"', false)
+            ->assertSee('aria-describedby="stat-reviews-description"', false)
+            ->assertSee('id="stat-reviews-description"', false);
     }
 
     public function test_home_page_excludes_soft_deleted_reviews_from_metrics(): void
