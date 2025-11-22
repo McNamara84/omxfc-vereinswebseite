@@ -1,4 +1,4 @@
-<x-app-layout title="Startseite – Offizieller MADDRAX Fanclub e. V." description="Aktuelle Projekte, Chronik und Vorteile einer Mitgliedschaft im offiziellen MADDRAX Fanclub e. V.">
+<x-app-layout title="Startseite – Offizieller MADDRAX Fanclub e. V." :description="$homeDescription">
     <x-public-page>
         <h1 class="text-3xl font-bold text-[#8B0116] dark:text-[#ff4b63] mb-8 text-center">Willkommen beim Offiziellen MADDRAX Fanclub e. V.!</h1>
 
@@ -49,10 +49,24 @@
                 </ul>
             </div>
 
-            {{-- Anzahl Mitglieder --}}
-            <div class="bg-white dark:bg-gray-700 rounded-lg shadow-md p-6 flex flex-col justify-center items-center">
-                <h2 class="text-4xl font-bold text-[#8B0116] dark:text-[#ff4b63]">{{ $memberCount }}</h2>
-                <span class="text-gray-700 dark:text-gray-300">aktive Mitglieder</span>
+            {{-- Kennzahlen --}}
+            <div class="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="bg-white dark:bg-gray-700 rounded-lg shadow-md p-6 flex flex-col items-center" aria-labelledby="stat-members-heading" aria-describedby="stat-members-description">
+                    <h3 id="stat-members-heading" class="text-lg font-semibold text-[#8B0116] dark:text-[#ff4b63]">Aktive Mitglieder</h3>
+                    <div class="mt-2 flex items-baseline gap-2">
+                        <span class="text-4xl font-bold text-[#8B0116] dark:text-[#ff4b63]">{{ $memberCount }}</span>
+                        <span class="text-gray-700 dark:text-gray-300">aktive Mitglieder</span>
+                    </div>
+                    <p id="stat-members-description" class="mt-3 text-sm text-gray-600 dark:text-gray-400 text-center">Gemeinschaft, die sich regelmäßig austauscht und Projekte voranbringt.</p>
+                </div>
+                <div class="bg-white dark:bg-gray-700 rounded-lg shadow-md p-6 flex flex-col items-center" aria-labelledby="stat-reviews-heading" aria-describedby="stat-reviews-description">
+                    <h3 id="stat-reviews-heading" class="text-lg font-semibold text-[#8B0116] dark:text-[#ff4b63]">Rezensionen</h3>
+                    <div class="mt-2 flex items-baseline gap-2">
+                        <span class="text-4xl font-bold text-[#8B0116] dark:text-[#ff4b63]">{{ $reviewCount }}</span>
+                        <span class="text-gray-700 dark:text-gray-300">Rezensionen</span>
+                    </div>
+                    <p id="stat-reviews-description" class="mt-3 text-sm text-gray-600 dark:text-gray-400 text-center">Lesetipps und Eindrücke zu unseren Romanen aus der Community.</p>
+                </div>
             </div>
         </div>
     </x-public-page>

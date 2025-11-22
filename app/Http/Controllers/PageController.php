@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Team;
 use App\Models\User;
+use App\Models\Review;
 use Illuminate\Support\Facades\Storage;
 
 class PageController extends Controller
@@ -58,10 +59,19 @@ class PageController extends Controller
 
         if ($team) {
             $memberCount = $team->activeUsers()->count();
+            $reviewCount = Review::withoutTrashed()
+                ->where('team_id', $team->id)
+                ->count();
         } else {
             // Fallback, falls das Team nicht gefunden wird
             $memberCount = 0;
+            $reviewCount = 0;
         }
+
+        $homeDescription = sprintf(
+            'Aktuelle Projekte, Chronik und Vorteile einer Mitgliedschaft im offiziellen MADDRAX Fanclub e. V. sowie %d Community-Rezensionen zu MADDRAX-Romanen.',
+            $reviewCount
+        );
 
         $organizationUrl = config('app.url') ?? url('/');
         $logoUrl = asset('images/omxfc-logo.png');
@@ -91,6 +101,18 @@ class PageController extends Controller
                         'query-input' => 'required name=search_term_string',
                     ],
                 ],
+                [
+                    '@type' => 'CreativeWorkSeries',
+                    'name' => 'MADDRAX-Romanserie',
+                    'about' => 'Community-Rezensionen zu MADDRAX-Büchern',
+                    'url' => route('reviews.index'),
+                    'publisher' => [
+                        '@type' => 'Organization',
+                        'name' => config('app.name', 'Offizieller MADDRAX Fanclub e. V.'),
+                        'url' => $organizationUrl,
+                    ],
+                    'reviewCount' => $reviewCount,
+                ],
             ],
         ];
 
@@ -101,6 +123,8 @@ class PageController extends Controller
             'membershipBenefits',
             'galleryImages',
             'memberCount',
+            'reviewCount',
+            'homeDescription',
             'structuredData'
         ));
     }
