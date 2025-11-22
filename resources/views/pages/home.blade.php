@@ -166,7 +166,7 @@
                 return item;
             };
 
-            fetch('{{ url('/api/reviews/latest') }}', {
+            fetch('{{ route('api.reviews.latest') }}', {
                 headers: {
                     'Accept': 'application/json',
                 },

@@ -9,4 +9,5 @@ Route::get('/nutzer', function (Request $request) {
 })->middleware('auth:sanctum');
 
 Route::get('/reviews/latest', [ReviewPreviewController::class, 'latest'])
-    ->middleware('throttle:60,1');
+    ->middleware('throttle:60,1')
+    ->name('api.reviews.latest');

@@ -54,7 +54,7 @@ class LatestReviewsApiTest extends TestCase
             'created_at' => Carbon::now()->subHours(2),
         ]);
 
-        $response = $this->getJson('/api/reviews/latest');
+        $response = $this->getJson(route('api.reviews.latest'));
 
         $response->assertOk();
         $response->assertJsonCount(5);
@@ -85,11 +85,15 @@ class LatestReviewsApiTest extends TestCase
             'content' => $longContent,
         ]);
 
-        $response = $this->getJson('/api/reviews/latest');
+        $response = $this->getJson(route('api.reviews.latest'));
         $response->assertOk();
 
         $excerpt = $response->json('0.excerpt');
         $this->assertTrue(mb_strlen($excerpt) <= 75, 'Excerpt should be limited to 75 characters (including ellipsis).');
+        $this->assertTrue(
+            mb_strlen(rtrim($excerpt, '…')) <= 74,
+            'Excerpt content should not exceed 74 characters before the ellipsis.'
+        );
         $this->assertStringContainsString(mb_substr($longContent, 0, 10), $excerpt);
         $this->assertStringEndsWith('…', $excerpt);
     }
@@ -112,17 +116,19 @@ class LatestReviewsApiTest extends TestCase
             'content' => 'Erste Version des Textes mit markanter Einleitung.',
         ]);
 
-        $firstResponse = $this->getJson('/api/reviews/latest');
+        Carbon::setTestNow(Carbon::now());
+
+        $firstResponse = $this->getJson(route('api.reviews.latest'));
         $firstExcerpt = $firstResponse->json('0.excerpt');
         $this->assertStringContainsString('Erste Version', $firstExcerpt);
 
-        sleep(1);
+        Carbon::setTestNow(Carbon::now()->addSecond());
 
         $review->update([
             'content' => 'Aktualisierte Version der Rezension mit neuer Einleitung und Details.',
         ]);
 
-        $secondResponse = $this->getJson('/api/reviews/latest');
+        $secondResponse = $this->getJson(route('api.reviews.latest'));
         $secondExcerpt = $secondResponse->json('0.excerpt');
 
         $this->assertStringContainsString('Aktualisierte Version', $secondExcerpt);
