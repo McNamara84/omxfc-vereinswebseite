@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Team;
 use App\Models\User;
+use App\Models\Review;
 use Illuminate\Support\Facades\Storage;
 
 class PageController extends Controller
@@ -58,9 +59,13 @@ class PageController extends Controller
 
         if ($team) {
             $memberCount = $team->activeUsers()->count();
+            $reviewCount = Review::query()
+                ->where('team_id', $team->id)
+                ->count();
         } else {
             // Fallback, falls das Team nicht gefunden wird
             $memberCount = 0;
+            $reviewCount = 0;
         }
 
         $organizationUrl = config('app.url') ?? url('/');
@@ -101,6 +106,7 @@ class PageController extends Controller
             'membershipBenefits',
             'galleryImages',
             'memberCount',
+            'reviewCount',
             'structuredData'
         ));
     }
