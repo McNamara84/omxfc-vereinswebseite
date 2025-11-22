@@ -22,6 +22,7 @@ class HomePageContentTest extends TestCase
         $response->assertOk()
             ->assertSee('Willkommen beim Offiziellen MADDRAX Fanclub e. V.!')
             ->assertSee('<title>Startseite – Offizieller MADDRAX Fanclub e. V.</title>', false)
+            ->assertSee('0 Community-Rezensionen zu MADDRAX-Romanen')
             ->assertSee('Wer wir sind')
             ->assertSee('Wir Maddrax-Fans sind eine muntere Gruppe')
             ->assertSee('Was wir machen')
@@ -67,6 +68,47 @@ class HomePageContentTest extends TestCase
             ->assertSee('id="stat-members-description"', false)
             ->assertSee('aria-describedby="stat-reviews-description"', false)
             ->assertSee('id="stat-reviews-description"', false);
+    }
+
+    public function test_home_page_structured_data_exposes_review_count_for_maddrax_books(): void
+    {
+        $team = Team::factory()->create(['name' => 'Mitglieder']);
+        $members = User::factory()->count(2)->create();
+
+        $team->users()->attach(
+            $members->pluck('id'),
+            ['role' => Role::Mitglied->value]
+        );
+
+        $book = Book::factory()->create();
+
+        Review::factory()->count(5)->create([
+            'team_id' => $team->id,
+            'user_id' => $members->first()->id,
+            'book_id' => $book->id,
+        ]);
+
+        Team::clearMembersTeamCache();
+        Cache::forever(Team::MEMBERS_TEAM_CACHE_KEY, $team);
+        Cache::forever(Team::MEMBERS_TEAM_ID_CACHE_KEY, $team->id);
+
+        $response = $this->get('/');
+
+        $response->assertOk();
+
+        preg_match('/<script type="application\/ld\+json">(.*?)<\/script>/s', $response->getContent(), $matches);
+
+        $this->assertNotEmpty($matches[1], 'Structured data block should be present');
+
+        $structuredData = json_decode($matches[1], true, 512, JSON_THROW_ON_ERROR);
+
+        $seriesEntry = collect($structuredData['@graph'])
+            ->firstWhere('@type', 'CreativeWorkSeries');
+
+        $this->assertNotNull($seriesEntry);
+        $this->assertSame(5, $seriesEntry['reviewCount']);
+        $this->assertStringContainsString('MADDRAX', $seriesEntry['name']);
+        $this->assertStringContainsString('rezensionen', strtolower($seriesEntry['about']));
     }
 
     public function test_home_page_excludes_soft_deleted_reviews_from_metrics(): void

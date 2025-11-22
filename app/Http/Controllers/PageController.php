@@ -68,6 +68,11 @@ class PageController extends Controller
             $reviewCount = 0;
         }
 
+        $homeDescription = sprintf(
+            'Aktuelle Projekte, Chronik und Vorteile einer Mitgliedschaft im offiziellen MADDRAX Fanclub e. V. sowie %d Community-Rezensionen zu MADDRAX-Romanen.',
+            $reviewCount
+        );
+
         $organizationUrl = config('app.url') ?? url('/');
         $logoUrl = asset('images/omxfc-logo.png');
         $sameAs = [
@@ -96,6 +101,18 @@ class PageController extends Controller
                         'query-input' => 'required name=search_term_string',
                     ],
                 ],
+                [
+                    '@type' => 'CreativeWorkSeries',
+                    'name' => 'MADDRAX-Romanserie',
+                    'about' => 'Community-Rezensionen zu MADDRAX-Büchern',
+                    'url' => route('reviews.index'),
+                    'publisher' => [
+                        '@type' => 'Organization',
+                        'name' => config('app.name', 'Offizieller MADDRAX Fanclub e. V.'),
+                        'url' => $organizationUrl,
+                    ],
+                    'reviewCount' => $reviewCount,
+                ],
             ],
         ];
 
@@ -107,6 +124,7 @@ class PageController extends Controller
             'galleryImages',
             'memberCount',
             'reviewCount',
+            'homeDescription',
             'structuredData'
         ));
     }
