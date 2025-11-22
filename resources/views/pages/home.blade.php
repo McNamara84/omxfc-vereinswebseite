@@ -77,7 +77,7 @@
                     </div>
                 </div>
 
-                <p id="latest-reviews-empty" class="mt-4 text-sm text-gray-600 dark:text-gray-300 hidden">
+                <p id="latest-reviews-empty" class="mt-4 text-sm text-gray-600 dark:text-gray-300 hidden" role="status" aria-live="polite">
                     Derzeit liegen keine Rezensionen vor. Schau später noch einmal vorbei.
                 </p>
 
@@ -127,7 +127,7 @@
     </script>
 
     <script>
-        window.addEventListener('load', () => {
+        document.addEventListener('DOMContentLoaded', () => {
             const list = document.getElementById('latest-reviews-list');
             const loading = document.getElementById('latest-reviews-loading');
             const empty = document.getElementById('latest-reviews-empty');
@@ -188,7 +188,23 @@
                 })
                 .catch(() => {
                     loading.setAttribute('aria-busy', 'false');
-                    loading.innerHTML = '<div class="flex items-center gap-2 text-red-700 dark:text-red-300"><span class="inline-block h-2 w-2 rounded-full bg-red-600"></span><span>Rezensionen konnten nicht geladen werden.</span></div>';
+                    loading.classList.add('hidden');
+
+                    const errorMessage = document.createElement('div');
+                    errorMessage.className = 'mt-4 flex items-center gap-2 text-sm text-red-700 dark:text-red-300';
+                    errorMessage.setAttribute('role', 'status');
+                    errorMessage.setAttribute('aria-live', 'polite');
+
+                    const dot = document.createElement('span');
+                    dot.className = 'inline-block h-2 w-2 rounded-full bg-red-600';
+
+                    const text = document.createElement('span');
+                    text.textContent = 'Rezensionen konnten nicht geladen werden.';
+
+                    errorMessage.appendChild(dot);
+                    errorMessage.appendChild(text);
+
+                    loading.after(errorMessage);
                 });
         });
     </script>

@@ -30,11 +30,14 @@ class ReviewPreviewController extends Controller
             ->map(function (Review $review) {
                 $plainContent = strip_tags(Str::markdown($review->content));
 
+                $excerpt = trim($plainContent);
+                $excerpt = mb_strimwidth($excerpt, 0, 75, '…', 'UTF-8');
+
                 return [
                     'roman_number' => $review->book->roman_number,
                     'roman_title' => $review->book->title,
                     'review_title' => $review->title,
-                    'excerpt' => Str::limit(trim($plainContent), 74, '…'),
+                    'excerpt' => $excerpt,
                 ];
             });
 

@@ -186,6 +186,18 @@ class HomePageContentTest extends TestCase
         $response->assertOk()
             ->assertSee('id="latest-reviews-loading"', false)
             ->assertSee('aria-busy="true"', false)
-            ->assertSee("loading.setAttribute('aria-busy', 'false');", false);
+            ->assertSee("loading.setAttribute('aria-busy', 'false');", false)
+            ->assertSee("errorMessage.setAttribute('role', 'status');", false)
+            ->assertSee("document.addEventListener('DOMContentLoaded', () => {", false);
+    }
+
+    public function test_latest_reviews_empty_state_is_announced_accessibly(): void
+    {
+        $response = $this->get('/');
+
+        $response->assertOk()
+            ->assertSee('id="latest-reviews-empty"', false)
+            ->assertSee('role="status"', false)
+            ->assertSee('aria-live="polite"', false);
     }
 }
