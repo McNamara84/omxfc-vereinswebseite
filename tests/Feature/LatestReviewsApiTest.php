@@ -8,6 +8,8 @@ use App\Models\Team;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
 use Tests\TestCase;
 
 class LatestReviewsApiTest extends TestCase
@@ -87,8 +89,16 @@ class LatestReviewsApiTest extends TestCase
         $response->assertOk();
 
         $excerpt = $response->json('0.excerpt');
-        $this->assertTrue(mb_strlen($excerpt) <= 76, 'Excerpt should be limited to 75 characters plus ellipsis.');
+        $this->assertTrue(mb_strlen($excerpt) <= 75, 'Excerpt should be limited to 75 characters (including ellipsis).');
         $this->assertStringContainsString(mb_substr($longContent, 0, 10), $excerpt);
         $this->assertStringEndsWith('…', $excerpt);
+    }
+
+    public function test_latest_reviews_endpoint_is_rate_limited(): void
+    {
+        $route = Route::getRoutes()
+            ->match(Request::create('/api/reviews/latest'));
+
+        $this->assertContains('throttle:60,1', $route->gatherMiddleware());
     }
 }

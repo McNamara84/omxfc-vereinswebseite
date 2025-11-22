@@ -173,6 +173,7 @@
             })
                 .then((response) => response.ok ? response.json() : Promise.reject(response))
                 .then((data) => {
+                    loading.setAttribute('aria-busy', 'false');
                     loading.classList.add('hidden');
                     if (!Array.isArray(data) || data.length === 0) {
                         empty.classList.remove('hidden');
@@ -186,6 +187,7 @@
                     list.setAttribute('aria-busy', 'false');
                 })
                 .catch(() => {
+                    loading.setAttribute('aria-busy', 'false');
                     loading.innerHTML = '<div class="flex items-center gap-2 text-red-700 dark:text-red-300"><span class="inline-block h-2 w-2 rounded-full bg-red-600"></span><span>Rezensionen konnten nicht geladen werden.</span></div>';
                 });
         });

@@ -34,7 +34,7 @@ class ReviewPreviewController extends Controller
                     'roman_number' => $review->book->roman_number,
                     'roman_title' => $review->book->title,
                     'review_title' => $review->title,
-                    'excerpt' => Str::limit(trim($plainContent), 75, '…'),
+                    'excerpt' => Str::limit(trim($plainContent), 74, '…'),
                 ];
             });
 

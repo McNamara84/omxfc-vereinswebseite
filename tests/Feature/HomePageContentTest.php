@@ -178,4 +178,14 @@ class HomePageContentTest extends TestCase
             ->assertSee('href="' . route('reviews.index') . '"', false)
             ->assertDontSee('href="' . route('mitglied.werden') . '"', false);
     }
+
+    public function test_latest_reviews_loading_state_updates_aria_busy_on_error(): void
+    {
+        $response = $this->get('/');
+
+        $response->assertOk()
+            ->assertSee('id="latest-reviews-loading"', false)
+            ->assertSee('aria-busy="true"', false)
+            ->assertSee("loading.setAttribute('aria-busy', 'false');", false);
+    }
 }
