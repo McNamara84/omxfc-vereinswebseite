@@ -61,9 +61,45 @@ class HomePageContentTest extends TestCase
         $response = $this->get('/');
 
         $response->assertOk()
-            ->assertSee('aria-label="3 aktive Mitglieder"', false)
-            ->assertSee('aria-label="4 Rezensionen"', false)
-            ->assertSee('Rezensionen');
+            ->assertSeeTextInOrder(['Aktive Mitglieder', '3', 'aktive Mitglieder'])
+            ->assertSeeTextInOrder(['Rezensionen', '4', 'Rezensionen']);
+    }
+
+    public function test_home_page_excludes_soft_deleted_reviews_from_metrics(): void
+    {
+        $team = Team::factory()->create(['name' => 'Mitglieder']);
+        $members = User::factory()->count(2)->create();
+
+        $team->users()->attach(
+            $members->pluck('id'),
+            ['role' => Role::Mitglied->value]
+        );
+
+        $book = Book::factory()->create();
+
+        Review::factory()->count(2)->create([
+            'team_id' => $team->id,
+            'user_id' => $members->first()->id,
+            'book_id' => $book->id,
+        ]);
+
+        $trashedReview = Review::factory()->create([
+            'team_id' => $team->id,
+            'user_id' => $members->first()->id,
+            'book_id' => $book->id,
+        ]);
+
+        $trashedReview->delete();
+
+        Team::clearMembersTeamCache();
+        Cache::forever(Team::MEMBERS_TEAM_CACHE_KEY, $team);
+        Cache::forever(Team::MEMBERS_TEAM_ID_CACHE_KEY, $team->id);
+
+        $response = $this->get('/');
+
+        $response->assertOk()
+            ->assertSeeTextInOrder(['Rezensionen', '2', 'Rezensionen'])
+            ->assertDontSee('3 Rezensionen');
     }
 
     public function test_home_page_contains_structured_data(): void

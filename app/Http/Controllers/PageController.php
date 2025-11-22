@@ -59,7 +59,7 @@ class PageController extends Controller
 
         if ($team) {
             $memberCount = $team->activeUsers()->count();
-            $reviewCount = Review::query()
+            $reviewCount = Review::withoutTrashed()
                 ->where('team_id', $team->id)
                 ->count();
         } else {

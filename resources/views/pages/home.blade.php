@@ -50,18 +50,18 @@
             </div>
 
             {{-- Kennzahlen --}}
-            <div class="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4" role="list" aria-label="Kennzahlen des Fanclubs">
-                <div class="bg-white dark:bg-gray-700 rounded-lg shadow-md p-6 flex flex-col items-center" role="listitem" aria-live="polite">
-                    <h3 class="text-lg font-semibold text-[#8B0116] dark:text-[#ff4b63]">Aktive Mitglieder</h3>
-                    <div class="mt-2 flex items-baseline gap-2" aria-label="{{ $memberCount }} aktive Mitglieder">
+            <div class="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="bg-white dark:bg-gray-700 rounded-lg shadow-md p-6 flex flex-col items-center" aria-labelledby="stat-members-heading">
+                    <h3 id="stat-members-heading" class="text-lg font-semibold text-[#8B0116] dark:text-[#ff4b63]">Aktive Mitglieder</h3>
+                    <div class="mt-2 flex items-baseline gap-2" aria-describedby="stat-members-heading">
                         <span class="text-4xl font-bold text-[#8B0116] dark:text-[#ff4b63]">{{ $memberCount }}</span>
                         <span class="text-gray-700 dark:text-gray-300">aktive Mitglieder</span>
                     </div>
                     <p class="mt-3 text-sm text-gray-600 dark:text-gray-400 text-center">Gemeinschaft, die sich regelmäßig austauscht und Projekte voranbringt.</p>
                 </div>
-                <div class="bg-white dark:bg-gray-700 rounded-lg shadow-md p-6 flex flex-col items-center" role="listitem" aria-live="polite">
-                    <h3 class="text-lg font-semibold text-[#8B0116] dark:text-[#ff4b63]">Rezensionen</h3>
-                    <div class="mt-2 flex items-baseline gap-2" aria-label="{{ $reviewCount }} Rezensionen">
+                <div class="bg-white dark:bg-gray-700 rounded-lg shadow-md p-6 flex flex-col items-center" aria-labelledby="stat-reviews-heading">
+                    <h3 id="stat-reviews-heading" class="text-lg font-semibold text-[#8B0116] dark:text-[#ff4b63]">Rezensionen</h3>
+                    <div class="mt-2 flex items-baseline gap-2" aria-describedby="stat-reviews-heading">
                         <span class="text-4xl font-bold text-[#8B0116] dark:text-[#ff4b63]">{{ $reviewCount }}</span>
                         <span class="text-gray-700 dark:text-gray-300">Rezensionen</span>
                     </div>
