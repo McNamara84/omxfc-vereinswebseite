@@ -34,6 +34,8 @@ class HomePageContentTest extends TestCase
             ->assertSee('Fantreffen 2026')
             ->assertSee('Vorteile einer Mitgliedschaft')
             ->assertSee('Kostenlose Teilnahme an den jährlichen Fantreffen')
+            ->assertSee('Letzte Rezensionen')
+            ->assertSee('Lädt Community-Highlights', false)
             ->assertSee('aktive Mitglieder');
     }
 
@@ -155,5 +157,25 @@ class HomePageContentTest extends TestCase
         $response->assertOk()
             ->assertSee('@context', false)
             ->assertSee('SearchAction', false);
+    }
+
+    public function test_latest_reviews_link_points_to_membership_for_guests(): void
+    {
+        $response = $this->get('/');
+
+        $response->assertOk()
+            ->assertSee('href="' . route('mitglied.werden') . '"', false)
+            ->assertDontSee('href="' . route('reviews.index') . '"', false);
+    }
+
+    public function test_latest_reviews_link_points_to_reviews_for_authenticated_members(): void
+    {
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->get('/');
+
+        $response->assertOk()
+            ->assertSee('href="' . route('reviews.index') . '"', false)
+            ->assertDontSee('href="' . route('mitglied.werden') . '"', false);
     }
 }
