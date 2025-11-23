@@ -36,6 +36,11 @@ class HomePageContentTest extends TestCase
             ->assertSee('Kostenlose Teilnahme an den jährlichen Fantreffen')
             ->assertSee('Letzte Rezensionen')
             ->assertSee('Lädt Community-Highlights', false)
+            ->assertSee('Lesetipps und Eindrücke zu den Romanen unserer Lieblingsserie.', false)
+            ->assertSee("const reviewDate = document.createElement('time');", false)
+            ->assertSee('reviewDate.dateTime = review.reviewed_at;', false)
+            ->assertSee("reviewTitle.appendChild(document.createTextNode(' vom '));", false)
+            ->assertSee('Rezension veröffentlicht am', false)
             ->assertSee('aktive Mitglieder');
     }
 
