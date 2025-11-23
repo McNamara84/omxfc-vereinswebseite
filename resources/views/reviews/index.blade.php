@@ -49,88 +49,50 @@
                 @foreach($booksByCycle as $cycle => $cycleBooks)
                     @php
                         $id = \Illuminate\Support\Str::slug($cycle);
-                        $reviewCount = $cycleBooks->sum('reviews_count');
                     @endphp
-                    <div class="mb-4 border border-gray-200 dark:border-gray-700 rounded-lg">
-                        <h2>
-                            <button type="button" class="w-full flex justify-between items-center bg-gray-100 dark:bg-gray-700 px-4 py-3 rounded-t-lg font-semibold" onclick="toggleAccordion('{{ $id }}')">
-                                {{ $cycle }}-Zyklus ({{ $reviewCount }} {{ $reviewCount === 1 ? 'Rezension' : 'Rezensionen' }})
-                                <span id="icon-{{ $id }}">{{ $loop->first ? '-' : '+' }}</span>
-                            </button>
-                        </h2>
-                        <div id="content-{{ $id }}" class="{{ $loop->first ? '' : 'hidden' }} bg-white dark:bg-gray-900 px-4 py-2 rounded-b-lg">
-                            <x-book-list :books="$cycleBooks->sortByDesc('roman_number')" />
-                        </div>
-                    </div>
+                    @include('reviews.partials.series-accordion', [
+                        'id' => $id,
+                        'title' => $cycle.'-Zyklus',
+                        'books' => $cycleBooks->sortByDesc('roman_number'),
+                        'initiallyOpen' => $loop->first,
+                    ])
                     @if($cycle === 'Wandler' && $missionMars->isNotEmpty())
                         @php
                             $id = 'mission-mars';
                             $reviewCount = $missionMars->sum('reviews_count');
                         @endphp
-                        <div class="mb-4 border border-gray-200 dark:border-gray-700 rounded-lg">
-                            <h2>
-                                <button type="button" class="w-full flex justify-between items-center bg-gray-100 dark:bg-gray-700 px-4 py-3 rounded-t-lg font-semibold" onclick="toggleAccordion('{{ $id }}')">
-                                    Mission Mars-Heftromane ({{ $reviewCount }} {{ $reviewCount === 1 ? 'Rezension' : 'Rezensionen' }})
-                                    <span id="icon-{{ $id }}">+</span>
-                                </button>
-                            </h2>
-                            <div id="content-{{ $id }}" class="hidden bg-white dark:bg-gray-900 px-4 py-2 rounded-b-lg">
-                                <x-book-list :books="$missionMars" />
-                            </div>
-                        </div>
+                        @include('reviews.partials.series-accordion', [
+                            'id' => $id,
+                            'title' => 'Mission Mars-Heftromane',
+                            'books' => $missionMars,
+                            'initiallyOpen' => false,
+                        ])
                     @endif
                     @if($cycle === 'Ausala' && $volkDerTiefe->isNotEmpty())
                         @php $volkDerTiefeRendered = true; @endphp
-                        @php
-                            $id = 'das-volk-der-tiefe';
-                            $reviewCount = $volkDerTiefe->sum('reviews_count');
-                        @endphp
-                        <div class="mb-4 border border-gray-200 dark:border-gray-700 rounded-lg">
-                            <h2>
-                                <button type="button" class="w-full flex justify-between items-center bg-gray-100 dark:bg-gray-700 px-4 py-3 rounded-t-lg font-semibold" onclick="toggleAccordion('{{ $id }}')">
-                                    Das Volk der Tiefe ({{ $reviewCount }} {{ $reviewCount === 1 ? 'Rezension' : 'Rezensionen' }})
-                                    <span id="icon-{{ $id }}">+</span>
-                                </button>
-                            </h2>
-                            <div id="content-{{ $id }}" class="hidden bg-white dark:bg-gray-900 px-4 py-2 rounded-b-lg">
-                                <x-book-list :books="$volkDerTiefe" />
-                            </div>
-                        </div>
+                        @include('reviews.partials.series-accordion', [
+                            'id' => 'das-volk-der-tiefe',
+                            'title' => 'Das Volk der Tiefe',
+                            'books' => $volkDerTiefe,
+                            'initiallyOpen' => false,
+                        ])
                     @endif
                 @endforeach
                 @if(!$volkDerTiefeRendered && $volkDerTiefe->isNotEmpty())
-                    @php
-                        $id = 'das-volk-der-tiefe';
-                        $reviewCount = $volkDerTiefe->sum('reviews_count');
-                    @endphp
-                    <div class="mb-4 border border-gray-200 dark:border-gray-700 rounded-lg">
-                        <h2>
-                            <button type="button" class="w-full flex justify-between items-center bg-gray-100 dark:bg-gray-700 px-4 py-3 rounded-t-lg font-semibold" onclick="toggleAccordion('{{ $id }}')">
-                                Das Volk der Tiefe ({{ $reviewCount }} {{ $reviewCount === 1 ? 'Rezension' : 'Rezensionen' }})
-                                <span id="icon-{{ $id }}">+</span>
-                            </button>
-                        </h2>
-                        <div id="content-{{ $id }}" class="hidden bg-white dark:bg-gray-900 px-4 py-2 rounded-b-lg">
-                            <x-book-list :books="$volkDerTiefe" />
-                        </div>
-                    </div>
+                    @include('reviews.partials.series-accordion', [
+                        'id' => 'das-volk-der-tiefe',
+                        'title' => 'Das Volk der Tiefe',
+                        'books' => $volkDerTiefe,
+                        'initiallyOpen' => false,
+                    ])
                 @endif
                 @if($hardcovers->isNotEmpty())
-                    @php
-                        $id = 'maddrax-hardcover';
-                        $reviewCount = $hardcovers->sum('reviews_count');
-                    @endphp
-                    <div class="mb-4 border border-gray-200 dark:border-gray-700 rounded-lg">
-                        <h2>
-                            <button type="button" class="w-full flex justify-between items-center bg-gray-100 dark:bg-gray-700 px-4 py-3 rounded-t-lg font-semibold" onclick="toggleAccordion('{{ $id }}')">
-                                Maddrax-Hardcover ({{ $reviewCount }} {{ $reviewCount === 1 ? 'Rezension' : 'Rezensionen' }})
-                                <span id="icon-{{ $id }}">+</span>
-                            </button>
-                        </h2>
-                        <div id="content-{{ $id }}" class="hidden bg-white dark:bg-gray-900 px-4 py-2 rounded-b-lg">
-                            <x-book-list :books="$hardcovers" />
-                        </div>
-                    </div>
+                    @include('reviews.partials.series-accordion', [
+                        'id' => 'maddrax-hardcover',
+                        'title' => 'Maddrax-Hardcover',
+                        'books' => $hardcovers,
+                        'initiallyOpen' => false,
+                    ])
                 @endif
             </div>
         </div>
@@ -140,8 +102,13 @@
         function toggleAccordion(id) {
             const content = document.getElementById('content-' + id);
             const icon = document.getElementById('icon-' + id);
+            const button = document.querySelector('[data-accordion-button="' + id + '"]');
             content.classList.toggle('hidden');
-            icon.textContent = content.classList.contains('hidden') ? '+' : '-';
+            const expanded = !content.classList.contains('hidden');
+            icon.textContent = expanded ? '-' : '+';
+            if (button) {
+                button.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+            }
         }
     </script>
     </x-member-page>

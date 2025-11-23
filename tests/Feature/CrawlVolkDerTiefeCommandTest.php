@@ -24,9 +24,9 @@ class CrawlVolkDerTiefeCommandTest extends TestCase
 
         $this->testStoragePath = base_path('storage/testing');
         $this->app->useStoragePath($this->testStoragePath);
-        File::ensureDirectoryExists($this->testStoragePath.'/app/private');
-        File::ensureDirectoryExists($this->testStoragePath.'/framework/views');
         Storage::fake('private');
+        File::ensureDirectoryExists(dirname(Storage::disk('private')->path('volkdertiefe.json')));
+        File::ensureDirectoryExists($this->testStoragePath.'/framework/views');
     }
 
     protected function tearDown(): void

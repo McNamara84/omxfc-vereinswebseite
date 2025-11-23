@@ -49,7 +49,7 @@ class CrawlVolkDerTiefe extends Command
         $bar->finish();
         $this->newLine();
 
-        $path = 'volkdertiefe.json';
+        $path = Storage::disk('private')->path('volkdertiefe.json');
         if ($this->writeHeftromane($data, $path)) {
             $this->info('volkdertiefe.json updated.');
 
@@ -180,6 +180,6 @@ class CrawlVolkDerTiefe extends Command
         usort($jsonData, fn ($a, $b) => $a->nummer <=> $b->nummer);
         $json = json_encode($jsonData, JSON_PRETTY_PRINT);
 
-        return Storage::disk('private')->put($filename, $json) !== false;
+        return file_put_contents($filename, $json) !== false;
     }
 }
