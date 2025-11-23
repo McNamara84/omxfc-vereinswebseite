@@ -53,6 +53,12 @@ class RomantauschControllerTest extends TestCase
             'author' => 'Author',
             'type' => BookType::MissionMars,
         ]);
+        Book::create([
+            'roman_number' => 1,
+            'title' => 'Volk Roman',
+            'author' => 'Author',
+            'type' => BookType::DasVolkDerTiefe,
+        ]);
     }
 
     public function test_index_displays_structured_information_panel(): void
@@ -159,6 +165,14 @@ class RomantauschControllerTest extends TestCase
             'condition' => 'top',
         ]);
 
+        BookOffer::create([
+            'user_id' => $otherOfferUser->id,
+            'series' => BookType::DasVolkDerTiefe->value,
+            'book_number' => 1,
+            'book_title' => 'Volk Roman',
+            'condition' => 'top',
+        ]);
+
         BookRequest::create([
             'user_id' => $otherRequestUser->id,
             'series' => BookType::MissionMars->value,
@@ -173,6 +187,29 @@ class RomantauschControllerTest extends TestCase
         $response->assertSeeText('Passt zu deinem Gesuch');
         $response->assertSeeText('Passt zu deinem Angebot');
         $response->assertDontSee('aria-live="polite"', false);
+        $response->assertSee('Volk Roman');
+    }
+
+    public function test_offer_creation_accepts_volk_der_tiefe_titles(): void
+    {
+        $this->putBookData();
+
+        $user = $this->actingMember();
+        $this->actingAs($user);
+
+        $response = $this->post('/romantauschboerse/angebot-speichern', [
+            'series' => BookType::DasVolkDerTiefe->value,
+            'book_number' => 1,
+            'condition' => 'neuwertig',
+        ]);
+
+        $response->assertRedirect('/romantauschboerse');
+        $this->assertDatabaseHas('book_offers', [
+            'user_id' => $user->id,
+            'series' => BookType::DasVolkDerTiefe->value,
+            'book_number' => 1,
+            'book_title' => 'Volk Roman',
+        ]);
     }
 
     public function test_index_does_not_highlight_entries_without_matching_counterpart(): void
@@ -265,7 +302,9 @@ class RomantauschControllerTest extends TestCase
 
         $response->assertOk();
         $response->assertViewIs('romantausch.create_offer');
-        $this->assertSame('Roman1', $response->viewData('books')->first()->title);
+        $titles = $response->viewData('books')->pluck('title')->toArray();
+        $this->assertContains('Roman1', $titles);
+        $this->assertContains('Volk Roman', $titles);
     }
 
     public function test_store_offer_creates_entry_when_book_found(): void
@@ -942,7 +981,9 @@ class RomantauschControllerTest extends TestCase
 
         $response->assertOk();
         $response->assertViewIs('romantausch.create_request');
-        $this->assertSame('Roman1', $response->viewData('books')->first()->title);
+        $titles = $response->viewData('books')->pluck('title')->toArray();
+        $this->assertContains('Roman1', $titles);
+        $this->assertContains('Volk Roman', $titles);
     }
 
     public function test_store_request_creates_entry_when_book_found(): void
