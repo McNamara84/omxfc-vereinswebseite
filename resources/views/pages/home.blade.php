@@ -101,7 +101,7 @@
                         <span class="text-4xl font-bold text-[#8B0116] dark:text-[#ff4b63]">{{ $reviewCount }}</span>
                         <span class="text-gray-700 dark:text-gray-300">Rezensionen</span>
                     </div>
-                    <p id="stat-reviews-description" class="mt-3 text-sm text-gray-600 dark:text-gray-400 text-center">Lesetipps und Eindrücke zu unseren Romanen aus der Community.</p>
+                    <p id="stat-reviews-description" class="mt-3 text-sm text-gray-600 dark:text-gray-400 text-center">Lesetipps und Eindrücke zu den Romanen unserer Lieblingsserie.</p>
                 </div>
             </div>
         </div>
@@ -152,8 +152,26 @@
                 header.appendChild(romanTitle);
 
                 const reviewTitle = document.createElement('h3');
-                reviewTitle.className = 'mt-3 text-lg font-semibold text-gray-900 dark:text-white';
-                reviewTitle.textContent = review.review_title;
+                reviewTitle.className = 'mt-3 text-base font-semibold text-gray-900 dark:text-white flex flex-wrap items-center gap-1';
+
+                const titleText = document.createElement('span');
+                titleText.textContent = review.review_title;
+
+                const reviewDate = document.createElement('time');
+                reviewDate.className = 'text-sm font-normal text-gray-700 dark:text-gray-300';
+                reviewDate.dateTime = review.reviewed_at;
+
+                const parsedDate = new Date(review.reviewed_at);
+                const formattedDate = Number.isNaN(parsedDate.getTime())
+                    ? 'Unbekanntes Datum'
+                    : new Intl.DateTimeFormat('de-DE', { dateStyle: 'medium' }).format(parsedDate);
+
+                reviewDate.textContent = formattedDate;
+                reviewDate.setAttribute('aria-label', `Rezension veröffentlicht am ${formattedDate}`);
+
+                reviewTitle.appendChild(titleText);
+                reviewTitle.appendChild(document.createTextNode(' vom '));
+                reviewTitle.appendChild(reviewDate);
 
                 const excerpt = document.createElement('p');
                 excerpt.className = 'mt-2 text-sm text-gray-600 dark:text-gray-300 leading-relaxed';

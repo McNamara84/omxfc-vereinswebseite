@@ -50,6 +50,7 @@ class ReviewPreviewController extends Controller
                         'roman_number' => $review->book->roman_number,
                         'roman_title' => $review->book->title,
                         'review_title' => $review->title,
+                        'reviewed_at' => $review->created_at->toISOString(),
                         'excerpt' => $excerpt,
                     ];
                 })

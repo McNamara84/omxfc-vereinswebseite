@@ -63,6 +63,7 @@ class LatestReviewsApiTest extends TestCase
         $this->assertSame($latestFive->first()->book->roman_number, $response->json('0.roman_number'));
         $this->assertSame($latestFive->first()->book->title, $response->json('0.roman_title'));
         $this->assertSame($latestFive->first()->title, $response->json('0.review_title'));
+        $this->assertSame($latestFive->first()->created_at->toISOString(), $response->json('0.reviewed_at'));
     }
 
     public function test_response_contains_truncated_excerpt(): void
@@ -96,6 +97,32 @@ class LatestReviewsApiTest extends TestCase
         );
         $this->assertStringContainsString(mb_substr($longContent, 0, 10), $excerpt);
         $this->assertStringEndsWith('…', $excerpt);
+    }
+
+    public function test_response_contains_reviewed_at_timestamp(): void
+    {
+        $team = Team::factory()->create(['name' => 'Mitglieder']);
+        $book = Book::factory()->create([
+            'roman_number' => 21,
+            'title' => 'Zeitschatten',
+        ]);
+
+        Team::clearMembersTeamCache();
+        Cache::forever(Team::MEMBERS_TEAM_CACHE_KEY, $team);
+        Cache::forever(Team::MEMBERS_TEAM_ID_CACHE_KEY, $team->id);
+
+        $reviewDate = Carbon::create(2024, 5, 1, 8, 15, 0, config('app.timezone'));
+
+        Review::factory()->create([
+            'team_id' => $team->id,
+            'book_id' => $book->id,
+            'created_at' => $reviewDate,
+        ]);
+
+        $response = $this->getJson(route('api.reviews.latest'));
+
+        $response->assertOk();
+        $this->assertSame($reviewDate->toISOString(), $response->json('0.reviewed_at'));
     }
 
     public function test_latest_reviews_preview_is_cached_per_update_timestamp(): void
