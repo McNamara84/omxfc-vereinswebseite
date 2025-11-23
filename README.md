@@ -188,9 +188,10 @@ Stellen Sie sicher, dass `APP_URL` in der `.env` auf die öffentlich erreichbare
 | Application-Cache leeren | `php artisan cache:clear` |
 | Romane indexieren | `php artisan romane:index` |
 | Romane neu indexieren | `php artisan romane:index --fresh` |
-| Romane, Hardcover & Mission Mars importieren | `php artisan books:import` |
+| Romane, Hardcover, Mission Mars & Das Volk der Tiefe importieren | `php artisan books:import` |
 | Rezensionen importieren | `php artisan reviews:import-old --fresh` |
 | Neue Romane & Hardcover crawlen | `php artisan crawlnovels` |
+| "Das Volk der Tiefe"-Romane crawlen | `php artisan crawlvolkdertiefe` |
 | Sitemap generieren | `php artisan sitemap:generate` |
 
 Weitere Befehle stehen über `php artisan list` zur Verfügung.
