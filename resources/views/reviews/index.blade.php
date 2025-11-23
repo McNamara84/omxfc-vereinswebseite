@@ -45,6 +45,7 @@
                 </div>
             </div>
             <div id="accordion">
+                @php $volkDerTiefeRendered = false; @endphp
                 @foreach($booksByCycle as $cycle => $cycleBooks)
                     @php
                         $id = \Illuminate\Support\Str::slug($cycle);
@@ -78,7 +79,8 @@
                             </div>
                         </div>
                     @endif
-                    @if($cycle === 'Wandler' && $volkDerTiefe->isNotEmpty())
+                    @if($cycle === 'Ausala' && $volkDerTiefe->isNotEmpty())
+                        @php $volkDerTiefeRendered = true; @endphp
                         @php
                             $id = 'das-volk-der-tiefe';
                             $reviewCount = $volkDerTiefe->sum('reviews_count');
@@ -96,6 +98,23 @@
                         </div>
                     @endif
                 @endforeach
+                @if(!$volkDerTiefeRendered && $volkDerTiefe->isNotEmpty())
+                    @php
+                        $id = 'das-volk-der-tiefe';
+                        $reviewCount = $volkDerTiefe->sum('reviews_count');
+                    @endphp
+                    <div class="mb-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+                        <h2>
+                            <button type="button" class="w-full flex justify-between items-center bg-gray-100 dark:bg-gray-700 px-4 py-3 rounded-t-lg font-semibold" onclick="toggleAccordion('{{ $id }}')">
+                                Das Volk der Tiefe ({{ $reviewCount }} {{ $reviewCount === 1 ? 'Rezension' : 'Rezensionen' }})
+                                <span id="icon-{{ $id }}">+</span>
+                            </button>
+                        </h2>
+                        <div id="content-{{ $id }}" class="hidden bg-white dark:bg-gray-900 px-4 py-2 rounded-b-lg">
+                            <x-book-list :books="$volkDerTiefe" />
+                        </div>
+                    </div>
+                @endif
                 @if($hardcovers->isNotEmpty())
                     @php
                         $id = 'maddrax-hardcover';

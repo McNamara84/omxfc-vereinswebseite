@@ -144,7 +144,17 @@ class RezensionController extends Controller
             $book->cycle = $cycleMap[$book->roman_number] ?? 'Unbekannt';
         });
 
-        $booksByCycle = $books->sortByDesc('roman_number')->groupBy('cycle');
+        $cycleOrder = $romanData->pluck('zyklus')->unique();
+        $booksByCycle = $cycleOrder
+            ->mapWithKeys(function ($cycle) use ($books) {
+                $cycleBooks = $books->where('cycle', $cycle)->sortByDesc('roman_number');
+
+                if ($cycleBooks->isEmpty()) {
+                    return [];
+                }
+
+                return [$cycle => $cycleBooks];
+            });
 
         return view('reviews.index', [
             'booksByCycle' => $booksByCycle,
