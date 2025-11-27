@@ -45,7 +45,10 @@
                 </div>
             </div>
             <div id="accordion">
-                @php $volkDerTiefeRendered = false; @endphp
+                @php
+                    $volkDerTiefeRendered = false;
+                    $missionMarsRendered = false;
+                @endphp
                 @foreach($booksByCycle as $cycle => $cycleBooks)
                     @php
                         $id = \Illuminate\Support\Str::slug($cycle);
@@ -56,10 +59,11 @@
                         'books' => $cycleBooks->sortByDesc('roman_number'),
                         'initiallyOpen' => $loop->first,
                     ])
-                    @if($cycle === 'Wandler' && $missionMars->isNotEmpty())
+                    @if($cycle === 'Mars' && $missionMars->isNotEmpty())
                         @php
                             $id = 'mission-mars';
                             $reviewCount = $missionMars->sum('reviews_count');
+                            $missionMarsRendered = true;
                         @endphp
                         @include('reviews.partials.series-accordion', [
                             'id' => $id,
@@ -68,7 +72,7 @@
                             'initiallyOpen' => false,
                         ])
                     @endif
-                    @if($cycle === 'Ausala' && $volkDerTiefe->isNotEmpty())
+                    @if($cycle === 'Afra' && $volkDerTiefe->isNotEmpty())
                         @php $volkDerTiefeRendered = true; @endphp
                         @include('reviews.partials.series-accordion', [
                             'id' => 'das-volk-der-tiefe',
@@ -78,6 +82,14 @@
                         ])
                     @endif
                 @endforeach
+                @if(!$missionMarsRendered && $missionMars->isNotEmpty())
+                    @include('reviews.partials.series-accordion', [
+                        'id' => 'mission-mars',
+                        'title' => 'Mission Mars-Heftromane',
+                        'books' => $missionMars,
+                        'initiallyOpen' => false,
+                    ])
+                @endif
                 @if(!$volkDerTiefeRendered && $volkDerTiefe->isNotEmpty())
                     @include('reviews.partials.series-accordion', [
                         'id' => 'das-volk-der-tiefe',

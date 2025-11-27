@@ -252,9 +252,73 @@ class RezensionControllerTest extends TestCase
                 ->assertOk()
                 ->assertSee('Volk Roman')
                 ->assertSeeInOrder([
-                    'Ausala-Zyklus',
-                    'Das Volk der Tiefe',
                     'Afra-Zyklus',
+                    'Das Volk der Tiefe',
+                    'Ausala-Zyklus',
+                ], false);
+        } finally {
+            file_put_contents($path, $original);
+        }
+    }
+
+    public function test_cycles_follow_release_order_with_spin_offs_and_hardcovers_at_end(): void
+    {
+        $path = storage_path('app/private/maddrax.json');
+        $original = file_get_contents($path);
+
+        try {
+            file_put_contents($path, json_encode([
+                ['nummer' => 650, 'titel' => 'Weltrat 1', 'zyklus' => 'Weltrat'],
+                ['nummer' => 200, 'titel' => 'Afra 1', 'zyklus' => 'Afra'],
+                ['nummer' => 175, 'titel' => 'Ausala 1', 'zyklus' => 'Ausala'],
+                ['nummer' => 150, 'titel' => 'Mars 1', 'zyklus' => 'Mars'],
+                ['nummer' => 125, 'titel' => 'Wandler 1', 'zyklus' => 'Wandler'],
+                ['nummer' => 1, 'titel' => 'Euree 1', 'zyklus' => 'Euree'],
+            ]));
+
+            Book::create(['roman_number' => 650, 'title' => 'Weltrat Alpha', 'author' => 'W']);
+            Book::create(['roman_number' => 200, 'title' => 'Afra Alpha', 'author' => 'A']);
+            Book::create(['roman_number' => 175, 'title' => 'Ausala Alpha', 'author' => 'A']);
+            Book::create(['roman_number' => 150, 'title' => 'Mars Alpha', 'author' => 'M']);
+            Book::create(['roman_number' => 125, 'title' => 'Wandler Alpha', 'author' => 'W']);
+            Book::create(['roman_number' => 1, 'title' => 'Euree Alpha', 'author' => 'E']);
+
+            Book::create([
+                'roman_number' => 5,
+                'title' => 'Mission Mars 1',
+                'author' => 'MM',
+                'type' => BookType::MissionMars,
+            ]);
+
+            Book::create([
+                'roman_number' => 6,
+                'title' => 'Volk Roman 1',
+                'author' => 'VDT',
+                'type' => BookType::DasVolkDerTiefe,
+            ]);
+
+            Book::create([
+                'roman_number' => 2,
+                'title' => 'Hardcover 1',
+                'author' => 'HC',
+                'type' => BookType::MaddraxHardcover,
+            ]);
+
+            $user = $this->actingMember();
+            $this->actingAs($user);
+
+            $this->get('/rezensionen')
+                ->assertOk()
+                ->assertSeeInOrder([
+                    'Weltrat-Zyklus',
+                    'Afra-Zyklus',
+                    'Das Volk der Tiefe',
+                    'Ausala-Zyklus',
+                    'Mars-Zyklus',
+                    'Mission Mars-Heftromane',
+                    'Wandler-Zyklus',
+                    'Euree-Zyklus',
+                    'Maddrax-Hardcover',
                 ], false);
         } finally {
             file_put_contents($path, $original);

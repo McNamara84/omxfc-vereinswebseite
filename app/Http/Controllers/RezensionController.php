@@ -144,7 +144,38 @@ class RezensionController extends Controller
             $book->cycle = $cycleMap[$book->roman_number] ?? 'Unbekannt';
         });
 
-        $cycleOrder = $romanData->pluck('zyklus')->unique();
+        $existingCycles = $books->pluck('cycle')->unique();
+
+        $preferredCycleOrder = collect([
+            'Weltrat',
+            'Amraka',
+            'Weltenriss',
+            'Parallelwelt',
+            'Fremdwelt',
+            'Zeitsprung',
+            'Archivar',
+            'Streiter',
+            'Ursprung',
+            'Schatten',
+            'Antarktis',
+            'Afra',
+            'Ausala',
+            'Mars',
+            'Wandler',
+            "Daa'muren",
+            'Kratersee',
+            'Expedition',
+            'Meeraka',
+            'Euree',
+        ]);
+
+        $cycleOrder = $preferredCycleOrder
+            ->filter(fn ($cycle) => $existingCycles->contains($cycle))
+            ->concat(
+                $romanData->pluck('zyklus')->unique()
+                    ->filter(fn ($cycle) => $existingCycles->contains($cycle) && ! $preferredCycleOrder->contains($cycle))
+            );
+
         $booksByCycle = $cycleOrder
             ->mapWithKeys(function ($cycle) use ($books) {
                 $cycleBooks = $books->where('cycle', $cycle)->sortByDesc('roman_number');
