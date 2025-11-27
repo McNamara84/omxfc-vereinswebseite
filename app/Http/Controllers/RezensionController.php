@@ -169,12 +169,17 @@ class RezensionController extends Controller
             'Euree',
         ]);
 
+        // Keep the accordion in publication order while allowing new or unexpected
+        // cycles to appear at the end without needing code changes. When adding a
+        // new cycle, append it here in descending release order; anything missing
+        // falls back to alphabetical placement after the curated list.
+        $unlistedCycles = $existingCycles
+            ->reject(fn ($cycle) => $preferredCycleOrder->contains($cycle))
+            ->sort();
+
         $cycleOrder = $preferredCycleOrder
             ->filter(fn ($cycle) => $existingCycles->contains($cycle))
-            ->concat(
-                $romanData->pluck('zyklus')->unique()
-                    ->filter(fn ($cycle) => $existingCycles->contains($cycle) && ! $preferredCycleOrder->contains($cycle))
-            );
+            ->concat($unlistedCycles);
 
         $booksByCycle = $cycleOrder
             ->mapWithKeys(function ($cycle) use ($books) {

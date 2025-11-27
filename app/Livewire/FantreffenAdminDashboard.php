@@ -193,7 +193,7 @@ class FantreffenAdminDashboard extends Component
             });
         }
 
-        return $query->latest();
+        return $query->orderBy('created_at')->orderBy('id');
     }
 
     protected function calculateStats()
