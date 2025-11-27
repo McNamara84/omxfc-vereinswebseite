@@ -144,7 +144,43 @@ class RezensionController extends Controller
             $book->cycle = $cycleMap[$book->roman_number] ?? 'Unbekannt';
         });
 
-        $cycleOrder = $romanData->pluck('zyklus')->unique();
+        $existingCycles = $books->pluck('cycle')->unique();
+
+        $preferredCycleOrder = collect([
+            'Weltrat',
+            'Amraka',
+            'Weltenriss',
+            'Parallelwelt',
+            'Fremdwelt',
+            'Zeitsprung',
+            'Archivar',
+            'Streiter',
+            'Ursprung',
+            'Schatten',
+            'Antarktis',
+            'Afra',
+            'Ausala',
+            'Mars',
+            'Wandler',
+            "Daa'muren",
+            'Kratersee',
+            'Expedition',
+            'Meeraka',
+            'Euree',
+        ]);
+
+        // Keep the accordion in publication order while allowing new or unexpected
+        // cycles to appear at the end without needing code changes. When adding a
+        // new cycle, append it here in descending release order; anything missing
+        // falls back to alphabetical placement after the curated list.
+        $unlistedCycles = $existingCycles
+            ->reject(fn ($cycle) => $preferredCycleOrder->contains($cycle))
+            ->sort();
+
+        $cycleOrder = $preferredCycleOrder
+            ->filter(fn ($cycle) => $existingCycles->contains($cycle))
+            ->concat($unlistedCycles);
+
         $booksByCycle = $cycleOrder
             ->mapWithKeys(function ($cycle) use ($books) {
                 $cycleBooks = $books->where('cycle', $cycle)->sortByDesc('roman_number');
