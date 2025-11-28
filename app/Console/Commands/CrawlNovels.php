@@ -54,6 +54,7 @@ class CrawlNovels extends Command
             $this->info('maddrax.json updated.');
 
             $this->call(CrawlMissionMars::class);
+            $this->call(CrawlVolkDerTiefe::class);
 
             return $this->call(CrawlHardcovers::class);
         }
@@ -63,12 +64,12 @@ class CrawlNovels extends Command
         return self::FAILURE;
     }
 
-    private function getUrlContent(string $url): string|false
+    protected function getUrlContent(string $url): string|false
     {
         return @file_get_contents($url);
     }
 
-    private function getArticleUrls(string $categoryUrl): array
+    protected function getArticleUrls(string $categoryUrl): array
     {
         $html = $this->getUrlContent($categoryUrl);
         if ($html === false) {
@@ -93,7 +94,7 @@ class CrawlNovels extends Command
         return $urls;
     }
 
-    private function getHeftromanInfo(string $url): ?array
+    protected function getHeftromanInfo(string $url): ?array
     {
         $html = $this->getUrlContent($url);
         if ($html === false) {
@@ -158,7 +159,7 @@ class CrawlNovels extends Command
         return null;
     }
 
-    private function writeHeftromane(array $data, string $filename): bool
+    protected function writeHeftromane(array $data, string $filename): bool
     {
         $jsonData = [];
         foreach ($data as $row) {
