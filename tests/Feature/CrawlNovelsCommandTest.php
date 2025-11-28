@@ -2,12 +2,17 @@
 
 namespace Tests\Feature;
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
-use Illuminate\Support\Facades\File;
 use App\Console\Commands\CrawlNovels;
-use ReflectionClass;
 use Carbon\Carbon;
+use Illuminate\Console\Command;
+use Illuminate\Console\OutputStyle;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\File;
+use Mockery;
+use ReflectionClass;
+use Symfony\Component\Console\Input\ArrayInput;
+use Symfony\Component\Console\Output\BufferedOutput;
+use Tests\TestCase;
 
 class CrawlNovelsCommandTest extends TestCase
 {
@@ -29,6 +34,7 @@ class CrawlNovelsCommandTest extends TestCase
     protected function tearDown(): void
     {
         File::deleteDirectory($this->testStoragePath);
+        Mockery::close();
         parent::tearDown();
     }
 
@@ -122,5 +128,36 @@ class CrawlNovelsCommandTest extends TestCase
         $numbers = array_column($json, 'nummer');
         $this->assertSame([2,3], $numbers); // future release skipped, sorted
         Carbon::setTestNow();
+    }
+
+    public function test_handle_triggers_all_related_crawlers(): void
+    {
+        $command = Mockery::mock(CrawlNovels::class)
+            ->makePartial()
+            ->shouldAllowMockingProtectedMethods();
+
+        $command->setLaravel($this->app);
+        $command->setOutput(new OutputStyle(new ArrayInput([]), new BufferedOutput()));
+
+        $command->shouldReceive('getArticleUrls')->once()->andReturn(['https://example.com/article']);
+        $command->shouldReceive('getHeftromanInfo')->once()->andReturn([
+            1,
+            '2024-01-01',
+            'Zyklus',
+            '4.0',
+            '2',
+            'Titel',
+            ['Autor'],
+            ['Person'],
+            ['Schlagwort'],
+            ['Ort'],
+        ]);
+        $command->shouldReceive('writeHeftromane')->once()->andReturn(true);
+
+        $command->shouldReceive('call')->once()->with(\App\Console\Commands\CrawlMissionMars::class)->andReturn(Command::SUCCESS);
+        $command->shouldReceive('call')->once()->with(\App\Console\Commands\CrawlVolkDerTiefe::class)->andReturn(Command::SUCCESS);
+        $command->shouldReceive('call')->once()->with(\App\Console\Commands\CrawlHardcovers::class)->andReturn(Command::SUCCESS);
+
+        $this->assertSame(Command::SUCCESS, $command->handle());
     }
 }
