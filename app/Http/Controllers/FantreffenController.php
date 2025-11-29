@@ -18,8 +18,8 @@ class FantreffenController extends Controller
     {
         $user = Auth::user();
         
-        // T-Shirt Deadline berechnen
-        $tshirtDeadline = Carbon::create(2026, 4, 9);
+        // T-Shirt Deadline berechnen (28. Februar 2026, 23:59:59)
+        $tshirtDeadline = Carbon::create(2026, 2, 28, 23, 59, 59);
         $tshirtDeadlinePassed = now()->isAfter($tshirtDeadline);
         $daysUntilDeadline = now()->diffInDays($tshirtDeadline, false);
         

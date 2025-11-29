@@ -60,6 +60,22 @@
                             <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 italic">
                                 Für Gäste zusammen mit Teilnahme: 30,00 €
                             </p>
+                            @if (!$tshirtDeadlinePassed)
+                                <div class="mt-2 p-2 bg-orange-100 dark:bg-orange-900/40 rounded border border-orange-300 dark:border-orange-700">
+                                    <p class="text-xs text-orange-800 dark:text-orange-200 font-semibold">
+                                        ⏰ Bestellfrist: 28. Februar 2026
+                                    </p>
+                                    <p class="text-xs text-orange-700 dark:text-orange-300 mt-0.5">
+                                        T-Shirts können nur bei Anmeldung bis Ende Februar mitbestellt werden!
+                                    </p>
+                                </div>
+                            @else
+                                <div class="mt-2 p-2 bg-gray-100 dark:bg-gray-700 rounded">
+                                    <p class="text-xs text-gray-600 dark:text-gray-400">
+                                        ❌ Bestellfrist abgelaufen – T-Shirts können nicht mehr bestellt werden.
+                                    </p>
+                                </div>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -116,6 +132,26 @@
                             </div>
                             @if (!$tshirtDeadlinePassed)
                                 <div class="border-t pt-4" wire:key="tshirt-section">
+                                    {{-- Prominenter Hinweis zur Bestellfrist --}}
+                                    <div class="mb-3 p-3 bg-gradient-to-r from-orange-100 to-yellow-100 dark:from-orange-900/40 dark:to-yellow-900/40 rounded-lg border border-orange-300 dark:border-orange-600">
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-2xl">👕</span>
+                                            <div>
+                                                <p class="text-sm font-bold text-orange-800 dark:text-orange-200">
+                                                    T-Shirt nur bis 28. Februar bestellbar!
+                                                </p>
+                                                @if ($daysUntilDeadline > 0)
+                                                    <p class="text-xs text-orange-700 dark:text-orange-300">
+                                                        Noch <strong>{{ $daysUntilDeadline }} {{ $daysUntilDeadline === 1 ? 'Tag' : 'Tage' }}</strong> Zeit für deine T-Shirt-Bestellung.
+                                                    </p>
+                                                @else
+                                                    <p class="text-xs text-orange-700 dark:text-orange-300">
+                                                        Heute ist der letzte Tag für T-Shirt-Bestellungen!
+                                                    </p>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </div>
                                     <div x-data="{ showTshirtSize: {{ $tshirt_bestellt ? 'true' : 'false' }} }">
                                         <label class="flex items-start gap-2">
                                             <input type="checkbox" 
