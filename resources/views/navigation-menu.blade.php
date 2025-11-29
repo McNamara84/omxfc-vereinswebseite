@@ -105,7 +105,7 @@
                             </div>
                         </div>
                         @endif
-                        @if(Auth::user()->hasRole(\App\Enums\Role::Admin) || Auth::user()->hasRole(\App\Enums\Role::Vorstand) || Auth::user()->hasRole(\App\Enums\Role::Kassenwart))
+                        @if(Auth::user()->hasVorstandRole())
                         <div class="relative flex items-center ml-4 group" x-data="{ open: false }" @click="open = !open" @click.away="open = false" @keydown.escape="open = false">
                             <button id="vorstand-button" type="button" class="px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition" :aria-expanded="open" aria-controls="vorstand-menu" @keydown.enter.prevent="open = !open" @keydown.space.prevent="open = !open">
                                 Vorstand
@@ -241,7 +241,7 @@
                 @endif
             </div>
             @endif
-            @if(Auth::user()->hasRole(\App\Enums\Role::Admin) || Auth::user()->hasRole(\App\Enums\Role::Vorstand) || Auth::user()->hasRole(\App\Enums\Role::Kassenwart))
+            @if(Auth::user()->hasVorstandRole())
             <button id="vorstand-mobile-button" type="button" @click="openMenu = (openMenu === 'vorstand' ? null : 'vorstand')" class="w-full text-left px-4 py-2 font-bold text-gray-600 dark:text-gray-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500" :class="{ 'bg-gray-100 dark:bg-gray-700': openMenu === 'vorstand' }" :aria-expanded="openMenu === 'vorstand'" aria-controls="vorstand-mobile-menu" @keydown.enter.prevent="openMenu = (openMenu === 'vorstand' ? null : 'vorstand')" @keydown.space.prevent="openMenu = (openMenu === 'vorstand' ? null : 'vorstand')">
             Vorstand</button>
             <div id="vorstand-mobile-menu" x-show="openMenu === 'vorstand'" x-cloak class="italic" aria-labelledby="vorstand-mobile-button">
