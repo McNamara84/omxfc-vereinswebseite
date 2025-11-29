@@ -19,9 +19,10 @@ class FantreffenDeadlineService
 
     public function __construct()
     {
+        $now = Carbon::now();
         $this->deadline = Carbon::parse(config('services.fantreffen.tshirt_deadline'));
-        $this->isPassed = Carbon::now()->isAfter($this->deadline);
-        $this->daysRemaining = $this->isPassed ? 0 : (int) Carbon::now()->diffInDays($this->deadline, false);
+        $this->isPassed = $now->isAfter($this->deadline);
+        $this->daysRemaining = $this->isPassed ? 0 : (int) $now->diffInDays($this->deadline, false);
         $this->formattedDate = $this->deadline->locale('de')->isoFormat('D. MMMM YYYY');
     }
 

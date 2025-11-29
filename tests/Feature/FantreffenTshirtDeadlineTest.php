@@ -239,12 +239,12 @@ class FantreffenTshirtDeadlineTest extends TestCase
     /** @test */
     public function deadline_service_correctly_calculates_alert_threshold()
     {
-        // Test at exactly 7 days - should show alert
-        Config::set('services.fantreffen.tshirt_deadline', Carbon::now()->addDays(7)->format('Y-m-d H:i:s'));
+        // Test at exactly 7 days (end of day) - should show alert
+        Config::set('services.fantreffen.tshirt_deadline', Carbon::now()->addDays(7)->endOfDay()->format('Y-m-d H:i:s'));
         $service = new FantreffenDeadlineService();
         $this->assertTrue($service->shouldShowAlert());
         
-        // Test at 8 days - should NOT show alert
+        // Test at 8 days (end of day) - should NOT show alert
         Config::set('services.fantreffen.tshirt_deadline', Carbon::now()->addDays(8)->endOfDay()->format('Y-m-d H:i:s'));
         $service = new FantreffenDeadlineService();
         $this->assertFalse($service->shouldShowAlert());
