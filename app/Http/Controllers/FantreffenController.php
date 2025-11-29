@@ -88,6 +88,17 @@ class FantreffenController extends Controller
         }
         
         $tshirtBestellt = $request->boolean('tshirt_bestellt');
+        
+        // T-Shirt-Deadline prüfen - Bestellung nach Deadline verhindern
+        $tshirtDeadline = Carbon::parse(config('services.fantreffen.tshirt_deadline'));
+        $tshirtDeadlinePassed = now()->isAfter($tshirtDeadline);
+        
+        if ($tshirtBestellt && $tshirtDeadlinePassed) {
+            return back()
+                ->withInput()
+                ->withErrors(['tshirt_bestellt' => 'Die Deadline für T-Shirt-Bestellungen ist leider abgelaufen.']);
+        }
+        
         $tshirtGroesse = $tshirtBestellt ? $validated['tshirt_groesse'] : null;
         
         // Kosten berechnen

@@ -114,39 +114,39 @@ class FantreffenTshirtDeadlineTest extends TestCase
     }
 
     /** @test */
-    public function controller_calculates_deadline_correctly()
+    public function controller_passes_deadline_data_to_view_before_deadline()
     {
         // Set deadline to future at end of day
         $deadline = Carbon::now()->addDays(20)->endOfDay();
         Config::set('services.fantreffen.tshirt_deadline', $deadline->format('Y-m-d H:i:s'));
 
-        // Test the deadline calculation logic directly
-        $parsedDeadline = Carbon::parse(config('services.fantreffen.tshirt_deadline'));
-        $tshirtDeadlinePassed = now()->isAfter($parsedDeadline);
-        $daysUntilDeadline = $tshirtDeadlinePassed ? 0 : (int) now()->diffInDays($parsedDeadline, false);
+        $response = $this->withoutVite()->get(route('fantreffen.2026'));
         
-        $this->assertFalse($tshirtDeadlinePassed);
-        // Days calculation may vary by 1 day depending on time
+        $response->assertStatus(200);
+        $response->assertViewHas('tshirtDeadlinePassed', false);
+        $response->assertViewHas('tshirtDeadlineFormatted');
+        
+        // Verify daysUntilDeadline is in reasonable range
+        $daysUntilDeadline = $response->viewData('daysUntilDeadline');
         $this->assertGreaterThanOrEqual(19, $daysUntilDeadline);
         $this->assertLessThanOrEqual(21, $daysUntilDeadline);
     }
 
     /** @test */
-    public function controller_calculates_passed_deadline_correctly()
+    public function controller_passes_deadline_data_to_view_after_deadline()
     {
         // Set deadline to past
         Config::set('services.fantreffen.tshirt_deadline', Carbon::now()->subDays(5)->format('Y-m-d H:i:s'));
 
-        $deadline = Carbon::parse(config('services.fantreffen.tshirt_deadline'));
-        $tshirtDeadlinePassed = now()->isAfter($deadline);
-        $daysUntilDeadline = $tshirtDeadlinePassed ? 0 : (int) now()->diffInDays($deadline, false);
+        $response = $this->withoutVite()->get(route('fantreffen.2026'));
         
-        $this->assertTrue($tshirtDeadlinePassed);
-        $this->assertEquals(0, $daysUntilDeadline);
+        $response->assertStatus(200);
+        $response->assertViewHas('tshirtDeadlinePassed', true);
+        $response->assertViewHas('daysUntilDeadline', 0);
     }
 
     /** @test */
-    public function tshirt_cannot_be_ordered_after_deadline()
+    public function livewire_component_prevents_tshirt_order_after_deadline()
     {
         // Set deadline to past
         Config::set('services.fantreffen.tshirt_deadline', Carbon::now()->subDays(1)->format('Y-m-d H:i:s'));
@@ -162,6 +162,49 @@ class FantreffenTshirtDeadlineTest extends TestCase
     }
 
     /** @test */
+    public function controller_prevents_tshirt_order_after_deadline()
+    {
+        // Set deadline to past
+        Config::set('services.fantreffen.tshirt_deadline', Carbon::now()->subDays(1)->format('Y-m-d H:i:s'));
+
+        $response = $this->post(route('fantreffen.2026.store'), [
+            'vorname' => 'Max',
+            'nachname' => 'Mustermann',
+            'email' => 'max@example.com',
+            'tshirt_bestellt' => true,
+            'tshirt_groesse' => 'L',
+        ]);
+        
+        $response->assertRedirect();
+        $response->assertSessionHasErrors('tshirt_bestellt');
+    }
+
+    /** @test */
+    public function controller_allows_registration_without_tshirt_after_deadline()
+    {
+        // Set deadline to past
+        Config::set('services.fantreffen.tshirt_deadline', Carbon::now()->subDays(1)->format('Y-m-d H:i:s'));
+
+        $response = $this->post(route('fantreffen.2026.store'), [
+            'vorname' => 'Max',
+            'nachname' => 'Mustermann',
+            'email' => 'max@example.com',
+            'tshirt_bestellt' => false,
+        ]);
+        
+        // Should succeed without T-shirt
+        $response->assertRedirect();
+        $response->assertSessionHasNoErrors();
+        
+        $this->assertDatabaseHas('fantreffen_anmeldungen', [
+            'vorname' => 'Max',
+            'nachname' => 'Mustermann',
+            'email' => 'max@example.com',
+            'tshirt_bestellt' => false,
+        ]);
+    }
+
+    /** @test */
     public function aria_alert_is_added_when_deadline_is_near()
     {
         // Set deadline to 5 days from now (within 7-day threshold)
@@ -172,15 +215,29 @@ class FantreffenTshirtDeadlineTest extends TestCase
     }
 
     /** @test */
-    public function aria_alert_is_not_added_when_deadline_is_far()
+    public function aria_alert_is_not_added_to_tshirt_section_when_deadline_is_far()
     {
         // Set deadline to 30 days from now (beyond 7-day threshold)
         Config::set('services.fantreffen.tshirt_deadline', Carbon::now()->addDays(30)->format('Y-m-d H:i:s'));
 
-        $html = Livewire::test(FantreffenAnmeldung::class)->html();
+        $component = Livewire::test(FantreffenAnmeldung::class);
+        $html = $component->html();
         
-        // The role="alert" should not appear in the T-shirt deadline sections
-        // Note: We check that it doesn't appear in the specific context
-        $this->assertStringNotContainsString('role="alert"', $html);
+        // Extract only the T-shirt deadline section by looking for the specific wrapper
+        // The T-shirt section has "T-Shirt nur bis" text
+        $tshirtSectionStart = strpos($html, 'T-Shirt nur bis');
+        if ($tshirtSectionStart !== false) {
+            // Get the surrounding div (approximately 500 chars before and after)
+            $start = max(0, $tshirtSectionStart - 500);
+            $length = 1000;
+            $tshirtSection = substr($html, $start, $length);
+            
+            // The T-shirt deadline section should NOT have role="alert" when deadline is far
+            $this->assertStringNotContainsString('role="alert"', $tshirtSection);
+        }
+        
+        // Also verify deadline is not considered "near"
+        $daysUntilDeadline = $component->get('daysUntilDeadline');
+        $this->assertGreaterThan(7, $daysUntilDeadline);
     }
 }

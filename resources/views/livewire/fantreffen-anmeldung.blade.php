@@ -66,7 +66,7 @@
                                         ⏰ Bestellfrist: {{ $tshirtDeadlineFormatted }}
                                     </p>
                                     <p class="text-xs text-orange-700 dark:text-orange-300 mt-0.5">
-                                        T-Shirts können nur bei Anmeldung bis Ende Februar mitbestellt werden!
+                                        T-Shirts können nur bis zur Bestellfrist mitbestellt werden!
                                     </p>
                                 </div>
                             @else
@@ -145,7 +145,7 @@
                                                         Noch <strong>{{ $daysUntilDeadline }} {{ $daysUntilDeadline === 1 ? 'Tag' : 'Tage' }}</strong> Zeit für deine T-Shirt-Bestellung.
                                                     </p>
                                                 @else
-                                                    <p class="text-xs text-orange-700 dark:text-orange-300" role="alert">
+                                                    <p class="text-xs text-orange-700 dark:text-orange-300">
                                                         Heute ist der letzte Tag für T-Shirt-Bestellungen!
                                                     </p>
                                                 @endif
