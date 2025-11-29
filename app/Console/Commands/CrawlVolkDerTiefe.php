@@ -22,7 +22,7 @@ class CrawlVolkDerTiefe extends Command
 
     private const BASE_URL = 'https://de.maddraxikon.com/';
 
-    private const CATEGORY_URL = self::BASE_URL.'index.php?title=Kategorie:Das_Volk_der_Tiefe';
+    private const CATEGORY_URL = self::BASE_URL.'index.php?title=Kategorie:Das_Volk_der_Tiefe-Heftromane';
 
     public function handle(): int
     {
