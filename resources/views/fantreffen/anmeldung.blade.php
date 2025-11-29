@@ -2,6 +2,60 @@
     :title="'Maddrax-Fantreffen 2026 – Offizieller MADDRAX Fanclub e. V.'"
     :description="'Melde dich jetzt an zum Maddrax-Fantreffen am 9. Mai 2026 in Köln mit Signierstunde und Verleihung der Goldenen Taratze.'"
     :socialImage="asset('build/assets/omxfc-logo-Df-1StAj.png')">
+
+{{-- Strukturierte Daten für Google Rich Results --}}
+<x-slot name="head">
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "Event",
+    "name": "Maddrax-Fantreffen 2026",
+    "description": "Das jährliche Fantreffen des Offiziellen MADDRAX Fanclub e. V. mit Signierstunde und Verleihung der Goldenen Taratze.",
+    "startDate": "2026-05-09T19:00:00+02:00",
+    "endDate": "2026-05-09T23:00:00+02:00",
+    "eventStatus": "https://schema.org/EventScheduled",
+    "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
+    "location": {
+        "@type": "Place",
+        "name": "L'Osteria Köln Mülheim",
+        "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "Düsseldorfer Str. 1-3",
+            "addressLocality": "Köln",
+            "postalCode": "51063",
+            "addressCountry": "DE"
+        }
+    },
+    "organizer": {
+        "@type": "Organization",
+        "name": "Offizieller MADDRAX Fanclub e. V.",
+        "url": "{{ config('app.url') }}"
+    },
+    "offers": [
+        {
+            "@type": "Offer",
+            "name": "Vereinsmitglieder",
+            "price": "0",
+            "priceCurrency": "EUR",
+            "availability": "https://schema.org/InStock",
+            "validFrom": "2025-01-01",
+            "url": "{{ route('fantreffen.2026') }}"
+        },
+        {
+            "@type": "Offer",
+            "name": "Gäste",
+            "price": "5.00",
+            "priceCurrency": "EUR",
+            "availability": "https://schema.org/InStock",
+            "validFrom": "2025-01-01",
+            "url": "{{ route('fantreffen.2026') }}"
+        }
+    ],
+    "image": "{{ asset('build/assets/omxfc-logo-Df-1StAj.png') }}"
+}
+</script>
+</x-slot>
+
 <x-slot name="slot">
 <div class="bg-gray-50 dark:bg-gray-900 -mt-8">
     <div class="relative bg-gradient-to-br from-[#8B0116] to-[#6b000e] text-white py-12 sm:py-16">
