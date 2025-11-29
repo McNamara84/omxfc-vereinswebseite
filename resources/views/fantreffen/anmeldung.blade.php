@@ -66,9 +66,9 @@
                                 Für Gäste zusammen mit Teilnahme: 30,00 €
                             </p>
                             @if (!$tshirtDeadlinePassed)
-                                <div class="mt-2 p-2 bg-orange-100 dark:bg-orange-900/40 rounded border border-orange-300 dark:border-orange-700">
+                                <div class="mt-2 p-2 bg-orange-100 dark:bg-orange-900/40 rounded border border-orange-300 dark:border-orange-700" @if($daysUntilDeadline <= 7) role="alert" @endif>
                                     <p class="text-xs text-orange-800 dark:text-orange-200 font-semibold">
-                                        ⏰ Bestellfrist: 28. Februar 2026
+                                        ⏰ Bestellfrist: {{ $tshirtDeadlineFormatted }}
                                     </p>
                                     <p class="text-xs text-orange-700 dark:text-orange-300 mt-0.5">
                                         T-Shirts können nur bei Anmeldung bis Ende Februar mitbestellt werden!
@@ -139,19 +139,19 @@
                             @if(!$tshirtDeadlinePassed)
                                 <div class="border-t pt-4">
                                     {{-- Prominenter Hinweis zur Bestellfrist --}}
-                                    <div class="mb-3 p-3 bg-gradient-to-r from-orange-100 to-yellow-100 dark:from-orange-900/40 dark:to-yellow-900/40 rounded-lg border border-orange-300 dark:border-orange-600">
+                                    <div class="mb-3 p-3 bg-gradient-to-r from-orange-100 to-yellow-100 dark:from-orange-900/40 dark:to-yellow-900/40 rounded-lg border border-orange-300 dark:border-orange-600" @if($daysUntilDeadline <= 7) role="alert" @endif>
                                         <div class="flex items-center gap-2">
-                                            <span class="text-2xl">👕</span>
+                                            <span class="text-2xl" aria-hidden="true">👕</span>
                                             <div>
                                                 <p class="text-sm font-bold text-orange-800 dark:text-orange-200">
-                                                    T-Shirt nur bis 28. Februar bestellbar!
+                                                    T-Shirt nur bis {{ $tshirtDeadlineFormatted }} bestellbar!
                                                 </p>
                                                 @if ($daysUntilDeadline > 0)
-                                                    <p class="text-xs text-orange-700 dark:text-orange-300">
+                                                    <p class="text-xs text-orange-700 dark:text-orange-300" @if($daysUntilDeadline <= 7) aria-label="Dringend: Nur noch {{ $daysUntilDeadline }} {{ $daysUntilDeadline === 1 ? 'Tag' : 'Tage' }} Zeit für die T-Shirt-Bestellung" @endif>
                                                         Noch <strong>{{ $daysUntilDeadline }} {{ $daysUntilDeadline === 1 ? 'Tag' : 'Tage' }}</strong> Zeit für deine T-Shirt-Bestellung.
                                                     </p>
                                                 @else
-                                                    <p class="text-xs text-orange-700 dark:text-orange-300">
+                                                    <p class="text-xs text-orange-700 dark:text-orange-300" role="alert">
                                                         Heute ist der letzte Tag für T-Shirt-Bestellungen!
                                                     </p>
                                                 @endif

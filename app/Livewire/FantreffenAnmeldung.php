@@ -28,6 +28,7 @@ class FantreffenAnmeldung extends Component
     // T-Shirt deadline
     public $tshirtDeadlinePassed = false;
     public $daysUntilDeadline = 0;
+    public $tshirtDeadlineFormatted = '';
 
     protected function rules()
     {
@@ -58,10 +59,11 @@ class FantreffenAnmeldung extends Component
 
     public function mount()
     {
-        // Check T-Shirt deadline (28.02.2026)
-        $deadline = Carbon::create(2026, 2, 28, 23, 59, 59);
+        // T-Shirt Deadline aus zentraler Konfiguration laden
+        $deadline = Carbon::parse(config('services.fantreffen.tshirt_deadline'));
         $this->tshirtDeadlinePassed = Carbon::now()->isAfter($deadline);
-        $this->daysUntilDeadline = max(0, Carbon::now()->diffInDays($deadline, false));
+        $this->daysUntilDeadline = $this->tshirtDeadlinePassed ? 0 : (int) Carbon::now()->diffInDays($deadline, false);
+        $this->tshirtDeadlineFormatted = $deadline->locale('de')->isoFormat('D. MMMM YYYY');
 
         // Pre-fill data for logged-in users
         if (Auth::check()) {

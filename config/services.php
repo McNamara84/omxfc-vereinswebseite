@@ -47,4 +47,8 @@ return [
         'fantreffen_email' => env('PAYPAL_FANTREFFEN_EMAIL', 'vorstand@maddrax-fanclub.de'),
     ],
 
+    'fantreffen' => [
+        'tshirt_deadline' => env('FANTREFFEN_TSHIRT_DEADLINE', '2026-02-28 23:59:59'),
+    ],
+
 ];

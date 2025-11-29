@@ -18,10 +18,13 @@ class FantreffenController extends Controller
     {
         $user = Auth::user();
         
-        // T-Shirt Deadline berechnen (28. Februar 2026, 23:59:59)
-        $tshirtDeadline = Carbon::create(2026, 2, 28, 23, 59, 59);
+        // T-Shirt Deadline aus zentraler Konfiguration laden
+        $tshirtDeadline = Carbon::parse(config('services.fantreffen.tshirt_deadline'));
         $tshirtDeadlinePassed = now()->isAfter($tshirtDeadline);
-        $daysUntilDeadline = now()->diffInDays($tshirtDeadline, false);
+        $daysUntilDeadline = $tshirtDeadlinePassed ? 0 : (int) now()->diffInDays($tshirtDeadline, false);
+        
+        // Formatiertes Datum für die Anzeige (z.B. "28. Februar 2026")
+        $tshirtDeadlineFormatted = $tshirtDeadline->locale('de')->isoFormat('D. MMMM YYYY');
         
         // Hinweis: paymentAmount wird nur für Button-Text verwendet
         // Die tatsächliche Berechnung erfolgt in store() basierend auf Auswahl
@@ -30,7 +33,8 @@ class FantreffenController extends Controller
         return view('fantreffen.anmeldung', [
             'user' => $user,
             'tshirtDeadlinePassed' => $tshirtDeadlinePassed,
-            'daysUntilDeadline' => max(0, $daysUntilDeadline),
+            'daysUntilDeadline' => $daysUntilDeadline,
+            'tshirtDeadlineFormatted' => $tshirtDeadlineFormatted,
             'paymentAmount' => $paymentAmount,
         ]);
     }
