@@ -6,7 +6,15 @@ use Illuminate\Support\Facades\DB;
 return new class extends Migration
 {
     /**
-     * Run the migrations.
+     * Fix the Mission Mars ENUM value to match the BookType enum.
+     * 
+     * The database had 'Mission Mars' but BookType::MissionMars uses 'Mission Mars-Heftromane'.
+     * This migration updates the ENUM to use the correct value.
+     * 
+     * Note: 'Das Volk der Tiefe' intentionally does NOT have the '-Heftromane' suffix
+     * in the BookType enum, matching the established naming convention in this project.
+     * The Wiki category URL uses 'Das_Volk_der_Tiefe-Heftromane' but the database value
+     * is 'Das Volk der Tiefe' as defined in App\Enums\BookType::DasVolkDerTiefe.
      */
     public function up(): void
     {
