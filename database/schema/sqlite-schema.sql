@@ -403,6 +403,26 @@ CREATE INDEX "audiobook_roles_name_user_speaker_index" on "audiobook_roles"(
   "speaker_name"
 );
 
+CREATE TABLE IF NOT EXISTS "fantreffen_anmeldungen"(
+  "id" integer primary key autoincrement not null,
+  "user_id" integer,
+  "vorname" varchar,
+  "nachname" varchar,
+  "email" varchar,
+  "mobile" varchar,
+  "tshirt_bestellt" tinyint(1) not null default '0',
+  "tshirt_groesse" varchar check ("tshirt_groesse" in ('XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL')),
+  "payment_status" varchar check ("payment_status" in ('pending', 'paid', 'free')) not null default 'pending',
+  "payment_amount" decimal(8, 2),
+  "tshirt_fertig" tinyint(1) not null default '0',
+  "zahlungseingang" tinyint(1) not null default '0',
+  "paypal_transaction_id" varchar,
+  "ist_mitglied" tinyint(1) not null default '0',
+  "created_at" datetime,
+  "updated_at" datetime,
+  foreign key("user_id") references "users"("id") on delete cascade
+);
+
 INSERT INTO migrations VALUES(1,'0001_01_01_000000_create_users_table',1);
 INSERT INTO migrations VALUES(2,'0001_01_01_000001_create_cache_table',1);
 INSERT INTO migrations VALUES(3,'0001_01_01_000002_create_jobs_table',1);
@@ -451,3 +471,5 @@ INSERT INTO migrations VALUES(45,'2025_10_01_000000_update_book_type_enum',1);
 INSERT INTO migrations VALUES(46,'2025_09_25_052816_create_member_client_snapshots_table',2);
 INSERT INTO migrations VALUES(47,'2025_09_26_094551_add_uploaded_to_audiobook_roles_table',2);
 INSERT INTO migrations VALUES(48,'2025_09_26_130232_add_contact_and_pseudonym_to_audiobook_roles_table',2);
+INSERT INTO migrations VALUES(49,'2025_11_08_092743_create_fantreffen_anmeldungen_table',3);
+INSERT INTO migrations VALUES(50,'2025_11_29_102701_fix_mission_mars_enum_value_in_books_table',3);
