@@ -42,6 +42,7 @@
                 <div class="hidden sm:ml-10 sm:flex sm:space-x-8">
                     @auth
                         <x-nav-link href="{{ route('dashboard') }}">Dashboard</x-nav-link>
+                        <x-nav-link href="{{ route('fantreffen.2026') }}">Fantreffen 2026</x-nav-link>
                         <!-- Dropdown Verein -->
                         <div class="relative flex items-center ml-4 group" x-data="{ open: false }" @click="open = !open" @click.away="open = false" @keydown.escape="open = false">
                             <button id="verein-button" type="button" class="px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition" :aria-expanded="open" aria-controls="verein-menu" @keydown.enter.prevent="open = !open" @keydown.space.prevent="open = !open">
@@ -120,6 +121,7 @@
                         @endif
                     @endauth
                     @guest
+                        <x-nav-link href="{{ route('fantreffen.2026') }}">Fantreffen 2026</x-nav-link>
                         <x-nav-link href="{{ route('chronik') }}">Chronik</x-nav-link>
                         <x-nav-link href="{{ route('ehrenmitglieder') }}">Ehrenmitglieder</x-nav-link>
                         <x-nav-link href="{{ route('termine') }}">Termine</x-nav-link>
@@ -182,6 +184,7 @@
     <div id="mobile-navigation" :class="{'block': open, 'hidden': !open}" class="hidden sm:hidden">
         @auth
             <x-responsive-nav-link href="{{ route('dashboard') }}">Dashboard</x-responsive-nav-link>
+            <x-responsive-nav-link href="{{ route('fantreffen.2026') }}">Fantreffen 2026</x-responsive-nav-link>
             <button id="verein-mobile-button" type="button" @click="openMenu = (openMenu === 'verein' ? null : 'verein')" class="w-full text-left px-4 py-2 font-bold text-gray-600 dark:text-gray-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500" :class="{ 'bg-gray-100 dark:bg-gray-700': openMenu === 'verein' }" :aria-expanded="openMenu === 'verein'" aria-controls="verein-mobile-menu" @keydown.enter.prevent="openMenu = (openMenu === 'verein' ? null : 'verein')" @keydown.space.prevent="openMenu = (openMenu === 'verein' ? null : 'verein')">
             Verein</button>
             <div id="verein-mobile-menu" x-show="openMenu === 'verein'" x-cloak class="italic">
@@ -243,6 +246,7 @@
         @endauth
 
         @guest
+            <x-responsive-nav-link href="{{ route('fantreffen.2026') }}">Fantreffen 2026</x-responsive-nav-link>
             <x-responsive-nav-link href="{{ route('chronik') }}">Chronik</x-responsive-nav-link>
             <x-responsive-nav-link href="{{ route('ehrenmitglieder') }}">Ehrenmitglieder</x-responsive-nav-link>
             <x-responsive-nav-link href="{{ route('termine') }}">Termine</x-responsive-nav-link>
