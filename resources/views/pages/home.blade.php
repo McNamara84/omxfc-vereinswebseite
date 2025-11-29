@@ -1,28 +1,4 @@
 <x-app-layout title="Startseite – Offizieller MADDRAX Fanclub e. V." :description="$homeDescription">
-    {{-- Strukturierte Daten für Google Rich Results --}}
-    <x-slot name="head">
-    <script type="application/ld+json">
-    {
-        "@@context": "https://schema.org",
-        "@@type": "Organization",
-        "name": "Offizieller MADDRAX Fanclub e. V.",
-        "alternateName": "OMXFC e. V.",
-        "url": "{{ config('app.url') }}",
-        "logo": "{{ asset('build/assets/omxfc-logo-Df-1StAj.png') }}",
-        "description": "Der Offizielle MADDRAX Fanclub e. V. vernetzt Fans der postapokalyptischen Romanserie und informiert über Projekte, Termine und Mitgliedschaft.",
-        "foundingDate": "2023",
-        "address": {
-            "@@type": "PostalAddress",
-            "addressCountry": "DE"
-        },
-        "memberOf": {
-            "@@type": "Thing",
-            "name": "MADDRAX Fan-Community"
-        }
-    }
-    </script>
-    </x-slot>
-
     <x-public-page>
         <h1 class="text-3xl font-bold text-[#8B0116] dark:text-[#ff4b63] mb-8 text-center">Willkommen beim Offiziellen MADDRAX Fanclub e. V.!</h1>
 
@@ -165,6 +141,28 @@
 
     <script type="application/ld+json">
         {!! json_encode($structuredData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}
+    </script>
+
+    {{-- Organization-Schema für Google Rich Results --}}
+    <script type="application/ld+json">
+    {
+        "@@context": "https://schema.org",
+        "@@type": "Organization",
+        "name": "Offizieller MADDRAX Fanclub e. V.",
+        "alternateName": "OMXFC e. V.",
+        "url": "{{ config('app.url') }}",
+        "logo": "{{ asset('build/assets/omxfc-logo-Df-1StAj.png') }}",
+        "description": "Der Offizielle MADDRAX Fanclub e. V. vernetzt Fans der postapokalyptischen Romanserie und informiert über Projekte, Termine und Mitgliedschaft.",
+        "foundingDate": "2023",
+        "address": {
+            "@@type": "PostalAddress",
+            "addressCountry": "DE"
+        },
+        "memberOf": {
+            "@@type": "Thing",
+            "name": "MADDRAX Fan-Community"
+        }
+    }
     </script>
 
     <script>

@@ -8,30 +8,6 @@
 <?php $attributes = $attributes->except(\App\View\Components\AppLayout::ignoredParameterNames()); ?>
 <?php endif; ?>
 <?php $component->withAttributes([]); ?>
-    
-     <?php $__env->slot('head', null, []); ?> 
-    <script type="application/ld+json">
-    {
-        "@context": "https://schema.org",
-        "@type": "Organization",
-        "name": "Offizieller MADDRAX Fanclub e. V.",
-        "alternateName": "OMXFC e. V.",
-        "url": "<?php echo e(config('app.url')); ?>",
-        "logo": "<?php echo e(asset('build/assets/omxfc-logo-Df-1StAj.png')); ?>",
-        "description": "Der Offizielle MADDRAX Fanclub e. V. vernetzt Fans der postapokalyptischen Romanserie und informiert über Projekte, Termine und Mitgliedschaft.",
-        "foundingDate": "2023",
-        "address": {
-            "@type": "PostalAddress",
-            "addressCountry": "DE"
-        },
-        "memberOf": {
-            "@type": "Thing",
-            "name": "MADDRAX Fan-Community"
-        }
-    }
-    </script>
-     <?php $__env->endSlot(); ?>
-
     <?php if (isset($component)) { $__componentOriginal9dce4513fd04d115a69d54d7093eec93 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal9dce4513fd04d115a69d54d7093eec93 = $attributes; } ?>
 <?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.public-page','data' => []] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
@@ -193,6 +169,28 @@
     <script type="application/ld+json">
         <?php echo json_encode($structuredData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>
 
+    </script>
+
+    
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "Offizieller MADDRAX Fanclub e. V.",
+        "alternateName": "OMXFC e. V.",
+        "url": "<?php echo e(config('app.url')); ?>",
+        "logo": "<?php echo e(asset('build/assets/omxfc-logo-Df-1StAj.png')); ?>",
+        "description": "Der Offizielle MADDRAX Fanclub e. V. vernetzt Fans der postapokalyptischen Romanserie und informiert über Projekte, Termine und Mitgliedschaft.",
+        "foundingDate": "2023",
+        "address": {
+            "@type": "PostalAddress",
+            "addressCountry": "DE"
+        },
+        "memberOf": {
+            "@type": "Thing",
+            "name": "MADDRAX Fan-Community"
+        }
+    }
     </script>
 
     <script>
