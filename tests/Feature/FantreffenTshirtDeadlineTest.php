@@ -3,9 +3,11 @@
 namespace Tests\Feature;
 
 use App\Livewire\FantreffenAnmeldung;
+use App\Services\FantreffenDeadlineService;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Mail;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -164,6 +166,8 @@ class FantreffenTshirtDeadlineTest extends TestCase
     /** @test */
     public function controller_prevents_tshirt_order_after_deadline()
     {
+        Mail::fake();
+        
         // Set deadline to past
         Config::set('services.fantreffen.tshirt_deadline', Carbon::now()->subDays(1)->format('Y-m-d H:i:s'));
 
@@ -182,6 +186,8 @@ class FantreffenTshirtDeadlineTest extends TestCase
     /** @test */
     public function controller_allows_registration_without_tshirt_after_deadline()
     {
+        Mail::fake();
+        
         // Set deadline to past
         Config::set('services.fantreffen.tshirt_deadline', Carbon::now()->subDays(1)->format('Y-m-d H:i:s'));
 
@@ -215,29 +221,32 @@ class FantreffenTshirtDeadlineTest extends TestCase
     }
 
     /** @test */
-    public function aria_alert_is_not_added_to_tshirt_section_when_deadline_is_far()
+    public function aria_alert_is_not_added_when_deadline_is_far()
     {
         // Set deadline to 30 days from now (beyond 7-day threshold)
         Config::set('services.fantreffen.tshirt_deadline', Carbon::now()->addDays(30)->format('Y-m-d H:i:s'));
 
+        // Use the service to verify the shouldShowAlert logic
+        $deadlineService = new FantreffenDeadlineService();
+        $this->assertFalse($deadlineService->shouldShowAlert());
+        $this->assertGreaterThan(7, $deadlineService->getDaysRemaining());
+        
+        // Verify the component reflects this - no role="alert" should appear
         $component = Livewire::test(FantreffenAnmeldung::class);
-        $html = $component->html();
+        $component->assertDontSeeHtml('role="alert"');
+    }
+
+    /** @test */
+    public function deadline_service_correctly_calculates_alert_threshold()
+    {
+        // Test at exactly 7 days - should show alert
+        Config::set('services.fantreffen.tshirt_deadline', Carbon::now()->addDays(7)->format('Y-m-d H:i:s'));
+        $service = new FantreffenDeadlineService();
+        $this->assertTrue($service->shouldShowAlert());
         
-        // Extract only the T-shirt deadline section by looking for the specific wrapper
-        // The T-shirt section has "T-Shirt nur bis" text
-        $tshirtSectionStart = strpos($html, 'T-Shirt nur bis');
-        if ($tshirtSectionStart !== false) {
-            // Get the surrounding div (approximately 500 chars before and after)
-            $start = max(0, $tshirtSectionStart - 500);
-            $length = 1000;
-            $tshirtSection = substr($html, $start, $length);
-            
-            // The T-shirt deadline section should NOT have role="alert" when deadline is far
-            $this->assertStringNotContainsString('role="alert"', $tshirtSection);
-        }
-        
-        // Also verify deadline is not considered "near"
-        $daysUntilDeadline = $component->get('daysUntilDeadline');
-        $this->assertGreaterThan(7, $daysUntilDeadline);
+        // Test at 8 days - should NOT show alert
+        Config::set('services.fantreffen.tshirt_deadline', Carbon::now()->addDays(8)->endOfDay()->format('Y-m-d H:i:s'));
+        $service = new FantreffenDeadlineService();
+        $this->assertFalse($service->shouldShowAlert());
     }
 }

@@ -6,7 +6,7 @@ use App\Mail\FantreffenAnmeldungBestaetigung;
 use App\Mail\FantreffenNeueAnmeldung;
 use App\Models\FantreffenAnmeldung;
 use App\Models\User;
-use Carbon\Carbon;
+use App\Services\FantreffenDeadlineService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -18,25 +18,20 @@ class FantreffenController extends Controller
     {
         $user = Auth::user();
         
-        // T-Shirt Deadline aus zentraler Konfiguration laden
-        $tshirtDeadline = Carbon::parse(config('services.fantreffen.tshirt_deadline'));
-        $tshirtDeadlinePassed = now()->isAfter($tshirtDeadline);
-        $daysUntilDeadline = $tshirtDeadlinePassed ? 0 : (int) now()->diffInDays($tshirtDeadline, false);
-        
-        // Formatiertes Datum für die Anzeige (z.B. "28. Februar 2026")
-        $tshirtDeadlineFormatted = $tshirtDeadline->locale('de')->isoFormat('D. MMMM YYYY');
+        // T-Shirt Deadline aus zentralem Service laden
+        $deadlineService = new FantreffenDeadlineService();
         
         // Hinweis: paymentAmount wird nur für Button-Text verwendet
         // Die tatsächliche Berechnung erfolgt in store() basierend auf Auswahl
         $paymentAmount = 0;
         
-        return view('fantreffen.anmeldung', [
-            'user' => $user,
-            'tshirtDeadlinePassed' => $tshirtDeadlinePassed,
-            'daysUntilDeadline' => $daysUntilDeadline,
-            'tshirtDeadlineFormatted' => $tshirtDeadlineFormatted,
-            'paymentAmount' => $paymentAmount,
-        ]);
+        return view('fantreffen.anmeldung', array_merge(
+            $deadlineService->toArray(),
+            [
+                'user' => $user,
+                'paymentAmount' => $paymentAmount,
+            ]
+        ));
     }
     
     public function store(Request $request)
@@ -90,10 +85,9 @@ class FantreffenController extends Controller
         $tshirtBestellt = $request->boolean('tshirt_bestellt');
         
         // T-Shirt-Deadline prüfen - Bestellung nach Deadline verhindern
-        $tshirtDeadline = Carbon::parse(config('services.fantreffen.tshirt_deadline'));
-        $tshirtDeadlinePassed = now()->isAfter($tshirtDeadline);
+        $deadlineService = new FantreffenDeadlineService();
         
-        if ($tshirtBestellt && $tshirtDeadlinePassed) {
+        if ($tshirtBestellt && $deadlineService->isPassed()) {
             return back()
                 ->withInput()
                 ->withErrors(['tshirt_bestellt' => 'Die Deadline für T-Shirt-Bestellungen ist leider abgelaufen.']);
