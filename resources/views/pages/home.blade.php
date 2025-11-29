@@ -40,6 +40,23 @@
                     @endforeach
                 </div>
             </div>
+
+            {{-- Fantreffen 2026 Banner --}}
+            <div class="md:col-span-2 bg-gradient-to-r from-[#8B0116] to-[#a01526] rounded-lg shadow-lg p-6 text-white">
+                <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-2xl font-bold mb-2">🎉 Maddrax-Fantreffen 2026 in Köln</h2>
+                        <p class="text-white/90">
+                            <strong>Samstag, 9. Mai 2026</strong> – Signierstunde mit Autoren, Verleihung der Goldenen Taratze & mehr!
+                        </p>
+                    </div>
+                    <a href="{{ route('fantreffen.2026') }}" 
+                       class="inline-block px-6 py-3 bg-white text-[#8B0116] font-bold rounded-lg hover:bg-gray-100 transition whitespace-nowrap">
+                        Jetzt anmelden →
+                    </a>
+                </div>
+            </div>
+
             {{-- Wer wir sind --}}
             <div class="bg-white dark:bg-gray-700 rounded-lg shadow-md p-6">
                 <h2 class="text-2xl font-semibold text-[#8B0116] dark:text-[#ff4b63] mb-4">Wer wir sind</h2>

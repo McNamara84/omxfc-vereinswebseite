@@ -54,13 +54,99 @@
     "image": "{{ asset('build/assets/omxfc-logo-Df-1StAj.png') }}"
 }
 </script>
+
+{{-- Breadcrumb-Schema für bessere Darstellung in Suchergebnissen --}}
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+        {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Startseite",
+            "item": "{{ config('app.url') }}"
+        },
+        {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Veranstaltungen",
+            "item": "{{ config('app.url') }}/termine"
+        },
+        {
+            "@type": "ListItem",
+            "position": 3,
+            "name": "Maddrax-Fantreffen 2026",
+            "item": "{{ route('fantreffen.2026') }}"
+        }
+    ]
+}
+</script>
+
+{{-- FAQ-Schema für mögliche Rich Snippets --}}
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+        {
+            "@type": "Question",
+            "name": "Wann findet das Maddrax-Fantreffen 2026 statt?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Das Maddrax-Fantreffen 2026 findet am Samstag, 9. Mai 2026 ab 19:00 Uhr statt."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "Wo findet das Fantreffen statt?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Das Fantreffen findet in der L'Osteria Köln Mülheim statt (Düsseldorfer Str. 1-3, 51063 Köln)."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "Was kostet die Teilnahme am Fantreffen?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Für Vereinsmitglieder ist die Teilnahme kostenlos. Gäste werden um eine Spende von 5 € gebeten. Optional kann ein Event-T-Shirt für 25 € bestellt werden."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "Muss ich Vereinsmitglied sein um teilzunehmen?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Nein, auch Gäste sind herzlich willkommen! Du kannst dich als Gast anmelden oder vorher Mitglied werden, um kostenlos teilzunehmen."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "Gibt es eine Signierstunde mit MADDRAX-Autoren?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Ja! Ab 19:00 Uhr gibt es eine Signierstunde, bei der du deine Lieblingsautoren treffen kannst."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "Was ist die Goldene Taratze?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Die Goldene Taratze ist ein Fan-Preis, der jährlich beim Fantreffen an besondere Personen oder Projekte aus der MADDRAX-Community verliehen wird."
+            }
+        }
+    ]
+}
+</script>
 </x-slot>
 
 <x-slot name="slot">
 <div class="bg-gray-50 dark:bg-gray-900 -mt-8">
     <div class="relative bg-gradient-to-br from-[#8B0116] to-[#6b000e] text-white py-12 sm:py-16">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h1 class="text-5xl font-bold mb-6">Maddrax-Fantreffen 2026</h1>
+            <h1 class="text-5xl font-bold mb-6">Maddrax-Fantreffen 2026 in Köln</h1>
             <div class="flex flex-col sm:flex-row justify-center gap-6 text-lg mb-6">
                 <span>📅 Samstag, 9. Mai 2026</span>
                 <span>🕖 ab 19:00 Uhr</span>
@@ -125,6 +211,48 @@
                                 :daysUntilDeadline="$daysUntilDeadline"
                                 variant="compact"
                             />
+                        </div>
+                    </div>
+                </div>
+                {{-- FAQ-Sektion --}}
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+                    <h2 class="text-2xl font-bold mb-4 text-[#8B0116] dark:text-[#ff4b63]">Häufige Fragen</h2>
+                    <div class="space-y-3" x-data="{ open: null }">
+                        <div class="border-b border-gray-200 dark:border-gray-700 pb-3">
+                            <button @click="open = open === 1 ? null : 1" class="flex justify-between w-full text-left font-semibold text-gray-900 dark:text-white">
+                                <span>Muss ich Vereinsmitglied sein?</span>
+                                <span x-text="open === 1 ? '−' : '+'"></span>
+                            </button>
+                            <p x-show="open === 1" x-collapse class="mt-2 text-gray-600 dark:text-gray-300 text-sm">
+                                Nein! Auch Gäste sind herzlich willkommen. Als Mitglied ist die Teilnahme allerdings kostenlos.
+                            </p>
+                        </div>
+                        <div class="border-b border-gray-200 dark:border-gray-700 pb-3">
+                            <button @click="open = open === 2 ? null : 2" class="flex justify-between w-full text-left font-semibold text-gray-900 dark:text-white">
+                                <span>Was ist die Goldene Taratze?</span>
+                                <span x-text="open === 2 ? '−' : '+'"></span>
+                            </button>
+                            <p x-show="open === 2" x-collapse class="mt-2 text-gray-600 dark:text-gray-300 text-sm">
+                                Ein Fan-Preis, der jährlich an besondere Personen oder Projekte aus der MADDRAX-Community verliehen wird.
+                            </p>
+                        </div>
+                        <div class="border-b border-gray-200 dark:border-gray-700 pb-3">
+                            <button @click="open = open === 3 ? null : 3" class="flex justify-between w-full text-left font-semibold text-gray-900 dark:text-white">
+                                <span>Kann ich ein T-Shirt bestellen?</span>
+                                <span x-text="open === 3 ? '−' : '+'"></span>
+                            </button>
+                            <p x-show="open === 3" x-collapse class="mt-2 text-gray-600 dark:text-gray-300 text-sm">
+                                Ja! Für 25 € Spende (Gäste: 30 € inkl. Teilnahme) kannst du ein exklusives Event-T-Shirt bestellen.
+                            </p>
+                        </div>
+                        <div class="pb-1">
+                            <button @click="open = open === 4 ? null : 4" class="flex justify-between w-full text-left font-semibold text-gray-900 dark:text-white">
+                                <span>Gibt es eine Signierstunde?</span>
+                                <span x-text="open === 4 ? '−' : '+'"></span>
+                            </button>
+                            <p x-show="open === 4" x-collapse class="mt-2 text-gray-600 dark:text-gray-300 text-sm">
+                                Ja! Ab 19:00 Uhr kannst du deine Lieblingsautoren treffen und dir Bücher signieren lassen.
+                            </p>
                         </div>
                     </div>
                 </div>
