@@ -60,6 +60,12 @@
                             <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 italic">
                                 Für Gäste zusammen mit Teilnahme: 30,00 €
                             </p>
+                            <x-fantreffen-tshirt-deadline-notice 
+                                :tshirtDeadlinePassed="$tshirtDeadlinePassed"
+                                :tshirtDeadlineFormatted="$tshirtDeadlineFormatted"
+                                :daysUntilDeadline="$daysUntilDeadline"
+                                variant="compact"
+                            />
                         </div>
                     </div>
                 </div>
@@ -116,6 +122,13 @@
                             </div>
                             @if (!$tshirtDeadlinePassed)
                                 <div class="border-t pt-4" wire:key="tshirt-section">
+                                    {{-- Prominenter Hinweis zur Bestellfrist --}}
+                                    <x-fantreffen-tshirt-deadline-notice 
+                                        :tshirtDeadlinePassed="$tshirtDeadlinePassed"
+                                        :tshirtDeadlineFormatted="$tshirtDeadlineFormatted"
+                                        :daysUntilDeadline="$daysUntilDeadline"
+                                        variant="prominent"
+                                    />
                                     <div x-data="{ showTshirtSize: {{ $tshirt_bestellt ? 'true' : 'false' }} }">
                                         <label class="flex items-start gap-2">
                                             <input type="checkbox" 

@@ -6,7 +6,7 @@ use App\Mail\FantreffenAnmeldungBestaetigung;
 use App\Mail\FantreffenNeueAnmeldung;
 use App\Models\FantreffenAnmeldung;
 use App\Models\User;
-use Carbon\Carbon;
+use App\Services\FantreffenDeadlineService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -18,21 +18,20 @@ class FantreffenController extends Controller
     {
         $user = Auth::user();
         
-        // T-Shirt Deadline berechnen
-        $tshirtDeadline = Carbon::create(2026, 4, 9);
-        $tshirtDeadlinePassed = now()->isAfter($tshirtDeadline);
-        $daysUntilDeadline = now()->diffInDays($tshirtDeadline, false);
+        // T-Shirt Deadline aus zentralem Service laden
+        $deadlineService = new FantreffenDeadlineService();
         
         // Hinweis: paymentAmount wird nur für Button-Text verwendet
         // Die tatsächliche Berechnung erfolgt in store() basierend auf Auswahl
         $paymentAmount = 0;
         
-        return view('fantreffen.anmeldung', [
-            'user' => $user,
-            'tshirtDeadlinePassed' => $tshirtDeadlinePassed,
-            'daysUntilDeadline' => max(0, $daysUntilDeadline),
-            'paymentAmount' => $paymentAmount,
-        ]);
+        return view('fantreffen.anmeldung', array_merge(
+            $deadlineService->toArray(),
+            [
+                'user' => $user,
+                'paymentAmount' => $paymentAmount,
+            ]
+        ));
     }
     
     public function store(Request $request)
@@ -84,6 +83,16 @@ class FantreffenController extends Controller
         }
         
         $tshirtBestellt = $request->boolean('tshirt_bestellt');
+        
+        // T-Shirt-Deadline prüfen - Bestellung nach Deadline verhindern
+        $deadlineService = new FantreffenDeadlineService();
+        
+        if ($tshirtBestellt && $deadlineService->isPassed()) {
+            return back()
+                ->withInput()
+                ->withErrors(['tshirt_bestellt' => 'Die Deadline für T-Shirt-Bestellungen ist leider abgelaufen.']);
+        }
+        
         $tshirtGroesse = $tshirtBestellt ? $validated['tshirt_groesse'] : null;
         
         // Kosten berechnen

@@ -6,7 +6,7 @@ use App\Mail\FantreffenAnmeldungBestaetigung;
 use App\Mail\FantreffenNeueAnmeldung;
 use App\Models\FantreffenAnmeldung as FantreffenAnmeldungModel;
 use App\Models\User;
-use Carbon\Carbon;
+use App\Services\FantreffenDeadlineService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use Livewire\Component;
@@ -28,6 +28,7 @@ class FantreffenAnmeldung extends Component
     // T-Shirt deadline
     public $tshirtDeadlinePassed = false;
     public $daysUntilDeadline = 0;
+    public $tshirtDeadlineFormatted = '';
 
     protected function rules()
     {
@@ -58,10 +59,11 @@ class FantreffenAnmeldung extends Component
 
     public function mount()
     {
-        // Check T-Shirt deadline (28.02.2026)
-        $deadline = Carbon::create(2026, 2, 28, 23, 59, 59);
-        $this->tshirtDeadlinePassed = Carbon::now()->isAfter($deadline);
-        $this->daysUntilDeadline = max(0, Carbon::now()->diffInDays($deadline, false));
+        // T-Shirt Deadline aus zentralem Service laden
+        $deadlineService = new FantreffenDeadlineService();
+        $this->tshirtDeadlinePassed = $deadlineService->isPassed();
+        $this->daysUntilDeadline = $deadlineService->getDaysRemaining();
+        $this->tshirtDeadlineFormatted = $deadlineService->getFormattedDate();
 
         // Pre-fill data for logged-in users
         if (Auth::check()) {
