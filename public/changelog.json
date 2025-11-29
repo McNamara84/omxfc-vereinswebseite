@@ -1,5 +1,36 @@
 [ 
   {
+    "version": "1.7.0",
+    "pub_date": "2025-11-29",
+    "notes": [
+      "[New] Anmeldeformular für das Maddrax-Fantreffen 2026 mit T-Shirt-Bestellung und PayPal-Zahlung",
+      "[New] Unterstützung für Das Volk der Tiefe Romane mit Rezensionen und Romantausch",
+      "[New] Card mit Gesamtzahl der Rezensionen auf der Startseite ergänzt",
+      "[New] Card mit den letzten Rezensionen auf der Startseite ergänzt",
+      "[New] Upload-Status-Tracking für Hörbuch-Rollen im EARDRAX-Dashboard",
+      "[New] Kontakt- und Pseudonymfelder für Hörbuch-Rollen hinzugefügt",
+      "[New] Tägliche aktive Nutzer-Statistik im Admin-Dashboard",
+      "[New] Geräte- und Browser-Nutzungsstatistiken im Admin-Dashboard",
+      "[New] Satzung-Link im Verein-Menü für eingeloggte Mitglieder",
+      "[Improved] Drag-and-Drop-Upload für Fotos in der Romantauschbörse",
+      "[Improved] Angebote und Gesuche in der Romantauschbörse können nachträglich bearbeitet werden",
+      "[Improved] Thumbnail-Vorschau für Angebote in der Romantauschbörse-Übersicht",
+      "[Improved] Passende Tauschangebote werden in der Romantauschbörse hervorgehoben",
+      "[Improved] Barrierefreie Fotogalerie und Hilfestellungen in der Romantauschbörse",
+      "[Improved] Sticky-Navigation für schnelles Springen zwischen Statistik-Abschnitten",
+      "[Improved] Rollenname-Filter für Hörbuch-Episoden im EARDRAX-Dashboard",
+      "[Improved] Hochgeladene Hörbuch-Rollen werden visuell hervorgehoben",
+      "[Improved] Changelog-Einträge sind standardmäßig eingeklappt für bessere Übersicht",
+      "[Improved] SEO-Optimierung für Fantreffen 2026 Seite",
+      "[Improved] Mitgliedsformular-Felder in wiederverwendbare Komponente ausgelagert",
+      "[Fixed] Sortierung der Zyklen in der Rezensions-Übersicht korrigiert",
+      "[Fixed] Romantausch-Matching erfordert nun beidseitige Angebote",
+      "[Fixed] Doppelzählung von unbesetzten Hörbuch-Rollen behoben",
+      "[Fixed] Challenge-Löschung auf Vorstandsmitglieder beschränkt",
+      "[Fixed] Fehlende Aktivitätseinträge im Dashboard werden abgefangen"
+    ]
+  },
+  {
     "version": "1.6.0",
     "pub_date": "2025-09-21",
     "notes": [
