@@ -12,14 +12,11 @@ return new class extends Migration
     {
         // Only run on MySQL/MariaDB - SQLite doesn't have ENUM type and uses TEXT instead
         if (DB::connection()->getDriverName() === 'mysql') {
-            // MySQL requires modifying the ENUM to include the new value
-            // First, update any existing rows with the old value
-            DB::statement("UPDATE books SET type = 'Mission Mars' WHERE type = 'Mission Mars'");
-            
-            // Then modify the column to use the correct ENUM values matching BookType enum
+            // First, modify the ENUM to include BOTH old and new values temporarily
             DB::statement("ALTER TABLE books MODIFY COLUMN type ENUM(
                 'Maddrax - Die dunkle Zukunft der Erde',
                 'Maddrax-Hardcover',
+                'Mission Mars',
                 'Mission Mars-Heftromane',
                 'Das Volk der Tiefe',
                 '2012 - Das Jahr der Apokalypse',
@@ -28,6 +25,16 @@ return new class extends Migration
             
             // Update existing Mission Mars entries to the new enum value
             DB::statement("UPDATE books SET type = 'Mission Mars-Heftromane' WHERE type = 'Mission Mars'");
+            
+            // Now remove the old value from the ENUM
+            DB::statement("ALTER TABLE books MODIFY COLUMN type ENUM(
+                'Maddrax - Die dunkle Zukunft der Erde',
+                'Maddrax-Hardcover',
+                'Mission Mars-Heftromane',
+                'Das Volk der Tiefe',
+                '2012 - Das Jahr der Apokalypse',
+                'Die Abenteurer'
+            ) NOT NULL DEFAULT 'Maddrax - Die dunkle Zukunft der Erde'");
         }
         // For SQLite: The schema already uses TEXT for type column, so just update existing values
         else {
