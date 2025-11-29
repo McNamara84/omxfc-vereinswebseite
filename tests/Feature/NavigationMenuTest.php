@@ -86,4 +86,22 @@ class NavigationMenuTest extends TestCase
 
         $response->assertDontSee(route('hoerbuecher.create'));
     }
+
+    public function test_authenticated_users_see_fantreffen_2026_link_in_navigation(): void
+    {
+        $user = User::factory()->withPersonalTeam()->create();
+
+        $response = $this->actingAs($user)->get('/');
+
+        $response->assertSee(route('fantreffen.2026'));
+        $response->assertSee('Fantreffen 2026');
+    }
+
+    public function test_guests_see_fantreffen_2026_link_in_navigation(): void
+    {
+        $response = $this->get('/');
+
+        $response->assertSee(route('fantreffen.2026'));
+        $response->assertSee('Fantreffen 2026');
+    }
 }
