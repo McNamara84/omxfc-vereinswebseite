@@ -10,6 +10,9 @@
     <meta property="og:description" content="{{ $description ?? 'Der Offizielle MADDRAX Fanclub e. V. vernetzt Fans der postapokalyptischen Romanserie und informiert über Projekte, Termine und Mitgliedschaft.' }}">
     <meta property="og:image" content="{{ $socialImage }}">
     <meta property="og:type" content="website">
+    <meta property="og:locale" content="de_DE">
+    <meta property="og:site_name" content="Offizieller MADDRAX Fanclub e. V.">
+    <meta property="og:url" content="{{ request()->url() }}">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="{{ $title ?? config('app.name', 'OMXFC e. V.') }}">
     <meta name="twitter:description" content="{{ $description ?? 'Der Offizielle MADDRAX Fanclub e. V. vernetzt Fans der postapokalyptischen Romanserie und informiert über Projekte, Termine und Mitgliedschaft.' }}">
@@ -30,6 +33,8 @@
     @include('layouts.partials.theme-bootstrap')
     @vite(['resources/css/app.css'])
     @livewireStyles
+    {{-- Zusätzliche Head-Inhalte (z.B. JSON-LD für SEO) --}}
+    {{ $head ?? '' }}
 </head>
 
 <body class="font-sans antialiased">

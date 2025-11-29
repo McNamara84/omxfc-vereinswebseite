@@ -1,23 +1,41 @@
-<x-app-layout title="Startseite – Offizieller MADDRAX Fanclub e. V." :description="$homeDescription">
-    <x-public-page>
+<?php if (isset($component)) { $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54 = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginal9ac128a9029c0e4701924bd2d73d7f54 = $attributes; } ?>
+<?php $component = App\View\Components\AppLayout::resolve(['title' => 'Startseite – Offizieller MADDRAX Fanclub e. V.','description' => $homeDescription] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('app-layout'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\App\View\Components\AppLayout::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes([]); ?>
+    <?php if (isset($component)) { $__componentOriginal9dce4513fd04d115a69d54d7093eec93 = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginal9dce4513fd04d115a69d54d7093eec93 = $attributes; } ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.public-page','data' => []] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('public-page'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes([]); ?>
         <h1 class="text-3xl font-bold text-[#8B0116] dark:text-[#ff4b63] mb-8 text-center">Willkommen beim Offiziellen MADDRAX Fanclub e. V.!</h1>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {{-- Fotogalerie --}}
+            
             <div class="md:col-span-2 bg-white dark:bg-gray-700 rounded-lg shadow-md overflow-hidden">
                 <div id="gallery" class="relative w-full h-48 sm:h-64 md:h-72">
-                    @foreach($galleryImages as $image)
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $galleryImages; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $image): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                         <picture>
-                            <source type="image/avif" srcset="{{ asset($image . '.avif') }}" />
-                            <source type="image/webp" srcset="{{ asset($image . '.webp') }}" />
-                            <img loading="lazy" src="{{ asset($image . '.webp') }}" alt="Foto von einem Treffen des Vereins mit einem Teil der Mitglieder"
+                            <source type="image/avif" srcset="<?php echo e(asset($image . '.avif')); ?>" />
+                            <source type="image/webp" srcset="<?php echo e(asset($image . '.webp')); ?>" />
+                            <img loading="lazy" src="<?php echo e(asset($image . '.webp')); ?>" alt="Foto von einem Treffen des Vereins mit einem Teil der Mitglieder"
                                 class="absolute inset-0 w-full h-full object-cover opacity-0 transition-opacity duration-1000">
                         </picture>
-                    @endforeach
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                 </div>
             </div>
 
-            {{-- Fantreffen 2026 Banner --}}
+            
             <div class="md:col-span-2 bg-gradient-to-r from-[#8B0116] to-[#a01526] rounded-lg shadow-lg p-6 text-white">
                 <div class="flex flex-col md:flex-row items-center justify-between gap-4">
                     <div>
@@ -26,59 +44,59 @@
                             <strong>Samstag, 9. Mai 2026</strong> – Signierstunde mit Autoren, Verleihung der Goldenen Taratze & mehr!
                         </p>
                     </div>
-                    <a href="{{ route('fantreffen.2026') }}" 
+                    <a href="<?php echo e(route('fantreffen.2026')); ?>" 
                        class="inline-block px-6 py-3 bg-white text-[#8B0116] font-bold rounded-lg hover:bg-gray-100 transition whitespace-nowrap">
                         Jetzt anmelden →
                     </a>
                 </div>
             </div>
 
-            {{-- Wer wir sind --}}
+            
             <div class="bg-white dark:bg-gray-700 rounded-lg shadow-md p-6">
                 <h2 class="text-2xl font-semibold text-[#8B0116] dark:text-[#ff4b63] mb-4">Wer wir sind</h2>
-                <p class="text-gray-700 dark:text-gray-300">{{ $whoWeAre }}</p>
+                <p class="text-gray-700 dark:text-gray-300"><?php echo e($whoWeAre); ?></p>
             </div>
 
-            {{-- Was wir machen --}}
+            
             <div class="bg-white dark:bg-gray-700 rounded-lg shadow-md p-6">
                 <h2 class="text-2xl font-semibold text-[#8B0116] dark:text-[#ff4b63] mb-4">Was wir machen</h2>
-                <p class="text-gray-700 dark:text-gray-300">{{ $whatWeDo }}</p>
+                <p class="text-gray-700 dark:text-gray-300"><?php echo e($whatWeDo); ?></p>
             </div>
 
-            {{-- Aktuelle Projekte --}}
+            
             <div class="md:col-span-2 bg-white dark:bg-gray-700 rounded-lg shadow-md p-6">
                 <h2 class="text-2xl font-semibold text-[#8B0116] dark:text-[#ff4b63] mb-4">Aktuelle Projekte</h2>
                 <ul class="list-disc ml-5 text-gray-700 dark:text-gray-300 space-y-2">
-                    @foreach($currentProjects as $project)
-                    <li><strong>{{ $project['title'] }}</strong>: {{ $project['description'] }}</li>
-                    @endForeach
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $currentProjects; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $project): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                    <li><strong><?php echo e($project['title']); ?></strong>: <?php echo e($project['description']); ?></li>
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                 </ul>
             </div>
 
-            {{-- Vorteile einer Mitgliedschaft --}}
+            
             <div class="bg-white dark:bg-gray-700 rounded-lg shadow-md p-6">
                 <h2 class="text-2xl font-semibold text-[#8B0116] dark:text-[#ff4b63] mb-4">Vorteile einer Mitgliedschaft
                 </h2>
                 <ul class="list-disc ml-5 text-gray-700 dark:text-gray-300">
-                    @foreach($membershipBenefits as $benefit)
-                        <li>{{ $benefit }}</li>
-                    @endforeach
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $membershipBenefits; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $benefit): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                        <li><?php echo e($benefit); ?></li>
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                 </ul>
             </div>
 
-            {{-- Letzte Rezensionen --}}
+            
             <div class="bg-white dark:bg-gray-700 rounded-lg shadow-md p-6" id="latest-reviews-card">
                 <div class="flex items-start justify-between gap-3">
                     <h2 class="text-2xl font-semibold text-[#8B0116] dark:text-[#ff4b63]">Letzte Rezensionen</h2>
-                    @auth
-                        <a class="text-sm font-semibold text-[#8B0116] dark:text-[#ff4b63] hover:underline" href="{{ route('reviews.index') }}">
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(auth()->guard()->check()): ?>
+                        <a class="text-sm font-semibold text-[#8B0116] dark:text-[#ff4b63] hover:underline" href="<?php echo e(route('reviews.index')); ?>">
                             Alle ansehen
                         </a>
-                    @else
-                        <a class="text-sm font-semibold text-[#8B0116] dark:text-[#ff4b63] hover:underline" href="{{ route('mitglied.werden') }}">
+                    <?php else: ?>
+                        <a class="text-sm font-semibold text-[#8B0116] dark:text-[#ff4b63] hover:underline" href="<?php echo e(route('mitglied.werden')); ?>">
                             Alle ansehen
                         </a>
-                    @endauth
+                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                 </div>
                 <p class="mt-1 text-sm text-gray-600 dark:text-gray-300">Die neuesten Eindrücke aus unserer Community.</p>
 
@@ -88,9 +106,9 @@
                         <span>Lädt Community-Highlights …</span>
                     </div>
                     <div class="space-y-2" aria-hidden="true">
-                        @for($i = 0; $i < 3; $i++)
+                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php for($i = 0; $i < 3; $i++): ?>
                             <div class="h-3 rounded bg-gray-200 dark:bg-gray-600 animate-pulse"></div>
-                        @endfor
+                        <?php endfor; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                     </div>
                 </div>
 
@@ -102,12 +120,12 @@
                 </ul>
             </div>
 
-            {{-- Kennzahlen --}}
+            
             <div class="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div class="bg-white dark:bg-gray-700 rounded-lg shadow-md p-6 flex flex-col items-center" aria-labelledby="stat-members-heading" aria-describedby="stat-members-description">
                     <h3 id="stat-members-heading" class="text-lg font-semibold text-[#8B0116] dark:text-[#ff4b63]">Aktive Mitglieder</h3>
                     <div class="mt-2 flex items-baseline gap-2">
-                        <span class="text-4xl font-bold text-[#8B0116] dark:text-[#ff4b63]">{{ $memberCount }}</span>
+                        <span class="text-4xl font-bold text-[#8B0116] dark:text-[#ff4b63]"><?php echo e($memberCount); ?></span>
                         <span class="text-gray-700 dark:text-gray-300">aktive Mitglieder</span>
                     </div>
                     <p id="stat-members-description" class="mt-3 text-sm text-gray-600 dark:text-gray-400 text-center">Gemeinschaft, die sich regelmäßig austauscht und Projekte voranbringt.</p>
@@ -115,14 +133,23 @@
                 <div class="bg-white dark:bg-gray-700 rounded-lg shadow-md p-6 flex flex-col items-center" aria-labelledby="stat-reviews-heading" aria-describedby="stat-reviews-description">
                     <h3 id="stat-reviews-heading" class="text-lg font-semibold text-[#8B0116] dark:text-[#ff4b63]">Rezensionen</h3>
                     <div class="mt-2 flex items-baseline gap-2">
-                        <span class="text-4xl font-bold text-[#8B0116] dark:text-[#ff4b63]">{{ $reviewCount }}</span>
+                        <span class="text-4xl font-bold text-[#8B0116] dark:text-[#ff4b63]"><?php echo e($reviewCount); ?></span>
                         <span class="text-gray-700 dark:text-gray-300">Rezensionen</span>
                     </div>
                     <p id="stat-reviews-description" class="mt-3 text-sm text-gray-600 dark:text-gray-400 text-center">Lesetipps und Eindrücke zu den Romanen unserer Lieblingsserie.</p>
                 </div>
             </div>
         </div>
-    </x-public-page>
+     <?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginal9dce4513fd04d115a69d54d7093eec93)): ?>
+<?php $attributes = $__attributesOriginal9dce4513fd04d115a69d54d7093eec93; ?>
+<?php unset($__attributesOriginal9dce4513fd04d115a69d54d7093eec93); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginal9dce4513fd04d115a69d54d7093eec93)): ?>
+<?php $component = $__componentOriginal9dce4513fd04d115a69d54d7093eec93; ?>
+<?php unset($__componentOriginal9dce4513fd04d115a69d54d7093eec93); ?>
+<?php endif; ?>
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
@@ -140,26 +167,27 @@
     </script>
 
     <script type="application/ld+json">
-        {!! json_encode($structuredData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}
+        <?php echo json_encode($structuredData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>
+
     </script>
 
-    {{-- Organization-Schema für Google Rich Results --}}
+    
     <script type="application/ld+json">
     {
-        "@@context": "https://schema.org",
-        "@@type": "Organization",
+        "@context": "https://schema.org",
+        "@type": "Organization",
         "name": "Offizieller MADDRAX Fanclub e. V.",
         "alternateName": "OMXFC e. V.",
-        "url": "{{ config('app.url') }}",
-        "logo": "{{ asset('build/assets/omxfc-logo-Df-1StAj.png') }}",
+        "url": "<?php echo e(config('app.url')); ?>",
+        "logo": "<?php echo e(asset('build/assets/omxfc-logo-Df-1StAj.png')); ?>",
         "description": "Der Offizielle MADDRAX Fanclub e. V. vernetzt Fans der postapokalyptischen Romanserie und informiert über Projekte, Termine und Mitgliedschaft.",
         "foundingDate": "2023",
         "address": {
-            "@@type": "PostalAddress",
+            "@type": "PostalAddress",
             "addressCountry": "DE"
         },
         "memberOf": {
-            "@@type": "Thing",
+            "@type": "Thing",
             "name": "MADDRAX Fan-Community"
         }
     }
@@ -223,7 +251,7 @@
                 return item;
             };
 
-            fetch('{{ route('api.reviews.latest') }}', {
+            fetch('<?php echo e(route('api.reviews.latest')); ?>', {
                 headers: {
                     'Accept': 'application/json',
                 },
@@ -264,4 +292,14 @@
                 });
         });
     </script>
-</x-app-layout>
+ <?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginal9ac128a9029c0e4701924bd2d73d7f54)): ?>
+<?php $attributes = $__attributesOriginal9ac128a9029c0e4701924bd2d73d7f54; ?>
+<?php unset($__attributesOriginal9ac128a9029c0e4701924bd2d73d7f54); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginal9ac128a9029c0e4701924bd2d73d7f54)): ?>
+<?php $component = $__componentOriginal9ac128a9029c0e4701924bd2d73d7f54; ?>
+<?php unset($__componentOriginal9ac128a9029c0e4701924bd2d73d7f54); ?>
+<?php endif; ?>
+<?php /**PATH C:\xampp\htdocs\omxfc-vereinswebseite\omxfc-vereinswebseite\resources\views/pages/home.blade.php ENDPATH**/ ?>
