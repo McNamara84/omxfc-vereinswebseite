@@ -8,7 +8,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <h1 class="text-5xl font-bold mb-6">Maddrax-Fantreffen 2026</h1>
             <div class="flex flex-col sm:flex-row justify-center gap-6 text-lg mb-6">
-                <span>📅 Freitag, 9. Mai 2026</span>
+                <span>📅 Samstag, 9. Mai 2026</span>
                 <span>🕖 ab 19:00 Uhr</span>
                 <span>📍 L´Osteria Köln Mülheim</span>
             </div>
