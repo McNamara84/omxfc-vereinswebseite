@@ -43,15 +43,16 @@ class GenerateSitemap extends Command
             // Sitemap durch Crawling erstellen
             $sitemap = SitemapGenerator::create($baseUrl)->getSitemap();
 
+            // Existierende URLs einmalig vor der Schleife sammeln
+            $existingUrls = collect($sitemap->getTags())
+                ->filter(fn ($tag) => $tag instanceof Url)
+                ->pluck('url');
+
             // Wichtige Seiten manuell hinzufügen (falls nicht bereits gecrawlt)
             foreach ($this->manualUrls as $entry) {
                 $fullUrl = rtrim($baseUrl, '/') . $entry['path'];
 
-                // Prüfen ob URL bereits in der Sitemap existiert
-                $exists = collect($sitemap->getTags())
-                    ->contains(fn ($tag) => $tag instanceof Url && $tag->url === $fullUrl);
-
-                if (! $exists) {
+                if (! $existingUrls->contains($fullUrl)) {
                     $sitemap->add(
                         Url::create($fullUrl)
                             ->setPriority($entry['priority'])
