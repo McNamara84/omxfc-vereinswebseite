@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use Database\Migrations\FixMissionMarsEnumValueInBooksTable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -33,10 +34,9 @@ class FixMissionMarsEnumMigrationTest extends TestCase
             'type' => 'Mission Mars',
         ]);
 
-        // Run the specific migration
-        DB::table('books')
-            ->where('type', 'Mission Mars')
-            ->update(['type' => 'Mission Mars-Heftromane']);
+        // Run the actual migration class
+        $migration = require database_path('migrations/2025_11_29_102701_fix_mission_mars_enum_value_in_books_table.php');
+        $migration->up();
 
         // Verify the value was updated
         $this->assertDatabaseHas('books', [
