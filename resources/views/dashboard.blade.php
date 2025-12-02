@@ -148,10 +148,6 @@
                                 ?? 'Gelöschter Eintrag – nicht mehr verfügbar';
                             $isFantreffenRegistration = $activity->subject_type === \App\Models\FantreffenAnmeldung::class;
                             $activityUser = $activity->user;
-                            $registrantName = $subject?->vorname
-                                ?? $activityUser?->vorname
-                                ?? $activityUser?->name
-                                ?? 'Teilnehmer';
                             $showProfileLink = !$isFantreffenRegistration && $activityUser;
                         @endphp
                         <li class="py-2 space-y-1">
@@ -170,6 +166,12 @@
                                     {{ $missingSubjectMessage }}
                                 </span>
                             @elseif($isFantreffenRegistration)
+                                @php
+                                    $registrantName = $subject?->vorname
+                                        ?? $activityUser?->vorname
+                                        ?? $activityUser?->name
+                                        ?? 'Teilnehmer';
+                                @endphp
                                 <span class="text-sm text-gray-800 dark:text-gray-200" aria-live="polite">
                                     {{ $registrantName }} hat sich zum Fantreffen in Coellen angemeldet
                                 </span>

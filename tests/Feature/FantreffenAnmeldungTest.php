@@ -16,16 +16,14 @@ class FantreffenAnmeldungTest extends TestCase
 {
     use RefreshDatabase;
 
-    /** @test */
-    public function fantreffen_page_is_accessible_without_authentication()
+    public function test_fantreffen_page_is_accessible_without_authentication()
     {
         $response = $this->get('/maddrax-fantreffen-2026');
         $response->assertStatus(200);
         $response->assertSee('Maddrax-Fantreffen 2026');
     }
 
-    /** @test */
-    public function guest_can_register_without_tshirt()
+    public function test_guest_can_register_without_tshirt()
     {
         Mail::fake();
         $response = $this->post('/maddrax-fantreffen-2026', [
@@ -44,8 +42,7 @@ class FantreffenAnmeldungTest extends TestCase
         ]);
     }
 
-    /** @test */
-    public function guest_can_register_with_tshirt()
+    public function test_guest_can_register_with_tshirt()
     {
         Mail::fake();
         $response = $this->post('/maddrax-fantreffen-2026', [
@@ -61,8 +58,7 @@ class FantreffenAnmeldungTest extends TestCase
         ]);
     }
 
-    /** @test */
-    public function logged_in_member_can_register_without_payment()
+    public function test_logged_in_member_can_register_without_payment()
     {
         Mail::fake();
         $team = Team::factory()->create(['name' => 'Mitglieder']);
@@ -79,7 +75,6 @@ class FantreffenAnmeldungTest extends TestCase
         ]);
     }
 
-    /** @test */
     public function test_activity_is_logged_when_member_registers_for_fantreffen()
     {
         Mail::fake();
@@ -106,8 +101,7 @@ class FantreffenAnmeldungTest extends TestCase
         ]);
     }
 
-    /** @test */
-    public function guest_registration_logs_activity_without_user_attribution()
+    public function test_guest_registration_logs_activity_without_user_attribution()
     {
         Mail::fake();
 
@@ -130,8 +124,7 @@ class FantreffenAnmeldungTest extends TestCase
         ]);
     }
 
-    /** @test */
-    public function payment_confirmation_page_shows_paypal_button()
+    public function test_payment_confirmation_page_shows_paypal_button()
     {
         $anmeldung = FantreffenAnmeldung::create([
             'vorname' => 'Max',

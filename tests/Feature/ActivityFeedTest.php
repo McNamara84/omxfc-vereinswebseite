@@ -19,6 +19,7 @@ use App\Models\FantreffenAnmeldung;
 use App\Enums\BookType;
 use App\Enums\TodoStatus;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Database\QueryException;
 use App\Enums\Role;
 
 class ActivityFeedTest extends TestCase
@@ -218,11 +219,10 @@ class ActivityFeedTest extends TestCase
 
         $response->assertOk();
         $response->assertSeeText('Alex hat sich zum Fantreffen in Coellen angemeldet');
-        $response->assertDontSee('Alex hat sich zum Fantreffen in Coellen angemeldet</a>', false);
+        $response->assertDontSee('<a href="' . route('profile.view', $user->id) . '"', false);
     }
 
-    /** @test */
-    public function dashboard_handles_guest_fantreffen_registration_activity_without_user()
+    public function test_dashboard_handles_guest_fantreffen_registration_activity_without_user()
     {
         $user = $this->actingMember();
         $this->actingAs($user);
@@ -252,6 +252,51 @@ class ActivityFeedTest extends TestCase
         $response->assertOk();
         $response->assertSeeText('Jamie hat sich zum Fantreffen in Coellen angemeldet');
         $response->assertDontSee('Unbekannter Nutzer', false);
+    }
+
+    public function test_activity_user_id_migration_down_removes_null_user_records(): void
+    {
+        $member = $this->actingMember();
+        $this->actingAs($member);
+
+        $anmeldung = FantreffenAnmeldung::create([
+            'user_id' => null,
+            'vorname' => 'Casey',
+            'nachname' => 'Guest',
+            'email' => 'casey@example.com',
+            'payment_status' => 'pending',
+            'payment_amount' => 5,
+            'tshirt_bestellt' => false,
+            'ist_mitglied' => false,
+            'zahlungseingang' => false,
+        ]);
+
+        $orphanedActivity = Activity::create([
+            'user_id' => null,
+            'subject_type' => FantreffenAnmeldung::class,
+            'subject_id' => $anmeldung->id,
+            'action' => 'fantreffen_registered',
+        ]);
+
+        $migration = require base_path('database/migrations/2025_12_02_000001_make_activities_user_id_nullable.php');
+
+        $migration->down();
+
+        $this->assertDatabaseMissing('activities', ['id' => $orphanedActivity->id]);
+
+        try {
+            Activity::create([
+                'user_id' => null,
+                'subject_type' => FantreffenAnmeldung::class,
+                'subject_id' => $anmeldung->id,
+                'action' => 'fantreffen_registered',
+            ]);
+            $this->fail('Activity creation with null user_id should fail after down migration.');
+        } catch (QueryException $exception) {
+            $this->assertStringContainsString('NOT NULL', $exception->getMessage());
+        } finally {
+            $migration->up();
+        }
     }
 
     public function test_activity_created_when_challenge_is_accepted(): void
