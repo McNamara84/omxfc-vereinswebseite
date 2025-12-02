@@ -15,6 +15,7 @@ use App\Models\Todo;
 use App\Models\TodoCategory;
 use App\Models\ReviewComment;
 use App\Models\AdminMessage;
+use App\Models\FantreffenAnmeldung;
 use App\Enums\BookType;
 use App\Enums\TodoStatus;
 use Illuminate\Support\Facades\Mail;
@@ -186,6 +187,38 @@ class ActivityFeedTest extends TestCase
 
         $response->assertOk();
         $this->assertCount(3, $response->viewData('activities'));
+    }
+
+    public function test_dashboard_displays_fantreffen_registration_activity_without_profile_link(): void
+    {
+        $user = $this->actingMember();
+        $this->actingAs($user);
+
+        $anmeldung = FantreffenAnmeldung::create([
+            'user_id' => $user->id,
+            'vorname' => 'Alex',
+            'nachname' => 'Muster',
+            'email' => 'alex@example.com',
+            'payment_status' => 'free',
+            'payment_amount' => 0,
+            'tshirt_bestellt' => false,
+            'ist_mitglied' => true,
+            'zahlungseingang' => false,
+        ]);
+
+        Activity::create([
+            'user_id' => $user->id,
+            'subject_type' => FantreffenAnmeldung::class,
+            'subject_id' => $anmeldung->id,
+            'action' => 'fantreffen_registered',
+            'created_at' => now(),
+        ]);
+
+        $response = $this->get('/dashboard');
+
+        $response->assertOk();
+        $response->assertSeeText('Alex hat sich zum Fantreffen in Coellen angemeldet');
+        $response->assertDontSee('Alex hat sich zum Fantreffen in Coellen angemeldet</a>', false);
     }
 
     public function test_activity_created_when_challenge_is_accepted(): void

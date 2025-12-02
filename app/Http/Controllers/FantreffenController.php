@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Mail\FantreffenAnmeldungBestaetigung;
 use App\Mail\FantreffenNeueAnmeldung;
+use App\Models\Activity;
 use App\Models\FantreffenAnmeldung;
 use App\Models\User;
 use App\Services\FantreffenDeadlineService;
@@ -85,11 +86,11 @@ class FantreffenController extends Controller
         $tshirtBestellt = $request->boolean('tshirt_bestellt');
         
         // T-Shirt-Deadline prüfen - Bestellung nach Deadline verhindern
-        $deadlineService = new FantreffenDeadlineService();
-        
-        if ($tshirtBestellt && $deadlineService->isPassed()) {
-            return back()
-                ->withInput()
+            $deadlineService = new FantreffenDeadlineService();
+
+            if ($tshirtBestellt && $deadlineService->isPassed()) {
+                return back()
+                    ->withInput()
                 ->withErrors(['tshirt_bestellt' => 'Die Deadline für T-Shirt-Bestellungen ist leider abgelaufen.']);
         }
         
@@ -126,9 +127,20 @@ class FantreffenController extends Controller
                 'ist_mitglied' => Auth::check(),
                 'zahlungseingang' => false,
             ]);
-            
+
             Log::info('Fantreffen Anmeldung: Registration created', ['id' => $anmeldung->id]);
-            
+
+            $activityUserId = Auth::id() ?? User::query()->value('id');
+
+            if ($activityUserId) {
+                Activity::create([
+                    'user_id' => $activityUserId,
+                    'subject_type' => FantreffenAnmeldung::class,
+                    'subject_id' => $anmeldung->id,
+                    'action' => 'fantreffen_registered',
+                ]);
+            }
+
             // E-Mails versenden
             try {
                 Mail::to($email)->send(new FantreffenAnmeldungBestaetigung($anmeldung));

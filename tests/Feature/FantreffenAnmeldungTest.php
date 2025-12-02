@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Mail\FantreffenAnmeldungBestaetigung;
 use App\Mail\FantreffenNeueAnmeldung;
+use App\Models\Activity;
 use App\Models\FantreffenAnmeldung;
 use App\Models\Team;
 use App\Models\User;
@@ -75,6 +76,32 @@ class FantreffenAnmeldungTest extends TestCase
         $this->assertDatabaseHas('fantreffen_anmeldungen', [
             'user_id' => $user->id,
             'payment_amount' => 0,
+        ]);
+    }
+
+    public function test_activity_is_logged_when_member_registers_for_fantreffen()
+    {
+        Mail::fake();
+        $team = Team::factory()->create(['name' => 'Mitglieder']);
+        $user = User::factory()->create([
+            'vorname' => 'Alex',
+        ]);
+        $user->teams()->attach($team);
+        $this->actingAs($user);
+
+        $response = $this->post('/maddrax-fantreffen-2026', [
+            'tshirt_bestellt' => false,
+        ]);
+
+        $response->assertRedirect();
+        $anmeldung = FantreffenAnmeldung::first();
+
+        $this->assertNotNull($anmeldung);
+        $this->assertDatabaseHas('activities', [
+            'user_id' => $user->id,
+            'subject_type' => FantreffenAnmeldung::class,
+            'subject_id' => $anmeldung->id,
+            'action' => 'fantreffen_registered',
         ]);
     }
 
