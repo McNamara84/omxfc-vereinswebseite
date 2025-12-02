@@ -79,6 +79,7 @@ class FantreffenAnmeldungTest extends TestCase
         ]);
     }
 
+    /** @test */
     public function test_activity_is_logged_when_member_registers_for_fantreffen()
     {
         Mail::fake();
@@ -99,6 +100,30 @@ class FantreffenAnmeldungTest extends TestCase
         $this->assertNotNull($anmeldung);
         $this->assertDatabaseHas('activities', [
             'user_id' => $user->id,
+            'subject_type' => FantreffenAnmeldung::class,
+            'subject_id' => $anmeldung->id,
+            'action' => 'fantreffen_registered',
+        ]);
+    }
+
+    /** @test */
+    public function guest_registration_logs_activity_without_user_attribution()
+    {
+        Mail::fake();
+
+        $response = $this->post('/maddrax-fantreffen-2026', [
+            'vorname' => 'Sam',
+            'nachname' => 'Guest',
+            'email' => 'sam@example.com',
+            'tshirt_bestellt' => false,
+        ]);
+
+        $response->assertRedirect();
+        $anmeldung = FantreffenAnmeldung::first();
+
+        $this->assertNotNull($anmeldung);
+        $this->assertDatabaseHas('activities', [
+            'user_id' => null,
             'subject_type' => FantreffenAnmeldung::class,
             'subject_id' => $anmeldung->id,
             'action' => 'fantreffen_registered',

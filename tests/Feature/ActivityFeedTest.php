@@ -221,6 +221,39 @@ class ActivityFeedTest extends TestCase
         $response->assertDontSee('Alex hat sich zum Fantreffen in Coellen angemeldet</a>', false);
     }
 
+    /** @test */
+    public function dashboard_handles_guest_fantreffen_registration_activity_without_user()
+    {
+        $user = $this->actingMember();
+        $this->actingAs($user);
+
+        $anmeldung = FantreffenAnmeldung::create([
+            'user_id' => null,
+            'vorname' => 'Jamie',
+            'nachname' => 'Guest',
+            'email' => 'jamie@example.com',
+            'payment_status' => 'pending',
+            'payment_amount' => 5,
+            'tshirt_bestellt' => false,
+            'ist_mitglied' => false,
+            'zahlungseingang' => false,
+        ]);
+
+        Activity::create([
+            'user_id' => null,
+            'subject_type' => FantreffenAnmeldung::class,
+            'subject_id' => $anmeldung->id,
+            'action' => 'fantreffen_registered',
+            'created_at' => now(),
+        ]);
+
+        $response = $this->get('/dashboard');
+
+        $response->assertOk();
+        $response->assertSeeText('Jamie hat sich zum Fantreffen in Coellen angemeldet');
+        $response->assertDontSee('Unbekannter Nutzer', false);
+    }
+
     public function test_activity_created_when_challenge_is_accepted(): void
     {
         $user = $this->actingMember();

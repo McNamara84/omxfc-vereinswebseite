@@ -147,19 +147,23 @@
                             $missingSubjectMessage = $missingSubjectMessages[$activity->subject_type]
                                 ?? 'Gelöschter Eintrag – nicht mehr verfügbar';
                             $isFantreffenRegistration = $activity->subject_type === \App\Models\FantreffenAnmeldung::class;
+                            $activityUser = $activity->user;
                             $registrantName = $subject?->vorname
-                                ?? $activity->user?->vorname
-                                ?? $activity->user?->name
+                                ?? $activityUser?->vorname
+                                ?? $activityUser?->name
                                 ?? 'Teilnehmer';
+                            $showProfileLink = !$isFantreffenRegistration && $activityUser;
                         @endphp
                         <li class="py-2 space-y-1">
                             <span class="text-sm text-gray-600 dark:text-gray-400 flex items-center" aria-label="Aktivität am {{ $activity->created_at->format('d.m.Y H:i') }}">
                                 <span class="mr-2 whitespace-nowrap">{{ $activity->created_at->format('d.m.Y H:i') }}</span>
-                                @unless($isFantreffenRegistration)
-                                    <a href="{{ route('profile.view', $activity->user->id) }}" class="text-[#8B0116] hover:underline">
-                                        {{ $activity->user->name }}
+                                @if($showProfileLink)
+                                    <a href="{{ route('profile.view', $activityUser->id) }}" class="text-[#8B0116] hover:underline">
+                                        {{ $activityUser->name }}
                                     </a>
-                                @endunless
+                                @elseif(!$isFantreffenRegistration)
+                                    <span class="text-gray-700 dark:text-gray-200" aria-live="polite">Unbekannter Nutzer</span>
+                                @endif
                             </span>
                             @if(!$subject)
                                 <span class="text-sm text-gray-500 dark:text-gray-300 italic" role="status" aria-live="polite">
