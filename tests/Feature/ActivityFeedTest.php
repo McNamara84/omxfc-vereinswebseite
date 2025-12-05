@@ -21,6 +21,7 @@ use App\Enums\TodoStatus;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Database\QueryException;
 use App\Enums\Role;
+use Illuminate\Support\Str;
 
 class ActivityFeedTest extends TestCase
 {
@@ -137,7 +138,126 @@ class ActivityFeedTest extends TestCase
         $dashboard->assertOk();
         $dashboard->assertSeeText('Kommentar zu Meine Rezension von ' . $user->name);
         $dashboard->assertSee('<a href="' . route('reviews.show', $review->book_id) . '" class="text-blue-600 dark:text-blue-400 hover:underline">Meine Rezension</a>', false);
-        $dashboard->assertSee('<a href="' . route('profile.view', $user->id) . '" class="text-[#8B0116] hover:underline">', false);
+        $dashboard->assertSee('<a href="' . route('profile.view', $user->id) . '"', false);
+        $dashboard->assertSeeText('Tolles Buch!');
+    }
+
+    public function test_dashboard_shows_review_preview_excerpt(): void
+    {
+        $user = $this->actingMember();
+        $this->actingAs($user);
+
+        $reviewContent = 'Dies ist eine ausführliche Rezension über Maddrax, die den Auftakt zusammenfasst und Lust auf mehr macht.';
+        $review = Review::create([
+            'team_id' => $user->currentTeam->id,
+            'user_id' => $user->id,
+            'book_id' => Book::first()->id,
+            'title' => 'Ein moderner Start',
+            'content' => $reviewContent,
+        ]);
+
+        Activity::create([
+            'user_id' => $user->id,
+            'subject_type' => Review::class,
+            'subject_id' => $review->id,
+        ]);
+
+        $response = $this->get('/dashboard');
+        $response->assertOk();
+        $response->assertSeeText('Neue Rezension: ' . $review->title);
+        $response->assertSeeText(Str::of((string) strip_tags($reviewContent))->squish()->limit(160));
+    }
+
+    public function test_dashboard_limits_comment_preview_excerpt(): void
+    {
+        $user = $this->actingMember();
+        $this->actingAs($user);
+
+        $review = Review::create([
+            'team_id' => $user->currentTeam->id,
+            'user_id' => $user->id,
+            'book_id' => Book::first()->id,
+            'title' => 'Kommentar-Test',
+            'content' => 'Kurze Review',
+        ]);
+
+        $longComment = str_repeat('Eine sehr ausführliche Meinung mit vielen Details. ', 6);
+        $comment = ReviewComment::create([
+            'review_id' => $review->id,
+            'user_id' => $user->id,
+            'content' => $longComment,
+        ]);
+
+        Activity::create([
+            'user_id' => $user->id,
+            'subject_type' => ReviewComment::class,
+            'subject_id' => $comment->id,
+        ]);
+
+        $response = $this->get('/dashboard');
+        $response->assertOk();
+        $expectedPreview = Str::of((string) strip_tags($longComment))->squish()->limit(140);
+        $response->assertSeeText('Kommentar zu ' . $review->title . ' von ' . $user->name);
+        $response->assertSeeText($expectedPreview);
+    }
+
+    public function test_dashboard_hides_empty_review_preview_excerpt(): void
+    {
+        $user = $this->actingMember();
+        $this->actingAs($user);
+
+        $reviewContent = '<p>    </p>';
+        $review = Review::create([
+            'team_id' => $user->currentTeam->id,
+            'user_id' => $user->id,
+            'book_id' => Book::first()->id,
+            'title' => 'Leerer Inhalt',
+            'content' => $reviewContent,
+        ]);
+
+        Activity::create([
+            'user_id' => $user->id,
+            'subject_type' => Review::class,
+            'subject_id' => $review->id,
+        ]);
+
+        $response = $this->get('/dashboard');
+        $response->assertOk();
+        $response->assertSeeText('Neue Rezension: ' . $review->title);
+        $response->assertDontSeeText('Auszug aus der Rezension');
+        $response->assertDontSee('„');
+    }
+
+    public function test_dashboard_hides_empty_comment_preview_excerpt(): void
+    {
+        $user = $this->actingMember();
+        $this->actingAs($user);
+
+        $review = Review::create([
+            'team_id' => $user->currentTeam->id,
+            'user_id' => $user->id,
+            'book_id' => Book::first()->id,
+            'title' => 'Kommentar-Test',
+            'content' => 'Kurze Review',
+        ]);
+
+        $comment = ReviewComment::create([
+            'review_id' => $review->id,
+            'user_id' => $user->id,
+            'content' => '<div>   </div>',
+        ]);
+
+        Activity::create([
+            'user_id' => $user->id,
+            'subject_type' => ReviewComment::class,
+            'subject_id' => $comment->id,
+        ]);
+
+        $response = $this->get('/dashboard');
+        $response->assertOk();
+        $response->assertSeeText('Kommentar zu ' . $review->title . ' von ' . $user->name);
+        $response->assertDontSeeText('Auszug aus dem Kommentar');
+        $response->assertDontSee('„');
     }
 
     public function test_dashboard_displays_recent_activities(): void
