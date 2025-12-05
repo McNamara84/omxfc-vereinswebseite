@@ -143,6 +143,13 @@
                     </div>
                     <span class="inline-flex items-center gap-1 rounded-full bg-[#8B0116]/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[#8B0116] dark:bg-[#FCA5A5]/10 dark:text-[#FCA5A5]">Live-Feed</span>
                 </div>
+                @php
+                    $previewText = static function ($content, int $limit) {
+                        return \Illuminate\Support\Str::of((string) strip_tags($content ?? ''))
+                            ->squish()
+                            ->limit($limit);
+                    };
+                @endphp
                 <ul class="space-y-3" role="list">
                     @forelse($activities as $activity)
                         @php
@@ -171,7 +178,9 @@
                             <div class="flex flex-wrap items-center gap-2 text-xs font-semibold text-gray-500 dark:text-gray-400">
                                 <span class="inline-flex items-center gap-1 rounded-full bg-white px-2 py-1 text-[#8B0116] shadow-sm ring-1 ring-[#8B0116]/20 dark:bg-gray-800">
                                     <span class="sr-only">Zeitpunkt</span>
-                                    <span aria-hidden="true">🕑</span>
+                                    <svg class="h-3.5 w-3.5" aria-hidden="true" viewBox="0 0 20 20" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16Zm.75-12.25a.75.75 0 00-1.5 0v4.5c0 .414.336.75.75.75h3.5a.75.75 0 000-1.5H10.75v-3.75Z" clip-rule="evenodd" />
+                                    </svg>
                                     {{ $activity->created_at->format('d.m.Y H:i') }}
                                 </span>
                                 <span class="inline-flex items-center gap-1 rounded-full bg-[#8B0116]/10 px-2 py-1 text-[#8B0116] ring-1 ring-[#8B0116]/20 dark:bg-[#FCA5A5]/10 dark:text-[#FCA5A5]">
@@ -181,12 +190,16 @@
                                 @if($showProfileLink)
                                     <span class="inline-flex items-center gap-1 rounded-full bg-white px-2 py-1 text-gray-700 ring-1 ring-gray-200 dark:bg-gray-800 dark:text-gray-200 dark:ring-gray-700">
                                         <span class="sr-only">von Nutzer</span>
-                                        <span aria-hidden="true">👤</span>
+                                        <svg class="h-3.5 w-3.5" aria-hidden="true" viewBox="0 0 20 20" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                            <path fill-rule="evenodd" d="M10 2a8 8 0 100 16 8 8 0 000-16Zm0 4a2 2 0 110 4 2 2 0 010-4zm-4 8a4 4 0 118 0H6z" clip-rule="evenodd" />
+                                        </svg>
                                         <a href="{{ route('profile.view', $activityUser->id) }}" class="font-semibold text-[#8B0116] hover:underline dark:text-[#FCA5A5]">{{ $activityUser->name }}</a>
                                     </span>
                                 @elseif(!$isFantreffenRegistration)
                                     <span class="inline-flex items-center gap-1 rounded-full bg-white px-2 py-1 text-gray-700 ring-1 ring-gray-200 dark:bg-gray-800 dark:text-gray-200 dark:ring-gray-700">
-                                        <span aria-hidden="true">👤</span>
+                                        <svg class="h-3.5 w-3.5" aria-hidden="true" viewBox="0 0 20 20" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                            <path fill-rule="evenodd" d="M10 2a8 8 0 100 16 8 8 0 000-16Zm0 4a2 2 0 110 4 2 2 0 010-4zm-4 8a4 4 0 118 0H6z" clip-rule="evenodd" />
+                                        </svg>
                                         Unbekannter Nutzer
                                     </span>
                                 @endif
@@ -207,13 +220,11 @@
                                     <span>{{ $registrantName }} hat sich zum Fantreffen in Coellen angemeldet</span>
                                 @elseif($activity->subject_type === \App\Models\Review::class)
                                     @php
-                                        $reviewPreview = \Illuminate\Support\Str::of((string) strip_tags($subject->content ?? ''))
-                                            ->squish()
-                                            ->limit(160);
+                                        $reviewPreview = $previewText($subject->content ?? '', 160);
                                     @endphp
                                     <div class="space-y-1">
                                         <a href="{{ route('reviews.show', $subject->book_id) }}" class="font-semibold text-blue-600 dark:text-blue-400 hover:underline">Neue Rezension: {{ $subject->title }}</a>
-                                        @if($reviewPreview && $reviewPreview->toString() !== '')
+                                        @if($reviewPreview->isNotEmpty())
                                             <p class="text-sm text-gray-600 dark:text-gray-300" aria-label="Auszug aus der Rezension">„{{ $reviewPreview }}“</p>
                                         @endif
                                     </div>
@@ -230,14 +241,12 @@
                                 @elseif($activity->subject_type === \App\Models\ReviewComment::class)
                                     @php
                                         $review = $subject?->review;
-                                            $commentPreview = \Illuminate\Support\Str::of((string) strip_tags($subject?->content ?? ''))
-                                                ->squish()
-                                                ->limit(140);
+                                        $commentPreview = $previewText($subject?->content ?? '', 140);
                                     @endphp
                                     @if($review)
                                         <div class="space-y-1">
                                             <span>Kommentar zu <a href="{{ route('reviews.show', $review->book_id) }}" class="text-blue-600 dark:text-blue-400 hover:underline">{{ $review->title }}</a> von <a href="{{ route('profile.view', $activity->user->id) }}" class="text-[#8B0116] hover:underline dark:text-[#FCA5A5]">{{ $activity->user->name }}</a></span>
-                                            @if($commentPreview && $commentPreview->toString() !== '')
+                                            @if($commentPreview->isNotEmpty())
                                                 <p class="text-sm text-gray-600 dark:text-gray-300" aria-label="Auszug aus dem Kommentar">„{{ $commentPreview }}“</p>
                                             @endif
                                         </div>
