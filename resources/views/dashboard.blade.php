@@ -141,7 +141,7 @@
                         <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FCA5A5]">Aktivitäten</h2>
                         <p class="text-sm text-gray-600 dark:text-gray-400">Neueste Rezensionen, Kommentare & Aktionen im Überblick.</p>
                     </div>
-                    <span class="inline-flex items-center gap-1 rounded-full bg-[#8B0116]/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[#8B0116] dark:bg-[#FCA5A5]/10 dark:text-[#FCA5A5]" aria-live="polite">Live-Feed</span>
+                    <span class="inline-flex items-center gap-1 rounded-full bg-[#8B0116]/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[#8B0116] dark:bg-[#FCA5A5]/10 dark:text-[#FCA5A5]">Live-Feed</span>
                 </div>
                 <ul class="space-y-3" role="list">
                     @forelse($activities as $activity)
@@ -185,7 +185,7 @@
                                         <a href="{{ route('profile.view', $activityUser->id) }}" class="font-semibold text-[#8B0116] hover:underline dark:text-[#FCA5A5]">{{ $activityUser->name }}</a>
                                     </span>
                                 @elseif(!$isFantreffenRegistration)
-                                    <span class="inline-flex items-center gap-1 rounded-full bg-white px-2 py-1 text-gray-700 ring-1 ring-gray-200 dark:bg-gray-800 dark:text-gray-200 dark:ring-gray-700" aria-live="polite">
+                                    <span class="inline-flex items-center gap-1 rounded-full bg-white px-2 py-1 text-gray-700 ring-1 ring-gray-200 dark:bg-gray-800 dark:text-gray-200 dark:ring-gray-700">
                                         <span aria-hidden="true">👤</span>
                                         Unbekannter Nutzer
                                     </span>
@@ -194,7 +194,7 @@
 
                             <div class="mt-2 space-y-1 text-sm leading-relaxed text-gray-800 dark:text-gray-200">
                                 @if(!$subject)
-                                    <span class="text-gray-500 dark:text-gray-300 italic" role="status" aria-live="polite">
+                                    <span class="text-gray-500 dark:text-gray-300 italic">
                                         {{ $missingSubjectMessage }}
                                     </span>
                                 @elseif($isFantreffenRegistration)
@@ -204,7 +204,7 @@
                                             ?? $activityUser?->name
                                             ?? 'Teilnehmer';
                                     @endphp
-                                    <span aria-live="polite">{{ $registrantName }} hat sich zum Fantreffen in Coellen angemeldet</span>
+                                    <span>{{ $registrantName }} hat sich zum Fantreffen in Coellen angemeldet</span>
                                 @elseif($activity->subject_type === \App\Models\Review::class)
                                     @php
                                         $reviewPreview = \Illuminate\Support\Str::of((string) strip_tags($subject->content ?? ''))
@@ -213,7 +213,7 @@
                                     @endphp
                                     <div class="space-y-1">
                                         <a href="{{ route('reviews.show', $subject->book_id) }}" class="font-semibold text-blue-600 dark:text-blue-400 hover:underline">Neue Rezension: {{ $subject->title }}</a>
-                                        @if($reviewPreview)
+                                        @if($reviewPreview && $reviewPreview->toString() !== '')
                                             <p class="text-sm text-gray-600 dark:text-gray-300" aria-label="Auszug aus der Rezension">„{{ $reviewPreview }}“</p>
                                         @endif
                                     </div>
@@ -230,19 +230,19 @@
                                 @elseif($activity->subject_type === \App\Models\ReviewComment::class)
                                     @php
                                         $review = $subject?->review;
-                                        $commentPreview = \Illuminate\Support\Str::of((string) strip_tags($subject?->content ?? ''))
-                                            ->squish()
-                                            ->limit(140);
+                                            $commentPreview = \Illuminate\Support\Str::of((string) strip_tags($subject?->content ?? ''))
+                                                ->squish()
+                                                ->limit(140);
                                     @endphp
                                     @if($review)
                                         <div class="space-y-1">
                                             <span>Kommentar zu <a href="{{ route('reviews.show', $review->book_id) }}" class="text-blue-600 dark:text-blue-400 hover:underline">{{ $review->title }}</a> von <a href="{{ route('profile.view', $activity->user->id) }}" class="text-[#8B0116] hover:underline dark:text-[#FCA5A5]">{{ $activity->user->name }}</a></span>
-                                            @if($commentPreview)
+                                            @if($commentPreview && $commentPreview->toString() !== '')
                                                 <p class="text-sm text-gray-600 dark:text-gray-300" aria-label="Auszug aus dem Kommentar">„{{ $commentPreview }}“</p>
                                             @endif
                                         </div>
                                     @else
-                                        <span class="text-gray-500 dark:text-gray-300 italic" role="status" aria-live="polite">
+                                        <span class="text-gray-500 dark:text-gray-300 italic">
                                             {{ $missingSubjectMessage }}
                                         </span>
                                     @endif
