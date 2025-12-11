@@ -18,10 +18,10 @@ use App\Models\AdminMessage;
 use App\Models\FantreffenAnmeldung;
 use App\Enums\BookType;
 use App\Enums\TodoStatus;
+use App\Support\PreviewText;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Database\QueryException;
 use App\Enums\Role;
-use Illuminate\Support\Str;
 
 class ActivityFeedTest extends TestCase
 {
@@ -165,7 +165,7 @@ class ActivityFeedTest extends TestCase
         $response = $this->get('/dashboard');
         $response->assertOk();
         $response->assertSeeText('Neue Rezension: ' . $review->title);
-        $response->assertSeeText(Str::of((string) strip_tags($reviewContent))->squish()->limit(160));
+        $response->assertSeeText(PreviewText::make($reviewContent, 160));
     }
 
     public function test_dashboard_limits_comment_preview_excerpt(): void
@@ -196,7 +196,7 @@ class ActivityFeedTest extends TestCase
 
         $response = $this->get('/dashboard');
         $response->assertOk();
-        $expectedPreview = Str::of((string) strip_tags($longComment))->squish()->limit(140);
+        $expectedPreview = PreviewText::make($longComment, 140);
         $response->assertSeeText('Kommentar zu ' . $review->title . ' von ' . $user->name);
         $response->assertSeeText($expectedPreview);
     }

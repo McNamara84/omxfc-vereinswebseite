@@ -143,13 +143,6 @@
                     </div>
                     <span class="inline-flex items-center gap-1 rounded-full bg-[#8B0116]/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[#8B0116] dark:bg-[#FCA5A5]/10 dark:text-[#FCA5A5]">Live-Feed</span>
                 </div>
-                @php
-                    $previewText = static function ($content, int $limit) {
-                        return \Illuminate\Support\Str::of((string) strip_tags($content ?? ''))
-                            ->squish()
-                            ->limit($limit);
-                    };
-                @endphp
                 <ul class="space-y-3" role="list">
                     @forelse($activities as $activity)
                         @php
@@ -220,7 +213,7 @@
                                     <span>{{ $registrantName }} hat sich zum Fantreffen in Coellen angemeldet</span>
                                 @elseif($activity->subject_type === \App\Models\Review::class)
                                     @php
-                                        $reviewPreview = $previewText($subject->content ?? '', 160);
+                                        $reviewPreview = \App\Support\PreviewText::make($subject->content ?? '', 160);
                                     @endphp
                                     <div class="space-y-1">
                                         <a href="{{ route('reviews.show', $subject->book_id) }}" class="font-semibold text-blue-600 dark:text-blue-400 hover:underline">Neue Rezension: {{ $subject->title }}</a>
@@ -241,7 +234,7 @@
                                 @elseif($activity->subject_type === \App\Models\ReviewComment::class)
                                     @php
                                         $review = $subject?->review;
-                                        $commentPreview = $previewText($subject?->content ?? '', 140);
+                                        $commentPreview = \App\Support\PreviewText::make($subject?->content ?? '', 140);
                                     @endphp
                                     @if($review)
                                         <div class="space-y-1">
