@@ -21,7 +21,7 @@ class ReviewFormattedContentTest extends TestCase
         $this->assertStringContainsString('<p>Zweiter Absatz</p>', $formatted);
     }
 
-    public function test_it_allows_richer_markdown_structures(): void
+    public function test_it_renders_headings_lists_blockquotes_and_inline_code(): void
     {
         $review = new Review(['content' => "## Überschrift\n\n- Punkt eins\n- Punkt zwei\n\n> Zitat\n\n`Code`"]);
 
@@ -90,7 +90,9 @@ class ReviewFormattedContentTest extends TestCase
         $this->assertStringContainsString('<blockquote>', $formatted);
         $this->assertStringContainsString('<ol>', $formatted);
         $this->assertStringContainsString('Langer Inhalt', $formatted);
-        $this->assertGreaterThan(1000, strlen($formatted));
+        $this->assertSame(500, substr_count($formatted, 'Langer Inhalt'));
+        $this->assertStringContainsString('<li>Eins', $formatted);
+        $this->assertStringContainsString('<li>Unterpunkt', $formatted);
     }
 
     public function test_it_allows_relative_and_mailto_links_while_removing_style_attributes(): void
@@ -138,17 +140,17 @@ class ReviewFormattedContentTest extends TestCase
 
         $this->assertStringContainsString('<a rel="noopener noreferrer">broken</a>', $formatted);
         $this->assertStringContainsString('<a rel="noopener noreferrer">protocol relative</a>', $formatted);
-        $this->assertStringContainsString('<a rel="noopener noreferrer">anchor</a>', $formatted);
+        $this->assertStringContainsString('<a href="#anchor" rel="noopener noreferrer">anchor</a>', $formatted);
     }
 
     public function test_it_invalidates_cached_content_when_source_changes(): void
     {
-        $review = new Review(['content' => 'Erster']);
+        $review = Review::factory()->create(['content' => 'Erster']);
 
         $first = $review->formatted_content;
 
-        $review->content = 'Zweiter';
-        $second = $review->formatted_content;
+        $review->update(['content' => 'Zweiter']);
+        $second = $review->fresh()->formatted_content;
 
         $this->assertNotSame($first, $second);
         $this->assertStringContainsString('Zweiter', $second);
@@ -176,12 +178,10 @@ class ReviewFormattedContentTest extends TestCase
 
         $first = $review->formatted_content;
 
-        $reflection = new \ReflectionMethod(Review::class, 'formattedContentCacheKey');
-        $reflection->setAccessible(true);
-        $cacheKey = $reflection->invoke($review);
+        $cacheKey = sprintf('review:%s:formatted:%s:%s', $review->id, $review->updated_at->valueOf(), md5('Cached Inhalt'));
 
         $this->assertNotNull($cacheKey);
-        $this->assertTrue(Cache::store()->has($cacheKey));
+        $this->assertTrue(Cache::has($cacheKey));
 
         $reloaded = Review::find($review->id);
         $second = $reloaded->formatted_content;

@@ -74,12 +74,16 @@ class Review extends Model
      *   and enforcing safe rel attributes.
      * - Returns an empty string for empty or non-meaningful content.
      *
+     * Markdown is rendered with `html_input => strip` to drop raw HTML before
+     * parsing; `strip_tags` is applied afterward as defense-in-depth in case the
+     * Markdown parser behavior changes in future versions.
+     *
      * Allowed tags are defined in ALLOWED_HTML_TAGS and limited to basic text
      * formatting (paragraphs, emphasis, links, headings, lists, blockquotes,
      * code, and line breaks). Relative links are permitted when they look like
      * local files or paths containing common characters (letters, numbers,
      * dashes, underscores, dots, and slashes) with optional query or fragment
-     * parts.
+     * parts, or when they begin with a hash for in-page anchors.
      */
     public function getFormattedContentAttribute(): string
     {
@@ -88,7 +92,7 @@ class Review extends Model
         $cacheKey = $this->formattedContentCacheKey();
 
         if ($cacheKey !== null) {
-            return Cache::rememberForever($cacheKey, function () use ($markdown) {
+            return Cache::remember($cacheKey, now()->addDay(), function () use ($markdown) {
                 return $this->renderFormattedContent($markdown);
             });
         }
@@ -101,6 +105,7 @@ class Review extends Model
         $href = trim($element->getAttribute('href'));
 
         if ($href !== '') {
+            // Guard against explicit dangerous protocols in the raw attribute value.
             if (preg_match('/^(javascript|data|vbscript):/i', $href)) {
                 $element->removeAttribute('href');
             } else {
@@ -111,6 +116,7 @@ class Review extends Model
                 } elseif ($scheme !== null) {
                     $normalizedScheme = strtolower($scheme);
 
+                    // Only allow common safe protocols; anything else is stripped.
                     if (!in_array($normalizedScheme, ['http', 'https', 'mailto'], true)) {
                         $element->removeAttribute('href');
                     }
@@ -118,9 +124,15 @@ class Review extends Model
                     $trimmedHref = ltrim($href);
                     $isHashLink = Str::startsWith($trimmedHref, '#');
                     $isRelativePath = Str::startsWith($trimmedHref, ['/', './', '../']);
-                    $looksLikeFile = preg_match('/^[A-Za-z._\-][A-Za-z0-9._\-\/]*([?#][^\s]*)?$/', $trimmedHref) === 1;
 
-                    if ($isHashLink || Str::startsWith($trimmedHref, '//') || (!$isRelativePath && !$looksLikeFile)) {
+                    // Support underscore-prefixed paths (e.g., _drafts/) but block at- or
+                    // protocol-relative prefixes which could disguise external navigation.
+                    $looksLikeFile = preg_match('/^[A-Za-z_][A-Za-z0-9._\-\/]*([?#][^\s]*)?$/', $trimmedHref) === 1;
+
+                    // Protocol-relative URLs are rejected to avoid inheriting an unsafe
+                    // scheme from the embedding page, while hash links remain allowed for
+                    // in-page navigation.
+                    if (Str::startsWith($trimmedHref, '//') || (!$isHashLink && !$isRelativePath && !$looksLikeFile)) {
                         $element->removeAttribute('href');
                     }
                 }
@@ -195,7 +207,12 @@ class Review extends Model
 
             return $fragment;
         } finally {
-            libxml_use_internal_errors($previousLibxmlSetting);
+            try {
+                libxml_use_internal_errors($previousLibxmlSetting);
+            } catch (\Throwable) {
+                // Best-effort restoration so the original exception is not shadowed.
+            }
+
             libxml_clear_errors();
         }
     }
@@ -218,14 +235,16 @@ class Review extends Model
         }
 
         $updatedAt = $this->updated_at instanceof Carbon
-            ? $this->updated_at->timestamp
-            : ($this->freshTimestamp()->timestamp ?? null);
+            ? $this->updated_at->valueOf()
+            : $this->freshTimestamp()->valueOf();
 
         if ($updatedAt === null) {
             return null;
         }
 
-        return sprintf('review:%s:formatted:%s', $this->getKey(), $updatedAt);
+        $hash = md5((string) $this->content);
+
+        return sprintf('review:%s:formatted:%s:%s', $this->getKey(), $updatedAt, $hash);
     }
 }
 
