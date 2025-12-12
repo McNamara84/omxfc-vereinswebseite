@@ -136,8 +136,14 @@
             @endif
             <!-- Aktivitäten Card -->
             <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-8">
-                <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FCA5A5] mb-4">Aktivitäten</h2>
-                <ul class="divide-y divide-gray-200 dark:divide-gray-700">
+                <div class="flex items-start justify-between gap-3 mb-4">
+                    <div>
+                        <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FCA5A5]">Aktivitäten</h2>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">Neueste Rezensionen, Kommentare & Aktionen im Überblick.</p>
+                    </div>
+                    <span class="inline-flex items-center gap-1 rounded-full bg-[#8B0116]/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[#8B0116] dark:bg-[#FCA5A5]/10 dark:text-[#FCA5A5]">Live-Feed</span>
+                </div>
+                <ul class="space-y-3" role="list">
                     @forelse($activities as $activity)
                         @php
                             $subject = $activity->subject;
@@ -149,78 +155,121 @@
                             $isFantreffenRegistration = $activity->subject_type === \App\Models\FantreffenAnmeldung::class;
                             $activityUser = $activity->user;
                             $showProfileLink = !$isFantreffenRegistration && $activityUser;
+                            $typeLabels = [
+                                \App\Models\Review::class => 'Rezension',
+                                \App\Models\ReviewComment::class => 'Kommentar',
+                                \App\Models\BookOffer::class => 'Tausch',
+                                \App\Models\BookRequest::class => 'Gesuch',
+                                \App\Models\AdminMessage::class => 'Hinweis',
+                                \App\Models\FantreffenAnmeldung::class => 'Fantreffen',
+                                \App\Models\Todo::class => 'Challenge',
+                                \App\Models\User::class => 'Mitglied',
+                            ];
+                            $activityLabel = $typeLabels[$activity->subject_type] ?? 'Aktivität';
                         @endphp
-                        <li class="py-2 space-y-1">
-                            <span class="text-sm text-gray-600 dark:text-gray-400 flex items-center" aria-label="Aktivität am {{ $activity->created_at->format('d.m.Y H:i') }}">
-                                <span class="mr-2 whitespace-nowrap">{{ $activity->created_at->format('d.m.Y H:i') }}</span>
+                        <li class="relative rounded-lg border border-gray-100 bg-gray-50 px-4 py-3 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-gray-700/60 dark:bg-gray-900/40" aria-label="Aktivität am {{ $activity->created_at->format('d.m.Y H:i') }}">
+                            <div class="flex flex-wrap items-center gap-2 text-xs font-semibold text-gray-500 dark:text-gray-400">
+                                <span class="inline-flex items-center gap-1 rounded-full bg-white px-2 py-1 text-[#8B0116] shadow-sm ring-1 ring-[#8B0116]/20 dark:bg-gray-800">
+                                    <span class="sr-only">Zeitpunkt</span>
+                                    <svg class="h-3.5 w-3.5" aria-hidden="true" viewBox="0 0 20 20" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16Zm.75-12.25a.75.75 0 00-1.5 0v4.5c0 .414.336.75.75.75h3.5a.75.75 0 000-1.5H10.75v-3.75Z" clip-rule="evenodd" />
+                                    </svg>
+                                    {{ $activity->created_at->format('d.m.Y H:i') }}
+                                </span>
+                                <span class="inline-flex items-center gap-1 rounded-full bg-[#8B0116]/10 px-2 py-1 text-[#8B0116] ring-1 ring-[#8B0116]/20 dark:bg-[#FCA5A5]/10 dark:text-[#FCA5A5]">
+                                    <span class="sr-only">Aktivitätstyp:</span>
+                                    {{ $activityLabel }}
+                                </span>
                                 @if($showProfileLink)
-                                    <a href="{{ route('profile.view', $activityUser->id) }}" class="text-[#8B0116] hover:underline">
-                                        {{ $activityUser->name }}
-                                    </a>
-                                @elseif(!$isFantreffenRegistration)
-                                    <span class="text-gray-700 dark:text-gray-200" aria-live="polite">Unbekannter Nutzer</span>
-                                @endif
-                            </span>
-                            @if(!$subject)
-                                <span class="text-sm text-gray-500 dark:text-gray-300 italic" role="status" aria-live="polite">
-                                    {{ $missingSubjectMessage }}
-                                </span>
-                            @elseif($isFantreffenRegistration)
-                                @php
-                                    $registrantName = $subject?->vorname
-                                        ?? $activityUser?->vorname
-                                        ?? $activityUser?->name
-                                        ?? 'Teilnehmer';
-                                @endphp
-                                <span class="text-sm text-gray-800 dark:text-gray-200" aria-live="polite">
-                                    {{ $registrantName }} hat sich zum Fantreffen in Coellen angemeldet
-                                </span>
-                            @elseif($activity->subject_type === \App\Models\Review::class)
-                                <a href="{{ route('reviews.show', $subject->book_id) }}" class="text-sm text-blue-600 dark:text-blue-400 hover:underline">
-                                    Neue Rezension: {{ $subject->title }}
-                                </a>
-                            @elseif($activity->subject_type === \App\Models\BookOffer::class)
-                                <a href="{{ route('romantausch.index') }}" class="text-sm text-blue-600 dark:text-blue-400 hover:underline">
-                                    Neues Angebot: {{ $subject->book_title }}
-                                </a>
-                            @elseif($activity->subject_type === \App\Models\BookRequest::class)
-                                <a href="{{ route('romantausch.index') }}" class="text-sm text-blue-600 dark:text-blue-400 hover:underline">
-                                    Neues Gesuch: {{ $subject->book_title }}
-                                </a>
-                            @elseif($activity->subject_type === \App\Models\ReviewComment::class)
-                                @php
-                                    $review = $subject?->review;
-                                @endphp
-                                @if($review)
-                                    <span class="text-sm">
-                                        Kommentar zu <a href="{{ route('reviews.show', $review->book_id) }}" class="text-blue-600 dark:text-blue-400 hover:underline">{{ $review->title }}</a> von <a href="{{ route('profile.view', $activity->user->id) }}" class="text-[#8B0116] hover:underline">{{ $activity->user->name }}</a>
+                                    <span class="inline-flex items-center gap-1 rounded-full bg-white px-2 py-1 text-gray-700 ring-1 ring-gray-200 dark:bg-gray-800 dark:text-gray-200 dark:ring-gray-700">
+                                        <span class="sr-only">von Nutzer</span>
+                                        <svg class="h-3.5 w-3.5" aria-hidden="true" viewBox="0 0 20 20" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                            <path fill-rule="evenodd" d="M10 2a8 8 0 100 16 8 8 0 000-16Zm0 4a2 2 0 110 4 2 2 0 010-4zm-4 8a4 4 0 118 0H6z" clip-rule="evenodd" />
+                                        </svg>
+                                        <a href="{{ route('profile.view', $activityUser->id) }}" class="font-semibold text-[#8B0116] hover:underline dark:text-[#FCA5A5]">{{ $activityUser->name }}</a>
                                     </span>
-                                @else
-                                    <span class="text-sm text-gray-500 dark:text-gray-300 italic" role="status" aria-live="polite">
+                                @elseif(!$isFantreffenRegistration)
+                                    <span class="inline-flex items-center gap-1 rounded-full bg-white px-2 py-1 text-gray-700 ring-1 ring-gray-200 dark:bg-gray-800 dark:text-gray-200 dark:ring-gray-700">
+                                        <svg class="h-3.5 w-3.5" aria-hidden="true" viewBox="0 0 20 20" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                            <path fill-rule="evenodd" d="M10 2a8 8 0 100 16 8 8 0 000-16Zm0 4a2 2 0 110 4 2 2 0 010-4zm-4 8a4 4 0 118 0H6z" clip-rule="evenodd" />
+                                        </svg>
+                                        Unbekannter Nutzer
+                                    </span>
+                                @endif
+                            </div>
+
+                            <div class="mt-2 space-y-1 text-sm leading-relaxed text-gray-800 dark:text-gray-200">
+                                @if(!$subject)
+                                    <span class="text-gray-500 dark:text-gray-300 italic">
                                         {{ $missingSubjectMessage }}
                                     </span>
-                                @endif
-                            @elseif($activity->subject_type === \App\Models\AdminMessage::class)
-                                <span class="text-sm flex items-center">
-                                    {{ $subject->message }}
-                                    @if(auth()->user()->hasRole(\App\Enums\Role::Admin))
-                                        <form method="POST" action="{{ route('admin.messages.destroy', $subject) }}" class="ml-2">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button class="text-red-500 text-xs" onclick="return confirm('Nachricht löschen?')">Löschen</button>
-                                        </form>
+                                @elseif($isFantreffenRegistration)
+                                    @php
+                                        $registrantName = $subject?->vorname
+                                            ?? $activityUser?->vorname
+                                            ?? $activityUser?->name
+                                            ?? 'Teilnehmer';
+                                    @endphp
+                                    <span>{{ $registrantName }} hat sich zum Fantreffen in Coellen angemeldet</span>
+                                @elseif($activity->subject_type === \App\Models\Review::class)
+                                    @php
+                                        $reviewPreview = \App\Support\PreviewText::make($subject->content ?? '', 160);
+                                    @endphp
+                                    <div class="space-y-1">
+                                        <a href="{{ route('reviews.show', $subject->book_id) }}" class="font-semibold text-blue-600 dark:text-blue-400 hover:underline">Neue Rezension: {{ $subject->title }}</a>
+                                        @if($reviewPreview->isNotEmpty())
+                                            <p class="text-sm text-gray-600 dark:text-gray-300" aria-label="Auszug aus der Rezension">„{{ $reviewPreview }}“</p>
+                                        @endif
+                                    </div>
+                                @elseif($activity->subject_type === \App\Models\BookOffer::class)
+                                    <div class="space-y-1">
+                                        <a href="{{ route('romantausch.index') }}" class="font-semibold text-blue-600 dark:text-blue-400 hover:underline">Neues Angebot: {{ $subject->book_title }}</a>
+                                        <p class="text-sm text-gray-600 dark:text-gray-300">Entdecke neue Tauschangebote aus der Community.</p>
+                                    </div>
+                                @elseif($activity->subject_type === \App\Models\BookRequest::class)
+                                    <div class="space-y-1">
+                                        <a href="{{ route('romantausch.index') }}" class="font-semibold text-blue-600 dark:text-blue-400 hover:underline">Neues Gesuch: {{ $subject->book_title }}</a>
+                                        <p class="text-sm text-gray-600 dark:text-gray-300">Vielleicht hast du genau das passende Heft zum Teilen.</p>
+                                    </div>
+                                @elseif($activity->subject_type === \App\Models\ReviewComment::class)
+                                    @php
+                                        $review = $subject?->review;
+                                        $commentPreview = \App\Support\PreviewText::make($subject?->content ?? '', 140);
+                                    @endphp
+                                    @if($review)
+                                        <div class="space-y-1">
+                                            <span>Kommentar zu <a href="{{ route('reviews.show', $review->book_id) }}" class="text-blue-600 dark:text-blue-400 hover:underline">{{ $review->title }}</a> von <a href="{{ route('profile.view', $activity->user->id) }}" class="text-[#8B0116] hover:underline dark:text-[#FCA5A5]">{{ $activity->user->name }}</a></span>
+                                            @if($commentPreview->isNotEmpty())
+                                                <p class="text-sm text-gray-600 dark:text-gray-300" aria-label="Auszug aus dem Kommentar">„{{ $commentPreview }}“</p>
+                                            @endif
+                                        </div>
+                                    @else
+                                        <span class="text-gray-500 dark:text-gray-300 italic">
+                                            {{ $missingSubjectMessage }}
+                                        </span>
                                     @endif
-                                </span>
-                            @elseif($activity->subject_type === \App\Models\Todo::class && $activity->action === 'accepted')
-                                <span class="text-sm">hat die Challenge <a href="{{ route('todos.show', $subject->id) }}" class="text-blue-600 dark:text-blue-400 hover:underline">{{ $subject->title }}</a> angenommen</span>
-                            @elseif($activity->subject_type === \App\Models\Todo::class && $activity->action === 'completed')
-                                <span class="text-sm">hat die Challenge <a href="{{ route('todos.show', $subject->id) }}" class="text-blue-600 dark:text-blue-400 hover:underline">{{ $subject->title }}</a> erfolgreich abgeschlossen</span>
-                            @elseif($activity->subject_type === \App\Models\User::class && $activity->action === 'member_approved')
-                                <span class="text-sm">Wir begrüßen unser neues Mitglied <a href="{{ route('profile.view', $subject->id) }}" class="text-[#8B0116] hover:underline">{{ $subject->name }}</a></span>
-                            @endif
+                                @elseif($activity->subject_type === \App\Models\AdminMessage::class)
+                                    <div class="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                                        <span class="font-medium">{{ $subject->message }}</span>
+                                        @if(auth()->user()->hasRole(\App\Enums\Role::Admin))
+                                            <form method="POST" action="{{ route('admin.messages.destroy', $subject) }}" class="text-right">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button class="text-xs font-semibold text-red-500 hover:text-red-600" onclick="return confirm('Nachricht löschen?')">Löschen</button>
+                                            </form>
+                                        @endif
+                                    </div>
+                                @elseif($activity->subject_type === \App\Models\Todo::class && $activity->action === 'accepted')
+                                    <span>hat die Challenge <a href="{{ route('todos.show', $subject->id) }}" class="text-blue-600 dark:text-blue-400 hover:underline">{{ $subject->title }}</a> angenommen</span>
+                                @elseif($activity->subject_type === \App\Models\Todo::class && $activity->action === 'completed')
+                                    <span>hat die Challenge <a href="{{ route('todos.show', $subject->id) }}" class="text-blue-600 dark:text-blue-400 hover:underline">{{ $subject->title }}</a> erfolgreich abgeschlossen</span>
+                                @elseif($activity->subject_type === \App\Models\User::class && $activity->action === 'member_approved')
+                                    <span>Wir begrüßen unser neues Mitglied <a href="{{ route('profile.view', $subject->id) }}" class="text-[#8B0116] hover:underline dark:text-[#FCA5A5]">{{ $subject->name }}</a></span>
+                                @endif
+                            </div>
                         </li>
                     @empty
-                        <li class="py-2 text-gray-600 dark:text-gray-400">Keine Aktivitäten vorhanden.</li>
+                        <li class="rounded-lg border border-dashed border-gray-200 px-4 py-6 text-center text-gray-600 dark:border-gray-700 dark:text-gray-400">Keine Aktivitäten vorhanden.</li>
                     @endforelse
                 </ul>
             </div>
