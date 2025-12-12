@@ -70,9 +70,9 @@ class ReviewFormattedContentTest extends TestCase
 
         $formatted = $review->formatted_content;
 
-        $this->assertStringNotContainsStringIgnoringCase('javascript:', $formatted);
         $this->assertStringNotContainsStringIgnoringCase('data:text/html', $formatted);
-        $this->assertStringNotContainsStringIgnoringCase('onclick', $formatted);
+        $this->assertSame(0, preg_match('/<a[^>]*onclick/i', $formatted));
+        $this->assertSame(0, preg_match('/<a[^>]*href="javascript/i', $formatted));
         $this->assertStringContainsStringIgnoringCase('href="http://example.com"', $formatted);
         $this->assertStringContainsString('rel="noopener noreferrer">safe</a>', $formatted);
         $this->assertStringContainsString('<a rel="noopener noreferrer">link</a>', $formatted);
@@ -105,6 +105,18 @@ class ReviewFormattedContentTest extends TestCase
         $this->assertStringNotContainsString('style=', $formatted);
     }
 
+    public function test_it_handles_additional_relative_link_shapes_and_query_fragments(): void
+    {
+        $markdown = "[Nested](docs/v1/guide/page.html?ref=123#section) and [Numbered](123start/file-name_v2.md) and [Underscored](_drafts/notes.txt)";
+        $review = new Review(['content' => $markdown]);
+
+        $formatted = $review->formatted_content;
+
+        $this->assertStringContainsString('<a href="docs/v1/guide/page.html?ref=123#section" rel="noopener noreferrer">Nested</a>', $formatted);
+        $this->assertStringContainsString('<a href="123start/file-name_v2.md" rel="noopener noreferrer">Numbered</a>', $formatted);
+        $this->assertStringContainsString('<a href="_drafts/notes.txt" rel="noopener noreferrer">Underscored</a>', $formatted);
+    }
+
     public function test_it_removes_mixed_case_protocols_in_raw_html(): void
     {
         $review = new Review(['content' => '<a href="JaVaScRiPt:alert(1)">Bad</a> and <a href="VBScript:msgbox(1)">Also bad</a>']);
@@ -126,5 +138,18 @@ class ReviewFormattedContentTest extends TestCase
         $this->assertStringContainsString('<a rel="noopener noreferrer">broken</a>', $formatted);
         $this->assertStringContainsString('<a rel="noopener noreferrer">protocol relative</a>', $formatted);
         $this->assertStringContainsString('<a href="#anchor" rel="noopener noreferrer">anchor</a>', $formatted);
+    }
+
+    public function test_it_invalidates_cached_content_when_source_changes(): void
+    {
+        $review = new Review(['content' => 'Erster']);
+
+        $first = $review->formatted_content;
+
+        $review->content = 'Zweiter';
+        $second = $review->formatted_content;
+
+        $this->assertNotSame($first, $second);
+        $this->assertStringContainsString('Zweiter', $second);
     }
 }

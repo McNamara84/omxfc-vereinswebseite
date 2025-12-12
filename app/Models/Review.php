@@ -31,6 +31,8 @@ class Review extends Model
     use HasFactory, SoftDeletes;
 
     private const ALLOWED_HTML_TAGS = '<p><strong><em><a><ul><ol><li><blockquote><code><pre><br><h1><h2><h3><h4><h5><h6>';
+    private ?string $formattedContentCache = null;
+    private ?string $formattedContentSource = null;
 
     protected $fillable = [
         'team_id',
@@ -72,18 +74,27 @@ class Review extends Model
      * - Normalizes links by removing unsafe protocols, disallowing malformed URLs,
      *   and enforcing safe rel attributes.
      * - Returns an empty string for empty or non-meaningful content.
+     *
+     * Allowed tags are defined in ALLOWED_HTML_TAGS and limited to basic text
+     * formatting (paragraphs, emphasis, links, headings, lists, blockquotes,
+     * code, and line breaks). Relative links are permitted when they look like
+     * local files or paths containing common characters (letters, numbers,
+     * dashes, underscores, dots, and slashes) with optional query or fragment
+     * parts.
      */
     public function getFormattedContentAttribute(): string
     {
         $markdown = (string) ($this->content ?? '');
+
+        if ($this->formattedContentSource === $markdown && $this->formattedContentCache !== null) {
+            return $this->formattedContentCache;
+        }
 
         $html = Str::markdown($markdown, [
             'html_input' => 'strip',
         ]);
 
         $html = strip_tags($html, self::ALLOWED_HTML_TAGS);
-        $html = preg_replace('/on[a-z]+\s*=\s*("[^"]*"|\'[^\']*\'|[^\s>]*)/i', '', $html) ?? '';
-        $html = preg_replace('/\bjavascript:/i', '', $html) ?? '';
 
         $textOnly = trim(strip_tags($html));
 
@@ -102,7 +113,7 @@ class Review extends Model
             libxml_use_internal_errors($previousLibxmlSetting);
             libxml_clear_errors();
 
-            return $textOnly === '' ? '' : $html;
+            return $html;
         }
 
         $container = $dom->getElementsByTagName('div')->item(0);
@@ -110,7 +121,7 @@ class Review extends Model
             libxml_use_internal_errors($previousLibxmlSetting);
             libxml_clear_errors();
 
-            return $textOnly === '' ? '' : $html;
+            return $html;
         }
 
         foreach ($dom->getElementsByTagName('*') as $element) {
@@ -131,36 +142,7 @@ class Review extends Model
             }
 
             if (strtolower($element->nodeName) === 'a') {
-                $href = trim($element->getAttribute('href'));
-
-                if ($href !== '') {
-                    if (preg_match('/^(javascript|data|vbscript):/i', $href)) {
-                        $element->removeAttribute('href');
-                    } else {
-                        $scheme = parse_url($href, PHP_URL_SCHEME);
-
-                        if ($scheme === false) {
-                            $element->removeAttribute('href');
-                        } elseif ($scheme !== null) {
-                            $normalizedScheme = strtolower($scheme);
-
-                            if (!in_array($normalizedScheme, ['http', 'https', 'mailto'], true)) {
-                                $element->removeAttribute('href');
-                            }
-                        } else {
-                            $trimmedHref = ltrim($href);
-                            $isHashLink = Str::startsWith($trimmedHref, '#');
-                            $isRelativePath = Str::startsWith($trimmedHref, ['/', './', '../']);
-                            $looksLikeFile = preg_match('/^[A-Za-z0-9][A-Za-z0-9._\-\/]*([?#][^\s]*)?$/', $trimmedHref) === 1;
-
-                            if (Str::startsWith($trimmedHref, '//') || (!$isHashLink && !$isRelativePath && !$looksLikeFile)) {
-                                $element->removeAttribute('href');
-                            }
-                        }
-                    }
-                }
-
-                $element->setAttribute('rel', 'noopener noreferrer');
+                $this->sanitizeLink($element);
             }
         }
 
@@ -173,7 +155,44 @@ class Review extends Model
             $fragment .= $dom->saveHTML($child);
         }
 
+        $this->formattedContentSource = $markdown;
+        $this->formattedContentCache = $fragment;
+
         return $fragment;
+    }
+
+    private function sanitizeLink(\DOMElement $element): void
+    {
+        $href = trim($element->getAttribute('href'));
+
+        if ($href !== '') {
+            if (preg_match('/^(javascript|data|vbscript):/i', $href)) {
+                $element->removeAttribute('href');
+            } else {
+                $scheme = parse_url($href, PHP_URL_SCHEME);
+
+                if ($scheme === false) {
+                    $element->removeAttribute('href');
+                } elseif ($scheme !== null) {
+                    $normalizedScheme = strtolower($scheme);
+
+                    if (!in_array($normalizedScheme, ['http', 'https', 'mailto'], true)) {
+                        $element->removeAttribute('href');
+                    }
+                } else {
+                    $trimmedHref = ltrim($href);
+                    $isHashLink = Str::startsWith($trimmedHref, '#');
+                    $isRelativePath = Str::startsWith($trimmedHref, ['/', './', '../']);
+                    $looksLikeFile = preg_match('/^[A-Za-z0-9._\-][A-Za-z0-9._\-\/]*([?#][^\s]*)?$/', $trimmedHref) === 1;
+
+                    if (Str::startsWith($trimmedHref, '//') || (!$isHashLink && !$isRelativePath && !$looksLikeFile)) {
+                        $element->removeAttribute('href');
+                    }
+                }
+            }
+        }
+
+        $element->setAttribute('rel', 'noopener noreferrer');
     }
 }
 
