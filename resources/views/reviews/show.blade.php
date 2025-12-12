@@ -21,7 +21,7 @@
                             , geändert am {{ $review->updated_at->format('d.m.Y') }} um {{ $review->updated_at->format('H:i') }} Uhr
                         @endif
                     </p>
-                    <div class="mt-4 text-gray-800 dark:text-gray-200">
+                    <div class="mt-4 prose prose-slate dark:prose-invert max-w-none prose-a:text-[#8B0116] prose-a:font-semibold prose-a:underline-offset-2">
                         {!! $review->formatted_content !!}
                     </div>
 

@@ -64,17 +64,20 @@ class Review extends Model
 
     public function getFormattedContentAttribute(): string
     {
-        $html = Str::markdown($this->content);
-        $html = strip_tags($html, '<p><strong><em><a>');
+        $html = Str::markdown($this->content, [
+            'html_input' => 'strip',
+        ]);
+
+        $html = strip_tags($html, '<p><strong><em><a><ul><ol><li><blockquote><code><pre><br><h1><h2><h3><h4><h5><h6>');
 
         if (trim($html) === '') {
             return '';
         }
 
-        $dom = new \DOMDocument();
+        $dom = new \DOMDocument('1.0', 'UTF-8');
         libxml_use_internal_errors(true);
         $loaded = $dom->loadHTML(
-            mb_convert_encoding($html, 'HTML-ENTITIES', 'UTF-8'),
+            '<?xml encoding="UTF-8" ?>' . '<div>' . $html . '</div>',
             LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD
         );
         if (!$loaded) {
@@ -87,7 +90,12 @@ class Review extends Model
         libxml_clear_errors();
 
         $fragment = '';
-        foreach ($dom->childNodes as $child) {
+        $container = $dom->getElementsByTagName('div')->item(0);
+        if ($container === null) {
+            return $html;
+        }
+
+        foreach ($container->childNodes as $child) {
             $fragment .= $dom->saveHTML($child);
         }
 
