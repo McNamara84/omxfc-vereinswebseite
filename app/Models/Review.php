@@ -30,6 +30,8 @@ class Review extends Model
 {
     use HasFactory, SoftDeletes;
 
+    private const ALLOWED_HTML_TAGS = '<p><strong><em><a><ul><ol><li><blockquote><code><pre><br><h1><h2><h3><h4><h5><h6>';
+
     protected $fillable = [
         'team_id',
         'user_id',
@@ -62,6 +64,15 @@ class Review extends Model
         return $this->hasMany(ReviewComment::class);
     }
 
+    /**
+     * Render review content as sanitized HTML.
+     *
+     * - Converts Markdown to HTML while stripping unsafe tags.
+     * - Filters out event handler attributes and inline styles.
+     * - Normalizes links by removing unsafe protocols, disallowing malformed URLs,
+     *   and enforcing safe rel attributes.
+     * - Returns an empty string for empty or non-meaningful content.
+     */
     public function getFormattedContentAttribute(): string
     {
         $markdown = (string) ($this->content ?? '');
@@ -70,7 +81,7 @@ class Review extends Model
             'html_input' => 'strip',
         ]);
 
-        $html = strip_tags($html, '<p><strong><em><a><ul><ol><li><blockquote><code><pre><br><h1><h2><h3><h4><h5><h6>');
+        $html = strip_tags($html, self::ALLOWED_HTML_TAGS);
         $html = preg_replace('/on[a-z]+\s*=\s*("[^"]*"|\'[^\']*\'|[^\s>]*)/i', '', $html) ?? '';
         $html = preg_replace('/\bjavascript:/i', '', $html) ?? '';
 
@@ -110,7 +121,7 @@ class Review extends Model
                     $name = strtolower($attribute->nodeName);
 
                     if (str_starts_with($name, 'on') || $name === 'style') {
-                        $attributesToRemove[] = $name;
+                        $attributesToRemove[] = $attribute->nodeName;
                     }
                 }
 
@@ -118,27 +129,39 @@ class Review extends Model
                     $element->removeAttribute($attributeName);
                 }
             }
-        }
 
-        foreach ($dom->getElementsByTagName('a') as $a) {
-            $href = trim($a->getAttribute('href'));
+            if (strtolower($element->nodeName) === 'a') {
+                $href = trim($element->getAttribute('href'));
 
-            if ($href !== '') {
-                if (preg_match('/^(javascript|data|vbscript):/i', $href)) {
-                    $a->removeAttribute('href');
-                } else {
-                    $scheme = strtolower((string) parse_url($href, PHP_URL_SCHEME));
-                    $isRelative = Str::startsWith($href, ['/', './', '../', '#']);
+                if ($href !== '') {
+                    if (preg_match('/^(javascript|data|vbscript):/i', $href)) {
+                        $element->removeAttribute('href');
+                    } else {
+                        $scheme = parse_url($href, PHP_URL_SCHEME);
 
-                    if ($scheme !== '' && !in_array($scheme, ['http', 'https', 'mailto'], true)) {
-                        $a->removeAttribute('href');
-                    } elseif ($scheme === '' && !$isRelative) {
-                        $a->removeAttribute('href');
+                        if ($scheme === false) {
+                            $element->removeAttribute('href');
+                        } elseif ($scheme !== null) {
+                            $normalizedScheme = strtolower($scheme);
+
+                            if (!in_array($normalizedScheme, ['http', 'https', 'mailto'], true)) {
+                                $element->removeAttribute('href');
+                            }
+                        } else {
+                            $trimmedHref = ltrim($href);
+                            $isHashLink = Str::startsWith($trimmedHref, '#');
+                            $isRelativePath = Str::startsWith($trimmedHref, ['/', './', '../']);
+                            $looksLikeFile = preg_match('/^[A-Za-z0-9][A-Za-z0-9._\-\/]*([?#][^\s]*)?$/', $trimmedHref) === 1;
+
+                            if (Str::startsWith($trimmedHref, '//') || (!$isHashLink && !$isRelativePath && !$looksLikeFile)) {
+                                $element->removeAttribute('href');
+                            }
+                        }
                     }
                 }
-            }
 
-            $a->setAttribute('rel', 'noopener noreferrer');
+                $element->setAttribute('rel', 'noopener noreferrer');
+            }
         }
 
         libxml_use_internal_errors($previousLibxmlSetting);

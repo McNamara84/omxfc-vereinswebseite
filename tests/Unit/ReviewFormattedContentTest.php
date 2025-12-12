@@ -66,13 +66,15 @@ class ReviewFormattedContentTest extends TestCase
 
     public function test_it_sanitizes_additional_xss_vectors_case_insensitive(): void
     {
-        $review = new Review(['content' => "Unsafe [link](JaVaScRiPt:alert('XSS')) raw <a href=\"HTTP://example.com\" OnClick=\"alert('xss')\">Click</a> and data [uri](data:text/html,alert('boom'))"]);
+        $review = new Review(['content' => "Unsafe [link](JaVaScRiPt:alert('XSS')) and [safe](HTTP://example.com) raw <a href=\"javascript:alert('xss')\" OnClick=\"alert('xss')\">Click</a> and data [uri](data:text/html,alert('boom'))"]);
 
         $formatted = $review->formatted_content;
 
         $this->assertStringNotContainsStringIgnoringCase('javascript:', $formatted);
         $this->assertStringNotContainsStringIgnoringCase('data:text/html', $formatted);
         $this->assertStringNotContainsStringIgnoringCase('onclick', $formatted);
+        $this->assertStringContainsStringIgnoringCase('href="http://example.com"', $formatted);
+        $this->assertStringContainsString('rel="noopener noreferrer">safe</a>', $formatted);
         $this->assertStringContainsString('<a rel="noopener noreferrer">link</a>', $formatted);
     }
 
@@ -88,5 +90,41 @@ class ReviewFormattedContentTest extends TestCase
         $this->assertStringContainsString('<ol>', $formatted);
         $this->assertStringContainsString('Langer Inhalt', $formatted);
         $this->assertGreaterThan(1000, strlen($formatted));
+    }
+
+    public function test_it_allows_relative_and_mailto_links_while_removing_style_attributes(): void
+    {
+        $markdown = "[Relative](page.html) and [Docs](./docs) and [Mail](mailto:team@example.com) and <a href=\"https://example.com\" style=\"color:red\">Styled</a>";
+        $review = new Review(['content' => $markdown]);
+
+        $formatted = $review->formatted_content;
+
+        $this->assertStringContainsString('<a href="page.html" rel="noopener noreferrer">Relative</a>', $formatted);
+        $this->assertStringContainsString('<a href="./docs" rel="noopener noreferrer">Docs</a>', $formatted);
+        $this->assertStringContainsString('<a href="mailto:team@example.com" rel="noopener noreferrer">Mail</a>', $formatted);
+        $this->assertStringNotContainsString('style=', $formatted);
+    }
+
+    public function test_it_removes_mixed_case_protocols_in_raw_html(): void
+    {
+        $review = new Review(['content' => '<a href="JaVaScRiPt:alert(1)">Bad</a> and <a href="VBScript:msgbox(1)">Also bad</a>']);
+
+        $formatted = $review->formatted_content;
+
+        $this->assertStringContainsString('Bad', $formatted);
+        $this->assertStringContainsString('Also bad', $formatted);
+        $this->assertStringNotContainsStringIgnoringCase('javascript:', $formatted);
+        $this->assertStringNotContainsStringIgnoringCase('vbscript:', $formatted);
+    }
+
+    public function test_it_handles_malformed_urls_and_protocol_relative_links(): void
+    {
+        $review = new Review(['content' => 'Broken [broken](http:///example.com) and [protocol relative](//example.com/path) and [anchor](#anchor)']);
+
+        $formatted = $review->formatted_content;
+
+        $this->assertStringContainsString('<a rel="noopener noreferrer">broken</a>', $formatted);
+        $this->assertStringContainsString('<a rel="noopener noreferrer">protocol relative</a>', $formatted);
+        $this->assertStringContainsString('<a href="#anchor" rel="noopener noreferrer">anchor</a>', $formatted);
     }
 }
