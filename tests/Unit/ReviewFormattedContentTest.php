@@ -3,6 +3,7 @@
 namespace Tests\Unit;
 
 use App\Models\Review;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -48,7 +49,7 @@ class ReviewFormattedContentTest extends TestCase
     public function test_it_handles_empty_and_whitespace_only_content(): void
     {
         $emptyReview = new Review(['content' => '']);
-        $whitespaceReview = new Review(['content' => "   \n   "]); 
+        $whitespaceReview = new Review(['content' => "   \n   "]);
 
         $this->assertSame('', $emptyReview->formatted_content);
         $this->assertSame('', $whitespaceReview->formatted_content);
@@ -107,13 +108,13 @@ class ReviewFormattedContentTest extends TestCase
 
     public function test_it_handles_additional_relative_link_shapes_and_query_fragments(): void
     {
-        $markdown = "[Nested](docs/v1/guide/page.html?ref=123#section) and [Numbered](123start/file-name_v2.md) and [Underscored](_drafts/notes.txt)";
+        $markdown = "[Nested](docs/v1/guide/page.html?ref=123#section) and [Letters](docs123/file-name_v2.md) and [Underscored](_drafts/notes.txt)";
         $review = new Review(['content' => $markdown]);
 
         $formatted = $review->formatted_content;
 
         $this->assertStringContainsString('<a href="docs/v1/guide/page.html?ref=123#section" rel="noopener noreferrer">Nested</a>', $formatted);
-        $this->assertStringContainsString('<a href="123start/file-name_v2.md" rel="noopener noreferrer">Numbered</a>', $formatted);
+        $this->assertStringContainsString('<a href="docs123/file-name_v2.md" rel="noopener noreferrer">Letters</a>', $formatted);
         $this->assertStringContainsString('<a href="_drafts/notes.txt" rel="noopener noreferrer">Underscored</a>', $formatted);
     }
 
@@ -137,7 +138,7 @@ class ReviewFormattedContentTest extends TestCase
 
         $this->assertStringContainsString('<a rel="noopener noreferrer">broken</a>', $formatted);
         $this->assertStringContainsString('<a rel="noopener noreferrer">protocol relative</a>', $formatted);
-        $this->assertStringContainsString('<a href="#anchor" rel="noopener noreferrer">anchor</a>', $formatted);
+        $this->assertStringContainsString('<a rel="noopener noreferrer">anchor</a>', $formatted);
     }
 
     public function test_it_invalidates_cached_content_when_source_changes(): void
@@ -151,5 +152,40 @@ class ReviewFormattedContentTest extends TestCase
 
         $this->assertNotSame($first, $second);
         $this->assertStringContainsString('Zweiter', $second);
+    }
+
+    public function test_it_handles_relative_link_heuristics_defensively(): void
+    {
+        $markdown = "[Query](docs/page?section=1) and [Numeric](123start/page) and [Special](@notes/file) and [Subdir](docs/more/paths/file.txt)";
+        $review = new Review(['content' => $markdown]);
+
+        $formatted = $review->formatted_content;
+
+        $this->assertStringContainsString('<a href="docs/page?section=1" rel="noopener noreferrer">Query</a>', $formatted);
+        $this->assertStringContainsString('<a rel="noopener noreferrer">Numeric</a>', $formatted);
+        $this->assertStringContainsString('<a rel="noopener noreferrer">Special</a>', $formatted);
+        $this->assertStringContainsString('<a href="docs/more/paths/file.txt" rel="noopener noreferrer">Subdir</a>', $formatted);
+    }
+
+    public function test_it_caches_formatted_content_across_instances(): void
+    {
+        config(['cache.default' => 'array']);
+        Cache::flush();
+
+        $review = Review::factory()->create(['content' => 'Cached Inhalt']);
+
+        $first = $review->formatted_content;
+
+        $reflection = new \ReflectionMethod(Review::class, 'formattedContentCacheKey');
+        $reflection->setAccessible(true);
+        $cacheKey = $reflection->invoke($review);
+
+        $this->assertNotNull($cacheKey);
+        $this->assertTrue(Cache::store()->has($cacheKey));
+
+        $reloaded = Review::find($review->id);
+        $second = $reloaded->formatted_content;
+
+        $this->assertSame($first, $second);
     }
 }

@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use App\Models\ReviewComment;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 
 /**
@@ -31,8 +32,6 @@ class Review extends Model
     use HasFactory, SoftDeletes;
 
     private const ALLOWED_HTML_TAGS = '<p><strong><em><a><ul><ol><li><blockquote><code><pre><br><h1><h2><h3><h4><h5><h6>';
-    private ?string $formattedContentCache = null;
-    private ?string $formattedContentSource = null;
 
     protected $fillable = [
         'team_id',
@@ -86,79 +85,15 @@ class Review extends Model
     {
         $markdown = (string) ($this->content ?? '');
 
-        if ($this->formattedContentSource === $markdown && $this->formattedContentCache !== null) {
-            return $this->formattedContentCache;
+        $cacheKey = $this->formattedContentCacheKey();
+
+        if ($cacheKey !== null) {
+            return Cache::rememberForever($cacheKey, function () use ($markdown) {
+                return $this->renderFormattedContent($markdown);
+            });
         }
 
-        $html = Str::markdown($markdown, [
-            'html_input' => 'strip',
-        ]);
-
-        $html = strip_tags($html, self::ALLOWED_HTML_TAGS);
-
-        $textOnly = trim(strip_tags($html));
-
-        if ($textOnly === '') {
-            return '';
-        }
-
-        $dom = new \DOMDocument('1.0', 'UTF-8');
-        $previousLibxmlSetting = libxml_use_internal_errors(true);
-        $loaded = $dom->loadHTML(
-            '<?xml encoding="UTF-8" ?>' . '<div>' . $html . '</div>',
-            LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD
-        );
-
-        if (!$loaded) {
-            libxml_use_internal_errors($previousLibxmlSetting);
-            libxml_clear_errors();
-
-            return $html;
-        }
-
-        $container = $dom->getElementsByTagName('div')->item(0);
-        if ($container === null) {
-            libxml_use_internal_errors($previousLibxmlSetting);
-            libxml_clear_errors();
-
-            return $html;
-        }
-
-        foreach ($dom->getElementsByTagName('*') as $element) {
-            if ($element->hasAttributes()) {
-                $attributesToRemove = [];
-
-                foreach ($element->attributes as $attribute) {
-                    $name = strtolower($attribute->nodeName);
-
-                    if (str_starts_with($name, 'on') || $name === 'style') {
-                        $attributesToRemove[] = $attribute->nodeName;
-                    }
-                }
-
-                foreach ($attributesToRemove as $attributeName) {
-                    $element->removeAttribute($attributeName);
-                }
-            }
-
-            if (strtolower($element->nodeName) === 'a') {
-                $this->sanitizeLink($element);
-            }
-        }
-
-        libxml_use_internal_errors($previousLibxmlSetting);
-        libxml_clear_errors();
-
-        $fragment = '';
-
-        foreach ($container->childNodes as $child) {
-            $fragment .= $dom->saveHTML($child);
-        }
-
-        $this->formattedContentSource = $markdown;
-        $this->formattedContentCache = $fragment;
-
-        return $fragment;
+        return $this->renderFormattedContent($markdown);
     }
 
     private function sanitizeLink(\DOMElement $element): void
@@ -183,9 +118,9 @@ class Review extends Model
                     $trimmedHref = ltrim($href);
                     $isHashLink = Str::startsWith($trimmedHref, '#');
                     $isRelativePath = Str::startsWith($trimmedHref, ['/', './', '../']);
-                    $looksLikeFile = preg_match('/^[A-Za-z0-9._\-][A-Za-z0-9._\-\/]*([?#][^\s]*)?$/', $trimmedHref) === 1;
+                    $looksLikeFile = preg_match('/^[A-Za-z._\-][A-Za-z0-9._\-\/]*([?#][^\s]*)?$/', $trimmedHref) === 1;
 
-                    if (Str::startsWith($trimmedHref, '//') || (!$isHashLink && !$isRelativePath && !$looksLikeFile)) {
+                    if ($isHashLink || Str::startsWith($trimmedHref, '//') || (!$isRelativePath && !$looksLikeFile)) {
                         $element->removeAttribute('href');
                     }
                 }
@@ -193,6 +128,104 @@ class Review extends Model
         }
 
         $element->setAttribute('rel', 'noopener noreferrer');
+    }
+
+    private function renderFormattedContent(string $markdown): string
+    {
+        $html = Str::markdown($markdown, [
+            'html_input' => 'strip',
+        ]);
+
+        $html = strip_tags($html, self::ALLOWED_HTML_TAGS);
+
+        $textOnly = trim(strip_tags($html));
+
+        if ($textOnly === '') {
+            return '';
+        }
+
+        $dom = new \DOMDocument('1.0', 'UTF-8');
+        $previousLibxmlSetting = libxml_use_internal_errors(true);
+
+        try {
+            $wrappedHtml = '<div>' . $html . '</div>';
+            $encodedHtml = mb_convert_encoding($wrappedHtml, 'HTML-ENTITIES', 'UTF-8');
+
+            $loaded = $dom->loadHTML(
+                '<?xml encoding="UTF-8" ?>' . $encodedHtml,
+                LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD
+            );
+
+            if (!$loaded) {
+                return $this->safeFallback($html);
+            }
+
+            $container = $dom->getElementsByTagName('div')->item(0);
+            if ($container === null) {
+                return $this->safeFallback($html);
+            }
+
+            foreach ($dom->getElementsByTagName('*') as $element) {
+                if ($element->hasAttributes()) {
+                    $attributesToRemove = [];
+
+                    foreach ($element->attributes as $attribute) {
+                        $name = strtolower($attribute->nodeName);
+
+                        if (str_starts_with($name, 'on') || $name === 'style') {
+                            $attributesToRemove[] = $attribute->nodeName;
+                        }
+                    }
+
+                    foreach ($attributesToRemove as $attributeName) {
+                        $element->removeAttribute($attributeName);
+                    }
+                }
+
+                if (strtolower($element->nodeName) === 'a') {
+                    $this->sanitizeLink($element);
+                }
+            }
+
+            $fragment = '';
+
+            foreach ($container->childNodes as $child) {
+                $fragment .= $dom->saveHTML($child);
+            }
+
+            return $fragment;
+        } finally {
+            libxml_use_internal_errors($previousLibxmlSetting);
+            libxml_clear_errors();
+        }
+    }
+
+    private function safeFallback(string $html): string
+    {
+        $text = trim(strip_tags($html));
+
+        if ($text === '') {
+            return '';
+        }
+
+        return nl2br(e($text));
+    }
+
+    private function formattedContentCacheKey(): ?string
+    {
+        if (!$this->exists || $this->getKey() === null) {
+            return null;
+        }
+
+        $updatedAt = $this->updated_at instanceof Carbon
+            ? $this->updated_at->timestamp
+            : ($this->freshTimestamp()->timestamp ?? null);
+
+        if ($updatedAt === null) {
+            return null;
+        }
+
+        return sprintf('review:%s:formatted:%s', $this->getKey(), $updatedAt);
     }
 }
 
