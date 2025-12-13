@@ -178,7 +178,7 @@ class ReviewFormattedContentTest extends TestCase
 
         $first = $review->formatted_content;
 
-        $cacheKey = sprintf('review:%s:formatted:%s:%s', $review->id, $review->updated_at->valueOf(), md5('Cached Inhalt'));
+        $cacheKey = sprintf('review:%s:formatted:%s:%s', $review->id, $review->updated_at->getTimestamp(), md5('Cached Inhalt'));
 
         $this->assertNotNull($cacheKey);
         $this->assertTrue(Cache::has($cacheKey));

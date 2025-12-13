@@ -11,6 +11,7 @@ use App\Models\ReviewComment;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 /**
@@ -100,6 +101,12 @@ class Review extends Model
         return $this->renderFormattedContent($markdown);
     }
 
+    /**
+     * Normalize anchor attributes and strip unsafe href values.
+     *
+     * @param \DOMElement $element Anchor element to sanitize.
+     * @return void
+     */
     private function sanitizeLink(\DOMElement $element): void
     {
         $href = trim($element->getAttribute('href'));
@@ -142,6 +149,12 @@ class Review extends Model
         $element->setAttribute('rel', 'noopener noreferrer');
     }
 
+    /**
+     * Render Markdown to sanitized HTML with defense-in-depth escaping.
+     *
+     * @param string $markdown Raw Markdown content from the review.
+     * @return string Sanitized HTML fragment.
+     */
     private function renderFormattedContent(string $markdown): string
     {
         $html = Str::markdown($markdown, [
@@ -209,14 +222,23 @@ class Review extends Model
         } finally {
             try {
                 libxml_use_internal_errors($previousLibxmlSetting);
-            } catch (\Throwable) {
-                // Best-effort restoration so the original exception is not shadowed.
+            } catch (\Throwable $restoreError) {
+                Log::warning('Failed to restore libxml error setting after review sanitization', [
+                    'review_id' => $this->getKey(),
+                    'error' => $restoreError->getMessage(),
+                ]);
             }
 
             libxml_clear_errors();
         }
     }
 
+    /**
+     * Provide a safe, escaped fallback fragment when DOM parsing fails.
+     *
+     * @param string $html Previously rendered and tag-filtered HTML.
+     * @return string Escaped, newline-preserving text or empty string.
+     */
     private function safeFallback(string $html): string
     {
         $text = trim(strip_tags($html));
@@ -228,6 +250,11 @@ class Review extends Model
         return nl2br(e($text));
     }
 
+    /**
+     * Build a cache key for formatted content using the model id, timestamp, and content hash.
+     *
+     * @return string|null Cache key when the model is persisted, otherwise null.
+     */
     private function formattedContentCacheKey(): ?string
     {
         if (!$this->exists || $this->getKey() === null) {
@@ -235,8 +262,8 @@ class Review extends Model
         }
 
         $updatedAt = $this->updated_at instanceof Carbon
-            ? $this->updated_at->valueOf()
-            : $this->freshTimestamp()->valueOf();
+            ? $this->updated_at->getTimestamp()
+            : $this->freshTimestamp()->getTimestamp();
 
         if ($updatedAt === null) {
             return null;
