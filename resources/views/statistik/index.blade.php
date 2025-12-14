@@ -998,7 +998,7 @@
                     window.volkDerTiefeAuthorChartValues = @json($volkDerTiefeAuthorCounts->values());
                 </script>
 
-            {{-- Card 32 – TOP10 Lieblingsthemen (≥ 50 Baxx) --}}
+            {{-- Card 33 – TOP10 Lieblingsthemen (≥ 50 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('lieblingsthemen'))
                 @php($min = $section['minPoints'] ?? 0)
                 <div

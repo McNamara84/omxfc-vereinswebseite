@@ -187,7 +187,32 @@ class RewardControllerTest extends TestCase
         $this->assertEquals(0, $reward['percentage']);
     }
 
-    public function test_volk_der_tiefe_rewards_visible(): void
+    public function test_volk_der_tiefe_rating_reward_visible(): void
+    {
+        $user = $this->actingMember(45);
+        $this->actingAs($user);
+
+        $response = $this->get('/belohnungen');
+
+        $response->assertOk();
+        $response->assertSee('Statistik - Bewertungen der Das Volk der Tiefe-Heftromane');
+    }
+
+    public function test_volk_der_tiefe_rating_reward_hidden_when_points_insufficient(): void
+    {
+        $user = $this->actingMember(44);
+        $this->actingAs($user);
+
+        $response = $this->get('/belohnungen');
+
+        $response->assertOk();
+        $rewards = $response->viewData('rewards');
+        $reward = collect($rewards)->firstWhere('title', 'Statistik - Bewertungen der Das Volk der Tiefe-Heftromane');
+        $this->assertNotNull($reward);
+        $this->assertEquals(0, $reward['percentage']);
+    }
+
+    public function test_volk_der_tiefe_author_reward_visible(): void
     {
         $user = $this->actingMember(46);
         $this->actingAs($user);
@@ -195,7 +220,6 @@ class RewardControllerTest extends TestCase
         $response = $this->get('/belohnungen');
 
         $response->assertOk();
-        $response->assertSee('Statistik - Bewertungen der Das Volk der Tiefe-Heftromane');
         $response->assertSee('Statistik - Das Volk der Tiefe-Heftromane je Autor:in');
     }
 
