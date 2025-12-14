@@ -48,6 +48,12 @@ class StatistikController extends Controller
             $missionMarsNovels = collect(json_decode(file_get_contents($missionMarsPath), true));
         }
 
+        $volkDerTiefePath = storage_path('app/private/volkdertiefe.json');
+        $volkDerTiefeNovels = collect();
+        if (is_readable($volkDerTiefePath)) {
+            $volkDerTiefeNovels = collect(json_decode(file_get_contents($volkDerTiefePath), true));
+        }
+
         $statisticSections = [
             ['id' => 'author-chart', 'label' => 'Maddrax-Romane je Autor:in', 'minPoints' => 2],
             ['id' => 'teamplayer', 'label' => 'Top Teamplayer', 'minPoints' => 4],
@@ -81,6 +87,8 @@ class StatistikController extends Controller
             ['id' => 'top-themen', 'label' => 'TOP20 Maddrax-Themen', 'minPoints' => 42],
             ['id' => 'mission-mars-bewertungen', 'label' => 'Bewertungen der Mission Mars-Heftromane', 'minPoints' => 43],
             ['id' => 'mission-mars-autoren', 'label' => 'Mission Mars-Heftromane je Autor:in', 'minPoints' => 44],
+            ['id' => 'volk-der-tiefe-bewertungen', 'label' => 'Bewertungen der Das Volk der Tiefe-Heftromane', 'minPoints' => 45],
+            ['id' => 'volk-der-tiefe-autoren', 'label' => 'Das Volk der Tiefe-Heftromane je Autor:in', 'minPoints' => 46],
             ['id' => 'lieblingsthemen', 'label' => 'TOP10 Lieblingsthemen', 'minPoints' => 50],
         ];
 
@@ -109,6 +117,15 @@ class StatistikController extends Controller
 
         // ── Card 31b – Mission Mars-Heftromane je Autor (inkl. Co-Autor:innen) ─────
         $missionMarsAuthorCounts = $missionMarsNovels
+            ->pluck('text')
+            ->flatten()
+            ->map(fn ($a) => trim($a))
+            ->filter()
+            ->countBy()
+            ->sortDesc();
+
+        // ── Card 32b – Das Volk der Tiefe-Heftromane je Autor (inkl. Co-Autor:innen) ─────
+        $volkDerTiefeAuthorCounts = $volkDerTiefeNovels
             ->pluck('text')
             ->flatten()
             ->map(fn ($a) => trim($a))
@@ -381,6 +398,11 @@ class StatistikController extends Controller
         $missionMarsLabels = $missionMarsCycle->pluck('nummer');
         $missionMarsValues = $missionMarsCycle->pluck('bewertung');
 
+        // ── Card 32 – Bewertungen der Das Volk der Tiefe-Heftromane ──────────────
+        $volkDerTiefeCycle = $volkDerTiefeNovels->sortBy('nummer');
+        $volkDerTiefeLabels = $volkDerTiefeCycle->pluck('nummer');
+        $volkDerTiefeValues = $volkDerTiefeCycle->pluck('bewertung');
+
         // ── Card 7 – Rezensionen unserer Mitglieder ───────────────────────────
         $totalReviews = 0;
         $averageReviewsPerBook = 0;
@@ -512,6 +534,9 @@ class StatistikController extends Controller
             'missionMarsLabels' => $missionMarsLabels,
             'missionMarsValues' => $missionMarsValues,
             'missionMarsAuthorCounts' => $missionMarsAuthorCounts,
+            'volkDerTiefeLabels' => $volkDerTiefeLabels,
+            'volkDerTiefeValues' => $volkDerTiefeValues,
+            'volkDerTiefeAuthorCounts' => $volkDerTiefeAuthorCounts,
             'hardcoverAuthorCounts' => $hardcoverAuthorCounts,
             'topFavoriteThemes' => $topFavoriteThemes,
             'totalReviews' => $totalReviews,

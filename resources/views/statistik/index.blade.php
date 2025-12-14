@@ -948,7 +948,57 @@
                     window.missionMarsAuthorChartValues = @json($missionMarsAuthorCounts->values());
                 </script>
 
-            {{-- Card 32 – TOP10 Lieblingsthemen (≥ 50 Baxx) --}}
+            {{-- Card 32 – Bewertungen der Das Volk der Tiefe-Heftromane (≥ 45 Baxx) --}}
+                @php($section = $statisticSectionLookup->get('volk-der-tiefe-bewertungen'))
+                @php($min = $section['minPoints'] ?? 0)
+                <div
+                    id="{{ $section['id'] }}"
+                    data-statistik-section
+                    data-min-points="{{ $min }}"
+                    tabindex="-1"
+                    class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
+                    <h2 id="volkDerTiefeChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                        Bewertungen der Das Volk der Tiefe-Heftromane
+                    </h2>
+                    <div data-chart-wrapper class="mt-4">
+                        <canvas id="volkDerTiefeChart" height="140" role="img" aria-labelledby="volkDerTiefeChartTitle"></canvas>
+                    </div>
+                    @if($userPoints < $min)
+                        @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
+                    @endif
+                </div>
+
+                <script>
+                    window.volkDerTiefeChartLabels = @json($volkDerTiefeLabels);
+                    window.volkDerTiefeChartValues = @json($volkDerTiefeValues);
+                </script>
+
+            {{-- Card 32b – Das Volk der Tiefe-Heftromane je Autor:in (≥ 46 Baxx) --}}
+                @php($section = $statisticSectionLookup->get('volk-der-tiefe-autoren'))
+                @php($min = $section['minPoints'] ?? 0)
+                <div
+                    id="{{ $section['id'] }}"
+                    data-statistik-section
+                    data-min-points="{{ $min }}"
+                    tabindex="-1"
+                    class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
+                    <h2 id="volkDerTiefeAuthorChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                        Das Volk der Tiefe-Heftromane je Autor:in
+                    </h2>
+                    <div data-chart-wrapper class="mt-4">
+                        <canvas id="volkDerTiefeAuthorChart" height="140" role="img" aria-labelledby="volkDerTiefeAuthorChartTitle"></canvas>
+                    </div>
+                    @if($userPoints < $min)
+                        @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
+                    @endif
+                </div>
+
+                <script>
+                    window.volkDerTiefeAuthorChartLabels = @json($volkDerTiefeAuthorCounts->keys());
+                    window.volkDerTiefeAuthorChartValues = @json($volkDerTiefeAuthorCounts->values());
+                </script>
+
+            {{-- Card 33 – TOP10 Lieblingsthemen (≥ 50 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('lieblingsthemen'))
                 @php($min = $section['minPoints'] ?? 0)
                 <div
