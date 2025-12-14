@@ -3,6 +3,7 @@
 namespace Tests\Unit;
 
 use App\Models\Review;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -178,7 +179,7 @@ class ReviewFormattedContentTest extends TestCase
 
         $first = $review->formatted_content;
 
-        $cacheKey = sprintf('review:%s:formatted:%s:%s', $review->id, $review->updated_at->getTimestamp(), md5('Cached Inhalt'));
+        $cacheKey = sprintf('review:%s:formatted:%s:%s', $review->id, $review->updated_at->format('Uu'), md5('Cached Inhalt'));
 
         $this->assertNotNull($cacheKey);
         $this->assertTrue(Cache::has($cacheKey));
@@ -187,5 +188,37 @@ class ReviewFormattedContentTest extends TestCase
         $second = $reloaded->formatted_content;
 
         $this->assertSame($first, $second);
+    }
+
+    public function test_it_builds_cache_keys_from_persisted_timestamps(): void
+    {
+        config(['cache.default' => 'array']);
+        Cache::flush();
+
+        $firstNow = Carbon::now();
+        Carbon::setTestNow($firstNow);
+
+        $review = Review::factory()->create(['content' => 'Zeitstempel Test']);
+
+        $this->assertInstanceOf(Carbon::class, $review->updated_at);
+
+        $initialKey = sprintf('review:%s:formatted:%s:%s', $review->id, $review->updated_at->format('Uu'), md5('Zeitstempel Test'));
+
+        $review->formatted_content;
+
+        $this->assertTrue(Cache::has($initialKey));
+
+        Carbon::setTestNow($firstNow->copy()->addSecond());
+
+        $review->update(['content' => 'Zweite Version']);
+        $review->refresh();
+
+        $updatedKey = sprintf('review:%s:formatted:%s:%s', $review->id, $review->updated_at->format('Uu'), md5('Zweite Version'));
+
+        $this->assertNotSame($initialKey, $updatedKey);
+        $review->formatted_content;
+        $this->assertTrue(Cache::has($updatedKey));
+
+        Carbon::setTestNow();
     }
 }

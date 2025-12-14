@@ -11,7 +11,6 @@ use App\Models\ReviewComment;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 /**
@@ -177,7 +176,7 @@ class Review extends Model
             $encodedHtml = mb_convert_encoding($wrappedHtml, 'HTML-ENTITIES', 'UTF-8');
 
             $loaded = $dom->loadHTML(
-                '<?xml encoding="UTF-8" ?>' . $encodedHtml,
+                '<?xml version="1.0" encoding="UTF-8"?>' . $encodedHtml,
                 LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD
             );
 
@@ -190,6 +189,8 @@ class Review extends Model
                 return $this->safeFallback($html);
             }
 
+            // Reviews are short and cached, so iterating all elements for attribute
+            // cleanup remains acceptable for the expected content size.
             foreach ($dom->getElementsByTagName('*') as $element) {
                 if ($element->hasAttributes()) {
                     $attributesToRemove = [];
@@ -220,15 +221,7 @@ class Review extends Model
 
             return $fragment;
         } finally {
-            try {
-                libxml_use_internal_errors($previousLibxmlSetting);
-            } catch (\Throwable $restoreError) {
-                Log::warning('Failed to restore libxml error setting after review sanitization', [
-                    'review_id' => $this->getKey(),
-                    'error' => $restoreError->getMessage(),
-                ]);
-            }
-
+            libxml_use_internal_errors($previousLibxmlSetting);
             libxml_clear_errors();
         }
     }
@@ -253,6 +246,10 @@ class Review extends Model
     /**
      * Build a cache key for formatted content using the model id, timestamp, and content hash.
      *
+     * Microsecond precision prevents collisions when a review is created and
+     * updated within the same second while the content hash guarantees cache
+     * invalidation if the timestamp is not updated for any reason.
+     *
      * @return string|null Cache key when the model is persisted, otherwise null.
      */
     private function formattedContentCacheKey(): ?string
@@ -261,17 +258,24 @@ class Review extends Model
             return null;
         }
 
-        $updatedAt = $this->updated_at instanceof Carbon
-            ? $this->updated_at->getTimestamp()
-            : $this->freshTimestamp()->getTimestamp();
+        $updatedAtAttribute = $this->getAttribute('updated_at');
+
+        if ($updatedAtAttribute === null) {
+            return null;
+        }
+
+        $updatedAt = $updatedAtAttribute instanceof Carbon
+            ? $updatedAtAttribute
+            : $this->asDateTime($updatedAtAttribute);
 
         if ($updatedAt === null) {
             return null;
         }
 
-        $hash = md5((string) $this->content);
+        $timestamp = $updatedAt->format('Uu');
+        $contentHash = md5((string) $this->content);
 
-        return sprintf('review:%s:formatted:%s:%s', $this->getKey(), $updatedAt, $hash);
+        return sprintf('review:%s:formatted:%s:%s', $this->getKey(), $timestamp, $contentHash);
     }
 }
 
