@@ -831,6 +831,21 @@ class StatistikTest extends TestCase
         $response->assertSee('Volk der Tiefe Co-Autor');
     }
 
+    public function test_volk_der_tiefe_ratings_chart_locked_below_threshold(): void
+    {
+        $this->createDataFile();
+        $this->createVolkDerTiefeFile();
+        $user = $this->actingMemberWithPoints(44);
+        $this->actingAs($user);
+
+        $response = $this->get('/statistiken');
+
+        $response->assertOk();
+        $response->assertSee('Bewertungen der Das Volk der Tiefe-Heftromane');
+        $response->assertSee('Das Volk der Tiefe-Heftromane je Autor:in');
+        $response->assertSee('45 Baxx');
+    }
+
     public function test_volk_der_tiefe_author_chart_locked_below_threshold(): void
     {
         $this->createDataFile();
