@@ -131,6 +131,42 @@ describe('statistik module', () => {
     expect(config.type).toBe('bar');
   });
 
+  test('DOMContentLoaded draws Das Volk der Tiefe chart when data available', async () => {
+    jest.resetModules();
+    const chartModule = await import('chart.js/auto');
+    mockChart = chartModule.default;
+    mockChart.mockClear();
+
+    document.body.innerHTML = '<canvas id="volkDerTiefeChart"></canvas>';
+    window.volkDerTiefeChartLabels = ['1'];
+    window.volkDerTiefeChartValues = [4.4];
+
+    await import('../../resources/js/statistik.js');
+    document.dispatchEvent(new Event('DOMContentLoaded'));
+
+    expect(mockChart).toHaveBeenCalled();
+    const config = mockChart.mock.calls[0][1];
+    expect(config.type).toBe('line');
+  });
+
+  test('DOMContentLoaded draws Das Volk der Tiefe author chart', async () => {
+    jest.resetModules();
+    const chartModule = await import('chart.js/auto');
+    mockChart = chartModule.default;
+    mockChart.mockClear();
+
+    document.body.innerHTML = '<canvas id="volkDerTiefeAuthorChart"></canvas>';
+    window.volkDerTiefeAuthorChartLabels = ['Autor'];
+    window.volkDerTiefeAuthorChartValues = [2];
+
+    await import('../../resources/js/statistik.js');
+    document.dispatchEvent(new Event('DOMContentLoaded'));
+
+    expect(mockChart).toHaveBeenCalled();
+    const config = mockChart.mock.calls[0][1];
+    expect(config.type).toBe('bar');
+  });
+
   test('DOMContentLoaded draws hardcover author chart', async () => {
     jest.resetModules();
     const chartModule = await import('chart.js/auto');

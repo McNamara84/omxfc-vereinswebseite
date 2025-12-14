@@ -126,6 +126,37 @@ class StatistikTest extends TestCase
         file_put_contents($path, json_encode($data));
     }
 
+    private function createVolkDerTiefeFile(): void
+    {
+        $data = [];
+        $authors = [
+            'Volk der Tiefe Autor 1',
+            'Volk der Tiefe Autor 2',
+        ];
+
+        for ($i = 1; $i <= 8; $i++) {
+            $entryAuthors = [$authors[$i % 2]];
+
+            if ($i % 3 === 0) {
+                $entryAuthors[] = 'Volk der Tiefe Co-Autor';
+            }
+
+            $data[] = [
+                'nummer' => $i,
+                'titel' => 'Das Volk der Tiefe '.$i,
+                'bewertung' => 3.8 + ($i * 0.05),
+                'text' => $entryAuthors,
+            ];
+        }
+
+        $path = storage_path('app/private/volkdertiefe.json');
+        if (! is_dir(dirname($path))) {
+            mkdir(dirname($path), 0777, true);
+        }
+
+        file_put_contents($path, json_encode($data));
+    }
+
     private function createTeamplayerDataFile(): void
     {
         $data = [];
@@ -782,6 +813,37 @@ class StatistikTest extends TestCase
         $response->assertSee('Bewertungen der Mission Mars-Heftromane');
         $response->assertSee('Mission Mars-Heftromane je Autor:in');
         $response->assertSee('44 Baxx');
+    }
+
+    public function test_volk_der_tiefe_chart_visible_with_enough_points(): void
+    {
+        $this->createDataFile();
+        $this->createVolkDerTiefeFile();
+        $user = $this->actingMemberWithPoints(46);
+        $this->actingAs($user);
+
+        $response = $this->get('/statistiken');
+
+        $response->assertOk();
+        $response->assertSee('Bewertungen der Das Volk der Tiefe-Heftromane');
+        $response->assertSee('Das Volk der Tiefe-Heftromane je Autor:in');
+        $response->assertSee('Volk der Tiefe Autor 1');
+        $response->assertSee('Volk der Tiefe Co-Autor');
+    }
+
+    public function test_volk_der_tiefe_author_chart_locked_below_threshold(): void
+    {
+        $this->createDataFile();
+        $this->createVolkDerTiefeFile();
+        $user = $this->actingMemberWithPoints(45);
+        $this->actingAs($user);
+
+        $response = $this->get('/statistiken');
+
+        $response->assertOk();
+        $response->assertSee('Bewertungen der Das Volk der Tiefe-Heftromane');
+        $response->assertSee('Das Volk der Tiefe-Heftromane je Autor:in');
+        $response->assertSee('46 Baxx');
     }
 
     public function test_top_themes_require_minimum_book_count(): void
