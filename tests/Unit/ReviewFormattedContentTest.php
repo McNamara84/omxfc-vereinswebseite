@@ -12,7 +12,7 @@ class ReviewFormattedContentTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_it_formats_paragraphs_with_spacing(): void
+    public function test_formats_paragraph_spacing(): void
     {
         $review = new Review(['content' => "Erster Absatz\n\nZweiter Absatz"]);
 
@@ -22,7 +22,7 @@ class ReviewFormattedContentTest extends TestCase
         $this->assertStringContainsString('<p>Zweiter Absatz</p>', $formatted);
     }
 
-    public function test_it_renders_headings_lists_blockquotes_and_inline_code(): void
+    public function test_renders_headings_lists_blockquotes_and_inline_code(): void
     {
         $review = new Review(['content' => "## Überschrift\n\n- Punkt eins\n- Punkt zwei\n\n> Zitat\n\n`Code`"]);
 
@@ -36,7 +36,7 @@ class ReviewFormattedContentTest extends TestCase
         $this->assertStringContainsString('<code>Code</code>', $formatted);
     }
 
-    public function test_it_strips_disallowed_html_and_sanitizes_links(): void
+    public function test_strips_disallowed_html_and_sanitizes_links(): void
     {
         $review = new Review(['content' => "Click [here](https://example.com)\n\n<script>alert('xss')</script>"]);
 
@@ -47,7 +47,7 @@ class ReviewFormattedContentTest extends TestCase
         $this->assertStringNotContainsStringIgnoringCase('alert', $formatted);
     }
 
-    public function test_it_handles_empty_and_whitespace_only_content(): void
+    public function test_returns_empty_for_blank_content(): void
     {
         $emptyReview = new Review(['content' => '']);
         $whitespaceReview = new Review(['content' => "   \n   "]);
@@ -56,7 +56,7 @@ class ReviewFormattedContentTest extends TestCase
         $this->assertSame('', $whitespaceReview->formatted_content);
     }
 
-    public function test_it_handles_malformed_markdown_gracefully(): void
+    public function test_renders_malformed_markdown_gracefully(): void
     {
         $review = new Review(['content' => "**Fetter Text ohne Ende\n*Unvollständige Aufzählung"]);
 
@@ -66,7 +66,7 @@ class ReviewFormattedContentTest extends TestCase
         $this->assertStringContainsString('Unvollständige Aufzählung', $formatted);
     }
 
-    public function test_it_sanitizes_additional_xss_vectors_case_insensitive(): void
+    public function test_sanitizes_additional_xss_vectors_case_insensitive(): void
     {
         $review = new Review(['content' => "Unsafe [link](JaVaScRiPt:alert('XSS')) and [safe](HTTP://example.com) raw <a href=\"javascript:alert('xss')\" OnClick=\"alert('xss')\">Click</a> and data [uri](data:text/html,alert('boom'))"]);
 
@@ -80,7 +80,7 @@ class ReviewFormattedContentTest extends TestCase
         $this->assertStringContainsString('<a rel="noopener noreferrer">link</a>', $formatted);
     }
 
-    public function test_it_handles_deeply_nested_structures_and_long_content(): void
+    public function test_renders_deeply_nested_structures_and_long_content(): void
     {
         $nestedMarkdown = "> Quote\n> \n> 1. Eins\n>    - Unterpunkt\n>      - Noch tiefer\n\n";
         $longContent = str_repeat('Langer Inhalt ', 500);
@@ -96,7 +96,7 @@ class ReviewFormattedContentTest extends TestCase
         $this->assertStringContainsString('<li>Unterpunkt', $formatted);
     }
 
-    public function test_it_allows_relative_and_mailto_links_while_removing_style_attributes(): void
+    public function test_allows_relative_and_mailto_links_and_removes_styles(): void
     {
         $markdown = "[Relative](page.html) and [Docs](./docs) and [Mail](mailto:team@example.com) and <a href=\"https://example.com\" style=\"color:red\">Styled</a>";
         $review = new Review(['content' => $markdown]);
@@ -109,7 +109,7 @@ class ReviewFormattedContentTest extends TestCase
         $this->assertStringNotContainsString('style=', $formatted);
     }
 
-    public function test_it_handles_additional_relative_link_shapes_and_query_fragments(): void
+    public function test_handles_relative_link_shapes_with_queries_and_fragments(): void
     {
         $markdown = "[Nested](docs/v1/guide/page.html?ref=123#section) and [Letters](docs123/file-name_v2.md) and [Underscored](_drafts/notes.txt)";
         $review = new Review(['content' => $markdown]);
@@ -121,7 +121,7 @@ class ReviewFormattedContentTest extends TestCase
         $this->assertStringContainsString('<a href="_drafts/notes.txt" rel="noopener noreferrer">Underscored</a>', $formatted);
     }
 
-    public function test_it_removes_mixed_case_protocols_in_raw_html(): void
+    public function test_removes_mixed_case_protocols_in_raw_html(): void
     {
         $review = new Review(['content' => '<a href="JaVaScRiPt:alert(1)">Bad</a> and <a href="VBScript:msgbox(1)">Also bad</a>']);
 
@@ -133,7 +133,7 @@ class ReviewFormattedContentTest extends TestCase
         $this->assertStringNotContainsStringIgnoringCase('vbscript:', $formatted);
     }
 
-    public function test_it_handles_malformed_urls_and_protocol_relative_links(): void
+    public function test_handles_malformed_urls_and_protocol_relative_links(): void
     {
         $review = new Review(['content' => 'Broken [broken](http:///example.com) and [protocol relative](//example.com/path) and [anchor](#anchor)']);
 
@@ -144,7 +144,7 @@ class ReviewFormattedContentTest extends TestCase
         $this->assertStringContainsString('<a href="#anchor" rel="noopener noreferrer">anchor</a>', $formatted);
     }
 
-    public function test_it_invalidates_cached_content_when_source_changes(): void
+    public function test_invalidates_cached_content_after_source_change(): void
     {
         $review = Review::factory()->create(['content' => 'Erster']);
 
@@ -157,7 +157,7 @@ class ReviewFormattedContentTest extends TestCase
         $this->assertStringContainsString('Zweiter', $second);
     }
 
-    public function test_it_handles_relative_link_heuristics_defensively(): void
+    public function test_applies_defensive_relative_link_heuristics(): void
     {
         $markdown = "[Query](docs/page?section=1) and [Numeric](123start/page) and [Special](@notes/file) and [Subdir](docs/more/paths/file.txt)";
         $review = new Review(['content' => $markdown]);
@@ -170,7 +170,7 @@ class ReviewFormattedContentTest extends TestCase
         $this->assertStringContainsString('<a href="docs/more/paths/file.txt" rel="noopener noreferrer">Subdir</a>', $formatted);
     }
 
-    public function test_it_caches_formatted_content_across_instances(): void
+    public function test_caches_formatted_content_across_instances(): void
     {
         config(['cache.default' => 'array']);
         Cache::flush();
@@ -180,8 +180,6 @@ class ReviewFormattedContentTest extends TestCase
         $first = $review->formatted_content;
 
         $cacheKey = sprintf('review:%s:formatted:%s:%s', $review->id, $review->updated_at->format('Uu'), md5('Cached Inhalt'));
-
-        $this->assertNotNull($cacheKey);
         $this->assertTrue(Cache::has($cacheKey));
 
         $reloaded = Review::find($review->id);
@@ -190,7 +188,7 @@ class ReviewFormattedContentTest extends TestCase
         $this->assertSame($first, $second);
     }
 
-    public function test_cached_content_does_not_expire_within_day(): void
+    public function test_cached_content_persists_beyond_one_day(): void
     {
         config(['cache.default' => 'array']);
         Cache::flush();
@@ -217,7 +215,7 @@ class ReviewFormattedContentTest extends TestCase
         Carbon::setTestNow();
     }
 
-    public function test_it_builds_cache_keys_from_persisted_timestamps(): void
+    public function test_builds_cache_keys_from_persisted_timestamps(): void
     {
         config(['cache.default' => 'array']);
         Cache::flush();
