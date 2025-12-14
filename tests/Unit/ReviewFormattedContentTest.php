@@ -190,6 +190,33 @@ class ReviewFormattedContentTest extends TestCase
         $this->assertSame($first, $second);
     }
 
+    public function test_cached_content_does_not_expire_within_day(): void
+    {
+        config(['cache.default' => 'array']);
+        Cache::flush();
+
+        $now = Carbon::now();
+        Carbon::setTestNow($now);
+
+        $review = Review::factory()->create(['content' => 'Zeitlos']);
+
+        $first = $review->formatted_content;
+
+        $cacheKey = sprintf('review:%s:formatted:%s:%s', $review->id, $review->updated_at->format('Uu'), md5('Zeitlos'));
+
+        $this->assertTrue(Cache::has($cacheKey));
+
+        Carbon::setTestNow($now->copy()->addDays(2));
+
+        $this->assertTrue(Cache::has($cacheKey));
+
+        $second = Review::find($review->id)->formatted_content;
+
+        $this->assertSame($first, $second);
+
+        Carbon::setTestNow();
+    }
+
     public function test_it_builds_cache_keys_from_persisted_timestamps(): void
     {
         config(['cache.default' => 'array']);

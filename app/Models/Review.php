@@ -92,7 +92,7 @@ class Review extends Model
         $cacheKey = $this->formattedContentCacheKey();
 
         if ($cacheKey !== null) {
-            return Cache::remember($cacheKey, now()->addDay(), function () use ($markdown) {
+            return Cache::rememberForever($cacheKey, function () use ($markdown) {
                 return $this->renderFormattedContent($markdown);
             });
         }
