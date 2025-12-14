@@ -321,7 +321,7 @@ CREATE INDEX "team_user_role_index" on "team_user"("role");
 CREATE INDEX "team_user_team_id_role_index" on "team_user"("team_id", "role");
 CREATE TABLE IF NOT EXISTS "activities"(
   "id" integer primary key autoincrement not null,
-  "user_id" integer not null,
+  "user_id" integer,
   "subject_type" varchar not null,
   "subject_id" integer not null,
   "created_at" datetime,
@@ -473,3 +473,4 @@ INSERT INTO migrations VALUES(47,'2025_09_26_094551_add_uploaded_to_audiobook_ro
 INSERT INTO migrations VALUES(48,'2025_09_26_130232_add_contact_and_pseudonym_to_audiobook_roles_table',2);
 INSERT INTO migrations VALUES(49,'2025_11_08_092743_create_fantreffen_anmeldungen_table',3);
 INSERT INTO migrations VALUES(50,'2025_11_29_102701_fix_mission_mars_enum_value_in_books_table',3);
+INSERT INTO migrations VALUES(51,'2025_12_02_000001_make_activities_user_id_nullable',3);
