@@ -61,7 +61,7 @@ class Crawl2012 extends Command
         return self::FAILURE;
     }
 
-    protected function getUrlContent(string $url): string|false
+    private function getUrlContent(string $url): string|false
     {
         return @file_get_contents($url);
     }
@@ -78,13 +78,13 @@ class Crawl2012 extends Command
         $articles = $xpath->query("//div[@id='mw-pages']//a");
         $urls = [];
         foreach ($articles as $article) {
-            $urls[] = self::BASE_URL.$article->getAttribute('href');
+            $urls[] = $this->resolveUrl($article->getAttribute('href'));
         }
         $nextPage = $xpath->query("//a[text()='nächste Seite']");
         if ($nextPage->length > 0) {
             $urls = array_merge(
                 $urls,
-                $this->getArticleUrls(self::BASE_URL.$nextPage->item(0)->getAttribute('href'))
+                $this->getArticleUrls($this->resolveUrl($nextPage->item(0)->getAttribute('href')))
             );
         }
 
@@ -181,5 +181,14 @@ class Crawl2012 extends Command
         $json = json_encode($jsonData, JSON_PRETTY_PRINT);
 
         return file_put_contents($filename, $json) !== false;
+    }
+
+    private function resolveUrl(string $href): string
+    {
+        if (str_starts_with($href, 'http://') || str_starts_with($href, 'https://') || str_starts_with($href, 'file://')) {
+            return $href;
+        }
+
+        return self::BASE_URL.$href;
     }
 }

@@ -34,11 +34,11 @@ class Crawl2012CommandTest extends TestCase
 
     public function test_get_article_urls_recursively_collects_links(): void
     {
-        $htmlPage1 = '<div id="mw-pages"><a href="wiki/A1">A1</a></div><a href="next">nächste Seite</a>';
+        $file2 = storage_path('app/private/page2.html');
+        $htmlPage1 = '<meta charset="UTF-8"><div id="mw-pages"><a href="wiki/A1">A1</a></div><a href="file://'.$file2.'">nächste Seite</a>';
         $htmlPage2 = '<div id="mw-pages"><a href="wiki/A2">A2</a></div>';
 
         $file1 = storage_path('app/private/page1.html');
-        $file2 = storage_path('app/private/page2.html');
         File::put($file1, $htmlPage1);
         File::put($file2, $htmlPage2);
 
@@ -58,6 +58,7 @@ class Crawl2012CommandTest extends TestCase
 
         $this->assertSame([
             'https://de.maddraxikon.com/wiki/A1',
+            'https://de.maddraxikon.com/wiki/A2',
         ], $urls);
     }
 
