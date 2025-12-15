@@ -121,6 +121,9 @@ class RezensionController extends Controller
         $missionMarsQuery = Book::query()->where('type', BookType::MissionMars);
         $applyFilters($missionMarsQuery);
 
+        $miniSeries2012Query = Book::query()->where('type', BookType::ZweiTausendZwölfDasJahrDerApokalypse);
+        $applyFilters($miniSeries2012Query);
+
         $volkDerTiefeQuery = Book::query()->where('type', BookType::DasVolkDerTiefe);
         $applyFilters($volkDerTiefeQuery);
 
@@ -129,6 +132,8 @@ class RezensionController extends Controller
         $hardcovers = $this->prepareBookQuery($hardcoversQuery, $user, $teamId, 'desc');
 
         $missionMars = $this->prepareBookQuery($missionMarsQuery, $user, $teamId, 'desc');
+
+        $miniSeries2012 = $this->prepareBookQuery($miniSeries2012Query, $user, $teamId, 'desc');
 
         $volkDerTiefe = $this->prepareBookQuery($volkDerTiefeQuery, $user, $teamId, 'desc');
 
@@ -154,8 +159,8 @@ class RezensionController extends Controller
             'Fremdwelt',
             'Zeitsprung',
             'Archivar',
-            'Streiter',
             'Ursprung',
+            'Streiter',
             'Schatten',
             'Antarktis',
             'Afra',
@@ -196,6 +201,7 @@ class RezensionController extends Controller
             'booksByCycle' => $booksByCycle,
             'hardcovers' => $hardcovers,
             'missionMars' => $missionMars,
+            'miniSeries2012' => $miniSeries2012,
             'volkDerTiefe' => $volkDerTiefe,
             'title' => 'Rezensionen – Offizieller MADDRAX Fanclub e. V.',
             'description' => 'Alle Vereinsrezensionen zu den Maddrax-Romanen im Überblick.',

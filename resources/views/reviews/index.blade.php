@@ -48,6 +48,7 @@
                 @php
                     $volkDerTiefeRendered = false;
                     $missionMarsRendered = false;
+                    $miniSeries2012Rendered = false;
                 @endphp
                 @foreach($booksByCycle as $cycle => $cycleBooks)
                     @php
@@ -59,6 +60,22 @@
                         'books' => $cycleBooks->sortByDesc('roman_number'),
                         'initiallyOpen' => $loop->first,
                     ])
+                    @if($cycle === 'Ursprung' && $miniSeries2012->isNotEmpty())
+                        @php $miniSeries2012Rendered = true; @endphp
+                        @include('reviews.partials.spin-off-accordion', [
+                            'id' => 'mini-serie-2012',
+                            'title' => 'Mini-Serie 2012',
+                            'books' => $miniSeries2012,
+                        ])
+                    @endif
+                    @if($cycle === 'Streiter' && !$miniSeries2012Rendered && $miniSeries2012->isNotEmpty())
+                        @php $miniSeries2012Rendered = true; @endphp
+                        @include('reviews.partials.spin-off-accordion', [
+                            'id' => 'mini-serie-2012',
+                            'title' => 'Mini-Serie 2012',
+                            'books' => $miniSeries2012,
+                        ])
+                    @endif
                     @if($cycle === 'Mars' && $missionMars->isNotEmpty())
                         @php
                             $missionMarsRendered = true;
@@ -78,6 +95,13 @@
                         ])
                     @endif
                 @endforeach
+                @if(!$miniSeries2012Rendered && $miniSeries2012->isNotEmpty())
+                    @include('reviews.partials.spin-off-accordion', [
+                        'id' => 'mini-serie-2012',
+                        'title' => 'Mini-Serie 2012',
+                        'books' => $miniSeries2012,
+                    ])
+                @endif
                 @if(!$missionMarsRendered && $missionMars->isNotEmpty())
                     @include('reviews.partials.spin-off-accordion', [
                         'id' => 'mission-mars',

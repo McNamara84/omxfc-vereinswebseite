@@ -8,21 +8,21 @@ use DOMXPath;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Storage;
 
-class CrawlNovels extends Command
+class Crawl2012 extends Command
 {
     /**
      * The name and signature of the console command.
      */
-    protected $signature = 'crawlnovels';
+    protected $signature = 'crawl2012';
 
     /**
      * The console command description.
      */
-    protected $description = 'Crawl maddraxikon.com for novel information';
+    protected $description = 'Crawl maddraxikon.com for 2012 mini-series novel information';
 
     private const BASE_URL = 'https://de.maddraxikon.com/';
 
-    private const CATEGORY_URL = self::BASE_URL.'index.php?title=Kategorie:Maddrax-Heftromane';
+    private const CATEGORY_URL = self::BASE_URL.'index.php?title=Kategorie:2012-Heftromane';
 
     public function handle(): int
     {
@@ -49,18 +49,14 @@ class CrawlNovels extends Command
         $bar->finish();
         $this->newLine();
 
-        $path = Storage::disk('private')->path('maddrax.json');
+        $path = Storage::disk('private')->path('2012.json');
         if ($this->writeHeftromane($data, $path)) {
-            $this->info('maddrax.json updated.');
+            $this->info('2012.json updated.');
 
-            $this->call(CrawlMissionMars::class);
-            $this->call(Crawl2012::class);
-            $this->call(CrawlVolkDerTiefe::class);
-
-            return $this->call(CrawlHardcovers::class);
+            return self::SUCCESS;
         }
 
-        $this->error('Failed to write maddrax.json');
+        $this->error('Failed to write 2012.json');
 
         return self::FAILURE;
     }
@@ -70,7 +66,7 @@ class CrawlNovels extends Command
         return @file_get_contents($url);
     }
 
-    protected function getArticleUrls(string $categoryUrl): array
+    private function getArticleUrls(string $categoryUrl): array
     {
         $html = $this->getUrlContent($categoryUrl);
         if ($html === false) {
@@ -95,7 +91,7 @@ class CrawlNovels extends Command
         return $urls;
     }
 
-    protected function getHeftromanInfo(string $url): ?array
+    private function getHeftromanInfo(string $url): ?array
     {
         $html = $this->getUrlContent($url);
         if ($html === false) {
@@ -160,7 +156,7 @@ class CrawlNovels extends Command
         return null;
     }
 
-    protected function writeHeftromane(array $data, string $filename): bool
+    private function writeHeftromane(array $data, string $filename): bool
     {
         $jsonData = [];
         foreach ($data as $row) {

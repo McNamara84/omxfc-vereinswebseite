@@ -190,8 +190,9 @@ Stellen Sie sicher, dass `APP_URL` in der `.env` auf die öffentlich erreichbare
 | Romane neu indexieren | `php artisan romane:index --fresh` |
 | Romane, Hardcover, Mission Mars & Das Volk der Tiefe importieren | `php artisan books:import` |
 | Rezensionen importieren | `php artisan reviews:import-old --fresh` |
-| Alle Serien crawlen (Maddrax, Hardcover, Mission Mars, Das Volk der Tiefe) | `php artisan crawlnovels` |
+| Alle Serien crawlen (Maddrax, Hardcover, Mission Mars, 2012, Das Volk der Tiefe) | `php artisan crawlnovels` |
 | "Mission Mars"-Romane crawlen | `php artisan crawlmissionmars` |
+| "2012"-Mini-Serie crawlen | `php artisan crawl2012` |
 | "Das Volk der Tiefe"-Romane crawlen | `php artisan crawlvolkdertiefe` |
 | Hardcover crawlen | `php artisan crawlhardcovers` |
 | Sitemap generieren | `php artisan sitemap:generate` |
