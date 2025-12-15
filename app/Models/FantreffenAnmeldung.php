@@ -42,6 +42,7 @@ class FantreffenAnmeldung extends Model
         'zahlungseingang',
         'paypal_transaction_id',
         'ist_mitglied',
+        'orga_team',
     ];
 
     /**
@@ -54,6 +55,7 @@ class FantreffenAnmeldung extends Model
         'tshirt_fertig' => 'boolean',
         'zahlungseingang' => 'boolean',
         'ist_mitglied' => 'boolean',
+        'orga_team' => 'boolean',
         'payment_amount' => 'decimal:2',
     ];
 
@@ -169,6 +171,10 @@ class FantreffenAnmeldung extends Model
      */
     public function getTotalAmount(): float
     {
+        if ($this->orga_team) {
+            return 0;
+        }
+
         $amount = 0;
 
         if (!$this->ist_mitglied) {
@@ -190,7 +196,32 @@ class FantreffenAnmeldung extends Model
      */
     public function getFormattedTshirtPrice(): string
     {
+        if ($this->orga_team) {
+            return '0,00 €';
+        }
+
         $price = $this->ist_mitglied ? self::TSHIRT_PRICE : (self::GUEST_FEE + self::TSHIRT_PRICE);
         return number_format($price, 2, ',', '.') . ' €';
+    }
+
+    /**
+     * Update payment fields depending on Orga-Team status and existing selections.
+     */
+    public function syncPaymentForOrgaStatus(bool $isOrgaTeam): void
+    {
+        $this->orga_team = $isOrgaTeam;
+
+        if ($isOrgaTeam) {
+            $this->payment_amount = 0;
+            $this->payment_status = 'free';
+            $this->zahlungseingang = true;
+        } else {
+            $amount = $this->getTotalAmount();
+            $this->payment_amount = $amount;
+            $this->payment_status = $amount > 0 ? 'pending' : 'free';
+            $this->zahlungseingang = $amount === 0;
+        }
+
+        $this->save();
     }
 }

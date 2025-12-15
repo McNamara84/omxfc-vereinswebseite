@@ -12,8 +12,14 @@
 
         {{-- Success Message --}}
         @if (session()->has('success'))
-            <div class="mb-6 bg-green-100 dark:bg-green-900/30 border border-green-400 dark:border-green-700 text-green-700 dark:text-green-400 px-4 py-3 rounded">
+            <div class="mb-6 bg-green-100 dark:bg-green-900/30 border border-green-400 dark:border-green-700 text-green-700 dark:text-green-400 px-4 py-3 rounded" role="status" aria-live="polite">
                 {{ session('success') }}
+            </div>
+        @endif
+
+        @if (session()->has('error'))
+            <div class="mb-6 bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-700 text-red-700 dark:text-red-400 px-4 py-3 rounded" role="alert" aria-live="assertive">
+                {{ session('error') }}
             </div>
         @endif
 
@@ -135,6 +141,7 @@
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">E-Mail</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Mobil</th>
                             <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
+                            <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Orga-Team</th>
                             <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">T-Shirt</th>
                             <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Zahlung</th>
                             <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Profil</th>
@@ -170,6 +177,28 @@
                                     @endif
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-center">
+                                    @if ($anmeldung->ist_mitglied)
+                                        <button
+                                            wire:click="toggleOrgaTeam({{ $anmeldung->id }})"
+                                            class="inline-flex items-center gap-2 px-3 py-1 text-xs font-semibold rounded-full border transition focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#8B0116] focus:ring-offset-white dark:focus:ring-offset-gray-800 {{ $anmeldung->orga_team ? 'bg-[#8B0116]/10 text-[#8B0116] border-[#8B0116]/40 dark:bg-[#ff4b63]/10 dark:text-[#ff4b63] dark:border-[#ff4b63]/40' : 'bg-gray-50 text-gray-700 border-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600' }}"
+                                            aria-pressed="{{ $anmeldung->orga_team ? 'true' : 'false' }}"
+                                            aria-label="Orga-Team Status für {{ $anmeldung->full_name }} umschalten"
+                                        >
+                                            @if ($anmeldung->orga_team)
+                                                <span aria-hidden="true">★</span>
+                                                <span>Im Orga-Team</span>
+                                            @else
+                                                <span aria-hidden="true">☆</span>
+                                                <span>Nicht im Orga-Team</span>
+                                            @endif
+                                        </button>
+                                    @else
+                                        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300" aria-label="Nur Mitglieder können dem Orga-Team angehören">
+                                            Nur Mitglieder
+                                        </span>
+                                    @endif
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-center">
                                     @if ($anmeldung->tshirt_bestellt)
                                         <div class="text-sm text-gray-900 dark:text-white font-medium">
                                             {{ $anmeldung->tshirt_groesse }}
@@ -193,8 +222,13 @@
                                             <span class="text-xs px-2 py-1 rounded bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">
                                                 Kostenlos
                                             </span>
+                                            @if ($anmeldung->orga_team)
+                                                <span class="ml-2 text-xs px-2 py-1 rounded bg-[#8B0116]/10 text-[#8B0116] dark:bg-[#ff4b63]/10 dark:text-[#ff4b63]">
+                                                    Orga-Team
+                                                </span>
+                                            @endif
                                         @else
-                                            <button 
+                                            <button
                                                 wire:click="toggleZahlungseingang({{ $anmeldung->id }})"
                                                 class="text-xs px-2 py-1 rounded {{ $anmeldung->zahlungseingang ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400' }}"
                                             >
@@ -236,7 +270,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="8" class="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
+                                <td colspan="9" class="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
                                     Keine Anmeldungen gefunden.
                                 </td>
                             </tr>

@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Models\FantreffenAnmeldung;
+use App\Enums\Role;
 use Illuminate\Support\Facades\Response;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -101,19 +102,41 @@ class FantreffenAdminDashboard extends Component
         session()->flash('success', "Anmeldung von {$name} wurde gelöscht.");
     }
 
+    public function toggleOrgaTeam($anmeldungId)
+    {
+        $user = auth()->user();
+
+        if (!$user || !$user->hasAnyRole(Role::Admin, Role::Vorstand, Role::Kassenwart)) {
+            abort(403);
+        }
+
+        $anmeldung = FantreffenAnmeldung::findOrFail($anmeldungId);
+
+        if (!$anmeldung->ist_mitglied) {
+            session()->flash('error', 'Nur Mitglieder können dem Orga-Team hinzugefügt werden.');
+            return;
+        }
+
+        $anmeldung->syncPaymentForOrgaStatus(!$anmeldung->orga_team);
+
+        $this->calculateStats();
+        session()->flash('success', $anmeldung->orga_team ? 'Anmeldung dem Orga-Team zugewiesen.' : 'Orga-Team Status entfernt.');
+    }
+
     public function exportCsv()
     {
         $anmeldungen = $this->getFilteredQuery()->get();
 
-        $csv = "Name,Email,Mobil,Mitglied,T-Shirt,Größe,Zahlungsstatus,Betrag,Zahlungseingang,T-Shirt fertig,PayPal ID,Registriert am\n";
+        $csv = "Name,Email,Mobil,Mitglied,Orga-Team,T-Shirt,Größe,Zahlungsstatus,Betrag,Zahlungseingang,T-Shirt fertig,PayPal ID,Registriert am\n";
 
         foreach ($anmeldungen as $anmeldung) {
             $csv .= sprintf(
-                '"%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s"' . "\n",
+                '"%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s"' . "\n",
                 $anmeldung->full_name,
                 $anmeldung->registrant_email,
                 $anmeldung->mobile ?? '-',
                 $anmeldung->ist_mitglied ? 'Ja' : 'Nein',
+                $anmeldung->orga_team ? 'Ja' : 'Nein',
                 $anmeldung->tshirt_bestellt ? 'Ja' : 'Nein',
                 $anmeldung->tshirt_groesse ?? '-',
                 match ($anmeldung->payment_status) {
