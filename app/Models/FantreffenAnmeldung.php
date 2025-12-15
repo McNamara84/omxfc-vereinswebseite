@@ -219,7 +219,7 @@ class FantreffenAnmeldung extends Model
             $amount = $this->getTotalAmount();
             $this->payment_amount = $amount;
             $this->payment_status = $amount > 0 ? 'pending' : 'free';
-            $this->zahlungseingang = $amount === 0 ? true : false;
+            $this->zahlungseingang = $amount === 0;
         }
 
         $this->save();
