@@ -172,6 +172,93 @@ class FantreffenAdminDashboardTest extends TestCase
     }
 
     /** @test */
+    public function admin_can_mark_member_registration_as_orga_team_and_make_it_free()
+    {
+        $admin = $this->createUserWithRole(Role::Admin);
+        $this->actingAs($admin);
+
+        $registration = FantreffenAnmeldung::create([
+            'vorname' => 'Lena',
+            'nachname' => 'Licht',
+            'email' => 'lena@example.com',
+            'ist_mitglied' => true,
+            'payment_status' => 'pending',
+            'payment_amount' => 25.00,
+            'tshirt_bestellt' => true,
+            'tshirt_groesse' => 'L',
+            'zahlungseingang' => false,
+        ]);
+
+        Livewire::actingAs($admin)
+            ->test('fantreffen-admin-dashboard')
+            ->call('toggleOrgaTeam', $registration->id);
+
+        $updatedRegistration = $registration->fresh();
+
+        $this->assertTrue($updatedRegistration->orga_team);
+        $this->assertSame('free', $updatedRegistration->payment_status);
+        $this->assertTrue($updatedRegistration->zahlungseingang);
+        $this->assertEquals(0.00, (float) $updatedRegistration->payment_amount);
+    }
+
+    /** @test */
+    public function removing_orga_team_status_recalculates_member_payment()
+    {
+        $admin = $this->createUserWithRole(Role::Admin);
+        $this->actingAs($admin);
+
+        $registration = FantreffenAnmeldung::create([
+            'vorname' => 'Kai',
+            'nachname' => 'Kraft',
+            'email' => 'kai@example.com',
+            'ist_mitglied' => true,
+            'orga_team' => true,
+            'payment_status' => 'free',
+            'payment_amount' => 0,
+            'tshirt_bestellt' => true,
+            'tshirt_groesse' => 'S',
+            'zahlungseingang' => true,
+        ]);
+
+        Livewire::actingAs($admin)
+            ->test('fantreffen-admin-dashboard')
+            ->call('toggleOrgaTeam', $registration->id);
+
+        $updated = $registration->fresh();
+        $this->assertFalse($updated->orga_team);
+        $this->assertSame('pending', $updated->payment_status);
+        $this->assertFalse($updated->zahlungseingang);
+        $this->assertEquals(25.00, (float) $updated->payment_amount);
+    }
+
+    /** @test */
+    public function guests_cannot_be_marked_as_orga_team()
+    {
+        $admin = $this->createUserWithRole(Role::Admin);
+        $this->actingAs($admin);
+
+        $registration = FantreffenAnmeldung::create([
+            'vorname' => 'Nico',
+            'nachname' => 'Nord',
+            'email' => 'nico@example.com',
+            'ist_mitglied' => false,
+            'payment_status' => 'pending',
+            'payment_amount' => 5.00,
+            'tshirt_bestellt' => false,
+            'zahlungseingang' => false,
+        ]);
+
+        Livewire::actingAs($admin)
+            ->test('fantreffen-admin-dashboard')
+            ->call('toggleOrgaTeam', $registration->id);
+
+        $unchanged = $registration->fresh();
+        $this->assertFalse($unchanged->orga_team);
+        $this->assertSame('pending', $unchanged->payment_status);
+        $this->assertFalse($unchanged->zahlungseingang);
+    }
+
+    /** @test */
     public function admin_can_filter_by_member_status()
     {
         $admin = $this->createUserWithRole(Role::Admin);
