@@ -195,6 +195,37 @@ class RezensionControllerTest extends TestCase
         }
     }
 
+    public function test_index_shows_2012_books(): void
+    {
+        $path = storage_path('app/private/maddrax.json');
+        $original = file_get_contents($path);
+
+        try {
+            file_put_contents($path, json_encode([
+                ['nummer' => 1, 'titel' => 'Roman1', 'zyklus' => 'Ursprung'],
+            ]));
+
+            $book = Book::create(['roman_number' => 1, 'title' => 'Alpha', 'author' => 'A']);
+            Book::create([
+                'roman_number' => 3,
+                'title' => '2012 Roman',
+                'author' => 'C',
+                'type' => BookType::ZweiTausendZwölfDasJahrDerApokalypse,
+            ]);
+
+            $user = $this->actingMember();
+            $this->actingAs($user);
+
+            $this->get('/rezensionen')
+                ->assertOk()
+                ->assertSee($book->title)
+                ->assertSee('2012 Roman')
+                ->assertSee('Mini-Serie 2012');
+        } finally {
+            file_put_contents($path, $original);
+        }
+    }
+
     public function test_index_shows_volk_der_tiefe_books(): void
     {
         $path = storage_path('app/private/maddrax.json');
@@ -261,6 +292,41 @@ class RezensionControllerTest extends TestCase
         }
     }
 
+    public function test_2012_is_rendered_between_ursprung_and_streiter_cycles(): void
+    {
+        $path = storage_path('app/private/maddrax.json');
+        $original = file_get_contents($path);
+
+        try {
+            file_put_contents($path, json_encode([
+                ['nummer' => 1, 'titel' => 'Roman1', 'zyklus' => 'Ursprung'],
+                ['nummer' => 2, 'titel' => 'Roman2', 'zyklus' => 'Streiter'],
+            ]));
+
+            Book::create(['roman_number' => 1, 'title' => 'Ursprung Alpha', 'author' => 'A']);
+            Book::create(['roman_number' => 2, 'title' => 'Streiter Beta', 'author' => 'B']);
+            Book::create([
+                'roman_number' => 10,
+                'title' => '2012 Roman',
+                'author' => 'C',
+                'type' => BookType::ZweiTausendZwölfDasJahrDerApokalypse,
+            ]);
+
+            $user = $this->actingMember();
+            $this->actingAs($user);
+
+            $this->get('/rezensionen')
+                ->assertOk()
+                ->assertSeeInOrder([
+                    'Ursprung-Zyklus',
+                    'Mini-Serie 2012',
+                    'Streiter-Zyklus',
+                ], false);
+        } finally {
+            file_put_contents($path, $original);
+        }
+    }
+
     public function test_cycles_follow_release_order_with_spin_offs_and_hardcovers_at_end(): void
     {
         $path = storage_path('app/private/maddrax.json');
@@ -298,6 +364,13 @@ class RezensionControllerTest extends TestCase
             ]);
 
             Book::create([
+                'roman_number' => 8,
+                'title' => '2012 Roman',
+                'author' => 'JR',
+                'type' => BookType::ZweiTausendZwölfDasJahrDerApokalypse,
+            ]);
+
+            Book::create([
                 'roman_number' => 2,
                 'title' => 'Hardcover 1',
                 'author' => 'HC',
@@ -318,6 +391,7 @@ class RezensionControllerTest extends TestCase
                     'Mission Mars-Heftromane',
                     'Wandler-Zyklus',
                     'Euree-Zyklus',
+                    'Mini-Serie 2012',
                     'Maddrax-Hardcover',
                 ], false);
         } finally {
