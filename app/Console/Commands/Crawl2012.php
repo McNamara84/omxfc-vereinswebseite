@@ -78,14 +78,20 @@ class Crawl2012 extends Command
         $articles = $xpath->query("//div[@id='mw-pages']//a");
         $urls = [];
         foreach ($articles as $article) {
-            $urls[] = $this->resolveUrl($article->getAttribute('href'));
+            $resolved = $this->resolveUrl($article->getAttribute('href'));
+            if ($resolved !== null) {
+                $urls[] = $resolved;
+            }
         }
         $nextPage = $xpath->query("//a[text()='nächste Seite']");
         if ($nextPage->length > 0) {
-            $urls = array_merge(
-                $urls,
-                $this->getArticleUrls($this->resolveUrl($nextPage->item(0)->getAttribute('href')))
-            );
+            $nextUrl = $this->resolveUrl($nextPage->item(0)->getAttribute('href'));
+            if ($nextUrl !== null) {
+                $urls = array_merge(
+                    $urls,
+                    $this->getArticleUrls($nextUrl)
+                );
+            }
         }
 
         return $urls;
@@ -183,12 +189,24 @@ class Crawl2012 extends Command
         return file_put_contents($filename, $json) !== false;
     }
 
-    private function resolveUrl(string $href): string
+    private function resolveUrl(string $href): ?string
     {
-        if (str_starts_with($href, 'http://') || str_starts_with($href, 'https://') || str_starts_with($href, 'file://')) {
-            return $href;
+        if (str_starts_with($href, 'http://') || str_starts_with($href, 'https://')) {
+            return $this->isAllowedUrl($href) ? $href : null;
         }
 
-        return self::BASE_URL.$href;
+        $absolute = self::BASE_URL.ltrim($href, '/');
+
+        return $this->isAllowedUrl($absolute) ? $absolute : null;
+    }
+
+    private function isAllowedUrl(string $url): bool
+    {
+        $parts = parse_url($url);
+        if (($parts['scheme'] ?? '') !== 'https') {
+            return false;
+        }
+
+        return ($parts['host'] ?? '') === 'de.maddraxikon.com';
     }
 }
