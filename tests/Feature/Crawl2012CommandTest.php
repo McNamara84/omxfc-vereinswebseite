@@ -72,9 +72,8 @@ class Crawl2012CommandTest extends TestCase
 
     protected function tearDown(): void
     {
-        if (!in_array('https', stream_get_wrappers(), true)) {
-            stream_wrapper_restore('https');
-        }
+        stream_wrapper_unregister('https');
+        stream_wrapper_restore('https');
         HttpsFixtureStream::$fixtures = [];
         File::deleteDirectory($this->testStoragePath);
         parent::tearDown();
