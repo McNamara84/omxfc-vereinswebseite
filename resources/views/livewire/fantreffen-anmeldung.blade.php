@@ -10,6 +10,40 @@
             <a href="https://maps.app.goo.gl/dzLHUqVHqJrkWDkr5" target="_blank" class="inline-block px-6 py-3 bg-white text-[#8B0116] font-semibold rounded-lg hover:bg-gray-100"> Route in Google Maps</a>
         </div>
     </div>
+
+    {{-- VIP Authors Banner - Prominent Placement --}}
+    @if ($vipAuthors->isNotEmpty())
+        <div class="bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-400 dark:from-amber-600 dark:via-yellow-500 dark:to-amber-600 py-6 shadow-lg" role="region" aria-labelledby="vip-authors-heading">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex flex-col md:flex-row items-center justify-center gap-4 text-center">
+                    <div class="flex items-center gap-3">
+                        <svg class="w-10 h-10 text-amber-800 dark:text-amber-900 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                        </svg>
+                        <div>
+                            <h2 id="vip-authors-heading" class="text-xl md:text-2xl font-bold text-amber-900 dark:text-amber-950">
+                                VIP-Autoren bestätigt!
+                            </h2>
+                            <p class="text-amber-800 dark:text-amber-900 font-medium mt-1">
+                                Triff die Autoren der MADDRAX-Serie persönlich:
+                            </p>
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap justify-center gap-2 md:gap-3">
+                        @foreach ($vipAuthors as $author)
+                            <span class="inline-flex items-center px-4 py-2 bg-white/90 dark:bg-gray-900/80 text-amber-900 dark:text-amber-300 font-semibold rounded-full shadow-md text-sm md:text-base">
+                                <svg class="w-4 h-4 mr-2 text-amber-500" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                                </svg>
+                                {{ $author->display_name }}
+                            </span>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         @if (session()->has('success'))
             <div class="mb-4 p-4 bg-green-100 dark:bg-green-900 border-l-4 border-green-500 rounded">
@@ -29,7 +63,16 @@
                             <span class="font-bold text-[#8B0116] dark:text-[#ff4b63]">19:00</span>
                             <div>
                                 <h3 class="font-semibold">Signierstunde mit Autoren</h3>
-                                <p class="text-gray-600 dark:text-gray-300">Triff deine Lieblingsautoren!</p>
+                                @if ($vipAuthors->isNotEmpty())
+                                    <p class="text-gray-600 dark:text-gray-300">
+                                        Mit dabei:
+                                        @foreach ($vipAuthors as $index => $author)
+                                            <span class="font-medium text-[#8B0116] dark:text-[#ff4b63]">{{ $author->display_name }}</span>@if (!$loop->last), @endif
+                                        @endforeach
+                                    </p>
+                                @else
+                                    <p class="text-gray-600 dark:text-gray-300">Triff deine Lieblingsautoren!</p>
+                                @endif
                             </div>
                         </div>
                         <div class="flex gap-4">

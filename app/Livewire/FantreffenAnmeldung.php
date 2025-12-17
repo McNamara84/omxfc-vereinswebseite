@@ -5,6 +5,7 @@ namespace App\Livewire;
 use App\Mail\FantreffenAnmeldungBestaetigung;
 use App\Mail\FantreffenNeueAnmeldung;
 use App\Models\FantreffenAnmeldung as FantreffenAnmeldungModel;
+use App\Models\FantreffenVipAuthor;
 use App\Models\User;
 use App\Services\FantreffenDeadlineService;
 use Illuminate\Support\Facades\Auth;
@@ -15,19 +16,27 @@ class FantreffenAnmeldung extends Component
 {
     // Form fields
     public $vorname = '';
+
     public $nachname = '';
+
     public $email = '';
+
     public $mobile = '';
+
     public $tshirt_bestellt = false;
+
     public $tshirt_groesse = '';
 
     // UI state
     public $showEmailWarning = false;
+
     public $paymentAmount = 0;
 
     // T-Shirt deadline
     public $tshirtDeadlinePassed = false;
+
     public $daysUntilDeadline = 0;
+
     public $tshirtDeadlineFormatted = '';
 
     protected function rules()
@@ -38,7 +47,7 @@ class FantreffenAnmeldung extends Component
             'tshirt_groesse' => 'required_if:tshirt_bestellt,true|nullable|in:XS,S,M,L,XL,XXL,XXXL',
         ];
 
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             $rules['vorname'] = 'required|string|max:255';
             $rules['nachname'] = 'required|string|max:255';
             $rules['email'] = 'required|email|max:255';
@@ -60,7 +69,7 @@ class FantreffenAnmeldung extends Component
     public function mount()
     {
         // T-Shirt Deadline aus zentralem Service laden
-        $deadlineService = new FantreffenDeadlineService();
+        $deadlineService = new FantreffenDeadlineService;
         $this->tshirtDeadlinePassed = $deadlineService->isPassed();
         $this->daysUntilDeadline = $deadlineService->getDaysRemaining();
         $this->tshirtDeadlineFormatted = $deadlineService->getFormattedDate();
@@ -80,7 +89,7 @@ class FantreffenAnmeldung extends Component
         $this->validateOnly($propertyName);
 
         // Check if email belongs to a user
-        if ($propertyName === 'email' && !Auth::check()) {
+        if ($propertyName === 'email' && ! Auth::check()) {
             $this->checkEmailWarning();
         }
 
@@ -93,7 +102,7 @@ class FantreffenAnmeldung extends Component
     public function updatedTshirtBestellt()
     {
         // Reset T-Shirt size if unchecked
-        if (!$this->tshirt_bestellt) {
+        if (! $this->tshirt_bestellt) {
             $this->tshirt_groesse = '';
         }
         $this->calculatePayment();
@@ -110,7 +119,7 @@ class FantreffenAnmeldung extends Component
         $isLoggedIn = Auth::check();
         $amount = 0;
 
-        if (!$isLoggedIn) {
+        if (! $isLoggedIn) {
             $amount += FantreffenAnmeldungModel::GUEST_FEE;
         }
 
@@ -146,6 +155,7 @@ class FantreffenAnmeldung extends Component
         if ($this->tshirt_bestellt && $this->tshirtDeadlinePassed) {
             \Log::warning('FantreffenAnmeldung: T-Shirt deadline passed');
             session()->flash('error', 'Die Deadline für T-Shirt-Bestellungen ist leider abgelaufen.');
+
             return;
         }
 
@@ -173,7 +183,8 @@ class FantreffenAnmeldung extends Component
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
-            session()->flash('error', 'Fehler beim Speichern der Anmeldung: ' . $e->getMessage());
+            session()->flash('error', 'Fehler beim Speichern der Anmeldung: '.$e->getMessage());
+
             return;
         }
 
@@ -196,18 +207,19 @@ class FantreffenAnmeldung extends Component
         }
 
         // Setze Session-Token für Zugriff auf Bestätigungsseite (für nicht eingeloggte Nutzer)
-        if (!Auth::check()) {
-            session()->put('fantreffen_anmeldung_' . $anmeldung->id, true);
+        if (! Auth::check()) {
+            session()->put('fantreffen_anmeldung_'.$anmeldung->id, true);
         }
 
         \Log::info('FantreffenAnmeldung: Redirecting to confirmation page');
+
         // Weiterleitung zur Zahlungsbestätigungsseite
         return redirect()->route('fantreffen.2026.bestaetigung', ['id' => $anmeldung->id]);
     }
 
     private function resetForm()
     {
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             $this->vorname = '';
             $this->nachname = '';
             $this->email = '';
@@ -221,12 +233,18 @@ class FantreffenAnmeldung extends Component
 
     public function render()
     {
+        $vipAuthors = FantreffenVipAuthor::active()->ordered()->get();
+        $vipAuthorNames = $vipAuthors->pluck('display_name')->toArray();
+
         return view('livewire.fantreffen-anmeldung', [
             'isLoggedIn' => Auth::check(),
             'user' => Auth::user(),
+            'vipAuthors' => $vipAuthors,
         ])->layout('layouts.app', [
             'title' => 'Maddrax-Fantreffen 2026 – Offizieller MADDRAX Fanclub e. V.',
-            'description' => 'Melde dich jetzt an zum Maddrax-Fantreffen am 9. Mai 2026 in Köln mit Signierstunde und Verleihung der Goldenen Taratze.',
+            'description' => 'Melde dich jetzt an zum Maddrax-Fantreffen am 9. Mai 2026 in Köln. '.
+                ($vipAuthorNames ? 'Mit VIP-Autoren: '.implode(', ', $vipAuthorNames).'. ' : '').
+                'Signierstunde und Verleihung der Goldenen Taratze.',
         ]);
     }
 }
