@@ -156,19 +156,25 @@ class FantreffenVipAuthorsTest extends TestCase
     public function admin_can_delete_vip_author(): void
     {
         $admin = $this->createUserWithRole(Role::Admin);
-        $author = FantreffenVipAuthor::create([
-            'name' => 'To Delete',
-            'is_active' => true,
-            'sort_order' => 0,
-        ]);
 
+        // Create three authors with consecutive sort_order values
+        $author1 = FantreffenVipAuthor::create(['name' => 'First', 'is_active' => true, 'sort_order' => 0]);
+        $author2 = FantreffenVipAuthor::create(['name' => 'To Delete', 'is_active' => true, 'sort_order' => 1]);
+        $author3 = FantreffenVipAuthor::create(['name' => 'Third', 'is_active' => true, 'sort_order' => 2]);
+
+        // Delete the middle author
         Livewire::actingAs($admin)
             ->test(FantreffenVipAuthors::class)
-            ->call('delete', $author->id);
+            ->call('delete', $author2->id);
 
+        // Verify author was deleted
         $this->assertDatabaseMissing('fantreffen_vip_authors', [
-            'id' => $author->id,
+            'id' => $author2->id,
         ]);
+
+        // Verify sort_order was recompacted (remaining authors should have consecutive values starting from 0)
+        $this->assertEquals(0, $author1->fresh()->sort_order);
+        $this->assertEquals(1, $author3->fresh()->sort_order);
     }
 
     /** @test */

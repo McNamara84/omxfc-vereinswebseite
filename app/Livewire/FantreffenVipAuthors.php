@@ -205,8 +205,6 @@ class FantreffenVipAuthors extends Component
         $bindings = array_merge($bindings, $ids);
 
         DB::update("UPDATE fantreffen_vip_authors SET sort_order = CASE {$casesString} END WHERE id IN ({$placeholders})", $bindings);
-
-        Cache::forget('fantreffen_vip_authors');
     }
 
     public function render()
