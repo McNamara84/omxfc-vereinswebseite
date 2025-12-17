@@ -189,7 +189,11 @@
                                     {{-- Move Up --}}
                                     <button
                                         wire:click="moveUp({{ $author->id }})"
-                                        class="p-1 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
+                                        @class([
+                                            'p-1 transition-colors',
+                                            'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200' => $author->sort_order > 0,
+                                            'text-gray-300 dark:text-gray-600 opacity-50 cursor-not-allowed' => $author->sort_order <= 0,
+                                        ])
                                         title="Nach oben"
                                         @if($author->sort_order <= 0) disabled @endif
                                     >
@@ -201,7 +205,11 @@
                                     {{-- Move Down --}}
                                     <button
                                         wire:click="moveDown({{ $author->id }})"
-                                        class="p-1 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
+                                        @class([
+                                            'p-1 transition-colors',
+                                            'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200' => !$loop->last,
+                                            'text-gray-300 dark:text-gray-600 opacity-50 cursor-not-allowed' => $loop->last,
+                                        ])
                                         title="Nach unten"
                                         @if($loop->last) disabled @endif
                                     >

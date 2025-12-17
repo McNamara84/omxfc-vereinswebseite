@@ -173,14 +173,24 @@ class FantreffenVipAuthors extends Component
 
     protected function recompactSortOrder(): void
     {
-        $authors = FantreffenVipAuthor::orderBy('sort_order')->get();
+        $authors = FantreffenVipAuthor::orderBy('sort_order')->get(['id']);
+
+        if ($authors->isEmpty()) {
+            return;
+        }
+
+        $cases = [];
+        $ids = [];
 
         foreach ($authors as $index => $author) {
-            if ($author->sort_order !== $index) {
-                $author->sort_order = $index;
-                $author->save();
-            }
+            $cases[] = "WHEN id = {$author->id} THEN {$index}";
+            $ids[] = $author->id;
         }
+
+        $casesString = implode(' ', $cases);
+        $idsString = implode(',', $ids);
+
+        DB::update("UPDATE fantreffen_vip_authors SET sort_order = CASE {$casesString} END WHERE id IN ({$idsString})");
     }
 
     public function render()
