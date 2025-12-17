@@ -86,7 +86,7 @@ This document provides comprehensive guidance for AI assistants working with the
 ### Directory Layout
 
 ```
-omfxc-vereinswebseite/
+omxfc-vereinswebseite/
 ├── app/
 │   ├── Actions/              # Jetstream actions (Fortify, Jetstream)
 │   ├── Console/Commands/     # Artisan commands (crawlers, utilities)
@@ -362,7 +362,7 @@ protected static function booted()
 ```bash
 # 1. Clone and install dependencies
 git clone https://github.com/McNamara84/omxfc-vereinswebseite.git
-cd omfxc-vereinswebseite
+cd omxfc-vereinswebseite
 composer install
 npm install
 
@@ -1270,7 +1270,7 @@ response()->view('view', $data)
 
 **Docker Build:**
 ```bash
-docker build -t omfxc-vereinswebseite .
+docker build -t omxfc-vereinswebseite .
 ```
 
 **Production Checklist:**
