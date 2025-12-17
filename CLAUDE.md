@@ -1,6 +1,6 @@
-# CLAUDE.md - AI Assistant Guide for OMFXC Vereinswebseite
+# CLAUDE.md - AI Assistant Guide for OMXFC Vereinswebseite
 
-This document provides comprehensive guidance for AI assistants working with the OMFXC (Offizieller MADDRAX Fanclub) Vereinswebseite codebase.
+This document provides comprehensive guidance for AI assistants working with the OMXFC (Offizieller MADDRAX Fanclub) Vereinswebseite codebase.
 
 ## Table of Contents
 
@@ -21,8 +21,8 @@ This document provides comprehensive guidance for AI assistants working with the
 
 ## Project Overview
 
-**Project Name:** OMFXC Vereinswebseite
-**Description:** Official website for the Offizieller MADDRAX Fanclub (OMFXC), a German science fiction fan club
+**Project Name:** OMXFC Vereinswebseite
+**Description:** Official website for the Offizieller MADDRAX Fanclub (OMXFC), a German science fiction fan club
 **License:** GPL-3.0-or-later
 **Repository:** https://github.com/McNamara84/omxfc-vereinswebseite
 **Language:** German (UI, routes, documentation, and domain terminology)
