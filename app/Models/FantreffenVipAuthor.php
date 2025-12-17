@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
 class FantreffenVipAuthor extends Model
@@ -38,7 +39,7 @@ class FantreffenVipAuthor extends Model
     /**
      * Scope a query to only include active VIP authors.
      */
-    public function scopeActive($query)
+    public function scopeActive($query): Builder
     {
         return $query->where('is_active', true);
     }
@@ -46,7 +47,7 @@ class FantreffenVipAuthor extends Model
     /**
      * Scope a query to order by sort_order.
      */
-    public function scopeOrdered($query)
+    public function scopeOrdered($query): Builder
     {
         return $query->orderBy('sort_order')->orderBy('name');
     }

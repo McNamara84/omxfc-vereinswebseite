@@ -210,7 +210,7 @@
                                 @if ($vipAuthors->isNotEmpty())
                                     <p class="text-gray-600 dark:text-gray-300">
                                         Mit dabei:
-                                        @foreach ($vipAuthors as $index => $author)
+                                        @foreach ($vipAuthors as $author)
                                             <span class="font-medium text-[#8B0116] dark:text-[#ff4b63]">{{ $author->display_name }}</span>@if (!$loop->last), @endif
                                         @endforeach
                                     </p>

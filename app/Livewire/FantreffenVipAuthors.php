@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Models\FantreffenVipAuthor;
+use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 
 class FantreffenVipAuthors extends Component
@@ -100,7 +101,11 @@ class FantreffenVipAuthors extends Component
     {
         $author = FantreffenVipAuthor::findOrFail($id);
         $name = $author->name;
-        $author->delete();
+
+        DB::transaction(function () use ($author) {
+            $author->delete();
+            $this->recompactSortOrder();
+        });
 
         session()->flash('success', "Autor \"{$name}\" wurde gelöscht.");
     }
@@ -116,13 +121,17 @@ class FantreffenVipAuthors extends Component
 
         $authorAbove = FantreffenVipAuthor::where('sort_order', $currentOrder - 1)->first();
 
-        if ($authorAbove) {
-            $authorAbove->sort_order = $currentOrder;
-            $authorAbove->save();
+        if (! $authorAbove) {
+            return;
         }
 
-        $author->sort_order = $currentOrder - 1;
-        $author->save();
+        DB::transaction(function () use ($author, $authorAbove, $currentOrder) {
+            $authorAbove->sort_order = $currentOrder;
+            $authorAbove->save();
+
+            $author->sort_order = $currentOrder - 1;
+            $author->save();
+        });
     }
 
     public function moveDown($id)
@@ -136,11 +145,13 @@ class FantreffenVipAuthors extends Component
             return;
         }
 
-        $authorBelow->sort_order = $currentOrder;
-        $authorBelow->save();
+        DB::transaction(function () use ($author, $authorBelow, $currentOrder) {
+            $authorBelow->sort_order = $currentOrder;
+            $authorBelow->save();
 
-        $author->sort_order = $currentOrder + 1;
-        $author->save();
+            $author->sort_order = $currentOrder + 1;
+            $author->save();
+        });
     }
 
     protected function resetForm()
@@ -158,6 +169,18 @@ class FantreffenVipAuthors extends Component
         $maxOrder = FantreffenVipAuthor::max('sort_order');
 
         return ($maxOrder ?? -1) + 1;
+    }
+
+    protected function recompactSortOrder(): void
+    {
+        $authors = FantreffenVipAuthor::orderBy('sort_order')->get();
+
+        foreach ($authors as $index => $author) {
+            if ($author->sort_order !== $index) {
+                $author->sort_order = $index;
+                $author->save();
+            }
+        }
     }
 
     public function render()
