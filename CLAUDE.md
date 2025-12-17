@@ -1,6 +1,6 @@
-# CLAUDE.md - AI Assistant Guide for OMXFC Vereinswebseite
+# CLAUDE.md - AI Assistant Guide for OMFXC Vereinswebseite
 
-This document provides comprehensive guidance for AI assistants working with the OMXFC (Offizieller MADDRAX Fanclub) Vereinswebseite codebase.
+This document provides comprehensive guidance for AI assistants working with the OMFXC (Offizieller MADDRAX Fanclub) Vereinswebseite codebase.
 
 ## Table of Contents
 
@@ -21,8 +21,8 @@ This document provides comprehensive guidance for AI assistants working with the
 
 ## Project Overview
 
-**Project Name:** OMXFC Vereinswebseite
-**Description:** Official website for the Offizieller MADDRAX Fanclub (OMXFC), a German science fiction fan club
+**Project Name:** OMFXC Vereinswebseite
+**Description:** Official website for the Offizieller MADDRAX Fanclub (OMFXC), a German science fiction fan club
 **License:** GPL-3.0-or-later
 **Repository:** https://github.com/McNamara84/omxfc-vereinswebseite
 **Language:** German (UI, routes, documentation, and domain terminology)
@@ -75,7 +75,7 @@ This document provides comprehensive guidance for AI assistants working with the
 ### Development Tools
 - **Package Manager:** Composer 2.6+, npm 10
 - **Node.js:** v20 LTS
-- **Database:** MariaDB/MySQL (production), SQLite (testing)
+- **Database:** MariaDB/MySQL (production), SQLite in-memory (testing)
 - **Queue:** Database driver (can be configured for Redis)
 - **Cache:** Database driver (can be configured for Redis)
 
@@ -86,7 +86,7 @@ This document provides comprehensive guidance for AI assistants working with the
 ### Directory Layout
 
 ```
-omxfc-vereinswebseite/
+omfxc-vereinswebseite/
 ├── app/
 │   ├── Actions/              # Jetstream actions (Fortify, Jetstream)
 │   ├── Console/Commands/     # Artisan commands (crawlers, utilities)
@@ -284,7 +284,6 @@ Route::middleware(['vorstand-or-kassenwart'])->group(function () {
 public function hasRole(Role $role): bool
 public function hasAnyRole(Role ...$roles): bool
 public function hasVorstandRole(): bool
-public function isAdmin(): bool
 ```
 
 ### Enum Pattern (PHP 8.1+)
@@ -326,7 +325,7 @@ Jobs are used sparingly, dispatched from model events:
 public function teams(): BelongsToMany
 public function createdTodos(): HasMany
 public function assignedTodos(): HasMany
-public function points(): HasMany
+public function points(): HasMany // Returns UserPoint models
 ```
 
 **Accessors/Mutators:**
@@ -363,7 +362,7 @@ protected static function booted()
 ```bash
 # 1. Clone and install dependencies
 git clone https://github.com/McNamara84/omxfc-vereinswebseite.git
-cd omxfc-vereinswebseite
+cd omfxc-vereinswebseite
 composer install
 npm install
 
@@ -530,18 +529,24 @@ trait CreatesMemberClientSnapshot
 ```php
 $user = User::factory()->create([
     'email' => 'test@example.com',
-    'role' => Role::Admin,
+    'current_team_id' => $team->id,
 ]);
 
 $team = Team::factory()->create();
+
+// Note: Roles are assigned through team membership (pivot table), not directly on User model
 ```
 
 **Helper Methods:**
 ```php
 private function actingMemberWithPoints(int $points): User
 {
-    $user = User::factory()->create(['role' => Role::Mitglied]);
-    $user->points()->create(['punkte' => $points]);
+    $user = User::factory()->create(['current_team_id' => $team->id]);
+    UserPoint::create([
+        'user_id' => $user->id,
+        'team_id' => $team->id,
+        'points' => $points,
+    ]);
     return $this->actingAs($user);
 }
 ```
@@ -1265,7 +1270,7 @@ response()->view('view', $data)
 
 **Docker Build:**
 ```bash
-docker build -t omxfc-vereinswebseite .
+docker build -t omfxc-vereinswebseite .
 ```
 
 **Production Checklist:**
