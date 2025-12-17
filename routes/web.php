@@ -67,6 +67,11 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
     Route::get('/admin/fantreffen-2026', \App\Livewire\FantreffenAdminDashboard::class)
         ->name('admin.fantreffen.2026')
         ->middleware('vorstand-or-kassenwart');
+
+    // Fantreffen 2026 VIP-Autoren verwalten
+    Route::get('/admin/fantreffen-2026/vip-autoren', \App\Livewire\FantreffenVipAuthors::class)
+        ->name('admin.fantreffen.vip-authors')
+        ->middleware('vorstand-or-kassenwart');
     
     Route::controller(DashboardController::class)->group(function () {
         Route::get('/dashboard', 'index')->name('dashboard');

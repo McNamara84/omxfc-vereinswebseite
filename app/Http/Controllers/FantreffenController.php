@@ -6,10 +6,12 @@ use App\Mail\FantreffenAnmeldungBestaetigung;
 use App\Mail\FantreffenNeueAnmeldung;
 use App\Models\Activity;
 use App\Models\FantreffenAnmeldung;
+use App\Models\FantreffenVipAuthor;
 use App\Models\User;
 use App\Services\FantreffenDeadlineService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
@@ -18,43 +20,49 @@ class FantreffenController extends Controller
     public function create()
     {
         $user = Auth::user();
-        
+
         // T-Shirt Deadline aus zentralem Service laden
-        $deadlineService = new FantreffenDeadlineService();
-        
+        $deadlineService = new FantreffenDeadlineService;
+
+        // VIP-Autoren laden (cached for 1 hour)
+        $vipAuthors = Cache::remember('fantreffen_vip_authors', 3600, function () {
+            return FantreffenVipAuthor::active()->ordered()->get();
+        });
+
         // Hinweis: paymentAmount wird nur für Button-Text verwendet
         // Die tatsächliche Berechnung erfolgt in store() basierend auf Auswahl
         $paymentAmount = 0;
-        
+
         return view('fantreffen.anmeldung', array_merge(
             $deadlineService->toArray(),
             [
                 'user' => $user,
                 'paymentAmount' => $paymentAmount,
+                'vipAuthors' => $vipAuthors,
             ]
         ));
     }
-    
+
     public function store(Request $request)
     {
         Log::info('Fantreffen Anmeldung: Form submission started', [
             'request_data' => $request->all(),
             'user_id' => Auth::id(),
         ]);
-        
+
         // Validierung
         $rules = [
             'mobile' => 'nullable|string|max:50',
             'tshirt_bestellt' => 'boolean',
             'tshirt_groesse' => 'required_if:tshirt_bestellt,1|nullable|in:XS,S,M,L,XL,XXL,XXXL',
         ];
-        
-        if (!Auth::check()) {
+
+        if (! Auth::check()) {
             $rules['vorname'] = 'required|string|max:255';
             $rules['nachname'] = 'required|string|max:255';
             $rules['email'] = 'required|email|max:255';
         }
-        
+
         $messages = [
             'vorname.required' => 'Bitte gib deinen Vornamen an.',
             'nachname.required' => 'Bitte gib deinen Nachnamen an.',
@@ -63,7 +71,7 @@ class FantreffenController extends Controller
             'tshirt_groesse.required_if' => 'Bitte wähle eine T-Shirt-Größe aus.',
             'tshirt_groesse.in' => 'Bitte wähle eine gültige T-Shirt-Größe aus.',
         ];
-        
+
         try {
             $validated = $request->validate($rules, $messages);
             Log::info('Fantreffen Anmeldung: Validation passed');
@@ -71,7 +79,7 @@ class FantreffenController extends Controller
             Log::error('Fantreffen Anmeldung: Validation failed', ['errors' => $e->errors()]);
             throw $e;
         }
-        
+
         // Daten vorbereiten
         if (Auth::check()) {
             $vorname = Auth::user()->vorname;
@@ -82,23 +90,23 @@ class FantreffenController extends Controller
             $nachname = $validated['nachname'];
             $email = $validated['email'];
         }
-        
+
         $tshirtBestellt = $request->boolean('tshirt_bestellt');
-        
+
         // T-Shirt-Deadline prüfen - Bestellung nach Deadline verhindern
-        $deadlineService = new FantreffenDeadlineService();
+        $deadlineService = new FantreffenDeadlineService;
 
         if ($tshirtBestellt && $deadlineService->isPassed()) {
             return back()
                 ->withInput()
                 ->withErrors(['tshirt_bestellt' => 'Die Deadline für T-Shirt-Bestellungen ist leider abgelaufen.']);
         }
-        
+
         $tshirtGroesse = $tshirtBestellt ? $validated['tshirt_groesse'] : null;
-        
+
         // Kosten berechnen
         $paymentAmount = 0;
-        
+
         if (Auth::check()) {
             // Eingeloggte Mitglieder: Teilnahme kostenlos, nur T-Shirt 25€
             if ($tshirtBestellt) {
@@ -111,7 +119,7 @@ class FantreffenController extends Controller
                 $paymentAmount += 25; // T-Shirt-Preis
             }
         }
-        
+
         try {
             // Anmeldung erstellen
             $anmeldung = FantreffenAnmeldung::create([
@@ -141,7 +149,7 @@ class FantreffenController extends Controller
             try {
                 Mail::to($email)->send(new FantreffenAnmeldungBestaetigung($anmeldung));
                 Log::info('Fantreffen Anmeldung: Confirmation email sent to participant');
-                
+
                 Mail::to('vorstand@maddrax-fanclub.de')->send(new FantreffenNeueAnmeldung($anmeldung));
                 Log::info('Fantreffen Anmeldung: Notification email sent to vorstand');
             } catch (\Exception $e) {
@@ -151,27 +159,27 @@ class FantreffenController extends Controller
                 ]);
                 // Fehler beim E-Mail-Versand nicht durchreichen, Anmeldung ist bereits gespeichert
             }
-            
+
             // Redirect zur Bestätigungsseite
             return redirect()->route('fantreffen.2026.bestaetigung', ['id' => $anmeldung->id])
                 ->with('success', 'Deine Anmeldung wurde erfolgreich gespeichert!');
-                
+
         } catch (\Exception $e) {
             Log::error('Fantreffen Anmeldung: Registration failed', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
-            
+
             return back()
                 ->withInput()
                 ->withErrors(['error' => 'Es ist ein Fehler aufgetreten. Bitte versuche es erneut.']);
         }
     }
-    
+
     public function bestaetigung($id)
     {
         $anmeldung = FantreffenAnmeldung::findOrFail($id);
-        
+
         // Optional: Berechtigungsprüfung für eingeloggte User
         // Gäste (nicht eingeloggt) dürfen die Bestätigungsseite sehen, wenn sie die ID haben
         // Eingeloggte User dürfen nur ihre eigene Anmeldung sehen (außer Admins)
@@ -180,7 +188,7 @@ class FantreffenController extends Controller
             // Hier könnte man eine Admin-Prüfung einbauen
             abort(403, 'Du bist nicht berechtigt, diese Anmeldung anzusehen.');
         }
-        
+
         return view('fantreffen.bestaetigung', [
             'anmeldung' => $anmeldung,
         ]);
