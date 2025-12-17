@@ -247,6 +247,20 @@ class FantreffenVipAuthorsTest extends TestCase
     }
 
     /** @test */
+    public function move_down_at_bottom_does_nothing(): void
+    {
+        $admin = $this->createUserWithRole(Role::Admin);
+
+        $author = FantreffenVipAuthor::create(['name' => 'Only', 'sort_order' => 0, 'is_active' => true]);
+
+        Livewire::actingAs($admin)
+            ->test(FantreffenVipAuthors::class)
+            ->call('moveDown', $author->id);
+
+        $this->assertEquals(0, $author->fresh()->sort_order);
+    }
+
+    /** @test */
     public function name_is_required(): void
     {
         $admin = $this->createUserWithRole(Role::Admin);

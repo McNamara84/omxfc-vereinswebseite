@@ -132,10 +132,12 @@ class FantreffenVipAuthors extends Component
 
         $authorBelow = FantreffenVipAuthor::where('sort_order', $currentOrder + 1)->first();
 
-        if ($authorBelow) {
-            $authorBelow->sort_order = $currentOrder;
-            $authorBelow->save();
+        if (! $authorBelow) {
+            return;
         }
+
+        $authorBelow->sort_order = $currentOrder;
+        $authorBelow->save();
 
         $author->sort_order = $currentOrder + 1;
         $author->save();
