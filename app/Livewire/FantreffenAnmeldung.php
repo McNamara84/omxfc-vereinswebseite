@@ -183,7 +183,7 @@ class FantreffenAnmeldung extends Component
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
-            session()->flash('error', 'Fehler beim Speichern der Anmeldung: '.$e->getMessage());
+            session()->flash('error', 'Fehler beim Speichern der Anmeldung. Bitte versuche es erneut oder kontaktiere uns.');
 
             return;
         }
@@ -234,7 +234,12 @@ class FantreffenAnmeldung extends Component
     public function render()
     {
         $vipAuthors = FantreffenVipAuthor::active()->ordered()->get();
-        $vipAuthorNames = $vipAuthors->pluck('display_name')->toArray();
+
+        $description = 'Melde dich jetzt an zum Maddrax-Fantreffen am 9. Mai 2026 in Köln. ';
+        if ($vipAuthors->isNotEmpty()) {
+            $description .= 'Mit VIP-Autoren: '.$vipAuthors->pluck('display_name')->implode(', ').'. ';
+        }
+        $description .= 'Signierstunde und Verleihung der Goldenen Taratze.';
 
         return view('livewire.fantreffen-anmeldung', [
             'isLoggedIn' => Auth::check(),
@@ -242,9 +247,7 @@ class FantreffenAnmeldung extends Component
             'vipAuthors' => $vipAuthors,
         ])->layout('layouts.app', [
             'title' => 'Maddrax-Fantreffen 2026 – Offizieller MADDRAX Fanclub e. V.',
-            'description' => 'Melde dich jetzt an zum Maddrax-Fantreffen am 9. Mai 2026 in Köln. '.
-                ($vipAuthorNames ? 'Mit VIP-Autoren: '.implode(', ', $vipAuthorNames).'. ' : '').
-                'Signierstunde und Verleihung der Goldenen Taratze.',
+            'description' => $description,
         ]);
     }
 }

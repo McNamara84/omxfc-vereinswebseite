@@ -2,7 +2,6 @@
 
 namespace App\Livewire;
 
-use App\Enums\Role;
 use App\Models\FantreffenVipAuthor;
 use Livewire\Component;
 
@@ -36,20 +35,6 @@ class FantreffenVipAuthors extends Component
         'sort_order.integer' => 'Die Sortierung muss eine ganze Zahl sein.',
         'sort_order.min' => 'Die Sortierung darf nicht negativ sein.',
     ];
-
-    public function mount()
-    {
-        $this->checkAccess();
-    }
-
-    protected function checkAccess()
-    {
-        $user = auth()->user();
-
-        if (! $user || ! $user->hasAnyRole(Role::Admin, Role::Vorstand, Role::Kassenwart)) {
-            abort(403);
-        }
-    }
 
     public function openForm()
     {
@@ -123,16 +108,36 @@ class FantreffenVipAuthors extends Component
     public function moveUp($id)
     {
         $author = FantreffenVipAuthor::findOrFail($id);
-        if ($author->sort_order > 0) {
-            $author->sort_order = $author->sort_order - 1;
-            $author->save();
+        $currentOrder = $author->sort_order;
+
+        if ($currentOrder <= 0) {
+            return;
         }
+
+        $authorAbove = FantreffenVipAuthor::where('sort_order', $currentOrder - 1)->first();
+
+        if ($authorAbove) {
+            $authorAbove->sort_order = $currentOrder;
+            $authorAbove->save();
+        }
+
+        $author->sort_order = $currentOrder - 1;
+        $author->save();
     }
 
     public function moveDown($id)
     {
         $author = FantreffenVipAuthor::findOrFail($id);
-        $author->sort_order = $author->sort_order + 1;
+        $currentOrder = $author->sort_order;
+
+        $authorBelow = FantreffenVipAuthor::where('sort_order', $currentOrder + 1)->first();
+
+        if ($authorBelow) {
+            $authorBelow->sort_order = $currentOrder;
+            $authorBelow->save();
+        }
+
+        $author->sort_order = $currentOrder + 1;
         $author->save();
     }
 
@@ -156,9 +161,11 @@ class FantreffenVipAuthors extends Component
     public function render()
     {
         $authors = FantreffenVipAuthor::ordered()->get();
+        $activeAuthors = $authors->where('is_active', true);
 
         return view('livewire.fantreffen-vip-authors', [
             'authors' => $authors,
+            'activeAuthors' => $activeAuthors,
         ])->layout('layouts.app', [
             'title' => 'Fantreffen 2026 - VIP-Autoren verwalten',
         ]);

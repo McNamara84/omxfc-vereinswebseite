@@ -240,14 +240,14 @@
         </div>
 
         {{-- Preview Info --}}
-        @if ($authors->where('is_active', true)->isNotEmpty())
+        @if ($activeAuthors->isNotEmpty())
             <div class="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
                 <h3 class="font-semibold text-blue-900 dark:text-blue-300 mb-2">Vorschau auf der Anmeldeseite</h3>
                 <p class="text-sm text-blue-800 dark:text-blue-400 mb-2">
                     Diese Autoren werden prominent auf der Anmeldeseite angezeigt:
                 </p>
                 <ul class="text-sm text-blue-700 dark:text-blue-300 list-disc list-inside">
-                    @foreach ($authors->where('is_active', true) as $author)
+                    @foreach ($activeAuthors as $author)
                         <li>{{ $author->display_name }}</li>
                     @endforeach
                 </ul>
