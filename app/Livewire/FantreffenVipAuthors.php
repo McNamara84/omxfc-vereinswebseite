@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Models\FantreffenVipAuthor;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 
@@ -84,6 +85,7 @@ class FantreffenVipAuthors extends Component
             session()->flash('success', 'Autor erfolgreich hinzugefügt.');
         }
 
+        Cache::forget('fantreffen_vip_authors');
         $this->closeForm();
     }
 
@@ -92,6 +94,8 @@ class FantreffenVipAuthors extends Component
         $author = FantreffenVipAuthor::findOrFail($id);
         $author->is_active = ! $author->is_active;
         $author->save();
+
+        Cache::forget('fantreffen_vip_authors');
 
         $status = $author->is_active ? 'aktiviert' : 'deaktiviert';
         session()->flash('success', "Autor \"{$author->name}\" wurde {$status}.");
@@ -106,6 +110,8 @@ class FantreffenVipAuthors extends Component
             $author->delete();
             $this->recompactSortOrder();
         });
+
+        Cache::forget('fantreffen_vip_authors');
 
         session()->flash('success', "Autor \"{$name}\" wurde gelöscht.");
     }
@@ -132,6 +138,8 @@ class FantreffenVipAuthors extends Component
             $author->sort_order = $currentOrder - 1;
             $author->save();
         });
+
+        Cache::forget('fantreffen_vip_authors');
     }
 
     public function moveDown($id)
@@ -152,6 +160,8 @@ class FantreffenVipAuthors extends Component
             $author->sort_order = $currentOrder + 1;
             $author->save();
         });
+
+        Cache::forget('fantreffen_vip_authors');
     }
 
     protected function resetForm()
@@ -180,17 +190,23 @@ class FantreffenVipAuthors extends Component
         }
 
         $cases = [];
+        $bindings = [];
         $ids = [];
 
         foreach ($authors as $index => $author) {
-            $cases[] = "WHEN id = {$author->id} THEN {$index}";
+            $cases[] = 'WHEN id = ? THEN ?';
+            $bindings[] = $author->id;
+            $bindings[] = $index;
             $ids[] = $author->id;
         }
 
         $casesString = implode(' ', $cases);
-        $idsString = implode(',', $ids);
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+        $bindings = array_merge($bindings, $ids);
 
-        DB::update("UPDATE fantreffen_vip_authors SET sort_order = CASE {$casesString} END WHERE id IN ({$idsString})");
+        DB::update("UPDATE fantreffen_vip_authors SET sort_order = CASE {$casesString} END WHERE id IN ({$placeholders})", $bindings);
+
+        Cache::forget('fantreffen_vip_authors');
     }
 
     public function render()

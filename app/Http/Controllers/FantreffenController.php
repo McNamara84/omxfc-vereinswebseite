@@ -11,6 +11,7 @@ use App\Models\User;
 use App\Services\FantreffenDeadlineService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
@@ -23,8 +24,10 @@ class FantreffenController extends Controller
         // T-Shirt Deadline aus zentralem Service laden
         $deadlineService = new FantreffenDeadlineService;
 
-        // VIP-Autoren laden
-        $vipAuthors = FantreffenVipAuthor::active()->ordered()->get();
+        // VIP-Autoren laden (cached for 1 hour)
+        $vipAuthors = Cache::remember('fantreffen_vip_authors', 3600, function () {
+            return FantreffenVipAuthor::active()->ordered()->get();
+        });
 
         // Hinweis: paymentAmount wird nur für Button-Text verwendet
         // Die tatsächliche Berechnung erfolgt in store() basierend auf Auswahl
