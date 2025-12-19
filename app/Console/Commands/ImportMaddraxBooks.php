@@ -31,15 +31,15 @@ class ImportMaddraxBooks extends Command
         $hardcoversPath = $this->option('hardcovers-path');
         $missionMarsPath = $this->option('missionmars-path');
         $volkDerTiefePath = $this->option('volkdertiefe-path');
-        $zweiTausendZwölfPath = $this->option('2012-path');
+        $year2012Path = $this->option('2012-path');
 
         $novelsResult = $this->importFile($novelsPath, BookType::MaddraxDieDunkleZukunftDerErde);
         $hardcoversResult = $this->importFile($hardcoversPath, BookType::MaddraxHardcover);
         $missionMarsResult = $this->importFile($missionMarsPath, BookType::MissionMars);
         $volkDerTiefeResult = $this->importFile($volkDerTiefePath, BookType::DasVolkDerTiefe);
-        $zweiTausendZwölfResult = $this->importFile($zweiTausendZwölfPath, BookType::ZweiTausendZwölfDasJahrDerApokalypse);
+        $year2012Result = $this->importFile($year2012Path, BookType::ZweiTausendZwölfDasJahrDerApokalypse);
 
-        return ($novelsResult || $hardcoversResult || $missionMarsResult || $volkDerTiefeResult || $zweiTausendZwölfResult) ? 0 : 1;
+        return ($novelsResult || $hardcoversResult || $missionMarsResult || $volkDerTiefeResult || $year2012Result) ? 0 : 1;
     }
 
     private function importFile(string $path, BookType $type): bool
