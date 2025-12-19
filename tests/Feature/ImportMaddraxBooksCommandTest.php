@@ -36,12 +36,14 @@ class ImportMaddraxBooksCommandTest extends TestCase
         File::put(storage_path('app/private/hardcovers.json'), '[]');
         File::put(storage_path('app/private/missionmars.json'), '[]');
         File::put(storage_path('app/private/volkdertiefe.json'), '[]');
+        File::put(storage_path('app/private/2012.json'), '[]');
 
         $this->artisan('books:import', ['--path' => 'private/missing.json'])
             ->expectsOutput('Import for '.BookType::MaddraxDieDunkleZukunftDerErde->value.' failed: JSON file not found at '.storage_path('app/private/missing.json'))
             ->expectsOutput(PHP_EOL.'Import for '.BookType::MaddraxHardcover->value.' completed successfully.')
             ->expectsOutput(PHP_EOL.'Import for '.BookType::MissionMars->value.' completed successfully.')
             ->expectsOutput(PHP_EOL.'Import for '.BookType::DasVolkDerTiefe->value.' completed successfully.')
+            ->expectsOutput(PHP_EOL.'Import for '.BookType::ZweiTausendZwölfDasJahrDerApokalypse->value.' completed successfully.')
             ->assertExitCode(0);
     }
 
@@ -51,12 +53,14 @@ class ImportMaddraxBooksCommandTest extends TestCase
         File::put(storage_path('app/private/hardcovers.json'), '[]');
         File::put(storage_path('app/private/missionmars.json'), '[]');
         File::put(storage_path('app/private/volkdertiefe.json'), '[]');
+        File::put(storage_path('app/private/2012.json'), '[]');
 
         $this->artisan('books:import', ['--path' => 'private/maddrax.json'])
             ->expectsOutput('Import for '.BookType::MaddraxDieDunkleZukunftDerErde->value.' failed: Invalid JSON - Syntax error')
             ->expectsOutput(PHP_EOL.'Import for '.BookType::MaddraxHardcover->value.' completed successfully.')
             ->expectsOutput(PHP_EOL.'Import for '.BookType::MissionMars->value.' completed successfully.')
             ->expectsOutput(PHP_EOL.'Import for '.BookType::DasVolkDerTiefe->value.' completed successfully.')
+            ->expectsOutput(PHP_EOL.'Import for '.BookType::ZweiTausendZwölfDasJahrDerApokalypse->value.' completed successfully.')
             ->assertExitCode(0);
     }
 
@@ -91,11 +95,18 @@ class ImportMaddraxBooksCommandTest extends TestCase
         ];
         File::put(storage_path('app/private/volkdertiefe.json'), json_encode($volkDerTiefe));
 
+        $year2012 = [
+            ['nummer' => 1, 'titel' => '2012-1', 'text' => 'Author2012-1'],
+            ['titel' => '2012 Invalid'],
+        ];
+        File::put(storage_path('app/private/2012.json'), json_encode($year2012));
+
         $this->artisan('books:import', ['--path' => 'private/maddrax.json'])
             ->expectsOutput(PHP_EOL.'Import for '.BookType::MaddraxDieDunkleZukunftDerErde->value.' completed successfully.')
             ->expectsOutput(PHP_EOL.'Import for '.BookType::MaddraxHardcover->value.' completed successfully.')
             ->expectsOutput(PHP_EOL.'Import for '.BookType::MissionMars->value.' completed successfully.')
             ->expectsOutput(PHP_EOL.'Import for '.BookType::DasVolkDerTiefe->value.' completed successfully.')
+            ->expectsOutput(PHP_EOL.'Import for '.BookType::ZweiTausendZwölfDasJahrDerApokalypse->value.' completed successfully.')
             ->assertExitCode(0);
 
         $this->assertDatabaseHas('books', [
@@ -128,12 +139,19 @@ class ImportMaddraxBooksCommandTest extends TestCase
             'author' => 'AuthorDVT1, AuthorDVT2',
             'type' => BookType::DasVolkDerTiefe->value,
         ]);
+        $this->assertDatabaseHas('books', [
+            'roman_number' => 1,
+            'title' => '2012-1',
+            'author' => 'Author2012-1',
+            'type' => BookType::ZweiTausendZwölfDasJahrDerApokalypse->value,
+        ]);
         $this->assertDatabaseMissing('books', ['roman_number' => 2, 'type' => BookType::MaddraxDieDunkleZukunftDerErde->value]);
         $this->assertDatabaseMissing('books', ['roman_number' => 3, 'type' => BookType::MaddraxDieDunkleZukunftDerErde->value]);
         $this->assertDatabaseMissing('books', ['roman_number' => null, 'type' => BookType::MaddraxHardcover->value]);
         $this->assertDatabaseMissing('books', ['roman_number' => null, 'type' => BookType::MissionMars->value]);
         $this->assertDatabaseMissing('books', ['roman_number' => null, 'type' => BookType::DasVolkDerTiefe->value]);
-        $this->assertSame(5, Book::count());
+        $this->assertDatabaseMissing('books', ['roman_number' => null, 'type' => BookType::ZweiTausendZwölfDasJahrDerApokalypse->value]);
+        $this->assertSame(6, Book::count());
     }
 
     protected function migrateFreshUsing(): array

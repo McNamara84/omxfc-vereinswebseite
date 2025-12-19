@@ -90,7 +90,10 @@
             "pestphp/pest-plugin": true,
             "php-http/discovery": true
         },
-        "process-timeout": 0
+        "process-timeout": 0,
+        "platform": {
+            "php": "8.2"
+        }
     },
     "minimum-stability": "stable",
     "prefer-stable": true
