@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1766004180">
-  <project timestamp="1766004180" name="Clover Coverage">
+<coverage generated="1766119298">
+  <project timestamp="1766119298" name="Clover Coverage">
     <package name="App\Actions\Fortify">
       <file name="/home/runner/work/omxfc-vereinswebseite/omxfc-vereinswebseite/app/Actions/Fortify/CreateNewUser.php">
         <class name="App\Actions\Fortify\CreateNewUser" namespace="App\Actions\Fortify">
@@ -933,48 +933,50 @@
       </file>
       <file name="/home/runner/work/omxfc-vereinswebseite/omxfc-vereinswebseite/app/Console/Commands/ImportMaddraxBooks.php">
         <class name="App\Console\Commands\ImportMaddraxBooks" namespace="App\Console\Commands">
-          <metrics complexity="12" methods="2" coveredmethods="2" conditionals="0" coveredconditionals="0" statements="37" coveredstatements="37" elements="39" coveredelements="39"/>
+          <metrics complexity="13" methods="2" coveredmethods="2" conditionals="0" coveredconditionals="0" statements="39" coveredstatements="39" elements="41" coveredelements="41"/>
         </class>
-        <line num="28" type="method" name="handle" visibility="public" complexity="5" crap="5" count="3"/>
+        <line num="28" type="method" name="handle" visibility="public" complexity="6" crap="6" count="3"/>
         <line num="30" type="stmt" count="3"/>
         <line num="31" type="stmt" count="3"/>
         <line num="32" type="stmt" count="3"/>
         <line num="33" type="stmt" count="3"/>
-        <line num="35" type="stmt" count="3"/>
+        <line num="34" type="stmt" count="3"/>
         <line num="36" type="stmt" count="3"/>
         <line num="37" type="stmt" count="3"/>
         <line num="38" type="stmt" count="3"/>
+        <line num="39" type="stmt" count="3"/>
         <line num="40" type="stmt" count="3"/>
-        <line num="43" type="method" name="importFile" visibility="private" complexity="7" crap="7" count="3"/>
-        <line num="45" type="stmt" count="3"/>
+        <line num="42" type="stmt" count="3"/>
+        <line num="45" type="method" name="importFile" visibility="private" complexity="7" crap="7" count="3"/>
         <line num="47" type="stmt" count="3"/>
-        <line num="48" type="stmt" count="1"/>
-        <line num="49" type="stmt" count="1"/>
-        <line num="52" type="stmt" count="3"/>
-        <line num="53" type="stmt" count="3"/>
+        <line num="49" type="stmt" count="3"/>
+        <line num="50" type="stmt" count="1"/>
+        <line num="51" type="stmt" count="1"/>
+        <line num="54" type="stmt" count="3"/>
         <line num="55" type="stmt" count="3"/>
-        <line num="56" type="stmt" count="1"/>
-        <line num="57" type="stmt" count="1"/>
-        <line num="60" type="stmt" count="3"/>
-        <line num="61" type="stmt" count="3"/>
+        <line num="57" type="stmt" count="3"/>
+        <line num="58" type="stmt" count="1"/>
+        <line num="59" type="stmt" count="1"/>
+        <line num="62" type="stmt" count="3"/>
         <line num="63" type="stmt" count="3"/>
-        <line num="64" type="stmt" count="1"/>
-        <line num="65" type="stmt" count="1"/>
+        <line num="65" type="stmt" count="3"/>
         <line num="66" type="stmt" count="1"/>
         <line num="67" type="stmt" count="1"/>
+        <line num="68" type="stmt" count="1"/>
         <line num="69" type="stmt" count="1"/>
-        <line num="70" type="stmt" count="1"/>
         <line num="71" type="stmt" count="1"/>
         <line num="72" type="stmt" count="1"/>
-        <line num="75" type="stmt" count="1"/>
-        <line num="76" type="stmt" count="1"/>
+        <line num="73" type="stmt" count="1"/>
+        <line num="74" type="stmt" count="1"/>
         <line num="77" type="stmt" count="1"/>
         <line num="78" type="stmt" count="1"/>
+        <line num="79" type="stmt" count="1"/>
         <line num="80" type="stmt" count="1"/>
-        <line num="83" type="stmt" count="3"/>
-        <line num="84" type="stmt" count="3"/>
+        <line num="82" type="stmt" count="1"/>
+        <line num="85" type="stmt" count="3"/>
         <line num="86" type="stmt" count="3"/>
-        <metrics loc="89" ncloc="76" classes="1" methods="2" coveredmethods="2" conditionals="0" coveredconditionals="0" statements="37" coveredstatements="37" elements="39" coveredelements="39"/>
+        <line num="88" type="stmt" count="3"/>
+        <metrics loc="91" ncloc="78" classes="1" methods="2" coveredmethods="2" conditionals="0" coveredconditionals="0" statements="39" coveredstatements="39" elements="41" coveredelements="41"/>
       </file>
       <file name="/home/runner/work/omxfc-vereinswebseite/omxfc-vereinswebseite/app/Console/Commands/ImportOldReviews.php">
         <class name="App\Console\Commands\ImportOldReviews" namespace="App\Console\Commands">
@@ -2983,15 +2985,15 @@
         <line num="152" type="stmt" count="13"/>
         <line num="153" type="stmt" count="13"/>
         <line num="155" type="stmt" count="13"/>
-        <line num="156" type="stmt" count="11"/>
-        <line num="157" type="stmt" count="11"/>
-        <line num="158" type="stmt" count="11"/>
-        <line num="159" type="stmt" count="11"/>
-        <line num="160" type="stmt" count="11"/>
-        <line num="161" type="stmt" count="11"/>
-        <line num="162" type="stmt" count="11"/>
-        <line num="163" type="stmt" count="11"/>
-        <line num="165" type="stmt" count="11"/>
+        <line num="156" type="stmt" count="8"/>
+        <line num="157" type="stmt" count="8"/>
+        <line num="158" type="stmt" count="8"/>
+        <line num="159" type="stmt" count="8"/>
+        <line num="160" type="stmt" count="8"/>
+        <line num="161" type="stmt" count="8"/>
+        <line num="162" type="stmt" count="8"/>
+        <line num="163" type="stmt" count="8"/>
+        <line num="165" type="stmt" count="8"/>
         <line num="166" type="stmt" count="1"/>
         <line num="167" type="stmt" count="1"/>
         <line num="168" type="stmt" count="1"/>
@@ -3002,15 +3004,15 @@
         <line num="177" type="stmt" count="13"/>
         <line num="178" type="stmt" count="13"/>
         <line num="180" type="stmt" count="13"/>
-        <line num="181" type="stmt" count="2"/>
-        <line num="182" type="stmt" count="2"/>
-        <line num="183" type="stmt" count="2"/>
-        <line num="184" type="stmt" count="2"/>
-        <line num="185" type="stmt" count="2"/>
-        <line num="186" type="stmt" count="2"/>
-        <line num="187" type="stmt" count="2"/>
-        <line num="188" type="stmt" count="2"/>
-        <line num="190" type="stmt" count="2"/>
+        <line num="181" type="stmt" count="10"/>
+        <line num="182" type="stmt" count="10"/>
+        <line num="183" type="stmt" count="10"/>
+        <line num="184" type="stmt" count="10"/>
+        <line num="185" type="stmt" count="10"/>
+        <line num="186" type="stmt" count="10"/>
+        <line num="187" type="stmt" count="10"/>
+        <line num="188" type="stmt" count="10"/>
+        <line num="190" type="stmt" count="10"/>
         <line num="191" type="stmt" count="1"/>
         <line num="192" type="stmt" count="1"/>
         <line num="193" type="stmt" count="1"/>
@@ -5151,8 +5153,8 @@
         <line num="49" type="stmt" count="7"/>
         <line num="51" type="stmt" count="7"/>
         <line num="52" type="stmt" count="7"/>
-        <line num="53" type="stmt" count="2"/>
-        <line num="54" type="stmt" count="2"/>
+        <line num="53" type="stmt" count="7"/>
+        <line num="54" type="stmt" count="7"/>
         <line num="55" type="stmt" count="7"/>
         <line num="56" type="stmt" count="7"/>
         <line num="58" type="stmt" count="7"/>
@@ -6389,14 +6391,14 @@
         </class>
         <line num="15" type="method" name="loadData" visibility="public" complexity="5" crap="5.31" count="23"/>
         <line num="17" type="stmt" count="23"/>
-        <line num="20" type="stmt" count="7"/>
-        <line num="21" type="stmt" count="6"/>
-        <line num="22" type="stmt" count="6"/>
-        <line num="25" type="stmt" count="6"/>
+        <line num="20" type="stmt" count="8"/>
+        <line num="21" type="stmt" count="7"/>
+        <line num="22" type="stmt" count="7"/>
+        <line num="25" type="stmt" count="7"/>
         <line num="26" type="stmt" count="1"/>
         <line num="27" type="stmt" count="1"/>
         <line num="30" type="stmt" count="1"/>
-        <line num="31" type="stmt" count="7"/>
+        <line num="31" type="stmt" count="8"/>
         <line num="33" type="stmt" count="0"/>
         <line num="34" type="stmt" count="0"/>
         <line num="35" type="stmt" count="0"/>
@@ -6431,7 +6433,7 @@
         <line num="90" type="stmt" count="8"/>
         <line num="91" type="stmt" count="8"/>
         <line num="93" type="stmt" count="8"/>
-        <line num="94" type="stmt" count="3"/>
+        <line num="94" type="stmt" count="8"/>
         <line num="95" type="stmt" count="8"/>
         <line num="99" type="stmt" count="8"/>
         <line num="105" type="method" name="getFiguren" visibility="public" complexity="1" crap="1" count="8"/>
@@ -6767,6 +6769,6 @@
         <metrics loc="25" ncloc="19" classes="1" methods="2" coveredmethods="2" conditionals="0" coveredconditionals="0" statements="2" coveredstatements="2" elements="4" coveredelements="4"/>
       </file>
     </package>
-    <metrics files="137" loc="13208" ncloc="11538" classes="132" methods="492" coveredmethods="337" conditionals="0" coveredconditionals="0" statements="5414" coveredstatements="4735" elements="5906" coveredelements="5072"/>
+    <metrics files="137" loc="13210" ncloc="11540" classes="132" methods="492" coveredmethods="337" conditionals="0" coveredconditionals="0" statements="5416" coveredstatements="4737" elements="5908" coveredelements="5074"/>
   </project>
 </coverage>
