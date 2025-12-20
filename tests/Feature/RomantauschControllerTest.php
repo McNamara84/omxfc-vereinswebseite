@@ -59,6 +59,12 @@ class RomantauschControllerTest extends TestCase
             'author' => 'Author',
             'type' => BookType::DasVolkDerTiefe,
         ]);
+        Book::create([
+            'roman_number' => 1,
+            'title' => '2012 Roman',
+            'author' => 'Author',
+            'type' => BookType::ZweiTausendZwölfDasJahrDerApokalypse,
+        ]);
     }
 
     public function test_index_displays_structured_information_panel(): void
@@ -350,6 +356,29 @@ class RomantauschControllerTest extends TestCase
             'book_number' => 2,
             'book_title' => 'MM Roman',
             'condition' => 'neu',
+        ]);
+    }
+
+    public function test_store_offer_creates_entry_for_2012_mini_series(): void
+    {
+        $this->putBookData();
+
+        $user = $this->actingMember();
+        $this->actingAs($user);
+
+        $response = $this->post('/romantauschboerse/angebot-speichern', [
+            'series' => BookType::ZweiTausendZwölfDasJahrDerApokalypse->value,
+            'book_number' => 1,
+            'condition' => 'neuwertig',
+        ]);
+
+        $response->assertRedirect(route('romantausch.index', [], false));
+        $this->assertDatabaseHas('book_offers', [
+            'user_id' => $user->id,
+            'series' => BookType::ZweiTausendZwölfDasJahrDerApokalypse->value,
+            'book_number' => 1,
+            'book_title' => '2012 Roman',
+            'condition' => 'neuwertig',
         ]);
     }
 
@@ -1029,6 +1058,29 @@ class RomantauschControllerTest extends TestCase
             'book_number' => 2,
             'book_title' => 'MM Roman',
             'condition' => 'neu',
+        ]);
+    }
+
+    public function test_store_request_creates_entry_for_2012_mini_series(): void
+    {
+        $this->putBookData();
+
+        $user = $this->actingMember();
+        $this->actingAs($user);
+
+        $response = $this->post('/romantauschboerse/anfrage-speichern', [
+            'series' => BookType::ZweiTausendZwölfDasJahrDerApokalypse->value,
+            'book_number' => 1,
+            'condition' => 'gut',
+        ]);
+
+        $response->assertRedirect(route('romantausch.index', [], false));
+        $this->assertDatabaseHas('book_requests', [
+            'user_id' => $user->id,
+            'series' => BookType::ZweiTausendZwölfDasJahrDerApokalypse->value,
+            'book_number' => 1,
+            'book_title' => '2012 Roman',
+            'condition' => 'gut',
         ]);
     }
 
