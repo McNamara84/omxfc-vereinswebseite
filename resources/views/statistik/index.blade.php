@@ -998,7 +998,57 @@
                     window.volkDerTiefeAuthorChartValues = @json($volkDerTiefeAuthorCounts->values());
                 </script>
 
-            {{-- Card 33 – TOP10 Lieblingsthemen (≥ 50 Baxx) --}}
+            {{-- Card 33 – Bewertungen der 2012-Heftromane (≥ 47 Baxx) --}}
+                @php($section = $statisticSectionLookup->get('zweitausendzwoelf-bewertungen'))
+                @php($min = $section['minPoints'] ?? 0)
+                <div
+                    id="{{ $section['id'] }}"
+                    data-statistik-section
+                    data-min-points="{{ $min }}"
+                    tabindex="-1"
+                    class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
+                    <h2 id="zweitausendzwoelfChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                        Bewertungen der 2012-Heftromane
+                    </h2>
+                    <div data-chart-wrapper class="mt-4">
+                        <canvas id="zweitausendzwoelfChart" height="140" role="img" aria-labelledby="zweitausendzwoelfChartTitle"></canvas>
+                    </div>
+                    @if($userPoints < $min)
+                        @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
+                    @endif
+                </div>
+
+                <script>
+                    window.zweitausendzwoelfChartLabels = @json($zweitausendzwoelfLabels);
+                    window.zweitausendzwoelfChartValues = @json($zweitausendzwoelfValues);
+                </script>
+
+            {{-- Card 33b – 2012-Heftromane je Autor:in (≥ 48 Baxx) --}}
+                @php($section = $statisticSectionLookup->get('zweitausendzwoelf-autoren'))
+                @php($min = $section['minPoints'] ?? 0)
+                <div
+                    id="{{ $section['id'] }}"
+                    data-statistik-section
+                    data-min-points="{{ $min }}"
+                    tabindex="-1"
+                    class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
+                    <h2 id="zweitausendzwoelfAuthorChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                        2012-Heftromane je Autor:in
+                    </h2>
+                    <div data-chart-wrapper class="mt-4">
+                        <canvas id="zweitausendzwoelfAuthorChart" height="140" role="img" aria-labelledby="zweitausendzwoelfAuthorChartTitle"></canvas>
+                    </div>
+                    @if($userPoints < $min)
+                        @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
+                    @endif
+                </div>
+
+                <script>
+                    window.zweitausendzwoelfAuthorChartLabels = @json($zweitausendzwoelfAuthorCounts->keys());
+                    window.zweitausendzwoelfAuthorChartValues = @json($zweitausendzwoelfAuthorCounts->values());
+                </script>
+
+            {{-- Card 34 – TOP10 Lieblingsthemen (≥ 50 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('lieblingsthemen'))
                 @php($min = $section['minPoints'] ?? 0)
                 <div

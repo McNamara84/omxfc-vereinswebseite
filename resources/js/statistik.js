@@ -95,7 +95,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const volkDerTiefeAuthorValues = window.volkDerTiefeAuthorChartValues ?? [];
     drawAuthorChart('volkDerTiefeAuthorChart', volkDerTiefeAuthorLabels, volkDerTiefeAuthorValues);
 
-    const cycles = ['euree', 'meeraka', 'expedition', 'kratersee', 'daaMuren', 'wandler', 'mars', 'ausala', 'afra', 'antarktis', 'schatten', 'ursprung', 'streiter', 'archivar', 'zeitsprung', 'fremdwelt', 'parallelwelt', 'weltenriss', 'amraka', 'weltrat', 'missionMars', 'volkDerTiefe'];
+    const zweitausendzwoelfAuthorLabels = window.zweitausendzwoelfAuthorChartLabels ?? [];
+    const zweitausendzwoelfAuthorValues = window.zweitausendzwoelfAuthorChartValues ?? [];
+    drawAuthorChart('zweitausendzwoelfAuthorChart', zweitausendzwoelfAuthorLabels, zweitausendzwoelfAuthorValues);
+
+    const cycles = ['euree', 'meeraka', 'expedition', 'kratersee', 'daaMuren', 'wandler', 'mars', 'ausala', 'afra', 'antarktis', 'schatten', 'ursprung', 'streiter', 'archivar', 'zeitsprung', 'fremdwelt', 'parallelwelt', 'weltenriss', 'amraka', 'weltrat', 'missionMars', 'volkDerTiefe', 'zweitausendzwoelf'];
     cycles.forEach((cycle) => {
         const cycleLabels = window[`${cycle}ChartLabels`] ?? [];
         const cycleValues = window[`${cycle}ChartValues`] ?? [];
