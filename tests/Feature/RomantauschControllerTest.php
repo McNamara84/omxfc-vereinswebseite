@@ -1061,6 +1061,29 @@ class RomantauschControllerTest extends TestCase
         ]);
     }
 
+    public function test_store_request_creates_entry_for_2012_mini_series(): void
+    {
+        $this->putBookData();
+
+        $user = $this->actingMember();
+        $this->actingAs($user);
+
+        $response = $this->post('/romantauschboerse/anfrage-speichern', [
+            'series' => BookType::ZweiTausendZwölfDasJahrDerApokalypse->value,
+            'book_number' => 1,
+            'condition' => 'gut',
+        ]);
+
+        $response->assertRedirect(route('romantausch.index', [], false));
+        $this->assertDatabaseHas('book_requests', [
+            'user_id' => $user->id,
+            'series' => BookType::ZweiTausendZwölfDasJahrDerApokalypse->value,
+            'book_number' => 1,
+            'book_title' => '2012 Roman',
+            'condition' => 'gut',
+        ]);
+    }
+
     public function test_store_request_returns_error_when_book_missing(): void
     {
         $user = $this->actingMember();
