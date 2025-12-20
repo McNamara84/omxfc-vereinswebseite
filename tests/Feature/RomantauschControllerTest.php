@@ -59,6 +59,12 @@ class RomantauschControllerTest extends TestCase
             'author' => 'Author',
             'type' => BookType::DasVolkDerTiefe,
         ]);
+        Book::create([
+            'roman_number' => 1,
+            'title' => '2012 Roman',
+            'author' => 'Author',
+            'type' => BookType::ZweiTausendZwölfDasJahrDerApokalypse,
+        ]);
     }
 
     public function test_index_displays_structured_information_panel(): void
