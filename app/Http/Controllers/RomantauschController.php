@@ -32,6 +32,7 @@ class RomantauschController extends Controller
         BookType::MaddraxHardcover,
         BookType::MissionMars,
         BookType::DasVolkDerTiefe,
+        BookType::ZweiTausendZwölfDasJahrDerApokalypse,
     ];
     public const ALLOWED_PHOTO_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
     // Übersicht
