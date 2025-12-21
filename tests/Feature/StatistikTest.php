@@ -157,6 +157,37 @@ class StatistikTest extends TestCase
         file_put_contents($path, json_encode($data));
     }
 
+    private function createZweitausendzwoelfFile(): void
+    {
+        $data = [];
+        $authors = [
+            '2012 Autor 1',
+            '2012 Autor 2',
+        ];
+
+        for ($i = 1; $i <= 6; $i++) {
+            $entryAuthors = [$authors[$i % 2]];
+
+            if ($i % 3 === 0) {
+                $entryAuthors[] = '2012 Co-Autor';
+            }
+
+            $data[] = [
+                'nummer' => $i,
+                'titel' => '2012 - Das Jahr der Apokalypse '.$i,
+                'bewertung' => 3.5 + ($i * 0.1),
+                'text' => $entryAuthors,
+            ];
+        }
+
+        $path = storage_path('app/private/2012.json');
+        if (! is_dir(dirname($path))) {
+            mkdir(dirname($path), 0777, true);
+        }
+
+        file_put_contents($path, json_encode($data));
+    }
+
     private function createTeamplayerDataFile(): void
     {
         $data = [];
@@ -859,6 +890,52 @@ class StatistikTest extends TestCase
         $response->assertSee('Bewertungen der Das Volk der Tiefe-Heftromane');
         $response->assertSee('Das Volk der Tiefe-Heftromane je Autor:in');
         $response->assertSee('46 Baxx');
+    }
+
+    public function test_zweitausendzwoelf_chart_visible_with_enough_points(): void
+    {
+        $this->createDataFile();
+        $this->createZweitausendzwoelfFile();
+        $user = $this->actingMemberWithPoints(48);
+        $this->actingAs($user);
+
+        $response = $this->get('/statistiken');
+
+        $response->assertOk();
+        $response->assertSee('Bewertungen der 2012-Heftromane');
+        $response->assertSee('2012-Heftromane je Autor:in');
+        $response->assertSee('2012 Autor 1');
+        $response->assertSee('2012 Co-Autor');
+    }
+
+    public function test_zweitausendzwoelf_ratings_chart_locked_below_threshold(): void
+    {
+        $this->createDataFile();
+        $this->createZweitausendzwoelfFile();
+        $user = $this->actingMemberWithPoints(46);
+        $this->actingAs($user);
+
+        $response = $this->get('/statistiken');
+
+        $response->assertOk();
+        $response->assertSee('Bewertungen der 2012-Heftromane');
+        $response->assertSee('2012-Heftromane je Autor:in');
+        $response->assertSee('47 Baxx');
+    }
+
+    public function test_zweitausendzwoelf_author_chart_locked_below_threshold(): void
+    {
+        $this->createDataFile();
+        $this->createZweitausendzwoelfFile();
+        $user = $this->actingMemberWithPoints(47);
+        $this->actingAs($user);
+
+        $response = $this->get('/statistiken');
+
+        $response->assertOk();
+        $response->assertSee('Bewertungen der 2012-Heftromane');
+        $response->assertSee('2012-Heftromane je Autor:in');
+        $response->assertSee('48 Baxx');
     }
 
     public function test_top_themes_require_minimum_book_count(): void

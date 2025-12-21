@@ -54,6 +54,12 @@ class StatistikController extends Controller
             $volkDerTiefeNovels = collect(json_decode(file_get_contents($volkDerTiefePath), true));
         }
 
+        $zweitausendzwoelfPath = storage_path('app/private/2012.json');
+        $zweitausendzwoelfNovels = collect();
+        if (is_readable($zweitausendzwoelfPath)) {
+            $zweitausendzwoelfNovels = collect(json_decode(file_get_contents($zweitausendzwoelfPath), true));
+        }
+
         $statisticSections = [
             ['id' => 'author-chart', 'label' => 'Maddrax-Romane je Autor:in', 'minPoints' => 2],
             ['id' => 'teamplayer', 'label' => 'Top Teamplayer', 'minPoints' => 4],
@@ -89,6 +95,8 @@ class StatistikController extends Controller
             ['id' => 'mission-mars-autoren', 'label' => 'Mission Mars-Heftromane je Autor:in', 'minPoints' => 44],
             ['id' => 'volk-der-tiefe-bewertungen', 'label' => 'Bewertungen der Das Volk der Tiefe-Heftromane', 'minPoints' => 45],
             ['id' => 'volk-der-tiefe-autoren', 'label' => 'Das Volk der Tiefe-Heftromane je Autor:in', 'minPoints' => 46],
+            ['id' => 'zweitausendzwoelf-bewertungen', 'label' => 'Bewertungen der 2012-Heftromane', 'minPoints' => 47],
+            ['id' => 'zweitausendzwoelf-autoren', 'label' => '2012-Heftromane je Autor:in', 'minPoints' => 48],
             ['id' => 'lieblingsthemen', 'label' => 'TOP10 Lieblingsthemen', 'minPoints' => 50],
         ];
 
@@ -126,6 +134,15 @@ class StatistikController extends Controller
 
         // ── Card 32b – Das Volk der Tiefe-Heftromane je Autor (inkl. Co-Autor:innen) ─────
         $volkDerTiefeAuthorCounts = $volkDerTiefeNovels
+            ->pluck('text')
+            ->flatten()
+            ->map(fn ($a) => trim($a))
+            ->filter()
+            ->countBy()
+            ->sortDesc();
+
+        // ── Card 33b – 2012-Heftromane je Autor (inkl. Co-Autor:innen) ─────
+        $zweitausendzwoelfAuthorCounts = $zweitausendzwoelfNovels
             ->pluck('text')
             ->flatten()
             ->map(fn ($a) => trim($a))
@@ -402,7 +419,10 @@ class StatistikController extends Controller
         $volkDerTiefeCycle = $volkDerTiefeNovels->sortBy('nummer');
         $volkDerTiefeLabels = $volkDerTiefeCycle->pluck('nummer');
         $volkDerTiefeValues = $volkDerTiefeCycle->pluck('bewertung');
-
+        // ── Card 33 – Bewertungen der 2012-Heftromane ──────────
+        $zweitausendzwoelfCycle = $zweitausendzwoelfNovels->sortBy('nummer');
+        $zweitausendzwoelfLabels = $zweitausendzwoelfCycle->pluck('nummer');
+        $zweitausendzwoelfValues = $zweitausendzwoelfCycle->pluck('bewertung');
         // ── Card 7 – Rezensionen unserer Mitglieder ───────────────────────────
         $totalReviews = 0;
         $averageReviewsPerBook = 0;
@@ -537,6 +557,9 @@ class StatistikController extends Controller
             'volkDerTiefeLabels' => $volkDerTiefeLabels,
             'volkDerTiefeValues' => $volkDerTiefeValues,
             'volkDerTiefeAuthorCounts' => $volkDerTiefeAuthorCounts,
+            'zweitausendzwoelfLabels' => $zweitausendzwoelfLabels,
+            'zweitausendzwoelfValues' => $zweitausendzwoelfValues,
+            'zweitausendzwoelfAuthorCounts' => $zweitausendzwoelfAuthorCounts,
             'hardcoverAuthorCounts' => $hardcoverAuthorCounts,
             'topFavoriteThemes' => $topFavoriteThemes,
             'totalReviews' => $totalReviews,

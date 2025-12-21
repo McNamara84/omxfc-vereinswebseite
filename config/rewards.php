@@ -197,6 +197,16 @@ return [
         'points' => 46,
     ],
     [
+        'title' => 'Statistik - Bewertungen der 2012-Heftromane',
+        'description' => 'Zeigt Bewertungen der 2012-Heftromane aus dem Maddraxikon in einem Liniendiagramm.',
+        'points' => 47,
+    ],
+    [
+        'title' => 'Statistik - 2012-Heftromane je Autor:in',
+        'description' => 'Balkendiagramm mit der Anzahl der 2012-Heftromane je Autor:in.',
+        'points' => 48,
+    ],
+    [
         'title' => 'Statistik - TOP10 Lieblingsthemen',
         'description' => 'Zeigt die beliebtesten Lieblingsthemen der Mitglieder.',
         'points' => 50,
