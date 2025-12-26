@@ -423,6 +423,19 @@ CREATE TABLE IF NOT EXISTS "fantreffen_anmeldungen"(
   foreign key("user_id") references "users"("id") on delete cascade
 );
 
+CREATE TABLE IF NOT EXISTS "fantreffen_vip_authors"(
+  "id" integer primary key autoincrement not null,
+  "name" varchar not null,
+  "pseudonym" varchar,
+  "is_active" tinyint(1) not null default '1',
+  "sort_order" integer not null default '0',
+  "created_at" datetime,
+  "updated_at" datetime
+);
+CREATE INDEX "fantreffen_vip_authors_sort_order_index" on "fantreffen_vip_authors"(
+  "sort_order"
+);
+
 INSERT INTO migrations VALUES(1,'0001_01_01_000000_create_users_table',1);
 INSERT INTO migrations VALUES(2,'0001_01_01_000001_create_cache_table',1);
 INSERT INTO migrations VALUES(3,'0001_01_01_000002_create_jobs_table',1);
@@ -474,3 +487,5 @@ INSERT INTO migrations VALUES(48,'2025_09_26_130232_add_contact_and_pseudonym_to
 INSERT INTO migrations VALUES(49,'2025_11_08_092743_create_fantreffen_anmeldungen_table',3);
 INSERT INTO migrations VALUES(50,'2025_11_29_102701_fix_mission_mars_enum_value_in_books_table',3);
 INSERT INTO migrations VALUES(51,'2025_12_02_000001_make_activities_user_id_nullable',3);
+INSERT INTO migrations VALUES(52,'2025_12_17_160000_create_fantreffen_vip_authors_table',4);
+INSERT INTO migrations VALUES(53,'2025_12_17_192547_add_sort_order_index_to_fantreffen_vip_authors_table',4);
