@@ -1,7 +1,47 @@
-import { exec as execCallback } from 'child_process';
+import { execFile as execFileCallback } from 'child_process';
 import { promisify } from 'util';
 
-const exec = promisify(execCallback);
+const execFile = promisify(execFileCallback);
+
+function splitArgs(command) {
+    const args = [];
+    let current = '';
+    let quote = null;
+
+    for (let i = 0; i < command.length; i++) {
+        const ch = command[i];
+
+        if (quote) {
+            if (ch === quote) {
+                quote = null;
+                continue;
+            }
+            current += ch;
+            continue;
+        }
+
+        if (ch === '"' || ch === "'") {
+            quote = ch;
+            continue;
+        }
+
+        if (ch === ' ' || ch === '\t' || ch === '\n' || ch === '\r') {
+            if (current.length > 0) {
+                args.push(current);
+                current = '';
+            }
+            continue;
+        }
+
+        current += ch;
+    }
+
+    if (current.length > 0) {
+        args.push(current);
+    }
+
+    return args;
+}
 
 export async function runArtisan(command, options = {}) {
     const env = {
@@ -9,8 +49,10 @@ export async function runArtisan(command, options = {}) {
         APP_ENV: process.env.APP_ENV ?? 'testing',
     };
 
+    const args = ['artisan', ...splitArgs(command)];
+
     try {
-        const result = await exec(`php artisan ${command}`, {
+        const result = await execFile('php', args, {
             env,
             ...options,
         });
