@@ -23,6 +23,22 @@ class AdminPageTest extends TestCase
         return $user;
     }
 
+    private function vorstandUser(): User
+    {
+        $team = Team::membersTeam();
+        $user = User::factory()->create(['current_team_id' => $team->id]);
+        $team->users()->attach($user, ['role' => \App\Enums\Role::Vorstand->value]);
+        return $user;
+    }
+
+    private function kassenwartUser(): User
+    {
+        $team = Team::membersTeam();
+        $user = User::factory()->create(['current_team_id' => $team->id]);
+        $team->users()->attach($user, ['role' => \App\Enums\Role::Kassenwart->value]);
+        return $user;
+    }
+
     private function memberUser(): User
     {
         $team = Team::membersTeam();
@@ -31,13 +47,22 @@ class AdminPageTest extends TestCase
         return $user;
     }
 
-    public function test_admin_route_denied_for_non_admin(): void
+    public function test_admin_route_denied_for_unauthorized_roles(): void
     {
         $member = $this->memberUser();
 
         $this->actingAs($member)
             ->get('/admin/statistiken')
             ->assertStatus(403);
+    }
+
+    public function test_admin_route_allows_vorstand_and_kassenwart(): void
+    {
+        $vorstand = $this->vorstandUser();
+        $kassenwart = $this->kassenwartUser();
+
+        $this->actingAs($vorstand)->get('/admin/statistiken')->assertOk();
+        $this->actingAs($kassenwart)->get('/admin/statistiken')->assertOk();
     }
 
     public function test_page_visit_logged_and_admin_can_view(): void

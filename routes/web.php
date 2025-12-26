@@ -61,7 +61,7 @@ Route::get('/email/bestaetigen/{id}/{hash}', CustomEmailVerificationController::
 
 // Nur für eingeloggte und verifizierte Mitglieder, die NICHT Anwärter sind
 Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function () {
-    Route::get('/admin/statistiken', [AdminController::class, 'index'])->name('admin.statistiken.index')->middleware('admin');
+    Route::get('/admin/statistiken', [AdminController::class, 'index'])->name('admin.statistiken.index')->middleware('vorstand-or-kassenwart');
     
     // Fantreffen 2026 Admin Dashboard
     Route::get('/admin/fantreffen-2026', \App\Livewire\FantreffenAdminDashboard::class)
