@@ -1,2 +1,0 @@
-<img src="<?php echo e(Vite::asset('resources/images/omxfc-logo.png')); ?>" alt="<?php echo e(config('app.name')); ?>" class="h-9 w-auto">
-<?php /**PATH C:\xampp\htdocs\omxfc-vereinswebseite\omxfc-vereinswebseite\resources\views/components/application-mark.blade.php ENDPATH**/ ?>
