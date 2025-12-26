@@ -10,12 +10,14 @@ use App\Models\BookRequest;
 use App\Models\Todo;
 use App\Models\KassenbuchEntry;
 use App\Models\User;
+use App\Models\Poll;
 use App\Policies\TeamPolicy;
 use App\Policies\BookOfferPolicy;
 use App\Policies\BookRequestPolicy;
 use App\Policies\TodoPolicy;
 use App\Policies\KassenbuchEntryPolicy;
 use App\Policies\UserPolicy;
+use App\Policies\PollPolicy;
 
 class AuthServiceProvider extends ServiceProvider
 {
@@ -31,6 +33,7 @@ class AuthServiceProvider extends ServiceProvider
         Todo::class => TodoPolicy::class,
         KassenbuchEntry::class => KassenbuchEntryPolicy::class,
         User::class => UserPolicy::class,
+        Poll::class => PollPolicy::class,
     ];
 
     /**
