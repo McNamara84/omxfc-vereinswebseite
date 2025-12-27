@@ -14,6 +14,7 @@
 @endphp
 
 <div x-data="{ emailCopied: false }">
+    <span class="sr-only" role="status" aria-live="polite" x-text="emailCopied ? 'E-Mail-Adresse wurde in die Zwischenablage kopiert.' : ''"></span>
     <button
         type="button"
         data-copy-email
