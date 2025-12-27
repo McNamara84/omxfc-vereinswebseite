@@ -71,6 +71,22 @@ class MitgliederControllerTest extends TestCase
         $this->getJson('/mitglieder/all-emails')->assertStatus(403);
     }
 
+    public function test_index_renders_copy_email_button_only_for_privileged_roles(): void
+    {
+        $team = Team::membersTeam();
+        $team->users()->attach(User::factory()->create(['email' => 'copyme@example.test']), ['role' => Role::Mitglied->value]);
+
+        $this->actingAs($this->actingMember('Kassenwart'));
+        $this->get('/mitglieder')
+            ->assertOk()
+            ->assertSee('data-copy-email', false);
+
+        $this->actingAs($this->actingMember('Mitglied'));
+        $this->get('/mitglieder')
+            ->assertOk()
+            ->assertDontSee('data-copy-email', false);
+    }
+
     public function test_higher_rank_user_can_change_member_role(): void
     {
         $team = Team::membersTeam();

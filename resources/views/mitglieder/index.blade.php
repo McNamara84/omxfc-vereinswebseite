@@ -338,7 +338,7 @@
     @endif
     
     <td class="px-4 py-3 text-center">
-    <div class="flex justify-center items-center space-x-1">
+    <div class="flex justify-center items-center space-x-1" x-data="{ emailCopied: false }">
     <a href="{{ route('profile.view', $member->id) }}"
     class="inline-flex items-center justify-center bg-blue-500 hover:bg-blue-600 text-white text-xs px-2 py-1 rounded"
     title="Profil ansehen">
@@ -348,6 +348,31 @@
     </svg>
     <span class="ml-1 hidden xl:inline">Profil</span>
     </a>
+
+    @if($canViewDetails)
+    <button
+        type="button"
+        data-copy-email
+        @click="
+            const email = @js($member->email);
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(email)
+                    .then(() => { emailCopied = true; setTimeout(() => emailCopied = false, 2000); })
+                    .catch(() => window.prompt('E-Mail kopieren:', email));
+            } else {
+                window.prompt('E-Mail kopieren:', email);
+            }
+        "
+        class="inline-flex items-center justify-center bg-gray-600 hover:bg-gray-700 text-white text-xs px-2 py-1 rounded"
+        title="E-Mail kopieren"
+        aria-label="E-Mail-Adresse kopieren">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" />
+        </svg>
+        <span class="ml-1 hidden xl:inline" x-show="!emailCopied">Mail</span>
+        <span class="ml-1 hidden xl:inline" x-show="emailCopied">Kopiert</span>
+    </button>
+    @endif
     
     @if($canViewDetails && $currentUser->id !== $member->id)
     @php
@@ -512,7 +537,7 @@
     </div>
     @endif
     
-    <div class="flex flex-row gap-2">
+    <div class="flex flex-row gap-2" x-data="{ emailCopied: false }">
     <a href="{{ route('profile.view', $member->id) }}"
     class="flex-1 flex justify-center items-center bg-blue-500 hover:bg-blue-600 text-white py-2 px-3 rounded">
     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -521,6 +546,30 @@
     </svg>
     Profil
     </a>
+
+    @if($canViewDetails)
+    <button
+        type="button"
+        data-copy-email
+        @click="
+            const email = @js($member->email);
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(email)
+                    .then(() => { emailCopied = true; setTimeout(() => emailCopied = false, 2000); })
+                    .catch(() => window.prompt('E-Mail kopieren:', email));
+            } else {
+                window.prompt('E-Mail kopieren:', email);
+            }
+        "
+        class="flex-1 flex justify-center items-center bg-gray-600 hover:bg-gray-700 text-white py-2 px-3 rounded"
+        aria-label="E-Mail-Adresse kopieren">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" />
+        </svg>
+        <span x-show="!emailCopied">Mail</span>
+        <span x-show="emailCopied">Kopiert</span>
+    </button>
+    @endif
     
     @if($canViewDetails && $currentUser->id !== $member->id)
     @php
