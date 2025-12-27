@@ -348,6 +348,10 @@
     </svg>
     <span class="ml-1 hidden xl:inline">Profil</span>
     </a>
+
+    @if($canViewDetails)
+    <x-copy-email-button :email="$member->email" variant="desktop" />
+    @endif
     
     @if($canViewDetails && $currentUser->id !== $member->id)
     @php
@@ -521,6 +525,10 @@
     </svg>
     Profil
     </a>
+
+    @if($canViewDetails)
+    <x-copy-email-button :email="$member->email" variant="mobile" />
+    @endif
     
     @if($canViewDetails && $currentUser->id !== $member->id)
     @php
