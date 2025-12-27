@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Cache;
 
 /**
  * @property int $id
@@ -26,6 +27,17 @@ use Illuminate\Support\Carbon;
 class Poll extends Model
 {
     use HasFactory;
+
+    protected static function booted(): void
+    {
+        static::saved(function () {
+            Cache::forget('polls.active_for_menu.v1');
+        });
+
+        static::deleted(function () {
+            Cache::forget('polls.active_for_menu.v1');
+        });
+    }
 
     public function scopeOrderForAdminIndex(Builder $query): Builder
     {

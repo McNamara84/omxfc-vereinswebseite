@@ -145,7 +145,7 @@ class PollVotingService
             ]);
         }
 
-        $rateKey = sprintf('poll-vote:%d:%s', $poll->id, $ipHash);
+        $rateKey = sprintf('poll-vote|%d|%s', $poll->id, $ipHash);
 
         if (RateLimiter::tooManyAttempts($rateKey, self::PUBLIC_VOTE_RATE_LIMIT_MAX_ATTEMPTS)) {
             throw ValidationException::withMessages([

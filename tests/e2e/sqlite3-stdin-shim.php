@@ -19,97 +19,49 @@ if ($schemaSql === false) {
     exit(2);
 }
 
-$pdo = new PDO('sqlite:' . $dbPath, null, null, [
-    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-]);
+// Prefer SQLite's own SQL parsing by using the SQLite3 extension. This avoids having
+// to implement (and maintain) a custom SQL statement splitter.
+if (class_exists(SQLite3::class)) {
+    $db = new SQLite3($dbPath);
+    $db->enableExceptions(true);
+    $db->busyTimeout(5000);
 
-// Same tiny SQL splitter as tests/e2e/load-sqlite-schema.php (ignores semicolons inside strings and ignores SQL comments).
-$statements = [];
-$buffer = '';
-$len = strlen($schemaSql);
-$inSingle = false;
-$inDouble = false;
-$inLineComment = false;
-$inBlockComment = false;
-
-for ($i = 0; $i < $len; $i++) {
-    $ch = $schemaSql[$i];
-    $next = $i + 1 < $len ? $schemaSql[$i + 1] : '';
-
-    if ($inLineComment) {
-        if ($ch === "\n") {
-            $inLineComment = false;
-        }
-        continue;
-    }
-
-    if ($inBlockComment) {
-        if ($ch === '*' && $next === '/') {
-            $inBlockComment = false;
-            $i++;
-        }
-        continue;
-    }
-
-    if (!$inSingle && !$inDouble) {
-        if ($ch === '-' && $next === '-') {
-            $inLineComment = true;
-            $i++;
-            continue;
+    try {
+        $db->exec('BEGIN');
+        $db->exec($schemaSql);
+        $db->exec('COMMIT');
+    } catch (Throwable $e) {
+        try {
+            $db->exec('ROLLBACK');
+        } catch (Throwable $rollbackError) {
+            // ignore
         }
 
-        if ($ch === '/' && $next === '*') {
-            $inBlockComment = true;
-            $i++;
-            continue;
+        fwrite(STDERR, "Failed loading SQLite schema from STDIN: {$e->getMessage()}\n");
+        exit(1);
+    } finally {
+        $db->close();
+    }
+} else {
+    // Fallback: try PDO::exec() for multi-statement SQL (driver-dependent).
+    $pdo = new PDO('sqlite:' . $dbPath, null, null, [
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+    ]);
+
+    try {
+        $pdo->beginTransaction();
+        $pdo->exec($schemaSql);
+        $pdo->commit();
+    } catch (Throwable $e) {
+        try {
+            $pdo->rollBack();
+        } catch (Throwable $rollbackError) {
+            // ignore
         }
+
+        fwrite(STDERR, "Failed loading SQLite schema from STDIN (PDO fallback): {$e->getMessage()}\n");
+        exit(1);
     }
-
-    if (!$inDouble && $ch === "'") {
-        if ($inSingle && $next === "'") {
-            $buffer .= "''";
-            $i++;
-            continue;
-        }
-
-        $inSingle = !$inSingle;
-        $buffer .= $ch;
-        continue;
-    }
-
-    if (!$inSingle && $ch === '"') {
-        $inDouble = !$inDouble;
-        $buffer .= $ch;
-        continue;
-    }
-
-    if (!$inSingle && !$inDouble && $ch === ';') {
-        $stmt = trim($buffer);
-        if ($stmt !== '') {
-            $statements[] = $stmt;
-        }
-        $buffer = '';
-        continue;
-    }
-
-    $buffer .= $ch;
-}
-
-$tail = trim($buffer);
-if ($tail !== '') {
-    $statements[] = $tail;
-}
-
-$pdo->beginTransaction();
-try {
-    foreach ($statements as $stmt) {
-        $pdo->exec($stmt);
-    }
-    $pdo->commit();
-} catch (Throwable $e) {
-    $pdo->rollBack();
-    fwrite(STDERR, "Failed loading SQLite schema from STDIN: {$e->getMessage()}\n");
-    exit(1);
 }
 
 exit(0);

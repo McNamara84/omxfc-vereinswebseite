@@ -62,10 +62,8 @@ class UmfrageVote extends Component
             try {
                 $voting->assertMemberEligible(Auth::user());
             } catch (ValidationException $e) {
-                $errors = method_exists($e, 'errors') ? $e->errors() : [];
-                $this->statusMessage = is_array($errors)
-                    ? ($errors['poll'][0] ?? 'Diese Umfrage ist nur für Vereinsmitglieder verfügbar.')
-                    : 'Diese Umfrage ist nur für Vereinsmitglieder verfügbar.';
+                $errors = $e->errors();
+                $this->statusMessage = $errors['poll'][0] ?? 'Diese Umfrage ist nur für Vereinsmitglieder verfügbar.';
                 $this->canVote = false;
                 return;
             }
@@ -85,19 +83,38 @@ class UmfrageVote extends Component
         $this->canVote = true;
     }
 
-    public function submit(PollVotingService $voting): void
+    public function submit(ActivePollResolver $resolver, PollVotingService $voting): void
     {
-        $poll = $this->poll();
+        if ($this->hasVoted) {
+            $this->statusMessage ??= 'Du hast bereits an dieser Umfrage teilgenommen.';
+            return;
+        }
 
+        // Do not trust cached pollId from mount: the active poll may change between page load and submit.
+        $poll = $resolver->current();
         if (! $poll) {
             $this->statusMessage = 'Aktuell läuft keine Umfrage.';
+            $this->canVote = false;
             return;
         }
 
-        if (! $this->canVote || $this->hasVoted) {
-            $this->statusMessage ??= 'Abstimmung aktuell nicht möglich.';
+        if ($this->pollId && $poll->id !== $this->pollId) {
+            $this->statusMessage = 'Die Umfrage hat sich geändert. Bitte lade die Seite neu.';
+            $this->canVote = false;
             return;
         }
+
+        try {
+            $voting->assertPollAcceptsVotes($poll);
+        } catch (ValidationException $e) {
+            $errors = $e->errors();
+            $this->statusMessage = $errors['poll'][0] ?? 'Abstimmung aktuell nicht möglich.';
+            $this->canVote = false;
+            return;
+        }
+
+        // Keep pollId in sync with the actual active poll.
+        $this->pollId = $poll->id;
 
         $this->validate([
             'selectedOptionId' => ['required', 'integer'],
@@ -105,7 +122,13 @@ class UmfrageVote extends Component
             'selectedOptionId.required' => 'Bitte wähle eine Antwort aus.',
         ]);
 
-        $option = PollOption::query()->findOrFail((int) $this->selectedOptionId);
+        $optionId = (int) $this->selectedOptionId;
+        $option = $poll->options()->whereKey($optionId)->first();
+        if (! $option) {
+            $this->statusMessage = 'Ungültige Auswahl.';
+            $this->addError('selectedOptionId', 'Ungültige Auswahl.');
+            return;
+        }
 
         try {
             $voting->vote(
@@ -115,14 +138,9 @@ class UmfrageVote extends Component
                 $poll->visibility === PollVisibility::Public ? $this->ipHash() : null,
             );
         } catch (ValidationException $e) {
-            $errors = method_exists($e, 'errors') ? $e->errors() : [];
-
-            if (! empty($errors)) {
-                $this->setErrorBag($errors);
-                $this->statusMessage = $errors['poll'][0] ?? 'Abstimmung nicht möglich.';
-            } else {
-                $this->statusMessage = 'Abstimmung nicht möglich.';
-            }
+            $errors = $e->errors();
+            $this->setErrorBag($errors);
+            $this->statusMessage = $errors['poll'][0] ?? 'Abstimmung nicht möglich.';
             return;
         }
 

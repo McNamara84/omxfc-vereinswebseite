@@ -11,7 +11,7 @@ const login = async (page, email, password = 'password') => {
 
 test.describe('Umfragen', () => {
   test('guest: public poll is visible and can vote once', async ({ page }) => {
-    await runArtisan('db:seed --class="Database\\Seeders\\PollPlaywrightPublicSeeder"');
+    await runArtisan(['db:seed', '--class=Database\\Seeders\\PollPlaywrightPublicSeeder']);
 
     await page.goto('/');
     await expect(page.getByRole('link', { name: 'Playwright Umfrage' }).first()).toBeVisible();
@@ -29,7 +29,7 @@ test.describe('Umfragen', () => {
   });
 
   test('guest: internal poll requires login', async ({ page }) => {
-    await runArtisan('db:seed --class="Database\\Seeders\\PollPlaywrightInternalSeeder"');
+    await runArtisan(['db:seed', '--class=Database\\Seeders\\PollPlaywrightInternalSeeder']);
 
     await page.goto('/umfrage');
 
@@ -39,7 +39,7 @@ test.describe('Umfragen', () => {
   });
 
   test('member: internal poll can be voted once', async ({ page }) => {
-    await runArtisan('db:seed --class="Database\\Seeders\\PollPlaywrightInternalSeeder"');
+    await runArtisan(['db:seed', '--class=Database\\Seeders\\PollPlaywrightInternalSeeder']);
 
     await login(page, 'playwright-member@example.com');
 

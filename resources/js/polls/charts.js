@@ -1,4 +1,33 @@
-import Chart from 'chart.js/auto';
+import {
+    ArcElement,
+    BarController,
+    BarElement,
+    CategoryScale,
+    Chart,
+    DoughnutController,
+    Filler,
+    Legend,
+    LineController,
+    LineElement,
+    LinearScale,
+    PointElement,
+    Tooltip,
+} from 'chart.js';
+
+Chart.register(
+    ArcElement,
+    BarController,
+    BarElement,
+    CategoryScale,
+    DoughnutController,
+    Filler,
+    Legend,
+    LineController,
+    LineElement,
+    LinearScale,
+    PointElement,
+    Tooltip,
+);
 
 const chartStore = {
     options: null,
@@ -202,15 +231,21 @@ const init = () => {
 };
 
 let initScheduled = false;
+let initRunning = false;
 const scheduleInit = () => {
-    if (initScheduled) {
+    if (initScheduled || initRunning) {
         return;
     }
 
     initScheduled = true;
     queueMicrotask(() => {
         initScheduled = false;
-        init();
+        initRunning = true;
+        try {
+            init();
+        } finally {
+            initRunning = false;
+        }
     });
 };
 

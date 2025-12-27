@@ -31,7 +31,9 @@ export default async function globalSetup() {
     // The Playwright DB setup relies on the stored SQLite schema dump.
     // The regular Laravel schema loading path may call the external `sqlite3` CLI,
     // which isn't available on all dev machines (especially Windows). We therefore
-    // load the dump via a tiny PHP helper and then run any remaining migrations.
+    // load the dump via a tiny PHP helper and then run migrations afterwards.
+    // Note: the schema dump should be kept in sync with migrations; running `migrate`
+    // after the dump ensures any new migrations are applied in Playwright runs.
     if (!fs.existsSync(sqliteSchemaPath)) {
         throw new Error(`Missing schema dump: ${sqliteSchemaPath}`);
     }
@@ -49,9 +51,9 @@ export default async function globalSetup() {
         throw new Error('Failed to load SQLite schema dump for Playwright.');
     }
 
-    await runArtisan('migrate');
+    await runArtisan(['migrate']);
 
-    await runArtisan('db:seed --class="Database\\Seeders\\TodoCategorySeeder"');
-    await runArtisan('db:seed --class="Database\\Seeders\\TodoPlaywrightSeeder"');
-    await runArtisan('db:seed --class="Database\\Seeders\\DashboardSampleSeeder"');
+    await runArtisan(['db:seed', '--class=Database\\Seeders\\TodoCategorySeeder']);
+    await runArtisan(['db:seed', '--class=Database\\Seeders\\TodoPlaywrightSeeder']);
+    await runArtisan(['db:seed', '--class=Database\\Seeders\\DashboardSampleSeeder']);
 }

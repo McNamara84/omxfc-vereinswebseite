@@ -76,7 +76,7 @@ class UmfrageVerwaltung extends Component
             return;
         }
 
-        $this->resetValidation('options');
+        $this->resetErrorBag('options');
         $this->options[] = ['label' => '', 'image_url' => null, 'link_url' => null];
     }
 
@@ -90,7 +90,7 @@ class UmfrageVerwaltung extends Component
         $this->options = array_values($this->options);
 
         if (count($this->options) < 13) {
-            $this->resetValidation('options');
+            $this->resetErrorBag('options');
         }
     }
 
@@ -209,6 +209,7 @@ class UmfrageVerwaltung extends Component
             }
 
             $otherActive = Poll::query()
+                ->lockForUpdate()
                 ->where('status', PollStatus::Active)
                 ->where('id', '!=', $poll->id)
                 ->exists();

@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Enums\PollVisibility;
 use App\Services\Polls\ActivePollResolver;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Process;
@@ -77,7 +78,11 @@ class AppServiceProvider extends ServiceProvider
         });
 
         View::composer('navigation-menu', function ($view) {
-            $poll = app(ActivePollResolver::class)->current();
+            $cacheKey = 'polls.active_for_menu.v1';
+            $poll = Cache::remember($cacheKey, now()->addMinutes(10), function () {
+                return app(ActivePollResolver::class)->current();
+            });
+
             $isWithinWindow = $poll ? $poll->isWithinVotingWindow() : false;
 
             $view->with([

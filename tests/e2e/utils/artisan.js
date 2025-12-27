@@ -3,68 +3,22 @@ import { promisify } from 'util';
 
 const execFile = promisify(execFileCallback);
 
-function splitArgs(command) {
-    const args = [];
-    let current = '';
-    let quote = null;
-
-    for (let i = 0; i < command.length; i++) {
-        const ch = command[i];
-
-        if (quote) {
-            if (ch === '\\' && i + 1 < command.length) {
-                const next = command[i + 1];
-
-                // Support escaped quotes/backslashes inside quoted strings, e.g. \" or \\.
-                if (next === quote || next === '\\') {
-                    current += next;
-                    i++;
-                    continue;
-                }
-            }
-
-            if (ch === quote) {
-                quote = null;
-                continue;
-            }
-
-            current += ch;
-            continue;
-        }
-
-        if (ch === '"' || ch === "'") {
-            quote = ch;
-            continue;
-        }
-
-        if (ch === ' ' || ch === '\t' || ch === '\n' || ch === '\r') {
-            if (current.length > 0) {
-                args.push(current);
-                current = '';
-            }
-            continue;
-        }
-
-        current += ch;
-    }
-
-    if (current.length > 0) {
-        args.push(current);
-    }
-
-    return args;
-}
-
-export async function runArtisan(command, options = {}) {
+export async function runArtisan(args, options = {}) {
     const env = {
         ...process.env,
         APP_ENV: process.env.APP_ENV ?? 'testing',
     };
 
-    const args = ['artisan', ...splitArgs(command)];
+    if (!Array.isArray(args) || args.length === 0) {
+        throw new Error(
+            'runArtisan() erwartet ein Array von Argumenten, z.B. runArtisan(["migrate"]) oder runArtisan(["db:seed", "--class=Database\\\\Seeders\\\\FooSeeder"]).',
+        );
+    }
+
+    const phpArgs = ['artisan', ...args];
 
     try {
-        const result = await execFile('php', args, {
+        const result = await execFile('php', phpArgs, {
             env,
             ...options,
         });

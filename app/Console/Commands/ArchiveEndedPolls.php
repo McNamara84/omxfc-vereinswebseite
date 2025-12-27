@@ -15,20 +15,16 @@ class ArchiveEndedPolls extends Command
     {
         $now = now();
 
-        $polls = Poll::query()
+        $archivedCount = Poll::query()
             ->where('status', PollStatus::Active)
             ->whereNotNull('ends_at')
             ->where('ends_at', '<', $now)
-            ->get();
-
-        foreach ($polls as $poll) {
-            $poll->update([
+            ->update([
                 'status' => PollStatus::Archived,
                 'archived_at' => $now,
             ]);
-        }
 
-        $this->info(sprintf('Archiviert: %d', $polls->count()));
+        $this->info(sprintf('Archiviert: %d', $archivedCount));
 
         return self::SUCCESS;
     }
