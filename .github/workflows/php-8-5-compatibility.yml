@@ -41,7 +41,7 @@ jobs:
             ${{ runner.os }}-php-8.5-
             ${{ runner.os }}-
       - name: Install PHP dependencies
-        run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist --ignore-platform-req=php
+        run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
       - name: Directory Permissions
         run: chmod -R 777 storage bootstrap/cache
       - name: Create Database
@@ -99,7 +99,7 @@ jobs:
         with:
           node-version-file: '.node-version'
       - name: Install Composer dependencies
-        run: composer install --no-interaction --prefer-dist --ignore-platform-req=php
+        run: composer install --no-interaction --prefer-dist
       - run: cp .env.example .env
       - run: php artisan key:generate
       - name: Configure SQLite

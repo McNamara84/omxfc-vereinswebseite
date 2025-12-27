@@ -1,7 +1,7 @@
 # OMFXC Vereinswebseite
 
 ![Laravel 12](https://img.shields.io/badge/laravel-12-red?logo=laravel&style=flat)
-![PHP 8.2](https://img.shields.io/badge/php-8.2-blue?logo=php)
+![PHP 8.5](https://img.shields.io/badge/php-8.5-blue?logo=php)
 ![Node 24](https://img.shields.io/badge/node-24-5FA04E?logo=node.js&logoColor=white)
 ![JS Coverage](https://raw.githubusercontent.com/McNamara84/omxfc-vereinswebseite/image-data/js-coverage.svg)
 ![PHP Coverage](https://raw.githubusercontent.com/McNamara84/omxfc-vereinswebseite/image-data/php-coverage.svg)
@@ -12,19 +12,26 @@ Offizielle Laravel-12-Anwendung für die Vereinswebseite des **Offizieller MADDR
 
 ## Inhaltsverzeichnis
 
-- [Hauptfunktionen](#hauptfunktionen)
-- [Technologie-Stack](#technologie-stack)
-- [Voraussetzungen](#voraussetzungen)
-- [Lokale Entwicklung](#lokale-entwicklung)
-  - [Installation](#installation)
-  - [Entwicklungsumgebung starten](#entwicklungsumgebung-starten)
-  - [Datenbank seeden](#datenbank-seeden)
-- [Tests & Qualitätssicherung](#tests--qualitätssicherung)
-- [Deployment](#deployment)
-- [Nützliche Artisan-Befehle](#nützliche-artisan-befehle)
-  - [Sitemap erzeugen](#sitemap-erzeugen)
-  - [Scheduler in Produktion](#scheduler-in-produktion)
-- [Support](#support)
+- [OMFXC Vereinswebseite](#omfxc-vereinswebseite)
+  - [Inhaltsverzeichnis](#inhaltsverzeichnis)
+  - [Hauptfunktionen](#hauptfunktionen)
+  - [Technologie-Stack](#technologie-stack)
+  - [Voraussetzungen](#voraussetzungen)
+  - [Lokale Entwicklung](#lokale-entwicklung)
+    - [Installation](#installation)
+    - [Entwicklungsumgebung starten](#entwicklungsumgebung-starten)
+    - [Datenbank seeden](#datenbank-seeden)
+  - [Maddrax-Fantreffen 2026 Event-System](#maddrax-fantreffen-2026-event-system)
+    - [Funktionen](#funktionen)
+    - [Konfiguration](#konfiguration)
+    - [Preisstruktur](#preisstruktur)
+    - [Zugriffskontrolle](#zugriffskontrolle)
+  - [Tests \& Qualitätssicherung](#tests--qualitätssicherung)
+  - [Deployment](#deployment)
+  - [Nützliche Artisan-Befehle](#nützliche-artisan-befehle)
+    - [Sitemap erzeugen](#sitemap-erzeugen)
+    - [Scheduler in Produktion](#scheduler-in-produktion)
+  - [Support](#support)
 
 ## Hauptfunktionen
 
@@ -48,7 +55,7 @@ Offizielle Laravel-12-Anwendung für die Vereinswebseite des **Offizieller MADDR
 
 | Komponente       | Version / Hinweis                                      |
 |------------------|---------------------------------------------------------|
-| PHP              | ≥ 8.2 inklusive Extensions: `pdo_mysql`, `mbstring`, `bcmath`, `gd`, `pcntl` |
+| PHP              | ≥ 8.5 inklusive Extensions: `pdo_mysql`, `mbstring`, `bcmath`, `gd`, `pcntl` |
 | Composer         | ≥ 2.6                                                   |
 | Node.js & npm    | Node 24 LTS (siehe `.node-version`)                     |
 | Datenbank        | MariaDB / MySQL (Standard) oder SQLite für lokale Tests |

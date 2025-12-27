@@ -3,14 +3,14 @@ Kurz und prägnant: Hinweise für AI-Coding-Agenten, um hier sofort produktiv zu
 Ziel: Liefere kleine, sichere Code-Änderungen, Tests oder Dokument-Updates, die zur Laravel-12-basierten Vereinswebseite passen.
 
 1) Grosser Architekturüberblick
-- Backend: Laravel 12 (PHP ≥ 8.2). App-Logik liegt unter `app/` (Controller, Livewire-Komponenten in `app/Livewire`, Services in `app/Services`, Jobs in `app/Jobs`).
+- Backend: Laravel 12 (PHP ≥ 8.5). App-Logik liegt unter `app/` (Controller, Livewire-Komponenten in `app/Livewire`, Services in `app/Services`, Jobs in `app/Jobs`).
 - Frontend: Vite + Tailwind + Alpine.js + Livewire. Assets in `resources/`; Vite-Konfiguration in `vite.config.js`.
 - Daten: MySQL/MariaDB in Produktion; Tests/CI verwenden SQLite (siehe `phpunit.xml`).
 - Workflows: CI definiert in `.github/workflows/*` — `phpunit.yml`, `playwright.yml`, `vitest.yml`. Asset-Builder ist `.github/actions/build-assets/action.yml`.
 
 2) Wichtige Dateien/Orte (schnelle Referenz)
 - Projekt-README: `README.md` — enthält Setup-, Dev- & Deploy-Hinweise.
-- Composer/Node-Manifeste: `composer.json`, `package.json` (Node 24 LTS, PHP 8.2 Mindestanforderung). Die Node-Version wird zentral in `.node-version` gepflegt.
+- Composer/Node-Manifeste: `composer.json`, `package.json` (Node 24 LTS, PHP 8.5 Mindestanforderung). Die Node-Version wird zentral in `.node-version` gepflegt.
 - Tests: `phpunit.xml`, `tests/TestCase.php` (beachtet HTTP-Fakes & automatische Seeding).
 - Routen: `routes/web.php` (Controller-zentrierte Struktur, deutsche Route-/Methodennamen).
 - Artisan entrypoint: `artisan` (standard Laravel CLI).

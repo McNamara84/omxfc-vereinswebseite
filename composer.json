@@ -26,7 +26,7 @@
     },
     "license": "GPL-3.0-or-later",
     "require": {
-        "php": "^8.2",
+        "php": "~8.5.0",
         "laravel/framework": "^12.0",
         "laravel/jetstream": "^5.3",
         "laravel/sanctum": "^4.0",
@@ -92,7 +92,7 @@
         },
         "process-timeout": 0,
         "platform": {
-            "php": "8.2"
+            "php": "8.5"
         }
     },
     "minimum-stability": "stable",

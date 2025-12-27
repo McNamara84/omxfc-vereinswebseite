@@ -43,7 +43,7 @@ This document provides comprehensive guidance for AI assistants working with the
 
 ### Backend
 - **Framework:** Laravel 12 (latest version)
-- **PHP:** 8.2+ (tested up to PHP 8.5)
+- **PHP:** 8.5 (PHP 8.5 only)
 - **Key Packages:**
   - Laravel Jetstream 5.3 (team management, authentication)
   - Laravel Sanctum 4.0 (API authentication)
@@ -928,7 +928,7 @@ Route::name('mitglieder.')->group(function () {
 
 ### PHP Code Style
 
-**Modern PHP Features (8.2+):**
+**Modern PHP Features (8.5+):**
 ```php
 // Readonly properties
 public function __construct(
@@ -1253,7 +1253,7 @@ response()->view('view', $data)
 ### GitHub Actions
 
 **Workflows:**
-- `phpunit.yml` - PHP tests on PHP 8.2, 8.3, 8.4, 8.5 with coverage
+- `phpunit.yml` - PHP tests on PHP 8.5 with coverage
 - `playwright.yml` - E2E tests on Chromium, Firefox, WebKit
 - `vitest.yml` - Vitest JavaScript tests
 - `summary.yml` - Workflow summary generation
@@ -1302,5 +1302,5 @@ php artisan migrate --force
 
 **Last Updated:** 2025-12-17
 **Laravel Version:** 12.0
-**PHP Version:** 8.2+
+**PHP Version:** 8.5
 **Node Version:** 20 LTS
