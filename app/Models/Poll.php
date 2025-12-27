@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\PollStatus;
 use App\Enums\PollVisibility;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -25,6 +26,16 @@ use Illuminate\Support\Carbon;
 class Poll extends Model
 {
     use HasFactory;
+
+    public function scopeOrderForAdminIndex(Builder $query): Builder
+    {
+        return $query
+            ->orderByRaw(
+                "CASE status WHEN ? THEN 0 WHEN ? THEN 1 ELSE 2 END",
+                [PollStatus::Active->value, PollStatus::Draft->value]
+            )
+            ->orderByDesc('id');
+    }
 
     protected $fillable = [
         'question',
@@ -78,5 +89,87 @@ class Poll extends Model
         }
 
         return true;
+    }
+
+    public function buildChartData(): array
+    {
+        $this->loadMissing('options');
+
+        $totalVotes = PollVote::query()->where('poll_id', $this->id)->count();
+
+        $perOptionRows = PollVote::query()
+            ->where('poll_id', $this->id)
+            ->select('poll_option_id')
+            ->selectRaw('COUNT(*) as total')
+            ->selectRaw('SUM(CASE WHEN voter_type = ? THEN 1 ELSE 0 END) as members', ['member'])
+            ->selectRaw('SUM(CASE WHEN voter_type = ? THEN 1 ELSE 0 END) as guests', ['guest'])
+            ->groupBy('poll_option_id')
+            ->get();
+
+        $perOption = [];
+        foreach ($perOptionRows as $row) {
+            $perOption[(int) $row->poll_option_id] = [
+                'total' => (int) $row->total,
+                'members' => (int) $row->members,
+                'guests' => (int) $row->guests,
+            ];
+        }
+
+        $optionLabels = [];
+        $optionTotals = [];
+        $optionMembers = [];
+        $optionGuests = [];
+
+        foreach ($this->options as $option) {
+            $stats = $perOption[$option->id] ?? ['total' => 0, 'members' => 0, 'guests' => 0];
+
+            $optionLabels[] = $option->label;
+            $optionTotals[] = (int) ($stats['total'] ?? 0);
+            $optionMembers[] = (int) ($stats['members'] ?? 0);
+            $optionGuests[] = (int) ($stats['guests'] ?? 0);
+        }
+
+        $segment = PollVote::query()
+            ->where('poll_id', $this->id)
+            ->select('voter_type')
+            ->selectRaw('COUNT(*) as total')
+            ->groupBy('voter_type')
+            ->pluck('total', 'voter_type');
+
+        $timezone = (string) config('app.timezone');
+        $timelineGroups = PollVote::query()
+            ->where('poll_id', $this->id)
+            ->get(['created_at'])
+            ->groupBy(fn (PollVote $vote) => $vote->created_at
+                ? $vote->created_at->timezone($timezone)->toDateString()
+                : 'unknown');
+
+        $timeline = $timelineGroups
+            ->map(fn ($votes, $day) => ['day' => $day, 'total' => (int) $votes->count()])
+            ->values()
+            ->sortBy('day')
+            ->values()
+            ->all();
+
+        return [
+            'poll' => [
+                'id' => $this->id,
+                'question' => $this->question,
+                'visibility' => $this->visibility->value,
+                'status' => $this->status->value,
+            ],
+            'totals' => [
+                'totalVotes' => $totalVotes,
+                'members' => (int) ($segment['member'] ?? 0),
+                'guests' => (int) ($segment['guest'] ?? 0),
+            ],
+            'options' => [
+                'labels' => $optionLabels,
+                'total' => $optionTotals,
+                'members' => $optionMembers,
+                'guests' => $optionGuests,
+            ],
+            'timeline' => $timeline,
+        ];
     }
 }

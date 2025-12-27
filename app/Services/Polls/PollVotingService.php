@@ -16,6 +16,9 @@ use Illuminate\Validation\ValidationException;
 
 class PollVotingService
 {
+    public const PUBLIC_VOTE_RATE_LIMIT_MAX_ATTEMPTS = 10;
+    public const PUBLIC_VOTE_RATE_LIMIT_DECAY_SECONDS = 60;
+
     public function assertPollAcceptsVotes(Poll $poll): void
     {
         if ($poll->status !== PollStatus::Active) {
@@ -33,6 +36,9 @@ class PollVotingService
 
     public function assertMemberEligible(User $user): void
     {
+        // Primary membership source is the Jetstream Teams pivot (`team_user.role`).
+        // We keep the `memberships` table lookup as a legacy fallback for older data
+        // and some fixtures where team assignments might not exist.
         $membersTeam = Team::membersTeam();
 
         if ($membersTeam) {
@@ -84,6 +90,10 @@ class PollVotingService
             return false;
         }
 
+        // Public polls use a per-IP vote limit (hash stored, not the plain IP).
+        // Note: users behind shared IPs (e.g. corporate NAT/public WiFi) will be
+        // treated as one voter, which can block legitimate votes by design.
+
         return (clone $query)->where('ip_hash', $ipHash)->exists();
     }
 
@@ -127,15 +137,15 @@ class PollVotingService
             ]);
         }
 
-        $rateKey = 'poll-vote:' . $poll->id . ':' . $ipHash;
+        $rateKey = sprintf('poll-vote:%d:%s', $poll->id, $ipHash);
 
-        if (RateLimiter::tooManyAttempts($rateKey, 10)) {
+        if (RateLimiter::tooManyAttempts($rateKey, self::PUBLIC_VOTE_RATE_LIMIT_MAX_ATTEMPTS)) {
             throw ValidationException::withMessages([
                 'poll' => 'Zu viele Versuche. Bitte warte kurz und versuche es erneut.',
             ]);
         }
 
-        RateLimiter::hit($rateKey, 60);
+        RateLimiter::hit($rateKey, self::PUBLIC_VOTE_RATE_LIMIT_DECAY_SECONDS);
 
         if ($this->hasAlreadyVoted($poll, $user, $ipHash)) {
             throw ValidationException::withMessages([

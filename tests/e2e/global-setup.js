@@ -1,10 +1,7 @@
 import fs from 'fs';
 import path from 'path';
-import { exec as execCallback } from 'child_process';
-import { promisify } from 'util';
+import { spawnSync } from 'child_process';
 import { runArtisan } from './utils/artisan.js';
-
-const exec = promisify(execCallback);
 
 export default async function globalSetup() {
     const databasePath = path.resolve('database/playwright.sqlite');
@@ -39,12 +36,22 @@ export default async function globalSetup() {
         throw new Error(`Missing schema dump: ${sqliteSchemaPath}`);
     }
 
-    await exec(`php tests/e2e/load-sqlite-schema.php "${databasePath}" "${sqliteSchemaPath}"`, {
-        env: process.env,
-    });
+    const schemaResult = spawnSync(
+        'php',
+        ['tests/e2e/load-sqlite-schema.php', databasePath, sqliteSchemaPath],
+        {
+            env: process.env,
+            stdio: 'inherit',
+        },
+    );
+
+    if (schemaResult.status !== 0) {
+        throw new Error('Failed to load SQLite schema dump for Playwright.');
+    }
 
     await runArtisan('migrate');
-        await runArtisan('db:seed --class="Database\\Seeders\\TodoCategorySeeder"');
-        await runArtisan('db:seed --class="Database\\Seeders\\TodoPlaywrightSeeder"');
-        await runArtisan('db:seed --class="Database\\Seeders\\DashboardSampleSeeder"');
+
+    await runArtisan('db:seed --class="Database\\Seeders\\TodoCategorySeeder"');
+    await runArtisan('db:seed --class="Database\\Seeders\\TodoPlaywrightSeeder"');
+    await runArtisan('db:seed --class="Database\\Seeders\\DashboardSampleSeeder"');
 }

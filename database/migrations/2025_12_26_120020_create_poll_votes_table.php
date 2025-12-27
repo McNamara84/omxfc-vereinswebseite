@@ -17,6 +17,11 @@ return new class extends Migration
             $table->string('voter_type'); // member|guest
             $table->timestamps();
 
+            // Uniqueness rules (enforced in application logic as well):
+            // - Internal polls: one vote per user (ip_hash is null)
+            // - Public polls: one vote per ip_hash (user_id may be set when logged in)
+            // Note: unique constraints with NULL columns behave slightly differently across engines.
+            // The service layer ensures we always persist at least one identifier.
             $table->unique(['poll_id', 'user_id']);
             $table->unique(['poll_id', 'ip_hash']);
 

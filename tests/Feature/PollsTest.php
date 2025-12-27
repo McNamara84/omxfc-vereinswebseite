@@ -9,17 +9,18 @@ use App\Livewire\Umfragen\UmfrageVerwaltung;
 use App\Livewire\Umfragen\UmfrageVote;
 use App\Models\Poll;
 use App\Models\PollOption;
-use App\Models\Team;
 use App\Models\User;
 use App\Services\Polls\PollVotingService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Validation\ValidationException;
 use Livewire\Livewire;
+use Tests\Concerns\CreatesUserWithRole;
 use Tests\TestCase;
 
 class PollsTest extends TestCase
 {
     use RefreshDatabase;
+    use CreatesUserWithRole;
 
     public function test_admin_can_access_poll_management_route(): void
     {
@@ -147,15 +148,19 @@ class PollsTest extends TestCase
 
         $service->vote($poll, $option, null, $ipHash);
 
-        $this->expectException(ValidationException::class);
-        $service->vote($poll, $option, null, $ipHash);
+        try {
+            $service->vote($poll, $option, null, $ipHash);
+            $this->fail('Expected ValidationException was not thrown.');
+        } catch (ValidationException $e) {
+            $this->assertStringContainsString('Von dieser IP wurde bereits abgestimmt', $e->errors()['poll'][0] ?? '');
+        }
     }
 
     public function test_voting_is_blocked_before_start_date(): void
     {
         $creator = User::factory()->create();
 
-        Poll::query()->create([
+        $poll = Poll::query()->create([
             'question' => 'Startet später?',
             'menu_label' => 'Spätere Umfrage',
             'visibility' => PollVisibility::Public,
@@ -166,22 +171,14 @@ class PollsTest extends TestCase
             'created_by_user_id' => $creator->id,
         ]);
 
+        PollOption::query()->create([
+            'poll_id' => $poll->id,
+            'label' => 'Option',
+            'sort_order' => 0,
+        ]);
+
         Livewire::test(UmfrageVote::class)
             ->assertSet('canVote', false)
             ->assertSee('noch nicht gestartet');
-    }
-
-    private function createUserWithRole(Role $role): User
-    {
-        $team = Team::membersTeam();
-
-        if (! $team) {
-            $team = Team::factory()->create(['name' => 'Mitglieder']);
-        }
-
-        $user = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($user, ['role' => $role->value]);
-
-        return $user;
     }
 }

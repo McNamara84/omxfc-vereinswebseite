@@ -18,6 +18,15 @@ class PollVote extends Model
 {
     use HasFactory;
 
+    protected static function booted(): void
+    {
+        static::saving(function (PollVote $vote) {
+            if ($vote->user_id === null && $vote->ip_hash === null) {
+                throw new \InvalidArgumentException('PollVote requires either user_id or ip_hash.');
+            }
+        });
+    }
+
     protected $fillable = [
         'poll_id',
         'poll_option_id',

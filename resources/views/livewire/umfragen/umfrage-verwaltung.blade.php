@@ -6,7 +6,7 @@
         </div>
 
         @if (session()->has('success'))
-            <div class="mb-6 bg-green-100 dark:bg-green-900/30 border border-green-400 dark:border-green-700 text-green-800 dark:text-green-200 px-4 py-3 rounded" role="status" aria-live="polite">
+            <div class="mb-6 bg-green-100 dark:bg-green-900/30 border border-green-400 dark:border-green-700 text-green-800 dark:text-green-200 px-4 py-3 rounded" role="status" aria-live="polite" aria-label="Statusmeldung zur Umfrage">
                 {{ session('success') }}
             </div>
         @endif
@@ -121,7 +121,7 @@
                                         <input type="url" wire:model.defer="options.{{ $index }}.link_url" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 focus:border-indigo-500 focus:ring-indigo-500" />
                                     </div>
                                     <div class="md:col-span-1">
-                                        <button type="button" wire:click="removeOption({{ $index }})" class="w-full inline-flex items-center justify-center px-3 py-2 rounded-md bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 border border-gray-200 dark:border-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
+                                        <button type="button" wire:click="removeOption({{ $index }})" aria-label="Antwort {{ $index + 1 }} entfernen" class="w-full inline-flex items-center justify-center px-3 py-2 rounded-md bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 border border-gray-200 dark:border-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
                                             Entfernen
                                         </button>
                                     </div>
@@ -164,20 +164,20 @@
                 <div class="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
                     <div class="rounded-lg border border-gray-200 dark:border-gray-700 p-4" wire:ignore>
                         <h3 class="font-semibold text-gray-900 dark:text-white">Stimmen je Antwort</h3>
-                        <canvas id="poll-options-chart" class="mt-3 h-64 w-full" aria-label="Balkendiagramm: Stimmen je Antwort" role="img"></canvas>
+                        <canvas id="poll-options-chart" class="mt-3 h-64 w-full" aria-label="Balkendiagramm: Stimmen je Antwort" aria-describedby="poll-results-table" role="img"></canvas>
                     </div>
                     <div class="rounded-lg border border-gray-200 dark:border-gray-700 p-4" wire:ignore>
                         <h3 class="font-semibold text-gray-900 dark:text-white">Zeitverlauf</h3>
-                        <canvas id="poll-timeline-chart" class="mt-3 h-64 w-full" aria-label="Liniendiagramm: Stimmen im Zeitverlauf" role="img"></canvas>
+                        <canvas id="poll-timeline-chart" class="mt-3 h-64 w-full" aria-label="Liniendiagramm: Stimmen im Zeitverlauf" aria-describedby="poll-results-table" role="img"></canvas>
                     </div>
                     <div class="rounded-lg border border-gray-200 dark:border-gray-700 p-4" wire:ignore>
                         <h3 class="font-semibold text-gray-900 dark:text-white">Segmentierung</h3>
-                        <canvas id="poll-segment-chart" class="mt-3 h-64 w-full" aria-label="Diagramm: Mitglieder vs Gäste" role="img"></canvas>
+                        <canvas id="poll-segment-chart" class="mt-3 h-64 w-full" aria-label="Diagramm: Mitglieder vs Gäste" aria-describedby="poll-results-table" role="img"></canvas>
                     </div>
                 </div>
 
                 <div class="mt-8 overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                    <table id="poll-results-table" class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                         <caption class="sr-only">Tabellarische Auswertung der Umfrage</caption>
                         <thead class="bg-gray-50 dark:bg-gray-900">
                             <tr>
@@ -217,7 +217,7 @@
                 </div>
 
                 <div class="sr-only" aria-live="polite">
-                    Gesamtstimmen: {{ $totalVotes }}.
+                    Auswertung aktualisiert. Gesamtstimmen: {{ $totalVotes }}. Mitglieder: {{ (int) ($chartData['totals']['members'] ?? 0) }}. Gäste: {{ (int) ($chartData['totals']['guests'] ?? 0) }}.
                 </div>
 
                 <div class="mt-2 text-xs text-gray-600 dark:text-gray-400">

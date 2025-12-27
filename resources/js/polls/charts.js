@@ -32,7 +32,7 @@ const toRgba = (cssColor, alpha = 0.75) => {
         return null;
     }
 
-    const rgbMatch = cssColor.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
+    const rgbMatch = cssColor.match(/^rgb\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)$/);
     if (rgbMatch) {
         const r = Number(rgbMatch[1]);
         const g = Number(rgbMatch[2]);
@@ -40,7 +40,7 @@ const toRgba = (cssColor, alpha = 0.75) => {
         return `rgba(${r}, ${g}, ${b}, ${alpha})`;
     }
 
-    const rgbaMatch = cssColor.match(/^rgba\((\d+),\s*(\d+),\s*(\d+),\s*([0-9.]+)\)$/);
+    const rgbaMatch = cssColor.match(/^rgba\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*([0-9.]+)\s*\)$/);
     if (rgbaMatch) {
         const r = Number(rgbaMatch[1]);
         const g = Number(rgbaMatch[2]);
@@ -68,7 +68,9 @@ const updateCharts = (data) => {
         return;
     }
 
-    const baseColor = window.getComputedStyle(document.documentElement).color;
+    const rootColor = window.getComputedStyle(document.documentElement).color;
+    const bodyColor = document.body ? window.getComputedStyle(document.body).color : null;
+    const baseColor = rootColor || bodyColor;
     const membersColor = getThemeColor('members') ?? baseColor;
     const guestsColor = getThemeColor('guests') ?? baseColor;
     const membersBg = toRgba(membersColor, 0.75);
@@ -198,8 +200,21 @@ const init = () => {
     }
 };
 
-document.addEventListener('DOMContentLoaded', init);
-document.addEventListener('livewire:navigated', init);
+let initScheduled = false;
+const scheduleInit = () => {
+    if (initScheduled) {
+        return;
+    }
+
+    initScheduled = true;
+    queueMicrotask(() => {
+        initScheduled = false;
+        init();
+    });
+};
+
+document.addEventListener('DOMContentLoaded', scheduleInit);
+document.addEventListener('livewire:navigated', scheduleInit);
 
 window.addEventListener('poll-results-updated', (event) => {
     const payload = event?.detail?.data ?? event?.detail;

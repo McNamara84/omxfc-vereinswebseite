@@ -261,72 +261,7 @@ class UmfrageVerwaltung extends Component
             return;
         }
 
-        $totalVotes = PollVote::query()->where('poll_id', $poll->id)->count();
-
-        $perOptionRows = PollVote::query()
-            ->selectRaw("poll_option_id, COUNT(*) as total, SUM(CASE WHEN voter_type = 'member' THEN 1 ELSE 0 END) as members, SUM(CASE WHEN voter_type = 'guest' THEN 1 ELSE 0 END) as guests")
-            ->where('poll_id', $poll->id)
-            ->groupBy('poll_option_id')
-            ->get();
-
-        $perOption = [];
-        foreach ($perOptionRows as $row) {
-            $perOption[(int) $row->poll_option_id] = [
-                'total' => (int) $row->total,
-                'members' => (int) $row->members,
-                'guests' => (int) $row->guests,
-            ];
-        }
-
-        $optionLabels = [];
-        $optionTotals = [];
-        $optionMembers = [];
-        $optionGuests = [];
-
-        foreach ($poll->options as $option) {
-            $stats = $perOption[$option->id] ?? ['total' => 0, 'members' => 0, 'guests' => 0];
-
-            $optionLabels[] = $option->label;
-            $optionTotals[] = (int) ($stats['total'] ?? 0);
-            $optionMembers[] = (int) ($stats['members'] ?? 0);
-            $optionGuests[] = (int) ($stats['guests'] ?? 0);
-        }
-
-        $timeline = PollVote::query()
-            ->selectRaw("date(created_at) as day, COUNT(*) as total")
-            ->where('poll_id', $poll->id)
-            ->groupBy('day')
-            ->orderBy('day')
-            ->get()
-            ->map(fn ($row) => ['day' => $row->day, 'total' => (int) $row->total])
-            ->all();
-
-        $segment = PollVote::query()
-            ->selectRaw("voter_type, COUNT(*) as total")
-            ->where('poll_id', $poll->id)
-            ->groupBy('voter_type')
-            ->pluck('total', 'voter_type');
-
-        $this->chartData = [
-            'poll' => [
-                'id' => $poll->id,
-                'question' => $poll->question,
-                'visibility' => $poll->visibility->value,
-                'status' => $poll->status->value,
-            ],
-            'totals' => [
-                'totalVotes' => $totalVotes,
-                'members' => (int) ($segment['member'] ?? 0),
-                'guests' => (int) ($segment['guest'] ?? 0),
-            ],
-            'options' => [
-                'labels' => $optionLabels,
-                'total' => $optionTotals,
-                'members' => $optionMembers,
-                'guests' => $optionGuests,
-            ],
-            'timeline' => $timeline,
-        ];
+        $this->chartData = $poll->buildChartData();
 
         $this->dispatch('poll-results-updated', data: $this->chartData);
     }
@@ -356,8 +291,7 @@ class UmfrageVerwaltung extends Component
     public function render()
     {
         $polls = Poll::query()
-            ->orderByRaw("CASE status WHEN 'active' THEN 0 WHEN 'draft' THEN 1 ELSE 2 END")
-            ->orderByDesc('id')
+            ->orderForAdminIndex()
             ->get(['id', 'question', 'status']);
 
         return view('livewire.umfragen.umfrage-verwaltung', [

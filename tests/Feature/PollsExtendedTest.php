@@ -11,18 +11,20 @@ use App\Livewire\Umfragen\UmfrageVote;
 use App\Models\Poll;
 use App\Models\PollOption;
 use App\Models\PollVote;
-use App\Models\Team;
 use App\Models\User;
+use App\Services\Polls\PollVotingService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Livewire\Livewire;
+use Tests\Concerns\CreatesUserWithRole;
 use Tests\TestCase;
 
 class PollsExtendedTest extends TestCase
 {
     use RefreshDatabase;
+    use CreatesUserWithRole;
 
     public function test_umfrage_vote_shows_message_when_no_active_poll(): void
     {
@@ -34,7 +36,7 @@ class PollsExtendedTest extends TestCase
     {
         $creator = User::factory()->create();
 
-        Poll::query()->create([
+        $poll = Poll::query()->create([
             'question' => 'Schon vorbei?',
             'menu_label' => 'Beendete Umfrage',
             'visibility' => PollVisibility::Public,
@@ -43,6 +45,12 @@ class PollsExtendedTest extends TestCase
             'ends_at' => now()->subDay(),
             'activated_at' => now()->subDays(2),
             'created_by_user_id' => $creator->id,
+        ]);
+
+        PollOption::query()->create([
+            'poll_id' => $poll->id,
+            'label' => 'Ja',
+            'sort_order' => 0,
         ]);
 
         Livewire::test(UmfrageVote::class)
@@ -54,7 +62,7 @@ class PollsExtendedTest extends TestCase
     {
         $creator = User::factory()->create();
 
-        Poll::query()->create([
+        $poll = Poll::query()->create([
             'question' => 'Intern?',
             'menu_label' => 'Interne Umfrage',
             'visibility' => PollVisibility::Internal,
@@ -63,6 +71,12 @@ class PollsExtendedTest extends TestCase
             'ends_at' => now()->addHour(),
             'activated_at' => now(),
             'created_by_user_id' => $creator->id,
+        ]);
+
+        PollOption::query()->create([
+            'poll_id' => $poll->id,
+            'label' => 'Ja',
+            'sort_order' => 0,
         ]);
 
         Livewire::test(UmfrageVote::class)
@@ -74,7 +88,7 @@ class PollsExtendedTest extends TestCase
     {
         $creator = User::factory()->create();
 
-        Poll::query()->create([
+        $poll = Poll::query()->create([
             'question' => 'Nur Mitglieder?',
             'menu_label' => 'Mitgliederumfrage',
             'visibility' => PollVisibility::Internal,
@@ -83,6 +97,12 @@ class PollsExtendedTest extends TestCase
             'ends_at' => now()->addHour(),
             'activated_at' => now(),
             'created_by_user_id' => $creator->id,
+        ]);
+
+        PollOption::query()->create([
+            'poll_id' => $poll->id,
+            'label' => 'Ja',
+            'sort_order' => 0,
         ]);
 
         $user = User::factory()->create();
@@ -330,9 +350,9 @@ class PollsExtendedTest extends TestCase
         // First vote succeeds.
         app(\App\Services\Polls\PollVotingService::class)->vote($poll, $option, null, $ipHash);
 
-        // Hammer the endpoint until rate limiter triggers.
+        // Hammer the endpoint until rate limiter triggers (keep this aligned with PollVotingService defaults).
         $last = null;
-        for ($i = 0; $i < 15; $i++) {
+        for ($i = 0; $i < (PollVotingService::PUBLIC_VOTE_RATE_LIMIT_MAX_ATTEMPTS + 5); $i++) {
             try {
                 app(\App\Services\Polls\PollVotingService::class)->vote($poll, $option, null, $ipHash);
             } catch (ValidationException $e) {
@@ -344,6 +364,26 @@ class PollsExtendedTest extends TestCase
         $errors = $last->errors();
         $this->assertNotEmpty($errors);
         $this->assertStringContainsString('Zu viele Versuche', $errors['poll'][0] ?? '');
+    }
+
+    public function test_active_poll_without_options_is_not_votable(): void
+    {
+        $creator = User::factory()->create();
+
+        Poll::query()->create([
+            'question' => 'Ohne Optionen? ',
+            'menu_label' => 'Ohne Optionen',
+            'visibility' => PollVisibility::Public,
+            'status' => PollStatus::Active,
+            'starts_at' => now()->subHour(),
+            'ends_at' => now()->addHour(),
+            'activated_at' => now(),
+            'created_by_user_id' => $creator->id,
+        ]);
+
+        Livewire::test(UmfrageVote::class)
+            ->assertSet('canVote', false)
+            ->assertSee('keine Antwortmöglichkeiten');
     }
 
     public function test_admin_results_chart_data_is_populated(): void
@@ -392,17 +432,4 @@ class PollsExtendedTest extends TestCase
             ->assertSet('chartData.options.total.1', 1);
     }
 
-    private function createUserWithRole(Role $role): User
-    {
-        $team = Team::membersTeam();
-
-        if (! $team) {
-            $team = Team::factory()->create(['name' => 'Mitglieder']);
-        }
-
-        $user = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($user, ['role' => $role->value]);
-
-        return $user;
-    }
 }

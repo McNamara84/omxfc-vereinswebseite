@@ -32,6 +32,13 @@ class UmfrageVote extends Component
 
         $this->pollId = $poll->id;
 
+        $poll->loadMissing('options');
+        if ($poll->options->isEmpty()) {
+            $this->statusMessage = 'Diese Umfrage hat keine Antwortmöglichkeiten.';
+            $this->canVote = false;
+            return;
+        }
+
         if (! $poll->isWithinVotingWindow()) {
             if ($poll->starts_at && now()->lt($poll->starts_at)) {
                 $this->statusMessage = 'Diese Umfrage ist noch nicht gestartet.';
