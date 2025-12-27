@@ -13,7 +13,7 @@ class FixMissionMarsEnumMigrationTest extends TestCase
     use RefreshDatabase;
 
     /** @test */
-    public function migration_updates_mission_mars_value_in_sqlite(): void
+    public function test_migration_updates_mission_mars_value_in_sqlite(): void
     {
         // This test runs with SQLite (as configured in phpunit.xml)
         $this->assertEquals('sqlite', DB::connection()->getDriverName());
@@ -52,7 +52,7 @@ class FixMissionMarsEnumMigrationTest extends TestCase
     }
 
     /** @test */
-    public function books_table_accepts_all_book_type_enum_values(): void
+    public function test_books_table_accepts_all_book_type_enum_values(): void
     {
         $bookTypes = [
             'Maddrax - Die dunkle Zukunft der Erde',
@@ -81,7 +81,7 @@ class FixMissionMarsEnumMigrationTest extends TestCase
     }
 
     /** @test */
-    public function book_type_enum_matches_database_values(): void
+    public function test_book_type_enum_matches_database_values(): void
     {
         $enumValues = [
             \App\Enums\BookType::MaddraxDieDunkleZukunftDerErde->value,

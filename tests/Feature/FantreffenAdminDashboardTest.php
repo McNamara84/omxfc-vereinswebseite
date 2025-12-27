@@ -30,7 +30,7 @@ class FantreffenAdminDashboardTest extends TestCase
     }
 
     /** @test */
-    public function admin_dashboard_is_accessible_for_admin()
+    public function test_admin_dashboard_is_accessible_for_admin()
     {
         $admin = $this->createUserWithRole(Role::Admin);
         $this->actingAs($admin);
@@ -42,7 +42,7 @@ class FantreffenAdminDashboardTest extends TestCase
     }
 
     /** @test */
-    public function admin_dashboard_is_accessible_for_vorstand()
+    public function test_admin_dashboard_is_accessible_for_vorstand()
     {
         $vorstand = $this->createUserWithRole(Role::Vorstand);
         $this->actingAs($vorstand);
@@ -53,7 +53,7 @@ class FantreffenAdminDashboardTest extends TestCase
     }
 
     /** @test */
-    public function admin_dashboard_is_accessible_for_kassenwart()
+    public function test_admin_dashboard_is_accessible_for_kassenwart()
     {
         $kassenwart = $this->createUserWithRole(Role::Kassenwart);
         $this->actingAs($kassenwart);
@@ -64,7 +64,7 @@ class FantreffenAdminDashboardTest extends TestCase
     }
 
     /** @test */
-    public function admin_dashboard_is_not_accessible_for_regular_member()
+    public function test_admin_dashboard_is_not_accessible_for_regular_member()
     {
         $member = $this->createUserWithRole(Role::Mitglied);
         $this->actingAs($member);
@@ -75,7 +75,7 @@ class FantreffenAdminDashboardTest extends TestCase
     }
 
     /** @test */
-    public function admin_dashboard_is_not_accessible_for_guests()
+    public function test_admin_dashboard_is_not_accessible_for_guests()
     {
         $response = $this->get('/admin/fantreffen-2026');
 
@@ -83,7 +83,7 @@ class FantreffenAdminDashboardTest extends TestCase
     }
 
     /** @test */
-    public function admin_dashboard_displays_all_registrations()
+    public function test_admin_dashboard_displays_all_registrations()
     {
         $admin = $this->createUserWithRole(Role::Admin);
         $this->actingAs($admin);
@@ -118,7 +118,7 @@ class FantreffenAdminDashboardTest extends TestCase
     }
 
     /** @test */
-    public function admin_dashboard_shows_correct_statistics()
+    public function test_admin_dashboard_shows_correct_statistics()
     {
         $admin = $this->createUserWithRole(Role::Admin);
         $this->actingAs($admin);
@@ -172,7 +172,7 @@ class FantreffenAdminDashboardTest extends TestCase
     }
 
     /** @test */
-    public function admin_can_mark_member_registration_as_orga_team_and_make_it_free()
+    public function test_admin_can_mark_member_registration_as_orga_team_and_make_it_free()
     {
         $admin = $this->createUserWithRole(Role::Admin);
         $this->actingAs($admin);
@@ -202,7 +202,7 @@ class FantreffenAdminDashboardTest extends TestCase
     }
 
     /** @test */
-    public function removing_orga_team_status_recalculates_member_payment()
+    public function test_removing_orga_team_status_recalculates_member_payment()
     {
         $admin = $this->createUserWithRole(Role::Admin);
         $this->actingAs($admin);
@@ -232,7 +232,7 @@ class FantreffenAdminDashboardTest extends TestCase
     }
 
     /** @test */
-    public function guests_cannot_be_marked_as_orga_team()
+    public function test_guests_cannot_be_marked_as_orga_team()
     {
         $admin = $this->createUserWithRole(Role::Admin);
         $this->actingAs($admin);
@@ -259,7 +259,7 @@ class FantreffenAdminDashboardTest extends TestCase
     }
 
     /** @test */
-    public function admin_can_filter_by_member_status()
+    public function test_admin_can_filter_by_member_status()
     {
         $admin = $this->createUserWithRole(Role::Admin);
         
@@ -296,7 +296,7 @@ class FantreffenAdminDashboardTest extends TestCase
     }
 
     /** @test */
-    public function admin_can_filter_by_tshirt_status()
+    public function test_admin_can_filter_by_tshirt_status()
     {
         $admin = $this->createUserWithRole(Role::Admin);
 
@@ -329,7 +329,7 @@ class FantreffenAdminDashboardTest extends TestCase
     }
 
     /** @test */
-    public function admin_can_search_by_name()
+    public function test_admin_can_search_by_name()
     {
         $admin = $this->createUserWithRole(Role::Admin);
 
@@ -361,7 +361,7 @@ class FantreffenAdminDashboardTest extends TestCase
     }
 
     /** @test */
-    public function admin_can_toggle_zahlungseingang()
+    public function test_admin_can_toggle_zahlungseingang()
     {
         $admin = $this->createUserWithRole(Role::Admin);
 
@@ -393,7 +393,7 @@ class FantreffenAdminDashboardTest extends TestCase
     }
 
     /** @test */
-    public function admin_can_toggle_tshirt_fertig()
+    public function test_admin_can_toggle_tshirt_fertig()
     {
         $admin = $this->createUserWithRole(Role::Admin);
 
@@ -418,7 +418,7 @@ class FantreffenAdminDashboardTest extends TestCase
     }
 
     /** @test */
-    public function admin_can_export_csv()
+    public function test_admin_can_export_csv()
     {
         $admin = $this->createUserWithRole(Role::Admin);
 
@@ -448,7 +448,7 @@ class FantreffenAdminDashboardTest extends TestCase
     }
 
     /** @test */
-    public function admin_dashboard_paginates_results()
+    public function test_admin_dashboard_paginates_results()
     {
         $admin = $this->createUserWithRole(Role::Admin);
 
@@ -477,7 +477,7 @@ class FantreffenAdminDashboardTest extends TestCase
     }
 
     /** @test */
-    public function admin_can_delete_registration()
+    public function test_admin_can_delete_registration()
     {
         $admin = $this->createUserWithRole(Role::Admin);
 
@@ -501,7 +501,7 @@ class FantreffenAdminDashboardTest extends TestCase
     }
 
     /** @test */
-    public function vorstand_can_delete_registration()
+    public function test_vorstand_can_delete_registration()
     {
         $vorstand = $this->createUserWithRole(Role::Vorstand);
 
@@ -523,7 +523,7 @@ class FantreffenAdminDashboardTest extends TestCase
     }
 
     /** @test */
-    public function kassenwart_can_delete_registration()
+    public function test_kassenwart_can_delete_registration()
     {
         $kassenwart = $this->createUserWithRole(Role::Kassenwart);
 

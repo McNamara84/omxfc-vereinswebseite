@@ -16,7 +16,7 @@ class FantreffenTshirtDeadlineTest extends TestCase
     use RefreshDatabase;
 
     /** @test */
-    public function tshirt_deadline_is_read_from_config()
+    public function test_tshirt_deadline_is_read_from_config()
     {
         // Verify the config key exists and has a valid format
         $deadline = config('services.fantreffen.tshirt_deadline');
@@ -29,7 +29,7 @@ class FantreffenTshirtDeadlineTest extends TestCase
     }
 
     /** @test */
-    public function tshirt_section_is_visible_before_deadline()
+    public function test_tshirt_section_is_visible_before_deadline()
     {
         // Set deadline to future
         Config::set('services.fantreffen.tshirt_deadline', Carbon::now()->addDays(30)->format('Y-m-d H:i:s'));
@@ -40,7 +40,7 @@ class FantreffenTshirtDeadlineTest extends TestCase
     }
 
     /** @test */
-    public function tshirt_section_is_hidden_after_deadline()
+    public function test_tshirt_section_is_hidden_after_deadline()
     {
         // Set deadline to past
         Config::set('services.fantreffen.tshirt_deadline', Carbon::now()->subDays(1)->format('Y-m-d H:i:s'));
@@ -51,7 +51,7 @@ class FantreffenTshirtDeadlineTest extends TestCase
     }
 
     /** @test */
-    public function days_until_deadline_is_calculated_correctly()
+    public function test_days_until_deadline_is_calculated_correctly()
     {
         // Set deadline to 10 days from now at end of day
         $deadline = Carbon::now()->addDays(10)->endOfDay();
@@ -67,7 +67,7 @@ class FantreffenTshirtDeadlineTest extends TestCase
     }
 
     /** @test */
-    public function days_until_deadline_is_zero_when_deadline_passed()
+    public function test_days_until_deadline_is_zero_when_deadline_passed()
     {
         // Set deadline to past
         Config::set('services.fantreffen.tshirt_deadline', Carbon::now()->subDays(5)->format('Y-m-d H:i:s'));
@@ -78,7 +78,7 @@ class FantreffenTshirtDeadlineTest extends TestCase
     }
 
     /** @test */
-    public function formatted_deadline_is_displayed_correctly()
+    public function test_formatted_deadline_is_displayed_correctly()
     {
         // Set a specific deadline
         Config::set('services.fantreffen.tshirt_deadline', '2026-02-28 23:59:59');
@@ -88,7 +88,7 @@ class FantreffenTshirtDeadlineTest extends TestCase
     }
 
     /** @test */
-    public function livewire_component_provides_correct_deadline_data_before_deadline()
+    public function test_livewire_component_provides_correct_deadline_data_before_deadline()
     {
         // Set deadline to 15 days from now at end of day to ensure consistent calculation
         $deadline = Carbon::now()->addDays(15)->endOfDay();
@@ -105,7 +105,7 @@ class FantreffenTshirtDeadlineTest extends TestCase
     }
 
     /** @test */
-    public function livewire_component_provides_correct_deadline_data_after_deadline()
+    public function test_livewire_component_provides_correct_deadline_data_after_deadline()
     {
         // Set deadline to past
         Config::set('services.fantreffen.tshirt_deadline', Carbon::now()->subDays(5)->format('Y-m-d H:i:s'));
@@ -116,7 +116,7 @@ class FantreffenTshirtDeadlineTest extends TestCase
     }
 
     /** @test */
-    public function controller_passes_deadline_data_to_view_before_deadline()
+    public function test_controller_passes_deadline_data_to_view_before_deadline()
     {
         // Set deadline to future at end of day
         $deadline = Carbon::now()->addDays(20)->endOfDay();
@@ -135,7 +135,7 @@ class FantreffenTshirtDeadlineTest extends TestCase
     }
 
     /** @test */
-    public function controller_passes_deadline_data_to_view_after_deadline()
+    public function test_controller_passes_deadline_data_to_view_after_deadline()
     {
         // Set deadline to past
         Config::set('services.fantreffen.tshirt_deadline', Carbon::now()->subDays(5)->format('Y-m-d H:i:s'));
@@ -148,7 +148,7 @@ class FantreffenTshirtDeadlineTest extends TestCase
     }
 
     /** @test */
-    public function livewire_component_prevents_tshirt_order_after_deadline()
+    public function test_livewire_component_prevents_tshirt_order_after_deadline()
     {
         // Set deadline to past
         Config::set('services.fantreffen.tshirt_deadline', Carbon::now()->subDays(1)->format('Y-m-d H:i:s'));
@@ -164,7 +164,7 @@ class FantreffenTshirtDeadlineTest extends TestCase
     }
 
     /** @test */
-    public function controller_prevents_tshirt_order_after_deadline()
+    public function test_controller_prevents_tshirt_order_after_deadline()
     {
         Mail::fake();
         
@@ -184,7 +184,7 @@ class FantreffenTshirtDeadlineTest extends TestCase
     }
 
     /** @test */
-    public function controller_allows_registration_without_tshirt_after_deadline()
+    public function test_controller_allows_registration_without_tshirt_after_deadline()
     {
         Mail::fake();
         
@@ -211,7 +211,7 @@ class FantreffenTshirtDeadlineTest extends TestCase
     }
 
     /** @test */
-    public function aria_alert_is_added_when_deadline_is_near()
+    public function test_aria_alert_is_added_when_deadline_is_near()
     {
         // Set deadline to 5 days from now (within 7-day threshold)
         Config::set('services.fantreffen.tshirt_deadline', Carbon::now()->addDays(5)->format('Y-m-d H:i:s'));
@@ -221,7 +221,7 @@ class FantreffenTshirtDeadlineTest extends TestCase
     }
 
     /** @test */
-    public function aria_alert_is_not_added_when_deadline_is_far()
+    public function test_aria_alert_is_not_added_when_deadline_is_far()
     {
         // Set deadline to 30 days from now (beyond 7-day threshold)
         Config::set('services.fantreffen.tshirt_deadline', Carbon::now()->addDays(30)->format('Y-m-d H:i:s'));
@@ -237,7 +237,7 @@ class FantreffenTshirtDeadlineTest extends TestCase
     }
 
     /** @test */
-    public function deadline_service_correctly_calculates_alert_threshold()
+    public function test_deadline_service_correctly_calculates_alert_threshold()
     {
         // Test at exactly 7 days (end of day) - should show alert
         Config::set('services.fantreffen.tshirt_deadline', Carbon::now()->addDays(7)->endOfDay()->format('Y-m-d H:i:s'));
