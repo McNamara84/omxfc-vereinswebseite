@@ -191,7 +191,7 @@
                                 multiple
                                 accept="image/*"
                                 @class([
-                                    'w-full rounded bg-gray-50 dark:bg-gray-700 border text-gray-800 dark:text-gray-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#8B0116] dark:focus-visible:ring-[#FF6B81]',
+                                    'w-full px-3 py-2 rounded bg-gray-50 dark:bg-gray-700 border text-gray-800 dark:text-gray-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#8B0116] dark:focus-visible:ring-[#FF6B81]',
                                     'border-red-500 focus-visible:ring-red-500 dark:border-red-500' => $photosErrorMessage,
                                     'border-gray-300 dark:border-gray-600' => !$photosErrorMessage,
                                 ])
