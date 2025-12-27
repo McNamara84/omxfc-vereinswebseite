@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1766821686">
-  <project timestamp="1766821686" name="Clover Coverage">
+<coverage generated="1766833803">
+  <project timestamp="1766833803" name="Clover Coverage">
     <package name="App\Actions\Fortify">
       <file name="/home/runner/work/omxfc-vereinswebseite/omxfc-vereinswebseite/app/Actions/Fortify/CreateNewUser.php">
         <class name="App\Actions\Fortify\CreateNewUser" namespace="App\Actions\Fortify">
@@ -1163,6 +1163,12 @@
         <line num="20" type="stmt" count="24"/>
         <metrics loc="23" ncloc="23" classes="1" methods="1" coveredmethods="1" conditionals="0" coveredconditionals="0" statements="1" coveredstatements="1" elements="2" coveredelements="2"/>
       </file>
+      <file name="/home/runner/work/omxfc-vereinswebseite/omxfc-vereinswebseite/app/Enums/BookType.php">
+        <class name="App\Enums\BookType" namespace="App\Enums">
+          <metrics complexity="0" methods="0" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="0" coveredstatements="0" elements="0" coveredelements="0"/>
+        </class>
+        <metrics loc="14" ncloc="14" classes="0" methods="0" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="0" coveredstatements="0" elements="0" coveredelements="0"/>
+      </file>
       <file name="/home/runner/work/omxfc-vereinswebseite/omxfc-vereinswebseite/app/Enums/KassenbuchEntryType.php">
         <class name="App\Enums\KassenbuchEntryType" namespace="App\Enums">
           <metrics complexity="1" methods="1" coveredmethods="1" conditionals="0" coveredconditionals="0" statements="1" coveredstatements="1" elements="2" coveredelements="2"/>
@@ -1170,6 +1176,24 @@
         <line num="10" type="method" name="values" visibility="public" complexity="1" crap="1" count="8"/>
         <line num="12" type="stmt" count="8"/>
         <metrics loc="15" ncloc="15" classes="1" methods="1" coveredmethods="1" conditionals="0" coveredconditionals="0" statements="1" coveredstatements="1" elements="2" coveredelements="2"/>
+      </file>
+      <file name="/home/runner/work/omxfc-vereinswebseite/omxfc-vereinswebseite/app/Enums/PollStatus.php">
+        <class name="App\Enums\PollStatus" namespace="App\Enums">
+          <metrics complexity="0" methods="0" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="0" coveredstatements="0" elements="0" coveredelements="0"/>
+        </class>
+        <metrics loc="11" ncloc="11" classes="0" methods="0" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="0" coveredstatements="0" elements="0" coveredelements="0"/>
+      </file>
+      <file name="/home/runner/work/omxfc-vereinswebseite/omxfc-vereinswebseite/app/Enums/PollVisibility.php">
+        <class name="App\Enums\PollVisibility" namespace="App\Enums">
+          <metrics complexity="0" methods="0" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="0" coveredstatements="0" elements="0" coveredelements="0"/>
+        </class>
+        <metrics loc="10" ncloc="10" classes="0" methods="0" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="0" coveredstatements="0" elements="0" coveredelements="0"/>
+      </file>
+      <file name="/home/runner/work/omxfc-vereinswebseite/omxfc-vereinswebseite/app/Enums/Role.php">
+        <class name="App\Enums\Role" namespace="App\Enums">
+          <metrics complexity="0" methods="0" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="0" coveredstatements="0" elements="0" coveredelements="0"/>
+        </class>
+        <metrics loc="15" ncloc="15" classes="0" methods="0" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="0" coveredstatements="0" elements="0" coveredelements="0"/>
       </file>
       <file name="/home/runner/work/omxfc-vereinswebseite/omxfc-vereinswebseite/app/Enums/TodoStatus.php">
         <class name="App\Enums\TodoStatus" namespace="App\Enums">
@@ -1180,18 +1204,6 @@
         <metrics loc="17" ncloc="17" classes="1" methods="1" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="1" coveredstatements="0" elements="2" coveredelements="0"/>
       </file>
     </package>
-    <file name="/home/runner/work/omxfc-vereinswebseite/omxfc-vereinswebseite/app/Enums/BookType.php">
-      <metrics loc="14" ncloc="14" classes="0" methods="0" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="0" coveredstatements="0" elements="0" coveredelements="0"/>
-    </file>
-    <file name="/home/runner/work/omxfc-vereinswebseite/omxfc-vereinswebseite/app/Enums/PollStatus.php">
-      <metrics loc="11" ncloc="11" classes="0" methods="0" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="0" coveredstatements="0" elements="0" coveredelements="0"/>
-    </file>
-    <file name="/home/runner/work/omxfc-vereinswebseite/omxfc-vereinswebseite/app/Enums/PollVisibility.php">
-      <metrics loc="10" ncloc="10" classes="0" methods="0" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="0" coveredstatements="0" elements="0" coveredelements="0"/>
-    </file>
-    <file name="/home/runner/work/omxfc-vereinswebseite/omxfc-vereinswebseite/app/Enums/Role.php">
-      <metrics loc="15" ncloc="15" classes="0" methods="0" coveredmethods="0" conditionals="0" coveredconditionals="0" statements="0" coveredstatements="0" elements="0" coveredelements="0"/>
-    </file>
     <package name="App\Http\Controllers">
       <file name="/home/runner/work/omxfc-vereinswebseite/omxfc-vereinswebseite/app/Http/Controllers/AdminController.php">
         <class name="App\Http\Controllers\AdminController" namespace="App\Http\Controllers">
@@ -3010,15 +3022,15 @@
         <line num="152" type="stmt" count="13"/>
         <line num="153" type="stmt" count="13"/>
         <line num="155" type="stmt" count="13"/>
-        <line num="156" type="stmt" count="9"/>
-        <line num="157" type="stmt" count="9"/>
-        <line num="158" type="stmt" count="9"/>
-        <line num="159" type="stmt" count="9"/>
-        <line num="160" type="stmt" count="9"/>
-        <line num="161" type="stmt" count="9"/>
-        <line num="162" type="stmt" count="9"/>
-        <line num="163" type="stmt" count="9"/>
-        <line num="165" type="stmt" count="9"/>
+        <line num="156" type="stmt" count="11"/>
+        <line num="157" type="stmt" count="11"/>
+        <line num="158" type="stmt" count="11"/>
+        <line num="159" type="stmt" count="11"/>
+        <line num="160" type="stmt" count="11"/>
+        <line num="161" type="stmt" count="11"/>
+        <line num="162" type="stmt" count="11"/>
+        <line num="163" type="stmt" count="11"/>
+        <line num="165" type="stmt" count="11"/>
         <line num="166" type="stmt" count="1"/>
         <line num="167" type="stmt" count="1"/>
         <line num="168" type="stmt" count="1"/>
@@ -3029,15 +3041,15 @@
         <line num="177" type="stmt" count="13"/>
         <line num="178" type="stmt" count="13"/>
         <line num="180" type="stmt" count="13"/>
-        <line num="181" type="stmt" count="11"/>
-        <line num="182" type="stmt" count="11"/>
-        <line num="183" type="stmt" count="11"/>
-        <line num="184" type="stmt" count="11"/>
-        <line num="185" type="stmt" count="11"/>
-        <line num="186" type="stmt" count="11"/>
-        <line num="187" type="stmt" count="11"/>
-        <line num="188" type="stmt" count="11"/>
-        <line num="190" type="stmt" count="11"/>
+        <line num="181" type="stmt" count="2"/>
+        <line num="182" type="stmt" count="2"/>
+        <line num="183" type="stmt" count="2"/>
+        <line num="184" type="stmt" count="2"/>
+        <line num="185" type="stmt" count="2"/>
+        <line num="186" type="stmt" count="2"/>
+        <line num="187" type="stmt" count="2"/>
+        <line num="188" type="stmt" count="2"/>
+        <line num="190" type="stmt" count="2"/>
         <line num="191" type="stmt" count="1"/>
         <line num="192" type="stmt" count="1"/>
         <line num="193" type="stmt" count="1"/>
@@ -5197,8 +5209,8 @@
         <line num="49" type="stmt" count="7"/>
         <line num="51" type="stmt" count="7"/>
         <line num="52" type="stmt" count="7"/>
-        <line num="53" type="stmt" count="5"/>
-        <line num="54" type="stmt" count="5"/>
+        <line num="53" type="stmt" count="7"/>
+        <line num="54" type="stmt" count="7"/>
         <line num="55" type="stmt" count="7"/>
         <line num="56" type="stmt" count="7"/>
         <line num="58" type="stmt" count="7"/>
@@ -6890,14 +6902,14 @@
         </class>
         <line num="15" type="method" name="loadData" visibility="public" complexity="5" crap="5.31" count="23"/>
         <line num="17" type="stmt" count="23"/>
-        <line num="20" type="stmt" count="8"/>
-        <line num="21" type="stmt" count="7"/>
-        <line num="22" type="stmt" count="7"/>
-        <line num="25" type="stmt" count="7"/>
+        <line num="20" type="stmt" count="7"/>
+        <line num="21" type="stmt" count="6"/>
+        <line num="22" type="stmt" count="6"/>
+        <line num="25" type="stmt" count="6"/>
         <line num="26" type="stmt" count="1"/>
         <line num="27" type="stmt" count="1"/>
         <line num="30" type="stmt" count="1"/>
-        <line num="31" type="stmt" count="8"/>
+        <line num="31" type="stmt" count="7"/>
         <line num="33" type="stmt" count="0"/>
         <line num="34" type="stmt" count="0"/>
         <line num="35" type="stmt" count="0"/>
@@ -6932,7 +6944,7 @@
         <line num="90" type="stmt" count="8"/>
         <line num="91" type="stmt" count="8"/>
         <line num="93" type="stmt" count="8"/>
-        <line num="94" type="stmt" count="6"/>
+        <line num="94" type="stmt" count="8"/>
         <line num="95" type="stmt" count="8"/>
         <line num="99" type="stmt" count="8"/>
         <line num="105" type="method" name="getFiguren" visibility="public" complexity="1" crap="1" count="8"/>
