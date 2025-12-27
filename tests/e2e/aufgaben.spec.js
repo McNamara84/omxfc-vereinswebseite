@@ -59,13 +59,30 @@ test.describe('Aufgaben (Mobile)', () => {
         await expect(filterDetails).not.toHaveAttribute('open');
         await expect(filterSummary).toBeVisible();
 
-        await expectHeadingsInDomOrder(page, [
+        const orderedHeadings = [
             'Zu verifizierende Challenges',
             'In Bearbeitung befindliche Challenges',
             'Deine Challenges',
             'Offene Challenges',
             'Vereins-Dashboard',
-        ]);
+        ];
+
+        // Nicht alle Abschnitte sind garantiert gerendert (abhängig von Seed-Daten).
+        // Diese drei sollten aber immer da sein.
+        await expect(page.getByRole('heading', { level: 2, name: 'Deine Challenges', exact: true })).toBeVisible();
+        await expect(page.getByRole('heading', { level: 2, name: 'Offene Challenges', exact: true })).toBeVisible();
+        await expect(page.getByRole('heading', { level: 2, name: 'Vereins-Dashboard', exact: true })).toBeVisible();
+
+        const existingHeadings = [];
+        for (const heading of orderedHeadings) {
+            // eslint-disable-next-line no-await-in-loop
+            const count = await page.getByRole('heading', { level: 2, name: heading, exact: true }).count();
+            if (count > 0) {
+                existingHeadings.push(heading);
+            }
+        }
+
+        await expectHeadingsInDomOrder(page, existingHeadings);
 
         await filterSummary.click();
         await expect(filterDetails).toHaveAttribute('open');
