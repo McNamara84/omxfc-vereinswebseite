@@ -177,6 +177,49 @@ class TodoControllerTest extends TestCase
         $response->assertSee('xl:grid-cols-4', false);
     }
 
+    public function test_index_displays_sections_in_new_order_for_admin(): void
+    {
+        $assignee = $this->actingMember();
+        $admin = $this->actingMember('Admin');
+
+        // Zu verifizierende Challenges (completed, fremder Nutzer)
+        $this->createTodo($admin, [
+            'assigned_to' => $assignee->id,
+            'status' => TodoStatus::Completed->value,
+            'completed_at' => now(),
+        ]);
+
+        // In Bearbeitung (assigned, fremder Nutzer)
+        $this->createTodo($admin, [
+            'assigned_to' => $assignee->id,
+            'status' => TodoStatus::Assigned->value,
+        ]);
+
+        // Eigene Challenges (assigned, Admin selbst)
+        $this->createTodo($admin, [
+            'assigned_to' => $admin->id,
+            'status' => TodoStatus::Assigned->value,
+        ]);
+
+        // Offene Challenges
+        $this->createTodo($admin, [
+            'status' => TodoStatus::Open->value,
+        ]);
+
+        $this->actingAs($admin);
+
+        $response = $this->get('/aufgaben');
+
+        $response->assertOk();
+        $response->assertSeeInOrder([
+            'Zu verifizierende Challenges',
+            'In Bearbeitung befindliche Challenges',
+            'Deine Challenges',
+            'Offene Challenges',
+            'Vereins-Dashboard',
+        ]);
+    }
+
     public function test_assigned_user_can_release_todo(): void
     {
         $user = $this->actingMember();
