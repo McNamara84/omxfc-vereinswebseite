@@ -1,5 +1,35 @@
 import { test, expect } from '@playwright/test';
 
+async function expectHeadingsInDomOrder(page, headings) {
+    const locators = headings.map((name) => page.getByRole('heading', { level: 2, name, exact: true }));
+
+    for (const locator of locators) {
+        await expect(locator).toBeVisible();
+    }
+
+    const handles = [];
+    for (const locator of locators) {
+        // eslint-disable-next-line no-await-in-loop
+        handles.push(await locator.elementHandle());
+    }
+
+    for (let i = 0; i < handles.length - 1; i += 1) {
+        const first = handles[i];
+        const second = handles[i + 1];
+
+        expect(first).not.toBeNull();
+        expect(second).not.toBeNull();
+
+        // eslint-disable-next-line no-await-in-loop
+        const isBefore = await page.evaluate(([a, b]) => {
+            if (!a || !b) return false;
+            return Boolean(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING);
+        }, [first, second]);
+
+        expect(isBefore).toBe(true);
+    }
+}
+
 test.describe('Aufgaben (Mobile)', () => {
     test.use({ viewport: { width: 390, height: 844 } });
 
@@ -17,30 +47,19 @@ test.describe('Aufgaben (Mobile)', () => {
         const filterSummary = page.locator('[data-todo-filter-summary]');
 
         await expect(filterDetails).toBeVisible();
-        await expect(filterDetails).not.toHaveAttribute('open', '');
+        await expect(filterDetails).not.toHaveAttribute('open');
         await expect(filterSummary).toBeVisible();
 
-        const h2Texts = await page.locator('h2').allTextContents();
-        const indexOfHeadingContaining = (needle) => h2Texts.findIndex((text) => text.includes(needle));
-
-        const pendingIndex = indexOfHeadingContaining('Zu verifizierende Challenges');
-        const inProgressIndex = indexOfHeadingContaining('In Bearbeitung befindliche Challenges');
-        const assignedIndex = indexOfHeadingContaining('Deine Challenges');
-        const openIndex = indexOfHeadingContaining('Offene Challenges');
-        const dashboardIndex = indexOfHeadingContaining('Vereins-Dashboard');
-
-        expect(pendingIndex).toBeGreaterThanOrEqual(0);
-        expect(inProgressIndex).toBeGreaterThanOrEqual(0);
-        expect(assignedIndex).toBeGreaterThanOrEqual(0);
-        expect(openIndex).toBeGreaterThanOrEqual(0);
-        expect(dashboardIndex).toBeGreaterThanOrEqual(0);
-        expect(pendingIndex).toBeLessThan(inProgressIndex);
-        expect(inProgressIndex).toBeLessThan(assignedIndex);
-        expect(assignedIndex).toBeLessThan(openIndex);
-        expect(openIndex).toBeLessThan(dashboardIndex);
+        await expectHeadingsInDomOrder(page, [
+            'Zu verifizierende Challenges',
+            'In Bearbeitung befindliche Challenges',
+            'Deine Challenges',
+            'Offene Challenges',
+            'Vereins-Dashboard',
+        ]);
 
         await filterSummary.click();
-        await expect(filterDetails).toHaveAttribute('open', '');
+        await expect(filterDetails).toHaveAttribute('open');
         await expect(page.getByRole('button', { name: 'Zu verifizieren', exact: true })).toBeVisible();
     });
 });
@@ -75,9 +94,9 @@ test('admin can filter and accept challenges', async ({ page }) => {
     // Nach dem GET-Filter ist die Seite neu geladen; der Filter ist wieder zu.
     const filterDetails = page.locator('[data-todo-filter-details]');
     await expect(filterDetails).toBeVisible();
-    await expect(filterDetails).not.toHaveAttribute('open', '');
+    await expect(filterDetails).not.toHaveAttribute('open');
     await filterSummary.click();
-    await expect(filterDetails).toHaveAttribute('open', '');
+    await expect(filterDetails).toHaveAttribute('open');
 
     const allButton = page.getByRole('button', { name: 'Alle', exact: true });
     await allButton.click();
