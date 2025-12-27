@@ -339,7 +339,7 @@ class FantreffenVipAuthorsTest extends TestCase
         $response->assertSee('Vorbehalt Autor');
         $response->assertSee('(unter Vorbehalt)');
 
-        $disclaimer = 'Einige Autor:innen haben ihre Teilnahme bereits zugesagt, andere sind noch angefragt oder haben nur vorläufig zugesagt. Bitte beachtet, dass sich die Gästeliste kurzfristig ändern kann';
+        $disclaimer = 'Einige Autor:innen haben ihre Teilnahme bereits zugesagt, andere sind noch angefragt oder haben nur vorläufig zugesagt. Bitte beachtet, dass sich die Gästeliste kurzfristig ändern kann.';
         $response->assertSee($disclaimer);
 
         $content = $response->getContent();

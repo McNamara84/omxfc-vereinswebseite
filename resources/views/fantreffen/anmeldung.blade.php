@@ -220,7 +220,7 @@
                                         @endforeach
                                     </p>
                                     <p class="text-gray-600 dark:text-gray-300 mt-2">
-                                        Einige Autor:innen haben ihre Teilnahme bereits zugesagt, andere sind noch angefragt oder haben nur vorläufig zugesagt. Bitte beachtet, dass sich die Gästeliste kurzfristig ändern kann
+                                        Einige Autor:innen haben ihre Teilnahme bereits zugesagt, andere sind noch angefragt oder haben nur vorläufig zugesagt. Bitte beachtet, dass sich die Gästeliste kurzfristig ändern kann.
                                     </p>
                                 @else
                                     <p class="text-gray-600 dark:text-gray-300">Triff deine Lieblingsautoren!</p>
