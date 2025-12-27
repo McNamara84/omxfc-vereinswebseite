@@ -45,6 +45,7 @@ describe('todoFilters utilities', () => {
     test('updateSections hides non matching sections', () => {
         document.body.innerHTML = `
             <section data-todo-section="assigned"></section>
+            <section data-todo-section="in-progress"></section>
             <section data-todo-section="open"></section>
             <section data-todo-section="pending"></section>
         `;
@@ -55,9 +56,11 @@ describe('todoFilters utilities', () => {
 
         expect(sections[0].classList.contains('hidden')).toBe(true);
         expect(sections[0].getAttribute('aria-hidden')).toBe('true');
-        expect(sections[1].classList.contains('hidden')).toBe(false);
-        expect(sections[1].getAttribute('aria-hidden')).toBe('false');
-        expect(sections[2].classList.contains('hidden')).toBe(true);
+        expect(sections[1].classList.contains('hidden')).toBe(true);
+        expect(sections[1].getAttribute('aria-hidden')).toBe('true');
+        expect(sections[2].classList.contains('hidden')).toBe(false);
+        expect(sections[2].getAttribute('aria-hidden')).toBe('false');
+        expect(sections[3].classList.contains('hidden')).toBe(true);
     });
 
     test('initTodoFilters wires listeners and updates status message', () => {

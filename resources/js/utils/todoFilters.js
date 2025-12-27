@@ -28,6 +28,14 @@ export function getFilterMessage(filter) {
     return FILTER_MESSAGES[key];
 }
 
+function normaliseSectionKey(sectionKey) {
+    if (typeof sectionKey !== 'string') {
+        return '';
+    }
+
+    return sectionKey.trim().toLowerCase();
+}
+
 export function updateButtons(buttons, filter) {
     const activeFilter = normaliseFilter(filter);
 
@@ -53,7 +61,7 @@ export function updateSections(sections, filter) {
             return;
         }
 
-        const sectionKey = normaliseFilter(section.dataset.todoSection || 'all');
+        const sectionKey = normaliseSectionKey(section.dataset.todoSection);
         const shouldShow = !allowed || allowed.has(sectionKey);
 
         section.classList.toggle('hidden', !shouldShow);
