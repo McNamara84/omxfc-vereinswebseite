@@ -72,9 +72,11 @@ class UmfrageVerwaltung extends Component
     public function addOption(): void
     {
         if (count($this->options) >= 13) {
+            $this->addError('options', 'Maximal 13 Antwortmöglichkeiten sind erlaubt.');
             return;
         }
 
+        $this->resetValidation('options');
         $this->options[] = ['label' => '', 'image_url' => null, 'link_url' => null];
     }
 
@@ -86,6 +88,10 @@ class UmfrageVerwaltung extends Component
 
         unset($this->options[$index]);
         $this->options = array_values($this->options);
+
+        if (count($this->options) < 13) {
+            $this->resetValidation('options');
+        }
     }
 
     public function selectPoll(int $pollId): void

@@ -69,7 +69,7 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
     // Umfragen verwalten (nur Admin/Vorstand)
     Route::get('/admin/umfragen', \App\Livewire\Umfragen\UmfrageVerwaltung::class)
         ->name('admin.umfragen.index')
-        ->middleware('admin-or-vorstand');
+        ->middleware('can:manage,' . \App\Models\Poll::class);
     
     // Fantreffen 2026 Admin Dashboard
     Route::get('/admin/fantreffen-2026', \App\Livewire\FantreffenAdminDashboard::class)

@@ -1,8 +1,8 @@
 <div class="py-12">
     <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-        @if ($statusMessage)
+        @if ($statusMessage || ! $canVote)
             <div id="poll-status-message" class="mb-6 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 px-4 py-3 rounded" role="status" aria-live="polite" aria-label="Statusmeldung zur Umfrage">
-                {{ $statusMessage }}
+                {{ $statusMessage ?? 'Abstimmung aktuell nicht möglich.' }}
             </div>
         @endif
 
@@ -34,7 +34,7 @@
                 @endif
 
                 <form class="mt-6" wire:submit.prevent="submit">
-                    <fieldset class="space-y-4" @disabled(! $canVote) @if($statusMessage && ! $canVote) aria-describedby="poll-status-message" @endif>
+                    <fieldset class="space-y-4" @disabled(! $canVote) @if(! $canVote) aria-describedby="poll-status-message" @endif>
                         <legend class="sr-only">Antwort auswählen</legend>
 
                         @foreach ($poll->options as $option)

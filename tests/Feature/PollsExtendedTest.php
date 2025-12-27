@@ -106,7 +106,7 @@ class PollsExtendedTest extends TestCase
             'sort_order' => 0,
         ]);
 
-        $user = User::factory()->create();
+        $user = $this->createUserWithRole(Role::Anwaerter);
 
         Livewire::actingAs($user)
             ->test(UmfrageVote::class)
@@ -368,6 +368,7 @@ class PollsExtendedTest extends TestCase
             }
         }
 
+        $this->assertNotNull($last, 'Expected ValidationException was not thrown.');
         $this->assertInstanceOf(ValidationException::class, $last);
         $errors = $last->errors();
         $this->assertNotEmpty($errors);
@@ -379,7 +380,7 @@ class PollsExtendedTest extends TestCase
         $creator = User::factory()->create();
 
         Poll::query()->create([
-            'question' => 'Ohne Optionen? ',
+            'question' => 'Ohne Optionen?',
             'menu_label' => 'Ohne Optionen',
             'visibility' => PollVisibility::Public,
             'status' => PollStatus::Active,

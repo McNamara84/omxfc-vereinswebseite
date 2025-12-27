@@ -62,8 +62,10 @@ class UmfrageVote extends Component
             try {
                 $voting->assertMemberEligible(Auth::user());
             } catch (ValidationException $e) {
-                $errors = $e->errors();
-                $this->statusMessage = $errors['poll'][0] ?? 'Diese Umfrage ist nur für Vereinsmitglieder verfügbar.';
+                $errors = method_exists($e, 'errors') ? $e->errors() : [];
+                $this->statusMessage = is_array($errors)
+                    ? ($errors['poll'][0] ?? 'Diese Umfrage ist nur für Vereinsmitglieder verfügbar.')
+                    : 'Diese Umfrage ist nur für Vereinsmitglieder verfügbar.';
                 $this->canVote = false;
                 return;
             }
@@ -75,7 +77,7 @@ class UmfrageVote extends Component
             $this->hasVoted = true;
             $this->statusMessage = $poll->visibility === PollVisibility::Internal
                 ? 'Du hast bereits an dieser Umfrage teilgenommen.'
-                : 'Von dieser IP wurde bereits abgestimmt.';
+                : PollVotingService::ERROR_ALREADY_VOTED_IP;
             $this->canVote = false;
             return;
         }

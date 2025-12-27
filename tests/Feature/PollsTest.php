@@ -152,7 +152,7 @@ class PollsTest extends TestCase
             $service->vote($poll, $option, null, $ipHash);
             $this->fail('Expected ValidationException was not thrown.');
         } catch (ValidationException $e) {
-            $this->assertStringContainsString('Von dieser IP wurde bereits abgestimmt', $e->errors()['poll'][0] ?? '');
+            $this->assertStringContainsString(PollVotingService::ERROR_ALREADY_VOTED_IP, $e->errors()['poll'][0] ?? '');
         }
     }
 

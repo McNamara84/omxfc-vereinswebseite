@@ -116,9 +116,9 @@
                             <div id="vorstand-menu" x-show="open" x-cloak class="absolute left-0 top-full mt-px w-48 bg-white dark:bg-gray-700 rounded-md shadow-lg z-50 py-2 group-hover:block" role="menu" aria-labelledby="vorstand-button">
                                 <x-dropdown-link href="{{ route('admin.statistiken.index') }}">Statistik</x-dropdown-link>
                                 <x-dropdown-link href="{{ route('admin.fantreffen.2026') }}">Anmeldungen FT</x-dropdown-link>
-                                @if(Auth::user()->hasAnyRole(\App\Enums\Role::Admin, \App\Enums\Role::Vorstand))
+                                @can('manage', \App\Models\Poll::class)
                                     <x-dropdown-link href="{{ route('admin.umfragen.index') }}">Umfrage verwalten</x-dropdown-link>
-                                @endif
+                                @endcan
                             </div>
                         </div>
                         @endif
@@ -259,9 +259,9 @@
             <div id="vorstand-mobile-menu" x-show="openMenu === 'vorstand'" x-cloak class="italic" aria-labelledby="vorstand-mobile-button">
                 <x-responsive-nav-link href="{{ route('admin.statistiken.index') }}">Statistik</x-responsive-nav-link>
                 <x-responsive-nav-link href="{{ route('admin.fantreffen.2026') }}">Anmeldungen FT</x-responsive-nav-link>
-                @if(Auth::user()->hasAnyRole(\App\Enums\Role::Admin, \App\Enums\Role::Vorstand))
+                @can('manage', \App\Models\Poll::class)
                     <x-responsive-nav-link href="{{ route('admin.umfragen.index') }}">Umfrage verwalten</x-responsive-nav-link>
-                @endif
+                @endcan
             </div>
             @endif
             @if(Auth::user()->hasRole(\App\Enums\Role::Admin))

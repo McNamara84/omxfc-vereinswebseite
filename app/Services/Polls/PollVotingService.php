@@ -19,6 +19,8 @@ class PollVotingService
     public const PUBLIC_VOTE_RATE_LIMIT_MAX_ATTEMPTS = 10;
     public const PUBLIC_VOTE_RATE_LIMIT_DECAY_SECONDS = 60;
 
+    public const ERROR_ALREADY_VOTED_IP = 'Von dieser IP wurde bereits abgestimmt.';
+
     public function assertPollAcceptsVotes(Poll $poll): void
     {
         if ($poll->status !== PollStatus::Active) {
@@ -91,8 +93,8 @@ class PollVotingService
         }
 
         // Public polls use a per-IP vote limit (hash stored, not the plain IP).
-        // Note: users behind shared IPs (e.g. corporate NAT/public WiFi) will be
-        // treated as one voter, which can block legitimate votes by design.
+        // This is an intentional anti-abuse measure. Users behind shared IPs
+        // (e.g. corporate NAT/public WiFi) will be treated as one voter.
 
         return (clone $query)->where('ip_hash', $ipHash)->exists();
     }
@@ -139,7 +141,7 @@ class PollVotingService
 
         if ($this->hasAlreadyVoted($poll, $user, $ipHash)) {
             throw ValidationException::withMessages([
-                'poll' => 'Von dieser IP wurde bereits abgestimmt.',
+                'poll' => self::ERROR_ALREADY_VOTED_IP,
             ]);
         }
 

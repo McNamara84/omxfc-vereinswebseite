@@ -8,12 +8,14 @@ $dbPath = $argv[1] ?? null;
 
 if (!is_string($dbPath) || $dbPath === '') {
     fwrite(STDERR, "Usage: php tests/e2e/sqlite3-stdin-shim.php <dbPath>\n");
+    // Exit code 2 is reserved for argument validation errors.
     exit(2);
 }
 
 $schemaSql = stream_get_contents(STDIN);
 if ($schemaSql === false) {
     fwrite(STDERR, "Failed to read SQL from STDIN.\n");
+    // Exit code 2 is reserved for argument validation errors.
     exit(2);
 }
 
@@ -21,7 +23,7 @@ $pdo = new PDO('sqlite:' . $dbPath, null, null, [
     PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
 ]);
 
-// Same tiny SQL splitter as tests/e2e/load-sqlite-schema.php
+// Same tiny SQL splitter as tests/e2e/load-sqlite-schema.php (ignores semicolons inside strings and ignores SQL comments).
 $statements = [];
 $buffer = '';
 $len = strlen($schemaSql);

@@ -6,6 +6,10 @@ const chartStore = {
     segment: null,
 };
 
+// Fallbacks used when theme colors cannot be extracted (e.g. missing CSS).
+const FALLBACK_MEMBERS_COLOR = 'rgb(79, 70, 229)';
+const FALLBACK_GUESTS_COLOR = 'rgb(75, 85, 99)';
+
 const destroyIfExists = (chart) => {
     if (chart && typeof chart.destroy === 'function') {
         chart.destroy();
@@ -68,11 +72,8 @@ const updateCharts = (data) => {
         return;
     }
 
-    const rootColor = window.getComputedStyle(document.documentElement).color;
-    const bodyColor = document.body ? window.getComputedStyle(document.body).color : null;
-    const baseColor = rootColor || bodyColor;
-    const membersColor = getThemeColor('members') ?? baseColor;
-    const guestsColor = getThemeColor('guests') ?? baseColor;
+    const membersColor = getThemeColor('members') ?? FALLBACK_MEMBERS_COLOR;
+    const guestsColor = getThemeColor('guests') ?? FALLBACK_GUESTS_COLOR;
     const membersBg = toRgba(membersColor, 0.75);
     const guestsBg = toRgba(guestsColor, 0.45);
 

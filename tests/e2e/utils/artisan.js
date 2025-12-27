@@ -15,7 +15,7 @@ function splitArgs(command) {
             if (ch === '\\' && i + 1 < command.length) {
                 const next = command[i + 1];
 
-                // Support escaped quotes/backslashes inside quoted strings, e.g. " or \\.
+                // Support escaped quotes/backslashes inside quoted strings, e.g. \" or \\.
                 if (next === quote || next === '\\') {
                     current += next;
                     i++;

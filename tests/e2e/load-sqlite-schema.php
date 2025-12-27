@@ -7,17 +7,20 @@ $schemaPath = $argv[2] ?? null;
 
 if (!is_string($dbPath) || $dbPath === '' || !is_string($schemaPath) || $schemaPath === '') {
     fwrite(STDERR, "Usage: php tests/e2e/load-sqlite-schema.php <dbPath> <schemaPath>\n");
+    // Exit code 2 is reserved for argument validation errors.
     exit(2);
 }
 
 if (!file_exists($schemaPath)) {
     fwrite(STDERR, "Schema file not found: {$schemaPath}\n");
+    // Exit code 2 is reserved for argument validation errors.
     exit(2);
 }
 
 $schemaSql = file_get_contents($schemaPath);
 if ($schemaSql === false) {
     fwrite(STDERR, "Failed to read schema file: {$schemaPath}\n");
+    // Exit code 2 is reserved for argument validation errors.
     exit(2);
 }
 
@@ -25,7 +28,7 @@ $pdo = new PDO('sqlite:' . $dbPath, null, null, [
     PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
 ]);
 
-// A tiny SQL splitter that ignores semicolons inside strings and strips comments.
+// A tiny SQL splitter that ignores semicolons inside strings and ignores SQL comments.
 $statements = [];
 $buffer = '';
 $len = strlen($schemaSql);
