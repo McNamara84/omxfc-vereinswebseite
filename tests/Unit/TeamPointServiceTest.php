@@ -9,8 +9,10 @@ use App\Services\TeamPointService;
 use Carbon\Carbon;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\CoversClass;
 use Tests\TestCase;
 
+#[CoversClass(TeamPointService::class)]
 class TeamPointServiceTest extends TestCase
 {
     use RefreshDatabase;

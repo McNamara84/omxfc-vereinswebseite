@@ -5,8 +5,10 @@ namespace Tests\Unit;
 use App\Services\RomantauschInfoProvider;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Lang;
+use PHPUnit\Framework\Attributes\CoversClass;
 use Tests\TestCase;
 
+#[CoversClass(RomantauschInfoProvider::class)]
 class RomantauschInfoProviderTest extends TestCase
 {
     use RefreshDatabase;

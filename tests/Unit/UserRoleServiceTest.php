@@ -8,8 +8,10 @@ use App\Models\User;
 use App\Services\UserRoleService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\CoversClass;
 use Tests\TestCase;
 
+#[CoversClass(UserRoleService::class)]
 class UserRoleServiceTest extends TestCase
 {
     use RefreshDatabase;

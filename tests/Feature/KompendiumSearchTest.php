@@ -57,12 +57,13 @@ class KompendiumSearchTest extends TestCase
         Storage::disk('private')->put('/cycle1/001 - ExampleTitle.txt', 'Some example content with query word');
 
         $mock = Mockery::mock();
-        $mock->shouldReceive('raw')->andReturn([
+        $mock->allows('raw')->andReturn([
             'hits' => ['total_hits' => 1],
             'ids' => ['/cycle1/001 - ExampleTitle.txt'],
         ]);
         Mockery::mock('alias:' . RomanExcerpt::class)
             ->shouldReceive('search')
+            ->once()
             ->with('example')
             ->andReturn($mock);
 
@@ -88,12 +89,13 @@ class KompendiumSearchTest extends TestCase
         Storage::fake('private');
 
         $mock = Mockery::mock();
-        $mock->shouldReceive('raw')->andReturn([
+        $mock->allows('raw')->andReturn([
             'hits' => ['total_hits' => 0],
             'ids' => [],
         ]);
         Mockery::mock('alias:' . RomanExcerpt::class)
             ->shouldReceive('search')
+            ->once()
             ->with('nomatch')
             ->andReturn($mock);
 

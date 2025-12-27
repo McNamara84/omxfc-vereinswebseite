@@ -9,6 +9,7 @@ use App\Models\Team;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
+use PHPUnit\Framework\Attributes\Test;
 use Symfony\Component\DomCrawler\Crawler;
 use Tests\TestCase;
 
@@ -30,7 +31,7 @@ class FantreffenVipAuthorsTest extends TestCase
         return $user;
     }
 
-    /** @test */
+    #[Test]
     public function test_vip_authors_page_is_accessible_for_admin(): void
     {
         $admin = $this->createUserWithRole(Role::Admin);
@@ -42,7 +43,7 @@ class FantreffenVipAuthorsTest extends TestCase
         $response->assertSeeLivewire('fantreffen-vip-authors');
     }
 
-    /** @test */
+    #[Test]
     public function test_vip_authors_page_is_accessible_for_vorstand(): void
     {
         $vorstand = $this->createUserWithRole(Role::Vorstand);
@@ -53,7 +54,7 @@ class FantreffenVipAuthorsTest extends TestCase
         $response->assertStatus(200);
     }
 
-    /** @test */
+    #[Test]
     public function test_vip_authors_page_is_accessible_for_kassenwart(): void
     {
         $kassenwart = $this->createUserWithRole(Role::Kassenwart);
@@ -64,7 +65,7 @@ class FantreffenVipAuthorsTest extends TestCase
         $response->assertStatus(200);
     }
 
-    /** @test */
+    #[Test]
     public function test_vip_authors_page_is_not_accessible_for_regular_member(): void
     {
         $member = $this->createUserWithRole(Role::Mitglied);
@@ -75,7 +76,7 @@ class FantreffenVipAuthorsTest extends TestCase
         $response->assertStatus(403);
     }
 
-    /** @test */
+    #[Test]
     public function test_vip_authors_page_is_not_accessible_for_guests(): void
     {
         $response = $this->get('/admin/fantreffen-2026/vip-autoren');
@@ -83,7 +84,7 @@ class FantreffenVipAuthorsTest extends TestCase
         $response->assertRedirect('/login');
     }
 
-    /** @test */
+    #[Test]
     public function test_admin_can_create_vip_author(): void
     {
         $admin = $this->createUserWithRole(Role::Admin);
@@ -106,7 +107,7 @@ class FantreffenVipAuthorsTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function test_admin_can_create_vip_author_with_tentative_status(): void
     {
         $admin = $this->createUserWithRole(Role::Admin);
@@ -128,7 +129,7 @@ class FantreffenVipAuthorsTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function test_admin_can_create_vip_author_without_pseudonym(): void
     {
         $admin = $this->createUserWithRole(Role::Admin);
@@ -149,7 +150,7 @@ class FantreffenVipAuthorsTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function test_admin_can_edit_vip_author(): void
     {
         $admin = $this->createUserWithRole(Role::Admin);
@@ -178,7 +179,7 @@ class FantreffenVipAuthorsTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function test_admin_can_delete_vip_author(): void
     {
         $admin = $this->createUserWithRole(Role::Admin);
@@ -203,7 +204,7 @@ class FantreffenVipAuthorsTest extends TestCase
         $this->assertEquals(1, $author3->fresh()->sort_order);
     }
 
-    /** @test */
+    #[Test]
     public function test_admin_can_toggle_active_status(): void
     {
         $admin = $this->createUserWithRole(Role::Admin);
@@ -232,7 +233,7 @@ class FantreffenVipAuthorsTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function test_move_up_swaps_positions_correctly(): void
     {
         $admin = $this->createUserWithRole(Role::Admin);
@@ -248,7 +249,7 @@ class FantreffenVipAuthorsTest extends TestCase
         $this->assertEquals(1, $author1->fresh()->sort_order);
     }
 
-    /** @test */
+    #[Test]
     public function test_move_down_swaps_positions_correctly(): void
     {
         $admin = $this->createUserWithRole(Role::Admin);
@@ -264,7 +265,7 @@ class FantreffenVipAuthorsTest extends TestCase
         $this->assertEquals(0, $author2->fresh()->sort_order);
     }
 
-    /** @test */
+    #[Test]
     public function test_move_up_at_top_does_nothing(): void
     {
         $admin = $this->createUserWithRole(Role::Admin);
@@ -278,7 +279,7 @@ class FantreffenVipAuthorsTest extends TestCase
         $this->assertEquals(0, $author->fresh()->sort_order);
     }
 
-    /** @test */
+    #[Test]
     public function test_move_down_at_bottom_does_nothing(): void
     {
         $admin = $this->createUserWithRole(Role::Admin);
@@ -292,7 +293,7 @@ class FantreffenVipAuthorsTest extends TestCase
         $this->assertEquals(0, $author->fresh()->sort_order);
     }
 
-    /** @test */
+    #[Test]
     public function test_name_is_required(): void
     {
         $admin = $this->createUserWithRole(Role::Admin);
@@ -305,7 +306,7 @@ class FantreffenVipAuthorsTest extends TestCase
             ->assertHasErrors(['name' => 'required']);
     }
 
-    /** @test */
+    #[Test]
     public function test_vip_authors_displayed_on_public_page(): void
     {
         FantreffenVipAuthor::create([
@@ -326,7 +327,7 @@ class FantreffenVipAuthorsTest extends TestCase
         $response->assertDontSee($disclaimer);
     }
 
-    /** @test */
+    #[Test]
     public function test_tentative_vip_authors_show_label_and_disclaimer_on_public_page(): void
     {
         FantreffenVipAuthor::create([
@@ -360,7 +361,7 @@ class FantreffenVipAuthorsTest extends TestCase
         }
     }
 
-    /** @test */
+    #[Test]
     public function test_inactive_vip_authors_not_displayed_on_public_page(): void
     {
         FantreffenVipAuthor::create([
@@ -376,7 +377,7 @@ class FantreffenVipAuthorsTest extends TestCase
         $response->assertDontSee('Hidden Author');
     }
 
-    /** @test */
+    #[Test]
     public function test_display_name_includes_pseudonym_when_set(): void
     {
         $author = FantreffenVipAuthor::create([
@@ -389,7 +390,7 @@ class FantreffenVipAuthorsTest extends TestCase
         $this->assertEquals('Oliver Fröhlich („Ian Rolf Hill")', $author->display_name);
     }
 
-    /** @test */
+    #[Test]
     public function test_display_name_shows_only_name_without_pseudonym(): void
     {
         $author = FantreffenVipAuthor::create([

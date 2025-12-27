@@ -7,8 +7,10 @@ use App\Models\Team;
 use App\Models\User;
 use App\Policies\KassenbuchEntryPolicy;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\CoversClass;
 use Tests\TestCase;
 
+#[CoversClass(KassenbuchEntryPolicy::class)]
 class KassenbuchEntryPolicyTest extends TestCase
 {
     use RefreshDatabase;
