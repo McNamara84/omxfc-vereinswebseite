@@ -53,6 +53,55 @@ test.describe('Mitgliederliste', () => {
         await expect(page.getByRole('button', { name: 'E-Mail-Adressen kopieren' })).toBeVisible();
     });
 
+    test('admin can copy a single member email address', async ({ page }) => {
+        await page.addInitScript(() => {
+            window.__copiedText = null;
+
+            // Fallback path in our implementation uses prompt.
+            window.prompt = (_message, value) => {
+                window.__copiedText = value;
+                return value;
+            };
+
+            // Primary path uses Clipboard API.
+            try {
+                Object.defineProperty(navigator, 'clipboard', {
+                    configurable: true,
+                    value: {
+                        writeText: async (text) => {
+                            window.__copiedText = text;
+                        },
+                    },
+                });
+            } catch {
+                // If clipboard is not configurable in a given browser, prompt stub still covers the fallback.
+            }
+        });
+
+        await login(page, 'info@maddraxikon.com');
+
+        await page.goto('/mitglieder');
+        await expect(page).toHaveURL(/\/mitglieder$/);
+
+        const firstRow = page.locator('[data-members-table] tbody tr').first();
+        await expect(firstRow).toBeVisible();
+
+        await firstRow.getByRole('button', { name: 'Info' }).click();
+        const detailsPopover = firstRow.locator('div.absolute').first();
+        await expect(detailsPopover).toBeVisible();
+
+        const email = (await detailsPopover.locator('div.text-sm').first().textContent())?.trim();
+        expect(email).toBeTruthy();
+        expect(email).toContain('@');
+
+        await firstRow.locator('[data-copy-email]').first().click();
+
+        await page.waitForFunction(() => window.__copiedText !== null);
+        const copied = await page.evaluate(() => window.__copiedText);
+
+        expect(copied).toBe(email);
+    });
+
     test('regular member sees the list without management actions', async ({ page }) => {
         await login(page, 'playwright-member@example.com');
 
@@ -65,6 +114,7 @@ test.describe('Mitgliederliste', () => {
         await expect(page.locator('[data-members-table]')).toBeVisible();
         await expect(page.getByRole('button', { name: 'CSV Export' })).toHaveCount(0);
         await expect(page.getByRole('button', { name: 'E-Mail-Adressen kopieren' })).toHaveCount(0);
+        await expect(page.locator('[data-copy-email]')).toHaveCount(0);
         await expect(page.getByRole('button', { name: 'Rolle' })).toHaveCount(0);
     });
 });
