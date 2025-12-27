@@ -105,48 +105,44 @@ describe('todoFilters utilities', () => {
         expect(statusElement.textContent).toContain('Verifizierung warten');
     });
 
-    test('initTodoFilters toggles the disclosure panel and focuses the first control', () => {
+    test('initTodoFilters does not manage the disclosure panel when using <details>/<summary>', () => {
         document.body.innerHTML = `
             <section data-todo-filter-wrapper>
-                <button type="button" data-todo-filter-toggle aria-expanded="false" aria-controls="filters"
-                    data-label-open="Filter anzeigen" data-label-close="Filter verbergen">
-                    <span data-todo-filter-toggle-text>Filter anzeigen</span>
-                </button>
-                <div id="filters" data-todo-filter-panel>
-                    <form data-todo-filter-form data-current-filter="all">
-                        <div>
-                            <button type="button" data-todo-filter data-filter="all" data-active="true"></button>
-                            <button type="button" data-todo-filter data-filter="open" data-active="false"></button>
-                        </div>
-                    </form>
-                </div>
+                <p data-todo-filter-status></p>
+                <details data-todo-filter-details>
+                    <summary data-todo-filter-summary>Filter anzeigen</summary>
+                    <div id="filters">
+                        <form data-todo-filter-form data-current-filter="all">
+                            <div>
+                                <button type="button" data-todo-filter data-filter="all" data-active="true"></button>
+                                <button type="button" data-todo-filter data-filter="open" data-active="false"></button>
+                            </div>
+                        </form>
+                    </div>
+                </details>
+                <div data-todo-section="open"></div>
+                <div data-todo-section="assigned"></div>
             </section>
         `;
 
-        const toggle = document.querySelector('[data-todo-filter-toggle]');
-        const panel = document.querySelector('[data-todo-filter-panel]');
-        const firstButton = panel.querySelector('[data-filter="all"]');
+        const details = document.querySelector('[data-todo-filter-details]');
+        const panel = document.querySelector('#filters');
+        const form = document.querySelector('[data-todo-filter-form]');
+
+        expect(details.hasAttribute('open')).toBe(false);
+        expect(panel.hasAttribute('hidden')).toBe(false);
+        expect(panel.getAttribute('aria-hidden')).toBe(null);
 
         initTodoFilters(document);
 
-        expect(toggle.getAttribute('aria-expanded')).toBe('false');
-        expect(panel.hasAttribute('hidden')).toBe(true);
-        expect(panel.getAttribute('aria-hidden')).toBe('true');
-        expect(toggle.textContent).toContain('Filter anzeigen');
-
-        toggle.dispatchEvent(new Event('click'));
-
-        expect(toggle.getAttribute('aria-expanded')).toBe('true');
+        // initTodoFilters soll das Disclosure NICHT per JS togglen.
+        expect(details.hasAttribute('open')).toBe(false);
         expect(panel.hasAttribute('hidden')).toBe(false);
-        expect(panel.getAttribute('aria-hidden')).toBe('false');
-        expect(toggle.textContent).toContain('Filter verbergen');
-        expect(document.activeElement).toBe(firstButton);
 
-        toggle.dispatchEvent(new Event('click'));
-
-        expect(toggle.getAttribute('aria-expanded')).toBe('false');
-        expect(panel.hasAttribute('hidden')).toBe(true);
-        expect(toggle.textContent).toContain('Filter anzeigen');
+        // Filter-Buttons sollen weiterhin per JS funktionieren.
+        const openButton = document.querySelector('[data-filter="open"]');
+        openButton.dispatchEvent(new Event('click', { bubbles: true }));
+        expect(form.dataset.currentFilter).toBe('open');
     });
 
     test('applyFilterState returns the active filter', () => {
