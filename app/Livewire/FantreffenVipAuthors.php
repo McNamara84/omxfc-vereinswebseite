@@ -16,6 +16,8 @@ class FantreffenVipAuthors extends Component
 
     public $is_active = true;
 
+    public $is_tentative = false;
+
     public $sort_order = 0;
 
     // Edit mode
@@ -27,6 +29,7 @@ class FantreffenVipAuthors extends Component
         'name' => 'required|string|max:255',
         'pseudonym' => 'nullable|string|max:255',
         'is_active' => 'boolean',
+        'is_tentative' => 'boolean',
         'sort_order' => 'integer|min:0',
     ];
 
@@ -58,6 +61,7 @@ class FantreffenVipAuthors extends Component
         $this->name = $author->name;
         $this->pseudonym = $author->pseudonym ?? '';
         $this->is_active = $author->is_active;
+        $this->is_tentative = (bool) $author->is_tentative;
         $this->sort_order = $author->sort_order;
         $this->showForm = true;
     }
@@ -72,6 +76,7 @@ class FantreffenVipAuthors extends Component
                 'name' => $this->name,
                 'pseudonym' => $this->pseudonym ?: null,
                 'is_active' => $this->is_active,
+                'is_tentative' => $this->is_tentative,
                 'sort_order' => $this->sort_order,
             ]);
             session()->flash('success', 'Autor erfolgreich aktualisiert.');
@@ -80,6 +85,7 @@ class FantreffenVipAuthors extends Component
                 'name' => $this->name,
                 'pseudonym' => $this->pseudonym ?: null,
                 'is_active' => $this->is_active,
+                'is_tentative' => $this->is_tentative,
                 'sort_order' => $this->sort_order,
             ]);
             session()->flash('success', 'Autor erfolgreich hinzugefügt.');
@@ -170,6 +176,7 @@ class FantreffenVipAuthors extends Component
         $this->name = '';
         $this->pseudonym = '';
         $this->is_active = true;
+        $this->is_tentative = false;
         $this->sort_order = $this->getNextSortOrder();
         $this->resetValidation();
     }

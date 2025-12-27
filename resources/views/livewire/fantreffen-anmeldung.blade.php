@@ -36,6 +36,9 @@
                                     <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
                                 </svg>
                                 {{ $author->display_name }}
+                                @if ($author->is_tentative)
+                                    <span class="ml-2 text-xs font-semibold text-amber-800 dark:text-amber-200">(unter Vorbehalt)</span>
+                                @endif
                             </span>
                         @endforeach
                     </div>
@@ -67,8 +70,13 @@
                                     <p class="text-gray-600 dark:text-gray-300">
                                         Mit dabei:
                                         @foreach ($vipAuthors as $author)
-                                            <span class="font-medium text-[#8B0116] dark:text-[#ff4b63]">{{ $author->display_name }}</span>@if (!$loop->last), @endif
+                                            <span class="font-medium text-[#8B0116] dark:text-[#ff4b63]">
+                                                {{ $author->display_name }}@if ($author->is_tentative) <span class="text-xs font-semibold">(unter Vorbehalt)</span>@endif
+                                            </span>@if (!$loop->last), @endif
                                         @endforeach
+                                    </p>
+                                    <p class="text-gray-600 dark:text-gray-300 mt-2">
+                                        Einige Autor:innen haben ihre Teilnahme bereits zugesagt, andere sind noch angefragt oder haben nur vorläufig zugesagt. Bitte beachtet, dass sich die Gästeliste kurzfristig ändern kann
                                     </p>
                                 @else
                                     <p class="text-gray-600 dark:text-gray-300">Triff deine Lieblingsautoren!</p>
