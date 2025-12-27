@@ -12,10 +12,22 @@ function splitArgs(command) {
         const ch = command[i];
 
         if (quote) {
+            if (ch === '\\' && i + 1 < command.length) {
+                const next = command[i + 1];
+
+                // Support escaped quotes/backslashes inside quoted strings, e.g. " or \\.
+                if (next === quote || next === '\\') {
+                    current += next;
+                    i++;
+                    continue;
+                }
+            }
+
             if (ch === quote) {
                 quote = null;
                 continue;
             }
+
             current += ch;
             continue;
         }

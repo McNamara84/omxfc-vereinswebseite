@@ -14,6 +14,7 @@ use App\Models\PollVote;
 use App\Models\User;
 use App\Services\Polls\PollVotingService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -347,16 +348,23 @@ class PollsExtendedTest extends TestCase
         $rateKey = 'poll-vote:' . $poll->id . ':' . $ipHash;
         RateLimiter::clear($rateKey);
 
-        // First vote succeeds.
-        app(\App\Services\Polls\PollVotingService::class)->vote($poll, $option, null, $ipHash);
-
-        // Hammer the endpoint until rate limiter triggers (keep this aligned with PollVotingService defaults).
+        // Simulate repeated submissions without persisting a vote (rollback).
+        // This keeps the "already voted" check from short-circuiting the rate limiter.
+        $service = app(PollVotingService::class);
         $last = null;
+
         for ($i = 0; $i < (PollVotingService::PUBLIC_VOTE_RATE_LIMIT_MAX_ATTEMPTS + 5); $i++) {
+            DB::beginTransaction();
             try {
-                app(\App\Services\Polls\PollVotingService::class)->vote($poll, $option, null, $ipHash);
+                $service->vote($poll, $option, null, $ipHash);
             } catch (ValidationException $e) {
                 $last = $e;
+            } finally {
+                DB::rollBack();
+            }
+
+            if ($last && str_contains(($last->errors()['poll'][0] ?? ''), 'Zu viele Versuche')) {
+                break;
             }
         }
 

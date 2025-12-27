@@ -137,6 +137,12 @@ class PollVotingService
             ]);
         }
 
+        if ($this->hasAlreadyVoted($poll, $user, $ipHash)) {
+            throw ValidationException::withMessages([
+                'poll' => 'Von dieser IP wurde bereits abgestimmt.',
+            ]);
+        }
+
         $rateKey = sprintf('poll-vote:%d:%s', $poll->id, $ipHash);
 
         if (RateLimiter::tooManyAttempts($rateKey, self::PUBLIC_VOTE_RATE_LIMIT_MAX_ATTEMPTS)) {
@@ -146,12 +152,6 @@ class PollVotingService
         }
 
         RateLimiter::hit($rateKey, self::PUBLIC_VOTE_RATE_LIMIT_DECAY_SECONDS);
-
-        if ($this->hasAlreadyVoted($poll, $user, $ipHash)) {
-            throw ValidationException::withMessages([
-                'poll' => 'Von dieser IP wurde bereits abgestimmt.',
-            ]);
-        }
 
         return PollVote::create([
             'poll_id' => $poll->id,

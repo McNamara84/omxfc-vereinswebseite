@@ -55,7 +55,7 @@
 
                                         <div id="option-{{ $option->id }}-desc" class="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-2">
                                             @if ($option->image_url)
-                                                <img src="{{ $option->image_url }}" alt="{{ $option->label }}" class="rounded-md border border-gray-200 dark:border-gray-700" loading="lazy" />
+                                                <img src="{{ $option->image_url }}" alt="{{ $option->label }}" class="rounded-md border border-gray-200 dark:border-gray-700 w-full max-h-48 object-contain" loading="lazy" decoding="async" />
                                             @endif
 
                                             @if ($option->link_url)

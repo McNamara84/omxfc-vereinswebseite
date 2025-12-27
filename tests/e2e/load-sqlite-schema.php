@@ -72,7 +72,6 @@ for ($i = 0; $i < $len; $i++) {
     // Toggle string states.
     if (!$inDouble && $ch === "'") {
         // SQLite escapes single quotes by doubling them: ''
-        $prev = $i > 0 ? $schemaSql[$i - 1] : '';
         if ($inSingle && $next === "'") {
             // Escaped quote inside string.
             $buffer .= "''";

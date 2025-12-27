@@ -114,6 +114,7 @@
                                     </div>
                                     <div class="md:col-span-3">
                                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-200">Bild-URL (optional)</label>
+                                        <p class="mt-1 text-xs text-gray-600 dark:text-gray-400">Empfohlen: querformatiges Bild (z. B. 1200×630). Große Bilder können die Seite verlangsamen.</p>
                                         <input type="url" wire:model.defer="options.{{ $index }}.image_url" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 focus:border-indigo-500 focus:ring-indigo-500" />
                                     </div>
                                     <div class="md:col-span-3">

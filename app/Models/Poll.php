@@ -136,19 +136,17 @@ class Poll extends Model
             ->groupBy('voter_type')
             ->pluck('total', 'voter_type');
 
-        $timezone = (string) config('app.timezone');
-        $timelineGroups = PollVote::query()
+        $timeline = PollVote::query()
             ->where('poll_id', $this->id)
-            ->get(['created_at'])
-            ->groupBy(fn (PollVote $vote) => $vote->created_at
-                ? $vote->created_at->timezone($timezone)->toDateString()
-                : 'unknown');
-
-        $timeline = $timelineGroups
-            ->map(fn ($votes, $day) => ['day' => $day, 'total' => (int) $votes->count()])
-            ->values()
-            ->sortBy('day')
-            ->values()
+            ->selectRaw('DATE(created_at) as day')
+            ->selectRaw('COUNT(*) as total')
+            ->groupBy('day')
+            ->orderBy('day')
+            ->get()
+            ->map(fn ($row) => [
+                'day' => (string) $row->day,
+                'total' => (int) $row->total,
+            ])
             ->all();
 
         return [

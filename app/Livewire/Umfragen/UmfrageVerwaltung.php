@@ -237,12 +237,15 @@ class UmfrageVerwaltung extends Component
             return;
         }
 
-        $poll = Poll::query()->findOrFail($this->pollId);
-        $poll->status = PollStatus::Archived;
-        $poll->archived_at = now();
-        $poll->save();
+        DB::transaction(function () {
+            $poll = Poll::query()->lockForUpdate()->findOrFail($this->pollId);
+            $poll->status = PollStatus::Archived;
+            $poll->archived_at = now();
+            $poll->save();
 
-        $this->status = $poll->status->value;
+            $this->status = $poll->status->value;
+        });
+
         $this->refreshResults();
         session()->flash('success', 'Umfrage archiviert.');
     }
