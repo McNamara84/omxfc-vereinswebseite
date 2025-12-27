@@ -1,6 +1,4 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
 [x-cloak] {
     display: none;
@@ -44,7 +42,7 @@
         scroll-margin-top: 6rem;
     }
 
-    @screen lg {
+    @media (min-width: 1024px) {
         [data-statistik-section] {
             scroll-margin-top: 7rem;
         }
