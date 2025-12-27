@@ -90,3 +90,5 @@ import './protokolle/accordion';
 import './kassenbuch/modals';
 import './romantausch-gallery';
 import './romantausch-dropzone';
+
+import './polls/charts';

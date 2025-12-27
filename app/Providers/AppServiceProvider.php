@@ -2,6 +2,9 @@
 
 namespace App\Providers;
 
+use App\Enums\PollVisibility;
+use App\Services\Polls\ActivePollResolver;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Process;
@@ -72,6 +75,22 @@ class AppServiceProvider extends ServiceProvider
                 : asset($socialImagePath);
 
             $view->with('socialImage', $socialImage);
+        });
+
+        View::composer('navigation-menu', function ($view) {
+            $cacheKey = 'polls.active_for_menu.v1';
+            $poll = Cache::remember($cacheKey, now()->addMinutes(10), function () {
+                return app(ActivePollResolver::class)->current();
+            });
+
+            $isWithinWindow = $poll ? $poll->isWithinVotingWindow() : false;
+
+            $view->with([
+                'activePollForMenu' => $poll,
+                'activePollMenuLabel' => $poll?->menu_label,
+                'showActivePollForAuth' => (bool) ($poll && $isWithinWindow),
+                'showActivePollForGuest' => (bool) ($poll && $isWithinWindow && $poll->visibility === PollVisibility::Public),
+            ]);
         });
 
         Blade::if('vorstand', fn () => auth()->check() && auth()->user()->hasVorstandRole());

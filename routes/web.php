@@ -30,6 +30,9 @@ use App\Http\Middleware\RedirectIfAnwaerter;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
+// Umfrage (aktuelle aktive) – öffentlich oder intern je nach Konfiguration
+Route::get('/umfrage', \App\Livewire\Umfragen\UmfrageVote::class)->name('umfrage.aktuell');
+
 // Öffentliche Seiten
 Route::get('/', [PageController::class, 'home'])->name('home');
 Route::get('/satzung', [PageController::class, 'satzung'])->name('satzung');
@@ -62,6 +65,11 @@ Route::get('/email/bestaetigen/{id}/{hash}', CustomEmailVerificationController::
 // Nur für eingeloggte und verifizierte Mitglieder, die NICHT Anwärter sind
 Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function () {
     Route::get('/admin/statistiken', [AdminController::class, 'index'])->name('admin.statistiken.index')->middleware('vorstand-or-kassenwart');
+
+    // Umfragen verwalten (nur Admin/Vorstand)
+    Route::get('/admin/umfragen', \App\Livewire\Umfragen\UmfrageVerwaltung::class)
+        ->name('admin.umfragen.index')
+        ->middleware('can:manage,' . \App\Models\Poll::class);
     
     // Fantreffen 2026 Admin Dashboard
     Route::get('/admin/fantreffen-2026', \App\Livewire\FantreffenAdminDashboard::class)

@@ -1,16 +1,24 @@
-import { exec as execCallback } from 'child_process';
+import { execFile as execFileCallback } from 'child_process';
 import { promisify } from 'util';
 
-const exec = promisify(execCallback);
+const execFile = promisify(execFileCallback);
 
-export async function runArtisan(command, options = {}) {
+export async function runArtisan(args, options = {}) {
     const env = {
         ...process.env,
         APP_ENV: process.env.APP_ENV ?? 'testing',
     };
 
+    if (!Array.isArray(args) || args.length === 0) {
+        throw new Error(
+            'runArtisan() erwartet ein Array von Argumenten, z.B. runArtisan(["migrate"]) oder runArtisan(["db:seed", "--class=Database\\\\Seeders\\\\FooSeeder"]).',
+        );
+    }
+
+    const phpArgs = ['artisan', ...args];
+
     try {
-        const result = await exec(`php artisan ${command}`, {
+        const result = await execFile('php', phpArgs, {
             env,
             ...options,
         });

@@ -1,9 +1,11 @@
 import fs from 'fs';
 import path from 'path';
+import { spawnSync } from 'child_process';
 import { runArtisan } from './utils/artisan.js';
 
 export default async function globalSetup() {
     const databasePath = path.resolve('database/playwright.sqlite');
+    const sqliteSchemaPath = path.resolve('database/schema/sqlite-schema.sql');
 
     process.env.APP_ENV = 'testing';
     process.env.APP_DEBUG = 'false';
@@ -26,8 +28,32 @@ export default async function globalSetup() {
 
     fs.closeSync(fs.openSync(databasePath, 'w'));
 
-    await runArtisan('migrate:fresh');
-    await runArtisan('db:seed --class="Database\\\\Seeders\\\\TodoCategorySeeder"');
-    await runArtisan('db:seed --class="Database\\\\Seeders\\\\TodoPlaywrightSeeder"');
-    await runArtisan('db:seed --class="Database\\\\Seeders\\\\DashboardSampleSeeder"');
+    // The Playwright DB setup relies on the stored SQLite schema dump.
+    // The regular Laravel schema loading path may call the external `sqlite3` CLI,
+    // which isn't available on all dev machines (especially Windows). We therefore
+    // load the dump via a tiny PHP helper and then run migrations afterwards.
+    // Note: the schema dump should be kept in sync with migrations; running `migrate`
+    // after the dump ensures any new migrations are applied in Playwright runs.
+    if (!fs.existsSync(sqliteSchemaPath)) {
+        throw new Error(`Missing schema dump: ${sqliteSchemaPath}`);
+    }
+
+    const schemaResult = spawnSync(
+        'php',
+        ['tests/e2e/load-sqlite-schema.php', databasePath, sqliteSchemaPath],
+        {
+            env: process.env,
+            stdio: 'inherit',
+        },
+    );
+
+    if (schemaResult.status !== 0) {
+        throw new Error('Failed to load SQLite schema dump for Playwright.');
+    }
+
+    await runArtisan(['migrate']);
+
+    await runArtisan(['db:seed', '--class=Database\\Seeders\\TodoCategorySeeder']);
+    await runArtisan(['db:seed', '--class=Database\\Seeders\\TodoPlaywrightSeeder']);
+    await runArtisan(['db:seed', '--class=Database\\Seeders\\DashboardSampleSeeder']);
 }

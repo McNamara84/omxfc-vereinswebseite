@@ -43,6 +43,9 @@
                     @auth
                         <x-nav-link href="{{ route('dashboard') }}">Dashboard</x-nav-link>
                         <x-nav-link href="{{ route('fantreffen.2026') }}">Fantreffen 2026</x-nav-link>
+                        @if(($showActivePollForAuth ?? false) && ($activePollMenuLabel ?? null))
+                            <x-nav-link href="{{ route('umfrage.aktuell') }}">{{ $activePollMenuLabel }}</x-nav-link>
+                        @endif
                         <!-- Dropdown Verein -->
                         <div class="relative flex items-center ml-4 group" x-data="{ open: false }" @click="open = !open" @click.away="open = false" @keydown.escape="open = false">
                             <button id="verein-button" type="button" class="px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition" :aria-expanded="open" aria-controls="verein-menu" @keydown.enter.prevent="open = !open" @keydown.space.prevent="open = !open">
@@ -113,6 +116,9 @@
                             <div id="vorstand-menu" x-show="open" x-cloak class="absolute left-0 top-full mt-px w-48 bg-white dark:bg-gray-700 rounded-md shadow-lg z-50 py-2 group-hover:block" role="menu" aria-labelledby="vorstand-button">
                                 <x-dropdown-link href="{{ route('admin.statistiken.index') }}">Statistik</x-dropdown-link>
                                 <x-dropdown-link href="{{ route('admin.fantreffen.2026') }}">Anmeldungen FT</x-dropdown-link>
+                                @can('manage', \App\Models\Poll::class)
+                                    <x-dropdown-link href="{{ route('admin.umfragen.index') }}">Umfrage verwalten</x-dropdown-link>
+                                @endcan
                             </div>
                         </div>
                         @endif
@@ -132,6 +138,9 @@
                     @endauth
                     @guest
                         <x-nav-link href="{{ route('fantreffen.2026') }}">Fantreffen 2026</x-nav-link>
+                        @if(($showActivePollForGuest ?? false) && ($activePollMenuLabel ?? null))
+                            <x-nav-link href="{{ route('umfrage.aktuell') }}">{{ $activePollMenuLabel }}</x-nav-link>
+                        @endif
                         <x-nav-link href="{{ route('chronik') }}">Chronik</x-nav-link>
                         <x-nav-link href="{{ route('ehrenmitglieder') }}">Ehrenmitglieder</x-nav-link>
                         <x-nav-link href="{{ route('termine') }}">Termine</x-nav-link>
@@ -195,6 +204,9 @@
         @auth
             <x-responsive-nav-link href="{{ route('dashboard') }}">Dashboard</x-responsive-nav-link>
             <x-responsive-nav-link href="{{ route('fantreffen.2026') }}">Fantreffen 2026</x-responsive-nav-link>
+            @if(($showActivePollForAuth ?? false) && ($activePollMenuLabel ?? null))
+                <x-responsive-nav-link href="{{ route('umfrage.aktuell') }}">{{ $activePollMenuLabel }}</x-responsive-nav-link>
+            @endif
             <button id="verein-mobile-button" type="button" @click="openMenu = (openMenu === 'verein' ? null : 'verein')" class="w-full text-left px-4 py-2 font-bold text-gray-600 dark:text-gray-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500" :class="{ 'bg-gray-100 dark:bg-gray-700': openMenu === 'verein' }" :aria-expanded="openMenu === 'verein'" aria-controls="verein-mobile-menu" @keydown.enter.prevent="openMenu = (openMenu === 'verein' ? null : 'verein')" @keydown.space.prevent="openMenu = (openMenu === 'verein' ? null : 'verein')">
             Verein</button>
             <div id="verein-mobile-menu" x-show="openMenu === 'verein'" x-cloak class="italic">
@@ -247,6 +259,9 @@
             <div id="vorstand-mobile-menu" x-show="openMenu === 'vorstand'" x-cloak class="italic" aria-labelledby="vorstand-mobile-button">
                 <x-responsive-nav-link href="{{ route('admin.statistiken.index') }}">Statistik</x-responsive-nav-link>
                 <x-responsive-nav-link href="{{ route('admin.fantreffen.2026') }}">Anmeldungen FT</x-responsive-nav-link>
+                @can('manage', \App\Models\Poll::class)
+                    <x-responsive-nav-link href="{{ route('admin.umfragen.index') }}">Umfrage verwalten</x-responsive-nav-link>
+                @endcan
             </div>
             @endif
             @if(Auth::user()->hasRole(\App\Enums\Role::Admin))
@@ -264,6 +279,9 @@
 
         @guest
             <x-responsive-nav-link href="{{ route('fantreffen.2026') }}">Fantreffen 2026</x-responsive-nav-link>
+            @if(($showActivePollForGuest ?? false) && ($activePollMenuLabel ?? null))
+                <x-responsive-nav-link href="{{ route('umfrage.aktuell') }}">{{ $activePollMenuLabel }}</x-responsive-nav-link>
+            @endif
             <x-responsive-nav-link href="{{ route('chronik') }}">Chronik</x-responsive-nav-link>
             <x-responsive-nav-link href="{{ route('ehrenmitglieder') }}">Ehrenmitglieder</x-responsive-nav-link>
             <x-responsive-nav-link href="{{ route('termine') }}">Termine</x-responsive-nav-link>
