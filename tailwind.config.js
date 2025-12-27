@@ -6,6 +6,7 @@ import typography from '@tailwindcss/typography';
 export default {
     darkMode: 'class',
     content: [
+        './config/**/*.php',
         './vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php',
         './vendor/laravel/jetstream/**/*.blade.php',
         './storage/framework/views/*.php',

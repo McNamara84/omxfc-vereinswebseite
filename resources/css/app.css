@@ -30,6 +30,12 @@
         );
     }
 
+    input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']):not([type='button']):not([type='submit']):not([type='reset']),
+    select,
+    textarea {
+        @apply px-3 py-2;
+    }
+
     .dark body {
         background-image: url('/images/design/dark/concrete_dark.webp');
         background-image: image-set(
