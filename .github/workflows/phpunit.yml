@@ -69,6 +69,8 @@ jobs:
       - uses: shivammathur/setup-php@15c43e89cdef867065b0213be354c2841860869e
         with:
           php-version: '8.5'
+          coverage: xdebug
+          ini-values: xdebug.mode=coverage
       - name: Copy .env
         run: php -r "file_exists('.env') || copy('.env.example', '.env');"
       - name: Cache Composer dependencies
@@ -103,7 +105,8 @@ jobs:
         env:
           DB_CONNECTION: sqlite
           DB_DATABASE: database/database.sqlite
-        run: php -dxdebug.mode=coverage artisan test tests/Feature --coverage-clover=coverage.xml
+          XDEBUG_MODE: coverage
+        run: php artisan test tests/Feature --coverage-clover=coverage.xml
       - name: Create PHP coverage badge
         if: github.ref == 'refs/heads/main'
         uses: timkrase/phpunit-coverage-badge@v1.2.1
