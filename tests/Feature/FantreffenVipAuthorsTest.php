@@ -320,10 +320,13 @@ class FantreffenVipAuthorsTest extends TestCase
         $response->assertSee('VIP-Autoren bestätigt!');
         $response->assertSee('Oliver Fröhlich');
         $response->assertSee('Ian Rolf Hill');
+
+        $disclaimer = 'Einige Autor:innen haben ihre Teilnahme bereits zugesagt, andere sind noch angefragt oder haben nur vorläufig zugesagt. Bitte beachtet, dass sich die Gästeliste kurzfristig ändern kann.';
+        $response->assertDontSee($disclaimer);
     }
 
     /** @test */
-    public function test_tentative_vip_authors_are_marked_on_public_page_and_disclaimer_is_in_program_section(): void
+    public function test_tentative_vip_authors_show_label_and_disclaimer_on_public_page(): void
     {
         FantreffenVipAuthor::create([
             'name' => 'Vorbehalt Autor',
