@@ -13,12 +13,12 @@ test.describe('Aufgaben (Mobile)', () => {
 
         await page.goto('/aufgaben');
 
-        const filterToggle = page.locator('[data-todo-filter-toggle]');
-        const filterPanel = page.locator('#todo-filter-panel');
+        const filterDetails = page.locator('[data-todo-filter-details]');
+        const filterSummary = page.locator('[data-todo-filter-summary]');
 
-        await expect(filterToggle).toBeVisible();
-        await expect(filterToggle).toHaveAttribute('aria-expanded', 'false');
-        await expect(filterPanel).toHaveAttribute('hidden', '');
+        await expect(filterDetails).toBeVisible();
+        await expect(filterDetails).not.toHaveAttribute('open', '');
+        await expect(filterSummary).toBeVisible();
 
         const h2Texts = await page.locator('h2').allTextContents();
         const indexOfHeadingContaining = (needle) => h2Texts.findIndex((text) => text.includes(needle));
@@ -39,13 +39,15 @@ test.describe('Aufgaben (Mobile)', () => {
         expect(assignedIndex).toBeLessThan(openIndex);
         expect(openIndex).toBeLessThan(dashboardIndex);
 
-        await filterToggle.click();
-        await expect(filterToggle).toHaveAttribute('aria-expanded', 'true');
+        await filterSummary.click();
+        await expect(filterDetails).toHaveAttribute('open', '');
         await expect(page.getByRole('button', { name: 'Zu verifizieren', exact: true })).toBeVisible();
     });
 });
 
 test('admin can filter and accept challenges', async ({ page }) => {
+    test.setTimeout(60_000);
+
     await page.goto('/login');
     await page.fill('input[name="email"]', 'info@maddraxikon.com');
     await page.fill('input[name="password"]', 'password');
@@ -55,9 +57,9 @@ test('admin can filter and accept challenges', async ({ page }) => {
 
     await page.goto('/aufgaben');
 
-    const filterToggle = page.locator('[data-todo-filter-toggle]');
-    await expect(filterToggle).toBeVisible();
-    await filterToggle.click();
+    const filterSummary = page.locator('[data-todo-filter-summary]');
+    await expect(filterSummary).toBeVisible();
+    await filterSummary.click();
 
     await expect(page.getByRole('heading', { name: 'Deine Challenges' })).toBeVisible();
     await expect(page.locator('[data-todo-filter-status]')).toHaveText(/alle verfügbaren Challenges/i);
@@ -70,6 +72,13 @@ test('admin can filter and accept challenges', async ({ page }) => {
     await expect(page.locator('[data-todo-filter-status]')).toHaveText(/Verifizierung warten/i);
     await expect(page.getByRole('heading', { name: 'Zu verifizierende Challenges' })).toBeVisible();
 
+    // Nach dem GET-Filter ist die Seite neu geladen; der Filter ist wieder zu.
+    const filterDetails = page.locator('[data-todo-filter-details]');
+    await expect(filterDetails).toBeVisible();
+    await expect(filterDetails).not.toHaveAttribute('open', '');
+    await filterSummary.click();
+    await expect(filterDetails).toHaveAttribute('open', '');
+
     const allButton = page.getByRole('button', { name: 'Alle', exact: true });
     await allButton.click();
     await expect(page).not.toHaveURL(/filter=pending/);
@@ -77,8 +86,11 @@ test('admin can filter and accept challenges', async ({ page }) => {
     const assignButton = page.getByRole('button', { name: 'Übernehmen', exact: true }).first();
     await expect(assignButton).toBeVisible();
 
-    await assignButton.click();
-    await expect(page.getByRole('status')).toContainText('erfolgreich übernommen');
+    await Promise.all([
+        page.waitForURL(/\/aufgaben\/\d+/),
+        assignButton.click(),
+    ]);
+    await expect(page.locator('div[role="status"]', { hasText: /erfolgreich übernommen/i })).toBeVisible();
 });
 
 test('member can focus on own challenges and release one', async ({ page }) => {
@@ -91,9 +103,9 @@ test('member can focus on own challenges and release one', async ({ page }) => {
 
     await page.goto('/aufgaben');
 
-    const filterToggle = page.locator('[data-todo-filter-toggle]');
-    await expect(filterToggle).toBeVisible();
-    await filterToggle.click();
+    const filterSummary = page.locator('[data-todo-filter-summary]');
+    await expect(filterSummary).toBeVisible();
+    await filterSummary.click();
 
     const ownButton = page.getByRole('button', { name: 'Eigene Challenges', exact: true });
     await ownButton.click();

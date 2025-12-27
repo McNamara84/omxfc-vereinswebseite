@@ -45,58 +45,53 @@
                             {{ $currentFilter === 'pending' ? 'Zeigt Challenges, die auf eine Verifizierung warten.' : 'Zeigt alle verfügbaren Challenges.' }}
                         </p>
                     </div>
-                    <button type="button" data-todo-filter-toggle aria-expanded="false" aria-controls="todo-filter-panel"
-                        data-label-open="Filter anzeigen" data-label-close="Filter verbergen"
-                        class="inline-flex items-center gap-2 self-start rounded-md border border-[#8B0116] bg-white px-4 py-2 text-sm font-semibold text-[#8B0116] shadow-sm transition hover:bg-[#8B0116] hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#8B0116] dark:border-[#FF6B81] dark:bg-gray-900 dark:text-[#FF6B81] dark:hover:bg-[#FF6B81] dark:hover:text-gray-900 dark:focus-visible:outline-[#FF6B81]">
+                </div>
+                <details class="mt-4" data-todo-filter-details>
+                    <summary data-todo-filter-summary
+                        class="inline-flex items-center gap-2 rounded-md border border-[#8B0116] bg-white px-4 py-2 text-sm font-semibold text-[#8B0116] shadow-sm transition hover:bg-[#8B0116] hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#8B0116] dark:border-[#FF6B81] dark:bg-gray-900 dark:text-[#FF6B81] dark:hover:bg-[#FF6B81] dark:hover:text-gray-900 dark:focus-visible:outline-[#FF6B81]">
                         <svg class="h-4 w-4" aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round"
                             stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">
                             <path d="M4 6h16M6 12h12M10 18h4" />
                         </svg>
-                        <span data-todo-filter-toggle-text>Filter anzeigen</span>
-                    </button>
-                </div>
-                <noscript>
-                    <style>
-                        #todo-filter-panel[hidden] { display: block !important; }
-                    </style>
-                </noscript>
-                <div id="todo-filter-panel" data-todo-filter-panel hidden aria-hidden="true" data-collapsed="true"
-                    class="mt-6 border-t border-gray-200 pt-6 dark:border-gray-700">
-                    <form method="GET" action="{{ route('todos.index') }}" data-todo-filter-form
-                        data-current-filter="{{ $currentFilter }}">
-                        <fieldset class="space-y-4">
-                            <legend class="sr-only">Challenges filtern</legend>
-                            <div class="flex flex-wrap gap-2" role="group" aria-label="Challenges filtern">
-                                <button type="submit" name="filter" value="" data-todo-filter data-filter="all"
-                                    data-active="{{ $currentFilter === 'all' ? 'true' : 'false' }}"
-                                    class="px-4 py-2 rounded-md border border-[#8B0116] text-[#8B0116] dark:text-[#FF6B81] dark:border-[#FF6B81] font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#8B0116] dark:focus-visible:outline-[#FF6B81] data-[active=true]:bg-[#8B0116] data-[active=true]:text-white dark:data-[active=true]:bg-[#FF6B81] dark:data-[active=true]:text-gray-900">
-                                    Alle
-                                </button>
-                                <button type="button" data-todo-filter data-filter="assigned" data-active="false"
-                                    class="px-4 py-2 rounded-md border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#8B0116] dark:focus-visible:outline-[#FF6B81] data-[active=true]:bg-[#8B0116] data-[active=true]:text-white dark:data-[active=true]:bg-[#FF6B81] dark:data-[active=true]:text-gray-900">
-                                    Eigene Challenges
-                                </button>
-                                <button type="button" data-todo-filter data-filter="open" data-active="false"
-                                    class="px-4 py-2 rounded-md border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#8B0116] dark:focus-visible:outline-[#FF6B81] data-[active=true]:bg-[#8B0116] data-[active=true]:text-white dark:data-[active=true]:bg-[#FF6B81] dark:data-[active=true]:text-gray-900">
-                                    Offene Challenges
-                                </button>
-                                @if($canVerifyTodos)
-                                    <button type="submit" name="filter" value="pending" data-todo-filter
-                                        data-filter="pending"
-                                        data-active="{{ $currentFilter === 'pending' ? 'true' : 'false' }}"
-                                        class="px-4 py-2 rounded-md border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#8B0116] dark:focus-visible:outline-[#FF6B81] data-[active=true]:bg-[#8B0116] data-[active=true]:text-white dark:data-[active=true]:bg-[#FF6B81] dark:data-[active=true]:text-gray-900">
-                                        Zu verifizieren
+                        <span>Filter anzeigen</span>
+                    </summary>
+                    <div id="todo-filter-panel" class="mt-6 border-t border-gray-200 pt-6 dark:border-gray-700">
+                        <form method="GET" action="{{ route('todos.index') }}" data-todo-filter-form
+                            data-current-filter="{{ $currentFilter }}">
+                            <fieldset class="space-y-4">
+                                <legend class="sr-only">Challenges filtern</legend>
+                                <div class="flex flex-wrap gap-2" role="group" aria-label="Challenges filtern">
+                                    <button type="submit" name="filter" value="" data-todo-filter data-filter="all"
+                                        data-active="{{ $currentFilter === 'all' ? 'true' : 'false' }}"
+                                        class="px-4 py-2 rounded-md border border-[#8B0116] text-[#8B0116] dark:text-[#FF6B81] dark:border-[#FF6B81] font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#8B0116] dark:focus-visible:outline-[#FF6B81] data-[active=true]:bg-[#8B0116] data-[active=true]:text-white dark:data-[active=true]:bg-[#FF6B81] dark:data-[active=true]:text-gray-900">
+                                        Alle
                                     </button>
-                                @endif
-                            </div>
-                            <noscript>
-                                <p class="text-xs text-gray-500 dark:text-gray-400">
-                                    Für weitere Filteroptionen aktiviere JavaScript in deinem Browser.
-                                </p>
-                            </noscript>
-                        </fieldset>
-                    </form>
-                </div>
+                                    <button type="button" data-todo-filter data-filter="assigned" data-active="false"
+                                        class="px-4 py-2 rounded-md border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#8B0116] dark:focus-visible:outline-[#FF6B81] data-[active=true]:bg-[#8B0116] data-[active=true]:text-white dark:data-[active=true]:bg-[#FF6B81] dark:data-[active=true]:text-gray-900">
+                                        Eigene Challenges
+                                    </button>
+                                    <button type="button" data-todo-filter data-filter="open" data-active="false"
+                                        class="px-4 py-2 rounded-md border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#8B0116] dark:focus-visible:outline-[#FF6B81] data-[active=true]:bg-[#8B0116] data-[active=true]:text-white dark:data-[active=true]:bg-[#FF6B81] dark:data-[active=true]:text-gray-900">
+                                        Offene Challenges
+                                    </button>
+                                    @if($canVerifyTodos)
+                                        <button type="submit" name="filter" value="pending" data-todo-filter
+                                            data-filter="pending"
+                                            data-active="{{ $currentFilter === 'pending' ? 'true' : 'false' }}"
+                                            class="px-4 py-2 rounded-md border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#8B0116] dark:focus-visible:outline-[#FF6B81] data-[active=true]:bg-[#8B0116] data-[active=true]:text-white dark:data-[active=true]:bg-[#FF6B81] dark:data-[active=true]:text-gray-900">
+                                            Zu verifizieren
+                                        </button>
+                                    @endif
+                                </div>
+                                <noscript>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">
+                                        Für weitere Filteroptionen aktiviere JavaScript in deinem Browser.
+                                    </p>
+                                </noscript>
+                            </fieldset>
+                        </form>
+                    </div>
+                </details>
             </section>
 
             <!-- Zu verifizierende Challenges (nur wenn Verifizierungsrechte vorhanden) -->
