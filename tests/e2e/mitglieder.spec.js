@@ -26,26 +26,17 @@ test.describe('Mitgliederliste', () => {
         await expect(nameHeader).toHaveAttribute('aria-sort', 'ascending');
 
         const onlineCheckbox = page.getByRole('checkbox', { name: 'Nur online' });
-        await Promise.all([
-            page.waitForNavigation({ waitUntil: 'networkidle' }),
-            onlineCheckbox.check(),
-        ]);
+        await onlineCheckbox.check();
         await expect(page).toHaveURL(/filters%5B%5D=online/);
         await expect(page.locator('[data-members-table]')).toHaveAttribute('data-members-filter-online', 'true');
         await expect(page.locator('[data-members-summary]')).toContainText('nur Mitglieder angezeigt, die aktuell online sind');
 
         const roleHeader = page.getByRole('columnheader', { name: 'Rolle' });
-        await Promise.all([
-            page.waitForNavigation({ waitUntil: 'networkidle' }),
-            roleHeader.click(),
-        ]);
+        await roleHeader.click();
         await expect(page).toHaveURL(/sort=role&dir=asc/);
         await expect(roleHeader).toHaveAttribute('aria-sort', 'ascending');
 
-        await Promise.all([
-            page.waitForNavigation({ waitUntil: 'networkidle' }),
-            roleHeader.click(),
-        ]);
+        await roleHeader.click();
         await expect(page).toHaveURL(/sort=role&dir=desc/);
         await expect(roleHeader).toHaveAttribute('aria-sort', 'descending');
 
