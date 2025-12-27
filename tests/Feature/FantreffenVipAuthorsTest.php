@@ -9,6 +9,7 @@ use App\Models\Team;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
+use Symfony\Component\DomCrawler\Crawler;
 use Tests\TestCase;
 
 class FantreffenVipAuthorsTest extends TestCase
@@ -345,13 +346,18 @@ class FantreffenVipAuthorsTest extends TestCase
         $disclaimer = 'Einige Autor:innen haben ihre Teilnahme bereits zugesagt, andere sind noch angefragt oder haben nur vorläufig zugesagt. Bitte beachtet, dass sich die Gästeliste kurzfristig ändern kann.';
         $response->assertSee($disclaimer);
 
-        $content = $response->getContent();
-        $programmPos = strpos($content, 'Programm');
-        $disclaimerPos = strpos($content, $disclaimer);
+        $crawler = new Crawler($response->getContent());
 
-        $this->assertNotFalse($programmPos);
-        $this->assertNotFalse($disclaimerPos);
-        $this->assertGreaterThan($programmPos, $disclaimerPos);
+        // Verify the disclaimer is rendered inside the "Signierstunde mit Autoren" block (Programm section)
+        $signierstundeBlock = $crawler->filterXPath('//h3[normalize-space()="Signierstunde mit Autoren"]/parent::*');
+        $this->assertCount(1, $signierstundeBlock);
+        $this->assertStringContainsString($disclaimer, $signierstundeBlock->text());
+
+        // Guardrail: disclaimer must not be displayed inside the VIP banner region
+        $vipRegion = $crawler->filterXPath('//*[@aria-labelledby="vip-authors-heading"]');
+        if ($vipRegion->count() > 0) {
+            $this->assertStringNotContainsString($disclaimer, $vipRegion->text());
+        }
     }
 
     /** @test */
