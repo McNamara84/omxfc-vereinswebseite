@@ -24,4 +24,5 @@ yarn-error.log
 .index
 /.vite
 /coverage
+coverage.xml
 omxfc_vereinswebseite

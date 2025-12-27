@@ -30,7 +30,7 @@ class FantreffenVipAuthorsTest extends TestCase
     }
 
     /** @test */
-    public function vip_authors_page_is_accessible_for_admin(): void
+    public function test_vip_authors_page_is_accessible_for_admin(): void
     {
         $admin = $this->createUserWithRole(Role::Admin);
         $this->actingAs($admin);
@@ -42,7 +42,7 @@ class FantreffenVipAuthorsTest extends TestCase
     }
 
     /** @test */
-    public function vip_authors_page_is_accessible_for_vorstand(): void
+    public function test_vip_authors_page_is_accessible_for_vorstand(): void
     {
         $vorstand = $this->createUserWithRole(Role::Vorstand);
         $this->actingAs($vorstand);
@@ -53,7 +53,7 @@ class FantreffenVipAuthorsTest extends TestCase
     }
 
     /** @test */
-    public function vip_authors_page_is_accessible_for_kassenwart(): void
+    public function test_vip_authors_page_is_accessible_for_kassenwart(): void
     {
         $kassenwart = $this->createUserWithRole(Role::Kassenwart);
         $this->actingAs($kassenwart);
@@ -64,7 +64,7 @@ class FantreffenVipAuthorsTest extends TestCase
     }
 
     /** @test */
-    public function vip_authors_page_is_not_accessible_for_regular_member(): void
+    public function test_vip_authors_page_is_not_accessible_for_regular_member(): void
     {
         $member = $this->createUserWithRole(Role::Mitglied);
         $this->actingAs($member);
@@ -75,7 +75,7 @@ class FantreffenVipAuthorsTest extends TestCase
     }
 
     /** @test */
-    public function vip_authors_page_is_not_accessible_for_guests(): void
+    public function test_vip_authors_page_is_not_accessible_for_guests(): void
     {
         $response = $this->get('/admin/fantreffen-2026/vip-autoren');
 
@@ -83,7 +83,7 @@ class FantreffenVipAuthorsTest extends TestCase
     }
 
     /** @test */
-    public function admin_can_create_vip_author(): void
+    public function test_admin_can_create_vip_author(): void
     {
         $admin = $this->createUserWithRole(Role::Admin);
 
@@ -106,7 +106,7 @@ class FantreffenVipAuthorsTest extends TestCase
     }
 
     /** @test */
-    public function admin_can_create_vip_author_without_pseudonym(): void
+    public function test_admin_can_create_vip_author_without_pseudonym(): void
     {
         $admin = $this->createUserWithRole(Role::Admin);
 
@@ -127,7 +127,7 @@ class FantreffenVipAuthorsTest extends TestCase
     }
 
     /** @test */
-    public function admin_can_edit_vip_author(): void
+    public function test_admin_can_edit_vip_author(): void
     {
         $admin = $this->createUserWithRole(Role::Admin);
         $author = FantreffenVipAuthor::create([
@@ -153,7 +153,7 @@ class FantreffenVipAuthorsTest extends TestCase
     }
 
     /** @test */
-    public function admin_can_delete_vip_author(): void
+    public function test_admin_can_delete_vip_author(): void
     {
         $admin = $this->createUserWithRole(Role::Admin);
 
@@ -178,7 +178,7 @@ class FantreffenVipAuthorsTest extends TestCase
     }
 
     /** @test */
-    public function admin_can_toggle_active_status(): void
+    public function test_admin_can_toggle_active_status(): void
     {
         $admin = $this->createUserWithRole(Role::Admin);
         $author = FantreffenVipAuthor::create([
@@ -207,7 +207,7 @@ class FantreffenVipAuthorsTest extends TestCase
     }
 
     /** @test */
-    public function move_up_swaps_positions_correctly(): void
+    public function test_move_up_swaps_positions_correctly(): void
     {
         $admin = $this->createUserWithRole(Role::Admin);
 
@@ -223,7 +223,7 @@ class FantreffenVipAuthorsTest extends TestCase
     }
 
     /** @test */
-    public function move_down_swaps_positions_correctly(): void
+    public function test_move_down_swaps_positions_correctly(): void
     {
         $admin = $this->createUserWithRole(Role::Admin);
 
@@ -239,7 +239,7 @@ class FantreffenVipAuthorsTest extends TestCase
     }
 
     /** @test */
-    public function move_up_at_top_does_nothing(): void
+    public function test_move_up_at_top_does_nothing(): void
     {
         $admin = $this->createUserWithRole(Role::Admin);
 
@@ -253,7 +253,7 @@ class FantreffenVipAuthorsTest extends TestCase
     }
 
     /** @test */
-    public function move_down_at_bottom_does_nothing(): void
+    public function test_move_down_at_bottom_does_nothing(): void
     {
         $admin = $this->createUserWithRole(Role::Admin);
 
@@ -267,7 +267,7 @@ class FantreffenVipAuthorsTest extends TestCase
     }
 
     /** @test */
-    public function name_is_required(): void
+    public function test_name_is_required(): void
     {
         $admin = $this->createUserWithRole(Role::Admin);
 
@@ -280,7 +280,7 @@ class FantreffenVipAuthorsTest extends TestCase
     }
 
     /** @test */
-    public function vip_authors_displayed_on_public_page(): void
+    public function test_vip_authors_displayed_on_public_page(): void
     {
         FantreffenVipAuthor::create([
             'name' => 'Oliver Fröhlich',
@@ -298,7 +298,7 @@ class FantreffenVipAuthorsTest extends TestCase
     }
 
     /** @test */
-    public function inactive_vip_authors_not_displayed_on_public_page(): void
+    public function test_inactive_vip_authors_not_displayed_on_public_page(): void
     {
         FantreffenVipAuthor::create([
             'name' => 'Hidden Author',
@@ -314,7 +314,7 @@ class FantreffenVipAuthorsTest extends TestCase
     }
 
     /** @test */
-    public function display_name_includes_pseudonym_when_set(): void
+    public function test_display_name_includes_pseudonym_when_set(): void
     {
         $author = FantreffenVipAuthor::create([
             'name' => 'Oliver Fröhlich',
@@ -327,7 +327,7 @@ class FantreffenVipAuthorsTest extends TestCase
     }
 
     /** @test */
-    public function display_name_shows_only_name_without_pseudonym(): void
+    public function test_display_name_shows_only_name_without_pseudonym(): void
     {
         $author = FantreffenVipAuthor::create([
             'name' => 'Jo Zybell',
