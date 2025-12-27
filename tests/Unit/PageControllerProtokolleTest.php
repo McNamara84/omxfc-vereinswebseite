@@ -5,9 +5,11 @@ namespace Tests\Unit;
 use App\Http\Controllers\PageController;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
+use PHPUnit\Framework\Attributes\CoversClass;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Tests\TestCase;
 
+#[CoversClass(PageController::class)]
 class PageControllerProtokolleTest extends TestCase
 {
     use RefreshDatabase;

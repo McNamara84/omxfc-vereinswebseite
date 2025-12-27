@@ -5,9 +5,11 @@ namespace Tests\Unit;
 use App\Models\User;
 use App\Services\BrowserStatsService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\CoversClass;
 use Tests\Concerns\CreatesMemberClientSnapshot;
 use Tests\TestCase;
 
+#[CoversClass(BrowserStatsService::class)]
 class BrowserStatsServiceTest extends TestCase
 {
     use CreatesMemberClientSnapshot;

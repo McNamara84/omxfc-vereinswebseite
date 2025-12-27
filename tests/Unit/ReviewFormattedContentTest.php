@@ -6,8 +6,10 @@ use App\Models\Review;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\CoversClass;
 use Tests\TestCase;
 
+#[CoversClass(Review::class)]
 class ReviewFormattedContentTest extends TestCase
 {
     use RefreshDatabase;

@@ -7,7 +7,9 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 use App\Enums\Role;
+use PHPUnit\Framework\Attributes\CoversClass;
 
+#[CoversClass(Team::class)]
 class TeamActiveUsersTest extends TestCase
 {
     use RefreshDatabase;

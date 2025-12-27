@@ -6,8 +6,10 @@ use App\Enums\Role;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\CoversClass;
 use Tests\TestCase;
 
+#[CoversClass(User::class)]
 class UserRoleTest extends TestCase
 {
     use RefreshDatabase;

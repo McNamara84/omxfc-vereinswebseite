@@ -10,7 +10,7 @@ use App\Models\User;
 use App\Models\UserPoint;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
-use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\TestWith;
 use Symfony\Component\DomCrawler\Crawler;
 use Tests\TestCase;
 
@@ -31,15 +31,6 @@ class DashboardTest extends TestCase
         $team->users()->attach($user, ['role' => $role->value]);
 
         return $user;
-    }
-
-    public static function privilegedRoleProvider(): array
-    {
-        return [
-            'admin' => [Role::Admin],
-            'vorstand' => [Role::Vorstand],
-            'kassenwart' => [Role::Kassenwart],
-        ];
     }
 
     public function test_dashboard_renders_cards_with_screenreader_texts(): void
@@ -80,7 +71,9 @@ class DashboardTest extends TestCase
         }
     }
 
-    #[DataProvider('privilegedRoleProvider')]
+    #[TestWith([Role::Admin])]
+    #[TestWith([Role::Vorstand])]
+    #[TestWith([Role::Kassenwart])]
     public function test_dashboard_shows_applicants_for_privileged_roles(Role $role): void
     {
         $team = Team::membersTeam();
@@ -115,7 +108,9 @@ class DashboardTest extends TestCase
         $response->assertDontSee($applicant->name);
     }
 
-    #[DataProvider('privilegedRoleProvider')]
+    #[TestWith([Role::Admin])]
+    #[TestWith([Role::Vorstand])]
+    #[TestWith([Role::Kassenwart])]
     public function test_dashboard_shows_pending_verification_card(Role $role): void
     {
         $user = $this->createUserWithRole($role);

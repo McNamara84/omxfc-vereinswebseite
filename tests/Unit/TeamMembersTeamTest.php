@@ -5,8 +5,10 @@ namespace Tests\Unit;
 use App\Models\Team;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use PHPUnit\Framework\Attributes\CoversClass;
 use Tests\TestCase;
 
+#[CoversClass(Team::class)]
 class TeamMembersTeamTest extends TestCase
 {
     use RefreshDatabase;
