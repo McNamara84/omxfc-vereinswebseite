@@ -47,7 +47,7 @@
                     </div>
                 </div>
                 <details class="group mt-4" data-todo-filter-details>
-                    <summary data-todo-filter-summary
+                    <summary data-todo-filter-summary aria-controls="todo-filter-panel"
                         class="inline-flex items-center gap-2 rounded-md border border-[#8B0116] bg-white px-4 py-2 text-sm font-semibold text-[#8B0116] shadow-sm transition hover:bg-[#8B0116] hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#8B0116] dark:border-[#FF6B81] dark:bg-gray-900 dark:text-[#FF6B81] dark:hover:bg-[#FF6B81] dark:hover:text-gray-900 dark:focus-visible:outline-[#FF6B81]">
                         <svg class="h-4 w-4" aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round"
                             stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24">

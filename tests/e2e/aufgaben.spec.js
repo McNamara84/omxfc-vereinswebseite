@@ -8,25 +8,34 @@ async function expectHeadingsInDomOrder(page, headings) {
     }
 
     const handles = [];
-    for (const locator of locators) {
-        // eslint-disable-next-line no-await-in-loop
-        handles.push(await locator.elementHandle());
-    }
 
-    for (let i = 0; i < handles.length - 1; i += 1) {
-        const first = handles[i];
-        const second = handles[i + 1];
+    try {
+        for (const locator of locators) {
+            // eslint-disable-next-line no-await-in-loop
+            handles.push(await locator.elementHandle());
+        }
 
-        expect(first).not.toBeNull();
-        expect(second).not.toBeNull();
+        for (let i = 0; i < handles.length - 1; i += 1) {
+            const first = handles[i];
+            const second = handles[i + 1];
 
-        // eslint-disable-next-line no-await-in-loop
-        const isBefore = await page.evaluate(([a, b]) => {
-            if (!a || !b) return false;
-            return Boolean(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING);
-        }, [first, second]);
+            expect(first).not.toBeNull();
+            expect(second).not.toBeNull();
 
-        expect(isBefore).toBe(true);
+            // eslint-disable-next-line no-await-in-loop
+            const isBefore = await page.evaluate(([a, b]) => {
+                if (!a || !b) return false;
+                return Boolean(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING);
+            }, [first, second]);
+
+            expect(isBefore).toBe(true);
+        }
+    } finally {
+        await Promise.all(
+            handles
+                .filter(Boolean)
+                .map((handle) => handle.dispose()),
+        );
     }
 }
 

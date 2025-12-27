@@ -105,7 +105,7 @@ describe('todoFilters utilities', () => {
         expect(statusElement.textContent).toContain('Verifizierung warten');
     });
 
-    test('initTodoFilters does not manage the disclosure panel when using <details>/<summary>', () => {
+    test('initTodoFilters does not toggle <details> open state but enables filter buttons', () => {
         document.body.innerHTML = `
             <section data-todo-filter-wrapper>
                 <p data-todo-filter-status></p>
