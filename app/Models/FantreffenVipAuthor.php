@@ -23,6 +23,7 @@ class FantreffenVipAuthor extends Model
         'name',
         'pseudonym',
         'is_active',
+        'is_tentative',
         'sort_order',
     ];
 
@@ -33,6 +34,7 @@ class FantreffenVipAuthor extends Model
      */
     protected $casts = [
         'is_active' => 'boolean',
+        'is_tentative' => 'boolean',
         'sort_order' => 'integer',
     ];
 

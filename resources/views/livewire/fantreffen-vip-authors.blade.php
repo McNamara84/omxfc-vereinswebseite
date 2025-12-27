@@ -103,7 +103,7 @@
                             @error('sort_order') <span class="text-red-600 dark:text-red-400 text-sm mt-1">{{ $message }}</span> @enderror
                         </div>
 
-                        <div class="flex items-center pt-6">
+                        <div class="pt-6 space-y-2">
                             <label class="flex items-center cursor-pointer">
                                 <input
                                     type="checkbox"
@@ -111,6 +111,15 @@
                                     class="w-5 h-5 text-[#8B0116] border-gray-300 dark:border-gray-600 rounded focus:ring-[#8B0116] dark:bg-gray-700"
                                 >
                                 <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Auf der Anmeldeseite anzeigen</span>
+                            </label>
+
+                            <label class="flex items-center cursor-pointer">
+                                <input
+                                    type="checkbox"
+                                    wire:model="is_tentative"
+                                    class="w-5 h-5 text-[#8B0116] border-gray-300 dark:border-gray-600 rounded focus:ring-[#8B0116] dark:bg-gray-700"
+                                >
+                                <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Zusage unter Vorbehalt</span>
                             </label>
                         </div>
                     </div>
@@ -167,6 +176,13 @@
                                             <p class="text-base font-medium text-gray-900 dark:text-white truncate">
                                                 {{ $author->name }}
                                             </p>
+                                            @if ($author->is_tentative)
+                                                <p class="text-sm text-gray-600 dark:text-gray-400">
+                                                    <span class="inline-flex items-center px-2 py-0.5 text-xs font-semibold rounded-full bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300">
+                                                        Unter Vorbehalt
+                                                    </span>
+                                                </p>
+                                            @endif
                                             @if ($author->pseudonym)
                                                 <p class="text-sm text-gray-600 dark:text-gray-400">
                                                     Pseudonym: {{ $author->pseudonym }}
