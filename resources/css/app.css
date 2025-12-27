@@ -1,4 +1,7 @@
+@config "../../tailwind.config.js";
 @import "tailwindcss";
+@plugin "@tailwindcss/forms";
+@plugin "@tailwindcss/typography";
 
 [x-cloak] {
     display: none;
@@ -47,6 +50,7 @@
             scroll-margin-top: 7rem;
         }
     }
+
 }
 
 @layer components {

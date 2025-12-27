@@ -53,7 +53,7 @@
 
                 <div class="mb-6">
                     <label for="logo" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Logo</label>
-                    <input type="file" name="logo" id="logo" accept="image/*" class="w-full text-gray-700 dark:text-gray-300">
+                    <input type="file" name="logo" id="logo" accept="image/*" class="w-full px-3 py-2 rounded-md shadow-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:border-[#8B0116] dark:focus:border-[#ff4b63] focus:ring-2 focus:ring-offset-2 focus:ring-[#8B0116] dark:focus:ring-[#ff4b63] focus:ring-offset-white dark:focus:ring-offset-gray-900">
                     @error('logo')
                         <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                     @enderror
