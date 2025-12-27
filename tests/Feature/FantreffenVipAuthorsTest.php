@@ -106,6 +106,28 @@ class FantreffenVipAuthorsTest extends TestCase
     }
 
     /** @test */
+    public function test_admin_can_create_vip_author_with_tentative_status(): void
+    {
+        $admin = $this->createUserWithRole(Role::Admin);
+
+        Livewire::actingAs($admin)
+            ->test(FantreffenVipAuthors::class)
+            ->call('openForm')
+            ->set('name', 'Vorbehalt Autor')
+            ->set('pseudonym', '')
+            ->set('is_active', true)
+            ->set('is_tentative', true)
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseHas('fantreffen_vip_authors', [
+            'name' => 'Vorbehalt Autor',
+            'is_active' => true,
+            'is_tentative' => true,
+        ]);
+    }
+
+    /** @test */
     public function test_admin_can_create_vip_author_without_pseudonym(): void
     {
         $admin = $this->createUserWithRole(Role::Admin);
@@ -134,6 +156,7 @@ class FantreffenVipAuthorsTest extends TestCase
             'name' => 'Original Name',
             'pseudonym' => 'Original Pseudo',
             'is_active' => true,
+            'is_tentative' => false,
             'sort_order' => 0,
         ]);
 
@@ -142,6 +165,7 @@ class FantreffenVipAuthorsTest extends TestCase
             ->call('edit', $author->id)
             ->set('name', 'Updated Name')
             ->set('pseudonym', 'Updated Pseudo')
+            ->set('is_tentative', true)
             ->call('save')
             ->assertHasNoErrors();
 
@@ -149,6 +173,7 @@ class FantreffenVipAuthorsTest extends TestCase
             'id' => $author->id,
             'name' => 'Updated Name',
             'pseudonym' => 'Updated Pseudo',
+            'is_tentative' => true,
         ]);
     }
 
@@ -295,6 +320,35 @@ class FantreffenVipAuthorsTest extends TestCase
         $response->assertSee('VIP-Autoren bestätigt!');
         $response->assertSee('Oliver Fröhlich');
         $response->assertSee('Ian Rolf Hill');
+    }
+
+    /** @test */
+    public function test_tentative_vip_authors_are_marked_on_public_page_and_disclaimer_is_in_program_section(): void
+    {
+        FantreffenVipAuthor::create([
+            'name' => 'Vorbehalt Autor',
+            'pseudonym' => null,
+            'is_active' => true,
+            'is_tentative' => true,
+            'sort_order' => 0,
+        ]);
+
+        $response = $this->get('/maddrax-fantreffen-2026');
+
+        $response->assertStatus(200);
+        $response->assertSee('Vorbehalt Autor');
+        $response->assertSee('(unter Vorbehalt)');
+
+        $disclaimer = 'Einige Autor:innen haben ihre Teilnahme bereits zugesagt, andere sind noch angefragt oder haben nur vorläufig zugesagt. Bitte beachtet, dass sich die Gästeliste kurzfristig ändern kann';
+        $response->assertSee($disclaimer);
+
+        $content = $response->getContent();
+        $programmPos = strpos($content, 'Programm');
+        $disclaimerPos = strpos($content, $disclaimer);
+
+        $this->assertNotFalse($programmPos);
+        $this->assertNotFalse($disclaimerPos);
+        $this->assertGreaterThan($programmPos, $disclaimerPos);
     }
 
     /** @test */
