@@ -2,7 +2,7 @@
 
 ![Laravel 12](https://img.shields.io/badge/laravel-12-red?logo=laravel&style=flat)
 ![PHP 8.2](https://img.shields.io/badge/php-8.2-blue?logo=php)
-![Node 20](https://img.shields.io/badge/node-20-5FA04E?logo=node.js&logoColor=white)
+![Node 24](https://img.shields.io/badge/node-24-5FA04E?logo=node.js&logoColor=white)
 ![JS Coverage](https://raw.githubusercontent.com/McNamara84/omxfc-vereinswebseite/image-data/js-coverage.svg)
 ![PHP Coverage](https://raw.githubusercontent.com/McNamara84/omxfc-vereinswebseite/image-data/php-coverage.svg)
 [![License](https://img.shields.io/badge/license-GPLv3-green)](LICENSE)
@@ -42,7 +42,7 @@ Offizielle Laravel-12-Anwendung für die Vereinswebseite des **Offizieller MADDR
 - **Backend:** Laravel 12, Jetstream, Sanctum, Scout (TNTSearch), Livewire 3, Spatie PDF & Sitemap.
 - **Frontend:** Tailwind CSS, Alpine.js, Vite, Chart.js, Simple Datatables, Leaflet.
 - **Testing:** PHPUnit 11, Jest 30, Vitest 3, Playwright inkl. axe-core für Accessibility-Regressionen.
-- **Tooling & DevOps:** Laravel Pint, Laravel Sail (optional), Dockerfile für PHP-FPM + Node 20 Build-Stage.
+- **Tooling & DevOps:** Laravel Pint, Laravel Sail (optional), Dockerfile für PHP-FPM + Node 24 (LTS) Build-Stage.
 
 ## Voraussetzungen
 
@@ -50,7 +50,7 @@ Offizielle Laravel-12-Anwendung für die Vereinswebseite des **Offizieller MADDR
 |------------------|---------------------------------------------------------|
 | PHP              | ≥ 8.2 inklusive Extensions: `pdo_mysql`, `mbstring`, `bcmath`, `gd`, `pcntl` |
 | Composer         | ≥ 2.6                                                   |
-| Node.js & npm    | Node 20 LTS, npm 10                                     |
+| Node.js & npm    | Node 24 LTS (siehe `.node-version`)                     |
 | Datenbank        | MariaDB / MySQL (Standard) oder SQLite für lokale Tests |
 | Optional         | Docker & Docker Compose, falls Container genutzt werden |
 
@@ -160,7 +160,7 @@ Die Playwright-Suite setzt eine laufende Anwendung (lokal oder in CI) voraus und
 
 Für das Deployment steht ein mehrstufiger Dockerfile bereit:
 
-1. **Node-Build-Stage** kompiliert die Vite-Assets mit Node 20 (`npm ci` + `npm run build`).
+1. **Node-Build-Stage** kompiliert die Vite-Assets mit Node 24 (LTS) (`npm ci` + `npm run build`).
 2. **PHP-FPM-Stage** installiert Composer-Abhängigkeiten ohne Dev-Pakete, kopiert die Anwendung sowie die vorgerenderten Assets und setzt korrekte Dateiberechtigungen.
 
 Bei klassischen Deployments sollten Sie mindestens folgende Schritte automatisieren:

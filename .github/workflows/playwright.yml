@@ -19,7 +19,7 @@ jobs:
           php-version: '8.4'
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version-file: '.node-version'
       - run: composer install --no-interaction --prefer-dist
       - run: cp .env.example .env
       - run: php artisan key:generate

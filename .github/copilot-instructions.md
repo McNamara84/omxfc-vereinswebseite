@@ -10,7 +10,7 @@ Ziel: Liefere kleine, sichere Code-Änderungen, Tests oder Dokument-Updates, die
 
 2) Wichtige Dateien/Orte (schnelle Referenz)
 - Projekt-README: `README.md` — enthält Setup-, Dev- & Deploy-Hinweise.
-- Composer/Node-Manifeste: `composer.json`, `package.json` (Node 20, PHP 8.2 Mindestanforderung).
+- Composer/Node-Manifeste: `composer.json`, `package.json` (Node 24 LTS, PHP 8.2 Mindestanforderung). Die Node-Version wird zentral in `.node-version` gepflegt.
 - Tests: `phpunit.xml`, `tests/TestCase.php` (beachtet HTTP-Fakes & automatische Seeding).
 - Routen: `routes/web.php` (Controller-zentrierte Struktur, deutsche Route-/Methodennamen).
 - Artisan entrypoint: `artisan` (standard Laravel CLI).
@@ -18,7 +18,7 @@ Ziel: Liefere kleine, sichere Code-Änderungen, Tests oder Dokument-Updates, die
 3) Entwicklungs- und Test-Workflows (konkrete Befehle)
 - Abhängigkeiten installieren:
   - `composer install`
-  - `npm install` (Node 20)
+  - `npm install` (Node 24 LTS)
 - Environment und DB:
   - `cp .env.example .env` und `php artisan key:generate`
   - Lokale Migration: `php artisan migrate`
@@ -39,7 +39,7 @@ Ziel: Liefere kleine, sichere Code-Änderungen, Tests oder Dokument-Updates, die
 - Tests erwarten HTTP-Fakes für externe Dienste (z. B. Nominatim). `tests/TestCase.php` faked Anfragen an `nominatim.openstreetmap.org` und seedet die DB automatisch in setUp(). Verändere das nicht ohne Grund.
 - Tests/CI nutzen SQLite (phpunit.xml setzt DB_CONNECTION=sqlite und DB_DATABASE=:memory:); Code, der nur mit MySQL-Spezifika funktioniert, kann in CI fehlschlagen.
 - Route-/Controller-Namen sind deutschsprachig; suche nach deutschen Schlüsselwörtern (z. B. `mitglieder`, `hoerbuecher`, `fantreffen`) bei Änderungen an Routen oder Views.
-- Assets: Vite (Node 20) — fehlerhafte Node-Versionen sind eine häufige lokale Fehlerquelle.
+- Assets: Vite (Node 24 LTS) — fehlerhafte Node-Versionen sind eine häufige lokale Fehlerquelle.
 - Dateiberechtigungen: CI setzt `chmod -R 777 storage bootstrap/cache` vor Tests; lokale Umgebungen müssen Schreibrechte für `storage`/`bootstrap/cache` erlauben.
 - Rollen-System: Benutzer-Rollen (Admin, Vorstand, Kassenwart, Mitglied, etc.) werden über `team_user` Pivot-Tabelle gespeichert, nicht direkt am User-Model. Siehe `database/schema/sqlite-schema.sql` für Schema-Details.
 - PayPal-Integration: Nutzt PayPal.me-Links (keine API), konfiguriert über `PAYPAL_ME_USERNAME` und `PAYPAL_FANTREFFEN_EMAIL` in `.env`.

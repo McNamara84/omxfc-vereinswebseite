@@ -73,7 +73,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version-file: '.node-version'
           cache: 'npm'
 
       - name: Install NPM dependencies
@@ -97,7 +97,7 @@ jobs:
           php-version: '8.5'
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version-file: '.node-version'
       - name: Install Composer dependencies
         run: composer install --no-interaction --prefer-dist --ignore-platform-req=php
       - run: cp .env.example .env
