@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Policies\KassenbuchEntryPolicy;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\TestWith;
 use Tests\TestCase;
 
 #[CoversClass(KassenbuchEntryPolicy::class)]
@@ -33,12 +34,13 @@ class KassenbuchEntryPolicyTest extends TestCase
         return $user;
     }
 
-    public function test_view_all_allows_finance_roles(): void
+    #[TestWith([Role::Vorstand])]
+    #[TestWith([Role::Admin])]
+    #[TestWith([Role::Kassenwart])]
+    public function test_view_all_allows_finance_roles(Role $role): void
     {
-        foreach ([Role::Vorstand, Role::Admin, Role::Kassenwart] as $role) {
-            $user = $this->createUserWithRole($role);
-            $this->assertTrue($this->policy->viewAll($user));
-        }
+        $user = $this->createUserWithRole($role);
+        $this->assertTrue($this->policy->viewAll($user));
     }
 
     public function test_view_all_denies_regular_member(): void
@@ -47,12 +49,12 @@ class KassenbuchEntryPolicyTest extends TestCase
         $this->assertFalse($this->policy->viewAll($user));
     }
 
-    public function test_manage_allows_kassenwart_and_admin(): void
+    #[TestWith([Role::Kassenwart])]
+    #[TestWith([Role::Admin])]
+    public function test_manage_allows_kassenwart_and_admin(Role $role): void
     {
-        foreach ([Role::Kassenwart, Role::Admin] as $role) {
-            $user = $this->createUserWithRole($role);
-            $this->assertTrue($this->policy->manage($user));
-        }
+        $user = $this->createUserWithRole($role);
+        $this->assertTrue($this->policy->manage($user));
     }
 
     public function test_manage_denies_vorstand_role(): void
