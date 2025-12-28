@@ -9,9 +9,11 @@ use App\Models\Team;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\File;
+use PHPUnit\Framework\Attributes\Large;
 use Tests\Concerns\CreatesMemberClientSnapshot;
 use Tests\TestCase;
 
+#[Large]
 class StatistikTest extends TestCase
 {
     use CreatesMemberClientSnapshot;

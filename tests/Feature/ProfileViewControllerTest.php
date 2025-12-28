@@ -19,7 +19,9 @@ use App\Models\BookSwap;
 use App\Services\MaddraxDataService;
 use Illuminate\Support\Facades\File;
 use App\Enums\Role;
+use PHPUnit\Framework\Attributes\Large;
 
+#[Large]
 class ProfileViewControllerTest extends TestCase
 {
     use RefreshDatabase;
