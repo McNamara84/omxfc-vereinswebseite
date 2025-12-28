@@ -76,9 +76,11 @@ test.describe('Kassenbuch Verwaltung', () => {
                 await editDialog.waitFor({ state: 'visible' });
             });
         await expect(editDialog).toBeVisible();
-        await expect(editDialog.getByLabel('Mitgliedsbeitrag (€)')).toHaveAttribute('aria-describedby', 'mitgliedsbeitrag-error');
-
-        await editDialog.getByLabel('Mitgliedsbeitrag (€)').fill('50');
+        const mitgliedsbeitragInput = editDialog.getByLabel('Mitgliedsbeitrag (€)');
+        await expect(mitgliedsbeitragInput).toHaveAttribute('aria-describedby', 'mitgliedsbeitrag-error');
+        await mitgliedsbeitragInput.click();
+        await expect(mitgliedsbeitragInput).toBeFocused();
+        await mitgliedsbeitragInput.fill('50');
         await editDialog.getByLabel('Bezahlt bis').fill('2026-12-31');
         await editDialog.getByLabel('Mitglied seit').fill('2020-01-01');
 
