@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1766904316">
-  <project timestamp="1766904316" name="Clover Coverage">
+<coverage generated="1766909396">
+  <project timestamp="1766909396" name="Clover Coverage">
     <package name="App\Actions\Fortify">
       <file name="/home/runner/work/omxfc-vereinswebseite/omxfc-vereinswebseite/app/Actions/Fortify/CreateNewUser.php">
         <class name="App\Actions\Fortify\CreateNewUser" namespace="App\Actions\Fortify">
@@ -3022,15 +3022,15 @@
         <line num="152" type="stmt" count="13"/>
         <line num="153" type="stmt" count="13"/>
         <line num="155" type="stmt" count="13"/>
-        <line num="156" type="stmt" count="7"/>
-        <line num="157" type="stmt" count="7"/>
-        <line num="158" type="stmt" count="7"/>
-        <line num="159" type="stmt" count="7"/>
-        <line num="160" type="stmt" count="7"/>
-        <line num="161" type="stmt" count="7"/>
-        <line num="162" type="stmt" count="7"/>
-        <line num="163" type="stmt" count="7"/>
-        <line num="165" type="stmt" count="7"/>
+        <line num="156" type="stmt" count="12"/>
+        <line num="157" type="stmt" count="12"/>
+        <line num="158" type="stmt" count="12"/>
+        <line num="159" type="stmt" count="12"/>
+        <line num="160" type="stmt" count="12"/>
+        <line num="161" type="stmt" count="12"/>
+        <line num="162" type="stmt" count="12"/>
+        <line num="163" type="stmt" count="12"/>
+        <line num="165" type="stmt" count="12"/>
         <line num="166" type="stmt" count="1"/>
         <line num="167" type="stmt" count="1"/>
         <line num="168" type="stmt" count="1"/>
