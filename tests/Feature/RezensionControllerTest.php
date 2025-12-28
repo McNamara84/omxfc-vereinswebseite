@@ -13,7 +13,9 @@ use Illuminate\Support\Facades\Mail;
 use App\Models\Review;
 use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;
+use PHPUnit\Framework\Attributes\Large;
 
+#[Large]
 class RezensionControllerTest extends TestCase
 {
     use RefreshDatabase;

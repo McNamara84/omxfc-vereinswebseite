@@ -6,8 +6,10 @@ use App\Models\Team;
 use App\Services\MembersTeamProvider;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Exceptions\HttpResponseException;
+use PHPUnit\Framework\Attributes\CoversClass;
 use Tests\TestCase;
 
+#[CoversClass(MembersTeamProvider::class)]
 class MembersTeamProviderTest extends TestCase
 {
     use RefreshDatabase;

@@ -4,8 +4,10 @@ namespace Tests\Unit;
 
 use App\Support\PreviewText;
 use Illuminate\Support\Stringable;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
+#[CoversClass(PreviewText::class)]
 class PreviewTextTest extends TestCase
 {
     public function test_trims_strips_and_limits_content(): void

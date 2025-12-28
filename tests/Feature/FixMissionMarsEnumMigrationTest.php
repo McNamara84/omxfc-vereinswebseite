@@ -6,13 +6,14 @@ use Database\Migrations\FixMissionMarsEnumValueInBooksTable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class FixMissionMarsEnumMigrationTest extends TestCase
 {
     use RefreshDatabase;
 
-    /** @test */
+    #[Test]
     public function test_migration_updates_mission_mars_value_in_sqlite(): void
     {
         // This test runs with SQLite (as configured in phpunit.xml)
@@ -51,7 +52,7 @@ class FixMissionMarsEnumMigrationTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function test_books_table_accepts_all_book_type_enum_values(): void
     {
         $bookTypes = [
@@ -80,7 +81,7 @@ class FixMissionMarsEnumMigrationTest extends TestCase
         }
     }
 
-    /** @test */
+    #[Test]
     public function test_book_type_enum_matches_database_values(): void
     {
         $enumValues = [

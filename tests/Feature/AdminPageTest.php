@@ -7,9 +7,11 @@ use App\Models\Team;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
+use PHPUnit\Framework\Attributes\Large;
 use Tests\Concerns\CreatesMemberClientSnapshot;
 use Tests\TestCase;
 
+#[Large]
 class AdminPageTest extends TestCase
 {
     use CreatesMemberClientSnapshot;

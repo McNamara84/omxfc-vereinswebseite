@@ -12,7 +12,7 @@ permissions:
 jobs:
   tests:
     runs-on: ubuntu-latest
-    name: PHP 8.5 Tests
+    name: PHP 8.5 Tests (fast)
     env:
       APP_KEY: ${{ secrets.APP_KEY }}
 
@@ -41,6 +41,15 @@ jobs:
             ${{ runner.os }}-php-8.5-composer-cache-
             ${{ runner.os }}-php-8.5-
             ${{ runner.os }}-
+      - name: Cache PHPUnit result cache
+        uses: actions/cache@v4
+        with:
+          path: .phpunit.cache
+          key: ${{ runner.os }}-php-8.5-phpunit-cache-${{ hashFiles('phpunit.xml', 'composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-php-8.5-phpunit-cache-
+            ${{ runner.os }}-php-8.5-
+            ${{ runner.os }}-
       - name: Install Dependencies
         run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
       - name: Directory Permissions
@@ -51,14 +60,72 @@ jobs:
           touch database/database.sqlite
       - name: Setup Node.js and build assets
         uses: ./.github/actions/build-assets
-      - name: Execute tests (Unit and Feature tests) via PHPUnit/Pest
+      - name: Execute tests (Unit and Feature tests) excluding #[Large]
         env:
           DB_CONNECTION: sqlite
           DB_DATABASE: database/database.sqlite
-        run: php artisan test
+        run: php vendor/bin/phpunit --exclude-group large
+
+  tests_large:
+    runs-on: ubuntu-latest
+    name: PHP 8.5 Tests (large)
+    env:
+      APP_KEY: ${{ secrets.APP_KEY }}
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@15c43e89cdef867065b0213be354c2841860869e
+        with:
+          php-version: '8.5'
+      - name: Copy .env
+        run: php -r "file_exists('.env') || copy('.env.example', '.env');"
+      - name: Cache Composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: ${{ runner.os }}-php-8.5-composer-${{ hashFiles('composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-php-8.5-composer-
+            ${{ runner.os }}-php-8.5-
+            ${{ runner.os }}-
+      - name: Cache Composer downloads
+        uses: actions/cache@v4
+        with:
+          path: ~/.composer/cache
+          key: ${{ runner.os }}-php-8.5-composer-cache-${{ hashFiles('composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-php-8.5-composer-cache-
+            ${{ runner.os }}-php-8.5-
+            ${{ runner.os }}-
+      - name: Cache PHPUnit result cache
+        uses: actions/cache@v4
+        with:
+          path: .phpunit.cache
+          key: ${{ runner.os }}-php-8.5-phpunit-cache-${{ hashFiles('phpunit.xml', 'composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-php-8.5-phpunit-cache-
+            ${{ runner.os }}-php-8.5-
+            ${{ runner.os }}-
+      - name: Install Dependencies
+        run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
+      - name: Directory Permissions
+        run: chmod -R 777 storage bootstrap/cache
+      - name: Create Database
+        run: |
+          mkdir -p database
+          touch database/database.sqlite
+      - name: Setup Node.js and build assets
+        uses: ./.github/actions/build-assets
+      - name: Execute only #[Large] tests
+        env:
+          DB_CONNECTION: sqlite
+          DB_DATABASE: database/database.sqlite
+        run: php vendor/bin/phpunit --group large
 
   coverage:
-    needs: tests
+    needs:
+      - tests
+      - tests_large
     runs-on: ubuntu-latest
     name: PHP 8.5 - Coverage
     env:
@@ -89,6 +156,15 @@ jobs:
           key: ${{ runner.os }}-php-8.5-composer-cache-${{ hashFiles('composer.lock') }}
           restore-keys: |
             ${{ runner.os }}-php-8.5-composer-cache-
+            ${{ runner.os }}-php-8.5-
+            ${{ runner.os }}-
+      - name: Cache PHPUnit result cache
+        uses: actions/cache@v4
+        with:
+          path: .phpunit.cache
+          key: ${{ runner.os }}-php-8.5-phpunit-cache-${{ hashFiles('phpunit.xml', 'composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-php-8.5-phpunit-cache-
             ${{ runner.os }}-php-8.5-
             ${{ runner.os }}-
       - name: Install Dependencies
@@ -136,7 +212,9 @@ jobs:
           if-no-files-found: ignore
 
   js-coverage:
-    needs: tests
+    needs:
+      - tests
+      - tests_large
     runs-on: ubuntu-latest
     name: JS Coverage
 

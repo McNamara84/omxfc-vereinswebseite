@@ -9,13 +9,14 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Mail;
 use Livewire\Livewire;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class FantreffenTshirtDeadlineTest extends TestCase
 {
     use RefreshDatabase;
 
-    /** @test */
+    #[Test]
     public function test_tshirt_deadline_is_read_from_config()
     {
         // Verify the config key exists and has a valid format
@@ -28,7 +29,7 @@ class FantreffenTshirtDeadlineTest extends TestCase
         $this->assertInstanceOf(Carbon::class, $parsedDeadline);
     }
 
-    /** @test */
+    #[Test]
     public function test_tshirt_section_is_visible_before_deadline()
     {
         // Set deadline to future
@@ -39,7 +40,7 @@ class FantreffenTshirtDeadlineTest extends TestCase
             ->assertSee('Event-T-Shirt bestellen');
     }
 
-    /** @test */
+    #[Test]
     public function test_tshirt_section_is_hidden_after_deadline()
     {
         // Set deadline to past
@@ -50,7 +51,7 @@ class FantreffenTshirtDeadlineTest extends TestCase
             ->assertSet('tshirtDeadlinePassed', true);
     }
 
-    /** @test */
+    #[Test]
     public function test_days_until_deadline_is_calculated_correctly()
     {
         // Set deadline to 10 days from now at end of day
@@ -66,7 +67,7 @@ class FantreffenTshirtDeadlineTest extends TestCase
         $component->assertSet('tshirtDeadlinePassed', false);
     }
 
-    /** @test */
+    #[Test]
     public function test_days_until_deadline_is_zero_when_deadline_passed()
     {
         // Set deadline to past
@@ -77,7 +78,7 @@ class FantreffenTshirtDeadlineTest extends TestCase
             ->assertSet('tshirtDeadlinePassed', true);
     }
 
-    /** @test */
+    #[Test]
     public function test_formatted_deadline_is_displayed_correctly()
     {
         // Set a specific deadline
@@ -87,7 +88,7 @@ class FantreffenTshirtDeadlineTest extends TestCase
             ->assertSee('28. Februar 2026');
     }
 
-    /** @test */
+    #[Test]
     public function test_livewire_component_provides_correct_deadline_data_before_deadline()
     {
         // Set deadline to 15 days from now at end of day to ensure consistent calculation
@@ -104,7 +105,7 @@ class FantreffenTshirtDeadlineTest extends TestCase
         $this->assertNotEmpty($component->get('tshirtDeadlineFormatted'));
     }
 
-    /** @test */
+    #[Test]
     public function test_livewire_component_provides_correct_deadline_data_after_deadline()
     {
         // Set deadline to past
@@ -115,7 +116,7 @@ class FantreffenTshirtDeadlineTest extends TestCase
             ->assertSet('daysUntilDeadline', 0);
     }
 
-    /** @test */
+    #[Test]
     public function test_controller_passes_deadline_data_to_view_before_deadline()
     {
         // Set deadline to future at end of day
@@ -134,7 +135,7 @@ class FantreffenTshirtDeadlineTest extends TestCase
         $this->assertLessThanOrEqual(21, $daysUntilDeadline);
     }
 
-    /** @test */
+    #[Test]
     public function test_controller_passes_deadline_data_to_view_after_deadline()
     {
         // Set deadline to past
@@ -147,7 +148,7 @@ class FantreffenTshirtDeadlineTest extends TestCase
         $response->assertViewHas('daysUntilDeadline', 0);
     }
 
-    /** @test */
+    #[Test]
     public function test_livewire_component_prevents_tshirt_order_after_deadline()
     {
         // Set deadline to past
@@ -163,7 +164,7 @@ class FantreffenTshirtDeadlineTest extends TestCase
             ->assertSee('Die Deadline für T-Shirt-Bestellungen ist leider abgelaufen.');
     }
 
-    /** @test */
+    #[Test]
     public function test_controller_prevents_tshirt_order_after_deadline()
     {
         Mail::fake();
@@ -183,7 +184,7 @@ class FantreffenTshirtDeadlineTest extends TestCase
         $response->assertSessionHasErrors('tshirt_bestellt');
     }
 
-    /** @test */
+    #[Test]
     public function test_controller_allows_registration_without_tshirt_after_deadline()
     {
         Mail::fake();
@@ -210,7 +211,7 @@ class FantreffenTshirtDeadlineTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function test_aria_alert_is_added_when_deadline_is_near()
     {
         // Set deadline to 5 days from now (within 7-day threshold)
@@ -220,7 +221,7 @@ class FantreffenTshirtDeadlineTest extends TestCase
             ->assertSeeHtml('role="alert"');
     }
 
-    /** @test */
+    #[Test]
     public function test_aria_alert_is_not_added_when_deadline_is_far()
     {
         // Set deadline to 30 days from now (beyond 7-day threshold)
@@ -236,7 +237,7 @@ class FantreffenTshirtDeadlineTest extends TestCase
         $component->assertDontSeeHtml('role="alert"');
     }
 
-    /** @test */
+    #[Test]
     public function test_deadline_service_correctly_calculates_alert_threshold()
     {
         // Test at exactly 7 days (end of day) - should show alert
