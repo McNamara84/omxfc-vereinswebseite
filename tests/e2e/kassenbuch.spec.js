@@ -1,19 +1,20 @@
 import { expect, test } from '@playwright/test';
 
+const escapeRegExp = (value) => String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
 const login = async (page, email, password = 'password') => {
     await page.goto('/login');
     await page.fill('input[name="email"]', email);
     await page.fill('input[name="password"]', password);
-    await Promise.all([
-        page.waitForNavigation({ waitUntil: 'networkidle' }),
-        page.click('button[type="submit"]'),
-    ]);
+    await page.click('button[type="submit"]');
+    await page.waitForURL((url) => !url.pathname.endsWith('/login'));
 };
 
 test.describe('Kassenbuch Verwaltung', () => {
-    test('admin manages entries with accessible dialogs', async ({ page }) => {
-        await login(page, 'info@maddraxikon.com');
+    test('admin can add entries via the modal', async ({ page }) => {
+        test.setTimeout(60_000);
 
+        await login(page, 'info@maddraxikon.com');
         await page.goto('/kassenbuch');
 
         await expect(page.getByRole('heading', { level: 1, name: 'Kassenbuch' })).toBeVisible();
@@ -35,16 +36,27 @@ test.describe('Kassenbuch Verwaltung', () => {
         await expect(addDialog.getByLabel('Beschreibung')).toHaveAttribute('aria-describedby', 'beschreibung-error');
         await expect(addDialog.getByLabel('Betrag (€)')).toHaveAttribute('aria-describedby', 'betrag-error');
 
-        await addDialog.getByLabel('Beschreibung').fill('Playwright Einnahme');
-        await addDialog.getByLabel('Betrag (€)').fill('15');
+        // Regression guard: the dialog must be clickable/focusable (not covered by the backdrop).
+        const addBeschreibungInput = addDialog.getByLabel('Beschreibung');
+        await addBeschreibungInput.click();
+        await expect(addBeschreibungInput).toBeFocused();
 
-        await Promise.all([
-            page.waitForNavigation({ waitUntil: 'networkidle' }),
-            addDialog.getByRole('button', { name: 'Hinzufügen' }).click(),
-        ]);
+        await addBeschreibungInput.fill('Playwright Einnahme');
+        const addBetragInput = addDialog.getByLabel('Betrag (€)');
+        await addBetragInput.click();
+        await expect(addBetragInput).toBeFocused();
+        await addBetragInput.fill('15');
 
-        await expect(page.getByText('Kassenbucheintrag wurde hinzugefügt.')).toBeVisible();
+        await addDialog.getByRole('button', { name: 'Hinzufügen' }).click();
+        await expect(page.getByText('Kassenbucheintrag wurde hinzugefügt.')).toBeVisible({ timeout: 10000 });
         await expect(page.getByRole('cell', { name: 'Playwright Einnahme' })).toBeVisible();
+    });
+
+    test('admin can edit payment status via the modal', async ({ page }) => {
+        test.setTimeout(60_000);
+
+        await login(page, 'info@maddraxikon.com');
+        await page.goto('/kassenbuch');
 
         const editButton = page.getByRole('button', { name: 'Bearbeiten' }).first();
         const editDetail = await editButton.evaluate((button) => ({
@@ -76,18 +88,27 @@ test.describe('Kassenbuch Verwaltung', () => {
                 await editDialog.waitFor({ state: 'visible' });
             });
         await expect(editDialog).toBeVisible();
-        await expect(editDialog.getByLabel('Mitgliedsbeitrag (€)')).toHaveAttribute('aria-describedby', 'mitgliedsbeitrag-error');
 
-        await editDialog.getByLabel('Mitgliedsbeitrag (€)').fill('50');
+        const mitgliedsbeitragInput = editDialog.getByLabel('Mitgliedsbeitrag (€)');
+        await expect(mitgliedsbeitragInput).toHaveAttribute('aria-describedby', 'mitgliedsbeitrag-error');
+        await mitgliedsbeitragInput.click();
+        await expect(mitgliedsbeitragInput).toBeFocused();
+
+        await mitgliedsbeitragInput.fill('50');
         await editDialog.getByLabel('Bezahlt bis').fill('2026-12-31');
         await editDialog.getByLabel('Mitglied seit').fill('2020-01-01');
 
-        await Promise.all([
-            page.waitForNavigation({ waitUntil: 'networkidle' }),
-            editDialog.getByRole('button', { name: 'Speichern' }).click(),
-        ]);
+        await editDialog.getByRole('button', { name: 'Speichern' }).click();
 
-        await expect(page).toHaveURL(/\/kassenbuch$/);
+        const escapedName = escapeRegExp(editDetail.userName);
+        await expect(page.getByText(new RegExp(`Zahlungsdaten für\\s+${escapedName}\\s+wurden aktualisiert\\.`))).toBeVisible({
+            timeout: 10000,
+        });
+
+        const membersTable = page.getByRole('table').first();
+        const memberRow = membersTable.getByRole('row', { name: new RegExp(escapedName) }).first();
+        await expect(memberRow).toContainText(/50,00\s+€/);
+        await expect(memberRow).toContainText('31.12.2026');
     });
 
     test('kassenbuch exposes modal triggers and status badges for analytics tooling', async ({ page }) => {
