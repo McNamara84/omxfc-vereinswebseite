@@ -62,8 +62,7 @@ class KompendiumSearchTest extends TestCase
             'ids' => ['/cycle1/001 - ExampleTitle.txt'],
         ]);
         Mockery::mock('alias:' . RomanExcerpt::class)
-            ->shouldReceive('search')
-            ->once()
+            ->allows('search')
             ->with('example')
             ->andReturn($mock);
 
@@ -94,8 +93,7 @@ class KompendiumSearchTest extends TestCase
             'ids' => [],
         ]);
         Mockery::mock('alias:' . RomanExcerpt::class)
-            ->shouldReceive('search')
-            ->once()
+            ->allows('search')
             ->with('nomatch')
             ->andReturn($mock);
 

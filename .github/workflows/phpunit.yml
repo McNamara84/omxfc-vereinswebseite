@@ -45,7 +45,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .phpunit.cache
-          key: ${{ runner.os }}-php-8.5-phpunit-cache-${{ hashFiles('phpunit.xml', 'composer.lock', 'tests/**') }}
+          key: ${{ runner.os }}-php-8.5-phpunit-cache-${{ hashFiles('phpunit.xml', 'composer.lock') }}
           restore-keys: |
             ${{ runner.os }}-php-8.5-phpunit-cache-
             ${{ runner.os }}-php-8.5-
@@ -101,7 +101,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .phpunit.cache
-          key: ${{ runner.os }}-php-8.5-phpunit-cache-${{ hashFiles('phpunit.xml', 'composer.lock', 'tests/**') }}
+          key: ${{ runner.os }}-php-8.5-phpunit-cache-${{ hashFiles('phpunit.xml', 'composer.lock') }}
           restore-keys: |
             ${{ runner.os }}-php-8.5-phpunit-cache-
             ${{ runner.os }}-php-8.5-
@@ -162,7 +162,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .phpunit.cache
-          key: ${{ runner.os }}-php-8.5-phpunit-cache-${{ hashFiles('phpunit.xml', 'composer.lock', 'tests/**') }}
+          key: ${{ runner.os }}-php-8.5-phpunit-cache-${{ hashFiles('phpunit.xml', 'composer.lock') }}
           restore-keys: |
             ${{ runner.os }}-php-8.5-phpunit-cache-
             ${{ runner.os }}-php-8.5-
