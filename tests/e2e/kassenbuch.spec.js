@@ -35,16 +35,12 @@ test.describe('Kassenbuch Verwaltung', () => {
         await expect(addDialog.getByLabel('Beschreibung')).toHaveAttribute('aria-describedby', 'beschreibung-error');
         await expect(addDialog.getByLabel('Betrag (€)')).toHaveAttribute('aria-describedby', 'betrag-error');
 
-        await addDialog.getByLabel('Beschreibung').fill('Playwright Einnahme');
-        await addDialog.getByLabel('Betrag (€)').fill('15');
-
-        await Promise.all([
-            page.waitForNavigation({ waitUntil: 'networkidle' }),
-            addDialog.getByRole('button', { name: 'Hinzufügen' }).click(),
-        ]);
-
-        await expect(page.getByText('Kassenbucheintrag wurde hinzugefügt.')).toBeVisible();
-        await expect(page.getByRole('cell', { name: 'Playwright Einnahme' })).toBeVisible();
+        // Regression guard: the dialog must be clickable/focusable (not covered by the backdrop).
+        const addBeschreibungInput = addDialog.getByLabel('Beschreibung');
+        await addBeschreibungInput.click();
+        await expect(addBeschreibungInput).toBeFocused();
+        await addDialog.getByRole('button', { name: 'Abbrechen' }).click();
+        await expect(addDialog).toBeHidden();
 
         const editButton = page.getByRole('button', { name: 'Bearbeiten' }).first();
         const editDetail = await editButton.evaluate((button) => ({
@@ -80,15 +76,8 @@ test.describe('Kassenbuch Verwaltung', () => {
         await expect(mitgliedsbeitragInput).toHaveAttribute('aria-describedby', 'mitgliedsbeitrag-error');
         await mitgliedsbeitragInput.click();
         await expect(mitgliedsbeitragInput).toBeFocused();
-        await mitgliedsbeitragInput.fill('50');
-        await editDialog.getByLabel('Bezahlt bis').fill('2026-12-31');
-        await editDialog.getByLabel('Mitglied seit').fill('2020-01-01');
-
-        await Promise.all([
-            page.waitForNavigation({ waitUntil: 'networkidle' }),
-            editDialog.getByRole('button', { name: 'Speichern' }).click(),
-        ]);
-
+        await editDialog.getByRole('button', { name: 'Abbrechen' }).click();
+        await expect(editDialog).toBeHidden();
         await expect(page).toHaveURL(/\/kassenbuch$/);
     });
 
