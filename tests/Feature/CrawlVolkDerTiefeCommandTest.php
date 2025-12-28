@@ -83,7 +83,10 @@ class CrawlVolkDerTiefeCommandTest extends TestCase
         $command->setLaravel($this->app);
         $command->setOutput(new OutputStyle(new ArrayInput([]), new BufferedOutput()));
 
-        $command->allows('getUrlContent')->andReturnUsing(function (string $url) use ($categoryHtml, $novelHtml, $futureHtml) {
+        $command->shouldReceive('getUrlContent')
+            ->atLeast()
+            ->once()
+            ->andReturnUsing(function (string $url) use ($categoryHtml, $novelHtml, $futureHtml) {
             return match (true) {
                 str_contains($url, 'Kategorie:Das_Volk_der_Tiefe') => $categoryHtml,
                 str_contains($url, 'DVT_01') => $novelHtml,
