@@ -85,7 +85,7 @@ class CrawlVolkDerTiefeCommandTest extends TestCase
 
         $command->shouldReceive('getUrlContent')
             ->atLeast()
-            ->once()
+            ->times(1)
             ->andReturnUsing(function (string $url) use ($categoryHtml, $novelHtml, $futureHtml) {
             return match (true) {
                 str_contains($url, 'Kategorie:Das_Volk_der_Tiefe') => $categoryHtml,
