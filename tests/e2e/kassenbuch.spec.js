@@ -12,7 +12,7 @@ const login = async (page, email, password = 'password') => {
 
 test.describe('Kassenbuch Verwaltung', () => {
     test('admin can add entries via the modal', async ({ page }) => {
-        test.setTimeout(60000);
+        test.setTimeout(60_000);
 
         await login(page, 'info@maddraxikon.com');
         await page.goto('/kassenbuch');
@@ -53,7 +53,7 @@ test.describe('Kassenbuch Verwaltung', () => {
     });
 
     test('admin can edit payment status via the modal', async ({ page }) => {
-        test.setTimeout(60000);
+        test.setTimeout(60_000);
 
         await login(page, 'info@maddraxikon.com');
         await page.goto('/kassenbuch');
