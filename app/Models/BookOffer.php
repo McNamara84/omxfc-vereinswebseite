@@ -8,17 +8,20 @@ use Illuminate\Database\Eloquent\Model;
 
 /**
  * @property int $id
+ * @property string|null $bundle_id
  * @property int $user_id
  * @property string $series
  * @property int $book_number
  * @property string $book_title
  * @property string $condition
+ * @property string|null $condition_max
  * @property array|null $photos
  * @property bool $completed
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read User $user
  * @property-read BookSwap|null $swap
+ * @property-read string $condition_range
  */
 class BookOffer extends Model
 {
@@ -26,10 +29,12 @@ class BookOffer extends Model
 
     protected $fillable = [
         'user_id',
+        'bundle_id',
         'series',
         'book_number',
         'book_title',
         'condition',
+        'condition_max',
         'photos',
         'completed',
     ];
@@ -94,5 +99,55 @@ class BookOffer extends Model
         }
 
         return $normalized;
+    }
+
+    /**
+     * Prüft, ob dieses Angebot Teil eines Stapels ist.
+     */
+    public function isPartOfBundle(): bool
+    {
+        return $this->bundle_id !== null;
+    }
+
+    /**
+     * Gibt alle anderen Angebote im selben Stapel zurück.
+     *
+     * @return \Illuminate\Support\Collection<int, BookOffer>
+     */
+    public function bundleSiblings(): \Illuminate\Support\Collection
+    {
+        if (!$this->bundle_id) {
+            return collect();
+        }
+
+        return static::where('bundle_id', $this->bundle_id)
+            ->where('id', '!=', $this->id)
+            ->get();
+    }
+
+    /**
+     * Gibt alle Angebote im Stapel zurück (inkl. dieses).
+     *
+     * @return \Illuminate\Support\Collection<int, BookOffer>
+     */
+    public function bundleOffers(): \Illuminate\Support\Collection
+    {
+        if (!$this->bundle_id) {
+            return collect([$this]);
+        }
+
+        return static::where('bundle_id', $this->bundle_id)->get();
+    }
+
+    /**
+     * Formatierter Zustandsbereich.
+     */
+    public function getConditionRangeAttribute(): string
+    {
+        if ($this->condition_max && $this->condition !== $this->condition_max) {
+            return $this->condition . ' bis ' . $this->condition_max;
+        }
+
+        return $this->condition;
     }
 }
