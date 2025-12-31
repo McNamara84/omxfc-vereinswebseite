@@ -53,14 +53,15 @@ test.describe('Romantauschbörse - Stapel-Angebote', () => {
             await page.goto('/romantauschboerse/stapel-angebot-erstellen');
 
             const bookNumbersInput = page.locator('input[name="book_numbers"]');
-            await bookNumbersInput.fill('1-5, 10');
+            // In Webkit triggert fill() das input-Event nicht zuverlässig
+            // Verwende type() stattdessen, das simuliert echte Tastatureingaben
+            await bookNumbersInput.click();
+            await bookNumbersInput.pressSequentially('1-5, 10', { delay: 50 });
 
             // Die Vorschau sollte "6 Romane erkannt" anzeigen
-            // Warte auf das Element mit auto-retry (statt fixer waitForTimeout)
+            // Warte auf das Element - Alpine.js hat 300ms debounce + Rendering
             const preview = page.locator('[x-show="numbers.length > 0"]');
-            // Verwende expect mit timeout für Alpine.js Rendering
-            await expect(preview).toBeVisible({ timeout: 3000 });
-            // Prüfe den gesamten Text - der Span wird durch Alpine.js gefüllt
+            await expect(preview).toBeVisible({ timeout: 5000 });
             await expect(preview.locator('p').first()).toContainText('Romane erkannt', { timeout: 3000 });
         });
 
@@ -158,22 +159,24 @@ test.describe('Romantauschbörse - Stapel-Angebote', () => {
         test('Bearbeiten-Formular zeigt aktuelle Werte', async ({ page }) => {
             await loginAsMember(page);
             
-            // Erstelle ein Stapel-Angebot
+            // Erstelle ein Stapel-Angebot mit eindeutigen Nummern (90-92)
             await page.goto('/romantauschboerse/stapel-angebot-erstellen');
             await page.selectOption('select[name="series"]', SERIES_MADDRAX);
-            await page.fill('input[name="book_numbers"]', '40-42');
+            await page.fill('input[name="book_numbers"]', '90-92');
             await page.selectOption('select[name="condition"]', CONDITION_Z2);
             await page.click('button[type="submit"]');
 
             await expect(page).toHaveURL(/romantauschboerse$/);
 
-            // Gehe zur Bearbeiten-Seite
-            const editLink = page.locator('a[href*="/stapel/"][href*="/bearbeiten"]').first();
+            // Finde das Bundle mit Nummern 90-92 und klicke auf dessen Bearbeiten-Link
+            const bundleWithNumbers = page.locator('[data-bundle-id]', { hasText: '90' }).first();
+            await expect(bundleWithNumbers).toBeVisible({ timeout: 5000 });
+            const editLink = bundleWithNumbers.locator('a[href*="/stapel/"][href*="/bearbeiten"]');
             await editLink.click();
 
             // Aktuelle Roman-Nummern sollten im Eingabefeld stehen
             const bookNumbersInput = page.locator('input[name="book_numbers"]');
-            await expect(bookNumbersInput).toHaveValue(/40/);
+            await expect(bookNumbersInput).toHaveValue(/90/);
         });
 
         test('Stapel kann gelöscht werden', async ({ page }) => {
