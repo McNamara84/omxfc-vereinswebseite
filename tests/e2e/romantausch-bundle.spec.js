@@ -53,11 +53,12 @@ test.describe('Romantauschbörse - Stapel-Angebote', () => {
             await page.goto('/romantauschboerse/stapel-angebot-erstellen');
 
             const bookNumbersInput = page.locator('input[name="book_numbers"]');
-            // In Webkit triggert fill() das input-Event nicht zuverlässig
-            // Verwende type() stattdessen, das simuliert echte Tastatureingaben
-            await bookNumbersInput.click();
-            await bookNumbersInput.pressSequentially('1-5, 10', { delay: 50 });
-
+            
+            // Setze den Wert und triggere das Alpine.js x-model Update manuell
+            await bookNumbersInput.fill('1-5, 10');
+            // Triggere das input-Event explizit für Alpine.js
+            await bookNumbersInput.dispatchEvent('input');
+            
             // Die Vorschau sollte "6 Romane erkannt" anzeigen
             // Warte auf das Element - Alpine.js hat 300ms debounce + Rendering
             const preview = page.locator('[x-show="numbers.length > 0"]');
