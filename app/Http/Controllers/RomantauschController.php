@@ -35,19 +35,29 @@ class RomantauschController extends Controller
         BookType::ZweiTausendZwölfDasJahrDerApokalypse,
     ];
     public const ALLOWED_PHOTO_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+
     // Übersicht
     public function index()
     {
-        $offers = BookOffer::with('user')->where('completed', false)->doesntHave('swap')->get();
-        $requests = BookRequest::with('user')->where('completed', false)->doesntHave('swap')->get();
-
         $userId = Auth::id();
+
+        // Alle Angebote laden
+        $allOffers = BookOffer::with('user')
+            ->where('completed', false)
+            ->doesntHave('swap')
+            ->get();
+
+        // Stapel gruppieren
+        $bundledOffers = $allOffers->filter(fn ($offer) => $offer->bundle_id !== null)->groupBy('bundle_id');
+        $singleOffers = $allOffers->filter(fn ($offer) => $offer->bundle_id === null);
+
+        $requests = BookRequest::with('user')->where('completed', false)->doesntHave('swap')->get();
 
         $ownOffers = collect();
         $ownRequests = collect();
 
         if ($userId) {
-            $ownOffers = $offers
+            $ownOffers = $allOffers
                 ->filter(fn (BookOffer $offer) => (int) $offer->user_id === (int) $userId)
                 ->keyBy(fn (BookOffer $offer) => $this->buildBookKey($offer->series, (int) $offer->book_number));
 
@@ -56,7 +66,43 @@ class RomantauschController extends Controller
                 ->keyBy(fn (BookRequest $request) => $this->buildBookKey($request->series, (int) $request->book_number));
         }
 
-        $offers->each(function (BookOffer $offer) use ($userId, $ownRequests) {
+        // Stapel mit Match-Informationen anreichern
+        $bundles = $bundledOffers->map(function ($offers, $bundleId) use ($userId, $ownRequests) {
+            $firstOffer = $offers->first();
+
+            $matchingCount = 0;
+            $matchingOffers = collect();
+
+            if ($userId && (int) $firstOffer->user_id !== (int) $userId) {
+                foreach ($offers as $offer) {
+                    $bookKey = $this->buildBookKey($offer->series, (int) $offer->book_number);
+                    if ($ownRequests->has($bookKey)) {
+                        $matchingCount++;
+                        $matchingOffers->push($offer);
+                    }
+                }
+            }
+
+            return (object) [
+                'bundle_id' => $bundleId,
+                'series' => $firstOffer->series,
+                'user' => $firstOffer->user,
+                'user_id' => $firstOffer->user_id,
+                'condition' => $firstOffer->condition,
+                'condition_max' => $firstOffer->condition_max,
+                'condition_range' => $firstOffer->condition_range,
+                'photos' => $firstOffer->photos,
+                'offers' => $offers->sortBy('book_number'),
+                'total_count' => $offers->count(),
+                'matching_count' => $matchingCount,
+                'matching_offers' => $matchingOffers,
+                'book_numbers_display' => $this->formatBookNumbersRange($offers),
+                'created_at' => $firstOffer->created_at,
+            ];
+        })->values();
+
+        // Einzelangebote mit Match-Info
+        $singleOffers->each(function (BookOffer $offer) use ($userId, $ownRequests) {
             $offer->matches_user_request = false;
 
             if (!$userId || (int) $offer->user_id === (int) $userId) {
@@ -89,7 +135,10 @@ class RomantauschController extends Controller
 
         $romantauschInfo = $this->romantauschInfoProvider->getInfo();
 
-        return view('romantausch.index', compact('offers', 'requests', 'activeSwaps', 'completedSwaps', 'romantauschInfo'));
+        // Für Abwärtskompatibilität: 'offers' enthält nur Einzelangebote
+        $offers = $singleOffers;
+
+        return view('romantausch.index', compact('offers', 'bundles', 'requests', 'activeSwaps', 'completedSwaps', 'romantauschInfo'));
     }
 
     // Formular für Angebot erstellen
@@ -540,5 +589,393 @@ class RomantauschController extends Controller
     private function buildBookKey(string $series, int $bookNumber): string
     {
         return sprintf('%s::%d', $series, $bookNumber);
+    }
+
+    /**
+     * Parst eine Eingabe wie "1, 5, 7, 12-50, 52" in ein Array von Nummern.
+     *
+     * @return array<int>
+     */
+    private function parseBookNumbers(string $input): array
+    {
+        $numbers = [];
+        $parts = array_map('trim', explode(',', $input));
+
+        foreach ($parts as $part) {
+            if ($part === '') {
+                continue;
+            }
+
+            if (str_contains($part, '-')) {
+                $rangeParts = explode('-', $part, 2);
+                $start = intval(trim($rangeParts[0]));
+                $end = intval(trim($rangeParts[1]));
+
+                if ($start > 0 && $end > 0 && $end >= $start && ($end - $start) <= 1000) {
+                    for ($i = $start; $i <= $end; $i++) {
+                        $numbers[] = $i;
+                    }
+                }
+            } else {
+                $num = intval($part);
+                if ($num > 0) {
+                    $numbers[] = $num;
+                }
+            }
+        }
+
+        return array_values(array_unique($numbers));
+    }
+
+    /**
+     * Formatiert eine Sammlung von Angeboten als kompakte Nummernbereiche.
+     * z.B. [1,2,3,5,7,8,9] => "1-3, 5, 7-9"
+     *
+     * @param \Illuminate\Support\Collection<int, BookOffer> $offers
+     */
+    private function formatBookNumbersRange($offers): string
+    {
+        $numbers = $offers->pluck('book_number')->sort()->values()->toArray();
+
+        if (empty($numbers)) {
+            return '';
+        }
+
+        $ranges = [];
+        $start = $numbers[0];
+        $end = $numbers[0];
+
+        for ($i = 1; $i < count($numbers); $i++) {
+            if ($numbers[$i] === $end + 1) {
+                $end = $numbers[$i];
+            } else {
+                $ranges[] = $start === $end ? (string) $start : "$start-$end";
+                $start = $numbers[$i];
+                $end = $numbers[$i];
+            }
+        }
+        $ranges[] = $start === $end ? (string) $start : "$start-$end";
+
+        return implode(', ', $ranges);
+    }
+
+    /**
+     * Hilfsmethode für Foto-Upload.
+     *
+     * @return array<string>|false Array mit Pfaden bei Erfolg, false bei Fehler
+     */
+    private function uploadPhotos(Request $request): array|false
+    {
+        $photoPaths = [];
+
+        if ($request->hasFile('photos')) {
+            foreach ($request->file('photos') as $photo) {
+                if (!$photo) {
+                    continue;
+                }
+
+                try {
+                    $extension = strtolower($photo->getClientOriginalExtension());
+                    $name = Str::slug(pathinfo($photo->getClientOriginalName(), PATHINFO_FILENAME));
+                    if ($name === '') {
+                        $name = 'photo';
+                    }
+                    $filename = $name . '-' . Str::uuid() . '.' . $extension;
+                    $photoPaths[] = $photo->storeAs('book-offers', $filename, 'public');
+                } catch (\Throwable $e) {
+                    foreach ($photoPaths as $path) {
+                        Storage::disk('public')->delete($path);
+                    }
+
+                    return false;
+                }
+            }
+        }
+
+        return $photoPaths;
+    }
+
+    /**
+     * Formular für Stapel-Angebot erstellen.
+     */
+    public function createBundleOffer()
+    {
+        $typeValues = array_map(fn ($type) => $type->value, self::ALLOWED_TYPES);
+        $books = Book::whereIn('type', $typeValues)->orderBy('roman_number')->get();
+        $types = self::ALLOWED_TYPES;
+
+        return view('romantausch.create_bundle_offer', compact('books', 'types'));
+    }
+
+    /**
+     * Speichert ein Stapel-Angebot (mehrere Romane auf einmal).
+     */
+    public function storeBundleOffer(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'series' => ['required', Rule::in(array_map(fn ($case) => $case->value, self::ALLOWED_TYPES))],
+            'book_numbers' => 'required|string',
+            'condition' => 'required|string',
+            'condition_max' => 'nullable|string',
+            'photos' => 'nullable|array|max:3',
+            'photos.*' => 'file|max:2048|mimes:' . implode(',', self::ALLOWED_PHOTO_EXTENSIONS),
+        ]);
+
+        $bookNumbers = $this->parseBookNumbers($validated['book_numbers']);
+
+        if (empty($bookNumbers)) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Keine gültigen Roman-Nummern gefunden. Bitte gib Nummern im Format "1-50, 52, 55" ein.');
+        }
+
+        $existingBooks = Book::where('type', $validated['series'])
+            ->whereIn('roman_number', $bookNumbers)
+            ->get()
+            ->keyBy('roman_number');
+
+        $missingNumbers = array_diff($bookNumbers, $existingBooks->keys()->toArray());
+        if (!empty($missingNumbers)) {
+            $missingList = implode(', ', array_slice($missingNumbers, 0, 10));
+            if (count($missingNumbers) > 10) {
+                $missingList .= ' ... (' . count($missingNumbers) . ' insgesamt)';
+            }
+
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Folgende Roman-Nummern existieren nicht in dieser Serie: ' . $missingList);
+        }
+
+        $photoPaths = $this->uploadPhotos($request);
+        if ($photoPaths === false) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Foto-Upload fehlgeschlagen. Bitte versuche es erneut.');
+        }
+
+        $bundleId = Str::uuid()->toString();
+
+        $offers = DB::transaction(function () use ($existingBooks, $validated, $bundleId, $photoPaths) {
+            $offers = [];
+
+            foreach ($existingBooks as $book) {
+                $offers[] = BookOffer::create([
+                    'user_id' => Auth::id(),
+                    'bundle_id' => $bundleId,
+                    'series' => $validated['series'],
+                    'book_number' => $book->roman_number,
+                    'book_title' => $book->title,
+                    'condition' => $validated['condition'],
+                    'condition_max' => $validated['condition_max'] ?? null,
+                    'photos' => $photoPaths,
+                ]);
+            }
+
+            return $offers;
+        });
+
+        $totalOfferCount = BookOffer::where('user_id', Auth::id())->count();
+        $previousCount = $totalOfferCount - count($offers);
+        $newBaxx = intdiv($totalOfferCount, 10) - intdiv($previousCount, 10);
+        if ($newBaxx > 0) {
+            Auth::user()->incrementTeamPoints($newBaxx);
+        }
+
+        foreach ($offers as $offer) {
+            $this->matchSwap($offer, 'offer');
+        }
+
+        Activity::create([
+            'user_id' => Auth::id(),
+            'subject_type' => BookOffer::class,
+            'subject_id' => $offers[0]->id,
+        ]);
+
+        return redirect()->route('romantausch.index')
+            ->with('success', 'Stapel-Angebot mit ' . count($offers) . ' Romanen erstellt.');
+    }
+
+    /**
+     * Zeigt das Bearbeitungsformular für einen Stapel.
+     */
+    public function editBundle(string $bundleId)
+    {
+        $offers = BookOffer::where('bundle_id', $bundleId)
+            ->where('user_id', Auth::id())
+            ->orderBy('book_number')
+            ->get();
+
+        if ($offers->isEmpty()) {
+            abort(404);
+        }
+
+        $this->authorize('update', $offers->first());
+
+        $hasActiveSwaps = $offers->contains(fn ($offer) => $offer->swap !== null);
+        if ($hasActiveSwaps) {
+            return redirect()->route('romantausch.index')
+                ->with('error', 'Stapel mit laufenden Tauschaktionen können nicht bearbeitet werden.');
+        }
+
+        $typeValues = array_map(fn ($type) => $type->value, self::ALLOWED_TYPES);
+        $books = Book::whereIn('type', $typeValues)->orderBy('roman_number')->get();
+        $types = self::ALLOWED_TYPES;
+
+        $bookNumbersString = $this->formatBookNumbersRange($offers);
+
+        return view('romantausch.edit_bundle', compact('offers', 'books', 'types', 'bundleId', 'bookNumbersString'));
+    }
+
+    /**
+     * Aktualisiert einen Stapel.
+     */
+    public function updateBundle(Request $request, string $bundleId): RedirectResponse
+    {
+        $existingOffers = BookOffer::where('bundle_id', $bundleId)
+            ->where('user_id', Auth::id())
+            ->get();
+
+        if ($existingOffers->isEmpty()) {
+            abort(404);
+        }
+
+        $this->authorize('update', $existingOffers->first());
+
+        $validated = $request->validate([
+            'book_numbers' => 'required|string',
+            'condition' => 'required|string',
+            'condition_max' => 'nullable|string',
+            'photos' => 'nullable|array|max:3',
+            'photos.*' => 'file|max:2048|mimes:' . implode(',', self::ALLOWED_PHOTO_EXTENSIONS),
+            'remove_photos' => 'nullable|array',
+            'remove_photos.*' => 'string',
+        ]);
+
+        $series = $existingOffers->first()->series;
+        $newBookNumbers = $this->parseBookNumbers($validated['book_numbers']);
+
+        if (empty($newBookNumbers)) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Keine gültigen Roman-Nummern gefunden.');
+        }
+
+        $existingBooks = Book::where('type', $series)
+            ->whereIn('roman_number', $newBookNumbers)
+            ->get()
+            ->keyBy('roman_number');
+
+        $missingNumbers = array_diff($newBookNumbers, $existingBooks->keys()->toArray());
+        if (!empty($missingNumbers)) {
+            $missingList = implode(', ', array_slice($missingNumbers, 0, 10));
+            if (count($missingNumbers) > 10) {
+                $missingList .= ' ... (' . count($missingNumbers) . ' insgesamt)';
+            }
+
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Folgende Roman-Nummern existieren nicht: ' . $missingList);
+        }
+
+        $existingPhotos = collect($existingOffers->first()->photos ?? []);
+        $removePhotos = collect($request->input('remove_photos', []));
+        $photosToKeep = $existingPhotos->reject(fn ($path) => $removePhotos->contains($path))->values();
+
+        foreach ($removePhotos as $path) {
+            if ($existingPhotos->contains($path)) {
+                Storage::disk('public')->delete($path);
+            }
+        }
+
+        $newPhotoPaths = $this->uploadPhotos($request);
+        if ($newPhotoPaths === false) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Foto-Upload fehlgeschlagen.');
+        }
+
+        $allPhotos = array_merge($photosToKeep->toArray(), $newPhotoPaths);
+
+        DB::transaction(function () use ($existingOffers, $existingBooks, $newBookNumbers, $validated, $bundleId, $allPhotos) {
+            $currentNumbers = $existingOffers->pluck('book_number')->toArray();
+
+            $toRemove = array_diff($currentNumbers, $newBookNumbers);
+            $toAdd = array_diff($newBookNumbers, $currentNumbers);
+
+            foreach ($existingOffers as $offer) {
+                if (in_array($offer->book_number, $toRemove)) {
+                    if ($offer->swap) {
+                        $offer->swap->delete();
+                    }
+                    $offer->delete();
+                }
+            }
+
+            foreach ($existingOffers as $offer) {
+                if (in_array($offer->book_number, $newBookNumbers)) {
+                    $offer->update([
+                        'condition' => $validated['condition'],
+                        'condition_max' => $validated['condition_max'] ?? null,
+                        'photos' => $allPhotos,
+                    ]);
+                }
+            }
+
+            foreach ($toAdd as $bookNumber) {
+                $book = $existingBooks->get($bookNumber);
+                if ($book) {
+                    $newOffer = BookOffer::create([
+                        'user_id' => Auth::id(),
+                        'bundle_id' => $bundleId,
+                        'series' => $book->type->value,
+                        'book_number' => $book->roman_number,
+                        'book_title' => $book->title,
+                        'condition' => $validated['condition'],
+                        'condition_max' => $validated['condition_max'] ?? null,
+                        'photos' => $allPhotos,
+                    ]);
+
+                    $this->matchSwap($newOffer, 'offer');
+                }
+            }
+        });
+
+        return redirect()->route('romantausch.index')
+            ->with('success', 'Stapel-Angebot aktualisiert.');
+    }
+
+    /**
+     * Löscht einen kompletten Stapel.
+     */
+    public function deleteBundle(string $bundleId): RedirectResponse
+    {
+        $offers = BookOffer::where('bundle_id', $bundleId)
+            ->where('user_id', Auth::id())
+            ->get();
+
+        if ($offers->isEmpty()) {
+            abort(404);
+        }
+
+        $this->authorize('delete', $offers->first());
+
+        $firstOffer = $offers->first();
+        $photosToDelete = $firstOffer->photos ?? [];
+
+        DB::transaction(function () use ($offers) {
+            foreach ($offers as $offer) {
+                if ($offer->swap) {
+                    $offer->swap->delete();
+                }
+                $offer->delete();
+            }
+        });
+
+        foreach ($photosToDelete as $path) {
+            Storage::disk('public')->delete($path);
+        }
+
+        return redirect()->route('romantausch.index')
+            ->with('success', 'Stapel-Angebot gelöscht.');
     }
 }
