@@ -729,6 +729,12 @@ class RomantauschController extends Controller
                 ->with('error', 'Keine gültigen Roman-Nummern gefunden. Bitte gib Nummern im Format "1-50, 52, 55" ein.');
         }
 
+        if (count($bookNumbers) < 2) {
+            return redirect()->back()
+                ->withInput()
+                ->withErrors(['book_numbers' => 'Ein Stapel-Angebot muss mindestens 2 Romane enthalten. Für einzelne Romane nutze bitte das normale Angebot-Formular.']);
+        }
+
         $existingBooks = Book::where('type', $validated['series'])
             ->whereIn('roman_number', $bookNumbers)
             ->get()
