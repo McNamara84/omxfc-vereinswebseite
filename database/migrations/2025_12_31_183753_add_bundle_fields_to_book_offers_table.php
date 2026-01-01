@@ -8,6 +8,18 @@ return new class extends Migration
 {
     /**
      * Run the migrations.
+     *
+     * HINWEIS zu bundle_id ohne Foreign Key:
+     * bundle_id ist eine UUID ohne Foreign-Key-Constraint, da es keine separate
+     * bundles-Tabelle gibt. Der erste Eintrag im Bundle definiert die Bundle-ID,
+     * alle weiteren Angebote im Stapel teilen dieselbe UUID.
+     *
+     * Konsequenzen:
+     * - Kein referentielles Constraint, da kein Master-Record existiert
+     * - Verwaiste bundle_ids sind möglich wenn alle Angebote eines Bundles gelöscht werden
+     *   (keine Auswirkung auf Funktionalität, IDs werden nicht wiederverwendet)
+     * - Activity-Log Einträge mit action='bundle_created' können auf gelöschte Angebote
+     *   verweisen (bekannte Limitation, siehe RomantauschController::storeBundleOffer)
      */
     public function up(): void
     {

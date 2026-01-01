@@ -3,6 +3,12 @@ import AxeBuilder from '@axe-core/playwright';
 
 /**
  * Helper: Login as member
+ *
+ * WICHTIG: Der Test-User 'playwright-member@example.com' wird vom
+ * BookPlaywrightSeeder erstellt (database/seeders/BookPlaywrightSeeder.php).
+ * Dieser Seeder muss in der Test-Datenbank ausgeführt werden, bevor die
+ * E2E-Tests laufen. In CI wird dies automatisch durch die Migrations/Seeding
+ * in .github/workflows/playwright.yml erledigt.
  */
 const loginAsMember = async (page, email = 'playwright-member@example.com', password = 'password') => {
     await page.goto('/login');

@@ -196,7 +196,18 @@
 
 @push('scripts')
 <script>
-    // Konstanten aus dem Backend - WICHTIG: Muss mit RomantauschController::MAX_RANGE_SPAN übereinstimmen!
+    /**
+     * MAX_RANGE_SPAN Konstante aus dem Backend.
+     *
+     * WICHTIG - Frontend/Backend Kopplung:
+     * Dieser Wert wird direkt aus RomantauschController::MAX_RANGE_SPAN injiziert,
+     * um Konsistenz zwischen Frontend-Validierung (hier) und Backend-Validierung
+     * (in parseBookNumbers) zu gewährleisten. Bei Änderung der Backend-Konstante
+     * wird der Frontend-Wert automatisch mit aktualisiert.
+     *
+     * @see App\Http\Controllers\RomantauschController::MAX_RANGE_SPAN
+     * @see resources/views/romantausch/create_bundle_offer.blade.php (gleiche Logik)
+     */
     const MAX_RANGE_SPAN = {{ App\Http\Controllers\RomantauschController::MAX_RANGE_SPAN }};
 
     /**

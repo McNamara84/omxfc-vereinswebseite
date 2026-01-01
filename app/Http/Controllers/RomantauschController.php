@@ -621,6 +621,8 @@ class RomantauschController extends Controller
     /**
      * Parst eine Eingabe wie "1, 5, 7, 12-50, 52" in ein Array von Nummern.
      *
+     * Hinweis: Akzeptiert auch Eingaben mit führenden Nullen (z.B. "01", "05").
+     *
      * @return array<int>
      */
     private function parseBookNumbers(string $input): array
@@ -635,8 +637,9 @@ class RomantauschController extends Controller
 
             if (str_contains($part, '-')) {
                 $rangeParts = explode('-', $part, 2);
-                $startRaw = filter_var(trim($rangeParts[0]), FILTER_VALIDATE_INT);
-                $endRaw = filter_var(trim($rangeParts[1]), FILTER_VALIDATE_INT);
+                // ltrim entfernt führende Nullen, damit filter_var "01" als 1 akzeptiert
+                $startRaw = filter_var(ltrim(trim($rangeParts[0]), '0') ?: '0', FILTER_VALIDATE_INT);
+                $endRaw = filter_var(ltrim(trim($rangeParts[1]), '0') ?: '0', FILTER_VALIDATE_INT);
 
                 // filter_var gibt false bei ungültiger Eingabe zurück (z.B. "abc", "", "12.5")
                 if ($startRaw === false || $endRaw === false) {
@@ -652,7 +655,8 @@ class RomantauschController extends Controller
                     }
                 }
             } else {
-                $num = filter_var($part, FILTER_VALIDATE_INT);
+                // ltrim entfernt führende Nullen, damit filter_var "01" als 1 akzeptiert
+                $num = filter_var(ltrim($part, '0') ?: '0', FILTER_VALIDATE_INT);
                 // filter_var gibt false bei ungültiger Eingabe zurück (intval würde 0 liefern)
                 if ($num !== false && $num > 0) {
                     $numbers[] = $num;
@@ -712,6 +716,14 @@ class RomantauschController extends Controller
      */
     private function uploadPhotos(Request $request): array
     {
+        // Sichere Mapping von MIME-Types zu Extensions (keine ausführbaren Dateien)
+        $mimeToExtension = [
+            'image/jpeg' => 'jpg',
+            'image/png' => 'png',
+            'image/gif' => 'gif',
+            'image/webp' => 'webp',
+        ];
+
         $photoPaths = [];
 
         if ($request->hasFile('photos')) {
@@ -721,7 +733,21 @@ class RomantauschController extends Controller
                 }
 
                 try {
-                    $extension = strtolower($photo->getClientOriginalExtension());
+                    // SICHERHEIT: Extension wird vom MIME-Type abgeleitet, nicht vom Client!
+                    // Verhindert Polyglot-Angriffe (z.B. Bild mit .php Extension)
+                    $mimeType = $photo->getMimeType();
+                    $extension = $mimeToExtension[$mimeType] ?? null;
+
+                    if ($extension === null) {
+                        // Unbekannter/nicht erlaubter MIME-Type - überspringen
+                        \Illuminate\Support\Facades\Log::warning('Foto-Upload: Nicht erlaubter MIME-Type', [
+                            'user_id' => Auth::id(),
+                            'mime_type' => $mimeType,
+                            'original_name' => $photo->getClientOriginalName(),
+                        ]);
+                        continue;
+                    }
+
                     $name = Str::slug(pathinfo($photo->getClientOriginalName(), PATHINFO_FILENAME));
                     if ($name === '') {
                         $name = 'photo';
@@ -1054,6 +1080,15 @@ class RomantauschController extends Controller
                 if (in_array($offer->book_number, $toRemove)) {
                     // Angebot entfernen
                     if ($offer->swap) {
+                        // Activity-Log für den betroffenen Nutzer dessen Match gelöscht wird
+                        // Damit kann er in seiner Aktivitätsübersicht sehen, warum das Match verschwand
+                        $affectedUser = $offer->swap->request->user;
+                        Activity::create([
+                            'user_id' => $affectedUser->id,
+                            'subject_type' => BookRequest::class,
+                            'subject_id' => $offer->swap->request_id,
+                            'action' => 'match_cancelled_by_offer_owner',
+                        ]);
                         $offer->swap->delete();
                     }
                     $offer->delete();
@@ -1088,8 +1123,11 @@ class RomantauschController extends Controller
 
         // Fotos erst NACH erfolgreicher Transaktion löschen
         // um Datenverlust bei Transaktions-Rollback zu vermeiden
+        // Zusätzliche Sicherheitsprüfung: Nie Fotos löschen die noch in allPhotos sind
         foreach ($photosToDelete as $path) {
-            Storage::disk('public')->delete($path);
+            if (!in_array($path, $allPhotos, true)) {
+                Storage::disk('public')->delete($path);
+            }
         }
 
         return redirect()->route('romantausch.index')
