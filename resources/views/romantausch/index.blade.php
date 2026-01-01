@@ -136,15 +136,26 @@
                             data-bundle-id: UUID für JS-Funktionen und E2E-Tests.
                             
                             SICHERHEITSHINWEIS zur UUID-Exposition:
-                            Die bundle_id (UUID) ist im HTML sichtbar. Das ist akzeptabel weil:
+                            Die bundle_id (UUID) ist im HTML sichtbar. Das ist grundsätzlich akzeptabel weil:
                             1. UUIDv4 sind nicht erratbar (122 Bits Entropie)
                             2. Alle Bundle-Aktionen (Bearbeiten/Löschen) erfordern Authentifizierung
                             3. Die Policy prüft ob der User Besitzer des Bundles ist
                             
-                            Falls höhere Sicherheit gewünscht ist, könnte stattdessen ein
-                            signierter Token oder Index verwendet werden.
+                            POTENTIELLE BEDENKEN:
+                            - Scraping könnte alle Bundle-IDs sammeln
+                            - Falls IDs in Logs/Analytics korreliert werden, könnte Nutzerverhalten
+                              über Sessions hinweg verfolgt werden
+                            
+                            AKTUELLER BEDARF:
+                            - E2E-Tests verwenden data-bundle-id für DOM-Selektion
+                            - JavaScript-Funktionen referenzieren Bundle via ID
+                            
+                            ALTERNATIVEN für höhere Sicherheit:
+                            - Signierte Tokens statt Raw-UUIDs (URL::signedRoute)
+                            - Session-basierter Index statt persistenter ID
+                            - HMAC-basierte Verschleierung der Bundle-ID
                         --}}
-                        <li class="bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden" data-bundle-id="{{ $bundle->bundle_id }}" data-book-numbers-display="{{ $bundle->book_numbers_display }}" x-data="{ expanded: false }">
+                        <li class="bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden" data-bundle-id="{{ $bundle->bundle_id }}" data-book-numbers-display="{{ $bundle->book_numbers_display }}" data-testid="bundle-item" x-data="{ expanded: false }">
                             {{-- Zusammengeklappte Ansicht --}}
                             <div class="p-4">
                                 <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">

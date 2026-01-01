@@ -14,6 +14,16 @@
  * Hinweis: Die Werte werden direkt in den Blade-Views definiert, da sie
  * server-seitig aus PHP-Variablen kommen (z.B. old('book_numbers')).
  *
+ * WICHTIG - PHP/JavaScript Konstanten-Kopplung:
+ * Die Konstante MAX_RANGE_SPAN ist in zwei Stellen definiert:
+ * - PHP: App\Http\Controllers\RomantauschController::MAX_RANGE_SPAN
+ * - JS: window.MAX_RANGE_SPAN (via Blade-Template injiziert)
+ *
+ * Bei Änderung des Wertes in PHP wird dieser automatisch übernommen, da die
+ * Blade-Views den PHP-Wert lesen und an window.MAX_RANGE_SPAN übergeben.
+ * Falls in Zukunft eine dynamische Konfiguration benötigt wird, könnte ein
+ * API-Endpoint wie /api/romantausch/config die Werte liefern.
+ *
  * @example
  * <script>
  *     window.MAX_RANGE_SPAN = {{ App\Http\Controllers\RomantauschController::MAX_RANGE_SPAN }};
@@ -23,6 +33,7 @@
  *
  * @see resources/views/romantausch/create_bundle_offer.blade.php
  * @see resources/views/romantausch/edit_bundle.blade.php
+ * @see App\Http\Controllers\RomantauschController::MAX_RANGE_SPAN (PHP-Quelle)
  */
 
 window.bundlePreview = function bundlePreview() {
@@ -55,7 +66,12 @@ window.bundlePreview = function bundlePreview() {
 
                     // NaN-Handling: parseInt gibt NaN für ungültige Eingaben zurück.
                     // Die Bedingung start > 0 && end > 0 filtert NaN automatisch aus,
-                    // da NaN > 0 === false. Explizite isNaN-Checks für Klarheit:
+                    // da NaN > 0 === false.
+                    //
+                    // Die expliziten isNaN-Checks sind technisch redundant (Performance-Overhead
+                    // von ~1-2 Nanosekunden pro Iteration), werden aber für Code-Klarheit beibehalten.
+                    // Bei Eingaben wie "1-500" mit 500 Iterationen ist der Overhead vernachlässigbar.
+                    // Falls Performance kritisch wird, können die isNaN-Checks entfernt werden.
                     if (!isNaN(start) && !isNaN(end) && start > 0 && end > 0 && end >= start && (end - start) <= maxRangeSpan) {
                         for (let i = start; i <= end; i++) {
                             numbers.push(i);

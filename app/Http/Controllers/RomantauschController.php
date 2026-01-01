@@ -654,18 +654,27 @@ class RomantauschController extends Controller
             // book_requests.user_id → users (CASCADE DELETE). Bei gelöschtem User
             // sollte auch die Request und damit der Swap gelöscht sein.
             //
-            // Zusätzliche Absicherung: Wir prüfen ob der User wirklich in der DB
-            // existiert, um sicherzustellen dass die Activity mit gültiger user_id
-            // erstellt wird. Bei Race-Conditions (User-Löschung während dieser
-            // Operation) könnte der User bereits gelöscht aber noch geladen sein.
+            // Race-Condition-Handling: Der exists()-Check ist anfällig für TOCTOU
+            // (Time-Of-Check-Time-Of-Use) Probleme. Falls der User zwischen Check
+            // und Activity::create() gelöscht wird, fängt der try-catch den FK-Fehler ab.
             $affectedUser = $offer->swap->request?->user;
             if ($affectedUser && \App\Models\User::where('id', $affectedUser->id)->exists()) {
-                Activity::create([
-                    'user_id' => $affectedUser->id,
-                    'subject_type' => BookRequest::class,
-                    'subject_id' => $offer->swap->request_id,
-                    'action' => 'match_cancelled_by_offer_owner',
-                ]);
+                try {
+                    Activity::create([
+                        'user_id' => $affectedUser->id,
+                        'subject_type' => BookRequest::class,
+                        'subject_id' => $offer->swap->request_id,
+                        'action' => 'match_cancelled_by_offer_owner',
+                    ]);
+                } catch (\Illuminate\Database\QueryException $e) {
+                    // FK-Constraint-Verletzung (z.B. User zwischenzeitlich gelöscht).
+                    // Activity-Log ist nicht kritisch, daher nur loggen und fortfahren.
+                    \Illuminate\Support\Facades\Log::warning('Activity-Log für gelöschten Swap fehlgeschlagen', [
+                        'offer_id' => $offer->id,
+                        'affected_user_id' => $affectedUser->id,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
             }
             $offer->swap->delete();
         }
@@ -838,12 +847,23 @@ class RomantauschController extends Controller
                     $filename = $name . '-' . Str::uuid() . '.' . $extension;
                     $photoPaths[] = $photo->storeAs(self::PHOTO_STORAGE_PATH, $filename, 'public');
                 } catch (\Throwable $e) {
-                    // Bereits hochgeladene Fotos aufräumen
+                    // Bereits hochgeladene Fotos aufräumen.
+                    // Falls cleanup selbst fehlschlägt, loggen wir das separat.
                     foreach ($photoPaths as $path) {
-                        Storage::disk('public')->delete($path);
+                        try {
+                            Storage::disk('public')->delete($path);
+                        } catch (\Throwable $cleanupError) {
+                            \Illuminate\Support\Facades\Log::warning('Foto-Cleanup fehlgeschlagen', [
+                                'path' => $path,
+                                'error' => $cleanupError->getMessage(),
+                            ]);
+                        }
                     }
 
-                    // Details loggen, aber generische Meldung an Benutzer
+                    // Details loggen, aber generische Meldung an Benutzer.
+                    // HINWEIS: user_id wird geloggt für Debugging. In Produktionsumgebungen
+                    // mit strengen Datenschutzanforderungen könnte stattdessen ein
+                    // gehashter Identifier verwendet werden: hash('sha256', Auth::id())
                     \Illuminate\Support\Facades\Log::error('Foto-Upload fehlgeschlagen', [
                         'user_id' => Auth::id(),
                         'error' => $e->getMessage(),
@@ -1058,10 +1078,26 @@ class RomantauschController extends Controller
         // Die bundle_id in properties dient als stabiler Identifier für Queries:
         //   Activity::where('properties->bundle_id', $bundleId)
         //
+        // BEKANNTE LIMITATION - Orphaned Records:
+        // Wenn das erste Angebot gelöscht wird, verweist subject_id auf einen
+        // nicht existierenden BookOffer. Queries wie:
+        //   Activity::where('subject_id', $offerId)->with('subject')->get()
+        // liefern dann null für die subject-Relation.
+        //
+        // EMPFOHLENE WORKAROUND für Activity-Queries zu Bundles:
+        //   Activity::where('action', 'bundle_created')
+        //           ->where('properties->bundle_id', $bundleId)
+        //           ->get()
+        //
         // Alternative Ansätze für zukünftige Refactorings:
         // 1. Separate bundles-Tabelle mit eigener ID für Activity-Tracking
-        // 2. activities.subject_id nullable machen und bundle_id als subject verwenden
-        // 3. subject_type 'Bundle' mit bundle_id als subject_id (erfordert Schema-Änderung)
+        //    → Vorteil: Saubere Referenzierung, Bundle-Lifecycle getrennt
+        //    → Nachteil: Zusätzliche Migration, Model-Erstellung
+        // 2. activities.subject_id nullable machen
+        //    → Vorteil: Minimale Code-Änderung
+        //    → Nachteil: Migration auf bestehenden Daten
+        // 3. subject_type 'Bundle' mit bundle_id als subject_id (virtuelles Model)
+        //    → Erfordert eigene Resolver-Logik für morph-Relations
         //
         // Aktuell ist das Risiko akzeptabel: Activity-Logs sind informativ,
         // keine kritische Geschäftslogik hängt von der subject_id-Referenz ab.
@@ -1119,6 +1155,20 @@ class RomantauschController extends Controller
 
         if ($existingOffers->isEmpty()) {
             abort(404);
+        }
+
+        // Defensive Prüfung: Alle Offers im Bundle müssen dem authentifizierten User gehören.
+        // Die WHERE-Klausel oben filtert bereits nach user_id, aber als zusätzliche Absicherung
+        // gegen potentielle Race-Conditions oder Datenintegritätsprobleme prüfen wir explizit.
+        $authenticatedUserId = Auth::id();
+        $foreignOffers = $existingOffers->reject(fn ($offer) => (int) $offer->user_id === (int) $authenticatedUserId);
+        if ($foreignOffers->isNotEmpty()) {
+            \Illuminate\Support\Facades\Log::warning('Bundle-Update: Fremde Offers gefunden', [
+                'bundle_id' => $bundleId,
+                'user_id' => $authenticatedUserId,
+                'foreign_offer_ids' => $foreignOffers->pluck('id')->toArray(),
+            ]);
+            abort(403, 'Nicht autorisiert: Bundle enthält fremde Angebote.');
         }
 
         $this->authorize('update', $existingOffers->first());

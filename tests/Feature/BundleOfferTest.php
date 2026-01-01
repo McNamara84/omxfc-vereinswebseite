@@ -28,6 +28,17 @@ class BundleOfferTest extends TestCase
         return $user;
     }
 
+    /**
+     * Erstellt Test-Buchdaten für Maddrax-Serie (1-100) und Mission Mars (1).
+     *
+     * HINWEIS: Diese Methode verwendet Book::create() ohne exists()-Check.
+     * Das ist akzeptabel weil:
+     * 1. RefreshDatabase-Trait migriert die DB vor jedem Test neu
+     * 2. Jeder Test startet mit leerer Datenbank
+     * 3. putBookData() wird nur einmal pro Test aufgerufen
+     *
+     * Falls Tests ohne RefreshDatabase laufen, würden Duplicate-Key-Errors auftreten.
+     */
     private function putBookData(): void
     {
         for ($i = 1; $i <= 100; $i++) {
@@ -133,7 +144,7 @@ class BundleOfferTest extends TestCase
         $this->assertEquals([1, 3, 4, 5, 10], $result);
     }
 
-    public function test_parse_book_numbers_returns_unique(): void
+    public function test_parse_book_numbers_removes_duplicates_and_handles_unsorted(): void
     {
         $controller = new RomantauschController(app(\App\Services\RomantauschInfoProvider::class));
 
@@ -141,13 +152,21 @@ class BundleOfferTest extends TestCase
         $method = $reflection->getMethod('parseBookNumbers');
         $method->setAccessible(true);
 
-        $result = $method->invoke($controller, '50, 10, 5, 1');
-        // Die Methode entfernt Duplikate, garantiert aber keine bestimmte Reihenfolge
-        $this->assertCount(4, $result);
+        // Input mit Duplikaten UND unsortiert: 5 kommt zweimal vor, 1-3 überlappt mit 2,3
+        $result = $method->invoke($controller, '5, 1-3, 2, 3, 5, 10');
+
+        // Die Methode entfernt Duplikate, garantiert aber keine bestimmte Reihenfolge.
+        // JavaScript-Version sortiert, PHP-Version behält Einfüge-Reihenfolge.
+        // Erwartetes Ergebnis: 5 eindeutige Werte {1, 2, 3, 5, 10}
+        $this->assertCount(5, $result);
         $this->assertContains(1, $result);
+        $this->assertContains(2, $result);
+        $this->assertContains(3, $result);
         $this->assertContains(5, $result);
         $this->assertContains(10, $result);
-        $this->assertContains(50, $result);
+
+        // Prüfe dass keine Duplikate vorhanden sind
+        $this->assertEquals(count($result), count(array_unique($result)));
     }
 
     // ====== Bundle Creation Tests ======

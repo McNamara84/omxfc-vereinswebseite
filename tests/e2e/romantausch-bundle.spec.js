@@ -37,6 +37,12 @@ import AxeBuilder from '@axe-core/playwright';
  * Dieser Seeder muss in der Test-Datenbank ausgeführt werden, bevor die
  * E2E-Tests laufen. In CI wird dies automatisch durch die Migrations/Seeding
  * in .github/workflows/playwright.yml erledigt.
+ *
+ * SICHERHEITSWARNUNG: Diese Credentials (playwright-member@example.com / password)
+ * sind AUSSCHLIESSLICH für CI- und lokale Testumgebungen bestimmt!
+ * - NIEMALS in Produktion verwenden
+ * - NIEMALS dieses Pattern für echte Authentifizierung kopieren
+ * - Der BookPlaywrightSeeder sollte NUR in Test-Datenbanken ausgeführt werden
  */
 const loginAsMember = async (page, email = 'playwright-member@example.com', password = 'password') => {
     await page.goto('/login');
@@ -96,9 +102,17 @@ test.describe('Romantauschbörse - Stapel-Angebote', () => {
 
             // Fehler sollte im Formular-Kontext angezeigt werden
             // Suche nach Validierungsfehler unter dem book_numbers-Feld oder Session-Error im Formular
+            //
+            // HINWEIS zu Selektoren:
+            // Der Selektor kombiniert ARIA-Rolle und CSS-Klasse für Robustheit:
+            // - [role="alert"]: Semantisch korrekt, Framework-unabhängig
+            // - .bg-red-100: Tailwind-spezifisch, als Fallback
+            // Für bessere Wartbarkeit könnte ein data-testid="validation-error" Attribut
+            // in die Blade-Views eingefügt werden. Aktuell ist die Mischung akzeptabel
+            // da beide Selektoren funktional äquivalent sind.
             const form = page.locator('#bundle-offer-form');
             await expect(
-                form.locator('[role="alert"], .bg-red-100')
+                form.locator('[role="alert"], .bg-red-100, [data-testid="validation-error"]')
             ).toBeVisible();
         });
 
