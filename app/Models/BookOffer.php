@@ -112,6 +112,12 @@ class BookOffer extends Model
     /**
      * Gibt alle anderen Angebote im selben Stapel zurück.
      *
+     * HINWEIS: Diese Methode lädt keine Relationships automatisch.
+     * Falls 'user', 'swap' oder andere Relations benötigt werden:
+     *   $offer->bundleSiblings()->load(['user', 'swap'])
+     * oder im Query-Builder:
+     *   static::where('bundle_id', ...)->with(['user', 'swap'])->get()
+     *
      * @return \Illuminate\Support\Collection<int, BookOffer>
      */
     public function bundleSiblings(): \Illuminate\Support\Collection
@@ -128,6 +134,12 @@ class BookOffer extends Model
     /**
      * Gibt alle Angebote im Stapel zurück (inkl. dieses).
      *
+     * HINWEIS: Diese Methode lädt keine Relationships automatisch.
+     * Falls 'user', 'swap' oder andere Relations benötigt werden:
+     *   $offer->bundleOffers()->load(['user', 'swap'])
+     * oder im Query-Builder:
+     *   static::where('bundle_id', ...)->with(['user', 'swap'])->get()
+     *
      * @return \Illuminate\Support\Collection<int, BookOffer>
      */
     public function bundleOffers(): \Illuminate\Support\Collection
@@ -141,6 +153,14 @@ class BookOffer extends Model
 
     /**
      * Formatierter Zustandsbereich.
+     *
+     * Gibt "Z1 bis Z2" zurück wenn condition_max gesetzt ist und sich unterscheidet,
+     * sonst nur den einzelnen Zustand.
+     *
+     * HINWEIS: Diese Methode validiert nicht ob condition_max logisch korrekt ist
+     * (d.h. schlechter als condition). Bei ungültigen Daten in der DB könnte
+     * "Z2 bis Z1" ausgegeben werden, was semantisch falsch ist. Die Validierung
+     * erfolgt beim Speichern über validateConditionRange() im Controller.
      */
     public function getConditionRangeAttribute(): string
     {

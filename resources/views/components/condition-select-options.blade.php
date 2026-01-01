@@ -14,8 +14,13 @@
       z.B. Z1-2 = besser als Z2 aber nicht ganz Z1
     
     Barrierefreiheit:
-    - Zwischenwerte haben beschreibenden Text im Label für Screen-Reader
-    - title-Attribute dienen als zusätzliche Tooltips für Maus-Nutzer
+    - Zwischenwerte haben title-Attribute als Tooltips für Maus-Nutzer
+    - HINWEIS ZU REDUNDANZ: Die title-Attribute wiederholen z.T. Informationen aus dem
+      Options-Text. Dies ist bewusst so gestaltet:
+      - Screen-Reader lesen primär den Options-Text vor
+      - title dient als zusätzlicher visueller Tooltip für Maus-Nutzer
+      - Bei einigen Screen-Readern wird title ignoriert, daher ist die Info im Text wichtiger
+      - Falls die Verbosität problematisch ist, können die title-Attribute entfernt werden
     
     Übersetzungen: lang/de/romantausch.php → condition.*
 --}}

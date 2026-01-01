@@ -63,7 +63,22 @@ class RomantauschController extends Controller
      */
     private const CONDITION_ORDER = ['Z0', 'Z0-1', 'Z1', 'Z1-2', 'Z2', 'Z2-3', 'Z3', 'Z3-4', 'Z4'];
 
-    // Übersicht
+    /**
+     * Übersicht der Romantauschbörse.
+     *
+     * Diese Methode trennt Angebote in zwei Kategorien:
+     * - 'bundles': Stapel-Angebote (mehrere Romane mit gemeinsamer bundle_id)
+     * - 'offers': Einzelne Angebote (ohne bundle_id)
+     *
+     * WICHTIG für View-Entwickler:
+     * Die $offers Collection enthält NUR Einzelangebote, keine Stapel-Romane.
+     * Falls alle Angebote (inkl. Stapel-Romane) benötigt werden, muss die
+     * View-Logik entsprechend angepasst werden oder $allOffers verwendet werden.
+     *
+     * Terminologie in der UI:
+     * - "Stapel-Angebote" = Bundles (mit bundle_id)
+     * - "Einzelne Angebote" = Einzelne Offers (ohne bundle_id)
+     */
     public function index()
     {
         $userId = Auth::id();
@@ -632,13 +647,19 @@ class RomantauschController extends Controller
     {
         if ($offer->swap) {
             // Activity-Log für den betroffenen Nutzer dessen Match gelöscht wird.
+            //
             // Null-safe: swap->request->user kann theoretisch null sein wenn der
             // User-Account gelöscht wurde bevor der Swap gelöscht wurde (Cascade-Timing).
             // DB-Constraints: book_swaps.request_id → book_requests (CASCADE DELETE),
             // book_requests.user_id → users (CASCADE DELETE). Bei gelöschtem User
             // sollte auch die Request und damit der Swap gelöscht sein.
+            //
+            // Zusätzliche Absicherung: Wir prüfen ob der User wirklich in der DB
+            // existiert, um sicherzustellen dass die Activity mit gültiger user_id
+            // erstellt wird. Bei Race-Conditions (User-Löschung während dieser
+            // Operation) könnte der User bereits gelöscht aber noch geladen sein.
             $affectedUser = $offer->swap->request?->user;
-            if ($affectedUser) {
+            if ($affectedUser && \App\Models\User::where('id', $affectedUser->id)->exists()) {
                 Activity::create([
                     'user_id' => $affectedUser->id,
                     'subject_type' => BookRequest::class,
@@ -787,6 +808,28 @@ class RomantauschController extends Controller
                         continue;
                     }
 
+                    // Zusätzliche Sicherheitsebene: Prüfe ob Datei echtes Bild ist.
+                    // getimagesize() liest tatsächlich die Bild-Header und erkennt
+                    // Polyglot-Dateien (z.B. PHP-Code mit gültigem JPEG-Header).
+                    // MIME-Types können gefälscht werden, Bildheader weniger leicht.
+                    $imageInfo = @getimagesize($photo->getRealPath());
+                    if ($imageInfo === false) {
+                        \Illuminate\Support\Facades\Log::warning('Foto-Upload: Keine gültige Bilddatei', [
+                            'user_id' => Auth::id(),
+                            'mime_type' => $mimeType,
+                            'original_name' => $photo->getClientOriginalName(),
+                        ]);
+                        continue;
+                    }
+
+                    // Slug des Original-Dateinamens für Lesbarkeit.
+                    // Bei reinem nicht-ASCII Input (z.B. chinesische Zeichen) wird der
+                    // Slug leer, daher Fallback auf generischen Namen.
+                    //
+                    // Mehrere Fotos mit gleichem Slug sind kein Problem: Die UUID
+                    // garantiert Eindeutigkeit. Der user-facing Teil des Namens
+                    // (z.B. "bild-abc123.jpg" und "bild-def456.jpg") könnte bei
+                    // vielen Uploads ähnlich aussehen, aber das ist akzeptabel.
                     $name = Str::slug(pathinfo($photo->getClientOriginalName(), PATHINFO_FILENAME));
                     if ($name === '') {
                         // Leerer/nicht-ASCII Dateiname: beschreibender Fallback mit Index
@@ -819,6 +862,13 @@ class RomantauschController extends Controller
     /**
      * Validiert den Zustandsbereich (condition_max muss >= condition sein).
      *
+     * Die Validierung basiert auf CONDITION_ORDER, wo niedrigerer Index = besserer Zustand:
+     * - Index 0: Z0 (Druckfrisch) = bester Zustand
+     * - Index 8: Z4 (Stark gebraucht) = schlechtester Zustand
+     *
+     * condition_max muss einen gleichen oder höheren Index als condition haben,
+     * d.h. der "Bis"-Zustand muss gleich oder schlechter als der "Von"-Zustand sein.
+     *
      * @return string|null Fehlermeldung oder null wenn gültig
      */
     private function validateConditionRange(string $condition, ?string $conditionMax): ?string
@@ -827,6 +877,8 @@ class RomantauschController extends Controller
             return null;
         }
 
+        // CONDITION_ORDER definiert die Reihenfolge von bester (Index 0) zu schlechtester (Index 8).
+        // array_search gibt false zurück wenn der Wert nicht gefunden wird.
         $conditionIndex = array_search($condition, self::CONDITION_ORDER);
         $conditionMaxIndex = array_search($conditionMax, self::CONDITION_ORDER);
 
@@ -934,9 +986,12 @@ class RomantauschController extends Controller
 
         $missingList = $this->validateMissingBookNumbers($bookNumbers, $existingBooks->keys()->toArray());
         if ($missingList) {
+            // Serie-Name für bessere Kontext-Info in der Fehlermeldung.
+            // Hilft Nutzern zu verstehen, falls sie versehentlich die falsche Serie gewählt haben.
+            $seriesName = $validated['series'];
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'Folgende Roman-Nummern existieren nicht in dieser Serie: ' . $missingList);
+                ->with('error', "Folgende Roman-Nummern existieren nicht in der Serie \"{$seriesName}\": {$missingList}");
         }
 
         try {
@@ -998,8 +1053,18 @@ class RomantauschController extends Controller
 
         // Activity-Log: Wir verwenden das erste Angebot als subject_id, da die
         // DB-Spalte NOT NULL ist. Falls dieses Angebot später gelöscht wird,
-        // bleibt die Activity-Referenz defekt. Die bundle_id wird zusätzlich
-        // in properties gespeichert als stabiler Identifier.
+        // bleibt die Activity-Referenz defekt.
+        //
+        // Die bundle_id in properties dient als stabiler Identifier für Queries:
+        //   Activity::where('properties->bundle_id', $bundleId)
+        //
+        // Alternative Ansätze für zukünftige Refactorings:
+        // 1. Separate bundles-Tabelle mit eigener ID für Activity-Tracking
+        // 2. activities.subject_id nullable machen und bundle_id als subject verwenden
+        // 3. subject_type 'Bundle' mit bundle_id als subject_id (erfordert Schema-Änderung)
+        //
+        // Aktuell ist das Risiko akzeptabel: Activity-Logs sind informativ,
+        // keine kritische Geschäftslogik hängt von der subject_id-Referenz ab.
         Activity::create([
             'user_id' => Auth::id(),
             'subject_type' => BookOffer::class,
@@ -1170,6 +1235,13 @@ class RomantauschController extends Controller
         // Dies verhindert Race Conditions bei gleichzeitigen Anfragen und
         // stellt sicher, dass Fotos nur gelöscht werden wenn die DB-Änderungen
         // tatsächlich committed wurden.
+        //
+        // LIMITATION: Falls die Anwendung zwischen Transaktions-Commit und
+        // afterCommit-Ausführung abstürzt oder terminiert wird, bleiben die
+        // alten Fotos als "Orphans" im Storage liegen. Dies ist weniger kritisch
+        // als der umgekehrte Fall (Fotos löschen vor Commit → Datenverlust).
+        // Für Produktionsumgebungen sollte der Cleanup-Job implementiert werden,
+        // der verwaiste Dateien aufräumt (siehe @todo in uploadPhotos).
         DB::afterCommit(function () use ($photosToDelete, $allPhotos) {
             foreach ($photosToDelete as $path) {
                 if (!in_array($path, $allPhotos, true)) {

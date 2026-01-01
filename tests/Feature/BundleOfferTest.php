@@ -906,4 +906,111 @@ class BundleOfferTest extends TestCase
         $response->assertViewHas('bundles', fn ($b) => $b->count() === 1);
         $response->assertViewHas('offers', fn ($o) => $o->count() === 1);
     }
+
+    // ====== Photo Cleanup Tests ======
+
+    /**
+     * Test dass Fotos korrekt gelöscht werden wenn Bundle aktualisiert wird.
+     *
+     * Dieser Test verifiziert den Photo-Cleanup-Mechanismus mit DB::afterCommit().
+     * Bei Transaktions-Rollback sollten keine Fotos gelöscht werden.
+     *
+     * Die Foto-Löschung wird über das 'remove_photos' Array gesteuert.
+     */
+    public function test_update_bundle_removes_photos_via_remove_photos_array(): void
+    {
+        $this->putBookData();
+
+        $user = $this->actingMember();
+        $this->actingAs($user);
+
+        Storage::fake('public');
+
+        $bundleId = (string) Str::uuid();
+        $photoToRemove = 'book-offers/photo-to-remove.jpg';
+        $photoToKeep = 'book-offers/photo-to-keep.jpg';
+
+        Storage::disk('public')->put($photoToRemove, 'old image content');
+        Storage::disk('public')->put($photoToKeep, 'keep image content');
+
+        // Erstelle Bundle mit beiden Fotos
+        for ($i = 1; $i <= 3; $i++) {
+            BookOffer::create([
+                'user_id' => $user->id,
+                'bundle_id' => $bundleId,
+                'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
+                'book_number' => $i,
+                'book_title' => "Maddrax {$i}",
+                'condition' => 'Z1',
+                'photos' => [$photoToRemove, $photoToKeep],
+            ]);
+        }
+
+        // Beide Fotos sollten existieren
+        Storage::disk('public')->assertExists($photoToRemove);
+        Storage::disk('public')->assertExists($photoToKeep);
+
+        // Bundle aktualisieren - ein Foto zum Löschen markieren
+        $response = $this->put("/romantauschboerse/stapel/{$bundleId}", [
+            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
+            'book_numbers' => '1-3',
+            'condition' => 'Z1',
+            'remove_photos' => [$photoToRemove],
+        ]);
+
+        $response->assertRedirect();
+
+        // Markiertes Foto sollte gelöscht sein (via afterCommit)
+        Storage::disk('public')->assertMissing($photoToRemove);
+        // Das andere Foto sollte erhalten bleiben
+        Storage::disk('public')->assertExists($photoToKeep);
+    }
+
+    /**
+     * Test dass Fotos in der DB aktualisiert werden wenn remove_photos verwendet wird.
+     */
+    public function test_update_bundle_removes_photo_references_from_database(): void
+    {
+        $this->putBookData();
+
+        $user = $this->actingMember();
+        $this->actingAs($user);
+
+        Storage::fake('public');
+
+        $bundleId = (string) Str::uuid();
+        $photoToRemove = 'book-offers/to-remove.jpg';
+        $photoToKeep = 'book-offers/to-keep.jpg';
+
+        Storage::disk('public')->put($photoToRemove, 'remove me');
+        Storage::disk('public')->put($photoToKeep, 'keep me');
+
+        for ($i = 1; $i <= 2; $i++) {
+            BookOffer::create([
+                'user_id' => $user->id,
+                'bundle_id' => $bundleId,
+                'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
+                'book_number' => $i,
+                'book_title' => "Maddrax {$i}",
+                'condition' => 'Z1',
+                'photos' => [$photoToRemove, $photoToKeep],
+            ]);
+        }
+
+        // Bundle aktualisieren mit remove_photos
+        $response = $this->put("/romantauschboerse/stapel/{$bundleId}", [
+            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
+            'book_numbers' => '1-2',
+            'condition' => 'Z2',
+            'remove_photos' => [$photoToRemove],
+        ]);
+
+        $response->assertRedirect();
+
+        // DB sollte nur noch das behaltene Foto enthalten
+        $offer = BookOffer::where('bundle_id', $bundleId)->first();
+        $this->assertCount(1, $offer->photos);
+        $this->assertContains($photoToKeep, $offer->photos);
+        $this->assertNotContains($photoToRemove, $offer->photos);
+    }
 }

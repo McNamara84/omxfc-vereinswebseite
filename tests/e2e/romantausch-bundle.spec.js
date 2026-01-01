@@ -2,6 +2,34 @@ import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 
 /**
+ * Romantauschbörse Stapel-Angebote E2E Tests
+ *
+ * TEST-ISOLATION HINWEISE:
+ * 
+ * 1. Sequentielle Ausführung:
+ *    Diese Tests verwenden test.describe.serial() nicht, laufen aber in Playwright
+ *    standardmäßig sequentiell im selben Worker. Bei paralleler Worker-Konfiguration
+ *    könnten Kollisionen auftreten.
+ *
+ * 2. Buchnummern-Strategie:
+ *    Jeder Test verwendet eindeutige Buchnummern-Bereiche um Kollisionen zu vermeiden:
+ *    - Stapel erstellen: 10-15
+ *    - Bearbeiten-Test: 90-92
+ *    - Löschen-Test: 50-52
+ *    - etc.
+ *    Falls neue Tests hinzugefügt werden, sollten nicht verwendete Bereiche gewählt werden.
+ *
+ * 3. Parallele Ausführung:
+ *    Falls in Zukunft parallele Ausführung aktiviert wird, sollten entweder:
+ *    - test.describe.serial() verwendet werden für Tests die dieselben Daten modifizieren
+ *    - Oder eindeutige Datensätze pro Test erstellt werden (z.B. mit Zeitstempel-Suffix)
+ *
+ * 4. DB-Reset:
+ *    CI führt vor jedem Playwright-Run frische Migrations mit Seeding aus.
+ *    Lokal sollte bei Testfehlern die DB neu geseedet werden.
+ */
+
+/**
  * Helper: Login as member
  *
  * WICHTIG: Der Test-User 'playwright-member@example.com' wird vom
