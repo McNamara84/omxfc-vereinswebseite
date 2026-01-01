@@ -152,9 +152,12 @@ test.describe('Romantauschbörse - Stapel-Angebote', () => {
         test('Bearbeiten-Formular zeigt aktuelle Werte', async ({ page }) => {
             await loginAsMember(page);
             
-            // Erstelle ein Stapel-Angebot mit Nummern im Bereich 90-92
-            // Diese Nummern existieren im BookPlaywrightSeeder (1-100) und sind
-            // selten genug um Kollisionen mit anderen Tests zu vermeiden.
+            // Erstelle ein Stapel-Angebot mit Nummern im Bereich 90-92.
+            // Diese Nummern existieren im BookPlaywrightSeeder (1-100).
+            // HINWEIS zur Test-Isolation: Playwright-Tests laufen sequentiell in einem
+            // Browser-Kontext mit frischer DB pro Workflow-Run. Bei paralleler Ausführung
+            // oder persistenten Testdaten könnten Kollisionen auftreten. In diesem Fall
+            // sollten eindeutige Nummern pro Test verwendet werden (z.B. 90-92, 93-95, 96-98).
             await page.goto('/romantauschboerse/stapel-angebot-erstellen');
             await page.selectOption('select[name="series"]', SERIES_MADDRAX);
             await page.fill('input[name="book_numbers"]', '90-92');
@@ -163,7 +166,8 @@ test.describe('Romantauschbörse - Stapel-Angebote', () => {
 
             await expect(page).toHaveURL(/romantauschboerse$/);
 
-            // Finde das Bundle mit Nummern 90-92 über data-book-numbers-display
+            // Finde das Bundle über data-book-numbers-display mit "90-92" Substring.
+            // .first() wählt das erste Match falls mehrere existieren (Test-Isolation).
             const bundleWithNumbers = page.locator('[data-bundle-id][data-book-numbers-display*="90"]').first();
             await expect(bundleWithNumbers).toBeVisible({ timeout: 5000 });
             const editLink = bundleWithNumbers.locator('a[href*="/stapel/"][href*="/bearbeiten"]');

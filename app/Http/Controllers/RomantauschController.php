@@ -620,9 +620,44 @@ class RomantauschController extends Controller
     }
 
     /**
+     * Löscht ein Angebot und dessen zugehörigen Swap, falls vorhanden.
+     *
+     * Erstellt ein Activity-Log für den betroffenen Nutzer, damit dieser
+     * nachvollziehen kann, warum sein Match verschwunden ist.
+     *
+     * @param BookOffer $offer Das zu löschende Angebot
+     * @return void
+     */
+    private function deleteOfferWithSwap(BookOffer $offer): void
+    {
+        if ($offer->swap) {
+            // Activity-Log für den betroffenen Nutzer dessen Match gelöscht wird.
+            // Null-safe: swap->request->user kann theoretisch null sein wenn der
+            // User-Account gelöscht wurde bevor der Swap gelöscht wurde (Cascade-Timing).
+            // DB-Constraints: book_swaps.request_id → book_requests (CASCADE DELETE),
+            // book_requests.user_id → users (CASCADE DELETE). Bei gelöschtem User
+            // sollte auch die Request und damit der Swap gelöscht sein.
+            $affectedUser = $offer->swap->request?->user;
+            if ($affectedUser) {
+                Activity::create([
+                    'user_id' => $affectedUser->id,
+                    'subject_type' => BookRequest::class,
+                    'subject_id' => $offer->swap->request_id,
+                    'action' => 'match_cancelled_by_offer_owner',
+                ]);
+            }
+            $offer->swap->delete();
+        }
+        $offer->delete();
+    }
+
+    /**
      * Parst eine Eingabe wie "1, 5, 7, 12-50, 52" in ein Array von Nummern.
      *
-     * Hinweis: Akzeptiert auch Eingaben mit führenden Nullen (z.B. "01", "05").
+     * Akzeptiert führende Nullen (z.B. "01", "05") und normalisiert sie.
+     * Buchnummer 0 ist nicht gültig und wird stillschweigend ignoriert, da
+     * Romanhefte bei 1 beginnen. Das Frontend (JavaScript) verhält sich identisch:
+     * parseInt("0", 10) > 0 === false, daher wird 0 dort ebenfalls abgelehnt.
      *
      * @return array<int>
      */
@@ -706,10 +741,11 @@ class RomantauschController extends Controller
     /**
      * Hilfsmethode für Foto-Upload.
      *
-     * TODO: Cleanup-Job für verwaiste Fotos implementieren (Issue #489).
-     * Falls die Anwendung nach dem Upload aber vor dem DB-Speichern abstürzt,
-     * können Fotos verwaist im Storage liegen. Ein Artisan-Command sollte
-     * Dateien in PHOTO_STORAGE_PATH prüfen, die nicht mehr in der DB referenziert werden.
+     * @todo Cleanup-Job für verwaiste Fotos implementieren.
+     *       Falls die Anwendung nach dem Upload aber vor dem DB-Speichern abstürzt,
+     *       können Fotos verwaist im Storage liegen. Ein Artisan-Command sollte
+     *       Dateien in PHOTO_STORAGE_PATH prüfen, die nicht mehr in der DB referenziert werden.
+     *       Implementierung: `php artisan make:command CleanupOrphanedBookOfferPhotos`
      *
      * @return array<string> Array mit Pfaden bei Erfolg
      *
@@ -960,15 +996,16 @@ class RomantauschController extends Controller
             $this->matchSwap($offer, 'offer');
         }
 
-        // Hinweis: Bei Bundles wird subject_id auf das erste Angebot gesetzt.
-        // Falls dieses Angebot später gelöscht wird (z.B. bei Stapel-Bearbeitung),
-        // kann subject_id auf ein nicht mehr existierendes Angebot verweisen.
-        // Die bundle_id ist im action-Feld als 'bundle_created' dokumentiert.
+        // Activity-Log: Wir verwenden das erste Angebot als subject_id, da die
+        // DB-Spalte NOT NULL ist. Falls dieses Angebot später gelöscht wird,
+        // bleibt die Activity-Referenz defekt. Die bundle_id wird zusätzlich
+        // in properties gespeichert als stabiler Identifier.
         Activity::create([
             'user_id' => Auth::id(),
             'subject_type' => BookOffer::class,
             'subject_id' => $offers[0]->id,
             'action' => 'bundle_created',
+            'properties' => ['bundle_id' => $bundleId, 'offer_count' => count($offers)],
         ]);
 
         return redirect()->route('romantausch.index')
@@ -1099,26 +1136,7 @@ class RomantauschController extends Controller
             // Eine Schleife für Löschen und Aktualisieren
             foreach ($existingOffers as $offer) {
                 if (in_array($offer->book_number, $toRemove)) {
-                    // Angebot entfernen
-                    if ($offer->swap) {
-                        // Activity-Log für den betroffenen Nutzer dessen Match gelöscht wird.
-                        // Null-safe: swap->request->user kann theoretisch null sein wenn der
-                        // User-Account gelöscht wurde bevor der Swap gelöscht wurde (Cascade-Timing).
-                        // DB-Constraints: book_swaps.request_id → book_requests (CASCADE DELETE),
-                        // book_requests.user_id → users (CASCADE DELETE). Bei gelöschtem User
-                        // sollte auch die Request und damit der Swap gelöscht sein.
-                        $affectedUser = $offer->swap->request?->user;
-                        if ($affectedUser) {
-                            Activity::create([
-                                'user_id' => $affectedUser->id,
-                                'subject_type' => BookRequest::class,
-                                'subject_id' => $offer->swap->request_id,
-                                'action' => 'match_cancelled_by_offer_owner',
-                            ]);
-                        }
-                        $offer->swap->delete();
-                    }
-                    $offer->delete();
+                    $this->deleteOfferWithSwap($offer);
                 } elseif (in_array($offer->book_number, $newBookNumbers)) {
                     // Angebot aktualisieren
                     $offer->update([
@@ -1148,14 +1166,17 @@ class RomantauschController extends Controller
             }
         });
 
-        // Fotos erst NACH erfolgreicher Transaktion löschen
-        // um Datenverlust bei Transaktions-Rollback zu vermeiden
-        // Zusätzliche Sicherheitsprüfung: Nie Fotos löschen die noch in allPhotos sind
-        foreach ($photosToDelete as $path) {
-            if (!in_array($path, $allPhotos, true)) {
-                Storage::disk('public')->delete($path);
+        // Fotos erst NACH erfolgreicher Transaktion löschen (via afterCommit).
+        // Dies verhindert Race Conditions bei gleichzeitigen Anfragen und
+        // stellt sicher, dass Fotos nur gelöscht werden wenn die DB-Änderungen
+        // tatsächlich committed wurden.
+        DB::afterCommit(function () use ($photosToDelete, $allPhotos) {
+            foreach ($photosToDelete as $path) {
+                if (!in_array($path, $allPhotos, true)) {
+                    Storage::disk('public')->delete($path);
+                }
             }
-        }
+        });
 
         return redirect()->route('romantausch.index')
             ->with('success', 'Stapel-Angebot aktualisiert.');
@@ -1181,22 +1202,7 @@ class RomantauschController extends Controller
 
         DB::transaction(function () use ($offers) {
             foreach ($offers as $offer) {
-                if ($offer->swap) {
-                    // Activity-Log für den betroffenen Nutzer dessen Match gelöscht wird.
-                    // Null-safe: Bei korrekten DB-Constraints (CASCADE DELETE) sollte dies
-                    // nie null sein, aber wir behandeln Edge-Cases bei Timing-Problemen.
-                    $affectedUser = $offer->swap->request?->user;
-                    if ($affectedUser) {
-                        Activity::create([
-                            'user_id' => $affectedUser->id,
-                            'subject_type' => BookRequest::class,
-                            'subject_id' => $offer->swap->request_id,
-                            'action' => 'match_cancelled_by_offer_owner',
-                        ]);
-                    }
-                    $offer->swap->delete();
-                }
-                $offer->delete();
+                $this->deleteOfferWithSwap($offer);
             }
         });
 
