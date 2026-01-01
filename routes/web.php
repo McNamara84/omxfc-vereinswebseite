@@ -207,6 +207,13 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
         Route::post('{request}/anfrage-loeschen', 'deleteRequest')->name('delete-request');
         Route::post('{offer}/{request}/abschliessen', 'completeSwap')->name('complete-swap');
         Route::post('tausche/{swap}/bestaetigen', 'confirmSwap')->name('confirm-swap');
+
+        // Stapel-Angebote
+        Route::get('stapel-angebot-erstellen', 'createBundleOffer')->name('create-bundle-offer');
+        Route::post('stapel-angebot-speichern', 'storeBundleOffer')->name('store-bundle-offer');
+        Route::get('stapel/{bundleId}/bearbeiten', 'editBundle')->name('edit-bundle');
+        Route::put('stapel/{bundleId}', 'updateBundle')->name('update-bundle');
+        Route::delete('stapel/{bundleId}', 'deleteBundle')->name('delete-bundle');
     });
 
     Route::prefix('downloads')->controller(DownloadsController::class)->group(function () {

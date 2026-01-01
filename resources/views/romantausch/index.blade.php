@@ -115,17 +115,151 @@
                 </ul>
             </div>
         @endif
+
+        {{-- Stapel-Angebote --}}
+        @if(isset($bundles) && $bundles->isNotEmpty())
+            <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+                    <div>
+                        <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81]">Stapel-Angebote</h2>
+                        <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Sammlungen mit mehreren Romanen</p>
+                    </div>
+                    <a href="{{ route('romantausch.create-bundle-offer') }}"
+                       class="inline-flex items-center px-4 py-2 bg-gray-700 dark:bg-gray-600 border border-transparent rounded-md font-semibold text-white hover:bg-gray-800 dark:hover:bg-gray-500">
+                        Stapel erstellen
+                    </a>
+                </div>
+
+                <ul class="space-y-4">
+                    @foreach($bundles as $bundle)
+                        {{--
+                            data-bundle-id: UUID für JS-Funktionen und E2E-Tests.
+                            
+                            SICHERHEITSHINWEIS zur UUID-Exposition:
+                            Die bundle_id (UUID) ist im HTML sichtbar. Das ist grundsätzlich akzeptabel weil:
+                            1. UUIDv4 sind nicht erratbar (122 Bits Entropie)
+                            2. Alle Bundle-Aktionen (Bearbeiten/Löschen) erfordern Authentifizierung
+                            3. Die Policy prüft ob der User Besitzer des Bundles ist
+                            
+                            POTENTIELLE BEDENKEN:
+                            - Scraping könnte alle Bundle-IDs sammeln
+                            - Falls IDs in Logs/Analytics korreliert werden, könnte Nutzerverhalten
+                              über Sessions hinweg verfolgt werden
+                            
+                            AKTUELLER BEDARF:
+                            - E2E-Tests verwenden data-bundle-id für DOM-Selektion
+                            - JavaScript-Funktionen referenzieren Bundle via ID
+                            
+                            ALTERNATIVEN für höhere Sicherheit:
+                            - Signierte Tokens statt Raw-UUIDs (URL::signedRoute)
+                            - Session-basierter Index statt persistenter ID
+                            - HMAC-basierte Verschleierung der Bundle-ID
+                        --}}
+                        <li class="bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden" data-bundle-id="{{ $bundle->bundle_id }}" data-book-numbers-display="{{ $bundle->book_numbers_display }}" data-testid="bundle-item" x-data="{ expanded: false }">
+                            {{-- Zusammengeklappte Ansicht --}}
+                            <div class="p-4">
+                                <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex flex-wrap items-center gap-2">
+                                            <span class="font-semibold text-gray-900 dark:text-gray-100">{{ $bundle->series }}</span>
+                                            <span class="text-sm text-gray-500 dark:text-gray-400">({{ $bundle->total_count }} Romane)</span>
+                                        </div>
+                                        <p class="text-sm text-gray-600 dark:text-gray-300 mt-1 truncate" title="{{ $bundle->book_numbers_display }}">
+                                            Nummern: {{ Str::limit($bundle->book_numbers_display, 50) }}
+                                        </p>
+                                        <div class="text-sm text-gray-600 dark:text-gray-300 mt-1">
+                                            von <a href="{{ route('profile.view', $bundle->user->id) }}" class="text-[#8B0116] hover:underline dark:text-[#FF6B81]">{{ $bundle->user->name }}</a>
+                                            • Zustand: {{ $bundle->condition_range }}
+                                        </div>
+
+                                        {{-- Match-Hinweis --}}
+                                        @if($bundle->matching_count > 0)
+                                            <div class="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded-full text-sm font-medium">
+                                                <svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+                                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                                </svg>
+                                                {{ $bundle->matching_count }} von {{ $bundle->total_count }} entsprechen deinen Gesuchen!
+                                            </div>
+                                        @endif
+                                    </div>
+
+                                    <div class="flex items-center gap-2 flex-shrink-0">
+                                        @if((int) $bundle->user_id === (int) auth()->id())
+                                            <a href="{{ route('romantausch.edit-bundle', $bundle->bundle_id) }}"
+                                                class="px-3 py-1.5 text-sm bg-gray-600 text-white rounded hover:bg-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-gray-500">
+                                                Bearbeiten
+                                            </a>
+                                        @endif
+                                        <button type="button" @click="expanded = !expanded"
+                                            class="px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-500 text-gray-700 dark:text-gray-200 rounded hover:bg-gray-200 dark:hover:bg-gray-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-gray-400"
+                                            :aria-expanded="expanded.toString()">
+                                            <span x-show="!expanded">Details</span>
+                                            <span x-show="expanded" x-cloak>Einklappen</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- Aufgeklappte Details --}}
+                            <div x-show="expanded" x-cloak x-collapse class="border-t border-gray-200 dark:border-gray-600">
+                                {{-- Fotos --}}
+                                @if(count($bundle->photos ?? []) > 0)
+                                    <div class="p-4 bg-gray-50 dark:bg-gray-800 flex gap-3 overflow-x-auto">
+                                        @foreach($bundle->photos as $photo)
+                                            <img src="{{ asset('storage/' . $photo) }}"
+                                                alt="Foto des Stapel-Angebots"
+                                                class="w-24 h-24 object-cover rounded flex-shrink-0">
+                                        @endforeach
+                                    </div>
+                                @endif
+
+                                {{-- Romanliste --}}
+                                <div class="p-4 max-h-64 overflow-y-auto">
+                                    <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Enthaltene Romane:</p>
+                                    <ul class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 text-sm">
+                                        @foreach($bundle->offers as $offer)
+                                            @php
+                                                $isMatch = $bundle->matching_offers->contains('id', $offer->id);
+                                            @endphp
+                                            <li @class([
+                                                'px-2 py-1.5 rounded flex items-center justify-between gap-2',
+                                                'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200' => $isMatch,
+                                                'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300' => !$isMatch,
+                                            ])>
+                                                <span class="truncate" title="{{ $offer->book_title }}">
+                                                    <strong>{{ $offer->book_number }}</strong> - {{ Str::limit($offer->book_title, 25) }}
+                                                </span>
+                                                @if($isMatch)
+                                                    <span class="text-xs bg-green-200 dark:bg-green-800 px-1.5 py-0.5 rounded">Match</span>
+                                                @endif
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            </div>
+                        </li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
         <!-- Angebote -->
         <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81]">Aktuelle Angebote</h2>
-                <a href="{{ route('romantausch.create-offer') }}"
-                   class="inline-flex items-center px-4 py-2 bg-[#8B0116] dark:bg-[#C41E3A] border border-transparent rounded-md font-semibold text-white hover:bg-[#A50019] dark:hover:bg-[#D63A4D]">
-                    Angebot erstellen
-                </a>
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+                <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81]">Einzelne Angebote</h2>
+                <div class="flex gap-2">
+                    <a href="{{ route('romantausch.create-bundle-offer') }}"
+                       class="inline-flex items-center px-4 py-2 bg-gray-700 dark:bg-gray-600 border border-transparent rounded-md font-semibold text-white hover:bg-gray-800 dark:hover:bg-gray-500 text-sm">
+                        Stapel erstellen
+                    </a>
+                    <a href="{{ route('romantausch.create-offer') }}"
+                       class="inline-flex items-center px-4 py-2 bg-[#8B0116] dark:bg-[#C41E3A] border border-transparent rounded-md font-semibold text-white hover:bg-[#A50019] dark:hover:bg-[#D63A4D]">
+                        Angebot erstellen
+                    </a>
+                </div>
             </div>
             @if($offers->isEmpty())
-                <p class="text-gray-600 dark:text-gray-400">Keine Angebote vorhanden.</p>
+                <p class="text-gray-600 dark:text-gray-400">Keine Einzelangebote vorhanden.</p>
             @else
                 <ul class="space-y-3">
                     @foreach($offers as $offer)

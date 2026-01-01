@@ -28,5 +28,21 @@ return [
             ],
         ],
     ],
+    'condition' => [
+        'same' => '— Gleicher Zustand —',
+        'Z0' => 'Druckfrisch',
+        'Z0-1' => 'Fast druckfrisch',
+        'Z0-1_title' => 'Zwischen Z0 und Z1 – fast druckfrisch',
+        'Z1' => 'Sehr gut',
+        'Z1-2' => 'Sehr gut mit leichten Mängeln',
+        'Z1-2_title' => 'Zwischen Z1 und Z2 – sehr gut mit leichten Mängeln',
+        'Z2' => 'Gut',
+        'Z2-3' => 'Gut mit Gebrauchsspuren',
+        'Z2-3_title' => 'Zwischen Z2 und Z3 – gut mit deutlichen Gebrauchsspuren',
+        'Z3' => 'Gebraucht',
+        'Z3-4' => 'Stark gebraucht',
+        'Z3-4_title' => 'Zwischen Z3 und Z4 – stark gebraucht',
+        'Z4' => 'Schlecht',
+    ],
 ];
 
