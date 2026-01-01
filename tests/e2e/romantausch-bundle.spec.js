@@ -52,17 +52,14 @@ test.describe('Romantauschbörse - Stapel-Angebote', () => {
             await loginAsMember(page);
             await page.goto('/romantauschboerse/stapel-angebot-erstellen');
 
-            // Warte bis Alpine.js initialisiert ist
-            await page.waitForFunction(() => typeof Alpine !== 'undefined');
+            const bookNumbersInput = page.locator('input[name="book_numbers"]');
             
-            // Setze den Wert direkt über Alpine.js x-model
-            await page.evaluate(() => {
-                const input = document.querySelector('input[name="book_numbers"]');
-                // Hole das Alpine.js Komponentenobjekt
-                const alpineData = Alpine.$data(input);
-                alpineData.input = '1-5, 10';
-                alpineData.parseNumbers();
-            });
+            // Klicke in das Feld und tippe zeichenweise - das triggert x-model korrekt
+            await bookNumbersInput.click();
+            await page.keyboard.type('1-5, 10');
+            
+            // Warte auf den 300ms debounce + etwas extra Zeit für Rendering
+            await page.waitForTimeout(500);
             
             // Die Vorschau sollte "6 Romane erkannt" anzeigen
             const preview = page.locator('[x-show="numbers.length > 0"]');
