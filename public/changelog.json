@@ -1,5 +1,29 @@
 [ 
   {
+    "version": "1.8.0",
+    "pub_date": "2026-01-01",
+    "notes": [
+      "[New] Abstimmungsfunktion für Mitgliederumfragen und Mitgliederentscheidungen",
+      "[New] Stapeltausch-Feature für mehrere Romane gleichzeitig in der Romantauschbörse",
+      "[New] 2012-Miniserie-Romane für Rezensionen verfügbar",
+      "[New] 2012-Miniserie-Romane für Romantausch verfügbar",
+      "[New] VIP-Verwaltung für das Maddrax-Fantreffen 2026",
+      "[New] Technische Statistiken für den Vorstand im Admin-Bereich",
+      "[New] Statistiken für Das Volk der Tiefe Romane als Belohnung",
+      "[New] Orga-Team-Kennzeichnung für Fantreffen-Anmeldungen",
+      "[New] Button zum Kopieren einzelner E-Mail-Adressen in der Mitgliederliste",
+      "[New] Vorläufige VIP-Gäste für Fantreffen können markiert werden",
+      "[Improved] Update auf PHP 8.5 für verbesserte Performance und Sicherheit",
+      "[Improved] Update auf Node.js 24 LTS für aktuelle Frontend-Toolchain",
+      "[Improved] Modernisiertes Design des Dashboard Feeds",
+      "[Improved] Verbesserte Markdown-Darstellung bei Rezensionen",
+      "[Improved] Fantreffen-Anmeldungen werden im Dashboard unter Aktivitäten angezeigt",
+      "[Improved] Neuanordnung der Challenges-Bereiche für bessere Übersicht",
+      "[Fixed] Kassenbuch-Bearbeitungsmodal funktioniert wieder korrekt",
+      "[Fixed] TailwindCSS-Einstellungen für Formular-Eingabefelder korrigiert"
+    ]
+  },
+  {
     "version": "1.7.0",
     "pub_date": "2025-11-29",
     "notes": [
