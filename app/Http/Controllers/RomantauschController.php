@@ -100,7 +100,8 @@ class RomantauschController extends Controller
             $matchingCount = 0;
             $matchingOffers = collect();
 
-            if ($userId && (int) $firstOffer->user_id !== (int) $userId) {
+            // Defensive Prüfung: $userId und user_id könnten null sein
+            if ($userId && $firstOffer->user_id && (int) $firstOffer->user_id !== (int) $userId) {
                 foreach ($offers as $offer) {
                     $bookKey = $this->buildBookKey($offer->series, (int) $offer->book_number);
                     if ($ownRequests->has($bookKey)) {
@@ -909,24 +910,41 @@ class RomantauschController extends Controller
 
         $bundleId = Str::uuid()->toString();
 
-        $offers = DB::transaction(function () use ($existingBooks, $validated, $bundleId, $photoPaths) {
-            $offers = [];
+        try {
+            $offers = DB::transaction(function () use ($existingBooks, $validated, $bundleId, $photoPaths) {
+                $offers = [];
 
-            foreach ($existingBooks as $book) {
-                $offers[] = BookOffer::create([
-                    'user_id' => Auth::id(),
-                    'bundle_id' => $bundleId,
-                    'series' => $validated['series'],
-                    'book_number' => $book->roman_number,
-                    'book_title' => $book->title,
-                    'condition' => $validated['condition'],
-                    'condition_max' => $validated['condition_max'] ?? null,
-                    'photos' => $photoPaths,
-                ]);
+                foreach ($existingBooks as $book) {
+                    $offers[] = BookOffer::create([
+                        'user_id' => Auth::id(),
+                        'bundle_id' => $bundleId,
+                        'series' => $validated['series'],
+                        'book_number' => $book->roman_number,
+                        'book_title' => $book->title,
+                        'condition' => $validated['condition'],
+                        'condition_max' => $validated['condition_max'] ?? null,
+                        'photos' => $photoPaths,
+                    ]);
+                }
+
+                return $offers;
+            });
+        } catch (\Throwable $e) {
+            // Bei Transaktionsfehler: Hochgeladene Fotos aufräumen
+            // um verwaiste Dateien zu vermeiden
+            foreach ($photoPaths as $path) {
+                Storage::disk('public')->delete($path);
             }
 
-            return $offers;
-        });
+            \Illuminate\Support\Facades\Log::error('Bundle-Erstellung fehlgeschlagen', [
+                'user_id' => Auth::id(),
+                'error' => $e->getMessage(),
+            ]);
+
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Beim Erstellen des Stapel-Angebots ist ein Fehler aufgetreten. Bitte versuche es erneut.');
+        }
 
         $totalOfferCount = BookOffer::where('user_id', Auth::id())->count();
         $previousCount = $totalOfferCount - count($offers);
@@ -1155,6 +1173,15 @@ class RomantauschController extends Controller
         DB::transaction(function () use ($offers) {
             foreach ($offers as $offer) {
                 if ($offer->swap) {
+                    // Activity-Log für den betroffenen Nutzer dessen Match gelöscht wird
+                    // Konsistent mit updateBundle-Verhalten
+                    $affectedUser = $offer->swap->request->user;
+                    Activity::create([
+                        'user_id' => $affectedUser->id,
+                        'subject_type' => BookRequest::class,
+                        'subject_id' => $offer->swap->request_id,
+                        'action' => 'match_cancelled_by_offer_owner',
+                    ]);
                     $offer->swap->delete();
                 }
                 $offer->delete();

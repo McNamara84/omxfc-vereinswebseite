@@ -4,17 +4,25 @@
  * Diese Datei enthält die bundlePreview() Funktion für die Live-Vorschau
  * der Roman-Nummern-Eingabe in Bundle-Formularen.
  *
- * Verwendung:
- * 1. In der Blade-View die Konstante MAX_RANGE_SPAN definieren
- * 2. Die Variable bundlePreviewInitialInput setzen
- * 3. Diese Datei einbinden
+ * Verwendung in Blade-Views:
+ * 1. In der Blade-View vor diesem Script die Konstanten definieren:
+ *    - window.MAX_RANGE_SPAN (vom Controller injiziert)
+ *    - window.bundlePreviewInitialInput (initialer Wert aus Formular)
+ * 2. Dieses Script via Vite einbinden: @vite(['resources/js/romantausch-bundle-preview.js'])
+ * 3. Im HTML x-data="bundlePreview()" verwenden
+ *
+ * Hinweis: Die Werte werden direkt in den Blade-Views definiert, da sie
+ * server-seitig aus PHP-Variablen kommen (z.B. old('book_numbers')).
  *
  * @example
  * <script>
- *     const MAX_RANGE_SPAN = {{ App\Http\Controllers\RomantauschController::MAX_RANGE_SPAN }};
- *     const bundlePreviewInitialInput = {!! json_encode($bookNumbersInput) !!};
+ *     window.MAX_RANGE_SPAN = {{ App\Http\Controllers\RomantauschController::MAX_RANGE_SPAN }};
+ *     window.bundlePreviewInitialInput = {{ Js::from($bookNumbersInput) }};
  * </script>
  * @vite(['resources/js/romantausch-bundle-preview.js'])
+ *
+ * @see resources/views/romantausch/create_bundle_offer.blade.php
+ * @see resources/views/romantausch/edit_bundle.blade.php
  */
 
 window.bundlePreview = function bundlePreview() {

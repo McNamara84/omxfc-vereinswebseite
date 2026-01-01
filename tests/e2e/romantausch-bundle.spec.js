@@ -152,25 +152,26 @@ test.describe('Romantauschbörse - Stapel-Angebote', () => {
         test('Bearbeiten-Formular zeigt aktuelle Werte', async ({ page }) => {
             await loginAsMember(page);
             
-            // Erstelle ein Stapel-Angebot mit eindeutigen Nummern (90-92)
+            // Erstelle ein Stapel-Angebot mit sehr hohen, eindeutigen Nummern (490-492)
+            // Hohe Nummern verringern das Risiko von Kollisionen mit anderen Tests
             await page.goto('/romantauschboerse/stapel-angebot-erstellen');
             await page.selectOption('select[name="series"]', SERIES_MADDRAX);
-            await page.fill('input[name="book_numbers"]', '90-92');
+            await page.fill('input[name="book_numbers"]', '490-492');
             await page.selectOption('select[name="condition"]', CONDITION_Z2);
             await page.click('button[type="submit"]');
 
             await expect(page).toHaveURL(/romantauschboerse$/);
 
-            // Finde das Bundle mit Nummern 90-92 über data-book-numbers-display
-            // Spezifischer als nur hasText: '90' um False-Positives zu vermeiden
-            const bundleWithNumbers = page.locator('[data-bundle-id][data-book-numbers-display*="90"]').first();
+            // Finde das Bundle mit Nummern 490-492 über data-book-numbers-display
+            // Exakter Match auf "490" - unwahrscheinlich dass andere Tests diese Nummern nutzen
+            const bundleWithNumbers = page.locator('[data-bundle-id][data-book-numbers-display*="490"]').first();
             await expect(bundleWithNumbers).toBeVisible({ timeout: 5000 });
             const editLink = bundleWithNumbers.locator('a[href*="/stapel/"][href*="/bearbeiten"]');
             await editLink.click();
 
             // Aktuelle Roman-Nummern sollten im Eingabefeld stehen
             const bookNumbersInput = page.locator('input[name="book_numbers"]');
-            await expect(bookNumbersInput).toHaveValue(/90/);
+            await expect(bookNumbersInput).toHaveValue(/490/);
         });
 
         test('Stapel kann gelöscht werden', async ({ page }) => {
