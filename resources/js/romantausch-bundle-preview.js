@@ -47,9 +47,9 @@ window.bundlePreview = function bundlePreview() {
 
                 if (trimmed.includes('-')) {
                     const [startStr, endStr] = trimmed.split('-');
-                    // parseInt mit radix 10 konvertiert führende Nullen korrekt:
+                    // parseInt mit radix 10 ignoriert führende Nullen:
                     // parseInt("01", 10) → 1, parseInt("08", 10) → 8
-                    // Dies entspricht dem PHP-Backend-Verhalten mit ltrim('0').
+                    // Entspricht dem PHP-Backend-Verhalten mit ltrim('0').
                     const start = parseInt(startStr.trim(), 10);
                     const end = parseInt(endStr.trim(), 10);
 

@@ -20,6 +20,13 @@ return new class extends Migration
      *   (keine Auswirkung auf Funktionalität, IDs werden nicht wiederverwendet)
      * - Activity-Log Einträge mit action='bundle_created' können auf gelöschte Angebote
      *   verweisen (bekannte Limitation, siehe RomantauschController::storeBundleOffer)
+     *
+     * Query-Patterns für bundle_id Index:
+     * - Bundles laden: WHERE bundle_id IS NOT NULL GROUP BY bundle_id (Index optimal)
+     * - Einzelangebote: WHERE bundle_id IS NULL (NULL-Werte sind im B-Tree Index enthalten,
+     *   Performance ist ausreichend; ein partieller Index wäre nur bei sehr großen Datenmengen
+     *   notwendig, was für diese Anwendung nicht zu erwarten ist)
+     * - Bundle-Mitglieder: WHERE bundle_id = ? (Index optimal)
      */
     public function up(): void
     {

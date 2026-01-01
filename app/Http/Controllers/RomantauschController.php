@@ -100,8 +100,8 @@ class RomantauschController extends Controller
             $matchingCount = 0;
             $matchingOffers = collect();
 
-            // Defensive Prüfung: $userId und user_id könnten null sein
-            if ($userId && $firstOffer->user_id && (int) $firstOffer->user_id !== (int) $userId) {
+            // Nur Matches zählen wenn eingeloggter User nicht der Besitzer ist
+            if ($userId && (int) $firstOffer->user_id !== (int) $userId) {
                 foreach ($offers as $offer) {
                     $bookKey = $this->buildBookKey($offer->series, (int) $offer->book_number);
                     if ($ownRequests->has($bookKey)) {
@@ -638,11 +638,8 @@ class RomantauschController extends Controller
 
             if (str_contains($part, '-')) {
                 $rangeParts = explode('-', $part, 2);
-                // ltrim('0') entfernt führende Nullen, damit filter_var "01" als 1 akzeptiert.
-                // Der ternäre Operator ?: '0' behandelt den Spezialfall "0" bzw. "00...":
-                // ltrim("0", '0') ergibt "", daher wird es zu "0" zurückgesetzt.
-                // filter_var("0", FILTER_VALIDATE_INT) gibt 0 zurück, welches durch die
-                // Bedingung $start > 0 && $end > 0 korrekt abgelehnt wird.
+                // ltrim('0') entfernt führende Nullen ("01" → "1").
+                // ?: '0' verhindert leeren String bei Eingabe "0"/"00" (wird zu 0, dann von $start > 0 abgelehnt).
                 $startRaw = filter_var(ltrim(trim($rangeParts[0]), '0') ?: '0', FILTER_VALIDATE_INT);
                 $endRaw = filter_var(ltrim(trim($rangeParts[1]), '0') ?: '0', FILTER_VALIDATE_INT);
 
@@ -660,9 +657,7 @@ class RomantauschController extends Controller
                     }
                 }
             } else {
-                // ltrim('0') entfernt führende Nullen ("01" → "1").
-                // ?: '0' behandelt Eingabe "0"/"00" korrekt, filter_var gibt dann 0 zurück,
-                // welches durch $num > 0 abgelehnt wird (nur positive Nummern erlaubt).
+                // ltrim('0') entfernt führende Nullen; ?: '0' verhindert leeren String bei "0"/"00".
                 $num = filter_var(ltrim($part, '0') ?: '0', FILTER_VALIDATE_INT);
                 // filter_var gibt false bei ungültiger Eingabe zurück (intval würde 0 liefern)
                 if ($num !== false && $num > 0) {
@@ -711,11 +706,10 @@ class RomantauschController extends Controller
     /**
      * Hilfsmethode für Foto-Upload.
      *
-     * HINWEIS zu verwaisten Fotos:
-     * Falls die Anwendung nach dem Upload aber vor dem Speichern der DB-Einträge
-     * abstürzt, können Fotos verwaist im Storage liegen. Ein regelmäßiger
-     * Cleanup-Job sollte Dateien in PHOTO_STORAGE_PATH prüfen, die nicht mehr
-     * in der Datenbank referenziert werden (z.B. via artisan command).
+     * TODO: Cleanup-Job für verwaiste Fotos implementieren (Issue #489).
+     * Falls die Anwendung nach dem Upload aber vor dem DB-Speichern abstürzt,
+     * können Fotos verwaist im Storage liegen. Ein Artisan-Command sollte
+     * Dateien in PHOTO_STORAGE_PATH prüfen, die nicht mehr in der DB referenziert werden.
      *
      * @return array<string> Array mit Pfaden bei Erfolg
      *
@@ -734,10 +728,12 @@ class RomantauschController extends Controller
         $photoPaths = [];
 
         if ($request->hasFile('photos')) {
+            $photoIndex = 0;
             foreach ($request->file('photos') as $photo) {
                 if (!$photo) {
                     continue;
                 }
+                $photoIndex++;
 
                 try {
                     // SICHERHEIT: Extension wird vom MIME-Type abgeleitet, nicht vom Client!
@@ -757,7 +753,8 @@ class RomantauschController extends Controller
 
                     $name = Str::slug(pathinfo($photo->getClientOriginalName(), PATHINFO_FILENAME));
                     if ($name === '') {
-                        $name = 'photo';
+                        // Leerer/nicht-ASCII Dateiname: beschreibender Fallback mit Index
+                        $name = 'photo-' . $photoIndex;
                     }
                     $filename = $name . '-' . Str::uuid() . '.' . $extension;
                     $photoPaths[] = $photo->storeAs(self::PHOTO_STORAGE_PATH, $filename, 'public');
@@ -1104,9 +1101,12 @@ class RomantauschController extends Controller
                 if (in_array($offer->book_number, $toRemove)) {
                     // Angebot entfernen
                     if ($offer->swap) {
-                        // Activity-Log für den betroffenen Nutzer dessen Match gelöscht wird
-                        // Damit kann er in seiner Aktivitätsübersicht sehen, warum das Match verschwand
-                        // Null-Check: swap->request oder user kann durch Datenkonsistenzprobleme null sein
+                        // Activity-Log für den betroffenen Nutzer dessen Match gelöscht wird.
+                        // Null-safe: swap->request->user kann theoretisch null sein wenn der
+                        // User-Account gelöscht wurde bevor der Swap gelöscht wurde (Cascade-Timing).
+                        // DB-Constraints: book_swaps.request_id → book_requests (CASCADE DELETE),
+                        // book_requests.user_id → users (CASCADE DELETE). Bei gelöschtem User
+                        // sollte auch die Request und damit der Swap gelöscht sein.
                         $affectedUser = $offer->swap->request?->user;
                         if ($affectedUser) {
                             Activity::create([
@@ -1182,9 +1182,9 @@ class RomantauschController extends Controller
         DB::transaction(function () use ($offers) {
             foreach ($offers as $offer) {
                 if ($offer->swap) {
-                    // Activity-Log für den betroffenen Nutzer dessen Match gelöscht wird
-                    // Konsistent mit updateBundle-Verhalten
-                    // Null-Check: swap->request oder user kann durch Datenkonsistenzprobleme null sein
+                    // Activity-Log für den betroffenen Nutzer dessen Match gelöscht wird.
+                    // Null-safe: Bei korrekten DB-Constraints (CASCADE DELETE) sollte dies
+                    // nie null sein, aber wir behandeln Edge-Cases bei Timing-Problemen.
                     $affectedUser = $offer->swap->request?->user;
                     if ($affectedUser) {
                         Activity::create([
