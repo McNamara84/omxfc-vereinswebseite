@@ -142,7 +142,7 @@ class BundleOfferTest extends TestCase
         $method->setAccessible(true);
 
         $result = $method->invoke($controller, '50, 10, 5, 1');
-        // Die Methode gibt die Nummern in der Reihenfolge der Eingabe zurück
+        // Die Methode entfernt Duplikate, garantiert aber keine bestimmte Reihenfolge
         $this->assertCount(4, $result);
         $this->assertContains(1, $result);
         $this->assertContains(5, $result);
@@ -584,7 +584,8 @@ class BundleOfferTest extends TestCase
         Storage::fake('public');
 
         $bundleId = (string) Str::uuid();
-        $photoPath = 'offers/test-photo.jpg';
+        // Verwende denselben Pfad wie RomantauschController::PHOTO_STORAGE_PATH
+        $photoPath = 'book-offers/test-photo.jpg';
 
         Storage::disk('public')->put($photoPath, 'fake image content');
 

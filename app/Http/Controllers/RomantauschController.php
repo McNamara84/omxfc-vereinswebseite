@@ -53,6 +53,11 @@ class RomantauschController extends Controller
     public const MAX_BUNDLE_SIZE = 200;
 
     /**
+     * Storage-Verzeichnis für Bundle-Fotos.
+     */
+    public const PHOTO_STORAGE_PATH = 'book-offers';
+
+    /**
      * Zustandswerte in der Reihenfolge von best (0) bis schlechtester (8).
      * Wird für die Validierung des Zustandsbereichs verwendet.
      */
@@ -651,12 +656,14 @@ class RomantauschController extends Controller
 
     /**
      * Formatiert eine Sammlung von Angeboten als kompakte Nummernbereiche.
-     * z.B. [1,2,3,5,7,8,9] => "1-3, 5, 7-9"
+     * z.B. Angebote mit book_number [1,2,3,5,7,8,9] => "1-3, 5, 7-9"
      *
-     * @param \Illuminate\Support\Collection<int, BookOffer> $offers
+     * @param  \Illuminate\Support\Collection<int, BookOffer>  $offers  Sammlung von BookOffer-Objekten
+     * @return string Formatierte Nummernbereiche, durch Komma getrennt
      */
-    private function formatBookNumbersRange($offers): string
+    private function formatBookNumbersRange(\Illuminate\Support\Collection $offers): string
     {
+        /** @var array<int> $numbers */
         $numbers = $offers->pluck('book_number')->sort()->values()->toArray();
 
         if (empty($numbers)) {
@@ -684,9 +691,11 @@ class RomantauschController extends Controller
     /**
      * Hilfsmethode für Foto-Upload.
      *
-     * @return array<string>|false Array mit Pfaden bei Erfolg, false bei Fehler
+     * @return array<string> Array mit Pfaden bei Erfolg
+     *
+     * @throws \RuntimeException wenn der Upload fehlschlägt
      */
-    private function uploadPhotos(Request $request): array|false
+    private function uploadPhotos(Request $request): array
     {
         $photoPaths = [];
 
@@ -703,18 +712,67 @@ class RomantauschController extends Controller
                         $name = 'photo';
                     }
                     $filename = $name . '-' . Str::uuid() . '.' . $extension;
-                    $photoPaths[] = $photo->storeAs('book-offers', $filename, 'public');
+                    $photoPaths[] = $photo->storeAs(self::PHOTO_STORAGE_PATH, $filename, 'public');
                 } catch (\Throwable $e) {
+                    // Bereits hochgeladene Fotos aufräumen
                     foreach ($photoPaths as $path) {
                         Storage::disk('public')->delete($path);
                     }
 
-                    return false;
+                    throw new \RuntimeException('Foto-Upload fehlgeschlagen: ' . $e->getMessage(), 0, $e);
                 }
             }
         }
 
         return $photoPaths;
+    }
+
+    /**
+     * Validiert den Zustandsbereich (condition_max muss >= condition sein).
+     *
+     * @return string|null Fehlermeldung oder null wenn gültig
+     */
+    private function validateConditionRange(string $condition, ?string $conditionMax): ?string
+    {
+        if (empty($conditionMax)) {
+            return null;
+        }
+
+        $conditionIndex = array_search($condition, self::CONDITION_ORDER);
+        $conditionMaxIndex = array_search($conditionMax, self::CONDITION_ORDER);
+
+        if ($conditionIndex === false || $conditionMaxIndex === false) {
+            return 'Ungültiger Zustandswert.';
+        }
+
+        if ($conditionMaxIndex < $conditionIndex) {
+            return 'Der "Bis"-Zustand muss gleich oder schlechter als der "Von"-Zustand sein.';
+        }
+
+        return null;
+    }
+
+    /**
+     * Validiert fehlende Buchnummern und gibt eine formatierte Fehlermeldung zurück.
+     *
+     * @param  array<int>  $requestedNumbers
+     * @param  array<int>  $existingNumbers
+     * @return string|null Fehlermeldung oder null wenn alle existieren
+     */
+    private function validateMissingBookNumbers(array $requestedNumbers, array $existingNumbers): ?string
+    {
+        $missingNumbers = array_diff($requestedNumbers, $existingNumbers);
+
+        if (empty($missingNumbers)) {
+            return null;
+        }
+
+        $missingList = implode(', ', array_slice($missingNumbers, 0, 10));
+        if (count($missingNumbers) > 10) {
+            $missingList .= ' ... (' . count($missingNumbers) . ' insgesamt)';
+        }
+
+        return $missingList;
     }
 
     /**
@@ -737,8 +795,8 @@ class RomantauschController extends Controller
         $validated = $request->validate([
             'series' => ['required', Rule::in(array_map(fn ($case) => $case->value, self::ALLOWED_TYPES))],
             'book_numbers' => 'required|string',
-            'condition' => 'required|string',
-            'condition_max' => 'nullable|string',
+            'condition' => ['required', 'string', Rule::in(self::CONDITION_ORDER)],
+            'condition_max' => ['nullable', 'string', Rule::in(self::CONDITION_ORDER)],
             'photos' => 'nullable|array|max:3',
             'photos.*' => 'file|max:2048|mimes:' . implode(',', self::ALLOWED_PHOTO_EXTENSIONS),
         ]);
@@ -763,15 +821,12 @@ class RomantauschController extends Controller
                 ->withErrors(['book_numbers' => 'Ein Stapel-Angebot darf maximal ' . self::MAX_BUNDLE_SIZE . ' Romane enthalten. Bitte teile dein Angebot in mehrere Stapel auf.']);
         }
 
-        // Validiere Zustandsbereich (condition_max muss >= condition sein, d.h. gleich oder schlechter)
-        if (!empty($validated['condition_max'])) {
-            $conditionIndex = array_search($validated['condition'], self::CONDITION_ORDER);
-            $conditionMaxIndex = array_search($validated['condition_max'], self::CONDITION_ORDER);
-            if ($conditionIndex !== false && $conditionMaxIndex !== false && $conditionMaxIndex < $conditionIndex) {
-                return redirect()->back()
-                    ->withInput()
-                    ->withErrors(['condition_max' => 'Der "Bis"-Zustand muss gleich oder schlechter als der "Von"-Zustand sein.']);
-            }
+        // Validiere Zustandsbereich
+        $conditionError = $this->validateConditionRange($validated['condition'], $validated['condition_max'] ?? null);
+        if ($conditionError) {
+            return redirect()->back()
+                ->withInput()
+                ->withErrors(['condition_max' => $conditionError]);
         }
 
         $existingBooks = Book::where('type', $validated['series'])
@@ -779,20 +834,16 @@ class RomantauschController extends Controller
             ->get()
             ->keyBy('roman_number');
 
-        $missingNumbers = array_diff($bookNumbers, $existingBooks->keys()->toArray());
-        if (!empty($missingNumbers)) {
-            $missingList = implode(', ', array_slice($missingNumbers, 0, 10));
-            if (count($missingNumbers) > 10) {
-                $missingList .= ' ... (' . count($missingNumbers) . ' insgesamt)';
-            }
-
+        $missingList = $this->validateMissingBookNumbers($bookNumbers, $existingBooks->keys()->toArray());
+        if ($missingList) {
             return redirect()->back()
                 ->withInput()
                 ->with('error', 'Folgende Roman-Nummern existieren nicht in dieser Serie: ' . $missingList);
         }
 
-        $photoPaths = $this->uploadPhotos($request);
-        if ($photoPaths === false) {
+        try {
+            $photoPaths = $this->uploadPhotos($request);
+        } catch (\RuntimeException $e) {
             return redirect()->back()
                 ->withInput()
                 ->with('error', 'Foto-Upload fehlgeschlagen. Bitte versuche es erneut.');
@@ -834,7 +885,7 @@ class RomantauschController extends Controller
             'user_id' => Auth::id(),
             'subject_type' => BookOffer::class,
             'subject_id' => $offers[0]->id,
-            'action' => 'bundle:' . $bundleId,
+            'action' => 'bundle_created',
         ]);
 
         return redirect()->route('romantausch.index')
@@ -889,8 +940,8 @@ class RomantauschController extends Controller
 
         $validated = $request->validate([
             'book_numbers' => 'required|string',
-            'condition' => 'required|string',
-            'condition_max' => 'nullable|string',
+            'condition' => ['required', 'string', Rule::in(self::CONDITION_ORDER)],
+            'condition_max' => ['nullable', 'string', Rule::in(self::CONDITION_ORDER)],
             'photos' => 'nullable|array|max:3',
             'photos.*' => 'file|max:2048|mimes:' . implode(',', self::ALLOWED_PHOTO_EXTENSIONS),
             'remove_photos' => 'nullable|array',
@@ -920,14 +971,11 @@ class RomantauschController extends Controller
         }
 
         // Validiere Zustandsbereich
-        if (!empty($validated['condition_max'])) {
-            $conditionIndex = array_search($validated['condition'], self::CONDITION_ORDER);
-            $conditionMaxIndex = array_search($validated['condition_max'], self::CONDITION_ORDER);
-            if ($conditionIndex !== false && $conditionMaxIndex !== false && $conditionMaxIndex < $conditionIndex) {
-                return redirect()->back()
-                    ->withInput()
-                    ->withErrors(['condition_max' => 'Der "Bis"-Zustand muss gleich oder schlechter als der "Von"-Zustand sein.']);
-            }
+        $conditionError = $this->validateConditionRange($validated['condition'], $validated['condition_max'] ?? null);
+        if ($conditionError) {
+            return redirect()->back()
+                ->withInput()
+                ->withErrors(['condition_max' => $conditionError]);
         }
 
         $existingBooks = Book::where('type', $series)
@@ -935,13 +983,8 @@ class RomantauschController extends Controller
             ->get()
             ->keyBy('roman_number');
 
-        $missingNumbers = array_diff($newBookNumbers, $existingBooks->keys()->toArray());
-        if (!empty($missingNumbers)) {
-            $missingList = implode(', ', array_slice($missingNumbers, 0, 10));
-            if (count($missingNumbers) > 10) {
-                $missingList .= ' ... (' . count($missingNumbers) . ' insgesamt)';
-            }
-
+        $missingList = $this->validateMissingBookNumbers($newBookNumbers, $existingBooks->keys()->toArray());
+        if ($missingList) {
             return redirect()->back()
                 ->withInput()
                 ->with('error', 'Folgende Roman-Nummern existieren nicht: ' . $missingList);
@@ -954,8 +997,9 @@ class RomantauschController extends Controller
         // Validiere dass die zu löschenden Fotos tatsächlich existieren
         $photosToDelete = $removePhotos->filter(fn ($path) => $existingPhotos->contains($path))->values();
 
-        $newPhotoPaths = $this->uploadPhotos($request);
-        if ($newPhotoPaths === false) {
+        try {
+            $newPhotoPaths = $this->uploadPhotos($request);
+        } catch (\RuntimeException $e) {
             return redirect()->back()
                 ->withInput()
                 ->with('error', 'Foto-Upload fehlgeschlagen.');
@@ -969,17 +1013,16 @@ class RomantauschController extends Controller
             $toRemove = array_diff($currentNumbers, $newBookNumbers);
             $toAdd = array_diff($newBookNumbers, $currentNumbers);
 
+            // Eine Schleife für Löschen und Aktualisieren
             foreach ($existingOffers as $offer) {
                 if (in_array($offer->book_number, $toRemove)) {
+                    // Angebot entfernen
                     if ($offer->swap) {
                         $offer->swap->delete();
                     }
                     $offer->delete();
-                }
-            }
-
-            foreach ($existingOffers as $offer) {
-                if (in_array($offer->book_number, $newBookNumbers)) {
+                } elseif (in_array($offer->book_number, $newBookNumbers)) {
+                    // Angebot aktualisieren
                     $offer->update([
                         'condition' => $validated['condition'],
                         'condition_max' => $validated['condition_max'] ?? null,

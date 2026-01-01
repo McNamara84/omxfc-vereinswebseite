@@ -206,7 +206,7 @@
      */
     function bundlePreview() {
         return {
-            input: {!! json_encode($bookNumbersInput) !!},
+            input: {{ Js::from($bookNumbersInput) }},
             numbers: [],
 
             init() {
