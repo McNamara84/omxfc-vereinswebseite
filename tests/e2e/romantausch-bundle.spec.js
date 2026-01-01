@@ -152,26 +152,26 @@ test.describe('Romantauschbörse - Stapel-Angebote', () => {
         test('Bearbeiten-Formular zeigt aktuelle Werte', async ({ page }) => {
             await loginAsMember(page);
             
-            // Erstelle ein Stapel-Angebot mit sehr hohen, eindeutigen Nummern (490-492)
-            // Hohe Nummern verringern das Risiko von Kollisionen mit anderen Tests
+            // Erstelle ein Stapel-Angebot mit Nummern im Bereich 90-92
+            // Diese Nummern existieren im BookPlaywrightSeeder (1-100) und sind
+            // selten genug um Kollisionen mit anderen Tests zu vermeiden.
             await page.goto('/romantauschboerse/stapel-angebot-erstellen');
             await page.selectOption('select[name="series"]', SERIES_MADDRAX);
-            await page.fill('input[name="book_numbers"]', '490-492');
+            await page.fill('input[name="book_numbers"]', '90-92');
             await page.selectOption('select[name="condition"]', CONDITION_Z2);
             await page.click('button[type="submit"]');
 
             await expect(page).toHaveURL(/romantauschboerse$/);
 
-            // Finde das Bundle mit Nummern 490-492 über data-book-numbers-display
-            // Exakter Match auf "490" - unwahrscheinlich dass andere Tests diese Nummern nutzen
-            const bundleWithNumbers = page.locator('[data-bundle-id][data-book-numbers-display*="490"]').first();
+            // Finde das Bundle mit Nummern 90-92 über data-book-numbers-display
+            const bundleWithNumbers = page.locator('[data-bundle-id][data-book-numbers-display*="90"]').first();
             await expect(bundleWithNumbers).toBeVisible({ timeout: 5000 });
             const editLink = bundleWithNumbers.locator('a[href*="/stapel/"][href*="/bearbeiten"]');
             await editLink.click();
 
             // Aktuelle Roman-Nummern sollten im Eingabefeld stehen
             const bookNumbersInput = page.locator('input[name="book_numbers"]');
-            await expect(bookNumbersInput).toHaveValue(/490/);
+            await expect(bookNumbersInput).toHaveValue(/90/);
         });
 
         test('Stapel kann gelöscht werden', async ({ page }) => {

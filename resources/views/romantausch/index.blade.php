@@ -171,7 +171,7 @@
                                             class="px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-500 text-gray-700 dark:text-gray-200 rounded hover:bg-gray-200 dark:hover:bg-gray-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-gray-400"
                                             :aria-expanded="expanded.toString()">
                                             <span x-show="!expanded">Details</span>
-                                            <span x-show="expanded" x-cloak>Zuklappen</span>
+                                            <span x-show="expanded" x-cloak>Einklappen</span>
                                         </button>
                                     </div>
                                 </div>

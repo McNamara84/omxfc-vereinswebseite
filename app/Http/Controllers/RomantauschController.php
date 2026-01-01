@@ -638,7 +638,11 @@ class RomantauschController extends Controller
 
             if (str_contains($part, '-')) {
                 $rangeParts = explode('-', $part, 2);
-                // ltrim entfernt führende Nullen, damit filter_var "01" als 1 akzeptiert
+                // ltrim('0') entfernt führende Nullen, damit filter_var "01" als 1 akzeptiert.
+                // Der ternäre Operator ?: '0' behandelt den Spezialfall "0" bzw. "00...":
+                // ltrim("0", '0') ergibt "", daher wird es zu "0" zurückgesetzt.
+                // filter_var("0", FILTER_VALIDATE_INT) gibt 0 zurück, welches durch die
+                // Bedingung $start > 0 && $end > 0 korrekt abgelehnt wird.
                 $startRaw = filter_var(ltrim(trim($rangeParts[0]), '0') ?: '0', FILTER_VALIDATE_INT);
                 $endRaw = filter_var(ltrim(trim($rangeParts[1]), '0') ?: '0', FILTER_VALIDATE_INT);
 
@@ -656,7 +660,9 @@ class RomantauschController extends Controller
                     }
                 }
             } else {
-                // ltrim entfernt führende Nullen, damit filter_var "01" als 1 akzeptiert
+                // ltrim('0') entfernt führende Nullen ("01" → "1").
+                // ?: '0' behandelt Eingabe "0"/"00" korrekt, filter_var gibt dann 0 zurück,
+                // welches durch $num > 0 abgelehnt wird (nur positive Nummern erlaubt).
                 $num = filter_var(ltrim($part, '0') ?: '0', FILTER_VALIDATE_INT);
                 // filter_var gibt false bei ungültiger Eingabe zurück (intval würde 0 liefern)
                 if ($num !== false && $num > 0) {
@@ -1100,13 +1106,16 @@ class RomantauschController extends Controller
                     if ($offer->swap) {
                         // Activity-Log für den betroffenen Nutzer dessen Match gelöscht wird
                         // Damit kann er in seiner Aktivitätsübersicht sehen, warum das Match verschwand
-                        $affectedUser = $offer->swap->request->user;
-                        Activity::create([
-                            'user_id' => $affectedUser->id,
-                            'subject_type' => BookRequest::class,
-                            'subject_id' => $offer->swap->request_id,
-                            'action' => 'match_cancelled_by_offer_owner',
-                        ]);
+                        // Null-Check: swap->request oder user kann durch Datenkonsistenzprobleme null sein
+                        $affectedUser = $offer->swap->request?->user;
+                        if ($affectedUser) {
+                            Activity::create([
+                                'user_id' => $affectedUser->id,
+                                'subject_type' => BookRequest::class,
+                                'subject_id' => $offer->swap->request_id,
+                                'action' => 'match_cancelled_by_offer_owner',
+                            ]);
+                        }
                         $offer->swap->delete();
                     }
                     $offer->delete();
@@ -1175,13 +1184,16 @@ class RomantauschController extends Controller
                 if ($offer->swap) {
                     // Activity-Log für den betroffenen Nutzer dessen Match gelöscht wird
                     // Konsistent mit updateBundle-Verhalten
-                    $affectedUser = $offer->swap->request->user;
-                    Activity::create([
-                        'user_id' => $affectedUser->id,
-                        'subject_type' => BookRequest::class,
-                        'subject_id' => $offer->swap->request_id,
-                        'action' => 'match_cancelled_by_offer_owner',
-                    ]);
+                    // Null-Check: swap->request oder user kann durch Datenkonsistenzprobleme null sein
+                    $affectedUser = $offer->swap->request?->user;
+                    if ($affectedUser) {
+                        Activity::create([
+                            'user_id' => $affectedUser->id,
+                            'subject_type' => BookRequest::class,
+                            'subject_id' => $offer->swap->request_id,
+                            'action' => 'match_cancelled_by_offer_owner',
+                        ]);
+                    }
                     $offer->swap->delete();
                 }
                 $offer->delete();

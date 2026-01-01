@@ -47,17 +47,25 @@ window.bundlePreview = function bundlePreview() {
 
                 if (trimmed.includes('-')) {
                     const [startStr, endStr] = trimmed.split('-');
+                    // parseInt mit radix 10 konvertiert führende Nullen korrekt:
+                    // parseInt("01", 10) → 1, parseInt("08", 10) → 8
+                    // Dies entspricht dem PHP-Backend-Verhalten mit ltrim('0').
                     const start = parseInt(startStr.trim(), 10);
                     const end = parseInt(endStr.trim(), 10);
 
-                    if (start > 0 && end > 0 && end >= start && (end - start) <= maxRangeSpan) {
+                    // NaN-Handling: parseInt gibt NaN für ungültige Eingaben zurück.
+                    // Die Bedingung start > 0 && end > 0 filtert NaN automatisch aus,
+                    // da NaN > 0 === false. Explizite isNaN-Checks für Klarheit:
+                    if (!isNaN(start) && !isNaN(end) && start > 0 && end > 0 && end >= start && (end - start) <= maxRangeSpan) {
                         for (let i = start; i <= end; i++) {
                             numbers.push(i);
                         }
                     }
                 } else {
+                    // parseInt gibt NaN für ungültige Eingaben (z.B. "abc", "").
+                    // num > 0 filtert sowohl NaN als auch 0 und negative Werte aus.
                     const num = parseInt(trimmed, 10);
-                    if (num > 0) {
+                    if (!isNaN(num) && num > 0) {
                         numbers.push(num);
                     }
                 }
