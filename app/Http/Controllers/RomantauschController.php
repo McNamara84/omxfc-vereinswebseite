@@ -36,6 +36,28 @@ class RomantauschController extends Controller
     ];
     public const ALLOWED_PHOTO_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
 
+    /**
+     * Maximale Spanne für einen Nummernbereich (z.B. 1-500 erlaubt, 1-501 nicht).
+     * WICHTIG: Muss mit dem Frontend-Limit in create_bundle_offer.blade.php und edit_bundle.blade.php übereinstimmen!
+     */
+    public const MAX_RANGE_SPAN = 500;
+
+    /**
+     * Minimale Anzahl Bücher pro Bundle.
+     */
+    public const MIN_BUNDLE_SIZE = 2;
+
+    /**
+     * Maximale Anzahl Bücher pro Bundle (Performance-Limit).
+     */
+    public const MAX_BUNDLE_SIZE = 200;
+
+    /**
+     * Zustandswerte in der Reihenfolge von best (0) bis schlechtester (8).
+     * Wird für die Validierung des Zustandsbereichs verwendet.
+     */
+    private const CONDITION_ORDER = ['Z0', 'Z0-1', 'Z1', 'Z1-2', 'Z2', 'Z2-3', 'Z3', 'Z3-4', 'Z4'];
+
     // Übersicht
     public function index()
     {
@@ -611,7 +633,7 @@ class RomantauschController extends Controller
                 $start = intval(trim($rangeParts[0]));
                 $end = intval(trim($rangeParts[1]));
 
-                if ($start > 0 && $end > 0 && $end >= $start && ($end - $start) <= 1000) {
+                if ($start > 0 && $end > 0 && $end >= $start && ($end - $start) <= self::MAX_RANGE_SPAN) {
                     for ($i = $start; $i <= $end; $i++) {
                         $numbers[] = $i;
                     }
@@ -729,10 +751,27 @@ class RomantauschController extends Controller
                 ->with('error', 'Keine gültigen Roman-Nummern gefunden. Bitte gib Nummern im Format "1-50, 52, 55" ein.');
         }
 
-        if (count($bookNumbers) < 2) {
+        if (count($bookNumbers) < self::MIN_BUNDLE_SIZE) {
             return redirect()->back()
                 ->withInput()
-                ->withErrors(['book_numbers' => 'Ein Stapel-Angebot muss mindestens 2 Romane enthalten. Für einzelne Romane nutze bitte das normale Angebot-Formular.']);
+                ->withErrors(['book_numbers' => 'Ein Stapel-Angebot muss mindestens ' . self::MIN_BUNDLE_SIZE . ' Romane enthalten. Für einzelne Romane nutze bitte das normale Angebot-Formular.']);
+        }
+
+        if (count($bookNumbers) > self::MAX_BUNDLE_SIZE) {
+            return redirect()->back()
+                ->withInput()
+                ->withErrors(['book_numbers' => 'Ein Stapel-Angebot darf maximal ' . self::MAX_BUNDLE_SIZE . ' Romane enthalten. Bitte teile dein Angebot in mehrere Stapel auf.']);
+        }
+
+        // Validiere Zustandsbereich (condition_max muss >= condition sein, d.h. gleich oder schlechter)
+        if (!empty($validated['condition_max'])) {
+            $conditionIndex = array_search($validated['condition'], self::CONDITION_ORDER);
+            $conditionMaxIndex = array_search($validated['condition_max'], self::CONDITION_ORDER);
+            if ($conditionIndex !== false && $conditionMaxIndex !== false && $conditionMaxIndex < $conditionIndex) {
+                return redirect()->back()
+                    ->withInput()
+                    ->withErrors(['condition_max' => 'Der "Bis"-Zustand muss gleich oder schlechter als der "Von"-Zustand sein.']);
+            }
         }
 
         $existingBooks = Book::where('type', $validated['series'])
@@ -795,6 +834,7 @@ class RomantauschController extends Controller
             'user_id' => Auth::id(),
             'subject_type' => BookOffer::class,
             'subject_id' => $offers[0]->id,
+            'action' => 'bundle:' . $bundleId,
         ]);
 
         return redirect()->route('romantausch.index')
@@ -866,6 +906,30 @@ class RomantauschController extends Controller
                 ->with('error', 'Keine gültigen Roman-Nummern gefunden.');
         }
 
+        // Validiere Mindest- und Maximalanzahl
+        if (count($newBookNumbers) < self::MIN_BUNDLE_SIZE) {
+            return redirect()->back()
+                ->withInput()
+                ->withErrors(['book_numbers' => 'Ein Stapel-Angebot muss mindestens ' . self::MIN_BUNDLE_SIZE . ' Romane enthalten.']);
+        }
+
+        if (count($newBookNumbers) > self::MAX_BUNDLE_SIZE) {
+            return redirect()->back()
+                ->withInput()
+                ->withErrors(['book_numbers' => 'Ein Stapel-Angebot darf maximal ' . self::MAX_BUNDLE_SIZE . ' Romane enthalten.']);
+        }
+
+        // Validiere Zustandsbereich
+        if (!empty($validated['condition_max'])) {
+            $conditionIndex = array_search($validated['condition'], self::CONDITION_ORDER);
+            $conditionMaxIndex = array_search($validated['condition_max'], self::CONDITION_ORDER);
+            if ($conditionIndex !== false && $conditionMaxIndex !== false && $conditionMaxIndex < $conditionIndex) {
+                return redirect()->back()
+                    ->withInput()
+                    ->withErrors(['condition_max' => 'Der "Bis"-Zustand muss gleich oder schlechter als der "Von"-Zustand sein.']);
+            }
+        }
+
         $existingBooks = Book::where('type', $series)
             ->whereIn('roman_number', $newBookNumbers)
             ->get()
@@ -887,11 +951,8 @@ class RomantauschController extends Controller
         $removePhotos = collect($request->input('remove_photos', []));
         $photosToKeep = $existingPhotos->reject(fn ($path) => $removePhotos->contains($path))->values();
 
-        foreach ($removePhotos as $path) {
-            if ($existingPhotos->contains($path)) {
-                Storage::disk('public')->delete($path);
-            }
-        }
+        // Validiere dass die zu löschenden Fotos tatsächlich existieren
+        $photosToDelete = $removePhotos->filter(fn ($path) => $existingPhotos->contains($path))->values();
 
         $newPhotoPaths = $this->uploadPhotos($request);
         if ($newPhotoPaths === false) {
@@ -945,6 +1006,12 @@ class RomantauschController extends Controller
                 }
             }
         });
+
+        // Fotos erst NACH erfolgreicher Transaktion löschen
+        // um Datenverlust bei Transaktions-Rollback zu vermeiden
+        foreach ($photosToDelete as $path) {
+            Storage::disk('public')->delete($path);
+        }
 
         return redirect()->route('romantausch.index')
             ->with('success', 'Stapel-Angebot aktualisiert.');

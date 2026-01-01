@@ -105,13 +105,7 @@
                                             'border-gray-300 dark:border-gray-600' => !$conditionError,
                                         ])
                                     >
-                                        <option value="Z0" @selected($selectedCondition === 'Z0')>Z0 - Druckfrisch</option>
-                                        <option value="Z0-1" @selected($selectedCondition === 'Z0-1')>Z0-1</option>
-                                        <option value="Z1" @selected($selectedCondition === 'Z1')>Z1 - Sehr gut</option>
-                                        <option value="Z1-2" @selected($selectedCondition === 'Z1-2')>Z1-2</option>
-                                        <option value="Z2" @selected($selectedCondition === 'Z2')>Z2 - Gut</option>
-                                        <option value="Z2-3" @selected($selectedCondition === 'Z2-3')>Z2-3</option>
-                                        <option value="Z3" @selected($selectedCondition === 'Z3')>Z3 - Gebraucht</option>
+                                        <x-condition-select-options :selected="$selectedCondition" />
                                     </select>
                                 </div>
                                 <div>
@@ -121,20 +115,14 @@
                                         id="condition-max"
                                         class="w-full rounded bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-800 dark:text-gray-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#8B0116] dark:focus-visible:ring-[#FF6B81]"
                                     >
-                                        <option value="" @selected($selectedConditionMax === '')>— Gleicher Zustand —</option>
-                                        <option value="Z0" @selected($selectedConditionMax === 'Z0')>Z0 - Druckfrisch</option>
-                                        <option value="Z0-1" @selected($selectedConditionMax === 'Z0-1')>Z0-1</option>
-                                        <option value="Z1" @selected($selectedConditionMax === 'Z1')>Z1 - Sehr gut</option>
-                                        <option value="Z1-2" @selected($selectedConditionMax === 'Z1-2')>Z1-2</option>
-                                        <option value="Z2" @selected($selectedConditionMax === 'Z2')>Z2 - Gut</option>
-                                        <option value="Z2-3" @selected($selectedConditionMax === 'Z2-3')>Z2-3</option>
-                                        <option value="Z3" @selected($selectedConditionMax === 'Z3')>Z3 - Gebraucht</option>
-                                        <option value="Z3-4" @selected($selectedConditionMax === 'Z3-4')>Z3-4</option>
-                                        <option value="Z4" @selected($selectedConditionMax === 'Z4')>Z4 - Schlecht</option>
+                                        <x-condition-select-options :selected="$selectedConditionMax" :include-empty="true" :include-worst="true" />
                                     </select>
                                 </div>
                             </div>
                             @error('condition')
+                                <p class="mt-2 text-sm text-red-600 dark:text-red-400" role="alert">{{ $message }}</p>
+                            @enderror
+                            @error('condition_max')
                                 <p class="mt-2 text-sm text-red-600 dark:text-red-400" role="alert">{{ $message }}</p>
                             @enderror
                             <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
@@ -201,9 +189,17 @@
 
 @push('scripts')
 <script>
+    // Konstanten aus dem Backend - WICHTIG: Muss mit RomantauschController::MAX_RANGE_SPAN übereinstimmen!
+    const MAX_RANGE_SPAN = {{ App\Http\Controllers\RomantauschController::MAX_RANGE_SPAN }};
+
+    /**
+     * Alpine.js Komponente für die Bundle-Vorschau.
+     * Hinweis: Gleiche Logik existiert auch in edit_bundle.blade.php
+     * Für zukünftige Refaktorierung siehe resources/js/romantausch-bundle-preview.js
+     */
     function bundlePreview() {
         return {
-            input: '{{ $bookNumbersInput }}',
+            input: {!! json_encode($bookNumbersInput) !!},
             numbers: [],
 
             init() {
@@ -225,7 +221,7 @@
                         const start = parseInt(startStr.trim(), 10);
                         const end = parseInt(endStr.trim(), 10);
 
-                        if (start > 0 && end > 0 && end >= start && (end - start) <= 500) {
+                        if (start > 0 && end > 0 && end >= start && (end - start) <= MAX_RANGE_SPAN) {
                             for (let i = start; i <= end; i++) {
                                 numbers.push(i);
                             }

@@ -178,8 +178,8 @@ class BundleOfferTest extends TestCase
         $response = $this->post('/romantauschboerse/stapel-angebot-speichern', [
             'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
             'book_numbers' => '1-5',
-            'condition' => 'gut',
-            'condition_max' => 'neuwertig',
+            'condition' => 'Z1',
+            'condition_max' => 'Z2',
         ]);
 
         $response->assertRedirect(route('romantausch.index'));
@@ -193,8 +193,8 @@ class BundleOfferTest extends TestCase
 
         foreach ($offers as $offer) {
             $this->assertEquals($bundleId, $offer->bundle_id);
-            $this->assertEquals('gut', $offer->condition);
-            $this->assertEquals('neuwertig', $offer->condition_max);
+            $this->assertEquals('Z1', $offer->condition);
+            $this->assertEquals('Z2', $offer->condition_max);
         }
     }
 
@@ -212,7 +212,7 @@ class BundleOfferTest extends TestCase
         $response = $this->post('/romantauschboerse/stapel-angebot-speichern', [
             'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
             'book_numbers' => '1-3',
-            'condition' => 'gut',
+            'condition' => 'Z2',
             'photos' => [$photo],
         ]);
 
@@ -240,7 +240,7 @@ class BundleOfferTest extends TestCase
         $response = $this->post('/romantauschboerse/stapel-angebot-speichern', [
             'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
             'book_numbers' => '5',
-            'condition' => 'gut',
+            'condition' => 'Z2',
         ]);
 
         $response->assertSessionHasErrors('book_numbers');
@@ -257,7 +257,7 @@ class BundleOfferTest extends TestCase
         $response = $this->post('/romantauschboerse/stapel-angebot-speichern', [
             'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
             'book_numbers' => '1, 2, 999',
-            'condition' => 'gut',
+            'condition' => 'Z2',
         ]);
 
         $response->assertRedirect();
@@ -273,7 +273,7 @@ class BundleOfferTest extends TestCase
 
         $response = $this->post('/romantauschboerse/stapel-angebot-speichern', [
             'book_numbers' => '1-5',
-            'condition' => 'gut',
+            'condition' => 'Z2',
         ]);
 
         $response->assertSessionHasErrors('series');
@@ -311,7 +311,7 @@ class BundleOfferTest extends TestCase
             'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
             'book_number' => 1,
             'book_title' => 'Maddrax 1',
-            'condition' => 'gut',
+            'condition' => 'Z2',
         ]);
 
         BookOffer::create([
@@ -320,7 +320,7 @@ class BundleOfferTest extends TestCase
             'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
             'book_number' => 2,
             'book_title' => 'Maddrax 2',
-            'condition' => 'gut',
+            'condition' => 'Z2',
         ]);
 
         $response = $this->get("/romantauschboerse/stapel/{$bundleId}/bearbeiten");
@@ -347,7 +347,7 @@ class BundleOfferTest extends TestCase
             'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
             'book_number' => 1,
             'book_title' => 'Maddrax 1',
-            'condition' => 'gut',
+            'condition' => 'Z2',
         ]);
 
         $this->actingAs($otherUser);
@@ -373,7 +373,7 @@ class BundleOfferTest extends TestCase
             'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
             'book_number' => 1,
             'book_title' => 'Maddrax 1',
-            'condition' => 'gut',
+            'condition' => 'Z2',
         ]);
 
         $offer2 = BookOffer::create([
@@ -382,7 +382,7 @@ class BundleOfferTest extends TestCase
             'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
             'book_number' => 2,
             'book_title' => 'Maddrax 2',
-            'condition' => 'gut',
+            'condition' => 'Z2',
         ]);
 
         $offer3 = BookOffer::create([
@@ -391,14 +391,14 @@ class BundleOfferTest extends TestCase
             'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
             'book_number' => 3,
             'book_title' => 'Maddrax 3',
-            'condition' => 'gut',
+            'condition' => 'Z2',
         ]);
 
         // Die Update-Route erfordert book_numbers und condition
         // Wir aktualisieren auf 2-3 (ohne 1)
         $response = $this->put("/romantauschboerse/stapel/{$bundleId}", [
             'book_numbers' => '2-3',
-            'condition' => 'gut',
+            'condition' => 'Z2',
         ]);
 
         $response->assertRedirect(route('romantausch.index'));
@@ -426,7 +426,7 @@ class BundleOfferTest extends TestCase
             'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
             'book_number' => 1,
             'book_title' => 'Maddrax 1',
-            'condition' => 'gut',
+            'condition' => 'Z2',
         ]);
 
         $offer2 = BookOffer::create([
@@ -435,7 +435,7 @@ class BundleOfferTest extends TestCase
             'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
             'book_number' => 2,
             'book_title' => 'Maddrax 2',
-            'condition' => 'gut',
+            'condition' => 'Z2',
         ]);
 
         $offer3 = BookOffer::create([
@@ -444,7 +444,7 @@ class BundleOfferTest extends TestCase
             'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
             'book_number' => 3,
             'book_title' => 'Maddrax 3',
-            'condition' => 'gut',
+            'condition' => 'Z2',
         ]);
 
         $request = BookRequest::create([
@@ -452,7 +452,7 @@ class BundleOfferTest extends TestCase
             'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
             'book_number' => 1,
             'book_title' => 'Maddrax 1',
-            'condition' => 'gut',
+            'condition' => 'Z2',
         ]);
 
         $swap = BookSwap::create([
@@ -463,7 +463,7 @@ class BundleOfferTest extends TestCase
         // Aktualisiere auf 2-3 (ohne 1, welches einen Swap hat)
         $response = $this->put("/romantauschboerse/stapel/{$bundleId}", [
             'book_numbers' => '2-3',
-            'condition' => 'gut',
+            'condition' => 'Z2',
         ]);
 
         $response->assertRedirect(route('romantausch.index'));
@@ -489,7 +489,7 @@ class BundleOfferTest extends TestCase
             'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
             'book_number' => 1,
             'book_title' => 'Maddrax 1',
-            'condition' => 'gut',
+            'condition' => 'Z2',
         ]);
 
         BookOffer::create([
@@ -498,7 +498,7 @@ class BundleOfferTest extends TestCase
             'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
             'book_number' => 2,
             'book_title' => 'Maddrax 2',
-            'condition' => 'gut',
+            'condition' => 'Z2',
         ]);
 
         $response = $this->delete("/romantauschboerse/stapel/{$bundleId}");
@@ -523,7 +523,7 @@ class BundleOfferTest extends TestCase
             'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
             'book_number' => 1,
             'book_title' => 'Maddrax 1',
-            'condition' => 'gut',
+            'condition' => 'Z2',
         ]);
 
         $this->actingAs($otherUser);
@@ -551,7 +551,7 @@ class BundleOfferTest extends TestCase
             'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
             'book_number' => 1,
             'book_title' => 'Maddrax 1',
-            'condition' => 'gut',
+            'condition' => 'Z2',
         ]);
 
         $request = BookRequest::create([
@@ -559,7 +559,7 @@ class BundleOfferTest extends TestCase
             'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
             'book_number' => 1,
             'book_title' => 'Maddrax 1',
-            'condition' => 'gut',
+            'condition' => 'Z2',
         ]);
 
         $swap = BookSwap::create([
@@ -594,7 +594,7 @@ class BundleOfferTest extends TestCase
             'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
             'book_number' => 1,
             'book_title' => 'Maddrax 1',
-            'condition' => 'gut',
+            'condition' => 'Z2',
             'photos' => [$photoPath],
         ]);
 
@@ -604,7 +604,7 @@ class BundleOfferTest extends TestCase
             'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
             'book_number' => 2,
             'book_title' => 'Maddrax 2',
-            'condition' => 'gut',
+            'condition' => 'Z2',
             'photos' => [$photoPath],
         ]);
 
@@ -632,7 +632,7 @@ class BundleOfferTest extends TestCase
                 'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
                 'book_number' => $i,
                 'book_title' => "Maddrax {$i}",
-                'condition' => 'gut',
+                'condition' => 'Z2',
             ]);
         }
 
@@ -642,7 +642,7 @@ class BundleOfferTest extends TestCase
             'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
             'book_number' => 1,
             'book_title' => 'Maddrax 1',
-            'condition' => 'gut',
+            'condition' => 'Z2',
         ]);
 
         BookRequest::create([
@@ -650,7 +650,7 @@ class BundleOfferTest extends TestCase
             'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
             'book_number' => 3,
             'book_title' => 'Maddrax 3',
-            'condition' => 'gut',
+            'condition' => 'Z2',
         ]);
 
         $this->actingAs($viewer);
@@ -679,7 +679,7 @@ class BundleOfferTest extends TestCase
             'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
             'book_number' => 1,
             'book_title' => 'Maddrax 1',
-            'condition' => 'gut',
+            'condition' => 'Z2',
         ]);
 
         BookOffer::create([
@@ -688,7 +688,7 @@ class BundleOfferTest extends TestCase
             'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
             'book_number' => 2,
             'book_title' => 'Maddrax 2',
-            'condition' => 'gut',
+            'condition' => 'Z2',
         ]);
 
         // User sucht dasselbe Buch (unwahrscheinlich, aber möglich)
@@ -697,7 +697,7 @@ class BundleOfferTest extends TestCase
             'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
             'book_number' => 1,
             'book_title' => 'Maddrax 1',
-            'condition' => 'gut',
+            'condition' => 'Z2',
         ]);
 
         $response = $this->get('/romantauschboerse');
@@ -723,7 +723,7 @@ class BundleOfferTest extends TestCase
             'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
             'book_number' => 1,
             'book_title' => 'Test',
-            'condition' => 'gut',
+            'condition' => 'Z2',
         ]);
 
         $this->assertTrue($offer->isPartOfBundle());
@@ -738,7 +738,7 @@ class BundleOfferTest extends TestCase
             'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
             'book_number' => 1,
             'book_title' => 'Test',
-            'condition' => 'gut',
+            'condition' => 'Z2',
         ]);
 
         $this->assertFalse($offer->isPartOfBundle());
@@ -755,7 +755,7 @@ class BundleOfferTest extends TestCase
             'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
             'book_number' => 1,
             'book_title' => 'Test 1',
-            'condition' => 'gut',
+            'condition' => 'Z2',
         ]);
 
         $offer2 = BookOffer::create([
@@ -764,7 +764,7 @@ class BundleOfferTest extends TestCase
             'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
             'book_number' => 2,
             'book_title' => 'Test 2',
-            'condition' => 'gut',
+            'condition' => 'Z2',
         ]);
 
         $siblings = $offer1->bundleSiblings();
@@ -784,7 +784,7 @@ class BundleOfferTest extends TestCase
             'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
             'book_number' => 1,
             'book_title' => 'Test 1',
-            'condition' => 'gut',
+            'condition' => 'Z2',
         ]);
 
         $offer2 = BookOffer::create([
@@ -793,7 +793,7 @@ class BundleOfferTest extends TestCase
             'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
             'book_number' => 2,
             'book_title' => 'Test 2',
-            'condition' => 'gut',
+            'condition' => 'Z2',
         ]);
 
         $allOffers = $offer1->bundleOffers();
@@ -810,11 +810,11 @@ class BundleOfferTest extends TestCase
             'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
             'book_number' => 1,
             'book_title' => 'Test',
-            'condition' => 'gut',
-            'condition_max' => 'neuwertig',
+            'condition' => 'Z1',
+            'condition_max' => 'Z2',
         ]);
 
-        $this->assertEquals('gut bis neuwertig', $offer->condition_range);
+        $this->assertEquals('Z1 bis Z2', $offer->condition_range);
     }
 
     public function test_condition_range_attribute_returns_single_condition_when_no_max(): void
@@ -826,10 +826,10 @@ class BundleOfferTest extends TestCase
             'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
             'book_number' => 1,
             'book_title' => 'Test',
-            'condition' => 'gut',
+            'condition' => 'Z2',
         ]);
 
-        $this->assertEquals('gut', $offer->condition_range);
+        $this->assertEquals('Z2', $offer->condition_range);
     }
 
     // ====== Index Display Tests ======
@@ -850,7 +850,7 @@ class BundleOfferTest extends TestCase
                 'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
                 'book_number' => $i,
                 'book_title' => "Maddrax {$i}",
-                'condition' => 'gut',
+                'condition' => 'Z2',
             ]);
         }
 
@@ -877,7 +877,7 @@ class BundleOfferTest extends TestCase
             'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
             'book_number' => 1,
             'book_title' => 'Maddrax 1',
-            'condition' => 'gut',
+            'condition' => 'Z2',
         ]);
 
         BookOffer::create([
@@ -886,7 +886,7 @@ class BundleOfferTest extends TestCase
             'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
             'book_number' => 2,
             'book_title' => 'Maddrax 2',
-            'condition' => 'gut',
+            'condition' => 'Z2',
         ]);
 
         // Ein Einzelangebot
@@ -895,7 +895,7 @@ class BundleOfferTest extends TestCase
             'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
             'book_number' => 10,
             'book_title' => 'Maddrax 10',
-            'condition' => 'gut',
+            'condition' => 'Z2',
         ]);
 
         $response = $this->get('/romantauschboerse');
