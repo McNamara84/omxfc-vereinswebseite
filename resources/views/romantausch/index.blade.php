@@ -132,7 +132,7 @@
 
                 <ul class="space-y-4">
                     @foreach($bundles as $bundle)
-                        <li class="bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden" data-bundle-id="{{ $bundle->bundle_id }}" x-data="{ expanded: false }">
+                        <li class="bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden" data-bundle-id="{{ $bundle->bundle_id }}" data-book-numbers-display="{{ $bundle->book_numbers_display }}" x-data="{ expanded: false }">
                             {{-- Zusammengeklappte Ansicht --}}
                             <div class="p-4">
                                 <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">

@@ -19,8 +19,8 @@
                 $bookNumbersError = $errors->first('book_numbers');
                 $conditionError = $errors->first('condition');
                 $photoError = $errors->first('photos');
-                $photoItemError = $errors->first('photos.*');
-                $photosErrorMessage = $photoError ?: $photoItemError;
+                $photoItemErrors = $errors->get('photos.*');
+                $photosErrorMessage = $photoError ?: (count($photoItemErrors) > 0 ? implode(' ', $photoItemErrors) : null);
             @endphp
 
             <div class="mb-6 p-4 bg-gray-100 dark:bg-gray-700 rounded-lg">

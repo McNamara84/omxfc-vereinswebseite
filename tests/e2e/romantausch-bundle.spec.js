@@ -60,8 +60,12 @@ test.describe('Romantauschbörse - Stapel-Angebote', () => {
             // Absenden
             await page.click('button[type="submit"]');
 
-            // Fehler sollte angezeigt werden (entweder Validierungsfehler oder Session-Error)
-            await expect(page.locator('.text-red-600, .text-red-500, .text-red-800')).toBeVisible();
+            // Fehler sollte im Formular-Kontext angezeigt werden
+            // Suche nach Validierungsfehler unter dem book_numbers-Feld oder Session-Error im Formular
+            const form = page.locator('#bundle-offer-form');
+            await expect(
+                form.locator('[role="alert"], .bg-red-100')
+            ).toBeVisible();
         });
 
         test('Erfolgreiches Erstellen eines Stapel-Angebots', async ({ page }) => {
@@ -151,8 +155,9 @@ test.describe('Romantauschbörse - Stapel-Angebote', () => {
 
             await expect(page).toHaveURL(/romantauschboerse$/);
 
-            // Finde das Bundle mit Nummern 90-92 und klicke auf dessen Bearbeiten-Link
-            const bundleWithNumbers = page.locator('[data-bundle-id]', { hasText: '90' }).first();
+            // Finde das Bundle mit Nummern 90-92 über data-book-numbers-display
+            // Spezifischer als nur hasText: '90' um False-Positives zu vermeiden
+            const bundleWithNumbers = page.locator('[data-bundle-id][data-book-numbers-display*="90"]').first();
             await expect(bundleWithNumbers).toBeVisible({ timeout: 5000 });
             const editLink = bundleWithNumbers.locator('a[href*="/stapel/"][href*="/bearbeiten"]');
             await editLink.click();

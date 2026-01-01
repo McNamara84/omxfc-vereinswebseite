@@ -635,8 +635,16 @@ class RomantauschController extends Controller
 
             if (str_contains($part, '-')) {
                 $rangeParts = explode('-', $part, 2);
-                $start = intval(trim($rangeParts[0]));
-                $end = intval(trim($rangeParts[1]));
+                $startRaw = filter_var(trim($rangeParts[0]), FILTER_VALIDATE_INT);
+                $endRaw = filter_var(trim($rangeParts[1]), FILTER_VALIDATE_INT);
+
+                // filter_var gibt false bei ungültiger Eingabe zurück (z.B. "abc", "", "12.5")
+                if ($startRaw === false || $endRaw === false) {
+                    continue;
+                }
+
+                $start = $startRaw;
+                $end = $endRaw;
 
                 if ($start > 0 && $end > 0 && $end >= $start && ($end - $start) <= self::MAX_RANGE_SPAN) {
                     for ($i = $start; $i <= $end; $i++) {
@@ -644,8 +652,9 @@ class RomantauschController extends Controller
                     }
                 }
             } else {
-                $num = intval($part);
-                if ($num > 0) {
+                $num = filter_var($part, FILTER_VALIDATE_INT);
+                // filter_var gibt false bei ungültiger Eingabe zurück (intval würde 0 liefern)
+                if ($num !== false && $num > 0) {
                     $numbers[] = $num;
                 }
             }
@@ -691,6 +700,12 @@ class RomantauschController extends Controller
     /**
      * Hilfsmethode für Foto-Upload.
      *
+     * HINWEIS zu verwaisten Fotos:
+     * Falls die Anwendung nach dem Upload aber vor dem Speichern der DB-Einträge
+     * abstürzt, können Fotos verwaist im Storage liegen. Ein regelmäßiger
+     * Cleanup-Job sollte Dateien in PHOTO_STORAGE_PATH prüfen, die nicht mehr
+     * in der Datenbank referenziert werden (z.B. via artisan command).
+     *
      * @return array<string> Array mit Pfaden bei Erfolg
      *
      * @throws \RuntimeException wenn der Upload fehlschlägt
@@ -719,7 +734,15 @@ class RomantauschController extends Controller
                         Storage::disk('public')->delete($path);
                     }
 
-                    throw new \RuntimeException('Foto-Upload fehlgeschlagen: ' . $e->getMessage(), 0, $e);
+                    // Details loggen, aber generische Meldung an Benutzer
+                    \Illuminate\Support\Facades\Log::error('Foto-Upload fehlgeschlagen', [
+                        'user_id' => Auth::id(),
+                        'error' => $e->getMessage(),
+                        'file' => $e->getFile(),
+                        'line' => $e->getLine(),
+                    ]);
+
+                    throw new \RuntimeException('Foto-Upload fehlgeschlagen.', 0, $e);
                 }
             }
         }
@@ -741,8 +764,17 @@ class RomantauschController extends Controller
         $conditionIndex = array_search($condition, self::CONDITION_ORDER);
         $conditionMaxIndex = array_search($conditionMax, self::CONDITION_ORDER);
 
-        if ($conditionIndex === false || $conditionMaxIndex === false) {
-            return 'Ungültiger Zustandswert.';
+        // Explizite Fehlermeldung welcher Wert ungültig ist
+        if ($conditionIndex === false) {
+            $allowed = implode(', ', self::CONDITION_ORDER);
+
+            return "Unbekannter Zustandswert '{$condition}'. Erlaubt sind: {$allowed}";
+        }
+
+        if ($conditionMaxIndex === false) {
+            $allowed = implode(', ', self::CONDITION_ORDER);
+
+            return "Unbekannter Zustandswert '{$conditionMax}'. Erlaubt sind: {$allowed}";
         }
 
         if ($conditionMaxIndex < $conditionIndex) {
@@ -881,6 +913,10 @@ class RomantauschController extends Controller
             $this->matchSwap($offer, 'offer');
         }
 
+        // Hinweis: Bei Bundles wird subject_id auf das erste Angebot gesetzt.
+        // Falls dieses Angebot später gelöscht wird (z.B. bei Stapel-Bearbeitung),
+        // kann subject_id auf ein nicht mehr existierendes Angebot verweisen.
+        // Die bundle_id ist im action-Feld als 'bundle_created' dokumentiert.
         Activity::create([
             'user_id' => Auth::id(),
             'subject_type' => BookOffer::class,
