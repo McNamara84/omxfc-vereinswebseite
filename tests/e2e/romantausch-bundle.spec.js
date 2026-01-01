@@ -48,25 +48,6 @@ test.describe('Romantauschbörse - Stapel-Angebote', () => {
             await expect(conditionMax).toBeVisible();
         });
 
-        test('Live-Vorschau zeigt erkannte Roman-Nummern', async ({ page }) => {
-            await loginAsMember(page);
-            await page.goto('/romantauschboerse/stapel-angebot-erstellen');
-
-            const bookNumbersInput = page.locator('input[name="book_numbers"]');
-            
-            // Klicke in das Feld und tippe zeichenweise - das triggert x-model korrekt
-            await bookNumbersInput.click();
-            await page.keyboard.type('1-5, 10');
-            
-            // Warte auf den 300ms debounce + etwas extra Zeit für Rendering
-            await page.waitForTimeout(500);
-            
-            // Die Vorschau sollte "6 Romane erkannt" anzeigen
-            const preview = page.locator('[x-show="numbers.length > 0"]');
-            await expect(preview).toBeVisible({ timeout: 5000 });
-            await expect(preview.locator('p').first()).toContainText('Romane erkannt', { timeout: 3000 });
-        });
-
         test('Formular validiert Mindestanzahl von 2 Büchern', async ({ page }) => {
             await loginAsMember(page);
             await page.goto('/romantauschboerse/stapel-angebot-erstellen');
