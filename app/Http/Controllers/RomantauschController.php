@@ -667,13 +667,25 @@ class RomantauschController extends Controller
                         'action' => 'match_cancelled_by_offer_owner',
                     ]);
                 } catch (\Illuminate\Database\QueryException $e) {
-                    // FK-Constraint-Verletzung (z.B. User zwischenzeitlich gelöscht).
-                    // Activity-Log ist nicht kritisch, daher nur loggen und fortfahren.
-                    \Illuminate\Support\Facades\Log::warning('Activity-Log für gelöschten Swap fehlgeschlagen', [
-                        'offer_id' => $offer->id,
-                        'affected_user_id' => $affectedUser->id,
-                        'error' => $e->getMessage(),
-                    ]);
+                    // Prüfe ob es sich um eine FK-Constraint-Verletzung handelt.
+                    // MySQL: 1452 (Cannot add or update a child row)
+                    // SQLite: 19 (FOREIGN KEY constraint failed) / SQLITE_CONSTRAINT
+                    // PostgreSQL: 23503 (foreign_key_violation)
+                    $isForeignKeyError = in_array($e->getCode(), ['23000', '23503', 1452, 19], false)
+                        || str_contains(strtolower($e->getMessage()), 'foreign key');
+
+                    if ($isForeignKeyError) {
+                        // FK-Constraint-Verletzung (z.B. User zwischenzeitlich gelöscht).
+                        // Activity-Log ist nicht kritisch, daher nur loggen und fortfahren.
+                        \Illuminate\Support\Facades\Log::warning('Activity-Log für gelöschten Swap fehlgeschlagen (FK)', [
+                            'offer_id' => $offer->id,
+                            'affected_user_id' => $affectedUser->id,
+                            'error' => $e->getMessage(),
+                        ]);
+                    } else {
+                        // Unerwarteter DB-Fehler - weiterwerfen für ordnungsgemäße Fehlerbehandlung
+                        throw $e;
+                    }
                 }
             }
             $offer->swap->delete();
@@ -689,12 +701,16 @@ class RomantauschController extends Controller
      * Romanhefte bei 1 beginnen. Das Frontend (JavaScript) verhält sich identisch:
      * parseInt("0", 10) > 0 === false, daher wird 0 dort ebenfalls abgelehnt.
      *
+     * Ungültige Eingaben werden stillschweigend ignoriert für bessere UX.
+     * Ungewöhnliche Muster werden geloggt für Monitoring/Debugging.
+     *
      * @return array<int>
      */
     private function parseBookNumbers(string $input): array
     {
         $numbers = [];
         $parts = array_map('trim', explode(',', $input));
+        $skippedParts = [];
 
         foreach ($parts as $part) {
             if ($part === '') {
@@ -710,6 +726,7 @@ class RomantauschController extends Controller
 
                 // filter_var gibt false bei ungültiger Eingabe zurück (z.B. "abc", "", "12.5")
                 if ($startRaw === false || $endRaw === false) {
+                    $skippedParts[] = $part;
                     continue;
                 }
 
@@ -727,8 +744,19 @@ class RomantauschController extends Controller
                 // filter_var gibt false bei ungültiger Eingabe zurück (intval würde 0 liefern)
                 if ($num !== false && $num > 0) {
                     $numbers[] = $num;
+                } elseif ($num === false) {
+                    $skippedParts[] = $part;
                 }
             }
+        }
+
+        // Logging für ungewöhnliche Eingabemuster (Debugging/Missbrauchs-Erkennung)
+        if (!empty($skippedParts)) {
+            \Illuminate\Support\Facades\Log::info('parseBookNumbers: Ungültige Eingabeteile übersprungen', [
+                'skipped_parts' => array_slice($skippedParts, 0, 10), // Max 10 für Log-Größe
+                'total_skipped' => count($skippedParts),
+                'user_id' => Auth::id(),
+            ]);
         }
 
         return array_values(array_unique($numbers));
@@ -821,7 +849,17 @@ class RomantauschController extends Controller
                     // getimagesize() liest tatsächlich die Bild-Header und erkennt
                     // Polyglot-Dateien (z.B. PHP-Code mit gültigem JPEG-Header).
                     // MIME-Types können gefälscht werden, Bildheader weniger leicht.
-                    $imageInfo = @getimagesize($photo->getRealPath());
+                    try {
+                        $imageInfo = getimagesize($photo->getRealPath());
+                    } catch (\Throwable $imageSizeError) {
+                        // getimagesize kann Warnings werfen bei beschädigten Dateien
+                        \Illuminate\Support\Facades\Log::warning('Foto-Upload: getimagesize fehlgeschlagen', [
+                            'user_id' => Auth::id(),
+                            'original_name' => $photo->getClientOriginalName(),
+                            'error' => $imageSizeError->getMessage(),
+                        ]);
+                        $imageInfo = false;
+                    }
                     if ($imageInfo === false) {
                         \Illuminate\Support\Facades\Log::warning('Foto-Upload: Keine gültige Bilddatei', [
                             'user_id' => Auth::id(),
@@ -898,7 +936,12 @@ class RomantauschController extends Controller
         }
 
         // CONDITION_ORDER definiert die Reihenfolge von bester (Index 0) zu schlechtester (Index 8).
-        // array_search gibt false zurück wenn der Wert nicht gefunden wird.
+        //
+        // WICHTIG: Strenger Vergleich === false ist hier zwingend erforderlich!
+        // array_search gibt den Index zurück (0 für 'Z0', 1 für 'Z0-1', etc.) oder false.
+        // Bei losem Vergleich (== false) würde Index 0 (für 'Z0') fälschlicherweise
+        // als "nicht gefunden" interpretiert, da 0 == false in PHP true ergibt.
+        // Beispiel: array_search('Z0', ['Z0', 'Z1']) === 0, aber 0 == false === true!
         $conditionIndex = array_search($condition, self::CONDITION_ORDER);
         $conditionMaxIndex = array_search($conditionMax, self::CONDITION_ORDER);
 

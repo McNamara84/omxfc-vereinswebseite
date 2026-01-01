@@ -152,21 +152,31 @@ class BundleOfferTest extends TestCase
         $method = $reflection->getMethod('parseBookNumbers');
         $method->setAccessible(true);
 
-        // Input mit Duplikaten UND unsortiert: 5 kommt zweimal vor, 1-3 überlappt mit 2,3
+        // Input mit echten Duplikaten: 5 erscheint explizit zweimal,
+        // Bereich 1-3 überlappt mit einzelnen 2 und 3
         $result = $method->invoke($controller, '5, 1-3, 2, 3, 5, 10');
 
-        // Die Methode entfernt Duplikate, garantiert aber keine bestimmte Reihenfolge.
-        // JavaScript-Version sortiert, PHP-Version behält Einfüge-Reihenfolge.
-        // Erwartetes Ergebnis: 5 eindeutige Werte {1, 2, 3, 5, 10}
-        $this->assertCount(5, $result);
-        $this->assertContains(1, $result);
-        $this->assertContains(2, $result);
-        $this->assertContains(3, $result);
-        $this->assertContains(5, $result);
-        $this->assertContains(10, $result);
+        // PHP-Version entfernt Duplikate via array_unique, sortiert aber NICHT.
+        // JavaScript-Version sortiert zusätzlich. Dieser Unterschied ist akzeptabel
+        // da die Sortierung nur für die UI-Darstellung relevant ist.
+        //
+        // Kernverhalten das hier getestet wird:
+        // 1. Deduplizierung: 7 Input-Werte (5,1,2,3,2,3,5,10) → 5 unique Werte
+        // 2. Alle erwarteten Werte sind enthalten
+        $this->assertCount(5, $result, 'Erwarte genau 5 eindeutige Werte');
 
-        // Prüfe dass keine Duplikate vorhanden sind
-        $this->assertEquals(count($result), count(array_unique($result)));
+        // Prüfe dass array_unique tatsächlich Duplikate entfernt hat
+        $this->assertSame(
+            count($result),
+            count(array_unique($result)),
+            'Ergebnis sollte keine Duplikate enthalten'
+        );
+
+        // Prüfe alle erwarteten Werte (ohne Reihenfolge-Annahme)
+        $expectedValues = [1, 2, 3, 5, 10];
+        foreach ($expectedValues as $expected) {
+            $this->assertContains($expected, $result, "Wert {$expected} sollte im Ergebnis sein");
+        }
     }
 
     // ====== Bundle Creation Tests ======

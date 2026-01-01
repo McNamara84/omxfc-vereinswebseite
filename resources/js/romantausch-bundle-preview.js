@@ -93,17 +93,22 @@ window.bundlePreview = function bundlePreview() {
         formatPreview() {
             if (this.numbers.length === 0) return '';
             
-            // THRESHOLD für Kompakt-Darstellung: Bei mehr als 20 Nummern wechseln
-            // wir von individueller Auflistung (1, 2, 3, ...) zu Bereichen (1-20, ...).
+            // THRESHOLD für Kompakt-Darstellung: Bei mehr Nummern als dem Threshold
+            // wechseln wir von individueller Auflistung (1, 2, 3, ...) zu Bereichen (1-20, ...).
             //
-            // Begründung für 20:
+            // Der Wert kann via window.COMPACT_THRESHOLD aus PHP injiziert werden,
+            // ähnlich wie MAX_RANGE_SPAN. Falls nicht definiert, Default 20.
+            //
+            // Begründung für Default 20:
             // - Typische Bildschirmbreite erlaubt ~20-25 Zahlen gut lesbar
             // - Bei 5 Romanen pro Zeile passen 4 Zeilen auf einen Blick
             // - Größere Stapel (z.B. 50+ Romane) wären als Liste unübersichtlich
-            // - Falls dieser Wert angepasst werden muss: Konstante extrahieren
-            const COMPACT_THRESHOLD = 20;
+            //
+            // Konfiguration in Blade-View (optional):
+            //   window.COMPACT_THRESHOLD = {{ config('romantausch.compact_threshold', 20) }};
+            const compactThreshold = window.COMPACT_THRESHOLD ?? 20;
             
-            if (this.numbers.length <= COMPACT_THRESHOLD) {
+            if (this.numbers.length <= compactThreshold) {
                 return this.numbers.join(', ');
             }
 

@@ -195,10 +195,12 @@
     Die eigentliche Logik ist in resources/js/romantausch-bundle-preview.js ausgelagert.
     
     @see resources/js/romantausch-bundle-preview.js für die bundlePreview() Funktion
-    @see App\Http\Controllers\RomantauschController::MAX_RANGE_SPAN für das Limit
+    @see App\Http\Controllers\RomantauschController::MAX_RANGE_SPAN für das Bereichs-Limit
+    @see config/romantausch.php für compact_threshold
 --}}
 <script>
     window.MAX_RANGE_SPAN = {{ App\Http\Controllers\RomantauschController::MAX_RANGE_SPAN }};
+    window.COMPACT_THRESHOLD = {{ config('romantausch.compact_threshold', 20) }};
     window.bundlePreviewInitialInput = {{ Js::from($bookNumbersInput) }};
 </script>
 @endpush
