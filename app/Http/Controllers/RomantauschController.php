@@ -1148,7 +1148,9 @@ class RomantauschController extends Controller
         // HINWEIS: bundle_id und offer_count werden nicht im Activity-Log gespeichert,
         // da die activities-Tabelle keine properties-Spalte hat.
         // Die bundle_id kann über das referenzierte BookOffer abgerufen werden:
-        //   $activity->subject->bundle_id
+        //   $activity->subject?->bundle_id
+        // ACHTUNG: Null-Check mit ?-> ist erforderlich, da subject null sein kann,
+        // wenn das erste Angebot des Bundles gelöscht wurde (orphaned record).
         Activity::create([
             'user_id' => Auth::id(),
             'subject_type' => BookOffer::class,

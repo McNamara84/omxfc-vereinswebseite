@@ -70,8 +70,9 @@ test.describe('Romantauschbörse - Einzelangebote', () => {
             // Formular ausfüllen
             await page.selectOption('select[name="series"]', SERIES_MADDRAX);
             
-            // Warte kurz, bis das Buchnummer-Dropdown nach Serie-Auswahl aktualisiert wird
-            await page.waitForTimeout(500);
+            // Warte bis die filterBooks()-Funktion das Dropdown aktualisiert hat
+            // und die gewünschte Option sichtbar/verfügbar ist
+            await page.waitForSelector('select[name="book_number"] option[value="42"]:not([disabled])');
             
             // Wähle eine Buchnummer (z.B. 42 - sollte im Seeder existieren)
             await page.selectOption('select[name="book_number"]', '42');
@@ -96,7 +97,7 @@ test.describe('Romantauschbörse - Einzelangebote', () => {
 
             // Formular ausfüllen mit eindeutiger Buchnummer
             await page.selectOption('select[name="series"]', SERIES_MADDRAX);
-            await page.waitForTimeout(500);
+            await page.waitForSelector('select[name="book_number"] option[value="77"]:not([disabled])');
             await page.selectOption('select[name="book_number"]', '77');
             await page.selectOption('select[name="condition"]', CONDITION_Z2);
 
@@ -139,7 +140,7 @@ test.describe('Romantauschbörse - Einzelangebote', () => {
 
             // Formular ausfüllen
             await page.selectOption('select[name="series"]', SERIES_MADDRAX);
-            await page.waitForTimeout(500);
+            await page.waitForSelector('select[name="book_number"] option[value="88"]:not([disabled])');
             await page.selectOption('select[name="book_number"]', '88');
             await page.selectOption('select[name="condition"]', CONDITION_Z2);
 
@@ -162,7 +163,7 @@ test.describe('Romantauschbörse - Einzelangebote', () => {
             // Erstelle zuerst ein Angebot
             await page.goto('/romantauschboerse/angebot-erstellen');
             await page.selectOption('select[name="series"]', SERIES_MADDRAX);
-            await page.waitForTimeout(500);
+            await page.waitForSelector('select[name="book_number"] option[value="55"]:not([disabled])');
             await page.selectOption('select[name="book_number"]', '55');
             await page.selectOption('select[name="condition"]', CONDITION_Z1);
             await page.click('button[type="submit"]');
@@ -180,7 +181,7 @@ test.describe('Romantauschbörse - Einzelangebote', () => {
             // Erstelle ein Angebot
             await page.goto('/romantauschboerse/angebot-erstellen');
             await page.selectOption('select[name="series"]', SERIES_MADDRAX);
-            await page.waitForTimeout(500);
+            await page.waitForSelector('select[name="book_number"] option[value="66"]:not([disabled])');
             await page.selectOption('select[name="book_number"]', '66');
             await page.selectOption('select[name="condition"]', CONDITION_Z1);
             await page.click('button[type="submit"]');
@@ -205,7 +206,7 @@ test.describe('Romantauschbörse - Einzelangebote', () => {
             // Erstelle ein Angebot
             await page.goto('/romantauschboerse/angebot-erstellen');
             await page.selectOption('select[name="series"]', SERIES_MADDRAX);
-            await page.waitForTimeout(500);
+            await page.waitForSelector('select[name="book_number"] option[value="33"]:not([disabled])');
             await page.selectOption('select[name="book_number"]', '33');
             await page.selectOption('select[name="condition"]', CONDITION_Z1);
             await page.click('button[type="submit"]');
