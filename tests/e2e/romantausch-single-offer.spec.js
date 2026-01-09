@@ -116,9 +116,10 @@ test.describe('Romantauschbörse - Einzelangebote', () => {
     test.describe('Gesuch erstellen', () => {
         test('Gesuch-Formular ist erreichbar', async ({ page }) => {
             await loginAsMember(page);
-            await page.goto('/romantauschboerse/gesuch-erstellen');
+            // HINWEIS: Die Route heißt "anfrage-erstellen" (nicht "gesuch-erstellen")
+            await page.goto('/romantauschboerse/anfrage-erstellen');
 
-            await expect(page).toHaveURL(/gesuch-erstellen$/);
+            await expect(page).toHaveURL(/anfrage-erstellen$/);
             
             // Warte auf das Formular, um sicherzugehen dass die Seite vollständig geladen ist
             await expect(page.locator('#request-form')).toBeVisible();
@@ -130,7 +131,8 @@ test.describe('Romantauschbörse - Einzelangebote', () => {
 
         test('Erfolgreiches Erstellen eines Gesuchs', async ({ page }) => {
             await loginAsMember(page);
-            await page.goto('/romantauschboerse/gesuch-erstellen');
+            // HINWEIS: Die Route heißt "anfrage-erstellen" (nicht "gesuch-erstellen")
+            await page.goto('/romantauschboerse/anfrage-erstellen');
 
             // Warte auf das Formular bevor wir es ausfüllen
             await expect(page.locator('#request-form')).toBeVisible();
