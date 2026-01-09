@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1767288584">
-  <project timestamp="1767288584" name="Clover Coverage">
+<coverage generated="1767939483">
+  <project timestamp="1767939483" name="Clover Coverage">
     <package name="App\Actions\Fortify">
       <file name="/home/runner/work/omxfc-vereinswebseite/omxfc-vereinswebseite/app/Actions/Fortify/CreateNewUser.php">
         <class name="App\Actions\Fortify\CreateNewUser" namespace="App\Actions\Fortify">
@@ -3022,15 +3022,15 @@
         <line num="152" type="stmt" count="13"/>
         <line num="153" type="stmt" count="13"/>
         <line num="155" type="stmt" count="13"/>
-        <line num="156" type="stmt" count="6"/>
-        <line num="157" type="stmt" count="6"/>
-        <line num="158" type="stmt" count="6"/>
-        <line num="159" type="stmt" count="6"/>
-        <line num="160" type="stmt" count="6"/>
-        <line num="161" type="stmt" count="6"/>
-        <line num="162" type="stmt" count="6"/>
-        <line num="163" type="stmt" count="6"/>
-        <line num="165" type="stmt" count="6"/>
+        <line num="156" type="stmt" count="3"/>
+        <line num="157" type="stmt" count="3"/>
+        <line num="158" type="stmt" count="3"/>
+        <line num="159" type="stmt" count="3"/>
+        <line num="160" type="stmt" count="3"/>
+        <line num="161" type="stmt" count="3"/>
+        <line num="162" type="stmt" count="3"/>
+        <line num="163" type="stmt" count="3"/>
+        <line num="165" type="stmt" count="3"/>
         <line num="166" type="stmt" count="1"/>
         <line num="167" type="stmt" count="1"/>
         <line num="168" type="stmt" count="1"/>
@@ -3041,15 +3041,15 @@
         <line num="177" type="stmt" count="13"/>
         <line num="178" type="stmt" count="13"/>
         <line num="180" type="stmt" count="13"/>
-        <line num="181" type="stmt" count="1"/>
-        <line num="182" type="stmt" count="1"/>
-        <line num="183" type="stmt" count="1"/>
-        <line num="184" type="stmt" count="1"/>
-        <line num="185" type="stmt" count="1"/>
-        <line num="186" type="stmt" count="1"/>
-        <line num="187" type="stmt" count="1"/>
-        <line num="188" type="stmt" count="1"/>
-        <line num="190" type="stmt" count="1"/>
+        <line num="181" type="stmt" count="8"/>
+        <line num="182" type="stmt" count="8"/>
+        <line num="183" type="stmt" count="8"/>
+        <line num="184" type="stmt" count="8"/>
+        <line num="185" type="stmt" count="8"/>
+        <line num="186" type="stmt" count="8"/>
+        <line num="187" type="stmt" count="8"/>
+        <line num="188" type="stmt" count="8"/>
+        <line num="190" type="stmt" count="8"/>
         <line num="191" type="stmt" count="1"/>
         <line num="192" type="stmt" count="1"/>
         <line num="193" type="stmt" count="1"/>
@@ -3408,7 +3408,7 @@
       </file>
       <file name="/home/runner/work/omxfc-vereinswebseite/omxfc-vereinswebseite/app/Http/Controllers/RomantauschController.php">
         <class name="App\Http\Controllers\RomantauschController" namespace="App\Http\Controllers">
-          <metrics complexity="158" methods="29" coveredmethods="14" conditionals="0" coveredconditionals="0" statements="690" coveredstatements="549" elements="719" coveredelements="563"/>
+          <metrics complexity="158" methods="29" coveredmethods="14" conditionals="0" coveredconditionals="0" statements="689" coveredstatements="548" elements="718" coveredelements="562"/>
         </class>
         <line num="26" type="method" name="__construct" visibility="public" complexity="1" crap="1" count="81"/>
         <line num="28" type="stmt" count="81"/>
@@ -3913,7 +3913,7 @@
         <line num="997" type="stmt" count="1"/>
         <line num="998" type="stmt" count="1"/>
         <line num="1000" type="stmt" count="1"/>
-        <line num="1006" type="method" name="storeBundleOffer" visibility="public" complexity="12" crap="15.48" count="6"/>
+        <line num="1006" type="method" name="storeBundleOffer" visibility="public" complexity="12" crap="15.61" count="6"/>
         <line num="1008" type="stmt" count="6"/>
         <line num="1009" type="stmt" count="6"/>
         <line num="1010" type="stmt" count="6"/>
@@ -3988,148 +3988,147 @@
         <line num="1110" type="stmt" count="0"/>
         <line num="1113" type="stmt" count="2"/>
         <line num="1114" type="stmt" count="2"/>
-        <line num="1147" type="stmt" count="2"/>
-        <line num="1148" type="stmt" count="2"/>
-        <line num="1149" type="stmt" count="2"/>
-        <line num="1150" type="stmt" count="2"/>
-        <line num="1151" type="stmt" count="2"/>
-        <line num="1152" type="stmt" count="2"/>
-        <line num="1153" type="stmt" count="2"/>
+        <line num="1154" type="stmt" count="2"/>
         <line num="1155" type="stmt" count="2"/>
         <line num="1156" type="stmt" count="2"/>
-        <line num="1162" type="method" name="editBundle" visibility="public" complexity="3" crap="3.02" count="2"/>
-        <line num="1164" type="stmt" count="2"/>
-        <line num="1165" type="stmt" count="2"/>
-        <line num="1166" type="stmt" count="2"/>
-        <line num="1167" type="stmt" count="2"/>
-        <line num="1169" type="stmt" count="2"/>
-        <line num="1170" type="stmt" count="1"/>
-        <line num="1173" type="stmt" count="1"/>
-        <line num="1175" type="stmt" count="1"/>
+        <line num="1157" type="stmt" count="2"/>
+        <line num="1158" type="stmt" count="2"/>
+        <line num="1159" type="stmt" count="2"/>
+        <line num="1161" type="stmt" count="2"/>
+        <line num="1162" type="stmt" count="2"/>
+        <line num="1168" type="method" name="editBundle" visibility="public" complexity="3" crap="3.02" count="2"/>
+        <line num="1170" type="stmt" count="2"/>
+        <line num="1171" type="stmt" count="2"/>
+        <line num="1172" type="stmt" count="2"/>
+        <line num="1173" type="stmt" count="2"/>
+        <line num="1175" type="stmt" count="2"/>
         <line num="1176" type="stmt" count="1"/>
-        <line num="1177" type="stmt" count="0"/>
-        <line num="1178" type="stmt" count="0"/>
+        <line num="1179" type="stmt" count="1"/>
         <line num="1181" type="stmt" count="1"/>
         <line num="1182" type="stmt" count="1"/>
-        <line num="1183" type="stmt" count="1"/>
-        <line num="1185" type="stmt" count="1"/>
+        <line num="1183" type="stmt" count="0"/>
+        <line num="1184" type="stmt" count="0"/>
         <line num="1187" type="stmt" count="1"/>
-        <line num="1193" type="method" name="updateBundle" visibility="public" complexity="16" crap="32.64" count="4"/>
-        <line num="1195" type="stmt" count="4"/>
-        <line num="1196" type="stmt" count="4"/>
-        <line num="1197" type="stmt" count="4"/>
-        <line num="1199" type="stmt" count="4"/>
-        <line num="1200" type="stmt" count="0"/>
-        <line num="1206" type="stmt" count="4"/>
-        <line num="1207" type="stmt" count="4"/>
-        <line num="1208" type="stmt" count="4"/>
-        <line num="1209" type="stmt" count="0"/>
-        <line num="1210" type="stmt" count="0"/>
-        <line num="1211" type="stmt" count="0"/>
-        <line num="1212" type="stmt" count="0"/>
-        <line num="1213" type="stmt" count="0"/>
-        <line num="1214" type="stmt" count="0"/>
-        <line num="1217" type="stmt" count="4"/>
-        <line num="1219" type="stmt" count="4"/>
-        <line num="1220" type="stmt" count="4"/>
-        <line num="1221" type="stmt" count="4"/>
-        <line num="1222" type="stmt" count="4"/>
+        <line num="1188" type="stmt" count="1"/>
+        <line num="1189" type="stmt" count="1"/>
+        <line num="1191" type="stmt" count="1"/>
+        <line num="1193" type="stmt" count="1"/>
+        <line num="1199" type="method" name="updateBundle" visibility="public" complexity="16" crap="32.64" count="4"/>
+        <line num="1201" type="stmt" count="4"/>
+        <line num="1202" type="stmt" count="4"/>
+        <line num="1203" type="stmt" count="4"/>
+        <line num="1205" type="stmt" count="4"/>
+        <line num="1206" type="stmt" count="0"/>
+        <line num="1212" type="stmt" count="4"/>
+        <line num="1213" type="stmt" count="4"/>
+        <line num="1214" type="stmt" count="4"/>
+        <line num="1215" type="stmt" count="0"/>
+        <line num="1216" type="stmt" count="0"/>
+        <line num="1217" type="stmt" count="0"/>
+        <line num="1218" type="stmt" count="0"/>
+        <line num="1219" type="stmt" count="0"/>
+        <line num="1220" type="stmt" count="0"/>
         <line num="1223" type="stmt" count="4"/>
-        <line num="1224" type="stmt" count="4"/>
         <line num="1225" type="stmt" count="4"/>
         <line num="1226" type="stmt" count="4"/>
         <line num="1227" type="stmt" count="4"/>
+        <line num="1228" type="stmt" count="4"/>
         <line num="1229" type="stmt" count="4"/>
         <line num="1230" type="stmt" count="4"/>
+        <line num="1231" type="stmt" count="4"/>
         <line num="1232" type="stmt" count="4"/>
-        <line num="1233" type="stmt" count="0"/>
-        <line num="1234" type="stmt" count="0"/>
-        <line num="1235" type="stmt" count="0"/>
-        <line num="1239" type="stmt" count="4"/>
+        <line num="1233" type="stmt" count="4"/>
+        <line num="1235" type="stmt" count="4"/>
+        <line num="1236" type="stmt" count="4"/>
+        <line num="1238" type="stmt" count="4"/>
+        <line num="1239" type="stmt" count="0"/>
         <line num="1240" type="stmt" count="0"/>
         <line num="1241" type="stmt" count="0"/>
-        <line num="1242" type="stmt" count="0"/>
         <line num="1245" type="stmt" count="4"/>
         <line num="1246" type="stmt" count="0"/>
         <line num="1247" type="stmt" count="0"/>
         <line num="1248" type="stmt" count="0"/>
-        <line num="1252" type="stmt" count="4"/>
-        <line num="1253" type="stmt" count="4"/>
+        <line num="1251" type="stmt" count="4"/>
+        <line num="1252" type="stmt" count="0"/>
+        <line num="1253" type="stmt" count="0"/>
         <line num="1254" type="stmt" count="0"/>
-        <line num="1255" type="stmt" count="0"/>
-        <line num="1256" type="stmt" count="0"/>
+        <line num="1258" type="stmt" count="4"/>
         <line num="1259" type="stmt" count="4"/>
-        <line num="1260" type="stmt" count="4"/>
-        <line num="1261" type="stmt" count="4"/>
-        <line num="1262" type="stmt" count="4"/>
-        <line num="1264" type="stmt" count="4"/>
+        <line num="1260" type="stmt" count="0"/>
+        <line num="1261" type="stmt" count="0"/>
+        <line num="1262" type="stmt" count="0"/>
         <line num="1265" type="stmt" count="4"/>
-        <line num="1266" type="stmt" count="0"/>
-        <line num="1267" type="stmt" count="0"/>
-        <line num="1268" type="stmt" count="0"/>
+        <line num="1266" type="stmt" count="4"/>
+        <line num="1267" type="stmt" count="4"/>
+        <line num="1268" type="stmt" count="4"/>
+        <line num="1270" type="stmt" count="4"/>
         <line num="1271" type="stmt" count="4"/>
-        <line num="1272" type="stmt" count="4"/>
-        <line num="1273" type="stmt" count="4"/>
-        <line num="1276" type="stmt" count="4"/>
+        <line num="1272" type="stmt" count="0"/>
+        <line num="1273" type="stmt" count="0"/>
+        <line num="1274" type="stmt" count="0"/>
+        <line num="1277" type="stmt" count="4"/>
+        <line num="1278" type="stmt" count="4"/>
         <line num="1279" type="stmt" count="4"/>
-        <line num="1280" type="stmt" count="0"/>
-        <line num="1281" type="stmt" count="0"/>
-        <line num="1282" type="stmt" count="0"/>
-        <line num="1283" type="stmt" count="0"/>
-        <line num="1286" type="stmt" count="4"/>
-        <line num="1288" type="stmt" count="4"/>
-        <line num="1289" type="stmt" count="4"/>
-        <line num="1291" type="stmt" count="4"/>
+        <line num="1282" type="stmt" count="4"/>
+        <line num="1285" type="stmt" count="4"/>
+        <line num="1286" type="stmt" count="0"/>
+        <line num="1287" type="stmt" count="0"/>
+        <line num="1288" type="stmt" count="0"/>
+        <line num="1289" type="stmt" count="0"/>
         <line num="1292" type="stmt" count="4"/>
+        <line num="1294" type="stmt" count="4"/>
         <line num="1295" type="stmt" count="4"/>
-        <line num="1296" type="stmt" count="4"/>
-        <line num="1297" type="stmt" count="2"/>
+        <line num="1297" type="stmt" count="4"/>
         <line num="1298" type="stmt" count="4"/>
-        <line num="1300" type="stmt" count="4"/>
         <line num="1301" type="stmt" count="4"/>
         <line num="1302" type="stmt" count="4"/>
-        <line num="1303" type="stmt" count="4"/>
+        <line num="1303" type="stmt" count="2"/>
         <line num="1304" type="stmt" count="4"/>
+        <line num="1306" type="stmt" count="4"/>
+        <line num="1307" type="stmt" count="4"/>
         <line num="1308" type="stmt" count="4"/>
-        <line num="1309" type="stmt" count="0"/>
-        <line num="1310" type="stmt" count="0"/>
-        <line num="1311" type="stmt" count="0"/>
-        <line num="1312" type="stmt" count="0"/>
-        <line num="1313" type="stmt" count="0"/>
-        <line num="1314" type="stmt" count="0"/>
+        <line num="1309" type="stmt" count="4"/>
+        <line num="1310" type="stmt" count="4"/>
+        <line num="1314" type="stmt" count="4"/>
         <line num="1315" type="stmt" count="0"/>
         <line num="1316" type="stmt" count="0"/>
         <line num="1317" type="stmt" count="0"/>
         <line num="1318" type="stmt" count="0"/>
         <line num="1319" type="stmt" count="0"/>
         <line num="1320" type="stmt" count="0"/>
+        <line num="1321" type="stmt" count="0"/>
         <line num="1322" type="stmt" count="0"/>
-        <line num="1325" type="stmt" count="4"/>
-        <line num="1338" type="stmt" count="4"/>
-        <line num="1339" type="stmt" count="4"/>
-        <line num="1340" type="stmt" count="2"/>
-        <line num="1341" type="stmt" count="2"/>
+        <line num="1323" type="stmt" count="0"/>
+        <line num="1324" type="stmt" count="0"/>
+        <line num="1325" type="stmt" count="0"/>
+        <line num="1326" type="stmt" count="0"/>
+        <line num="1328" type="stmt" count="0"/>
+        <line num="1331" type="stmt" count="4"/>
         <line num="1344" type="stmt" count="4"/>
-        <line num="1346" type="stmt" count="4"/>
-        <line num="1347" type="stmt" count="4"/>
-        <line num="1353" type="method" name="deleteBundle" visibility="public" complexity="4" crap="4" count="4"/>
-        <line num="1355" type="stmt" count="4"/>
-        <line num="1356" type="stmt" count="4"/>
-        <line num="1357" type="stmt" count="4"/>
-        <line num="1359" type="stmt" count="4"/>
-        <line num="1360" type="stmt" count="1"/>
-        <line num="1363" type="stmt" count="3"/>
-        <line num="1365" type="stmt" count="3"/>
-        <line num="1366" type="stmt" count="3"/>
-        <line num="1368" type="stmt" count="3"/>
+        <line num="1345" type="stmt" count="4"/>
+        <line num="1346" type="stmt" count="2"/>
+        <line num="1347" type="stmt" count="2"/>
+        <line num="1350" type="stmt" count="4"/>
+        <line num="1352" type="stmt" count="4"/>
+        <line num="1353" type="stmt" count="4"/>
+        <line num="1359" type="method" name="deleteBundle" visibility="public" complexity="4" crap="4" count="4"/>
+        <line num="1361" type="stmt" count="4"/>
+        <line num="1362" type="stmt" count="4"/>
+        <line num="1363" type="stmt" count="4"/>
+        <line num="1365" type="stmt" count="4"/>
+        <line num="1366" type="stmt" count="1"/>
         <line num="1369" type="stmt" count="3"/>
-        <line num="1370" type="stmt" count="3"/>
+        <line num="1371" type="stmt" count="3"/>
         <line num="1372" type="stmt" count="3"/>
         <line num="1374" type="stmt" count="3"/>
-        <line num="1375" type="stmt" count="1"/>
+        <line num="1375" type="stmt" count="3"/>
+        <line num="1376" type="stmt" count="3"/>
         <line num="1378" type="stmt" count="3"/>
-        <line num="1379" type="stmt" count="3"/>
-        <metrics loc="1382" ncloc="1146" classes="1" methods="29" coveredmethods="14" conditionals="0" coveredconditionals="0" statements="690" coveredstatements="549" elements="719" coveredelements="563"/>
+        <line num="1380" type="stmt" count="3"/>
+        <line num="1381" type="stmt" count="1"/>
+        <line num="1384" type="stmt" count="3"/>
+        <line num="1385" type="stmt" count="3"/>
+        <metrics loc="1388" ncloc="1145" classes="1" methods="29" coveredmethods="14" conditionals="0" coveredconditionals="0" statements="689" coveredstatements="548" elements="718" coveredelements="562"/>
       </file>
       <file name="/home/runner/work/omxfc-vereinswebseite/omxfc-vereinswebseite/app/Http/Controllers/RpgCharEditorController.php">
         <class name="App\Http\Controllers\RpgCharEditorController" namespace="App\Http\Controllers">
@@ -6569,8 +6568,8 @@
         <class name="App\Models\Review" namespace="App\Models">
           <metrics complexity="35" methods="8" coveredmethods="3" conditionals="0" coveredconditionals="0" statements="82" coveredstatements="44" elements="90" coveredelements="47"/>
         </class>
-        <line num="47" type="method" name="book" visibility="public" complexity="1" crap="1" count="21"/>
-        <line num="49" type="stmt" count="21"/>
+        <line num="47" type="method" name="book" visibility="public" complexity="1" crap="1" count="25"/>
+        <line num="49" type="stmt" count="25"/>
         <line num="55" type="method" name="user" visibility="public" complexity="1" crap="1" count="6"/>
         <line num="57" type="stmt" count="6"/>
         <line num="63" type="method" name="comments" visibility="public" complexity="1" crap="1" count="60"/>
@@ -7815,6 +7814,6 @@
         <metrics loc="25" ncloc="19" classes="1" methods="2" coveredmethods="2" conditionals="0" coveredconditionals="0" statements="2" coveredstatements="2" elements="4" coveredelements="4"/>
       </file>
     </package>
-    <metrics files="148" loc="15227" ncloc="13245" classes="141" methods="547" coveredmethods="358" conditionals="0" coveredconditionals="0" statements="6331" coveredstatements="5432" elements="6878" coveredelements="5790"/>
+    <metrics files="148" loc="15233" ncloc="13244" classes="141" methods="547" coveredmethods="358" conditionals="0" coveredconditionals="0" statements="6330" coveredstatements="5431" elements="6877" coveredelements="5789"/>
   </project>
 </coverage>
