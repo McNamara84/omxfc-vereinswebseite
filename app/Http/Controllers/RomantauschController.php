@@ -1144,12 +1144,18 @@ class RomantauschController extends Controller
         //
         // Aktuell ist das Risiko akzeptabel: Activity-Logs sind informativ,
         // keine kritische Geschäftslogik hängt von der subject_id-Referenz ab.
+        //
+        // HINWEIS: bundle_id und offer_count werden nicht im Activity-Log gespeichert,
+        // da die activities-Tabelle keine properties-Spalte hat.
+        // Die bundle_id kann über das referenzierte BookOffer abgerufen werden:
+        //   $activity->subject?->bundle_id
+        // ACHTUNG: Null-Check mit ?-> ist erforderlich, da subject null sein kann,
+        // wenn das erste Angebot des Bundles gelöscht wurde (orphaned record).
         Activity::create([
             'user_id' => Auth::id(),
             'subject_type' => BookOffer::class,
             'subject_id' => $offers[0]->id,
             'action' => 'bundle_created',
-            'properties' => ['bundle_id' => $bundleId, 'offer_count' => count($offers)],
         ]);
 
         return redirect()->route('romantausch.index')

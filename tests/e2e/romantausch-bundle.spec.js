@@ -130,6 +130,12 @@ test.describe('Romantauschbörse - Stapel-Angebote', () => {
 
             // Sollte zur Übersicht weiterleiten
             await expect(page).toHaveURL(/romantauschboerse$/);
+
+            // WICHTIG: Erfolgsmeldung prüfen - dieser Check hätte den Bug mit dem
+            // fehlenden 'properties'-Feld in Activity::create() gefangen, da bei
+            // einem DB-Fehler keine Erfolgsmeldung angezeigt wird.
+            const successMessage = page.locator('[data-testid="flash-success"], .bg-green-100, [role="alert"]').filter({ hasText: /Stapel-Angebot.*erstellt/i });
+            await expect(successMessage).toBeVisible();
         });
     });
 
