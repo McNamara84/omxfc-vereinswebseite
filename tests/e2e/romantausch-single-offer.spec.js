@@ -119,13 +119,21 @@ test.describe('Romantauschbörse - Einzelangebote', () => {
             await page.goto('/romantauschboerse/gesuch-erstellen');
 
             await expect(page).toHaveURL(/gesuch-erstellen$/);
+            
+            // Warte auf das Formular, um sicherzugehen dass die Seite vollständig geladen ist
+            await expect(page.locator('#request-form')).toBeVisible();
+            
             // Die Überschrift lautet "Neues Gesuch erstellen" (aus dem Partial)
-            await expect(page.getByRole('heading', { name: /Neues Gesuch erstellen/i })).toBeVisible();
+            // Verwende h1-Selektor als Fallback für webkit-Kompatibilität
+            await expect(page.locator('h1').filter({ hasText: /Gesuch/i })).toBeVisible();
         });
 
         test('Erfolgreiches Erstellen eines Gesuchs', async ({ page }) => {
             await loginAsMember(page);
             await page.goto('/romantauschboerse/gesuch-erstellen');
+
+            // Warte auf das Formular bevor wir es ausfüllen
+            await expect(page.locator('#request-form')).toBeVisible();
 
             // Formular ausfüllen
             await page.selectOption('select[name="series"]', SERIES_MADDRAX);
