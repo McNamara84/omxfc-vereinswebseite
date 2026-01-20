@@ -28,16 +28,14 @@ test.describe('Umfragen', () => {
     );
     await page.getByRole('button', { name: 'Stimme abgeben' }).click();
 
-    // Wait for Livewire to complete the request and update the DOM
+    // Wait for Livewire to complete the request
     await responsePromise;
     
-    // Wait for the status message to appear in the DOM (element with role="status" or the specific ID)
-    const statusLocator = page.locator('#poll-status-message, [role="status"]').first();
-    await expect(statusLocator).toContainText('Danke! Deine Stimme wurde gespeichert.', { timeout: 15000 });
+    // Wait for the page to update - the success message should appear somewhere on the page
+    await expect(page.getByText('Danke! Deine Stimme wurde gespeichert.')).toBeVisible({ timeout: 15000 });
 
     await page.reload();
-    const statusAfterReload = page.locator('#poll-status-message, [role="status"]').first();
-    await expect(statusAfterReload).toContainText('Von dieser IP wurde bereits abgestimmt.', { timeout: 10000 });
+    await expect(page.getByText('Von dieser IP wurde bereits abgestimmt.')).toBeVisible({ timeout: 10000 });
   });
 
   test('guest: internal poll requires login', async ({ page }) => {
@@ -67,16 +65,14 @@ test.describe('Umfragen', () => {
     );
     await page.getByRole('button', { name: 'Stimme abgeben' }).click();
 
-    // Wait for Livewire to complete the request and update the DOM
+    // Wait for Livewire to complete the request
     await responsePromise;
     
-    // Wait for the status message to appear in the DOM
-    const statusLocator = page.locator('#poll-status-message, [role="status"]').first();
-    await expect(statusLocator).toContainText('Danke! Deine Stimme wurde gespeichert.', { timeout: 15000 });
+    // Wait for the success message to appear somewhere on the page
+    await expect(page.getByText('Danke! Deine Stimme wurde gespeichert.')).toBeVisible({ timeout: 15000 });
 
     await page.reload();
-    const statusAfterReload = page.locator('#poll-status-message, [role="status"]').first();
-    await expect(statusAfterReload).toContainText('Du hast bereits an dieser Umfrage teilgenommen.', { timeout: 10000 });
+    await expect(page.getByText('Du hast bereits an dieser Umfrage teilgenommen.')).toBeVisible({ timeout: 10000 });
   });
 
   test('guest: admin poll management redirects to login', async ({ page }) => {

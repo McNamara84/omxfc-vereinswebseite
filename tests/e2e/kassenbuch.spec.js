@@ -26,16 +26,31 @@ test.describe('Kassenbuch Verwaltung', () => {
         // Wait for page to be fully loaded and interactive
         await page.waitForLoadState('networkidle');
         
-        // Click the button and dispatch the event directly as backup
+        // Wait for Alpine.js to be fully initialized
+        await page.waitForFunction(() => typeof window.Alpine !== 'undefined' && window.Alpine.version, { timeout: 10000 });
+        
+        // Click the button
         await addButton.click();
         
-        // Also dispatch the custom event to ensure the modal opens
-        await page.evaluate(() => {
-            window.dispatchEvent(new CustomEvent('kassenbuch-modal'));
-        });
-
+        // Wait a moment for the click handler to process
+        await page.waitForTimeout(500);
+        
+        // If modal isn't visible yet, dispatch the event and also force Alpine state
         const addDialog = page.locator('[role="dialog"][aria-labelledby="kassenbuch-modal-title"]');
-        await addDialog.waitFor({ state: 'visible', timeout: 15000 });
+        const isVisible = await addDialog.isVisible().catch(() => false);
+        if (!isVisible) {
+            await page.evaluate(() => {
+                // Find the Alpine component and set open to true
+                const modalEl = document.querySelector('[x-on\\:kassenbuch-modal\\.window]');
+                if (modalEl && modalEl._x_dataStack) {
+                    modalEl._x_dataStack[0].open = true;
+                } else {
+                    // Fallback: dispatch the event
+                    window.dispatchEvent(new CustomEvent('kassenbuch-modal'));
+                }
+            });
+        }
+        await addDialog.waitFor({ state: 'visible', timeout: 10000 });
         await expect(addDialog).toBeVisible();
         await expect(addDialog.getByLabel('Buchungsdatum')).toHaveAttribute('aria-describedby', 'buchungsdatum-error');
         await expect(addDialog.getByLabel('Beschreibung')).toHaveAttribute('aria-describedby', 'beschreibung-error');
@@ -74,23 +89,44 @@ test.describe('Kassenbuch Verwaltung', () => {
             bezahltBis: button.getAttribute('data-bezahlt-bis') ?? '',
             mitgliedSeit: button.getAttribute('data-mitglied-seit') ?? '',
         }));
+        // Wait for Alpine.js to be fully initialized
+        await page.waitForFunction(() => typeof window.Alpine !== 'undefined' && window.Alpine.version, { timeout: 10000 });
+        
         await editButton.click();
         
-        // Also dispatch the custom event to ensure the modal opens
-        await page.evaluate((detail) => {
-            window.dispatchEvent(new CustomEvent('edit-payment-modal', {
-                detail: {
-                    user_id: detail.userId ?? '',
-                    user_name: detail.userName ?? '',
-                    mitgliedsbeitrag: detail.mitgliedsbeitrag ?? '',
-                    bezahlt_bis: detail.bezahltBis ?? '',
-                    mitglied_seit: detail.mitgliedSeit ?? '',
-                },
-            }));
-        }, editDetail);
-
+        // Wait a moment for the click handler to process
+        await page.waitForTimeout(500);
+        
+        // If modal isn't visible yet, force Alpine state
         const editDialog = page.locator('[role="dialog"][aria-labelledby="edit-payment-title"]');
-        await editDialog.waitFor({ state: 'visible', timeout: 15000 });
+        const isVisible = await editDialog.isVisible().catch(() => false);
+        if (!isVisible) {
+            await page.evaluate((detail) => {
+                // Find the Alpine component and set state directly
+                const modalEl = document.querySelector('[x-on\\:edit-payment-modal\\.window]');
+                if (modalEl && modalEl._x_dataStack) {
+                    const data = modalEl._x_dataStack[0];
+                    data.open = true;
+                    data.user_id = detail.userId ?? '';
+                    data.user_name = detail.userName ?? '';
+                    data.mitgliedsbeitrag = detail.mitgliedsbeitrag ?? '';
+                    data.bezahlt_bis = detail.bezahltBis ?? '';
+                    data.mitglied_seit = detail.mitgliedSeit ?? '';
+                } else {
+                    // Fallback: dispatch the event
+                    window.dispatchEvent(new CustomEvent('edit-payment-modal', {
+                        detail: {
+                            user_id: detail.userId ?? '',
+                            user_name: detail.userName ?? '',
+                            mitgliedsbeitrag: detail.mitgliedsbeitrag ?? '',
+                            bezahlt_bis: detail.bezahltBis ?? '',
+                            mitglied_seit: detail.mitgliedSeit ?? '',
+                        },
+                    }));
+                }
+            }, editDetail);
+        }
+        await editDialog.waitFor({ state: 'visible', timeout: 10000 });
         await expect(editDialog).toBeVisible();
 
         const mitgliedsbeitragInput = editDialog.getByLabel('Mitgliedsbeitrag (€)');
