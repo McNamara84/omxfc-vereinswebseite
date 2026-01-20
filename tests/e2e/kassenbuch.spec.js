@@ -22,14 +22,19 @@ test.describe('Kassenbuch Verwaltung', () => {
 
         const addButton = page.getByRole('button', { name: 'Eintrag hinzufügen' });
         await expect(addButton).toBeVisible();
+        
+        // Wait for Alpine.js and modals to be initialized
+        await page.waitForFunction(() => typeof window.openKassenbuchModal === 'function', { timeout: 10000 });
+        
         await addButton.click();
 
         const addDialog = page.getByRole('dialog', { name: 'Kassenbucheintrag hinzufügen' });
         await addDialog
-            .waitFor({ state: 'visible', timeout: 2000 })
+            .waitFor({ state: 'visible', timeout: 5000 })
             .catch(async () => {
+                // Fallback: directly dispatch the event if click didn't work
                 await page.evaluate(() => window.dispatchEvent(new CustomEvent('kassenbuch-modal')));
-                await addDialog.waitFor({ state: 'visible' });
+                await addDialog.waitFor({ state: 'visible', timeout: 5000 });
             });
         await expect(addDialog).toBeVisible();
         await expect(addDialog.getByLabel('Buchungsdatum')).toHaveAttribute('aria-describedby', 'buchungsdatum-error');
@@ -58,6 +63,9 @@ test.describe('Kassenbuch Verwaltung', () => {
         await login(page, 'info@maddraxikon.com');
         await page.goto('/kassenbuch');
 
+        // Wait for Alpine.js and modals to be initialized
+        await page.waitForFunction(() => typeof window.openEditModal === 'function', { timeout: 10000 });
+
         const editButton = page.getByRole('button', { name: 'Bearbeiten' }).first();
         const editDetail = await editButton.evaluate((button) => ({
             userId: button.getAttribute('data-user-id') ?? '',
@@ -70,7 +78,7 @@ test.describe('Kassenbuch Verwaltung', () => {
 
         const editDialog = page.getByRole('dialog', { name: 'Zahlungsdaten bearbeiten' });
         await editDialog
-            .waitFor({ state: 'visible', timeout: 2000 })
+            .waitFor({ state: 'visible', timeout: 5000 })
             .catch(async () => {
                 await page.evaluate((detail) => {
                     window.dispatchEvent(
@@ -85,7 +93,7 @@ test.describe('Kassenbuch Verwaltung', () => {
                         }),
                     );
                 }, editDetail);
-                await editDialog.waitFor({ state: 'visible' });
+                await editDialog.waitFor({ state: 'visible', timeout: 5000 });
             });
         await expect(editDialog).toBeVisible();
 

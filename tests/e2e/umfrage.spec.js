@@ -22,6 +22,8 @@ test.describe('Umfragen', () => {
     await page.getByRole('radio', { name: 'Option A' }).check();
     await page.getByRole('button', { name: 'Stimme abgeben' }).click();
 
+    // Wait for Livewire to complete the request and update the DOM
+    await page.waitForResponse((response) => response.url().includes('/livewire/update'));
     await expect(page.getByRole('status')).toContainText('Danke! Deine Stimme wurde gespeichert.');
 
     await page.reload();
@@ -49,6 +51,8 @@ test.describe('Umfragen', () => {
     await page.getByRole('radio', { name: 'Ja' }).check();
     await page.getByRole('button', { name: 'Stimme abgeben' }).click();
 
+    // Wait for Livewire to complete the request and update the DOM
+    await page.waitForResponse((response) => response.url().includes('/livewire/update'));
     await expect(page.getByRole('status')).toContainText('Danke! Deine Stimme wurde gespeichert.');
 
     await page.reload();

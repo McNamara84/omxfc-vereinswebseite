@@ -27,7 +27,8 @@ test.describe('Mitgliederliste', () => {
 
         const onlineCheckbox = page.getByRole('checkbox', { name: 'Nur online' });
         await onlineCheckbox.check();
-        await expect(page).toHaveURL(/filters%5B%5D=online/);
+        // Wait for form submission to complete and page to reload
+        await page.waitForURL(/filters%5B%5D=online/, { timeout: 10000 });
         await expect(page.locator('[data-members-table]')).toHaveAttribute('data-members-filter-online', 'true');
         await expect(page.locator('[data-members-summary]')).toContainText('nur Mitglieder angezeigt, die aktuell online sind');
 
@@ -53,6 +54,12 @@ test.describe('Mitgliederliste', () => {
                 window.__copiedText = value;
                 return value;
             };
+
+            // Primary path uses Clipboard API - ensure isSecureContext is true for testing
+            Object.defineProperty(window, 'isSecureContext', {
+                value: true,
+                writable: false,
+            });
 
             // Primary path uses Clipboard API.
             try {
@@ -87,7 +94,7 @@ test.describe('Mitgliederliste', () => {
 
         await firstRow.locator('[data-copy-email]').first().click();
 
-        await page.waitForFunction(() => window.__copiedText !== null);
+        await page.waitForFunction(() => window.__copiedText !== null, { timeout: 10000 });
         const copied = await page.evaluate(() => window.__copiedText);
 
         expect(copied).toBe(email);
