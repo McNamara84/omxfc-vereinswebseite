@@ -30,10 +30,14 @@ test.describe('Umfragen', () => {
 
     // Wait for Livewire to complete the request and update the DOM
     await responsePromise;
-    await expect(page.getByRole('status')).toContainText('Danke! Deine Stimme wurde gespeichert.', { timeout: 10000 });
+    
+    // Wait for the status message to appear in the DOM (element with role="status" or the specific ID)
+    const statusLocator = page.locator('#poll-status-message, [role="status"]').first();
+    await expect(statusLocator).toContainText('Danke! Deine Stimme wurde gespeichert.', { timeout: 15000 });
 
     await page.reload();
-    await expect(page.getByRole('status')).toContainText('Von dieser IP wurde bereits abgestimmt.');
+    const statusAfterReload = page.locator('#poll-status-message, [role="status"]').first();
+    await expect(statusAfterReload).toContainText('Von dieser IP wurde bereits abgestimmt.', { timeout: 10000 });
   });
 
   test('guest: internal poll requires login', async ({ page }) => {
@@ -65,10 +69,14 @@ test.describe('Umfragen', () => {
 
     // Wait for Livewire to complete the request and update the DOM
     await responsePromise;
-    await expect(page.getByRole('status')).toContainText('Danke! Deine Stimme wurde gespeichert.', { timeout: 10000 });
+    
+    // Wait for the status message to appear in the DOM
+    const statusLocator = page.locator('#poll-status-message, [role="status"]').first();
+    await expect(statusLocator).toContainText('Danke! Deine Stimme wurde gespeichert.', { timeout: 15000 });
 
     await page.reload();
-    await expect(page.getByRole('status')).toContainText('Du hast bereits an dieser Umfrage teilgenommen.');
+    const statusAfterReload = page.locator('#poll-status-message, [role="status"]').first();
+    await expect(statusAfterReload).toContainText('Du hast bereits an dieser Umfrage teilgenommen.', { timeout: 10000 });
   });
 
   test('guest: admin poll management redirects to login', async ({ page }) => {

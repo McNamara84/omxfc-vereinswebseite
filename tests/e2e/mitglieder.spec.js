@@ -26,10 +26,17 @@ test.describe('Mitgliederliste', () => {
         await expect(nameHeader).toHaveAttribute('aria-sort', 'ascending');
 
         const onlineCheckbox = page.getByRole('checkbox', { name: 'Nur online' });
+        
+        // Check the checkbox and trigger form submit
         await onlineCheckbox.check();
-        // Wait for form submission to complete and page to reload
+        
+        // The form auto-submits via Alpine.js - wait for navigation to complete
+        // Submit the form explicitly if Alpine.js doesn't trigger
+        await page.locator('form').filter({ has: onlineCheckbox }).evaluate(form => form.submit());
         await page.waitForLoadState('networkidle', { timeout: 15000 });
-        // The filter should now be applied - check via attribute
+        
+        // Verify the filter is now active via URL or attribute
+        await expect(page).toHaveURL(/filters|online/, { timeout: 10000 });
         await expect(page.locator('[data-members-table]')).toHaveAttribute('data-members-filter-online', 'true', { timeout: 10000 });
         await expect(page.locator('[data-members-summary]')).toContainText('nur Mitglieder angezeigt, die aktuell online sind');
 

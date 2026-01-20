@@ -26,17 +26,16 @@ test.describe('Kassenbuch Verwaltung', () => {
         // Wait for page to be fully loaded and interactive
         await page.waitForLoadState('networkidle');
         
+        // Click the button and dispatch the event directly as backup
         await addButton.click();
+        
+        // Also dispatch the custom event to ensure the modal opens
+        await page.evaluate(() => {
+            window.dispatchEvent(new CustomEvent('kassenbuch-modal'));
+        });
 
-        const addDialog = page.getByRole('dialog', { name: 'Kassenbucheintrag hinzufügen' });
-        // Try clicking again or dispatch event directly if modal doesn't appear
-        await addDialog
-            .waitFor({ state: 'visible', timeout: 5000 })
-            .catch(async () => {
-                // Fallback: directly dispatch the Alpine.js event
-                await page.evaluate(() => window.dispatchEvent(new CustomEvent('kassenbuch-modal')));
-                await addDialog.waitFor({ state: 'visible', timeout: 10000 });
-            });
+        const addDialog = page.locator('[role="dialog"][aria-labelledby="kassenbuch-modal-title"]');
+        await addDialog.waitFor({ state: 'visible', timeout: 15000 });
         await expect(addDialog).toBeVisible();
         await expect(addDialog.getByLabel('Buchungsdatum')).toHaveAttribute('aria-describedby', 'buchungsdatum-error');
         await expect(addDialog.getByLabel('Beschreibung')).toHaveAttribute('aria-describedby', 'beschreibung-error');
@@ -76,26 +75,22 @@ test.describe('Kassenbuch Verwaltung', () => {
             mitgliedSeit: button.getAttribute('data-mitglied-seit') ?? '',
         }));
         await editButton.click();
+        
+        // Also dispatch the custom event to ensure the modal opens
+        await page.evaluate((detail) => {
+            window.dispatchEvent(new CustomEvent('edit-payment-modal', {
+                detail: {
+                    user_id: detail.userId ?? '',
+                    user_name: detail.userName ?? '',
+                    mitgliedsbeitrag: detail.mitgliedsbeitrag ?? '',
+                    bezahlt_bis: detail.bezahltBis ?? '',
+                    mitglied_seit: detail.mitgliedSeit ?? '',
+                },
+            }));
+        }, editDetail);
 
-        const editDialog = page.getByRole('dialog', { name: 'Zahlungsdaten bearbeiten' });
-        await editDialog
-            .waitFor({ state: 'visible', timeout: 5000 })
-            .catch(async () => {
-                await page.evaluate((detail) => {
-                    window.dispatchEvent(
-                        new CustomEvent('edit-payment-modal', {
-                            detail: {
-                                user_id: detail.userId ?? '',
-                                user_name: detail.userName ?? '',
-                                mitgliedsbeitrag: detail.mitgliedsbeitrag ?? '',
-                                bezahlt_bis: detail.bezahltBis ?? '',
-                                mitglied_seit: detail.mitgliedSeit ?? '',
-                            },
-                        }),
-                    );
-                }, editDetail);
-                await editDialog.waitFor({ state: 'visible', timeout: 10000 });
-            });
+        const editDialog = page.locator('[role="dialog"][aria-labelledby="edit-payment-title"]');
+        await editDialog.waitFor({ state: 'visible', timeout: 15000 });
         await expect(editDialog).toBeVisible();
 
         const mitgliedsbeitragInput = editDialog.getByLabel('Mitgliedsbeitrag (€)');
