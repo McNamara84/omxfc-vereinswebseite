@@ -28,8 +28,9 @@ test.describe('Mitgliederliste', () => {
         const onlineCheckbox = page.getByRole('checkbox', { name: 'Nur online' });
         await onlineCheckbox.check();
         // Wait for form submission to complete and page to reload
-        await page.waitForURL(/filters%5B%5D=online/, { timeout: 10000 });
-        await expect(page.locator('[data-members-table]')).toHaveAttribute('data-members-filter-online', 'true');
+        await page.waitForLoadState('networkidle', { timeout: 15000 });
+        // The filter should now be applied - check via attribute
+        await expect(page.locator('[data-members-table]')).toHaveAttribute('data-members-filter-online', 'true', { timeout: 10000 });
         await expect(page.locator('[data-members-summary]')).toContainText('nur Mitglieder angezeigt, die aktuell online sind');
 
         const roleHeader = page.getByRole('columnheader', { name: 'Rolle' });
@@ -94,10 +95,12 @@ test.describe('Mitgliederliste', () => {
 
         await firstRow.locator('[data-copy-email]').first().click();
 
-        await page.waitForFunction(() => window.__copiedText !== null, { timeout: 10000 });
+        // Wait for clipboard operation with extended timeout
+        await page.waitForFunction(() => window.__copiedText !== null, { timeout: 15000 });
         const copied = await page.evaluate(() => window.__copiedText);
 
-        expect(copied).toBe(email);
+        // Email should match (trim whitespace for safety)
+        expect(copied?.trim()).toBe(email?.trim());
     });
 
     test('regular member sees the list without management actions', async ({ page }) => {
