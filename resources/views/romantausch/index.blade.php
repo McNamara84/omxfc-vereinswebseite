@@ -162,7 +162,7 @@
                                     <div class="flex-1 min-w-0">
                                         <div class="flex flex-wrap items-center gap-2">
                                             <span class="font-semibold text-gray-900 dark:text-gray-100">{{ $bundle->series }}</span>
-                                            <span class="text-sm text-gray-500 dark:text-gray-400">({{ $bundle->total_count }} Romane)</span>
+                                            <span class="text-sm text-gray-600 dark:text-gray-300">({{ $bundle->total_count }} Romane)</span>
                                         </div>
                                         <p class="text-sm text-gray-600 dark:text-gray-300 mt-1 truncate" title="{{ $bundle->book_numbers_display }}">
                                             Nummern: {{ Str::limit($bundle->book_numbers_display, 50) }}
@@ -415,7 +415,7 @@
                                             </a>
                                             <form method="POST" action="{{ route('romantausch.delete-offer', $offer) }}" class="inline">
                                                 @csrf
-                                                <button class="inline-flex items-center gap-2 rounded px-3 py-1.5 text-sm font-semibold text-red-600 dark:text-red-400 border border-transparent hover:border-red-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-red-500" onclick="return confirm('Möchtest du dieses Angebot wirklich löschen?')">
+                                                <button class="inline-flex items-center gap-2 rounded px-3 py-1.5 text-sm font-semibold text-red-700 dark:text-red-300 border border-transparent hover:border-red-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-red-500" onclick="return confirm('Möchtest du dieses Angebot wirklich löschen?')">
                                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                                                     </svg>
@@ -473,7 +473,7 @@
                                             </a>
                                             <form method="POST" action="{{ route('romantausch.delete-request', $request) }}" class="inline">
                                                 @csrf
-                                                <button class="inline-flex items-center gap-2 rounded px-3 py-1.5 text-sm font-semibold text-red-600 dark:text-red-400 border border-transparent hover:border-red-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-red-500" onclick="return confirm('Möchtest du dieses Gesuch wirklich löschen?')">
+                                                <button class="inline-flex items-center gap-2 rounded px-3 py-1.5 text-sm font-semibold text-red-700 dark:text-red-300 border border-transparent hover:border-red-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-red-500" onclick="return confirm('Möchtest du dieses Gesuch wirklich löschen?')">
                                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                                                     </svg>

@@ -57,20 +57,42 @@ test.describe('Mitgliederliste', () => {
         await page.addInitScript(() => {
             window.__copiedText = null;
 
-            // Fallback path in our implementation uses prompt - this is most reliable
-            const originalPrompt = window.prompt;
+            // Mock the clipboard API
+            if (!navigator.clipboard) {
+                Object.defineProperty(navigator, 'clipboard', {
+                    value: {},
+                    writable: true,
+                    configurable: true,
+                });
+            }
+            navigator.clipboard.writeText = async (text) => {
+                window.__copiedText = text;
+            };
+
+            // Fallback path uses prompt
             window.prompt = (_message, value) => {
                 window.__copiedText = value;
                 return value;
             };
-
-            // Force isSecureContext to false so the fallback (prompt) is used
-            // This is more reliable than trying to mock the clipboard API
-            Object.defineProperty(window, 'isSecureContext', {
-                value: false,
-                writable: false,
-                configurable: true,
-            });
+            
+            // DEBUG: Capture console errors
+            window.__consoleLogs = [];
+            const originalConsoleError = console.error;
+            console.error = (...args) => {
+                window.__consoleLogs.push(['error', ...args].join(' '));
+                originalConsoleError.apply(console, args);
+            };
+        });
+        
+        // DEBUG: Listen for page errors
+        page.on('pageerror', (error) => {
+            console.log('[DEBUG] Page error:', error.message);
+        });
+        
+        page.on('console', (msg) => {
+            if (msg.type() === 'error') {
+                console.log('[DEBUG] Console error:', msg.text());
+            }
         });
 
         await login(page, 'info@maddraxikon.com');
@@ -89,10 +111,45 @@ test.describe('Mitgliederliste', () => {
         expect(email).toBeTruthy();
         expect(email).toContain('@');
 
-        await firstRow.locator('[data-copy-email]').first().click();
+        // DEBUG: Check Alpine status before copy
+        const alpineStatus = await page.evaluate(() => {
+            return {
+                alpineExists: typeof window.Alpine !== 'undefined',
+                alpineStarted: window.Alpine?._x_dataStack !== undefined,
+                alpineVersion: window.Alpine?.version ?? 'unknown',
+            };
+        });
+        console.log('[DEBUG] Alpine status before copy:', JSON.stringify(alpineStatus));
+        
+        const copyButton = firstRow.locator('[data-copy-email]').first();
+        
+        // DEBUG: Check button attributes
+        const buttonInfo = await copyButton.evaluate((btn) => ({
+            hasAlpineClick: btn.getAttribute('@click') ?? btn.getAttribute('x-on:click'),
+            onclick: btn.getAttribute('onclick'),
+            outerHTML: btn.outerHTML,
+        }));
+        console.log('[DEBUG] Copy button info:', JSON.stringify(buttonInfo));
+        
+        await copyButton.click();
+        
+        // DEBUG: Check __copiedText immediately after click
+        await page.waitForTimeout(500);
+        const copiedImmediate = await page.evaluate(() => window.__copiedText);
+        console.log('[DEBUG] __copiedText after click:', copiedImmediate);
 
         // Wait for clipboard operation with extended timeout
-        await page.waitForFunction(() => window.__copiedText !== null, { timeout: 15000 });
+        await page.waitForFunction(() => window.__copiedText !== null, { timeout: 15000 }).catch(async (err) => {
+            await page.screenshot({ path: 'test-results/mitglieder-copy-email-debug.png', fullPage: true });
+            console.log('[DEBUG] Screenshot saved to test-results/mitglieder-copy-email-debug.png');
+            
+            // DEBUG: Check console errors
+            const consoleLogs = await page.evaluate(() => {
+                return window.__consoleLogs ?? 'No logs captured';
+            });
+            console.log('[DEBUG] Console logs:', consoleLogs);
+            throw err;
+        });
         const copied = await page.evaluate(() => window.__copiedText);
 
         // Email should match (trim whitespace for safety)

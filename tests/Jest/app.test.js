@@ -6,10 +6,12 @@ import { jest } from '@jest/globals';
 
 const originalMatchMedia = window.matchMedia;
 const originalL = window.L;
+const originalAlpine = window.Alpine;
 
 afterEach(() => {
   window.matchMedia = originalMatchMedia;
   window.L = originalL;
+  window.Alpine = originalAlpine;
 });
 
 async function loadApp(matches) {
@@ -17,6 +19,7 @@ async function loadApp(matches) {
   document.documentElement.className = '';
   document.documentElement.dataset.theme = '';
   delete window.L;
+  delete window.Alpine;
   delete window.__omxfcPrefersDark;
   delete window.__omxfcApplySystemTheme;
   delete window.__omxfcApplyStoredTheme;
@@ -35,6 +38,17 @@ async function loadApp(matches) {
   await jest.unstable_mockModule('../../resources/js/chronik.js', () => ({}));
   await jest.unstable_mockModule('../../resources/js/char-editor.js', () => ({}));
   await jest.unstable_mockModule('leaflet', () => ({ default: {} }));
+  
+  // Mock Alpine.js and its focus plugin
+  const mockAlpine = {
+    plugin: jest.fn(),
+    start: jest.fn(),
+    _x_dataStack: undefined,
+    version: '3.15.4',
+  };
+  await jest.unstable_mockModule('alpinejs', () => ({ default: mockAlpine }));
+  await jest.unstable_mockModule('@alpinejs/focus', () => ({ default: {} }));
+  
   await import('../../resources/js/app.js');
   return handler;
 }

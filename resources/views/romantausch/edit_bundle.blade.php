@@ -40,6 +40,19 @@
                     </div>
                 @endif
 
+                {{--
+                    Bundle Preview Konfiguration
+                    
+                    MAX_RANGE_SPAN und COMPACT_THRESHOLD werden von bundlePreview() benötigt.
+                    Der initiale Input-Wert wird per x-init direkt aus dem DOM gelesen.
+                    
+                    @see resources/js/romantausch-bundle-preview.js für die bundlePreview() Funktion
+                --}}
+                <script>
+                    window.MAX_RANGE_SPAN = {{ App\Http\Controllers\RomantauschController::MAX_RANGE_SPAN }};
+                    window.COMPACT_THRESHOLD = {{ config('romantausch.compact_threshold', 20) }};
+                </script>
+
                 <div class="grid gap-6 md:grid-cols-2">
                     <div class="md:col-span-1 space-y-4">
                         {{-- Roman-Nummern --}}
@@ -50,6 +63,7 @@
                                 name="book_numbers"
                                 id="book-numbers-input"
                                 x-model="input"
+                                x-init="input = $el.getAttribute('value') || input; parseNumbers()"
                                 @input.debounce.300ms="parseNumbers()"
                                 placeholder="z.B. 1-50, 52, 55-100"
                                 value="{{ $bookNumbersInput }}"
@@ -193,23 +207,5 @@
         </div>
     </x-member-page>
 </x-app-layout>
-
-@push('scripts')
-{{--
-    Bundle Preview Initialisierung
-    
-    Die Werte werden hier definiert, da sie aus PHP-Variablen kommen.
-    Die eigentliche Logik ist in resources/js/romantausch-bundle-preview.js ausgelagert.
-    
-    @see resources/js/romantausch-bundle-preview.js für die bundlePreview() Funktion
-    @see App\Http\Controllers\RomantauschController::MAX_RANGE_SPAN für das Bereichs-Limit
-    @see config/romantausch.php für compact_threshold
---}}
-<script>
-    window.MAX_RANGE_SPAN = {{ App\Http\Controllers\RomantauschController::MAX_RANGE_SPAN }};
-    window.COMPACT_THRESHOLD = {{ config('romantausch.compact_threshold', 20) }};
-    window.bundlePreviewInitialInput = {{ Js::from($bookNumbersInput) }};
-</script>
-@endpush
 
 @vite(['resources/js/romantausch-bundle-preview.js'])
