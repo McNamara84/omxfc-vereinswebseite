@@ -49,7 +49,7 @@ class DashboardTest extends TestCase
             'Matches in Tauschbörse',
             'Angebote in der Tauschbörse',
             'Meine Rezensionen',
-            'Meine Kommentare',
+            'Fanfiction',
         ];
 
         $crawler = new Crawler($response->getContent());

@@ -30,63 +30,149 @@
                             </p>
                         </div>
                     @else
-                        <div class="space-y-6">
+                        <div class="space-y-8" data-fanfiction-list>
                             @foreach ($fanfictions as $fanfiction)
-                                <a href="{{ route('fanfiction.show', $fanfiction) }}"
-                                    class="block bg-gray-50 dark:bg-gray-700/50 rounded-lg p-6 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-                                    <div class="flex flex-col md:flex-row md:items-start gap-4">
-                                        @if ($fanfiction->photos && count($fanfiction->photos) > 0)
-                                            <div class="flex-shrink-0">
-                                                <img src="{{ Storage::url($fanfiction->photos[0]) }}"
-                                                    alt="{{ $fanfiction->title }}"
-                                                    class="w-full md:w-32 h-32 object-cover rounded-lg">
-                                            </div>
-                                        @endif
-                                        <div class="flex-grow">
-                                            <h3
-                                                class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1 group-hover:text-indigo-600 dark:group-hover:text-indigo-400">
-                                                {{ $fanfiction->title }}
+                                <article
+                                    class="bg-gray-50 dark:bg-gray-700/50 rounded-lg overflow-hidden"
+                                    x-data="{ expanded: false }"
+                                    data-fanfiction-item
+                                >
+                                    <div class="p-6">
+                                        {{-- Header mit Titel und Autor --}}
+                                        <header class="mb-4">
+                                            <h3 class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-1">
+                                                <a href="{{ route('fanfiction.show', $fanfiction) }}" class="hover:text-indigo-600 dark:hover:text-indigo-400">
+                                                    {{ $fanfiction->title }}
+                                                </a>
                                             </h3>
-                                            <p class="text-sm text-gray-500 dark:text-gray-400 mb-2">
-                                                von {{ $fanfiction->author_display_name }}
+                                            <p class="text-sm text-gray-500 dark:text-gray-400">
+                                                von <span class="font-medium">{{ $fanfiction->author_display_name }}</span>
                                                 @if ($fanfiction->published_at)
                                                     • {{ $fanfiction->published_at->format('d.m.Y') }}
                                                 @endif
                                             </p>
-                                            <div class="text-gray-600 dark:text-gray-300 text-sm line-clamp-3">
-                                                {{ $fanfiction->teaser }}
+                                        </header>
+
+                                        {{-- Story-Inhalt --}}
+                                        <div class="prose dark:prose-invert max-w-none">
+                                            {{-- Teaser (immer sichtbar wenn zugeklappt) --}}
+                                            <div x-show="!expanded" data-fanfiction-teaser>
+                                                <p class="text-gray-600 dark:text-gray-300">{{ $fanfiction->teaser }}</p>
                                             </div>
-                                            <div class="mt-3 flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
-                                                <span class="flex items-center gap-1">
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor"
-                                                        viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                                            stroke-width="2"
+
+                                            {{-- Vollständiger Inhalt (nur wenn aufgeklappt) --}}
+                                            <div x-show="expanded" x-cloak data-fanfiction-content>
+                                                {!! $fanfiction->rendered_content !!}
+                                            </div>
+                                        </div>
+
+                                        {{-- Bilder-Galerie (nur wenn aufgeklappt und Bilder vorhanden) --}}
+                                        @if ($fanfiction->photos && count($fanfiction->photos) > 0)
+                                            <div x-show="expanded" x-cloak class="mt-6" data-fanfiction-gallery>
+                                                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                                    @foreach ($fanfiction->photos as $index => $photo)
+                                                        <a href="{{ Storage::url($photo) }}" target="_blank"
+                                                            class="block aspect-square overflow-hidden rounded-lg hover:opacity-90 transition-opacity">
+                                                            <img src="{{ Storage::url($photo) }}"
+                                                                alt="{{ $fanfiction->title }} - Bild {{ $index + 1 }}"
+                                                                class="w-full h-full object-cover">
+                                                        </a>
+                                                    @endforeach
+                                                </div>
+                                            </div>
+                                        @endif
+
+                                        {{-- Auf-/Zuklappen Button --}}
+                                        <div class="mt-4 flex items-center justify-between">
+                                            <button
+                                                @click="expanded = !expanded"
+                                                class="inline-flex items-center gap-2 text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 transition-colors"
+                                                data-fanfiction-toggle
+                                            >
+                                                <template x-if="!expanded">
+                                                    <span class="flex items-center gap-1">
+                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                                        </svg>
+                                                        Geschichte aufklappen
+                                                    </span>
+                                                </template>
+                                                <template x-if="expanded">
+                                                    <span class="flex items-center gap-1">
+                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+                                                        </svg>
+                                                        Geschichte zuklappen
+                                                    </span>
+                                                </template>
+                                            </button>
+
+                                            <div class="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
+                                                <span class="flex items-center gap-1" data-comment-count>
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                             d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                                                     </svg>
                                                     {{ $fanfiction->comments_count ?? $fanfiction->comments->count() }}
-                                                    {{ Str::plural('Kommentar', $fanfiction->comments_count ?? $fanfiction->comments->count()) }}
                                                 </span>
                                                 @if ($fanfiction->photos && count($fanfiction->photos) > 0)
                                                     <span class="flex items-center gap-1">
-                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor"
-                                                            viewBox="0 0 24 24">
-                                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                                stroke-width="2"
+                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                                 d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                                         </svg>
                                                         {{ count($fanfiction->photos) }}
-                                                        {{ Str::plural('Bild', count($fanfiction->photos)) }}
                                                     </span>
                                                 @endif
                                             </div>
                                         </div>
                                     </div>
-                                </a>
+
+                                    {{-- Kommentarbereich (immer sichtbar, unterhalb der Geschichte) --}}
+                                    <div class="border-t border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 p-6" data-fanfiction-comments>
+                                        <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+                                            Kommentare ({{ $fanfiction->comments->count() }})
+                                        </h4>
+
+                                        @if ($fanfiction->comments->isEmpty())
+                                            <p class="text-sm text-gray-500 dark:text-gray-400">
+                                                Noch keine Kommentare.
+                                                <a href="{{ route('fanfiction.show', $fanfiction) }}" class="text-indigo-600 dark:text-indigo-400 hover:underline">
+                                                    Sei der Erste!
+                                                </a>
+                                            </p>
+                                        @else
+                                            <div class="space-y-3">
+                                                @foreach ($fanfiction->comments->take(3) as $comment)
+                                                    <div class="flex items-start gap-3 text-sm">
+                                                        <div class="flex-shrink-0 w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center text-white text-xs font-medium">
+                                                            {{ $comment->user ? substr($comment->user->name, 0, 1) : '?' }}
+                                                        </div>
+                                                        <div class="flex-grow min-w-0">
+                                                            <p class="font-medium text-gray-900 dark:text-gray-100">
+                                                                {{ $comment->user?->name ?? 'Unbekannt' }}
+                                                                <span class="font-normal text-gray-500 dark:text-gray-400">
+                                                                    • {{ $comment->created_at->diffForHumans() }}
+                                                                </span>
+                                                            </p>
+                                                            <p class="text-gray-600 dark:text-gray-300 truncate">{{ $comment->content }}</p>
+                                                        </div>
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                            @if ($fanfiction->comments->count() > 3)
+                                                <a href="{{ route('fanfiction.show', $fanfiction) }}"
+                                                    class="mt-3 inline-block text-sm text-indigo-600 dark:text-indigo-400 hover:underline">
+                                                    Alle {{ $fanfiction->comments->count() }} Kommentare anzeigen →
+                                                </a>
+                                            @endif
+                                        @endif
+                                    </div>
+                                </article>
                             @endforeach
                         </div>
 
-                        <div class="mt-6">
+                        <div class="mt-8">
                             {{ $fanfictions->links() }}
                         </div>
                     @endif
@@ -95,3 +181,4 @@
         </div>
     </div>
 </x-app-layout>
+                

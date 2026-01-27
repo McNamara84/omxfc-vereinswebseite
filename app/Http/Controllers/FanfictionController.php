@@ -71,7 +71,7 @@ class FanfictionController extends Controller
             abort(403);
         }
 
-        $query = Fanfiction::with(['author', 'comments'])
+        $query = Fanfiction::with(['author', 'comments.user'])
             ->published()
             ->forTeam($this->memberTeam()->id);
 
