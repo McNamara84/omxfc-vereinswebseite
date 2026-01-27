@@ -4,10 +4,6 @@
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
-// Globale Tracking-Variablen für den Mock
-let chartMockCalls = [];
-let destroyMockFn = vi.fn();
-
 vi.mock('chart.js', () => {
     // Klasse wird hier innerhalb der Factory definiert
     class MockChart {
@@ -242,9 +238,6 @@ describe('polls/charts.js - updateCharts Guards', () => {
         setupChartDOM();
 
         await import('@/polls/charts.js');
-
-        // Merke destroy count vor dem ersten Event
-        const destroyCountBefore = globalThis.__destroyCallCount;
 
         // Erstes Update mit gültigen Daten und Stimmen
         const firstEvent = new CustomEvent('poll-results-updated', {

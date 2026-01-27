@@ -255,6 +255,10 @@ const init = () => {
     const initial = readInitialChartData();
     if (initial) {
         updateCharts(initial);
+    } else {
+        // Cleanup: Bei Navigation auf Seiten ohne Poll-Charts
+        // bestehende Chart-Instanzen zerstören um orphaned Instanzen zu vermeiden
+        destroyAllCharts();
     }
 };
 
