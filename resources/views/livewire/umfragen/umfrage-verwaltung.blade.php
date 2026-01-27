@@ -159,7 +159,7 @@
 
             <div class="hidden" aria-hidden="true" data-omxfc-poll-chart-data='@json($chartData)'></div>
 
-            @if (empty($chartData))
+            @if (empty($chartData['options']['labels'] ?? []))
                 <div class="mt-6 text-gray-600 dark:text-gray-400">Noch keine Umfrage ausgewählt.</div>
             @else
                 <div class="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
