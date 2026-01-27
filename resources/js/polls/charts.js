@@ -97,7 +97,13 @@ const toLabelsAndSeries = (timeline = []) => {
 };
 
 const updateCharts = (data) => {
-    if (!data || !data.options) {
+    // Guard: Abbrechen wenn keine gültigen Daten vorhanden
+    if (!data || typeof data !== 'object') {
+        return;
+    }
+
+    // Guard: Abbrechen wenn keine Options oder leere Labels
+    if (!data.options || !Array.isArray(data.options.labels) || data.options.labels.length === 0) {
         return;
     }
 
