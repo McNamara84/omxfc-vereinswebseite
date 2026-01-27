@@ -190,6 +190,12 @@ const updateCharts = (data) => {
     const membersTotal = data.totals?.members ?? 0;
     const guestsTotal = data.totals?.guests ?? 0;
 
+    // Guard: Doughnut-Chart nicht erstellen wenn keine Stimmen vorhanden
+    // Chart.js hat Probleme mit leeren Doughnut-Charts (unendliches Wachstum)
+    if (membersTotal === 0 && guestsTotal === 0) {
+        return;
+    }
+
     chartStore.segment = new Chart(segmentCanvas.getContext('2d'), {
         type: 'doughnut',
         data: {

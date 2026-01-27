@@ -162,20 +162,26 @@
             @if (empty($chartData['options']['labels'] ?? []))
                 <div class="mt-6 text-gray-600 dark:text-gray-400">Noch keine Umfrage ausgewählt.</div>
             @else
-                <div class="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
-                    <div class="rounded-lg border border-gray-200 dark:border-gray-700 p-4" wire:ignore>
-                        <h3 class="font-semibold text-gray-900 dark:text-white">Stimmen je Antwort</h3>
-                        <canvas id="poll-options-chart" class="mt-3 h-64 w-full" aria-label="Balkendiagramm: Stimmen je Antwort" aria-describedby="poll-results-table" role="img"></canvas>
+                @php($totalVotes = (int) ($chartData['totals']['totalVotes'] ?? 0))
+
+                @if ($totalVotes > 0)
+                    <div class="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
+                        <div class="rounded-lg border border-gray-200 dark:border-gray-700 p-4" wire:ignore>
+                            <h3 class="font-semibold text-gray-900 dark:text-white">Stimmen je Antwort</h3>
+                            <canvas id="poll-options-chart" class="mt-3 h-64 w-full" aria-label="Balkendiagramm: Stimmen je Antwort" aria-describedby="poll-results-table" role="img"></canvas>
+                        </div>
+                        <div class="rounded-lg border border-gray-200 dark:border-gray-700 p-4" wire:ignore>
+                            <h3 class="font-semibold text-gray-900 dark:text-white">Zeitverlauf</h3>
+                            <canvas id="poll-timeline-chart" class="mt-3 h-64 w-full" aria-label="Liniendiagramm: Stimmen im Zeitverlauf" aria-describedby="poll-results-table" role="img"></canvas>
+                        </div>
+                        <div class="rounded-lg border border-gray-200 dark:border-gray-700 p-4" wire:ignore>
+                            <h3 class="font-semibold text-gray-900 dark:text-white">Segmentierung</h3>
+                            <canvas id="poll-segment-chart" class="mt-3 h-64 w-full" aria-label="Diagramm: Mitglieder vs Gäste" aria-describedby="poll-results-table" role="img"></canvas>
+                        </div>
                     </div>
-                    <div class="rounded-lg border border-gray-200 dark:border-gray-700 p-4" wire:ignore>
-                        <h3 class="font-semibold text-gray-900 dark:text-white">Zeitverlauf</h3>
-                        <canvas id="poll-timeline-chart" class="mt-3 h-64 w-full" aria-label="Liniendiagramm: Stimmen im Zeitverlauf" aria-describedby="poll-results-table" role="img"></canvas>
-                    </div>
-                    <div class="rounded-lg border border-gray-200 dark:border-gray-700 p-4" wire:ignore>
-                        <h3 class="font-semibold text-gray-900 dark:text-white">Segmentierung</h3>
-                        <canvas id="poll-segment-chart" class="mt-3 h-64 w-full" aria-label="Diagramm: Mitglieder vs Gäste" aria-describedby="poll-results-table" role="img"></canvas>
-                    </div>
-                </div>
+                @else
+                    <div class="mt-6 text-gray-600 dark:text-gray-400">Noch keine Stimmen abgegeben. Die Diagramme werden angezeigt, sobald die erste Stimme eingegangen ist.</div>
+                @endif
 
                 <div class="mt-8 overflow-x-auto">
                     <table id="poll-results-table" class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
@@ -190,7 +196,6 @@
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-                            @php($totalVotes = (int) ($chartData['totals']['totalVotes'] ?? 0))
                             @foreach (($chartData['options']['labels'] ?? []) as $i => $label)
                                 @php($votes = (int) (($chartData['options']['total'][$i] ?? 0)))
                                 @php($members = (int) (($chartData['options']['members'][$i] ?? 0)))
