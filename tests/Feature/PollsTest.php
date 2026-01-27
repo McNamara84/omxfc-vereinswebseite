@@ -272,4 +272,45 @@ class PollsTest extends TestCase
 
         $this->assertSame([], $component->get('chartData'));
     }
+
+    public function test_poll_with_options_but_no_votes_shows_hint_text_and_no_charts(): void
+    {
+        $admin = $this->createUserWithRole(Role::Admin);
+
+        // Poll mit Optionen aber ohne Stimmen erstellen
+        $poll = Poll::query()->create([
+            'question' => 'Umfrage ohne Stimmen?',
+            'menu_label' => 'Test ohne Votes',
+            'visibility' => PollVisibility::Public,
+            'status' => PollStatus::Draft,
+            'starts_at' => now()->subDay(),
+            'ends_at' => now()->addDay(),
+            'created_by_user_id' => $admin->id,
+        ]);
+
+        PollOption::query()->create([
+            'poll_id' => $poll->id,
+            'label' => 'Option A',
+            'sort_order' => 0,
+        ]);
+
+        PollOption::query()->create([
+            'poll_id' => $poll->id,
+            'label' => 'Option B',
+            'sort_order' => 1,
+        ]);
+
+        Livewire::actingAs($admin)
+            ->test(UmfrageVerwaltung::class)
+            ->call('selectPoll', $poll->id)
+            // Hinweistext sollte angezeigt werden
+            ->assertSee('Noch keine Stimmen abgegeben')
+            // Canvas-IDs sollten NICHT gerendert werden
+            ->assertDontSeeHtml('id="poll-options-chart"')
+            ->assertDontSeeHtml('id="poll-timeline-chart"')
+            ->assertDontSeeHtml('id="poll-segment-chart"')
+            // Tabelle sollte trotzdem angezeigt werden
+            ->assertSee('Option A')
+            ->assertSee('Option B');
+    }
 }
