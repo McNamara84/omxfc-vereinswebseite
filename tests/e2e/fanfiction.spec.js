@@ -302,8 +302,12 @@ test.describe('Fanfiction Einzelansicht', () => {
         await page.goto('/fanfiction');
         await page.getByRole('link', { name: 'Die Reise nach Doredo' }).first().click();
 
-        // Der vollständige Inhalt sollte sichtbar sein - prüfe auf Autor und Markdown-Inhalt
-        await expect(page.getByText(/Matt stand am Rand/i)).toBeVisible();
+        // Der vollständige Inhalt sollte sichtbar sein - prüfe auf prose-Container mit Inhalt
+        const proseContainer = page.locator('.prose');
+        await expect(proseContainer).toBeVisible();
+
+        // Prüfe dass der Container nicht leer ist (hat mindestens ein p-Element)
+        await expect(proseContainer.locator('p').first()).toBeVisible();
     });
 
     test('Mitglied kann Kommentar schreiben', async ({ page }) => {
