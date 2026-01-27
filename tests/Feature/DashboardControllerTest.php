@@ -6,10 +6,12 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 use App\Models\Team;
 use App\Models\User;
+use App\Models\Fanfiction;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\MitgliedGenehmigtMail;
 use App\Enums\TodoStatus;
+use App\Enums\FanfictionStatus;
 use App\Enums\Role;
 use App\Services\MembersTeamProvider;
 
@@ -436,5 +438,36 @@ class DashboardControllerTest extends TestCase
         $this->from('/dashboard')
             ->post(route('anwaerter.reject', $applicant))
             ->assertRedirect('/dashboard');
+    }
+
+    public function test_dashboard_shows_published_fanfiction_count(): void
+    {
+        $team = Team::membersTeam();
+        $member = User::factory()->create(['current_team_id' => $team->id]);
+        $team->users()->attach($member, ['role' => Role::Mitglied->value]);
+
+        // Erstelle 2 veröffentlichte Fanfictions
+        Fanfiction::factory()->count(2)->create([
+            'team_id' => $team->id,
+            'user_id' => $member->id,
+            'created_by' => $member->id,
+            'status' => FanfictionStatus::Published,
+            'published_at' => now(),
+        ]);
+
+        // Erstelle 1 Entwurf (sollte nicht gezählt werden)
+        Fanfiction::factory()->create([
+            'team_id' => $team->id,
+            'user_id' => $member->id,
+            'created_by' => $member->id,
+            'status' => FanfictionStatus::Draft,
+        ]);
+
+        $this->actingAs($member);
+        Cache::flush();
+        $response = $this->get('/dashboard');
+
+        $response->assertOk();
+        $response->assertViewHas('fanfictionCount', 2);
     }
 }

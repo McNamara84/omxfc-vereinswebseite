@@ -13,6 +13,7 @@ use App\Models\User;
 use App\Models\UserPoint;
 use App\Models\BookOffer;
 use App\Models\BookSwap;
+use App\Models\Fanfiction;
 use App\Services\MembersTeamProvider;
 use App\Services\UserRoleService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -68,6 +69,7 @@ class DashboardController extends Controller
         $myReviewComments = 0;
         $romantauschMatches = 0;
         $romantauschOffers = 0;
+        $fanfictionCount = 0;
 
         // Offene Aufgaben
         $openTodosByTeam = Cache::remember(
@@ -170,6 +172,15 @@ class DashboardController extends Controller
                 ->count()
         );
 
+        // Anzahl veröffentlichter Fanfiction-Storys
+        $fanfictionCount = Cache::remember(
+            "fanfiction_count_{$team->id}",
+            $cacheFor,
+            fn () => Fanfiction::where('team_id', $team->id)
+                ->published()
+                ->count()
+        );
+
         $activities = Activity::with(['user', 'subject'])
             ->latest()
             ->limit(10)
@@ -187,6 +198,7 @@ class DashboardController extends Controller
             'myReviewComments',
             'romantauschMatches',
             'romantauschOffers',
+            'fanfictionCount',
             'activities'
         ));
     }

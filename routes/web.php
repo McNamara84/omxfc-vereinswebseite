@@ -6,6 +6,9 @@ use App\Http\Controllers\ArbeitsgruppenController;
 use App\Http\Controllers\Auth\CustomEmailVerificationController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DownloadsController;
+use App\Http\Controllers\FanfictionAdminController;
+use App\Http\Controllers\FanfictionCommentController;
+use App\Http\Controllers\FanfictionController;
 use App\Http\Controllers\FantreffenController;
 use App\Http\Controllers\HoerbuchController;
 use App\Http\Controllers\KassenbuchController;
@@ -48,6 +51,9 @@ Route::get('/changelog', [PageController::class, 'changelog'])->name('changelog'
 Route::get('/mitglied-werden/erfolgreich', [PageController::class, 'mitgliedWerdenErfolgreich'])->name('mitglied.werden.erfolgreich');
 Route::get('/mitglied-werden/bestaetigt', [PageController::class, 'mitgliedWerdenBestaetigt'])->name('mitglied.werden.bestaetigt');
 
+// Fanfiction - Öffentliche Teaser-Ansicht für Gäste
+Route::get('/fanfiction-teaser', [FanfictionController::class, 'publicIndex'])->name('fanfiction.public');
+
 // Maddrax-Fantreffen 2026
 Route::get('/maddrax-fantreffen-2026', [FantreffenController::class, 'create'])->name('fantreffen.2026');
 Route::post('/maddrax-fantreffen-2026', [FantreffenController::class, 'store'])->name('fantreffen.2026.store');
@@ -80,6 +86,17 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
     Route::livewire('/admin/fantreffen-2026/vip-autoren', \App\Livewire\FantreffenVipAuthors::class)
         ->name('admin.fantreffen.vip-authors')
         ->middleware('vorstand-or-kassenwart');
+
+    // Fanfiction Admin (Vorstand)
+    Route::prefix('vorstand/fanfiction')->name('admin.fanfiction.')->controller(FanfictionAdminController::class)->middleware('vorstand-or-kassenwart')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/erstellen', 'create')->name('create');
+        Route::post('/', 'store')->name('store');
+        Route::get('/{fanfiction}/bearbeiten', 'edit')->name('edit');
+        Route::put('/{fanfiction}', 'update')->name('update');
+        Route::delete('/{fanfiction}', 'destroy')->name('destroy');
+        Route::post('/{fanfiction}/veroeffentlichen', 'publish')->name('publish');
+    });
     
     Route::controller(DashboardController::class)->group(function () {
         Route::get('/dashboard', 'index')->name('dashboard');
@@ -233,6 +250,15 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
     });
 
     Route::get('/statistiken', [StatistikController::class, 'index'])->name('statistik.index');
+
+    // Fanfiction (Mitglieder)
+    Route::prefix('fanfiction')->name('fanfiction.')->group(function () {
+        Route::get('/', [FanfictionController::class, 'index'])->name('index');
+        Route::get('/{fanfiction}', [FanfictionController::class, 'show'])->name('show');
+        Route::post('/{fanfiction}/kommentar', [FanfictionCommentController::class, 'store'])->name('comments.store');
+        Route::put('/kommentar/{comment}', [FanfictionCommentController::class, 'update'])->name('comments.update');
+        Route::delete('/kommentar/{comment}', [FanfictionCommentController::class, 'destroy'])->name('comments.destroy');
+    });
 
     Route::prefix('rezensionen')->name('reviews.')->group(function () {
         Route::get('/', [RezensionController::class, 'index'])->name('index');

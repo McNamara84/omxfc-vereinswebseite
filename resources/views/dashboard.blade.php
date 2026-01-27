@@ -43,11 +43,11 @@
                         {{ $myReviews }}
                     </div>
                 </x-bento-card>
-                <!-- Meine Kommentare Card -->
-                <x-bento-card title="Meine Kommentare" sr-text="Meine Kommentare: {{ $myReviewComments }}">
-                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">Kommentare, die du zu Rezensionen verfasst hast</p>
+                <!-- Fanfiction Card (ersetzt "Meine Kommentare" gemäß Issue #495) -->
+                <x-bento-card href="{{ route('fanfiction.index') }}" title="Fanfiction" sr-text="Fanfiction: {{ $fanfictionCount ?? 0 }}">
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">Kurzgeschichten aus dem MADDRAX-Universum</p>
                     <div class="text-4xl font-bold text-gray-800 dark:text-gray-200" aria-live="polite">
-                        {{ $myReviewComments }}
+                        {{ $fanfictionCount ?? 0 }}
                     </div>
                 </x-bento-card>
             </div>

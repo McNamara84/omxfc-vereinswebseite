@@ -52,6 +52,7 @@
                                 Verein
                             </button>
                             <div id="verein-menu" x-show="open" x-cloak class="absolute left-0 top-full mt-px w-48 bg-white dark:bg-gray-700 rounded-md shadow-lg z-50 py-2 group-hover:block" role="menu">
+                                <x-dropdown-link href="{{ route('fanfiction.index') }}">Fanfiction</x-dropdown-link>
                                 <x-dropdown-link href="{{ route('mitglieder.index') }}">Mitgliederliste</x-dropdown-link>
                                 <x-dropdown-link href="{{ route('mitglieder.karte') }}">Mitgliederkarte</x-dropdown-link>
                                 <x-dropdown-link href="{{ route('protokolle') }}">Protokolle</x-dropdown-link>
@@ -116,6 +117,7 @@
                             <div id="vorstand-menu" x-show="open" x-cloak class="absolute left-0 top-full mt-px w-48 bg-white dark:bg-gray-700 rounded-md shadow-lg z-50 py-2 group-hover:block" role="menu" aria-labelledby="vorstand-button">
                                 <x-dropdown-link href="{{ route('admin.statistiken.index') }}">Statistik</x-dropdown-link>
                                 <x-dropdown-link href="{{ route('admin.fantreffen.2026') }}">Anmeldungen FT</x-dropdown-link>
+                                <x-dropdown-link href="{{ route('admin.fanfiction.index') }}">Fanfiction</x-dropdown-link>
                                 @can('manage', \App\Models\Poll::class)
                                     <x-dropdown-link href="{{ route('admin.umfragen.index') }}">Umfrage verwalten</x-dropdown-link>
                                 @endcan
@@ -210,6 +212,7 @@
             <button id="verein-mobile-button" type="button" @click="openMenu = (openMenu === 'verein' ? null : 'verein')" class="w-full text-left px-4 py-2 font-bold text-gray-600 dark:text-gray-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500" :class="{ 'bg-gray-100 dark:bg-gray-700': openMenu === 'verein' }" :aria-expanded="openMenu === 'verein'" aria-controls="verein-mobile-menu" @keydown.enter.prevent="openMenu = (openMenu === 'verein' ? null : 'verein')" @keydown.space.prevent="openMenu = (openMenu === 'verein' ? null : 'verein')">
             Verein</button>
             <div id="verein-mobile-menu" x-show="openMenu === 'verein'" x-cloak class="italic">
+                <x-responsive-nav-link href="{{ route('fanfiction.index') }}">Fanfiction</x-responsive-nav-link>
                 <x-responsive-nav-link href="{{ route('mitglieder.index') }}">Mitgliederliste</x-responsive-nav-link>
                 <x-responsive-nav-link href="{{ route('mitglieder.karte') }}">Mitgliederkarte</x-responsive-nav-link>
                 <x-responsive-nav-link href="{{ route('protokolle') }}">Protokolle</x-responsive-nav-link>
@@ -259,6 +262,7 @@
             <div id="vorstand-mobile-menu" x-show="openMenu === 'vorstand'" x-cloak class="italic" aria-labelledby="vorstand-mobile-button">
                 <x-responsive-nav-link href="{{ route('admin.statistiken.index') }}">Statistik</x-responsive-nav-link>
                 <x-responsive-nav-link href="{{ route('admin.fantreffen.2026') }}">Anmeldungen FT</x-responsive-nav-link>
+                <x-responsive-nav-link href="{{ route('admin.fanfiction.index') }}">Fanfiction</x-responsive-nav-link>
                 @can('manage', \App\Models\Poll::class)
                     <x-responsive-nav-link href="{{ route('admin.umfragen.index') }}">Umfrage verwalten</x-responsive-nav-link>
                 @endcan
