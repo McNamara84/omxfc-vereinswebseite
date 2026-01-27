@@ -85,6 +85,19 @@ class Fanfiction extends Model
     }
 
     /**
+     * Get the display name for the author.
+     * Returns the linked user's name or the author_name field.
+     */
+    public function getAuthorDisplayNameAttribute(): string
+    {
+        if ($this->author) {
+            return $this->author->name;
+        }
+
+        return $this->author_name ?? 'Unbekannt';
+    }
+
+    /**
      * Comments belonging to this fanfiction.
      */
     public function comments(): HasMany

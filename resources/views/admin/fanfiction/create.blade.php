@@ -3,7 +3,10 @@
         <h1 class="text-2xl font-semibold text-[#8B0116] dark:text-[#FCA5A5] mb-6">Neue Fanfiction erstellen</h1>
 
         <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
-            <form action="{{ route('admin.fanfiction.store') }}" method="POST" enctype="multipart/form-data" x-data="fanfictionForm()">
+            <form action="{{ route('admin.fanfiction.store') }}" method="POST" enctype="multipart/form-data"
+                  x-data="fanfictionForm()"
+                  data-author-type="{{ old('author_type', 'member') }}"
+                  data-author-name="{{ old('author_name', '') }}">
                 @csrf
 
                 <x-form name="title" label="Titel der Geschichte" class="mb-4">
@@ -91,9 +94,10 @@
 
     <script>
         function fanfictionForm() {
+            const formEl = document.querySelector('[x-data="fanfictionForm()"]');
             return {
-                authorType: '{{ old('author_type', 'member') }}',
-                authorName: '{{ old('author_name', '') }}',
+                authorType: formEl?.dataset.authorType || 'member',
+                authorName: formEl?.dataset.authorName || '',
                 updateAuthorName(event) {
                     const selectedOption = event.target.selectedOptions[0];
                     if (selectedOption && selectedOption.dataset.name) {

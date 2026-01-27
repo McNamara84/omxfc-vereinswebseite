@@ -3,7 +3,10 @@
         <h1 class="text-2xl font-semibold text-[#8B0116] dark:text-[#FCA5A5] mb-6">Fanfiction bearbeiten</h1>
 
         <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
-            <form action="{{ route('admin.fanfiction.update', $fanfiction) }}" method="POST" enctype="multipart/form-data" x-data="fanfictionEditForm()">
+            <form action="{{ route('admin.fanfiction.update', $fanfiction) }}" method="POST" enctype="multipart/form-data"
+                  x-data="fanfictionEditForm()"
+                  data-author-type="{{ old('author_type', $fanfiction->user_id ? 'member' : 'external') }}"
+                  data-author-name="{{ old('author_name', $fanfiction->author_name) }}">
                 @csrf
                 @method('PUT')
 
@@ -56,12 +59,12 @@
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Vorhandene Bilder</label>
                         <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
-                            @foreach($fanfiction->photos as $photo)
-                                <div class="relative group">
-                                    <img src="{{ Storage::url($photo) }}" alt="Fanfiction Bild" class="w-full h-24 object-cover rounded border border-gray-200 dark:border-gray-600">
-                                    <label class="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition cursor-pointer rounded">
-                                        <input type="checkbox" name="remove_photos[]" value="{{ $photo }}" class="sr-only">
-                                        <span class="text-white text-sm" x-data="{ checked: false }" @click="checked = !checked">
+                            @foreach($fanfiction->photos as $index => $photo)
+                                <div class="relative group" x-data="{ checked: false }">
+                                    <img src="{{ Storage::url($photo) }}" alt="Fanfiction Bild" class="w-full h-24 object-cover rounded border border-gray-200 dark:border-gray-600" :class="{ 'opacity-50 border-red-500': checked }">
+                                    <label class="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition cursor-pointer rounded" :class="{ 'opacity-100': checked }">
+                                        <input type="checkbox" name="remove_photos[]" value="{{ $photo }}" class="sr-only" x-model="checked">
+                                        <span class="text-white text-sm">
                                             <span x-show="!checked">🗑️ Löschen</span>
                                             <span x-show="checked" class="text-red-400">✓ Wird gelöscht</span>
                                         </span>
@@ -109,9 +112,10 @@
 
     <script>
         function fanfictionEditForm() {
+            const formEl = document.querySelector('[x-data="fanfictionEditForm()"]');
             return {
-                authorType: '{{ old('author_type', $fanfiction->user_id ? 'member' : 'external') }}',
-                authorName: '{{ old('author_name', $fanfiction->author_name) }}',
+                authorType: formEl?.dataset.authorType || 'external',
+                authorName: formEl?.dataset.authorName || '',
                 updateAuthorName(event) {
                     const selectedOption = event.target.selectedOptions[0];
                     if (selectedOption && selectedOption.dataset.name) {

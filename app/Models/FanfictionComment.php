@@ -66,4 +66,12 @@ class FanfictionComment extends Model
     {
         return $this->hasMany(FanfictionComment::class, 'parent_id');
     }
+
+    /**
+     * Alias for children() - replies to this comment.
+     */
+    public function replies(): HasMany
+    {
+        return $this->children();
+    }
 }
