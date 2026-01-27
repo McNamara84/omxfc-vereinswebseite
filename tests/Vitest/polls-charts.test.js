@@ -2,7 +2,7 @@
  * Tests für resources/js/polls/charts.js
  * Issue #494: Browser-Crash-Prevention durch Guards für leere Daten
  */
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, beforeAll } from 'vitest';
 
 vi.mock('chart.js', () => {
     // Klasse wird hier innerhalb der Factory definiert
@@ -37,9 +37,12 @@ vi.mock('chart.js', () => {
     };
 });
 
-import { Chart } from 'chart.js';
-
 describe('polls/charts.js - updateCharts Guards', () => {
+    // Modul nur einmal importieren, um Event-Listener-Akkumulation zu vermeiden
+    beforeAll(async () => {
+        await import('@/polls/charts.js');
+    });
+
     beforeEach(() => {
         // Reset DOM
         document.body.innerHTML = '';
@@ -49,10 +52,6 @@ describe('polls/charts.js - updateCharts Guards', () => {
 
         // Mock getContext für Canvas-Elemente
         HTMLCanvasElement.prototype.getContext = vi.fn(() => ({}));
-    });
-
-    afterEach(() => {
-        vi.resetModules();
     });
 
     /**
@@ -84,11 +83,8 @@ describe('polls/charts.js - updateCharts Guards', () => {
         document.body.appendChild(guestsMarker);
     };
 
-    it('sollte bei null-Daten nicht crashen', async () => {
+    it('sollte bei null-Daten nicht crashen', () => {
         setupChartDOM();
-
-        // Importiere das Modul frisch
-        await import('@/polls/charts.js');
 
         // Simuliere Event mit null-Daten
         const event = new CustomEvent('poll-results-updated', {
@@ -104,10 +100,8 @@ describe('polls/charts.js - updateCharts Guards', () => {
         expect(globalThis.__chartMockCalls.length).toBe(0);
     });
 
-    it('sollte bei leerem Objekt nicht crashen', async () => {
+    it('sollte bei leerem Objekt nicht crashen', () => {
         setupChartDOM();
-
-        await import('@/polls/charts.js');
 
         const event = new CustomEvent('poll-results-updated', {
             detail: { data: {} },
@@ -120,10 +114,8 @@ describe('polls/charts.js - updateCharts Guards', () => {
         expect(globalThis.__chartMockCalls.length).toBe(0);
     });
 
-    it('sollte bei fehlendem options-Objekt nicht crashen', async () => {
+    it('sollte bei fehlendem options-Objekt nicht crashen', () => {
         setupChartDOM();
-
-        await import('@/polls/charts.js');
 
         const event = new CustomEvent('poll-results-updated', {
             detail: {
@@ -141,10 +133,8 @@ describe('polls/charts.js - updateCharts Guards', () => {
         expect(globalThis.__chartMockCalls.length).toBe(0);
     });
 
-    it('sollte bei leerem labels-Array nicht crashen', async () => {
+    it('sollte bei leerem labels-Array nicht crashen', () => {
         setupChartDOM();
-
-        await import('@/polls/charts.js');
 
         const event = new CustomEvent('poll-results-updated', {
             detail: {
@@ -168,10 +158,8 @@ describe('polls/charts.js - updateCharts Guards', () => {
         expect(globalThis.__chartMockCalls.length).toBe(0);
     });
 
-    it('sollte bei labels als nicht-Array nicht crashen', async () => {
+    it('sollte bei labels als nicht-Array nicht crashen', () => {
         setupChartDOM();
-
-        await import('@/polls/charts.js');
 
         const event = new CustomEvent('poll-results-updated', {
             detail: {
@@ -192,10 +180,8 @@ describe('polls/charts.js - updateCharts Guards', () => {
         expect(globalThis.__chartMockCalls.length).toBe(0);
     });
 
-    it('sollte bei gültigen Labels aber 0 Stimmen keinen Doughnut-Chart erstellen', async () => {
+    it('sollte bei gültigen Labels aber 0 Stimmen keinen Doughnut-Chart erstellen', () => {
         setupChartDOM();
-
-        await import('@/polls/charts.js');
 
         // Merke den aktuellen Stand VOR dem Event
         const callCountBefore = globalThis.__chartMockCalls.length;
@@ -233,11 +219,9 @@ describe('polls/charts.js - updateCharts Guards', () => {
         expect(chartTypes).toContain('line');
     });
 
-    it('sollte bei fehlenden Canvas-Elementen bestehende Charts zerstören', async () => {
+    it('sollte bei fehlenden Canvas-Elementen bestehende Charts zerstören', () => {
         // Zuerst mit Canvas-Elementen initialisieren
         setupChartDOM();
-
-        await import('@/polls/charts.js');
 
         // Erstes Update mit gültigen Daten und Stimmen
         const firstEvent = new CustomEvent('poll-results-updated', {
