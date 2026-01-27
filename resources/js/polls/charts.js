@@ -96,6 +96,19 @@ const toLabelsAndSeries = (timeline = []) => {
     return { labels, totals };
 };
 
+/**
+ * Zerstört alle Chart-Instanzen und leert den Store.
+ * Wird aufgerufen beim Cleanup oder wenn keine Canvas-Elemente vorhanden sind.
+ */
+const destroyAllCharts = () => {
+    destroyIfExists(chartStore.options);
+    chartStore.options = null;
+    destroyIfExists(chartStore.timeline);
+    chartStore.timeline = null;
+    destroyIfExists(chartStore.segment);
+    chartStore.segment = null;
+};
+
 const updateCharts = (data) => {
     // Guard: Abbrechen wenn keine gültigen Daten vorhanden
     if (!data || typeof data !== 'object') {
@@ -116,13 +129,15 @@ const updateCharts = (data) => {
     const timelineCanvas = getCanvas('poll-timeline-chart');
     const segmentCanvas = getCanvas('poll-segment-chart');
 
+    // Cleanup: Wenn Canvas-Elemente fehlen (z.B. bei Umfrage ohne Stimmen),
+    // bestehende Charts zerstören um orphaned Instanzen zu vermeiden
     if (!optionsCanvas || !timelineCanvas || !segmentCanvas) {
+        destroyAllCharts();
         return;
     }
 
-    destroyIfExists(chartStore.options);
-    destroyIfExists(chartStore.timeline);
-    destroyIfExists(chartStore.segment);
+    // Bestehende Charts zerstören und Store leeren vor Neuerstellung
+    destroyAllCharts();
 
     const labels = data.options.labels ?? [];
     const members = data.options.members ?? [];
@@ -190,6 +205,13 @@ const updateCharts = (data) => {
     const membersTotal = data.totals?.members ?? 0;
     const guestsTotal = data.totals?.guests ?? 0;
 
+    // Guard: Doughnut-Chart nicht erstellen wenn keine Stimmen vorhanden
+    // Chart.js hat Probleme mit leeren Doughnut-Charts (unendliches Wachstum)
+    if (membersTotal === 0 && guestsTotal === 0) {
+        // chartStore.segment bleibt null (wurde bereits in destroyAllCharts geleert)
+        return;
+    }
+
     chartStore.segment = new Chart(segmentCanvas.getContext('2d'), {
         type: 'doughnut',
         data: {
@@ -233,6 +255,10 @@ const init = () => {
     const initial = readInitialChartData();
     if (initial) {
         updateCharts(initial);
+    } else {
+        // Cleanup: Bei Navigation auf Seiten ohne Poll-Charts
+        // bestehende Chart-Instanzen zerstören um orphaned Instanzen zu vermeiden
+        destroyAllCharts();
     }
 };
 
