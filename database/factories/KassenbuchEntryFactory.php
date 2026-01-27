@@ -38,7 +38,7 @@ class KassenbuchEntryFactory extends Factory
     /**
      * Indicate that the entry is an income (Einnahme).
      */
-    public function einnahme(float $betrag = null): static
+    public function einnahme(?float $betrag = null): static
     {
         return $this->state(fn (array $attributes) => [
             'typ' => KassenbuchEntryType::Einnahme->value,
@@ -49,7 +49,7 @@ class KassenbuchEntryFactory extends Factory
     /**
      * Indicate that the entry is an expense (Ausgabe).
      */
-    public function ausgabe(float $betrag = null): static
+    public function ausgabe(?float $betrag = null): static
     {
         return $this->state(fn (array $attributes) => [
             'typ' => KassenbuchEntryType::Ausgabe->value,

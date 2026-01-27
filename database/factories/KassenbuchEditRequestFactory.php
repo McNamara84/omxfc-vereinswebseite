@@ -86,7 +86,7 @@ class KassenbuchEditRequestFactory extends Factory
     /**
      * Set reason type to "Sonstiges" with required text.
      */
-    public function sonstiges(string $reasonText = null): static
+    public function sonstiges(?string $reasonText = null): static
     {
         return $this->state(fn (array $attributes) => [
             'reason_type' => KassenbuchEditReasonType::Sonstiges->value,

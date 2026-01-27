@@ -174,6 +174,13 @@ class KassenbuchController extends Controller
      */
     public function requestEdit(Request $request, KassenbuchEntry $entry)
     {
+        $team = $this->membersTeamProvider->getMembersTeamOrAbort();
+
+        // Entry muss zum Team gehören
+        if ($entry->team_id !== $team->id) {
+            abort(404);
+        }
+
         $this->authorize('requestEdit', $entry);
 
         $data = $request->validate([
@@ -184,6 +191,11 @@ class KassenbuchController extends Controller
         // Bei "Sonstiges" ist Freitext erforderlich
         if ($data['reason_type'] === KassenbuchEditReasonType::Sonstiges->value && empty($data['reason_text'])) {
             return back()->withErrors(['reason_text' => 'Bei "Sonstiges" ist eine Begründung erforderlich.']);
+        }
+
+        // Blockieren wenn bereits eine pending oder approved Anfrage existiert
+        if ($entry->hasPendingEditRequest() || $entry->hasApprovedEditRequest()) {
+            return back()->withErrors(['entry' => 'Für diesen Eintrag existiert bereits eine offene Bearbeitungsanfrage.']);
         }
 
         KassenbuchEditRequest::create([
@@ -202,6 +214,17 @@ class KassenbuchController extends Controller
      */
     public function approveEditRequest(KassenbuchEditRequest $editRequest)
     {
+        $team = $this->membersTeamProvider->getMembersTeamOrAbort();
+
+        // Request muss zum Team gehören und pending sein
+        if ($editRequest->entry->team_id !== $team->id) {
+            abort(404);
+        }
+
+        if (! $editRequest->isPending()) {
+            return back()->withErrors(['request' => 'Diese Anfrage wurde bereits bearbeitet.']);
+        }
+
         $this->authorize('processEditRequest', KassenbuchEntry::class);
 
         $editRequest->update([
@@ -218,6 +241,17 @@ class KassenbuchController extends Controller
      */
     public function rejectEditRequest(Request $request, KassenbuchEditRequest $editRequest)
     {
+        $team = $this->membersTeamProvider->getMembersTeamOrAbort();
+
+        // Request muss zum Team gehören und pending sein
+        if ($editRequest->entry->team_id !== $team->id) {
+            abort(404);
+        }
+
+        if (! $editRequest->isPending()) {
+            return back()->withErrors(['request' => 'Diese Anfrage wurde bereits bearbeitet.']);
+        }
+
         $this->authorize('processEditRequest', KassenbuchEntry::class);
 
         $data = $request->validate([
@@ -239,6 +273,13 @@ class KassenbuchController extends Controller
      */
     public function updateEntry(Request $request, KassenbuchEntry $entry)
     {
+        $team = $this->membersTeamProvider->getMembersTeamOrAbort();
+
+        // Entry muss zum Team gehören
+        if ($entry->team_id !== $team->id) {
+            abort(404);
+        }
+
         $this->authorize('edit', $entry);
 
         $data = $request->validate([
@@ -248,7 +289,6 @@ class KassenbuchController extends Controller
             'typ' => 'required|in:'.implode(',', KassenbuchEntryType::values()),
         ]);
 
-        $team = $this->membersTeamProvider->getMembersTeamOrAbort();
         $kassenstand = Kassenstand::where('team_id', $team->id)->first();
 
         DB::transaction(function () use ($entry, $data, $kassenstand) {

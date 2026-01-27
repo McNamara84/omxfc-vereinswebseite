@@ -75,7 +75,7 @@
                 </div>
                 
                 @if($canViewKassenbuch)
-                {{-- Card: Offene Bearbeitungsanfragen (nur für Vorstand sichtbar) --}}
+                {{-- Card: Offene Bearbeitungsanfragen (für Vorstand und Admin sichtbar) --}}
                 @if($canProcessEditRequests && $pendingEditRequests && $pendingEditRequests->count() > 0)
                 <div class="md:col-span-2 bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
                     <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4 flex items-center">

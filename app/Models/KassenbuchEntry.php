@@ -102,17 +102,27 @@ class KassenbuchEntry extends Model
 
     /**
      * Check if this entry has a pending edit request.
+     * Uses eager-loaded relation if available to avoid N+1 queries.
      */
     public function hasPendingEditRequest(): bool
     {
+        if ($this->relationLoaded('pendingEditRequest')) {
+            return $this->getRelation('pendingEditRequest') !== null;
+        }
+
         return $this->pendingEditRequest()->exists();
     }
 
     /**
      * Check if this entry has an approved edit request.
+     * Uses eager-loaded relation if available to avoid N+1 queries.
      */
     public function hasApprovedEditRequest(): bool
     {
+        if ($this->relationLoaded('approvedEditRequest')) {
+            return $this->getRelation('approvedEditRequest') !== null;
+        }
+
         return $this->approvedEditRequest()->exists();
     }
 

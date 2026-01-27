@@ -11,6 +11,7 @@ use App\Models\Kassenstand;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use PHPUnit\Framework\Attributes\CoversClass;
 use Tests\TestCase;
 
@@ -136,13 +137,40 @@ class KassenbuchEditRequestTest extends TestCase
             'status' => KassenbuchEditRequest::STATUS_PENDING,
         ]);
 
-        // Second request should fail
+        // Second request should fail with error
         $response = $this->actingAs($kassenwart)
             ->post("/kassenbuch/eintrag/{$entry->id}/bearbeitung-anfragen", [
                 'reason_type' => KassenbuchEditReasonType::FalscherBetrag->value,
             ]);
 
-        $response->assertForbidden();
+        $response->assertRedirect();
+        $response->assertSessionHasErrors('entry');
+    }
+
+    public function test_cannot_request_edit_when_approved_exists(): void
+    {
+        $kassenwart = $this->createUserWithRole(Role::Kassenwart);
+        $vorstand = $this->createUserWithRole(Role::Vorstand);
+        $entry = $this->createKassenbuchEntry($kassenwart);
+
+        // Create approved request
+        KassenbuchEditRequest::create([
+            'kassenbuch_entry_id' => $entry->id,
+            'requested_by' => $kassenwart->id,
+            'processed_by' => $vorstand->id,
+            'reason_type' => KassenbuchEditReasonType::Tippfehler->value,
+            'status' => KassenbuchEditRequest::STATUS_APPROVED,
+            'processed_at' => now(),
+        ]);
+
+        // New request should fail
+        $response = $this->actingAs($kassenwart)
+            ->post("/kassenbuch/eintrag/{$entry->id}/bearbeitung-anfragen", [
+                'reason_type' => KassenbuchEditReasonType::FalscherBetrag->value,
+            ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHasErrors('entry');
     }
 
     public function test_sonstiges_requires_reason_text(): void
@@ -606,5 +634,214 @@ class KassenbuchEditRequestTest extends TestCase
         ]);
 
         $this->assertTrue($entry->wasEdited());
+    }
+
+    // === Team-Scope Security Tests ===
+
+    public function test_cannot_request_edit_for_entry_from_other_team(): void
+    {
+        $kassenwart = $this->createUserWithRole(Role::Kassenwart);
+
+        // Create entry in a different team
+        $otherTeam = Team::factory()->create();
+        $otherEntry = KassenbuchEntry::factory()->create([
+            'team_id' => $otherTeam->id,
+        ]);
+
+        $response = $this->actingAs($kassenwart)
+            ->post("/kassenbuch/eintrag/{$otherEntry->id}/bearbeitung-anfragen", [
+                'reason_type' => KassenbuchEditReasonType::Tippfehler->value,
+            ]);
+
+        $response->assertNotFound();
+    }
+
+    public function test_cannot_approve_request_from_other_team(): void
+    {
+        $vorstand = $this->createUserWithRole(Role::Vorstand);
+
+        // Create request in a different team
+        $otherTeam = Team::factory()->create();
+        $otherEntry = KassenbuchEntry::factory()->create([
+            'team_id' => $otherTeam->id,
+        ]);
+        $otherRequest = KassenbuchEditRequest::factory()->pending()->create([
+            'kassenbuch_entry_id' => $otherEntry->id,
+        ]);
+
+        $response = $this->actingAs($vorstand)
+            ->post("/kassenbuch/anfrage/{$otherRequest->id}/freigeben");
+
+        $response->assertNotFound();
+    }
+
+    public function test_cannot_reject_request_from_other_team(): void
+    {
+        $vorstand = $this->createUserWithRole(Role::Vorstand);
+
+        // Create request in a different team
+        $otherTeam = Team::factory()->create();
+        $otherEntry = KassenbuchEntry::factory()->create([
+            'team_id' => $otherTeam->id,
+        ]);
+        $otherRequest = KassenbuchEditRequest::factory()->pending()->create([
+            'kassenbuch_entry_id' => $otherEntry->id,
+        ]);
+
+        $response = $this->actingAs($vorstand)
+            ->post("/kassenbuch/anfrage/{$otherRequest->id}/ablehnen");
+
+        $response->assertNotFound();
+    }
+
+    public function test_cannot_update_entry_from_other_team(): void
+    {
+        $kassenwart = $this->createUserWithRole(Role::Kassenwart);
+        $vorstand = $this->createUserWithRole(Role::Vorstand);
+
+        // Create entry in a different team
+        $otherTeam = Team::factory()->create();
+        $otherEntry = KassenbuchEntry::factory()->create([
+            'team_id' => $otherTeam->id,
+        ]);
+        KassenbuchEditRequest::factory()->approved()->create([
+            'kassenbuch_entry_id' => $otherEntry->id,
+            'requested_by' => $kassenwart->id,
+            'processed_by' => $vorstand->id,
+        ]);
+
+        $response = $this->actingAs($kassenwart)
+            ->put("/kassenbuch/eintrag/{$otherEntry->id}", [
+                'buchungsdatum' => now()->format('Y-m-d'),
+                'betrag' => 100.00,
+                'beschreibung' => 'Test',
+                'typ' => KassenbuchEntryType::Einnahme->value,
+            ]);
+
+        $response->assertNotFound();
+    }
+
+    // === Status-Check Security Tests ===
+
+    public function test_cannot_approve_already_approved_request(): void
+    {
+        $vorstand = $this->createUserWithRole(Role::Vorstand);
+        $kassenwart = $this->createUserWithRole(Role::Kassenwart);
+        $entry = $this->createKassenbuchEntry($kassenwart);
+
+        $editRequest = KassenbuchEditRequest::create([
+            'kassenbuch_entry_id' => $entry->id,
+            'requested_by' => $kassenwart->id,
+            'processed_by' => $vorstand->id,
+            'reason_type' => KassenbuchEditReasonType::Tippfehler->value,
+            'status' => KassenbuchEditRequest::STATUS_APPROVED,
+            'processed_at' => now(),
+        ]);
+
+        $response = $this->actingAs($vorstand)
+            ->post("/kassenbuch/anfrage/{$editRequest->id}/freigeben");
+
+        $response->assertRedirect();
+        $response->assertSessionHasErrors('request');
+    }
+
+    public function test_cannot_approve_already_rejected_request(): void
+    {
+        $vorstand = $this->createUserWithRole(Role::Vorstand);
+        $kassenwart = $this->createUserWithRole(Role::Kassenwart);
+        $entry = $this->createKassenbuchEntry($kassenwart);
+
+        $editRequest = KassenbuchEditRequest::create([
+            'kassenbuch_entry_id' => $entry->id,
+            'requested_by' => $kassenwart->id,
+            'processed_by' => $vorstand->id,
+            'reason_type' => KassenbuchEditReasonType::Tippfehler->value,
+            'status' => KassenbuchEditRequest::STATUS_REJECTED,
+            'processed_at' => now(),
+        ]);
+
+        $response = $this->actingAs($vorstand)
+            ->post("/kassenbuch/anfrage/{$editRequest->id}/freigeben");
+
+        $response->assertRedirect();
+        $response->assertSessionHasErrors('request');
+    }
+
+    public function test_cannot_reject_already_approved_request(): void
+    {
+        $vorstand = $this->createUserWithRole(Role::Vorstand);
+        $kassenwart = $this->createUserWithRole(Role::Kassenwart);
+        $entry = $this->createKassenbuchEntry($kassenwart);
+
+        $editRequest = KassenbuchEditRequest::create([
+            'kassenbuch_entry_id' => $entry->id,
+            'requested_by' => $kassenwart->id,
+            'processed_by' => $vorstand->id,
+            'reason_type' => KassenbuchEditReasonType::Tippfehler->value,
+            'status' => KassenbuchEditRequest::STATUS_APPROVED,
+            'processed_at' => now(),
+        ]);
+
+        $response = $this->actingAs($vorstand)
+            ->post("/kassenbuch/anfrage/{$editRequest->id}/ablehnen");
+
+        $response->assertRedirect();
+        $response->assertSessionHasErrors('request');
+    }
+
+    public function test_cannot_reject_already_rejected_request(): void
+    {
+        $vorstand = $this->createUserWithRole(Role::Vorstand);
+        $kassenwart = $this->createUserWithRole(Role::Kassenwart);
+        $entry = $this->createKassenbuchEntry($kassenwart);
+
+        $editRequest = KassenbuchEditRequest::create([
+            'kassenbuch_entry_id' => $entry->id,
+            'requested_by' => $kassenwart->id,
+            'processed_by' => $vorstand->id,
+            'reason_type' => KassenbuchEditReasonType::Tippfehler->value,
+            'status' => KassenbuchEditRequest::STATUS_REJECTED,
+            'processed_at' => now(),
+        ]);
+
+        $response = $this->actingAs($vorstand)
+            ->post("/kassenbuch/anfrage/{$editRequest->id}/ablehnen");
+
+        $response->assertRedirect();
+        $response->assertSessionHasErrors('request');
+    }
+
+    // === N+1 Query Prevention Test ===
+
+    public function test_helper_methods_use_eager_loaded_relations(): void
+    {
+        $kassenwart = $this->createUserWithRole(Role::Kassenwart);
+        $entry = $this->createKassenbuchEntry($kassenwart);
+
+        KassenbuchEditRequest::create([
+            'kassenbuch_entry_id' => $entry->id,
+            'requested_by' => $kassenwart->id,
+            'reason_type' => KassenbuchEditReasonType::Tippfehler->value,
+            'status' => KassenbuchEditRequest::STATUS_PENDING,
+        ]);
+
+        // Load entry with eager-loaded relations
+        $entryWithRelations = KassenbuchEntry::with(['pendingEditRequest', 'approvedEditRequest'])
+            ->find($entry->id);
+
+        // Check that relations are loaded
+        $this->assertTrue($entryWithRelations->relationLoaded('pendingEditRequest'));
+        $this->assertTrue($entryWithRelations->relationLoaded('approvedEditRequest'));
+
+        // Helper should use loaded relations without extra queries
+        DB::enableQueryLog();
+
+        $this->assertTrue($entryWithRelations->hasPendingEditRequest());
+        $this->assertFalse($entryWithRelations->hasApprovedEditRequest());
+
+        // No additional queries should be executed
+        $this->assertCount(0, DB::getQueryLog());
+
+        DB::disableQueryLog();
     }
 }

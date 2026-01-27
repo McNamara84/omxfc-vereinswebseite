@@ -117,21 +117,9 @@ class KassenbuchEntryPolicyTest extends TestCase
         $this->assertFalse($this->policy->requestEdit($mitglied, $entry));
     }
 
-    public function test_request_edit_denies_when_pending_request_exists(): void
-    {
-        $kassenwart = $this->createUserWithRole(Role::Kassenwart);
-        $entry = $this->createKassenbuchEntry($kassenwart);
-
-        // Create pending request
-        KassenbuchEditRequest::create([
-            'kassenbuch_entry_id' => $entry->id,
-            'requested_by' => $kassenwart->id,
-            'reason_type' => KassenbuchEditReasonType::Tippfehler->value,
-            'status' => KassenbuchEditRequest::STATUS_PENDING,
-        ]);
-
-        $this->assertFalse($this->policy->requestEdit($kassenwart, $entry));
-    }
+    // Note: The test for "pending request exists" was removed because
+    // this check was moved from Policy to Controller for better UX
+    // (user-friendly error message instead of 403)
 
     // ==================== Edit Policy Tests ====================
 

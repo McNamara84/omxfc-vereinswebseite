@@ -29,18 +29,15 @@ class KassenbuchEntryPolicy
 
     /**
      * Determine if the user can request to edit the entry.
+     * Note: The check for existing pending/approved requests is done in the controller
+     * to provide a user-friendly error message instead of a 403.
      */
     public function requestEdit(User $user, KassenbuchEntry $entry): bool
     {
         $role = $this->role($user);
 
         // Only Kassenwart/Admin can request edits
-        if (! $role || ! in_array($role, [Role::Kassenwart, Role::Admin], true)) {
-            return false;
-        }
-
-        // Cannot request if a pending request already exists
-        return ! $entry->hasPendingEditRequest();
+        return $role && in_array($role, [Role::Kassenwart, Role::Admin], true);
     }
 
     /**
