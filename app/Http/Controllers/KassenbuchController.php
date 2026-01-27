@@ -2,16 +2,18 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\KassenbuchEditReasonType;
 use App\Enums\KassenbuchEntryType;
+use App\Models\KassenbuchEditRequest;
 use App\Models\KassenbuchEntry;
 use App\Models\Kassenstand;
 use App\Models\User;
+use App\Services\MembersTeamProvider;
+use App\Services\UserRoleService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use App\Services\UserRoleService;
-use App\Services\MembersTeamProvider;
 
 class KassenbuchController extends Controller
 {
@@ -31,6 +33,7 @@ class KassenbuchController extends Controller
 
         $canViewKassenbuch = $user->can('viewAll', KassenbuchEntry::class);
         $canManageKassenbuch = $user->can('manage', KassenbuchEntry::class);
+        $canProcessEditRequests = $user->can('processEditRequest', KassenbuchEntry::class);
 
         // Aktuellen Kassenstand abrufen
         $kassenstand = Kassenstand::where('team_id', $team->id)->first();
@@ -47,6 +50,7 @@ class KassenbuchController extends Controller
         // Für Vorstand und Kassenwart: Alle Mitglieder mit ihren Zahlungsdaten abrufen
         $members = null;
         $kassenbuchEntries = null;
+        $pendingEditRequests = null;
 
         if ($canViewKassenbuch) {
             $members = $team->activeUsers()
@@ -54,7 +58,17 @@ class KassenbuchController extends Controller
                 ->get();
 
             $kassenbuchEntries = KassenbuchEntry::where('team_id', $team->id)
+                ->with(['pendingEditRequest', 'approvedEditRequest', 'creator', 'lastEditor'])
                 ->orderBy('buchungsdatum', 'desc')
+                ->get();
+        }
+
+        // Für Vorstand: Offene Bearbeitungsanfragen laden
+        if ($canProcessEditRequests) {
+            $pendingEditRequests = KassenbuchEditRequest::with(['entry', 'requester'])
+                ->where('status', KassenbuchEditRequest::STATUS_PENDING)
+                ->whereHas('entry', fn ($q) => $q->where('team_id', $team->id))
+                ->orderBy('created_at', 'desc')
                 ->get();
         }
 
@@ -79,9 +93,12 @@ class KassenbuchController extends Controller
             'userRole' => $userRole,
             'canViewKassenbuch' => $canViewKassenbuch,
             'canManageKassenbuch' => $canManageKassenbuch,
+            'canProcessEditRequests' => $canProcessEditRequests,
             'kassenstand' => $kassenstand,
             'members' => $members,
             'kassenbuchEntries' => $kassenbuchEntries,
+            'pendingEditRequests' => $pendingEditRequests,
+            'editReasonTypes' => KassenbuchEditReasonType::cases(),
             'memberData' => $memberData,
             'renewalWarning' => $renewalWarning,
         ]);
@@ -150,5 +167,124 @@ class KassenbuchController extends Controller
         });
 
         return back()->with('status', 'Kassenbucheintrag wurde hinzugefügt.');
+    }
+
+    /**
+     * Request to edit a kassenbuch entry.
+     */
+    public function requestEdit(Request $request, KassenbuchEntry $entry)
+    {
+        $this->authorize('requestEdit', $entry);
+
+        $data = $request->validate([
+            'reason_type' => 'required|in:'.implode(',', KassenbuchEditReasonType::values()),
+            'reason_text' => 'nullable|string|max:500',
+        ]);
+
+        // Bei "Sonstiges" ist Freitext erforderlich
+        if ($data['reason_type'] === KassenbuchEditReasonType::Sonstiges->value && empty($data['reason_text'])) {
+            return back()->withErrors(['reason_text' => 'Bei "Sonstiges" ist eine Begründung erforderlich.']);
+        }
+
+        KassenbuchEditRequest::create([
+            'kassenbuch_entry_id' => $entry->id,
+            'requested_by' => Auth::id(),
+            'reason_type' => $data['reason_type'],
+            'reason_text' => $data['reason_text'],
+            'status' => KassenbuchEditRequest::STATUS_PENDING,
+        ]);
+
+        return back()->with('status', 'Bearbeitungsanfrage wurde gestellt.');
+    }
+
+    /**
+     * Approve an edit request.
+     */
+    public function approveEditRequest(KassenbuchEditRequest $editRequest)
+    {
+        $this->authorize('processEditRequest', KassenbuchEntry::class);
+
+        $editRequest->update([
+            'status' => KassenbuchEditRequest::STATUS_APPROVED,
+            'processed_by' => Auth::id(),
+            'processed_at' => now(),
+        ]);
+
+        return back()->with('status', 'Bearbeitung wurde freigegeben.');
+    }
+
+    /**
+     * Reject an edit request.
+     */
+    public function rejectEditRequest(Request $request, KassenbuchEditRequest $editRequest)
+    {
+        $this->authorize('processEditRequest', KassenbuchEntry::class);
+
+        $data = $request->validate([
+            'rejection_reason' => 'nullable|string|max:500',
+        ]);
+
+        $editRequest->update([
+            'status' => KassenbuchEditRequest::STATUS_REJECTED,
+            'processed_by' => Auth::id(),
+            'processed_at' => now(),
+            'rejection_reason' => $data['rejection_reason'] ?? null,
+        ]);
+
+        return back()->with('status', 'Bearbeitungsanfrage wurde abgelehnt.');
+    }
+
+    /**
+     * Update a kassenbuch entry (after approval).
+     */
+    public function updateEntry(Request $request, KassenbuchEntry $entry)
+    {
+        $this->authorize('edit', $entry);
+
+        $data = $request->validate([
+            'buchungsdatum' => 'required|date',
+            'betrag' => 'required|numeric|not_in:0',
+            'beschreibung' => 'required|string|max:255',
+            'typ' => 'required|in:'.implode(',', KassenbuchEntryType::values()),
+        ]);
+
+        $team = $this->membersTeamProvider->getMembersTeamOrAbort();
+        $kassenstand = Kassenstand::where('team_id', $team->id)->first();
+
+        DB::transaction(function () use ($entry, $data, $kassenstand) {
+            // Alten Betrag vom Kassenstand abziehen
+            $kassenstand->betrag -= $entry->betrag;
+
+            // Neuen Betrag berechnen
+            $newAmount = abs($data['betrag']);
+            if ($data['typ'] === KassenbuchEntryType::Ausgabe->value) {
+                $newAmount = -$newAmount;
+            }
+
+            // Begründung aus der Freigabe-Anfrage holen
+            $editRequest = $entry->approvedEditRequest;
+            $editReason = $editRequest->getFormattedReason();
+
+            // Eintrag aktualisieren
+            $entry->update([
+                'buchungsdatum' => $data['buchungsdatum'],
+                'betrag' => $newAmount,
+                'beschreibung' => $data['beschreibung'],
+                'typ' => $data['typ'],
+                'last_edited_by' => Auth::id(),
+                'last_edited_at' => now(),
+                'last_edit_reason' => $editReason,
+            ]);
+
+            // Neuen Betrag zum Kassenstand addieren
+            $kassenstand->betrag += $newAmount;
+            $kassenstand->letzte_aktualisierung = now();
+            $kassenstand->save();
+
+            // Freigabe-Anfrage löschen
+            $editRequest->delete();
+        });
+
+        return back()->with('status', 'Kassenbucheintrag wurde aktualisiert.');
     }
 }
