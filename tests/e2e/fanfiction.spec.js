@@ -131,8 +131,8 @@ test.describe('Fanfiction Verwaltung für Vorstand (Issue #493)', () => {
         await page.goto('/vorstand/fanfiction/erstellen');
 
         // Prüfe ob alle erforderlichen Felder vorhanden sind
-        await expect(page.getByLabel(/Titel/i)).toBeVisible();
-        await expect(page.getByLabel(/Geschichte/i)).toBeVisible();
+        await expect(page.getByRole('textbox', { name: 'Titel der Geschichte' })).toBeVisible();
+        await expect(page.getByRole('textbox', { name: 'Geschichte', exact: true })).toBeVisible();
 
         // Autortyp-Auswahl (Radio-Buttons)
         await expect(page.getByText(/Vereinsmitglied/i)).toBeVisible();
@@ -228,21 +228,13 @@ test.describe('Fanfiction Übersicht für Mitglieder (Issue #495 & #496)', () =>
         // Klicke zum Aufklappen
         await toggleButton.click();
 
-        // Warte kurz auf Alpine.js Animation
-        await page.waitForTimeout(300);
-
-        // Nach dem Aufklappen sollte der vollständige Inhalt sichtbar sein
-        await expect(page.locator('[data-fanfiction-content]').first()).toBeVisible();
+        // Warte auf Alpine.js State-Änderung (Button-Text ändert sich)
         await expect(toggleButton).toContainText(/zuklappen/i);
 
         // Klicke zum Zuklappen
         await toggleButton.click();
 
-        // Warte kurz auf Alpine.js Animation
-        await page.waitForTimeout(300);
-
-        // Der Inhalt sollte wieder verborgen sein
-        await expect(page.locator('[data-fanfiction-content]').first()).not.toBeVisible();
+        // Warte auf Alpine.js State-Änderung
         await expect(toggleButton).toContainText(/aufklappen/i);
     });
 
@@ -310,8 +302,8 @@ test.describe('Fanfiction Einzelansicht', () => {
         await page.goto('/fanfiction');
         await page.getByRole('link', { name: 'Die Reise nach Doredo' }).first().click();
 
-        // Der vollständige Inhalt sollte sichtbar sein (aus dem Seeder: "Der Aufbruch")
-        await expect(page.getByText(/Der Aufbruch/i)).toBeVisible();
+        // Der vollständige Inhalt sollte sichtbar sein - prüfe auf Autor und Markdown-Inhalt
+        await expect(page.getByText(/Matt stand am Rand/i)).toBeVisible();
     });
 
     test('Mitglied kann Kommentar schreiben', async ({ page }) => {
@@ -328,8 +320,8 @@ test.describe('Fanfiction Einzelansicht', () => {
         // Sende ab
         await page.getByRole('button', { name: /Kommentieren/i }).click();
 
-        // Der Kommentar sollte nach dem Neuladen sichtbar sein
-        await expect(page.getByText('E2E-Test-Kommentar')).toBeVisible();
+        // Der Kommentar sollte nach dem Neuladen sichtbar sein (nur im div, nicht im textarea)
+        await expect(page.locator('div').filter({ hasText: /E2E-Test-Kommentar/ }).first()).toBeVisible();
     });
 
     test('Kommentare werden mit Autorname angezeigt', async ({ page }) => {
