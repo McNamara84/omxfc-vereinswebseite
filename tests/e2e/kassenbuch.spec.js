@@ -213,8 +213,14 @@ test.describe('Kassenbuch Verwaltung', () => {
         await expect(statusBadges.first()).toBeVisible();
 
         const dialogs = page.locator('[role="dialog"]');
-        await expect(dialogs).toHaveCount(2);
-        await expect(dialogs.nth(0)).toHaveAttribute('aria-modal', 'true');
-        await expect(dialogs.nth(1)).toHaveAttribute('aria-modal', 'true');
+        // Prüfe mindestens 2 Dialoge (add-entry, edit-payment sind immer da)
+        // Weitere Dialoge (request-edit, edit-entry, reject-edit) sind je nach Rolle verfügbar
+        const dialogCount = await dialogs.count();
+        expect(dialogCount).toBeGreaterThanOrEqual(2);
+
+        // Prüfe dass alle vorhandenen Dialoge aria-modal haben
+        for (let i = 0; i < dialogCount; i++) {
+            await expect(dialogs.nth(i)).toHaveAttribute('aria-modal', 'true');
+        }
     });
 });

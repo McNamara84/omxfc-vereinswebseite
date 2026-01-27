@@ -16,12 +16,53 @@ class KassenbuchEntryPolicy
     public function viewAll(User $user): bool
     {
         $role = $this->role($user);
+
         return $role && in_array($role, [Role::Vorstand, Role::Admin, Role::Kassenwart], true);
     }
 
     public function manage(User $user): bool
     {
         $role = $this->role($user);
+
         return $role && in_array($role, [Role::Kassenwart, Role::Admin], true);
+    }
+
+    /**
+     * Determine if the user can request to edit the entry.
+     * Note: The check for existing pending/approved requests is done in the controller
+     * to provide a user-friendly error message instead of a 403.
+     */
+    public function requestEdit(User $user, KassenbuchEntry $entry): bool
+    {
+        $role = $this->role($user);
+
+        // Only Kassenwart/Admin can request edits
+        return $role && in_array($role, [Role::Kassenwart, Role::Admin], true);
+    }
+
+    /**
+     * Determine if the user can edit the entry.
+     */
+    public function edit(User $user, KassenbuchEntry $entry): bool
+    {
+        $role = $this->role($user);
+
+        // Only Kassenwart/Admin can edit
+        if (! $role || ! in_array($role, [Role::Kassenwart, Role::Admin], true)) {
+            return false;
+        }
+
+        // Can only edit with an approved request
+        return $entry->hasApprovedEditRequest();
+    }
+
+    /**
+     * Determine if the user can process (approve/reject) edit requests.
+     */
+    public function processEditRequest(User $user): bool
+    {
+        $role = $this->role($user);
+
+        return $role && in_array($role, [Role::Vorstand, Role::Admin], true);
     }
 }

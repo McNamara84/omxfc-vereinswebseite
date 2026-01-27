@@ -174,6 +174,12 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
         Route::get('/', 'index')->name('index');
         Route::put('zahlung-aktualisieren/{user}', 'updatePaymentStatus')->name('update-payment');
         Route::post('eintrag-hinzufuegen', 'addKassenbuchEntry')->name('add-entry');
+
+        // Bearbeitungsanfragen
+        Route::post('eintrag/{entry}/bearbeitung-anfragen', 'requestEdit')->name('request-edit');
+        Route::put('eintrag/{entry}', 'updateEntry')->name('update-entry');
+        Route::post('anfrage/{editRequest}/freigeben', 'approveEditRequest')->name('approve-edit');
+        Route::post('anfrage/{editRequest}/ablehnen', 'rejectEditRequest')->name('reject-edit');
     });
 
     Route::controller(MaddraxiversumController::class)->group(function () {
