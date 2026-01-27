@@ -49,7 +49,7 @@
 
                     {{-- Story-Inhalt (Markdown) --}}
                     <div class="prose dark:prose-invert max-w-none mb-8">
-                        {!! $fanfiction->rendered_content !!}
+                        {!! $fanfiction->formatted_content !!}
                     </div>
 
                     {{-- Teilen-Hinweis für Mitglieder --}}

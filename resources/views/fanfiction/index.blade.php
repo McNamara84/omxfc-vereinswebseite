@@ -62,7 +62,7 @@
 
                                             {{-- Vollständiger Inhalt (nur wenn aufgeklappt) --}}
                                             <div x-show="expanded" x-cloak data-fanfiction-content>
-                                                {!! $fanfiction->rendered_content !!}
+                                                {!! $fanfiction->formatted_content !!}
                                             </div>
                                         </div>
 
