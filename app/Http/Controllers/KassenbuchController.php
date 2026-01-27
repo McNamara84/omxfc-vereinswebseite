@@ -327,11 +327,13 @@ class KassenbuchController extends Controller
             'typ' => 'required|in:'.implode(',', KassenbuchEntryType::values()),
         ]);
 
-        $kassenstand = Kassenstand::where('team_id', $team->id)->firstOrFail();
+        DB::transaction(function () use ($entry, $data, $team) {
+            // Lock Entry und Kassenstand innerhalb der Transaction für Konsistenz
+            $lockedEntry = KassenbuchEntry::query()->lockForUpdate()->findOrFail($entry->id);
+            $kassenstand = Kassenstand::where('team_id', $team->id)->lockForUpdate()->firstOrFail();
 
-        DB::transaction(function () use ($entry, $data, $kassenstand) {
             // Alten Betrag vom Kassenstand abziehen
-            $kassenstand->betrag -= $entry->betrag;
+            $kassenstand->betrag -= $lockedEntry->betrag;
 
             // Neuen Betrag berechnen
             $newAmount = abs($data['betrag']);
@@ -340,11 +342,11 @@ class KassenbuchController extends Controller
             }
 
             // Begründung aus der Freigabe-Anfrage holen (innerhalb Transaction für Konsistenz)
-            $editRequest = $entry->approvedEditRequest()->lockForUpdate()->firstOrFail();
+            $editRequest = $lockedEntry->approvedEditRequest()->lockForUpdate()->firstOrFail();
             $editReason = $editRequest->getFormattedReason();
 
             // Eintrag aktualisieren
-            $entry->update([
+            $lockedEntry->update([
                 'buchungsdatum' => $data['buchungsdatum'],
                 'betrag' => $newAmount,
                 'beschreibung' => $data['beschreibung'],
