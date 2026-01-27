@@ -33,8 +33,6 @@ vi.mock('chart.js', () => {
 import { Chart } from 'chart.js';
 
 describe('polls/charts.js - updateCharts Guards', () => {
-    let originalDocument;
-
     beforeEach(() => {
         // Reset DOM
         document.body.innerHTML = '';
@@ -81,7 +79,7 @@ describe('polls/charts.js - updateCharts Guards', () => {
         setupChartDOM();
 
         // Importiere das Modul frisch
-        const chartsModule = await import('@/polls/charts.js');
+        await import('@/polls/charts.js');
 
         // Simuliere Event mit null-Daten
         const event = new CustomEvent('poll-results-updated', {
