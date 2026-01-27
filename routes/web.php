@@ -31,7 +31,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 // Umfrage (aktuelle aktive) – öffentlich oder intern je nach Konfiguration
-Route::get('/umfrage', \App\Livewire\Umfragen\UmfrageVote::class)->name('umfrage.aktuell');
+Route::livewire('/umfrage', \App\Livewire\Umfragen\UmfrageVote::class)->name('umfrage.aktuell');
 
 // Öffentliche Seiten
 Route::get('/', [PageController::class, 'home'])->name('home');
@@ -67,17 +67,17 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
     Route::get('/admin/statistiken', [AdminController::class, 'index'])->name('admin.statistiken.index')->middleware('vorstand-or-kassenwart');
 
     // Umfragen verwalten (nur Admin/Vorstand)
-    Route::get('/admin/umfragen', \App\Livewire\Umfragen\UmfrageVerwaltung::class)
+    Route::livewire('/admin/umfragen', \App\Livewire\Umfragen\UmfrageVerwaltung::class)
         ->name('admin.umfragen.index')
         ->middleware('can:manage,' . \App\Models\Poll::class);
     
     // Fantreffen 2026 Admin Dashboard
-    Route::get('/admin/fantreffen-2026', \App\Livewire\FantreffenAdminDashboard::class)
+    Route::livewire('/admin/fantreffen-2026', \App\Livewire\FantreffenAdminDashboard::class)
         ->name('admin.fantreffen.2026')
         ->middleware('vorstand-or-kassenwart');
 
     // Fantreffen 2026 VIP-Autoren verwalten
-    Route::get('/admin/fantreffen-2026/vip-autoren', \App\Livewire\FantreffenVipAuthors::class)
+    Route::livewire('/admin/fantreffen-2026/vip-autoren', \App\Livewire\FantreffenVipAuthors::class)
         ->name('admin.fantreffen.vip-authors')
         ->middleware('vorstand-or-kassenwart');
     

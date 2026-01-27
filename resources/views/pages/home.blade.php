@@ -69,13 +69,13 @@
             {{-- Letzte Rezensionen --}}
             <div class="bg-white dark:bg-gray-700 rounded-lg shadow-md p-6" id="latest-reviews-card">
                 <div class="flex items-start justify-between gap-3">
-                    <h2 class="text-2xl font-semibold text-[#8B0116] dark:text-[#ff4b63]">Letzte Rezensionen</h2>
+                    <h2 class="text-2xl font-semibold text-[#8B0116] dark:text-[#ff8a9a]">Letzte Rezensionen</h2>
                     @auth
-                        <a class="text-sm font-semibold text-[#8B0116] dark:text-[#ff4b63] hover:underline" href="{{ route('reviews.index') }}">
+                        <a class="text-sm font-semibold text-[#8B0116] dark:text-[#ff8a9a] hover:underline" href="{{ route('reviews.index') }}">
                             Alle ansehen
                         </a>
                     @else
-                        <a class="text-sm font-semibold text-[#8B0116] dark:text-[#ff4b63] hover:underline" href="{{ route('mitglied.werden') }}">
+                        <a class="text-sm font-semibold text-[#8B0116] dark:text-[#ff8a9a] hover:underline" href="{{ route('mitglied.werden') }}">
                             Alle ansehen
                         </a>
                     @endauth
@@ -105,20 +105,20 @@
             {{-- Kennzahlen --}}
             <div class="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div class="bg-white dark:bg-gray-700 rounded-lg shadow-md p-6 flex flex-col items-center" aria-labelledby="stat-members-heading" aria-describedby="stat-members-description">
-                    <h3 id="stat-members-heading" class="text-lg font-semibold text-[#8B0116] dark:text-[#ff4b63]">Aktive Mitglieder</h3>
+                    <h3 id="stat-members-heading" class="text-lg font-semibold text-[#8B0116] dark:text-[#ff8a9a]">Aktive Mitglieder</h3>
                     <div class="mt-2 flex items-baseline gap-2">
-                        <span class="text-4xl font-bold text-[#8B0116] dark:text-[#ff4b63]">{{ $memberCount }}</span>
+                        <span class="text-4xl font-bold text-[#8B0116] dark:text-[#ff8a9a]">{{ $memberCount }}</span>
                         <span class="text-gray-700 dark:text-gray-300">aktive Mitglieder</span>
                     </div>
-                    <p id="stat-members-description" class="mt-3 text-sm text-gray-600 dark:text-gray-400 text-center">Gemeinschaft, die sich regelmäßig austauscht und Projekte voranbringt.</p>
+                    <p id="stat-members-description" class="mt-3 text-sm text-gray-600 dark:text-gray-300 text-center">Gemeinschaft, die sich regelmäßig austauscht und Projekte voranbringt.</p>
                 </div>
                 <div class="bg-white dark:bg-gray-700 rounded-lg shadow-md p-6 flex flex-col items-center" aria-labelledby="stat-reviews-heading" aria-describedby="stat-reviews-description">
-                    <h3 id="stat-reviews-heading" class="text-lg font-semibold text-[#8B0116] dark:text-[#ff4b63]">Rezensionen</h3>
+                    <h3 id="stat-reviews-heading" class="text-lg font-semibold text-[#8B0116] dark:text-[#ff8a9a]">Rezensionen</h3>
                     <div class="mt-2 flex items-baseline gap-2">
-                        <span class="text-4xl font-bold text-[#8B0116] dark:text-[#ff4b63]">{{ $reviewCount }}</span>
+                        <span class="text-4xl font-bold text-[#8B0116] dark:text-[#ff8a9a]">{{ $reviewCount }}</span>
                         <span class="text-gray-700 dark:text-gray-300">Rezensionen</span>
                     </div>
-                    <p id="stat-reviews-description" class="mt-3 text-sm text-gray-600 dark:text-gray-400 text-center">Lesetipps und Eindrücke zu den Romanen unserer Lieblingsserie.</p>
+                    <p id="stat-reviews-description" class="mt-3 text-sm text-gray-600 dark:text-gray-300 text-center">Lesetipps und Eindrücke zu den Romanen unserer Lieblingsserie.</p>
                 </div>
             </div>
         </div>

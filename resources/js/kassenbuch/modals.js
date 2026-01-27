@@ -27,41 +27,12 @@ export const openEditModal = (userId, userName, mitgliedsbeitrag, bezahltBis, mi
 
 export const openKassenbuchModal = () => emitKassenbuchModalEvent();
 
-const extractEditDataset = (element) => {
-    const { userId, userName, mitgliedsbeitrag, bezahltBis, mitgliedSeit } = element.dataset;
-
-    return [userId, userName, mitgliedsbeitrag, bezahltBis, mitgliedSeit];
-};
-
-const handleClick = (event) => {
-    const editTrigger = event.target.closest('[data-kassenbuch-edit="true"]');
-    if (editTrigger) {
-        emitEditModalEvent(...extractEditDataset(editTrigger));
-        return;
-    }
-
-    const modalTrigger = event.target.closest('[data-kassenbuch-modal-trigger="true"]');
-    if (modalTrigger) {
-        emitKassenbuchModalEvent();
-    }
-};
-
-export const registerKassenbuchModals = (
-    target = typeof document !== 'undefined' ? document : undefined,
-) => {
-    if (!target || typeof target.addEventListener !== 'function') {
-        return () => {};
-    }
-
-    target.addEventListener('click', handleClick);
-
-    return () => target.removeEventListener('click', handleClick);
-};
+// Note: Click handlers are now handled by Alpine.js via @click="$dispatch(...)"
+// These JavaScript functions are kept for programmatic use and testing
 
 if (typeof window !== 'undefined') {
     window.openEditModal = openEditModal;
     window.openKassenbuchModal = openKassenbuchModal;
-    registerKassenbuchModals(document);
 }
 
 export default {
@@ -69,5 +40,4 @@ export default {
     openKassenbuchModal,
     emitEditModalEvent,
     emitKassenbuchModalEvent,
-    registerKassenbuchModals,
 };

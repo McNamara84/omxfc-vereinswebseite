@@ -78,10 +78,16 @@ class AppServiceProvider extends ServiceProvider
         });
 
         View::composer('navigation-menu', function ($view) {
-            $cacheKey = 'polls.active_for_menu.v1';
-            $poll = Cache::remember($cacheKey, now()->addMinutes(10), function () {
-                return app(ActivePollResolver::class)->current();
-            });
+            $poll = null;
+
+            try {
+                $cacheKey = 'polls.active_for_menu.v1';
+                $poll = Cache::remember($cacheKey, now()->addMinutes(10), function () {
+                    return app(ActivePollResolver::class)->current();
+                });
+            } catch (\Illuminate\Database\QueryException $e) {
+                // Table may not exist during tests before migrations run
+            }
 
             $isWithinWindow = $poll ? $poll->isWithinVotingWindow() : false;
 

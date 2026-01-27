@@ -5,14 +5,13 @@
  * der Roman-Nummern-Eingabe in Bundle-Formularen.
  *
  * Verwendung in Blade-Views:
- * 1. In der Blade-View vor diesem Script die Konstanten definieren:
+ * 1. In der Blade-View die Konstanten definieren:
  *    - window.MAX_RANGE_SPAN (vom Controller injiziert)
- *    - window.bundlePreviewInitialInput (initialer Wert aus Formular)
+ *    - window.COMPACT_THRESHOLD (für Vorschau-Formatierung)
  * 2. Dieses Script via Vite einbinden: @vite(['resources/js/romantausch-bundle-preview.js'])
  * 3. Im HTML x-data="bundlePreview()" verwenden
- *
- * Hinweis: Die Werte werden direkt in den Blade-Views definiert, da sie
- * server-seitig aus PHP-Variablen kommen (z.B. old('book_numbers')).
+ * 4. Im Input x-init verwenden um den Wert aus dem DOM zu lesen:
+ *    x-init="input = $el.getAttribute('value') || input; parseNumbers()"
  *
  * WICHTIG - PHP/JavaScript Konstanten-Kopplung:
  * Die Konstante MAX_RANGE_SPAN ist in zwei Stellen definiert:
@@ -21,14 +20,13 @@
  *
  * Bei Änderung des Wertes in PHP wird dieser automatisch übernommen, da die
  * Blade-Views den PHP-Wert lesen und an window.MAX_RANGE_SPAN übergeben.
- * Falls in Zukunft eine dynamische Konfiguration benötigt wird, könnte ein
- * API-Endpoint wie /api/romantausch/config die Werte liefern.
  *
  * @example
  * <script>
  *     window.MAX_RANGE_SPAN = {{ App\Http\Controllers\RomantauschController::MAX_RANGE_SPAN }};
- *     window.bundlePreviewInitialInput = {{ Js::from($bookNumbersInput) }};
+ *     window.COMPACT_THRESHOLD = {{ config('romantausch.compact_threshold', 20) }};
  * </script>
+ * <input x-model="input" x-init="input = $el.getAttribute('value') || input; parseNumbers()" value="{{ $bookNumbersInput }}">
  * @vite(['resources/js/romantausch-bundle-preview.js'])
  *
  * @see resources/views/romantausch/create_bundle_offer.blade.php
@@ -38,14 +36,10 @@
 
 window.bundlePreview = function bundlePreview() {
     return {
-        input: window.bundlePreviewInitialInput ?? '',
+        input: '',
         numbers: [],
 
-        init() {
-            if (this.input) {
-                this.parseNumbers();
-            }
-        },
+        // init() wird nicht mehr benötigt da x-init auf dem Input-Element verwendet wird
 
         parseNumbers() {
             const numbers = [];

@@ -144,12 +144,16 @@
                                     @if($userRole === \App\Enums\Role::Kassenwart || $userRole === \App\Enums\Role::Admin)
                                     <td class="px-4 py-3 whitespace-nowrap text-sm">
                                         <button type="button"
+                                                x-data
+                                                @click="$dispatch('edit-payment-modal', { 
+                                                    user_id: '{{ $member->id }}',
+                                                    user_name: '{{ addslashes($member->name) }}',
+                                                    mitgliedsbeitrag: '{{ $member->mitgliedsbeitrag }}',
+                                                    bezahlt_bis: '{{ $member->bezahlt_bis ? $member->bezahlt_bis->format('Y-m-d') : '' }}',
+                                                    mitglied_seit: '{{ $member->mitglied_seit ? $member->mitglied_seit->format('Y-m-d') : '' }}'
+                                                })"
                                                 data-kassenbuch-edit="true"
-                                                data-user-id="{{ $member->id }}"
                                                 data-user-name="{{ $member->name }}"
-                                                data-mitgliedsbeitrag="{{ $member->mitgliedsbeitrag }}"
-                                                data-bezahlt-bis="{{ $member->bezahlt_bis ? $member->bezahlt_bis->format('Y-m-d') : '' }}"
-                                                data-mitglied-seit="{{ $member->mitglied_seit ? $member->mitglied_seit->format('Y-m-d') : '' }}"
                                                 class="inline-flex items-center px-3 py-1 border border-transparent text-sm leading-5 font-medium rounded-md text-white bg-[#8B0116] hover:bg-red-700 focus:outline-none focus:border-red-700 focus:shadow-outline-red active:bg-red-800 transition ease-in-out duration-150">
                                             <svg class="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
@@ -171,7 +175,11 @@
                         <h2 class="text-lg font-medium text-gray-900 dark:text-white">Kassenbuch</h2>
 
                         @if($canManageKassenbuch)
-                        <button type="button" data-kassenbuch-modal-trigger="true" class="inline-flex items-center px-4 py-2 border border-transparent text-sm leading-5 font-medium rounded-md text-white bg-[#8B0116] hover:bg-red-700 focus:outline-none focus:border-red-700 focus:shadow-outline-red active:bg-red-800 transition ease-in-out duration-150">
+                        <button type="button" 
+                                x-data 
+                                @click="$dispatch('kassenbuch-modal')" 
+                                data-kassenbuch-modal-trigger="true"
+                                class="inline-flex items-center px-4 py-2 border border-transparent text-sm leading-5 font-medium rounded-md text-white bg-[#8B0116] hover:bg-red-700 focus:outline-none focus:border-red-700 focus:shadow-outline-red active:bg-red-800 transition ease-in-out duration-150">
                             <svg class="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                             </svg>

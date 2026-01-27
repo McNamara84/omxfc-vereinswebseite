@@ -57,7 +57,7 @@ jobs:
         id: run_homepage_benchmark
         env:
           PERFORMANCE_RESULTS_DIR: playwright-performance
-        run: npx playwright test tests/e2e/homepage-performance.spec.js --browser=chromium --reporter=line
+        run: npx playwright test tests/e2e/homepage-performance.spec.js --project=chromium --reporter=line
 
       - name: Publish homepage performance metrics
         if: always()

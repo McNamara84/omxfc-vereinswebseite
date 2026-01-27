@@ -1,5 +1,34 @@
 import './bootstrap';
 
+// Alpine.js initialisieren
+// Livewire 4 bündelt Alpine, aber injiziert es nur auf Seiten mit Livewire-Komponenten.
+// Für Seiten ohne Livewire-Komponenten (z.B. Kassenbuch mit reinem Blade + Alpine)
+// müssen wir Alpine selbst laden und starten.
+import Alpine from 'alpinejs';
+import focus from '@alpinejs/focus';
+
+// Hilfsfunktion zur sicheren Alpine-Initialisierung
+const initAlpine = () => {
+    // Nur initialisieren, wenn Alpine noch nicht läuft
+    if (!window.Alpine?._x_dataStack) {
+        window.Alpine = Alpine;
+        if (typeof Alpine.plugin === 'function') {
+            Alpine.plugin(focus);
+        }
+        if (typeof Alpine.start === 'function') {
+            Alpine.start();
+        }
+    }
+};
+
+// Warte auf DOMContentLoaded, um zu prüfen ob Livewire Alpine bereits geladen hat
+document.addEventListener('DOMContentLoaded', initAlpine);
+
+// Falls DOM bereits geladen ist und Alpine noch nicht läuft
+if (document.readyState !== 'loading') {
+    initAlpine();
+}
+
 const prefersDark = window.__omxfcPrefersDark ?? window.matchMedia('(prefers-color-scheme: dark)');
 const getSystemPrefersDark = () => prefersDark.matches;
 window.__omxfcPrefersDark = prefersDark;

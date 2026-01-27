@@ -32,7 +32,7 @@
         "laravel/sanctum": "^4.0",
         "laravel/scout": "^10.14",
         "laravel/tinker": "^2.10.1",
-        "livewire/livewire": "^3.6",
+        "livewire/livewire": "4.0",
         "spatie/laravel-pdf": "*",
         "spatie/laravel-sitemap": "^7.3",
         "teamtnt/laravel-scout-tntsearch-driver": "^15.0"

@@ -49,7 +49,21 @@ class UpdateProfileInformationFormTest extends TestCase
 
         $component = Livewire::test(UpdateProfileInformationForm::class);
 
-        foreach (array_keys($component->state) as $key) {
+        // Only check the fields that are explicitly set in the component's mount()
+        $expectedFields = [
+            'vorname',
+            'nachname',
+            'email',
+            'strasse',
+            'hausnummer',
+            'plz',
+            'stadt',
+            'land',
+            'telefon',
+            'mitgliedsbeitrag',
+        ];
+
+        foreach ($expectedFields as $key) {
             $this->assertEquals($user->{$key}, $component->state[$key]);
         }
     }

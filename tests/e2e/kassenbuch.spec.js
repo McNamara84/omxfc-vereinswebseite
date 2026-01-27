@@ -13,6 +13,16 @@ const login = async (page, email, password = 'password') => {
 test.describe('Kassenbuch Verwaltung', () => {
     test('admin can add entries via the modal', async ({ page }) => {
         test.setTimeout(60_000);
+        
+        // DEBUG: Listen for page errors and console errors
+        page.on('pageerror', (error) => {
+            console.log('[DEBUG] Page error:', error.message);
+        });
+        page.on('console', (msg) => {
+            if (msg.type() === 'error') {
+                console.log('[DEBUG] Console error:', msg.text());
+            }
+        });
 
         await login(page, 'info@maddraxikon.com');
         await page.goto('/kassenbuch');
@@ -22,15 +32,62 @@ test.describe('Kassenbuch Verwaltung', () => {
 
         const addButton = page.getByRole('button', { name: 'Eintrag hinzufügen' });
         await expect(addButton).toBeVisible();
+        
+        // Wait for page to be fully loaded
+        await page.waitForLoadState('networkidle');
+        
+        // DEBUG: Check if Alpine.js is loaded
+        const alpineStatus = await page.evaluate(() => {
+            return {
+                alpineExists: typeof window.Alpine !== 'undefined',
+                alpineStarted: window.Alpine?._x_dataStack !== undefined,
+                alpineVersion: window.Alpine?.version ?? 'unknown',
+                livewireExists: typeof window.Livewire !== 'undefined',
+            };
+        });
+        console.log('[DEBUG] Alpine/Livewire status before click:', JSON.stringify(alpineStatus));
+        
+        // DEBUG: Check button attributes
+        const buttonInfo = await addButton.evaluate((btn) => ({
+            hasXData: btn.hasAttribute('x-data'),
+            hasAlpineClick: btn.getAttribute('@click') ?? btn.getAttribute('x-on:click'),
+            outerHTML: btn.outerHTML.substring(0, 500),
+        }));
+        console.log('[DEBUG] Add button info:', JSON.stringify(buttonInfo));
+        
+        // Click the button to open modal
         await addButton.click();
+        
+        // DEBUG: Wait a moment and check DOM state
+        await page.waitForTimeout(500);
+        const modalState = await page.evaluate(() => {
+            const dialogs = document.querySelectorAll('[role="dialog"]');
+            const xShowElements = document.querySelectorAll('[x-show]');
+            return {
+                dialogCount: dialogs.length,
+                dialogsVisible: Array.from(dialogs).map(d => ({
+                    ariaLabel: d.getAttribute('aria-labelledby'),
+                    display: window.getComputedStyle(d).display,
+                    visibility: window.getComputedStyle(d).visibility,
+                    title: d.querySelector('h3')?.textContent?.trim(),
+                })),
+                xShowCount: xShowElements.length,
+            };
+        });
+        console.log('[DEBUG] Modal state after click:', JSON.stringify(modalState));
 
         const addDialog = page.getByRole('dialog', { name: 'Kassenbucheintrag hinzufügen' });
-        await addDialog
-            .waitFor({ state: 'visible', timeout: 2000 })
-            .catch(async () => {
-                await page.evaluate(() => window.dispatchEvent(new CustomEvent('kassenbuch-modal')));
-                await addDialog.waitFor({ state: 'visible' });
-            });
+        await addDialog.waitFor({ state: 'visible', timeout: 10000 }).catch(async (err) => {
+            // DEBUG: Take screenshot on failure
+            await page.screenshot({ path: 'test-results/kassenbuch-add-modal-debug.png', fullPage: true });
+            console.log('[DEBUG] Screenshot saved to test-results/kassenbuch-add-modal-debug.png');
+            
+            // DEBUG: Dump page HTML
+            const html = await page.content();
+            console.log('[DEBUG] Page HTML (first 5000 chars):', html.substring(0, 5000));
+            
+            throw err;
+        });
         await expect(addDialog).toBeVisible();
         await expect(addDialog.getByLabel('Buchungsdatum')).toHaveAttribute('aria-describedby', 'buchungsdatum-error');
         await expect(addDialog.getByLabel('Beschreibung')).toHaveAttribute('aria-describedby', 'beschreibung-error');
@@ -54,9 +111,22 @@ test.describe('Kassenbuch Verwaltung', () => {
 
     test('admin can edit payment status via the modal', async ({ page }) => {
         test.setTimeout(60_000);
+        
+        // DEBUG: Listen for page errors and console errors
+        page.on('pageerror', (error) => {
+            console.log('[DEBUG] Edit test - Page error:', error.message);
+        });
+        page.on('console', (msg) => {
+            if (msg.type() === 'error') {
+                console.log('[DEBUG] Edit test - Console error:', msg.text());
+            }
+        });
 
         await login(page, 'info@maddraxikon.com');
         await page.goto('/kassenbuch');
+
+        // Wait for page to be fully loaded and interactive
+        await page.waitForLoadState('networkidle');
 
         const editButton = page.getByRole('button', { name: 'Bearbeiten' }).first();
         const editDetail = await editButton.evaluate((button) => ({
@@ -66,27 +136,42 @@ test.describe('Kassenbuch Verwaltung', () => {
             bezahltBis: button.getAttribute('data-bezahlt-bis') ?? '',
             mitgliedSeit: button.getAttribute('data-mitglied-seit') ?? '',
         }));
+        // Wait for page to be fully loaded
+        await page.waitForLoadState('networkidle');
+        
+        // DEBUG: Check if Alpine.js is loaded
+        const alpineStatus = await page.evaluate(() => {
+            return {
+                alpineExists: typeof window.Alpine !== 'undefined',
+                alpineStarted: window.Alpine?._x_dataStack !== undefined,
+                alpineVersion: window.Alpine?.version ?? 'unknown',
+            };
+        });
+        console.log('[DEBUG] Alpine status before edit click:', JSON.stringify(alpineStatus));
+        
         await editButton.click();
+        
+        // DEBUG: Wait and check modal state
+        await page.waitForTimeout(500);
+        const modalState = await page.evaluate(() => {
+            const dialogs = document.querySelectorAll('[role="dialog"]');
+            return {
+                dialogCount: dialogs.length,
+                dialogsInfo: Array.from(dialogs).map(d => ({
+                    display: window.getComputedStyle(d).display,
+                    visibility: window.getComputedStyle(d).visibility,
+                    title: d.querySelector('h3')?.textContent?.trim(),
+                })),
+            };
+        });
+        console.log('[DEBUG] Modal state after edit click:', JSON.stringify(modalState));
 
         const editDialog = page.getByRole('dialog', { name: 'Zahlungsdaten bearbeiten' });
-        await editDialog
-            .waitFor({ state: 'visible', timeout: 2000 })
-            .catch(async () => {
-                await page.evaluate((detail) => {
-                    window.dispatchEvent(
-                        new CustomEvent('edit-payment-modal', {
-                            detail: {
-                                user_id: detail.userId ?? '',
-                                user_name: detail.userName ?? '',
-                                mitgliedsbeitrag: detail.mitgliedsbeitrag ?? '',
-                                bezahlt_bis: detail.bezahltBis ?? '',
-                                mitglied_seit: detail.mitgliedSeit ?? '',
-                            },
-                        }),
-                    );
-                }, editDetail);
-                await editDialog.waitFor({ state: 'visible' });
-            });
+        await editDialog.waitFor({ state: 'visible', timeout: 10000 }).catch(async (err) => {
+            await page.screenshot({ path: 'test-results/kassenbuch-edit-modal-debug.png', fullPage: true });
+            console.log('[DEBUG] Screenshot saved to test-results/kassenbuch-edit-modal-debug.png');
+            throw err;
+        });
         await expect(editDialog).toBeVisible();
 
         const mitgliedsbeitragInput = editDialog.getByLabel('Mitgliedsbeitrag (€)');

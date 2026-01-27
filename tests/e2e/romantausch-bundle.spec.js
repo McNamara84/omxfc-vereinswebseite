@@ -221,9 +221,13 @@ test.describe('Romantauschbörse - Stapel-Angebote', () => {
             const editLink = bundleWithNumbers.locator('a[href*="/stapel/"][href*="/bearbeiten"]');
             await editLink.click();
 
+            // Warte auf die Seite und Alpine.js Initialisierung
+            await page.waitForURL(/stapel\/.*\/bearbeiten$/);
+            
             // Aktuelle Roman-Nummern sollten im Eingabefeld stehen
+            // Warte bis Alpine.js das Input-Feld mit dem initialen Wert befüllt hat
             const bookNumbersInput = page.locator('input[name="book_numbers"]');
-            await expect(bookNumbersInput).toHaveValue(/90/);
+            await expect(bookNumbersInput).toHaveValue(/90/, { timeout: 10000 });
         });
 
         test('Stapel kann gelöscht werden', async ({ page }) => {

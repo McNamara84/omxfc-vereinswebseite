@@ -29,22 +29,14 @@
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
-    <!-- Styles (NUR CSS) -->
+    <!-- Styles -->
     @include('layouts.partials.theme-bootstrap')
     @vite(['resources/css/app.css'])
-    @livewireStyles
     {{-- Zusätzliche Head-Inhalte (z.B. JSON-LD für SEO) --}}
     {{ $head ?? '' }}
 </head>
 
 <body class="font-sans antialiased">
-    <!-- Livewire Scripts -->
-    <script src="/livewire/livewire.min.js" 
-        data-csrf="{{ csrf_token() }}" 
-        data-update-uri="/livewire/update" 
-        data-navigate-once="true">
-    </script>
-
     <x-banner />
     <div class="min-h-screen text-gray-900 dark:text-gray-100 xl:pt-24">
         @livewire('navigation-menu')
@@ -66,7 +58,6 @@
     @stack('modals')
     @stack('scripts')
 
-    <!-- Alpine/JS -->
     @vite(['resources/js/app.js'])
 </body>
 </html>
