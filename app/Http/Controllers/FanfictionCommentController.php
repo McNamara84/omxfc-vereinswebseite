@@ -54,7 +54,7 @@ class FanfictionCommentController extends Controller
         $user = Auth::user();
         $role = $this->getRoleInMemberTeam();
 
-        if (! $role || ! in_array($role, [Role::Mitglied, Role::Ehrenmitglied, Role::Kassenwart, Role::Vorstand, Role::Admin], true)) {
+        if (! $role || ! in_array($role, [Role::Mitwirkender, Role::Mitglied, Role::Ehrenmitglied, Role::Kassenwart, Role::Vorstand, Role::Admin], true)) {
             abort(403);
         }
 

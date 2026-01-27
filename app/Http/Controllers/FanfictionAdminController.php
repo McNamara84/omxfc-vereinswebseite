@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
@@ -101,6 +102,7 @@ class FanfictionAdminController extends Controller
 
         if ($validated['status'] === 'published') {
             $this->handlePublishActions($fanfiction);
+            $this->invalidateFanfictionCountCache();
         }
 
         return redirect()
@@ -128,13 +130,18 @@ class FanfictionAdminController extends Controller
      */
     public function update(Request $request, Fanfiction $fanfiction): RedirectResponse
     {
+        // Calculate available slots for new photos
+        $existingCount = count($fanfiction->photos ?? []);
+        $removeCount = count($request->input('remove_photos', []));
+        $availableSlots = self::MAX_PHOTOS - $existingCount + $removeCount;
+
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'author_type' => 'required|in:member,external',
             'user_id' => 'nullable|required_if:author_type,member|exists:users,id',
             'author_name' => 'required|string|max:255',
             'content' => 'required|string|min:10',
-            'photos' => 'nullable|array',
+            'photos' => ['nullable', 'array', 'max:' . max(0, $availableSlots)],
             'photos.*' => 'file|max:' . self::MAX_PHOTO_SIZE_KB . '|mimes:' . implode(',', self::ALLOWED_PHOTO_EXTENSIONS),
             'remove_photos' => 'nullable|array',
             'remove_photos.*' => 'string',
@@ -180,7 +187,12 @@ class FanfictionAdminController extends Controller
             Storage::disk('public')->delete($path);
         }
 
+        $wasPublished = $fanfiction->status === FanfictionStatus::Published;
         $fanfiction->delete();
+
+        if ($wasPublished) {
+            $this->invalidateFanfictionCountCache();
+        }
 
         return redirect()
             ->route('admin.fanfiction.index')
@@ -204,6 +216,7 @@ class FanfictionAdminController extends Controller
         ]);
 
         $this->handlePublishActions($fanfiction);
+        $this->invalidateFanfictionCountCache();
 
         return redirect()
             ->route('admin.fanfiction.index')
@@ -264,5 +277,14 @@ class FanfictionAdminController extends Controller
         if ($fanfiction->user_id && $fanfiction->author) {
             $fanfiction->author->incrementTeamPoints(5);
         }
+    }
+
+    /**
+     * Invalidate the cached fanfiction count on the dashboard.
+     */
+    private function invalidateFanfictionCountCache(): void
+    {
+        $team = $this->memberTeam();
+        Cache::forget("fanfiction_count_{$team->id}");
     }
 }

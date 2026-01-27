@@ -252,4 +252,59 @@ class FanfictionAdminControllerTest extends TestCase
 
         $response->assertSessionHasErrors('photos');
     }
+
+    public function test_vorstand_can_remove_photos_during_update(): void
+    {
+        Storage::fake('public');
+
+        // Create a fanfiction with photos
+        $photo1 = UploadedFile::fake()->image('photo1.jpg', 400, 300);
+        $photo2 = UploadedFile::fake()->image('photo2.jpg', 400, 300);
+
+        $path1 = $photo1->store('fanfiction', 'public');
+        $path2 = $photo2->store('fanfiction', 'public');
+
+        $fanfiction = Fanfiction::factory()->create([
+            'team_id' => $this->memberTeam->id,
+            'created_by' => $this->vorstand->id,
+            'photos' => [$path1, $path2],
+        ]);
+
+        Storage::disk('public')->assertExists($path1);
+        Storage::disk('public')->assertExists($path2);
+
+        // Remove one photo
+        $response = $this->actingAs($this->vorstand)
+            ->put(route('admin.fanfiction.update', $fanfiction), [
+                'title' => $fanfiction->title,
+                'content' => $fanfiction->content,
+                'author_type' => 'external',
+                'author_name' => $fanfiction->author_name,
+                'remove_photos' => [$path1],
+            ]);
+
+        $response->assertRedirect(route('admin.fanfiction.index'));
+
+        $fanfiction->refresh();
+        $this->assertCount(1, $fanfiction->photos);
+        $this->assertContains($path2, $fanfiction->photos);
+        $this->assertNotContains($path1, $fanfiction->photos);
+
+        Storage::disk('public')->assertMissing($path1);
+        Storage::disk('public')->assertExists($path2);
+    }
+
+    public function test_publishing_already_published_fanfiction_returns_info_message(): void
+    {
+        $fanfiction = Fanfiction::factory()->published()->create([
+            'team_id' => $this->memberTeam->id,
+            'created_by' => $this->vorstand->id,
+        ]);
+
+        $response = $this->actingAs($this->vorstand)
+            ->post(route('admin.fanfiction.publish', $fanfiction));
+
+        $response->assertRedirect(route('admin.fanfiction.index'));
+        $response->assertSessionHas('info', 'Diese Fanfiction ist bereits veröffentlicht.');
+    }
 }
