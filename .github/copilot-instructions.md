@@ -1,71 +1,137 @@
-Kurz und prägnant: Hinweise für AI-Coding-Agenten, um hier sofort produktiv zu werden.
+# OMXFC Vereinswebseite – AI Agent Instructions
 
-Ziel: Liefere kleine, sichere Code-Änderungen, Tests oder Dokument-Updates, die zur Laravel-12-basierten Vereinswebseite passen.
+> MADDRAX-Fanclub-Website. Laravel 12 + Livewire 4 + Tailwind 4. Deutsche Domain-Sprache.
 
-1) Grosser Architekturüberblick
-- Backend: Laravel 12 (PHP ≥ 8.5). App-Logik liegt unter `app/` (Controller, Livewire-Komponenten in `app/Livewire`, Services in `app/Services`, Jobs in `app/Jobs`).
-- Frontend: Vite + Tailwind + Alpine.js + Livewire. Assets in `resources/`; Vite-Konfiguration in `vite.config.js`.
-- Daten: MySQL/MariaDB in Produktion; Tests/CI verwenden SQLite (siehe `phpunit.xml`).
-- Workflows: CI definiert in `.github/workflows/*` — `phpunit.yml`, `playwright.yml`, `vitest.yml`. Asset-Builder ist `.github/actions/build-assets/action.yml`.
+## Bevorzugte Technologien
 
-2) Wichtige Dateien/Orte (schnelle Referenz)
-- Projekt-README: `README.md` — enthält Setup-, Dev- & Deploy-Hinweise.
-- Composer/Node-Manifeste: `composer.json`, `package.json` (Node 24 LTS, PHP 8.5 Mindestanforderung). Die Node-Version wird zentral in `.node-version` gepflegt.
-- Tests: `phpunit.xml`, `tests/TestCase.php` (beachtet HTTP-Fakes & automatische Seeding).
-- Routen: `routes/web.php` (Controller-zentrierte Struktur, deutsche Route-/Methodennamen).
-- Artisan entrypoint: `artisan` (standard Laravel CLI).
+- **PHP 8.5** – Nutze neueste Features: Property Hooks, `array_*` Funktionen, Pipe Operator, Asymmetric Visibility
+- **Tailwind CSS 4** – Nutze moderne Syntax: `@theme`, CSS-Variablen, Container Queries, `@starting-style`
+- **Livewire 4** – Nutze aktuelle Patterns: `#[Computed]`, `#[Locked]`, `wire:model.live`, Lazy Loading
 
-3) Entwicklungs- und Test-Workflows (konkrete Befehle)
-- Abhängigkeiten installieren:
-  - `composer install`
-  - `npm install` (Node 24 LTS)
-- Environment und DB:
-  - `cp .env.example .env` und `php artisan key:generate`
-  - Lokale Migration: `php artisan migrate`
-- Dev-Server & Assets:
-  - PHP + Vite getrennt: `php artisan serve` und `npm run dev`
-  - Kombiniert (empfohlen beim Entwickeln): `composer run dev` — startet `php artisan serve`, `queue:work` und `npm run dev` parallel (siehe `composer.json` scripts).
-- Tests:
-  - PHPUnit: `php artisan test` (CI/`phpunit.xml` nutzt SQLite in-memory or sqlite file)
-  - JS-Unit (Jest): `npm run test`
-  - Vitest: `npm run test:vitest`
-  - Playwright E2E (+axe accessibility): `npm run test:e2e` (Playwright benötigt gebaute Assets + DB migrations)
+## Architektur
 
-4) CI / E2E Hinweise
-- Playwright CI (`.github/workflows/playwright.yml`) baut Assets, migriert die Datenbank (SQLite) und führt E2E-Browser-Tests. Für lokale E2E: `php artisan migrate --force`, `npm run build`, dann `npx playwright test`.
-- PHP-Tests in CI installieren Composer-Abhängigkeiten, erzeugen eine `database/database.sqlite` und nutzen `php artisan test`.
+| Layer | Stack | Pfad |
+|-------|-------|------|
+| Backend | Laravel 12, PHP 8.5, Livewire 4, Jetstream 5.3 | `app/` |
+| Frontend | Vite 7, Tailwind 4, Alpine.js | `resources/` |
+| Daten | MySQL/MariaDB (Prod), SQLite (Tests) | `database/` |
+| CI | PHPUnit, Vitest 4, Playwright | `.github/workflows/` |
 
-5) Projekt-spezifische Konventionen & Fallen
-- Tests erwarten HTTP-Fakes für externe Dienste (z. B. Nominatim). `tests/TestCase.php` faked Anfragen an `nominatim.openstreetmap.org` und seedet die DB automatisch in setUp(). Verändere das nicht ohne Grund.
-- Tests/CI nutzen SQLite (phpunit.xml setzt DB_CONNECTION=sqlite und DB_DATABASE=:memory:); Code, der nur mit MySQL-Spezifika funktioniert, kann in CI fehlschlagen.
-- Route-/Controller-Namen sind deutschsprachig; suche nach deutschen Schlüsselwörtern (z. B. `mitglieder`, `hoerbuecher`, `fantreffen`) bei Änderungen an Routen oder Views.
-- Assets: Vite (Node 24 LTS) — fehlerhafte Node-Versionen sind eine häufige lokale Fehlerquelle.
-- Dateiberechtigungen: CI setzt `chmod -R 777 storage bootstrap/cache` vor Tests; lokale Umgebungen müssen Schreibrechte für `storage`/`bootstrap/cache` erlauben.
-- Rollen-System: Benutzer-Rollen (Admin, Vorstand, Kassenwart, Mitglied, etc.) werden über `team_user` Pivot-Tabelle gespeichert, nicht direkt am User-Model. Siehe `database/schema/sqlite-schema.sql` für Schema-Details.
-- PayPal-Integration: Nutzt PayPal.me-Links (keine API), konfiguriert über `PAYPAL_ME_USERNAME` und `PAYPAL_FANTREFFEN_EMAIL` in `.env`.
+**Kern-Packages:** Jetstream (Teams/Auth), Scout+TNTSearch (Volltextsuche), Spatie PDF/Sitemap
 
-6) Change/PR-Checks (was vor einem PR lokal ausführen)
-- `composer install && npm ci`
-- `php artisan migrate --force` (oder in Testkontext: `php artisan test` nutzt SQLite automatisch)
-- `php artisan test` (Unit + Feature)
-- `npm run test` und `npm run test:vitest` falls Frontend betroffen
-- `npm run build` falls du Asset-Änderungen auslieferst
+**Kernstruktur:**
+```
+app/Http/Controllers/     # MVC-Controller (deutsche Methodennamen)
+app/Livewire/             # Reaktive Full-Page-Komponenten
+app/Services/             # Business-Logik: TeamPointService, MaddraxDataService, FantreffenDeadlineService
+app/Enums/Role.php        # Anwaerter, Mitwirkender, Mitglied, Ehrenmitglied, Kassenwart, Vorstand, Admin
+app/Models/               # Eloquent: User, Team, Todo, Review, FantreffenAnmeldung, KassenbuchEntry
+```
 
-7) Concrete examples für AI-Aktionen
-- Kleine Controller-Fix: Wenn du einen HTTP-Status falsch weitergibst, verändere die Methode in `app/Http/Controllers/*`, ergänze einen Feature-Test unter `tests/Feature` und laufe `php artisan test`.
-- Frontend-Änderung an Komponenten: editiere `resources/js` / `resources/views`, baue Assets lokal (`npm run build`) und ergänze Vitest/Jest-Tests in `resources/js/tests`.
-- Neue Background-Job: Erstelle Job unter `app/Jobs`, registriere ggf. in Scheduler (`app/Console/Kernel.php`) und füge einen Integrationstest, der `queue:work` nicht benötigt (synchron-mode in `phpunit.xml`).
-- Event-System (Maddrax-Fantreffen): Livewire-Full-Page-Komponenten in `app/Livewire` (FantreffenAnmeldung, FantreffenAdminDashboard, FantreffenZahlungsbestaetigung), Model `app/Models/FantreffenAnmeldung.php`, Middleware `app/Http/Middleware/EnsureVorstandOrKassenwart.php` für Admin-Zugriff. PayPal-Config in `config/services.php`.
+## Entwicklungs-Workflow
 
-8) Was hier nicht tun / Vorsicht
-- Keine geheimen Schlüssel in Änderungen (keine `.env` in commits).
-- Keine Änderungen an CI-Secrets oder GitHub Actions ohne Rücksprache.
+```bash
+# Setup
+composer install && npm install      # Node 24 LTS (siehe .node-version)
+cp .env.example .env && php artisan key:generate
+php artisan migrate
 
-9) Referenzen (für schnelle Navigation)
-- `README.md` — Setup & commands
-- `composer.json`, `package.json` — runtime & scripts
-- `phpunit.xml`, `tests/TestCase.php` — Testkontext
-- `routes/web.php` — Routing-Patterns
-- `.github/workflows/*` — CI expectations (phpunit, vitest, playwright)
+# Entwickeln (empfohlen – startet serve + queue:work + vite parallel)
+composer run dev
 
-Wenn etwas unklar ist oder du bevorzugte Prioritäten hast (z. B. Bugfix vs. neues Feature vs. Tests), sag kurz Bescheid — ich passe die Anleitung an bzw. erweitere Beispiele.
+# Tests
+php artisan test                      # PHPUnit (SQLite :memory:)
+npm run test:vitest                   # Vitest (JS)
+npm run test:e2e                      # Playwright (benötigt npm run build)
+```
+
+## Projekt-Konventionen
+
+### Deutsche Domain-Sprache
+Routes, Views und Models verwenden deutsche Begriffe:
+- Routes: `/mitglieder`, `/hoerbuecher`, `/fantreffen`, `/kassenbuch`, `/romantausch`
+- Models: `FantreffenAnmeldung`, `KassenbuchEntry`, `BookOffer`/`BookRequest`/`BookSwap`
+
+### Rollen & Authorization
+```php
+// app/Enums/Role.php – Rollen über team_user Pivot
+enum Role: string {
+    case Anwaerter = 'Anwärter';
+    case Vorstand = 'Vorstand';
+    case Admin = 'Admin';
+    // ...
+}
+
+// Middleware für geschützte Routes (routes/web.php)
+Route::middleware(['vorstand-or-kassenwart'])->group(...);
+Route::middleware(['admin'])->group(...);
+
+// Policy-Pattern in Controllern
+$this->authorize('update', $bookOffer);
+```
+
+### Livewire-Pattern
+```php
+// Full-Page-Komponenten mit Layout + Route::livewire()
+Route::livewire('/admin/fantreffen-2026', FantreffenAdminDashboard::class)
+    ->middleware('vorstand-or-kassenwart');
+
+public function render() {
+    return view('livewire.fantreffen-admin-dashboard')
+        ->layout('layouts.app', ['title' => 'Admin Dashboard']);
+}
+```
+
+### Service-Injection
+```php
+public function __construct(
+    private readonly TeamPointService $teamPointService
+) {}
+```
+
+### Test-Setup (`tests/TestCase.php`)
+- HTTP-Fake für `nominatim.openstreetmap.org` ist automatisch aktiv (Geocoding-Mock)
+- DB wird in `setUp()` automatisch geseeded – keine manuelle Seed-Logik nötig
+- SQLite in-memory: **Kein MySQL-spezifischer Code** (z.B. `JSON_EXTRACT`) ohne SQLite-Fallback
+
+## Häufige Tasks
+
+| Aufgabe | Dateien | Test |
+|---------|---------|------|
+| Controller | `app/Http/Controllers/*` | `php artisan test --filter=ControllerName` |
+| Livewire | `app/Livewire/`, `resources/views/livewire/` | `php artisan test` |
+| Frontend/JS | `resources/js/`, Feature-spezifisch (z.B. `fantreffen.js`) | `npm run test:vitest && npm run build` |
+| Neue Route | `routes/web.php` | Feature-Test unter `tests/Feature/` |
+| Background-Job | `app/Jobs/` | Test mit `QUEUE_CONNECTION=sync` |
+
+## Wichtige Pfade
+
+- **Ausführliche AI-Doku:** `CLAUDE.md` (1300+ Zeilen Kontext)
+- **Routing:** `routes/web.php` – Controller + `Route::livewire()`
+- **Views nach Feature:** `resources/views/{fantreffen,kassenbuch,mitglieder,romantausch,hoerbuecher}/`
+- **E2E-Seeder:** `TodoPlaywrightSeeder`, `FantreffenPlaywrightSeeder` (nur Test-Env)
+
+## Code Reviews
+
+- ⚠️ **Punkte aus Code Reviews erst validieren** – Prüfe ob der Vorschlag im Projektkontext sinnvoll ist, bevor du ihn umsetzt
+- Nicht jede Review-Empfehlung passt zu diesem Projekt (z.B. deutsche Domain-Sprache, SQLite-Kompatibilität)
+
+## Nicht tun
+
+- ❌ Keine `.env`-Werte in Commits
+- ❌ Keine MySQL-Only-Syntax (CI nutzt SQLite)
+- ❌ Kein Ändern von `tests/TestCase.php` HTTP-Fakes ohne Grund
+- ❌ **Keine automatischen Git-Commits** – der Entwickler committet selbst
+- ❌ Keine `{!! !!}` ohne XSS-Prüfung – verwende `{{ }}`
+- ❌ Code Coverage nicht unter 75% fallen lassen
+
+## PR-Checkliste
+
+```bash
+php artisan test              # ✓ PHPUnit
+npm run test:vitest           # ✓ JS (falls Frontend)
+npm run build                 # ✓ Assets (falls geändert)
+./vendor/bin/pint --test      # ✓ Code-Style
+```
+
+**Coverage-Ziel:** PHP und JS Coverage bei **≥75%** halten oder steigern. Neue Features mit Tests abdecken.

@@ -261,6 +261,7 @@ class UmfrageVerwaltung extends Component
     {
         if (! $this->pollId) {
             $this->chartData = [];
+
             return;
         }
 
@@ -268,12 +269,17 @@ class UmfrageVerwaltung extends Component
 
         if (! $poll) {
             $this->chartData = [];
+
             return;
         }
 
         $this->chartData = $poll->buildChartData();
 
-        $this->dispatch('poll-results-updated', data: $this->chartData);
+        // Nur Event dispatchen wenn gültige Chart-Daten mit Labels vorhanden sind
+        // Verhindert Browser-Freeze durch leere/ungültige Daten im Frontend
+        if (! empty($this->chartData['options']['labels'] ?? [])) {
+            $this->dispatch('poll-results-updated', data: $this->chartData);
+        }
     }
 
     private function rules(): array

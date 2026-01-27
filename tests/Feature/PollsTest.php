@@ -181,4 +181,95 @@ class PollsTest extends TestCase
             ->assertSet('canVote', false)
             ->assertSee('noch nicht gestartet');
     }
+
+    // ========================================================================
+    // Issue #494: Browser-Crash-Prevention Tests
+    // ========================================================================
+
+    public function test_new_poll_does_not_dispatch_results_event(): void
+    {
+        $admin = $this->createUserWithRole(Role::Admin);
+
+        Livewire::actingAs($admin)
+            ->test(UmfrageVerwaltung::class)
+            ->call('newPoll')
+            ->assertNotDispatched('poll-results-updated');
+    }
+
+    public function test_select_poll_without_options_does_not_dispatch_results_event(): void
+    {
+        $admin = $this->createUserWithRole(Role::Admin);
+
+        // Poll ohne Optionen erstellen
+        $poll = Poll::query()->create([
+            'question' => 'Leere Umfrage?',
+            'menu_label' => 'Leere Umfrage',
+            'visibility' => PollVisibility::Public,
+            'status' => PollStatus::Draft,
+            'starts_at' => now()->subDay(),
+            'ends_at' => now()->addDay(),
+            'created_by_user_id' => $admin->id,
+        ]);
+
+        Livewire::actingAs($admin)
+            ->test(UmfrageVerwaltung::class)
+            ->call('selectPoll', $poll->id)
+            ->assertNotDispatched('poll-results-updated');
+    }
+
+    public function test_select_poll_with_options_dispatches_results_event(): void
+    {
+        $admin = $this->createUserWithRole(Role::Admin);
+
+        $poll = Poll::query()->create([
+            'question' => 'Umfrage mit Optionen?',
+            'menu_label' => 'Test Umfrage',
+            'visibility' => PollVisibility::Public,
+            'status' => PollStatus::Draft,
+            'starts_at' => now()->subDay(),
+            'ends_at' => now()->addDay(),
+            'created_by_user_id' => $admin->id,
+        ]);
+
+        PollOption::query()->create([
+            'poll_id' => $poll->id,
+            'label' => 'Option A',
+            'sort_order' => 0,
+        ]);
+
+        PollOption::query()->create([
+            'poll_id' => $poll->id,
+            'label' => 'Option B',
+            'sort_order' => 1,
+        ]);
+
+        Livewire::actingAs($admin)
+            ->test(UmfrageVerwaltung::class)
+            ->call('selectPoll', $poll->id)
+            ->assertDispatched('poll-results-updated');
+    }
+
+    public function test_admin_page_loads_without_error_when_no_polls_exist(): void
+    {
+        $admin = $this->createUserWithRole(Role::Admin);
+
+        // Sicherstellen, dass keine Polls existieren
+        Poll::query()->delete();
+
+        $this->actingAs($admin)
+            ->get(route('admin.umfragen.index'))
+            ->assertOk()
+            ->assertSee('Umfrage verwalten');
+    }
+
+    public function test_chart_data_is_empty_array_when_no_poll_selected(): void
+    {
+        $admin = $this->createUserWithRole(Role::Admin);
+
+        $component = Livewire::actingAs($admin)
+            ->test(UmfrageVerwaltung::class)
+            ->call('newPoll');
+
+        $this->assertSame([], $component->get('chartData'));
+    }
 }
