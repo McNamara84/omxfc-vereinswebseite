@@ -188,23 +188,35 @@ class KassenbuchController extends Controller
             'reason_text' => 'nullable|string|max:500',
         ]);
 
-        // Bei "Sonstiges" ist Freitext erforderlich
-        if ($data['reason_type'] === KassenbuchEditReasonType::Sonstiges->value && empty($data['reason_text'])) {
+        // Bei "Sonstiges" ist Freitext erforderlich (blank() lehnt auch whitespace-only ab)
+        if ($data['reason_type'] === KassenbuchEditReasonType::Sonstiges->value && blank($data['reason_text'] ?? null)) {
             return back()->withErrors(['reason_text' => 'Bei "Sonstiges" ist eine Begründung erforderlich.']);
         }
 
-        // Blockieren wenn bereits eine pending oder approved Anfrage existiert
-        if ($entry->hasPendingEditRequest() || $entry->hasApprovedEditRequest()) {
-            return back()->withErrors(['entry' => 'Für diesen Eintrag existiert bereits eine offene Bearbeitungsanfrage.']);
-        }
+        // Transaction mit Lock verhindert Race Conditions bei gleichzeitigen Anfragen
+        $result = DB::transaction(function () use ($entry, $data) {
+            // Lock den Entry um Race Conditions zu verhindern
+            $entry->lockForUpdate()->first();
 
-        KassenbuchEditRequest::create([
-            'kassenbuch_entry_id' => $entry->id,
-            'requested_by' => Auth::id(),
-            'reason_type' => $data['reason_type'],
-            'reason_text' => $data['reason_text'] ?? null,
-            'status' => KassenbuchEditRequest::STATUS_PENDING,
-        ]);
+            // Prüfe erneut innerhalb der Transaction
+            if ($entry->hasPendingEditRequest() || $entry->hasApprovedEditRequest()) {
+                return ['error' => 'Für diesen Eintrag existiert bereits eine offene Bearbeitungsanfrage.'];
+            }
+
+            KassenbuchEditRequest::create([
+                'kassenbuch_entry_id' => $entry->id,
+                'requested_by' => Auth::id(),
+                'reason_type' => $data['reason_type'],
+                'reason_text' => $data['reason_text'] ?? null,
+                'status' => KassenbuchEditRequest::STATUS_PENDING,
+            ]);
+
+            return ['success' => true];
+        });
+
+        if (isset($result['error'])) {
+            return back()->withErrors(['entry' => $result['error']]);
+        }
 
         return back()->with('status', 'Bearbeitungsanfrage wurde gestellt.');
     }
@@ -289,7 +301,7 @@ class KassenbuchController extends Controller
             'typ' => 'required|in:'.implode(',', KassenbuchEntryType::values()),
         ]);
 
-        $kassenstand = Kassenstand::where('team_id', $team->id)->first();
+        $kassenstand = Kassenstand::where('team_id', $team->id)->firstOrFail();
 
         DB::transaction(function () use ($entry, $data, $kassenstand) {
             // Alten Betrag vom Kassenstand abziehen
@@ -301,8 +313,8 @@ class KassenbuchController extends Controller
                 $newAmount = -$newAmount;
             }
 
-            // Begründung aus der Freigabe-Anfrage holen
-            $editRequest = $entry->approvedEditRequest;
+            // Begründung aus der Freigabe-Anfrage holen (innerhalb Transaction für Konsistenz)
+            $editRequest = $entry->approvedEditRequest()->lockForUpdate()->firstOrFail();
             $editReason = $editRequest->getFormattedReason();
 
             // Eintrag aktualisieren

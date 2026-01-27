@@ -188,6 +188,21 @@ class KassenbuchEditRequestTest extends TestCase
         $response->assertSessionHasErrors('reason_text');
     }
 
+    public function test_sonstiges_rejects_whitespace_only_reason_text(): void
+    {
+        $kassenwart = $this->createUserWithRole(Role::Kassenwart);
+        $entry = $this->createKassenbuchEntry($kassenwart);
+
+        $response = $this->actingAs($kassenwart)
+            ->post("/kassenbuch/eintrag/{$entry->id}/bearbeitung-anfragen", [
+                'reason_type' => KassenbuchEditReasonType::Sonstiges->value,
+                'reason_text' => '   ',  // Only whitespace
+            ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHasErrors('reason_text');
+    }
+
     public function test_sonstiges_with_reason_text_succeeds(): void
     {
         $kassenwart = $this->createUserWithRole(Role::Kassenwart);

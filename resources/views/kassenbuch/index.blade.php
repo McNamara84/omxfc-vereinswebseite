@@ -122,7 +122,7 @@
                                     {{-- Ablehnen --}}
                                     <button type="button"
                                             x-data
-                                            @click="$dispatch('reject-edit-modal', { id: {{ $request->id }}, beschreibung: '{{ addslashes($request->entry->beschreibung) }}' })"
+                                            @click="$dispatch('reject-edit-modal', { id: {{ $request->id }}, beschreibung: {{ Js::from($request->entry->beschreibung) }} })"
                                             class="w-full sm:w-auto inline-flex items-center justify-center px-3 py-2 bg-red-600 text-white text-sm font-medium rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition">
                                         <svg class="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
@@ -209,7 +209,7 @@
                                                 x-data
                                                 @click="$dispatch('edit-payment-modal', { 
                                                     user_id: '{{ $member->id }}',
-                                                    user_name: '{{ addslashes($member->name) }}',
+                                                    user_name: {{ Js::from($member->name) }},
                                                     mitgliedsbeitrag: '{{ $member->mitgliedsbeitrag }}',
                                                     bezahlt_bis: '{{ $member->bezahlt_bis ? $member->bezahlt_bis->format('Y-m-d') : '' }}',
                                                     mitglied_seit: '{{ $member->mitglied_seit ? $member->mitglied_seit->format('Y-m-d') : '' }}'
@@ -303,7 +303,7 @@
                                                         @click="$dispatch('edit-entry-modal', {
                                                             id: {{ $entry->id }},
                                                             buchungsdatum: '{{ $entry->buchungsdatum->format('Y-m-d') }}',
-                                                            beschreibung: '{{ addslashes($entry->beschreibung) }}',
+                                                            beschreibung: {{ Js::from($entry->beschreibung) }},
                                                             betrag: '{{ abs($entry->betrag) }}',
                                                             typ: '{{ $entry->typ->value }}'
                                                         })"
@@ -327,7 +327,7 @@
                                                         x-data
                                                         @click="$dispatch('request-edit-modal', {
                                                             id: {{ $entry->id }},
-                                                            beschreibung: '{{ addslashes($entry->beschreibung) }}'
+                                                            beschreibung: {{ Js::from($entry->beschreibung) }}
                                                         })"
                                                         class="inline-flex items-center px-2 py-1 text-xs font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition">
                                                     <svg class="h-3 w-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
