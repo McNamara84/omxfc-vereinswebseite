@@ -190,7 +190,7 @@ class KassenbuchController extends Controller
             'kassenbuch_entry_id' => $entry->id,
             'requested_by' => Auth::id(),
             'reason_type' => $data['reason_type'],
-            'reason_text' => $data['reason_text'],
+            'reason_text' => $data['reason_text'] ?? null,
             'status' => KassenbuchEditRequest::STATUS_PENDING,
         ]);
 
