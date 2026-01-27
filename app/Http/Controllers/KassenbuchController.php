@@ -196,15 +196,15 @@ class KassenbuchController extends Controller
         // Transaction mit Lock verhindert Race Conditions bei gleichzeitigen Anfragen
         $result = DB::transaction(function () use ($entry, $data) {
             // Lock den Entry um Race Conditions zu verhindern
-            $entry->lockForUpdate()->first();
+            $lockedEntry = KassenbuchEntry::query()->lockForUpdate()->findOrFail($entry->id);
 
-            // Prüfe erneut innerhalb der Transaction
-            if ($entry->hasPendingEditRequest() || $entry->hasApprovedEditRequest()) {
+            // Prüfe erneut innerhalb der Transaction mit frischen Daten
+            if ($lockedEntry->hasPendingEditRequest() || $lockedEntry->hasApprovedEditRequest()) {
                 return ['error' => 'Für diesen Eintrag existiert bereits eine offene Bearbeitungsanfrage.'];
             }
 
             KassenbuchEditRequest::create([
-                'kassenbuch_entry_id' => $entry->id,
+                'kassenbuch_entry_id' => $lockedEntry->id,
                 'requested_by' => Auth::id(),
                 'reason_type' => $data['reason_type'],
                 'reason_text' => $data['reason_text'] ?? null,
@@ -228,22 +228,35 @@ class KassenbuchController extends Controller
     {
         $team = $this->membersTeamProvider->getMembersTeamOrAbort();
 
-        // Request muss zum Team gehören und pending sein
+        // Request muss zum Team gehören
         if ($editRequest->entry->team_id !== $team->id) {
             abort(404);
         }
 
-        if (! $editRequest->isPending()) {
-            return back()->withErrors(['request' => 'Diese Anfrage wurde bereits bearbeitet.']);
-        }
-
         $this->authorize('processEditRequest', KassenbuchEntry::class);
 
-        $editRequest->update([
-            'status' => KassenbuchEditRequest::STATUS_APPROVED,
-            'processed_by' => Auth::id(),
-            'processed_at' => now(),
-        ]);
+        // Atomare Operation: Lock, prüfe Status, update
+        $result = DB::transaction(function () use ($editRequest) {
+            $lockedRequest = KassenbuchEditRequest::query()
+                ->lockForUpdate()
+                ->findOrFail($editRequest->id);
+
+            if (! $lockedRequest->isPending()) {
+                return ['error' => 'Diese Anfrage wurde bereits bearbeitet.'];
+            }
+
+            $lockedRequest->update([
+                'status' => KassenbuchEditRequest::STATUS_APPROVED,
+                'processed_by' => Auth::id(),
+                'processed_at' => now(),
+            ]);
+
+            return ['success' => true];
+        });
+
+        if (isset($result['error'])) {
+            return back()->withErrors(['request' => $result['error']]);
+        }
 
         return back()->with('status', 'Bearbeitung wurde freigegeben.');
     }
@@ -255,13 +268,9 @@ class KassenbuchController extends Controller
     {
         $team = $this->membersTeamProvider->getMembersTeamOrAbort();
 
-        // Request muss zum Team gehören und pending sein
+        // Request muss zum Team gehören
         if ($editRequest->entry->team_id !== $team->id) {
             abort(404);
-        }
-
-        if (! $editRequest->isPending()) {
-            return back()->withErrors(['request' => 'Diese Anfrage wurde bereits bearbeitet.']);
         }
 
         $this->authorize('processEditRequest', KassenbuchEntry::class);
@@ -270,12 +279,29 @@ class KassenbuchController extends Controller
             'rejection_reason' => 'nullable|string|max:500',
         ]);
 
-        $editRequest->update([
-            'status' => KassenbuchEditRequest::STATUS_REJECTED,
-            'processed_by' => Auth::id(),
-            'processed_at' => now(),
-            'rejection_reason' => $data['rejection_reason'] ?? null,
-        ]);
+        // Atomare Operation: Lock, prüfe Status, update
+        $result = DB::transaction(function () use ($editRequest, $data) {
+            $lockedRequest = KassenbuchEditRequest::query()
+                ->lockForUpdate()
+                ->findOrFail($editRequest->id);
+
+            if (! $lockedRequest->isPending()) {
+                return ['error' => 'Diese Anfrage wurde bereits bearbeitet.'];
+            }
+
+            $lockedRequest->update([
+                'status' => KassenbuchEditRequest::STATUS_REJECTED,
+                'processed_by' => Auth::id(),
+                'processed_at' => now(),
+                'rejection_reason' => $data['rejection_reason'] ?? null,
+            ]);
+
+            return ['success' => true];
+        });
+
+        if (isset($result['error'])) {
+            return back()->withErrors(['request' => $result['error']]);
+        }
 
         return back()->with('status', 'Bearbeitungsanfrage wurde abgelehnt.');
     }

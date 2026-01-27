@@ -684,8 +684,10 @@
                     </div>
                 </div>
             </div>
+            @endif
 
-            {{-- Modal: Anfrage ablehnen --}}
+            {{-- Modal: Anfrage ablehnen (für Vorstand und Admin, die Edit Requests verarbeiten können) --}}
+            @if($canProcessEditRequests)
             <div x-data="{ open: false, request_id: '', beschreibung: '' }"
                  x-show="open"
                  x-on:reject-edit-modal.window="open = true; request_id = $event.detail.id; beschreibung = $event.detail.beschreibung"
