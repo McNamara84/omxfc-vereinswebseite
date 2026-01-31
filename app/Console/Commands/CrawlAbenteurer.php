@@ -8,21 +8,21 @@ use DOMXPath;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Storage;
 
-class CrawlNovels extends Command
+class CrawlAbenteurer extends Command
 {
     /**
      * The name and signature of the console command.
      */
-    protected $signature = 'crawlnovels';
+    protected $signature = 'crawlabenteurer';
 
     /**
      * The console command description.
      */
-    protected $description = 'Crawl maddraxikon.com for novel information';
+    protected $description = 'Crawl maddraxikon.com for Die Abenteurer novel information';
 
     private const BASE_URL = 'https://de.maddraxikon.com/';
 
-    private const CATEGORY_URL = self::BASE_URL.'index.php?title=Kategorie:Maddrax-Heftromane';
+    private const CATEGORY_URL = self::BASE_URL.'index.php?title=Kategorie:Die_Abenteurer-Heftromane';
 
     public function handle(): int
     {
@@ -49,29 +49,24 @@ class CrawlNovels extends Command
         $bar->finish();
         $this->newLine();
 
-        $path = Storage::disk('private')->path('maddrax.json');
+        $path = Storage::disk('private')->path('abenteurer.json');
         if ($this->writeHeftromane($data, $path)) {
-            $this->info('maddrax.json updated.');
+            $this->info('abenteurer.json updated.');
 
-            $this->call(CrawlMissionMars::class);
-            $this->call(Crawl2012::class);
-            $this->call(CrawlVolkDerTiefe::class);
-            $this->call(CrawlAbenteurer::class);
-
-            return $this->call(CrawlHardcovers::class);
+            return self::SUCCESS;
         }
 
-        $this->error('Failed to write maddrax.json');
+        $this->error('Failed to write abenteurer.json');
 
         return self::FAILURE;
     }
 
-    protected function getUrlContent(string $url): string|false
+    private function getUrlContent(string $url): string|false
     {
         return @file_get_contents($url);
     }
 
-    protected function getArticleUrls(string $categoryUrl): array
+    private function getArticleUrls(string $categoryUrl): array
     {
         $html = $this->getUrlContent($categoryUrl);
         if ($html === false) {
@@ -83,20 +78,26 @@ class CrawlNovels extends Command
         $articles = $xpath->query("//div[@id='mw-pages']//a");
         $urls = [];
         foreach ($articles as $article) {
-            $urls[] = self::BASE_URL.$article->getAttribute('href');
+            $resolved = $this->resolveUrl($article->getAttribute('href'));
+            if ($resolved !== null) {
+                $urls[] = $resolved;
+            }
         }
         $nextPage = $xpath->query("//a[text()='nächste Seite']");
         if ($nextPage->length > 0) {
-            $urls = array_merge(
-                $urls,
-                $this->getArticleUrls(self::BASE_URL.$nextPage->item(0)->getAttribute('href'))
-            );
+            $nextUrl = $this->resolveUrl($nextPage->item(0)->getAttribute('href'));
+            if ($nextUrl !== null) {
+                $urls = array_merge(
+                    $urls,
+                    $this->getArticleUrls($nextUrl)
+                );
+            }
         }
 
         return $urls;
     }
 
-    protected function getHeftromanInfo(string $url): ?array
+    private function getHeftromanInfo(string $url): ?array
     {
         $html = $this->getUrlContent($url);
         if ($html === false) {
@@ -161,7 +162,7 @@ class CrawlNovels extends Command
         return null;
     }
 
-    protected function writeHeftromane(array $data, string $filename): bool
+    private function writeHeftromane(array $data, string $filename): bool
     {
         $jsonData = [];
         foreach ($data as $row) {
@@ -186,5 +187,26 @@ class CrawlNovels extends Command
         $json = json_encode($jsonData, JSON_PRETTY_PRINT);
 
         return file_put_contents($filename, $json) !== false;
+    }
+
+    private function resolveUrl(string $href): ?string
+    {
+        if (str_starts_with($href, 'http://') || str_starts_with($href, 'https://')) {
+            return $this->isAllowedUrl($href) ? $href : null;
+        }
+
+        $absolute = self::BASE_URL.ltrim($href, '/');
+
+        return $this->isAllowedUrl($absolute) ? $absolute : null;
+    }
+
+    private function isAllowedUrl(string $url): bool
+    {
+        $parts = parse_url($url);
+        if (($parts['scheme'] ?? '') !== 'https') {
+            return false;
+        }
+
+        return ($parts['host'] ?? '') === 'de.maddraxikon.com';
     }
 }

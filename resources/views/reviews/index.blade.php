@@ -49,6 +49,7 @@
                     $volkDerTiefeRendered = false;
                     $missionMarsRendered = false;
                     $miniSeries2012Rendered = false;
+                    $abenteurerRendered = false;
                 @endphp
                 @foreach($booksByCycle as $cycle => $cycleBooks)
                     @php
@@ -60,12 +61,28 @@
                         'books' => $cycleBooks->sortByDesc('roman_number'),
                         'initiallyOpen' => $loop->first,
                     ])
+                    @if($cycle === 'Ursprung' && $abenteurer->isNotEmpty())
+                        @php $abenteurerRendered = true; @endphp
+                        @include('reviews.partials.spin-off-accordion', [
+                            'id' => 'die-abenteurer',
+                            'title' => 'Die Abenteurer',
+                            'books' => $abenteurer,
+                        ])
+                    @endif
                     @if($cycle === 'Ursprung' && $miniSeries2012->isNotEmpty())
                         @php $miniSeries2012Rendered = true; @endphp
                         @include('reviews.partials.spin-off-accordion', [
                             'id' => 'mini-serie-2012',
                             'title' => 'Mini-Serie 2012',
                             'books' => $miniSeries2012,
+                        ])
+                    @endif
+                    @if($cycle === 'Streiter' && !$abenteurerRendered && $abenteurer->isNotEmpty())
+                        @php $abenteurerRendered = true; @endphp
+                        @include('reviews.partials.spin-off-accordion', [
+                            'id' => 'die-abenteurer',
+                            'title' => 'Die Abenteurer',
+                            'books' => $abenteurer,
                         ])
                     @endif
                     @if($cycle === 'Streiter' && !$miniSeries2012Rendered && $miniSeries2012->isNotEmpty())
@@ -95,6 +112,13 @@
                         ])
                     @endif
                 @endforeach
+                @if(!$abenteurerRendered && $abenteurer->isNotEmpty())
+                    @include('reviews.partials.spin-off-accordion', [
+                        'id' => 'die-abenteurer',
+                        'title' => 'Die Abenteurer',
+                        'books' => $abenteurer,
+                    ])
+                @endif
                 @if(!$miniSeries2012Rendered && $miniSeries2012->isNotEmpty())
                     @include('reviews.partials.spin-off-accordion', [
                         'id' => 'mini-serie-2012',

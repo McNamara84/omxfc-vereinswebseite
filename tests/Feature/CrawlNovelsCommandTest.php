@@ -157,6 +157,7 @@ class CrawlNovelsCommandTest extends TestCase
         $command->shouldReceive('call')->once()->with(\App\Console\Commands\CrawlMissionMars::class)->andReturn(Command::SUCCESS);
         $command->shouldReceive('call')->once()->with(\App\Console\Commands\Crawl2012::class)->andReturn(Command::SUCCESS);
         $command->shouldReceive('call')->once()->with(\App\Console\Commands\CrawlVolkDerTiefe::class)->andReturn(Command::SUCCESS);
+        $command->shouldReceive('call')->once()->with(\App\Console\Commands\CrawlAbenteurer::class)->andReturn(Command::SUCCESS);
         $command->shouldReceive('call')->once()->with(\App\Console\Commands\CrawlHardcovers::class)->andReturn(Command::SUCCESS);
 
         $this->assertSame(Command::SUCCESS, $command->handle());

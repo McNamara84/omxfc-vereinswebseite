@@ -1048,7 +1048,57 @@
                     window.zweitausendzwoelfAuthorChartValues = @json($zweitausendzwoelfAuthorCounts->values());
                 </script>
 
-            {{-- Card 34 – TOP10 Lieblingsthemen (≥ 50 Baxx) --}}
+            {{-- Card 34 – Bewertungen der Die Abenteurer-Heftromane (≥ 33 Baxx) --}}
+                @php($section = $statisticSectionLookup->get('abenteurer-bewertungen'))
+                @php($min = $section['minPoints'] ?? 0)
+                <div
+                    id="{{ $section['id'] }}"
+                    data-statistik-section
+                    data-min-points="{{ $min }}"
+                    tabindex="-1"
+                    class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
+                    <h2 id="abenteurerChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                        Bewertungen der Die Abenteurer-Heftromane
+                    </h2>
+                    <div data-chart-wrapper class="mt-4">
+                        <canvas id="abenteurerChart" height="140" role="img" aria-labelledby="abenteurerChartTitle"></canvas>
+                    </div>
+                    @if($userPoints < $min)
+                        @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
+                    @endif
+                </div>
+
+                <script>
+                    window.abenteurerChartLabels = @json($abenteurerLabels);
+                    window.abenteurerChartValues = @json($abenteurerValues);
+                </script>
+
+            {{-- Card 34b – Die Abenteurer-Heftromane je Autor:in (≥ 34 Baxx) --}}
+                @php($section = $statisticSectionLookup->get('abenteurer-autoren'))
+                @php($min = $section['minPoints'] ?? 0)
+                <div
+                    id="{{ $section['id'] }}"
+                    data-statistik-section
+                    data-min-points="{{ $min }}"
+                    tabindex="-1"
+                    class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
+                    <h2 id="abenteurerAuthorChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                        Die Abenteurer-Heftromane je Autor:in
+                    </h2>
+                    <div data-chart-wrapper class="mt-4">
+                        <canvas id="abenteurerAuthorChart" height="140" role="img" aria-labelledby="abenteurerAuthorChartTitle"></canvas>
+                    </div>
+                    @if($userPoints < $min)
+                        @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
+                    @endif
+                </div>
+
+                <script>
+                    window.abenteurerAuthorChartLabels = @json($abenteurerAuthorCounts->keys());
+                    window.abenteurerAuthorChartValues = @json($abenteurerAuthorCounts->values());
+                </script>
+
+            {{-- Card 35 – TOP10 Lieblingsthemen (≥ 50 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('lieblingsthemen'))
                 @php($min = $section['minPoints'] ?? 0)
                 <div

@@ -434,11 +434,12 @@ php artisan reviews:import-old --fresh # Import old reviews
 
 **Web Crawlers:**
 ```bash
-php artisan crawlnovels        # Crawl Maddrax main series
+php artisan crawlnovels        # Crawl all series (main, hardcovers, mini-series)
 php artisan crawlhardcovers    # Crawl Maddrax hardcovers
 php artisan crawlmissionmars   # Crawl Mission Mars series
 php artisan crawl2012          # Crawl 2012 mini-series
 php artisan crawlvolkdertiefe  # Crawl Das Volk der Tiefe series
+php artisan crawlabenteurer    # Crawl Die Abenteurer series
 ```
 
 **Utilities:**

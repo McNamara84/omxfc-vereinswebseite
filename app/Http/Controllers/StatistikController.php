@@ -60,6 +60,12 @@ class StatistikController extends Controller
             $zweitausendzwoelfNovels = collect(json_decode(file_get_contents($zweitausendzwoelfPath), true));
         }
 
+        $abenteurerPath = storage_path('app/private/abenteurer.json');
+        $abenteurerNovels = collect();
+        if (is_readable($abenteurerPath)) {
+            $abenteurerNovels = collect(json_decode(file_get_contents($abenteurerPath), true));
+        }
+
         $statisticSections = [
             ['id' => 'author-chart', 'label' => 'Maddrax-Romane je Autor:in', 'minPoints' => 2],
             ['id' => 'teamplayer', 'label' => 'Top Teamplayer', 'minPoints' => 4],
@@ -88,6 +94,8 @@ class StatistikController extends Controller
             ['id' => 'zyklus-weltenriss', 'label' => 'Bewertungen des Weltenriss-Zyklus', 'minPoints' => 30],
             ['id' => 'zyklus-amraka', 'label' => 'Bewertungen des Amraka-Zyklus', 'minPoints' => 31],
             ['id' => 'zyklus-weltrat', 'label' => 'Bewertungen des Weltrat-Zyklus', 'minPoints' => 32],
+            ['id' => 'abenteurer-bewertungen', 'label' => 'Bewertungen der Die Abenteurer-Heftromane', 'minPoints' => 33],
+            ['id' => 'abenteurer-autoren', 'label' => 'Die Abenteurer-Heftromane je Autor:in', 'minPoints' => 34],
             ['id' => 'hardcover-bewertungen', 'label' => 'Bewertungen der Hardcover', 'minPoints' => 40],
             ['id' => 'hardcover-autoren', 'label' => 'Maddrax-Hardcover je Autor:in', 'minPoints' => 41],
             ['id' => 'top-themen', 'label' => 'TOP20 Maddrax-Themen', 'minPoints' => 42],
@@ -143,6 +151,15 @@ class StatistikController extends Controller
 
         // ── Card 33b – 2012-Heftromane je Autor (inkl. Co-Autor:innen) ─────
         $zweitausendzwoelfAuthorCounts = $zweitausendzwoelfNovels
+            ->pluck('text')
+            ->flatten()
+            ->map(fn ($a) => trim($a))
+            ->filter()
+            ->countBy()
+            ->sortDesc();
+
+        // ── Card 34 – Die Abenteurer-Heftromane je Autor (inkl. Co-Autor:innen) ─────
+        $abenteurerAuthorCounts = $abenteurerNovels
             ->pluck('text')
             ->flatten()
             ->map(fn ($a) => trim($a))
@@ -423,6 +440,12 @@ class StatistikController extends Controller
         $zweitausendzwoelfCycle = $zweitausendzwoelfNovels->sortBy('nummer');
         $zweitausendzwoelfLabels = $zweitausendzwoelfCycle->pluck('nummer');
         $zweitausendzwoelfValues = $zweitausendzwoelfCycle->pluck('bewertung');
+
+        // ── Card 34 – Bewertungen der Die Abenteurer-Heftromane ──────────
+        $abenteurerCycle = $abenteurerNovels->sortBy('nummer');
+        $abenteurerLabels = $abenteurerCycle->pluck('nummer');
+        $abenteurerValues = $abenteurerCycle->pluck('bewertung');
+
         // ── Card 7 – Rezensionen unserer Mitglieder ───────────────────────────
         $totalReviews = 0;
         $averageReviewsPerBook = 0;
@@ -560,6 +583,9 @@ class StatistikController extends Controller
             'zweitausendzwoelfLabels' => $zweitausendzwoelfLabels,
             'zweitausendzwoelfValues' => $zweitausendzwoelfValues,
             'zweitausendzwoelfAuthorCounts' => $zweitausendzwoelfAuthorCounts,
+            'abenteurerLabels' => $abenteurerLabels,
+            'abenteurerValues' => $abenteurerValues,
+            'abenteurerAuthorCounts' => $abenteurerAuthorCounts,
             'hardcoverAuthorCounts' => $hardcoverAuthorCounts,
             'topFavoriteThemes' => $topFavoriteThemes,
             'totalReviews' => $totalReviews,
