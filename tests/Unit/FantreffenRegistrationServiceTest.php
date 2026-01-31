@@ -11,6 +11,11 @@ use PHPUnit\Framework\TestCase;
  * Unit-Tests für den FantreffenRegistrationService.
  *
  * Testet die isolierte Business-Logik ohne Datenbankzugriff.
+ *
+ * HINWEIS: Dieser Test erweitert absichtlich PHPUnit\Framework\TestCase statt Tests\TestCase,
+ * da er ein echter Unit-Test ist, der keine Datenbank- oder HTTP-Infrastruktur benötigt.
+ * Alle Abhängigkeiten werden per Mock bereitgestellt. Dies entspricht dem Unit-Test-Pattern
+ * und vermeidet unnötigen Overhead durch das Laravel-Test-Setup.
  */
 class FantreffenRegistrationServiceTest extends TestCase
 {

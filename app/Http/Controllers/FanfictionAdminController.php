@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\FanfictionStatus;
 use App\Enums\Role;
 use App\Http\Controllers\Concerns\MembersTeamAware;
+use App\Http\Requests\FanfictionRequest;
 use App\Models\Activity;
 use App\Models\Fanfiction;
 use App\Models\User;
@@ -66,18 +67,9 @@ class FanfictionAdminController extends Controller
     /**
      * Speichert eine neue Fanfiction.
      */
-    public function store(Request $request): RedirectResponse
+    public function store(FanfictionRequest $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'author_type' => 'required|in:member,external',
-            'user_id' => 'nullable|required_if:author_type,member|exists:users,id',
-            'author_name' => 'required|string|max:255',
-            'content' => 'required|string|min:10',
-            'photos' => 'nullable|array|max:' . self::MAX_PHOTOS,
-            'photos.*' => 'file|max:' . self::MAX_PHOTO_SIZE_KB . '|mimes:' . implode(',', self::ALLOWED_PHOTO_EXTENSIONS),
-            'status' => 'required|in:draft,published',
-        ]);
+        $validated = $request->validated();
 
         $photoPaths = $this->uploadPhotos($request);
 
