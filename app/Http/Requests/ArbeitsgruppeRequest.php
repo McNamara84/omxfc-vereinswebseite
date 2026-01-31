@@ -25,8 +25,9 @@ class ArbeitsgruppeRequest extends FormRequest
             return false;
         }
 
-        // Admin darf alles
-        if ($user->hasRole(Role::Admin)) {
+        // Prüfe Admin-Rolle explizit im Mitglieder-Team (nicht currentTeam)
+        $membersTeam = Team::membersTeam();
+        if ($membersTeam && $membersTeam->hasUserWithRole($user, Role::Admin->value)) {
             return true;
         }
 

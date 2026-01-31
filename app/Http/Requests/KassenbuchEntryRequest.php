@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use App\Enums\KassenbuchEntryType;
 use App\Enums\Role;
+use App\Models\Team;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
@@ -13,12 +14,22 @@ class KassenbuchEntryRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
+     *
+     * Prüft die Rolle explizit im Mitglieder-Team (nicht currentTeam),
+     * da Kassenbuch-Einträge Vereins-Ressourcen sind.
      */
     public function authorize(): bool
     {
         $user = $this->user();
+        $membersTeam = Team::membersTeam();
 
-        return $user?->hasAnyRole(Role::Kassenwart, Role::Vorstand, Role::Admin) === true;
+        if (! $user || ! $membersTeam) {
+            return false;
+        }
+
+        return $membersTeam->hasUserWithRole($user, Role::Kassenwart->value)
+            || $membersTeam->hasUserWithRole($user, Role::Vorstand->value)
+            || $membersTeam->hasUserWithRole($user, Role::Admin->value);
     }
 
     /**

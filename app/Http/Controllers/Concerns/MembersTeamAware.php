@@ -16,7 +16,16 @@ use Illuminate\Support\Facades\Auth;
  * - Ermittlung der Benutzerrolle im Team
  * - Rollenbasierte Autorisierung
  *
- * @property-read UserRoleService $userRoleService
+ * WICHTIG: Controller, die dieses Trait verwenden, MÜSSEN UserRoleService
+ * im Konstruktor per Dependency Injection bereitstellen:
+ *
+ * ```php
+ * public function __construct(
+ *     private readonly UserRoleService $userRoleService
+ * ) {}
+ * ```
+ *
+ * @property-read UserRoleService $userRoleService Muss von der nutzenden Klasse bereitgestellt werden
  */
 trait MembersTeamAware
 {

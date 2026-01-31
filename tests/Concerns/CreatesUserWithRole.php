@@ -15,6 +15,22 @@ use App\Models\UserPoint;
  * - actingMember(): Erstellt User und loggt ihn ein
  * - actingMemberWithPoints(): Erstellt User mit Punkten und loggt ihn ein
  * - actingAdmin/actingVorstand/actingKassenwart: Shortcuts für spezifische Rollen
+ *
+ * WICHTIG bei Mocking: Wenn du Services wie MembersTeamProvider mocken möchtest,
+ * muss der Mock VOR dem Aufruf von actingAs() oder actingMember() registriert werden.
+ * Laravel's Service Container bindet Services beim ersten Request, und ein Mock
+ * muss vorher registriert sein. Beispiel:
+ *
+ * ```php
+ * // Richtig:
+ * $this->mock(MembersTeamProvider::class, fn($m) => ...);
+ * $user = $this->createUserWithRole(Role::Mitglied);
+ * $this->actingAs($user);
+ *
+ * // Falsch (Mock wird ignoriert):
+ * $this->actingMember();
+ * $this->mock(MembersTeamProvider::class, fn($m) => ...);
+ * ```
  */
 trait CreatesUserWithRole
 {

@@ -65,9 +65,9 @@ class FantreffenRegistrationService
      * @param  bool  $tshirtBestellt  Ob ein T-Shirt bestellt wurde
      * @param  bool  $isAuthenticated  Ob der User eingeloggt (Mitglied) ist
      */
-    public function calculatePaymentAmount(bool $tshirtBestellt, bool $isAuthenticated): int
+    public function calculatePaymentAmount(bool $tshirtBestellt, bool $isAuthenticated): float
     {
-        $amount = 0;
+        $amount = 0.0;
 
         // Gäste zahlen Grundgebühr
         if (! $isAuthenticated) {
