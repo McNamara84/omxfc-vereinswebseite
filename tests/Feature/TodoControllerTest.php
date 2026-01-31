@@ -2,27 +2,21 @@
 
 namespace Tests\Feature;
 
+use App\Enums\Role;
 use App\Enums\TodoStatus;
 use App\Models\Team;
 use App\Models\Todo;
 use App\Models\TodoCategory;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
 use App\Services\MembersTeamProvider;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\CreatesUserWithRole;
+use Tests\TestCase;
 
 class TodoControllerTest extends TestCase
 {
     use RefreshDatabase;
-
-    private function actingMember(string $role = 'Mitglied'): User
-    {
-        $team = Team::membersTeam();
-        $user = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($user, ['role' => $role]);
-
-        return $user;
-    }
+    use CreatesUserWithRole;
 
     private function createTodo(User $creator, array $attrs = []): Todo
     {
@@ -44,7 +38,6 @@ class TodoControllerTest extends TestCase
     {
         $user = $this->actingMember();
         $user->incrementTeamPoints(3);
-        $this->actingAs($user);
 
         $response = $this->get('/aufgaben');
 
@@ -56,7 +49,6 @@ class TodoControllerTest extends TestCase
     {
         $user = $this->actingMember();
         $todo = $this->createTodo($user);
-        $this->actingAs($user);
 
         $response = $this->post(route('todos.assign', $todo));
 
@@ -424,12 +416,14 @@ class TodoControllerTest extends TestCase
     public function test_index_uses_members_team_provider(): void
     {
         $team = Team::membersTeam();
-        $user = $this->actingMember();
-        $this->actingAs($user);
 
+        // Mock MUSS vor actingAs() registriert werden
         $this->mock(MembersTeamProvider::class, function ($mock) use ($team) {
             $mock->shouldReceive('getMembersTeamOrAbort')->once()->andReturn($team);
         });
+
+        $user = $this->createUserWithRole(Role::Mitglied);
+        $this->actingAs($user);
 
         $this->get('/aufgaben')->assertOk();
     }

@@ -3,47 +3,21 @@
 namespace App\Http\Controllers;
 
 use App\Enums\Role;
+use App\Http\Controllers\Concerns\MembersTeamAware;
 use App\Models\Activity;
 use App\Models\Fanfiction;
 use App\Models\FanfictionComment;
-use App\Models\Team;
 use App\Services\UserRoleService;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class FanfictionCommentController extends Controller
 {
+    use MembersTeamAware;
+
     public function __construct(private readonly UserRoleService $userRoleService)
     {
-    }
-
-    /**
-     * Liefert das Team "Mitglieder".
-     */
-    protected function memberTeam(): Team
-    {
-        return Team::membersTeam();
-    }
-
-    /**
-     * Liest die Rolle des eingeloggten Nutzers im Team "Mitglieder" aus der Pivot-Tabelle.
-     */
-    protected function getRoleInMemberTeam(): ?Role
-    {
-        $team = Team::membersTeam();
-        $user = Auth::user();
-
-        if (! $team || ! $user) {
-            return null;
-        }
-
-        try {
-            return $this->userRoleService->getRole($user, $team);
-        } catch (ModelNotFoundException) {
-            return null;
-        }
     }
 
     /**
@@ -52,11 +26,7 @@ class FanfictionCommentController extends Controller
     public function store(Request $request, Fanfiction $fanfiction): RedirectResponse
     {
         $user = Auth::user();
-        $role = $this->getRoleInMemberTeam();
-
-        if (! $role || ! in_array($role, [Role::Mitwirkender, Role::Mitglied, Role::Ehrenmitglied, Role::Kassenwart, Role::Vorstand, Role::Admin], true)) {
-            abort(403);
-        }
+        $this->authorizeMemberArea();
 
         $request->validate([
             'content' => 'required|string|min:1',

@@ -2,27 +2,23 @@
 
 namespace App\Http\Controllers;
 
-use App\Mail\FantreffenAnmeldungBestaetigung;
-use App\Mail\FantreffenNeueAnmeldung;
-use App\Models\Activity;
 use App\Models\FantreffenAnmeldung;
 use App\Models\FantreffenVipAuthor;
-use App\Models\User;
-use App\Services\FantreffenDeadlineService;
+use App\Services\FantreffenRegistrationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
 
 class FantreffenController extends Controller
 {
+    public function __construct(
+        private readonly FantreffenRegistrationService $registrationService
+    ) {}
+
     public function create()
     {
         $user = Auth::user();
-
-        // T-Shirt Deadline aus zentralem Service laden
-        $deadlineService = new FantreffenDeadlineService;
 
         // VIP-Autoren laden (cached for 1 hour)
         $vipAuthors = Cache::remember('fantreffen_vip_authors', 3600, function () {
@@ -34,7 +30,7 @@ class FantreffenController extends Controller
         $paymentAmount = 0;
 
         return view('fantreffen.anmeldung', array_merge(
-            $deadlineService->toArray(),
+            $this->registrationService->getDeadlineInfo(),
             [
                 'user' => $user,
                 'paymentAmount' => $paymentAmount,
@@ -50,129 +46,39 @@ class FantreffenController extends Controller
             'user_id' => Auth::id(),
         ]);
 
-        // Validierung
-        $rules = [
-            'mobile' => 'nullable|string|max:50',
-            'tshirt_bestellt' => 'boolean',
-            'tshirt_groesse' => 'required_if:tshirt_bestellt,1|nullable|in:XS,S,M,L,XL,XXL,XXXL',
-        ];
-
-        if (! Auth::check()) {
-            $rules['vorname'] = 'required|string|max:255';
-            $rules['nachname'] = 'required|string|max:255';
-            $rules['email'] = 'required|email|max:255';
-        }
-
-        $messages = [
-            'vorname.required' => 'Bitte gib deinen Vornamen an.',
-            'nachname.required' => 'Bitte gib deinen Nachnamen an.',
-            'email.required' => 'Bitte gib deine E-Mail-Adresse an.',
-            'email.email' => 'Bitte gib eine gültige E-Mail-Adresse an.',
-            'tshirt_groesse.required_if' => 'Bitte wähle eine T-Shirt-Größe aus.',
-            'tshirt_groesse.in' => 'Bitte wähle eine gültige T-Shirt-Größe aus.',
-        ];
+        // Validierung über Service
+        $isAuthenticated = Auth::check();
 
         try {
-            $validated = $request->validate($rules, $messages);
+            $validated = $request->validate(
+                $this->registrationService->validationRules($isAuthenticated),
+                $this->registrationService->validationMessages()
+            );
             Log::info('Fantreffen Anmeldung: Validation passed');
         } catch (\Illuminate\Validation\ValidationException $e) {
             Log::error('Fantreffen Anmeldung: Validation failed', ['errors' => $e->errors()]);
             throw $e;
         }
 
-        // Daten vorbereiten
-        if (Auth::check()) {
-            $vorname = Auth::user()->vorname;
-            $nachname = Auth::user()->nachname;
-            $email = Auth::user()->email;
-        } else {
-            $vorname = $validated['vorname'];
-            $nachname = $validated['nachname'];
-            $email = $validated['email'];
-        }
-
-        $tshirtBestellt = $request->boolean('tshirt_bestellt');
-
-        // T-Shirt-Deadline prüfen - Bestellung nach Deadline verhindern
-        $deadlineService = new FantreffenDeadlineService;
-
-        if ($tshirtBestellt && $deadlineService->isPassed()) {
-            return back()
-                ->withInput()
-                ->withErrors(['tshirt_bestellt' => 'Die Deadline für T-Shirt-Bestellungen ist leider abgelaufen.']);
-        }
-
-        $tshirtGroesse = $tshirtBestellt ? $validated['tshirt_groesse'] : null;
-
-        // Kosten berechnen
-        $paymentAmount = 0;
-
-        if (Auth::check()) {
-            // Eingeloggte Mitglieder: Teilnahme kostenlos, nur T-Shirt 25€
-            if ($tshirtBestellt) {
-                $paymentAmount = 25;
-            }
-        } else {
-            // Gäste: Teilnahmegebühr 5€ + optional T-Shirt 25€
-            $paymentAmount = 5; // Basisgebühr für Gäste
-            if ($tshirtBestellt) {
-                $paymentAmount += 25; // T-Shirt-Preis
-            }
-        }
-
         try {
-            // Anmeldung erstellen
-            $anmeldung = FantreffenAnmeldung::create([
-                'user_id' => Auth::id(),
-                'vorname' => $vorname,
-                'nachname' => $nachname,
-                'email' => $email,
-                'mobile' => $validated['mobile'] ?? null,
-                'tshirt_bestellt' => $tshirtBestellt,
-                'tshirt_groesse' => $tshirtGroesse,
-                'payment_amount' => $paymentAmount,
-                'payment_status' => $paymentAmount > 0 ? 'pending' : 'free',
-                'ist_mitglied' => Auth::check(),
-                'zahlungseingang' => false,
-            ]);
-
-            Log::info('Fantreffen Anmeldung: Registration created', ['id' => $anmeldung->id]);
-
-            Activity::create([
-                'user_id' => Auth::id(),
-                'subject_type' => FantreffenAnmeldung::class,
-                'subject_id' => $anmeldung->id,
-                'action' => 'fantreffen_registered',
-            ]);
-
-            // E-Mails versenden
-            try {
-                Mail::to($email)->send(new FantreffenAnmeldungBestaetigung($anmeldung));
-                Log::info('Fantreffen Anmeldung: Confirmation email sent to participant');
-
-                Mail::to('vorstand@maddrax-fanclub.de')->send(new FantreffenNeueAnmeldung($anmeldung));
-                Log::info('Fantreffen Anmeldung: Notification email sent to vorstand');
-            } catch (\Exception $e) {
-                Log::error('Fantreffen Anmeldung: Email sending failed', [
-                    'error' => $e->getMessage(),
-                    'trace' => $e->getTraceAsString(),
-                ]);
-                // Fehler beim E-Mail-Versand nicht durchreichen, Anmeldung ist bereits gespeichert
-            }
+            // Anmeldung über Service erstellen
+            $anmeldung = $this->registrationService->register($validated, Auth::user());
 
             // Redirect zur Bestätigungsseite
             return redirect()->route('fantreffen.2026.bestaetigung', ['id' => $anmeldung->id])
                 ->with('success', 'Deine Anmeldung wurde erfolgreich gespeichert!');
 
-        } catch (\Exception $e) {
-            Log::error('Fantreffen Anmeldung: Registration failed', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-            ]);
-
+        } catch (\InvalidArgumentException $e) {
+            // T-Shirt-Deadline abgelaufen
             return back()
                 ->withInput()
-                ->withErrors(['error' => 'Es ist ein Fehler aufgetreten. Bitte versuche es erneut.']);
+                ->withErrors(['tshirt_bestellt' => $e->getMessage()]);
+
+        } catch (\RuntimeException $e) {
+            // Allgemeiner Fehler
+            return back()
+                ->withInput()
+                ->withErrors(['error' => $e->getMessage()]);
         }
     }
 

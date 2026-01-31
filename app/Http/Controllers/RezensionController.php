@@ -2,56 +2,28 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\ReviewRequest;
-use Illuminate\Http\Request;
-use App\Models\Book;
 use App\Enums\BookType;
-use App\Models\Review;
-use Illuminate\Support\Facades\Auth;
-use App\Models\Team;
-use App\Models\User;
-use App\Mail\NewReviewNotification;
-use Illuminate\Support\Facades\Mail;
-use App\Models\Activity;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Collection;
 use App\Enums\Role;
+use App\Http\Controllers\Concerns\MembersTeamAware;
+use App\Http\Requests\ReviewRequest;
+use App\Mail\NewReviewNotification;
+use App\Models\Activity;
+use App\Models\Book;
+use App\Models\Review;
+use App\Models\User;
 use App\Services\UserRoleService;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 
 class RezensionController extends Controller
-{   
+{
+    use MembersTeamAware;
+
     public function __construct(private UserRoleService $userRoleService)
     {
-    }
-
-    /**
-     * Liefert das Team „Mitglieder“.
-     */
-    protected function memberTeam(): Team
-    {
-        return Team::membersTeam();
-    }
-
-    /**
-     * Liest die Rolle des eingeloggten Nutzers im Team "Mitglieder" aus der Pivot-Tabelle.
-     *
-     * @return string|null
-     */
-    protected function getRoleInMemberTeam(): ?Role
-    {
-        $team = Team::membersTeam();
-        $user = Auth::user();
-
-        if (! $team || ! $user) {
-            return null;
-        }
-
-        try {
-            return $this->userRoleService->getRole($user, $team);
-        } catch (ModelNotFoundException) {
-            return null;
-        }
     }
 
     /**
@@ -84,10 +56,7 @@ class RezensionController extends Controller
      */
     public function index(Request $request)
     {
-        $role = $this->getRoleInMemberTeam();
-        if (! $role || ! in_array($role, [Role::Mitglied, Role::Ehrenmitglied, Role::Kassenwart, Role::Vorstand, Role::Admin], true)) {
-            abort(403);
-        }
+        $role = $this->authorizeFullMember();
 
         $user = Auth::user();
         $teamId = $this->memberTeam()->id;

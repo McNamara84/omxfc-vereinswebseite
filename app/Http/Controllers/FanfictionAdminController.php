@@ -4,12 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Enums\FanfictionStatus;
 use App\Enums\Role;
+use App\Http\Controllers\Concerns\MembersTeamAware;
 use App\Models\Activity;
 use App\Models\Fanfiction;
-use App\Models\Team;
 use App\Models\User;
 use App\Services\UserRoleService;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -20,6 +19,8 @@ use Illuminate\View\View;
 
 class FanfictionAdminController extends Controller
 {
+    use MembersTeamAware;
+
     public const ALLOWED_PHOTO_EXTENSIONS = ['jpg', 'jpeg', 'png', 'webp'];
 
     public const MAX_PHOTOS = 5;
@@ -31,14 +32,6 @@ class FanfictionAdminController extends Controller
     public function __construct(
         private readonly UserRoleService $userRoleService,
     ) {
-    }
-
-    /**
-     * Liefert das Team „Mitglieder".
-     */
-    protected function memberTeam(): Team
-    {
-        return Team::membersTeam();
     }
 
     /**

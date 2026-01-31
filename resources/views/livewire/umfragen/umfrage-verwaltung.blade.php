@@ -48,27 +48,27 @@
             <form wire:submit.prevent="save" class="space-y-6">
                 <div>
                     <label for="question" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Frage</label>
-                    <textarea id="question" wire:model.defer="question" rows="3" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 focus:border-indigo-500 focus:ring-indigo-500"></textarea>
+                    <textarea id="question" wire:model="question" rows="3" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 focus:border-indigo-500 focus:ring-indigo-500"></textarea>
                 </div>
 
                 <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
                     <div>
                         <label for="menuLabel" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Link-Name im Menü</label>
-                        <input id="menuLabel" type="text" wire:model.defer="menuLabel" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 focus:border-indigo-500 focus:ring-indigo-500" />
+                        <input id="menuLabel" type="text" wire:model="menuLabel" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 focus:border-indigo-500 focus:ring-indigo-500" />
                     </div>
 
                     <div>
                         <span class="block text-sm font-medium text-gray-700 dark:text-gray-200">Sichtbarkeit</span>
                         <div class="mt-2 space-y-2" role="radiogroup" aria-label="Sichtbarkeit">
                             <label class="flex items-start gap-2">
-                                <input type="radio" wire:model.defer="visibility" value="internal" class="mt-1" />
+                                <input type="radio" wire:model="visibility" value="internal" class="mt-1" />
                                 <span>
                                     <span class="font-medium">Intern</span>
                                     <span class="block text-sm text-gray-600 dark:text-gray-400">Nur Vereinsmitglieder (1 Stimme pro Mitglied).</span>
                                 </span>
                             </label>
                             <label class="flex items-start gap-2">
-                                <input type="radio" wire:model.defer="visibility" value="public" class="mt-1" />
+                                <input type="radio" wire:model="visibility" value="public" class="mt-1" />
                                 <span>
                                     <span class="font-medium">Öffentlich</span>
                                     <span class="block text-sm text-gray-600 dark:text-gray-400">Gäste + Mitglieder (1 Stimme pro IP).</span>
@@ -88,11 +88,11 @@
                 <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <div>
                         <label for="startsAt" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Start</label>
-                        <input id="startsAt" type="datetime-local" wire:model.defer="startsAt" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 focus:border-indigo-500 focus:ring-indigo-500" />
+                        <input id="startsAt" type="datetime-local" wire:model="startsAt" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 focus:border-indigo-500 focus:ring-indigo-500" />
                     </div>
                     <div>
                         <label for="endsAt" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Ende</label>
-                        <input id="endsAt" type="datetime-local" wire:model.defer="endsAt" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 focus:border-indigo-500 focus:ring-indigo-500" />
+                        <input id="endsAt" type="datetime-local" wire:model="endsAt" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 focus:border-indigo-500 focus:ring-indigo-500" />
                     </div>
                 </div>
 
@@ -110,16 +110,16 @@
                                 <div class="grid grid-cols-1 gap-3 md:grid-cols-12 md:items-end">
                                     <div class="md:col-span-5">
                                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-200">Antwort</label>
-                                        <input type="text" wire:model.defer="options.{{ $index }}.label" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 focus:border-indigo-500 focus:ring-indigo-500" />
+                                        <input type="text" wire:model="options.{{ $index }}.label" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 focus:border-indigo-500 focus:ring-indigo-500" />
                                     </div>
                                     <div class="md:col-span-3">
                                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-200">Bild-URL (optional)</label>
                                         <p class="mt-1 text-xs text-gray-600 dark:text-gray-400">Empfohlen: querformatiges Bild (z. B. 1200×630). Große Bilder können die Seite verlangsamen (Bildgröße wird nicht automatisch geprüft).</p>
-                                        <input type="url" wire:model.defer="options.{{ $index }}.image_url" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 focus:border-indigo-500 focus:ring-indigo-500" />
+                                        <input type="url" wire:model="options.{{ $index }}.image_url" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 focus:border-indigo-500 focus:ring-indigo-500" />
                                     </div>
                                     <div class="md:col-span-3">
                                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-200">Link-URL (optional)</label>
-                                        <input type="url" wire:model.defer="options.{{ $index }}.link_url" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 focus:border-indigo-500 focus:ring-indigo-500" />
+                                        <input type="url" wire:model="options.{{ $index }}.link_url" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 focus:border-indigo-500 focus:ring-indigo-500" />
                                     </div>
                                     <div class="md:col-span-1">
                                         <button type="button" wire:click="removeOption({{ $index }})" aria-label="Antwort {{ $index + 1 }} entfernen" class="w-full inline-flex items-center justify-center px-3 py-2 rounded-md bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 border border-gray-200 dark:border-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
