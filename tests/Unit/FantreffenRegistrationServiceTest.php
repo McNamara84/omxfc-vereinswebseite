@@ -121,7 +121,13 @@ class FantreffenRegistrationServiceTest extends TestCase
     {
         $rules = $this->service->validationRules(isAuthenticated: true);
 
-        $this->assertStringContainsString('required_if:tshirt_bestellt,true', $rules['tshirt_groesse']);
+        // Prüfe dass tshirt_groesse bei bestelltem T-Shirt required ist
+        // Regex erlaubt Whitespace-Variationen im required_if-Format
+        $this->assertMatchesRegularExpression(
+            '/required_if\s*:\s*tshirt_bestellt\s*,\s*true/',
+            $rules['tshirt_groesse'],
+            'tshirt_groesse sollte required_if:tshirt_bestellt,true enthalten'
+        );
     }
 
     // ============================================
