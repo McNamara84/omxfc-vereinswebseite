@@ -185,7 +185,7 @@
                                     <div x-data="{ showTshirtSize: {{ $tshirt_bestellt ? 'true' : 'false' }} }">
                                         <label class="flex items-start gap-2">
                                             <input type="checkbox" 
-                                                   wire:model.defer="tshirt_bestellt"
+                                                   wire:model="tshirt_bestellt"
                                                    x-model="showTshirtSize"
                                                    wire:key="tshirt-checkbox" 
                                                    class="w-5 h-5 mt-0.5">

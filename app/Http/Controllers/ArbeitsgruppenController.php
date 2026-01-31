@@ -2,16 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Jetstream\AddTeamMember;
+use App\Enums\Role;
+use App\Http\Requests\ArbeitsgruppeRequest;
 use App\Models\Team;
 use App\Models\User;
+use App\Services\UserRoleService;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
-use App\Actions\Jetstream\AddTeamMember;
-use App\Enums\Role;
-use App\Services\UserRoleService;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class ArbeitsgruppenController extends Controller
 {
@@ -105,18 +106,9 @@ class ArbeitsgruppenController extends Controller
     /**
      * Store a newly created AG (team).
      */
-    public function store(Request $request)
+    public function store(ArbeitsgruppeRequest $request)
     {
-        abort_unless($request->user()->hasRole(Role::Admin), 403);
-
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'leader_id' => 'required|exists:users,id',
-            'description' => 'nullable|string',
-            'email' => 'nullable|email|max:255',
-            'meeting_schedule' => 'nullable|string|max:255',
-            'logo' => 'nullable|image|max:2048',
-        ]);
+        $validated = $request->validated();
 
         $logoPath = $request->file('logo')?->store('ag-logos', 'public');
 
@@ -180,22 +172,12 @@ class ArbeitsgruppenController extends Controller
     /**
      * Update the specified AG.
      */
-    public function update(Request $request, Team $team)
+    public function update(ArbeitsgruppeRequest $request, Team $team)
     {
         $user = $request->user();
-        if (! $user->hasRole(Role::Admin) && $team->user_id !== $user->id) {
-            abort(403);
-        }
+        $validated = $request->validated();
 
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'leader_id' => 'required|exists:users,id',
-            'description' => 'nullable|string',
-            'email' => 'nullable|email|max:255',
-            'meeting_schedule' => 'nullable|string|max:255',
-            'logo' => 'nullable|image|max:2048',
-        ]);
-
+        // Nicht-Admins dürfen Leiter und Name nicht ändern
         if (! $user->hasRole(Role::Admin)) {
             $validated['leader_id'] = $team->user_id;
             $validated['name'] = $team->name;

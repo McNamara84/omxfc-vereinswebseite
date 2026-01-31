@@ -3,13 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Enums\FanfictionStatus;
-use App\Enums\Role;
+use App\Http\Controllers\Concerns\MembersTeamAware;
+use App\Http\Requests\FanfictionRequest;
 use App\Models\Activity;
 use App\Models\Fanfiction;
-use App\Models\Team;
 use App\Models\User;
 use App\Services\UserRoleService;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -20,6 +19,8 @@ use Illuminate\View\View;
 
 class FanfictionAdminController extends Controller
 {
+    use MembersTeamAware;
+
     public const ALLOWED_PHOTO_EXTENSIONS = ['jpg', 'jpeg', 'png', 'webp'];
 
     public const MAX_PHOTOS = 5;
@@ -30,15 +31,11 @@ class FanfictionAdminController extends Controller
 
     public function __construct(
         private readonly UserRoleService $userRoleService,
-    ) {
-    }
+    ) {}
 
-    /**
-     * Liefert das Team „Mitglieder".
-     */
-    protected function memberTeam(): Team
+    protected function getUserRoleService(): UserRoleService
     {
-        return Team::membersTeam();
+        return $this->userRoleService;
     }
 
     /**
@@ -73,18 +70,9 @@ class FanfictionAdminController extends Controller
     /**
      * Speichert eine neue Fanfiction.
      */
-    public function store(Request $request): RedirectResponse
+    public function store(FanfictionRequest $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'author_type' => 'required|in:member,external',
-            'user_id' => 'nullable|required_if:author_type,member|exists:users,id',
-            'author_name' => 'required|string|max:255',
-            'content' => 'required|string|min:10',
-            'photos' => 'nullable|array|max:' . self::MAX_PHOTOS,
-            'photos.*' => 'file|max:' . self::MAX_PHOTO_SIZE_KB . '|mimes:' . implode(',', self::ALLOWED_PHOTO_EXTENSIONS),
-            'status' => 'required|in:draft,published',
-        ]);
+        $validated = $request->validated();
 
         $photoPaths = $this->uploadPhotos($request);
 
@@ -141,8 +129,8 @@ class FanfictionAdminController extends Controller
             'user_id' => 'nullable|required_if:author_type,member|exists:users,id',
             'author_name' => 'required|string|max:255',
             'content' => 'required|string|min:10',
-            'photos' => ['nullable', 'array', 'max:' . max(0, $availableSlots)],
-            'photos.*' => 'file|max:' . self::MAX_PHOTO_SIZE_KB . '|mimes:' . implode(',', self::ALLOWED_PHOTO_EXTENSIONS),
+            'photos' => ['nullable', 'array', 'max:'.max(0, $availableSlots)],
+            'photos.*' => 'file|max:'.self::MAX_PHOTO_SIZE_KB.'|mimes:'.implode(',', self::ALLOWED_PHOTO_EXTENSIONS),
             'remove_photos' => 'nullable|array',
             'remove_photos.*' => 'string',
         ]);
@@ -244,7 +232,7 @@ class FanfictionAdminController extends Controller
                     if ($name === '') {
                         $name = 'photo';
                     }
-                    $filename = $name . '-' . Str::uuid() . '.' . $extension;
+                    $filename = $name.'-'.Str::uuid().'.'.$extension;
                     $photoPaths[] = $photo->storeAs(self::PHOTO_STORAGE_PATH, $filename, 'public');
                 } catch (\Throwable $e) {
                     // Rollback uploaded photos on failure

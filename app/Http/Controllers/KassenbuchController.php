@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\KassenbuchEditReasonType;
 use App\Enums\KassenbuchEntryType;
+use App\Http\Requests\KassenbuchEntryRequest;
 use App\Models\KassenbuchEditRequest;
 use App\Models\KassenbuchEntry;
 use App\Models\Kassenstand;
@@ -127,19 +128,12 @@ class KassenbuchController extends Controller
         return back()->with('status', 'Zahlungsdaten für '.$user->name.' wurden aktualisiert.');
     }
 
-    public function addKassenbuchEntry(Request $request)
+    public function addKassenbuchEntry(KassenbuchEntryRequest $request)
     {
-        $data = $request->validate([
-            'buchungsdatum' => 'required|date',
-            'betrag' => 'required|numeric|not_in:0',
-            'beschreibung' => 'required|string|max:255',
-            'typ' => 'required|in:'.implode(',', KassenbuchEntryType::values()),
-        ]);
+        $data = $request->validated();
 
         $user = Auth::user();
         $team = $this->membersTeamProvider->getMembersTeamOrAbort();
-
-        $this->authorize('manage', KassenbuchEntry::class);
 
         // Betrag anpassen (positiv für Einnahmen, negativ für Ausgaben)
         $amount = abs($data['betrag']);

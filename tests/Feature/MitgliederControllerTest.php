@@ -2,33 +2,27 @@
 
 namespace Tests\Feature;
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
+use App\Enums\Role;
 use App\Models\Team;
 use App\Models\User;
+use App\Services\MembersTeamProvider;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
-use App\Enums\Role;
-use App\Services\MembersTeamProvider;
+use Tests\Concerns\CreatesUserWithRole;
+use Tests\TestCase;
 
 class MitgliederControllerTest extends TestCase
 {
     use RefreshDatabase;
-
-    private function actingMember(string $role = 'Mitglied'): User
-    {
-        $team = Team::membersTeam();
-        $user = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($user, ['role' => Role::from($role)->value]);
-        return $user;
-    }
+    use CreatesUserWithRole;
 
     public function test_export_csv_requires_proper_role(): void
     {
-        $this->actingAs($this->actingMember('Mitglied'));
+        $this->actingMember(Role::Mitglied);
 
         $response = $this->from('/mitglieder')->post('/mitglieder/export-csv', [
-            'export_fields' => ['name', 'email']
+            'export_fields' => ['name', 'email'],
         ]);
 
         $response->assertStatus(403);
@@ -36,15 +30,14 @@ class MitgliederControllerTest extends TestCase
 
     public function test_export_csv_returns_csv_for_kassenwart(): void
     {
-        $user = $this->actingMember('Kassenwart');
-        $this->actingAs($user);
+        $this->actingKassenwart();
 
         Team::membersTeam()->users()->attach(
-            User::factory()->create(), ['role' => \App\Enums\Role::Mitglied->value]
+            User::factory()->create(), ['role' => Role::Mitglied->value]
         );
 
         $response = $this->post('/mitglieder/export-csv', [
-            'export_fields' => ['name', 'email']
+            'export_fields' => ['name', 'email'],
         ]);
 
         $response->assertOk();
@@ -364,12 +357,14 @@ class MitgliederControllerTest extends TestCase
     public function test_index_uses_members_team_provider(): void
     {
         $team = Team::membersTeam();
-        $user = $this->actingMember();
-        $this->actingAs($user);
 
+        // Mock MUSS vor actingAs() registriert werden
         $this->mock(MembersTeamProvider::class, function ($mock) use ($team) {
             $mock->shouldReceive('getMembersTeamOrAbort')->once()->andReturn($team);
         });
+
+        $user = $this->createUserWithRole(Role::Mitglied);
+        $this->actingAs($user);
 
         $this->get('/mitglieder')->assertOk();
     }

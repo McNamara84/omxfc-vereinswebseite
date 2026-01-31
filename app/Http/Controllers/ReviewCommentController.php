@@ -2,49 +2,26 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\Role;
+use App\Http\Controllers\Concerns\MembersTeamAware;
 use App\Mail\ReviewCommentNotification;
+use App\Models\Activity;
 use App\Models\Review;
 use App\Models\ReviewComment;
-use App\Models\Team;
-use App\Models\Activity;
+use App\Services\UserRoleService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
-use App\Enums\Role;
-use App\Services\UserRoleService;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class ReviewCommentController extends Controller
 {
-    public function __construct(private UserRoleService $userRoleService)
+    use MembersTeamAware;
+
+    public function __construct(private UserRoleService $userRoleService) {}
+
+    protected function getUserRoleService(): UserRoleService
     {
-    }
-
-    /**
-     * Liefert das Team "Mitglieder".
-     */
-    protected function memberTeam(): Team
-    {
-        return Team::membersTeam();
-    }
-
-    /**
-     * Liest die Rolle des eingeloggten Nutzers im Team "Mitglieder" aus der Pivot-Tabelle.
-     */
-    protected function getRoleInMemberTeam(): ?Role
-    {
-        $team = Team::membersTeam();
-        $user = Auth::user();
-
-        if (! $team || ! $user) {
-            return null;
-        }
-
-        try {
-            return $this->userRoleService->getRole($user, $team);
-        } catch (ModelNotFoundException) {
-            return null;
-        }
+        return $this->userRoleService;
     }
 
     /**

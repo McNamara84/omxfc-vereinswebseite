@@ -2,66 +2,40 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\ReviewRequest;
-use Illuminate\Http\Request;
-use App\Models\Book;
 use App\Enums\BookType;
-use App\Models\Review;
-use Illuminate\Support\Facades\Auth;
-use App\Models\Team;
-use App\Models\User;
-use App\Mail\NewReviewNotification;
-use Illuminate\Support\Facades\Mail;
-use App\Models\Activity;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Collection;
 use App\Enums\Role;
+use App\Http\Controllers\Concerns\MembersTeamAware;
+use App\Http\Requests\ReviewRequest;
+use App\Mail\NewReviewNotification;
+use App\Models\Activity;
+use App\Models\Book;
+use App\Models\Review;
+use App\Models\User;
 use App\Services\UserRoleService;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 
 class RezensionController extends Controller
-{   
-    public function __construct(private UserRoleService $userRoleService)
+{
+    use MembersTeamAware;
+
+    public function __construct(private UserRoleService $userRoleService) {}
+
+    protected function getUserRoleService(): UserRoleService
     {
-    }
-
-    /**
-     * Liefert das Team „Mitglieder“.
-     */
-    protected function memberTeam(): Team
-    {
-        return Team::membersTeam();
-    }
-
-    /**
-     * Liest die Rolle des eingeloggten Nutzers im Team "Mitglieder" aus der Pivot-Tabelle.
-     *
-     * @return string|null
-     */
-    protected function getRoleInMemberTeam(): ?Role
-    {
-        $team = Team::membersTeam();
-        $user = Auth::user();
-
-        if (! $team || ! $user) {
-            return null;
-        }
-
-        try {
-            return $this->userRoleService->getRole($user, $team);
-        } catch (ModelNotFoundException) {
-            return null;
-        }
+        return $this->userRoleService;
     }
 
     /**
      * Prepare standardized book query with review counts and user-specific review existence.
      *
-     * @param Builder $query     Base query to augment.
-     * @param User    $user      Authenticated user for review existence check.
-     * @param int     $teamId    Team identifier used for scoping reviews.
-     * @param string  $direction Sort direction for roman numbers (asc or desc).
-     *
+     * @param  Builder  $query  Base query to augment.
+     * @param  User  $user  Authenticated user for review existence check.
+     * @param  int  $teamId  Team identifier used for scoping reviews.
+     * @param  string  $direction  Sort direction for roman numbers (asc or desc).
      * @return Collection Books matching the query with review metadata.
      */
     protected function prepareBookQuery(
@@ -84,10 +58,7 @@ class RezensionController extends Controller
      */
     public function index(Request $request)
     {
-        $role = $this->getRoleInMemberTeam();
-        if (! $role || ! in_array($role, [Role::Mitglied, Role::Ehrenmitglied, Role::Kassenwart, Role::Vorstand, Role::Admin], true)) {
-            abort(403);
-        }
+        $role = $this->authorizeFullMember();
 
         $user = Auth::user();
         $teamId = $this->memberTeam()->id;
@@ -98,11 +69,11 @@ class RezensionController extends Controller
             }
 
             if ($request->filled('title')) {
-                $query->where('title', 'like', '%' . $request->input('title') . '%');
+                $query->where('title', 'like', '%'.$request->input('title').'%');
             }
 
             if ($request->filled('author')) {
-                $query->where('author', 'like', '%' . $request->input('author') . '%');
+                $query->where('author', 'like', '%'.$request->input('author').'%');
             }
 
             if ($request->input('review_status') === 'with') {
@@ -143,7 +114,7 @@ class RezensionController extends Controller
         $abenteurer = $this->prepareBookQuery($abenteurerQuery, $user, $teamId, 'desc');
 
         $jsonPath = storage_path('app/private/maddrax.json');
-        if (!is_readable($jsonPath)) {
+        if (! is_readable($jsonPath)) {
             abort(500, 'Die Maddrax-Datei wurde nicht gefunden.');
         }
 
@@ -234,12 +205,13 @@ class RezensionController extends Controller
                     $query->with(['user', 'children.user'])->orderBy('created_at');
                 }])
                 ->get();
+
             return view('reviews.show', [
                 'book' => $book,
                 'reviews' => $reviews,
                 'role' => $role,
-                'title' => 'Rezensionen zu ' . $book->title . ' – Offizieller MADDRAX Fanclub e. V.',
-                'description' => 'Leserrezensionen zum Roman "' . $book->title . '".',
+                'title' => 'Rezensionen zu '.$book->title.' – Offizieller MADDRAX Fanclub e. V.',
+                'description' => 'Leserrezensionen zum Roman "'.$book->title.'".',
             ]);
         }
 
@@ -270,8 +242,8 @@ class RezensionController extends Controller
 
         return view('reviews.create', [
             'book' => $book,
-            'title' => 'Rezension zu ' . $book->title . ' verfassen – Offizieller MADDRAX Fanclub e. V.',
-            'description' => 'Schreibe deine Rezension zum Roman "' . $book->title . '".',
+            'title' => 'Rezension zu '.$book->title.' verfassen – Offizieller MADDRAX Fanclub e. V.',
+            'description' => 'Schreibe deine Rezension zum Roman "'.$book->title.'".',
         ]);
     }
 
@@ -343,8 +315,8 @@ class RezensionController extends Controller
         if ($review->user_id === $user->id || in_array($role, [Role::Vorstand, Role::Admin], true)) {
             return view('reviews.edit', [
                 'review' => $review,
-                'title' => 'Rezension zu ' . $review->book->title . ' bearbeiten – Offizieller MADDRAX Fanclub e. V.',
-                'description' => 'Überarbeite deine Rezension zum Roman "' . $review->book->title . '".',
+                'title' => 'Rezension zu '.$review->book->title.' bearbeiten – Offizieller MADDRAX Fanclub e. V.',
+                'description' => 'Überarbeite deine Rezension zum Roman "'.$review->book->title.'".',
             ]);
         }
 
@@ -382,6 +354,7 @@ class RezensionController extends Controller
 
         if ($review->user_id === $user->id || in_array($role, [Role::Vorstand, Role::Admin], true)) {
             $review->delete();
+
             return back()->with('success', 'Rezension gelöscht.');
         }
 
