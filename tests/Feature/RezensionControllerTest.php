@@ -329,6 +329,79 @@ class RezensionControllerTest extends TestCase
         }
     }
 
+    public function test_index_shows_abenteurer_books(): void
+    {
+        $path = storage_path('app/private/maddrax.json');
+        $original = file_get_contents($path);
+
+        try {
+            file_put_contents($path, json_encode([
+                ['nummer' => 1, 'titel' => 'Roman1', 'zyklus' => 'Ursprung'],
+            ]));
+
+            $book = Book::create(['roman_number' => 1, 'title' => 'Alpha', 'author' => 'A']);
+            Book::create([
+                'roman_number' => 3,
+                'title' => 'Abenteurer Roman',
+                'author' => 'C',
+                'type' => BookType::DieAbenteurer,
+            ]);
+
+            $user = $this->actingMember();
+            $this->actingAs($user);
+
+            $this->get('/rezensionen')
+                ->assertOk()
+                ->assertSee($book->title)
+                ->assertSee('Abenteurer Roman')
+                ->assertSee('Die Abenteurer');
+        } finally {
+            file_put_contents($path, $original);
+        }
+    }
+
+    public function test_abenteurer_is_rendered_between_ursprung_and_2012(): void
+    {
+        $path = storage_path('app/private/maddrax.json');
+        $original = file_get_contents($path);
+
+        try {
+            file_put_contents($path, json_encode([
+                ['nummer' => 1, 'titel' => 'Roman1', 'zyklus' => 'Ursprung'],
+                ['nummer' => 2, 'titel' => 'Roman2', 'zyklus' => 'Streiter'],
+            ]));
+
+            Book::create(['roman_number' => 1, 'title' => 'Ursprung Alpha', 'author' => 'A']);
+            Book::create(['roman_number' => 2, 'title' => 'Streiter Beta', 'author' => 'B']);
+            Book::create([
+                'roman_number' => 10,
+                'title' => 'Abenteurer Roman',
+                'author' => 'C',
+                'type' => BookType::DieAbenteurer,
+            ]);
+            Book::create([
+                'roman_number' => 11,
+                'title' => '2012 Roman',
+                'author' => 'D',
+                'type' => BookType::ZweiTausendZwölfDasJahrDerApokalypse,
+            ]);
+
+            $user = $this->actingMember();
+            $this->actingAs($user);
+
+            $this->get('/rezensionen')
+                ->assertOk()
+                ->assertSeeInOrder([
+                    'Ursprung-Zyklus',
+                    'Die Abenteurer',
+                    'Mini-Serie 2012',
+                    'Streiter-Zyklus',
+                ], false);
+        } finally {
+            file_put_contents($path, $original);
+        }
+    }
+
     public function test_cycles_follow_release_order_with_spin_offs_and_hardcovers_at_end(): void
     {
         $path = storage_path('app/private/maddrax.json');

@@ -127,6 +127,9 @@ class RezensionController extends Controller
         $volkDerTiefeQuery = Book::query()->where('type', BookType::DasVolkDerTiefe);
         $applyFilters($volkDerTiefeQuery);
 
+        $abenteurerQuery = Book::query()->where('type', BookType::DieAbenteurer);
+        $applyFilters($abenteurerQuery);
+
         $books = $this->prepareBookQuery($novelsQuery, $user, $teamId);
 
         $hardcovers = $this->prepareBookQuery($hardcoversQuery, $user, $teamId, 'desc');
@@ -136,6 +139,8 @@ class RezensionController extends Controller
         $miniSeries2012 = $this->prepareBookQuery($miniSeries2012Query, $user, $teamId, 'desc');
 
         $volkDerTiefe = $this->prepareBookQuery($volkDerTiefeQuery, $user, $teamId, 'desc');
+
+        $abenteurer = $this->prepareBookQuery($abenteurerQuery, $user, $teamId, 'desc');
 
         $jsonPath = storage_path('app/private/maddrax.json');
         if (!is_readable($jsonPath)) {
@@ -203,6 +208,7 @@ class RezensionController extends Controller
             'missionMars' => $missionMars,
             'miniSeries2012' => $miniSeries2012,
             'volkDerTiefe' => $volkDerTiefe,
+            'abenteurer' => $abenteurer,
             'title' => 'Rezensionen – Offizieller MADDRAX Fanclub e. V.',
             'description' => 'Alle Vereinsrezensionen zu den Maddrax-Romanen im Überblick.',
         ]);

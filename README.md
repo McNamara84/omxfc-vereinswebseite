@@ -195,12 +195,13 @@ Stellen Sie sicher, dass `APP_URL` in der `.env` auf die öffentlich erreichbare
 | Application-Cache leeren | `php artisan cache:clear` |
 | Romane indexieren | `php artisan romane:index` |
 | Romane neu indexieren | `php artisan romane:index --fresh` |
-| Romane, Hardcover, Mission Mars & Das Volk der Tiefe importieren | `php artisan books:import` |
+| Romane, Hardcover, Mission Mars, Das Volk der Tiefe, 2012 & Die Abenteurer importieren | `php artisan books:import` |
 | Rezensionen importieren | `php artisan reviews:import-old --fresh` |
-| Alle Serien crawlen (Maddrax, Hardcover, Mission Mars, 2012, Das Volk der Tiefe) | `php artisan crawlnovels` |
+| Alle Serien crawlen (Maddrax, Hardcover, Mission Mars, 2012, Das Volk der Tiefe, Die Abenteurer) | `php artisan crawlnovels` |
 | "Mission Mars"-Romane crawlen | `php artisan crawlmissionmars` |
 | "2012"-Mini-Serie crawlen | `php artisan crawl2012` |
 | "Das Volk der Tiefe"-Romane crawlen | `php artisan crawlvolkdertiefe` |
+| "Die Abenteurer"-Romane crawlen | `php artisan crawlabenteurer` |
 | Hardcover crawlen | `php artisan crawlhardcovers` |
 | Sitemap generieren | `php artisan sitemap:generate` |
 | Mitgliederkarte aktualisieren | `php artisan member-map:refresh` |

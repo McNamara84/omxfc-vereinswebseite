@@ -13,14 +13,14 @@ class ImportMaddraxBooks extends Command
      *
      * @var string
      */
-    protected $signature = 'books:import {--path=private/maddrax.json : Path to novels JSON file relative to storage/app} {--hardcovers-path=private/hardcovers.json : Path to hardcovers JSON file relative to storage/app} {--missionmars-path=private/missionmars.json : Path to Mission Mars novels JSON file relative to storage/app} {--volkdertiefe-path=private/volkdertiefe.json : Path to Das Volk der Tiefe novels JSON file relative to storage/app} {--2012-path=private/2012.json : Path to 2012 novels JSON file relative to storage/app}';
+    protected $signature = 'books:import {--path=private/maddrax.json : Path to novels JSON file relative to storage/app} {--hardcovers-path=private/hardcovers.json : Path to hardcovers JSON file relative to storage/app} {--missionmars-path=private/missionmars.json : Path to Mission Mars novels JSON file relative to storage/app} {--volkdertiefe-path=private/volkdertiefe.json : Path to Das Volk der Tiefe novels JSON file relative to storage/app} {--2012-path=private/2012.json : Path to 2012 novels JSON file relative to storage/app} {--abenteurer-path=private/abenteurer.json : Path to Die Abenteurer novels JSON file relative to storage/app}';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Import books from maddrax.json, hardcovers.json, missionmars.json, volkdertiefe.json and 2012.json into the books table';
+    protected $description = 'Import books from maddrax.json, hardcovers.json, missionmars.json, volkdertiefe.json, 2012.json and abenteurer.json into the books table';
 
     /**
      * Execute the console command.
@@ -32,14 +32,16 @@ class ImportMaddraxBooks extends Command
         $missionMarsPath = $this->option('missionmars-path');
         $volkDerTiefePath = $this->option('volkdertiefe-path');
         $year2012Path = $this->option('2012-path');
+        $abenteurerPath = $this->option('abenteurer-path');
 
         $novelsResult = $this->importFile($novelsPath, BookType::MaddraxDieDunkleZukunftDerErde);
         $hardcoversResult = $this->importFile($hardcoversPath, BookType::MaddraxHardcover);
         $missionMarsResult = $this->importFile($missionMarsPath, BookType::MissionMars);
         $volkDerTiefeResult = $this->importFile($volkDerTiefePath, BookType::DasVolkDerTiefe);
         $year2012Result = $this->importFile($year2012Path, BookType::ZweiTausendZwölfDasJahrDerApokalypse);
+        $abenteurerResult = $this->importFile($abenteurerPath, BookType::DieAbenteurer);
 
-        return ($novelsResult || $hardcoversResult || $missionMarsResult || $volkDerTiefeResult || $year2012Result) ? 0 : 1;
+        return ($novelsResult || $hardcoversResult || $missionMarsResult || $volkDerTiefeResult || $year2012Result || $abenteurerResult) ? 0 : 1;
     }
 
     private function importFile(string $path, BookType $type): bool

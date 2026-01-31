@@ -162,6 +162,16 @@ return [
         'points' => 32,
     ],
     [
+        'title' => 'Statistik - Bewertungen der Die Abenteurer-Heftromane',
+        'description' => 'Zeigt Bewertungen der Die Abenteurer-Heftromane aus dem Maddraxikon in einem Liniendiagramm.',
+        'points' => 33,
+    ],
+    [
+        'title' => 'Statistik - Die Abenteurer-Heftromane je Autor:in',
+        'description' => 'Balkendiagramm mit der Anzahl der Die Abenteurer-Heftromane je Autor:in.',
+        'points' => 34,
+    ],
+    [
         'title' => 'Statistik - Bewertungen der Hardcover',
         'description' => 'Zeigt Bewertungen der Hardcover aus dem Maddraxikon in einem Liniendiagramm.',
         'points' => 40,
