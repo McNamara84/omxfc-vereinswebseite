@@ -30,6 +30,20 @@ use Illuminate\Support\Facades\Auth;
 trait MembersTeamAware
 {
     /**
+     * Liefert die UserRoleService-Instanz.
+     *
+     * Muss von der nutzenden Klasse implementiert werden.
+     * Typischerweise durch Rückgabe des via Dependency Injection injizierten Service.
+     *
+     * @example
+     * protected function getUserRoleService(): UserRoleService
+     * {
+     *     return $this->userRoleService;
+     * }
+     */
+    abstract protected function getUserRoleService(): UserRoleService;
+
+    /**
      * Liefert das Team „Mitglieder".
      */
     protected function memberTeam(): Team
@@ -50,7 +64,7 @@ trait MembersTeamAware
         }
 
         try {
-            return $this->userRoleService->getRole($user, $team);
+            return $this->getUserRoleService()->getRole($user, $team);
         } catch (ModelNotFoundException) {
             return null;
         }

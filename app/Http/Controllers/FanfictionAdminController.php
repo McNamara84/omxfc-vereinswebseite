@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Enums\FanfictionStatus;
-use App\Enums\Role;
 use App\Http\Controllers\Concerns\MembersTeamAware;
 use App\Http\Requests\FanfictionRequest;
 use App\Models\Activity;
@@ -32,7 +31,11 @@ class FanfictionAdminController extends Controller
 
     public function __construct(
         private readonly UserRoleService $userRoleService,
-    ) {
+    ) {}
+
+    protected function getUserRoleService(): UserRoleService
+    {
+        return $this->userRoleService;
     }
 
     /**
@@ -126,8 +129,8 @@ class FanfictionAdminController extends Controller
             'user_id' => 'nullable|required_if:author_type,member|exists:users,id',
             'author_name' => 'required|string|max:255',
             'content' => 'required|string|min:10',
-            'photos' => ['nullable', 'array', 'max:' . max(0, $availableSlots)],
-            'photos.*' => 'file|max:' . self::MAX_PHOTO_SIZE_KB . '|mimes:' . implode(',', self::ALLOWED_PHOTO_EXTENSIONS),
+            'photos' => ['nullable', 'array', 'max:'.max(0, $availableSlots)],
+            'photos.*' => 'file|max:'.self::MAX_PHOTO_SIZE_KB.'|mimes:'.implode(',', self::ALLOWED_PHOTO_EXTENSIONS),
             'remove_photos' => 'nullable|array',
             'remove_photos.*' => 'string',
         ]);
@@ -229,7 +232,7 @@ class FanfictionAdminController extends Controller
                     if ($name === '') {
                         $name = 'photo';
                     }
-                    $filename = $name . '-' . Str::uuid() . '.' . $extension;
+                    $filename = $name.'-'.Str::uuid().'.'.$extension;
                     $photoPaths[] = $photo->storeAs(self::PHOTO_STORAGE_PATH, $filename, 'public');
                 } catch (\Throwable $e) {
                     // Rollback uploaded photos on failure

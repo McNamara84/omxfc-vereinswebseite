@@ -17,8 +17,11 @@ class ReviewCommentController extends Controller
 {
     use MembersTeamAware;
 
-    public function __construct(private UserRoleService $userRoleService)
+    public function __construct(private UserRoleService $userRoleService) {}
+
+    protected function getUserRoleService(): UserRoleService
     {
+        return $this->userRoleService;
     }
 
     /**

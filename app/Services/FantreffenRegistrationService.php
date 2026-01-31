@@ -184,8 +184,10 @@ class FantreffenRegistrationService
     protected function sendConfirmationMails(FantreffenAnmeldung $anmeldung): void
     {
         // Bestätigung an Teilnehmer
+        // Wir verwenden direkt $anmeldung->email, da dieses Feld in register()
+        // bereits korrekt gesetzt wurde (User-Email oder Gast-Email)
         try {
-            Mail::to($anmeldung->registrant_email ?? $anmeldung->email)
+            Mail::to($anmeldung->email)
                 ->send(new FantreffenAnmeldungBestaetigung($anmeldung));
             Log::info('FantreffenRegistrationService: Confirmation email sent to participant');
         } catch (\Exception $e) {

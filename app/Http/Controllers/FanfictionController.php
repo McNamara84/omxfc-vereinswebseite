@@ -14,8 +14,11 @@ class FanfictionController extends Controller
 {
     use MembersTeamAware;
 
-    public function __construct(private readonly UserRoleService $userRoleService)
+    public function __construct(private readonly UserRoleService $userRoleService) {}
+
+    protected function getUserRoleService(): UserRoleService
     {
+        return $this->userRoleService;
     }
 
     /**
