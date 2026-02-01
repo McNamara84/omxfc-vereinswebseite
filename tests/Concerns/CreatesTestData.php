@@ -21,6 +21,7 @@ trait CreatesTestData
      * - MissionMars (Roman Nr. 2)
      * - DasVolkDerTiefe (Roman Nr. 1)
      * - ZweiTausendZwölfDasJahrDerApokalypse (Roman Nr. 1)
+     * - DieAbenteurer (Roman Nr. 1)
      */
     protected function seedBooksForRomantausch(): void
     {
@@ -29,6 +30,7 @@ trait CreatesTestData
             ['roman_number' => 2, 'title' => 'MM Roman', 'type' => BookType::MissionMars],
             ['roman_number' => 1, 'title' => 'Volk Roman', 'type' => BookType::DasVolkDerTiefe],
             ['roman_number' => 1, 'title' => '2012 Roman', 'type' => BookType::ZweiTausendZwölfDasJahrDerApokalypse],
+            ['roman_number' => 1, 'title' => 'Abenteurer Roman', 'type' => BookType::DieAbenteurer],
         ];
 
         foreach ($books as $book) {

@@ -107,10 +107,19 @@ class CrawlAbenteurer extends Command
         @$dom->loadHTML($html);
         $xpath = new DOMXPath($dom);
 
-        $numberNode = $xpath->query('//b[number(text()) >= 1 and number(text()) <= 999]');
-        $number = $numberNode->length > 0 ? $numberNode->item(0)->nodeValue : null;
+        // Die Abenteurer-Seiten haben die Nummer in der Navigationsleiste als <i>026</i>
+        // Suche nach der aktuellen Nummer (nicht verlinkt, nur kursiv) in der Navigationsleiste
+        $numberNode = $xpath->query("//div[@class='heftartikel-navigationsleiste-anfang']//td[@align='center']//i[not(a)]");
+        $number = $numberNode->length > 0 ? trim($numberNode->item(0)->nodeValue) : null;
+
+        // Fallback: Suche nach fetter Nummer (wie bei anderen Serien)
+        if ($number === null) {
+            $numberNodeFallback = $xpath->query('//b[number(text()) >= 1 and number(text()) <= 999]');
+            $number = $numberNodeFallback->length > 0 ? $numberNodeFallback->item(0)->nodeValue : null;
+        }
 
         $evtNode = $xpath->query("//td[contains(text(), 'Erstmals\xC2\xA0erschienen:')]/following-sibling::td[1]");
+        $evt = $evtNode->length > 0 ? trim($evtNode->item(0)->textContent) : null;
         $evt = $evtNode->length > 0 ? trim($evtNode->item(0)->textContent) : null;
 
         $zyklusNode = $xpath->query("//td[contains(text(), 'Zyklus:')]/following-sibling::td[1]");

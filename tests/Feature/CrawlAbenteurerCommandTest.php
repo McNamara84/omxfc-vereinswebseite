@@ -124,8 +124,16 @@ class CrawlAbenteurerCommandTest extends TestCase
 
     public function test_get_heftroman_info_parses_html(): void
     {
+        // HTML mit Navigationsleiste wie auf echten Abenteurer-Seiten
         $html = <<<'HTML'
-<b>123</b>
+<div class="heftartikel-navigationsleiste-anfang">
+    <div class="heftartikel-titel">Die Abenteurer</div>
+    <table width="100%"><tbody><tr>
+        <td width="50%" align="right"><i><a href="#">122</a></i> | <i><a href="#">122</a></i>|</td>
+        <td align="center"><i>123</i></td>
+        <td width="50%" align="left">|<i><a href="#">124</a></i></td>
+    </tr></tbody></table>
+</div>
     <table>
         <tr><td>Erstmals&nbsp;erschienen:</td><td>2024-01</td></tr>
         <tr><td>Zyklus:</td><td>Testzyklus (1)</td></tr>
