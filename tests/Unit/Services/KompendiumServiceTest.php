@@ -208,7 +208,7 @@ class KompendiumServiceTest extends TestCase
     }
 
     #[Test]
-    public function get_indexierte_romane_gruppiert_gruppiert_nach_zyklus(): void
+    public function get_indexierte_romane_gruppiert_nach_zyklus(): void
     {
         $user = \App\Models\User::factory()->withPersonalTeam()->create();
 
