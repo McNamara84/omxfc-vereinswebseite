@@ -13,6 +13,7 @@ use App\Models\RomanExcerpt;
 class KompendiumSearchTest extends TestCase
 {
     use RefreshDatabase;
+    use \Tests\Concerns\CreatesUserWithRole;
 
     protected function tearDown(): void
     {
@@ -20,19 +21,9 @@ class KompendiumSearchTest extends TestCase
         parent::tearDown();
     }
 
-    private function actingMember(int $points): User
-    {
-        $team = Team::membersTeam();
-        $user = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($user, ['role' => \App\Enums\Role::Mitglied->value]);
-        $user->incrementTeamPoints($points);
-        return $user;
-    }
-
     public function test_search_requires_enough_points(): void
     {
-        $user = $this->actingMember(50); // below 100
-        $this->actingAs($user);
+        $user = $this->actingMemberWithPoints(50); // below 100
 
         $this->getJson('/kompendium/suche?q=test')
             ->assertStatus(403)
@@ -41,8 +32,7 @@ class KompendiumSearchTest extends TestCase
 
     public function test_search_validates_query_length(): void
     {
-        $user = $this->actingMember(150);
-        $this->actingAs($user);
+        $user = $this->actingMemberWithPoints(150);
 
         $this->getJson('/kompendium/suche?q=a')
             ->assertStatus(422);
@@ -50,8 +40,7 @@ class KompendiumSearchTest extends TestCase
 
     public function test_search_returns_formatted_results(): void
     {
-        $user = $this->actingMember(150);
-        $this->actingAs($user);
+        $user = $this->actingMemberWithPoints(150);
 
         Storage::fake('private');
         Storage::disk('private')->put('/cycle1/001 - ExampleTitle.txt', 'Some example content with query word');
@@ -83,8 +72,7 @@ class KompendiumSearchTest extends TestCase
 
     public function test_search_returns_empty_when_no_matches_found(): void
     {
-        $user = $this->actingMember(150);
-        $this->actingAs($user);
+        $user = $this->actingMemberWithPoints(150);
 
         Storage::fake('private');
 

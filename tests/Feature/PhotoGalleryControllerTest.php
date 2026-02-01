@@ -11,17 +11,10 @@ use Illuminate\Support\Facades\Http;
 class PhotoGalleryControllerTest extends TestCase
 {
     use RefreshDatabase;
+    use \Tests\Concerns\CreatesUserWithRole;
 
     /** @var string[] */
     private array $createdPlaceholders = [];
-
-    private function actingMember(): User
-    {
-        $team = Team::membersTeam();
-        $user = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($user, ['role' => \App\Enums\Role::Mitglied->value]);
-        return $user;
-    }
 
     public function test_index_loads_photos_for_years(): void
     {

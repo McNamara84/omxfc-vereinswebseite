@@ -20,14 +20,7 @@ use Tests\TestCase;
 class BundleOfferTest extends TestCase
 {
     use RefreshDatabase;
-
-    private function actingMember(): User
-    {
-        $team = Team::membersTeam();
-        $user = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($user, ['role' => \App\Enums\Role::Mitglied->value]);
-        return $user;
-    }
+    use \Tests\Concerns\CreatesUserWithRole;
 
     /**
      * Erstellt Test-Buchdaten für Maddrax-Serie (1-100) und Mission Mars (1).

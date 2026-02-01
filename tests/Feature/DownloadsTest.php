@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Storage;
 class DownloadsTest extends TestCase
 {
     use RefreshDatabase;
+    use \Tests\Concerns\CreatesUserWithRole;
 
     protected function setUp(): void
     {
@@ -18,21 +19,9 @@ class DownloadsTest extends TestCase
         Storage::fake('private');
     }
 
-    private function actingMember(int $points = 0): User
-    {
-        $team = Team::membersTeam();
-        $user = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($user, ['role' => \App\Enums\Role::Mitglied->value]);
-        if ($points > 0) {
-            $user->incrementTeamPoints($points);
-        }
-        return $user;
-    }
-
     public function test_download_requires_enough_points(): void
     {
-        $user = $this->actingMember(2);
-        $this->actingAs($user);
+        $user = $this->actingMemberWithPoints(2);
 
         $response = $this->from('/downloads')->get('/downloads/herunterladen/BauanleitungEuphoriewurmV2.pdf');
 
@@ -42,8 +31,7 @@ class DownloadsTest extends TestCase
 
     public function test_download_succeeds_with_exact_required_points(): void
     {
-        $user = $this->actingMember(6); // exactly the points required for first file
-        $this->actingAs($user);
+        $user = $this->actingMemberWithPoints(6); // exactly the points required for first file
 
         Storage::disk('private')->put('downloads/BauanleitungEuphoriewurmV2.pdf', 'dummy');
 
@@ -55,8 +43,7 @@ class DownloadsTest extends TestCase
 
     public function test_download_fails_when_file_missing(): void
     {
-        $user = $this->actingMember(20);
-        $this->actingAs($user);
+        $user = $this->actingMemberWithPoints(20);
 
         $response = $this->from('/downloads')->get('/downloads/herunterladen/BauanleitungEuphoriewurmV2.pdf');
 
@@ -66,8 +53,7 @@ class DownloadsTest extends TestCase
 
     public function test_download_successful_when_file_exists_and_points_sufficient(): void
     {
-        $user = $this->actingMember(20);
-        $this->actingAs($user);
+        $user = $this->actingMemberWithPoints(20);
 
         Storage::disk('private')->put('downloads/BauanleitungProtoV11.pdf', 'dummy');
 
@@ -79,8 +65,7 @@ class DownloadsTest extends TestCase
 
     public function test_index_displays_downloads_and_user_points(): void
     {
-        $user = $this->actingMember(7);
-        $this->actingAs($user);
+        $user = $this->actingMemberWithPoints(7);
 
         $response = $this->get('/downloads');
 
@@ -92,8 +77,7 @@ class DownloadsTest extends TestCase
 
     public function test_download_fails_when_metadata_is_missing(): void
     {
-        $user = $this->actingMember(10);
-        $this->actingAs($user);
+        $user = $this->actingMemberWithPoints(10);
 
         $response = $this->from('/downloads')->get('/downloads/herunterladen/unknown.pdf');
 

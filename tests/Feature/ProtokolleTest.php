@@ -11,14 +11,7 @@ use Illuminate\Support\Facades\Storage;
 class ProtokolleTest extends TestCase
 {
     use RefreshDatabase;
-
-    private function actingMember(): User
-    {
-        $team = Team::membersTeam();
-        $user = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($user, ['role' => \App\Enums\Role::Mitglied->value]);
-        return $user;
-    }
+    use \Tests\Concerns\CreatesUserWithRole;
 
     public function test_guest_is_redirected_from_protokolle(): void
     {

@@ -15,15 +15,9 @@ use Tests\TestCase;
 class ReviewCommentControllerTest extends TestCase
 {
     use RefreshDatabase;
+    use \Tests\Concerns\CreatesUserWithRole;
 
-    private function actingMember(string $role = 'Mitglied'): User
-    {
-        $team = Team::membersTeam();
-        $user = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($user, ['role' => $role]);
 
-        return $user;
-    }
 
     public function test_comment_saves_and_notifies_author(): void
     {

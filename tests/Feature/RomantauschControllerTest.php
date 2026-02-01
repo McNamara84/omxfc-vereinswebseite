@@ -21,10 +21,14 @@ use Illuminate\View\View;
 use Mockery;
 use Illuminate\Support\Str;
 use App\Services\RomantauschInfoProvider;
+use Tests\Concerns\CreatesUserWithRole;
+use Tests\Concerns\CreatesTestData;
 
 class RomantauschControllerTest extends TestCase
 {
     use RefreshDatabase;
+    use CreatesUserWithRole;
+    use CreatesTestData;
 
     protected function tearDown(): void
     {
@@ -32,48 +36,13 @@ class RomantauschControllerTest extends TestCase
         parent::tearDown();
     }
 
-    private function actingMember(): User
-    {
-        $team = Team::membersTeam();
-        $user = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($user, ['role' => \App\Enums\Role::Mitglied->value]);
-        return $user;
-    }
 
-    private function putBookData(): void
-    {
-        Book::create([
-            'roman_number' => 1,
-            'title' => 'Roman1',
-            'author' => 'Author',
-            'type' => BookType::MaddraxDieDunkleZukunftDerErde,
-        ]);
-        Book::create([
-            'roman_number' => 2,
-            'title' => 'MM Roman',
-            'author' => 'Author',
-            'type' => BookType::MissionMars,
-        ]);
-        Book::create([
-            'roman_number' => 1,
-            'title' => 'Volk Roman',
-            'author' => 'Author',
-            'type' => BookType::DasVolkDerTiefe,
-        ]);
-        Book::create([
-            'roman_number' => 1,
-            'title' => '2012 Roman',
-            'author' => 'Author',
-            'type' => BookType::ZweiTausendZwölfDasJahrDerApokalypse,
-        ]);
-    }
 
     public function test_index_displays_structured_information_panel(): void
     {
-        $this->putBookData();
+        $this->seedBooksForRomantausch();
 
         $user = $this->actingMember();
-        $this->actingAs($user);
 
         $response = $this->get('/romantauschboerse');
 
@@ -98,10 +67,9 @@ class RomantauschControllerTest extends TestCase
 
     public function test_index_displays_offer_photo_thumbnails_with_accessible_dialog(): void
     {
-        $this->putBookData();
+        $this->seedBooksForRomantausch();
 
         $user = $this->actingMember();
-        $this->actingAs($user);
 
         $offer = BookOffer::create([
             'user_id' => $user->id,
@@ -140,10 +108,9 @@ class RomantauschControllerTest extends TestCase
 
     public function test_index_highlights_matching_offers_and_requests_for_authenticated_user(): void
     {
-        $this->putBookData();
+        $this->seedBooksForRomantausch();
 
         $user = $this->actingMember();
-        $this->actingAs($user);
 
         $otherOfferUser = User::factory()->create();
         $otherRequestUser = User::factory()->create();
@@ -199,10 +166,9 @@ class RomantauschControllerTest extends TestCase
 
     public function test_offer_creation_accepts_volk_der_tiefe_titles(): void
     {
-        $this->putBookData();
+        $this->seedBooksForRomantausch();
 
         $user = $this->actingMember();
-        $this->actingAs($user);
 
         $response = $this->post('/romantauschboerse/angebot-speichern', [
             'series' => BookType::DasVolkDerTiefe->value,
@@ -221,10 +187,9 @@ class RomantauschControllerTest extends TestCase
 
     public function test_index_does_not_highlight_entries_without_matching_counterpart(): void
     {
-        $this->putBookData();
+        $this->seedBooksForRomantausch();
 
         $user = $this->actingMember();
-        $this->actingAs($user);
 
         $otherOfferUser = User::factory()->create();
         $otherRequestUser = User::factory()->create();
@@ -270,7 +235,7 @@ class RomantauschControllerTest extends TestCase
 
     public function test_complete_swap_marks_entries_completed(): void
     {
-        $this->putBookData();
+        $this->seedBooksForRomantausch();
         $user = $this->actingMember();
         $other = User::factory()->create();
         $offer = BookOffer::create([
@@ -302,7 +267,7 @@ class RomantauschControllerTest extends TestCase
 
     public function test_create_offer_loads_books_from_database(): void
     {
-        $this->putBookData();
+        $this->seedBooksForRomantausch();
 
         $this->actingAs($this->actingMember());
         $response = $this->get('/romantauschboerse/angebot-erstellen');
@@ -316,10 +281,9 @@ class RomantauschControllerTest extends TestCase
 
     public function test_store_offer_creates_entry_when_book_found(): void
     {
-        $this->putBookData();
+        $this->seedBooksForRomantausch();
 
         $user = $this->actingMember();
-        $this->actingAs($user);
 
         $response = $this->post('/romantauschboerse/angebot-speichern', [
             'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
@@ -339,10 +303,9 @@ class RomantauschControllerTest extends TestCase
 
     public function test_store_offer_creates_entry_for_mission_mars(): void
     {
-        $this->putBookData();
+        $this->seedBooksForRomantausch();
 
         $user = $this->actingMember();
-        $this->actingAs($user);
 
         $response = $this->post('/romantauschboerse/angebot-speichern', [
             'series' => BookType::MissionMars->value,
@@ -362,10 +325,9 @@ class RomantauschControllerTest extends TestCase
 
     public function test_store_offer_creates_entry_for_2012_mini_series(): void
     {
-        $this->putBookData();
+        $this->seedBooksForRomantausch();
 
         $user = $this->actingMember();
-        $this->actingAs($user);
 
         $response = $this->post('/romantauschboerse/angebot-speichern', [
             'series' => BookType::ZweiTausendZwölfDasJahrDerApokalypse->value,
@@ -385,10 +347,9 @@ class RomantauschControllerTest extends TestCase
 
     public function test_point_awarded_on_every_tenth_offer(): void
     {
-        $this->putBookData();
+        $this->seedBooksForRomantausch();
 
         $user = $this->actingMember();
-        $this->actingAs($user);
 
         // create nine existing offers for the user
         for ($i = 1; $i <= 9; $i++) {
@@ -416,9 +377,8 @@ class RomantauschControllerTest extends TestCase
 
     public function test_store_offer_saves_photos(): void
     {
-        $this->putBookData();
+        $this->seedBooksForRomantausch();
         $user = $this->actingMember();
-        $this->actingAs($user);
 
         Storage::fake('public');
 
@@ -440,7 +400,7 @@ class RomantauschControllerTest extends TestCase
 
     public function test_store_offer_rejects_more_than_three_photos(): void
     {
-        $this->putBookData();
+        $this->seedBooksForRomantausch();
         Storage::fake('public');
 
         $user = $this->actingMember();
@@ -465,9 +425,8 @@ class RomantauschControllerTest extends TestCase
 
     public function test_store_offer_accepts_all_allowed_photo_extensions(): void
     {
-        $this->putBookData();
+        $this->seedBooksForRomantausch();
         $user = $this->actingMember();
-        $this->actingAs($user);
 
         Storage::fake('public');
 
@@ -485,9 +444,8 @@ class RomantauschControllerTest extends TestCase
 
     public function test_store_offer_rejects_invalid_photo_extension(): void
     {
-        $this->putBookData();
+        $this->seedBooksForRomantausch();
         $user = $this->actingMember();
-        $this->actingAs($user);
 
         Storage::fake('public');
 
@@ -508,9 +466,8 @@ class RomantauschControllerTest extends TestCase
 
     public function test_store_offer_sanitizes_photo_filenames(): void
     {
-        $this->putBookData();
+        $this->seedBooksForRomantausch();
         $user = $this->actingMember();
-        $this->actingAs($user);
 
         Storage::fake('public');
 
@@ -569,9 +526,8 @@ class RomantauschControllerTest extends TestCase
 
     public function test_store_offer_uses_fallback_name_when_slug_empty(): void
     {
-        $this->putBookData();
+        $this->seedBooksForRomantausch();
         $user = $this->actingMember();
-        $this->actingAs($user);
 
         Storage::fake('public');
 
@@ -593,9 +549,8 @@ class RomantauschControllerTest extends TestCase
 
     public function test_store_offer_handles_photo_upload_failure(): void
     {
-        $this->putBookData();
+        $this->seedBooksForRomantausch();
         $user = $this->actingMember();
-        $this->actingAs($user);
 
         Storage::fake('public');
 
@@ -622,7 +577,7 @@ class RomantauschControllerTest extends TestCase
 
     public function test_edit_offer_form_is_accessible_for_owner(): void
     {
-        $this->putBookData();
+        $this->seedBooksForRomantausch();
         $user = $this->actingMember();
         $offer = BookOffer::create([
             'user_id' => $user->id,
@@ -641,7 +596,7 @@ class RomantauschControllerTest extends TestCase
 
     public function test_update_offer_updates_details_and_manages_photos(): void
     {
-        $this->putBookData();
+        $this->seedBooksForRomantausch();
         Storage::fake('public');
 
         $user = $this->actingMember();
@@ -683,7 +638,7 @@ class RomantauschControllerTest extends TestCase
 
     public function test_update_offer_allows_replacing_removed_photos_until_limit(): void
     {
-        $this->putBookData();
+        $this->seedBooksForRomantausch();
         Storage::fake('public');
 
         $user = $this->actingMember();
@@ -728,7 +683,7 @@ class RomantauschControllerTest extends TestCase
 
     public function test_update_offer_rejects_more_than_three_photos(): void
     {
-        $this->putBookData();
+        $this->seedBooksForRomantausch();
         Storage::fake('public');
 
         $user = $this->actingMember();
@@ -758,7 +713,7 @@ class RomantauschControllerTest extends TestCase
 
     public function test_update_offer_forbidden_for_other_users(): void
     {
-        $this->putBookData();
+        $this->seedBooksForRomantausch();
 
         $owner = $this->actingMember();
         $other = User::factory()->create();
@@ -782,7 +737,7 @@ class RomantauschControllerTest extends TestCase
 
     public function test_offer_detail_view_requires_match(): void
     {
-        $this->putBookData();
+        $this->seedBooksForRomantausch();
         $offerUser = $this->actingMember();
         $requestUser = User::factory()->create();
 
@@ -817,7 +772,7 @@ class RomantauschControllerTest extends TestCase
 
     public function test_offer_owner_can_view_offer_without_swap(): void
     {
-        $this->putBookData();
+        $this->seedBooksForRomantausch();
         $user = $this->actingMember();
         $offer = BookOffer::create([
             'user_id' => $user->id,
@@ -838,7 +793,7 @@ class RomantauschControllerTest extends TestCase
 
     public function test_offer_detail_handles_swap_with_missing_request(): void
     {
-        $this->putBookData();
+        $this->seedBooksForRomantausch();
         $offerUser = $this->actingMember();
         $otherUser = User::factory()->create();
 
@@ -866,7 +821,6 @@ class RomantauschControllerTest extends TestCase
     public function test_store_offer_returns_error_when_book_missing(): void
     {
         $user = $this->actingMember();
-        $this->actingAs($user);
 
         $response = $this->from('/romantauschboerse/angebot-erstellen')
             ->post('/romantauschboerse/angebot-speichern', [
@@ -882,7 +836,7 @@ class RomantauschControllerTest extends TestCase
 
     public function test_index_displays_offers_requests_and_swaps(): void
     {
-        $this->putBookData();
+        $this->seedBooksForRomantausch();
         $user = $this->actingMember();
         $other = User::factory()->create();
 
@@ -921,7 +875,7 @@ class RomantauschControllerTest extends TestCase
 
     public function test_index_renders_thumbnail_for_offer_with_photo(): void
     {
-        $this->putBookData();
+        $this->seedBooksForRomantausch();
         Storage::fake('public');
 
         $user = $this->actingMember();
@@ -950,7 +904,7 @@ class RomantauschControllerTest extends TestCase
 
     public function test_index_renders_placeholder_for_offer_without_photo(): void
     {
-        $this->putBookData();
+        $this->seedBooksForRomantausch();
 
         $user = $this->actingMember();
 
@@ -974,7 +928,7 @@ class RomantauschControllerTest extends TestCase
 
     public function test_index_renders_all_photos_when_multiple_available(): void
     {
-        $this->putBookData();
+        $this->seedBooksForRomantausch();
         Storage::fake('public');
 
         $viewer = $this->actingMember();
@@ -1005,7 +959,7 @@ class RomantauschControllerTest extends TestCase
 
     public function test_create_request_loads_books_from_database(): void
     {
-        $this->putBookData();
+        $this->seedBooksForRomantausch();
 
         $this->actingAs($this->actingMember());
         $response = $this->get('/romantauschboerse/anfrage-erstellen');
@@ -1019,10 +973,9 @@ class RomantauschControllerTest extends TestCase
 
     public function test_store_request_creates_entry_when_book_found(): void
     {
-        $this->putBookData();
+        $this->seedBooksForRomantausch();
 
         $user = $this->actingMember();
-        $this->actingAs($user);
 
         $response = $this->post('/romantauschboerse/anfrage-speichern', [
             'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
@@ -1042,10 +995,9 @@ class RomantauschControllerTest extends TestCase
 
     public function test_store_request_creates_entry_for_mission_mars(): void
     {
-        $this->putBookData();
+        $this->seedBooksForRomantausch();
 
         $user = $this->actingMember();
-        $this->actingAs($user);
 
         $response = $this->post('/romantauschboerse/anfrage-speichern', [
             'series' => BookType::MissionMars->value,
@@ -1065,10 +1017,9 @@ class RomantauschControllerTest extends TestCase
 
     public function test_store_request_creates_entry_for_2012_mini_series(): void
     {
-        $this->putBookData();
+        $this->seedBooksForRomantausch();
 
         $user = $this->actingMember();
-        $this->actingAs($user);
 
         $response = $this->post('/romantauschboerse/anfrage-speichern', [
             'series' => BookType::ZweiTausendZwölfDasJahrDerApokalypse->value,
@@ -1089,7 +1040,6 @@ class RomantauschControllerTest extends TestCase
     public function test_store_request_returns_error_when_book_missing(): void
     {
         $user = $this->actingMember();
-        $this->actingAs($user);
 
         $response = $this->from('/romantauschboerse/anfrage-erstellen')
             ->post('/romantauschboerse/anfrage-speichern', [
@@ -1105,7 +1055,7 @@ class RomantauschControllerTest extends TestCase
 
     public function test_edit_request_form_is_accessible_for_owner(): void
     {
-        $this->putBookData();
+        $this->seedBooksForRomantausch();
         $user = $this->actingMember();
         $requestModel = BookRequest::create([
             'user_id' => $user->id,
@@ -1124,7 +1074,7 @@ class RomantauschControllerTest extends TestCase
 
     public function test_update_request_updates_details(): void
     {
-        $this->putBookData();
+        $this->seedBooksForRomantausch();
         $user = $this->actingMember();
         $requestModel = BookRequest::create([
             'user_id' => $user->id,
@@ -1153,7 +1103,7 @@ class RomantauschControllerTest extends TestCase
 
     public function test_update_request_forbidden_for_other_users(): void
     {
-        $this->putBookData();
+        $this->seedBooksForRomantausch();
         $owner = $this->actingMember();
         $other = User::factory()->create();
 
@@ -1248,9 +1198,8 @@ class RomantauschControllerTest extends TestCase
 
     public function test_store_offer_shows_validation_errors_for_missing_required_fields(): void
     {
-        $this->putBookData();
+        $this->seedBooksForRomantausch();
         $user = $this->actingMember();
-        $this->actingAs($user);
 
         $response = $this->from(route('romantausch.create-offer'))
             ->post(route('romantausch.store-offer'), []);
@@ -1268,9 +1217,8 @@ class RomantauschControllerTest extends TestCase
 
     public function test_store_request_shows_errors_and_preserves_old_values(): void
     {
-        $this->putBookData();
+        $this->seedBooksForRomantausch();
         $user = $this->actingMember();
-        $this->actingAs($user);
 
         $response = $this->from(route('romantausch.create-request'))
             ->post(route('romantausch.store-request'), [

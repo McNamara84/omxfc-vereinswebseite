@@ -13,14 +13,7 @@ use App\Models\Team;
 class RezensionFilterTest extends TestCase
 {
     use RefreshDatabase;
-
-    private function actingMember(): User
-    {
-        $team = Team::membersTeam();
-        $user = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($user, ['role' => \App\Enums\Role::Mitglied->value]);
-        return $user;
-    }
+    use \Tests\Concerns\CreatesUserWithRole;
 
     private function putBookData(): void
     {

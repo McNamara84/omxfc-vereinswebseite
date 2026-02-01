@@ -18,6 +18,7 @@ class StatistikTest extends TestCase
 {
     use CreatesMemberClientSnapshot;
     use RefreshDatabase;
+    use \Tests\Concerns\CreatesUserWithRole;
 
     private string $testStoragePath;
 
@@ -35,16 +36,6 @@ class StatistikTest extends TestCase
         File::deleteDirectory($this->testStoragePath);
 
         parent::tearDown();
-    }
-
-    private function actingMemberWithPoints(int $points): User
-    {
-        $team = Team::membersTeam();
-        $user = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($user, ['role' => \App\Enums\Role::Mitglied->value]);
-        $user->incrementTeamPoints($points);
-
-        return $user;
     }
 
     private function createDataFile(): void
