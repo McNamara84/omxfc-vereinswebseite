@@ -141,7 +141,7 @@ class KompendiumService
     /**
      * Erstellt eine Zusammenfassung der indexierten Romane für die Anzeige.
      *
-     * @return Collection<string, array{name: string, min: int, max: int, anzahl: int}>
+     * @return Collection<string, array{name: string, min: int, max: int, anzahl: int, bandbereich: string}>
      */
     public function getIndexierteRomaneSummary(): Collection
     {

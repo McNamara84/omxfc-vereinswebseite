@@ -45,12 +45,13 @@ class IndexiereRomanJob implements ShouldQueue
         // Status auf "läuft" setzen
         $roman->update(['status' => 'indexierung_laeuft']);
 
-        // Datei lesen
-        $inhalt = Storage::disk('private')->get($roman->dateipfad);
-
-        if (! $inhalt) {
+        // Prüfen ob Datei existiert
+        if (! Storage::disk('private')->exists($roman->dateipfad)) {
             throw new \RuntimeException("Datei nicht gefunden: {$roman->dateipfad}");
         }
+
+        // Datei lesen (kann auch leer sein, das ist valide)
+        $inhalt = Storage::disk('private')->get($roman->dateipfad);
 
         // RomanExcerpt für Scout erstellen und indexieren
         $excerpt = new RomanExcerpt([

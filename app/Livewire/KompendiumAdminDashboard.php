@@ -41,6 +41,7 @@ class KompendiumAdminDashboard extends Component
     protected function rules(): array
     {
         return [
+            'uploads' => 'required|array|min:1',
             'uploads.*' => 'required|file|mimes:txt|max:10240', // 10 MB
             'ausgewaehlteSerie' => 'required|in:maddrax,hardcovers,missionmars,volkdertiefe,2012,abenteurer',
         ];

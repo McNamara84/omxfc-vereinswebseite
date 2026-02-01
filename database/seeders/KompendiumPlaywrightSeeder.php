@@ -52,15 +52,17 @@ class KompendiumPlaywrightSeeder extends Seeder
             }
         }
 
-        // Erstelle Test-Verzeichnis für Romane
-        Storage::disk('local')->makeDirectory('private/romane');
+        // Erstelle Test-Verzeichnisse für Romane auf dem private Disk
+        Storage::disk('private')->makeDirectory('romane/maddrax');
+        Storage::disk('private')->makeDirectory('romane/missionmars');
+        Storage::disk('private')->makeDirectory('romane/hardcovers');
 
         // Erstelle Testdaten für verschiedene Status
         $testRomane = [
             // Hochgeladene, nicht indexierte Romane
             [
                 'dateiname' => '001 - Der Gott aus dem Eis.txt',
-                'dateipfad' => 'private/romane/001 - Der Gott aus dem Eis.txt',
+                'dateipfad' => 'romane/maddrax/001 - Der Gott aus dem Eis.txt',
                 'serie' => 'maddrax',
                 'roman_nr' => 1,
                 'titel' => 'Der Gott aus dem Eis',
@@ -69,7 +71,7 @@ class KompendiumPlaywrightSeeder extends Seeder
             ],
             [
                 'dateiname' => '002 - Dämonen der Vergangenheit.txt',
-                'dateipfad' => 'private/romane/002 - Dämonen der Vergangenheit.txt',
+                'dateipfad' => 'romane/maddrax/002 - Dämonen der Vergangenheit.txt',
                 'serie' => 'maddrax',
                 'roman_nr' => 2,
                 'titel' => 'Dämonen der Vergangenheit',
@@ -79,7 +81,7 @@ class KompendiumPlaywrightSeeder extends Seeder
             // Indexierte Romane
             [
                 'dateiname' => '003 - Stadt ohne Hoffnung.txt',
-                'dateipfad' => 'private/romane/003 - Stadt ohne Hoffnung.txt',
+                'dateipfad' => 'romane/maddrax/003 - Stadt ohne Hoffnung.txt',
                 'serie' => 'maddrax',
                 'roman_nr' => 3,
                 'titel' => 'Stadt ohne Hoffnung',
@@ -90,7 +92,7 @@ class KompendiumPlaywrightSeeder extends Seeder
             // Mission Mars Roman
             [
                 'dateiname' => '001 - Expedition zum roten Planeten.txt',
-                'dateipfad' => 'private/romane/missionmars/001 - Expedition zum roten Planeten.txt',
+                'dateipfad' => 'romane/missionmars/001 - Expedition zum roten Planeten.txt',
                 'serie' => 'missionmars',
                 'roman_nr' => 1,
                 'titel' => 'Expedition zum roten Planeten',
@@ -101,7 +103,7 @@ class KompendiumPlaywrightSeeder extends Seeder
             // Hardcover Roman
             [
                 'dateiname' => '001 - Die Schwarze Zukunft.txt',
-                'dateipfad' => 'private/romane/hardcovers/001 - Die Schwarze Zukunft.txt',
+                'dateipfad' => 'romane/hardcovers/001 - Die Schwarze Zukunft.txt',
                 'serie' => 'hardcovers',
                 'roman_nr' => 1,
                 'titel' => 'Die Schwarze Zukunft',
@@ -111,7 +113,7 @@ class KompendiumPlaywrightSeeder extends Seeder
             // Roman mit Fehler
             [
                 'dateiname' => '999 - Fehlerhafter Roman.txt',
-                'dateipfad' => 'private/romane/999 - Fehlerhafter Roman.txt',
+                'dateipfad' => 'romane/maddrax/999 - Fehlerhafter Roman.txt',
                 'serie' => 'maddrax',
                 'roman_nr' => 999,
                 'titel' => 'Fehlerhafter Roman',
@@ -122,11 +124,11 @@ class KompendiumPlaywrightSeeder extends Seeder
         ];
 
         foreach ($testRomane as $romanData) {
-            // Erstelle Dummy-Dateien für die Tests
+            // Erstelle Dummy-Dateien für die Tests auf dem private Disk
             $content = "Dies ist ein Testinhalt für den Roman: {$romanData['titel']}\n\n";
             $content .= "Lorem ipsum dolor sit amet, consectetur adipiscing elit.\n";
             $content .= "Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.\n";
-            Storage::disk('local')->put($romanData['dateipfad'], $content);
+            Storage::disk('private')->put($romanData['dateipfad'], $content);
 
             KompendiumRoman::firstOrCreate(
                 ['dateipfad' => $romanData['dateipfad']],
