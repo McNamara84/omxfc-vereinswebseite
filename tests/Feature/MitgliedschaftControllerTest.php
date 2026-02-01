@@ -24,19 +24,19 @@ class MitgliedschaftControllerTest extends TestCase
         $this->assertStringNotContainsString('<x-input', $html, 'Compiled view should not contain unresolved Blade components.');
 
         $fields = [
-            'vorname' => ['aria' => 'aria-describedby="error-vorname"', 'ids' => ['error-vorname']],
-            'nachname' => ['aria' => 'aria-describedby="error-nachname"', 'ids' => ['error-nachname']],
-            'strasse' => ['aria' => 'aria-describedby="error-strasse"', 'ids' => ['error-strasse']],
-            'hausnummer' => ['aria' => 'aria-describedby="error-hausnummer"', 'ids' => ['error-hausnummer']],
-            'plz' => ['aria' => 'aria-describedby="error-plz"', 'ids' => ['error-plz']],
-            'stadt' => ['aria' => 'aria-describedby="error-stadt"', 'ids' => ['error-stadt']],
-            'land' => ['aria' => 'aria-describedby="error-land"', 'ids' => ['error-land']],
-            'mail' => ['aria' => 'aria-describedby="error-mail"', 'ids' => ['error-mail']],
-            'passwort' => ['aria' => 'aria-describedby="passwort-hint error-passwort"', 'ids' => ['passwort-hint', 'error-passwort']],
-            'passwort_confirmation' => ['aria' => 'aria-describedby="passwort_confirmation-hint error-passwort_confirmation"', 'ids' => ['passwort_confirmation-hint', 'error-passwort_confirmation']],
-            'mitgliedsbeitrag' => ['aria' => 'aria-describedby="mitgliedsbeitrag-hint beitrag-output error-mitgliedsbeitrag"', 'ids' => ['mitgliedsbeitrag-hint', 'beitrag-output', 'error-mitgliedsbeitrag']],
-            'telefon' => ['aria' => 'aria-describedby="telefon-hint error-telefon"', 'ids' => ['telefon-hint', 'error-telefon']],
-            'verein_gefunden' => ['aria' => 'aria-describedby="error-verein_gefunden"', 'ids' => ['error-verein_gefunden']],
+            'vorname' => ['aria' => 'aria-describedby="vorname-error"', 'ids' => ['vorname-error']],
+            'nachname' => ['aria' => 'aria-describedby="nachname-error"', 'ids' => ['nachname-error']],
+            'strasse' => ['aria' => 'aria-describedby="strasse-error"', 'ids' => ['strasse-error']],
+            'hausnummer' => ['aria' => 'aria-describedby="hausnummer-error"', 'ids' => ['hausnummer-error']],
+            'plz' => ['aria' => 'aria-describedby="plz-error"', 'ids' => ['plz-error']],
+            'stadt' => ['aria' => 'aria-describedby="stadt-error"', 'ids' => ['stadt-error']],
+            'land' => ['aria' => 'aria-describedby="land-error"', 'ids' => ['land-error']],
+            'mail' => ['aria' => 'aria-describedby="mail-error"', 'ids' => ['mail-error']],
+            'passwort' => ['aria' => 'aria-describedby="passwort-hint passwort-error"', 'ids' => ['passwort-hint', 'passwort-error']],
+            'passwort_confirmation' => ['aria' => 'aria-describedby="passwort_confirmation-hint passwort_confirmation-error"', 'ids' => ['passwort_confirmation-hint', 'passwort_confirmation-error']],
+            'mitgliedsbeitrag' => ['aria' => 'aria-describedby="mitgliedsbeitrag-hint beitrag-output mitgliedsbeitrag-error"', 'ids' => ['mitgliedsbeitrag-hint', 'beitrag-output', 'mitgliedsbeitrag-error']],
+            'telefon' => ['aria' => 'aria-describedby="telefon-hint telefon-error"', 'ids' => ['telefon-hint', 'telefon-error']],
+            'verein_gefunden' => ['aria' => 'aria-describedby="verein_gefunden-error"', 'ids' => ['verein_gefunden-error']],
         ];
 
         foreach ($fields as $field => $expectation) {

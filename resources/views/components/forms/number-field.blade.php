@@ -1,12 +1,13 @@
 @props([
     'name',
     'label',
-    'type' => 'text',
     'id' => null,
     'help' => null,
     'value' => null,
     'required' => false,
-    'autocomplete' => null,
+    'min' => null,
+    'max' => null,
+    'step' => null,
     'placeholder' => null,
     'inputClass' => null,
 ])
@@ -17,7 +18,6 @@
     $hintId = $help ? $fieldId . '-hint' : null;
     $describedBy = collect([$hintId, $errorId])->filter()->implode(' ');
     $inputClasses = collect(['mt-1', 'block', 'w-full', $inputClass])->filter()->implode(' ');
-    $valueAttribute = $type === 'password' ? null : old($name, $value);
     $baseControlClasses = collect(config('forms.base_control_classes', []))->implode(' ');
 @endphp
 
@@ -25,12 +25,14 @@
     <input
         id="{{ $fieldId }}"
         name="{{ $name }}"
-        type="{{ $type }}"
+        type="number"
         aria-describedby="{{ $describedBy }}"
         @if($required) required @endif
-        @if($autocomplete) autocomplete="{{ $autocomplete }}" @endif
+        @if(! is_null($min)) min="{{ $min }}" @endif
+        @if(! is_null($max)) max="{{ $max }}" @endif
+        @if(! is_null($step)) step="{{ $step }}" @endif
         @if($placeholder) placeholder="{{ $placeholder }}" @endif
-        @if(! is_null($valueAttribute)) value="{{ $valueAttribute }}" @endif
+        value="{{ old($name, $value) }}"
         class="{{ trim($baseControlClasses . ' ' . $inputClasses) }}"
     >
 

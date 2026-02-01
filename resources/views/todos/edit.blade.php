@@ -7,50 +7,42 @@
                     @csrf
                     @method('PUT')
 
-                    <div class="mb-4">
-                        <label for="title" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Titel</label>
-                        <input type="text" name="title" id="title" value="{{ old('title', $todo->title) }}" required
-                            class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
-                        @error('title')
-                            <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                        @enderror
-                    </div>
+                    <x-forms.text-field
+                        name="title"
+                        label="Titel"
+                        :value="old('title', $todo->title)"
+                        required
+                        class="mb-4"
+                    />
 
-                    <div class="mb-4">
-                        <label for="category_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Kategorie</label>
-                        <select name="category_id" id="category_id" required
-                            class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
-                            <option value="">-- Kategorie wählen --</option>
-                            @foreach($categories as $category)
-                                <option value="{{ $category->id }}" {{ old('category_id', $todo->category_id) == $category->id ? 'selected' : '' }}>
-                                    {{ $category->name }}
-                                </option>
-                            @endforeach
-                        </select>
-                        @error('category_id')
-                            <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                        @enderror
-                    </div>
+                    <x-forms.select-field
+                        name="category_id"
+                        label="Kategorie"
+                        :options="$categories->pluck('name', 'id')"
+                        :value="old('category_id', $todo->category_id)"
+                        placeholder="-- Kategorie wählen --"
+                        required
+                        class="mb-4"
+                    />
 
-                    <div class="mb-4">
-                        <label for="description" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Beschreibung</label>
-                        <textarea name="description" id="description" rows="4"
-                            class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">{{ old('description', $todo->description) }}</textarea>
-                        @error('description')
-                            <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                        @enderror
-                    </div>
+                    <x-forms.textarea-field
+                        name="description"
+                        label="Beschreibung"
+                        :value="old('description', $todo->description)"
+                        rows="4"
+                        class="mb-4"
+                    />
 
-                    <div class="mb-6">
-                        <label for="points" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Baxx</label>
-                        <input type="number" name="points" id="points" value="{{ old('points', $todo->points) }}" min="1" max="1000" required
-                            class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
-                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Wie viele Baxx erhält das Mitglied
-                            für die Erledigung dieser Challenge?</p>
-                        @error('points')
-                            <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                        @enderror
-                    </div>
+                    <x-forms.number-field
+                        name="points"
+                        label="Baxx"
+                        :value="old('points', $todo->points)"
+                        :min="1"
+                        :max="1000"
+                        help="Wie viele Baxx erhält das Mitglied für die Erledigung dieser Challenge?"
+                        required
+                        class="mb-6"
+                    />
 
                     <div class="flex justify-end">
                         <a href="{{ route('todos.show', $todo) }}"

@@ -9,14 +9,23 @@
                     @csrf
                     @method('PUT')
 
-                    <x-form name="title" label="Rezensionstitel" class="mb-4">
-                        <input id="title" name="title" aria-describedby="title-error" type="text" value="{{ old('title', $review->title) }}" class="mt-1 block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 rounded" required />
-                    </x-form>
+                    <x-forms.text-field
+                        name="title"
+                        label="Rezensionstitel"
+                        :value="old('title', $review->title)"
+                        required
+                        class="mb-4"
+                    />
 
-                    <x-form name="content" label="Rezensionstext" class="mb-4">
-                        <textarea id="content" name="content" aria-describedby="content-error" rows="8" class="mt-1 block w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 rounded" required>{{ old('content', $review->content) }}</textarea>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Mindestens 140 Zeichen.</p>
-                    </x-form>
+                    <x-forms.textarea-field
+                        name="content"
+                        label="Rezensionstext"
+                        :value="old('content', $review->content)"
+                        rows="8"
+                        help="Mindestens 140 Zeichen."
+                        required
+                        class="mb-4"
+                    />
 
                     <div class="flex flex-col sm:flex-row sm:justify-between gap-4">
                         <a href="{{ route('reviews.show', $review->book) }}" class="text-gray-600 dark:text-gray-400 hover:underline">Abbrechen</a>

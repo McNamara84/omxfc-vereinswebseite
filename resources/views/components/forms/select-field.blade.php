@@ -13,7 +13,7 @@
 
 @php
     $fieldId = $id ?? $name;
-    $errorId = 'error-' . $fieldId;
+    $errorId = $fieldId . '-error';
     $hintId = $help ? $fieldId . '-hint' : null;
     $describedBy = collect([$hintId, $errorId])->filter()->implode(' ');
     $selectClasses = collect(['mt-1', 'block', 'w-full', $selectClass])->filter()->implode(' ');
@@ -21,7 +21,7 @@
     $baseControlClasses = collect(config('forms.base_control_classes', []))->implode(' ');
 @endphp
 
-<x-form :name="$name" :label="$label" :id="$fieldId" {{ $attributes->class(['w-full space-y-1']) }}>
+<x-form :name="$name" :label="$label" :id="$fieldId" :errorId="$errorId" {{ $attributes->class(['w-full space-y-1']) }}>
     <select
         id="{{ $fieldId }}"
         name="{{ $name }}"

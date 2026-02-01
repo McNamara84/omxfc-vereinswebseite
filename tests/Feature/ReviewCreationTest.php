@@ -146,7 +146,8 @@ class ReviewCreationTest extends TestCase
         $response = $this->get("/rezensionen/{$book->id}/erstellen");
 
         $response->assertSee('aria-describedby="title-error"', false);
-        $response->assertSee('aria-describedby="content-error"', false);
+        // content has help text, so aria-describedby includes both hint and error
+        $response->assertSee('aria-describedby="content-hint content-error"', false);
     }
 
     public function test_review_creation_validation_errors(): void
