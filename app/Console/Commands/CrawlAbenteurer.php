@@ -120,7 +120,6 @@ class CrawlAbenteurer extends Command
 
         $evtNode = $xpath->query("//td[contains(text(), 'Erstmals\xC2\xA0erschienen:')]/following-sibling::td[1]");
         $evt = $evtNode->length > 0 ? trim($evtNode->item(0)->textContent) : null;
-        $evt = $evtNode->length > 0 ? trim($evtNode->item(0)->textContent) : null;
 
         $zyklusNode = $xpath->query("//td[contains(text(), 'Zyklus:')]/following-sibling::td[1]");
         if ($zyklusNode->length > 0) {
