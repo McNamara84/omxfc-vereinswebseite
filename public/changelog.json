@@ -1,5 +1,19 @@
 [ 
   {
+    "version": "1.9.0",
+    "pub_date": "2026-02-01",
+    "notes": [
+      "[New] Fanfiction-Bereich für Fanstoriesn",
+      "[New] Unterstützung für Die Abenteurer Romane mit Rezensionen und Romantausch",
+      "[New] Bearbeitungsanfrage und Tracking für Kassenbuch-Einträge",
+      "[Improved] Refactoring für verbesserte Rollenbasierte Zugriffskontrolle und Validierung",
+      "[Improved] Aktualisierung aller PHP- und JavaScript-Abhängigkeiten",
+      "[Fixed] Endlos wachsende Charts bei Umfrageergebnissen behoben",
+      "[Fixed] Browser-Absturz bei großen Umfrageergebnissen behoben",
+      "[Fixed] Romantauschbörse erstellt wieder korrekt neue Angebote"
+    ]
+  },
+  {
     "version": "1.8.0",
     "pub_date": "2026-01-01",
     "notes": [
