@@ -2,42 +2,53 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Str;
-use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Http\JsonResponse;
-use Illuminate\View\View;
+use App\Enums\Role;
 use App\Models\RomanExcerpt;
+use App\Services\KompendiumService;
 use App\Services\TeamPointService;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Illuminate\View\View;
 
 class KompendiumController extends Controller
 {
-    public function __construct(private TeamPointService $teamPointService)
-    {
-    }
+    public function __construct(
+        private TeamPointService $teamPointService,
+        private KompendiumService $kompendiumService
+    ) {}
 
     /** Mindest-Punktzahl für die Suche */
     private const REQUIRED_POINTS = 100;
 
     /* --------------------------------------------------------------------- */
-    /*  GET /kompendium  – Übersichtsseite                                   */
+    /*  GET /kompendium  – Übersichtsseite */
     /* --------------------------------------------------------------------- */
     public function index(Request $request): View
     {
         $user = Auth::user();
         $userPoints = $this->teamPointService->getUserPoints($user);
 
+        // Indexierte Romane gruppiert laden
+        $indexierteRomaneSummary = $this->kompendiumService->getIndexierteRomaneSummary();
+
+        // Prüfen ob User Admin ist
+        $istAdmin = $user?->currentTeam?->hasUserWithRole($user, Role::Admin->value) ?? false;
+
         return view('pages.kompendium', [
             'userPoints' => $userPoints,
             'showSearch' => $userPoints >= self::REQUIRED_POINTS,
             'required' => self::REQUIRED_POINTS,
+            'indexierteRomaneSummary' => $indexierteRomaneSummary,
+            'istAdmin' => $istAdmin,
         ]);
     }
 
     /* --------------------------------------------------------------------- */
-    /*  GET /kompendium/suche  (AJAX)                                       */
+    /*  GET /kompendium/suche  (AJAX) */
     /* --------------------------------------------------------------------- */
     public function search(Request $request): JsonResponse
     {
@@ -47,7 +58,7 @@ class KompendiumController extends Controller
 
         if ($userPoints < self::REQUIRED_POINTS) {
             return response()->json([
-                'message' => "Mindestens " . self::REQUIRED_POINTS . " Punkte erforderlich (du hast $userPoints)."
+                'message' => 'Mindestens '.self::REQUIRED_POINTS." Punkte erforderlich (du hast $userPoints).",
             ], 403);
         }
 
@@ -64,7 +75,7 @@ class KompendiumController extends Controller
         $radius = 200;
 
         /* ------------------------------------------------------------------ */
-        /*  SCOUT-SUCHAUFRUF  (RAW)                                           */
+        /*  SCOUT-SUCHAUFRUF  (RAW) */
         /* ------------------------------------------------------------------ */
         $raw = RomanExcerpt::search($query)->raw();              // kein paginate()
         $total = $raw['hits']['total_hits'] ?? 0;
@@ -74,7 +85,7 @@ class KompendiumController extends Controller
         $slice = array_slice($ids, ($page - 1) * $perPage, $perPage);
 
         /* ------------------------------------------------------------------ */
-        /*  Treffer in Frontend-Format wandeln                                */
+        /*  Treffer in Frontend-Format wandeln */
         /* ------------------------------------------------------------------ */
         $hits = [];
 
@@ -97,7 +108,7 @@ class KompendiumController extends Controller
 
                 $snippet = e($snippet);
                 $snippet = preg_replace(
-                    '/' . preg_quote($query, '/') . '/iu',
+                    '/'.preg_quote($query, '/').'/iu',
                     '<mark>$0</mark>',
                     $snippet
                 );
@@ -106,7 +117,7 @@ class KompendiumController extends Controller
                 $offset = $pos + mb_strlen($query);
             }
 
-            $cycleName = Str::of($cycleSlug)->after('-')->replace('-', ' ')->title() . '-Zyklus';
+            $cycleName = Str::of($cycleSlug)->after('-')->replace('-', ' ')->title().'-Zyklus';
 
             $hits[] = [
                 'cycle' => $cycleName,
@@ -117,7 +128,7 @@ class KompendiumController extends Controller
         }
 
         /* ------------------------------------------------------------------ */
-        /*  Pagination-Objekt für das Frontend                                */
+        /*  Pagination-Objekt für das Frontend */
         /* ------------------------------------------------------------------ */
         $paginator = new LengthAwarePaginator(
             $hits,
@@ -134,7 +145,7 @@ class KompendiumController extends Controller
     }
 
     /* --------------------------------------------------------------------- */
-    /*  Hilfsfunktion: Pfad → Zyklus-Slug, Nummer, Titel                     */
+    /*  Hilfsfunktion: Pfad → Zyklus-Slug, Nummer, Titel */
     /* --------------------------------------------------------------------- */
     private function extractMetaFromPath(string $path): array
     {
@@ -142,6 +153,7 @@ class KompendiumController extends Controller
         $cycleSlug = $parts[1] ?? 'unknown';
 
         [$romanNr, $title] = explode(' - ', pathinfo($path, PATHINFO_FILENAME), 2);
+
         return [$cycleSlug, $romanNr, $title];
     }
 }
