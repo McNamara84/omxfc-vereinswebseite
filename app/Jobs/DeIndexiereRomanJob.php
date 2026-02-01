@@ -62,6 +62,7 @@ class DeIndexiereRomanJob implements ShouldQueue
         Log::error("De-Indexierung fehlgeschlagen für Roman {$this->kompendiumRoman->titel}: {$exception->getMessage()}");
 
         $this->kompendiumRoman->update([
+            'status' => 'fehler',
             'fehler_nachricht' => 'De-Indexierung fehlgeschlagen: '.$exception->getMessage(),
         ]);
     }

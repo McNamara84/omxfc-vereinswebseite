@@ -163,7 +163,7 @@ test.describe('Kompendium Admin Dashboard', () => {
         await expect(page.getByRole('link', { name: 'Kompendium verwalten' })).toBeVisible();
     });
 
-    test('masse actions buttons are visible', async ({ page }) => {
+    test('mass actions buttons are visible', async ({ page }) => {
         await page.goto('/kompendium/admin');
 
         // Massen-Aktionen sollten sichtbar sein
