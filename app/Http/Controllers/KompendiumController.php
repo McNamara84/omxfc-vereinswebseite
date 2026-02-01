@@ -25,7 +25,7 @@ class KompendiumController extends Controller
     private const REQUIRED_POINTS = 100;
 
     /* --------------------------------------------------------------------- */
-    /*  GET /kompendium  – Übersichtsseite                                   */
+    /*  GET /kompendium  – Übersichtsseite */
     /* --------------------------------------------------------------------- */
     public function index(Request $request): View
     {
@@ -48,7 +48,7 @@ class KompendiumController extends Controller
     }
 
     /* --------------------------------------------------------------------- */
-    /*  GET /kompendium/suche  (AJAX)                                       */
+    /*  GET /kompendium/suche  (AJAX) */
     /* --------------------------------------------------------------------- */
     public function search(Request $request): JsonResponse
     {
@@ -58,7 +58,7 @@ class KompendiumController extends Controller
 
         if ($userPoints < self::REQUIRED_POINTS) {
             return response()->json([
-                'message' => "Mindestens " . self::REQUIRED_POINTS . " Punkte erforderlich (du hast $userPoints)."
+                'message' => 'Mindestens '.self::REQUIRED_POINTS." Punkte erforderlich (du hast $userPoints).",
             ], 403);
         }
 
@@ -75,7 +75,7 @@ class KompendiumController extends Controller
         $radius = 200;
 
         /* ------------------------------------------------------------------ */
-        /*  SCOUT-SUCHAUFRUF  (RAW)                                           */
+        /*  SCOUT-SUCHAUFRUF  (RAW) */
         /* ------------------------------------------------------------------ */
         $raw = RomanExcerpt::search($query)->raw();              // kein paginate()
         $total = $raw['hits']['total_hits'] ?? 0;
@@ -85,7 +85,7 @@ class KompendiumController extends Controller
         $slice = array_slice($ids, ($page - 1) * $perPage, $perPage);
 
         /* ------------------------------------------------------------------ */
-        /*  Treffer in Frontend-Format wandeln                                */
+        /*  Treffer in Frontend-Format wandeln */
         /* ------------------------------------------------------------------ */
         $hits = [];
 
@@ -108,7 +108,7 @@ class KompendiumController extends Controller
 
                 $snippet = e($snippet);
                 $snippet = preg_replace(
-                    '/' . preg_quote($query, '/') . '/iu',
+                    '/'.preg_quote($query, '/').'/iu',
                     '<mark>$0</mark>',
                     $snippet
                 );
@@ -117,7 +117,7 @@ class KompendiumController extends Controller
                 $offset = $pos + mb_strlen($query);
             }
 
-            $cycleName = Str::of($cycleSlug)->after('-')->replace('-', ' ')->title() . '-Zyklus';
+            $cycleName = Str::of($cycleSlug)->after('-')->replace('-', ' ')->title().'-Zyklus';
 
             $hits[] = [
                 'cycle' => $cycleName,
@@ -128,7 +128,7 @@ class KompendiumController extends Controller
         }
 
         /* ------------------------------------------------------------------ */
-        /*  Pagination-Objekt für das Frontend                                */
+        /*  Pagination-Objekt für das Frontend */
         /* ------------------------------------------------------------------ */
         $paginator = new LengthAwarePaginator(
             $hits,
@@ -145,7 +145,7 @@ class KompendiumController extends Controller
     }
 
     /* --------------------------------------------------------------------- */
-    /*  Hilfsfunktion: Pfad → Zyklus-Slug, Nummer, Titel                     */
+    /*  Hilfsfunktion: Pfad → Zyklus-Slug, Nummer, Titel */
     /* --------------------------------------------------------------------- */
     private function extractMetaFromPath(string $path): array
     {
@@ -153,6 +153,7 @@ class KompendiumController extends Controller
         $cycleSlug = $parts[1] ?? 'unknown';
 
         [$romanNr, $title] = explode(' - ', pathinfo($path, PATHINFO_FILENAME), 2);
+
         return [$cycleSlug, $romanNr, $title];
     }
 }

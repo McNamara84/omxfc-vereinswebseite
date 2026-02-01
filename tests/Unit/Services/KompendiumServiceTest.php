@@ -30,7 +30,7 @@ class KompendiumServiceTest extends TestCase
     }
 
     #[Test]
-    public function parseDateiname_parst_gueltiges_format(): void
+    public function parse_dateiname_parst_gueltiges_format(): void
     {
         $result = $this->service->parseDateiname('001 - Der Gott aus dem Eis.txt');
 
@@ -40,7 +40,7 @@ class KompendiumServiceTest extends TestCase
     }
 
     #[Test]
-    public function parseDateiname_parst_dreistellige_nummer(): void
+    public function parse_dateiname_parst_dreistellige_nummer(): void
     {
         $result = $this->service->parseDateiname('123 - Ein langer Titel mit Sonderzeichen!.txt');
 
@@ -50,7 +50,7 @@ class KompendiumServiceTest extends TestCase
     }
 
     #[Test]
-    public function parseDateiname_parst_ohne_fuehrende_nullen(): void
+    public function parse_dateiname_parst_ohne_fuehrende_nullen(): void
     {
         $result = $this->service->parseDateiname('5 - Kurzer Titel.txt');
 
@@ -60,7 +60,7 @@ class KompendiumServiceTest extends TestCase
     }
 
     #[Test]
-    public function parseDateiname_gibt_null_bei_ungueltigem_format(): void
+    public function parse_dateiname_gibt_null_bei_ungueltigem_format(): void
     {
         $this->assertNull($this->service->parseDateiname('Ohne Nummer.txt'));
         $this->assertNull($this->service->parseDateiname('abc - Mit Buchstaben.txt'));
@@ -69,7 +69,7 @@ class KompendiumServiceTest extends TestCase
     }
 
     #[Test]
-    public function findeMetadaten_findet_roman_in_maddrax_serie(): void
+    public function finde_metadaten_findet_roman_in_maddrax_serie(): void
     {
         $this->maddraxDataService
             ->shouldReceive('getSeries')
@@ -93,7 +93,7 @@ class KompendiumServiceTest extends TestCase
     }
 
     #[Test]
-    public function findeMetadaten_findet_roman_in_anderer_serie(): void
+    public function finde_metadaten_findet_roman_in_anderer_serie(): void
     {
         $this->maddraxDataService
             ->shouldReceive('getSeries')
@@ -125,7 +125,7 @@ class KompendiumServiceTest extends TestCase
     }
 
     #[Test]
-    public function findeMetadaten_gibt_null_wenn_nicht_gefunden(): void
+    public function finde_metadaten_gibt_null_wenn_nicht_gefunden(): void
     {
         $this->maddraxDataService
             ->shouldReceive('getSeries')
@@ -138,7 +138,7 @@ class KompendiumServiceTest extends TestCase
     }
 
     #[Test]
-    public function getSerienListe_gibt_alle_serien_zurueck(): void
+    public function get_serien_liste_gibt_alle_serien_zurueck(): void
     {
         $serien = $this->service->getSerienListe();
 
@@ -152,7 +152,7 @@ class KompendiumServiceTest extends TestCase
     }
 
     #[Test]
-    public function getSerienName_gibt_korrekten_namen_zurueck(): void
+    public function get_serien_name_gibt_korrekten_namen_zurueck(): void
     {
         $this->assertEquals('Maddrax - Die dunkle Zukunft der Erde', $this->service->getSerienName('maddrax'));
         $this->assertEquals('Mission Mars', $this->service->getSerienName('missionmars'));
@@ -160,7 +160,7 @@ class KompendiumServiceTest extends TestCase
     }
 
     #[Test]
-    public function getStatistiken_gibt_korrekte_zahlen_zurueck(): void
+    public function get_statistiken_gibt_korrekte_zahlen_zurueck(): void
     {
         $user = \App\Models\User::factory()->withPersonalTeam()->create();
 
@@ -208,7 +208,7 @@ class KompendiumServiceTest extends TestCase
     }
 
     #[Test]
-    public function getIndexierteRomaneGruppiert_gruppiert_nach_zyklus(): void
+    public function get_indexierte_romane_gruppiert_gruppiert_nach_zyklus(): void
     {
         $user = \App\Models\User::factory()->withPersonalTeam()->create();
 
@@ -244,7 +244,7 @@ class KompendiumServiceTest extends TestCase
     }
 
     #[Test]
-    public function getIndexierteRomaneSummary_formatiert_bandbereich_korrekt(): void
+    public function get_indexierte_romane_summary_formatiert_bandbereich_korrekt(): void
     {
         $user = \App\Models\User::factory()->withPersonalTeam()->create();
 
