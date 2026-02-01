@@ -10,6 +10,7 @@ use App\Models\BookRequest;
 use App\Models\BookSwap;
 use App\Models\Team;
 use App\Models\User;
+use App\Services\Romantausch\BundleService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -62,99 +63,60 @@ class BundleOfferTest extends TestCase
 
     public function test_parse_book_numbers_single_number(): void
     {
-        $controller = new RomantauschController(app(\App\Services\RomantauschInfoProvider::class));
-
-        $reflection = new \ReflectionClass($controller);
-        $method = $reflection->getMethod('parseBookNumbers');
-        $method->setAccessible(true);
-
-        $result = $method->invoke($controller, '5');
+        $service = app(BundleService::class);
+        $result = $service->parseBookNumbers('5');
         $this->assertEquals([5], $result);
     }
 
     public function test_parse_book_numbers_multiple_single_numbers(): void
     {
-        $controller = new RomantauschController(app(\App\Services\RomantauschInfoProvider::class));
-
-        $reflection = new \ReflectionClass($controller);
-        $method = $reflection->getMethod('parseBookNumbers');
-        $method->setAccessible(true);
-
-        $result = $method->invoke($controller, '1, 3, 5, 7');
+        $service = app(BundleService::class);
+        $result = $service->parseBookNumbers('1, 3, 5, 7');
         $this->assertEquals([1, 3, 5, 7], $result);
     }
 
     public function test_parse_book_numbers_range(): void
     {
-        $controller = new RomantauschController(app(\App\Services\RomantauschInfoProvider::class));
-
-        $reflection = new \ReflectionClass($controller);
-        $method = $reflection->getMethod('parseBookNumbers');
-        $method->setAccessible(true);
-
-        $result = $method->invoke($controller, '1-5');
+        $service = app(BundleService::class);
+        $result = $service->parseBookNumbers('1-5');
         $this->assertEquals([1, 2, 3, 4, 5], $result);
     }
 
     public function test_parse_book_numbers_mixed_ranges_and_singles(): void
     {
-        $controller = new RomantauschController(app(\App\Services\RomantauschInfoProvider::class));
-
-        $reflection = new \ReflectionClass($controller);
-        $method = $reflection->getMethod('parseBookNumbers');
-        $method->setAccessible(true);
-
-        $result = $method->invoke($controller, '1-5, 10, 15-17');
+        $service = app(BundleService::class);
+        $result = $service->parseBookNumbers('1-5, 10, 15-17');
         $this->assertEquals([1, 2, 3, 4, 5, 10, 15, 16, 17], $result);
     }
 
     public function test_parse_book_numbers_removes_duplicates(): void
     {
-        $controller = new RomantauschController(app(\App\Services\RomantauschInfoProvider::class));
-
-        $reflection = new \ReflectionClass($controller);
-        $method = $reflection->getMethod('parseBookNumbers');
-        $method->setAccessible(true);
-
-        $result = $method->invoke($controller, '1-5, 3, 4, 5');
+        $service = app(BundleService::class);
+        $result = $service->parseBookNumbers('1-5, 3, 4, 5');
         $this->assertEquals([1, 2, 3, 4, 5], $result);
     }
 
     public function test_parse_book_numbers_ignores_invalid_input(): void
     {
-        $controller = new RomantauschController(app(\App\Services\RomantauschInfoProvider::class));
-
-        $reflection = new \ReflectionClass($controller);
-        $method = $reflection->getMethod('parseBookNumbers');
-        $method->setAccessible(true);
-
-        $result = $method->invoke($controller, '1, abc, 5, xyz');
+        $service = app(BundleService::class);
+        $result = $service->parseBookNumbers('1, abc, 5, xyz');
         $this->assertEquals([1, 5], $result);
     }
 
     public function test_parse_book_numbers_handles_whitespace(): void
     {
-        $controller = new RomantauschController(app(\App\Services\RomantauschInfoProvider::class));
-
-        $reflection = new \ReflectionClass($controller);
-        $method = $reflection->getMethod('parseBookNumbers');
-        $method->setAccessible(true);
-
-        $result = $method->invoke($controller, '  1  ,  3  -  5  ,  10  ');
+        $service = app(BundleService::class);
+        $result = $service->parseBookNumbers('  1  ,  3  -  5  ,  10  ');
         $this->assertEquals([1, 3, 4, 5, 10], $result);
     }
 
     public function test_parse_book_numbers_removes_duplicates_and_handles_unsorted(): void
     {
-        $controller = new RomantauschController(app(\App\Services\RomantauschInfoProvider::class));
-
-        $reflection = new \ReflectionClass($controller);
-        $method = $reflection->getMethod('parseBookNumbers');
-        $method->setAccessible(true);
+        $service = app(BundleService::class);
 
         // Input mit echten Duplikaten: 5 erscheint explizit zweimal,
         // Bereich 1-3 überlappt mit einzelnen 2 und 3
-        $result = $method->invoke($controller, '5, 1-3, 2, 3, 5, 10');
+        $result = $service->parseBookNumbers('5, 1-3, 2, 3, 5, 10');
 
         // PHP-Version entfernt Duplikate via array_unique, sortiert aber NICHT.
         // JavaScript-Version sortiert zusätzlich. Dieser Unterschied ist akzeptabel

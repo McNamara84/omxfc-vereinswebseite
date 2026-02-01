@@ -61,7 +61,7 @@
                             @see resources/js/romantausch-bundle-preview.js für die bundlePreview() Funktion
                         --}}
                         <script>
-                            window.MAX_RANGE_SPAN = {{ App\Http\Controllers\RomantauschController::MAX_RANGE_SPAN }};
+                            window.MAX_RANGE_SPAN = {{ App\Services\Romantausch\BundleService::MAX_RANGE_SPAN }};
                             window.COMPACT_THRESHOLD = {{ config('romantausch.compact_threshold', 20) }};
                         </script>
 

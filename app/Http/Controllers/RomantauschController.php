@@ -317,6 +317,7 @@ class RomantauschController extends Controller
             'condition' => $validated['condition'],
         ]);
 
+        $this->createRequestActivity($bookRequest);
         $this->matchingService->matchSwap($bookRequest, 'request');
 
         return redirect()->route('romantausch.index')->with('success', 'Gesuch erstellt.');
@@ -642,6 +643,18 @@ class RomantauschController extends Controller
             'user_id' => Auth::id(),
             'subject_type' => BookOffer::class,
             'subject_id' => $offer->id,
+        ]);
+    }
+
+    /**
+     * Erstellt einen Activity-Log-Eintrag für ein neues Gesuch.
+     */
+    private function createRequestActivity(BookRequest $bookRequest): void
+    {
+        Activity::create([
+            'user_id' => Auth::id(),
+            'subject_type' => BookRequest::class,
+            'subject_id' => $bookRequest->id,
         ]);
     }
 }

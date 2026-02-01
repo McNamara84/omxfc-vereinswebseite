@@ -3,6 +3,7 @@
 namespace Tests;
 
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 
 abstract class TestCase extends BaseTestCase
@@ -18,6 +19,9 @@ abstract class TestCase extends BaseTestCase
     {
         parent::setUp();
         config(['app.key' => 'base64:' . base64_encode(random_bytes(32))]);
+
+        // Cache leeren, um sicherzustellen, dass Tests isoliert laufen
+        Cache::flush();
 
         Http::fake([
             'nominatim.openstreetmap.org/*' => Http::response([[

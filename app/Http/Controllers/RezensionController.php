@@ -11,6 +11,7 @@ use App\Models\Activity;
 use App\Models\Book;
 use App\Models\Review;
 use App\Models\User;
+use App\Services\MaddraxDataService;
 use App\Services\UserRoleService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
@@ -22,7 +23,10 @@ class RezensionController extends Controller
 {
     use MembersTeamAware;
 
-    public function __construct(private UserRoleService $userRoleService) {}
+    public function __construct(
+        private UserRoleService $userRoleService,
+        private MaddraxDataService $maddraxDataService,
+    ) {}
 
     protected function getUserRoleService(): UserRoleService
     {
@@ -113,13 +117,7 @@ class RezensionController extends Controller
 
         $abenteurer = $this->prepareBookQuery($abenteurerQuery, $user, $teamId, 'desc');
 
-        $jsonPath = storage_path('app/private/maddrax.json');
-        if (! is_readable($jsonPath)) {
-            abort(500, 'Die Maddrax-Datei wurde nicht gefunden.');
-        }
-
-        $romanData = collect(json_decode(file_get_contents($jsonPath), true));
-        $cycleMap = $romanData->pluck('zyklus', 'nummer');
+        $cycleMap = $this->maddraxDataService->getCycleMap();
 
         $books->each(function ($book) use ($cycleMap) {
             $book->cycle = $cycleMap[$book->roman_number] ?? 'Unbekannt';
