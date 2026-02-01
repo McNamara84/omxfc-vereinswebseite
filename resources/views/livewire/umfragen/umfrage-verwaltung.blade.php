@@ -28,7 +28,7 @@
                     <label for="poll-select" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Umfrage auswählen</label>
                     <select id="poll-select" wire:model="selectedPollId" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 focus:border-indigo-500 focus:ring-indigo-500">
                         <option value="">(Neue Umfrage)</option>
-                        @foreach ($polls as $poll)
+                        @foreach ($this->polls as $poll)
                             <option value="{{ $poll->id }}">
                                 #{{ $poll->id }} – {{ \Illuminate\Support\Str::limit($poll->question, 60) }} ({{ $poll->status }})
                             </option>
@@ -157,12 +157,12 @@
                 <span data-omxfc-poll-color="guests" class="text-gray-600">.</span>
             </div>
 
-            <div class="hidden" aria-hidden="true" data-omxfc-poll-chart-data='@json($chartData)'></div>
+            <div class="hidden" aria-hidden="true" data-omxfc-poll-chart-data='@json($this->chartData)'></div>
 
-            @if (empty($chartData['options']['labels'] ?? []))
+            @if (empty($this->chartData['options']['labels'] ?? []))
                 <div class="mt-6 text-gray-600 dark:text-gray-400">Noch keine Umfrage ausgewählt.</div>
             @else
-                @php($totalVotes = (int) ($chartData['totals']['totalVotes'] ?? 0))
+                @php($totalVotes = (int) ($this->chartData['totals']['totalVotes'] ?? 0))
 
                 @if ($totalVotes > 0)
                     <div class="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -196,10 +196,10 @@
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-                            @foreach (($chartData['options']['labels'] ?? []) as $i => $label)
-                                @php($votes = (int) (($chartData['options']['total'][$i] ?? 0)))
-                                @php($members = (int) (($chartData['options']['members'][$i] ?? 0)))
-                                @php($guests = (int) (($chartData['options']['guests'][$i] ?? 0)))
+                            @foreach (($this->chartData['options']['labels'] ?? []) as $i => $label)
+                                @php($votes = (int) (($this->chartData['options']['total'][$i] ?? 0)))
+                                @php($members = (int) (($this->chartData['options']['members'][$i] ?? 0)))
+                                @php($guests = (int) (($this->chartData['options']['guests'][$i] ?? 0)))
                                 @php($pct = $totalVotes > 0 ? round(($votes / $totalVotes) * 100, 1) : 0)
                                 <tr>
                                     <th scope="row" class="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">{{ $label }}</th>
@@ -215,15 +215,15 @@
                                 <th scope="row" class="px-4 py-3 text-sm font-semibold text-gray-900 dark:text-gray-100">Gesamt</th>
                                 <td class="px-4 py-3 text-sm text-right font-semibold text-gray-900 dark:text-gray-100">{{ $totalVotes }}</td>
                                 <td class="px-4 py-3"></td>
-                                <td class="px-4 py-3 text-sm text-right font-semibold text-gray-900 dark:text-gray-100">{{ (int) ($chartData['totals']['members'] ?? 0) }}</td>
-                                <td class="px-4 py-3 text-sm text-right font-semibold text-gray-900 dark:text-gray-100">{{ (int) ($chartData['totals']['guests'] ?? 0) }}</td>
+                                <td class="px-4 py-3 text-sm text-right font-semibold text-gray-900 dark:text-gray-100">{{ (int) ($this->chartData['totals']['members'] ?? 0) }}</td>
+                                <td class="px-4 py-3 text-sm text-right font-semibold text-gray-900 dark:text-gray-100">{{ (int) ($this->chartData['totals']['guests'] ?? 0) }}</td>
                             </tr>
                         </tfoot>
                     </table>
                 </div>
 
                 <div class="sr-only" aria-live="polite">
-                    Auswertung aktualisiert. Gesamtstimmen: {{ $totalVotes }}. Mitglieder: {{ (int) ($chartData['totals']['members'] ?? 0) }}. Gäste: {{ (int) ($chartData['totals']['guests'] ?? 0) }}.
+                    Auswertung aktualisiert. Gesamtstimmen: {{ $totalVotes }}. Mitglieder: {{ (int) ($this->chartData['totals']['members'] ?? 0) }}. Gäste: {{ (int) ($this->chartData['totals']['guests'] ?? 0) }}.
                 </div>
 
                 <div class="mt-2 text-xs text-gray-600 dark:text-gray-400">

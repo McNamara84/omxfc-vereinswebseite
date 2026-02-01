@@ -11,18 +11,31 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
+use Livewire\Attributes\Computed;
+use Livewire\Attributes\Locked;
+use Livewire\Attributes\Validate;
 use Livewire\Component;
 
 class UmfrageVerwaltung extends Component
 {
     public ?int $selectedPollId = null;
+
+    #[Locked]
     public ?int $pollId = null;
 
+    #[Validate('required|string|max:2000')]
     public string $question = '';
+
+    #[Validate('required|string|max:80')]
     public string $menuLabel = '';
+
     public string $visibility = 'internal';
     public string $status = 'draft';
+
+    #[Validate('required|date')]
     public ?string $startsAt = null;
+
+    #[Validate('required|date|after:startsAt')]
     public ?string $endsAt = null;
 
     /**
@@ -30,7 +43,35 @@ class UmfrageVerwaltung extends Component
      */
     public array $options = [];
 
-    public array $chartData = [];
+    /**
+     * Chart-Daten als Computed Property.
+     */
+    #[Computed]
+    public function chartData(): array
+    {
+        if (!$this->pollId) {
+            return [];
+        }
+
+        $poll = Poll::query()->with('options')->find($this->pollId);
+
+        if (!$poll) {
+            return [];
+        }
+
+        return $poll->buildChartData();
+    }
+
+    /**
+     * Alle Umfragen für Dropdown.
+     */
+    #[Computed]
+    public function polls()
+    {
+        return Poll::query()
+            ->orderForAdminIndex()
+            ->get(['id', 'question', 'status']);
+    }
 
     public function mount(): void
     {
@@ -66,7 +107,7 @@ class UmfrageVerwaltung extends Component
             ['label' => '', 'image_url' => null, 'link_url' => null],
             ['label' => '', 'image_url' => null, 'link_url' => null],
         ];
-        $this->chartData = [];
+        unset($this->chartData, $this->polls);
     }
 
     public function addOption(): void
@@ -121,7 +162,7 @@ class UmfrageVerwaltung extends Component
             $this->options = [['label' => '', 'image_url' => null, 'link_url' => null]];
         }
 
-        $this->refreshResults();
+        $this->dispatchChartUpdate();
     }
 
     public function save(): void
@@ -187,7 +228,8 @@ class UmfrageVerwaltung extends Component
             $this->status = $poll->status->value;
         });
 
-        $this->refreshResults();
+        unset($this->chartData, $this->polls);
+        $this->dispatchChartUpdate();
         session()->flash('success', 'Umfrage gespeichert.');
     }
 
@@ -234,7 +276,8 @@ class UmfrageVerwaltung extends Component
             $this->status = $poll->status->value;
         });
 
-        $this->refreshResults();
+        unset($this->chartData);
+        $this->dispatchChartUpdate();
         session()->flash('success', 'Umfrage aktiviert.');
     }
 
@@ -253,36 +296,23 @@ class UmfrageVerwaltung extends Component
             $this->status = $poll->status->value;
         });
 
-        $this->refreshResults();
+        unset($this->chartData, $this->polls);
+        $this->dispatchChartUpdate();
         session()->flash('success', 'Umfrage archiviert.');
     }
 
-    private function refreshResults(): void
+    private function dispatchChartUpdate(): void
     {
-        if (! $this->pollId) {
-            $this->chartData = [];
-
-            return;
-        }
-
-        $poll = Poll::query()->with('options')->find($this->pollId);
-
-        if (! $poll) {
-            $this->chartData = [];
-
-            return;
-        }
-
-        $this->chartData = $poll->buildChartData();
+        $chartData = $this->chartData;
 
         // Nur Event dispatchen wenn gültige Chart-Daten mit Labels vorhanden sind
         // Verhindert Browser-Freeze durch leere/ungültige Daten im Frontend
-        if (! empty($this->chartData['options']['labels'] ?? [])) {
-            $this->dispatch('poll-results-updated', data: $this->chartData);
+        if (!empty($chartData['options']['labels'] ?? [])) {
+            $this->dispatch('poll-results-updated', data: $chartData);
         }
     }
 
-    private function rules(): array
+    protected function rules(): array
     {
         return [
             'question' => ['required', 'string', 'max:2000'],
@@ -297,7 +327,7 @@ class UmfrageVerwaltung extends Component
         ];
     }
 
-    private function messages(): array
+    protected function messages(): array
     {
         return [
             'options.*.label.required' => 'Bitte gib für jede Antwortmöglichkeit einen Text an.',
@@ -306,14 +336,9 @@ class UmfrageVerwaltung extends Component
 
     public function render()
     {
-        $polls = Poll::query()
-            ->orderForAdminIndex()
-            ->get(['id', 'question', 'status']);
-
-        return view('livewire.umfragen.umfrage-verwaltung', [
-            'polls' => $polls,
-        ])->layout('layouts.app', [
-            'title' => 'Umfrage verwalten',
-        ]);
+        return view('livewire.umfragen.umfrage-verwaltung')
+            ->layout('layouts.app', [
+                'title' => 'Umfrage verwalten',
+            ]);
     }
 }

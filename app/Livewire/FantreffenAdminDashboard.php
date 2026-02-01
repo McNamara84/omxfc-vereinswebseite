@@ -5,6 +5,8 @@ namespace App\Livewire;
 use App\Models\FantreffenAnmeldung;
 use App\Enums\Role;
 use Illuminate\Support\Facades\Response;
+use Livewire\Attributes\Computed;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -12,97 +14,120 @@ class FantreffenAdminDashboard extends Component
 {
     use WithPagination;
 
-    // Filter-Properties
-    public $filterMemberStatus = 'alle'; // alle, mitglieder, gaeste
-    public $filterTshirt = 'alle'; // alle, mit_tshirt, ohne_tshirt
-    public $filterPayment = 'alle'; // alle, bezahlt, ausstehend, kostenlos
-    public $filterZahlungseingang = 'alle'; // alle, erhalten, ausstehend
-    public $filterTshirtFertig = 'alle'; // alle, fertig, offen
-    public $search = '';
+    // URL-Query-Parameter automatisch synchronisieren
+    #[Url(except: 'alle')]
+    public string $filterMemberStatus = 'alle'; // alle, mitglieder, gaeste
 
-    // Statistik-Properties
-    public $stats = [];
+    #[Url(except: 'alle')]
+    public string $filterTshirt = 'alle'; // alle, mit_tshirt, ohne_tshirt
 
-    protected $queryString = [
-        'filterMemberStatus' => ['except' => 'alle'],
-        'filterTshirt' => ['except' => 'alle'],
-        'filterPayment' => ['except' => 'alle'],
-        'filterZahlungseingang' => ['except' => 'alle'],
-        'filterTshirtFertig' => ['except' => 'alle'],
-        'search' => ['except' => ''],
-    ];
+    #[Url(except: 'alle')]
+    public string $filterPayment = 'alle'; // alle, bezahlt, ausstehend, kostenlos
 
-    public function mount()
+    #[Url(except: 'alle')]
+    public string $filterZahlungseingang = 'alle'; // alle, erhalten, ausstehend
+
+    #[Url(except: 'alle')]
+    public string $filterTshirtFertig = 'alle'; // alle, fertig, offen
+
+    #[Url(except: '')]
+    public string $search = '';
+
+    /**
+     * Statistiken als Computed Property - wird automatisch gecached und bei Bedarf neu berechnet.
+     */
+    #[Computed]
+    public function stats(): array
     {
-        $this->calculateStats();
+        $query = $this->getFilteredQuery();
+
+        return [
+            'total' => $query->count(),
+            'mitglieder' => (clone $query)->where('ist_mitglied', true)->count(),
+            'gaeste' => (clone $query)->where('ist_mitglied', false)->count(),
+            'tshirts' => (clone $query)->where('tshirt_bestellt', true)->count(),
+            'zahlungen_ausstehend' => (clone $query)->where('payment_status', 'pending')->where('zahlungseingang', false)->count(),
+            'zahlungen_offen_betrag' => (clone $query)->where('payment_status', 'pending')->where('zahlungseingang', false)->sum('payment_amount'),
+            'tshirts_offen' => (clone $query)->where('tshirt_bestellt', true)->where('tshirt_fertig', false)->count(),
+        ];
     }
 
-    public function updatedFilterMemberStatus()
+    /**
+     * Paginierte Anmeldungen als Computed Property.
+     */
+    #[Computed]
+    public function anmeldungen()
     {
-        $this->resetPage();
-        $this->calculateStats();
+        return $this->getFilteredQuery()->paginate(20);
     }
 
-    public function updatedFilterTshirt()
-    {
-        $this->resetPage();
-        $this->calculateStats();
-    }
-
-    public function updatedFilterPayment()
-    {
-        $this->resetPage();
-        $this->calculateStats();
-    }
-
-    public function updatedFilterZahlungseingang()
-    {
-        $this->resetPage();
-        $this->calculateStats();
-    }
-
-    public function updatedFilterTshirtFertig()
+    public function updatedFilterMemberStatus(): void
     {
         $this->resetPage();
-        $this->calculateStats();
+        unset($this->stats, $this->anmeldungen);
     }
 
-    public function updatedSearch()
+    public function updatedFilterTshirt(): void
     {
         $this->resetPage();
+        unset($this->stats, $this->anmeldungen);
     }
 
-    public function toggleZahlungseingang($anmeldungId)
+    public function updatedFilterPayment(): void
+    {
+        $this->resetPage();
+        unset($this->stats, $this->anmeldungen);
+    }
+
+    public function updatedFilterZahlungseingang(): void
+    {
+        $this->resetPage();
+        unset($this->stats, $this->anmeldungen);
+    }
+
+    public function updatedFilterTshirtFertig(): void
+    {
+        $this->resetPage();
+        unset($this->stats, $this->anmeldungen);
+    }
+
+    public function updatedSearch(): void
+    {
+        $this->resetPage();
+        unset($this->anmeldungen);
+    }
+
+    public function toggleZahlungseingang(int $anmeldungId): void
     {
         $anmeldung = FantreffenAnmeldung::findOrFail($anmeldungId);
         $anmeldung->zahlungseingang = !$anmeldung->zahlungseingang;
         $anmeldung->save();
 
-        $this->calculateStats();
+        unset($this->stats, $this->anmeldungen);
         session()->flash('success', 'Zahlungseingang aktualisiert.');
     }
 
-    public function toggleTshirtFertig($anmeldungId)
+    public function toggleTshirtFertig(int $anmeldungId): void
     {
         $anmeldung = FantreffenAnmeldung::findOrFail($anmeldungId);
         $anmeldung->tshirt_fertig = !$anmeldung->tshirt_fertig;
         $anmeldung->save();
 
-        $this->calculateStats();
+        unset($this->stats, $this->anmeldungen);
         session()->flash('success', 'T-Shirt-Status aktualisiert.');
     }
 
-    public function deleteAnmeldung($anmeldungId)
+    public function deleteAnmeldung(int $anmeldungId): void
     {
         $anmeldung = FantreffenAnmeldung::findOrFail($anmeldungId);
         $name = $anmeldung->full_name;
         $anmeldung->delete();
 
-        $this->calculateStats();
+        unset($this->stats, $this->anmeldungen);
         session()->flash('success', "Anmeldung von {$name} wurde gelöscht.");
     }
 
-    public function toggleOrgaTeam($anmeldungId)
+    public function toggleOrgaTeam(int $anmeldungId): void
     {
         $user = auth()->user();
 
@@ -119,7 +144,7 @@ class FantreffenAdminDashboard extends Component
 
         $anmeldung->syncPaymentForOrgaStatus(!$anmeldung->orga_team);
 
-        $this->calculateStats();
+        unset($this->stats, $this->anmeldungen);
         session()->flash('success', $anmeldung->orga_team ? 'Anmeldung dem Orga-Team zugewiesen.' : 'Orga-Team Status entfernt.');
     }
 
@@ -219,29 +244,11 @@ class FantreffenAdminDashboard extends Component
         return $query->latest()->orderByDesc('id');
     }
 
-    protected function calculateStats()
-    {
-        $query = $this->getFilteredQuery();
-
-        $this->stats = [
-            'total' => $query->count(),
-            'mitglieder' => (clone $query)->where('ist_mitglied', true)->count(),
-            'gaeste' => (clone $query)->where('ist_mitglied', false)->count(),
-            'tshirts' => (clone $query)->where('tshirt_bestellt', true)->count(),
-            'zahlungen_ausstehend' => (clone $query)->where('payment_status', 'pending')->where('zahlungseingang', false)->count(),
-            'zahlungen_offen_betrag' => (clone $query)->where('payment_status', 'pending')->where('zahlungseingang', false)->sum('payment_amount'),
-            'tshirts_offen' => (clone $query)->where('tshirt_bestellt', true)->where('tshirt_fertig', false)->count(),
-        ];
-    }
-
     public function render()
     {
-        $anmeldungen = $this->getFilteredQuery()->paginate(20);
-
-        return view('livewire.fantreffen-admin-dashboard', [
-            'anmeldungen' => $anmeldungen,
-        ])->layout('layouts.app', [
-            'title' => 'Fantreffen 2026 - Admin Dashboard',
-        ]);
+        return view('livewire.fantreffen-admin-dashboard')
+            ->layout('layouts.app', [
+                'title' => 'Fantreffen 2026 - Admin Dashboard',
+            ]);
     }
 }

@@ -10,15 +10,25 @@ use App\Services\Polls\PollVotingService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Livewire\Attributes\Computed;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 
 class UmfrageVote extends Component
 {
+    // Locked: Diese Werte können nicht vom Client manipuliert werden
+    #[Locked]
     public ?int $pollId = null;
+
     public ?int $selectedOptionId = null;
 
+    #[Locked]
     public ?string $statusMessage = null;
+
+    #[Locked]
     public bool $hasVoted = false;
+
+    #[Locked]
     public bool $canVote = false;
 
     public function mount(ActivePollResolver $resolver, PollVotingService $voting): void
@@ -149,9 +159,13 @@ class UmfrageVote extends Component
         $this->statusMessage = 'Danke! Deine Stimme wurde gespeichert.';
     }
 
-    private function poll(): ?Poll
+    /**
+     * Aktive Poll als Computed Property.
+     */
+    #[Computed]
+    public function poll(): ?Poll
     {
-        if (! $this->pollId) {
+        if (!$this->pollId) {
             return null;
         }
 
@@ -162,7 +176,7 @@ class UmfrageVote extends Component
     {
         $ip = request()->ip();
 
-        if (! $ip) {
+        if (!$ip) {
             return null;
         }
 
@@ -171,13 +185,10 @@ class UmfrageVote extends Component
 
     public function render()
     {
-        $poll = $this->poll();
-
-        return view('livewire.umfragen.umfrage-vote', [
-            'poll' => $poll,
-        ])->layout('layouts.app', [
-            'title' => $poll ? $poll->menu_label : 'Umfrage',
-            'description' => $poll ? Str::limit($poll->question, 140) : 'Aktuelle Umfrage',
-        ]);
+        return view('livewire.umfragen.umfrage-vote')
+            ->layout('layouts.app', [
+                'title' => $this->poll ? $this->poll->menu_label : 'Umfrage',
+                'description' => $this->poll ? Str::limit($this->poll->question, 140) : 'Aktuelle Umfrage',
+            ]);
     }
 }

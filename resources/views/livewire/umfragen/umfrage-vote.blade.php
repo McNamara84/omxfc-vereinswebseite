@@ -6,16 +6,16 @@
             </div>
         @endif
 
-        @if (! $poll)
+        @if (! $this->poll)
             <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
                 <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Umfrage</h1>
                 <p class="mt-2 text-gray-600 dark:text-gray-400">Aktuell ist keine Umfrage aktiv.</p>
             </div>
         @else
             <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-                <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ $poll->question }}</h1>
+                <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ $this->poll->question }}</h1>
                 <p class="mt-2 text-gray-600 dark:text-gray-400">
-                    @if ($poll->visibility->value === 'internal')
+                    @if ($this->poll->visibility->value === 'internal')
                         Diese Umfrage richtet sich an Vereinsmitglieder.
                     @else
                         Diese Umfrage ist öffentlich. Pro IP ist eine Stimme möglich.
@@ -37,7 +37,7 @@
                     <fieldset class="space-y-4" @disabled(! $canVote) @if(! $canVote) aria-describedby="poll-status-message" @endif>
                         <legend class="sr-only">Antwort auswählen</legend>
 
-                        @foreach ($poll->options as $option)
+                        @foreach ($this->poll->options as $option)
                             <label class="block rounded-lg border border-gray-200 dark:border-gray-700 p-4 hover:bg-gray-50 dark:hover:bg-gray-900 focus-within:ring-2 focus-within:ring-indigo-500">
                                 <div class="flex items-start gap-3">
                                     <input
