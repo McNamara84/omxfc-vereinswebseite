@@ -4243,16 +4243,16 @@
         },
         {
             "name": "spatie/laravel-pdf",
-            "version": "1.8.0",
+            "version": "1.9.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/spatie/laravel-pdf.git",
-                "reference": "4f3eb0dc94d0cfdd7295fd71b7946dc0eba664af"
+                "reference": "65a803cb1fc2dcf9035eedfc53e58dcf19109864"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/spatie/laravel-pdf/zipball/4f3eb0dc94d0cfdd7295fd71b7946dc0eba664af",
-                "reference": "4f3eb0dc94d0cfdd7295fd71b7946dc0eba664af",
+                "url": "https://api.github.com/repos/spatie/laravel-pdf/zipball/65a803cb1fc2dcf9035eedfc53e58dcf19109864",
+                "reference": "65a803cb1fc2dcf9035eedfc53e58dcf19109864",
                 "shasum": ""
             },
             "require": {
@@ -4267,7 +4267,7 @@
                 "larastan/larastan": "^2.7.0|^3.0",
                 "laravel/pint": "^1.13.7",
                 "nunomaduro/collision": "^7.10|^8.0",
-                "orchestra/testbench": "^8.18|^10.0",
+                "orchestra/testbench": "^8.18|^9.6|^10.0",
                 "pestphp/pest": "^2.30|^3.7",
                 "pestphp/pest-plugin-arch": "^2.5|^3.0",
                 "pestphp/pest-plugin-laravel": "^2.2|^3.1",
@@ -4323,9 +4323,9 @@
             ],
             "support": {
                 "issues": "https://github.com/spatie/laravel-pdf/issues",
-                "source": "https://github.com/spatie/laravel-pdf/tree/1.8.0"
+                "source": "https://github.com/spatie/laravel-pdf/tree/1.9.0"
             },
-            "time": "2025-09-12T08:05:44+00:00"
+            "time": "2026-01-31T12:48:06+00:00"
         },
         {
             "name": "spatie/laravel-sitemap",
