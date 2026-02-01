@@ -15,15 +15,9 @@ use Symfony\Component\DomCrawler\Crawler;
 class HoerbuchControllerTest extends TestCase
 {
     use RefreshDatabase;
+    use \Tests\Concerns\CreatesUserWithRole;
 
-    private function actingMember(string $role = 'Mitglied'): User
-    {
-        $team = Team::membersTeam();
-        $user = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($user, ['role' => $role]);
 
-        return $user;
-    }
 
     private function createAgFanhoerbuchTeam(User $leader): Team
     {

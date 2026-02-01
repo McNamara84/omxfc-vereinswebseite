@@ -18,6 +18,7 @@ class StatistikTest extends TestCase
 {
     use CreatesMemberClientSnapshot;
     use RefreshDatabase;
+    use \Tests\Concerns\CreatesUserWithRole;
 
     private string $testStoragePath;
 
@@ -35,16 +36,6 @@ class StatistikTest extends TestCase
         File::deleteDirectory($this->testStoragePath);
 
         parent::tearDown();
-    }
-
-    private function actingMemberWithPoints(int $points): User
-    {
-        $team = Team::membersTeam();
-        $user = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($user, ['role' => \App\Enums\Role::Mitglied->value]);
-        $user->incrementTeamPoints($points);
-
-        return $user;
     }
 
     private function createDataFile(): void
@@ -295,14 +286,16 @@ class StatistikTest extends TestCase
         $response->assertSee('8');
     }
 
-    public function test_statistics_page_returns_500_when_file_missing(): void
+    public function test_statistics_page_works_gracefully_when_file_missing(): void
     {
         $user = $this->actingMemberWithPoints(11);
         $this->actingAs($user);
 
+        // Keine Testdateien erstellt - MaddraxDataService gibt leere Collections zurück
         $response = $this->get('/statistiken');
 
-        $response->assertStatus(500);
+        // Seite sollte trotzdem laden (graceful degradation statt 500-Fehler)
+        $response->assertOk();
     }
 
     public function test_teamplayer_table_visible_with_enough_points(): void

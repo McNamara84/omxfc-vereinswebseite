@@ -10,66 +10,44 @@ use App\Models\User;
 use App\Services\FantreffenDeadlineService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
+use Livewire\Attributes\Computed;
+use Livewire\Attributes\Locked;
+use Livewire\Attributes\Validate;
 use Livewire\Component;
 
 class FantreffenAnmeldung extends Component
 {
-    // Form fields
-    public $vorname = '';
+    // Form fields - Validierung nur bei submit, nicht bei jedem Tastendruck
+    #[Validate('required|string|max:255', onUpdate: false)]
+    public string $vorname = '';
 
-    public $nachname = '';
+    #[Validate('required|string|max:255', onUpdate: false)]
+    public string $nachname = '';
 
-    public $email = '';
+    #[Validate('required|email|max:255', onUpdate: false)]
+    public string $email = '';
 
-    public $mobile = '';
+    #[Validate('nullable|string|max:50')]
+    public string $mobile = '';
 
-    public $tshirt_bestellt = false;
+    public bool $tshirt_bestellt = false;
 
-    public $tshirt_groesse = '';
+    #[Validate('required_if:tshirt_bestellt,true|nullable|in:XS,S,M,L,XL,XXL,XXXL')]
+    public string $tshirt_groesse = '';
 
-    // UI state
-    public $showEmailWarning = false;
+    // Locked: Diese Werte können nicht vom Client manipuliert werden
+    #[Locked]
+    public bool $tshirtDeadlinePassed = false;
 
-    public $paymentAmount = 0;
+    #[Locked]
+    public int $daysUntilDeadline = 0;
 
-    // T-Shirt deadline
-    public $tshirtDeadlinePassed = false;
+    #[Locked]
+    public string $tshirtDeadlineFormatted = '';
 
-    public $daysUntilDeadline = 0;
-
-    public $tshirtDeadlineFormatted = '';
-
-    protected function rules()
-    {
-        $rules = [
-            'mobile' => 'nullable|string|max:50',
-            'tshirt_bestellt' => 'boolean',
-            'tshirt_groesse' => 'required_if:tshirt_bestellt,true|nullable|in:XS,S,M,L,XL,XXL,XXXL',
-        ];
-
-        if (! Auth::check()) {
-            $rules['vorname'] = 'required|string|max:255';
-            $rules['nachname'] = 'required|string|max:255';
-            $rules['email'] = 'required|email|max:255';
-        }
-
-        return $rules;
-    }
-
-    protected $messages = [
-        'vorname.required' => 'Bitte gib deinen Vornamen an.',
-        'nachname.required' => 'Bitte gib deinen Nachnamen an.',
-        'email.required' => 'Bitte gib deine E-Mail-Adresse an.',
-        'email.email' => 'Bitte gib eine gültige E-Mail-Adresse an.',
-        'mobile.string' => 'Bitte gib eine gültige Telefonnummer an.',
-        'tshirt_groesse.required_if' => 'Bitte wähle eine T-Shirt-Größe aus.',
-        'tshirt_groesse.in' => 'Bitte wähle eine gültige T-Shirt-Größe aus.',
-    ];
-
-    public function mount()
+    public function mount(FantreffenDeadlineService $deadlineService): void
     {
         // T-Shirt Deadline aus zentralem Service laden
-        $deadlineService = new FantreffenDeadlineService;
         $this->tshirtDeadlinePassed = $deadlineService->isPassed();
         $this->daysUntilDeadline = $deadlineService->getDaysRemaining();
         $this->tshirtDeadlineFormatted = $deadlineService->getFormattedDate();
@@ -83,43 +61,15 @@ class FantreffenAnmeldung extends Component
         }
     }
 
-    public function updated($propertyName)
+    /**
+     * Zahlungsbetrag als Computed Property - automatisch gecached und bei Bedarf neu berechnet.
+     */
+    #[Computed]
+    public function paymentAmount(): int
     {
-        // Real-time validation
-        $this->validateOnly($propertyName);
-
-        // Check if email belongs to a user
-        if ($propertyName === 'email' && ! Auth::check()) {
-            $this->checkEmailWarning();
-        }
-
-        // Calculate payment amount when T-Shirt is toggled
-        if (in_array($propertyName, ['tshirt_bestellt'])) {
-            $this->calculatePayment();
-        }
-    }
-
-    public function updatedTshirtBestellt()
-    {
-        // Reset T-Shirt size if unchecked
-        if (! $this->tshirt_bestellt) {
-            $this->tshirt_groesse = '';
-        }
-        $this->calculatePayment();
-    }
-
-    private function checkEmailWarning()
-    {
-        $user = User::where('email', $this->email)->first();
-        $this->showEmailWarning = $user !== null;
-    }
-
-    private function calculatePayment()
-    {
-        $isLoggedIn = Auth::check();
         $amount = 0;
 
-        if (! $isLoggedIn) {
+        if (!Auth::check()) {
             $amount += FantreffenAnmeldungModel::GUEST_FEE;
         }
 
@@ -127,7 +77,40 @@ class FantreffenAnmeldung extends Component
             $amount += FantreffenAnmeldungModel::TSHIRT_PRICE;
         }
 
-        $this->paymentAmount = $amount;
+        return $amount;
+    }
+
+    /**
+     * E-Mail-Warnung als Computed Property - prüft ob die E-Mail bereits einem User gehört.
+     */
+    #[Computed]
+    public function showEmailWarning(): bool
+    {
+        if (Auth::check()) {
+            return false;
+        }
+
+        if (empty($this->email)) {
+            return false;
+        }
+
+        return User::where('email', $this->email)->exists();
+    }
+
+    public function updatedTshirtBestellt(): void
+    {
+        // Reset T-Shirt size if unchecked
+        if (!$this->tshirt_bestellt) {
+            $this->tshirt_groesse = '';
+        }
+        // Computed Property wird automatisch neu berechnet
+        unset($this->paymentAmount);
+    }
+
+    public function updatedEmail(): void
+    {
+        // Computed Property für Email-Warnung neu berechnen
+        unset($this->showEmailWarning);
     }
 
     public function submit()
@@ -140,9 +123,32 @@ class FantreffenAnmeldung extends Component
             'isLoggedIn' => Auth::check(),
         ]);
 
+        // Dynamische Regeln für eingeloggte vs. nicht-eingeloggte User
+        $rules = [
+            'mobile' => 'nullable|string|max:50',
+            'tshirt_bestellt' => 'boolean',
+            'tshirt_groesse' => 'required_if:tshirt_bestellt,true|nullable|in:XS,S,M,L,XL,XXL,XXXL',
+        ];
+
+        if (!Auth::check()) {
+            $rules['vorname'] = 'required|string|max:255';
+            $rules['nachname'] = 'required|string|max:255';
+            $rules['email'] = 'required|email|max:255';
+        }
+
+        $messages = [
+            'vorname.required' => 'Bitte gib deinen Vornamen an.',
+            'nachname.required' => 'Bitte gib deinen Nachnamen an.',
+            'email.required' => 'Bitte gib deine E-Mail-Adresse an.',
+            'email.email' => 'Bitte gib eine gültige E-Mail-Adresse an.',
+            'mobile.string' => 'Bitte gib eine gültige Telefonnummer an.',
+            'tshirt_groesse.required_if' => 'Bitte wähle eine T-Shirt-Größe aus.',
+            'tshirt_groesse.in' => 'Bitte wähle eine gültige T-Shirt-Größe aus.',
+        ];
+
         try {
             // Validate form
-            $this->validate();
+            $this->validate($rules, $messages);
             \Log::info('FantreffenAnmeldung: Validation passed');
         } catch (\Illuminate\Validation\ValidationException $e) {
             \Log::error('FantreffenAnmeldung: Validation failed', [
@@ -159,9 +165,9 @@ class FantreffenAnmeldung extends Component
             return;
         }
 
-        // Calculate payment
-        $this->calculatePayment();
-        \Log::info('FantreffenAnmeldung: Payment calculated', ['amount' => $this->paymentAmount]);
+        // Get payment amount from computed property
+        $paymentAmount = $this->paymentAmount;
+        \Log::info('FantreffenAnmeldung: Payment calculated', ['amount' => $paymentAmount]);
 
         // Create registration
         try {
@@ -173,8 +179,8 @@ class FantreffenAnmeldung extends Component
                 'mobile' => $this->mobile,
                 'tshirt_bestellt' => $this->tshirt_bestellt,
                 'tshirt_groesse' => $this->tshirt_bestellt ? $this->tshirt_groesse : null,
-                'payment_status' => $this->paymentAmount == 0 ? 'free' : 'pending',
-                'payment_amount' => $this->paymentAmount,
+                'payment_status' => $paymentAmount == 0 ? 'free' : 'pending',
+                'payment_amount' => $paymentAmount,
                 'ist_mitglied' => Auth::check(),
             ]);
             \Log::info('FantreffenAnmeldung: Registration created', ['id' => $anmeldung->id]);
@@ -217,9 +223,9 @@ class FantreffenAnmeldung extends Component
         return redirect()->route('fantreffen.2026.bestaetigung', ['id' => $anmeldung->id]);
     }
 
-    private function resetForm()
+    private function resetForm(): void
     {
-        if (! Auth::check()) {
+        if (!Auth::check()) {
             $this->vorname = '';
             $this->nachname = '';
             $this->email = '';
@@ -227,8 +233,8 @@ class FantreffenAnmeldung extends Component
         $this->mobile = '';
         $this->tshirt_bestellt = false;
         $this->tshirt_groesse = '';
-        $this->showEmailWarning = false;
-        $this->paymentAmount = 0;
+        // Computed Properties werden automatisch zurückgesetzt
+        unset($this->showEmailWarning, $this->paymentAmount);
     }
 
     public function render()

@@ -13,8 +13,7 @@ use App\Mail\BookSwapMatched;
 use Illuminate\Support\Facades\Mail;
 use App\Models\Team;
 use App\Enums\BookType;
-use App\Http\Controllers\RomantauschController;
-use ReflectionMethod;
+use App\Services\Romantausch\SwapMatchingService;
 
 class BookSwapProcessTest extends TestCase
 {
@@ -210,14 +209,7 @@ class BookSwapProcessTest extends TestCase
 
         $series = 'Custom|Series';
 
-        $offer = BookOffer::create([
-            'user_id' => $userA->id,
-            'series' => $series,
-            'book_number' => 1,
-            'book_title' => 'Custom Offer',
-            'condition' => 'gut',
-        ]);
-
+        // UserB erstellt zunächst ein Gesuch für Buch 1
         $request = BookRequest::create([
             'user_id' => $userB->id,
             'series' => $series,
@@ -226,6 +218,7 @@ class BookSwapProcessTest extends TestCase
             'condition' => 'gut',
         ]);
 
+        // UserA erstellt ein Gesuch für Buch 2
         $reciprocalRequest = BookRequest::create([
             'user_id' => $userA->id,
             'series' => $series,
@@ -234,6 +227,7 @@ class BookSwapProcessTest extends TestCase
             'condition' => 'gut',
         ]);
 
+        // UserB erstellt ein Angebot für Buch 2 (erfüllt UserA's Gesuch)
         $reciprocalOffer = BookOffer::create([
             'user_id' => $userB->id,
             'series' => $series,
@@ -242,13 +236,20 @@ class BookSwapProcessTest extends TestCase
             'condition' => 'gut',
         ]);
 
-        $controller = app(RomantauschController::class);
-        $method = new ReflectionMethod($controller, 'attemptReciprocalSwap');
-        $method->setAccessible(true);
+        // Jetzt erstellt UserA ein Angebot für Buch 1 (erfüllt UserB's Gesuch)
+        // Dies sollte das reziproke Matching auslösen
+        $offer = BookOffer::create([
+            'user_id' => $userA->id,
+            'series' => $series,
+            'book_number' => 1,
+            'book_title' => 'Custom Offer',
+            'condition' => 'gut',
+        ]);
 
-        $result = $method->invoke($controller, $offer, $request);
+        // Führe Matching über öffentliche API aus
+        $service = app(SwapMatchingService::class);
+        $service->matchSwap($offer, 'offer');
 
-        $this->assertTrue($result);
         $this->assertDatabaseCount('book_swaps', 2);
 
         $this->assertDatabaseHas('book_swaps', [

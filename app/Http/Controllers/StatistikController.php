@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Review;
 use App\Models\User;
+use App\Services\MaddraxDataService;
 use App\Services\TeamPointService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -12,9 +13,9 @@ use Illuminate\View\View;
 class StatistikController extends Controller
 {
     public function __construct(
-        private TeamPointService $teamPointService
-    )
-    {
+        private TeamPointService $teamPointService,
+        private MaddraxDataService $maddraxDataService,
+    ) {
     }
     /**
      * Zeigt die Statistik-Unterseite.
@@ -29,42 +30,14 @@ class StatistikController extends Controller
         $currentTeam = $user->currentTeam;
         $userPoints = $this->teamPointService->getUserPoints($user);
 
-        // ── JSON einlesen ──────────────────────────────────────────────────────────
-        $jsonPath = storage_path('app/private/maddrax.json');
-        if (! is_readable($jsonPath)) {
-            abort(500, 'Die Maddrax-Datei wurde nicht gefunden.');
-        }
-        $romane = collect(json_decode(file_get_contents($jsonPath), true));
-
-        $hardcoverPath = storage_path('app/private/hardcovers.json');
-        $hardcovers = collect();
-        if (is_readable($hardcoverPath)) {
-            $hardcovers = collect(json_decode(file_get_contents($hardcoverPath), true));
-        }
-
-        $missionMarsPath = storage_path('app/private/missionmars.json');
-        $missionMarsNovels = collect();
-        if (is_readable($missionMarsPath)) {
-            $missionMarsNovels = collect(json_decode(file_get_contents($missionMarsPath), true));
-        }
-
-        $volkDerTiefePath = storage_path('app/private/volkdertiefe.json');
-        $volkDerTiefeNovels = collect();
-        if (is_readable($volkDerTiefePath)) {
-            $volkDerTiefeNovels = collect(json_decode(file_get_contents($volkDerTiefePath), true));
-        }
-
-        $zweitausendzwoelfPath = storage_path('app/private/2012.json');
-        $zweitausendzwoelfNovels = collect();
-        if (is_readable($zweitausendzwoelfPath)) {
-            $zweitausendzwoelfNovels = collect(json_decode(file_get_contents($zweitausendzwoelfPath), true));
-        }
-
-        $abenteurerPath = storage_path('app/private/abenteurer.json');
-        $abenteurerNovels = collect();
-        if (is_readable($abenteurerPath)) {
-            $abenteurerNovels = collect(json_decode(file_get_contents($abenteurerPath), true));
-        }
+        // ── JSON über MaddraxDataService einlesen (gecacht) ────────────────────
+        $allSeries = $this->maddraxDataService->getAllSeries();
+        $romane = $allSeries['maddrax'];
+        $hardcovers = $allSeries['hardcovers'];
+        $missionMarsNovels = $allSeries['missionmars'];
+        $volkDerTiefeNovels = $allSeries['volkdertiefe'];
+        $zweitausendzwoelfNovels = $allSeries['2012'];
+        $abenteurerNovels = $allSeries['abenteurer'];
 
         $statisticSections = [
             ['id' => 'author-chart', 'label' => 'Maddrax-Romane je Autor:in', 'minPoints' => 2],

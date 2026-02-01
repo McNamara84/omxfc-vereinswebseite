@@ -14,14 +14,7 @@ use App\Enums\BookType;
 class ReviewCreationTest extends TestCase
 {
     use RefreshDatabase;
-
-    private function actingMember(): User
-    {
-        $team = Team::membersTeam();
-        $user = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($user, ['role' => \App\Enums\Role::Mitglied->value]);
-        return $user;
-    }
+    use \Tests\Concerns\CreatesUserWithRole;
 
     public function test_member_can_store_review(): void
     {
@@ -153,7 +146,8 @@ class ReviewCreationTest extends TestCase
         $response = $this->get("/rezensionen/{$book->id}/erstellen");
 
         $response->assertSee('aria-describedby="title-error"', false);
-        $response->assertSee('aria-describedby="content-error"', false);
+        // content has help text, so aria-describedby includes both hint and error
+        $response->assertSee('aria-describedby="content-hint content-error"', false);
     }
 
     public function test_review_creation_validation_errors(): void

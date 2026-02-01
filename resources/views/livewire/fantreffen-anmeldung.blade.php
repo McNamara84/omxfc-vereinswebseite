@@ -158,7 +158,7 @@
                                     <label class="block text-sm font-medium mb-2">E-Mail *</label>
                                     <input type="email" wire:model.live="email" class="w-full px-3 py-2 border rounded dark:bg-gray-700" required>
                                     @error('email') <span class="text-red-600 text-sm">{{ $message }}</span> @enderror
-                                    @if ($showEmailWarning)
+                                    @if ($this->showEmailWarning)
                                         <p class="text-blue-600 text-sm mt-2">Diese E-Mail ist registriert. <a href="{{ route('login') }}" class="underline">Jetzt einloggen!</a></p>
                                     @endif
                                 </div>
@@ -214,8 +214,8 @@
                             @endif
                             <button type="submit" class="w-full px-6 py-3 bg-[#8B0116] text-white font-bold rounded-lg hover:bg-[#6b000e]" wire:loading.attr="disabled">
                                 <span wire:loading.remove>
-                                    @if($paymentAmount > 0)
-                                        Weiter zur Zahlung ({{ number_format($paymentAmount, 2, ',', '.') }} €)
+                                    @if($this->paymentAmount > 0)
+                                        Weiter zur Zahlung ({{ number_format($this->paymentAmount, 2, ',', '.') }} €)
                                     @else
                                         Jetzt anmelden
                                     @endif

@@ -19,14 +19,7 @@ use PHPUnit\Framework\Attributes\Large;
 class RezensionControllerTest extends TestCase
 {
     use RefreshDatabase;
-
-    private function actingMember(string $role = 'Mitglied'): User
-    {
-        $team = Team::membersTeam();
-        $user = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($user, ['role' => $role]);
-        return $user;
-    }
+    use \Tests\Concerns\CreatesUserWithRole;
 
     public function test_store_creates_review_and_notifies_author(): void
     {
@@ -508,14 +501,13 @@ class RezensionControllerTest extends TestCase
     public function test_show_redirects_when_user_has_no_permission(): void
     {
         $user = $this->actingMember();
-        $this->actingAs($user);
 
         $book = Book::create([
             'roman_number' => 1,
             'title' => 'Roman1',
             'author' => 'Author',
         ]);
-        $other = $this->actingMember('Mitglied');
+        $other = $this->createUserWithRole('Mitglied');
         Review::create([
             'team_id' => $other->currentTeam->id,
             'user_id' => $other->id,

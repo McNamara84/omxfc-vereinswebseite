@@ -37,25 +37,25 @@
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
                 <div class="text-sm font-medium text-gray-600 dark:text-gray-400">Gesamt</div>
-                <div class="text-3xl font-bold text-gray-900 dark:text-white mt-2">{{ $stats['total'] }}</div>
+                <div class="text-3xl font-bold text-gray-900 dark:text-white mt-2">{{ $this->stats['total'] }}</div>
                 <div class="text-xs text-gray-500 dark:text-gray-500 mt-1">
-                    {{ $stats['mitglieder'] }} Mitglieder, {{ $stats['gaeste'] }} Gäste
+                    {{ $this->stats['mitglieder'] }} Mitglieder, {{ $this->stats['gaeste'] }} Gäste
                 </div>
             </div>
 
             <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
                 <div class="text-sm font-medium text-gray-600 dark:text-gray-400">T-Shirts bestellt</div>
-                <div class="text-3xl font-bold text-gray-900 dark:text-white mt-2">{{ $stats['tshirts'] }}</div>
+                <div class="text-3xl font-bold text-gray-900 dark:text-white mt-2">{{ $this->stats['tshirts'] }}</div>
                 <div class="text-xs text-gray-500 dark:text-gray-500 mt-1">
-                    {{ $stats['tshirts_offen'] }} noch offen
+                    {{ $this->stats['tshirts_offen'] }} noch offen
                 </div>
             </div>
 
             <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
                 <div class="text-sm font-medium text-gray-600 dark:text-gray-400">Zahlungen ausstehend</div>
-                <div class="text-3xl font-bold text-[#8B0116] dark:text-[#ff4b63] mt-2">{{ $stats['zahlungen_ausstehend'] }}</div>
+                <div class="text-3xl font-bold text-[#8B0116] dark:text-[#ff4b63] mt-2">{{ $this->stats['zahlungen_ausstehend'] }}</div>
                 <div class="text-xs text-gray-500 dark:text-gray-500 mt-1">
-                    {{ number_format($stats['zahlungen_offen_betrag'], 2, ',', '.') }} € offen
+                    {{ number_format($this->stats['zahlungen_offen_betrag'], 2, ',', '.') }} € offen
                 </div>
             </div>
 
@@ -159,7 +159,7 @@
                         </tr>
                     </thead>
                     <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                        @forelse ($anmeldungen as $anmeldung)
+                        @forelse ($this->anmeldungen as $anmeldung)
                             <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="text-sm font-medium text-gray-900 dark:text-white">
@@ -291,7 +291,7 @@
 
             {{-- Pagination --}}
             <div class="px-6 py-4 border-t border-gray-200 dark:border-gray-700">
-                {{ $anmeldungen->links() }}
+                {{ $this->anmeldungen->links() }}
             </div>
         </div>
     </div>

@@ -10,23 +10,11 @@ use Tests\TestCase;
 class RewardControllerTest extends TestCase
 {
     use RefreshDatabase;
-
-    private function actingMember(int $points = 0): User
-    {
-        $team = Team::membersTeam();
-        $user = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($user, ['role' => \App\Enums\Role::Mitglied->value]);
-        if ($points) {
-            $user->incrementTeamPoints($points);
-        }
-
-        return $user;
-    }
+    use \Tests\Concerns\CreatesUserWithRole;
 
     public function test_index_displays_rewards_and_user_points(): void
     {
-        $user = $this->actingMember(5);
-        $this->actingAs($user);
+        $user = $this->actingMemberWithPoints(5);
         $rewards = config('rewards');
 
         $response = $this->get('/belohnungen');

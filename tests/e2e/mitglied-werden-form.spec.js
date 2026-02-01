@@ -35,5 +35,5 @@ test('shows error message for invalid email address', async ({ page }) => {
   const email = page.getByLabel('Mailadresse');
   await email.fill('not-an-email');
   await email.blur();
-  await expect(page.locator('#error-mail')).toHaveText('Bitte gültige Mailadresse eingeben.');
+  await expect(page.locator('#mail-error')).toHaveText('Bitte gültige Mailadresse eingeben.');
 });

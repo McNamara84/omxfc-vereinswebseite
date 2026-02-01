@@ -12,15 +12,7 @@ use Tests\TestCase;
 class MitgliederKarteFeatureTest extends TestCase
 {
     use RefreshDatabase;
-
-    private function actingMember(string $role = 'Mitglied', array $attributes = []): User
-    {
-        $team = Team::membersTeam();
-        $user = User::factory()->create(array_merge(['current_team_id' => $team->id], $attributes));
-        $team->users()->attach($user, ['role' => $role]);
-
-        return $user;
-    }
+    use \Tests\Concerns\CreatesUserWithRole;
 
     public function test_locked_view_when_user_has_no_points(): void
     {

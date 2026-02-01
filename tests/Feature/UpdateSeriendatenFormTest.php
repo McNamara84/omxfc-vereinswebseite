@@ -16,6 +16,7 @@ use Tests\TestCase;
 class UpdateSeriendatenFormTest extends TestCase
 {
     use RefreshDatabase;
+    use \Tests\Concerns\CreatesUserWithRole;
 
     private string $testStoragePath;
 
@@ -67,14 +68,6 @@ class UpdateSeriendatenFormTest extends TestCase
     {
         File::deleteDirectory($this->testStoragePath);
         parent::tearDown();
-    }
-
-    private function actingMember(): User
-    {
-        $team = Team::membersTeam();
-        $user = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($user, ['role' => \App\Enums\Role::Mitglied->value]);
-        return $user;
     }
 
     public function test_mount_populates_initial_state_and_lists(): void

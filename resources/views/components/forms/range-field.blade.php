@@ -15,7 +15,7 @@
 
 @php
     $fieldId = $id ?? $name;
-    $errorId = 'error-' . $fieldId;
+    $errorId = $fieldId . '-error';
     $hintId = $help ? $fieldId . '-hint' : null;
     $outputElementId = $outputId ?? $fieldId . '-output';
     $valueAttribute = old($name, $value ?? $min);
@@ -31,6 +31,7 @@
     :label="$label"
     :label-html="$labelHtml"
     :id="$fieldId"
+    :errorId="$errorId"
     {{ $attributes->class(['w-full space-y-2']) }}
 >
     <input

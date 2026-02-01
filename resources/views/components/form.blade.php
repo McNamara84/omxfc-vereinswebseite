@@ -1,7 +1,7 @@
-@props(['name', 'label', 'id' => null, 'labelHtml' => null])
+@props(['name', 'label', 'id' => null, 'labelHtml' => null, 'errorId' => null])
 @php
     $id = $id ?? $name;
-    $errorId = 'error-' . $id;
+    $errorId = $errorId ?? $id . '-error';
 @endphp
 <div {{ $attributes }}>
     <x-label for="{{ $id }}">

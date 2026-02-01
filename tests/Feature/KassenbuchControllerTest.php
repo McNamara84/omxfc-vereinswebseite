@@ -15,20 +15,13 @@ use Carbon\Carbon;
 class KassenbuchControllerTest extends TestCase
 {
     use RefreshDatabase;
+    use \Tests\Concerns\CreatesUserWithRole;
 
-    private function actingMember(string $role = 'Mitglied'): User
-    {
-        $team = Team::membersTeam();
-        $user = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($user, ['role' => Role::from($role)->value]);
 
-        return $user;
-    }
 
     public function test_add_entry_updates_balance(): void
     {
-        $user = $this->actingMember('Kassenwart');
-        $this->actingAs($user);
+        $user = $this->actingKassenwart();
 
         // initialize kassenstand
         $this->get('/kassenbuch');
@@ -52,8 +45,7 @@ class KassenbuchControllerTest extends TestCase
 
     public function test_update_payment_updates_membership_since(): void
     {
-        $kassenwart = $this->actingMember('Kassenwart');
-        $this->actingAs($kassenwart);
+        $kassenwart = $this->actingKassenwart();
 
         $team = $kassenwart->currentTeam;
         $member = User::factory()->create(['current_team_id' => $team->id]);
@@ -131,8 +123,7 @@ class KassenbuchControllerTest extends TestCase
 
     public function test_index_returns_members_and_entries_for_kassenwart(): void
     {
-        $kassenwart = $this->actingMember('Kassenwart');
-        $this->actingAs($kassenwart);
+        $kassenwart = $this->actingKassenwart();
 
         $team = $kassenwart->currentTeam;
         $member = User::factory()->create(['current_team_id' => $team->id]);
@@ -212,8 +203,7 @@ class KassenbuchControllerTest extends TestCase
 
     public function test_kassenbuch_forms_have_accessibility_attributes(): void
     {
-        $kassenwart = $this->actingMember('Kassenwart');
-        $this->actingAs($kassenwart);
+        $kassenwart = $this->actingKassenwart();
 
         $response = $this->get('/kassenbuch');
 
@@ -223,8 +213,7 @@ class KassenbuchControllerTest extends TestCase
 
     public function test_add_entry_requires_fields(): void
     {
-        $kassenwart = $this->actingMember('Kassenwart');
-        $this->actingAs($kassenwart);
+        $kassenwart = $this->actingKassenwart();
 
         // initialize kassenstand
         $this->get('/kassenbuch');
@@ -237,8 +226,7 @@ class KassenbuchControllerTest extends TestCase
 
     public function test_add_entry_rejects_zero_amount_value(): void
     {
-        $kassenwart = $this->actingMember('Kassenwart');
-        $this->actingAs($kassenwart);
+        $kassenwart = $this->actingKassenwart();
 
         $this->get('/kassenbuch');
 
@@ -256,8 +244,7 @@ class KassenbuchControllerTest extends TestCase
 
     public function test_add_entry_rejects_unknown_type(): void
     {
-        $kassenwart = $this->actingMember('Kassenwart');
-        $this->actingAs($kassenwart);
+        $kassenwart = $this->actingKassenwart();
 
         $this->get('/kassenbuch');
 
@@ -275,8 +262,7 @@ class KassenbuchControllerTest extends TestCase
 
     public function test_add_entry_normalizes_expense_amount(): void
     {
-        $kassenwart = $this->actingMember('Kassenwart');
-        $this->actingAs($kassenwart);
+        $kassenwart = $this->actingKassenwart();
 
         $this->get('/kassenbuch');
 
@@ -302,8 +288,7 @@ class KassenbuchControllerTest extends TestCase
 
     public function test_add_entry_makes_income_positive_even_when_negative_value_is_submitted(): void
     {
-        $kassenwart = $this->actingMember('Kassenwart');
-        $this->actingAs($kassenwart);
+        $kassenwart = $this->actingKassenwart();
 
         $this->get('/kassenbuch');
 
@@ -329,8 +314,7 @@ class KassenbuchControllerTest extends TestCase
 
     public function test_add_entry_updates_kassenstand_timestamp_within_transaction(): void
     {
-        $kassenwart = $this->actingMember('Kassenwart');
-        $this->actingAs($kassenwart);
+        $kassenwart = $this->actingKassenwart();
 
         $this->get('/kassenbuch');
         $team = $kassenwart->currentTeam;
@@ -361,8 +345,7 @@ class KassenbuchControllerTest extends TestCase
 
     public function test_update_payment_accepts_null_membership_start(): void
     {
-        $kassenwart = $this->actingMember('Kassenwart');
-        $this->actingAs($kassenwart);
+        $kassenwart = $this->actingKassenwart();
 
         $team = $kassenwart->currentTeam;
         $member = User::factory()->create([

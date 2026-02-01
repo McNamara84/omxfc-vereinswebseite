@@ -5,7 +5,6 @@ namespace Tests\Concerns;
 use App\Enums\Role;
 use App\Models\Team;
 use App\Models\User;
-use App\Models\UserPoint;
 
 /**
  * Trait für Tests, die User mit bestimmten Rollen im Mitglieder-Team benötigen.
@@ -89,10 +88,7 @@ trait CreatesUserWithRole
         $user = $this->actingMember($role);
 
         if ($points > 0) {
-            UserPoint::factory()->create([
-                'user_id' => $user->id,
-                'points' => $points,
-            ]);
+            $user->incrementTeamPoints($points);
         }
 
         return $user;
