@@ -244,9 +244,16 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
         Route::get('herunterladen/{datei}', 'download')->name('downloads.download');
     });
 
-    Route::prefix('kompendium')->name('kompendium.')->controller(KompendiumController::class)->group(function () {
-        Route::get('/', 'index')->name('index');
-        Route::get('suche', 'search')->name('search');
+    Route::prefix('kompendium')->name('kompendium.')->group(function () {
+        Route::controller(KompendiumController::class)->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::get('suche', 'search')->name('search');
+        });
+
+        // Admin-Bereich (nur für Admins)
+        Route::get('admin', \App\Livewire\KompendiumAdminDashboard::class)
+            ->middleware('admin')
+            ->name('admin');
     });
 
     Route::get('/statistiken', [StatistikController::class, 'index'])->name('statistik.index');

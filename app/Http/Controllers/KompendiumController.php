@@ -2,21 +2,24 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Str;
-use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Http\JsonResponse;
-use Illuminate\View\View;
+use App\Enums\Role;
 use App\Models\RomanExcerpt;
+use App\Services\KompendiumService;
 use App\Services\TeamPointService;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Illuminate\View\View;
 
 class KompendiumController extends Controller
 {
-    public function __construct(private TeamPointService $teamPointService)
-    {
-    }
+    public function __construct(
+        private TeamPointService $teamPointService,
+        private KompendiumService $kompendiumService
+    ) {}
 
     /** Mindest-Punktzahl für die Suche */
     private const REQUIRED_POINTS = 100;
@@ -29,10 +32,18 @@ class KompendiumController extends Controller
         $user = Auth::user();
         $userPoints = $this->teamPointService->getUserPoints($user);
 
+        // Indexierte Romane gruppiert laden
+        $indexierteRomaneSummary = $this->kompendiumService->getIndexierteRomaneSummary();
+
+        // Prüfen ob User Admin ist
+        $istAdmin = $user?->currentTeam?->hasUserWithRole($user, Role::Admin->value) ?? false;
+
         return view('pages.kompendium', [
             'userPoints' => $userPoints,
             'showSearch' => $userPoints >= self::REQUIRED_POINTS,
             'required' => self::REQUIRED_POINTS,
+            'indexierteRomaneSummary' => $indexierteRomaneSummary,
+            'istAdmin' => $istAdmin,
         ]);
     }
 
