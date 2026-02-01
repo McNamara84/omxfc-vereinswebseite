@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Http\UploadedFile;
 use App\Http\Controllers\RomantauschController;
+use App\Services\Romantausch\BookPhotoService;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Illuminate\View\View;
 use Mockery;
@@ -470,7 +471,7 @@ class RomantauschControllerTest extends TestCase
 
         Storage::fake('public');
 
-        foreach (RomantauschController::ALLOWED_PHOTO_EXTENSIONS as $ext) {
+        foreach (BookPhotoService::ALLOWED_EXTENSIONS as $ext) {
             $response = $this->post('/romantauschboerse/angebot-speichern', [
                 'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
                 'book_number' => 1,
@@ -585,7 +586,8 @@ class RomantauschControllerTest extends TestCase
         $offer = BookOffer::first();
         $this->assertCount(1, $offer->photos);
         $path = $offer->photos[0];
-        $this->assertMatchesRegularExpression('/^book-offers\/photo-[0-9a-f\-]{36}\.png$/', $path);
+        // Format: photo-{index}-{uuid}.{ext}
+        $this->assertMatchesRegularExpression('/^book-offers\/photo-\d+-[0-9a-f\-]{36}\.png$/', $path);
         Storage::disk('public')->assertExists($path);
     }
 
@@ -1261,7 +1263,7 @@ class RomantauschControllerTest extends TestCase
         $followUp->assertSee('id="book_number-error"', false);
         $followUp->assertSee('id="condition-error"', false);
         $followUp->assertSee('aria-describedby="series-error"', false);
-        $followUp->assertSeeText(trans('validation.required', ['attribute' => 'series']));
+        $followUp->assertSeeText('Bitte wähle eine Serie aus.');
     }
 
     public function test_store_request_shows_errors_and_preserves_old_values(): void
@@ -1282,7 +1284,7 @@ class RomantauschControllerTest extends TestCase
         $followUp = $this->get(route('romantausch.create-request'));
         $followUp->assertSee('id="condition-error"', false);
         $followUp->assertSee('aria-describedby="condition-error"', false);
-        $followUp->assertSeeText(trans('validation.required', ['attribute' => 'condition']));
+        $followUp->assertSeeText('Bitte gib den gewünschten Zustand an.');
         $this->assertMatchesRegularExpression(
             '/<option value="'.preg_quote(BookType::MissionMars->value, '/').'"[^>]*selected/si',
             $followUp->getContent()
