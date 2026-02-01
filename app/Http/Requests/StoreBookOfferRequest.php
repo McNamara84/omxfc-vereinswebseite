@@ -21,6 +21,7 @@ class StoreBookOfferRequest extends FormRequest
         BookType::MissionMars,
         BookType::DasVolkDerTiefe,
         BookType::ZweiTausendZwölfDasJahrDerApokalypse,
+        BookType::DieAbenteurer,
     ];
 
     public function authorize(): bool
