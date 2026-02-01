@@ -185,6 +185,48 @@ class RomantauschControllerTest extends TestCase
         ]);
     }
 
+    public function test_offer_creation_accepts_die_abenteurer_titles(): void
+    {
+        $this->seedBooksForRomantausch();
+
+        $user = $this->actingMember();
+
+        $response = $this->post('/romantauschboerse/angebot-speichern', [
+            'series' => BookType::DieAbenteurer->value,
+            'book_number' => 1,
+            'condition' => 'neuwertig',
+        ]);
+
+        $response->assertRedirect('/romantauschboerse');
+        $this->assertDatabaseHas('book_offers', [
+            'user_id' => $user->id,
+            'series' => BookType::DieAbenteurer->value,
+            'book_number' => 1,
+            'book_title' => 'Abenteurer Roman',
+        ]);
+    }
+
+    public function test_request_creation_accepts_die_abenteurer_titles(): void
+    {
+        $this->seedBooksForRomantausch();
+
+        $user = $this->actingMember();
+
+        $response = $this->post(route('romantausch.store-request'), [
+            'series' => BookType::DieAbenteurer->value,
+            'book_number' => 1,
+            'condition' => 'gut',
+        ]);
+
+        $response->assertRedirect('/romantauschboerse');
+        $this->assertDatabaseHas('book_requests', [
+            'user_id' => $user->id,
+            'series' => BookType::DieAbenteurer->value,
+            'book_number' => 1,
+            'book_title' => 'Abenteurer Roman',
+        ]);
+    }
+
     public function test_index_does_not_highlight_entries_without_matching_counterpart(): void
     {
         $this->seedBooksForRomantausch();
