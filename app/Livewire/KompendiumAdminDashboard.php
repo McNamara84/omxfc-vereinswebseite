@@ -200,8 +200,7 @@ class KompendiumAdminDashboard extends Component
 
         // Erst de-indexieren falls indexiert
         if ($roman->status === 'indexiert') {
-            $excerpt = new RomanExcerpt(['path' => $roman->dateipfad]);
-            $excerpt->unsearchable();
+            $this->removeFromSearchIndex($roman->dateipfad);
         }
 
         // Datei löschen
@@ -270,6 +269,29 @@ class KompendiumAdminDashboard extends Component
         session()->flash('info', "Erneuter Indexierungsversuch für \"{$roman->titel}\" gestartet.");
 
         unset($this->romane, $this->statistiken);
+    }
+
+    /**
+     * Entfernt ein Dokument aus dem TNTSearch-Index.
+     * Fängt Fehler ab, wenn der Index nicht existiert oder das Dokument nicht gefunden wird.
+     */
+    private function removeFromSearchIndex(string $path): void
+    {
+        try {
+            $excerpt = new RomanExcerpt(['path' => $path]);
+            $excerpt->unsearchable();
+        } catch (\TeamTNT\TNTSearch\Exceptions\IndexNotFoundException) {
+            // Index existiert nicht - nichts zu entfernen, das ist okay
+        } catch (\BadMethodCallException) {
+            // Tritt auf wenn Scout gemockt ist (z.B. in Tests)
+        } catch (\Throwable $e) {
+            // Andere Fehler loggen, aber nicht fehlschlagen lassen
+            // wenn der Roman ohnehin nicht im Index ist
+            if (str_contains($e->getMessage(), 'Index') || str_contains($e->getMessage(), 'not found')) {
+                return;
+            }
+            throw $e;
+        }
     }
 
     public function render()

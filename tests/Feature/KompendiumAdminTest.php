@@ -212,6 +212,33 @@ class KompendiumAdminTest extends TestCase
     }
 
     #[Test]
+    public function loeschen_indexierter_roman_entfernt_aus_index_und_loescht_datei(): void
+    {
+        Storage::disk('private')->put('romane/maddrax/001 - Indexiert.txt', 'Inhalt');
+
+        $roman = KompendiumRoman::create([
+            'dateiname' => '001 - Indexiert.txt',
+            'dateipfad' => 'romane/maddrax/001 - Indexiert.txt',
+            'serie' => 'maddrax',
+            'roman_nr' => 1,
+            'titel' => 'Indexiert',
+            'hochgeladen_am' => now(),
+            'hochgeladen_von' => $this->admin->id,
+            'status' => 'indexiert',
+            'indexiert_am' => now(),
+        ]);
+
+        // Löschen sollte nicht fehlschlagen, auch wenn der Index nicht existiert
+        Livewire::actingAs($this->admin)
+            ->test(KompendiumAdminDashboard::class)
+            ->call('loeschen', $roman->id)
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseMissing('kompendium_romane', ['id' => $roman->id]);
+        Storage::disk('private')->assertMissing('romane/maddrax/001 - Indexiert.txt');
+    }
+
+    #[Test]
     public function alle_indexieren_dispatched_jobs_fuer_alle_hochgeladenen(): void
     {
         Queue::fake();

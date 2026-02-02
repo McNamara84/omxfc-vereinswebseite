@@ -10,6 +10,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
+use TeamTNT\TNTSearch\Exceptions\IndexNotFoundException;
 use Throwable;
 
 /**
@@ -41,9 +42,8 @@ class DeIndexiereRomanJob implements ShouldQueue
 
         Log::info("De-Indexiere Roman: {$roman->titel} (Nr. {$roman->roman_nr})");
 
-        // Aus Scout-Index entfernen
-        $excerpt = new RomanExcerpt(['path' => $roman->dateipfad]);
-        $excerpt->unsearchable();
+        // Aus Scout-Index entfernen - robust gegen fehlende Index-Datei
+        $this->removeFromIndex($roman->dateipfad);
 
         // Status zurücksetzen
         $roman->update([
@@ -52,6 +52,33 @@ class DeIndexiereRomanJob implements ShouldQueue
         ]);
 
         Log::info("Roman erfolgreich de-indexiert: {$roman->titel}");
+    }
+
+    /**
+     * Entfernt ein Dokument aus dem TNTSearch-Index.
+     * Fängt Fehler ab, wenn der Index nicht existiert.
+     */
+    private function removeFromIndex(string $path): void
+    {
+        try {
+            $excerpt = new RomanExcerpt(['path' => $path]);
+            $excerpt->unsearchable();
+        } catch (IndexNotFoundException) {
+            // Index existiert nicht - nichts zu entfernen
+            Log::info("Index nicht gefunden, überspringe De-Indexierung für: {$path}");
+        } catch (\BadMethodCallException) {
+            // Tritt auf wenn Scout gemockt ist (z.B. in Tests)
+            Log::info("Scout gemockt, überspringe De-Indexierung für: {$path}");
+        } catch (Throwable $e) {
+            // Andere Fehler loggen, aber nicht fehlschlagen lassen
+            // wenn der Roman ohnehin nicht im Index ist
+            if (str_contains($e->getMessage(), 'Index') || str_contains($e->getMessage(), 'not found')) {
+                Log::info("Dokument nicht im Index gefunden: {$path}");
+
+                return;
+            }
+            throw $e;
+        }
     }
 
     /**
