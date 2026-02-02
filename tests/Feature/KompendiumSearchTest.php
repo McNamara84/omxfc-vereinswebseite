@@ -2,13 +2,11 @@
 
 namespace Tests\Feature;
 
+use App\Services\KompendiumSearchService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
-use App\Models\Team;
-use App\Models\User;
 use Illuminate\Support\Facades\Storage;
 use Mockery;
-use App\Models\RomanExcerpt;
+use Tests\TestCase;
 
 class KompendiumSearchTest extends TestCase
 {
@@ -45,16 +43,16 @@ class KompendiumSearchTest extends TestCase
         Storage::fake('private');
         Storage::disk('private')->put('/cycle1/001 - ExampleTitle.txt', 'Some example content with query word');
 
-        $mock = Mockery::mock();
-        $mock->allows('raw')->andReturn([
-            'hits' => ['total_hits' => 1],
-            'ids' => ['/cycle1/001 - ExampleTitle.txt'],
-        ]);
-        Mockery::mock('alias:' . RomanExcerpt::class)
-            ->shouldReceive('search')
-            ->once()
-            ->with('example')
-            ->andReturn($mock);
+        // Mock den KompendiumSearchService
+        $this->mock(KompendiumSearchService::class, function ($mock) {
+            $mock->shouldReceive('search')
+                ->with('example')
+                ->once()
+                ->andReturn([
+                    'hits' => ['total_hits' => 1],
+                    'ids' => ['/cycle1/001 - ExampleTitle.txt'],
+                ]);
+        });
 
         $response = $this->getJson('/kompendium/suche?q=example');
 
@@ -76,16 +74,16 @@ class KompendiumSearchTest extends TestCase
 
         Storage::fake('private');
 
-        $mock = Mockery::mock();
-        $mock->allows('raw')->andReturn([
-            'hits' => ['total_hits' => 0],
-            'ids' => [],
-        ]);
-        Mockery::mock('alias:' . RomanExcerpt::class)
-            ->shouldReceive('search')
-            ->once()
-            ->with('nomatch')
-            ->andReturn($mock);
+        // Mock den KompendiumSearchService
+        $this->mock(KompendiumSearchService::class, function ($mock) {
+            $mock->shouldReceive('search')
+                ->with('nomatch')
+                ->once()
+                ->andReturn([
+                    'hits' => ['total_hits' => 0],
+                    'ids' => [],
+                ]);
+        });
 
         $response = $this->getJson('/kompendium/suche?q=nomatch');
 

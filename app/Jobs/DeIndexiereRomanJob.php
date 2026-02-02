@@ -3,7 +3,7 @@
 namespace App\Jobs;
 
 use App\Models\KompendiumRoman;
-use App\Models\RomanExcerpt;
+use App\Services\KompendiumSearchService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -35,15 +35,14 @@ class DeIndexiereRomanJob implements ShouldQueue
         public KompendiumRoman $kompendiumRoman
     ) {}
 
-    public function handle(): void
+    public function handle(KompendiumSearchService $searchService): void
     {
         $roman = $this->kompendiumRoman;
 
         Log::info("De-Indexiere Roman: {$roman->titel} (Nr. {$roman->roman_nr})");
 
         // Aus Scout-Index entfernen
-        $excerpt = new RomanExcerpt(['path' => $roman->dateipfad]);
-        $excerpt->unsearchable();
+        $searchService->removeFromIndex($roman->dateipfad);
 
         // Status zurücksetzen
         $roman->update([

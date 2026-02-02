@@ -5,7 +5,7 @@ namespace App\Livewire;
 use App\Jobs\DeIndexiereRomanJob;
 use App\Jobs\IndexiereRomanJob;
 use App\Models\KompendiumRoman;
-use App\Models\RomanExcerpt;
+use App\Services\KompendiumSearchService;
 use App\Services\KompendiumService;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Attributes\Computed;
@@ -193,15 +193,14 @@ class KompendiumAdminDashboard extends Component
         unset($this->romane, $this->statistiken);
     }
 
-    public function loeschen(int $id): void
+    public function loeschen(int $id, KompendiumSearchService $searchService): void
     {
         $roman = KompendiumRoman::findOrFail($id);
         $titel = $roman->titel;
 
         // Erst de-indexieren falls indexiert
         if ($roman->status === 'indexiert') {
-            $excerpt = new RomanExcerpt(['path' => $roman->dateipfad]);
-            $excerpt->unsearchable();
+            $searchService->removeFromIndex($roman->dateipfad);
         }
 
         // Datei löschen
