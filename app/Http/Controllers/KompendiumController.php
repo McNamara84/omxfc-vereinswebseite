@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\Role;
-use App\Models\RomanExcerpt;
+use App\Services\KompendiumSearchService;
 use App\Services\KompendiumService;
 use App\Services\TeamPointService;
 use Illuminate\Http\JsonResponse;
@@ -18,7 +18,8 @@ class KompendiumController extends Controller
 {
     public function __construct(
         private TeamPointService $teamPointService,
-        private KompendiumService $kompendiumService
+        private KompendiumService $kompendiumService,
+        private KompendiumSearchService $searchService
     ) {}
 
     /** Mindest-Punktzahl für die Suche */
@@ -77,7 +78,7 @@ class KompendiumController extends Controller
         /* ------------------------------------------------------------------ */
         /*  SCOUT-SUCHAUFRUF  (RAW) */
         /* ------------------------------------------------------------------ */
-        $raw = RomanExcerpt::search($query)->raw();              // kein paginate()
+        $raw = $this->searchService->search($query);
         $total = $raw['hits']['total_hits'] ?? 0;
 
         $ids = $raw['ids'] ?? [];                               // enthält unsere "path"-Schlüssel
