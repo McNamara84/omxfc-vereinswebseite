@@ -146,7 +146,8 @@ class KompendiumController extends Controller
                 $offset = $pos + mb_strlen($query);
             }
 
-            $cycleName = Str::of($serie)->after('-')->replace('-', ' ')->title().'-Zyklus';
+            // Zyklus-Name aus SERIEN-Konstante, Fallback auf formatierten Key
+            $cycleName = KompendiumService::SERIEN[$serie] ?? Str::of($serie)->replace('-', ' ')->title();
 
             $hits[] = [
                 'cycle' => $cycleName,
@@ -220,7 +221,9 @@ class KompendiumController extends Controller
 
         // Format: "001 - Titel" – falls kein Trennzeichen, Fallback verwenden
         if (! str_contains($filename, ' - ')) {
-            return [$serie, '000', $filename];
+            \Log::warning("Kompendium: Dateiname '{$filename}' entspricht nicht dem erwarteten Format '001 - Titel'.");
+
+            return [$serie, '???', $filename];
         }
 
         [$romanNr, $title] = explode(' - ', $filename, 2);

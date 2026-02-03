@@ -61,7 +61,7 @@ class KompendiumSearchTest extends TestCase
                 'currentPage' => 1,
                 'lastPage' => 1,
                 'data' => [[
-                    'cycle' => 'Maddrax-Zyklus',
+                    'cycle' => 'Maddrax - Die dunkle Zukunft der Erde',
                     'romanNr' => '001',
                     'title' => 'ExampleTitle',
                     'serie' => 'maddrax',
@@ -170,5 +170,38 @@ class KompendiumSearchTest extends TestCase
 
         // Beide Treffer
         $this->assertCount(2, $data);
+    }
+
+    public function test_search_validates_invalid_serien_parameter(): void
+    {
+        $user = $this->actingMemberWithPoints(150);
+
+        // Ungültige Serie "invalid-serie" sollte Validierungsfehler auslösen
+        $response = $this->getJson('/kompendium/suche?q=test&serien[]=invalid-serie');
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['serien.0']);
+    }
+
+    public function test_search_accepts_valid_serien_parameter(): void
+    {
+        $user = $this->actingMemberWithPoints(150);
+
+        Storage::fake('private');
+
+        $this->mock(KompendiumSearchService::class, function ($mock) {
+            $mock->shouldReceive('search')
+                ->with('test')
+                ->once()
+                ->andReturn([
+                    'hits' => ['total_hits' => 0],
+                    'ids' => [],
+                ]);
+        });
+
+        // Gültige Serie "maddrax" sollte akzeptiert werden
+        $response = $this->getJson('/kompendium/suche?q=test&serien[]=maddrax');
+
+        $response->assertOk();
     }
 }
