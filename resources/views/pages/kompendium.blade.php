@@ -104,10 +104,26 @@
                 const $serienFilter = document.getElementById('serien-filter');
                 const $serienCheckboxes = document.getElementById('serien-checkboxes');
 
+                // Fehlermeldung anzeigen
+                function showError(message) {
+                    $results.innerHTML = `
+                        <div class="p-4 border-l-4 border-red-500 bg-red-50 dark:bg-red-900/20 rounded">
+                            <p class="text-red-700 dark:text-red-400">${message}</p>
+                        </div>`;
+                }
+
                 // Verfügbare Serien beim Laden abrufen
                 async function loadSerien() {
                     try {
                         const res = await fetch('{{ route('kompendium.serien') }}');
+
+                        if (!res.ok) {
+                            // Bei Autorisierungsfehler: Filter bleibt versteckt, kein Fehler anzeigen
+                            // (User hat nicht genug Punkte – wird bereits über showSearch gesteuert)
+                            console.warn('Serien konnten nicht geladen werden:', res.status);
+                            return;
+                        }
+
                         verfuegbareSerien = await res.json();
 
                         // Filter nur anzeigen wenn mindestens 2 Serien verfügbar
@@ -201,25 +217,43 @@
                     selectedSerien.forEach(s => params.append('serien[]', s));
 
                     const url = `{{ route('kompendium.search') }}?${params.toString()}`;
-                    const res = await fetch(url);
-                    const json = await res.json();
 
-                    // Trefferanzahl pro Serie speichern und Labels aktualisieren
-                    if (json.serienCounts) {
-                        serienCounts = json.serienCounts;
-                        updateCheckboxLabels();
-                    }
+                    try {
+                        const res = await fetch(url);
 
-                    json.data.forEach(r => $results.insertAdjacentHTML('beforeend', tpl(r)));
+                        if (!res.ok) {
+                            const errorJson = await res.json().catch(() => ({}));
+                            const message = errorJson.message || 'Fehler bei der Suche. Bitte versuche es später erneut.';
+                            showError(message);
+                            busy = false;
+                            $loading.classList.add('hidden');
+                            return;
+                        }
 
-                    lastPage = json.lastPage;
-                    page++;
-                    busy = false;
-                    $loading.classList.add('hidden');
+                        const json = await res.json();
 
-                    // Ende erreicht? → Scroll-Listener entfernen
-                    if (page > lastPage) {
-                        window.removeEventListener('scroll', onScroll);
+                        // Trefferanzahl pro Serie speichern und Labels aktualisieren
+                        if (json.serienCounts) {
+                            serienCounts = json.serienCounts;
+                            updateCheckboxLabels();
+                        }
+
+                        json.data.forEach(r => $results.insertAdjacentHTML('beforeend', tpl(r)));
+
+                        lastPage = json.lastPage;
+                        page++;
+                        busy = false;
+                        $loading.classList.add('hidden');
+
+                        // Ende erreicht? → Scroll-Listener entfernen
+                        if (page > lastPage) {
+                            window.removeEventListener('scroll', onScroll);
+                        }
+                    } catch (e) {
+                        console.error('Fehler bei der Suche:', e);
+                        showError('Verbindungsfehler. Bitte überprüfe deine Internetverbindung.');
+                        busy = false;
+                        $loading.classList.add('hidden');
                     }
                 }
 
