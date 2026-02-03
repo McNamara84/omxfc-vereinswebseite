@@ -26,6 +26,9 @@ class KompendiumController extends Controller
     /** Mindest-Punktzahl für die Suche */
     private const REQUIRED_POINTS = 100;
 
+    /** Regex-Pattern für Pfad-Trennung (Windows-Backslash und Unix-Slash) */
+    private const PATH_SEPARATOR_PATTERN = '/[\\\\\\/'.']+/';
+
     /* --------------------------------------------------------------------- */
     /*  GET /kompendium  – Übersichtsseite */
     /* --------------------------------------------------------------------- */
@@ -100,6 +103,7 @@ class KompendiumController extends Controller
         if (! empty($selectedSerien)) {
             $ids = array_values(array_filter($ids, function ($path) use ($selectedSerien) {
                 $serie = $this->extractSerieFromPath($path);
+
                 return in_array($serie, $selectedSerien, true);
             }));
         }
@@ -114,7 +118,7 @@ class KompendiumController extends Controller
 
         foreach ($slice as $path) {
 
-            [$cycleSlug, $romanNr, $title] = $this->extractMetaFromPath($path);
+            [$serie, $romanNr, $title] = $this->extractMetaFromPath($path);
 
             /* Original-Text laden → Snippets bilden */
             $text = Storage::disk('private')->get($path);
@@ -140,8 +144,7 @@ class KompendiumController extends Controller
                 $offset = $pos + mb_strlen($query);
             }
 
-            $cycleName = Str::of($cycleSlug)->after('-')->replace('-', ' ')->title().'-Zyklus';
-            $serie = $this->extractSerieFromPath($path);
+            $cycleName = Str::of($serie)->after('-')->replace('-', ' ')->title().'-Zyklus';
 
             $hits[] = [
                 'cycle' => $cycleName,
@@ -175,6 +178,16 @@ class KompendiumController extends Controller
     /* --------------------------------------------------------------------- */
     public function getVerfuegbareSerien(): JsonResponse
     {
+        /* ----- Punkte-Check ------------------------------------------------ */
+        $user = Auth::user();
+        $userPoints = $this->teamPointService->getUserPoints($user);
+
+        if ($userPoints < self::REQUIRED_POINTS) {
+            return response()->json([
+                'message' => 'Mindestens '.self::REQUIRED_POINTS." Punkte erforderlich (du hast $userPoints).",
+            ], 403);
+        }
+
         // Nur Serien zurückgeben, die indexierte Romane haben
         $serien = KompendiumRoman::indexiert()
             ->select('serie')
@@ -188,16 +201,16 @@ class KompendiumController extends Controller
     }
 
     /* --------------------------------------------------------------------- */
-    /*  Hilfsfunktion: Pfad → Zyklus-Slug, Nummer, Titel */
+    /*  Hilfsfunktion: Pfad → Serie, Nummer, Titel */
     /* --------------------------------------------------------------------- */
     private function extractMetaFromPath(string $path): array
     {
-        $parts = preg_split('/[\\\\\/'.']+/', $path);
-        $cycleSlug = $parts[1] ?? 'unknown';
+        $parts = preg_split(self::PATH_SEPARATOR_PATTERN, $path);
+        $serie = $parts[1] ?? 'unknown';
 
         [$romanNr, $title] = explode(' - ', pathinfo($path, PATHINFO_FILENAME), 2);
 
-        return [$cycleSlug, $romanNr, $title];
+        return [$serie, $romanNr, $title];
     }
 
     /* --------------------------------------------------------------------- */
@@ -206,7 +219,7 @@ class KompendiumController extends Controller
     private function extractSerieFromPath(string $path): string
     {
         // Pfad-Format: "romane/{serie}/001 - Titel.txt"
-        $parts = preg_split('/[\\\\\/'.']+/', $path);
+        $parts = preg_split(self::PATH_SEPARATOR_PATTERN, $path);
 
         return $parts[1] ?? 'unknown';
     }

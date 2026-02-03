@@ -2,7 +2,6 @@
 
 namespace Tests\Feature;
 
-use App\Models\KompendiumRoman;
 use App\Services\KompendiumSearchService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;

@@ -99,4 +99,13 @@ class KompendiumControllerTest extends TestCase
         $response->assertOk();
         $this->assertEmpty($response->json());
     }
+
+    public function test_serien_endpoint_requires_enough_points(): void
+    {
+        $user = $this->actingMemberWithPoints(50); // below 100
+
+        $this->getJson('/kompendium/serien')
+            ->assertStatus(403)
+            ->assertJson(['message' => 'Mindestens 100 Punkte erforderlich (du hast 50).']);
+    }
 }

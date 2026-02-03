@@ -121,6 +121,13 @@
                     }
                 }
 
+                // Hilfsfunktion: HTML-Entities escapen
+                function escapeHtml(text) {
+                    const div = document.createElement('div');
+                    div.textContent = text;
+                    return div.innerHTML;
+                }
+
                 // Checkboxen für Serien rendern
                 function renderCheckboxes() {
                     $serienCheckboxes.innerHTML = '';
@@ -131,17 +138,23 @@
 
                         const label = document.createElement('label');
                         label.className = 'inline-flex items-center text-sm text-gray-700 dark:text-gray-300 cursor-pointer';
-                        label.innerHTML = `
-                            <input type="checkbox"
-                                   name="serien"
-                                   value="${key}"
-                                   checked
-                                   class="rounded border-gray-300 text-[#8B0116] shadow-sm focus:ring-[#8B0116] mr-1.5">
-                            <span data-serie="${key}">${name}${countText}</span>
-                        `;
+
+                        const checkbox = document.createElement('input');
+                        checkbox.type = 'checkbox';
+                        checkbox.name = 'serien';
+                        checkbox.value = key;
+                        checkbox.checked = true;
+                        checkbox.className = 'rounded border-gray-300 text-[#8B0116] shadow-sm focus:ring-[#8B0116] mr-1.5';
+
+                        const span = document.createElement('span');
+                        span.dataset.serie = key;
+                        span.textContent = name + countText;
+
+                        label.appendChild(checkbox);
+                        label.appendChild(span);
 
                         // Bei Änderung: Suche neu starten (wenn bereits gesucht wurde)
-                        label.querySelector('input').addEventListener('change', () => {
+                        checkbox.addEventListener('change', () => {
                             if (query) {
                                 page = 1;
                                 $results.innerHTML = '';
