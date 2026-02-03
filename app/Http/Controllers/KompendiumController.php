@@ -27,7 +27,7 @@ class KompendiumController extends Controller
     private const REQUIRED_POINTS = 100;
 
     /** Regex-Pattern für Pfad-Trennung (Windows-Backslash und Unix-Slash) */
-    private const PATH_SEPARATOR_PATTERN = '/[\\\\\\/'.']+/';
+    private const PATH_SEPARATOR_PATTERN = '#[\\\\\/]+#';
 
     /* --------------------------------------------------------------------- */
     /*  GET /kompendium  – Übersichtsseite */
@@ -202,23 +202,33 @@ class KompendiumController extends Controller
 
     /* --------------------------------------------------------------------- */
     /*  Hilfsfunktion: Pfad → Serie, Nummer, Titel */
+    /*  Pfad-Format: "romane/{serie}/001 - Titel.txt" */
+    /*  → parts[0]='romane', parts[1]='{serie}' */
     /* --------------------------------------------------------------------- */
     private function extractMetaFromPath(string $path): array
     {
         $parts = preg_split(self::PATH_SEPARATOR_PATTERN, $path);
         $serie = $parts[1] ?? 'unknown';
 
-        [$romanNr, $title] = explode(' - ', pathinfo($path, PATHINFO_FILENAME), 2);
+        $filename = pathinfo($path, PATHINFO_FILENAME);
+
+        // Format: "001 - Titel" – falls kein Trennzeichen, Fallback verwenden
+        if (! str_contains($filename, ' - ')) {
+            return [$serie, '000', $filename];
+        }
+
+        [$romanNr, $title] = explode(' - ', $filename, 2);
 
         return [$serie, $romanNr, $title];
     }
 
     /* --------------------------------------------------------------------- */
     /*  Hilfsfunktion: Pfad → Serie */
+    /*  Pfad-Format: "romane/{serie}/filename.txt" */
+    /*  → parts[0]='romane', parts[1]='{serie}' */
     /* --------------------------------------------------------------------- */
     private function extractSerieFromPath(string $path): string
     {
-        // Pfad-Format: "romane/{serie}/001 - Titel.txt"
         $parts = preg_split(self::PATH_SEPARATOR_PATTERN, $path);
 
         return $parts[1] ?? 'unknown';

@@ -121,13 +121,6 @@
                     }
                 }
 
-                // Hilfsfunktion: HTML-Entities escapen
-                function escapeHtml(text) {
-                    const div = document.createElement('div');
-                    div.textContent = text;
-                    return div.innerHTML;
-                }
-
                 // Checkboxen für Serien rendern
                 function renderCheckboxes() {
                     $serienCheckboxes.innerHTML = '';
