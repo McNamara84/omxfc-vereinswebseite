@@ -6,7 +6,8 @@
         const nextIsDark = Boolean(isDark);
 
         root.classList.toggle('dark', nextIsDark);
-        root.dataset.theme = nextIsDark ? 'dark' : 'light';
+        // daisyUI Theme setzen (caramellatte = light, coffee = dark)
+        root.dataset.theme = nextIsDark ? 'coffee' : 'caramellatte';
 
         return root.classList.contains('dark');
     };

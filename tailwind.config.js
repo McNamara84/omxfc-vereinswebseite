@@ -1,4 +1,5 @@
 import defaultTheme from 'tailwindcss/defaultTheme';
+import daisyui from 'daisyui';
 
 /** @type {import('tailwindcss').Config} */
 export default {
@@ -10,6 +11,8 @@ export default {
         './resources/views/**/*.blade.php',
         './resources/css/**/*.css',
         './resources/js/**/*.js',
+        // maryUI Komponenten
+        './vendor/robsontenorio/mary/src/View/Components/**/*.php',
     ],
 
     theme: {
@@ -20,5 +23,11 @@ export default {
         },
     },
 
-    plugins: [],
+    plugins: [daisyui],
+
+    // daisyUI Konfiguration
+    daisyui: {
+        themes: ['caramellatte', 'coffee'],
+        darkTheme: 'coffee',
+    },
 };
