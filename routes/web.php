@@ -248,6 +248,7 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
         Route::controller(KompendiumController::class)->group(function () {
             Route::get('/', 'index')->name('index');
             Route::get('suche', 'search')->name('search');
+            Route::get('serien', 'getVerfuegbareSerien')->name('serien');
         });
 
         // Admin-Bereich (nur für Admins)
