@@ -42,8 +42,9 @@ class KompendiumController extends Controller
         // Normalisiere den Pfad: ersetze Backslashes durch Slashes
         $normalized = str_replace('\\', '/', $path);
 
-        // Prüfe auf Path-Traversal-Sequenzen
-        if (str_contains($normalized, '..') || str_contains($normalized, './')) {
+        // Prüfe auf Path-Traversal-Sequenzen (nur an Segment-Grenzen)
+        // Muster: '../' irgendwo, oder './' am Anfang oder nach einem '/'
+        if (preg_match('#(^|/)\.\.(/|$)#', $normalized) || preg_match('#(^|/)\./#', $normalized)) {
             Log::warning("Kompendium: Verdächtiger Pfad mit Traversal-Sequenz abgelehnt: '{$path}'");
 
             return false;
@@ -122,6 +123,9 @@ class KompendiumController extends Controller
         $ids = $raw['ids'] ?? [];                               // enthält unsere "path"-Schlüssel
         $ids = array_values($ids);                              // re-indexieren
 
+        // Sicherheitsprüfung: Nur gültige Pfade weiterverarbeiten
+        $ids = array_values(array_filter($ids, fn ($path) => $this->isValidRomanPath($path)));
+
         /* ------------------------------------------------------------------ */
         /*  Serien-Zählung und Filterung (kombiniert für Performance) */
         /* ------------------------------------------------------------------ */
@@ -151,6 +155,13 @@ class KompendiumController extends Controller
 
             // Sicherheitsprüfung: Pfad gegen Path-Traversal validieren
             if (! $this->isValidRomanPath($path)) {
+                continue;
+            }
+
+            // Prüfe ob Datei existiert (könnte nach Indexierung gelöscht worden sein)
+            if (! Storage::disk('private')->exists($path)) {
+                Log::info("Kompendium: Datei nicht gefunden, überspringe: '{$path}'");
+
                 continue;
             }
 
@@ -187,7 +198,7 @@ class KompendiumController extends Controller
                 'cycle' => e($cycleName),
                 'romanNr' => e($romanNr),
                 'title' => e($title),
-                'serie' => $serie,
+                'serie' => e($serie),
                 'snippets' => $snippets,
             ];
         }
