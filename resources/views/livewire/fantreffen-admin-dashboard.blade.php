@@ -1,298 +1,301 @@
+@php
+    // Filter-Optionen
+    $memberStatusOptions = [
+        ['id' => 'alle', 'name' => 'Alle'],
+        ['id' => 'mitglieder', 'name' => 'Nur Mitglieder'],
+        ['id' => 'gaeste', 'name' => 'Nur Gäste'],
+    ];
+
+    $tshirtOptions = [
+        ['id' => 'alle', 'name' => 'Alle'],
+        ['id' => 'mit_tshirt', 'name' => 'Mit T-Shirt'],
+        ['id' => 'ohne_tshirt', 'name' => 'Ohne T-Shirt'],
+    ];
+
+    $paymentOptions = [
+        ['id' => 'alle', 'name' => 'Alle'],
+        ['id' => 'bezahlt', 'name' => 'Bezahlt'],
+        ['id' => 'ausstehend', 'name' => 'Ausstehend'],
+        ['id' => 'kostenlos', 'name' => 'Kostenlos'],
+    ];
+
+    $zahlungseingangOptions = [
+        ['id' => 'alle', 'name' => 'Alle'],
+        ['id' => 'erhalten', 'name' => 'Erhalten'],
+        ['id' => 'ausstehend', 'name' => 'Ausstehend'],
+    ];
+
+    $tshirtFertigOptions = [
+        ['id' => 'alle', 'name' => 'Alle'],
+        ['id' => 'fertig', 'name' => 'Fertig'],
+        ['id' => 'offen', 'name' => 'Offen'],
+    ];
+
+    // Tabellen-Header
+    $headers = [
+        ['key' => 'full_name', 'label' => 'Name'],
+        ['key' => 'email', 'label' => 'E-Mail'],
+        ['key' => 'mobile', 'label' => 'Mobil'],
+        ['key' => 'status', 'label' => 'Status', 'class' => 'text-center'],
+        ['key' => 'orga_team', 'label' => 'Orga-Team', 'class' => 'text-center'],
+        ['key' => 'tshirt', 'label' => 'T-Shirt', 'class' => 'text-center'],
+        ['key' => 'zahlung', 'label' => 'Zahlung', 'class' => 'text-center'],
+        ['key' => 'profil', 'label' => 'Profil', 'class' => 'text-center'],
+        ['key' => 'actions', 'label' => 'Löschen', 'class' => 'text-center'],
+    ];
+@endphp
+
 <div class="py-12">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {{-- Header --}}
-        <div class="mb-8">
-            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <div>
-                    <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-                        Maddrax-Fantreffen 2026 – Anmeldungen
-                    </h1>
-                    <p class="text-gray-600 dark:text-gray-400">
-                        Verwaltung aller Anmeldungen zum Fantreffen am 9. Mai 2026
-                    </p>
-                </div>
-                <a href="{{ route('admin.fantreffen.vip-authors') }}" class="inline-flex items-center px-4 py-2 bg-[#8B0116] text-white rounded-lg hover:bg-[#6b000e] transition-colors">
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-                    </svg>
-                    VIP-Autoren verwalten
-                </a>
-            </div>
-        </div>
+        <x-header title="Maddrax-Fantreffen 2026 – Anmeldungen" subtitle="Verwaltung aller Anmeldungen zum Fantreffen am 9. Mai 2026" separator>
+            <x-slot:actions>
+                <x-button 
+                    label="VIP-Autoren verwalten" 
+                    icon="o-star" 
+                    link="{{ route('admin.fantreffen.vip-authors') }}"
+                    class="btn-primary"
+                />
+            </x-slot:actions>
+        </x-header>
 
-        {{-- Success Message --}}
+        {{-- Flash Messages --}}
         @if (session()->has('success'))
-            <div class="mb-6 bg-green-100 dark:bg-green-900/30 border border-green-400 dark:border-green-700 text-green-700 dark:text-green-400 px-4 py-3 rounded" role="status" aria-live="polite">
+            <x-alert icon="o-check-circle" class="alert-success mb-6" dismissible>
                 {{ session('success') }}
-            </div>
+            </x-alert>
         @endif
 
         @if (session()->has('error'))
-            <div class="mb-6 bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-700 text-red-700 dark:text-red-400 px-4 py-3 rounded" role="alert" aria-live="assertive">
+            <x-alert icon="o-exclamation-circle" class="alert-error mb-6" dismissible>
                 {{ session('error') }}
-            </div>
+            </x-alert>
         @endif
 
         {{-- Statistik-Cards --}}
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-                <div class="text-sm font-medium text-gray-600 dark:text-gray-400">Gesamt</div>
-                <div class="text-3xl font-bold text-gray-900 dark:text-white mt-2">{{ $this->stats['total'] }}</div>
-                <div class="text-xs text-gray-500 dark:text-gray-500 mt-1">
-                    {{ $this->stats['mitglieder'] }} Mitglieder, {{ $this->stats['gaeste'] }} Gäste
-                </div>
-            </div>
+            <x-stat 
+                title="Gesamt" 
+                value="{{ $this->stats['total'] }}"
+                description="{{ $this->stats['mitglieder'] }} Mitglieder, {{ $this->stats['gaeste'] }} Gäste"
+                icon="o-users"
+            />
 
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-                <div class="text-sm font-medium text-gray-600 dark:text-gray-400">T-Shirts bestellt</div>
-                <div class="text-3xl font-bold text-gray-900 dark:text-white mt-2">{{ $this->stats['tshirts'] }}</div>
-                <div class="text-xs text-gray-500 dark:text-gray-500 mt-1">
-                    {{ $this->stats['tshirts_offen'] }} noch offen
-                </div>
-            </div>
+            <x-stat 
+                title="T-Shirts bestellt" 
+                value="{{ $this->stats['tshirts'] }}"
+                description="{{ $this->stats['tshirts_offen'] }} noch offen"
+                icon="o-shopping-bag"
+            />
 
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-                <div class="text-sm font-medium text-gray-600 dark:text-gray-400">Zahlungen ausstehend</div>
-                <div class="text-3xl font-bold text-[#8B0116] dark:text-[#ff4b63] mt-2">{{ $this->stats['zahlungen_ausstehend'] }}</div>
-                <div class="text-xs text-gray-500 dark:text-gray-500 mt-1">
-                    {{ number_format($this->stats['zahlungen_offen_betrag'], 2, ',', '.') }} € offen
-                </div>
-            </div>
+            <x-stat 
+                title="Zahlungen ausstehend" 
+                value="{{ $this->stats['zahlungen_ausstehend'] }}"
+                description="{{ number_format($this->stats['zahlungen_offen_betrag'], 2, ',', '.') }} € offen"
+                icon="o-currency-euro"
+                color="text-error"
+            />
 
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-                <button 
+            <x-card class="flex items-center justify-center">
+                <x-button 
                     wire:click="exportCsv" 
-                    class="w-full h-full flex flex-col items-center justify-center text-gray-700 dark:text-gray-300 hover:text-[#8B0116] dark:hover:text-[#ff4b63] transition-colors"
-                >
-                    <svg class="w-8 h-8 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                    <span class="font-medium">CSV Export</span>
-                </button>
-            </div>
+                    icon="o-document-arrow-down"
+                    label="CSV Export"
+                    class="btn-ghost btn-lg"
+                />
+            </x-card>
         </div>
 
         {{-- Filter & Suche --}}
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-6">
-            <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Filter & Suche</h2>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-                {{-- Mitgliedsstatus --}}
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Mitgliedsstatus</label>
-                    <select wire:model.live="filterMemberStatus" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white">
-                        <option value="alle">Alle</option>
-                        <option value="mitglieder">Nur Mitglieder</option>
-                        <option value="gaeste">Nur Gäste</option>
-                    </select>
-                </div>
+        <x-card title="Filter & Suche" class="mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <x-select 
+                    label="Mitgliedsstatus" 
+                    :options="$memberStatusOptions"
+                    wire:model.live="filterMemberStatus"
+                    icon="o-user-group"
+                />
 
-                {{-- T-Shirt --}}
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">T-Shirt</label>
-                    <select wire:model.live="filterTshirt" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white">
-                        <option value="alle">Alle</option>
-                        <option value="mit_tshirt">Mit T-Shirt</option>
-                        <option value="ohne_tshirt">Ohne T-Shirt</option>
-                    </select>
-                </div>
+                <x-select 
+                    label="T-Shirt" 
+                    :options="$tshirtOptions"
+                    wire:model.live="filterTshirt"
+                    icon="o-shopping-bag"
+                />
 
-                {{-- Zahlungsstatus --}}
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Zahlungsstatus</label>
-                    <select wire:model.live="filterPayment" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white">
-                        <option value="alle">Alle</option>
-                        <option value="bezahlt">Bezahlt</option>
-                        <option value="ausstehend">Ausstehend</option>
-                        <option value="kostenlos">Kostenlos</option>
-                    </select>
-                </div>
+                <x-select 
+                    label="Zahlungsstatus" 
+                    :options="$paymentOptions"
+                    wire:model.live="filterPayment"
+                    icon="o-credit-card"
+                />
 
-                {{-- Zahlungseingang --}}
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Zahlungseingang</label>
-                    <select wire:model.live="filterZahlungseingang" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white">
-                        <option value="alle">Alle</option>
-                        <option value="erhalten">Erhalten</option>
-                        <option value="ausstehend">Ausstehend</option>
-                    </select>
-                </div>
+                <x-select 
+                    label="Zahlungseingang" 
+                    :options="$zahlungseingangOptions"
+                    wire:model.live="filterZahlungseingang"
+                    icon="o-banknotes"
+                />
 
-                {{-- T-Shirt fertig --}}
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">T-Shirt Status</label>
-                    <select wire:model.live="filterTshirtFertig" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white">
-                        <option value="alle">Alle</option>
-                        <option value="fertig">Fertig</option>
-                        <option value="offen">Offen</option>
-                    </select>
-                </div>
+                <x-select 
+                    label="T-Shirt Status" 
+                    :options="$tshirtFertigOptions"
+                    wire:model.live="filterTshirtFertig"
+                    icon="o-check-badge"
+                />
 
-                {{-- Suche --}}
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Suche</label>
-                    <input 
-                        type="text" 
-                        wire:model.live.debounce.300ms="search" 
-                        placeholder="Name oder E-Mail..." 
-                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
-                    >
-                </div>
+                <x-input 
+                    label="Suche"
+                    wire:model.live.debounce.300ms="search" 
+                    placeholder="Name oder E-Mail..." 
+                    icon="o-magnifying-glass"
+                    clearable
+                />
             </div>
-        </div>
+        </x-card>
 
         {{-- Anmeldungen Tabelle --}}
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                    <thead class="bg-gray-50 dark:bg-gray-900">
-                        <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Name</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">E-Mail</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Mobil</th>
-                            <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
-                            <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Orga-Team</th>
-                            <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">T-Shirt</th>
-                            <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Zahlung</th>
-                            <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Profil</th>
-                            <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Löschen</th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                        @forelse ($this->anmeldungen as $anmeldung)
-                            <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm font-medium text-gray-900 dark:text-white">
-                                        {{ $anmeldung->full_name }}
-                                    </div>
-                                    <div class="text-xs text-gray-500 dark:text-gray-400">
-                                        {{ $anmeldung->created_at->format('d.m.Y H:i') }}
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
-                                    {{ $anmeldung->registrant_email }}
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
-                                    {{ $anmeldung->mobile ?? '-' }}
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-center">
-                                    @if ($anmeldung->ist_mitglied)
-                                        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
-                                            Mitglied
-                                        </span>
-                                    @else
-                                        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400">
-                                            Gast
-                                        </span>
-                                    @endif
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-center">
-                                    @if ($anmeldung->ist_mitglied)
-                                        <button
-                                            wire:click="toggleOrgaTeam({{ $anmeldung->id }})"
-                                            class="inline-flex items-center gap-2 px-3 py-1 text-xs font-semibold rounded-full border transition focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#8B0116] focus:ring-offset-white dark:focus:ring-offset-gray-800 {{ $anmeldung->orga_team ? 'bg-[#8B0116]/10 text-[#8B0116] border-[#8B0116]/40 dark:bg-[#ff4b63]/10 dark:text-[#ff4b63] dark:border-[#ff4b63]/40' : 'bg-gray-50 text-gray-700 border-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600' }}"
-                                            aria-pressed="{{ $anmeldung->orga_team ? 'true' : 'false' }}"
-                                            aria-label="Orga-Team Status für {{ $anmeldung->full_name }} umschalten"
-                                        >
-                                            @if ($anmeldung->orga_team)
-                                                <span aria-hidden="true">★</span>
-                                                <span>Im Orga-Team</span>
-                                            @else
-                                                <span aria-hidden="true">☆</span>
-                                                <span>Nicht im Orga-Team</span>
-                                            @endif
-                                        </button>
-                                    @else
-                                        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300" aria-label="Nur Mitglieder können dem Orga-Team angehören">
-                                            Nur Mitglieder
-                                        </span>
-                                    @endif
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-center">
-                                    @if ($anmeldung->tshirt_bestellt)
-                                        <div class="text-sm text-gray-900 dark:text-white font-medium">
-                                            {{ $anmeldung->tshirt_groesse }}
-                                        </div>
-                                        <button 
-                                            wire:click="toggleTshirtFertig({{ $anmeldung->id }})"
-                                            class="mt-1 text-xs px-2 py-1 rounded {{ $anmeldung->tshirt_fertig ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400' }}"
-                                        >
-                                            {{ $anmeldung->tshirt_fertig ? '✓ Fertig' : 'Offen' }}
-                                        </button>
-                                    @else
-                                        <span class="text-sm text-gray-400 dark:text-gray-600">-</span>
-                                    @endif
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-center">
-                                    <div class="text-sm font-medium text-gray-900 dark:text-white">
-                                        {{ number_format($anmeldung->payment_amount, 2, ',', '.') }} €
-                                    </div>
-                                    <div class="mt-1">
-                                        @if ($anmeldung->payment_status === 'free')
-                                            <span class="text-xs px-2 py-1 rounded bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">
-                                                Kostenlos
-                                            </span>
-                                            @if ($anmeldung->orga_team)
-                                                <span class="ml-2 text-xs px-2 py-1 rounded bg-[#8B0116]/10 text-[#8B0116] dark:bg-[#ff4b63]/10 dark:text-[#ff4b63]">
-                                                    Orga-Team
-                                                </span>
-                                            @endif
-                                        @else
-                                            <button
-                                                wire:click="toggleZahlungseingang({{ $anmeldung->id }})"
-                                                class="text-xs px-2 py-1 rounded {{ $anmeldung->zahlungseingang ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400' }}"
-                                            >
-                                                {{ $anmeldung->zahlungseingang ? '✓ Erhalten' : 'Ausstehend' }}
-                                            </button>
-                                        @endif
-                                    </div>
-                                    @if ($anmeldung->paypal_transaction_id)
-                                        <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                            PayPal: {{ substr($anmeldung->paypal_transaction_id, 0, 12) }}...
-                                        </div>
-                                    @endif
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-center text-sm">
-                                    @if ($anmeldung->user)
-                                        <a 
-                                            href="{{ route('profile.view', $anmeldung->user) }}" 
-                                            class="text-[#8B0116] dark:text-[#ff4b63] hover:underline"
-                                            target="_blank"
-                                        >
-                                            Profil
-                                        </a>
-                                    @else
-                                        <span class="text-gray-400 dark:text-gray-600">-</span>
-                                    @endif
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-center text-sm">
-                                    <button 
-                                        wire:click="deleteAnmeldung({{ $anmeldung->id }})"
-                                        wire:confirm="Möchten Sie die Anmeldung von {{ $anmeldung->full_name }} wirklich löschen?"
-                                        class="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300"
-                                        title="Anmeldung löschen"
-                                    >
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                        </svg>
-                                    </button>
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="9" class="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
-                                    Keine Anmeldungen gefunden.
-                                </td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
+        <x-card>
+            <x-table :headers="$headers" :rows="$this->anmeldungen" striped>
+                {{-- Name Spalte --}}
+                @scope('cell_full_name', $anmeldung)
+                    <div>
+                        <div class="font-medium">{{ $anmeldung->full_name }}</div>
+                        <div class="text-xs opacity-60">{{ $anmeldung->created_at->format('d.m.Y H:i') }}</div>
+                    </div>
+                @endscope
+
+                {{-- E-Mail Spalte --}}
+                @scope('cell_email', $anmeldung)
+                    {{ $anmeldung->registrant_email }}
+                @endscope
+
+                {{-- Mobil Spalte --}}
+                @scope('cell_mobile', $anmeldung)
+                    {{ $anmeldung->mobile ?? '-' }}
+                @endscope
+
+                {{-- Status Spalte --}}
+                @scope('cell_status', $anmeldung)
+                    <div class="text-center">
+                        @if ($anmeldung->ist_mitglied)
+                            <x-badge value="Mitglied" class="badge-success" />
+                        @else
+                            <x-badge value="Gast" class="badge-info" />
+                        @endif
+                    </div>
+                @endscope
+
+                {{-- Orga-Team Spalte --}}
+                @scope('cell_orga_team', $anmeldung)
+                    <div class="text-center">
+                        @if ($anmeldung->ist_mitglied)
+                            <x-button
+                                wire:click="toggleOrgaTeam({{ $anmeldung->id }})"
+                                class="btn-xs {{ $anmeldung->orga_team ? 'btn-primary' : 'btn-ghost' }}"
+                                aria-pressed="{{ $anmeldung->orga_team ? 'true' : 'false' }}"
+                                aria-label="Orga-Team Status für {{ $anmeldung->full_name }} umschalten"
+                            >
+                                @if ($anmeldung->orga_team)
+                                    <x-icon name="s-star" class="w-4 h-4" />
+                                    <span>Im Orga-Team</span>
+                                @else
+                                    <x-icon name="o-star" class="w-4 h-4" />
+                                    <span>Nicht im Orga-Team</span>
+                                @endif
+                            </x-button>
+                        @else
+                            <x-badge value="Nur Mitglieder" class="badge-ghost badge-sm" />
+                        @endif
+                    </div>
+                @endscope
+
+                {{-- T-Shirt Spalte --}}
+                @scope('cell_tshirt', $anmeldung)
+                    <div class="text-center">
+                        @if ($anmeldung->tshirt_bestellt)
+                            <div class="font-medium">{{ $anmeldung->tshirt_groesse }}</div>
+                            <x-button 
+                                wire:click="toggleTshirtFertig({{ $anmeldung->id }})"
+                                class="btn-xs mt-1 {{ $anmeldung->tshirt_fertig ? 'btn-success' : 'btn-warning' }}"
+                            >
+                                {{ $anmeldung->tshirt_fertig ? '✓ Fertig' : 'Offen' }}
+                            </x-button>
+                        @else
+                            <span class="opacity-40">-</span>
+                        @endif
+                    </div>
+                @endscope
+
+                {{-- Zahlung Spalte --}}
+                @scope('cell_zahlung', $anmeldung)
+                    <div class="text-center">
+                        <div class="font-medium">{{ number_format($anmeldung->payment_amount, 2, ',', '.') }} €</div>
+                        <div class="mt-1 flex flex-wrap justify-center gap-1">
+                            @if ($anmeldung->payment_status === 'free')
+                                <x-badge value="Kostenlos" class="badge-ghost badge-sm" />
+                                @if ($anmeldung->orga_team)
+                                    <x-badge value="Orga-Team" class="badge-primary badge-sm" />
+                                @endif
+                            @else
+                                <x-button
+                                    wire:click="toggleZahlungseingang({{ $anmeldung->id }})"
+                                    class="btn-xs {{ $anmeldung->zahlungseingang ? 'btn-success' : 'btn-error' }}"
+                                >
+                                    {{ $anmeldung->zahlungseingang ? '✓ Erhalten' : 'Ausstehend' }}
+                                </x-button>
+                            @endif
+                        </div>
+                        @if ($anmeldung->paypal_transaction_id)
+                            <div class="text-xs opacity-60 mt-1">
+                                PayPal: {{ substr($anmeldung->paypal_transaction_id, 0, 12) }}...
+                            </div>
+                        @endif
+                    </div>
+                @endscope
+
+                {{-- Profil Spalte --}}
+                @scope('cell_profil', $anmeldung)
+                    <div class="text-center">
+                        @if ($anmeldung->user)
+                            <x-button 
+                                label="Profil"
+                                link="{{ route('profile.view', $anmeldung->user) }}" 
+                                class="btn-link btn-xs btn-primary"
+                                external
+                            />
+                        @else
+                            <span class="opacity-40">-</span>
+                        @endif
+                    </div>
+                @endscope
+
+                {{-- Aktionen Spalte --}}
+                @scope('cell_actions', $anmeldung)
+                    <div class="text-center">
+                        <x-button 
+                            wire:click="deleteAnmeldung({{ $anmeldung->id }})"
+                            wire:confirm="Möchten Sie die Anmeldung von {{ $anmeldung->full_name }} wirklich löschen?"
+                            icon="o-trash"
+                            class="btn-ghost btn-xs text-error hover:btn-error"
+                            tooltip="Anmeldung löschen"
+                        />
+                    </div>
+                @endscope
+
+                {{-- Empty State --}}
+                <x-slot:empty>
+                    <x-icon name="o-users" class="w-12 h-12 opacity-30 mx-auto" />
+                    <p class="mt-2">Keine Anmeldungen gefunden.</p>
+                </x-slot:empty>
+            </x-table>
 
             {{-- Pagination --}}
-            <div class="px-6 py-4 border-t border-gray-200 dark:border-gray-700">
-                {{ $this->anmeldungen->links() }}
-            </div>
-        </div>
+            <x-slot:footer>
+                <div class="p-4">
+                    {{ $this->anmeldungen->links() }}
+                </div>
+            </x-slot:footer>
+        </x-card>
     </div>
 </div>
