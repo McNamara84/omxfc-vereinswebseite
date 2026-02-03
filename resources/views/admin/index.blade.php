@@ -1,312 +1,233 @@
 <x-app-layout>
     <x-member-page>
-        <h1 class="text-2xl font-semibold text-[#8B0116] dark:text-[#FCA5A5] mb-6">Seitenaufrufe</h1>
+        {{-- Header --}}
+        <x-header title="Seitenaufrufe" subtitle="Statistiken und Analysen der Website-Nutzung" separator />
 
-        <div class="grid gap-8 lg:grid-cols-4">
-            @php($hasRouteData = $visitData->isNotEmpty())
-            <section
-                class="bg-white dark:bg-gray-800 overflow-hidden shadow-xl sm:rounded-lg p-6 flex flex-col justify-between"
-                aria-labelledby="homepage-visits-heading"
-            >
-                <h2 id="homepage-visits-heading" class="text-lg font-semibold text-[#8B0116] dark:text-[#FCA5A5]">
-                    Aufrufe der Startseite
-                </h2>
-                <p class="mt-6 text-4xl font-bold text-gray-900 dark:text-gray-100">
-                    {{ number_format($homepageVisits, 0, ',', '.') }}
-                </p>
-                <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-                    Gesamtzugriffe auf <span class="font-medium" aria-label="Root-Route">/</span>
-                </p>
+        {{-- Obere Stats-Reihe --}}
+        <div class="grid gap-6 lg:grid-cols-4 mb-8">
+            {{-- Startseiten-Aufrufe --}}
+            <section aria-labelledby="homepage-visits-heading">
+                <x-stat
+                    title="Aufrufe der Startseite"
+                    :value="number_format($homepageVisits, 0, ',', '.')"
+                    description="Gesamtzugriffe auf /"
+                    icon="o-home"
+                >
+                    <x-slot:title>
+                        <span id="homepage-visits-heading">Aufrufe der Startseite</span>
+                    </x-slot:title>
+                </x-stat>
             </section>
 
-            @php($dailyActiveSeries = collect($dailyActiveUsers['series']))
-            @php($recentDailyActiveSeries = $dailyActiveSeries->slice(-7)->values())
-            @php($recentDailyActiveMax = max($recentDailyActiveSeries->max('total') ?? 0, 1))
-            <section
-                class="bg-white dark:bg-gray-800 overflow-hidden shadow-xl sm:rounded-lg p-6 flex flex-col"
-                aria-labelledby="daily-active-users-heading"
-                aria-describedby="daily-active-users-description"
+            {{-- Daily Active Users --}}
+            @php($trendPositive = $dailyActiveUsers['trend'] > 0)
+            @php($trendNegative = $dailyActiveUsers['trend'] < 0)
+            <x-stat
+                title="Daily Active Users"
+                :value="number_format($dailyActiveUsers['today'], 0, ',', '.')"
+                description="Aktive Mitglieder heute"
+                icon="o-users"
+                :color="$trendPositive ? 'text-success' : ($trendNegative ? 'text-error' : '')"
             >
-                <div>
-                    <h2 id="daily-active-users-heading" class="text-lg font-semibold text-[#8B0116] dark:text-[#FCA5A5]">
-                        Daily Active Users
-                    </h2>
-                    <p class="mt-6 text-4xl font-bold text-gray-900 dark:text-gray-100">
-                        {{ number_format($dailyActiveUsers['today'], 0, ',', '.') }}
-                    </p>
-                    <p id="daily-active-users-description" class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-                        Aktive Mitglieder heute (einzigartige Logins).
-                    </p>
-                    @php($trendPositive = $dailyActiveUsers['trend'] > 0)
-                    @php($trendNegative = $dailyActiveUsers['trend'] < 0)
-                    @if($trendPositive || $trendNegative)
-                        <p class="mt-4 inline-flex items-center gap-2 text-sm {{ $trendPositive ? 'text-emerald-600' : 'text-rose-500' }}">
-                            <span aria-hidden="true" class="flex h-6 w-6 items-center justify-center rounded-full bg-current/10">
-                                @if($trendPositive)
-                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-4 w-4">
-                                        <path fill-rule="evenodd" d="M10 3a1 1 0 0 1 .832.445l5 7a1 1 0 0 1-1.664 1.11L11 6.882V16a1 1 0 1 1-2 0V6.882l-3.168 4.673a1 1 0 1 1-1.664-1.11l5-7A1 1 0 0 1 10 3Z" clip-rule="evenodd" />
-                                    </svg>
-                                @else
-                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-4 w-4">
-                                        <path fill-rule="evenodd" d="M10 17a1 1 0 0 1-.832-.445l-5-7a1 1 0 0 1 1.664-1.11L9 13.118V4a1 1 0 1 1 2 0v9.118l3.168-4.673a1 1 0 1 1 1.664 1.11l-5 7A1 1 0 0 1 10 17Z" clip-rule="evenodd" />
-                                    </svg>
-                                @endif
-                            </span>
-                            <span>
-                                {{ abs($dailyActiveUsers['trend']) }}
-                                {{ $trendPositive ? 'mehr' : 'weniger' }}
-                                aktive Mitglieder als gestern.
-                            </span>
-                            <span class="sr-only">Im Vergleich zu gestern.</span>
-                        </p>
+                <x-slot:actions>
+                    @if($trendPositive)
+                        <x-badge value="+{{ abs($dailyActiveUsers['trend']) }}" class="badge-success badge-sm" />
+                    @elseif($trendNegative)
+                        <x-badge value="-{{ abs($dailyActiveUsers['trend']) }}" class="badge-error badge-sm" />
                     @else
-                        <p class="mt-4 text-sm text-gray-600 dark:text-gray-400">
-                            Genau so viele aktive Mitglieder wie gestern.
-                        </p>
+                        <x-badge value="±0" class="badge-ghost badge-sm" />
                     @endif
-                </div>
+                </x-slot:actions>
+            </x-stat>
 
-                <dl class="mt-6 grid grid-cols-1 gap-3 text-sm text-gray-600 dark:text-gray-400">
-                    <div class="flex items-center justify-between">
-                        <dt>Gestern</dt>
-                        <dd class="font-semibold text-gray-900 dark:text-gray-100">
-                            {{ number_format($dailyActiveUsers['yesterday'], 0, ',', '.') }}
-                        </dd>
-                    </div>
-                    <div class="flex items-center justify-between">
-                        <dt>7-Tage-Schnitt</dt>
-                        <dd class="font-semibold text-gray-900 dark:text-gray-100">
-                            {{ number_format($dailyActiveUsers['seven_day_average'], 1, ',', '.') }}
-                        </dd>
-                    </div>
-                </dl>
+            {{-- 7-Tage-Durchschnitt --}}
+            <x-stat
+                title="7-Tage-Schnitt"
+                :value="number_format($dailyActiveUsers['seven_day_average'], 1, ',', '.')"
+                description="Durchschnitt aktiver Mitglieder"
+                icon="o-chart-bar"
+            />
 
-                <div class="mt-6" aria-hidden="true">
-                    @if($recentDailyActiveSeries->isEmpty())
-                        <p class="text-sm text-gray-500 dark:text-gray-400 text-center">
-                            Noch keine Login-Daten vorhanden.
-                        </p>
-                    @else
-                        <ul class="flex items-end justify-between gap-1 h-24">
-                            @foreach ($recentDailyActiveSeries as $entry)
-                                @php($barHeight = $recentDailyActiveMax > 0 ? (int) round(($entry['total'] / $recentDailyActiveMax) * 100) : 0)
-                                @php($dayLabel = \Carbon\Carbon::parse($entry['date'])->translatedFormat('D'))
-                                <li class="flex-1 flex flex-col items-center text-[11px] text-gray-500 dark:text-gray-400">
-                                    <span class="flex h-full w-full items-end">
-                                        <span
-                                            class="w-full rounded-t-md {{ $entry['total'] === 0 ? 'bg-gray-200 dark:bg-gray-700' : 'bg-gradient-to-t from-[#8B0116]/30 to-[#8B0116]' }}"
-                                            style="height: {{ $entry['total'] === 0 ? '4px' : max($barHeight, 12) . '%' }}"
-                                        ></span>
-                                    </span>
-                                    <span class="mt-1 block text-[10px] uppercase tracking-wide">{{ $dayLabel }}</span>
-                                </li>
-                            @endforeach
-                        </ul>
-                    @endif
-                </div>
-            </section>
-
-            <section
-                class="lg:col-span-2 bg-white dark:bg-gray-800 overflow-hidden shadow-xl sm:rounded-lg p-6"
-                aria-labelledby="route-visits-heading"
-            >
-                <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-2 mb-4">
-                    <h2 id="route-visits-heading" class="font-semibold text-lg text-[#8B0116] dark:text-[#FCA5A5]">
-                        Seitenaufrufe nach Route
-                    </h2>
-                    <p class="text-sm text-gray-600 dark:text-gray-400">
-                        Die Startseite wird separat angezeigt.
-                    </p>
-                </div>
-                @if(! $hasRouteData)
-                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                        Noch keine Seitenaufrufe außerhalb der Startseite erfasst.
-                    </p>
-                @endif
-                <div data-chart-wrapper class="mt-6">
-                    <canvas
-                        id="visitsChart"
-                        class="h-80 w-full {{ $hasRouteData ? '' : 'opacity-50' }}"
-                        role="img"
-                        aria-label="Balkendiagramm der Seitenaufrufe nach Route"
-                        aria-hidden="{{ $hasRouteData ? 'false' : 'true' }}"
-                    ></canvas>
-                </div>
-            </section>
+            {{-- Gestern --}}
+            <x-stat
+                title="Gestern"
+                :value="number_format($dailyActiveUsers['yesterday'], 0, ',', '.')"
+                description="Aktive Mitglieder gestern"
+                icon="o-calendar"
+            />
         </div>
 
+        {{-- DAU Sparkline --}}
+        @php($dailyActiveSeries = collect($dailyActiveUsers['series']))
+        @php($recentDailyActiveSeries = $dailyActiveSeries->slice(-7)->values())
+        @php($recentDailyActiveMax = max($recentDailyActiveSeries->max('total') ?? 0, 1))
+        <x-card title="Aktive Mitglieder (letzte 7 Tage)" class="mb-8">
+            @if($recentDailyActiveSeries->isEmpty())
+                <x-slot:empty>
+                    <x-icon name="o-chart-bar" class="w-12 h-12 opacity-30 mx-auto" />
+                    <p class="mt-2">Noch keine Login-Daten vorhanden.</p>
+                </x-slot:empty>
+            @else
+                <div class="flex items-end justify-between gap-1 h-24" aria-hidden="true">
+                    @foreach ($recentDailyActiveSeries as $entry)
+                        @php($barHeight = $recentDailyActiveMax > 0 ? (int) round(($entry['total'] / $recentDailyActiveMax) * 100) : 0)
+                        @php($dayLabel = \Carbon\Carbon::parse($entry['date'])->translatedFormat('D'))
+                        <div class="flex-1 flex flex-col items-center text-xs opacity-60">
+                            <span class="flex h-full w-full items-end">
+                                <span
+                                    class="w-full rounded-t-md {{ $entry['total'] === 0 ? 'bg-base-300' : 'bg-primary' }}"
+                                    style="height: {{ $entry['total'] === 0 ? '4px' : max($barHeight, 12) . '%' }}"
+                                ></span>
+                            </span>
+                            <span class="mt-1 block text-[10px] uppercase tracking-wide">{{ $dayLabel }}</span>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
+        </x-card>
+
+        {{-- Seitenaufrufe nach Route --}}
+        @php($hasRouteData = $visitData->isNotEmpty())
+        <section aria-labelledby="route-visits-heading">
+        <x-card class="mb-8">
+            <x-slot:title>
+                <span id="route-visits-heading">Seitenaufrufe nach Route</span>
+            </x-slot:title>
+            <x-slot:subtitle>Die Startseite wird separat angezeigt.</x-slot:subtitle>
+            @if(! $hasRouteData)
+                <x-alert icon="o-information-circle" class="alert-info mb-4">
+                    Noch keine Seitenaufrufe außerhalb der Startseite erfasst.
+                </x-alert>
+            @endif
+            <div data-chart-wrapper>
+                <canvas
+                    id="visitsChart"
+                    class="h-80 w-full {{ $hasRouteData ? '' : 'opacity-50' }}"
+                    role="img"
+                    aria-label="Balkendiagramm der Seitenaufrufe nach Route"
+                    aria-hidden="{{ $hasRouteData ? 'false' : 'true' }}"
+                ></canvas>
+            </div>
+        </x-card>
+        </section>
+
+        {{-- Browser-Nutzung --}}
         @php($hasBrowserUsageByBrowser = $browserUsageByBrowser->isNotEmpty())
         @php($hasBrowserUsageByFamily = $browserUsageByFamily->isNotEmpty())
         @php($hasDeviceUsage = $deviceUsage->isNotEmpty())
-        <section
-            class="bg-white dark:bg-gray-800 overflow-hidden shadow-xl sm:rounded-lg p-6 mt-8"
-            aria-labelledby="browser-usage-heading"
-        >
-            <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-2 mb-4">
-                <h2 id="browser-usage-heading" class="font-semibold text-lg text-[#8B0116] dark:text-[#FCA5A5]">
-                    Browsernutzung unserer Mitglieder
-                </h2>
-                <p class="text-sm text-gray-600 dark:text-gray-400 max-w-2xl">
-                    Wir berücksichtigen alle Browser und Gerätetypen, die aktive Mitglieder in den letzten 30 Tagen genutzt haben.
-                    Die Werte helfen uns, die Plattform für die wichtigsten Engines zu optimieren.
-                </p>
-            </div>
-
-            <div class="mt-6 grid grid-cols-1 gap-10 xl:grid-cols-3">
-                <figure class="flex flex-col items-center">
-                    <h3 id="browserUsageChartTitle" class="text-lg font-semibold text-gray-900 dark:text-gray-100 text-center">
-                        Beliebteste Browser
-                    </h3>
-                    <div data-chart-wrapper class="mt-4 w-full max-w-xl">
+        <x-card title="Browsernutzung unserer Mitglieder" subtitle="Basierend auf den letzten 30 Tagen aktiver Mitglieder." class="mb-8">
+            <div class="grid grid-cols-1 gap-10 xl:grid-cols-3">
+                {{-- Beliebteste Browser --}}
+                <div class="flex flex-col items-center">
+                    <h3 class="text-lg font-semibold mb-4">Beliebteste Browser</h3>
+                    <div data-chart-wrapper class="w-full max-w-xl">
                         <canvas
                             id="browserUsageChart"
                             class="h-72 w-full {{ $hasBrowserUsageByBrowser ? '' : 'opacity-50' }}"
                             role="img"
-                            aria-labelledby="browserUsageChartTitle browserUsageChartSummary"
-                            aria-hidden="{{ $hasBrowserUsageByBrowser ? 'false' : 'true' }}"
+                            aria-label="Kreisdiagramm der beliebtesten Browser"
                         ></canvas>
                     </div>
                     @if ($hasBrowserUsageByBrowser)
                         @php($totalBrowserSessions = max($browserUsageByBrowser->sum('value'), 1))
-                        <ul
-                            id="browserUsageChartSummary"
-                            class="mt-5 w-full space-y-2 text-sm text-gray-700 dark:text-gray-300"
-                        >
+                        <div class="mt-4 w-full space-y-2">
                             @foreach ($browserUsageByBrowser as $entry)
                                 @php($percentage = round(($entry['value'] / $totalBrowserSessions) * 100))
-                                <li class="flex items-center justify-between gap-2 rounded-lg bg-gray-50/80 px-3 py-2 dark:bg-gray-900/50">
+                                <div class="flex items-center justify-between gap-2 rounded-lg bg-base-200 px-3 py-2">
                                     <span class="font-medium">{{ $entry['label'] }}</span>
-                                    <span class="flex items-baseline gap-1">
-                                        <span class="font-semibold text-gray-900 dark:text-gray-100">{{ $entry['value'] }}</span>
-                                        <span class="text-xs text-gray-500 dark:text-gray-400" aria-hidden="true">{{ $percentage }}&nbsp;%</span>
-                                        <span class="sr-only">{{ $percentage }} Prozent</span>
-                                    </span>
-                                </li>
+                                    <div class="flex items-baseline gap-1">
+                                        <span class="font-semibold">{{ $entry['value'] }}</span>
+                                        <x-badge :value="$percentage . '%'" class="badge-ghost badge-sm" />
+                                    </div>
+                                </div>
                             @endforeach
-                        </ul>
+                        </div>
                     @else
-                        <p
-                            id="browserUsageChartSummary"
-                            class="mt-5 text-sm text-gray-600 dark:text-gray-400 text-center"
-                        >
-                            Noch keine Login-Daten vorhanden.
-                        </p>
+                        <p class="mt-4 text-sm opacity-60 text-center">Noch keine Login-Daten vorhanden.</p>
                     @endif
-                </figure>
+                </div>
 
-                <figure class="flex flex-col items-center">
-                    <h3 id="browserFamilyChartTitle" class="text-lg font-semibold text-gray-900 dark:text-gray-100 text-center">
-                        Browser-Familien
-                    </h3>
-                    <div data-chart-wrapper class="mt-4 w-full max-w-xl">
+                {{-- Browser-Familien --}}
+                <div class="flex flex-col items-center">
+                    <h3 class="text-lg font-semibold mb-4">Browser-Familien</h3>
+                    <div data-chart-wrapper class="w-full max-w-xl">
                         <canvas
                             id="browserFamilyChart"
                             class="h-72 w-full {{ $hasBrowserUsageByFamily ? '' : 'opacity-50' }}"
                             role="img"
-                            aria-labelledby="browserFamilyChartTitle browserFamilyChartSummary"
-                            aria-hidden="{{ $hasBrowserUsageByFamily ? 'false' : 'true' }}"
+                            aria-label="Kreisdiagramm der Browser-Familien"
                         ></canvas>
                     </div>
                     @if ($hasBrowserUsageByFamily)
                         @php($totalBrowserFamilies = max($browserUsageByFamily->sum('value'), 1))
-                        <ul
-                            id="browserFamilyChartSummary"
-                            class="mt-5 w-full space-y-2 text-sm text-gray-700 dark:text-gray-300"
-                        >
+                        <div class="mt-4 w-full space-y-2">
                             @foreach ($browserUsageByFamily as $entry)
                                 @php($percentage = round(($entry['value'] / $totalBrowserFamilies) * 100))
-                                <li class="flex items-center justify-between gap-2 rounded-lg bg-gray-50/80 px-3 py-2 dark:bg-gray-900/50">
+                                <div class="flex items-center justify-between gap-2 rounded-lg bg-base-200 px-3 py-2">
                                     <span class="font-medium">{{ $entry['label'] }}</span>
-                                    <span class="flex items-baseline gap-1">
-                                        <span class="font-semibold text-gray-900 dark:text-gray-100">{{ $entry['value'] }}</span>
-                                        <span class="text-xs text-gray-500 dark:text-gray-400" aria-hidden="true">{{ $percentage }}&nbsp;%</span>
-                                        <span class="sr-only">{{ $percentage }} Prozent</span>
-                                    </span>
-                                </li>
+                                    <div class="flex items-baseline gap-1">
+                                        <span class="font-semibold">{{ $entry['value'] }}</span>
+                                        <x-badge :value="$percentage . '%'" class="badge-ghost badge-sm" />
+                                    </div>
+                                </div>
                             @endforeach
-                        </ul>
+                        </div>
                     @else
-                        <p
-                            id="browserFamilyChartSummary"
-                            class="mt-5 text-sm text-gray-600 dark:text-gray-400 text-center"
-                        >
-                            Noch keine Login-Daten vorhanden.
-                        </p>
+                        <p class="mt-4 text-sm opacity-60 text-center">Noch keine Login-Daten vorhanden.</p>
                     @endif
-                </figure>
+                </div>
 
-                <figure class="flex flex-col items-center">
-                    <h3 id="deviceUsageChartTitle" class="text-lg font-semibold text-gray-900 dark:text-gray-100 text-center">
-                        Endgeräte unserer Mitglieder
-                    </h3>
-                    <p class="mt-2 text-sm text-gray-600 dark:text-gray-400 text-center max-w-xl">
-                        Vergleicht den Anteil von Mobil- und Festgeräten auf Basis der zuletzt verwendeten Sitzungen.
-                    </p>
-                    <div data-chart-wrapper class="mt-4 w-full max-w-xl">
+                {{-- Endgeräte --}}
+                <div class="flex flex-col items-center">
+                    <h3 class="text-lg font-semibold mb-4">Endgeräte unserer Mitglieder</h3>
+                    <p class="text-sm opacity-60 text-center mb-4">Vergleicht Mobil- und Festgeräte.</p>
+                    <div data-chart-wrapper class="w-full max-w-xl">
                         <canvas
                             id="deviceUsageChart"
                             class="h-72 w-full {{ $hasDeviceUsage ? '' : 'opacity-50' }}"
                             role="img"
-                            aria-labelledby="deviceUsageChartTitle deviceUsageChartSummary"
-                            aria-hidden="{{ $hasDeviceUsage ? 'false' : 'true' }}"
+                            aria-label="Kreisdiagramm der Endgeräte"
                         ></canvas>
                     </div>
                     @if ($hasDeviceUsage)
                         @php($totalDeviceUsage = max($deviceUsage->sum('value'), 1))
-                        <ul
-                            id="deviceUsageChartSummary"
-                            class="mt-5 w-full space-y-2 text-sm text-gray-700 dark:text-gray-300"
-                        >
+                        <div class="mt-4 w-full space-y-2">
                             @foreach ($deviceUsage as $entry)
                                 @php($percentage = round(($entry['value'] / $totalDeviceUsage) * 100))
-                                <li class="flex items-center justify-between gap-2 rounded-lg bg-gray-50/80 px-3 py-2 dark:bg-gray-900/50">
+                                <div class="flex items-center justify-between gap-2 rounded-lg bg-base-200 px-3 py-2">
                                     <span class="font-medium">{{ $entry['label'] }}</span>
-                                    <span class="flex items-baseline gap-1">
-                                        <span class="font-semibold text-gray-900 dark:text-gray-100">{{ $entry['value'] }}</span>
-                                        <span class="text-xs text-gray-500 dark:text-gray-400" aria-hidden="true">{{ $percentage }}&nbsp;%</span>
-                                        <span class="sr-only">{{ $percentage }} Prozent</span>
-                                    </span>
-                                </li>
+                                    <div class="flex items-baseline gap-1">
+                                        <span class="font-semibold">{{ $entry['value'] }}</span>
+                                        <x-badge :value="$percentage . '%'" class="badge-ghost badge-sm" />
+                                    </div>
+                                </div>
                             @endforeach
-                        </ul>
+                        </div>
                     @else
-                        <p
-                            id="deviceUsageChartSummary"
-                            class="mt-5 text-sm text-gray-600 dark:text-gray-400 text-center"
-                        >
-                            Noch keine Login-Daten vorhanden.
-                        </p>
+                        <p class="mt-4 text-sm opacity-60 text-center">Noch keine Login-Daten vorhanden.</p>
                     @endif
-                </figure>
+                </div>
             </div>
-        </section>
+        </x-card>
 
+        {{-- Seitenaufrufe nach Nutzer:in --}}
         @php($hasUserVisitData = $userVisitData->isNotEmpty())
-        <section
-            class="bg-white dark:bg-gray-800 overflow-hidden shadow-xl sm:rounded-lg p-6 mt-8"
-            aria-labelledby="user-visits-heading"
-        >
-            <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-2 mb-4">
-                <h2 id="user-visits-heading" class="font-semibold text-lg text-[#8B0116] dark:text-[#FCA5A5]">
-                    Seitenaufrufe nach Nutzer:in
-                </h2>
-                <p class="text-sm text-gray-600 dark:text-gray-400">
-                    Aggregiert nach der jeweiligen Hauptroute.
-                </p>
+        <x-card title="Seitenaufrufe nach Nutzer:in" subtitle="Aggregiert nach der jeweiligen Hauptroute." class="mb-8">
+            <div class="mb-4">
+                <label for="userSelect" class="sr-only">Nutzer:in auswählen</label>
+                <select
+                    id="userSelect"
+                    class="select select-bordered w-full max-w-xs"
+                    aria-describedby="userVisitsEmptyMessage"
+                ></select>
             </div>
-            <label for="userSelect" class="sr-only">Nutzer:in auswählen</label>
-            <select
-                id="userSelect"
-                class="mb-3 border-gray-300 dark:bg-gray-700 dark:border-gray-600 rounded-md focus:border-[#8B0116] focus:ring-[#8B0116]"
-                aria-describedby="userVisitsEmptyMessage"
-            ></select>
             <p
                 id="userVisitsEmptyMessage"
-                class="text-sm text-gray-600 dark:text-gray-400 {{ $hasUserVisitData ? 'hidden' : '' }}"
+                class="text-sm opacity-60 {{ $hasUserVisitData ? 'hidden' : '' }}"
             >
                 Noch keine Daten für Unterseiten verfügbar.
             </p>
-            <div data-chart-wrapper class="mt-6">
+            <div data-chart-wrapper>
                 <canvas
                     id="userVisitsChart"
                     class="h-80 w-full {{ $hasUserVisitData ? '' : 'opacity-50' }}"
@@ -315,27 +236,19 @@
                     aria-hidden="{{ $hasUserVisitData ? 'false' : 'true' }}"
                 ></canvas>
             </div>
-        </section>
+        </x-card>
 
-        <section
-            class="bg-white dark:bg-gray-800 overflow-hidden shadow-xl sm:rounded-lg p-6 mt-8"
-            aria-labelledby="active-users-heading"
-        >
-            <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-2 mb-4">
-                <h2 id="active-users-heading" class="font-semibold text-lg text-[#8B0116] dark:text-[#FCA5A5]">
-                    Aktive Mitglieder nach Uhrzeit
-                </h2>
-                <p class="text-sm text-gray-600 dark:text-gray-400">
-                    Durchschnittliche Anzahl aktiver Mitglieder pro Stunde.
-                </p>
+        {{-- Aktive Mitglieder nach Uhrzeit --}}
+        <x-card title="Aktive Mitglieder nach Uhrzeit" subtitle="Durchschnittliche Anzahl aktiver Mitglieder pro Stunde." class="mb-8">
+            <div class="mb-4">
+                <label for="weekdaySelect" class="sr-only">Wochentag auswählen</label>
+                <select
+                    id="weekdaySelect"
+                    class="select select-bordered w-full max-w-xs"
+                    aria-label="Wochentag auswählen"
+                ></select>
             </div>
-            <label for="weekdaySelect" class="sr-only">Wochentag auswählen</label>
-            <select
-                id="weekdaySelect"
-                class="mb-3 border-gray-300 dark:bg-gray-700 dark:border-gray-600 rounded-md focus:border-[#8B0116] focus:ring-[#8B0116]"
-                aria-label="Wochentag auswählen"
-            ></select>
-            <div data-chart-wrapper class="mt-6">
+            <div data-chart-wrapper>
                 <canvas
                     id="activeUsersChart"
                     class="h-80 w-full"
@@ -343,22 +256,14 @@
                     aria-label="Liniendiagramm der aktiven Mitglieder nach Uhrzeit"
                 ></canvas>
             </div>
-        </section>
+        </x-card>
 
-        <section
-            class="bg-white dark:bg-gray-800 overflow-hidden shadow-xl sm:rounded-lg p-6 mt-8"
-            aria-labelledby="active-users-weekday-heading"
-            aria-describedby="active-users-weekday-description"
-        >
-            <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-2 mb-4">
-                <h2 id="active-users-weekday-heading" class="font-semibold text-lg text-[#8B0116] dark:text-[#FCA5A5]">
-                    Aktive Mitglieder nach Wochentag
-                </h2>
-                <p id="active-users-weekday-description" class="text-sm text-gray-600 dark:text-gray-400">
+        {{-- Aktive Mitglieder nach Wochentag --}}
+        <x-card title="Aktive Mitglieder nach Wochentag" subtitle="Verlauf aktiver Mitglieder je Stunde, gruppiert nach Wochentag.">
+            <div data-chart-wrapper aria-describedby="active-users-weekday-description">
+                <p id="active-users-weekday-description" class="sr-only">
                     Zeigt den Verlauf aktiver Mitglieder je Stunde, gruppiert nach Wochentag.
                 </p>
-            </div>
-            <div data-chart-wrapper class="mt-6">
                 <canvas
                     id="activeUsersWeekdayChart"
                     class="h-80 w-full"
@@ -366,9 +271,10 @@
                     aria-label="Liniendiagramm der aktiven Mitglieder nach Wochentag und Uhrzeit"
                 ></canvas>
             </div>
-        </section>
+        </x-card>
     </x-member-page>
 
+    {{-- Chart.js --}}
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         const visitData = @json($visitData);
@@ -380,42 +286,44 @@
         const deviceUsage = @json($deviceUsage);
 
         const numberFormatter = new Intl.NumberFormat('de-DE');
-        const isDarkMode = document.documentElement.classList.contains('dark');
-        const axisColor = isDarkMode ? '#D1D5DB' : '#4B5563';
-        const gridColor = isDarkMode ? 'rgba(75, 85, 99, 0.3)' : 'rgba(156, 163, 175, 0.3)';
+
+        // daisyUI-kompatible Farben basierend auf CSS-Variablen
+        const getComputedColor = (varName) => {
+            const style = getComputedStyle(document.documentElement);
+            return style.getPropertyValue(varName).trim() || null;
+        };
+
+        const isDarkMode = document.documentElement.dataset.theme === 'coffee';
+        const axisColor = isDarkMode ? 'oklch(0.85 0 0)' : 'oklch(0.4 0 0)';
+        const gridColor = isDarkMode ? 'oklch(0.3 0 0 / 0.3)' : 'oklch(0.7 0 0 / 0.3)';
+
+        // daisyUI-Farbpalette
+        const paletteBase = Object.freeze([
+            'oklch(0.65 0.24 16)',    // primary-ish
+            'oklch(0.7 0.18 250)',    // secondary-ish
+            'oklch(0.75 0.15 160)',   // accent-ish
+            'oklch(0.6 0.2 30)',      // warm
+            'oklch(0.65 0.15 200)',   // cool
+            'oklch(0.7 0.12 80)',     // yellow
+            'oklch(0.55 0.2 300)',    // purple
+            'oklch(0.6 0.18 350)',    // pink
+            'oklch(0.7 0.14 140)',    // green
+            'oklch(0.65 0.16 50)',    // orange
+        ]);
+
         const barDatasetStyles = Object.freeze({
-            backgroundColor: 'rgba(54, 162, 235, 0.7)',
-            borderColor: 'rgba(54, 162, 235, 1)',
+            backgroundColor: 'oklch(0.65 0.2 250 / 0.7)',
+            borderColor: 'oklch(0.65 0.2 250)',
             borderWidth: 1,
         });
+
         const lineDatasetStyles = Object.freeze({
-            borderColor: 'rgba(54, 162, 235, 1)',
-            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+            borderColor: 'oklch(0.65 0.2 250)',
+            backgroundColor: 'oklch(0.65 0.2 250 / 0.2)',
             fill: false,
             tension: 0.3,
             pointRadius: 3,
         });
-        const paletteBase = Object.freeze([
-            '#8B0116',
-            '#FF6B81',
-            '#1E3A8A',
-            '#0E7490',
-            '#2F855A',
-            '#CA8A04',
-            '#6B21A8',
-            '#BE123C',
-            '#2563EB',
-            '#F97316',
-            '#0891B2',
-            '#22C55E',
-            '#EAB308',
-            '#A21CAF',
-            '#DC2626',
-            '#0284C7',
-            '#C026D3',
-            '#14B8A6',
-            '#FB923C',
-        ]);
 
         const formatTooltipLabel = (context) => {
             const value = context.parsed.y ?? context.parsed;
@@ -447,7 +355,7 @@
             };
 
             if (showLegend) {
-                baseOptions.plugins.legend = { labels: { color: axisColor } };
+                baseOptions.plugins.legend = { display: true, labels: { color: axisColor } };
             }
 
             return {
@@ -526,6 +434,7 @@
             });
         };
 
+        // Seitenaufrufe nach Route
         const visitsChartElement = document.getElementById('visitsChart');
         if (visitsChartElement) {
             const labels = visitData.map(v => v.path);
@@ -545,10 +454,12 @@
             });
         }
 
+        // Browser-Charts
         renderDoughnutChart('browserUsageChart', browserUsageByBrowser);
         renderDoughnutChart('browserFamilyChart', browserUsageByFamily);
         renderDoughnutChart('deviceUsageChart', deviceUsage);
 
+        // Nutzer-Auswahl
         const userSelect = document.getElementById('userSelect');
         const userVisitsEmptyMessage = document.getElementById('userVisitsEmptyMessage');
         const userVisitsChartElement = document.getElementById('userVisitsChart');
@@ -606,6 +517,7 @@
             }
         }
 
+        // Wochentag-Auswahl
         const weekdaySelect = document.getElementById('weekdaySelect');
         const dayNames = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag'];
         if (weekdaySelect) {
@@ -623,6 +535,7 @@
             });
         }
 
+        // Aktive Mitglieder nach Uhrzeit
         const hours = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0') + ':00');
         const activeUsersChartElement = document.getElementById('activeUsersChart');
         const ctx3 = activeUsersChartElement?.getContext?.('2d');
@@ -656,6 +569,7 @@
             weekdaySelect?.addEventListener('change', (event) => updateActiveChart(event.target.value));
         }
 
+        // Aktive Mitglieder nach Wochentag
         const activeUsersWeekdayElement = document.getElementById('activeUsersWeekdayChart');
         const ctx4 = activeUsersWeekdayElement?.getContext?.('2d');
         if (ctx4) {
@@ -682,6 +596,7 @@
                     ],
                 },
                 options: getCommonOptions({
+                    showLegend: true,
                     additionalOptions: {
                         scales: {
                             x: {
@@ -698,12 +613,6 @@
                                     color: gridColor,
                                     drawOnChartArea: false,
                                 },
-                            },
-                        },
-                        plugins: {
-                            legend: {
-                                display: true,
-                                labels: { color: axisColor },
                             },
                         },
                     },
