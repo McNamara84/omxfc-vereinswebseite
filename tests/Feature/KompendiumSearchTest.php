@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\KompendiumRoman;
 use App\Services\KompendiumSearchService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
@@ -41,7 +42,7 @@ class KompendiumSearchTest extends TestCase
         $user = $this->actingMemberWithPoints(150);
 
         Storage::fake('private');
-        Storage::disk('private')->put('/cycle1/001 - ExampleTitle.txt', 'Some example content with query word');
+        Storage::disk('private')->put('romane/maddrax/001 - ExampleTitle.txt', 'Some example content with query word');
 
         // Mock den KompendiumSearchService
         $this->mock(KompendiumSearchService::class, function ($mock) {
@@ -50,7 +51,7 @@ class KompendiumSearchTest extends TestCase
                 ->once()
                 ->andReturn([
                     'hits' => ['total_hits' => 1],
-                    'ids' => ['/cycle1/001 - ExampleTitle.txt'],
+                    'ids' => ['romane/maddrax/001 - ExampleTitle.txt'],
                 ]);
         });
 
@@ -61,10 +62,14 @@ class KompendiumSearchTest extends TestCase
                 'currentPage' => 1,
                 'lastPage' => 1,
                 'data' => [[
-                    'cycle' => 'Cycle1-Zyklus',
+                    'cycle' => 'Maddrax-Zyklus',
                     'romanNr' => '001',
                     'title' => 'ExampleTitle',
+                    'serie' => 'maddrax',
                 ]],
+                'serienCounts' => [
+                    'maddrax' => 1,
+                ],
             ]);
     }
 
@@ -92,6 +97,79 @@ class KompendiumSearchTest extends TestCase
                 'currentPage' => 1,
                 'lastPage' => 1,
                 'data' => [],
+                'serienCounts' => [],
             ]);
+    }
+
+    public function test_search_filters_by_serien_parameter(): void
+    {
+        $user = $this->actingMemberWithPoints(150);
+
+        Storage::fake('private');
+        Storage::disk('private')->put('romane/maddrax/001 - MaddraxRoman.txt', 'Content maddrax');
+        Storage::disk('private')->put('romane/missionmars/001 - MarsRoman.txt', 'Content mars');
+
+        // Mock: Suche findet beide Romane
+        $this->mock(KompendiumSearchService::class, function ($mock) {
+            $mock->shouldReceive('search')
+                ->with('content')
+                ->once()
+                ->andReturn([
+                    'hits' => ['total_hits' => 2],
+                    'ids' => [
+                        'romane/maddrax/001 - MaddraxRoman.txt',
+                        'romane/missionmars/001 - MarsRoman.txt',
+                    ],
+                ]);
+        });
+
+        // Nur Maddrax-Serie anfordern
+        $response = $this->getJson('/kompendium/suche?q=content&serien[]=maddrax');
+
+        $response->assertOk();
+        $data = $response->json('data');
+
+        // Nur 1 Treffer (Maddrax), da missionmars gefiltert wurde
+        $this->assertCount(1, $data);
+        $this->assertEquals('maddrax', $data[0]['serie']);
+
+        // serienCounts zeigt aber beide (Gesamtübersicht)
+        $response->assertJson([
+            'serienCounts' => [
+                'maddrax' => 1,
+                'missionmars' => 1,
+            ],
+        ]);
+    }
+
+    public function test_search_returns_all_serien_when_no_filter(): void
+    {
+        $user = $this->actingMemberWithPoints(150);
+
+        Storage::fake('private');
+        Storage::disk('private')->put('romane/maddrax/001 - MaddraxRoman.txt', 'Content maddrax');
+        Storage::disk('private')->put('romane/missionmars/001 - MarsRoman.txt', 'Content mars');
+
+        $this->mock(KompendiumSearchService::class, function ($mock) {
+            $mock->shouldReceive('search')
+                ->with('content')
+                ->once()
+                ->andReturn([
+                    'hits' => ['total_hits' => 2],
+                    'ids' => [
+                        'romane/maddrax/001 - MaddraxRoman.txt',
+                        'romane/missionmars/001 - MarsRoman.txt',
+                    ],
+                ]);
+        });
+
+        // Keine serien[] Parameter = alle Serien
+        $response = $this->getJson('/kompendium/suche?q=content');
+
+        $response->assertOk();
+        $data = $response->json('data');
+
+        // Beide Treffer
+        $this->assertCount(2, $data);
     }
 }

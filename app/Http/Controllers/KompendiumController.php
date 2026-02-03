@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\Role;
+use App\Models\KompendiumRoman;
 use App\Services\KompendiumSearchService;
 use App\Services\KompendiumService;
 use App\Services\TeamPointService;
@@ -67,9 +68,12 @@ class KompendiumController extends Controller
         $request->validate([
             'q' => 'required|string|min:2',
             'page' => 'sometimes|integer|min:1',
+            'serien' => 'sometimes|array',
+            'serien.*' => 'string',
         ]);
 
         $query = mb_strtolower($request->input('q'));
+        $selectedSerien = $request->input('serien', []);
         $page = (int) $request->input('page', 1);
         $perPage = 5;
         $snippetsPerFile = config('kompendium.snippets_per_novel', 10) ?: 10;
@@ -79,10 +83,28 @@ class KompendiumController extends Controller
         /*  SCOUT-SUCHAUFRUF  (RAW) */
         /* ------------------------------------------------------------------ */
         $raw = $this->searchService->search($query);
-        $total = $raw['hits']['total_hits'] ?? 0;
 
         $ids = $raw['ids'] ?? [];                               // enthält unsere "path"-Schlüssel
         $ids = array_values($ids);                              // re-indexieren
+
+        /* ------------------------------------------------------------------ */
+        /*  Serien-Zählung und Filterung */
+        /* ------------------------------------------------------------------ */
+        $serienCounts = [];
+        foreach ($ids as $path) {
+            $serie = $this->extractSerieFromPath($path);
+            $serienCounts[$serie] = ($serienCounts[$serie] ?? 0) + 1;
+        }
+
+        // Wenn Serien-Filter gesetzt, nur diese Serien berücksichtigen
+        if (! empty($selectedSerien)) {
+            $ids = array_values(array_filter($ids, function ($path) use ($selectedSerien) {
+                $serie = $this->extractSerieFromPath($path);
+                return in_array($serie, $selectedSerien, true);
+            }));
+        }
+
+        $total = count($ids);
         $slice = array_slice($ids, ($page - 1) * $perPage, $perPage);
 
         /* ------------------------------------------------------------------ */
@@ -119,11 +141,13 @@ class KompendiumController extends Controller
             }
 
             $cycleName = Str::of($cycleSlug)->after('-')->replace('-', ' ')->title().'-Zyklus';
+            $serie = $this->extractSerieFromPath($path);
 
             $hits[] = [
                 'cycle' => $cycleName,
                 'romanNr' => $romanNr,
                 'title' => $title,
+                'serie' => $serie,
                 'snippets' => $snippets,
             ];
         }
@@ -142,7 +166,25 @@ class KompendiumController extends Controller
             'data' => $paginator->items(),
             'currentPage' => $paginator->currentPage(),
             'lastPage' => $paginator->lastPage(),
+            'serienCounts' => $serienCounts,
         ]);
+    }
+
+    /* --------------------------------------------------------------------- */
+    /*  GET /kompendium/serien – Verfügbare Serien für Filter */
+    /* --------------------------------------------------------------------- */
+    public function getVerfuegbareSerien(): JsonResponse
+    {
+        // Nur Serien zurückgeben, die indexierte Romane haben
+        $serien = KompendiumRoman::indexiert()
+            ->select('serie')
+            ->distinct()
+            ->pluck('serie')
+            ->mapWithKeys(fn ($key) => [
+                $key => KompendiumService::SERIEN[$key] ?? $key,
+            ]);
+
+        return response()->json($serien);
     }
 
     /* --------------------------------------------------------------------- */
@@ -150,11 +192,22 @@ class KompendiumController extends Controller
     /* --------------------------------------------------------------------- */
     private function extractMetaFromPath(string $path): array
     {
-        $parts = preg_split('/[\\\\\/]+/', $path);
+        $parts = preg_split('/[\\\\\/'.']+/', $path);
         $cycleSlug = $parts[1] ?? 'unknown';
 
         [$romanNr, $title] = explode(' - ', pathinfo($path, PATHINFO_FILENAME), 2);
 
         return [$cycleSlug, $romanNr, $title];
+    }
+
+    /* --------------------------------------------------------------------- */
+    /*  Hilfsfunktion: Pfad → Serie */
+    /* --------------------------------------------------------------------- */
+    private function extractSerieFromPath(string $path): string
+    {
+        // Pfad-Format: "romane/{serie}/001 - Titel.txt"
+        $parts = preg_split('/[\\\\\/'.']+/', $path);
+
+        return $parts[1] ?? 'unknown';
     }
 }

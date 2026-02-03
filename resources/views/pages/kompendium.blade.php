@@ -49,6 +49,18 @@
                                class="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-[#8B0116]"
                         >
                     </div>
+
+                    {{-- Serien-Filter (wird per JS befüllt) ----------------------- --}}
+                    <div id="serien-filter" class="mb-4 hidden">
+                        <fieldset>
+                            <legend class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                Serien filtern:
+                            </legend>
+                            <div id="serien-checkboxes" class="flex flex-wrap gap-x-4 gap-y-2">
+                                {{-- Wird per JavaScript dynamisch befüllt --}}
+                            </div>
+                        </fieldset>
+                    </div>
                 @else
                     <p class="mb-4 text-sm text-gray-600 dark:text-gray-400">
                         Die Suche wird ab <strong>{{ $required }}</strong> Baxx freigeschaltet.<br>
@@ -81,10 +93,83 @@
                 let page   = 1;
                 let query  = '';
                 let busy   = false;
+                let verfuegbareSerien = {};
+                let serienCounts = {};
+                let lastPage = 1;
+
                 const perFetchOffset = 200;                       // px vor Seitenende
                 const $search  = document.getElementById('search');
                 const $results = document.getElementById('results');
                 const $loading = document.getElementById('loading');
+                const $serienFilter = document.getElementById('serien-filter');
+                const $serienCheckboxes = document.getElementById('serien-checkboxes');
+
+                // Verfügbare Serien beim Laden abrufen
+                async function loadSerien() {
+                    try {
+                        const res = await fetch('{{ route('kompendium.serien') }}');
+                        verfuegbareSerien = await res.json();
+
+                        // Filter nur anzeigen wenn mindestens 2 Serien verfügbar
+                        const keys = Object.keys(verfuegbareSerien);
+                        if (keys.length >= 2) {
+                            renderCheckboxes();
+                            $serienFilter.classList.remove('hidden');
+                        }
+                    } catch (e) {
+                        console.error('Fehler beim Laden der Serien:', e);
+                    }
+                }
+
+                // Checkboxen für Serien rendern
+                function renderCheckboxes() {
+                    $serienCheckboxes.innerHTML = '';
+
+                    for (const [key, name] of Object.entries(verfuegbareSerien)) {
+                        const count = serienCounts[key];
+                        const countText = count !== undefined ? ` (${count})` : '';
+
+                        const label = document.createElement('label');
+                        label.className = 'inline-flex items-center text-sm text-gray-700 dark:text-gray-300 cursor-pointer';
+                        label.innerHTML = `
+                            <input type="checkbox"
+                                   name="serien"
+                                   value="${key}"
+                                   checked
+                                   class="rounded border-gray-300 text-[#8B0116] shadow-sm focus:ring-[#8B0116] mr-1.5">
+                            <span data-serie="${key}">${name}${countText}</span>
+                        `;
+
+                        // Bei Änderung: Suche neu starten (wenn bereits gesucht wurde)
+                        label.querySelector('input').addEventListener('change', () => {
+                            if (query) {
+                                page = 1;
+                                $results.innerHTML = '';
+                                window.removeEventListener('scroll', onScroll);
+                                fetchHits().then(() => window.addEventListener('scroll', onScroll));
+                            }
+                        });
+
+                        $serienCheckboxes.appendChild(label);
+                    }
+                }
+
+                // Checkbox-Labels mit Trefferanzahl aktualisieren
+                function updateCheckboxLabels() {
+                    for (const [key, name] of Object.entries(verfuegbareSerien)) {
+                        const count = serienCounts[key] ?? 0;
+                        const span = $serienCheckboxes.querySelector(`span[data-serie="${key}"]`);
+                        if (span) {
+                            span.textContent = `${name} (${count})`;
+                        }
+                    }
+                }
+
+                // Ausgewählte Serien ermitteln
+                function getSelectedSerien() {
+                    const checkboxes = $serienCheckboxes.querySelectorAll('input[name="serien"]:checked');
+                    return Array.from(checkboxes).map(cb => cb.value);
+                }
 
                 // HTML-Template pro Roman
                 const tpl = (roman) => `
@@ -101,18 +186,33 @@
                     busy = true;
                     $loading.classList.remove('hidden');
 
-                    const url = `{{ route('kompendium.search') }}?q=${encodeURIComponent(query)}&page=${page}`;
+                    // URL mit Serien-Filter bauen
+                    const params = new URLSearchParams();
+                    params.append('q', query);
+                    params.append('page', page);
+
+                    const selectedSerien = getSelectedSerien();
+                    selectedSerien.forEach(s => params.append('serien[]', s));
+
+                    const url = `{{ route('kompendium.search') }}?${params.toString()}`;
                     const res = await fetch(url);
                     const json = await res.json();
 
+                    // Trefferanzahl pro Serie speichern und Labels aktualisieren
+                    if (json.serienCounts) {
+                        serienCounts = json.serienCounts;
+                        updateCheckboxLabels();
+                    }
+
                     json.data.forEach(r => $results.insertAdjacentHTML('beforeend', tpl(r)));
 
+                    lastPage = json.lastPage;
                     page++;
                     busy = false;
                     $loading.classList.add('hidden');
 
                     // Ende erreicht? → Scroll-Listener entfernen
-                    if (page > json.lastPage) {
+                    if (page > lastPage) {
                         window.removeEventListener('scroll', onScroll);
                     }
                 }
@@ -133,6 +233,9 @@
                         fetchHits().then(() => window.addEventListener('scroll', onScroll));
                     }
                 });
+
+                // Serien beim Seitenladen abrufen
+                loadSerien();
             })();
         </script>
     @endif
