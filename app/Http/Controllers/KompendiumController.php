@@ -31,6 +31,34 @@ class KompendiumController extends Controller
     /** Regex-Pattern für Pfad-Trennung (Windows-Backslash und Unix-Slash) */
     private const PATH_SEPARATOR_PATTERN = '#[\\\\\/]+#';
 
+    /** Erlaubtes Basis-Verzeichnis für Roman-Dateien */
+    private const ALLOWED_BASE_PATH = 'romane/';
+
+    /* --------------------------------------------------------------------- */
+    /*  Pfad-Validierung gegen Path-Traversal-Angriffe */
+    /* --------------------------------------------------------------------- */
+    private function isValidRomanPath(string $path): bool
+    {
+        // Normalisiere den Pfad: ersetze Backslashes durch Slashes
+        $normalized = str_replace('\\', '/', $path);
+
+        // Prüfe auf Path-Traversal-Sequenzen
+        if (str_contains($normalized, '..') || str_contains($normalized, './')) {
+            Log::warning("Kompendium: Verdächtiger Pfad mit Traversal-Sequenz abgelehnt: '{$path}'");
+
+            return false;
+        }
+
+        // Stelle sicher, dass der Pfad mit dem erlaubten Basis-Verzeichnis beginnt
+        if (! str_starts_with($normalized, self::ALLOWED_BASE_PATH)) {
+            Log::warning("Kompendium: Pfad außerhalb des erlaubten Verzeichnisses abgelehnt: '{$path}'");
+
+            return false;
+        }
+
+        return true;
+    }
+
     /* --------------------------------------------------------------------- */
     /*  GET /kompendium  – Übersichtsseite */
     /* --------------------------------------------------------------------- */
@@ -120,6 +148,11 @@ class KompendiumController extends Controller
         $hits = [];
 
         foreach ($slice as $path) {
+
+            // Sicherheitsprüfung: Pfad gegen Path-Traversal validieren
+            if (! $this->isValidRomanPath($path)) {
+                continue;
+            }
 
             [$serie, $romanNr, $title] = $this->extractMetaFromPath($path);
 

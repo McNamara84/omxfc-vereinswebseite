@@ -204,4 +204,37 @@ class KompendiumSearchTest extends TestCase
 
         $response->assertOk();
     }
+
+    public function test_search_ignores_path_traversal_attempts(): void
+    {
+        $user = $this->actingMemberWithPoints(150);
+
+        Storage::fake('private');
+        // Legitime Datei erstellen
+        Storage::disk('private')->put('romane/maddrax/001 - ValidRoman.txt', 'Valid content');
+
+        // Mock: Suche gibt sowohl legitime als auch bösartige Pfade zurück
+        $this->mock(KompendiumSearchService::class, function ($mock) {
+            $mock->shouldReceive('search')
+                ->with('content')
+                ->once()
+                ->andReturn([
+                    'hits' => ['total_hits' => 3],
+                    'ids' => [
+                        'romane/maddrax/001 - ValidRoman.txt',           // Gültig
+                        '../.env',                                        // Path-Traversal
+                        'romane/../../../.env',                           // Path-Traversal
+                    ],
+                ]);
+        });
+
+        $response = $this->getJson('/kompendium/suche?q=content');
+
+        $response->assertOk();
+        $data = $response->json('data');
+
+        // Nur der gültige Roman sollte zurückgegeben werden
+        $this->assertCount(1, $data);
+        $this->assertEquals('001', $data[0]['romanNr']);
+    }
 }
