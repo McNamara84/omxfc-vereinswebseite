@@ -52,11 +52,11 @@
 
                     {{-- Serien-Filter (wird per JS befüllt) ----------------------- --}}
                     <div id="serien-filter" class="mb-4 hidden">
-                        <fieldset>
-                            <legend class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        <fieldset role="group" aria-labelledby="serien-filter-legend">
+                            <legend id="serien-filter-legend" class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                 Serien filtern:
                             </legend>
-                            <div id="serien-checkboxes" class="flex flex-wrap gap-x-4 gap-y-2">
+                            <div id="serien-checkboxes" class="flex flex-wrap gap-x-4 gap-y-2" role="group">
                                 {{-- Wird per JavaScript dynamisch befüllt --}}
                             </div>
                         </fieldset>
@@ -104,12 +104,16 @@
                 const $serienFilter = document.getElementById('serien-filter');
                 const $serienCheckboxes = document.getElementById('serien-checkboxes');
 
-                // Fehlermeldung anzeigen
+                // Fehlermeldung anzeigen (XSS-sicher mit DOM-Methoden)
                 function showError(message) {
-                    $results.innerHTML = `
-                        <div class="p-4 border-l-4 border-red-500 bg-red-50 dark:bg-red-900/20 rounded">
-                            <p class="text-red-700 dark:text-red-400">${message}</p>
-                        </div>`;
+                    $results.innerHTML = '';
+                    const errorDiv = document.createElement('div');
+                    errorDiv.className = 'p-4 border-l-4 border-red-500 bg-red-50 dark:bg-red-900/20 rounded';
+                    const errorP = document.createElement('p');
+                    errorP.className = 'text-red-700 dark:text-red-400';
+                    errorP.textContent = message;
+                    errorDiv.appendChild(errorP);
+                    $results.appendChild(errorDiv);
                 }
 
                 // Verfügbare Serien beim Laden abrufen
@@ -137,6 +141,11 @@
                     }
                 }
 
+                // Prüfen ob mindestens eine Checkbox ausgewählt ist
+                function hasCheckedSerie() {
+                    return $serienCheckboxes.querySelectorAll('input[name="serien"]:checked').length > 0;
+                }
+
                 // Checkboxen für Serien rendern
                 function renderCheckboxes() {
                     $serienCheckboxes.innerHTML = '';
@@ -144,16 +153,20 @@
                     for (const [key, name] of Object.entries(verfuegbareSerien)) {
                         const count = serienCounts[key];
                         const countText = count !== undefined ? ` (${count})` : '';
+                        const checkboxId = `serie-checkbox-${key}`;
 
                         const label = document.createElement('label');
                         label.className = 'inline-flex items-center text-sm text-gray-700 dark:text-gray-300 cursor-pointer';
+                        label.setAttribute('for', checkboxId);
 
                         const checkbox = document.createElement('input');
                         checkbox.type = 'checkbox';
+                        checkbox.id = checkboxId;
                         checkbox.name = 'serien';
                         checkbox.value = key;
                         checkbox.checked = true;
                         checkbox.className = 'rounded border-gray-300 text-[#8B0116] shadow-sm focus:ring-[#8B0116] mr-1.5';
+                        checkbox.setAttribute('aria-describedby', 'serien-filter-legend');
 
                         const span = document.createElement('span');
                         span.dataset.serie = key;
@@ -162,8 +175,14 @@
                         label.appendChild(checkbox);
                         label.appendChild(span);
 
-                        // Bei Änderung: Suche neu starten (wenn bereits gesucht wurde)
-                        checkbox.addEventListener('change', () => {
+                        // Bei Änderung: Prüfen ob letzte Checkbox, dann Suche neu starten
+                        checkbox.addEventListener('change', (e) => {
+                            // Verhindere Abwählen der letzten Checkbox
+                            if (!e.target.checked && !hasCheckedSerie()) {
+                                e.target.checked = true;
+                                return;
+                            }
+
                             if (query) {
                                 page = 1;
                                 $results.innerHTML = '';
@@ -274,8 +293,14 @@
                     }
                 });
 
-                // Serien beim Seitenladen abrufen
-                loadSerien();
+                // Serien lazy laden wenn Suchfeld fokussiert wird
+                let serienLoaded = false;
+                $search.addEventListener('focus', () => {
+                    if (!serienLoaded) {
+                        serienLoaded = true;
+                        loadSerien();
+                    }
+                });
             })();
         </script>
     @endif

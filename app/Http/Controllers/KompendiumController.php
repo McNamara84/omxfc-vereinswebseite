@@ -13,6 +13,7 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class KompendiumController extends Controller
@@ -68,11 +69,13 @@ class KompendiumController extends Controller
         }
 
         /* ----- Validierung ------------------------------------------------- */
+        $validSerienKeys = array_keys(KompendiumService::SERIEN);
+
         $request->validate([
             'q' => 'required|string|min:2',
             'page' => 'sometimes|integer|min:1',
             'serien' => 'sometimes|array',
-            'serien.*' => 'string',
+            'serien.*' => ['string', Rule::in($validSerienKeys)],
         ]);
 
         $query = mb_strtolower($request->input('q'));
@@ -91,21 +94,20 @@ class KompendiumController extends Controller
         $ids = array_values($ids);                              // re-indexieren
 
         /* ------------------------------------------------------------------ */
-        /*  Serien-Zählung und Filterung */
+        /*  Serien-Zählung und Filterung (kombiniert für Performance) */
         /* ------------------------------------------------------------------ */
         $serienCounts = [];
+        $pathToSerie = [];  // Cache für Serie pro Pfad
+
         foreach ($ids as $path) {
             $serie = $this->extractSerieFromPath($path);
+            $pathToSerie[$path] = $serie;
             $serienCounts[$serie] = ($serienCounts[$serie] ?? 0) + 1;
         }
 
         // Wenn Serien-Filter gesetzt, nur diese Serien berücksichtigen
         if (! empty($selectedSerien)) {
-            $ids = array_values(array_filter($ids, function ($path) use ($selectedSerien) {
-                $serie = $this->extractSerieFromPath($path);
-
-                return in_array($serie, $selectedSerien, true);
-            }));
+            $ids = array_values(array_filter($ids, fn ($path) => in_array($pathToSerie[$path], $selectedSerien, true)));
         }
 
         $total = count($ids);
@@ -193,9 +195,13 @@ class KompendiumController extends Controller
             ->select('serie')
             ->distinct()
             ->pluck('serie')
-            ->mapWithKeys(fn ($key) => [
-                $key => KompendiumService::SERIEN[$key] ?? $key,
-            ]);
+            ->mapWithKeys(function ($key) {
+                if (! isset(KompendiumService::SERIEN[$key])) {
+                    \Log::warning("Unbekannte Serie '{$key}' in Kompendium gefunden – bitte in KompendiumService::SERIEN ergänzen.");
+                }
+
+                return [$key => KompendiumService::SERIEN[$key] ?? $key];
+            });
 
         return response()->json($serien);
     }
