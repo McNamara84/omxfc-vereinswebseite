@@ -175,7 +175,7 @@
                         label.appendChild(checkbox);
                         label.appendChild(span);
 
-                        // Bei Änderung: Prüfen ob letzte Checkbox, dann Suche neu starten
+                        // Bei Änderung: Verhindere Abwählen der letzten Checkbox und starte Suche neu
                         checkbox.addEventListener('change', (e) => {
                             // Verhindere Abwählen der letzten Checkbox
                             if (!e.target.checked && !hasCheckedSerie()) {
@@ -199,7 +199,7 @@
                 function updateCheckboxLabels() {
                     for (const [key, name] of Object.entries(verfuegbareSerien)) {
                         const count = serienCounts[key] ?? 0;
-                        const span = $serienCheckboxes.querySelector(`span[data-serie="${key}"]`);
+                        const span = $serienCheckboxes.querySelector(`span[data-serie="${CSS.escape(key)}"]`);
                         if (span) {
                             span.textContent = `${name} (${count})`;
                         }

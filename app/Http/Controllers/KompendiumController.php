@@ -11,6 +11,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -150,9 +151,9 @@ class KompendiumController extends Controller
             $cycleName = KompendiumService::SERIEN[$serie] ?? Str::of($serie)->replace('-', ' ')->title();
 
             $hits[] = [
-                'cycle' => $cycleName,
-                'romanNr' => $romanNr,
-                'title' => $title,
+                'cycle' => e($cycleName),
+                'romanNr' => e($romanNr),
+                'title' => e($title),
                 'serie' => $serie,
                 'snippets' => $snippets,
             ];
@@ -198,7 +199,7 @@ class KompendiumController extends Controller
             ->pluck('serie')
             ->mapWithKeys(function ($key) {
                 if (! isset(KompendiumService::SERIEN[$key])) {
-                    \Log::warning("Unbekannte Serie '{$key}' in Kompendium gefunden – bitte in KompendiumService::SERIEN ergänzen.");
+                    Log::warning("Unbekannte Serie '{$key}' in Kompendium gefunden – bitte in KompendiumService::SERIEN ergänzen.");
                 }
 
                 return [$key => KompendiumService::SERIEN[$key] ?? $key];
@@ -221,7 +222,7 @@ class KompendiumController extends Controller
 
         // Format: "001 - Titel" – falls kein Trennzeichen, Fallback verwenden
         if (! str_contains($filename, ' - ')) {
-            \Log::warning("Kompendium: Dateiname '{$filename}' entspricht nicht dem erwarteten Format '001 - Titel'.");
+            Log::warning("Kompendium: Dateiname '{$filename}' entspricht nicht dem erwarteten Format '001 - Titel'.");
 
             return [$serie, '???', $filename];
         }
