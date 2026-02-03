@@ -153,11 +153,6 @@ class KompendiumController extends Controller
 
         foreach ($slice as $path) {
 
-            // Sicherheitsprüfung: Pfad gegen Path-Traversal validieren
-            if (! $this->isValidRomanPath($path)) {
-                continue;
-            }
-
             // Prüfe ob Datei existiert (könnte nach Indexierung gelöscht worden sein)
             if (! Storage::disk('private')->exists($path)) {
                 Log::info("Kompendium: Datei nicht gefunden, überspringe: '{$path}'");
@@ -195,10 +190,10 @@ class KompendiumController extends Controller
             $cycleName = KompendiumService::SERIEN[$serie] ?? Str::of($serie)->replace('-', ' ')->title();
 
             $hits[] = [
-                'cycle' => e($cycleName),
-                'romanNr' => e($romanNr),
-                'title' => e($title),
-                'serie' => e($serie),
+                'cycle' => $cycleName,
+                'romanNr' => $romanNr,
+                'title' => $title,
+                'serie' => $serie,
                 'snippets' => $snippets,
             ];
         }

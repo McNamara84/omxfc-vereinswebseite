@@ -176,18 +176,26 @@
                         label.appendChild(span);
 
                         // Bei Änderung: Verhindere Abwählen der letzten Checkbox und starte Suche neu
+                        let isHandlingChange = false;  // Guard gegen rekursive Event-Calls
                         checkbox.addEventListener('change', (e) => {
-                            // Verhindere Abwählen der letzten Checkbox
-                            if (!e.target.checked && !hasCheckedSerie()) {
-                                e.target.checked = true;
-                                return;
-                            }
+                            if (isHandlingChange) return;
+                            isHandlingChange = true;
 
-                            if (query) {
-                                page = 1;
-                                $results.innerHTML = '';
-                                window.removeEventListener('scroll', onScroll);
-                                fetchHits().then(() => window.addEventListener('scroll', onScroll));
+                            try {
+                                // Verhindere Abwählen der letzten Checkbox
+                                if (!e.target.checked && !hasCheckedSerie()) {
+                                    e.target.checked = true;
+                                    return;
+                                }
+
+                                if (query) {
+                                    page = 1;
+                                    $results.innerHTML = '';
+                                    window.removeEventListener('scroll', onScroll);
+                                    fetchHits().then(() => window.addEventListener('scroll', onScroll));
+                                }
+                            } finally {
+                                isHandlingChange = false;
                             }
                         });
 
@@ -212,11 +220,18 @@
                     return Array.from(checkboxes).map(cb => cb.value);
                 }
 
-                // HTML-Template pro Roman
+                // HTML-Escape-Funktion für sichere Ausgabe
+                function escapeHtml(text) {
+                    const div = document.createElement('div');
+                    div.textContent = text;
+                    return div.innerHTML;
+                }
+
+                // HTML-Template pro Roman (mit Escaping für User-Daten)
                 const tpl = (roman) => `
                     <div class="border border-gray-200 dark:border-gray-700 rounded p-4">
                         <h2 class="font-semibold text-[#8B0116] dark:text-[#ff4b63] mb-2">
-                            ${roman.cycle} – ${roman.romanNr}: ${roman.title}
+                            ${escapeHtml(roman.cycle)} – ${escapeHtml(roman.romanNr)}: ${escapeHtml(roman.title)}
                         </h2>
                         ${roman.snippets.map(s => `<p class="mb-2 text-sm leading-relaxed">${s}</p>`).join('')}
                     </div>`;
