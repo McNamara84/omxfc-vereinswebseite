@@ -2,13 +2,13 @@
 
 namespace Tests\Feature;
 
+use App\Enums\Role;
 use App\Models\Team;
 use App\Models\User;
 use App\Providers\AuthServiceProvider;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Gate;
 use Tests\TestCase;
-use App\Enums\Role;
 
 class AuthServiceProviderTest extends TestCase
 {

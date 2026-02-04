@@ -9,11 +9,12 @@ class FantreffenAnmeldung extends Model
 {
     /**
      * Pricing constants for the event.
-     * 
+     *
      * Note: T-shirt price is always 25.00€ for both members and guests.
      * Guests pay an additional 5.00€ participation fee (total: 30.00€ with t-shirt).
      */
     public const GUEST_FEE = 5.00;
+
     public const TSHIRT_PRICE = 25.00;
 
     /**
@@ -113,11 +114,11 @@ class FantreffenAnmeldung extends Model
     public function getFullNameAttribute(): string
     {
         if ($this->user && $this->user->vorname && $this->user->nachname) {
-            return trim($this->user->vorname . ' ' . $this->user->nachname);
+            return trim($this->user->vorname.' '.$this->user->nachname);
         }
 
         if ($this->vorname && $this->nachname) {
-            return trim($this->vorname . ' ' . $this->nachname);
+            return trim($this->vorname.' '.$this->nachname);
         }
 
         return $this->email ?? 'N/A';
@@ -142,7 +143,7 @@ class FantreffenAnmeldung extends Model
     /**
      * Mark payment as received.
      */
-    public function markPaymentReceived(string $transactionId = null): void
+    public function markPaymentReceived(?string $transactionId = null): void
     {
         $this->update([
             'payment_status' => 'paid',
@@ -177,7 +178,7 @@ class FantreffenAnmeldung extends Model
 
         $amount = 0;
 
-        if (!$this->ist_mitglied) {
+        if (! $this->ist_mitglied) {
             $amount += self::GUEST_FEE;
         }
 
@@ -201,7 +202,8 @@ class FantreffenAnmeldung extends Model
         }
 
         $price = $this->ist_mitglied ? self::TSHIRT_PRICE : (self::GUEST_FEE + self::TSHIRT_PRICE);
-        return number_format($price, 2, ',', '.') . ' €';
+
+        return number_format($price, 2, ',', '.').' €';
     }
 
     /**

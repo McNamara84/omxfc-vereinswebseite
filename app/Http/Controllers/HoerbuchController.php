@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Enums\AudiobookEpisodeStatus;
+use App\Http\Requests\AudiobookEpisodeRequest;
+use App\Http\Requests\AudiobookPreviousSpeakerRequest;
 use App\Models\AudiobookEpisode;
 use App\Models\AudiobookRole;
 use App\Models\User;
@@ -10,8 +12,6 @@ use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use App\Http\Requests\AudiobookEpisodeRequest;
-use App\Http\Requests\AudiobookPreviousSpeakerRequest;
 use Illuminate\Support\Str;
 
 class HoerbuchController extends Controller

@@ -57,18 +57,18 @@ class MeetingController extends Controller
     {
         $meeting = $request->input('meeting');
 
-    // Mapping von IDs zu echten Zoom-URLs (auf dem Server!)
-    $links = [
-        'maddraxikon' => env('ZOOM_LINK_MADDRAXIKON'),
-        'fanhoerbuch' => env('ZOOM_LINK_HOERBUECHER'),
-        'mapdrax' => env('ZOOM_LINK_MAPDRAX'),
-        'stammtisch' => env('ZOOM_LINK_STAMMTISCH'),
-    ];
+        // Mapping von IDs zu echten Zoom-URLs (auf dem Server!)
+        $links = [
+            'maddraxikon' => env('ZOOM_LINK_MADDRAXIKON'),
+            'fanhoerbuch' => env('ZOOM_LINK_HOERBUECHER'),
+            'mapdrax' => env('ZOOM_LINK_MAPDRAX'),
+            'stammtisch' => env('ZOOM_LINK_STAMMTISCH'),
+        ];
 
-    if (!array_key_exists($meeting, $links)) {
-        abort(403, 'Unbekanntes Meeting');
-    }
+        if (! array_key_exists($meeting, $links)) {
+            abort(403, 'Unbekanntes Meeting');
+        }
 
-    return redirect()->away($links[$meeting]);
+        return redirect()->away($links[$meeting]);
     }
 }

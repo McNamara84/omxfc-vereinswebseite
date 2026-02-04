@@ -2,12 +2,12 @@
 
 namespace Tests\Feature;
 
+use App\Console\Commands\IndexRomane;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
 use Illuminate\Support\Facades\File;
 use Mockery;
-use App\Console\Commands\IndexRomane;
 use ReflectionClass;
+use Tests\TestCase;
 
 class IndexRomaneCommandTest extends TestCase
 {
@@ -21,9 +21,9 @@ class IndexRomaneCommandTest extends TestCase
 
         $this->testStoragePath = base_path('storage/testing');
         $this->app->useStoragePath($this->testStoragePath);
-        File::ensureDirectoryExists($this->testStoragePath . '/app/private/romane/Z1');
-        File::ensureDirectoryExists($this->testStoragePath . '/framework/views');
-        config(['filesystems.disks.private.root' => $this->testStoragePath . '/app/private']);
+        File::ensureDirectoryExists($this->testStoragePath.'/app/private/romane/Z1');
+        File::ensureDirectoryExists($this->testStoragePath.'/framework/views');
+        config(['filesystems.disks.private.root' => $this->testStoragePath.'/app/private']);
         config(['scout.driver' => 'null']);
     }
 
@@ -42,10 +42,9 @@ class IndexRomaneCommandTest extends TestCase
             ->assertExitCode(1);
     }
 
-
     public function test_meta_from_path_extracts_information(): void
     {
-        $command = new IndexRomane();
+        $command = new IndexRomane;
         $ref = new ReflectionClass($command);
         $method = $ref->getMethod('metaFromPath');
         $method->setAccessible(true);

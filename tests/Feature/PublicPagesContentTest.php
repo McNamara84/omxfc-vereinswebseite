@@ -87,4 +87,3 @@ class PublicPagesContentTest extends TestCase
             ->assertSee('ag@example.com');
     }
 }
-

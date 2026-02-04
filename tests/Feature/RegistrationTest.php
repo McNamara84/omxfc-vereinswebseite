@@ -2,11 +2,10 @@
 
 namespace Tests\Feature;
 
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Fortify\Features;
-use Laravel\Jetstream\Jetstream;
 use Tests\TestCase;
-use App\Models\User;
 
 class RegistrationTest extends TestCase
 {
@@ -100,7 +99,7 @@ class RegistrationTest extends TestCase
 
         $response->assertRedirect('/mitglied-werden');
         $response->assertSessionHasErrors([
-            'vorname', 'nachname', 'strasse', 'hausnummer', 'plz', 'stadt', 'land', 'mail', 'passwort', 'mitgliedsbeitrag'
+            'vorname', 'nachname', 'strasse', 'hausnummer', 'plz', 'stadt', 'land', 'mail', 'passwort', 'mitgliedsbeitrag',
         ]);
     }
 }

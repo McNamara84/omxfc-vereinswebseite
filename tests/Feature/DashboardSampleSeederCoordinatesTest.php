@@ -5,8 +5,8 @@ namespace Tests\Feature;
 use App\Models\Team;
 use App\Models\User;
 use Database\Seeders\DashboardSampleSeeder;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
 use Tests\TestCase;
 
 class DashboardSampleSeederCoordinatesTest extends TestCase

@@ -18,8 +18,9 @@ test.describe('dark mode respects preferences', () => {
     const hasDarkClass = await page.evaluate(() => document.documentElement.classList.contains('dark'));
     expect(hasDarkClass).toBe(true);
 
+    // daisyUI uses 'coffee' theme for dark mode
     const currentTheme = await page.evaluate(() => document.documentElement.dataset.theme);
-    expect(currentTheme).toBe('dark');
+    expect(currentTheme).toBe('coffee');
   });
 
   test('prioritises stored light preference over system dark mode', async ({ page }) => {
@@ -31,8 +32,9 @@ test.describe('dark mode respects preferences', () => {
     const hasDarkClass = await page.evaluate(() => document.documentElement.classList.contains('dark'));
     expect(hasDarkClass).toBe(false);
 
+    // daisyUI uses 'caramellatte' theme for light mode
     const currentTheme = await page.evaluate(() => document.documentElement.dataset.theme);
-    expect(currentTheme).toBe('light');
+    expect(currentTheme).toBe('caramellatte');
 
     await page.evaluate(() => window.localStorage.removeItem('theme'));
   });
@@ -61,8 +63,9 @@ test.describe('system preference change handling', () => {
 
     expect(applied).toBe(true);
 
+    // daisyUI uses 'coffee' theme for dark mode
     const currentTheme = await page.evaluate(() => document.documentElement.dataset.theme);
-    expect(currentTheme).toBe('dark');
+    expect(currentTheme).toBe('coffee');
   });
 
   test('reacts to storage theme updates', async ({ page }) => {
@@ -79,8 +82,9 @@ test.describe('system preference change handling', () => {
 
     expect(applied).toBe(true);
 
+    // daisyUI uses 'coffee' theme for dark mode
     const currentTheme = await page.evaluate(() => document.documentElement.dataset.theme);
-    expect(currentTheme).toBe('dark');
+    expect(currentTheme).toBe('coffee');
 
     const reverted = await page.evaluate(() => {
       window.localStorage.setItem('theme', 'light');
@@ -89,8 +93,9 @@ test.describe('system preference change handling', () => {
 
     expect(reverted).toBe(false);
 
+    // daisyUI uses 'caramellatte' theme for light mode
     const revertedTheme = await page.evaluate(() => document.documentElement.dataset.theme);
-    expect(revertedTheme).toBe('light');
+    expect(revertedTheme).toBe('caramellatte');
 
     await page.evaluate(() => window.localStorage.removeItem('theme'));
   });

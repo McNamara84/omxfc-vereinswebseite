@@ -3,10 +3,8 @@
 namespace Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
-use App\Models\Team;
-use App\Models\User;
 use Illuminate\Support\Facades\Http;
+use Tests\TestCase;
 
 class PhotoGalleryControllerTest extends TestCase
 {
@@ -57,12 +55,13 @@ class PhotoGalleryControllerTest extends TestCase
     private function ensurePlaceholder(string $year): void
     {
         $path = public_path("images/galerie/{$year}/placeholder1.jpg");
-        if (!file_exists($path)) {
+        if (! file_exists($path)) {
             $dir = dirname($path);
-            if (!is_dir($dir)) {
+            if (! is_dir($dir)) {
                 mkdir($dir, 0777, true);
             }
-            file_put_contents($path, 'dummy');$this->createdPlaceholders[] = $path;
+            file_put_contents($path, 'dummy');
+            $this->createdPlaceholders[] = $path;
         }
     }
 

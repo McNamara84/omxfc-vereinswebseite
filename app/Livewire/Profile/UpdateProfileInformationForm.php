@@ -2,9 +2,9 @@
 
 namespace App\Livewire\Profile;
 
+use Laravel\Fortify\Contracts\UpdatesUserProfileInformation;
 use Livewire\Component;
 use Livewire\WithFileUploads;
-use Laravel\Fortify\Contracts\UpdatesUserProfileInformation;
 
 class UpdateProfileInformationForm extends Component
 {
@@ -41,14 +41,13 @@ class UpdateProfileInformationForm extends Component
             'stadt',
             'land',
             'telefon',
-            'mitgliedsbeitrag'
+            'mitgliedsbeitrag',
         ]);
     }
 
     /**
      * Update the user's profile information.
      *
-     * @param  \Laravel\Fortify\Contracts\UpdatesUserProfileInformation  $updater
      * @return void
      */
     public function updateProfileInformation(UpdatesUserProfileInformation $updater)

@@ -2,12 +2,12 @@
 
 namespace App\Mail;
 
+use App\Models\BookSwap;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
-use App\Models\BookSwap;
 
 class BookSwapMatched extends Mailable
 {
@@ -16,9 +16,7 @@ class BookSwapMatched extends Mailable
     /**
      * Create a new message instance.
      */
-    public function __construct(public BookSwap $swap)
-    {
-    }
+    public function __construct(public BookSwap $swap) {}
 
     /**
      * Get the message envelope.

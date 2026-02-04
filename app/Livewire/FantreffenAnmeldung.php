@@ -69,7 +69,7 @@ class FantreffenAnmeldung extends Component
     {
         $amount = 0;
 
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             $amount += FantreffenAnmeldungModel::GUEST_FEE;
         }
 
@@ -100,7 +100,7 @@ class FantreffenAnmeldung extends Component
     public function updatedTshirtBestellt(): void
     {
         // Reset T-Shirt size if unchecked
-        if (!$this->tshirt_bestellt) {
+        if (! $this->tshirt_bestellt) {
             $this->tshirt_groesse = '';
         }
         // Computed Property wird automatisch neu berechnet
@@ -130,7 +130,7 @@ class FantreffenAnmeldung extends Component
             'tshirt_groesse' => 'required_if:tshirt_bestellt,true|nullable|in:XS,S,M,L,XL,XXL,XXXL',
         ];
 
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             $rules['vorname'] = 'required|string|max:255';
             $rules['nachname'] = 'required|string|max:255';
             $rules['email'] = 'required|email|max:255';
@@ -225,7 +225,7 @@ class FantreffenAnmeldung extends Component
 
     private function resetForm(): void
     {
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             $this->vorname = '';
             $this->nachname = '';
             $this->email = '';

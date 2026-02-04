@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\Role;
 use App\Mail\Newsletter;
 use App\Models\Team;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rule;
-use App\Enums\Role;
 
 class NewsletterController extends Controller
 {
@@ -51,7 +51,7 @@ class NewsletterController extends Controller
 
         $data = $request->validate([
             'roles' => ['required', 'array'],
-            'roles.*' => ['string', Rule::in(array_map(fn(Role $r) => $r->value, self::ROLES))],
+            'roles.*' => ['string', Rule::in(array_map(fn (Role $r) => $r->value, self::ROLES))],
             'subject' => ['required', 'string'],
             'topics' => ['required', 'array', 'min:1'],
             'topics.*.title' => ['required', 'string'],
@@ -84,4 +84,3 @@ class NewsletterController extends Controller
         );
     }
 }
-

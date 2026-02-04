@@ -2,13 +2,13 @@
 
 namespace Tests\Feature;
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
-use App\Models\User;
-use App\Models\Team;
-use Illuminate\Support\Facades\File;
 use App\Models\Book;
 use App\Models\Review;
+use App\Models\Team;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\File;
+use Tests\TestCase;
 
 class ImportOldReviewsCommandTest extends TestCase
 {
@@ -22,8 +22,8 @@ class ImportOldReviewsCommandTest extends TestCase
 
         $this->testStoragePath = base_path('storage/testing');
         $this->app->useStoragePath($this->testStoragePath);
-        File::ensureDirectoryExists($this->testStoragePath . '/app/private');
-        File::ensureDirectoryExists($this->testStoragePath . '/framework/views');
+        File::ensureDirectoryExists($this->testStoragePath.'/app/private');
+        File::ensureDirectoryExists($this->testStoragePath.'/framework/views');
     }
 
     protected function tearDown(): void
@@ -52,7 +52,7 @@ class ImportOldReviewsCommandTest extends TestCase
 
         $csv = "topic;author;timestamp;content\n";
         $csv .= "001 - Roman1;user@example.com;13. März 2025, 12:34;Letzte\n";
-        File::put($this->testStoragePath . '/app/private/reviews.csv', $csv);
+        File::put($this->testStoragePath.'/app/private/reviews.csv', $csv);
 
         $this->artisan('reviews:import-old', ['--path' => 'private/reviews.csv'])->assertExitCode(0);
 

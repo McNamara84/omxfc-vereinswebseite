@@ -408,15 +408,15 @@
                         <form :action="'/kassenbuch/zahlung-aktualisieren/' + user_id" method="POST">
                             @csrf
                             @method('PUT')
-                              <x-form name="mitgliedsbeitrag" label="Mitgliedsbeitrag (€)" class="mb-4">
+                              <x-field-group name="mitgliedsbeitrag" label="Mitgliedsbeitrag (€)" class="mb-4">
                                   <input id="mitgliedsbeitrag" name="mitgliedsbeitrag" aria-describedby="mitgliedsbeitrag-error" type="number" step="0.01" min="0" x-model="mitgliedsbeitrag" class="shadow-sm focus:ring-[#8B0116] focus:border-[#8B0116] block w-full sm:text-sm border-gray-300 dark:border-gray-700 dark:bg-gray-700 dark:text-white rounded-md" />
-                              </x-form>
-                              <x-form name="bezahlt_bis" label="Bezahlt bis" class="mb-4">
+                              </x-field-group>
+                              <x-field-group name="bezahlt_bis" label="Bezahlt bis" class="mb-4">
                                   <input id="bezahlt_bis" name="bezahlt_bis" aria-describedby="bezahlt_bis-error" type="date" x-model="bezahlt_bis" class="shadow-sm focus:ring-[#8B0116] focus:border-[#8B0116] block w-full sm:text-sm border-gray-300 dark:border-gray-700 dark:bg-gray-700 dark:text-white rounded-md" />
-                              </x-form>
-                              <x-form name="mitglied_seit" label="Mitglied seit" class="mb-4">
+                              </x-field-group>
+                              <x-field-group name="mitglied_seit" label="Mitglied seit" class="mb-4">
                                   <input id="mitglied_seit" name="mitglied_seit" aria-describedby="mitglied_seit-error" type="date" x-model="mitglied_seit" class="shadow-sm focus:ring-[#8B0116] focus:border-[#8B0116] block w-full sm:text-sm border-gray-300 dark:border-gray-700 dark:bg-gray-700 dark:text-white rounded-md" />
-                              </x-form>
+                              </x-field-group>
                             <div class="mt-6 flex justify-end">
                                 <button type="button" @click="open = false" class="mr-3 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none">
                                     Abbrechen
@@ -478,17 +478,17 @@
                         <form action="{{ route('kassenbuch.add-entry') }}" method="POST">
                             @csrf
                             
-                                <x-form name="buchungsdatum" label="Buchungsdatum" class="mb-4">
+                                <x-field-group name="buchungsdatum" label="Buchungsdatum" class="mb-4">
                                     <input id="buchungsdatum" name="buchungsdatum" aria-describedby="buchungsdatum-error" type="date" required value="{{ date('Y-m-d') }}" class="shadow-sm focus:ring-[#8B0116] focus:border-[#8B0116] block w-full sm:text-sm border-gray-300 dark:border-gray-700 dark:bg-gray-700 dark:text-white rounded-md" />
-                                </x-form>
+                                </x-field-group>
 
-                                <x-form name="beschreibung" label="Beschreibung" class="mb-4">
+                                <x-field-group name="beschreibung" label="Beschreibung" class="mb-4">
                                     <input id="beschreibung" name="beschreibung" aria-describedby="beschreibung-error" type="text" required class="shadow-sm focus:ring-[#8B0116] focus:border-[#8B0116] block w-full sm:text-sm border-gray-300 dark:border-gray-700 dark:bg-gray-700 dark:text-white rounded-md" />
-                                </x-form>
+                                </x-field-group>
 
-                                <x-form name="betrag" label="Betrag (€)" class="mb-4">
+                                <x-field-group name="betrag" label="Betrag (€)" class="mb-4">
                                     <input id="betrag" name="betrag" aria-describedby="betrag-error" type="number" step="0.01" min="0.01" required class="shadow-sm focus:ring-[#8B0116] focus:border-[#8B0116] block w-full sm:text-sm border-gray-300 dark:border-gray-700 dark:bg-gray-700 dark:text-white rounded-md" />
-                                </x-form>
+                                </x-field-group>
                             
                             <div class="mb-4">
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Typ</label>
@@ -563,18 +563,18 @@
                         <form :action="'/kassenbuch/eintrag/' + entry_id + '/bearbeitung-anfragen'" method="POST">
                             @csrf
 
-                            <x-form name="reason_type" label="Begründung" class="mb-4">
+                            <x-field-group name="reason_type" label="Begründung" class="mb-4">
                                 <select id="reason_type" name="reason_type" required class="shadow-sm focus:ring-[#8B0116] focus:border-[#8B0116] block w-full sm:text-sm border-gray-300 dark:border-gray-700 dark:bg-gray-700 dark:text-white rounded-md">
                                     <option value="">-- Bitte wählen --</option>
                                     @foreach($editReasonTypes as $type)
                                         <option value="{{ $type->value }}">{{ $type->label() }}</option>
                                     @endforeach
                                 </select>
-                            </x-form>
+                            </x-field-group>
 
-                            <x-form name="reason_text" label="Details (optional)" class="mb-4">
+                            <x-field-group name="reason_text" label="Details (optional)" class="mb-4">
                                 <textarea id="reason_text" name="reason_text" rows="3" maxlength="500" placeholder="Optionale Details zur Begründung..." class="shadow-sm focus:ring-[#8B0116] focus:border-[#8B0116] block w-full sm:text-sm border-gray-300 dark:border-gray-700 dark:bg-gray-700 dark:text-white rounded-md"></textarea>
-                            </x-form>
+                            </x-field-group>
 
                             <p class="text-xs text-gray-400 dark:text-gray-500 mb-4">
                                 Hinweis: Bei "Sonstiges" ist eine Begründung erforderlich.
@@ -646,17 +646,17 @@
                             @csrf
                             @method('PUT')
 
-                            <x-form name="buchungsdatum" label="Buchungsdatum" class="mb-4">
+                            <x-field-group name="buchungsdatum" label="Buchungsdatum" class="mb-4">
                                 <input id="edit_buchungsdatum" name="buchungsdatum" type="date" required x-model="entry.buchungsdatum" class="shadow-sm focus:ring-[#8B0116] focus:border-[#8B0116] block w-full sm:text-sm border-gray-300 dark:border-gray-700 dark:bg-gray-700 dark:text-white rounded-md" />
-                            </x-form>
+                            </x-field-group>
 
-                            <x-form name="beschreibung" label="Beschreibung" class="mb-4">
+                            <x-field-group name="beschreibung" label="Beschreibung" class="mb-4">
                                 <input id="edit_beschreibung" name="beschreibung" type="text" required x-model="entry.beschreibung" class="shadow-sm focus:ring-[#8B0116] focus:border-[#8B0116] block w-full sm:text-sm border-gray-300 dark:border-gray-700 dark:bg-gray-700 dark:text-white rounded-md" />
-                            </x-form>
+                            </x-field-group>
 
-                            <x-form name="betrag" label="Betrag (€)" class="mb-4">
+                            <x-field-group name="betrag" label="Betrag (€)" class="mb-4">
                                 <input id="edit_betrag" name="betrag" type="number" step="0.01" min="0.01" required x-model="entry.betrag" class="shadow-sm focus:ring-[#8B0116] focus:border-[#8B0116] block w-full sm:text-sm border-gray-300 dark:border-gray-700 dark:bg-gray-700 dark:text-white rounded-md" />
-                            </x-form>
+                            </x-field-group>
 
                             <div class="mb-4">
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Typ</label>
@@ -733,9 +733,9 @@
                         <form :action="'/kassenbuch/anfrage/' + request_id + '/ablehnen'" method="POST">
                             @csrf
 
-                            <x-form name="rejection_reason" label="Begründung (optional)" class="mb-4">
+                            <x-field-group name="rejection_reason" label="Begründung (optional)" class="mb-4">
                                 <textarea id="rejection_reason" name="rejection_reason" rows="3" maxlength="500" placeholder="Optionale Begründung für die Ablehnung..." class="shadow-sm focus:ring-[#8B0116] focus:border-[#8B0116] block w-full sm:text-sm border-gray-300 dark:border-gray-700 dark:bg-gray-700 dark:text-white rounded-md"></textarea>
-                            </x-form>
+                            </x-field-group>
 
                             <div class="mt-6 flex justify-end">
                                 <button type="button" @click="open = false" class="mr-3 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none">

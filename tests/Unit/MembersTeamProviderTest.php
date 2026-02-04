@@ -16,7 +16,7 @@ class MembersTeamProviderTest extends TestCase
 
     public function test_returns_team_when_exists(): void
     {
-        $service = new MembersTeamProvider();
+        $service = new MembersTeamProvider;
         $team = $service->getMembersTeamOrAbort();
 
         $this->assertInstanceOf(Team::class, $team);
@@ -29,7 +29,7 @@ class MembersTeamProviderTest extends TestCase
         Team::clearMembersTeamCache();
         session()->start();
 
-        $service = new MembersTeamProvider();
+        $service = new MembersTeamProvider;
 
         try {
             $service->getMembersTeamOrAbort();

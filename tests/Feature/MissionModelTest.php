@@ -2,11 +2,11 @@
 
 namespace Tests\Feature;
 
+use App\Models\Mission;
+use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
-use App\Models\User;
-use App\Models\Mission;
-use Carbon\Carbon;
 
 class MissionModelTest extends TestCase
 {

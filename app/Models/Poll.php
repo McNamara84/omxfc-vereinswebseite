@@ -43,7 +43,7 @@ class Poll extends Model
     {
         return $query
             ->orderByRaw(
-                "CASE status WHEN ? THEN 0 WHEN ? THEN 1 ELSE 2 END",
+                'CASE status WHEN ? THEN 0 WHEN ? THEN 1 ELSE 2 END',
                 [PollStatus::Active->value, PollStatus::Draft->value]
             )
             ->orderByDesc('id');

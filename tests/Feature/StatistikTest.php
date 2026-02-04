@@ -1088,7 +1088,7 @@ class StatistikTest extends TestCase
         $sections = $response->viewData('statisticSections');
         $this->assertNotEmpty($sections);
 
-        $dom = new \DOMDocument();
+        $dom = new \DOMDocument;
         \libxml_use_internal_errors(true);
         $dom->loadHTML($response->getContent());
         \libxml_clear_errors();

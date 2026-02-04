@@ -2,13 +2,10 @@
 
 namespace Tests\Feature;
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithFaker;
-use Tests\TestCase;
-use App\Models\Team;
-use App\Models\User;
 use App\Models\Mission;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
+use Tests\TestCase;
 
 class MaddraxiversumMissionTest extends TestCase
 {
@@ -30,7 +27,7 @@ class MaddraxiversumMissionTest extends TestCase
         ]);
 
         $response->assertOk()->assertJsonStructure([
-            'message', 'arrival_at', 'mission_ends_at'
+            'message', 'arrival_at', 'mission_ends_at',
         ]);
 
         $this->assertDatabaseHas('missions', [

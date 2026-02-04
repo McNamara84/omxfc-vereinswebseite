@@ -4,8 +4,8 @@ namespace App\Providers;
 
 use App\Enums\PollVisibility;
 use App\Services\Polls\ActivePollResolver;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Facades\URL;

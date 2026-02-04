@@ -3,26 +3,25 @@
 namespace App\Http\Controllers;
 
 use App\Enums\TodoStatus;
+use App\Http\Requests\TodoRequest;
 use App\Models\Activity;
 use App\Models\Todo;
 use App\Models\TodoCategory;
 use App\Models\UserPoint;
-use App\Services\TeamPointService;
 use App\Services\MembersTeamProvider;
-use Illuminate\Http\Request;
-use App\Http\Requests\TodoRequest;
-use Illuminate\Support\Facades\Auth;
+use App\Services\TeamPointService;
 use App\Services\UserRoleService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class TodoController extends Controller
-{ 
+{
     public function __construct(
         private TeamPointService $teamPointService,
         private UserRoleService $userRoleService,
         private MembersTeamProvider $membersTeamProvider,
-    ) {
-    }
+    ) {}
 
     /**
      * Zeigt die Übersicht der Todos an.
@@ -58,8 +57,7 @@ class TodoController extends Controller
 
         $assignedTodos = $todos->where('assigned_to', $user->id);
         $unassignedTodos = $todos->where('status', 'open');
-        $completedTodos = $todos->filter(fn ($todo) =>
-            in_array($todo->status->value, ['completed', 'verified'], true) &&
+        $completedTodos = $todos->filter(fn ($todo) => in_array($todo->status->value, ['completed', 'verified'], true) &&
             $todo->assigned_to !== $user->id
         );
 

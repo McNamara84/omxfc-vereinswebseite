@@ -31,4 +31,3 @@ class PageComponentRenderingTest extends TestCase
             ->assertSee('max-w-7xl', false);
     }
 }
-

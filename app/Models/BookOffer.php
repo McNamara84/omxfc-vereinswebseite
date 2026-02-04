@@ -65,10 +65,11 @@ class BookOffer extends Model
     {
         if ($value === null) {
             $this->attributes['photos'] = null;
+
             return;
         }
 
-        if (!is_array($value)) {
+        if (! is_array($value)) {
             $decoded = json_decode($value ?? '[]', true);
             $value = is_array($decoded) ? $decoded : [];
         }
@@ -77,7 +78,7 @@ class BookOffer extends Model
     }
 
     /**
-     * @param array<int, mixed> $photos
+     * @param  array<int, mixed>  $photos
      * @return array<int, string>
      */
     private function sanitizePhotoPaths(array $photos): array
@@ -85,7 +86,7 @@ class BookOffer extends Model
         $normalized = [];
 
         foreach ($photos as $photo) {
-            if (!is_string($photo)) {
+            if (! is_string($photo)) {
                 continue;
             }
 
@@ -122,7 +123,7 @@ class BookOffer extends Model
      */
     public function bundleSiblings(): \Illuminate\Support\Collection
     {
-        if (!$this->bundle_id) {
+        if (! $this->bundle_id) {
             return collect();
         }
 
@@ -144,7 +145,7 @@ class BookOffer extends Model
      */
     public function bundleOffers(): \Illuminate\Support\Collection
     {
-        if (!$this->bundle_id) {
+        if (! $this->bundle_id) {
             return collect([$this]);
         }
 
@@ -165,7 +166,7 @@ class BookOffer extends Model
     public function getConditionRangeAttribute(): string
     {
         if ($this->condition_max && $this->condition !== $this->condition_max) {
-            return $this->condition . ' bis ' . $this->condition_max;
+            return $this->condition.' bis '.$this->condition_max;
         }
 
         return $this->condition;

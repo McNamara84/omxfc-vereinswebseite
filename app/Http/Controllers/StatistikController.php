@@ -15,8 +15,8 @@ class StatistikController extends Controller
     public function __construct(
         private TeamPointService $teamPointService,
         private MaddraxDataService $maddraxDataService,
-    ) {
-    }
+    ) {}
+
     /**
      * Zeigt die Statistik-Unterseite.
      *

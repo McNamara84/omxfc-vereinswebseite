@@ -2,24 +2,24 @@
 
 namespace Tests\Feature;
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
-use App\Models\Team;
-use App\Models\User;
-use App\Models\Todo;
-use App\Models\TodoCategory;
-use App\Models\UserPoint;
-use Illuminate\Support\Str;
-use Illuminate\Support\Facades\DB;
+use App\Enums\Role;
 use App\Models\Book;
-use App\Models\Review;
 use App\Models\BookOffer;
 use App\Models\BookRequest;
 use App\Models\BookSwap;
+use App\Models\Review;
+use App\Models\Team;
+use App\Models\Todo;
+use App\Models\TodoCategory;
+use App\Models\User;
+use App\Models\UserPoint;
 use App\Services\MaddraxDataService;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
-use App\Enums\Role;
+use Illuminate\Support\Str;
 use PHPUnit\Framework\Attributes\Large;
+use Tests\TestCase;
 
 #[Large]
 class ProfileViewControllerTest extends TestCase
@@ -31,6 +31,7 @@ class ProfileViewControllerTest extends TestCase
         $team = Team::membersTeam();
         $user = User::factory()->create(['current_team_id' => $team->id]);
         $team->users()->attach($user, ['role' => Role::from($role)->value]);
+
         return $user;
     }
 
@@ -287,9 +288,9 @@ class ProfileViewControllerTest extends TestCase
         $testStoragePath = base_path('storage/testing-weltrat');
         $originalStoragePath = $this->app->storagePath();
         $this->app->useStoragePath($testStoragePath);
-        File::ensureDirectoryExists($testStoragePath . '/app/private');
+        File::ensureDirectoryExists($testStoragePath.'/app/private');
         $originalLocalRoot = config('filesystems.disks.local.root');
-        config(['filesystems.disks.local.root' => $testStoragePath . '/app/private']);
+        config(['filesystems.disks.local.root' => $testStoragePath.'/app/private']);
 
         $ref = new \ReflectionClass(MaddraxDataService::class);
         $property = $ref->getProperty('data');
@@ -300,7 +301,7 @@ class ProfileViewControllerTest extends TestCase
             ['nummer' => 1, 'zyklus' => 'Weltrat-Zyklus', 'titel' => 'Roman1', 'text' => []],
             ['nummer' => 2, 'zyklus' => 'Weltrat-Zyklus', 'titel' => 'Roman2', 'text' => []],
         ];
-        File::put($testStoragePath . '/app/private/maddrax.json', json_encode($data));
+        File::put($testStoragePath.'/app/private/maddrax.json', json_encode($data));
 
         $book1 = Book::create(['roman_number' => 1, 'title' => 'Roman1', 'author' => 'Author']);
         $book2 = Book::create(['roman_number' => 2, 'title' => 'Roman2', 'author' => 'Author']);
@@ -342,9 +343,9 @@ class ProfileViewControllerTest extends TestCase
         $testStoragePath = base_path('storage/testing-amraka');
         $originalStoragePath = $this->app->storagePath();
         $this->app->useStoragePath($testStoragePath);
-        File::ensureDirectoryExists($testStoragePath . '/app/private');
+        File::ensureDirectoryExists($testStoragePath.'/app/private');
         $originalLocalRoot = config('filesystems.disks.local.root');
-        config(['filesystems.disks.local.root' => $testStoragePath . '/app/private']);
+        config(['filesystems.disks.local.root' => $testStoragePath.'/app/private']);
 
         $ref = new \ReflectionClass(MaddraxDataService::class);
         $property = $ref->getProperty('data');
@@ -355,7 +356,7 @@ class ProfileViewControllerTest extends TestCase
             ['nummer' => 1, 'zyklus' => 'Amraka-Zyklus', 'titel' => 'Roman1', 'text' => []],
             ['nummer' => 2, 'zyklus' => 'Amraka-Zyklus', 'titel' => 'Roman2', 'text' => []],
         ];
-        File::put($testStoragePath . '/app/private/maddrax.json', json_encode($data));
+        File::put($testStoragePath.'/app/private/maddrax.json', json_encode($data));
 
         $book1 = Book::create(['roman_number' => 1, 'title' => 'Roman1', 'author' => 'Author']);
         $book2 = Book::create(['roman_number' => 2, 'title' => 'Roman2', 'author' => 'Author']);

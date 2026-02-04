@@ -4,8 +4,8 @@ namespace Tests\Unit;
 
 use App\Models\Review;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
 use PHPUnit\Framework\Attributes\CoversClass;
 use Tests\TestCase;
 
@@ -86,7 +86,7 @@ class ReviewFormattedContentTest extends TestCase
     {
         $nestedMarkdown = "> Quote\n> \n> 1. Eins\n>    - Unterpunkt\n>      - Noch tiefer\n\n";
         $longContent = str_repeat('Langer Inhalt ', 500);
-        $review = new Review(['content' => $nestedMarkdown . $longContent]);
+        $review = new Review(['content' => $nestedMarkdown.$longContent]);
 
         $formatted = $review->formatted_content;
 
@@ -100,7 +100,7 @@ class ReviewFormattedContentTest extends TestCase
 
     public function test_allows_relative_and_mailto_links_and_removes_styles(): void
     {
-        $markdown = "[Relative](page.html) and [Docs](./docs) and [Mail](mailto:team@example.com) and <a href=\"https://example.com\" style=\"color:red\">Styled</a>";
+        $markdown = '[Relative](page.html) and [Docs](./docs) and [Mail](mailto:team@example.com) and <a href="https://example.com" style="color:red">Styled</a>';
         $review = new Review(['content' => $markdown]);
 
         $formatted = $review->formatted_content;
@@ -113,7 +113,7 @@ class ReviewFormattedContentTest extends TestCase
 
     public function test_handles_relative_link_shapes_with_queries_and_fragments(): void
     {
-        $markdown = "[Nested](docs/v1/guide/page.html?ref=123#section) and [Letters](docs123/file-name_v2.md) and [Underscored](_drafts/notes.txt)";
+        $markdown = '[Nested](docs/v1/guide/page.html?ref=123#section) and [Letters](docs123/file-name_v2.md) and [Underscored](_drafts/notes.txt)';
         $review = new Review(['content' => $markdown]);
 
         $formatted = $review->formatted_content;
@@ -161,7 +161,7 @@ class ReviewFormattedContentTest extends TestCase
 
     public function test_applies_defensive_relative_link_heuristics(): void
     {
-        $markdown = "[Query](docs/page?section=1) and [Numeric](123start/page) and [Special](@notes/file) and [Subdir](docs/more/paths/file.txt)";
+        $markdown = '[Query](docs/page?section=1) and [Numeric](123start/page) and [Special](@notes/file) and [Subdir](docs/more/paths/file.txt)';
         $review = new Review(['content' => $markdown]);
 
         $formatted = $review->formatted_content;

@@ -2,11 +2,9 @@
 
 namespace Tests\Feature;
 
-use App\Livewire\Profile\UpdateSeriendatenForm;
-use App\Models\Team;
-use App\Models\User;
-use App\Models\Book;
 use App\Enums\BookType;
+use App\Livewire\Profile\UpdateSeriendatenForm;
+use App\Models\Book;
 use App\Services\MaddraxDataService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\File;
@@ -27,8 +25,8 @@ class UpdateSeriendatenFormTest extends TestCase
         // Configure a separate storage path with test data
         $this->testStoragePath = base_path('storage/testing');
         $this->app->useStoragePath($this->testStoragePath);
-        File::ensureDirectoryExists($this->testStoragePath . '/app/private');
-        config(['filesystems.disks.local.root' => $this->testStoragePath . '/app/private']);
+        File::ensureDirectoryExists($this->testStoragePath.'/app/private');
+        config(['filesystems.disks.local.root' => $this->testStoragePath.'/app/private']);
 
         // Reset cached data in the service
         $ref = new \ReflectionClass(MaddraxDataService::class);
@@ -57,7 +55,7 @@ class UpdateSeriendatenFormTest extends TestCase
                 'schlagworte' => ['Thema2'],
             ],
         ];
-        File::put($this->testStoragePath . '/app/private/maddrax.json', json_encode($data));
+        File::put($this->testStoragePath.'/app/private/maddrax.json', json_encode($data));
 
         // Create some hardcover books
         Book::create(['roman_number' => 1, 'title' => 'Hardcover1', 'author' => 'Author1', 'type' => BookType::MaddraxHardcover]);

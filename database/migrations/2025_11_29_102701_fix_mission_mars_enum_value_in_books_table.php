@@ -7,10 +7,10 @@ return new class extends Migration
 {
     /**
      * Fix the Mission Mars ENUM value to match the BookType enum.
-     * 
+     *
      * The database had 'Mission Mars' but BookType::MissionMars uses 'Mission Mars-Heftromane'.
      * This migration updates the ENUM to use the correct value.
-     * 
+     *
      * Note: 'Das Volk der Tiefe' intentionally does NOT have the '-Heftromane' suffix
      * in the BookType enum, matching the established naming convention in this project.
      * The Wiki category URL uses 'Das_Volk_der_Tiefe-Heftromane' but the database value
@@ -30,10 +30,10 @@ return new class extends Migration
                 '2012 - Das Jahr der Apokalypse',
                 'Die Abenteurer'
             ) NOT NULL DEFAULT 'Maddrax - Die dunkle Zukunft der Erde'");
-            
+
             // Update existing Mission Mars entries to the new enum value
             DB::statement("UPDATE books SET type = 'Mission Mars-Heftromane' WHERE type = 'Mission Mars'");
-            
+
             // Now remove the old value from the ENUM
             DB::statement("ALTER TABLE books MODIFY COLUMN type ENUM(
                 'Maddrax - Die dunkle Zukunft der Erde',
@@ -60,7 +60,7 @@ return new class extends Migration
         if (DB::connection()->getDriverName() === 'mysql') {
             // Revert to old enum value
             DB::statement("UPDATE books SET type = 'Mission Mars' WHERE type = 'Mission Mars-Heftromane'");
-            
+
             DB::statement("ALTER TABLE books MODIFY COLUMN type ENUM(
                 'Maddrax - Die dunkle Zukunft der Erde',
                 'Maddrax-Hardcover',

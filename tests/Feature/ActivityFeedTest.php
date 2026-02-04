@@ -2,26 +2,26 @@
 
 namespace Tests\Feature;
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
-use App\Models\User;
+use App\Enums\BookType;
+use App\Enums\Role;
+use App\Enums\TodoStatus;
+use App\Models\Activity;
+use App\Models\AdminMessage;
 use App\Models\Book;
-use App\Models\Review;
 use App\Models\BookOffer;
 use App\Models\BookRequest;
-use App\Models\Activity;
+use App\Models\FantreffenAnmeldung;
+use App\Models\Review;
+use App\Models\ReviewComment;
 use App\Models\Team;
 use App\Models\Todo;
 use App\Models\TodoCategory;
-use App\Models\ReviewComment;
-use App\Models\AdminMessage;
-use App\Models\FantreffenAnmeldung;
-use App\Enums\BookType;
-use App\Enums\TodoStatus;
+use App\Models\User;
 use App\Support\PreviewText;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Database\QueryException;
-use App\Enums\Role;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Mail;
+use Tests\TestCase;
 
 class ActivityFeedTest extends TestCase
 {
@@ -43,6 +43,7 @@ class ActivityFeedTest extends TestCase
         $team = Team::membersTeam();
         $user = User::factory()->create(['current_team_id' => $team->id]);
         $team->users()->attach($user, ['role' => $role->value]);
+
         return $user;
     }
 
@@ -136,9 +137,9 @@ class ActivityFeedTest extends TestCase
 
         $dashboard = $this->get('/dashboard');
         $dashboard->assertOk();
-        $dashboard->assertSeeText('Kommentar zu Meine Rezension von ' . $user->name);
-        $dashboard->assertSee('<a href="' . route('reviews.show', $review->book_id) . '" class="text-blue-600 dark:text-blue-400 hover:underline">Meine Rezension</a>', false);
-        $dashboard->assertSee('<a href="' . route('profile.view', $user->id) . '"', false);
+        $dashboard->assertSeeText('Kommentar zu Meine Rezension von '.$user->name);
+        $dashboard->assertSee('<a href="'.route('reviews.show', $review->book_id).'" class="text-blue-600 dark:text-blue-400 hover:underline">Meine Rezension</a>', false);
+        $dashboard->assertSee('<a href="'.route('profile.view', $user->id).'"', false);
         $dashboard->assertSeeText('Tolles Buch!');
     }
 
@@ -164,7 +165,7 @@ class ActivityFeedTest extends TestCase
 
         $response = $this->get('/dashboard');
         $response->assertOk();
-        $response->assertSeeText('Neue Rezension: ' . $review->title);
+        $response->assertSeeText('Neue Rezension: '.$review->title);
         $response->assertSeeText(PreviewText::make($reviewContent, 160));
     }
 
@@ -197,7 +198,7 @@ class ActivityFeedTest extends TestCase
         $response = $this->get('/dashboard');
         $response->assertOk();
         $expectedPreview = PreviewText::make($longComment, 140);
-        $response->assertSeeText('Kommentar zu ' . $review->title . ' von ' . $user->name);
+        $response->assertSeeText('Kommentar zu '.$review->title.' von '.$user->name);
         $response->assertSeeText($expectedPreview);
     }
 
@@ -223,7 +224,7 @@ class ActivityFeedTest extends TestCase
 
         $response = $this->get('/dashboard');
         $response->assertOk();
-        $response->assertSeeText('Neue Rezension: ' . $review->title);
+        $response->assertSeeText('Neue Rezension: '.$review->title);
         $response->assertDontSeeText('Auszug aus der Rezension');
         $response->assertDontSee('„');
     }
@@ -255,7 +256,7 @@ class ActivityFeedTest extends TestCase
 
         $response = $this->get('/dashboard');
         $response->assertOk();
-        $response->assertSeeText('Kommentar zu ' . $review->title . ' von ' . $user->name);
+        $response->assertSeeText('Kommentar zu '.$review->title.' von '.$user->name);
         $response->assertDontSeeText('Auszug aus dem Kommentar');
         $response->assertDontSee('„');
     }
@@ -339,7 +340,7 @@ class ActivityFeedTest extends TestCase
 
         $response->assertOk();
         $response->assertSeeText('Alex hat sich zum Fantreffen in Coellen angemeldet');
-        $response->assertDontSee('<a href="' . route('profile.view', $user->id) . '"', false);
+        $response->assertDontSee('<a href="'.route('profile.view', $user->id).'"', false);
     }
 
     public function test_dashboard_handles_guest_fantreffen_registration_activity_without_user()
@@ -494,7 +495,7 @@ class ActivityFeedTest extends TestCase
         ]);
 
         $dashboard = $this->get('/dashboard');
-        $dashboard->assertSeeText('Wir begrüßen unser neues Mitglied ' . $anwaerter->name);
+        $dashboard->assertSeeText('Wir begrüßen unser neues Mitglied '.$anwaerter->name);
     }
 
     public function test_dashboard_shows_fallback_when_activity_subject_missing(): void

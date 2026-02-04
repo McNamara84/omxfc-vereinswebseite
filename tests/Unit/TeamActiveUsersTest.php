@@ -2,12 +2,12 @@
 
 namespace Tests\Unit;
 
+use App\Enums\Role;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
-use App\Enums\Role;
 use PHPUnit\Framework\Attributes\CoversClass;
+use Tests\TestCase;
 
 #[CoversClass(Team::class)]
 class TeamActiveUsersTest extends TestCase

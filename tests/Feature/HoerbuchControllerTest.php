@@ -2,22 +2,20 @@
 
 namespace Tests\Feature;
 
+use App\Enums\Role;
 use App\Models\AudiobookEpisode;
 use App\Models\AudiobookRole;
 use App\Models\Team;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
-use App\Enums\Role;
 use Symfony\Component\DomCrawler\Crawler;
+use Tests\TestCase;
 
 class HoerbuchControllerTest extends TestCase
 {
     use RefreshDatabase;
     use \Tests\Concerns\CreatesUserWithRole;
-
-
 
     private function createAgFanhoerbuchTeam(User $leader): Team
     {

@@ -28,4 +28,3 @@ class PageComponentCustomizationTest extends TestCase
         $this->assertAllowsExtraClasses('x-member-page', 'p-2', 'max-w-7xl');
     }
 }
-

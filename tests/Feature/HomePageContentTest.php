@@ -7,8 +7,8 @@ use App\Models\Book;
 use App\Models\Review;
 use App\Models\Team;
 use App\Models\User;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
 use Tests\TestCase;
 
 class HomePageContentTest extends TestCase
@@ -169,8 +169,8 @@ class HomePageContentTest extends TestCase
         $response = $this->get('/');
 
         $response->assertOk()
-            ->assertSee('href="' . route('mitglied.werden') . '"', false)
-            ->assertDontSee('href="' . route('reviews.index') . '"', false);
+            ->assertSee('href="'.route('mitglied.werden').'"', false)
+            ->assertDontSee('href="'.route('reviews.index').'"', false);
     }
 
     public function test_latest_reviews_link_points_to_reviews_for_authenticated_members(): void
@@ -180,8 +180,8 @@ class HomePageContentTest extends TestCase
         $response = $this->actingAs($user)->get('/');
 
         $response->assertOk()
-            ->assertSee('href="' . route('reviews.index') . '"', false)
-            ->assertDontSee('href="' . route('mitglied.werden') . '"', false);
+            ->assertSee('href="'.route('reviews.index').'"', false)
+            ->assertDontSee('href="'.route('mitglied.werden').'"', false);
     }
 
     public function test_latest_reviews_loading_state_updates_aria_busy_on_error(): void

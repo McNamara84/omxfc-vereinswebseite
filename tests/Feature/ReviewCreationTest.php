@@ -2,14 +2,13 @@
 
 namespace Tests\Feature;
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
-use App\Models\Team;
-use App\Models\User;
-use App\Models\Book;
-use Illuminate\Support\Facades\Mail;
-use App\Models\Review;
 use App\Enums\BookType;
+use App\Models\Book;
+use App\Models\Review;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Mail;
+use Tests\TestCase;
 
 class ReviewCreationTest extends TestCase
 {

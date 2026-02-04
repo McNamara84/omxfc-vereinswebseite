@@ -2,10 +2,10 @@
 
 namespace Tests\Feature;
 
+use App\Models\User;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
-use App\Models\User;
 
 class AppServiceProviderTest extends TestCase
 {

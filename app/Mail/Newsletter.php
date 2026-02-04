@@ -11,6 +11,7 @@ class Newsletter extends Mailable
     use Queueable, SerializesModels;
 
     public string $subjectLine;
+
     public array $topics;
 
     /**
@@ -31,4 +32,3 @@ class Newsletter extends Mailable
             ->view('emails.newsletter.postapoc');
     }
 }
-

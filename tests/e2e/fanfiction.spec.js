@@ -114,7 +114,8 @@ test.describe('Fanfiction Verwaltung für Vorstand (Issue #493)', () => {
         await page.goto('/vorstand/fanfiction');
 
         await expect(page).toHaveURL(/vorstand\/fanfiction/);
-        await expect(page.getByRole('heading', { name: /Fanfiction/i })).toBeVisible();
+        // maryUI x-header rendert title als div, nicht als heading
+        await expect(page.getByText('Fanfiction verwalten')).toBeVisible();
     });
 
     test('Vorstand sieht Liste der Fanfictions mit Status', async ({ page }) => {
@@ -131,12 +132,14 @@ test.describe('Fanfiction Verwaltung für Vorstand (Issue #493)', () => {
         await page.goto('/vorstand/fanfiction/erstellen');
 
         // Prüfe ob alle erforderlichen Felder vorhanden sind
-        await expect(page.getByRole('textbox', { name: 'Titel der Geschichte' })).toBeVisible();
-        await expect(page.getByRole('textbox', { name: 'Geschichte', exact: true })).toBeVisible();
+        // maryUI x-input verwendet fieldset/legend statt label/input - nutze placeholder
+        await expect(page.getByPlaceholder('z.B. Die Rückkehr nach Dorado')).toBeVisible();
+        // Textarea hat keinen Placeholder, prüfe dass legend-Text existiert (exact match)
+        await expect(page.getByText('Geschichte *', { exact: true })).toBeVisible();
 
-        // Autortyp-Auswahl (Radio-Buttons)
-        await expect(page.getByText(/Vereinsmitglied/i)).toBeVisible();
-        await expect(page.getByText(/Externer Autor/i)).toBeVisible();
+        // Autortyp-Auswahl (Radio-Buttons) - exact match um Hint-Text auszuschließen
+        await expect(page.getByText('Vereinsmitglied', { exact: true })).toBeVisible();
+        await expect(page.getByText('Externer Autor', { exact: true })).toBeVisible();
     });
 
     test('Vorstand kann Fanfiction mit externem Autor erstellen', async ({ page }) => {
@@ -145,10 +148,10 @@ test.describe('Fanfiction Verwaltung für Vorstand (Issue #493)', () => {
         // Wähle externen Autor (Radio-Button)
         await page.getByText('Externer Autor').click();
 
-        // Fülle Formular aus
-        await page.fill('input[name="title"]', 'E2E Test Geschichte');
-        await page.fill('input[name="author_name"]', 'E2E Testautor');
-        await page.fill('textarea[name="content"]', 'Dies ist eine Testgeschichte für den E2E-Test. Sie enthält genug Text um die Validierung zu bestehen.');
+        // Fülle Formular aus - maryUI verwendet fieldset/legend, nutze wire:model Selektoren
+        await page.locator('[wire\\:model="title"]').fill('E2E Test Geschichte');
+        await page.locator('[wire\\:model="authorName"]').fill('E2E Testautor');
+        await page.locator('[wire\\:model="content"]').fill('Dies ist eine Testgeschichte für den E2E-Test. Sie enthält genug Text um die Validierung zu bestehen.');
 
         // Wähle Status "Entwurf" (Radio-Button, nicht Select)
         await page.getByText('Als Entwurf speichern').click();
@@ -271,10 +274,11 @@ test.describe('Fanfiction Übersicht für Mitglieder (Issue #495 & #496)', () =>
     test('Mitglied kann keine Entwürfe sehen', async ({ page }) => {
         await page.goto('/fanfiction');
 
-        // Der Entwurf "Entwurf: Die dunkle Prophezeiung" sollte nicht in der Fanfiction-Liste sichtbar sein
-        // Wir prüfen nur innerhalb des Fanfiction-Listbereichs
+        // Der Seeder erstellt einen zweiten Entwurf "Geheimer Entwurf für Tests",
+        // der von keinem anderen Test veröffentlicht wird.
+        // Der published() Scope im Controller sollte diesen herausfiltern.
         const fanfictionList = page.locator('[data-fanfiction-list]');
-        await expect(fanfictionList.getByText('Die dunkle Prophezeiung')).not.toBeVisible();
+        await expect(fanfictionList.getByText('Geheimer Entwurf für Tests')).not.toBeVisible();
     });
 });
 

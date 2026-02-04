@@ -2,8 +2,8 @@
 
 namespace App\Services;
 
-use App\Models\Team;
 use App\Jobs\GeocodeUser;
+use App\Models\Team;
 use Illuminate\Support\Facades\Cache;
 
 class MemberMapCacheService
@@ -85,4 +85,3 @@ class MemberMapCacheService
         ];
     }
 }
-

@@ -6,14 +6,14 @@ use App\Enums\Role;
 use App\Enums\TodoStatus;
 use App\Mail\MitgliedGenehmigtMail;
 use App\Models\Activity;
+use App\Models\BookOffer;
+use App\Models\BookSwap;
+use App\Models\Fanfiction;
 use App\Models\Review;
 use App\Models\ReviewComment;
 use App\Models\Todo;
 use App\Models\User;
 use App\Models\UserPoint;
-use App\Models\BookOffer;
-use App\Models\BookSwap;
-use App\Models\Fanfiction;
 use App\Services\MembersTeamProvider;
 use App\Services\UserRoleService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -27,8 +27,7 @@ class DashboardController extends Controller
     public function __construct(
         private UserRoleService $userRoleService,
         private MembersTeamProvider $membersTeamProvider
-    ) {
-    }
+    ) {}
 
     public function index()
     {

@@ -2,11 +2,11 @@
 
 namespace Tests\Feature;
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
+use App\Models\Team;
 use App\Models\User;
 use App\Policies\TeamPolicy;
-use App\Models\Team;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 
 class TeamPolicyTest extends TestCase
 {
@@ -24,7 +24,7 @@ class TeamPolicyTest extends TestCase
         $admin = User::factory()->create(['current_team_id' => $adminTeam->id]);
         $adminTeam->users()->attach($admin, ['role' => \App\Enums\Role::Admin->value]);
 
-        $policy = new TeamPolicy();
+        $policy = new TeamPolicy;
 
         $this->assertTrue($policy->viewAny($member));
         $this->assertTrue($policy->view($member, $team));

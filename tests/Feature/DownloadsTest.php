@@ -3,10 +3,8 @@
 namespace Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
-use App\Models\Team;
-use App\Models\User;
 use Illuminate\Support\Facades\Storage;
+use Tests\TestCase;
 
 class DownloadsTest extends TestCase
 {

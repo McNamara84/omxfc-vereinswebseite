@@ -2,7 +2,6 @@
 
 namespace Tests\Feature;
 
-use App\Enums\FanfictionStatus;
 use App\Enums\Role;
 use App\Models\Fanfiction;
 use App\Models\FanfictionComment;

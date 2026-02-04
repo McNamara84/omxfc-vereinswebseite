@@ -26,7 +26,7 @@
     $labelHtml = new \Illuminate\Support\HtmlString(e($label) . ': ' . '<span id="' . e($outputElementId) . '" class="font-semibold text-[#8B0116] dark:text-[#ff4b63]" aria-live="polite">' . e($displayValue) . '</span>');
 @endphp
 
-<x-form
+<x-field-group
     :name="$name"
     :label="$label"
     :label-html="$labelHtml"
@@ -52,4 +52,4 @@
     @if($help)
         <p id="{{ $hintId }}" class="text-sm text-gray-600 dark:text-gray-300">{{ $help }}</p>
     @endif
-</x-form>
+</x-field-group>

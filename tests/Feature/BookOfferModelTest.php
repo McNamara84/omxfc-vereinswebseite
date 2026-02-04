@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\BookType;
 use App\Models\BookOffer;
 use App\Models\BookRequest;
 use App\Models\BookSwap;
@@ -9,7 +10,6 @@ use App\Models\Team;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
-use App\Enums\BookType;
 
 class BookOfferModelTest extends TestCase
 {

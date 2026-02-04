@@ -18,7 +18,7 @@ class RomantauschInfoProviderTest extends TestCase
         $this->app['config']->set('romantausch.locale', 'de');
         $this->app['config']->set('romantausch.fallback_locale', 'de');
 
-        $provider = new RomantauschInfoProvider();
+        $provider = new RomantauschInfoProvider;
 
         $info = $provider->getInfo();
 
@@ -31,7 +31,7 @@ class RomantauschInfoProviderTest extends TestCase
         $this->app['config']->set('romantausch.locale', 'fr');
         $this->app['config']->set('romantausch.fallback_locale', 'de');
 
-        $provider = new RomantauschInfoProvider();
+        $provider = new RomantauschInfoProvider;
 
         $info = $provider->getInfo();
 
@@ -45,7 +45,7 @@ class RomantauschInfoProviderTest extends TestCase
         $this->app['config']->set('romantausch.fallback_locale', null);
         $this->app['config']->set('app.fallback_locale', 'de');
 
-        $provider = new RomantauschInfoProvider();
+        $provider = new RomantauschInfoProvider;
 
         $info = $provider->getInfo();
 

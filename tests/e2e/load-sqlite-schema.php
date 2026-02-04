@@ -5,13 +5,13 @@
 $dbPath = $argv[1] ?? null;
 $schemaPath = $argv[2] ?? null;
 
-if (!is_string($dbPath) || $dbPath === '' || !is_string($schemaPath) || $schemaPath === '') {
+if (! is_string($dbPath) || $dbPath === '' || ! is_string($schemaPath) || $schemaPath === '') {
     fwrite(STDERR, "Usage: php tests/e2e/load-sqlite-schema.php <dbPath> <schemaPath>\n");
     // Exit code 2 is reserved for argument validation errors.
     exit(2);
 }
 
-if (!file_exists($schemaPath)) {
+if (! file_exists($schemaPath)) {
     fwrite(STDERR, "Schema file not found: {$schemaPath}\n");
     // Exit code 2 is reserved for argument validation errors.
     exit(2);
@@ -49,7 +49,7 @@ if (class_exists(SQLite3::class)) {
     }
 } else {
     // Fallback: try PDO::exec() for multi-statement SQL (driver-dependent).
-    $pdo = new PDO('sqlite:' . $dbPath, null, null, [
+    $pdo = new PDO('sqlite:'.$dbPath, null, null, [
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
     ]);
 

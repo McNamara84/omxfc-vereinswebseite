@@ -19,8 +19,8 @@ use Tests\TestCase;
 
 class PollsTest extends TestCase
 {
-    use RefreshDatabase;
     use CreatesUserWithRole;
+    use RefreshDatabase;
 
     public function test_admin_can_access_poll_management_route(): void
     {

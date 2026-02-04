@@ -20,7 +20,7 @@ class RomantauschInfoProvider
 
         $romantauschInfo = Lang::get('romantausch.info', [], $locale);
 
-        if (!is_array($romantauschInfo)) {
+        if (! is_array($romantauschInfo)) {
             $romantauschInfo = Lang::get('romantausch.info', [], $fallbackLocale);
         }
 

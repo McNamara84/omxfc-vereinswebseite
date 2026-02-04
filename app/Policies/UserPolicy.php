@@ -15,6 +15,7 @@ class UserPolicy
     public function manage(User $user): bool
     {
         $role = $this->role($user);
+
         return $role && in_array($role, [Role::Kassenwart, Role::Vorstand, Role::Admin], true);
     }
 }

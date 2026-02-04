@@ -124,7 +124,7 @@ class Fanfiction extends Model
     /**
      * Get the photos attribute as array.
      *
-     * @param mixed $value
+     * @param  mixed  $value
      * @return array<int, string>
      */
     public function getPhotosAttribute($value): array
@@ -142,7 +142,7 @@ class Fanfiction extends Model
     /**
      * Set the photos attribute.
      *
-     * @param mixed $value
+     * @param  mixed  $value
      */
     public function setPhotosAttribute($value): void
     {
@@ -208,7 +208,7 @@ class Fanfiction extends Model
             $teaser = mb_substr($teaser, 0, $lastSpace);
         }
 
-        return $teaser . '…';
+        return $teaser.'…';
     }
 
     /**
@@ -250,11 +250,11 @@ class Fanfiction extends Model
         $previousLibxmlSetting = libxml_use_internal_errors(true);
 
         try {
-            $wrappedHtml = '<div>' . $html . '</div>';
+            $wrappedHtml = '<div>'.$html.'</div>';
             $encodedHtml = mb_convert_encoding($wrappedHtml, 'HTML-ENTITIES', 'UTF-8');
 
             $loaded = $dom->loadHTML(
-                '<?xml version="1.0" encoding="UTF-8"?>' . $encodedHtml,
+                '<?xml version="1.0" encoding="UTF-8"?>'.$encodedHtml,
                 LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD
             );
 

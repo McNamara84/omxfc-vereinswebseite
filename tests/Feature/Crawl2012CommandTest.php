@@ -19,7 +19,7 @@ class HttpsFixtureStream
 
     public function stream_open(string $path, string $mode, int $options, ?string &$opened_path): bool
     {
-        if (!array_key_exists($path, self::$fixtures)) {
+        if (! array_key_exists($path, self::$fixtures)) {
             return false;
         }
 
@@ -88,7 +88,7 @@ class Crawl2012CommandTest extends TestCase
 
         HttpsFixtureStream::$fixtures = [$pageOneUrl => $htmlPage1, $pageTwoUrl => $htmlPage2];
 
-        $command = new Crawl2012();
+        $command = new Crawl2012;
 
         $ref = new ReflectionClass($command);
         $method = $ref->getMethod('getArticleUrls');
@@ -109,7 +109,7 @@ class Crawl2012CommandTest extends TestCase
 
         HttpsFixtureStream::$fixtures = [$pageOneUrl => $htmlPage1];
 
-        $command = new Crawl2012();
+        $command = new Crawl2012;
 
         $ref = new ReflectionClass($command);
         $method = $ref->getMethod('getArticleUrls');
@@ -142,7 +142,7 @@ HTML;
         $file = storage_path('app/private/article.html');
         File::put($file, $html);
 
-        $command = new Crawl2012();
+        $command = new Crawl2012;
         $ref = new ReflectionClass($command);
         $method = $ref->getMethod('getHeftromanInfo');
         $method->setAccessible(true);
@@ -166,7 +166,7 @@ HTML;
     public function test_write_heftromane_sorts_and_writes_json(): void
     {
         Carbon::setTestNow(Carbon::create(2024, 6, 1));
-        $command = new Crawl2012();
+        $command = new Crawl2012;
         $ref = new ReflectionClass($command);
         $method = $ref->getMethod('writeHeftromane');
         $method->setAccessible(true);

@@ -27,7 +27,7 @@ class RpgCharEditorController extends Controller
 
         $portrait = null;
         if ($request->hasFile('portrait') && $request->file('portrait')->isValid()) {
-            $portrait = 'data:' . $request->file('portrait')->getMimeType() . ';base64,' . base64_encode($request->file('portrait')->get());
+            $portrait = 'data:'.$request->file('portrait')->getMimeType().';base64,'.base64_encode($request->file('portrait')->get());
         }
 
         $data = [
@@ -41,6 +41,6 @@ class RpgCharEditorController extends Controller
 
         $name = Str::slug($request->input('character_name', 'charakter')) ?: 'charakter';
 
-        return Pdf::view('rpg.char-sheet', $data)->inline($name . '.pdf');
+        return Pdf::view('rpg.char-sheet', $data)->inline($name.'.pdf');
     }
 }

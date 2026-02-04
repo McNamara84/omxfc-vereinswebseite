@@ -4,14 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\Team;
 use App\Models\UserPoint;
-use Illuminate\Support\Facades\Auth;
 use App\Services\MemberMapCacheService;
+use Illuminate\Support\Facades\Auth;
 
 class MitgliederKarteController extends Controller
 {
-    public function __construct(protected MemberMapCacheService $memberMapCacheService)
-    {
-    }
+    public function __construct(protected MemberMapCacheService $memberMapCacheService) {}
 
     public function index()
     {
@@ -75,5 +73,4 @@ class MitgliederKarteController extends Controller
             'membersCenterLon' => $centerLon,
         ]);
     }
-
 }

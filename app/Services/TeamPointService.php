@@ -12,7 +12,6 @@ use Illuminate\Support\Facades\Auth;
 
 class TeamPointService
 {
-
     /**
      * Get the total points of a user in their current team.
      */
@@ -307,4 +306,3 @@ class TeamPointService
         return $leaderboard;
     }
 }
-

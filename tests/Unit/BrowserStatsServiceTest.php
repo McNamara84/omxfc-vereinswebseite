@@ -130,5 +130,4 @@ class BrowserStatsServiceTest extends TestCase
         $this->assertArrayNotHasKey('Google Chrome', $browserCounts);
         $this->assertSame(1, $browserCounts['Safari']);
     }
-
 }

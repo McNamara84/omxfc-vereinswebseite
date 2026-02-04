@@ -2,12 +2,12 @@
 
 namespace Tests\Feature;
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
 use App\Models\Team;
 use App\Models\User;
-use Illuminate\Support\Facades\Http;
 use Carbon\Carbon;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
+use Tests\TestCase;
 
 class MaddraxiversumControllerTest extends TestCase
 {
@@ -21,6 +21,7 @@ class MaddraxiversumControllerTest extends TestCase
         if ($points > 0) {
             $user->incrementTeamPoints($points);
         }
+
         return $user;
     }
 

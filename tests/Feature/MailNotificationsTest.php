@@ -2,17 +2,16 @@
 
 namespace Tests\Feature;
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
+use App\Mail\MitgliedGenehmigtMail;
+use App\Mail\NewReviewNotification;
+use App\Mail\ReviewCommentNotification;
+use App\Models\Book;
+use App\Models\Review;
+use App\Models\ReviewComment;
 use App\Models\Team;
 use App\Models\User;
-use App\Models\Book;
-use App\Mail\NewReviewNotification;
-use App\Models\Review;
-use App\Mail\ReviewCommentNotification;
-use App\Mail\MitgliedGenehmigtMail;
-use App\Models\ReviewComment;
-
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 
 class MailNotificationsTest extends TestCase
 {
@@ -23,6 +22,7 @@ class MailNotificationsTest extends TestCase
         $team = Team::membersTeam();
         $user = User::factory()->create(['current_team_id' => $team->id]);
         $team->users()->attach($user, ['role' => \App\Enums\Role::Mitglied->value]);
+
         return $user;
     }
 

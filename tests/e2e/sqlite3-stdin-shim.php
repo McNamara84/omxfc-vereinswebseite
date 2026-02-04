@@ -6,7 +6,7 @@
 
 $dbPath = $argv[1] ?? null;
 
-if (!is_string($dbPath) || $dbPath === '') {
+if (! is_string($dbPath) || $dbPath === '') {
     fwrite(STDERR, "Usage: php tests/e2e/sqlite3-stdin-shim.php <dbPath>\n");
     // Exit code 2 is reserved for argument validation errors.
     exit(2);
@@ -44,7 +44,7 @@ if (class_exists(SQLite3::class)) {
     }
 } else {
     // Fallback: try PDO::exec() for multi-statement SQL (driver-dependent).
-    $pdo = new PDO('sqlite:' . $dbPath, null, null, [
+    $pdo = new PDO('sqlite:'.$dbPath, null, null, [
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
     ]);
 

@@ -12,7 +12,7 @@ class FooterVersionTest extends TestCase
 
     public function test_footer_displays_version_and_changelog_link(): void
     {
-        config(['app.key' => 'base64:' . base64_encode(random_bytes(32))]);
+        config(['app.key' => 'base64:'.base64_encode(random_bytes(32))]);
 
         $version = config('app.version', '0.0.0');
 

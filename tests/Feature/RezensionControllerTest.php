@@ -2,18 +2,18 @@
 
 namespace Tests\Feature;
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
-use App\Models\Team;
-use App\Models\User;
-use App\Models\Book;
 use App\Enums\BookType;
 use App\Mail\NewReviewNotification;
-use Illuminate\Support\Facades\Mail;
+use App\Models\Book;
 use App\Models\Review;
-use Illuminate\Support\Facades\Storage;
+use App\Models\Team;
+use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
 use PHPUnit\Framework\Attributes\Large;
+use Tests\TestCase;
 
 #[Large]
 class RezensionControllerTest extends TestCase
@@ -61,7 +61,7 @@ class RezensionControllerTest extends TestCase
 
         $response = $this->post(route('reviews.store', $book), [
             'title' => 'Tolle Rezension',
-            'content' => '# ' . str_repeat('A', 140),
+            'content' => '# '.str_repeat('A', 140),
         ]);
 
         $response->assertRedirect(route('reviews.show', $book, false));
@@ -85,7 +85,7 @@ class RezensionControllerTest extends TestCase
         $response = $this->from(route('reviews.create', $book))
             ->post(route('reviews.store', $book), [
                 'title' => 'Tolle Rezension',
-                'content' => '# ' . str_repeat('A', 139),
+                'content' => '# '.str_repeat('A', 139),
             ]);
 
         $response->assertRedirect(route('reviews.create', $book, false));
@@ -720,7 +720,7 @@ class RezensionControllerTest extends TestCase
 
         $response = $this->put(route('reviews.update', $review), [
             'title' => 'R',
-            'content' => '# ' . str_repeat('A', 140),
+            'content' => '# '.str_repeat('A', 140),
         ]);
 
         $response->assertRedirect(route('reviews.show', $book, false));
@@ -751,7 +751,7 @@ class RezensionControllerTest extends TestCase
         $response = $this->from(route('reviews.edit', $review))
             ->put(route('reviews.update', $review), [
                 'title' => 'R',
-                'content' => '# ' . str_repeat('A', 139),
+                'content' => '# '.str_repeat('A', 139),
             ]);
 
         $response->assertRedirect(route('reviews.edit', $review, false));

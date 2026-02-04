@@ -2,11 +2,11 @@
 
 namespace Tests\Feature;
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
+use App\Enums\Role;
 use App\Models\Team;
 use App\Models\User;
-use App\Enums\Role;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 
 class ProfileEhrenmitgliedSettingTest extends TestCase
 {
@@ -17,6 +17,7 @@ class ProfileEhrenmitgliedSettingTest extends TestCase
         $team = Team::membersTeam();
         $user = User::factory()->create(['current_team_id' => $team->id]);
         $team->users()->attach($user, ['role' => Role::Ehrenmitglied->value]);
+
         return $user;
     }
 
@@ -25,6 +26,7 @@ class ProfileEhrenmitgliedSettingTest extends TestCase
         $team = Team::membersTeam();
         $user = User::factory()->create(['current_team_id' => $team->id]);
         $team->users()->attach($user, ['role' => Role::Mitglied->value]);
+
         return $user;
     }
 

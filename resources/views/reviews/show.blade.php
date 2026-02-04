@@ -46,9 +46,9 @@
 
                         <form method="POST" action="{{ route('reviews.comments.store', $review) }}" class="mt-4">
                             @csrf
-                            <x-form name="content" label="Kommentar">
+                            <x-field-group name="content" label="Kommentar">
                                 <textarea id="content" name="content" aria-describedby="content-error" rows="2" class="w-full border-gray-300 dark:border-gray-600 dark:bg-gray-800 rounded" placeholder="Kommentieren..." required></textarea>
-                            </x-form>
+                            </x-field-group>
                             <button type="submit" class="mt-2 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded">Kommentar hinzufügen</button>
                         </form>
                     </div>

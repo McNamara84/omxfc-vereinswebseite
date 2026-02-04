@@ -2,9 +2,9 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
-use App\Models\Book;
 use App\Enums\BookType;
+use App\Models\Book;
+use Illuminate\Database\Seeder;
 
 /**
  * Seeder für Playwright E2E-Tests.

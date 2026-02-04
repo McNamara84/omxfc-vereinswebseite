@@ -2,15 +2,14 @@
 
 namespace App\Mail;
 
+use App\Models\Review;
+use App\Models\ReviewComment;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
+use Illuminate\Mail\Mailables\Address;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Mail\Mailables\Address;
-use App\Models\Review;
-use App\Models\ReviewComment;
 
 class ReviewCommentNotification extends Mailable
 {
@@ -19,8 +18,7 @@ class ReviewCommentNotification extends Mailable
     public function __construct(
         public Review $review,
         public ReviewComment $comment
-    ) {
-    }
+    ) {}
 
     public function envelope(): Envelope
     {
@@ -37,7 +35,7 @@ class ReviewCommentNotification extends Mailable
             with: [
                 'review' => $this->review,
                 'comment' => $this->comment,
-                'reviewUrl' => route('reviews.show', $this->review->book)
+                'reviewUrl' => route('reviews.show', $this->review->book),
             ],
         );
     }

@@ -2,13 +2,13 @@
 
 namespace Tests\Feature;
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
+use App\Models\Activity;
+use App\Models\AdminMessage;
 use App\Models\Team;
 use App\Models\User;
-use App\Models\AdminMessage;
-use App\Models\Activity;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
+use Tests\TestCase;
 
 class AdminMessageControllerTest extends TestCase
 {
@@ -19,6 +19,7 @@ class AdminMessageControllerTest extends TestCase
         $team = Team::membersTeam();
         $user = User::factory()->create(['current_team_id' => $team->id]);
         $team->users()->attach($user, ['role' => \App\Enums\Role::Admin->value]);
+
         return $user;
     }
 
@@ -27,6 +28,7 @@ class AdminMessageControllerTest extends TestCase
         $team = Team::membersTeam();
         $user = User::factory()->create(['current_team_id' => $team->id]);
         $team->users()->attach($user, ['role' => \App\Enums\Role::Mitglied->value]);
+
         return $user;
     }
 
@@ -139,4 +141,3 @@ class AdminMessageControllerTest extends TestCase
         $response->assertSeeInOrder(['New', 'Old']);
     }
 }
-

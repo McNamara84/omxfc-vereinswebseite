@@ -2,12 +2,12 @@
 
 namespace Tests\Feature;
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
-use App\Mail\MitgliedAntragEingereicht;
-use Illuminate\Support\Facades\Mail;
-use App\Models\User;
 use App\Enums\Role;
+use App\Mail\MitgliedAntragEingereicht;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Mail;
+use Tests\TestCase;
 
 class MembershipMailTest extends TestCase
 {

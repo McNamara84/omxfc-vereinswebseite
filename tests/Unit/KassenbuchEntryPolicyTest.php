@@ -28,7 +28,7 @@ class KassenbuchEntryPolicyTest extends TestCase
     {
         parent::setUp();
 
-        $this->policy = new KassenbuchEntryPolicy();
+        $this->policy = new KassenbuchEntryPolicy;
         $this->team = Team::membersTeam();
     }
 

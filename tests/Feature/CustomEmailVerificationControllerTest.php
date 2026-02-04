@@ -2,13 +2,13 @@
 
 namespace Tests\Feature;
 
+use App\Mail\AntragAnAdmin;
+use App\Mail\AntragAnVorstand;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\URL;
-use App\Models\User;
-use App\Mail\AntragAnVorstand;
-use App\Mail\AntragAnAdmin;
+use Tests\TestCase;
 
 class CustomEmailVerificationControllerTest extends TestCase
 {
