@@ -93,7 +93,6 @@
         },
         "process-timeout": 0,
         "platform": {
-            "php": "8.5"
         }
     },
     "minimum-stability": "stable",

@@ -11,15 +11,17 @@
         @endsession
         <form method="POST" action="{{ route('login') }}">
             @csrf
-            <x-form name="email" label="{{ __('E-Mail') }}">
-                <input id="email" name="email" aria-describedby="email-error" type="email" value="{{ old('email') }}" required autofocus autocomplete="username" class="block mt-1 w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm" />
-            </x-form>
-            <x-form name="password" label="{{ __('Passwort') }}" class="mt-4">
-                <input id="password" name="password" aria-describedby="password-error" type="password" required autocomplete="current-password" class="block mt-1 w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm" />
-            </x-form>
+            <div class="mb-4">
+                <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('E-Mail') }}</label>
+                <input id="email" name="email" type="email" value="{{ old('email') }}" required autofocus autocomplete="username" class="block mt-1 w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm" />
+            </div>
+            <div class="mb-4">
+                <label for="password" class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('Passwort') }}</label>
+                <input id="password" name="password" type="password" required autocomplete="current-password" class="block mt-1 w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm" />
+            </div>
             <div class="block mt-4">
                 <label for="remember_me" class="flex items-center">
-                    <x-checkbox id="remember_me" name="remember" />
+                    <input type="checkbox" id="remember_me" name="remember" class="checkbox" />
                     <span class="ms-2 text-sm text-gray-600 dark:text-gray-400">{{ __('Merken') }}</span>
                 </label>
             </div>
@@ -30,9 +32,9 @@
                         {{ __('Passwort vergessen?') }}
                     </a>
                 @endif
-                <x-button class="bg-[#8B0116] dark:bg-[#9f0119] hover:bg-[#7a0113] dark:hover:bg-[#8a0115]">
+                <button type="submit" class="btn bg-[#8B0116] dark:bg-[#9f0119] hover:bg-[#7a0113] dark:hover:bg-[#8a0115] text-white">
                     {{ __('Login') }}
-                </x-button>
+                </button>
             </div>
         </form>
     </div>

@@ -9,6 +9,8 @@ use App\Http\Controllers\DownloadsController;
 use App\Http\Controllers\FanfictionAdminController;
 use App\Http\Controllers\FanfictionCommentController;
 use App\Http\Controllers\FanfictionController;
+use App\Livewire\FanfictionCreate;
+use App\Livewire\FanfictionEdit;
 use App\Http\Controllers\FantreffenController;
 use App\Http\Controllers\HoerbuchController;
 use App\Http\Controllers\KassenbuchController;
@@ -88,14 +90,12 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
         ->middleware('vorstand-or-kassenwart');
 
     // Fanfiction Admin (Vorstand)
-    Route::prefix('vorstand/fanfiction')->name('admin.fanfiction.')->controller(FanfictionAdminController::class)->middleware('vorstand-or-kassenwart')->group(function () {
-        Route::get('/', 'index')->name('index');
-        Route::get('/erstellen', 'create')->name('create');
-        Route::post('/', 'store')->name('store');
-        Route::get('/{fanfiction}/bearbeiten', 'edit')->name('edit');
-        Route::put('/{fanfiction}', 'update')->name('update');
-        Route::delete('/{fanfiction}', 'destroy')->name('destroy');
-        Route::post('/{fanfiction}/veroeffentlichen', 'publish')->name('publish');
+    Route::prefix('vorstand/fanfiction')->name('admin.fanfiction.')->middleware('vorstand-or-kassenwart')->group(function () {
+        Route::get('/', [FanfictionAdminController::class, 'index'])->name('index');
+        Route::get('/erstellen', FanfictionCreate::class)->name('create');
+        Route::get('/{fanfiction}/bearbeiten', FanfictionEdit::class)->name('edit');
+        Route::delete('/{fanfiction}', [FanfictionAdminController::class, 'destroy'])->name('destroy');
+        Route::post('/{fanfiction}/veroeffentlichen', [FanfictionAdminController::class, 'publish'])->name('publish');
     });
     
     Route::controller(DashboardController::class)->group(function () {

@@ -1,13 +1,11 @@
 <x-app-layout>
     <x-member-page class="max-w-4xl">
-        <x-header title="Neue Fanfiction erstellen" separator>
+        <x-header title="Neue Fanfiction erstellen" separator class="mb-6">
             <x-slot:actions>
-                <x-button
-                    label="Zurück"
-                    icon="o-arrow-left"
-                    link="{{ route('admin.fanfiction.index') }}"
-                    class="btn-ghost"
-                />
+                <a href="{{ route('admin.fanfiction.index') }}" class="btn btn-ghost">
+                    <x-icon name="o-arrow-left" class="w-4 h-4" />
+                    Zurück
+                </a>
             </x-slot:actions>
         </x-header>
 
@@ -18,15 +16,18 @@
                   data-author-name="{{ old('author_name', '') }}">
                 @csrf
 
-                <x-input
-                    id="title"
-                    name="title"
-                    label="Titel der Geschichte"
-                    value="{{ old('title') }}"
-                    required
-                />
+                <div class="form-control w-full">
+                    <label class="label" for="title">
+                        <span class="label-text font-medium">Titel der Geschichte <span class="text-error">*</span></span>
+                    </label>
+                    <input type="text" id="title" name="title" value="{{ old('title') }}"
+                           class="input input-bordered w-full @error('title') input-error @enderror" required>
+                    @error('title')
+                        <label class="label"><span class="label-text-alt text-error">{{ $message }}</span></label>
+                    @enderror
+                </div>
 
-                <div class="mt-4">
+                <div class="form-control w-full mt-4">
                     <label class="label">
                         <span class="label-text font-medium">Autor-Typ</span>
                     </label>
@@ -43,64 +44,79 @@
                         </label>
                     </div>
                     @error('author_type')
-                        <p class="text-error text-sm mt-1">{{ $message }}</p>
+                        <label class="label"><span class="label-text-alt text-error">{{ $message }}</span></label>
                     @enderror
                 </div>
 
-                <div class="mt-4" x-show="authorType === 'member'" x-transition>
-                    <x-select
-                        id="user_id"
-                        name="user_id"
-                        label="Mitglied auswählen"
-                        :options="$members->map(fn($m) => ['id' => $m->id, 'name' => $m->name])->toArray()"
-                        option-value="id"
-                        option-label="name"
-                        placeholder="-- Mitglied wählen --"
-                        x-on:change="updateAuthorName($event)"
-                    />
+                <div class="form-control w-full mt-4" x-show="authorType === 'member'" x-transition>
+                    <label class="label" for="user_id">
+                        <span class="label-text font-medium">Mitglied auswählen</span>
+                    </label>
+                    <select id="user_id" name="user_id"
+                            class="select select-bordered w-full"
+                            x-on:change="updateAuthorName($event)">
+                        <option value="">-- Mitglied wählen --</option>
+                        @foreach($members as $member)
+                            <option value="{{ $member->id }}" data-name="{{ $member->name }}"
+                                {{ old('user_id') == $member->id ? 'selected' : '' }}>
+                                {{ $member->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('user_id')
+                        <label class="label"><span class="label-text-alt text-error">{{ $message }}</span></label>
+                    @enderror
                 </div>
 
-                <x-input
-                    id="author_name"
-                    name="author_name"
-                    label="Autor-Name"
-                    x-model="authorName"
-                    required
-                    :readonly="false"
-                    x-bind:readonly="authorType === 'member' && authorName !== ''"
-                    hint="Wird automatisch vom gewählten Mitglied übernommen."
-                    class="mt-4"
-                />
+                <div class="form-control w-full mt-4">
+                    <label class="label" for="author_name">
+                        <span class="label-text font-medium">Autor-Name <span class="text-error">*</span></span>
+                    </label>
+                    <input type="text" id="author_name" name="author_name"
+                           x-model="authorName"
+                           x-bind:readonly="authorType === 'member' && authorName !== ''"
+                           class="input input-bordered w-full @error('author_name') input-error @enderror" required>
+                    <label class="label">
+                        <span class="label-text-alt">Wird automatisch vom gewählten Mitglied übernommen.</span>
+                    </label>
+                    @error('author_name')
+                        <label class="label"><span class="label-text-alt text-error">{{ $message }}</span></label>
+                    @enderror
+                </div>
 
-                <x-textarea
-                    id="content"
-                    name="content"
-                    label="Geschichte"
-                    rows="15"
-                    required
-                    hint="Markdown-Formatierung wird unterstützt: **fett**, *kursiv*, > Zitat, etc."
-                    class="mt-4 font-mono"
-                >{{ old('content') }}</x-textarea>
+                <div class="form-control w-full mt-4">
+                    <label class="label" for="content">
+                        <span class="label-text font-medium">Geschichte <span class="text-error">*</span></span>
+                    </label>
+                    <textarea id="content" name="content" rows="15"
+                              class="textarea textarea-bordered w-full font-mono @error('content') textarea-error @enderror"
+                              required>{{ old('content') }}</textarea>
+                    <label class="label">
+                        <span class="label-text-alt">Markdown-Formatierung wird unterstützt: **fett**, *kursiv*, > Zitat, etc.</span>
+                    </label>
+                    @error('content')
+                        <label class="label"><span class="label-text-alt text-error">{{ $message }}</span></label>
+                    @enderror
+                </div>
 
-                <div class="mt-4">
+                <div class="form-control w-full mt-4">
                     <label class="label">
                         <span class="label-text font-medium">Bilder (optional, max. 5)</span>
                     </label>
-                    <x-file
-                        name="photos[]"
-                        multiple
-                        accept=".jpg,.jpeg,.png,.webp"
-                        hint="Erlaubte Formate: JPG, PNG, WebP. Max. 2 MB pro Bild."
-                    />
+                    <input type="file" name="photos[]" multiple accept=".jpg,.jpeg,.png,.webp"
+                           class="file-input file-input-bordered w-full">
+                    <label class="label">
+                        <span class="label-text-alt">Erlaubte Formate: JPG, PNG, WebP. Max. 2 MB pro Bild.</span>
+                    </label>
                     @error('photos')
-                        <p class="text-error text-sm mt-1">{{ $message }}</p>
+                        <label class="label"><span class="label-text-alt text-error">{{ $message }}</span></label>
                     @enderror
                     @error('photos.*')
-                        <p class="text-error text-sm mt-1">{{ $message }}</p>
+                        <label class="label"><span class="label-text-alt text-error">{{ $message }}</span></label>
                     @enderror
                 </div>
 
-                <div class="mt-4">
+                <div class="form-control w-full mt-4">
                     <label class="label">
                         <span class="label-text font-medium">Status</span>
                     </label>
@@ -115,23 +131,17 @@
                         </label>
                     </div>
                     @error('status')
-                        <p class="text-error text-sm mt-1">{{ $message }}</p>
+                        <label class="label"><span class="label-text-alt text-error">{{ $message }}</span></label>
                     @enderror
                 </div>
 
-                <x-slot:actions>
-                    <x-button
-                        label="Abbrechen"
-                        link="{{ route('admin.fanfiction.index') }}"
-                        class="btn-ghost"
-                    />
-                    <x-button
-                        type="submit"
-                        label="Fanfiction speichern"
-                        icon="o-document-plus"
-                        class="btn-primary"
-                    />
-                </x-slot:actions>
+                <div class="flex justify-end gap-2 mt-6">
+                    <a href="{{ route('admin.fanfiction.index') }}" class="btn btn-ghost">Abbrechen</a>
+                    <button type="submit" class="btn btn-primary">
+                        <x-icon name="o-document-plus" class="w-4 h-4" />
+                        Fanfiction speichern
+                    </button>
+                </div>
             </form>
         </x-card>
     </x-member-page>

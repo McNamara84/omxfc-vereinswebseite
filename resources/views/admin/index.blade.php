@@ -1,10 +1,10 @@
 <x-app-layout>
     <x-member-page>
         {{-- Header --}}
-        <x-header title="Seitenaufrufe" subtitle="Statistiken und Analysen der Website-Nutzung" separator />
+        <x-header title="Seitenaufrufe" subtitle="Statistiken und Analysen der Website-Nutzung" separator class="mb-6" />
 
         {{-- Obere Stats-Reihe --}}
-        <div class="grid gap-6 lg:grid-cols-4 mb-8">
+        <div class="grid gap-6 lg:grid-cols-4 mb-6">
             {{-- Startseiten-Aufrufe --}}
             <section aria-labelledby="homepage-visits-heading">
                 <x-stat
@@ -61,7 +61,7 @@
         @php($dailyActiveSeries = collect($dailyActiveUsers['series']))
         @php($recentDailyActiveSeries = $dailyActiveSeries->slice(-7)->values())
         @php($recentDailyActiveMax = max($recentDailyActiveSeries->max('total') ?? 0, 1))
-        <x-card title="Aktive Mitglieder (letzte 7 Tage)" class="mb-8">
+        <x-card title="Aktive Mitglieder (letzte 7 Tage)" class="mb-6">
             @if($recentDailyActiveSeries->isEmpty())
                 <x-slot:empty>
                     <x-icon name="o-chart-bar" class="w-12 h-12 opacity-30 mx-auto" />

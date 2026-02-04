@@ -4,6 +4,8 @@ namespace Tests\Feature;
 
 use App\Enums\FanfictionStatus;
 use App\Enums\Role;
+use App\Livewire\FanfictionCreate;
+use App\Livewire\FanfictionEdit;
 use App\Models\Fanfiction;
 use App\Models\FanfictionComment;
 use App\Models\Team;
@@ -11,6 +13,7 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class FanfictionAdminControllerTest extends TestCase
@@ -56,18 +59,17 @@ class FanfictionAdminControllerTest extends TestCase
 
     public function test_vorstand_can_create_fanfiction_with_member_author(): void
     {
-        $response = $this->actingAs($this->vorstand)
-            ->post(route('admin.fanfiction.store'), [
-                'title' => 'Testgeschichte',
-                'content' => 'Dies ist der Inhalt der Testgeschichte...',
-                'author_type' => 'member',
-                'user_id' => $this->member->id,
-                'author_name' => $this->member->name,
-                'status' => 'draft',
-            ]);
+        $this->actingAs($this->vorstand);
 
-        $response->assertRedirect(route('admin.fanfiction.index'));
-        $response->assertSessionHas('success');
+        Livewire::test(FanfictionCreate::class)
+            ->set('title', 'Testgeschichte')
+            ->set('content', 'Dies ist der Inhalt der Testgeschichte...')
+            ->set('authorType', 'member')
+            ->set('userId', $this->member->id)
+            ->set('authorName', $this->member->name)
+            ->set('status', 'draft')
+            ->call('save')
+            ->assertRedirect(route('admin.fanfiction.index'));
 
         $this->assertDatabaseHas('fanfictions', [
             'title' => 'Testgeschichte',
@@ -78,17 +80,17 @@ class FanfictionAdminControllerTest extends TestCase
 
     public function test_vorstand_can_create_fanfiction_with_external_author(): void
     {
-        $response = $this->actingAs($this->vorstand)
-            ->post(route('admin.fanfiction.store'), [
-                'title' => 'Externe Geschichte',
-                'content' => 'Dies ist eine Geschichte von einem externen Autor.',
-                'author_type' => 'external',
-                'user_id' => null,
-                'author_name' => 'Max Mustermann',
-                'status' => 'draft',
-            ]);
+        $this->actingAs($this->vorstand);
 
-        $response->assertRedirect(route('admin.fanfiction.index'));
+        Livewire::test(FanfictionCreate::class)
+            ->set('title', 'Externe Geschichte')
+            ->set('content', 'Dies ist eine Geschichte von einem externen Autor.')
+            ->set('authorType', 'external')
+            ->set('userId', null)
+            ->set('authorName', 'Max Mustermann')
+            ->set('status', 'draft')
+            ->call('save')
+            ->assertRedirect(route('admin.fanfiction.index'));
 
         $this->assertDatabaseHas('fanfictions', [
             'title' => 'Externe Geschichte',
@@ -101,19 +103,19 @@ class FanfictionAdminControllerTest extends TestCase
     {
         Storage::fake('public');
 
+        $this->actingAs($this->vorstand);
+
         $photo = UploadedFile::fake()->image('test.jpg', 800, 600);
 
-        $response = $this->actingAs($this->vorstand)
-            ->post(route('admin.fanfiction.store'), [
-                'title' => 'Geschichte mit Bild',
-                'content' => 'Dies ist der Inhalt der Geschichte mit einem Bild.',
-                'author_type' => 'external',
-                'author_name' => 'Autor',
-                'photos' => [$photo],
-                'status' => 'draft',
-            ]);
-
-        $response->assertRedirect(route('admin.fanfiction.index'));
+        Livewire::test(FanfictionCreate::class)
+            ->set('title', 'Geschichte mit Bild')
+            ->set('content', 'Dies ist der Inhalt der Geschichte mit einem Bild.')
+            ->set('authorType', 'external')
+            ->set('authorName', 'Autor')
+            ->set('photos', [$photo])
+            ->set('status', 'draft')
+            ->call('save')
+            ->assertRedirect(route('admin.fanfiction.index'));
 
         $fanfiction = Fanfiction::where('title', 'Geschichte mit Bild')->first();
         $this->assertNotNull($fanfiction);
@@ -183,15 +185,12 @@ class FanfictionAdminControllerTest extends TestCase
             'title' => 'Original Titel',
         ]);
 
-        $response = $this->actingAs($this->vorstand)
-            ->put(route('admin.fanfiction.update', $fanfiction), [
-                'title' => 'Neuer Titel',
-                'content' => $fanfiction->content,
-                'author_type' => 'external',
-                'author_name' => $fanfiction->author_name,
-            ]);
+        $this->actingAs($this->vorstand);
 
-        $response->assertRedirect(route('admin.fanfiction.index'));
+        Livewire::test(FanfictionEdit::class, ['fanfiction' => $fanfiction])
+            ->set('title', 'Neuer Titel')
+            ->call('save')
+            ->assertRedirect(route('admin.fanfiction.index'));
 
         $fanfiction->refresh();
         $this->assertEquals('Neuer Titel', $fanfiction->title);
@@ -215,42 +214,42 @@ class FanfictionAdminControllerTest extends TestCase
     {
         Storage::fake('public');
 
+        $this->actingAs($this->vorstand);
+
         // Create a file larger than 2MB (2048KB)
         $largePhoto = UploadedFile::fake()->create('large.jpg', 3000);
 
-        $response = $this->actingAs($this->vorstand)
-            ->post(route('admin.fanfiction.store'), [
-                'title' => 'Geschichte',
-                'content' => 'Inhalt...',
-                'author_type' => 'external',
-                'author_name' => 'Autor',
-                'photos' => [$largePhoto],
-                'status' => 'draft',
-            ]);
-
-        $response->assertSessionHasErrors('photos.0');
+        Livewire::test(FanfictionCreate::class)
+            ->set('title', 'Geschichte')
+            ->set('content', 'Inhalt...')
+            ->set('authorType', 'external')
+            ->set('authorName', 'Autor')
+            ->set('photos', [$largePhoto])
+            ->set('status', 'draft')
+            ->call('save')
+            ->assertHasErrors('photos.0');
     }
 
     public function test_photo_upload_respects_max_count(): void
     {
         Storage::fake('public');
 
+        $this->actingAs($this->vorstand);
+
         $photos = [];
         for ($i = 0; $i < 6; $i++) {
             $photos[] = UploadedFile::fake()->image("test{$i}.jpg", 200, 200);
         }
 
-        $response = $this->actingAs($this->vorstand)
-            ->post(route('admin.fanfiction.store'), [
-                'title' => 'Geschichte',
-                'content' => 'Inhalt...',
-                'author_type' => 'external',
-                'author_name' => 'Autor',
-                'photos' => $photos,
-                'status' => 'draft',
-            ]);
-
-        $response->assertSessionHasErrors('photos');
+        Livewire::test(FanfictionCreate::class)
+            ->set('title', 'Geschichte')
+            ->set('content', 'Inhalt...')
+            ->set('authorType', 'external')
+            ->set('authorName', 'Autor')
+            ->set('photos', $photos)
+            ->set('status', 'draft')
+            ->call('save')
+            ->assertHasErrors('photos');
     }
 
     public function test_vorstand_can_remove_photos_during_update(): void
@@ -273,17 +272,13 @@ class FanfictionAdminControllerTest extends TestCase
         Storage::disk('public')->assertExists($path1);
         Storage::disk('public')->assertExists($path2);
 
-        // Remove one photo
-        $response = $this->actingAs($this->vorstand)
-            ->put(route('admin.fanfiction.update', $fanfiction), [
-                'title' => $fanfiction->title,
-                'content' => $fanfiction->content,
-                'author_type' => 'external',
-                'author_name' => $fanfiction->author_name,
-                'remove_photos' => [$path1],
-            ]);
+        $this->actingAs($this->vorstand);
 
-        $response->assertRedirect(route('admin.fanfiction.index'));
+        // Remove one photo via Livewire
+        Livewire::test(FanfictionEdit::class, ['fanfiction' => $fanfiction])
+            ->call('togglePhotoRemoval', $path1)
+            ->call('save')
+            ->assertRedirect(route('admin.fanfiction.index'));
 
         $fanfiction->refresh();
         $this->assertCount(1, $fanfiction->photos);
