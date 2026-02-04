@@ -339,7 +339,7 @@ class UmfrageVerwaltung extends Component
     public function render()
     {
         return view('livewire.umfragen.umfrage-verwaltung')
-            ->layout('layouts.app', [
+            ->layout('layouts.admin', [
                 'title' => 'Umfrage verwalten',
             ]);
     }
