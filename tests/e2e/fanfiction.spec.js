@@ -137,9 +137,9 @@ test.describe('Fanfiction Verwaltung für Vorstand (Issue #493)', () => {
         // Textarea hat keinen Placeholder, prüfe dass legend-Text existiert (exact match)
         await expect(page.getByText('Geschichte *', { exact: true })).toBeVisible();
 
-        // Autortyp-Auswahl (Radio-Buttons)
-        await expect(page.getByText(/Vereinsmitglied/i)).toBeVisible();
-        await expect(page.getByText(/Externer Autor/i)).toBeVisible();
+        // Autortyp-Auswahl (Radio-Buttons) - exact match um Hint-Text auszuschließen
+        await expect(page.getByText('Vereinsmitglied', { exact: true })).toBeVisible();
+        await expect(page.getByText('Externer Autor', { exact: true })).toBeVisible();
     });
 
     test('Vorstand kann Fanfiction mit externem Autor erstellen', async ({ page }) => {
