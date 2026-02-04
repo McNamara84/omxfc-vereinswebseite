@@ -114,7 +114,8 @@ test.describe('Fanfiction Verwaltung für Vorstand (Issue #493)', () => {
         await page.goto('/vorstand/fanfiction');
 
         await expect(page).toHaveURL(/vorstand\/fanfiction/);
-        await expect(page.getByRole('heading', { name: /Fanfiction/i })).toBeVisible();
+        // maryUI x-header rendert title als div, nicht als heading
+        await expect(page.getByText('Fanfiction verwalten')).toBeVisible();
     });
 
     test('Vorstand sieht Liste der Fanfictions mit Status', async ({ page }) => {
@@ -131,8 +132,9 @@ test.describe('Fanfiction Verwaltung für Vorstand (Issue #493)', () => {
         await page.goto('/vorstand/fanfiction/erstellen');
 
         // Prüfe ob alle erforderlichen Felder vorhanden sind
-        await expect(page.getByRole('textbox', { name: 'Titel der Geschichte' })).toBeVisible();
-        await expect(page.getByRole('textbox', { name: 'Geschichte', exact: true })).toBeVisible();
+        // maryUI x-input verwendet label-Texte
+        await expect(page.getByLabel('Titel der Geschichte')).toBeVisible();
+        await expect(page.getByLabel('Geschichte')).toBeVisible();
 
         // Autortyp-Auswahl (Radio-Buttons)
         await expect(page.getByText(/Vereinsmitglied/i)).toBeVisible();
@@ -145,10 +147,10 @@ test.describe('Fanfiction Verwaltung für Vorstand (Issue #493)', () => {
         // Wähle externen Autor (Radio-Button)
         await page.getByText('Externer Autor').click();
 
-        // Fülle Formular aus
-        await page.fill('input[name="title"]', 'E2E Test Geschichte');
-        await page.fill('input[name="author_name"]', 'E2E Testautor');
-        await page.fill('textarea[name="content"]', 'Dies ist eine Testgeschichte für den E2E-Test. Sie enthält genug Text um die Validierung zu bestehen.');
+        // Fülle Formular aus - Livewire verwendet wire:model, nicht name Attribute
+        await page.getByLabel('Titel der Geschichte').fill('E2E Test Geschichte');
+        await page.getByLabel('Autor-Name').fill('E2E Testautor');
+        await page.getByLabel('Geschichte').fill('Dies ist eine Testgeschichte für den E2E-Test. Sie enthält genug Text um die Validierung zu bestehen.');
 
         // Wähle Status "Entwurf" (Radio-Button, nicht Select)
         await page.getByText('Als Entwurf speichern').click();
@@ -271,10 +273,10 @@ test.describe('Fanfiction Übersicht für Mitglieder (Issue #495 & #496)', () =>
     test('Mitglied kann keine Entwürfe sehen', async ({ page }) => {
         await page.goto('/fanfiction');
 
-        // Der Entwurf "Entwurf: Die dunkle Prophezeiung" sollte nicht in der Fanfiction-Liste sichtbar sein
-        // Wir prüfen nur innerhalb des Fanfiction-Listbereichs
+        // Der Entwurf mit dem Titel "Entwurf: Die dunkle Prophezeiung" sollte nicht in der Fanfiction-Liste sichtbar sein
+        // Wir prüfen auf den exakten Titel (der im Seeder definiert ist)
         const fanfictionList = page.locator('[data-fanfiction-list]');
-        await expect(fanfictionList.getByText('Die dunkle Prophezeiung')).not.toBeVisible();
+        await expect(fanfictionList.getByText('Entwurf: Die dunkle Prophezeiung')).not.toBeVisible();
     });
 });
 
