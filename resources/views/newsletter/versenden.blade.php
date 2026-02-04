@@ -1,59 +1,83 @@
 <x-app-layout title="Newsletter versenden">
     <x-member-page class="max-w-4xl">
+        {{-- Flash Messages --}}
         @if(session('status'))
-            <div class="mb-4 p-4 bg-green-100 dark:bg-green-900 border border-green-400 dark:border-green-600 text-green-800 dark:text-green-200 rounded">
+            <x-alert icon="o-check-circle" class="alert-success mb-4" dismissible>
                 {{ session('status') }}
-            </div>
+            </x-alert>
         @endif
 
-        <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
-            <h1 class="text-2xl font-bold text-[#8B0116] dark:text-[#FF6B81] mb-6">Newsletter versenden</h1>
+        <x-card shadow>
+            <x-header title="Newsletter versenden" separator />
 
             <form x-data="newsletterForm()" x-ref="form" method="POST" action="{{ route('newsletter.send') }}">
                 @csrf
+                
+                {{-- Betreff --}}
                 <div class="mb-4">
-                    <x-label for="subject" value="Betreff" />
-                    <x-input id="subject" name="subject" type="text" class="mt-1 block w-full" required />
+                    <label class="label" for="subject">
+                        <span class="label-text">Betreff</span>
+                    </label>
+                    <input id="subject" name="subject" type="text" class="input input-bordered w-full" required />
                 </div>
+
+                {{-- Zielgruppen --}}
                 <div class="mb-4">
-                    <x-label value="Zielgruppen" />
+                    <label class="label">
+                        <span class="label-text">Zielgruppen</span>
+                    </label>
                     <div class="mt-2 space-y-2">
                         @foreach($roles as $role)
-                            <label class="flex items-center text-gray-700 dark:text-gray-200">
-                                {{-- Mitglied is the typical target audience and therefore pre-selected --}}
-                                <x-checkbox name="roles[]" value="{{ $role->value }}" @checked($role === $defaultRole) />
-                                <span class="ml-2">{{ $role->value }}</span>
+                            <label class="label cursor-pointer justify-start gap-2">
+                                <input type="checkbox" name="roles[]" value="{{ $role->value }}" @checked($role === $defaultRole) class="checkbox checkbox-primary" />
+                                <span class="label-text">{{ $role->value }}</span>
                             </label>
                         @endforeach
                     </div>
                 </div>
+
+                {{-- Dynamische Themen --}}
                 <template x-for="(topic, index) in topics" :key="index">
-                    <div class="mb-4">
-                        <x-label x-bind:for="'topic-title-' + index" value="Thema" />
-                        <x-input x-bind:id="'topic-title-' + index" type="text" class="mt-1 block w-full" x-bind:name="'topics[' + index + '][title]'" required />
-                        <x-label x-bind:for="'topic-content-' + index" value="Text" class="mt-2" />
-                        <textarea x-bind:id="'topic-content-' + index" class="mt-1 block w-full rounded bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-800 dark:text-gray-200" rows="3" x-bind:name="'topics[' + index + '][content]'" required></textarea>
-                    </div>
+                    <x-card class="mb-4 bg-base-200">
+                        <div class="space-y-3">
+                            <div>
+                                <label class="label" x-bind:for="'topic-title-' + index">
+                                    <span class="label-text">Thema</span>
+                                </label>
+                                <input x-bind:id="'topic-title-' + index" type="text" class="input input-bordered w-full" x-bind:name="'topics[' + index + '][title]'" required />
+                            </div>
+                            <div>
+                                <label class="label" x-bind:for="'topic-content-' + index">
+                                    <span class="label-text">Text</span>
+                                </label>
+                                <textarea x-bind:id="'topic-content-' + index" class="textarea textarea-bordered w-full" rows="3" x-bind:name="'topics[' + index + '][content]'" required></textarea>
+                            </div>
+                        </div>
+                    </x-card>
                 </template>
-                <fieldset class="flex flex-wrap gap-2" role="group" aria-labelledby="newsletter-actions">
-                    <legend id="newsletter-actions" class="sr-only">Newsletter-Aktionen</legend>
-                    <button type="button" class="btn-primary" @click="addTopic">Thema hinzufügen</button>
-                    <button type="button" class="btn-primary" @click="confirmSend()">Versenden</button>
-                    <button type="button" class="btn-primary" @click="confirmSend(true)">Newsletter testen</button>
-                </fieldset>
+
+                {{-- Aktions-Buttons --}}
+                <div class="flex flex-wrap gap-2">
+                    <x-button label="Thema hinzufügen" icon="o-plus" class="btn-ghost" @click="addTopic" />
+                    <x-button label="Versenden" icon="o-paper-airplane" class="btn-primary" @click="confirmSend()" />
+                    <x-button label="Newsletter testen" icon="o-beaker" class="btn-secondary" @click="confirmSend(true)" />
+                </div>
+                
                 <input type="hidden" name="test" value="0" x-ref="test" />
 
-                <div x-show="showConfirm" x-cloak class="fixed inset-0 flex items-center justify-center bg-black/50">
-                    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg">
-                        <p class="mb-4 text-gray-800 dark:text-gray-200" x-text="pendingTest ? 'Testnewsletter wirklich versenden?' : 'Wirklich Newsletter versenden?'"></p>
-                        <div class="flex justify-end">
-                            <button type="button" class="btn-secondary" @click="showConfirm = false">Abbrechen</button>
-                            <button type="button" class="ml-2 btn-primary" @click="submit">Ja, versenden</button>
+                {{-- Confirm-Modal --}}
+                <div x-show="showConfirm" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-base-300/75">
+                    <div class="bg-base-100 p-6 rounded-box shadow-xl max-w-md w-full mx-4">
+                        <h3 class="text-lg font-medium mb-4">Bestätigung</h3>
+                        <p class="mb-6 text-base-content/80" x-text="pendingTest ? 'Testnewsletter wirklich versenden?' : 'Wirklich Newsletter versenden?'"></p>
+                        <div class="flex justify-end gap-2">
+                            <x-button label="Abbrechen" class="btn-ghost" @click="showConfirm = false" />
+                            <x-button label="Ja, versenden" class="btn-primary" @click="submit" />
                         </div>
                     </div>
                 </div>
             </form>
-        </div>
+        </x-card>
     </x-member-page>
 </x-app-layout>
 
