@@ -134,8 +134,8 @@ test.describe('Fanfiction Verwaltung für Vorstand (Issue #493)', () => {
         // Prüfe ob alle erforderlichen Felder vorhanden sind
         // maryUI x-input verwendet fieldset/legend statt label/input - nutze placeholder
         await expect(page.getByPlaceholder('z.B. Die Rückkehr nach Dorado')).toBeVisible();
-        // Textarea hat keinen Placeholder, prüfe dass legend-Text existiert
-        await expect(page.getByText('Geschichte', { exact: false })).toBeVisible();
+        // Textarea hat keinen Placeholder, prüfe dass legend-Text existiert (exact match)
+        await expect(page.getByText('Geschichte *', { exact: true })).toBeVisible();
 
         // Autortyp-Auswahl (Radio-Buttons)
         await expect(page.getByText(/Vereinsmitglied/i)).toBeVisible();
