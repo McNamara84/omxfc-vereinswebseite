@@ -8,6 +8,7 @@ use Livewire\Component;
 class FantreffenZahlungsbestaetigung extends Component
 {
     public $anmeldung;
+
     public $paypalMeUrl;
 
     public function mount($id)
@@ -23,7 +24,7 @@ class FantreffenZahlungsbestaetigung extends Component
         } else {
             // Nicht eingeloggte Nutzer dürfen nur direkt nach der Anmeldung zugreifen
             // (wird über Session-Token validiert)
-            if (!session()->has('fantreffen_anmeldung_' . $id)) {
+            if (! session()->has('fantreffen_anmeldung_'.$id)) {
                 abort(403, 'Zugriff verweigert. Bitte melden Sie sich an.');
             }
         }
@@ -34,7 +35,7 @@ class FantreffenZahlungsbestaetigung extends Component
             // Betrag muss als EUR angegeben werden
             $amount = number_format((float) $this->anmeldung->payment_amount, 2, '.', '');
             $paypalUsername = config('services.paypal.me_username', 'OfficialMaddraxFanclub');
-            
+
             $this->paypalMeUrl = "https://paypal.me/{$paypalUsername}/{$amount}EUR?locale.x=de_DE";
         }
     }

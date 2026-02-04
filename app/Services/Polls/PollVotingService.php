@@ -17,6 +17,7 @@ use Illuminate\Validation\ValidationException;
 class PollVotingService
 {
     public const PUBLIC_VOTE_RATE_LIMIT_MAX_ATTEMPTS = 10;
+
     public const PUBLIC_VOTE_RATE_LIMIT_DECAY_SECONDS = 60;
 
     public const ERROR_ALREADY_VOTED_IP = 'Von dieser IP wurde bereits abgestimmt.';

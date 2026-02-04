@@ -2,11 +2,11 @@
 
 namespace Tests\Feature;
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
+use App\Enums\Role;
 use App\Models\Team;
 use App\Models\User;
-use App\Enums\Role;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 
 class MitgliederKarteMembershipTest extends TestCase
 {
@@ -36,4 +36,3 @@ class MitgliederKarteMembershipTest extends TestCase
         $this->assertSame(Role::Mitglied->value, $retrieved->pivot->role);
     }
 }
-

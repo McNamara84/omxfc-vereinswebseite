@@ -7,7 +7,6 @@ use App\Enums\Role;
 use App\Livewire\FanfictionCreate;
 use App\Livewire\FanfictionEdit;
 use App\Models\Fanfiction;
-use App\Models\FanfictionComment;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;

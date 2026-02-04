@@ -2,10 +2,10 @@
 
 namespace App\Policies;
 
+use App\Enums\Role;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Auth\Access\HandlesAuthorization;
-use App\Enums\Role;
 
 class TeamPolicy
 {

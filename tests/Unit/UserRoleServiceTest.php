@@ -22,7 +22,7 @@ class UserRoleServiceTest extends TestCase
         $user = User::factory()->create(['current_team_id' => $team->id]);
         $team->users()->attach($user, ['role' => Role::Admin->value]);
 
-        $service = new UserRoleService();
+        $service = new UserRoleService;
 
         $this->assertSame(Role::Admin, $service->getRole($user, $team));
     }
@@ -32,7 +32,7 @@ class UserRoleServiceTest extends TestCase
         $team = Team::membersTeam();
         $user = User::factory()->create(['current_team_id' => $team->id]);
 
-        $service = new UserRoleService();
+        $service = new UserRoleService;
 
         $this->expectException(ModelNotFoundException::class);
 
@@ -45,11 +45,10 @@ class UserRoleServiceTest extends TestCase
         $user = User::factory()->create(['current_team_id' => $team->id]);
         $team->users()->attach($user, ['role' => 'Gast']);
 
-        $service = new UserRoleService();
+        $service = new UserRoleService;
 
         $this->expectException(ModelNotFoundException::class);
 
         $service->getRole($user, $team);
     }
 }
-

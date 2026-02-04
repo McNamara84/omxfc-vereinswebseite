@@ -2,15 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Models\User;
-use Illuminate\Support\Facades\Hash;
-use Laravel\Jetstream\Jetstream;
-use Illuminate\Support\Facades\Mail;
-use App\Mail\MitgliedAntragEingereicht;
-use App\Mail\AntragAnVorstand;
-use App\Mail\AntragAnAdmin;
 use App\Enums\Role;
+use App\Mail\MitgliedAntragEingereicht;
+use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
+use Laravel\Jetstream\Jetstream;
 
 class MitgliedschaftController extends Controller
 {
@@ -32,7 +30,7 @@ class MitgliedschaftController extends Controller
         ]);
 
         $user = User::create([
-            'name' => $request->vorname . ' ' . $request->nachname,
+            'name' => $request->vorname.' '.$request->nachname,
             'email' => $request->mail,
             'password' => Hash::make($request->passwort),
             'current_team_id' => 1,
@@ -62,7 +60,7 @@ class MitgliedschaftController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Mitgliedschaftsantrag erfolgreich eingereicht.'
+            'message' => 'Mitgliedschaftsantrag erfolgreich eingereicht.',
         ]);
     }
 }

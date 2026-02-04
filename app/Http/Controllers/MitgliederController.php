@@ -2,23 +2,22 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Enums\Role;
 use App\Models\User;
+use App\Services\MembersTeamProvider;
+use App\Services\UserRoleService;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Symfony\Component\HttpFoundation\StreamedResponse;
-use App\Enums\Role;
 use Illuminate\Validation\Rule;
-use App\Services\UserRoleService;
-use App\Services\MembersTeamProvider;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class MitgliederController extends Controller
 {
     public function __construct(
         private UserRoleService $userRoleService,
         private MembersTeamProvider $membersTeamProvider
-    ) {
-    }
+    ) {}
 
     public function index(Request $request)
     {
@@ -30,7 +29,7 @@ class MitgliederController extends Controller
 
         // Nur erlaubte Sortierfelder akzeptieren
         $allowedSortFields = ['nachname', 'role', 'mitgliedsbeitrag', 'mitglied_seit', 'last_activity'];
-        if (!in_array($sortBy, $allowedSortFields)) {
+        if (! in_array($sortBy, $allowedSortFields)) {
             $sortBy = 'nachname';
         }
 
@@ -39,7 +38,7 @@ class MitgliederController extends Controller
         $sortDir = $request->input('dir', $defaultSortDir);
 
         // Sortierrichtung validieren
-        if (!in_array($sortDir, ['asc', 'desc'])) {
+        if (! in_array($sortDir, ['asc', 'desc'])) {
             $sortDir = $defaultSortDir;
         }
 
@@ -95,14 +94,14 @@ class MitgliederController extends Controller
             'sortBy' => $sortBy,
             'sortDir' => $sortDir,
             'filters' => $filters,
-            'onlineUserIds' => $onlineUserIds
+            'onlineUserIds' => $onlineUserIds,
         ]);
     }
 
     public function changeRole(Request $request, User $user)
     {
         $request->validate([
-            'role' => ['required', 'string', Rule::in(array_map(fn(Role $r) => $r->value, Role::cases()))],
+            'role' => ['required', 'string', Rule::in(array_map(fn (Role $r) => $r->value, Role::cases()))],
         ]);
 
         $currentUser = Auth::user();
@@ -143,7 +142,7 @@ class MitgliederController extends Controller
         // Rolle des Mitglieds ändern
         $team->users()->updateExistingPivot($user->id, ['role' => $newRole->value]);
 
-        return back()->with('status', 'Die Rolle von ' . $user->name . ' wurde zu ' . $request->role . ' geändert.');
+        return back()->with('status', 'Die Rolle von '.$user->name.' wurde zu '.$request->role.' geändert.');
     }
 
     public function removeMember(User $user)
@@ -209,18 +208,18 @@ class MitgliederController extends Controller
             ->get();
 
         // CSV-Datei generieren
-        $filename = 'mitglieder-export-' . date('Y-m-d') . '.csv';
+        $filename = 'mitglieder-export-'.date('Y-m-d').'.csv';
 
         $headers = [
             'Content-Type' => 'text/csv; charset=UTF-8',
-            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
         ];
 
         // StreamedResponse verwenden, um Speicherverbrauch zu minimieren
         return new StreamedResponse(function () use ($members, $request) {
             // Output-Stream öffnen und BOM für Excel-UTF-8-Kompatibilität setzen
             $handle = fopen('php://output', 'w');
-            fprintf($handle, chr(0xEF) . chr(0xBB) . chr(0xBF));
+            fprintf($handle, chr(0xEF).chr(0xBB).chr(0xBF));
 
             // Spaltenüberschriften
             $headers = [];

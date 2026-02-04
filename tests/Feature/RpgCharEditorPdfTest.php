@@ -18,6 +18,7 @@ class RpgCharEditorPdfTest extends TestCase
         $team = Team::membersTeam();
         $user = User::factory()->create(['current_team_id' => $team->id]);
         $team->users()->attach($user, ['role' => \App\Enums\Role::Admin->value]);
+
         return $user;
     }
 
@@ -25,7 +26,8 @@ class RpgCharEditorPdfTest extends TestCase
     {
         $admin = $this->adminUser();
         Pdf::shouldReceive('view')->once()->with('rpg.char-sheet', \Mockery::type('array'))
-            ->andReturn(new class extends \Spatie\LaravelPdf\PdfBuilder {
+            ->andReturn(new class extends \Spatie\LaravelPdf\PdfBuilder
+            {
                 public function toResponse($request): \Illuminate\Http\Response
                 {
                     return response('PDF', 200, $this->responseHeaders);
@@ -58,7 +60,8 @@ class RpgCharEditorPdfTest extends TestCase
         Pdf::shouldReceive('view')
             ->once()
             ->with('rpg.char-sheet', \Mockery::on(fn ($data) => array_key_exists('portrait', $data) && is_null($data['portrait'])))
-            ->andReturn(new class extends \Spatie\LaravelPdf\PdfBuilder {
+            ->andReturn(new class extends \Spatie\LaravelPdf\PdfBuilder
+            {
                 public function toResponse($request): \Illuminate\Http\Response
                 {
                     return response('PDF', 200, $this->responseHeaders);
@@ -79,7 +82,8 @@ class RpgCharEditorPdfTest extends TestCase
         Pdf::shouldReceive('view')
             ->once()
             ->with('rpg.char-sheet', \Mockery::on(fn ($data) => str_starts_with($data['portrait'] ?? '', 'data:image')))
-            ->andReturn(new class extends \Spatie\LaravelPdf\PdfBuilder {
+            ->andReturn(new class extends \Spatie\LaravelPdf\PdfBuilder
+            {
                 public function toResponse($request): \Illuminate\Http\Response
                 {
                     return response('PDF', 200, $this->responseHeaders);

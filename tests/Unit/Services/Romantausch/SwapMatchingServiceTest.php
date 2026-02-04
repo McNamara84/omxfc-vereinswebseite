@@ -15,7 +15,7 @@ class SwapMatchingServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->service = new SwapMatchingService();
+        $this->service = new SwapMatchingService;
     }
 
     public function test_build_book_key_format(): void

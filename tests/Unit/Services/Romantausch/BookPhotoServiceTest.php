@@ -17,7 +17,7 @@ class BookPhotoServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->service = new BookPhotoService();
+        $this->service = new BookPhotoService;
     }
 
     public function test_upload_photos_stores_files(): void

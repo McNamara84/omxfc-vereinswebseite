@@ -18,12 +18,13 @@ class TeamPointServiceTest extends TestCase
     use RefreshDatabase;
 
     private TeamPointService $service;
+
     private Team $team;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->service = new TeamPointService();
+        $this->service = new TeamPointService;
         $this->team = Team::membersTeam();
         $this->team->users()->detach();
         $this->team->refresh();
@@ -42,6 +43,7 @@ class TeamPointServiceTest extends TestCase
         if ($points > 0) {
             $this->addPoints($user, $points, Carbon::now());
         }
+
         return $user;
     }
 
@@ -185,4 +187,3 @@ class TeamPointServiceTest extends TestCase
         $this->assertSame(80, $metrics['weekly']['progress']);
     }
 }
-

@@ -2,11 +2,10 @@
 
 namespace Tests\Feature;
 
+use App\Models\Team;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
-use App\Models\Team;
-use App\Models\TeamInvitation;
-use Illuminate\Database\QueryException;
 
 class TeamInvitationModelTest extends TestCase
 {

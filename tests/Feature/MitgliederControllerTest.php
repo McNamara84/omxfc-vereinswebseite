@@ -14,8 +14,8 @@ use Tests\TestCase;
 
 class MitgliederControllerTest extends TestCase
 {
-    use RefreshDatabase;
     use CreatesUserWithRole;
+    use RefreshDatabase;
 
     public function test_export_csv_requires_proper_role(): void
     {
@@ -90,13 +90,13 @@ class MitgliederControllerTest extends TestCase
         $this->actingAs($board);
 
         $response = $this->from('/mitglieder')->put("/mitglieder/{$member->id}/role", [
-            'role' => \App\Enums\Role::Ehrenmitglied->value
+            'role' => \App\Enums\Role::Ehrenmitglied->value,
         ]);
 
         $response->assertRedirect('/mitglieder');
         $this->assertDatabaseHas('team_user', [
             'user_id' => $member->id,
-            'role' => \App\Enums\Role::Ehrenmitglied->value
+            'role' => \App\Enums\Role::Ehrenmitglied->value,
         ]);
     }
 
@@ -109,7 +109,7 @@ class MitgliederControllerTest extends TestCase
         $team->users()->attach($target, ['role' => \App\Enums\Role::Mitglied->value]);
 
         $response = $this->from('/mitglieder')->put("/mitglieder/{$target->id}/role", [
-            'role' => \App\Enums\Role::Ehrenmitglied->value
+            'role' => \App\Enums\Role::Ehrenmitglied->value,
         ]);
 
         $response->assertStatus(403);
@@ -125,14 +125,14 @@ class MitgliederControllerTest extends TestCase
         $this->actingAs($board);
 
         $response = $this->from('/mitglieder')->put("/mitglieder/{$member->id}/role", [
-            'role' => \App\Enums\Role::Admin->value
+            'role' => \App\Enums\Role::Admin->value,
         ]);
 
         $response->assertRedirect('/mitglieder');
         $response->assertSessionHas('error');
         $this->assertDatabaseHas('team_user', [
             'user_id' => $member->id,
-            'role' => \App\Enums\Role::Mitglied->value
+            'role' => \App\Enums\Role::Mitglied->value,
         ]);
     }
 
@@ -220,7 +220,7 @@ class MitgliederControllerTest extends TestCase
             'name' => 'Anna Alpha',
             'vorname' => 'Anna',
             'nachname' => 'Alpha',
-            'current_team_id' => $team->id
+            'current_team_id' => $team->id,
         ]);
         $team->users()->attach($a, ['role' => \App\Enums\Role::Ehrenmitglied->value]);
 
@@ -228,7 +228,7 @@ class MitgliederControllerTest extends TestCase
             'name' => 'Zara Zulu',
             'vorname' => 'Zara',
             'nachname' => 'Zulu',
-            'current_team_id' => $team->id
+            'current_team_id' => $team->id,
         ]);
         $team->users()->attach($z, ['role' => \App\Enums\Role::Kassenwart->value]);
 
@@ -236,7 +236,7 @@ class MitgliederControllerTest extends TestCase
         $acting->update([
             'name' => 'Mike Member',
             'vorname' => 'Mike',
-            'nachname' => 'Member'
+            'nachname' => 'Member',
         ]);
         $this->actingAs($acting);
 
@@ -289,7 +289,7 @@ class MitgliederControllerTest extends TestCase
             'name' => 'Alice First',
             'vorname' => 'Alice',
             'nachname' => 'First',
-            'current_team_id' => $team->id
+            'current_team_id' => $team->id,
         ]);
         $team->users()->attach($first, ['role' => \App\Enums\Role::Mitglied->value]);
 
@@ -297,7 +297,7 @@ class MitgliederControllerTest extends TestCase
             'name' => 'Bob Second',
             'vorname' => 'Bob',
             'nachname' => 'Second',
-            'current_team_id' => $team->id
+            'current_team_id' => $team->id,
         ]);
         $team->users()->attach($second, ['role' => \App\Enums\Role::Mitglied->value]);
 
@@ -305,7 +305,7 @@ class MitgliederControllerTest extends TestCase
         $acting->update([
             'name' => 'Charlie Current',
             'vorname' => 'Charlie',
-            'nachname' => 'Current'
+            'nachname' => 'Current',
         ]);
         $this->actingAs($acting);
 

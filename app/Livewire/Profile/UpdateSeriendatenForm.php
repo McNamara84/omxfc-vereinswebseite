@@ -1,24 +1,34 @@
 <?php
+
 // app\Livewire\Profile\UpdateSeriendatenForm.php
+
 namespace App\Livewire\Profile;
 
-use Livewire\Component;
 use App\Actions\Fortify\UpdateUserSeriendaten;
-use Illuminate\Support\Facades\Auth;
-use App\Services\MaddraxDataService;
-use App\Models\Book;
 use App\Enums\BookType;
+use App\Models\Book;
+use App\Services\MaddraxDataService;
+use Illuminate\Support\Facades\Auth;
+use Livewire\Component;
 
 class UpdateSeriendatenForm extends Component
 {
     public array $state = [];
+
     public array $autoren = [];
+
     public array $zyklen = [];
+
     public array $romane = [];
+
     public array $figuren = [];
+
     public array $schauplaetze = [];
+
     public array $schlagworte = [];
+
     public array $hardcover = [];
+
     public array $covers = [];
 
     public function mount()
@@ -51,7 +61,8 @@ class UpdateSeriendatenForm extends Component
         $romanCovers = collect($this->romane)
             ->map(function ($roman) {
                 [$nummer, $titel] = explode(' - ', $roman, 2);
-                return 'MX ' . $nummer . ' ' . $titel;
+
+                return 'MX '.$nummer.' '.$titel;
             })
             ->toArray();
 
@@ -59,7 +70,7 @@ class UpdateSeriendatenForm extends Component
             ->whereNotNull('roman_number')
             ->orderBy('roman_number')
             ->get()
-            ->map(fn ($book) => 'HC ' . $book->roman_number . ' ' . $book->title)
+            ->map(fn ($book) => 'HC '.$book->roman_number.' '.$book->title)
             ->toArray();
 
         $this->covers = array_merge($romanCovers, $hardcoverCovers);

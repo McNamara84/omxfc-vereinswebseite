@@ -2,41 +2,37 @@
 
 namespace Tests\Feature;
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
-use App\Models\Team;
-use App\Models\User;
+use App\Enums\BookType;
+use App\Http\Controllers\RomantauschController;
 use App\Models\BookOffer;
 use App\Models\BookRequest;
-use App\Models\Book;
 use App\Models\BookSwap;
-use App\Enums\BookType;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Gate;
-use Illuminate\Http\UploadedFile;
-use App\Http\Controllers\RomantauschController;
+use App\Models\User;
 use App\Services\Romantausch\BookPhotoService;
-use Symfony\Component\HttpKernel\Exception\HttpException;
+use App\Services\RomantauschInfoProvider;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 use Mockery;
-use Illuminate\Support\Str;
-use App\Services\RomantauschInfoProvider;
-use Tests\Concerns\CreatesUserWithRole;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use Tests\Concerns\CreatesTestData;
+use Tests\Concerns\CreatesUserWithRole;
+use Tests\TestCase;
 
 class RomantauschControllerTest extends TestCase
 {
-    use RefreshDatabase;
-    use CreatesUserWithRole;
     use CreatesTestData;
+    use CreatesUserWithRole;
+    use RefreshDatabase;
 
     protected function tearDown(): void
     {
         Mockery::close();
         parent::tearDown();
     }
-
-
 
     public function test_index_displays_structured_information_panel(): void
     {
@@ -53,7 +49,7 @@ class RomantauschControllerTest extends TestCase
             return $data === $info;
         });
 
-        $response->assertSee('aria-label="' . $info['steps_aria_label'] . '"', false);
+        $response->assertSee('aria-label="'.$info['steps_aria_label'].'"', false);
         $response->assertSeeText($info['title']);
         $response->assertSeeTextInOrder([
             $info['steps']['offer']['title'],
@@ -89,7 +85,7 @@ class RomantauschControllerTest extends TestCase
         $response->assertOk();
 
         foreach ($offer->photos as $photoPath) {
-            $response->assertSee('storage/' . $photoPath, false);
+            $response->assertSee('storage/'.$photoPath, false);
         }
 
         $response->assertDontSee('data-gallery-id', false);
@@ -937,10 +933,10 @@ class RomantauschControllerTest extends TestCase
         $this->actingAs($user);
         $response = $this->get('/romantauschboerse');
 
-        $description = BookType::MaddraxDieDunkleZukunftDerErde->value . ' 1 - Roman1';
+        $description = BookType::MaddraxDieDunkleZukunftDerErde->value.' 1 - Roman1';
 
-        $response->assertSee('src="' . asset('storage/' . $photoPath) . '"', false);
-        $response->assertSee('alt="Foto 1 von ' . e($description) . '"', false);
+        $response->assertSee('src="'.asset('storage/'.$photoPath).'"', false);
+        $response->assertSee('alt="Foto 1 von '.e($description).'"', false);
         $response->assertSee('data-photo-dialog-trigger', false);
     }
 
@@ -962,9 +958,9 @@ class RomantauschControllerTest extends TestCase
         $this->actingAs($user);
         $response = $this->get('/romantauschboerse');
 
-        $description = BookType::MissionMars->value . ' 2 - Roman ohne Foto';
+        $description = BookType::MissionMars->value.' 2 - Roman ohne Foto';
 
-        $response->assertSee('aria-label="Kein Foto vorhanden für ' . e($description) . '"', false);
+        $response->assertSee('aria-label="Kein Foto vorhanden für '.e($description).'"', false);
         $response->assertSee('Kein Foto', false);
     }
 
@@ -992,8 +988,8 @@ class RomantauschControllerTest extends TestCase
         $response = $this->get('/romantauschboerse');
 
         foreach ([$firstPath, $secondPath] as $index => $path) {
-            $response->assertSee('src="' . asset('storage/' . $path) . '"', false);
-            $response->assertSee('data-photo-index="' . $index . '"', false);
+            $response->assertSee('src="'.asset('storage/'.$path).'"', false);
+            $response->assertSee('data-photo-index="'.$index.'"', false);
         }
 
         $response->assertSee('data-photo-dialog-counter', false);

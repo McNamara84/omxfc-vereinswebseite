@@ -3,7 +3,6 @@
 namespace App\Livewire;
 
 use App\Enums\FanfictionStatus;
-use App\Enums\Role;
 use App\Models\Activity;
 use App\Models\Fanfiction;
 use App\Models\Team;

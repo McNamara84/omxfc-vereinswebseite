@@ -2,17 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 use App\Models\User;
 use App\Services\TeamPointService;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class DownloadsController extends Controller
 {
-    public function __construct(private TeamPointService $teamPointService)
-    {
-    }
+    public function __construct(private TeamPointService $teamPointService) {}
+
     /**
      * Gesamte Download‑Konfiguration (Kategorie → Dateien).
      * Jede Datei enthält den Titel, den Dateinamen im privaten Storage
@@ -58,7 +56,7 @@ class DownloadsController extends Controller
     /**
      * Liefert eine Datei aus, wenn der Nutzer genug Punkte hat.
      *
-     * @param string $datei  Dateiname (wie in $downloads angegeben)
+     * @param  string  $datei  Dateiname (wie in $downloads angegeben)
      */
     public function download(string $datei)
     {
@@ -67,7 +65,7 @@ class DownloadsController extends Controller
             ->flatten(1)
             ->firstWhere('datei', $datei);
 
-        if (!$meta) {
+        if (! $meta) {
             return back()->withErrors('Die Datei wurde nicht gefunden.');
         }
 
@@ -79,11 +77,11 @@ class DownloadsController extends Controller
             return back()->withErrors('Du hast nicht genügend Punkte für diesen Download.');
         }
 
-        $path = 'downloads/' . $datei;
-        if (!Storage::disk('private')->exists($path)) {
+        $path = 'downloads/'.$datei;
+        if (! Storage::disk('private')->exists($path)) {
             return back()->withErrors('Die Datei existiert nicht.');
         }
 
-        return Storage::disk('private')->download($path, $meta['titel'] . '.pdf');
+        return Storage::disk('private')->download($path, $meta['titel'].'.pdf');
     }
 }

@@ -8,7 +8,6 @@ use App\Models\Book;
 use App\Models\BookOffer;
 use App\Models\BookRequest;
 use App\Models\BookSwap;
-use App\Models\Team;
 use App\Models\User;
 use App\Services\Romantausch\BundleService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -692,6 +691,7 @@ class BundleOfferTest extends TestCase
         // Eigene Stapel sollten nicht als "Match" angezeigt werden
         $response->assertViewHas('bundles', function ($bundles) {
             $bundle = $bundles->first();
+
             return $bundle->matching_count === 0;
         });
     }

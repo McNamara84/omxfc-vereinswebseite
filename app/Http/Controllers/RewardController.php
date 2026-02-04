@@ -9,9 +9,7 @@ use Illuminate\View\View;
 
 class RewardController extends Controller
 {
-    public function __construct(private TeamPointService $teamPointService)
-    {
-    }
+    public function __construct(private TeamPointService $teamPointService) {}
 
     /**
      * Display a listing of rewards.

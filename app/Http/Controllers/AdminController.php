@@ -12,8 +12,7 @@ class AdminController extends Controller
 {
     public function __construct(
         private readonly BrowserStatsService $browserStatsService
-    ) {
-    }
+    ) {}
 
     public function index()
     {
@@ -63,7 +62,7 @@ class AdminController extends Controller
                     'total' => (int) $row->total,
                 ];
             })
-            ->groupBy(fn ($row) => $row['path'] . '|' . $row['user_id'])
+            ->groupBy(fn ($row) => $row['path'].'|'.$row['user_id'])
             ->map(function (Collection $rows) {
                 $first = $rows->first();
 
@@ -202,7 +201,7 @@ class AdminController extends Controller
         }
 
         $cleanPath = explode('?', $path, 2)[0] ?? '';
-        $cleanPath = '/' . ltrim($cleanPath, '/');
+        $cleanPath = '/'.ltrim($cleanPath, '/');
 
         if ($cleanPath === '/' || $cleanPath === '') {
             return '/';
@@ -211,6 +210,6 @@ class AdminController extends Controller
         $segments = explode('/', trim($cleanPath, '/'));
         $firstSegment = $segments[0] ?? '';
 
-        return $firstSegment === '' ? '/' : '/' . $firstSegment;
+        return $firstSegment === '' ? '/' : '/'.$firstSegment;
     }
 }

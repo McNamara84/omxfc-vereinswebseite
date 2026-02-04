@@ -2,8 +2,8 @@
 
 namespace App\Livewire;
 
-use App\Models\FantreffenAnmeldung;
 use App\Enums\Role;
+use App\Models\FantreffenAnmeldung;
 use Illuminate\Support\Facades\Response;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Url;
@@ -100,7 +100,7 @@ class FantreffenAdminDashboard extends Component
     public function toggleZahlungseingang(int $anmeldungId): void
     {
         $anmeldung = FantreffenAnmeldung::findOrFail($anmeldungId);
-        $anmeldung->zahlungseingang = !$anmeldung->zahlungseingang;
+        $anmeldung->zahlungseingang = ! $anmeldung->zahlungseingang;
         $anmeldung->save();
 
         unset($this->stats, $this->anmeldungen);
@@ -110,7 +110,7 @@ class FantreffenAdminDashboard extends Component
     public function toggleTshirtFertig(int $anmeldungId): void
     {
         $anmeldung = FantreffenAnmeldung::findOrFail($anmeldungId);
-        $anmeldung->tshirt_fertig = !$anmeldung->tshirt_fertig;
+        $anmeldung->tshirt_fertig = ! $anmeldung->tshirt_fertig;
         $anmeldung->save();
 
         unset($this->stats, $this->anmeldungen);
@@ -131,18 +131,19 @@ class FantreffenAdminDashboard extends Component
     {
         $user = auth()->user();
 
-        if (!$user || !$user->hasAnyRole(Role::Admin, Role::Vorstand, Role::Kassenwart)) {
+        if (! $user || ! $user->hasAnyRole(Role::Admin, Role::Vorstand, Role::Kassenwart)) {
             abort(403);
         }
 
         $anmeldung = FantreffenAnmeldung::findOrFail($anmeldungId);
 
-        if (!$anmeldung->ist_mitglied) {
+        if (! $anmeldung->ist_mitglied) {
             session()->flash('error', 'Nur Mitglieder können dem Orga-Team hinzugefügt werden.');
+
             return;
         }
 
-        $anmeldung->syncPaymentForOrgaStatus(!$anmeldung->orga_team);
+        $anmeldung->syncPaymentForOrgaStatus(! $anmeldung->orga_team);
 
         unset($this->stats, $this->anmeldungen);
         session()->flash('success', $anmeldung->orga_team ? 'Anmeldung dem Orga-Team zugewiesen.' : 'Orga-Team Status entfernt.');
@@ -156,7 +157,7 @@ class FantreffenAdminDashboard extends Component
 
         foreach ($anmeldungen as $anmeldung) {
             $csv .= sprintf(
-                '"%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s"' . "\n",
+                '"%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s"'."\n",
                 $anmeldung->full_name,
                 $anmeldung->registrant_email,
                 $anmeldung->mobile ?? '-',
@@ -170,7 +171,7 @@ class FantreffenAdminDashboard extends Component
                     'free' => 'Kostenlos',
                     default => $anmeldung->payment_status
                 },
-                number_format((float) $anmeldung->payment_amount, 2, ',', '.') . ' €',
+                number_format((float) $anmeldung->payment_amount, 2, ',', '.').' €',
                 $anmeldung->zahlungseingang ? 'Ja' : 'Nein',
                 $anmeldung->tshirt_fertig ? 'Ja' : 'Nein',
                 $anmeldung->paypal_transaction_id ?? '-',
@@ -181,7 +182,7 @@ class FantreffenAdminDashboard extends Component
         return Response::streamDownload(function () use ($csv) {
             echo "\xEF\xBB\xBF"; // UTF-8 BOM für Excel
             echo $csv;
-        }, 'fantreffen-anmeldungen-' . now()->format('Y-m-d') . '.csv', [
+        }, 'fantreffen-anmeldungen-'.now()->format('Y-m-d').'.csv', [
             'Content-Type' => 'text/csv; charset=UTF-8',
         ]);
     }
@@ -228,15 +229,15 @@ class FantreffenAdminDashboard extends Component
         }
 
         // Suchfilter
-        if (!empty($this->search)) {
+        if (! empty($this->search)) {
             $query->where(function ($q) {
-                $q->where('vorname', 'like', '%' . $this->search . '%')
-                    ->orWhere('nachname', 'like', '%' . $this->search . '%')
-                    ->orWhere('email', 'like', '%' . $this->search . '%')
+                $q->where('vorname', 'like', '%'.$this->search.'%')
+                    ->orWhere('nachname', 'like', '%'.$this->search.'%')
+                    ->orWhere('email', 'like', '%'.$this->search.'%')
                     ->orWhereHas('user', function ($userQuery) {
-                        $userQuery->where('vorname', 'like', '%' . $this->search . '%')
-                            ->orWhere('nachname', 'like', '%' . $this->search . '%')
-                            ->orWhere('email', 'like', '%' . $this->search . '%');
+                        $userQuery->where('vorname', 'like', '%'.$this->search.'%')
+                            ->orWhere('nachname', 'like', '%'.$this->search.'%')
+                            ->orWhere('email', 'like', '%'.$this->search.'%');
                     });
             });
         }

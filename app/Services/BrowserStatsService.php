@@ -171,7 +171,7 @@ class BrowserStatsService
     /**
      * Prüft, ob der User-Agent zu einer Definition passt.
      *
-     * @param array{name: string, family: string, match: array<int, string>, exclude?: array<int, string>} $definition
+     * @param  array{name: string, family: string, match: array<int, string>, exclude?: array<int, string>}  $definition
      */
     private function matchesDefinition(string $userAgent, array $definition): bool
     {

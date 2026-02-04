@@ -23,7 +23,7 @@ class FantreffenTshirtDeadlineTest extends TestCase
         $deadline = config('services.fantreffen.tshirt_deadline');
         $this->assertNotNull($deadline);
         $this->assertIsString($deadline);
-        
+
         // Verify it's a valid date
         $parsedDeadline = Carbon::parse($deadline);
         $this->assertInstanceOf(Carbon::class, $parsedDeadline);
@@ -59,7 +59,7 @@ class FantreffenTshirtDeadlineTest extends TestCase
         Config::set('services.fantreffen.tshirt_deadline', $deadline->format('Y-m-d H:i:s'));
 
         $component = Livewire::test(FantreffenAnmeldung::class);
-        
+
         // Days calculation may vary by 1 day depending on time
         $daysUntilDeadline = $component->get('daysUntilDeadline');
         $this->assertGreaterThanOrEqual(9, $daysUntilDeadline);
@@ -96,7 +96,7 @@ class FantreffenTshirtDeadlineTest extends TestCase
         Config::set('services.fantreffen.tshirt_deadline', $deadline->format('Y-m-d H:i:s'));
 
         $component = Livewire::test(FantreffenAnmeldung::class);
-        
+
         $component->assertSet('tshirtDeadlinePassed', false);
         // Days calculation may vary by 1 day depending on time, so check it's in reasonable range
         $daysUntilDeadline = $component->get('daysUntilDeadline');
@@ -124,11 +124,11 @@ class FantreffenTshirtDeadlineTest extends TestCase
         Config::set('services.fantreffen.tshirt_deadline', $deadline->format('Y-m-d H:i:s'));
 
         $response = $this->withoutVite()->get(route('fantreffen.2026'));
-        
+
         $response->assertStatus(200);
         $response->assertViewHas('tshirtDeadlinePassed', false);
         $response->assertViewHas('tshirtDeadlineFormatted');
-        
+
         // Verify daysUntilDeadline is in reasonable range
         $daysUntilDeadline = $response->viewData('daysUntilDeadline');
         $this->assertGreaterThanOrEqual(19, $daysUntilDeadline);
@@ -142,7 +142,7 @@ class FantreffenTshirtDeadlineTest extends TestCase
         Config::set('services.fantreffen.tshirt_deadline', Carbon::now()->subDays(5)->format('Y-m-d H:i:s'));
 
         $response = $this->withoutVite()->get(route('fantreffen.2026'));
-        
+
         $response->assertStatus(200);
         $response->assertViewHas('tshirtDeadlinePassed', true);
         $response->assertViewHas('daysUntilDeadline', 0);
@@ -168,7 +168,7 @@ class FantreffenTshirtDeadlineTest extends TestCase
     public function test_controller_prevents_tshirt_order_after_deadline()
     {
         Mail::fake();
-        
+
         // Set deadline to past
         Config::set('services.fantreffen.tshirt_deadline', Carbon::now()->subDays(1)->format('Y-m-d H:i:s'));
 
@@ -179,7 +179,7 @@ class FantreffenTshirtDeadlineTest extends TestCase
             'tshirt_bestellt' => true,
             'tshirt_groesse' => 'L',
         ]);
-        
+
         $response->assertRedirect();
         $response->assertSessionHasErrors('tshirt_bestellt');
     }
@@ -188,7 +188,7 @@ class FantreffenTshirtDeadlineTest extends TestCase
     public function test_controller_allows_registration_without_tshirt_after_deadline()
     {
         Mail::fake();
-        
+
         // Set deadline to past
         Config::set('services.fantreffen.tshirt_deadline', Carbon::now()->subDays(1)->format('Y-m-d H:i:s'));
 
@@ -198,11 +198,11 @@ class FantreffenTshirtDeadlineTest extends TestCase
             'email' => 'max@example.com',
             'tshirt_bestellt' => false,
         ]);
-        
+
         // Should succeed without T-shirt
         $response->assertRedirect();
         $response->assertSessionHasNoErrors();
-        
+
         $this->assertDatabaseHas('fantreffen_anmeldungen', [
             'vorname' => 'Max',
             'nachname' => 'Mustermann',
@@ -228,10 +228,10 @@ class FantreffenTshirtDeadlineTest extends TestCase
         Config::set('services.fantreffen.tshirt_deadline', Carbon::now()->addDays(30)->format('Y-m-d H:i:s'));
 
         // Use the service to verify the shouldShowAlert logic
-        $deadlineService = new FantreffenDeadlineService();
+        $deadlineService = new FantreffenDeadlineService;
         $this->assertFalse($deadlineService->shouldShowAlert());
         $this->assertGreaterThan(7, $deadlineService->getDaysRemaining());
-        
+
         // Verify the component reflects this - no role="alert" should appear
         $component = Livewire::test(FantreffenAnmeldung::class);
         $component->assertDontSeeHtml('role="alert"');
@@ -242,12 +242,12 @@ class FantreffenTshirtDeadlineTest extends TestCase
     {
         // Test at exactly 7 days (end of day) - should show alert
         Config::set('services.fantreffen.tshirt_deadline', Carbon::now()->addDays(7)->endOfDay()->format('Y-m-d H:i:s'));
-        $service = new FantreffenDeadlineService();
+        $service = new FantreffenDeadlineService;
         $this->assertTrue($service->shouldShowAlert());
-        
+
         // Test at 8 days (end of day) - should NOT show alert
         Config::set('services.fantreffen.tshirt_deadline', Carbon::now()->addDays(8)->endOfDay()->format('Y-m-d H:i:s'));
-        $service = new FantreffenDeadlineService();
+        $service = new FantreffenDeadlineService;
         $this->assertFalse($service->shouldShowAlert());
     }
 }

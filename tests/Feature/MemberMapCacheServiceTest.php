@@ -2,13 +2,13 @@
 
 namespace Tests\Feature;
 
+use App\Enums\Role;
 use App\Models\Team;
 use App\Models\User;
 use App\Services\MemberMapCacheService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Tests\TestCase;
-use App\Enums\Role;
 
 class MemberMapCacheServiceTest extends TestCase
 {
@@ -39,7 +39,7 @@ class MemberMapCacheServiceTest extends TestCase
         $team->users()->attach($user1, ['role' => Role::Mitglied->value]);
         $team->users()->attach($user2, ['role' => Role::Mitglied->value]);
 
-        $service = new MemberMapCacheService();
+        $service = new MemberMapCacheService;
 
         $data = $service->getMemberMapData($team);
         $this->assertCount(2, $data['memberData']);
@@ -74,7 +74,7 @@ class MemberMapCacheServiceTest extends TestCase
 
         $team->users()->attach($user, ['role' => Role::Mitglied->value]);
 
-        $service = new MemberMapCacheService();
+        $service = new MemberMapCacheService;
 
         $data = $service->getMemberMapData($team);
         $this->assertCount(1, $data['memberData']);
@@ -115,7 +115,7 @@ class MemberMapCacheServiceTest extends TestCase
         $team->users()->attach($anwaerter, ['role' => Role::Anwaerter->value]);
         $team->users()->attach($noPlz, ['role' => Role::Mitglied->value]);
 
-        $service = new MemberMapCacheService();
+        $service = new MemberMapCacheService;
 
         $data = $service->getMemberMapData($team);
 
@@ -143,7 +143,7 @@ class MemberMapCacheServiceTest extends TestCase
 
         $team->users()->attach($user, ['role' => Role::Mitglied->value]);
 
-        $service = new MemberMapCacheService();
+        $service = new MemberMapCacheService;
 
         mt_srand(1234);
         $data = $service->getMemberMapData($team);
@@ -173,7 +173,7 @@ class MemberMapCacheServiceTest extends TestCase
 
         $team->users()->attach($user, ['role' => Role::Mitglied->value]);
 
-        $service = new MemberMapCacheService();
+        $service = new MemberMapCacheService;
 
         mt_srand(1);
         $first = $service->getMemberMapData($team);
@@ -189,4 +189,3 @@ class MemberMapCacheServiceTest extends TestCase
         $this->assertNotEquals($firstLon, $secondLon);
     }
 }
-

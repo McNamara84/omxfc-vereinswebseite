@@ -2,20 +2,18 @@
 
 namespace App\Models;
 
-use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Enums\Role;
+use App\Jobs\GeocodeUser;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Schema;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Laravel\Jetstream\HasProfilePhoto;
 use Laravel\Jetstream\HasTeams;
 use Laravel\Sanctum\HasApiTokens;
-use Carbon\Carbon;
-use App\Jobs\GeocodeUser;
-use Illuminate\Support\Facades\Schema;
-use App\Enums\Role;
-use App\Models\Membership;
 
 /**
  * @property-read Team|null $currentTeam
@@ -40,6 +38,7 @@ class User extends Authenticatable
 
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory;
+
     use HasProfilePhoto;
     use HasTeams;
     use Notifiable;
@@ -188,7 +187,7 @@ class User extends Authenticatable
             UserPoint::create([
                 'user_id' => $this->id,
                 'team_id' => $this->currentTeam->id,
-                'points' => $points
+                'points' => $points,
             ]);
         }
     }
@@ -213,9 +212,6 @@ class User extends Authenticatable
 
     /**
      * Check if the user has the given role on the current team.
-     *
-     * @param  Role  $role
-     * @return bool
      */
     public function hasRole(Role $role): bool
     {

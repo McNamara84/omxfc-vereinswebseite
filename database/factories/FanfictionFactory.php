@@ -75,7 +75,7 @@ class FanfictionFactory extends Factory
     /**
      * Indicate that the fanfiction has an external author.
      */
-    public function externalAuthor(string $name = null): static
+    public function externalAuthor(?string $name = null): static
     {
         return $this->state(fn (array $attributes) => [
             'user_id' => null,
@@ -93,13 +93,13 @@ class FanfictionFactory extends Factory
 
         foreach ($paragraphs as $index => $paragraph) {
             if ($index === 0) {
-                $content .= "**" . $this->faker->sentence() . "**\n\n";
+                $content .= '**'.$this->faker->sentence()."**\n\n";
             }
 
-            $content .= $paragraph . "\n\n";
+            $content .= $paragraph."\n\n";
 
             if ($index === 1 && rand(0, 1)) {
-                $content .= "> " . $this->faker->sentence() . "\n\n";
+                $content .= '> '.$this->faker->sentence()."\n\n";
             }
         }
 

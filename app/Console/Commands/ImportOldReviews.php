@@ -2,13 +2,13 @@
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Command;
 use App\Models\Book;
 use App\Models\Review;
-use App\Models\User;
 use App\Models\Team;
+use App\Models\User;
 use App\Models\UserPoint;
 use Carbon\Carbon;
+use Illuminate\Console\Command;
 
 class ImportOldReviews extends Command
 {
@@ -36,8 +36,9 @@ class ImportOldReviews extends Command
         $path = $this->option('path');
         $fullPath = storage_path("app/{$path}");
 
-        if (!file_exists($fullPath)) {
+        if (! file_exists($fullPath)) {
             $this->error("CSV file not found at {$fullPath}");
+
             return 1;
         }
 
@@ -49,8 +50,9 @@ class ImportOldReviews extends Command
         }
 
         $team = Team::where('name', 'Mitglieder')->first();
-        if (!$team) {
+        if (! $team) {
             $this->error('Team "Mitglieder" not found.');
+
             return 1;
         }
         $teamId = $team->id;
@@ -71,8 +73,9 @@ class ImportOldReviews extends Command
             'Dezember' => 'December',
         ];
 
-        if (!($handle = fopen($fullPath, 'r'))) {
+        if (! ($handle = fopen($fullPath, 'r'))) {
             $this->error('Could not open CSV file.');
+
             return 1;
         }
 
@@ -87,8 +90,9 @@ class ImportOldReviews extends Command
 
             // Match user
             $user = User::where('email', trim($authorEmail))->first();
-            if (!$user) {
+            if (! $user) {
                 $bar->advance();
+
                 continue;
             }
 
@@ -96,8 +100,9 @@ class ImportOldReviews extends Command
             $parts = explode(' - ', $topic, 2);
             $romanNumber = isset($parts[0]) ? (int) ltrim($parts[0], '0') : null;
             $book = Book::where('roman_number', $romanNumber)->first();
-            if (!$book) {
+            if (! $book) {
                 $bar->advance();
+
                 continue;
             }
 
@@ -106,6 +111,7 @@ class ImportOldReviews extends Command
                 $datePart = $matches[1];
             } else {
                 $bar->advance();
+
                 continue;
             }
 
@@ -117,6 +123,7 @@ class ImportOldReviews extends Command
                     ->format('Y-m-d H:i:s');
             } catch (\Exception $e) {
                 $bar->advance();
+
                 continue;
             }
 
@@ -150,7 +157,7 @@ class ImportOldReviews extends Command
 
         fclose($handle);
         $bar->finish();
-        $this->info(PHP_EOL . 'Import completed.');
+        $this->info(PHP_EOL.'Import completed.');
 
         return 0;
     }

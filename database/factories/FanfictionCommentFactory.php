@@ -32,7 +32,7 @@ class FanfictionCommentFactory extends Factory
     /**
      * Indicate that the comment is a reply to another comment.
      */
-    public function reply(FanfictionComment $parent = null): static
+    public function reply(?FanfictionComment $parent = null): static
     {
         return $this->state(fn (array $attributes) => [
             'parent_id' => $parent?->id ?? FanfictionComment::factory(),

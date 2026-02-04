@@ -2,12 +2,10 @@
 
 namespace Tests\Feature;
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
-use App\Models\Team;
-use App\Models\User;
 use App\Services\MaddraxDataService;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\File;
+use Tests\TestCase;
 
 class MaddraxDataServiceTest extends TestCase
 {
@@ -22,8 +20,8 @@ class MaddraxDataServiceTest extends TestCase
 
         $this->testStoragePath = base_path('storage/testing');
         $this->app->useStoragePath($this->testStoragePath);
-        File::ensureDirectoryExists($this->testStoragePath . '/app/private');
-        config(['filesystems.disks.local.root' => $this->testStoragePath . '/app/private']);
+        File::ensureDirectoryExists($this->testStoragePath.'/app/private');
+        config(['filesystems.disks.local.root' => $this->testStoragePath.'/app/private']);
 
         $ref = new \ReflectionClass(MaddraxDataService::class);
         $property = $ref->getProperty('data');
@@ -50,7 +48,7 @@ class MaddraxDataServiceTest extends TestCase
                 'schlagworte' => ['Thema2'],
             ],
         ];
-        File::put($this->testStoragePath . '/app/private/maddrax.json', json_encode($data));
+        File::put($this->testStoragePath.'/app/private/maddrax.json', json_encode($data));
     }
 
     protected function tearDown(): void
@@ -73,7 +71,7 @@ class MaddraxDataServiceTest extends TestCase
 
     public function test_load_data_returns_empty_when_file_is_missing(): void
     {
-        File::delete($this->testStoragePath . '/app/private/maddrax.json');
+        File::delete($this->testStoragePath.'/app/private/maddrax.json');
         $this->actingAs($this->actingMember());
 
         $this->assertSame([], MaddraxDataService::loadData());
@@ -81,7 +79,7 @@ class MaddraxDataServiceTest extends TestCase
 
     public function test_load_data_returns_empty_when_json_is_invalid(): void
     {
-        File::put($this->testStoragePath . '/app/private/maddrax.json', '{invalid');
+        File::put($this->testStoragePath.'/app/private/maddrax.json', '{invalid');
         $this->actingAs($this->actingMember());
 
         $this->assertSame([], MaddraxDataService::getAutoren());

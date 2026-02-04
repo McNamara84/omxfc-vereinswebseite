@@ -2,7 +2,6 @@
 
 namespace Tests\Feature;
 
-use App\Console\Commands\ArchiveEndedPolls;
 use App\Enums\PollStatus;
 use App\Enums\PollVisibility;
 use App\Enums\Role;
@@ -16,7 +15,6 @@ use App\Services\Polls\PollVotingService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\RateLimiter;
-use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Livewire\Livewire;
 use Tests\Concerns\CreatesUserWithRole;
@@ -24,8 +22,8 @@ use Tests\TestCase;
 
 class PollsExtendedTest extends TestCase
 {
-    use RefreshDatabase;
     use CreatesUserWithRole;
+    use RefreshDatabase;
 
     public function test_umfrage_vote_shows_message_when_no_active_poll(): void
     {
@@ -233,7 +231,7 @@ class PollsExtendedTest extends TestCase
         $options = [];
         for ($i = 0; $i < 13; $i++) {
             $options[] = [
-                'label' => 'Option ' . ($i + 1),
+                'label' => 'Option '.($i + 1),
                 'image_url' => null,
                 'link_url' => null,
             ];
@@ -345,7 +343,7 @@ class PollsExtendedTest extends TestCase
         ]);
 
         $ipHash = hash_hmac('sha256', '203.0.113.77', (string) config('app.key'));
-        $rateKey = 'poll-vote:' . $poll->id . ':' . $ipHash;
+        $rateKey = 'poll-vote:'.$poll->id.':'.$ipHash;
         RateLimiter::clear($rateKey);
 
         // Simulate repeated submissions without persisting a vote (rollback).
@@ -440,5 +438,4 @@ class PollsExtendedTest extends TestCase
             ->assertSet('chartData.options.total.0', 1)
             ->assertSet('chartData.options.total.1', 1);
     }
-
 }

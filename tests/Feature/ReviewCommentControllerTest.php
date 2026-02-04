@@ -17,8 +17,6 @@ class ReviewCommentControllerTest extends TestCase
     use RefreshDatabase;
     use \Tests\Concerns\CreatesUserWithRole;
 
-
-
     public function test_comment_saves_and_notifies_author(): void
     {
         Mail::fake();
@@ -248,10 +246,10 @@ class ReviewCommentControllerTest extends TestCase
 
         $this->assertSame(1, substr_count($html, 'id="content"'));
         foreach ([$commentOne, $commentTwo] as $comment) {
-            $this->assertStringContainsString('id="edit-content-' . $comment->id . '"', $html);
-            $this->assertStringContainsString('aria-describedby="edit-content-' . $comment->id . '-error"', $html);
-            $this->assertStringContainsString('id="reply-content-' . $comment->id . '"', $html);
-            $this->assertStringContainsString('aria-describedby="reply-content-' . $comment->id . '-error"', $html);
+            $this->assertStringContainsString('id="edit-content-'.$comment->id.'"', $html);
+            $this->assertStringContainsString('aria-describedby="edit-content-'.$comment->id.'-error"', $html);
+            $this->assertStringContainsString('id="reply-content-'.$comment->id.'"', $html);
+            $this->assertStringContainsString('aria-describedby="reply-content-'.$comment->id.'-error"', $html);
         }
     }
 }

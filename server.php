@@ -48,19 +48,20 @@ if ($cleanUri !== '/' && is_file($publicPath)) {
         'htm' => 'text/html',
         'pdf' => 'application/pdf',
     ];
-    
+
     $ext = strtolower(pathinfo($publicPath, PATHINFO_EXTENSION));
     $mime = $mimeTypes[$ext] ?? (function_exists('mime_content_type') ? mime_content_type($publicPath) : 'application/octet-stream');
-    
+
     header('Content-Type: '.$mime);
     header('Content-Length: '.filesize($publicPath));
-    
+
     // Cache static assets for 1 hour in testing
     if (in_array($ext, ['css', 'js', 'png', 'jpg', 'jpeg', 'gif', 'svg', 'ico', 'webp', 'avif', 'woff', 'woff2', 'ttf', 'eot'])) {
         header('Cache-Control: public, max-age=3600');
     }
-    
+
     readfile($publicPath);
+
     return;
 }
 

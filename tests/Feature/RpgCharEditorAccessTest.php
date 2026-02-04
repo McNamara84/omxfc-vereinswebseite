@@ -16,6 +16,7 @@ class RpgCharEditorAccessTest extends TestCase
         $team = Team::membersTeam();
         $user = User::factory()->create(['current_team_id' => $team->id]);
         $team->users()->attach($user, ['role' => $role]);
+
         return $user;
     }
 
@@ -38,4 +39,3 @@ class RpgCharEditorAccessTest extends TestCase
             ->assertForbidden();
     }
 }
-

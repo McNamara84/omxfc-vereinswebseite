@@ -16,7 +16,7 @@ class PageControllerProtokolleTest extends TestCase
 
     public function test_protokolle_view_contains_expected_structure(): void
     {
-        $controller = new PageController();
+        $controller = new PageController;
 
         $response = $controller->protokolle();
 
@@ -35,7 +35,7 @@ class PageControllerProtokolleTest extends TestCase
         Storage::fake('private');
         Storage::disk('private')->put('protokolle/example.pdf', 'demo');
 
-        $controller = new PageController();
+        $controller = new PageController;
 
         $response = $controller->downloadProtokoll('example.pdf');
 

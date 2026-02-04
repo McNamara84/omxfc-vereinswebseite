@@ -2,12 +2,12 @@
 
 namespace Tests\Feature;
 
+use App\Models\BookOffer;
+use App\Models\BookRequest;
+use App\Models\BookSwap;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
-use App\Models\User;
-use App\Models\BookRequest;
-use App\Models\BookOffer;
-use App\Models\BookSwap;
 
 class BookRequestModelTest extends TestCase
 {

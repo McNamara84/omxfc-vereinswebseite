@@ -2,9 +2,9 @@
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Command;
-use App\Models\Book;
 use App\Enums\BookType;
+use App\Models\Book;
+use Illuminate\Console\Command;
 
 class ImportMaddraxBooks extends Command
 {
@@ -48,8 +48,9 @@ class ImportMaddraxBooks extends Command
     {
         $fullPath = storage_path("app/{$path}");
 
-        if (!file_exists($fullPath)) {
-            $this->error('Import for ' . $type->value . " failed: JSON file not found at {$fullPath}");
+        if (! file_exists($fullPath)) {
+            $this->error('Import for '.$type->value." failed: JSON file not found at {$fullPath}");
+
             return false;
         }
 
@@ -57,7 +58,8 @@ class ImportMaddraxBooks extends Command
         $data = json_decode($json, true);
 
         if (json_last_error() !== JSON_ERROR_NONE) {
-            $this->error('Import for ' . $type->value . ' failed: Invalid JSON - ' . json_last_error_msg());
+            $this->error('Import for '.$type->value.' failed: Invalid JSON - '.json_last_error_msg());
+
             return false;
         }
 
@@ -70,9 +72,10 @@ class ImportMaddraxBooks extends Command
             $authorData = $item['text'] ?? null;
             $author = is_array($authorData) ? implode(', ', $authorData) : $authorData;
 
-            if (!$romanNumber || !$title) {
-                $this->warn('Skipping invalid entry: ' . json_encode($item));
+            if (! $romanNumber || ! $title) {
+                $this->warn('Skipping invalid entry: '.json_encode($item));
                 $bar->advance();
+
                 continue;
             }
 
@@ -85,7 +88,7 @@ class ImportMaddraxBooks extends Command
         }
 
         $bar->finish();
-        $this->info(PHP_EOL . 'Import for ' . $type->value . ' completed successfully.');
+        $this->info(PHP_EOL.'Import for '.$type->value.' completed successfully.');
 
         return true;
     }

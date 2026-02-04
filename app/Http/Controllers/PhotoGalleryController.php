@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 
 class PhotoGalleryController extends Controller
@@ -50,7 +49,7 @@ class PhotoGalleryController extends Controller
         $index = 1;
 
         while ($index <= $maxTries) {
-            $photoUrl = $baseUrl . $index . '.jpg';
+            $photoUrl = $baseUrl.$index.'.jpg';
 
             if ($this->photoExists($photoUrl)) {
                 $photoUrls[] = $photoUrl;
@@ -80,9 +79,11 @@ class PhotoGalleryController extends Controller
     {
         try {
             $response = Http::timeout(5)->head($url);
+
             return $response->successful();
         } catch (\Exception $e) {
-            \Log::error('Fehler beim Prüfen des Fotos: ' . $e->getMessage());
+            \Log::error('Fehler beim Prüfen des Fotos: '.$e->getMessage());
+
             return false;
         }
     }
@@ -94,8 +95,8 @@ class PhotoGalleryController extends Controller
     {
         // Hier könntest du lokale Bilder als Fallback verwenden
         return [
-            asset('images/galerie/' . $year . '/placeholder1.jpg'),
-            asset('images/galerie/' . $year . '/placeholder2.jpg'),
+            asset('images/galerie/'.$year.'/placeholder1.jpg'),
+            asset('images/galerie/'.$year.'/placeholder2.jpg'),
         ];
     }
 
@@ -116,7 +117,7 @@ class PhotoGalleryController extends Controller
             return response()->file(public_path("images/galerie/{$year}/placeholder1.jpg"));
         }
 
-        $photoUrl = $baseUrl . $index . '.jpg';
+        $photoUrl = $baseUrl.$index.'.jpg';
 
         try {
             $response = Http::timeout(10)->get($photoUrl);
@@ -127,7 +128,7 @@ class PhotoGalleryController extends Controller
                     ->header('Cache-Control', 'public, max-age=86400'); // 1 Tag cachen
             }
         } catch (\Exception $e) {
-            \Log::error('Fehler beim Proxy-Aufruf: ' . $e->getMessage());
+            \Log::error('Fehler beim Proxy-Aufruf: '.$e->getMessage());
         }
 
         // Fallback, wenn das Bild nicht geladen werden konnte

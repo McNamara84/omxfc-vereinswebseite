@@ -2,18 +2,18 @@
 
 namespace Tests\Feature;
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
-use App\Models\User;
+use App\Enums\BookType;
+use App\Mail\BookSwapMatched;
+use App\Models\Book;
 use App\Models\BookOffer;
 use App\Models\BookRequest;
 use App\Models\BookSwap;
-use App\Models\Book;
-use App\Mail\BookSwapMatched;
-use Illuminate\Support\Facades\Mail;
 use App\Models\Team;
-use App\Enums\BookType;
+use App\Models\User;
 use App\Services\Romantausch\SwapMatchingService;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Mail;
+use Tests\TestCase;
 
 class BookSwapProcessTest extends TestCase
 {
@@ -24,6 +24,7 @@ class BookSwapProcessTest extends TestCase
         $team = Team::membersTeam();
         $user = User::factory()->create(['current_team_id' => $team->id]);
         $team->users()->attach($user, ['role' => \App\Enums\Role::Mitglied->value]);
+
         return $user;
     }
 

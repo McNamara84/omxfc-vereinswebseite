@@ -16,9 +16,7 @@ use Illuminate\Validation\ValidationException;
 
 class ArbeitsgruppenController extends Controller
 {
-    public function __construct(private UserRoleService $userRoleService)
-    {
-    }
+    public function __construct(private UserRoleService $userRoleService) {}
 
     /**
      * Base query for all AG listings.
@@ -47,7 +45,7 @@ class ArbeitsgruppenController extends Controller
         if (! $user->hasRole(Role::Admin)) {
             $query = $query->where('user_id', $user->id);
 
-            if (!(clone $query)->exists()) {
+            if (! (clone $query)->exists()) {
                 abort(403);
             }
         }
@@ -68,7 +66,7 @@ class ArbeitsgruppenController extends Controller
 
         $query = $this->agQuery()->where('user_id', $user->id);
 
-        if (!(clone $query)->exists()) {
+        if (! (clone $query)->exists()) {
             abort(403);
         }
 

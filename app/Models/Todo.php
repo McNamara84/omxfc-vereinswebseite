@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use App\Enums\TodoStatus;
 use App\Enums\Role;
+use App\Enums\TodoStatus;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;

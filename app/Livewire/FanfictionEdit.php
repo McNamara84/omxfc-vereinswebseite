@@ -2,7 +2,6 @@
 
 namespace App\Livewire;
 
-use App\Enums\FanfictionStatus;
 use App\Models\Fanfiction;
 use App\Models\Team;
 use App\Models\User;

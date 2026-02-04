@@ -66,7 +66,7 @@ class TodoPlaywrightSeeder extends Seeder
         }
 
         if (! $admin) {
-            $admin = User::withoutEvents(function () use ($team) {
+            $admin = User::withoutEvents(function () {
                 $user = User::create([
                     'name' => 'Holger Ehrmann',
                     'email' => 'info@maddraxikon.com',

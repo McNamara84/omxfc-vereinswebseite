@@ -2,22 +2,22 @@
 
 namespace App\Providers;
 
-use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
-use Illuminate\Support\Facades\Gate;
-use App\Models\Team;
 use App\Models\BookOffer;
 use App\Models\BookRequest;
-use App\Models\Todo;
 use App\Models\KassenbuchEntry;
-use App\Models\User;
 use App\Models\Poll;
-use App\Policies\TeamPolicy;
+use App\Models\Team;
+use App\Models\Todo;
+use App\Models\User;
 use App\Policies\BookOfferPolicy;
 use App\Policies\BookRequestPolicy;
-use App\Policies\TodoPolicy;
 use App\Policies\KassenbuchEntryPolicy;
-use App\Policies\UserPolicy;
 use App\Policies\PollPolicy;
+use App\Policies\TeamPolicy;
+use App\Policies\TodoPolicy;
+use App\Policies\UserPolicy;
+use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
+use Illuminate\Support\Facades\Gate;
 
 class AuthServiceProvider extends ServiceProvider
 {

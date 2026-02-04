@@ -2,22 +2,20 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\Role;
+use App\Models\Mission;
+use App\Models\User;
+use App\Services\TeamPointService;
+use Carbon\Carbon;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\View\View;
-use App\Models\User;
 use Illuminate\Support\Facades\Http;
-use App\Models\Mission;
-use Carbon\Carbon;
-use App\Enums\Role;
-use App\Services\TeamPointService;
+use Illuminate\View\View;
 
 class MaddraxiversumController extends Controller
 {
-    public function __construct(private TeamPointService $teamPointService)
-    {
-    }
+    public function __construct(private TeamPointService $teamPointService) {}
 
     /**
      * Zeigt die Maddraxiversum-Seite mit der Karte an,
@@ -44,7 +42,7 @@ class MaddraxiversumController extends Controller
             'showMap' => $showMap,
             'userPoints' => $userPoints,
             'requiredPoints' => $requiredPoints,
-            'tileUrl' => 'https://mapdraxv2.maddraxikon.com/v2/{z}/{x}/{y}.png' // URL-Muster für die Tiles
+            'tileUrl' => 'https://mapdraxv2.maddraxikon.com/v2/{z}/{x}/{y}.png', // URL-Muster für die Tiles
         ]);
     }
 
@@ -101,14 +99,15 @@ class MaddraxiversumController extends Controller
     {
         try {
             $user = Auth::user();
-            \Log::info('Status-Check für Benutzer: ' . $user->id);
+            \Log::info('Status-Check für Benutzer: '.$user->id);
 
             $mission = Mission::where('user_id', $user->id)
                 ->where('completed', false)
                 ->first();
 
-            if (!$mission) {
-                \Log::info('Keine aktive Mission gefunden für Benutzer: ' . $user->id);
+            if (! $mission) {
+                \Log::info('Keine aktive Mission gefunden für Benutzer: '.$user->id);
+
                 return response()->json(['status' => 'none']);
             }
 
@@ -119,11 +118,11 @@ class MaddraxiversumController extends Controller
                 'mission_ends_at' => $mission->mission_ends_at,
                 'completed' => $mission->completed,
                 'travel_duration' => $mission->travel_duration,
-                'mission_duration' => $mission->mission_duration
+                'mission_duration' => $mission->mission_duration,
             ]);
 
             $now = Carbon::now();
-            \Log::info('Aktuelle Zeit: ' . $now);
+            \Log::info('Aktuelle Zeit: '.$now);
 
             // Berechne die Gesamtdauer der Mission
             $totalDuration = $mission->travel_duration + $mission->mission_duration + $mission->travel_duration;
@@ -132,7 +131,7 @@ class MaddraxiversumController extends Controller
             \Log::info('Berechnete Zeiten:', [
                 'total_duration' => $totalDuration,
                 'expected_end_time' => $expectedEndTime,
-                'time_diff' => $now->diffInSeconds($expectedEndTime)
+                'time_diff' => $now->diffInSeconds($expectedEndTime),
             ]);
 
             if ($now->greaterThanOrEqualTo($expectedEndTime)) {
@@ -147,25 +146,28 @@ class MaddraxiversumController extends Controller
                     \Log::info('Punkte vergeben:', [
                         'user_id' => $user->id,
                         'team_id' => $user->currentTeam->id,
-                        'points' => $mission->reward ?? 5
+                        'points' => $mission->reward ?? 5,
                     ]);
                 } else {
-                    \Log::warning('Kein Team gefunden für Benutzer: ' . $user->id);
+                    \Log::warning('Kein Team gefunden für Benutzer: '.$user->id);
                 }
 
                 return response()->json(['status' => 'completed']);
             } elseif ($now->greaterThanOrEqualTo($mission->arrival_at)) {
                 \Log::info('Mission läuft noch');
+
                 return response()->json(['status' => 'in_mission']);
             } else {
                 \Log::info('Mission ist noch unterwegs');
+
                 return response()->json(['status' => 'traveling']);
             }
         } catch (\Exception $e) {
             \Log::error('Fehler beim Status-Check:', [
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
+
             return response()->json(['error' => 'Ein interner Fehler ist aufgetreten'], 500);
         }
     }
@@ -174,14 +176,15 @@ class MaddraxiversumController extends Controller
     {
         try {
             $user = Auth::user();
-            \Log::info('Status-Abfrage für Benutzer: ' . $user->id);
+            \Log::info('Status-Abfrage für Benutzer: '.$user->id);
 
             $mission = Mission::where('user_id', $user->id)
                 ->where('completed', false)
                 ->first();
 
-            if (!$mission) {
-                \Log::info('Keine aktive Mission gefunden für Benutzer: ' . $user->id);
+            if (! $mission) {
+                \Log::info('Keine aktive Mission gefunden für Benutzer: '.$user->id);
+
                 return response()->json(['status' => 'none']);
             }
 
@@ -194,7 +197,7 @@ class MaddraxiversumController extends Controller
                 'travel_duration' => $mission->travel_duration,
                 'mission_duration' => $mission->mission_duration,
                 'origin' => $mission->origin,
-                'destination' => $mission->destination
+                'destination' => $mission->destination,
             ]);
 
             $now = Carbon::now();
@@ -233,14 +236,15 @@ class MaddraxiversumController extends Controller
                     'mission_duration' => $mission->mission_duration,
                     'started_at' => $mission->started_at,
                     'arrival_at' => $mission->arrival_at,
-                    'mission_ends_at' => $mission->mission_ends_at
-                ]
+                    'mission_ends_at' => $mission->mission_ends_at,
+                ],
             ]);
         } catch (\Exception $e) {
             \Log::error('Fehler bei der Status-Abfrage:', [
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
+
             return response()->json(['error' => 'Ein interner Fehler ist aufgetreten'], 500);
         }
     }

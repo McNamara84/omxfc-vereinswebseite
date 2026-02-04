@@ -2,9 +2,9 @@
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Command;
 use App\Models\Team;
 use App\Services\MemberMapCacheService;
+use Illuminate\Console\Command;
 
 class RefreshMemberMap extends Command
 {
@@ -35,4 +35,3 @@ class RefreshMemberMap extends Command
         return self::SUCCESS;
     }
 }
-

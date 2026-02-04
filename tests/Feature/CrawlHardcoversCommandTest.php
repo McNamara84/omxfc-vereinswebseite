@@ -63,7 +63,7 @@ class CrawlHardcoversCommandTest extends TestCase
 
     public function test_get_url_content_returns_false_on_failure(): void
     {
-        $command = new CrawlHardcovers();
+        $command = new CrawlHardcovers;
 
         $ref = new ReflectionClass($command);
         $method = $ref->getMethod('getUrlContent');

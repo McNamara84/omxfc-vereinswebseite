@@ -2,13 +2,13 @@
 
 namespace Tests\Feature;
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
-use App\Models\UserPoint;
 use App\Models\Team;
 use App\Models\Todo;
 use App\Models\TodoCategory;
 use App\Models\User;
+use App\Models\UserPoint;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 
 class UserPointModelTest extends TestCase
 {
@@ -19,6 +19,7 @@ class UserPointModelTest extends TestCase
         $team = Team::membersTeam();
         $user = User::factory()->create(['current_team_id' => $team->id]);
         $team->users()->attach($user, ['role' => \App\Enums\Role::Mitglied->value]);
+
         return $user;
     }
 
@@ -26,6 +27,7 @@ class UserPointModelTest extends TestCase
     {
         $team = Team::membersTeam();
         $category = TodoCategory::first() ?? TodoCategory::create(['name' => 'Test', 'slug' => 'test']);
+
         return Todo::create([
             'team_id' => $team->id,
             'created_by' => $creator->id,

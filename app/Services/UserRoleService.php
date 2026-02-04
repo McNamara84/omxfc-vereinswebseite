@@ -34,4 +34,3 @@ class UserRoleService
         return $role;
     }
 }
-

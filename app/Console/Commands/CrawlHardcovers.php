@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Console\Commands;
 
 use Carbon\Carbon;
@@ -20,7 +21,9 @@ class CrawlHardcovers extends Command
     protected $description = 'Crawl maddraxikon.com for hardcover information';
 
     private const BASE_URL = 'https://de.maddraxikon.com/';
-    private const CATEGORY_URL = self::BASE_URL . 'index.php?title=Kategorie:Maddrax-Hardcover';
+
+    private const CATEGORY_URL = self::BASE_URL.'index.php?title=Kategorie:Maddrax-Hardcover';
+
     private const NBSP = "\u{A0}";
 
     public function handle(): int
@@ -32,6 +35,7 @@ class CrawlHardcovers extends Command
 
         if (empty($articleUrls)) {
             $this->error('No articles found.');
+
             return self::FAILURE;
         }
 
@@ -52,10 +56,12 @@ class CrawlHardcovers extends Command
 
         if ($this->writeHardcovers($data)) {
             $this->info('hardcovers.json updated.');
+
             return self::SUCCESS;
         }
 
         $this->error('Failed to write hardcovers.json');
+
         return self::FAILURE;
     }
 
@@ -78,14 +84,14 @@ class CrawlHardcovers extends Command
         $articles = $xpath->query("//div[@id='mw-pages']//a");
         $urls = [];
         foreach ($articles as $article) {
-            $urls[] = self::BASE_URL . $article->getAttribute('href');
+            $urls[] = self::BASE_URL.$article->getAttribute('href');
         }
 
         $nextPage = $xpath->query("//a[text()='nächste Seite']");
         if ($nextPage->length > 0) {
             $urls = array_merge(
                 $urls,
-                $this->getArticleUrls(self::BASE_URL . $nextPage->item(0)->getAttribute('href'))
+                $this->getArticleUrls(self::BASE_URL.$nextPage->item(0)->getAttribute('href'))
             );
         }
 
@@ -123,7 +129,7 @@ class CrawlHardcovers extends Command
         $title = $titleNode->length > 0 ? trim($titleNode->item(0)->textContent) : null;
 
         // EVT
-        $evtNode = $xpath->query("//td[contains(text(), 'Erstmals" . self::NBSP . "erschienen:')]/following-sibling::td[1]");
+        $evtNode = $xpath->query("//td[contains(text(), 'Erstmals".self::NBSP."erschienen:')]/following-sibling::td[1]");
         $evt = $evtNode->length > 0 ? trim($evtNode->item(0)->textContent) : null;
 
         // Serie (nicht Zyklus wie bei Heftromanen)
@@ -189,7 +195,7 @@ class CrawlHardcovers extends Command
                         'September' => 'September',
                         'Oktober' => 'October',
                         'November' => 'November',
-                        'Dezember' => 'December'
+                        'Dezember' => 'December',
                     ];
 
                     $dateString = $row[2];
@@ -211,7 +217,7 @@ class CrawlHardcovers extends Command
 
             $obj = new \stdClass;
             $obj->nummer = $row[0];              // Position 0
-            $obj->titel = $row[1];               // Position 1  
+            $obj->titel = $row[1];               // Position 1
             $obj->evt = $row[2];                 // Position 2
             $obj->zyklus = $row[3];              // Position 3 (Serie)
             $obj->bewertung = $row[4] !== null ? (float) $row[4] : null; // Position 4
@@ -224,13 +230,14 @@ class CrawlHardcovers extends Command
             $jsonData[] = $obj;
         }
 
-        usort($jsonData, fn($a, $b) => $a->nummer <=> $b->nummer);
+        usort($jsonData, fn ($a, $b) => $a->nummer <=> $b->nummer);
         $json = json_encode($jsonData, JSON_PRETTY_PRINT);
 
         try {
             return Storage::disk('private')->put('hardcovers.json', $json);
         } catch (\Throwable $e) {
-            $this->error('Failed to write hardcovers.json: ' . $e->getMessage());
+            $this->error('Failed to write hardcovers.json: '.$e->getMessage());
+
             return false;
         }
     }

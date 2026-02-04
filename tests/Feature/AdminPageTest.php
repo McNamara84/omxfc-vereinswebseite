@@ -22,6 +22,7 @@ class AdminPageTest extends TestCase
         $team = Team::membersTeam();
         $user = User::factory()->create(['current_team_id' => $team->id]);
         $team->users()->attach($user, ['role' => \App\Enums\Role::Admin->value]);
+
         return $user;
     }
 
@@ -30,6 +31,7 @@ class AdminPageTest extends TestCase
         $team = Team::membersTeam();
         $user = User::factory()->create(['current_team_id' => $team->id]);
         $team->users()->attach($user, ['role' => \App\Enums\Role::Vorstand->value]);
+
         return $user;
     }
 
@@ -38,6 +40,7 @@ class AdminPageTest extends TestCase
         $team = Team::membersTeam();
         $user = User::factory()->create(['current_team_id' => $team->id]);
         $team->users()->attach($user, ['role' => \App\Enums\Role::Kassenwart->value]);
+
         return $user;
     }
 
@@ -46,6 +49,7 @@ class AdminPageTest extends TestCase
         $team = Team::membersTeam();
         $user = User::factory()->create(['current_team_id' => $team->id]);
         $team->users()->attach($user, ['role' => \App\Enums\Role::Mitglied->value]);
+
         return $user;
     }
 
@@ -166,7 +170,7 @@ class AdminPageTest extends TestCase
             return true;
         });
 
-        $response->assertSee("allOption.selected = true;", false);
+        $response->assertSee('allOption.selected = true;', false);
         $response->assertSee("updateActiveChart('all');", false);
         $response->assertSee('id="activeUsersWeekdayChart"', false);
         $response->assertSee('aria-describedby="active-users-weekday-description"', false);

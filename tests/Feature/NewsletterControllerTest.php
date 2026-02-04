@@ -2,12 +2,10 @@
 
 namespace Tests\Feature;
 
-use App\Models\Team;
-use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
-use Illuminate\Support\Facades\Mail;
 use App\Mail\Newsletter;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Mail;
+use Tests\TestCase;
 
 class NewsletterControllerTest extends TestCase
 {

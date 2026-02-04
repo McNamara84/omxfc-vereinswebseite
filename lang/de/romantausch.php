@@ -45,4 +45,3 @@ return [
         'Z4' => 'Schlecht',
     ],
 ];
-

@@ -1,4 +1,5 @@
 <?php
+
 return [
     'Serienspezifische Daten' => 'Serienspezifische Daten',
     'Einstiegsroman (optional)' => 'Einstiegsroman (optional)',
@@ -14,5 +15,5 @@ return [
     'Neues Foto auswählen' => 'Neues Foto auswählen',
     'Foto entfernen' => 'Foto entfernen',
     'Erlaubte Dateiformate: jpg, jpeg, png, gif, webp. Max. Größe: 8 MB.' => 'Erlaubte Dateiformate: jpg, jpeg, png, gif, webp. Max. Größe: 8 MB.',
-    'Vorname' => 'Vorname'
+    'Vorname' => 'Vorname',
 ];

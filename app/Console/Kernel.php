@@ -23,4 +23,3 @@ class Kernel extends ConsoleKernel
         $schedule->command('polls:archive-ended')->hourly();
     }
 }
-

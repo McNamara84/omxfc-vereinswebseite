@@ -26,9 +26,9 @@ class CrawlNovelsCommandTest extends TestCase
 
         $this->testStoragePath = base_path('storage/testing');
         $this->app->useStoragePath($this->testStoragePath);
-        File::ensureDirectoryExists($this->testStoragePath . '/app/private');
-        File::ensureDirectoryExists($this->testStoragePath . '/framework/views');
-        config(['filesystems.disks.private.root' => $this->testStoragePath . '/app/private']);
+        File::ensureDirectoryExists($this->testStoragePath.'/app/private');
+        File::ensureDirectoryExists($this->testStoragePath.'/framework/views');
+        config(['filesystems.disks.private.root' => $this->testStoragePath.'/app/private']);
     }
 
     protected function tearDown(): void
@@ -48,19 +48,19 @@ class CrawlNovelsCommandTest extends TestCase
         File::put($file1, $htmlPage1);
         File::put($file2, $htmlPage2);
 
-        $command = new CrawlNovels();
+        $command = new CrawlNovels;
 
         $ref = new ReflectionClass($command);
         $getUrlContent = $ref->getMethod('getUrlContent');
         $getUrlContent->setAccessible(true);
-        
+
         // Ensure method can read local files
-        $this->assertIsString($getUrlContent->invoke($command, 'file://' . $file1));
+        $this->assertIsString($getUrlContent->invoke($command, 'file://'.$file1));
 
         $method = $ref->getMethod('getArticleUrls');
         $method->setAccessible(true);
 
-        $urls = $method->invoke($command, 'file://' . $file1);
+        $urls = $method->invoke($command, 'file://'.$file1);
 
         $this->assertSame([
             'https://de.maddraxikon.com/wiki/A1',
@@ -69,7 +69,7 @@ class CrawlNovelsCommandTest extends TestCase
 
     public function test_get_heftroman_info_parses_html(): void
     {
-        $html = "<b>123</b>
+        $html = '<b>123</b>
             <table>
                 <tr><td>Erstmals&nbsp;erschienen:</td><td>2024-01</td></tr>
                 <tr><td>Zyklus:</td><td>Testzyklus (1)</td></tr>
@@ -79,18 +79,18 @@ class CrawlNovelsCommandTest extends TestCase
                 <tr><td>Schlagworte:</td><td>S1, S2</td></tr>
                 <tr><td>Handlungsort:</td><td>O1, O2</td></tr>
             </table>
-            <div class=\"voteboxrate\">4.5</div>
-            <span class=\"rating-total\">3 Stimmen</span>";
+            <div class="voteboxrate">4.5</div>
+            <span class="rating-total">3 Stimmen</span>';
 
         $file = storage_path('app/private/article.html');
         File::put($file, $html);
 
-        $command = new CrawlNovels();
+        $command = new CrawlNovels;
         $ref = new ReflectionClass($command);
         $method = $ref->getMethod('getHeftromanInfo');
         $method->setAccessible(true);
 
-        $info = $method->invoke($command, 'file://' . $file);
+        $info = $method->invoke($command, 'file://'.$file);
 
         $this->assertSame([
             '123',
@@ -109,7 +109,7 @@ class CrawlNovelsCommandTest extends TestCase
     public function test_write_heftromane_sorts_and_writes_json(): void
     {
         Carbon::setTestNow(Carbon::create(2024, 6, 1));
-        $command = new CrawlNovels();
+        $command = new CrawlNovels;
         $ref = new ReflectionClass($command);
         $method = $ref->getMethod('writeHeftromane');
         $method->setAccessible(true);
@@ -126,7 +126,7 @@ class CrawlNovelsCommandTest extends TestCase
         $this->assertTrue($result);
         $json = json_decode(File::get($file), true);
         $numbers = array_column($json, 'nummer');
-        $this->assertSame([2,3], $numbers); // future release skipped, sorted
+        $this->assertSame([2, 3], $numbers); // future release skipped, sorted
         Carbon::setTestNow();
     }
 
@@ -137,7 +137,7 @@ class CrawlNovelsCommandTest extends TestCase
             ->shouldAllowMockingProtectedMethods();
 
         $command->setLaravel($this->app);
-        $command->setOutput(new OutputStyle(new ArrayInput([]), new BufferedOutput()));
+        $command->setOutput(new OutputStyle(new ArrayInput([]), new BufferedOutput));
 
         $command->shouldReceive('getArticleUrls')->once()->andReturn(['https://example.com/article']);
         $command->shouldReceive('getHeftromanInfo')->once()->andReturn([

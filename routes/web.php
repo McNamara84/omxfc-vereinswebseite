@@ -9,8 +9,6 @@ use App\Http\Controllers\DownloadsController;
 use App\Http\Controllers\FanfictionAdminController;
 use App\Http\Controllers\FanfictionCommentController;
 use App\Http\Controllers\FanfictionController;
-use App\Livewire\FanfictionCreate;
-use App\Livewire\FanfictionEdit;
 use App\Http\Controllers\FantreffenController;
 use App\Http\Controllers\HoerbuchController;
 use App\Http\Controllers\KassenbuchController;
@@ -32,6 +30,8 @@ use App\Http\Controllers\RpgCharEditorController;
 use App\Http\Controllers\StatistikController;
 use App\Http\Controllers\TodoController;
 use App\Http\Middleware\RedirectIfAnwaerter;
+use App\Livewire\FanfictionCreate;
+use App\Livewire\FanfictionEdit;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -77,8 +77,8 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
     // Umfragen verwalten (nur Admin/Vorstand)
     Route::livewire('/admin/umfragen', \App\Livewire\Umfragen\UmfrageVerwaltung::class)
         ->name('admin.umfragen.index')
-        ->middleware('can:manage,' . \App\Models\Poll::class);
-    
+        ->middleware('can:manage,'.\App\Models\Poll::class);
+
     // Fantreffen 2026 Admin Dashboard
     Route::livewire('/admin/fantreffen-2026', \App\Livewire\FantreffenAdminDashboard::class)
         ->name('admin.fantreffen.2026')
@@ -97,7 +97,7 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
         Route::delete('/{fanfiction}', [FanfictionAdminController::class, 'destroy'])->name('destroy');
         Route::post('/{fanfiction}/veroeffentlichen', [FanfictionAdminController::class, 'publish'])->name('publish');
     });
-    
+
     Route::controller(DashboardController::class)->group(function () {
         Route::get('/dashboard', 'index')->name('dashboard');
         Route::post('/anwaerter/{user}/freigeben', 'approveAnwaerter')->name('anwaerter.approve');

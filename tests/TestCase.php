@@ -12,13 +12,13 @@ abstract class TestCase extends BaseTestCase
      * Default coordinates used for stubbed Nominatim responses (Munich).
      */
     protected const DEFAULT_LAT = '48.0';
-    protected const DEFAULT_LON = '11.0';
 
+    protected const DEFAULT_LON = '11.0';
 
     protected function setUp(): void
     {
         parent::setUp();
-        config(['app.key' => 'base64:' . base64_encode(random_bytes(32))]);
+        config(['app.key' => 'base64:'.base64_encode(random_bytes(32))]);
 
         // Cache leeren, um sicherzustellen, dass Tests isoliert laufen
         Cache::flush();

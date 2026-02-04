@@ -23,7 +23,7 @@ class LogPageVisit
         if (Auth::check()) {
             $userId = Auth::id();
             $userAgent = $request->userAgent();
-            $normalizedPath = '/' . ltrim($request->path(), '/');
+            $normalizedPath = '/'.ltrim($request->path(), '/');
 
             PageVisit::create([
                 'user_id' => $userId,

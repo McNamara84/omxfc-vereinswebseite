@@ -2,9 +2,6 @@
 
 namespace Tests\Feature;
 
-use App\Mail\FantreffenAnmeldungBestaetigung;
-use App\Mail\FantreffenNeueAnmeldung;
-use App\Models\Activity;
 use App\Models\FantreffenAnmeldung;
 use App\Models\Team;
 use App\Models\User;

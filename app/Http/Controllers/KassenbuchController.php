@@ -21,8 +21,7 @@ class KassenbuchController extends Controller
     public function __construct(
         private UserRoleService $userRoleService,
         private MembersTeamProvider $membersTeamProvider
-    ) {
-    }
+    ) {}
 
     public function index()
     {

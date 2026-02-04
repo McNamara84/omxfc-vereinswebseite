@@ -9,11 +9,11 @@ use App\Actions\Jetstream\DeleteUser;
 use App\Actions\Jetstream\InviteTeamMember;
 use App\Actions\Jetstream\RemoveTeamMember;
 use App\Actions\Jetstream\UpdateTeamName;
-use Illuminate\Support\ServiceProvider;
-use Laravel\Jetstream\Jetstream;
-use Laravel\Fortify\Contracts\LoginResponse as LoginResponseContract;
-use App\Http\Responses\LoginResponse;
 use App\Enums\Role;
+use App\Http\Responses\LoginResponse;
+use Illuminate\Support\ServiceProvider;
+use Laravel\Fortify\Contracts\LoginResponse as LoginResponseContract;
+use Laravel\Jetstream\Jetstream;
 
 class JetstreamServiceProvider extends ServiceProvider
 {

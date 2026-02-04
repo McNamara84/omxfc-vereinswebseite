@@ -7,8 +7,8 @@ use App\Enums\PollVisibility;
 use App\Models\Poll;
 use App\Models\PollOption;
 use App\Models\PollVote;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Computed;
@@ -30,6 +30,7 @@ class UmfrageVerwaltung extends Component
     public string $menuLabel = '';
 
     public string $visibility = 'internal';
+
     public string $status = 'draft';
 
     #[Validate('required|date')]
@@ -49,13 +50,13 @@ class UmfrageVerwaltung extends Component
     #[Computed]
     public function chartData(): array
     {
-        if (!$this->pollId) {
+        if (! $this->pollId) {
             return [];
         }
 
         $poll = Poll::query()->with('options')->find($this->pollId);
 
-        if (!$poll) {
+        if (! $poll) {
             return [];
         }
 
@@ -114,6 +115,7 @@ class UmfrageVerwaltung extends Component
     {
         if (count($this->options) >= 13) {
             $this->addError('options', 'Maximal 13 Antwortmöglichkeiten sind erlaubt.');
+
             return;
         }
 
@@ -172,7 +174,7 @@ class UmfrageVerwaltung extends Component
         DB::transaction(function () {
             $poll = $this->pollId
                 ? Poll::query()->lockForUpdate()->findOrFail($this->pollId)
-                : new Poll();
+                : new Poll;
 
             if (! $poll->exists) {
                 $poll->created_by_user_id = (int) Auth::id();
@@ -307,7 +309,7 @@ class UmfrageVerwaltung extends Component
 
         // Nur Event dispatchen wenn gültige Chart-Daten mit Labels vorhanden sind
         // Verhindert Browser-Freeze durch leere/ungültige Daten im Frontend
-        if (!empty($chartData['options']['labels'] ?? [])) {
+        if (! empty($chartData['options']['labels'] ?? [])) {
             $this->dispatch('poll-results-updated', data: $chartData);
         }
     }

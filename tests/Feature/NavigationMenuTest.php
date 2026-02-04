@@ -2,10 +2,10 @@
 
 namespace Tests\Feature;
 
+use App\Models\Team;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
-use App\Models\User;
-use App\Models\Team;
 
 class NavigationMenuTest extends TestCase
 {
@@ -66,6 +66,7 @@ class NavigationMenuTest extends TestCase
         $response->assertDontSee('admin-button');
         $response->assertDontSee('admin-mobile-button');
     }
+
     public function test_admin_users_do_not_see_hoerbuch_create_link_in_navigation_menu(): void
     {
         $team = Team::membersTeam();

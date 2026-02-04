@@ -3,12 +3,11 @@
 namespace Tests\Feature;
 
 use App\Actions\Fortify\CreateNewUser;
-use App\Models\Team;
 use App\Models\User;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Validation\ValidationException;
 use Laravel\Jetstream\Features;
 use Tests\TestCase;
@@ -34,7 +33,7 @@ class CreateNewUserActionTest extends TestCase
 
     public function test_user_is_created_with_personal_team_when_terms_feature_disabled(): void
     {
-        $action = new CreateNewUser();
+        $action = new CreateNewUser;
 
         /** @var User $user */
         $user = $action->create([
@@ -60,7 +59,7 @@ class CreateNewUserActionTest extends TestCase
     {
         config(['jetstream.features' => array_merge(config('jetstream.features', []), [Features::termsAndPrivacyPolicy()])]);
 
-        $action = new CreateNewUser();
+        $action = new CreateNewUser;
 
         /** @var User $user */
         $user = $action->create([
@@ -88,7 +87,7 @@ class CreateNewUserActionTest extends TestCase
 
         $this->expectException(ValidationException::class);
 
-        (new CreateNewUser())->create([
+        (new CreateNewUser)->create([
             'name' => 'Carol Example',
             'email' => 'carol@example.com',
             'password' => 'secret123',

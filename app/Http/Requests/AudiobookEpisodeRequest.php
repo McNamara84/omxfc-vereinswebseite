@@ -28,7 +28,7 @@ class AudiobookEpisodeRequest extends FormRequest
             'title' => 'required|string|max:255',
             'author' => 'required|string|max:255',
             'planned_release_date' => ['required', 'string', new ValidReleaseTime],
-            'status' => 'required|in:' . implode(',', AudiobookEpisodeStatus::values()),
+            'status' => 'required|in:'.implode(',', AudiobookEpisodeStatus::values()),
             'responsible_user_id' => 'nullable|exists:users,id',
             'progress' => 'required|integer|min:0|max:100',
             'notes' => 'nullable|string',

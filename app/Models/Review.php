@@ -2,13 +2,12 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use App\Models\ReviewComment;
-use Carbon\Carbon;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
@@ -103,8 +102,7 @@ class Review extends Model
     /**
      * Normalize anchor attributes and strip unsafe href values.
      *
-     * @param \DOMElement $element Anchor element to sanitize.
-     * @return void
+     * @param  \DOMElement  $element  Anchor element to sanitize.
      */
     private function sanitizeLink(\DOMElement $element): void
     {
@@ -123,7 +121,7 @@ class Review extends Model
                     $normalizedScheme = strtolower($scheme);
 
                     // Only allow common safe protocols; anything else is stripped.
-                    if (!in_array($normalizedScheme, ['http', 'https', 'mailto'], true)) {
+                    if (! in_array($normalizedScheme, ['http', 'https', 'mailto'], true)) {
                         $element->removeAttribute('href');
                     }
                 } else {
@@ -138,7 +136,7 @@ class Review extends Model
                     // Protocol-relative URLs are rejected to avoid inheriting an unsafe
                     // scheme from the embedding page, while hash links remain allowed for
                     // in-page navigation.
-                    if (Str::startsWith($trimmedHref, '//') || (!$isHashLink && !$isRelativePath && !$looksLikeFile)) {
+                    if (Str::startsWith($trimmedHref, '//') || (! $isHashLink && ! $isRelativePath && ! $looksLikeFile)) {
                         $element->removeAttribute('href');
                     }
                 }
@@ -151,7 +149,7 @@ class Review extends Model
     /**
      * Render Markdown to sanitized HTML with defense-in-depth escaping.
      *
-     * @param string $markdown Raw Markdown content from the review.
+     * @param  string  $markdown  Raw Markdown content from the review.
      * @return string Sanitized HTML fragment.
      */
     private function renderFormattedContent(string $markdown): string
@@ -172,15 +170,15 @@ class Review extends Model
         $previousLibxmlSetting = libxml_use_internal_errors(true);
 
         try {
-            $wrappedHtml = '<div>' . $html . '</div>';
+            $wrappedHtml = '<div>'.$html.'</div>';
             $encodedHtml = mb_convert_encoding($wrappedHtml, 'HTML-ENTITIES', 'UTF-8');
 
             $loaded = $dom->loadHTML(
-                '<?xml version="1.0" encoding="UTF-8"?>' . $encodedHtml,
+                '<?xml version="1.0" encoding="UTF-8"?>'.$encodedHtml,
                 LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD
             );
 
-            if (!$loaded) {
+            if (! $loaded) {
                 return $this->safeFallback($html);
             }
 
@@ -229,7 +227,7 @@ class Review extends Model
     /**
      * Provide a safe, escaped fallback fragment when DOM parsing fails.
      *
-     * @param string $html Previously rendered and tag-filtered HTML.
+     * @param  string  $html  Previously rendered and tag-filtered HTML.
      * @return string Escaped, newline-preserving text or empty string.
      */
     private function safeFallback(string $html): string
@@ -254,7 +252,7 @@ class Review extends Model
      */
     private function formattedContentCacheKey(): ?string
     {
-        if (!$this->exists || $this->getKey() === null) {
+        if (! $this->exists || $this->getKey() === null) {
             return null;
         }
 
@@ -278,4 +276,3 @@ class Review extends Model
         return sprintf('review:%s:formatted:%s:%s', $this->getKey(), $timestamp, $contentHash);
     }
 }
-

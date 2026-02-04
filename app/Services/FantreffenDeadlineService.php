@@ -6,15 +6,18 @@ use Carbon\Carbon;
 
 /**
  * Service für die Berechnung und Verwaltung der Fantreffen T-Shirt-Deadline.
- * 
+ *
  * Diese Klasse kapselt die gesamte Deadline-Logik an einer zentralen Stelle,
  * um Duplizierung zwischen Controller und Livewire-Komponenten zu vermeiden.
  */
 class FantreffenDeadlineService
 {
     private Carbon $deadline;
+
     private bool $isPassed;
+
     private int $daysRemaining;
+
     private string $formattedDate;
 
     public function __construct()
@@ -64,7 +67,7 @@ class FantreffenDeadlineService
      */
     public function shouldShowAlert(): bool
     {
-        return !$this->isPassed && $this->daysRemaining <= 7;
+        return ! $this->isPassed && $this->daysRemaining <= 7;
     }
 
     /**

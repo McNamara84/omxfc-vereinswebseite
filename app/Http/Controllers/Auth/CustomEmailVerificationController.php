@@ -3,13 +3,12 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use Illuminate\Auth\Events\Verified;
-use App\Models\User;
-use Illuminate\Support\Facades\Mail;
-use App\Mail\AntragAnVorstand;
 use App\Mail\AntragAnAdmin;
-
+use App\Mail\AntragAnVorstand;
+use App\Models\User;
+use Illuminate\Auth\Events\Verified;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 
 class CustomEmailVerificationController extends Controller
 {
@@ -17,7 +16,7 @@ class CustomEmailVerificationController extends Controller
     {
         $user = User::findOrFail($id);
 
-        if (!hash_equals((string) $hash, sha1($user->getEmailForVerification()))) {
+        if (! hash_equals((string) $hash, sha1($user->getEmailForVerification()))) {
             abort(403);
         }
 

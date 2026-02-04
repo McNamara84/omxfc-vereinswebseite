@@ -2,26 +2,24 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
-use Illuminate\Support\Facades\Auth;
-use App\Models\Team;
-use App\Models\UserPoint;
-use App\Models\TodoCategory;
-use App\Models\Review;
-use App\Models\BookSwap;
-use Illuminate\Support\Facades\DB;
-use Carbon\Carbon;
-use App\Services\MaddraxDataService;
-use Illuminate\Support\Str;
 use App\Enums\Role;
+use App\Models\BookSwap;
+use App\Models\Review;
+use App\Models\Team;
+use App\Models\TodoCategory;
+use App\Models\User;
+use App\Models\UserPoint;
+use App\Services\MaddraxDataService;
 use App\Services\UserRoleService;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class ProfileViewController extends Controller
 {
-    public function __construct(private UserRoleService $userRoleService)
-    {
-    }
+    public function __construct(private UserRoleService $userRoleService) {}
 
     public function show(User $user)
     {
@@ -148,9 +146,9 @@ class ProfileViewController extends Controller
 
             // Weltrat-Kritiker Badge - für vollständige Rezension des Weltrat-Zyklus
             $weltratNumbers = collect(MaddraxDataService::loadData())
-                ->filter(fn($row) => Str::contains($row['zyklus'] ?? '', 'Weltrat'))
+                ->filter(fn ($row) => Str::contains($row['zyklus'] ?? '', 'Weltrat'))
                 ->pluck('nummer')
-                ->map(fn($n) => (int) $n);
+                ->map(fn ($n) => (int) $n);
 
             if ($weltratNumbers->isNotEmpty()) {
                 $reviewedBooks = Review::where('team_id', $memberTeam->id)
@@ -173,9 +171,9 @@ class ProfileViewController extends Controller
 
             // Amraka-Kritiker Badge - für vollständige Rezension des Amraka-Zyklus
             $amrakaNumbers = collect(MaddraxDataService::loadData())
-                ->filter(fn($row) => Str::contains($row['zyklus'] ?? '', 'Amraka'))
+                ->filter(fn ($row) => Str::contains($row['zyklus'] ?? '', 'Amraka'))
                 ->pluck('nummer')
-                ->map(fn($n) => (int) $n);
+                ->map(fn ($n) => (int) $n);
 
             if ($amrakaNumbers->isNotEmpty()) {
                 $reviewedBooks = Review::where('team_id', $memberTeam->id)

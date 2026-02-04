@@ -2,15 +2,16 @@
 
 namespace App\Console\Commands;
 
+use App\Models\RomanExcerpt;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use App\Models\RomanExcerpt;
 
 class IndexRomane extends Command
 {
     /** artisan romane:index  */
     protected $signature = 'romane:index {--fresh : löscht vorhandenen Index zuerst}';
+
     protected $description = 'Scant alle TXT-Dateien und (re-)indexiert sie via Laravel Scout / TNTSearch';
 
     public function handle(): int
@@ -19,10 +20,11 @@ class IndexRomane extends Command
         $this->info('Suche nach Romanen …');
 
         $txt = collect($disk->allFiles('romane'))
-            ->filter(fn($p) => Str::endsWith($p, '.txt'));
+            ->filter(fn ($p) => Str::endsWith($p, '.txt'));
 
         if ($txt->isEmpty()) {
             $this->error('Keine TXT-Dateien gefunden.');
+
             return self::FAILURE;
         }
 
@@ -41,11 +43,11 @@ class IndexRomane extends Command
             [$cycle, $romanNr, $title] = $this->metaFromPath($path);
 
             $batch->push(new RomanExcerpt([
-                'path'     => $path,          // <- Primärschlüssel sitzt
-                'cycle'    => $cycle,
+                'path' => $path,          // <- Primärschlüssel sitzt
+                'cycle' => $cycle,
                 'roman_nr' => $romanNr,
-                'title'    => $title,
-                'body'     => $disk->get($path),
+                'title' => $title,
+                'body' => $disk->get($path),
             ]));
 
             // Alle 250 Dokumente an Scout übergeben

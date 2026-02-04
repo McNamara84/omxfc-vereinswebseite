@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use Laravel\Jetstream\Membership as JetstreamMembership;
 use Carbon\Carbon;
+use Laravel\Jetstream\Membership as JetstreamMembership;
 
 /**
  * @property int $user_id

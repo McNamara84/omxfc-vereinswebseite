@@ -2,11 +2,11 @@
 
 namespace Tests\Feature;
 
+use App\Enums\Role;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
-use App\Enums\Role;
 
 class ArbeitsgruppenControllerTest extends TestCase
 {

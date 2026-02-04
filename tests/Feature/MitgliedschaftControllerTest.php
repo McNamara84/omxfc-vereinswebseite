@@ -2,13 +2,13 @@
 
 namespace Tests\Feature;
 
+use App\Enums\Role;
 use App\Mail\MitgliedAntragEingereicht;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
-use App\Enums\Role;
 
 class MitgliedschaftControllerTest extends TestCase
 {
@@ -40,14 +40,14 @@ class MitgliedschaftControllerTest extends TestCase
         ];
 
         foreach ($fields as $field => $expectation) {
-            $this->assertStringContainsString('id="' . $field . '"', $html);
+            $this->assertStringContainsString('id="'.$field.'"', $html);
             $this->assertStringContainsString($expectation['aria'], $html);
 
             foreach ($expectation['ids'] as $id) {
-                $this->assertStringContainsString('id="' . $id . '"', $html);
+                $this->assertStringContainsString('id="'.$id.'"', $html);
             }
 
-            $this->assertStringContainsString('data-error-for="' . $field . '"', $html);
+            $this->assertStringContainsString('data-error-for="'.$field.'"', $html);
         }
 
         $this->assertStringContainsString('data-output-target="beitrag-output"', $html);

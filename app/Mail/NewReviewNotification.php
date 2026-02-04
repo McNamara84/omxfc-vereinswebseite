@@ -2,15 +2,14 @@
 
 namespace App\Mail;
 
+use App\Models\Review;
+use App\Models\User;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
+use Illuminate\Mail\Mailables\Address;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Mail\Mailables\Address;
-use App\Models\Review;
-use App\Models\User;
 
 class NewReviewNotification extends Mailable
 {
@@ -19,8 +18,7 @@ class NewReviewNotification extends Mailable
     public function __construct(
         public Review $review,
         public User $recipient
-    ) {
-    }
+    ) {}
 
     public function envelope(): Envelope
     {

@@ -2,18 +2,18 @@
 
 namespace Tests\Feature;
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
-use App\Models\Team;
-use App\Models\User;
-use App\Models\Fanfiction;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Mail;
-use App\Mail\MitgliedGenehmigtMail;
-use App\Enums\TodoStatus;
 use App\Enums\FanfictionStatus;
 use App\Enums\Role;
+use App\Enums\TodoStatus;
+use App\Mail\MitgliedGenehmigtMail;
+use App\Models\Fanfiction;
+use App\Models\Team;
+use App\Models\User;
 use App\Services\MembersTeamProvider;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Mail;
+use Tests\TestCase;
 
 class DashboardControllerTest extends TestCase
 {
@@ -24,6 +24,7 @@ class DashboardControllerTest extends TestCase
         $team = Team::membersTeam();
         $user = User::factory()->create(['current_team_id' => $team->id]);
         $team->users()->attach($user, ['role' => Role::Admin->value]);
+
         return $user;
     }
 
@@ -32,6 +33,7 @@ class DashboardControllerTest extends TestCase
         $team = Team::membersTeam();
         $user = User::factory()->create(['current_team_id' => $team->id]);
         $team->users()->attach($user, ['role' => Role::Anwaerter->value]);
+
         return $user;
     }
 

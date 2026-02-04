@@ -19,14 +19,14 @@ class FantreffenAdminDashboardTest extends TestCase
     {
         $team = Team::factory()->create(['name' => 'Mitglieder']);
         $user = User::factory()->create(['current_team_id' => $team->id]);
-        
+
         // Attach user to team with role via pivot table
         $user->teams()->attach($team->id, [
             'role' => $role->value,
             'created_at' => now(),
             'updated_at' => now(),
         ]);
-        
+
         return $user;
     }
 
@@ -263,7 +263,7 @@ class FantreffenAdminDashboardTest extends TestCase
     public function test_admin_can_filter_by_member_status()
     {
         $admin = $this->createUserWithRole(Role::Admin);
-        
+
         $team = Team::factory()->create(['name' => 'Mitglieder']);
         $member = User::factory()->create();
         $member->teams()->attach($team);
@@ -436,13 +436,13 @@ class FantreffenAdminDashboardTest extends TestCase
 
         // Call exportCsv directly on the component instance
         $this->actingAs($admin);
-        
-        $livewireComponent = new \App\Livewire\FantreffenAdminDashboard();
+
+        $livewireComponent = new \App\Livewire\FantreffenAdminDashboard;
         $response = $livewireComponent->exportCsv();
 
         // Check that we got a StreamedResponse
         $this->assertInstanceOf(\Symfony\Component\HttpFoundation\StreamedResponse::class, $response);
-        
+
         // Check headers
         $this->assertEquals('text/csv; charset=UTF-8', $response->headers->get('Content-Type'));
         $this->assertStringContainsString('fantreffen-anmeldungen-', $response->headers->get('Content-Disposition'));

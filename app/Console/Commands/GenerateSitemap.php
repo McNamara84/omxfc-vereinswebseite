@@ -50,7 +50,7 @@ class GenerateSitemap extends Command
 
             // Wichtige Seiten manuell hinzufügen (falls nicht bereits gecrawlt)
             foreach ($this->manualUrls as $entry) {
-                $fullUrl = rtrim($baseUrl, '/') . $entry['path'];
+                $fullUrl = rtrim($baseUrl, '/').$entry['path'];
 
                 if (! $existingUrls->contains($fullUrl)) {
                     $sitemap->add(
@@ -65,7 +65,7 @@ class GenerateSitemap extends Command
 
             $sitemap->writeToFile(public_path('sitemap.xml'));
         } catch (\Throwable $e) {
-            $this->error('Failed to generate sitemap: ' . $e->getMessage());
+            $this->error('Failed to generate sitemap: '.$e->getMessage());
 
             return self::FAILURE;
         }

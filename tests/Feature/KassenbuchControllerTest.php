@@ -3,21 +3,19 @@
 namespace Tests\Feature;
 
 use App\Enums\KassenbuchEntryType;
+use App\Enums\Role;
 use App\Models\Kassenstand;
 use App\Models\Team;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
-use App\Enums\Role;
 use App\Services\MembersTeamProvider;
 use Carbon\Carbon;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 
 class KassenbuchControllerTest extends TestCase
 {
     use RefreshDatabase;
     use \Tests\Concerns\CreatesUserWithRole;
-
-
 
     public function test_add_entry_updates_balance(): void
     {

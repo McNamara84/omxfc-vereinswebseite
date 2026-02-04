@@ -15,8 +15,8 @@ use Tests\TestCase;
 
 class TodoControllerTest extends TestCase
 {
-    use RefreshDatabase;
     use CreatesUserWithRole;
+    use RefreshDatabase;
 
     private function createTodo(User $creator, array $attrs = []): Todo
     {
