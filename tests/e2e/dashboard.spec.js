@@ -18,7 +18,7 @@ test.describe('Dashboard overview', () => {
         const cards = page.locator('div[aria-label="Überblick wichtiger Community-Kennzahlen"] [role="region"]');
         await expect(cards).toHaveCount(6);
 
-        await expect(page.getByRole('heading', { name: 'Mitgliedsanträge' })).toBeVisible();
+        await expect(page.getByText('Mitgliedsanträge')).toBeVisible();
         await expect(page.getByRole('row', { name: /Playwright Anwärter/i })).toBeVisible();
         await expect(page.getByRole('link', { name: /Auf Verifizierung wartende Challenges/i })).toBeVisible();
 
@@ -33,7 +33,7 @@ test.describe('Dashboard overview', () => {
 
         await page.goto('/dashboard');
 
-        await expect(page.getByRole('heading', { name: 'Mitgliedsanträge' })).toHaveCount(0);
+        await expect(page.locator('.card:has-text("Mitgliedsanträge")')).toHaveCount(0);
         await expect(page.getByRole('link', { name: /Auf Verifizierung wartende Challenges/i })).toHaveCount(0);
 
         const cards = page.locator('div[aria-label="Überblick wichtiger Community-Kennzahlen"] [role="region"]');

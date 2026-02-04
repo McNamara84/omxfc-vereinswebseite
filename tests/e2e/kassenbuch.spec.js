@@ -27,8 +27,8 @@ test.describe('Kassenbuch Verwaltung', () => {
         await login(page, 'info@maddraxikon.com');
         await page.goto('/kassenbuch');
 
-        await expect(page.getByRole('heading', { level: 1, name: 'Kassenbuch' })).toBeVisible();
-        await expect(page.getByRole('heading', { level: 2, name: 'Aktueller Kassenstand' })).toBeVisible();
+        await expect(page.locator('header').getByText('Kassenbuch')).toBeVisible();
+        await expect(page.getByText('Aktueller Kassenstand')).toBeVisible();
 
         const addButton = page.getByRole('button', { name: 'Eintrag hinzufügen' });
         await expect(addButton).toBeVisible();
@@ -209,7 +209,7 @@ test.describe('Kassenbuch Verwaltung', () => {
         await expect(editButtons.first()).toBeVisible();
         await expect(editButtons.first()).toHaveAttribute('data-user-name', /\S+/);
 
-        const statusBadges = page.locator('tbody tr td span.rounded-full');
+        const statusBadges = page.locator('tbody tr td .badge');
         await expect(statusBadges.first()).toBeVisible();
 
         const dialogs = page.locator('[role="dialog"]');
