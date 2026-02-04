@@ -26,10 +26,11 @@ class NavigationMenuTest extends TestCase
 
         $response = $this->actingAs($user)->get('/');
 
+        // maryUI wraps menu items differently - check that all items exist in order
         $response->assertSeeInOrder([
-            '>Protokolle<',
-            '>Satzung<',
-            '>Kassenbuch<',
+            'Protokolle',
+            'Satzung',
+            'Kassenbuch',
         ], false);
     }
 
@@ -49,9 +50,8 @@ class NavigationMenuTest extends TestCase
         $response = $this->actingAs($user)->get('/');
 
         $response->assertSee(route('admin.statistiken.index'));
-        $response->assertSee('Admin');
-        $response->assertSee('admin-button');
-        $response->assertSee('admin-mobile-button');
+        // maryUI menu-sub generates a summary element with "Admin" text
+        $response->assertSee('Newsletter versenden');
     }
 
     public function test_non_admin_users_do_not_see_admin_menu(): void
@@ -63,8 +63,8 @@ class NavigationMenuTest extends TestCase
         $response = $this->actingAs($user)->get('/');
 
         $response->assertDontSee(route('admin.statistiken.index'));
-        $response->assertDontSee('admin-button');
-        $response->assertDontSee('admin-mobile-button');
+        // Admin menu should not appear in navigation for non-admin users
+        $response->assertDontSee('Newsletter versenden');
     }
 
     public function test_admin_users_do_not_see_hoerbuch_create_link_in_navigation_menu(): void
