@@ -6,12 +6,22 @@
     themes: caramellatte --default, coffee --prefersdark;
 }
 
-/* Swap primary and accent colors ONLY for caramellatte theme */
+/* 
+ * Swap primary and accent colors ONLY for caramellatte theme
+ * Native caramellatte values:
+ *   --color-primary: oklch(0% 0 0);                    (black)
+ *   --color-primary-content: oklch(100% 0 0);          (white)
+ *   --color-accent: oklch(46.44% 0.111 37.85);         (brownish-red)
+ *   --color-accent-content: oklch(90% 0.076 70.697);   (cream)
+ */
 [data-theme="caramellatte"] {
-    --color-primary: oklch(44.89% 0.179 20.873);    /* original accent (dark red) */
-    --color-accent: oklch(26.08% 0.01 248.21);      /* original primary (black) */
-    --color-primary-content: oklch(100% 0 0);       /* white text on primary */
-    --color-accent-content: oklch(100% 0 0);        /* white text on accent */
+    /* Primary ← Original Accent (brownish-red) */
+    --color-primary: oklch(46.44% 0.111 37.85);
+    --color-primary-content: oklch(90% 0.076 70.697);
+    
+    /* Accent ← Original Primary (black) */
+    --color-accent: oklch(0% 0 0);
+    --color-accent-content: oklch(100% 0 0);
 }
 
 [x-cloak] {
