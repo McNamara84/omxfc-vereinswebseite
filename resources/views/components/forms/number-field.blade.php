@@ -21,7 +21,7 @@
     $baseControlClasses = collect(config('forms.base_control_classes', []))->implode(' ');
 @endphp
 
-<x-form :name="$name" :label="$label" :id="$fieldId" :errorId="$errorId" {{ $attributes->class(['w-full space-y-1']) }}>
+<x-field-group :name="$name" :label="$label" :id="$fieldId" :errorId="$errorId" {{ $attributes->class(['w-full space-y-1']) }}>
     <input
         id="{{ $fieldId }}"
         name="{{ $name }}"
@@ -39,4 +39,4 @@
     @if($help)
         <p id="{{ $hintId }}" class="text-sm text-gray-600 dark:text-gray-300">{{ $help }}</p>
     @endif
-</x-form>
+</x-field-group>
