@@ -13,11 +13,17 @@
             @csrf
             <div class="mb-4">
                 <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('E-Mail') }}</label>
-                <input id="email" name="email" type="email" value="{{ old('email') }}" required autofocus autocomplete="username" class="block mt-1 w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm" />
+                <input id="email" name="email" type="email" value="{{ old('email') }}" required autofocus autocomplete="username" aria-describedby="email-error" class="block mt-1 w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm" />
+                @error('email')
+                    <p id="email-error" class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                @enderror
             </div>
             <div class="mb-4">
                 <label for="password" class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('Passwort') }}</label>
-                <input id="password" name="password" type="password" required autocomplete="current-password" class="block mt-1 w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm" />
+                <input id="password" name="password" type="password" required autocomplete="current-password" aria-describedby="password-error" class="block mt-1 w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm" />
+                @error('password')
+                    <p id="password-error" class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                @enderror
             </div>
             <div class="block mt-4">
                 <label for="remember_me" class="flex items-center">
