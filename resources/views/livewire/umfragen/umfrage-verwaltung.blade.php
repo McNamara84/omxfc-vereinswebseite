@@ -66,16 +66,14 @@
                         <span class="label-text font-medium">Sichtbarkeit</span>
                     </div>
                     <div class="mt-2 space-y-2">
-                        <x-radio
-                            wire:model="visibility"
-                            value="internal"
-                            label="Intern – Nur Vereinsmitglieder (1 Stimme pro Mitglied)"
-                        />
-                        <x-radio
-                            wire:model="visibility"
-                            value="public"
-                            label="Öffentlich – Gäste + Mitglieder (1 Stimme pro IP)"
-                        />
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="radio" wire:model="visibility" name="visibility" value="internal" class="radio radio-primary" />
+                            <span class="label-text">Intern – Nur Vereinsmitglieder (1 Stimme pro Mitglied)</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="radio" wire:model="visibility" name="visibility" value="public" class="radio radio-primary" />
+                            <span class="label-text">Öffentlich – Gäste + Mitglieder (1 Stimme pro IP)</span>
+                        </label>
                     </div>
                 </div>
 
@@ -125,12 +123,20 @@
                                     />
                                 </div>
                                 <div class="md:col-span-3">
-                                    <x-input
-                                        label="Bild-URL (optional)"
-                                        wire:model="options.{{ $index }}.image_url"
-                                        placeholder="https://..."
-                                        hint="Empfohlen: querformatiges Bild (z. B. 1200×630)"
-                                    />
+                                    <div class="flex items-end gap-1">
+                                        <div class="flex-1">
+                                            <x-input
+                                                label="Bild-URL (optional)"
+                                                wire:model="options.{{ $index }}.image_url"
+                                                placeholder="https://..."
+                                            />
+                                        </div>
+                                        <x-button
+                                            icon="o-information-circle"
+                                            class="btn-ghost btn-sm mb-0.5"
+                                            tooltip="Empfohlen: querformatiges Bild (z. B. 1200×630)"
+                                        />
+                                    </div>
                                 </div>
                                 <div class="md:col-span-3">
                                     <x-input
