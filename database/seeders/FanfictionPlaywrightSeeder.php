@@ -114,6 +114,19 @@ CONTENT;
             'published_at' => null,
         ]);
 
-        $this->command->info('FanfictionPlaywrightSeeder: Created 3 fanfictions (2 published, 1 draft) with comments.');
+        // Second draft - this one is used by the "Mitglied kann keine Entwürfe sehen" test
+        // and should NOT be published by any other test
+        Fanfiction::create([
+            'team_id' => $team->id,
+            'user_id' => $admin->id,
+            'created_by' => $admin->id,
+            'title' => 'Geheimer Entwurf für Tests',
+            'author_name' => $admin->name,
+            'content' => 'Dieser Entwurf wird nur für den Sichtbarkeits-Test verwendet.',
+            'status' => FanfictionStatus::Draft,
+            'published_at' => null,
+        ]);
+
+        $this->command->info('FanfictionPlaywrightSeeder: Created 4 fanfictions (2 published, 2 drafts) with comments.');
     }
 }

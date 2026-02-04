@@ -132,9 +132,10 @@ test.describe('Fanfiction Verwaltung für Vorstand (Issue #493)', () => {
         await page.goto('/vorstand/fanfiction/erstellen');
 
         // Prüfe ob alle erforderlichen Felder vorhanden sind
-        // maryUI x-input verwendet label-Texte
-        await expect(page.getByLabel('Titel der Geschichte')).toBeVisible();
-        await expect(page.getByLabel('Geschichte')).toBeVisible();
+        // maryUI x-input verwendet fieldset/legend statt label/input - nutze placeholder
+        await expect(page.getByPlaceholder('z.B. Die Rückkehr nach Dorado')).toBeVisible();
+        // Textarea hat keinen Placeholder, prüfe dass legend-Text existiert
+        await expect(page.getByText('Geschichte', { exact: false })).toBeVisible();
 
         // Autortyp-Auswahl (Radio-Buttons)
         await expect(page.getByText(/Vereinsmitglied/i)).toBeVisible();
@@ -147,10 +148,10 @@ test.describe('Fanfiction Verwaltung für Vorstand (Issue #493)', () => {
         // Wähle externen Autor (Radio-Button)
         await page.getByText('Externer Autor').click();
 
-        // Fülle Formular aus - Livewire verwendet wire:model, nicht name Attribute
-        await page.getByLabel('Titel der Geschichte').fill('E2E Test Geschichte');
-        await page.getByLabel('Autor-Name').fill('E2E Testautor');
-        await page.getByLabel('Geschichte').fill('Dies ist eine Testgeschichte für den E2E-Test. Sie enthält genug Text um die Validierung zu bestehen.');
+        // Fülle Formular aus - maryUI verwendet fieldset/legend, nutze wire:model Selektoren
+        await page.locator('[wire\\:model="title"]').fill('E2E Test Geschichte');
+        await page.locator('[wire\\:model="authorName"]').fill('E2E Testautor');
+        await page.locator('[wire\\:model="content"]').fill('Dies ist eine Testgeschichte für den E2E-Test. Sie enthält genug Text um die Validierung zu bestehen.');
 
         // Wähle Status "Entwurf" (Radio-Button, nicht Select)
         await page.getByText('Als Entwurf speichern').click();
@@ -273,10 +274,11 @@ test.describe('Fanfiction Übersicht für Mitglieder (Issue #495 & #496)', () =>
     test('Mitglied kann keine Entwürfe sehen', async ({ page }) => {
         await page.goto('/fanfiction');
 
-        // Der Entwurf mit dem Titel "Entwurf: Die dunkle Prophezeiung" sollte nicht in der Fanfiction-Liste sichtbar sein
-        // Wir prüfen auf den exakten Titel (der im Seeder definiert ist)
+        // Der Seeder erstellt einen zweiten Entwurf "Geheimer Entwurf für Tests",
+        // der von keinem anderen Test veröffentlicht wird.
+        // Der published() Scope im Controller sollte diesen herausfiltern.
         const fanfictionList = page.locator('[data-fanfiction-list]');
-        await expect(fanfictionList.getByText('Entwurf: Die dunkle Prophezeiung')).not.toBeVisible();
+        await expect(fanfictionList.getByText('Geheimer Entwurf für Tests')).not.toBeVisible();
     });
 });
 
