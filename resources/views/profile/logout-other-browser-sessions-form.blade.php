@@ -51,6 +51,7 @@
     </div>
 
     <!-- Log Out Other Devices Confirmation Modal -->
+    @if($confirmingLogout)
     <x-mary-modal wire:model="confirmingLogout" title="{{ __('Alle anderen Browser-Sitzungen beenden') }}" separator>
         <p class="text-base-content/70">
             {{ __('Bitte gib dein Passwort ein, um zu bestätigen, dass du dich von deinen anderen Browser-Sitzungen auf allen deinen Geräten abmelden möchten.') }}
@@ -71,4 +72,5 @@
             <x-button label="{{ __('Alle anderen Browser-Sitzungen beenden') }}" class="btn-primary" wire:click="logoutOtherBrowserSessions" wire:loading.attr="disabled" />
         </x-slot:actions>
     </x-mary-modal>
+    @endif
 </div>

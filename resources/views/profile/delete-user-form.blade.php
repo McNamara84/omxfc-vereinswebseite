@@ -12,6 +12,7 @@
     </div>
 
     <!-- Delete User Confirmation Modal -->
+    @if($confirmingUserDeletion)
     <x-mary-modal wire:model="confirmingUserDeletion" title="{{ __('Mitgliedschaft kündigen') }}" separator>
         <p class="text-base-content/70">
             {{ __('Bist du sicher, dass du deine Mitgliedschaft wirklich beenden möchtest? Dies löscht deinen Account dauerhaft und kann nicht rückgängig gemacht werden. Bitte gib zur Sicherheit dein Passwort ein.') }}
@@ -32,4 +33,5 @@
             <x-button label="{{ __('Mitgliedschaft beenden') }}" class="btn-error" wire:click="deleteUser" wire:loading.attr="disabled" />
         </x-slot:actions>
     </x-mary-modal>
+    @endif
 </div>
