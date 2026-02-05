@@ -452,16 +452,16 @@
                                     <label class="label" for="beschreibung">
                                         <span class="label-text">Beschreibung</span>
                                     </label>
-                                    <input id="beschreibung" name="beschreibung" type="text" required class="input input-bordered w-full" />
-                                    @error('beschreibung') <span class="text-error text-xs">{{ $message }}</span> @enderror
+                                    <input id="beschreibung" name="beschreibung" aria-describedby="beschreibung-error" type="text" required class="input input-bordered w-full" />
+                                    @error('beschreibung') <span id="beschreibung-error" class="text-error text-xs">{{ $message }}</span> @enderror
                                 </div>
 
                                 <div>
                                     <label class="label" for="betrag">
                                         <span class="label-text">Betrag (€)</span>
                                     </label>
-                                    <input id="betrag" name="betrag" type="number" step="0.01" min="0.01" required class="input input-bordered w-full" />
-                                    @error('betrag') <span class="text-error text-xs">{{ $message }}</span> @enderror
+                                    <input id="betrag" name="betrag" aria-describedby="betrag-error" type="number" step="0.01" min="0.01" required class="input input-bordered w-full" />
+                                    @error('betrag') <span id="betrag-error" class="text-error text-xs">{{ $message }}</span> @enderror
                                 </div>
                             
                                 <div>

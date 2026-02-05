@@ -229,13 +229,13 @@ test.describe('Umfragen Admin Dashboard', () => {
         await page.fill('input[name="password"]', 'password');
         await page.click('button[type="submit"]');
         
-        // Wait for redirect to dashboard
-        await page.waitForURL('**/dashboard', { timeout: 30000 });
+        // Wait for login to complete (redirect away from /login)
+        await page.waitForURL((url) => !url.pathname.endsWith('/login'), { timeout: 30000 });
 
-        // Try to access admin page
+        // Try to access admin page directly
         const response = await page.goto('/admin/umfragen');
 
-        // Should be forbidden or redirected
+        // Should be forbidden (403) or redirected (302/303)
         expect(response?.status()).not.toBe(200);
     });
 
