@@ -1,6 +1,6 @@
 <div>
     {{-- Header --}}
-    <x-header title="Umfrage verwalten" subtitle="Erstellen, bearbeiten und auswerten (nur Admin/Vorstand)." separator />
+    <x-header title="Umfrage verwalten" subtitle="Erstellen, bearbeiten und auswerten (nur Admin/Vorstand)." separator data-testid="page-header" />
 
     {{-- Success/Error Messages --}}
     @if (session()->has('success'))

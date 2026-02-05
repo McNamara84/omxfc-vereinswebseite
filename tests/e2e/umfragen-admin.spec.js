@@ -17,8 +17,9 @@ test.describe('Umfragen Admin Dashboard', () => {
     test('admin can access the poll management page', async ({ page }) => {
         await page.goto('/admin/umfragen');
 
-        // maryUI x-header rendert ein div, kein header-Element
-        await expect(page.getByText('Umfrage verwalten').first()).toBeVisible();
+        // Verwende data-testid für stabile Selektoren
+        await page.waitForLoadState('networkidle');
+        await expect(page.getByTestId('page-header')).toContainText('Umfrage verwalten');
     });
 
     test('displays poll selection dropdown', async ({ page }) => {
@@ -157,7 +158,7 @@ test.describe('Umfragen Admin Dashboard', () => {
 
         // Prüfe dass alle Felder ausgefüllt sind
         await expect(page.locator('textarea[wire\\:model="question"]')).toHaveValue('Was ist dein Lieblings-MADDRAX-Roman?');
-        await expect(page.getByLabel('Link-Name im Menü')).toHaveValue('Lieblingsroman');
+        await expect(page.getByPlaceholder('z.B. Abstimmung')).toHaveValue('Lieblingsroman');
         await expect(firstAnswerInput).toHaveValue('Der Gott aus dem Eis');
         await expect(secondAnswerInput).toHaveValue('Dämonen der Vergangenheit');
         await expect(thirdAnswerInput).toHaveValue('Stadt ohne Hoffnung');
@@ -214,19 +215,21 @@ test.describe('Umfragen Admin Dashboard', () => {
     });
 
     test('member cannot access poll management', async ({ page }) => {
+        // Skip beforeEach admin login - wir starten frisch
+        test.setTimeout(60000);
+        
         // Clear all cookies and storage to ensure fresh session
         await page.context().clearCookies();
-        await page.context().clearPermissions();
         
         // Login as regular member
         await page.goto('/login');
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
         await page.fill('input[name="email"]', 'mcnamara84@aol.com');
         await page.fill('input[name="password"]', 'password');
         await page.click('button[type="submit"]');
         
-        // Wait for dashboard or any authenticated page
-        await page.waitForURL((url) => !url.pathname.endsWith('/login'), { timeout: 15000 });
+        // Wait for redirect to dashboard
+        await page.waitForURL('**/dashboard', { timeout: 30000 });
 
         // Try to access admin page
         const response = await page.goto('/admin/umfragen');

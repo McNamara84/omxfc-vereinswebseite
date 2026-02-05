@@ -17,8 +17,9 @@ test.describe('Kompendium Admin Dashboard', () => {
     test('admin can access the admin dashboard', async ({ page }) => {
         await page.goto('/kompendium/admin');
 
-        // maryUI x-header rendert ein div, kein header-Element
-        await expect(page.getByText('Kompendium-Administration').first()).toBeVisible();
+        // Verwende data-testid für stabile Selektoren
+        await page.waitForLoadState('networkidle');
+        await expect(page.getByTestId('page-header')).toContainText('Kompendium-Administration');
     });
 
     test('displays statistics cards correctly', async ({ page }) => {

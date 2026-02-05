@@ -14,7 +14,7 @@
         @endif
         
         {{-- Header --}}
-        <x-header title="Kassenbuch" separator />
+        <x-header title="Kassenbuch" separator data-testid="page-header" />
         
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             {{-- Card 1: Mitgliedsbeitrag Status (Für alle Rollen) --}}

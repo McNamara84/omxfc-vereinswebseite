@@ -1,7 +1,7 @@
 <div class="pb-8" wire:poll.5s>
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {{-- Header --}}
-        <x-header title="Kompendium-Administration" subtitle="Verwalte die Romantexte für die Kompendium-Volltextsuche." separator>
+        <x-header title="Kompendium-Administration" subtitle="Verwalte die Romantexte für die Kompendium-Volltextsuche." separator data-testid="page-header">
             <x-slot:actions>
                 <x-button label="Zurück zum Kompendium" link="{{ route('kompendium.index') }}" icon="o-arrow-left" class="btn-ghost" />
             </x-slot:actions>
