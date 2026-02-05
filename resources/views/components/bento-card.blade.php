@@ -3,11 +3,11 @@
     $titleId = \Illuminate\Support\Str::slug($title, '-') . '-' . uniqid();
 @endphp
 @if($href)
-<a href="{{ $href }}" {{ $attributes->merge(['class' => 'bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 flex flex-col hover:bg-gray-50 dark:hover:bg-gray-700 transition duration-200']) }} role="region" aria-labelledby="{{ $titleId }}">
+<a href="{{ $href }}" {{ $attributes->merge(['class' => 'card bg-base-100 shadow-xl p-6 flex flex-col hover:bg-base-200 transition duration-200']) }} role="region" aria-labelledby="{{ $titleId }}">
 @else
-<div {{ $attributes->merge(['class' => 'bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 flex flex-col']) }} role="region" aria-labelledby="{{ $titleId }}">
+<div {{ $attributes->merge(['class' => 'card bg-base-100 shadow-xl p-6 flex flex-col']) }} role="region" aria-labelledby="{{ $titleId }}">
 @endif
-    <h2 id="{{ $titleId }}" class="text-lg font-semibold text-[#8B0116] dark:text-[#FCA5A5] mb-2">{{ $title }}</h2>
+    <h2 id="{{ $titleId }}" class="text-lg font-semibold text-primary mb-2">{{ $title }}</h2>
     <div class="mt-auto">
         {{ $slot }}
     </div>

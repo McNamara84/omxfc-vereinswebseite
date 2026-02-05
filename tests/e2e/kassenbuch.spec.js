@@ -27,10 +27,13 @@ test.describe('Kassenbuch Verwaltung', () => {
         await login(page, 'info@maddraxikon.com');
         await page.goto('/kassenbuch');
 
-        await expect(page.getByRole('heading', { level: 1, name: 'Kassenbuch' })).toBeVisible();
-        await expect(page.getByRole('heading', { level: 2, name: 'Aktueller Kassenstand' })).toBeVisible();
+        // Warte bis Seite geladen ist
+        await page.waitForLoadState('networkidle');
+        // Verwende data-testid für stabile Selektoren
+        await expect(page.getByTestId('page-header')).toContainText('Kassenbuch');
+        await expect(page.getByTestId('kassenstand-card')).toBeVisible();
 
-        const addButton = page.getByRole('button', { name: 'Eintrag hinzufügen' });
+        const addButton = page.getByTestId('add-entry-button');
         await expect(addButton).toBeVisible();
         
         // Wait for page to be fully loaded
@@ -76,7 +79,7 @@ test.describe('Kassenbuch Verwaltung', () => {
         });
         console.log('[DEBUG] Modal state after click:', JSON.stringify(modalState));
 
-        const addDialog = page.getByRole('dialog', { name: 'Kassenbucheintrag hinzufügen' });
+        const addDialog = page.getByTestId('add-entry-dialog');
         await addDialog.waitFor({ state: 'visible', timeout: 10000 }).catch(async (err) => {
             // DEBUG: Take screenshot on failure
             await page.screenshot({ path: 'test-results/kassenbuch-add-modal-debug.png', fullPage: true });
@@ -166,7 +169,7 @@ test.describe('Kassenbuch Verwaltung', () => {
         });
         console.log('[DEBUG] Modal state after edit click:', JSON.stringify(modalState));
 
-        const editDialog = page.getByRole('dialog', { name: 'Zahlungsdaten bearbeiten' });
+        const editDialog = page.getByTestId('edit-payment-dialog');
         await editDialog.waitFor({ state: 'visible', timeout: 10000 }).catch(async (err) => {
             await page.screenshot({ path: 'test-results/kassenbuch-edit-modal-debug.png', fullPage: true });
             console.log('[DEBUG] Screenshot saved to test-results/kassenbuch-edit-modal-debug.png');
@@ -209,7 +212,7 @@ test.describe('Kassenbuch Verwaltung', () => {
         await expect(editButtons.first()).toBeVisible();
         await expect(editButtons.first()).toHaveAttribute('data-user-name', /\S+/);
 
-        const statusBadges = page.locator('tbody tr td span.rounded-full');
+        const statusBadges = page.locator('tbody tr td .badge');
         await expect(statusBadges.first()).toBeVisible();
 
         const dialogs = page.locator('[role="dialog"]');

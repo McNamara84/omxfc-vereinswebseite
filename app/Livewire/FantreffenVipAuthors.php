@@ -222,7 +222,7 @@ class FantreffenVipAuthors extends Component
         return view('livewire.fantreffen-vip-authors', [
             'authors' => $authors,
             'activeAuthors' => $activeAuthors,
-        ])->layout('layouts.app', [
+        ])->layout('layouts.admin', [
             'title' => 'Fantreffen 2026 - VIP-Autoren verwalten',
         ]);
     }

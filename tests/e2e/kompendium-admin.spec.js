@@ -17,22 +17,23 @@ test.describe('Kompendium Admin Dashboard', () => {
     test('admin can access the admin dashboard', async ({ page }) => {
         await page.goto('/kompendium/admin');
 
-        // Korrekter Titel: "Kompendium-Administration"
-        await expect(page.getByRole('heading', { level: 1, name: 'Kompendium-Administration' })).toBeVisible();
+        // Verwende data-testid für stabile Selektoren
+        await page.waitForLoadState('networkidle');
+        await expect(page.getByTestId('page-header')).toContainText('Kompendium-Administration');
     });
 
     test('displays statistics cards correctly', async ({ page }) => {
         await page.goto('/kompendium/admin');
 
         // Prüfe ob Statistik-Karten angezeigt werden
-        await expect(page.locator('.bg-white.rounded-lg.shadow').first()).toBeVisible();
+        await expect(page.getByTestId('stats-section')).toBeVisible();
     });
 
     test('displays upload form', async ({ page }) => {
         await page.goto('/kompendium/admin');
 
-        await expect(page.getByText('Romane hochladen')).toBeVisible();
-        await expect(page.locator('#serie')).toBeVisible();
+        await expect(page.getByTestId('upload-card')).toBeVisible();
+        await expect(page.getByText('Serie (falls nicht automatisch erkannt)')).toBeVisible();
         await expect(page.getByRole('button', { name: 'Hochladen' })).toBeVisible();
     });
 
@@ -40,7 +41,7 @@ test.describe('Kompendium Admin Dashboard', () => {
         await page.goto('/kompendium/admin');
 
         // Prüfe ob die Tabelle existiert
-        await expect(page.getByRole('table')).toBeVisible();
+        await expect(page.getByTestId('novels-table')).toBeVisible();
 
         // Prüfe auf Seeder-Daten - verwende spezifische Zelle
         await expect(page.getByRole('cell', { name: 'Der Gott aus dem Eis' })).toBeVisible();
@@ -49,8 +50,9 @@ test.describe('Kompendium Admin Dashboard', () => {
     test('can filter by series', async ({ page }) => {
         await page.goto('/kompendium/admin');
 
-        // Filter auf Mission Mars setzen - verwende die ID
-        await page.locator('#filterSerie').selectOption('missionmars');
+        // Filter auf Mission Mars setzen - verwende data-testid
+        const filterSection = page.getByTestId('filter-section');
+        await filterSection.getByLabel('Serie').selectOption('missionmars');
 
         // Warten auf Livewire-Update
         await page.waitForTimeout(1000);
@@ -65,8 +67,9 @@ test.describe('Kompendium Admin Dashboard', () => {
     test('can filter by status', async ({ page }) => {
         await page.goto('/kompendium/admin');
 
-        // Filter auf "indexiert" setzen - verwende die ID
-        await page.locator('#filterStatus').selectOption('indexiert');
+        // Filter auf "indexiert" setzen - verwende data-testid
+        const filterSection = page.getByTestId('filter-section');
+        await filterSection.getByLabel('Status').selectOption('indexiert');
 
         // Warten auf Livewire-Update
         await page.waitForTimeout(1000);
@@ -81,8 +84,8 @@ test.describe('Kompendium Admin Dashboard', () => {
     test('can search for novels', async ({ page }) => {
         await page.goto('/kompendium/admin');
 
-        // Suche nach einem Roman - verwende die ID
-        await page.locator('#suchbegriff').fill('Dämonen');
+        // Suche nach einem Roman - verwende data-testid
+        await page.getByTestId('search-input').fill('Dämonen');
 
         // Warten auf Livewire-Update (mit debounce)
         await page.waitForTimeout(1000);
@@ -98,10 +101,10 @@ test.describe('Kompendium Admin Dashboard', () => {
         await page.goto('/kompendium/admin');
 
         // Prüfe ob Status-Badges angezeigt werden
-        const table = page.getByRole('table');
+        const table = page.getByTestId('novels-table');
 
         // Es sollten verschiedene Status-Badges existieren
-        await expect(table.locator('span:has-text("Hochgeladen")').first()).toBeVisible();
+        await expect(table.locator('.badge:has-text("Hochgeladen")').first()).toBeVisible();
     });
 
     test('shows action buttons for novels', async ({ page }) => {
@@ -122,8 +125,8 @@ test.describe('Kompendium Admin Dashboard', () => {
         const testFileName = '100 - Playwright Testroman.txt';
         const testContent = 'Dies ist ein Testroman für Playwright E2E-Tests.';
 
-        // Wähle die Serie - verwende die ID für das Upload-Formular
-        await page.locator('#serie').selectOption('maddrax');
+        // Wähle die Serie - verwende das vollständige Label
+        await page.getByLabel('Serie (falls nicht automatisch erkannt)').selectOption('maddrax');
 
         // Lade die Datei hoch
         const fileInput = page.locator('input[type="file"]');
@@ -146,8 +149,9 @@ test.describe('Kompendium Admin Dashboard', () => {
     test('shows novels with errors', async ({ page }) => {
         await page.goto('/kompendium/admin');
 
-        // Filter auf "fehler" setzen
-        await page.locator('#filterStatus').selectOption('fehler');
+        // Filter auf "fehler" setzen - verwende data-testid
+        const filterSection = page.getByTestId('filter-section');
+        await filterSection.getByLabel('Status').selectOption('fehler');
 
         // Warten auf Livewire-Update
         await page.waitForTimeout(1000);

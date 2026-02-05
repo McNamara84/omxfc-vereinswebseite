@@ -580,6 +580,32 @@ The project maintains test coverage badges for both PHP and JavaScript:
 - E2E Coverage: Playwright tests across Chromium, Firefox, WebKit
 - Accessibility: Axe-core checks in E2E tests
 
+### E2E Test Selectors (Playwright)
+
+**Prefer `data-testid` attributes for stable selectors:**
+```blade
+{{-- In Blade views --}}
+<x-header title="Kassenbuch" separator data-testid="page-header" />
+<x-button label="Speichern" data-testid="save-button" />
+```
+
+```javascript
+// In Playwright tests
+await expect(page.getByTestId('page-header')).toContainText('Kassenbuch');
+await page.getByTestId('save-button').click();
+```
+
+**Why `data-testid`?**
+- Unabhängig von CSS-Klassen und Markup-Struktur
+- Robust gegen UI-Refactoring (z.B. maryUI Migration)
+- Von Playwright nativ unterstützt via `getByTestId()`
+- Macht Test-Intent im Code explizit
+
+**Naming Convention:**
+- `page-header` - Seiten-Header
+- `{feature}-{element}` - z.B. `kassenbuch-add-button`
+- Kleinbuchstaben mit Bindestrichen
+
 ---
 
 ## Database Patterns
