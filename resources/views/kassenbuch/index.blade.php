@@ -63,7 +63,7 @@
             </x-card>
             
             {{-- Card 2: Aktueller Kassenstand (Für alle Rollen) --}}
-            <x-card title="Aktueller Kassenstand" shadow>
+            <x-card title="Aktueller Kassenstand" shadow data-testid="kassenstand-card">
                 <p class="text-sm text-base-content/60">Kassenstand zum {{ \Carbon\Carbon::parse($kassenstand->letzte_aktualisierung)->format('d.m.Y') }}</p>
                 <p class="mt-1 text-2xl font-bold {{ $kassenstand->betrag >= 0 ? 'text-success' : 'text-error' }}">
                     {{ number_format($kassenstand->betrag, 2, ',', '.') }} €
@@ -214,7 +214,8 @@
                                     class="btn-primary btn-sm"
                                     x-data 
                                     @click="$dispatch('kassenbuch-modal')" 
-                                    data-kassenbuch-modal-trigger="true" />
+                                    data-kassenbuch-modal-trigger="true"
+                                    data-testid="add-entry-button" />
                             @endif
                         </div>
                     </x-slot:title>
@@ -348,7 +349,8 @@
                          class="relative bg-base-100 rounded-box shadow-xl max-w-lg w-full p-6"
                          role="dialog"
                          aria-modal="true"
-                         aria-labelledby="edit-payment-title">
+                         aria-labelledby="edit-payment-title"
+                         data-testid="edit-payment-dialog">
                         <div class="flex justify-between items-center mb-4">
                             <h3 id="edit-payment-title" class="text-lg font-medium">Zahlungsdaten bearbeiten</h3>
                             <x-button icon="o-x-mark" class="btn-ghost btn-sm" @click="open = false" />
@@ -422,9 +424,11 @@
                          x-transition:leave-end="opacity-0 scale-95"
                          class="relative bg-base-100 rounded-box shadow-xl max-w-lg w-full p-6"
                          role="dialog"
-                         aria-modal="true">
+                         aria-modal="true"
+                         aria-labelledby="add-entry-title"
+                         data-testid="add-entry-dialog">
                         <div class="flex justify-between items-center mb-4">
-                            <h3 class="text-lg font-medium">Kassenbucheintrag hinzufügen</h3>
+                            <h3 id="add-entry-title" class="text-lg font-medium">Kassenbucheintrag hinzufügen</h3>
                             <x-button icon="o-x-mark" class="btn-ghost btn-sm" @click="open = false" />
                         </div>
 

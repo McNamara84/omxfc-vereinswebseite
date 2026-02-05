@@ -30,7 +30,7 @@
         @endif
 
         {{-- Statistik-Karten --}}
-        <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6" data-testid="stats-section">
             <x-stat title="Gesamt" :value="$this->statistiken['gesamt']" icon="o-document-text" />
             <x-stat title="Indexiert" :value="$this->statistiken['indexiert']" icon="o-check-circle" color="text-success" />
             <x-stat title="Hochgeladen" :value="$this->statistiken['hochgeladen']" icon="o-cloud-arrow-up" color="text-info" />
@@ -39,7 +39,7 @@
         </div>
 
         {{-- Upload-Bereich --}}
-        <x-card title="Romane hochladen" class="mb-6" shadow>
+        <x-card title="Romane hochladen" class="mb-6" shadow data-testid="upload-card">
             <form wire:submit="hochladen">
                 <div class="grid md:grid-cols-2 gap-4 mb-4">
                     {{-- Serien-Auswahl --}}
@@ -90,7 +90,7 @@
         </x-card>
 
         {{-- Filter & Aktionen --}}
-        <x-card class="mb-6" shadow>
+        <x-card class="mb-6" shadow data-testid="filter-section">
             <div class="flex flex-wrap items-end gap-4">
                 {{-- Suche --}}
                 <div class="flex-1 min-w-[200px]">
@@ -98,7 +98,8 @@
                         label="Suche" 
                         wire:model.live.debounce.300ms="suchbegriff"
                         placeholder="Titel oder Nummer..."
-                        icon="o-magnifying-glass" />
+                        icon="o-magnifying-glass"
+                        data-testid="search-input" />
                 </div>
 
                 {{-- Serie-Filter --}}
@@ -113,7 +114,8 @@
                     <x-select 
                         label="Serie" 
                         :options="$filterSerienOptions" 
-                        wire:model.live="filterSerie" />
+                        wire:model.live="filterSerie"
+                        data-testid="series-filter" />
                 </div>
 
                 {{-- Status-Filter --}}
@@ -130,7 +132,8 @@
                     <x-select 
                         label="Status" 
                         :options="$statusOptions" 
-                        wire:model.live="filterStatus" />
+                        wire:model.live="filterStatus"
+                        data-testid="status-filter" />
                 </div>
 
                 {{-- Massen-Aktionen --}}
@@ -150,9 +153,9 @@
         </x-card>
 
         {{-- Romanliste --}}
-        <x-card shadow>
+        <x-card shadow data-testid="novels-table-card">
             <div class="overflow-x-auto">
-                <table class="table">
+                <table class="table" data-testid="novels-table">
                     <thead>
                         <tr>
                             <th>Nr.</th>

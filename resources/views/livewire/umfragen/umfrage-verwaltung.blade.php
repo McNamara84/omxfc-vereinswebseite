@@ -21,7 +21,7 @@
     @endif
 
     {{-- Umfrage-Auswahl Card --}}
-    <x-card class="mb-8">
+    <x-card class="mb-8" data-testid="poll-selection-card">
         <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div class="w-full sm:max-w-md">
                 <x-select
@@ -34,6 +34,7 @@
                     ])"
                     option-value="id"
                     option-label="name"
+                    data-testid="poll-select"
                 />
             </div>
 
@@ -51,6 +52,7 @@
                 wire:model="question"
                 rows="3"
                 placeholder="Gib hier die Umfrage-Frage ein..."
+                data-testid="question-textarea"
             />
 
             {{-- Grid: Menu Label, Sichtbarkeit, Status --}}
@@ -59,19 +61,20 @@
                     label="Link-Name im Menü"
                     wire:model="menuLabel"
                     placeholder="z.B. Abstimmung"
+                    data-testid="menu-label-input"
                 />
 
-                <div>
+                <div data-testid="visibility-section">
                     <div class="label">
                         <span class="label-text font-medium">Sichtbarkeit</span>
                     </div>
                     <div class="mt-2 space-y-2">
                         <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="radio" wire:model="visibility" name="visibility" value="internal" class="radio radio-primary" />
+                            <input type="radio" wire:model="visibility" name="visibility" value="internal" class="radio radio-primary" data-testid="visibility-internal" />
                             <span class="label-text">Intern – Nur Vereinsmitglieder (1 Stimme pro Mitglied)</span>
                         </label>
                         <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="radio" wire:model="visibility" name="visibility" value="public" class="radio radio-primary" />
+                            <input type="radio" wire:model="visibility" name="visibility" value="public" class="radio radio-primary" data-testid="visibility-public" />
                             <span class="label-text">Öffentlich – Gäste + Mitglieder (1 Stimme pro IP)</span>
                         </label>
                     </div>
@@ -89,16 +92,16 @@
             <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div>
                     <label for="startsAt" class="label"><span class="label-text font-medium">Start</span></label>
-                    <input id="startsAt" type="datetime-local" wire:model="startsAt" class="input input-bordered w-full" />
+                    <input id="startsAt" type="datetime-local" wire:model="startsAt" class="input input-bordered w-full" data-testid="starts-at-input" />
                 </div>
                 <div>
                     <label for="endsAt" class="label"><span class="label-text font-medium">Ende</span></label>
-                    <input id="endsAt" type="datetime-local" wire:model="endsAt" class="input input-bordered w-full" />
+                    <input id="endsAt" type="datetime-local" wire:model="endsAt" class="input input-bordered w-full" data-testid="ends-at-input" />
                 </div>
             </div>
 
             {{-- Antwortmöglichkeiten --}}
-            <div>
+            <div data-testid="options-section">
                 <div class="flex items-center justify-between gap-4 mb-4">
                     <h2 class="text-lg font-semibold">Antwortmöglichkeiten (max. 13)</h2>
                     <x-button
@@ -106,6 +109,7 @@
                         icon="o-plus"
                         class="btn-sm btn-primary"
                         :disabled="count($options) >= 13"
+                        data-testid="add-option-button"
                     >
                         Antwort hinzufügen
                     </x-button>
@@ -113,13 +117,14 @@
 
                 <div class="space-y-3">
                     @foreach ($options as $index => $option)
-                        <x-card class="bg-base-200">
+                        <x-card class="bg-base-200" data-testid="answer-option-{{ $index }}">
                             <div class="grid grid-cols-1 gap-3 md:grid-cols-12 md:items-end">
                                 <div class="md:col-span-5">
                                     <x-input
                                         label="Antwort"
                                         wire:model="options.{{ $index }}.label"
                                         placeholder="Antworttext"
+                                        data-testid="option-{{ $index }}-label"
                                     />
                                 </div>
                                 <div class="md:col-span-3">
@@ -175,7 +180,7 @@
     </x-card>
 
     {{-- Auswertung Card --}}
-    <x-card title="Auswertung" subtitle="Diagramme dienen der Übersicht; die Tabelle bleibt die barrierearme Detailansicht.">
+    <x-card title="Auswertung" subtitle="Diagramme dienen der Übersicht; die Tabelle bleibt die barrierearme Detailansicht." data-testid="evaluation-card">
         {{-- Hidden data for Chart.js --}}
         <div class="hidden" aria-hidden="true">
             <span data-omxfc-poll-color="members" class="text-indigo-600">.</span>
