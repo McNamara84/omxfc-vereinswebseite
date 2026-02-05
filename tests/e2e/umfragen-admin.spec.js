@@ -222,10 +222,10 @@ test.describe('Umfragen Admin Dashboard', () => {
         // Clear all cookies and storage to ensure fresh session
         await page.context().clearCookies();
         
-        // Login as regular member
+        // Login as regular member (created by TodoPlaywrightSeeder)
         await page.goto('/login');
         await page.waitForLoadState('domcontentloaded');
-        await page.fill('input[name="email"]', 'mcnamara84@aol.com');
+        await page.fill('input[name="email"]', 'playwright-member@example.com');
         await page.fill('input[name="password"]', 'password');
         await page.click('button[type="submit"]');
         
