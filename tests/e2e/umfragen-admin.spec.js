@@ -17,8 +17,8 @@ test.describe('Umfragen Admin Dashboard', () => {
     test('admin can access the poll management page', async ({ page }) => {
         await page.goto('/admin/umfragen');
 
-        // Korrekter Titel (maryUI x-header)
-        await expect(page.locator('header').getByText('Umfrage verwalten')).toBeVisible();
+        // maryUI x-header rendert ein div, kein header-Element
+        await expect(page.getByText('Umfrage verwalten').first()).toBeVisible();
     });
 
     test('displays poll selection dropdown', async ({ page }) => {
@@ -122,8 +122,8 @@ test.describe('Umfragen Admin Dashboard', () => {
         // Fülle Frage aus - verwende Textarea direkt
         await page.locator('textarea[wire\\:model="question"]').fill('Was ist dein Lieblings-MADDRAX-Roman?');
 
-        // Fülle Menu-Label aus
-        await page.getByLabel('Link-Name im Menü').fill('Lieblingsroman');
+        // Fülle Menu-Label aus - verwende Placeholder
+        await page.getByPlaceholder('z.B. Abstimmung').fill('Lieblingsroman');
 
         // Wähle Sichtbarkeit
         await page.locator('input[name="visibility"][value="internal"]').click();
@@ -214,13 +214,19 @@ test.describe('Umfragen Admin Dashboard', () => {
     });
 
     test('member cannot access poll management', async ({ page }) => {
-        // Logout current admin and login as regular member
+        // Clear all cookies and storage to ensure fresh session
         await page.context().clearCookies();
+        await page.context().clearPermissions();
+        
+        // Login as regular member
         await page.goto('/login');
+        await page.waitForLoadState('networkidle');
         await page.fill('input[name="email"]', 'mcnamara84@aol.com');
         await page.fill('input[name="password"]', 'password');
         await page.click('button[type="submit"]');
-        await page.waitForURL((url) => !url.pathname.endsWith('/login'));
+        
+        // Wait for dashboard or any authenticated page
+        await page.waitForURL((url) => !url.pathname.endsWith('/login'), { timeout: 15000 });
 
         // Try to access admin page
         const response = await page.goto('/admin/umfragen');

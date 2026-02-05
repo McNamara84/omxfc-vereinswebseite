@@ -27,7 +27,8 @@ test.describe('Kassenbuch Verwaltung', () => {
         await login(page, 'info@maddraxikon.com');
         await page.goto('/kassenbuch');
 
-        await expect(page.locator('header').getByText('Kassenbuch')).toBeVisible();
+        // maryUI x-header rendert ein div, kein header-Element - suche direkt nach dem Text
+        await expect(page.getByText('Kassenbuch').first()).toBeVisible();
         await expect(page.getByText('Aktueller Kassenstand')).toBeVisible();
 
         const addButton = page.getByRole('button', { name: 'Eintrag hinzufügen' });

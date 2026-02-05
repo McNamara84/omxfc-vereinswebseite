@@ -17,8 +17,8 @@ test.describe('Kompendium Admin Dashboard', () => {
     test('admin can access the admin dashboard', async ({ page }) => {
         await page.goto('/kompendium/admin');
 
-        // Korrekter Titel: "Kompendium-Administration" (maryUI x-header)
-        await expect(page.locator('header').getByText('Kompendium-Administration')).toBeVisible();
+        // maryUI x-header rendert ein div, kein header-Element
+        await expect(page.getByText('Kompendium-Administration').first()).toBeVisible();
     });
 
     test('displays statistics cards correctly', async ({ page }) => {
@@ -83,8 +83,8 @@ test.describe('Kompendium Admin Dashboard', () => {
     test('can search for novels', async ({ page }) => {
         await page.goto('/kompendium/admin');
 
-        // Suche nach einem Roman - verwende Label "Suche"
-        await page.getByLabel('Suche').fill('Dämonen');
+        // Suche nach einem Roman - verwende Placeholder
+        await page.getByPlaceholder('Titel oder Nummer...').fill('Dämonen');
 
         // Warten auf Livewire-Update (mit debounce)
         await page.waitForTimeout(1000);

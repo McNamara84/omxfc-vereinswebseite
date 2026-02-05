@@ -347,9 +347,10 @@
                          x-transition:leave-end="opacity-0 scale-95"
                          class="relative bg-base-100 rounded-box shadow-xl max-w-lg w-full p-6"
                          role="dialog"
-                         aria-modal="true">
+                         aria-modal="true"
+                         aria-labelledby="edit-payment-title">
                         <div class="flex justify-between items-center mb-4">
-                            <h3 class="text-lg font-medium">Zahlungsdaten bearbeiten</h3>
+                            <h3 id="edit-payment-title" class="text-lg font-medium">Zahlungsdaten bearbeiten</h3>
                             <x-button icon="o-x-mark" class="btn-ghost btn-sm" @click="open = false" />
                         </div>
 
