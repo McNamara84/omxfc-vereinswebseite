@@ -1,16 +1,10 @@
-<x-form-section submit="updateProfileInformation">
-    <x-slot name="title">
-        {{ __('Persönliche Daten') }}
-    </x-slot>
+<div>
+    <x-header title="{{ __('Persönliche Daten') }}" subtitle="{{ __('Hier kannst du ganz einfach deine persönlichen Angaben aktualisieren. Bitte halte diese Informationen möglichst aktuell, damit wir dich erreichen können. Während Namen und Foto für andere sichtbar sind, bleiben deine Adressdaten und dein eingestellter Mitgliedsbeitrag für andere Mitglieder unsichtbar.') }}" size="text-lg" class="!mb-4" />
 
-    <x-slot name="description">
-        {{ __('Hier kannst du ganz einfach deine persönlichen Angaben aktualisieren. Bitte halte diese Informationen möglichst aktuell, damit wir dich erreichen können. Während Namen und Foto für andere sichtbar sind, bleiben deine Adressdaten und dein eingestellter Mitgliedsbeitrag für andere Mitglieder unsichtbar.') }}
-    </x-slot>
-
-    <x-slot name="form">
+    <x-form wire:submit="updateProfileInformation" class="max-w-xl">
         <!-- Profilfoto -->
         @if (Laravel\Jetstream\Jetstream::managesProfilePhotos())
-            <div x-data="{photoName: null, photoPreview: null}" class="col-span-6 sm:col-span-4">
+            <div x-data="{photoName: null, photoPreview: null}">
                 <input type="file" id="photo" class="hidden" wire:model.live="photo" x-ref="photo" x-on:change="
                                         photoName = $refs.photo.files[0].name;
                                         const reader = new FileReader();
@@ -20,7 +14,7 @@
                                         reader.readAsDataURL($refs.photo.files[0]);
                                 " />
 
-                <x-label for="photo" value="{{ __('Foto') }}" />
+                <label class="label label-text font-medium">{{ __('Foto') }}</label>
 
                 <div class="mt-2" x-show="! photoPreview">
                     <img loading="lazy" src="{{ $this->user->profile_photo_url }}" alt="{{ $this->user->name }}"
@@ -32,110 +26,94 @@
                         x-bind:style="'background-image: url(\'' + photoPreview + '\');'"></span>
                 </div>
 
-                <x-secondary-button class="mt-2 me-2" type="button" x-on:click.prevent="$refs.photo.click()">
-                    {{ __('Neues Foto auswählen') }}
-                </x-secondary-button>
+                <div class="flex gap-2 mt-2">
+                    <x-button type="button" x-on:click.prevent="$refs.photo.click()">
+                        {{ __('Neues Foto auswählen') }}
+                    </x-button>
 
-                @if ($this->user->profile_photo_path)
-                    <x-secondary-button type="button" class="mt-2" wire:click="deleteProfilePhoto">
-                        {{ __('Foto entfernen') }}
-                    </x-secondary-button>
-                @endif
+                    @if ($this->user->profile_photo_path)
+                        <x-button type="button" wire:click="deleteProfilePhoto">
+                            {{ __('Foto entfernen') }}
+                        </x-button>
+                    @endif
+                </div>
 
-                <p class="mt-2 text-sm text-gray-600">
+                <p class="mt-2 text-sm text-base-content/70">
                     {{ __('Erlaubte Dateiformate: jpg, jpeg, png, gif, webp. Max. Größe: 8 MB.') }}
                 </p>
 
-                <x-input-error for="photo" class="mt-2" />
+                @error('photo')
+                    <p class="text-error text-sm mt-1">{{ $message }}</p>
+                @enderror
             </div>
         @endif
 
-        <!-- Vorname -->
-        <div class="col-span-6 sm:col-span-3">
-            <x-label for="vorname" value="{{ __('Vorname') }}" />
-            <x-input id="vorname" type="text" class="mt-1 block w-full" wire:model="state.vorname" required />
-            <x-input-error for="vorname" class="mt-2" />
+        <div class="grid grid-cols-6 gap-4">
+            <!-- Vorname -->
+            <div class="col-span-6 sm:col-span-3">
+                <x-input id="vorname" label="{{ __('Vorname') }}" wire:model="state.vorname" required />
+            </div>
+
+            <!-- Nachname -->
+            <div class="col-span-6 sm:col-span-3">
+                <x-input id="nachname" label="{{ __('Nachname') }}" wire:model="state.nachname" required />
+            </div>
+
+            <!-- Straße -->
+            <div class="col-span-4">
+                <x-input id="strasse" label="{{ __('Straße') }}" wire:model="state.strasse" required />
+            </div>
+
+            <!-- Hausnummer -->
+            <div class="col-span-2">
+                <x-input id="hausnummer" label="{{ __('Hausnummer') }}" wire:model="state.hausnummer" required />
+            </div>
+
+            <!-- PLZ -->
+            <div class="col-span-2">
+                <x-input id="plz" label="{{ __('PLZ') }}" wire:model="state.plz" required />
+            </div>
+
+            <!-- Stadt -->
+            <div class="col-span-4">
+                <x-input id="stadt" label="{{ __('Stadt') }}" wire:model="state.stadt" required />
+            </div>
+
+            <!-- Land -->
+            <div class="col-span-6 sm:col-span-4">
+                @php
+                    $landOptions = [
+                        ['id' => 'Deutschland', 'name' => 'Deutschland'],
+                        ['id' => 'Österreich', 'name' => 'Österreich'],
+                        ['id' => 'Schweiz', 'name' => 'Schweiz'],
+                    ];
+                @endphp
+                <x-select id="land" label="{{ __('Land') }}" wire:model="state.land" :options="$landOptions" required />
+            </div>
+
+            <!-- Telefon -->
+            <div class="col-span-6 sm:col-span-4">
+                <x-input id="telefon" label="{{ __('Telefonnummer (optional)') }}" type="tel" wire:model="state.telefon" />
+            </div>
+
+            <!-- Mitgliedsbeitrag -->
+            <div class="col-span-6 sm:col-span-4">
+                <x-input id="mitgliedsbeitrag" label="{{ __('Mitgliedsbeitrag (jährlich, min. 12€)') }}" type="number" min="12" wire:model="state.mitgliedsbeitrag" required />
+            </div>
+
+            <!-- E-Mail -->
+            <div class="col-span-6 sm:col-span-4">
+                <x-input id="email" label="{{ __('E-Mail') }}" type="email" wire:model="state.email" required autocomplete="username" />
+            </div>
         </div>
 
-        <!-- Nachname -->
-        <div class="col-span-6 sm:col-span-3">
-            <x-label for="nachname" value="{{ __('Nachname') }}" />
-            <x-input id="nachname" type="text" class="mt-1 block w-full" wire:model="state.nachname" required />
-            <x-input-error for="nachname" class="mt-2" />
-        </div>
-
-        <!-- Straße -->
-        <div class="col-span-4">
-            <x-label for="strasse" value="{{ __('Straße') }}" />
-            <x-input id="strasse" type="text" class="mt-1 block w-full" wire:model="state.strasse" required />
-            <x-input-error for="strasse" class="mt-2" />
-        </div>
-
-        <!-- Hausnummer -->
-        <div class="col-span-2">
-            <x-label for="hausnummer" value="{{ __('Hausnummer') }}" />
-            <x-input id="hausnummer" type="text" class="mt-1 block w-full" wire:model="state.hausnummer" required />
-            <x-input-error for="hausnummer" class="mt-2" />
-        </div>
-
-        <!-- PLZ -->
-        <div class="col-span-2">
-            <x-label for="plz" value="{{ __('PLZ') }}" />
-            <x-input id="plz" type="text" class="mt-1 block w-full" wire:model="state.plz" required />
-            <x-input-error for="plz" class="mt-2" />
-        </div>
-
-        <!-- Stadt -->
-        <div class="col-span-4">
-            <x-label for="stadt" value="{{ __('Stadt') }}" />
-            <x-input id="stadt" type="text" class="mt-1 block w-full" wire:model="state.stadt" required />
-            <x-input-error for="stadt" class="mt-2" />
-        </div>
-
-        <!-- Land -->
-        <div class="col-span-6 sm:col-span-4">
-            <x-label for="land" value="{{ __('Land') }}" />
-            <select id="land" wire:model="state.land" required
-                class="mt-1 block w-full rounded-md shadow-sm border-gray-300">
-                <option value="Deutschland">Deutschland</option>
-                <option value="Österreich">Österreich</option>
-                <option value="Schweiz">Schweiz</option>
-            </select>
-            <x-input-error for="land" class="mt-2" />
-        </div>
-
-        <!-- Telefon -->
-        <div class="col-span-6 sm:col-span-4">
-            <x-label for="telefon" value="{{ __('Telefonnummer (optional)') }}" />
-            <x-input id="telefon" type="tel" class="mt-1 block w-full" wire:model="state.telefon" />
-            <x-input-error for="telefon" class="mt-2" />
-        </div>
-
-        <!-- Mitgliedsbeitrag -->
-        <div class="col-span-6 sm:col-span-4">
-            <x-label for="mitgliedsbeitrag" value="{{ __('Mitgliedsbeitrag (jährlich, min. 12€)') }}" />
-            <x-input id="mitgliedsbeitrag" type="number" min="12" class="mt-1 block w-full"
-                wire:model="state.mitgliedsbeitrag" required />
-            <x-input-error for="mitgliedsbeitrag" class="mt-2" />
-        </div>
-
-        <!-- E-Mail -->
-        <div class="col-span-6 sm:col-span-4">
-            <x-label for="email" value="{{ __('E-Mail') }}" />
-            <x-input id="email" type="email" class="mt-1 block w-full" wire:model="state.email" required
-                autocomplete="username" />
-            <x-input-error for="email" class="mt-2" />
-        </div>
-
-    </x-slot>
-
-    <x-slot name="actions">
-        <x-action-message class="me-3" on="saved">
-            {{ __('Gespeichert.') }}
-        </x-action-message>
-
-        <x-button wire:loading.attr="disabled">
-            {{ __('Speichern') }}
-        </x-button>
-    </x-slot>
-</x-form-section>
+        <x-slot:actions>
+            <x-action-message class="me-3" on="saved">
+                {{ __('Gespeichert.') }}
+            </x-action-message>
+            <x-button type="submit" class="btn-primary" wire:loading.attr="disabled">
+                {{ __('Speichern') }}
+            </x-button>
+        </x-slot:actions>
+    </x-form>
+</div>

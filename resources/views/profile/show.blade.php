@@ -1,34 +1,32 @@
 <x-app-layout>
     <x-member-page>
-        <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
-            <h1 class="text-2xl font-semibold text-[#8B0116] dark:text-red-400 mb-6">{{ __('Profil') }}</h1>
-
+        <x-card class="shadow-xl" title="{{ __('Profil') }}">
             @if (Laravel\Fortify\Features::canUpdateProfileInformation())
                 @livewire('profile.update-profile-information-form')
-                <x-section-border />
+                <x-hr class="my-8" />
             @endif
 
             {{-- Serienspezifische Daten ergänzen --}}
             @livewire('profile.update-seriendaten-form')
-            <x-section-border />
+            <x-hr class="my-8" />
 
             @if (Auth::user()->hasRole(\App\Enums\Role::Ehrenmitglied))
                 @livewire('profile.update-review-notification-form')
-                <x-section-border />
+                <x-hr class="my-8" />
             @endif
 
             @if (Laravel\Fortify\Features::enabled(Laravel\Fortify\Features::updatePasswords()))
                 <div class="mt-10 sm:mt-0">
                     @livewire('profile.update-password-form')
                 </div>
-                <x-section-border />
+                <x-hr class="my-8" />
             @endif
 
             {{-- @if (Laravel\Fortify\Features::canManageTwoFactorAuthentication())
             <div class="mt-10 sm:mt-0">
                 @livewire('profile.two-factor-authentication-form')
             </div>
-            <x-section-border />
+            <x-hr class="my-8" />
             @endif --}}
 
             <div class="mt-10 sm:mt-0">
@@ -36,11 +34,11 @@
             </div>
 
             @if (Laravel\Jetstream\Jetstream::hasAccountDeletionFeatures())
-                <x-section-border />
+                <x-hr class="my-8" />
                 <div class="mt-10 sm:mt-0">
                     @livewire('profile.delete-user-form')
                 </div>
             @endif
-        </div>
+        </x-card>
     </x-member-page>
 </x-app-layout>

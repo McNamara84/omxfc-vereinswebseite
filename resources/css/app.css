@@ -28,14 +28,6 @@
     display: none !important;
 }
 
-/* Jetstream modals: Ensure hidden by default, Alpine.js x-show controls visibility */
-.jetstream-modal {
-    display: none !important;
-}
-.jetstream-modal[style*="display: block"] {
-    display: block !important;
-}
-
 /* Vereinslogo als Asset referenzieren */
 .logo {
     background-image: url('../images/omxfc-logo.png');
