@@ -1,10 +1,10 @@
 /**
  * Alpine.js Initialisierung — zentrale Logik
  *
- * Livewire 4 bündelt Alpine und setzt `window.Alpine` synchron,
- * BEVOR ES-Module (wie app.js) ausgeführt werden.
- * Auf Livewire-Seiten dürfen wir Alpine NICHT überschreiben oder erneut starten,
- * da Livewires Alpine `$wire`, `@entangle` und weitere Extensions enthält.
+ * Livewire 4 bündelt Alpine und setzt `window.Alpine` synchron beim Laden
+ * seines Script-Tags. Auf Livewire-Seiten dürfen wir Alpine NICHT überschreiben
+ * oder erneut starten, da Livewires Alpine `$wire`, `@entangle` und weitere
+ * Extensions enthält.
  *
  * Auf Nicht-Livewire-Seiten (z.B. Kassenbuch mit reinem Blade + Alpine)
  * muss Alpine selbst geladen und gestartet werden.
@@ -30,4 +30,30 @@ export function initAlpine(alpineModule, plugins = []) {
     }
     alpineModule.start();
     return { mode: 'standalone', alpine: alpineModule };
+}
+
+/**
+ * Plant die Alpine-Initialisierung zeitlich korrekt ein.
+ *
+ * Livewire 4 mit `inject_assets: true` injiziert ein reguläres `<script>` Tag,
+ * das `window.Alpine` synchron setzt. Da app.js als ES-Modul (deferred) läuft,
+ * ist `window.Alpine` normalerweise schon gesetzt. Als Absicherung gegen
+ * Ladereihenfolge-Änderungen (z.B. Preloads, Bundler-Änderungen, wire:navigate)
+ * wird die Initialisierung auf `DOMContentLoaded` verzögert — zu diesem Zeitpunkt
+ * haben garantiert alle synchronen Scripts (inkl. Livewires) ausgeführt.
+ *
+ * @param {object} alpineModule - Das importierte Alpine-Modul
+ * @param {Array<Function|object>} plugins - Zu registrierende Plugins
+ */
+export function scheduleInitAlpine(alpineModule, plugins = []) {
+    const run = () => initAlpine(alpineModule, plugins);
+
+    if (document.readyState === 'loading') {
+        // DOM wird noch geparst — warte auf DOMContentLoaded,
+        // damit Livewires synchrones Script zuerst window.Alpine setzen kann.
+        document.addEventListener('DOMContentLoaded', run, { once: true });
+    } else {
+        // DOM bereits fertig (z.B. bei dynamischem Nachladen) — sofort ausführen.
+        run();
+    }
 }

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { initAlpine } from '@/alpine-init.js';
+import { initAlpine, scheduleInitAlpine } from '@/alpine-init.js';
 
 /**
  * Tests für die Alpine.js-Initialisierungslogik.
@@ -274,6 +274,269 @@ describe('alpine-init', () => {
             expect(window.Alpine).toBe(mockAlpineModule);
             expect(mockAlpineModule.start).toHaveBeenCalledTimes(1);
             expect(mockAlpineModule.plugin).toHaveBeenCalledTimes(1);
+        });
+    });
+});
+
+describe('scheduleInitAlpine', () => {
+    let mockAlpineModule;
+
+    beforeEach(() => {
+        delete window.Alpine;
+        // readyState auf 'complete' zurücksetzen (Standard in jsdom)
+        Object.defineProperty(document, 'readyState', {
+            value: 'complete',
+            writable: true,
+            configurable: true,
+        });
+        // Verwaiste { once: true } DOMContentLoaded-Listener auflösen,
+        // die von vorherigen Tests registriert aber nicht gefeuert wurden.
+        document.dispatchEvent(new Event('DOMContentLoaded'));
+        delete window.Alpine;
+
+        mockAlpineModule = {
+            plugin: vi.fn(),
+            start: vi.fn(),
+            version: '3.x-app-bundle',
+        };
+    });
+
+    describe('DOM noch am Laden (readyState === "loading")', () => {
+        it('führt initAlpine NICHT sofort aus', () => {
+            // Simuliert: DOM wird noch geparst, Livewires Script hat noch nicht geladen
+            Object.defineProperty(document, 'readyState', {
+                value: 'loading',
+                writable: true,
+                configurable: true,
+            });
+            const addEventSpy = vi.spyOn(document, 'addEventListener');
+
+            scheduleInitAlpine(mockAlpineModule);
+
+            // Alpine darf noch NICHT gestartet worden sein
+            expect(mockAlpineModule.start).not.toHaveBeenCalled();
+            expect(window.Alpine).toBeUndefined();
+
+            // Stattdessen wurde DOMContentLoaded-Listener registriert
+            expect(addEventSpy).toHaveBeenCalledWith(
+                'DOMContentLoaded',
+                expect.any(Function),
+                { once: true },
+            );
+
+            addEventSpy.mockRestore();
+            Object.defineProperty(document, 'readyState', {
+                value: 'complete',
+                writable: true,
+                configurable: true,
+            });
+        });
+
+        it('nutzt { once: true } um doppelte Ausführung zu vermeiden', () => {
+            Object.defineProperty(document, 'readyState', {
+                value: 'loading',
+                writable: true,
+                configurable: true,
+            });
+            const addEventSpy = vi.spyOn(document, 'addEventListener');
+
+            scheduleInitAlpine(mockAlpineModule);
+
+            const call = addEventSpy.mock.calls.find(
+                ([event]) => event === 'DOMContentLoaded',
+            );
+            expect(call).toBeDefined();
+            expect(call[2]).toEqual({ once: true });
+
+            addEventSpy.mockRestore();
+            Object.defineProperty(document, 'readyState', {
+                value: 'complete',
+                writable: true,
+                configurable: true,
+            });
+        });
+
+        it('initialisiert Alpine im Standalone-Modus wenn DOMContentLoaded feuert (kein Livewire)', () => {
+            Object.defineProperty(document, 'readyState', {
+                value: 'loading',
+                writable: true,
+                configurable: true,
+            });
+
+            scheduleInitAlpine(mockAlpineModule);
+
+            // Noch nicht initialisiert
+            expect(window.Alpine).toBeUndefined();
+
+            // Simuliere DOMContentLoaded
+            Object.defineProperty(document, 'readyState', {
+                value: 'interactive',
+                writable: true,
+                configurable: true,
+            });
+            document.dispatchEvent(new Event('DOMContentLoaded'));
+
+            // Jetzt muss Alpine initialisiert sein
+            expect(window.Alpine).toBe(mockAlpineModule);
+            expect(mockAlpineModule.start).toHaveBeenCalledTimes(1);
+
+            Object.defineProperty(document, 'readyState', {
+                value: 'complete',
+                writable: true,
+                configurable: true,
+            });
+        });
+
+        it('erkennt Livewires Alpine wenn DOMContentLoaded feuert', () => {
+            Object.defineProperty(document, 'readyState', {
+                value: 'loading',
+                writable: true,
+                configurable: true,
+            });
+            const focus = vi.fn();
+
+            scheduleInitAlpine(mockAlpineModule, [focus]);
+
+            // Livewire setzt window.Alpine bevor DOMContentLoaded feuert
+            // (reguläres Script, wird synchron vor Modules ausgeführt)
+            const livewireAlpine = {
+                plugin: vi.fn(),
+                start: vi.fn(),
+                __fromLivewire: true,
+            };
+            window.Alpine = livewireAlpine;
+
+            // DOMContentLoaded feuert
+            document.dispatchEvent(new Event('DOMContentLoaded'));
+
+            // window.Alpine muss Livewires Instanz bleiben
+            expect(window.Alpine).toBe(livewireAlpine);
+            expect(window.Alpine).not.toBe(mockAlpineModule);
+
+            // Plugin wurde auf Livewires Alpine registriert
+            expect(livewireAlpine.plugin).toHaveBeenCalledWith(focus);
+
+            // Kein start() auf dem App-Modul
+            expect(mockAlpineModule.start).not.toHaveBeenCalled();
+
+            Object.defineProperty(document, 'readyState', {
+                value: 'complete',
+                writable: true,
+                configurable: true,
+            });
+        });
+    });
+
+    describe('DOM bereits geladen (readyState !== "loading")', () => {
+        it('führt initAlpine sofort aus bei readyState "interactive"', () => {
+            Object.defineProperty(document, 'readyState', {
+                value: 'interactive',
+                writable: true,
+                configurable: true,
+            });
+
+            scheduleInitAlpine(mockAlpineModule);
+
+            expect(window.Alpine).toBe(mockAlpineModule);
+            expect(mockAlpineModule.start).toHaveBeenCalledTimes(1);
+
+            Object.defineProperty(document, 'readyState', {
+                value: 'complete',
+                writable: true,
+                configurable: true,
+            });
+        });
+
+        it('führt initAlpine sofort aus bei readyState "complete"', () => {
+            Object.defineProperty(document, 'readyState', {
+                value: 'complete',
+                writable: true,
+                configurable: true,
+            });
+
+            scheduleInitAlpine(mockAlpineModule);
+
+            expect(window.Alpine).toBe(mockAlpineModule);
+            expect(mockAlpineModule.start).toHaveBeenCalledTimes(1);
+        });
+
+        it('erkennt vorhandenes Livewire-Alpine sofort', () => {
+            const livewireAlpine = { plugin: vi.fn(), __fromLivewire: true };
+            window.Alpine = livewireAlpine;
+
+            Object.defineProperty(document, 'readyState', {
+                value: 'complete',
+                writable: true,
+                configurable: true,
+            });
+
+            const focus = vi.fn();
+            scheduleInitAlpine(mockAlpineModule, [focus]);
+
+            expect(window.Alpine).toBe(livewireAlpine);
+            expect(livewireAlpine.plugin).toHaveBeenCalledWith(focus);
+            expect(mockAlpineModule.start).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('Regression: Ladereihenfolge-Sicherheit', () => {
+        it('verhindert Standalone-Start wenn Livewire-Script noch laden muss', () => {
+            // Szenario: app.js (Module) wird geparst während DOM noch lädt.
+            // Livewires reguläres Script kommt danach im DOM.
+            // scheduleInitAlpine darf Alpine NICHT sofort starten.
+            Object.defineProperty(document, 'readyState', {
+                value: 'loading',
+                writable: true,
+                configurable: true,
+            });
+
+            scheduleInitAlpine(mockAlpineModule);
+
+            // Alpine noch nicht gestartet — wartet auf DOMContentLoaded
+            expect(mockAlpineModule.start).not.toHaveBeenCalled();
+            expect(window.Alpine).toBeUndefined();
+
+            // Livewire-Script lädt und setzt window.Alpine
+            window.Alpine = { plugin: vi.fn(), start: vi.fn(), __fromLivewire: true };
+
+            // DOMContentLoaded feuert
+            document.dispatchEvent(new Event('DOMContentLoaded'));
+
+            // initAlpine läuft jetzt im Livewire-Modus
+            expect(window.Alpine.__fromLivewire).toBe(true);
+            expect(mockAlpineModule.start).not.toHaveBeenCalled();
+
+            Object.defineProperty(document, 'readyState', {
+                value: 'complete',
+                writable: true,
+                configurable: true,
+            });
+        });
+
+        it('startet Alpine standalone wenn kein Livewire auf der Seite ist', () => {
+            // Szenario: Nicht-Livewire-Seite (z.B. Kassenbuch)
+            // inject_assets injiziert kein Script, window.Alpine bleibt leer
+            Object.defineProperty(document, 'readyState', {
+                value: 'loading',
+                writable: true,
+                configurable: true,
+            });
+
+            const focus = vi.fn();
+            scheduleInitAlpine(mockAlpineModule, [focus]);
+
+            // DOMContentLoaded ohne dass Livewire window.Alpine gesetzt hat
+            document.dispatchEvent(new Event('DOMContentLoaded'));
+
+            expect(window.Alpine).toBe(mockAlpineModule);
+            expect(mockAlpineModule.start).toHaveBeenCalledTimes(1);
+            expect(mockAlpineModule.plugin).toHaveBeenCalledWith(focus);
+
+            Object.defineProperty(document, 'readyState', {
+                value: 'complete',
+                writable: true,
+                configurable: true,
+            });
         });
     });
 });

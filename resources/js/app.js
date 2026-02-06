@@ -3,9 +3,9 @@ import './bootstrap';
 // Alpine.js initialisieren (Logik in alpine-init.js für Testbarkeit extrahiert)
 import Alpine from 'alpinejs';
 import focus from '@alpinejs/focus';
-import { initAlpine } from './alpine-init';
+import { scheduleInitAlpine } from './alpine-init';
 
-initAlpine(Alpine, [focus]);
+scheduleInitAlpine(Alpine, [focus]);
 
 const prefersDark = window.__omxfcPrefersDark ?? window.matchMedia('(prefers-color-scheme: dark)');
 const getSystemPrefersDark = () => prefersDark.matches;
