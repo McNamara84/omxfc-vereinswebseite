@@ -1,22 +1,11 @@
 import './bootstrap';
 
-// Alpine.js initialisieren
-// Livewire 4 bündelt Alpine und setzt window.Alpine synchron bevor Module-Scripts laufen.
-// Auf Livewire-Seiten dürfen wir Alpine NICHT erneut starten — nur Plugins registrieren.
-// Auf Nicht-Livewire-Seiten (z.B. Kassenbuch mit reinem Blade + Alpine)
-// müssen wir Alpine selbst laden und starten.
+// Alpine.js initialisieren (Logik in alpine-init.js für Testbarkeit extrahiert)
 import Alpine from 'alpinejs';
 import focus from '@alpinejs/focus';
+import { initAlpine } from './alpine-init';
 
-if (window.Alpine) {
-    // Livewire hat Alpine bereits geladen — nur Plugins registrieren, nicht überschreiben.
-    window.Alpine.plugin(focus);
-} else {
-    // Kein Livewire auf dieser Seite — Alpine selbst initialisieren.
-    window.Alpine = Alpine;
-    Alpine.plugin(focus);
-    Alpine.start();
-}
+initAlpine(Alpine, [focus]);
 
 const prefersDark = window.__omxfcPrefersDark ?? window.matchMedia('(prefers-color-scheme: dark)');
 const getSystemPrefersDark = () => prefersDark.matches;
