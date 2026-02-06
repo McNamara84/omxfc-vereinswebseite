@@ -42,8 +42,10 @@ class KompendiumController extends Controller
     /**
      * Prüft ob der User Zugang zur Kompendium-Suche hat.
      * Zugang besteht bei ≥ 100 Baxx ODER Mitgliedschaft in AG Maddraxikon.
+     *
+     * @param  int|null  $userPoints  Bereits berechnete Punkte (vermeidet doppelten Service-Call)
      */
-    private function hatKompendiumZugang(?User $user): bool
+    private function hatKompendiumZugang(?User $user, ?int $userPoints = null): bool
     {
         if (! $user) {
             return false;
@@ -55,7 +57,9 @@ class KompendiumController extends Controller
         }
 
         // Fallback: Punkte-basierter Zugang
-        return $this->teamPointService->getUserPoints($user) >= self::REQUIRED_POINTS;
+        $userPoints ??= $this->teamPointService->getUserPoints($user);
+
+        return $userPoints >= self::REQUIRED_POINTS;
     }
 
     /* --------------------------------------------------------------------- */
@@ -91,7 +95,7 @@ class KompendiumController extends Controller
     {
         $user = Auth::user();
         $userPoints = $this->teamPointService->getUserPoints($user);
-        $hatZugang = $this->hatKompendiumZugang($user);
+        $hatZugang = $this->hatKompendiumZugang($user, $userPoints);
 
         // Indexierte Romane gruppiert laden
         $indexierteRomaneSummary = $this->kompendiumService->getIndexierteRomaneSummary();
@@ -115,10 +119,9 @@ class KompendiumController extends Controller
     {
         /* ----- Zugangs-Check ----------------------------------------------- */
         $user = Auth::user();
+        $userPoints = $this->teamPointService->getUserPoints($user);
 
-        if (! $this->hatKompendiumZugang($user)) {
-            $userPoints = $this->teamPointService->getUserPoints($user);
-
+        if (! $this->hatKompendiumZugang($user, $userPoints)) {
             return response()->json([
                 'message' => 'Mindestens '.self::REQUIRED_POINTS." Punkte erforderlich (du hast $userPoints).",
             ], 403);
@@ -249,10 +252,9 @@ class KompendiumController extends Controller
     {
         /* ----- Zugangs-Check ----------------------------------------------- */
         $user = Auth::user();
+        $userPoints = $this->teamPointService->getUserPoints($user);
 
-        if (! $this->hatKompendiumZugang($user)) {
-            $userPoints = $this->teamPointService->getUserPoints($user);
-
+        if (! $this->hatKompendiumZugang($user, $userPoints)) {
             return response()->json([
                 'message' => 'Mindestens '.self::REQUIRED_POINTS." Punkte erforderlich (du hast $userPoints).",
             ], 403);

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\Role;
 use App\Models\KompendiumRoman;
 use App\Models\Team;
 use App\Models\User;
@@ -23,7 +24,7 @@ class KompendiumControllerTest extends TestCase
             'personal_team' => false,
         ]);
 
-        $ag->users()->attach($user, ['role' => 'Mitglied']);
+        $ag->users()->attach($user, ['role' => Role::Mitglied->value]);
 
         return $ag;
     }
@@ -169,5 +170,37 @@ class KompendiumControllerTest extends TestCase
 
         $response->assertOk();
         $response->assertViewHas('showSearch', true);
+    }
+
+    /* --------------------------------------------------------------------- */
+    /*  AG Maddraxikon – Zugang auf /kompendium/suche (AJAX) */
+    /* --------------------------------------------------------------------- */
+
+    public function test_ag_maddraxikon_member_can_use_search_endpoint(): void
+    {
+        $user = $this->actingMemberWithPoints(10); // below 100
+        $this->addUserToAgMaddraxikon($user);
+
+        // q=t hat min:2 → 422 zeigt, dass der Zugangs-Check (403) bestanden wurde
+        $this->getJson('/kompendium/suche?q=t')
+            ->assertStatus(422);
+    }
+
+    public function test_user_with_enough_points_without_ag_can_use_search_endpoint(): void
+    {
+        $user = $this->actingMemberWithPoints(150);
+
+        // q=t hat min:2 → 422 zeigt, dass der Zugangs-Check (403) bestanden wurde
+        $this->getJson('/kompendium/suche?q=t')
+            ->assertStatus(422);
+    }
+
+    public function test_user_without_ag_and_without_enough_points_cannot_use_search(): void
+    {
+        $user = $this->actingMemberWithPoints(50);
+
+        $this->getJson('/kompendium/suche?q=test')
+            ->assertStatus(403)
+            ->assertJson(['message' => 'Mindestens 100 Punkte erforderlich (du hast 50).']);
     }
 }
