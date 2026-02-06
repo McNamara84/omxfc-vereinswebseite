@@ -25,7 +25,7 @@ class KompendiumSearchTest extends TestCase
 
         $this->getJson('/kompendium/suche?q=test')
             ->assertStatus(403)
-            ->assertJson(['message' => 'Mindestens 100 Punkte erforderlich (du hast 50).']);
+            ->assertJson(['message' => 'Zugang erfordert mindestens 100 Punkte oder AG-Maddraxikon-Mitgliedschaft (du hast 50 Punkte).']);
     }
 
     public function test_search_validates_query_length(): void

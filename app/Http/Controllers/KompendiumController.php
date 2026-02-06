@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\Role;
 use App\Models\KompendiumRoman;
+use App\Models\User;
 use App\Services\KompendiumSearchService;
 use App\Services\KompendiumService;
 use App\Services\TeamPointService;
@@ -33,6 +34,35 @@ class KompendiumController extends Controller
 
     /** Erlaubtes Basis-Verzeichnis für Roman-Dateien */
     private const ALLOWED_BASE_PATH = 'romane/';
+
+    /* --------------------------------------------------------------------- */
+    /*  Zugangs-Check: ≥ 100 Baxx ODER AG-Maddraxikon-Mitglied */
+    /* --------------------------------------------------------------------- */
+
+    /**
+     * Prüft ob der User Zugang zur Kompendium-Suche hat.
+     * Zugang besteht bei ≥ 100 Baxx ODER Mitgliedschaft in AG Maddraxikon.
+     *
+     * @param  User|null  $user  Der zu prüfende User
+     * @param  int|null  $userPoints  Bereits berechnete Punkte (vermeidet doppelten Service-Call)
+     * @return bool
+     */
+    private function hatKompendiumZugang(?User $user, ?int $userPoints = null): bool
+    {
+        if (! $user) {
+            return false;
+        }
+
+        // AG-Maddraxikon-Mitgliedschaft gewährt sofortigen Zugang
+        if ($user->isMemberOfTeam('AG Maddraxikon')) {
+            return true;
+        }
+
+        // Fallback: Punkte-basierter Zugang
+        $userPoints ??= $this->teamPointService->getUserPoints($user);
+
+        return $userPoints >= self::REQUIRED_POINTS;
+    }
 
     /* --------------------------------------------------------------------- */
     /*  Pfad-Validierung gegen Path-Traversal-Angriffe */
@@ -67,6 +97,7 @@ class KompendiumController extends Controller
     {
         $user = Auth::user();
         $userPoints = $this->teamPointService->getUserPoints($user);
+        $hatZugang = $this->hatKompendiumZugang($user, $userPoints);
 
         // Indexierte Romane gruppiert laden
         $indexierteRomaneSummary = $this->kompendiumService->getIndexierteRomaneSummary();
@@ -76,7 +107,7 @@ class KompendiumController extends Controller
 
         return view('pages.kompendium', [
             'userPoints' => $userPoints,
-            'showSearch' => $userPoints >= self::REQUIRED_POINTS,
+            'showSearch' => $hatZugang,
             'required' => self::REQUIRED_POINTS,
             'indexierteRomaneSummary' => $indexierteRomaneSummary,
             'istAdmin' => $istAdmin,
@@ -88,13 +119,13 @@ class KompendiumController extends Controller
     /* --------------------------------------------------------------------- */
     public function search(Request $request): JsonResponse
     {
-        /* ----- Punkte-Check ------------------------------------------------ */
+        /* ----- Zugangs-Check ----------------------------------------------- */
         $user = Auth::user();
         $userPoints = $this->teamPointService->getUserPoints($user);
 
-        if ($userPoints < self::REQUIRED_POINTS) {
+        if (! $this->hatKompendiumZugang($user, $userPoints)) {
             return response()->json([
-                'message' => 'Mindestens '.self::REQUIRED_POINTS." Punkte erforderlich (du hast $userPoints).",
+                'message' => 'Zugang erfordert mindestens '.self::REQUIRED_POINTS." Punkte oder AG-Maddraxikon-Mitgliedschaft (du hast $userPoints Punkte).",
             ], 403);
         }
 
@@ -221,13 +252,13 @@ class KompendiumController extends Controller
     /* --------------------------------------------------------------------- */
     public function getVerfuegbareSerien(): JsonResponse
     {
-        /* ----- Punkte-Check ------------------------------------------------ */
+        /* ----- Zugangs-Check ----------------------------------------------- */
         $user = Auth::user();
         $userPoints = $this->teamPointService->getUserPoints($user);
 
-        if ($userPoints < self::REQUIRED_POINTS) {
+        if (! $this->hatKompendiumZugang($user, $userPoints)) {
             return response()->json([
-                'message' => 'Mindestens '.self::REQUIRED_POINTS." Punkte erforderlich (du hast $userPoints).",
+                'message' => 'Zugang erfordert mindestens '.self::REQUIRED_POINTS." Punkte oder AG-Maddraxikon-Mitgliedschaft (du hast $userPoints Punkte).",
             ], 403);
         }
 

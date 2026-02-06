@@ -2,7 +2,10 @@
 
 namespace Tests\Feature;
 
+use App\Enums\Role;
 use App\Models\KompendiumRoman;
+use App\Models\Team;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -10,6 +13,23 @@ class KompendiumControllerTest extends TestCase
 {
     use RefreshDatabase;
     use \Tests\Concerns\CreatesUserWithRole;
+
+    /**
+     * Erstellt eine AG Maddraxikon und fügt den User als Mitglied hinzu.
+     */
+    private function addUserToAgMaddraxikon(User $user): Team
+    {
+        $ag = Team::factory()->create([
+            'name' => 'AG Maddraxikon',
+            'personal_team' => false,
+        ]);
+
+        $ag->users()->attach($user, ['role' => Role::Mitglied->value]);
+
+        $user->refresh();
+
+        return $ag;
+    }
 
     public function test_index_hides_search_when_points_insufficient(): void
     {
@@ -106,6 +126,95 @@ class KompendiumControllerTest extends TestCase
 
         $this->getJson('/kompendium/serien')
             ->assertStatus(403)
-            ->assertJson(['message' => 'Mindestens 100 Punkte erforderlich (du hast 50).']);
+            ->assertJson(['message' => 'Zugang erfordert mindestens 100 Punkte oder AG-Maddraxikon-Mitgliedschaft (du hast 50 Punkte).']);
+    }
+
+    /* --------------------------------------------------------------------- */
+    /*  AG Maddraxikon – Zugang ohne 100 Baxx */
+    /* --------------------------------------------------------------------- */
+
+    public function test_ag_maddraxikon_member_sees_search_without_enough_points(): void
+    {
+        $user = $this->actingMemberWithPoints(10);
+        $this->addUserToAgMaddraxikon($user);
+
+        $response = $this->get('/kompendium');
+
+        $response->assertOk();
+        $response->assertViewHas('showSearch', true);
+        $response->assertViewHas('userPoints', 10);
+    }
+
+    public function test_ag_maddraxikon_member_can_use_serien_endpoint(): void
+    {
+        $user = $this->actingMemberWithPoints(10); // below 100
+        $this->addUserToAgMaddraxikon($user);
+
+        $this->getJson('/kompendium/serien')
+            ->assertOk();
+    }
+
+    public function test_non_ag_member_without_enough_points_cannot_see_search(): void
+    {
+        $user = $this->actingMemberWithPoints(50);
+
+        $response = $this->get('/kompendium');
+
+        $response->assertOk();
+        $response->assertViewHas('showSearch', false);
+    }
+
+    public function test_user_with_100_points_but_no_ag_can_still_search(): void
+    {
+        $user = $this->actingMemberWithPoints(100);
+
+        $response = $this->get('/kompendium');
+
+        $response->assertOk();
+        $response->assertViewHas('showSearch', true);
+    }
+
+    /* --------------------------------------------------------------------- */
+    /*  AG Maddraxikon – Zugang auf /kompendium/suche (AJAX) */
+    /* --------------------------------------------------------------------- */
+
+    public function test_ag_maddraxikon_member_can_use_search_endpoint(): void
+    {
+        $user = $this->actingMemberWithPoints(10); // below 100
+        $this->addUserToAgMaddraxikon($user);
+
+        // q=t hat min:2 → 422 zeigt, dass der Zugangs-Check (403) bestanden wurde
+        $this->getJson('/kompendium/suche?q=t')
+            ->assertStatus(422);
+    }
+
+    public function test_user_with_enough_points_without_ag_can_use_search_endpoint(): void
+    {
+        $user = $this->actingMemberWithPoints(150);
+
+        // q=t hat min:2 → 422 zeigt, dass der Zugangs-Check (403) bestanden wurde
+        $this->getJson('/kompendium/suche?q=t')
+            ->assertStatus(422);
+    }
+
+    public function test_user_without_ag_and_without_enough_points_cannot_use_search(): void
+    {
+        $user = $this->actingMemberWithPoints(50);
+
+        $this->getJson('/kompendium/suche?q=test')
+            ->assertStatus(403)
+            ->assertJson(['message' => 'Zugang erfordert mindestens 100 Punkte oder AG-Maddraxikon-Mitgliedschaft (du hast 50 Punkte).']);
+    }
+
+    public function test_ag_maddraxikon_member_with_enough_points_can_search(): void
+    {
+        $user = $this->actingMemberWithPoints(150);
+        $this->addUserToAgMaddraxikon($user);
+
+        $response = $this->get('/kompendium');
+
+        $response->assertOk();
+        $response->assertViewHas('showSearch', true);
+        $response->assertViewHas('userPoints', 150);
     }
 }

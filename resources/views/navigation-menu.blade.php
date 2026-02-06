@@ -103,6 +103,9 @@
                                 @if(Auth::user()->hasVorstandRole() || Auth::user()->isMemberOfTeam('AG Fanhörbücher'))
                                     <x-dropdown-link href="{{ route('hoerbuecher.index') }}">EARDRAX Dashboard</x-dropdown-link>
                                 @endif
+                                @if(Auth::user()->isMemberOfTeam('AG Maddraxikon'))
+                                    <x-dropdown-link href="{{ route('kompendium.index') }}">Kompendium</x-dropdown-link>
+                                @endif
                                 @if(Auth::user()->ownedTeams()->where('personal_team', false)->exists())
                                     <x-dropdown-link href="{{ route('ag.index') }}">AG verwalten</x-dropdown-link>
                                 @endif
@@ -250,6 +253,9 @@
             <div id="ag-mobile-menu" x-show="openMenu === 'ag'" x-cloak class="italic">
                 @if(Auth::user()->hasVorstandRole() || Auth::user()->isMemberOfTeam('AG Fanhörbücher'))
                     <x-responsive-nav-link href="{{ route('hoerbuecher.index') }}">EARDRAX Dashboard</x-responsive-nav-link>
+                @endif
+                @if(Auth::user()->isMemberOfTeam('AG Maddraxikon'))
+                    <x-responsive-nav-link href="{{ route('kompendium.index') }}">Kompendium</x-responsive-nav-link>
                 @endif
                 @if(Auth::user()->ownedTeams()->where('personal_team', false)->exists())
                     <x-responsive-nav-link href="{{ route('ag.index') }}">AG verwalten</x-responsive-nav-link>

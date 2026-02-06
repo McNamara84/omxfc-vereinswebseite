@@ -11,16 +11,26 @@ use Tests\TestCase;
 class CreateTeamTest extends TestCase
 {
     use RefreshDatabase;
+    use \Tests\Concerns\CreatesUserWithRole;
 
     public function test_teams_can_be_created(): void
     {
-        $this->actingAs($user = User::factory()->withPersonalTeam()->create());
+        $user = $this->actingAdmin();
 
         Livewire::test(CreateTeamForm::class)
             ->set(['state' => ['name' => 'Test Team']])
             ->call('createTeam');
 
-        $this->assertCount(2, $user->fresh()->ownedTeams);
-        $this->assertEquals('Test Team', $user->fresh()->ownedTeams()->latest('id')->first()->name);
+        $this->assertTrue($user->fresh()->ownedTeams()->where('name', 'Test Team')->exists());
+    }
+
+    public function test_non_admin_cannot_create_teams(): void
+    {
+        $user = $this->actingSimpleMember();
+
+        Livewire::test(CreateTeamForm::class)
+            ->set(['state' => ['name' => 'Mein Team']])
+            ->call('createTeam')
+            ->assertForbidden();
     }
 }
