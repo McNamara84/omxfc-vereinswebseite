@@ -26,6 +26,8 @@ class KompendiumControllerTest extends TestCase
 
         $ag->users()->attach($user, ['role' => Role::Mitglied->value]);
 
+        $user->refresh();
+
         return $ag;
     }
 
@@ -124,7 +126,7 @@ class KompendiumControllerTest extends TestCase
 
         $this->getJson('/kompendium/serien')
             ->assertStatus(403)
-            ->assertJson(['message' => 'Mindestens 100 Punkte erforderlich (du hast 50).']);
+            ->assertJson(['message' => 'Zugang erfordert mindestens 100 Punkte oder AG-Maddraxikon-Mitgliedschaft (du hast 50 Punkte).']);
     }
 
     /* --------------------------------------------------------------------- */
@@ -201,6 +203,18 @@ class KompendiumControllerTest extends TestCase
 
         $this->getJson('/kompendium/suche?q=test')
             ->assertStatus(403)
-            ->assertJson(['message' => 'Mindestens 100 Punkte erforderlich (du hast 50).']);
+            ->assertJson(['message' => 'Zugang erfordert mindestens 100 Punkte oder AG-Maddraxikon-Mitgliedschaft (du hast 50 Punkte).']);
+    }
+
+    public function test_ag_maddraxikon_member_with_enough_points_can_search(): void
+    {
+        $user = $this->actingMemberWithPoints(150);
+        $this->addUserToAgMaddraxikon($user);
+
+        $response = $this->get('/kompendium');
+
+        $response->assertOk();
+        $response->assertViewHas('showSearch', true);
+        $response->assertViewHas('userPoints', 150);
     }
 }

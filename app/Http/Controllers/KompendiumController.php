@@ -44,6 +44,7 @@ class KompendiumController extends Controller
      * Zugang besteht bei ≥ 100 Baxx ODER Mitgliedschaft in AG Maddraxikon.
      *
      * @param  int|null  $userPoints  Bereits berechnete Punkte (vermeidet doppelten Service-Call)
+     * @return bool
      */
     private function hatKompendiumZugang(?User $user, ?int $userPoints = null): bool
     {
@@ -123,7 +124,7 @@ class KompendiumController extends Controller
 
         if (! $this->hatKompendiumZugang($user, $userPoints)) {
             return response()->json([
-                'message' => 'Mindestens '.self::REQUIRED_POINTS." Punkte erforderlich (du hast $userPoints).",
+                'message' => 'Zugang erfordert mindestens '.self::REQUIRED_POINTS." Punkte oder AG-Maddraxikon-Mitgliedschaft (du hast $userPoints Punkte).",
             ], 403);
         }
 
@@ -256,7 +257,7 @@ class KompendiumController extends Controller
 
         if (! $this->hatKompendiumZugang($user, $userPoints)) {
             return response()->json([
-                'message' => 'Mindestens '.self::REQUIRED_POINTS." Punkte erforderlich (du hast $userPoints).",
+                'message' => 'Zugang erfordert mindestens '.self::REQUIRED_POINTS." Punkte oder AG-Maddraxikon-Mitgliedschaft (du hast $userPoints Punkte).",
             ], 403);
         }
 

@@ -29,10 +29,13 @@ class TeamPolicy
 
     /**
      * Determine whether the user can create models.
+     *
+     * Only admins may create teams. Working groups (AGs) are created
+     * exclusively through the admin-protected ArbeitsgruppenController.
      */
     public function create(User $user): bool
     {
-        return true;
+        return $user->hasRole(Role::Admin);
     }
 
     /**
