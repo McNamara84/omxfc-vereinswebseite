@@ -17,18 +17,24 @@ export function initAlpine(alpineModule, plugins = []) {
     if (window.Alpine) {
         // Livewire hat Alpine bereits geladen — nur Plugins registrieren.
         // WICHTIG: window.Alpine NICHT überschreiben, da es Livewire-Extensions enthält.
-        for (const plugin of plugins) {
-            window.Alpine.plugin(plugin);
+        if (typeof window.Alpine.plugin === 'function') {
+            for (const plugin of plugins) {
+                window.Alpine.plugin(plugin);
+            }
         }
         return { mode: 'livewire', alpine: window.Alpine };
     }
 
     // Kein Livewire auf dieser Seite — Alpine selbst initialisieren.
     window.Alpine = alpineModule;
-    for (const plugin of plugins) {
-        alpineModule.plugin(plugin);
+    if (typeof alpineModule.plugin === 'function') {
+        for (const plugin of plugins) {
+            alpineModule.plugin(plugin);
+        }
     }
-    alpineModule.start();
+    if (typeof alpineModule.start === 'function') {
+        alpineModule.start();
+    }
     return { mode: 'standalone', alpine: alpineModule };
 }
 

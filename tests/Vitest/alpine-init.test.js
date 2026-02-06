@@ -276,6 +276,70 @@ describe('alpine-init', () => {
             expect(mockAlpineModule.plugin).toHaveBeenCalledTimes(1);
         });
     });
+
+    describe('Defensive Guards (typeof-Prüfungen)', () => {
+        it('crasht nicht wenn window.Alpine.plugin keine Funktion ist', () => {
+            window.Alpine = { version: '3.x', plugin: 'not-a-function' };
+
+            expect(() => initAlpine(mockAlpineModule, [vi.fn()])).not.toThrow();
+            expect(window.Alpine.version).toBe('3.x');
+        });
+
+        it('crasht nicht wenn window.Alpine.plugin fehlt', () => {
+            window.Alpine = { version: '3.x' };
+
+            expect(() => initAlpine(mockAlpineModule, [vi.fn()])).not.toThrow();
+        });
+
+        it('crasht nicht wenn alpineModule.plugin keine Funktion ist', () => {
+            delete window.Alpine;
+            mockAlpineModule.plugin = undefined;
+
+            expect(() => initAlpine(mockAlpineModule, [vi.fn()])).not.toThrow();
+        });
+
+        it('crasht nicht wenn alpineModule.start keine Funktion ist', () => {
+            delete window.Alpine;
+            mockAlpineModule.start = 'not-a-function';
+
+            expect(() => initAlpine(mockAlpineModule, [vi.fn()])).not.toThrow();
+        });
+
+        it('crasht nicht wenn alpineModule.start fehlt', () => {
+            delete window.Alpine;
+            mockAlpineModule.start = undefined;
+
+            expect(() => initAlpine(mockAlpineModule)).not.toThrow();
+            expect(window.Alpine).toBe(mockAlpineModule);
+        });
+
+        it('registriert Plugins im Livewire-Modus nur wenn plugin eine Funktion ist', () => {
+            const pluginFn = vi.fn();
+            window.Alpine = { plugin: vi.fn() };
+
+            initAlpine(mockAlpineModule, [pluginFn]);
+
+            expect(window.Alpine.plugin).toHaveBeenCalledWith(pluginFn);
+        });
+
+        it('überspringt Plugins im Livewire-Modus wenn plugin keine Funktion ist', () => {
+            window.Alpine = { plugin: 42 };
+
+            const result = initAlpine(mockAlpineModule, [vi.fn()]);
+
+            // Darf nicht crashen, Modus wird korrekt erkannt
+            expect(result.mode).toBe('livewire');
+        });
+
+        it('setzt window.Alpine auch ohne start/plugin', () => {
+            delete window.Alpine;
+            const bareModule = {};
+
+            initAlpine(bareModule, [vi.fn()]);
+
+            expect(window.Alpine).toBe(bareModule);
+        });
+    });
 });
 
 describe('scheduleInitAlpine', () => {
