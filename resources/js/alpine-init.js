@@ -54,12 +54,16 @@ export function initAlpine(alpineModule, plugins = []) {
 export function scheduleInitAlpine(alpineModule, plugins = []) {
     const run = () => initAlpine(alpineModule, plugins);
 
-    if (document.readyState === 'loading') {
-        // DOM wird noch geparst — warte auf DOMContentLoaded,
+    if (window.Alpine) {
+        // Livewires Alpine ist bereits verfügbar — Plugins sofort registrieren,
+        // damit sie wirksam sind bevor Livewire Alpine.start() bei DOMContentLoaded aufruft.
+        run();
+    } else if (document.readyState === 'loading') {
+        // DOM wird noch geparst, kein Alpine vorhanden — warte auf DOMContentLoaded,
         // damit Livewires synchrones Script zuerst window.Alpine setzen kann.
         document.addEventListener('DOMContentLoaded', run, { once: true });
     } else {
-        // DOM bereits fertig (z.B. bei dynamischem Nachladen) — sofort ausführen.
+        // DOM bereits fertig, kein Livewire — Alpine selbst starten.
         run();
     }
 }

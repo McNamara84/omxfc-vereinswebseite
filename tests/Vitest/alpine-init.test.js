@@ -366,7 +366,7 @@ describe('scheduleInitAlpine', () => {
     });
 
     describe('DOM noch am Laden (readyState === "loading")', () => {
-        it('führt initAlpine NICHT sofort aus', () => {
+        it('verzögert auf DOMContentLoaded wenn window.Alpine nicht gesetzt ist', () => {
             // Simuliert: DOM wird noch geparst, Livewires Script hat noch nicht geladen
             Object.defineProperty(document, 'readyState', {
                 value: 'loading',
@@ -387,6 +387,51 @@ describe('scheduleInitAlpine', () => {
                 expect.any(Function),
                 { once: true },
             );
+
+            addEventSpy.mockRestore();
+            Object.defineProperty(document, 'readyState', {
+                value: 'complete',
+                writable: true,
+                configurable: true,
+            });
+        });
+
+        it('registriert Plugins sofort wenn Livewire-Alpine bereits vorhanden (Short-Circuit)', () => {
+            // Szenario: Livewires reguläres Script wurde bereits synchron ausgeführt
+            // und hat window.Alpine gesetzt, aber DOM ist noch am Laden.
+            // Plugins müssen sofort registriert werden, damit sie wirksam sind
+            // bevor Livewire Alpine.start() bei DOMContentLoaded aufruft.
+            Object.defineProperty(document, 'readyState', {
+                value: 'loading',
+                writable: true,
+                configurable: true,
+            });
+            const addEventSpy = vi.spyOn(document, 'addEventListener');
+
+            const livewireAlpine = {
+                plugin: vi.fn(),
+                start: vi.fn(),
+                __fromLivewire: true,
+            };
+            window.Alpine = livewireAlpine;
+
+            const focus = vi.fn();
+            scheduleInitAlpine(mockAlpineModule, [focus]);
+
+            // Plugin wurde SOFORT auf Livewires Alpine registriert
+            expect(livewireAlpine.plugin).toHaveBeenCalledWith(focus);
+
+            // window.Alpine wurde NICHT überschrieben
+            expect(window.Alpine).toBe(livewireAlpine);
+
+            // Kein DOMContentLoaded-Listener nötig
+            const domContentLoadedCalls = addEventSpy.mock.calls.filter(
+                ([event]) => event === 'DOMContentLoaded',
+            );
+            expect(domContentLoadedCalls).toHaveLength(0);
+
+            // Kein start() auf dem App-Modul
+            expect(mockAlpineModule.start).not.toHaveBeenCalled();
 
             addEventSpy.mockRestore();
             Object.defineProperty(document, 'readyState', {
