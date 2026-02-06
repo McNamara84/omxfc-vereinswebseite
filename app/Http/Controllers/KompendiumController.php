@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\Role;
 use App\Models\KompendiumRoman;
+use App\Models\User;
 use App\Services\KompendiumSearchService;
 use App\Services\KompendiumService;
 use App\Services\TeamPointService;
@@ -33,6 +34,29 @@ class KompendiumController extends Controller
 
     /** Erlaubtes Basis-Verzeichnis für Roman-Dateien */
     private const ALLOWED_BASE_PATH = 'romane/';
+
+    /* --------------------------------------------------------------------- */
+    /*  Zugangs-Check: ≥ 100 Baxx ODER AG-Maddraxikon-Mitglied */
+    /* --------------------------------------------------------------------- */
+
+    /**
+     * Prüft ob der User Zugang zur Kompendium-Suche hat.
+     * Zugang besteht bei ≥ 100 Baxx ODER Mitgliedschaft in AG Maddraxikon.
+     */
+    private function hatKompendiumZugang(?User $user): bool
+    {
+        if (! $user) {
+            return false;
+        }
+
+        // AG-Maddraxikon-Mitgliedschaft gewährt sofortigen Zugang
+        if ($user->isMemberOfTeam('AG Maddraxikon')) {
+            return true;
+        }
+
+        // Fallback: Punkte-basierter Zugang
+        return $this->teamPointService->getUserPoints($user) >= self::REQUIRED_POINTS;
+    }
 
     /* --------------------------------------------------------------------- */
     /*  Pfad-Validierung gegen Path-Traversal-Angriffe */
@@ -67,6 +91,7 @@ class KompendiumController extends Controller
     {
         $user = Auth::user();
         $userPoints = $this->teamPointService->getUserPoints($user);
+        $hatZugang = $this->hatKompendiumZugang($user);
 
         // Indexierte Romane gruppiert laden
         $indexierteRomaneSummary = $this->kompendiumService->getIndexierteRomaneSummary();
@@ -76,7 +101,7 @@ class KompendiumController extends Controller
 
         return view('pages.kompendium', [
             'userPoints' => $userPoints,
-            'showSearch' => $userPoints >= self::REQUIRED_POINTS,
+            'showSearch' => $hatZugang,
             'required' => self::REQUIRED_POINTS,
             'indexierteRomaneSummary' => $indexierteRomaneSummary,
             'istAdmin' => $istAdmin,
@@ -88,11 +113,12 @@ class KompendiumController extends Controller
     /* --------------------------------------------------------------------- */
     public function search(Request $request): JsonResponse
     {
-        /* ----- Punkte-Check ------------------------------------------------ */
+        /* ----- Zugangs-Check ----------------------------------------------- */
         $user = Auth::user();
-        $userPoints = $this->teamPointService->getUserPoints($user);
 
-        if ($userPoints < self::REQUIRED_POINTS) {
+        if (! $this->hatKompendiumZugang($user)) {
+            $userPoints = $this->teamPointService->getUserPoints($user);
+
             return response()->json([
                 'message' => 'Mindestens '.self::REQUIRED_POINTS." Punkte erforderlich (du hast $userPoints).",
             ], 403);
@@ -221,11 +247,12 @@ class KompendiumController extends Controller
     /* --------------------------------------------------------------------- */
     public function getVerfuegbareSerien(): JsonResponse
     {
-        /* ----- Punkte-Check ------------------------------------------------ */
+        /* ----- Zugangs-Check ----------------------------------------------- */
         $user = Auth::user();
-        $userPoints = $this->teamPointService->getUserPoints($user);
 
-        if ($userPoints < self::REQUIRED_POINTS) {
+        if (! $this->hatKompendiumZugang($user)) {
+            $userPoints = $this->teamPointService->getUserPoints($user);
+
             return response()->json([
                 'message' => 'Mindestens '.self::REQUIRED_POINTS." Punkte erforderlich (du hast $userPoints).",
             ], 403);

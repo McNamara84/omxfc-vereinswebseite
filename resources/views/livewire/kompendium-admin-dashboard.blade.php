@@ -1,4 +1,4 @@
-<div class="pb-8" wire:poll.5s>
+<div class="pb-8">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {{-- Header --}}
         <x-header title="Kompendium-Administration" subtitle="Verwalte die Romantexte für die Kompendium-Volltextsuche." separator data-testid="page-header">
@@ -30,7 +30,7 @@
         @endif
 
         {{-- Statistik-Karten --}}
-        <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6" data-testid="stats-section">
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6" wire:poll.5s data-testid="stats-section">
             <x-stat title="Gesamt" :value="$this->statistiken['gesamt']" icon="o-document-text" />
             <x-stat title="Indexiert" :value="$this->statistiken['indexiert']" icon="o-check-circle" color="text-success" />
             <x-stat title="Hochgeladen" :value="$this->statistiken['hochgeladen']" icon="o-cloud-arrow-up" color="text-info" />
@@ -153,7 +153,7 @@
         </x-card>
 
         {{-- Romanliste --}}
-        <x-card shadow data-testid="novels-table-card">
+        <x-card shadow data-testid="novels-table-card" wire:poll.5s>
             <div class="overflow-x-auto">
                 <table class="table" data-testid="novels-table">
                     <thead>
