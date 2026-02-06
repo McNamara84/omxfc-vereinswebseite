@@ -43,6 +43,7 @@ class KompendiumController extends Controller
      * Prüft ob der User Zugang zur Kompendium-Suche hat.
      * Zugang besteht bei ≥ 100 Baxx ODER Mitgliedschaft in AG Maddraxikon.
      *
+     * @param  User|null  $user  Der zu prüfende User
      * @param  int|null  $userPoints  Bereits berechnete Punkte (vermeidet doppelten Service-Call)
      * @return bool
      */
