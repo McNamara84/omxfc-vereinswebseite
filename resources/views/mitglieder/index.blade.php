@@ -13,7 +13,7 @@
     @endif
     
     <x-card shadow>
-        <x-header title="Mitgliederliste" />
+        <h2 data-members-heading class="text-2xl font-extrabold">Mitgliederliste</h2>
     @php
         $sortLabels = [
             'nachname' => 'Nachname',
