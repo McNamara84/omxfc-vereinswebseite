@@ -1,41 +1,39 @@
 <x-app-layout>
     <x-member-page>
         @if(session('status'))
-            <div class="mb-4 p-4 bg-green-100 dark:bg-green-900 border border-green-400 dark:border-green-600 text-green-800 dark:text-green-200 rounded">
+            <x-alert icon="o-check-circle" class="alert-success mb-4">
                 {{ session('status') }}
-            </div>
+            </x-alert>
         @endif
-        <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6 flex justify-between items-center">
-            <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81]">Hörbuchfolgen</h2>
+        <x-card shadow class="mb-6 flex justify-between items-center">
+            <x-header title="Hörbuchfolgen" class="!mb-0" />
             @if(auth()->user()->hasVorstandRole() || auth()->user()->isOwnerOfTeam('AG Fanhörbücher'))
-                <a href="{{ route('hoerbuecher.create') }}" class="inline-flex items-center px-4 py-2 bg-[#8B0116] dark:bg-[#C41E3A] border border-transparent rounded-md font-semibold text-white hover:bg-[#A50019] dark:hover:bg-[#D63A4D] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#8B0116] dark:focus:ring-[#FF6B81]">
-                    Neue Folge
-                </a>
+                <x-button label="Neue Folge" link="{{ route('hoerbuecher.create') }}" icon="o-plus" class="btn-primary" />
             @endif
-        </div>
-        <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6">
+        </x-card>
+        <x-card shadow class="mb-6">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div id="card-unfilled-roles" data-unfilled-roles="{{ $totalUnfilledRoles }}" class="p-4 border border-gray-200 dark:border-gray-700 rounded cursor-pointer text-center hover:bg-gray-100 dark:hover:bg-gray-700">
-                    <div class="text-3xl font-bold text-gray-800 dark:text-gray-200">{{ $totalUnfilledRoles }}</div>
-                    <div class="text-gray-600 dark:text-gray-400">Unbesetzte Rollen</div>
+                <div id="card-unfilled-roles" data-unfilled-roles="{{ $totalUnfilledRoles }}" class="p-4 border border-base-content/10 rounded cursor-pointer text-center hover:bg-base-200">
+                    <div class="text-3xl font-bold text-base-content">{{ $totalUnfilledRoles }}</div>
+                    <div class="text-base-content/60">Unbesetzte Rollen</div>
                 </div>
-                <div id="card-next-event" data-episode-id="{{ $nextEpisode?->id }}" data-days-left="{{ $daysUntilNextEvt }}" class="p-4 border border-gray-200 dark:border-gray-700 rounded cursor-pointer text-center hover:bg-gray-100 dark:hover:bg-gray-700">
+                <div id="card-next-event" data-episode-id="{{ $nextEpisode?->id }}" data-days-left="{{ $daysUntilNextEvt }}" class="p-4 border border-base-content/10 rounded cursor-pointer text-center hover:bg-base-200">
                     @if($nextEpisode)
-                        <div class="text-3xl font-bold text-gray-800 dark:text-gray-200">{{ $daysUntilNextEvt }}</div>
-                        <div class="text-gray-600 dark:text-gray-400">
+                        <div class="text-3xl font-bold text-base-content">{{ $daysUntilNextEvt }}</div>
+                        <div class="text-base-content/60">
                             Tage bis {{ $nextEpisode->title }} veröffentlicht wird ({{ $nextEpisode->planned_release_date_parsed->format('d.m.Y') }})
                         </div>
                     @else
-                        <div class="text-gray-600 dark:text-gray-400">Kein Termin</div>
+                        <div class="text-base-content/60">Kein Termin</div>
                     @endif
                 </div>
-                <div id="card-open-episodes" data-open-episodes="{{ $episodesWithUnassignedRoles }}" class="p-4 border border-gray-200 dark:border-gray-700 rounded cursor-pointer text-center hover:bg-gray-100 dark:hover:bg-gray-700">
-                    <div class="text-3xl font-bold text-gray-800 dark:text-gray-200">{{ $episodesWithUnassignedRoles }}</div>
-                    <div class="text-gray-600 dark:text-gray-400">Folgen mit offenen Rollen</div>
+                <div id="card-open-episodes" data-open-episodes="{{ $episodesWithUnassignedRoles }}" class="p-4 border border-base-content/10 rounded cursor-pointer text-center hover:bg-base-200">
+                    <div class="text-3xl font-bold text-base-content">{{ $episodesWithUnassignedRoles }}</div>
+                    <div class="text-base-content/60">Folgen mit offenen Rollen</div>
                 </div>
             </div>
-        </div>
-        <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
+        </x-card>
+        <x-card shadow>
             <div class="mb-4 space-y-4" aria-label="Filter für die Hörbuchfolgen">
                 <div
                     id="episode-select-filters"
@@ -43,18 +41,18 @@
                     role="group"
                     aria-label="Auswahlfilter"
                 >
-                    <select id="status-filter" class="border-gray-300 dark:border-gray-600 rounded-md">
+                    <select id="status-filter" class="select select-bordered select-sm">
                         <option value="">Alle Status</option>
                         @foreach($statuses as $status)
                             <option value="{{ $status }}">{{ $status }}</option>
                         @endforeach
                     </select>
-                    <select id="type-filter" class="border-gray-300 dark:border-gray-600 rounded-md">
+                    <select id="type-filter" class="select select-bordered select-sm">
                         <option value="">Alle Typen</option>
                         <option value="regular">Reguläre Folge</option>
                         <option value="se">Sonderedition</option>
                     </select>
-                    <select id="year-filter" class="border-gray-300 dark:border-gray-600 rounded-md">
+                    <select id="year-filter" class="select select-bordered select-sm">
                         <option value="">Alle Jahre</option>
                         @foreach($years as $year)
                             <option value="{{ $year }}">{{ $year }}</option>
@@ -64,7 +62,7 @@
                         <label for="role-name-filter" class="sr-only">Nach Rolle filtern</label>
                         <select
                             id="role-name-filter"
-                            class="border-gray-300 dark:border-gray-600 rounded-md"
+                            class="select select-bordered select-sm"
                             aria-label="Hörbuchfolgen nach Rolle filtern"
                         >
                             <option value="">Alle Rollen</option>
@@ -79,7 +77,7 @@
                     class="flex flex-wrap gap-4 border-0 p-0 m-0"
                     aria-describedby="checkbox-filter-hint"
                 >
-                    <legend class="text-sm font-semibold text-gray-700 dark:text-gray-200 w-full mb-2">Checkbox-Filter</legend>
+                    <legend class="text-sm font-semibold text-base-content w-full mb-2">Checkbox-Filter</legend>
                     <p id="checkbox-filter-hint" class="sr-only">
                         Aktiviere einen oder mehrere Checkbox-Filter, um unveröffentlichte Folgen oder Episoden mit vollständig besetzten Rollen einzublenden.
                     </p>
@@ -109,21 +107,21 @@
                 </p>
             </div>
             <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                <table class="table">
                     <thead>
                         <tr>
-                            <th class="px-4 py-2 text-left text-gray-800 dark:text-gray-200">Folge</th>
-                            <th class="px-4 py-2 text-left text-gray-800 dark:text-gray-200">Titel</th>
-                            <th class="px-4 py-2 text-left text-gray-800 dark:text-gray-200">Ziel-EVT</th>
-                            <th class="px-4 py-2 text-left text-gray-800 dark:text-gray-200">Status & Fortschritt</th>
-                            <th class="px-4 py-2 text-left text-gray-800 dark:text-gray-200">Rollenbesetzung</th>
-                            <th class="px-4 py-2 text-left text-gray-800 dark:text-gray-200">Bemerkungen</th>
+                            <th>Folge</th>
+                            <th>Titel</th>
+                            <th>Ziel-EVT</th>
+                            <th>Status & Fortschritt</th>
+                            <th>Rollenbesetzung</th>
+                            <th>Bemerkungen</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                    <tbody>
                         @forelse($episodes as $episode)
                             <tr
-                                class="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
+                                class="cursor-pointer hover:bg-base-200"
                                 role="button"
                                 tabindex="0"
                                 data-href="{{ route('hoerbuecher.show', $episode) }}"
@@ -135,13 +133,13 @@
                                 data-planned-release-date="{{ optional($episode->planned_release_date_parsed)->toDateString() }}"
                                 data-role-names='@json($episode->roles->pluck('name')->filter()->values())'
                             >
-                                <td class="px-4 py-2 text-gray-700 dark:text-gray-300">{{ $episode->episode_number }}</td>
-                                <td class="px-4 py-2 text-gray-700 dark:text-gray-300">{{ $episode->title }}</td>
-                                <td class="px-4 py-2 text-gray-700 dark:text-gray-300">{{ $episode->planned_release_date }}</td>
-                                <td class="px-4 py-2 text-gray-700 dark:text-gray-300">
+                                <td class="px-4 py-2">{{ $episode->episode_number }}</td>
+                                <td class="px-4 py-2">{{ $episode->title }}</td>
+                                <td class="px-4 py-2">{{ $episode->planned_release_date }}</td>
+                                <td class="px-4 py-2">
                                     <span>{{ $episode->status->value }}</span>
                                     <div
-                                        class="mt-1 w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4"
+                                        class="mt-1 w-full bg-base-200 rounded-full h-4"
                                         role="progressbar"
                                         aria-valuenow="{{ $episode->progress }}"
                                         aria-valuemin="0"
@@ -154,23 +152,23 @@
                                     </div>
                                 </td>
                                 <td class="px-4 py-2">
-                                    <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4">
+                                    <div class="w-full bg-base-200 rounded-full h-4">
                                         <div class="h-4 rounded-full text-xs font-medium text-center leading-none text-white" style="width: {{ $episode->rolesFilledPercent() }}%; background-color: hsl({{ $episode->rolesHue() }}, 100%, 40%);">
                                             {{ $episode->roles_filled }}/{{ $episode->roles_total }}
                                         </div>
                                     </div>
                                 </td>
-                                <td class="px-4 py-2 text-gray-700 dark:text-gray-300">{{ $episode->notes }}</td>
+                                <td class="px-4 py-2">{{ $episode->notes }}</td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="px-4 py-2 text-center text-gray-700 dark:text-gray-300">Keine Hörbuchfolgen vorhanden.</td>
+                                <td colspan="6" class="px-4 py-2 text-center text-base-content/60">Keine Hörbuchfolgen vorhanden.</td>
                             </tr>
                         @endforelse
                     </tbody>
                 </table>
             </div>
-        </div>
+        </x-card>
         @vite(['resources/js/hoerbuecher.js'])
     </x-member-page>
 </x-app-layout>
