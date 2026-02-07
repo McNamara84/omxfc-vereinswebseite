@@ -1,26 +1,22 @@
 <x-app-layout>
     <x-member-page>
-            <div class="bg-white shadow-xl sm:rounded-lg p-6">
-                <h2 class="text-2xl font-semibold text-[#8B0116] mb-6">Mitgliederkarte</h2>
+        <x-card shadow>
+                <x-header title="Mitgliederkarte" />
 
-                <div id="member-map-note" class="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-md" role="note">
-                    <p class="text-sm text-yellow-800">
-                        <strong>Hinweis:</strong> Aus Datenschutzgründen werden die Standorte der Mitglieder nicht exakt angezeigt.
-                    </p>
-                </div>
+                <x-alert class="alert-warning mb-4" icon="o-exclamation-triangle" id="member-map-note" role="note">
+                    Aus Datenschutzgründen werden die Standorte der Mitglieder nicht exakt angezeigt.
+                </x-alert>
                 <!-- Karten-Container -->
                 <div
                     id="map"
-                    class="w-full h-[600px] rounded-lg border border-gray-300"
+                    class="w-full h-[600px] rounded-lg border border-base-content/10"
                     data-member-map
                     role="region"
                     aria-label="Mitgliederkarte"
                     aria-describedby="member-map-note"
                     tabindex="0"
                 ></div>
-            </div>
-        </div>
-    </div>
+        </x-card>
     
     <!-- Leaflet JS und CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
