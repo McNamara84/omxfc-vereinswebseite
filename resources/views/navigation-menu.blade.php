@@ -1,306 +1,248 @@
-<nav x-data="{
-        open: false,
-        openMenu: null,
-        init() {
-            this.$watch('open', (isOpen) => {
-                if (!this.$refs.mobileToggle) {
-                    return;
-                }
-
-                const expanded = isOpen ? 'true' : 'false';
-                const label = isOpen ? 'Menü schließen' : 'Menü öffnen';
-
-                this.$refs.mobileToggle.setAttribute('aria-expanded', expanded);
-                this.$refs.mobileToggle.setAttribute('aria-label', label);
-            });
-
-            this.$nextTick(() => this.updateMobileToggleAccessibility());
-        },
-        updateMobileToggleAccessibility() {
-            if (!this.$refs.mobileToggle) {
-                return;
-            }
-
-            const expanded = this.open ? 'true' : 'false';
-            const label = this.open ? 'Menü schließen' : 'Menü öffnen';
-
-            this.$refs.mobileToggle.setAttribute('aria-expanded', expanded);
-            this.$refs.mobileToggle.setAttribute('aria-label', label);
-        }
-    }"
-    class="bg-base-100 border-b border-base-200 xl:fixed xl:top-0 xl:left-0 xl:right-0 xl:z-50 lg:shadow-md">
+<nav x-data="{ open: false }"
+    class="bg-base-100 border-b border-base-content/10 xl:fixed xl:top-0 xl:left-0 xl:right-0 xl:z-50 lg:shadow-md">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
-            <!-- Linker Bereich: Logo + Hauptmenü -->
-            <div class="flex">
-                <div class="shrink-0 flex items-center">
-                    <a href="{{ route('home') }}">
-                        <x-application-mark class="block h-9 w-auto" />
-                    </a>
-                </div>
+            {{-- Linker Bereich: Logo + Desktop-Menü --}}
+            <div class="flex items-center">
+                <a href="{{ route('home') }}" class="shrink-0">
+                    <x-application-mark class="block h-9 w-auto" />
+                </a>
 
-                <div class="hidden sm:ml-10 sm:flex sm:space-x-8">
+                <div class="hidden sm:ml-10 sm:flex sm:items-center sm:gap-1">
                     @auth
-                        <x-nav-link href="{{ route('dashboard') }}">Dashboard</x-nav-link>
-                        <x-nav-link href="{{ route('fantreffen.2026') }}">Fantreffen 2026</x-nav-link>
+                        <x-button label="Dashboard" link="{{ route('dashboard') }}" class="btn-ghost btn-sm" />
+                        <x-button label="Fantreffen 2026" link="{{ route('fantreffen.2026') }}" class="btn-ghost btn-sm" />
                         @if(($showActivePollForAuth ?? false) && ($activePollMenuLabel ?? null))
-                            <x-nav-link href="{{ route('umfrage.aktuell') }}">{{ $activePollMenuLabel }}</x-nav-link>
+                            <x-button label="{{ $activePollMenuLabel }}" link="{{ route('umfrage.aktuell') }}" class="btn-ghost btn-sm" />
                         @endif
-                        <!-- Dropdown Verein -->
-                        <div class="relative flex items-center ml-4 group" x-data="{ open: false }" @click="open = !open" @click.away="open = false" @keydown.escape="open = false">
-                            <button id="verein-button" type="button" class="px-3 py-2 text-sm font-medium text-base-content hover:text-base-content/80 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition" :aria-expanded="open" aria-controls="verein-menu" @keydown.enter.prevent="open = !open" @keydown.space.prevent="open = !open">
-                                Verein
-                            </button>
-                            <div id="verein-menu" x-show="open" x-cloak class="absolute left-0 top-full mt-px w-48 bg-base-100 rounded-md shadow-lg z-50 py-2 group-hover:block" role="menu">
-                                <x-dropdown-link href="{{ route('fanfiction.index') }}">Fanfiction</x-dropdown-link>
-                                <x-dropdown-link href="{{ route('mitglieder.index') }}">Mitgliederliste</x-dropdown-link>
-                                <x-dropdown-link href="{{ route('mitglieder.karte') }}">Mitgliederkarte</x-dropdown-link>
-                                <x-dropdown-link href="{{ route('protokolle') }}">Protokolle</x-dropdown-link>
-                                <x-dropdown-link href="{{ route('satzung') }}">Satzung</x-dropdown-link>
-                                <x-dropdown-link href="{{ route('kassenbuch.index') }}">Kassenbuch</x-dropdown-link>
-                                <x-dropdown-link href="{{ route('reviews.index') }}">Rezensionen</x-dropdown-link>
-                                <x-dropdown-link href="{{ route('romantausch.index') }}">Tauschbörse</x-dropdown-link>
-                            </div>
-                        </div>
-                        <!-- Dropdown Veranstaltungen -->
-                        <div class="relative flex items-center ml-4 group" x-data="{ open: false }" @click="open = !open" @click.away="open = false" @keydown.escape="open = false">
-                            <button id="veranstaltungen-button" type="button" class="px-3 py-2 text-sm font-medium text-base-content hover:text-base-content/80 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition" :aria-expanded="open" aria-controls="veranstaltungen-menu" @keydown.enter.prevent="open = !open" @keydown.space.prevent="open = !open">
-                                Veranstaltungen
-                            </button>
-                            <div id="veranstaltungen-menu" x-show="open" x-cloak class="absolute left-0 top-full mt-px w-48 bg-base-100 rounded-md shadow-lg z-50 py-2 group-hover:block" role="menu">
-                                <x-dropdown-link href="{{ route('fotogalerie') }}">Fotos</x-dropdown-link>
-                                <x-dropdown-link href="{{ route('meetings') }}">Meetings</x-dropdown-link>
-                                <x-dropdown-link href="{{ route('termine') }}">Termine</x-dropdown-link>
-                            </div>
-                        </div>
-                        <div class="relative flex items-center ml-4 group" x-data="{ open: false }" @click="open = !open" @click.away="open = false" @keydown.escape="open = false">
-                            <button id="baxx-button" type="button" class="px-3 py-2 text-sm font-medium text-base-content hover:text-base-content/80 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition" :aria-expanded="open" aria-controls="baxx-menu" @keydown.enter.prevent="open = !open" @keydown.space.prevent="open = !open">
-                                Baxx
-                            </button>
-                            <div id="baxx-menu" x-show="open" x-cloak class="absolute left-0 top-full mt-px w-48 bg-base-100 rounded-md shadow-lg z-50 py-2 group-hover:block" role="menu">
-                                <x-dropdown-link href="{{ route('todos.index') }}">Challenges</x-dropdown-link>
-                                <x-dropdown-link href="{{ route('rewards.index') }}">Belohnungen</x-dropdown-link>
-                            </div>
-                        </div>
-                        <!-- Dropdown Veranstaltungen -->
-                        <div class="relative flex items-center ml-4 group" x-data="{ open: false }" @click="open = !open" @click.away="open = false" @keydown.escape="open = false">
-                            <button id="belohnungen-button" type="button" class="px-3 py-2 text-sm font-medium text-base-content hover:text-base-content/80 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition" :aria-expanded="open" aria-controls="belohnungen-menu" @keydown.enter.prevent="open = !open" @keydown.space.prevent="open = !open">
-                                Belohnungen
-                            </button>
-                            <div id="belohnungen-menu" x-show="open" x-cloak class="absolute left-0 top-full mt-px w-48 bg-base-100 rounded-md shadow-lg z-50 py-2 group-hover:block" role="menu">
-                                <x-dropdown-link href="{{ route('maddraxiversum.index') }}">Maddraxiversum</x-dropdown-link>
-                                <x-dropdown-link href="{{ route('downloads') }}">Downloads</x-dropdown-link>
-                                <x-dropdown-link href="{{ route('kompendium.index') }}">Kompendium</x-dropdown-link>
-                                <x-dropdown-link href="{{ route('statistik.index') }}">Statistik</x-dropdown-link>
-                            </div>
-                        </div>
+
+                        {{-- Dropdown Verein --}}
+                        <x-dropdown label="Verein" class="btn-ghost btn-sm" no-x-anchor>
+                            <x-menu-item title="Fanfiction" link="{{ route('fanfiction.index') }}" />
+                            <x-menu-item title="Mitgliederliste" link="{{ route('mitglieder.index') }}" />
+                            <x-menu-item title="Mitgliederkarte" link="{{ route('mitglieder.karte') }}" />
+                            <x-menu-item title="Protokolle" link="{{ route('protokolle') }}" />
+                            <x-menu-item title="Satzung" link="{{ route('satzung') }}" />
+                            <x-menu-item title="Kassenbuch" link="{{ route('kassenbuch.index') }}" />
+                            <x-menu-item title="Rezensionen" link="{{ route('reviews.index') }}" />
+                            <x-menu-item title="Tauschbörse" link="{{ route('romantausch.index') }}" />
+                        </x-dropdown>
+
+                        {{-- Dropdown Veranstaltungen --}}
+                        <x-dropdown label="Veranstaltungen" class="btn-ghost btn-sm" no-x-anchor>
+                            <x-menu-item title="Fotos" link="{{ route('fotogalerie') }}" />
+                            <x-menu-item title="Meetings" link="{{ route('meetings') }}" />
+                            <x-menu-item title="Termine" link="{{ route('termine') }}" />
+                        </x-dropdown>
+
+                        {{-- Dropdown Baxx --}}
+                        <x-dropdown label="Baxx" class="btn-ghost btn-sm" no-x-anchor>
+                            <x-menu-item title="Challenges" link="{{ route('todos.index') }}" />
+                            <x-menu-item title="Belohnungen" link="{{ route('rewards.index') }}" />
+                        </x-dropdown>
+
+                        {{-- Dropdown Belohnungen --}}
+                        <x-dropdown label="Belohnungen" class="btn-ghost btn-sm" no-x-anchor>
+                            <x-menu-item title="Maddraxiversum" link="{{ route('maddraxiversum.index') }}" />
+                            <x-menu-item title="Downloads" link="{{ route('downloads') }}" />
+                            <x-menu-item title="Kompendium" link="{{ route('kompendium.index') }}" />
+                            <x-menu-item title="Statistik" link="{{ route('statistik.index') }}" />
+                        </x-dropdown>
+
+                        {{-- Dropdown AG (nur wenn Mitglied einer AG oder Vorstand) --}}
                         @if(Auth::user()->teams()->where('personal_team', false)->exists() || Auth::user()->hasVorstandRole())
-                        <div class="relative flex items-center ml-4 group" x-data="{ open: false }" @click="open = !open" @click.away="open = false" @keydown.escape="open = false">
-                            <button id="ag-button" type="button" class="px-3 py-2 text-sm font-medium text-base-content hover:text-base-content/80 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition" :aria-expanded="open" aria-controls="ag-menu" @keydown.enter.prevent="open = !open" @keydown.space.prevent="open = !open">
-                                AG
-                            </button>
-                            <div id="ag-menu" x-show="open" x-cloak class="absolute left-0 top-full mt-px w-48 bg-base-100 rounded-md shadow-lg z-50 py-2 group-hover:block" role="menu">
+                            <x-dropdown label="AG" class="btn-ghost btn-sm" no-x-anchor>
                                 @if(Auth::user()->hasVorstandRole() || Auth::user()->isMemberOfTeam('AG Fanhörbücher'))
-                                    <x-dropdown-link href="{{ route('hoerbuecher.index') }}">EARDRAX Dashboard</x-dropdown-link>
+                                    <x-menu-item title="EARDRAX Dashboard" link="{{ route('hoerbuecher.index') }}" />
                                 @endif
                                 @if(Auth::user()->isMemberOfTeam('AG Maddraxikon'))
-                                    <x-dropdown-link href="{{ route('kompendium.index') }}">Kompendium</x-dropdown-link>
+                                    <x-menu-item title="Kompendium" link="{{ route('kompendium.index') }}" />
                                 @endif
                                 @if(Auth::user()->ownedTeams()->where('personal_team', false)->exists())
-                                    <x-dropdown-link href="{{ route('ag.index') }}">AG verwalten</x-dropdown-link>
+                                    <x-menu-item title="AG verwalten" link="{{ route('ag.index') }}" />
                                 @endif
-                            </div>
-                        </div>
+                            </x-dropdown>
                         @endif
+
+                        {{-- Dropdown Vorstand (nur Vorstand/Kassenwart/Admin) --}}
                         @if(Auth::user()->hasAnyRole(\App\Enums\Role::Admin, \App\Enums\Role::Vorstand, \App\Enums\Role::Kassenwart))
-                        <div class="relative flex items-center ml-4 group" x-data="{ open: false }" @click="open = !open" @click.away="open = false" @keydown.escape="open = false">
-                            <button id="vorstand-button" type="button" class="px-3 py-2 text-sm font-medium text-base-content hover:text-base-content/80 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition" :aria-expanded="open" aria-controls="vorstand-menu" @keydown.enter.prevent="open = !open" @keydown.space.prevent="open = !open">
-                                Vorstand
-                            </button>
-                            <div id="vorstand-menu" x-show="open" x-cloak class="absolute left-0 top-full mt-px w-48 bg-base-100 rounded-md shadow-lg z-50 py-2 group-hover:block" role="menu" aria-labelledby="vorstand-button">
-                                <x-dropdown-link href="{{ route('admin.statistiken.index') }}">Statistik</x-dropdown-link>
-                                <x-dropdown-link href="{{ route('admin.fantreffen.2026') }}">Anmeldungen FT</x-dropdown-link>
-                                <x-dropdown-link href="{{ route('admin.fanfiction.index') }}">Fanfiction</x-dropdown-link>
+                            <x-dropdown label="Vorstand" class="btn-ghost btn-sm" no-x-anchor>
+                                <x-menu-item title="Statistik" link="{{ route('admin.statistiken.index') }}" />
+                                <x-menu-item title="Anmeldungen FT" link="{{ route('admin.fantreffen.2026') }}" />
+                                <x-menu-item title="Fanfiction" link="{{ route('admin.fanfiction.index') }}" />
                                 @can('manage', \App\Models\Poll::class)
-                                    <x-dropdown-link href="{{ route('admin.umfragen.index') }}">Umfrage verwalten</x-dropdown-link>
+                                    <x-menu-item title="Umfrage verwalten" link="{{ route('admin.umfragen.index') }}" />
                                 @endcan
-                            </div>
-                        </div>
+                            </x-dropdown>
                         @endif
+
+                        {{-- Dropdown Admin (nur Admin) --}}
                         @if(Auth::user()->hasRole(\App\Enums\Role::Admin))
-                        <div class="relative flex items-center ml-4 group" x-data="{ open: false }" @click="open = !open" @click.away="open = false" @keydown.escape="open = false">
-                            <button id="admin-button" type="button" class="px-3 py-2 text-sm font-medium text-base-content hover:text-base-content/80 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition" :aria-expanded="open" aria-controls="admin-menu" @keydown.enter.prevent="open = !open" @keydown.space.prevent="open = !open">
-                                Admin
-                            </button>
-                            <div id="admin-menu" x-show="open" x-cloak class="absolute left-0 top-full mt-px w-48 bg-base-100 rounded-md shadow-lg z-50 py-2 group-hover:block" role="menu" aria-labelledby="admin-button">
-                                <x-dropdown-link href="{{ route('newsletter.create') }}">Newsletter versenden</x-dropdown-link>
-                                <x-dropdown-link href="{{ route('admin.messages.index') }}">Kurznachrichten</x-dropdown-link>
-                                <x-dropdown-link href="{{ route('rpg.char-editor') }}">Charakter-Editor</x-dropdown-link>
-                                <x-dropdown-link href="{{ route('arbeitsgruppen.index') }}">Arbeitsgruppen</x-dropdown-link>
-                            </div>
-                        </div>
+                            <x-dropdown label="Admin" class="btn-ghost btn-sm" no-x-anchor>
+                                <x-menu-item title="Newsletter versenden" link="{{ route('newsletter.create') }}" />
+                                <x-menu-item title="Kurznachrichten" link="{{ route('admin.messages.index') }}" />
+                                <x-menu-item title="Charakter-Editor" link="{{ route('rpg.char-editor') }}" />
+                                <x-menu-item title="Arbeitsgruppen" link="{{ route('arbeitsgruppen.index') }}" />
+                            </x-dropdown>
                         @endif
                     @endauth
+
                     @guest
-                        <x-nav-link href="{{ route('fantreffen.2026') }}">Fantreffen 2026</x-nav-link>
+                        <x-button label="Fantreffen 2026" link="{{ route('fantreffen.2026') }}" class="btn-ghost btn-sm" />
                         @if(($showActivePollForGuest ?? false) && ($activePollMenuLabel ?? null))
-                            <x-nav-link href="{{ route('umfrage.aktuell') }}">{{ $activePollMenuLabel }}</x-nav-link>
+                            <x-button label="{{ $activePollMenuLabel }}" link="{{ route('umfrage.aktuell') }}" class="btn-ghost btn-sm" />
                         @endif
-                        <x-nav-link href="{{ route('chronik') }}">Chronik</x-nav-link>
-                        <x-nav-link href="{{ route('ehrenmitglieder') }}">Ehrenmitglieder</x-nav-link>
-                        <x-nav-link href="{{ route('termine') }}">Termine</x-nav-link>
-                        <x-nav-link href="{{ route('arbeitsgruppen') }}">Arbeitsgruppen</x-nav-link>
-                        <x-nav-link href="{{ route('satzung') }}">Satzung</x-nav-link>
-                        <x-nav-link href="{{ route('mitglied.werden') }}">Mitglied werden</x-nav-link>
-                        <x-nav-link href="{{ route('spenden') }}">Spenden</x-nav-link>
-                        <x-nav-link href="{{ route('changelog') }}">Changelog</x-nav-link>
+                        <x-button label="Chronik" link="{{ route('chronik') }}" class="btn-ghost btn-sm" />
+                        <x-button label="Ehrenmitglieder" link="{{ route('ehrenmitglieder') }}" class="btn-ghost btn-sm" />
+                        <x-button label="Termine" link="{{ route('termine') }}" class="btn-ghost btn-sm" />
+                        <x-button label="Arbeitsgruppen" link="{{ route('arbeitsgruppen') }}" class="btn-ghost btn-sm" />
+                        <x-button label="Satzung" link="{{ route('satzung') }}" class="btn-ghost btn-sm" />
+                        <x-button label="Mitglied werden" link="{{ route('mitglied.werden') }}" class="btn-ghost btn-sm" />
+                        <x-button label="Spenden" link="{{ route('spenden') }}" class="btn-ghost btn-sm" />
+                        <x-button label="Changelog" link="{{ route('changelog') }}" class="btn-ghost btn-sm" />
                     @endguest
                 </div>
             </div>
 
-            <!-- Rechter Bereich (nur Login bzw. Usermenü) -->
+            {{-- Rechter Bereich: Profil-Dropdown / Login --}}
             <div class="hidden sm:flex sm:items-center">
                 @auth
-                    {{-- maryUI Dropdown für Profil - no-x-anchor für manuelle Position --}}
-                    <div class="relative">
-                        <x-dropdown no-x-anchor class="dropdown-end">
-                            <x-slot:trigger>
-                                <button class="flex items-center">
-                                    <img class="h-8 w-8 rounded-full object-cover" src="{{ Auth::user()->profile_photo_url }}" alt="{{ Auth::user()->name }}" />
-                                </button>
-                            </x-slot:trigger>
-                            <x-menu-item title="Profil" link="{{ route('profile.show') }}" icon="o-user" />
-                            <x-menu-separator />
-                            <form method="POST" action="{{ route('logout') }}">
-                                @csrf
-                                <x-menu-item title="Ausloggen" icon="o-arrow-right-on-rectangle" onclick="event.preventDefault(); this.closest('form').submit();" />
-                            </form>
-                        </x-dropdown>
-                    </div>
+                    <x-dropdown no-x-anchor class="dropdown-end">
+                        <x-slot:trigger>
+                            <button class="flex items-center">
+                                <img class="h-8 w-8 rounded-full object-cover" src="{{ Auth::user()->profile_photo_url }}" alt="{{ Auth::user()->name }}" />
+                            </button>
+                        </x-slot:trigger>
+                        <x-menu-item title="Profil" link="{{ route('profile.show') }}" icon="o-user" />
+                        <x-menu-separator />
+                        <form method="POST" action="{{ route('logout') }}">
+                            @csrf
+                            <x-menu-item title="Ausloggen" icon="o-arrow-right-on-rectangle" onclick="event.preventDefault(); this.closest('form').submit();" />
+                        </form>
+                    </x-dropdown>
                 @endauth
 
                 @guest
-                    <x-nav-link href="{{ route('login') }}">Login</x-nav-link>
+                    <x-button label="Login" link="{{ route('login') }}" class="btn-ghost btn-sm" />
                 @endguest
             </div>
 
-            <!-- Hamburger (Mobile) -->
+            {{-- Hamburger (Mobile) --}}
             <div class="-mr-2 flex items-center sm:hidden">
                 <button
                     type="button"
-                    x-ref="mobileToggle"
                     @click="open = !open"
+                    :aria-expanded="open"
+                    aria-label="Menü öffnen"
                     aria-controls="mobile-navigation"
-                    aria-expanded="false"
-                    class="inline-flex items-center justify-center gap-2 p-2 rounded-md text-base-content/60 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                    class="btn btn-ghost btn-sm"
                 >
-                    <svg class="h-6 w-6" stroke="currentColor" fill="none" aria-hidden="true">
-                        <path :class="{'hidden': open, 'inline-flex': !open}" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
-                        <path :class="{'hidden': !open, 'inline-flex': open}" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                    </svg>
-                    <span class="text-sm font-medium text-base-content" x-text="open ? 'Menü schließen' : 'Menü öffnen'">Menü öffnen</span>
+                    <x-icon x-show="!open" name="o-bars-3" class="w-6 h-6" />
+                    <x-icon x-show="open" x-cloak name="o-x-mark" class="w-6 h-6" />
+                    <span class="text-sm" x-text="open ? 'Schließen' : 'Menü'">Menü</span>
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- Mobile-Menü -->
-    <div id="mobile-navigation" :class="{'block': open, 'hidden': !open}" class="hidden sm:hidden">
-        @auth
-            <x-responsive-nav-link href="{{ route('dashboard') }}">Dashboard</x-responsive-nav-link>
-            <x-responsive-nav-link href="{{ route('fantreffen.2026') }}">Fantreffen 2026</x-responsive-nav-link>
-            @if(($showActivePollForAuth ?? false) && ($activePollMenuLabel ?? null))
-                <x-responsive-nav-link href="{{ route('umfrage.aktuell') }}">{{ $activePollMenuLabel }}</x-responsive-nav-link>
-            @endif
-            <button id="verein-mobile-button" type="button" @click="openMenu = (openMenu === 'verein' ? null : 'verein')" class="w-full text-left px-4 py-2 font-bold text-base-content focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500" :class="{ 'bg-base-200': openMenu === 'verein' }" :aria-expanded="openMenu === 'verein'" aria-controls="verein-mobile-menu" @keydown.enter.prevent="openMenu = (openMenu === 'verein' ? null : 'verein')" @keydown.space.prevent="openMenu = (openMenu === 'verein' ? null : 'verein')">
-            Verein</button>
-            <div id="verein-mobile-menu" x-show="openMenu === 'verein'" x-cloak class="italic">
-                <x-responsive-nav-link href="{{ route('fanfiction.index') }}">Fanfiction</x-responsive-nav-link>
-                <x-responsive-nav-link href="{{ route('mitglieder.index') }}">Mitgliederliste</x-responsive-nav-link>
-                <x-responsive-nav-link href="{{ route('mitglieder.karte') }}">Mitgliederkarte</x-responsive-nav-link>
-                <x-responsive-nav-link href="{{ route('protokolle') }}">Protokolle</x-responsive-nav-link>
-                <x-responsive-nav-link href="{{ route('satzung') }}">Satzung</x-responsive-nav-link>
-                <x-responsive-nav-link href="{{ route('kassenbuch.index') }}">Kassenbuch</x-responsive-nav-link>
-                <x-responsive-nav-link href="{{ route('reviews.index') }}">Rezensionen</x-responsive-nav-link>
-                <x-responsive-nav-link href="{{ route('romantausch.index') }}">Tauschbörse</x-responsive-nav-link>
-            </div>
-
-            <button id="veranstaltungen-mobile-button" type="button" @click="openMenu = (openMenu === 'veranstaltungen' ? null : 'veranstaltungen')" class="w-full text-left px-4 py-2 font-bold text-base-content focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500" :class="{ 'bg-base-200': openMenu === 'veranstaltungen' }" :aria-expanded="openMenu === 'veranstaltungen'" aria-controls="veranstaltungen-mobile-menu" @keydown.enter.prevent="openMenu = (openMenu === 'veranstaltungen' ? null : 'veranstaltungen')" @keydown.space.prevent="openMenu = (openMenu === 'veranstaltungen' ? null : 'veranstaltungen')">
-            Veranstaltungen</button>
-            <div id="veranstaltungen-mobile-menu" x-show="openMenu === 'veranstaltungen'" x-cloak class="italic">
-                <x-responsive-nav-link href="{{ route('fotogalerie') }}">Fotos</x-responsive-nav-link>
-                <x-responsive-nav-link href="{{ route('meetings') }}">Meetings</x-responsive-nav-link>
-                <x-responsive-nav-link href="{{ route('termine') }}">Termine</x-responsive-nav-link>
-            </div>
-
-            <button id="baxx-mobile-button" type="button" @click="openMenu = (openMenu === 'baxx' ? null : 'baxx')" class="w-full text-left px-4 py-2 font-bold text-base-content focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500" :class="{ 'bg-base-200': openMenu === 'baxx' }" :aria-expanded="openMenu === 'baxx'" aria-controls="baxx-mobile-menu" @keydown.enter.prevent="openMenu = (openMenu === 'baxx' ? null : 'baxx')" @keydown.space.prevent="openMenu = (openMenu === 'baxx' ? null : 'baxx')">
-            Baxx</button>
-            <div id="baxx-mobile-menu" x-show="openMenu === 'baxx'" x-cloak class="italic">
-                <x-responsive-nav-link href="{{ route('todos.index') }}">Challenges</x-responsive-nav-link>
-                <x-responsive-nav-link href="{{ route('rewards.index') }}">Belohnungen</x-responsive-nav-link>
-            </div>
-            <button id="belohnungen-mobile-button" type="button" @click="openMenu = (openMenu === 'belohnungen' ? null : 'belohnungen')" class="w-full text-left px-4 py-2 font-bold text-base-content focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500" :class="{ 'bg-base-200': openMenu === 'belohnungen' }" :aria-expanded="openMenu === 'belohnungen'" aria-controls="belohnungen-mobile-menu" @keydown.enter.prevent="openMenu = (openMenu === 'belohnungen' ? null : 'belohnungen')" @keydown.space.prevent="openMenu = (openMenu === 'belohnungen' ? null : 'belohnungen')">
-            Belohnungen</button>
-            <div id="belohnungen-mobile-menu" x-show="openMenu === 'belohnungen'" x-cloak class="italic">
-                <x-responsive-nav-link href="{{ route('maddraxiversum.index') }}">Maddraxiversum</x-responsive-nav-link>
-                <x-responsive-nav-link href="{{ route('downloads') }}">Downloads</x-responsive-nav-link>
-                <x-responsive-nav-link href="{{ route('kompendium.index') }}">Kompendium</x-responsive-nav-link>
-                <x-responsive-nav-link href="{{ route('statistik.index') }}">Statistik</x-responsive-nav-link>
-            </div>
-            @if(Auth::user()->teams()->where('personal_team', false)->exists() || Auth::user()->hasVorstandRole())
-            <button id="ag-mobile-button" type="button" @click="openMenu = (openMenu === 'ag' ? null : 'ag')" class="w-full text-left px-4 py-2 font-bold text-base-content focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500" :class="{ 'bg-base-200': openMenu === 'ag' }" :aria-expanded="openMenu === 'ag'" aria-controls="ag-mobile-menu" @keydown.enter.prevent="openMenu = (openMenu === 'ag' ? null : 'ag')" @keydown.space.prevent="openMenu = (openMenu === 'ag' ? null : 'ag')">
-            AG</button>
-            <div id="ag-mobile-menu" x-show="openMenu === 'ag'" x-cloak class="italic">
-                @if(Auth::user()->hasVorstandRole() || Auth::user()->isMemberOfTeam('AG Fanhörbücher'))
-                    <x-responsive-nav-link href="{{ route('hoerbuecher.index') }}">EARDRAX Dashboard</x-responsive-nav-link>
+    {{-- Mobile-Menü --}}
+    <div id="mobile-navigation" x-show="open" x-cloak x-collapse class="sm:hidden">
+        <x-menu class="bg-base-100 p-2">
+            @auth
+                <x-menu-item title="Dashboard" link="{{ route('dashboard') }}" icon="o-home" />
+                <x-menu-item title="Fantreffen 2026" link="{{ route('fantreffen.2026') }}" icon="o-calendar-days" />
+                @if(($showActivePollForAuth ?? false) && ($activePollMenuLabel ?? null))
+                    <x-menu-item title="{{ $activePollMenuLabel }}" link="{{ route('umfrage.aktuell') }}" icon="o-chart-bar" />
                 @endif
-                @if(Auth::user()->isMemberOfTeam('AG Maddraxikon'))
-                    <x-responsive-nav-link href="{{ route('kompendium.index') }}">Kompendium</x-responsive-nav-link>
-                @endif
-                @if(Auth::user()->ownedTeams()->where('personal_team', false)->exists())
-                    <x-responsive-nav-link href="{{ route('ag.index') }}">AG verwalten</x-responsive-nav-link>
-                @endif
-            </div>
-            @endif
-            @if(Auth::user()->hasAnyRole(\App\Enums\Role::Admin, \App\Enums\Role::Vorstand, \App\Enums\Role::Kassenwart))
-            <button id="vorstand-mobile-button" type="button" @click="openMenu = (openMenu === 'vorstand' ? null : 'vorstand')" class="w-full text-left px-4 py-2 font-bold text-base-content focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500" :class="{ 'bg-base-200': openMenu === 'vorstand' }" :aria-expanded="openMenu === 'vorstand'" aria-controls="vorstand-mobile-menu" @keydown.enter.prevent="openMenu = (openMenu === 'vorstand' ? null : 'vorstand')" @keydown.space.prevent="openMenu = (openMenu === 'vorstand' ? null : 'vorstand')">
-            Vorstand</button>
-            <div id="vorstand-mobile-menu" x-show="openMenu === 'vorstand'" x-cloak class="italic" aria-labelledby="vorstand-mobile-button">
-                <x-responsive-nav-link href="{{ route('admin.statistiken.index') }}">Statistik</x-responsive-nav-link>
-                <x-responsive-nav-link href="{{ route('admin.fantreffen.2026') }}">Anmeldungen FT</x-responsive-nav-link>
-                <x-responsive-nav-link href="{{ route('admin.fanfiction.index') }}">Fanfiction</x-responsive-nav-link>
-                @can('manage', \App\Models\Poll::class)
-                    <x-responsive-nav-link href="{{ route('admin.umfragen.index') }}">Umfrage verwalten</x-responsive-nav-link>
-                @endcan
-            </div>
-            @endif
-            @if(Auth::user()->hasRole(\App\Enums\Role::Admin))
-            <button id="admin-mobile-button" type="button" @click="openMenu = (openMenu === 'admin' ? null : 'admin')" class="w-full text-left px-4 py-2 font-bold text-base-content focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500" :class="{ 'bg-base-200': openMenu === 'admin' }" :aria-expanded="openMenu === 'admin'" aria-controls="admin-mobile-menu" @keydown.enter.prevent="openMenu = (openMenu === 'admin' ? null : 'admin')" @keydown.space.prevent="openMenu = (openMenu === 'admin' ? null : 'admin')">
-            Admin</button>
-            <div id="admin-mobile-menu" x-show="openMenu === 'admin'" x-cloak class="italic" aria-labelledby="admin-mobile-button">
-                <x-responsive-nav-link href="{{ route('newsletter.create') }}">Newsletter versenden</x-responsive-nav-link>
-                <x-responsive-nav-link href="{{ route('admin.messages.index') }}">Kurznachrichten</x-responsive-nav-link>
-                <x-responsive-nav-link href="{{ route('rpg.char-editor') }}">Charakter-Editor</x-responsive-nav-link>
-                <x-responsive-nav-link href="{{ route('arbeitsgruppen.index') }}">Arbeitsgruppen</x-responsive-nav-link>
-            </div>
-            @endif
 
-        @endauth
+                <x-menu-sub title="Verein" icon="o-user-group">
+                    <x-menu-item title="Fanfiction" link="{{ route('fanfiction.index') }}" />
+                    <x-menu-item title="Mitgliederliste" link="{{ route('mitglieder.index') }}" />
+                    <x-menu-item title="Mitgliederkarte" link="{{ route('mitglieder.karte') }}" />
+                    <x-menu-item title="Protokolle" link="{{ route('protokolle') }}" />
+                    <x-menu-item title="Satzung" link="{{ route('satzung') }}" />
+                    <x-menu-item title="Kassenbuch" link="{{ route('kassenbuch.index') }}" />
+                    <x-menu-item title="Rezensionen" link="{{ route('reviews.index') }}" />
+                    <x-menu-item title="Tauschbörse" link="{{ route('romantausch.index') }}" />
+                </x-menu-sub>
 
-        @guest
-            <x-responsive-nav-link href="{{ route('fantreffen.2026') }}">Fantreffen 2026</x-responsive-nav-link>
-            @if(($showActivePollForGuest ?? false) && ($activePollMenuLabel ?? null))
-                <x-responsive-nav-link href="{{ route('umfrage.aktuell') }}">{{ $activePollMenuLabel }}</x-responsive-nav-link>
-            @endif
-            <x-responsive-nav-link href="{{ route('chronik') }}">Chronik</x-responsive-nav-link>
-            <x-responsive-nav-link href="{{ route('ehrenmitglieder') }}">Ehrenmitglieder</x-responsive-nav-link>
-            <x-responsive-nav-link href="{{ route('termine') }}">Termine</x-responsive-nav-link>
-            <x-responsive-nav-link href="{{ route('arbeitsgruppen') }}">Arbeitsgruppen</x-responsive-nav-link>
-            <x-responsive-nav-link href="{{ route('satzung') }}">Satzung</x-responsive-nav-link>
-            <x-responsive-nav-link href="{{ route('mitglied.werden') }}">Mitglied werden</x-responsive-nav-link>
-            <x-responsive-nav-link href="{{ route('spenden') }}">Spenden</x-responsive-nav-link>
-            <x-responsive-nav-link href="{{ route('changelog') }}">Changelog</x-responsive-nav-link>
-            <x-responsive-nav-link href="{{ route('login') }}">Login</x-responsive-nav-link>
-        @endguest
+                <x-menu-sub title="Veranstaltungen" icon="o-calendar">
+                    <x-menu-item title="Fotos" link="{{ route('fotogalerie') }}" />
+                    <x-menu-item title="Meetings" link="{{ route('meetings') }}" />
+                    <x-menu-item title="Termine" link="{{ route('termine') }}" />
+                </x-menu-sub>
+
+                <x-menu-sub title="Baxx" icon="o-bolt">
+                    <x-menu-item title="Challenges" link="{{ route('todos.index') }}" />
+                    <x-menu-item title="Belohnungen" link="{{ route('rewards.index') }}" />
+                </x-menu-sub>
+
+                <x-menu-sub title="Belohnungen" icon="o-gift">
+                    <x-menu-item title="Maddraxiversum" link="{{ route('maddraxiversum.index') }}" />
+                    <x-menu-item title="Downloads" link="{{ route('downloads') }}" />
+                    <x-menu-item title="Kompendium" link="{{ route('kompendium.index') }}" />
+                    <x-menu-item title="Statistik" link="{{ route('statistik.index') }}" />
+                </x-menu-sub>
+
+                @if(Auth::user()->teams()->where('personal_team', false)->exists() || Auth::user()->hasVorstandRole())
+                    <x-menu-sub title="AG" icon="o-rectangle-group">
+                        @if(Auth::user()->hasVorstandRole() || Auth::user()->isMemberOfTeam('AG Fanhörbücher'))
+                            <x-menu-item title="EARDRAX Dashboard" link="{{ route('hoerbuecher.index') }}" />
+                        @endif
+                        @if(Auth::user()->isMemberOfTeam('AG Maddraxikon'))
+                            <x-menu-item title="Kompendium" link="{{ route('kompendium.index') }}" />
+                        @endif
+                        @if(Auth::user()->ownedTeams()->where('personal_team', false)->exists())
+                            <x-menu-item title="AG verwalten" link="{{ route('ag.index') }}" />
+                        @endif
+                    </x-menu-sub>
+                @endif
+
+                @if(Auth::user()->hasAnyRole(\App\Enums\Role::Admin, \App\Enums\Role::Vorstand, \App\Enums\Role::Kassenwart))
+                    <x-menu-sub title="Vorstand" icon="o-shield-check">
+                        <x-menu-item title="Statistik" link="{{ route('admin.statistiken.index') }}" />
+                        <x-menu-item title="Anmeldungen FT" link="{{ route('admin.fantreffen.2026') }}" />
+                        <x-menu-item title="Fanfiction" link="{{ route('admin.fanfiction.index') }}" />
+                        @can('manage', \App\Models\Poll::class)
+                            <x-menu-item title="Umfrage verwalten" link="{{ route('admin.umfragen.index') }}" />
+                        @endcan
+                    </x-menu-sub>
+                @endif
+
+                @if(Auth::user()->hasRole(\App\Enums\Role::Admin))
+                    <x-menu-sub title="Admin" icon="o-cog-6-tooth">
+                        <x-menu-item title="Newsletter versenden" link="{{ route('newsletter.create') }}" />
+                        <x-menu-item title="Kurznachrichten" link="{{ route('admin.messages.index') }}" />
+                        <x-menu-item title="Charakter-Editor" link="{{ route('rpg.char-editor') }}" />
+                        <x-menu-item title="Arbeitsgruppen" link="{{ route('arbeitsgruppen.index') }}" />
+                    </x-menu-sub>
+                @endif
+
+                <x-menu-separator />
+
+                <x-menu-item title="Profil" link="{{ route('profile.show') }}" icon="o-user" />
+                <form method="POST" action="{{ route('logout') }}">
+                    @csrf
+                    <x-menu-item title="Ausloggen" icon="o-arrow-right-on-rectangle" onclick="event.preventDefault(); this.closest('form').submit();" />
+                </form>
+            @endauth
+
+            @guest
+                <x-menu-item title="Fantreffen 2026" link="{{ route('fantreffen.2026') }}" icon="o-calendar-days" />
+                @if(($showActivePollForGuest ?? false) && ($activePollMenuLabel ?? null))
+                    <x-menu-item title="{{ $activePollMenuLabel }}" link="{{ route('umfrage.aktuell') }}" icon="o-chart-bar" />
+                @endif
+                <x-menu-item title="Chronik" link="{{ route('chronik') }}" />
+                <x-menu-item title="Ehrenmitglieder" link="{{ route('ehrenmitglieder') }}" />
+                <x-menu-item title="Termine" link="{{ route('termine') }}" />
+                <x-menu-item title="Arbeitsgruppen" link="{{ route('arbeitsgruppen') }}" />
+                <x-menu-item title="Satzung" link="{{ route('satzung') }}" />
+                <x-menu-item title="Mitglied werden" link="{{ route('mitglied.werden') }}" />
+                <x-menu-item title="Spenden" link="{{ route('spenden') }}" />
+                <x-menu-item title="Changelog" link="{{ route('changelog') }}" />
+                <x-menu-separator />
+                <x-menu-item title="Login" link="{{ route('login') }}" icon="o-arrow-right-on-rectangle" />
+            @endguest
+        </x-menu>
     </div>
 </nav>

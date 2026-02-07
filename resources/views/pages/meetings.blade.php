@@ -1,11 +1,11 @@
 <x-app-layout title="Meetings – Offizieller MADDRAX Fanclub e. V." description="Übersicht regelmäßiger AG-Termine und Stammtische.">
-    <div class="pb-8 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
-            <h1 class="text-2xl font-semibold text-[#8B0116] dark:text-[#ff4b63] mb-6">Meetings</h1>
+    <x-member-page class="max-w-4xl">
+        <x-header title="Meetings" />
 
+        <x-card shadow>
             <ul class="space-y-6">
                 @foreach($meetings as $meeting)
-                    <li class="border border-gray-300 dark:border-gray-600 rounded-md p-4">
+                    <li class="border border-base-content/10 rounded-md p-4">
                         <h2 class="text-xl font-bold">{{ $meeting['name'] }}</h2>
                         <p>
                             <strong>Wann:</strong>
@@ -20,12 +20,12 @@
                             <form method="POST" action="{{ route('meetings.redirect') }}">
                                 @csrf
                                 <input type="hidden" name="meeting" value="maddraxikon">
-                                <x-button type="submit">Zoom-Meeting betreten</x-button>
+                                <x-button type="submit" label="Zoom-Meeting betreten" icon="o-video-camera" class="btn-primary btn-sm" />
                             </form>
                         </div>
                     </li>
                 @endforeach
             </ul>
-        </div>
-    </div>
+        </x-card>
+    </x-member-page>
 </x-app-layout>

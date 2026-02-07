@@ -1,20 +1,20 @@
-<div class="py-12">
-    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+<div>
+    <x-member-page class="max-w-3xl">
         @if ($statusMessage || ! $canVote)
-            <div id="poll-status-message" class="mb-6 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 px-4 py-3 rounded" role="status" aria-live="polite" aria-label="Statusmeldung zur Umfrage">
+            <x-alert icon="o-information-circle" class="alert-info mb-6" role="status" aria-live="polite" aria-label="Statusmeldung zur Umfrage">
                 {{ $statusMessage ?? 'Abstimmung aktuell nicht möglich.' }}
-            </div>
+            </x-alert>
         @endif
 
         @if (! $this->poll)
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-                <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Umfrage</h1>
-                <p class="mt-2 text-gray-600 dark:text-gray-400">Aktuell ist keine Umfrage aktiv.</p>
-            </div>
+            <x-card shadow>
+                <x-header title="Umfrage" size="text-2xl" />
+                <p class="text-base-content/60">Aktuell ist keine Umfrage aktiv.</p>
+            </x-card>
         @else
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-                <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ $this->poll->question }}</h1>
-                <p class="mt-2 text-gray-600 dark:text-gray-400">
+            <x-card shadow>
+                <x-header title="{{ $this->poll->question }}" size="text-2xl" />
+                <p class="text-base-content/60">
                     @if ($this->poll->visibility->value === 'internal')
                         Diese Umfrage richtet sich an Vereinsmitglieder.
                     @else
@@ -23,14 +23,14 @@
                 </p>
 
                 @if ($errors->any())
-                    <div class="mt-6 bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-700 text-red-800 dark:text-red-200 px-4 py-3 rounded" role="alert" aria-live="assertive">
+                    <x-alert icon="o-exclamation-triangle" class="alert-error mt-6" role="alert" aria-live="assertive">
                         <p class="font-semibold">Bitte korrigiere Folgendes:</p>
                         <ul class="list-disc pl-5">
                             @foreach ($errors->all() as $error)
                                 <li>{{ $error }}</li>
                             @endforeach
                         </ul>
-                    </div>
+                    </x-alert>
                 @endif
 
                 <form class="mt-6" wire:submit.prevent="submit">
@@ -38,11 +38,11 @@
                         <legend class="sr-only">Antwort auswählen</legend>
 
                         @foreach ($this->poll->options as $option)
-                            <label class="block rounded-lg border border-gray-200 dark:border-gray-700 p-4 hover:bg-gray-50 dark:hover:bg-gray-900 focus-within:ring-2 focus-within:ring-indigo-500">
+                            <label class="block rounded-lg border border-base-content/10 p-4 hover:bg-base-200 focus-within:ring-2 focus-within:ring-primary cursor-pointer">
                                 <div class="flex items-start gap-3">
                                     <input
                                         type="radio"
-                                        class="mt-1"
+                                        class="radio radio-primary mt-1"
                                         name="poll-option"
                                         wire:model="selectedOptionId"
                                         value="{{ $option->id }}"
@@ -51,16 +51,16 @@
                                     />
 
                                     <div class="flex-1">
-                                        <div class="font-semibold text-gray-900 dark:text-gray-100">{{ $option->label }}</div>
+                                        <div class="font-semibold">{{ $option->label }}</div>
 
                                         <div id="option-{{ $option->id }}-desc" class="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-2">
                                             @if ($option->image_url)
-                                                <img src="{{ $option->image_url }}" alt="{{ $option->label }}" class="rounded-md border border-gray-200 dark:border-gray-700 w-full max-h-48 object-contain" loading="lazy" decoding="async" />
+                                                <img src="{{ $option->image_url }}" alt="{{ $option->label }}" class="rounded-md border border-base-content/10 w-full max-h-48 object-contain" loading="lazy" decoding="async" />
                                             @endif
 
                                             @if ($option->link_url)
                                                 <div>
-                                                    <a href="{{ $option->link_url }}" target="_blank" rel="noopener" class="inline-flex items-center text-indigo-600 dark:text-indigo-400 hover:underline">
+                                                    <a href="{{ $option->link_url }}" target="_blank" rel="noopener" class="inline-flex items-center text-primary hover:underline">
                                                         Mehr Infos
                                                     </a>
                                                 </div>
@@ -73,16 +73,10 @@
                     </fieldset>
 
                     <div class="mt-6 flex items-center gap-3">
-                        <button
-                            type="submit"
-                            class="inline-flex items-center px-4 py-2 rounded-md bg-indigo-600 text-white hover:bg-indigo-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:opacity-60"
-                            @disabled(! $canVote)
-                        >
-                            Stimme abgeben
-                        </button>
+                        <x-button type="submit" label="Stimme abgeben" icon="o-check" class="btn-primary" :disabled="! $canVote" />
 
                         @if (! $canVote)
-                            <span class="text-sm text-gray-600 dark:text-gray-400">
+                            <span class="text-sm text-base-content/60">
                                 @if ($hasVoted)
                                     Abstimmung abgeschlossen.
                                 @else
@@ -92,7 +86,7 @@
                         @endif
                     </div>
                 </form>
-            </div>
+            </x-card>
         @endif
-    </div>
+    </x-member-page>
 </div>
