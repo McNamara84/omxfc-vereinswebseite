@@ -38,23 +38,20 @@
 
 <body class="font-sans antialiased">
     <x-banner />
-    <div class="min-h-screen text-gray-900 dark:text-gray-100 xl:pt-24 bg-base-200">
+    <div class="min-h-screen bg-base-200 xl:pt-24">
         @livewire('navigation-menu')
-        <!-- Page Heading -->
-        @if (isset($header))
-            <header class="bg-white dark:bg-gray-800 shadow">
-                <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-                    {{ $header }}
-                </div>
-            </header>
-        @endif
-        <!-- Page Content -->
-        <main class="text-gray-900 dark:text-gray-100">
-            {{ $slot }}
-        </main>
+
+        {{-- maryUI Main-Layout --}}
+        <x-main full-width>
+            <x-slot:content>
+                {{ $slot }}
+            </x-slot:content>
+        </x-main>
     </div>
-    <!-- Footer hier einfügen -->
+
+    <!-- Footer -->
     <x-footer />
+
     @stack('modals')
     @stack('scripts')
 
