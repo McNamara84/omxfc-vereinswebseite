@@ -10,7 +10,9 @@
             <form action="{{ route('arbeitsgruppen.update', $team) }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 @method('PUT')
-                @php($isAdmin = Auth::user()->hasRole(\App\Enums\Role::Admin))
+                @php
+                    $isAdmin = Auth::user()->hasRole(\App\Enums\Role::Admin);
+                @endphp
 
                 <div class="space-y-4">
                     <x-input
