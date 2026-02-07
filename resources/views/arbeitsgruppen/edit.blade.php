@@ -1,116 +1,128 @@
 <x-app-layout>
     <x-member-page class="max-w-3xl">
-        <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
-            <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-6">AG bearbeiten</h2>
+        <x-header title="AG bearbeiten" separator>
+            <x-slot:actions>
+                <x-button label="Zurück" icon="o-arrow-left" link="{{ route('arbeitsgruppen.index') }}" class="btn-ghost" />
+            </x-slot:actions>
+        </x-header>
 
+        <x-card>
             <form action="{{ route('arbeitsgruppen.update', $team) }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 @method('PUT')
                 @php($isAdmin = Auth::user()->hasRole(\App\Enums\Role::Admin))
 
-                <div class="mb-4">
-                    <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Name der AG</label>
-                    <input type="text" @if($isAdmin) name="name" @endif id="name" value="{{ old('name', $team->name) }}" @unless($isAdmin) disabled @endunless required class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50 {{ !$isAdmin ? 'bg-gray-100 dark:bg-gray-600' : '' }}">
+                <div class="space-y-4">
+                    <x-input
+                        name="{{ $isAdmin ? 'name' : '' }}"
+                        label="Name der AG"
+                        value="{{ old('name', $team->name) }}"
+                        required
+                        :disabled="!$isAdmin"
+                    />
                     @unless($isAdmin)
                         <input type="hidden" name="name" value="{{ old('name', $team->name) }}">
                     @endunless
-                    @error('name')
-                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                    @enderror
+
+                    @php
+                        $userOptions = $users->map(fn($u) => ['id' => $u->id, 'name' => $u->name])->toArray();
+                    @endphp
+                    @if($isAdmin)
+                        <x-select
+                            name="leader_id"
+                            label="AG-Leiter"
+                            :options="$userOptions"
+                            :value="old('leader_id', $team->user_id)"
+                            required
+                        />
+                    @else
+                        <div>
+                            <label class="label label-text">AG-Leiter</label>
+                            <select disabled class="select select-bordered w-full opacity-60">
+                                @foreach($users as $member)
+                                    <option value="{{ $member->id }}" {{ old('leader_id', $team->user_id) == $member->id ? 'selected' : '' }}>{{ $member->name }}</option>
+                                @endforeach
+                            </select>
+                            <input type="hidden" name="leader_id" value="{{ old('leader_id', $team->user_id) }}">
+                        </div>
+                    @endif
+
+                    <x-textarea
+                        name="description"
+                        label="Beschreibung"
+                        rows="3"
+                    >{{ old('description', $team->description) }}</x-textarea>
+
+                    <x-input
+                        name="email"
+                        label="E-Mail-Adresse"
+                        type="email"
+                        value="{{ old('email', $team->email) }}"
+                    />
+
+                    <x-input
+                        name="meeting_schedule"
+                        label="Wiederkehrender Termin"
+                        value="{{ old('meeting_schedule', $team->meeting_schedule) }}"
+                    />
+
+                    <div>
+                        <label for="logo" class="label label-text">Logo</label>
+                        <input type="file" name="logo" id="logo" accept="image/*" class="file-input file-input-bordered w-full">
+                        @error('logo')
+                            <p class="mt-1 text-sm text-error">{{ $message }}</p>
+                        @enderror
+                    </div>
                 </div>
 
-                <div class="mb-4">
-                    <label for="leader_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">AG-Leiter</label>
-                    <select @if($isAdmin) name="leader_id" @endif id="leader_id" @unless($isAdmin) disabled @endunless required class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50 {{ !$isAdmin ? 'bg-gray-100 dark:bg-gray-600' : '' }}">
-                        @foreach($users as $member)
-                            <option value="{{ $member->id }}" {{ old('leader_id', $team->user_id) == $member->id ? 'selected' : '' }}>{{ $member->name }}</option>
-                        @endforeach
-                    </select>
-                    @unless($isAdmin)
-                        <input type="hidden" name="leader_id" value="{{ old('leader_id', $team->user_id) }}">
-                    @endunless
-                    @error('leader_id')
-                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <div class="mb-4">
-                    <label for="description" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Beschreibung</label>
-                    <textarea name="description" id="description" rows="3" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">{{ old('description', $team->description) }}</textarea>
-                    @error('description')
-                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <div class="mb-4">
-                    <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">E-Mail-Adresse</label>
-                    <input type="email" name="email" id="email" value="{{ old('email', $team->email) }}" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
-                    @error('email')
-                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <div class="mb-4">
-                    <label for="meeting_schedule" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Wiederkehrender Termin</label>
-                    <input type="text" name="meeting_schedule" id="meeting_schedule" value="{{ old('meeting_schedule', $team->meeting_schedule) }}" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
-                    @error('meeting_schedule')
-                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <div class="mb-6">
-                    <label for="logo" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Logo</label>
-                    <input type="file" name="logo" id="logo" accept="image/*" class="w-full px-3 py-2 rounded-md shadow-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:border-[#8B0116] dark:focus:border-[#ff4b63] focus:ring-2 focus:ring-offset-2 focus:ring-[#8B0116] dark:focus:ring-[#ff4b63] focus:ring-offset-white dark:focus:ring-offset-gray-900">
-                    @error('logo')
-                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <div class="flex justify-end">
-                    <a href="{{ route('arbeitsgruppen.index') }}" class="mr-3 inline-flex items-center px-4 py-2 bg-gray-300 dark:bg-gray-600 border border-transparent rounded-md font-semibold text-gray-800 dark:text-white hover:bg-gray-400 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">Abbrechen</a>
-                    <button type="submit" class="inline-flex items-center px-4 py-2 bg-[#8B0116] dark:bg-[#C41E3A] border border-transparent rounded-md font-semibold text-white hover:bg-[#A50019] dark:hover:bg-[#D63A4D] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#8B0116] dark:focus:ring-[#FF6B81]">Speichern</button>
+                <div class="flex justify-end gap-3 mt-6">
+                    <x-button label="Abbrechen" link="{{ route('arbeitsgruppen.index') }}" class="btn-ghost" />
+                    <x-button label="Speichern" type="submit" class="btn-primary" icon="o-check" />
                 </div>
             </form>
 
-            <div class="mt-6">
-                <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2">Mitglieder</h3>
-                <div class="overflow-x-auto mb-4">
-                    <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            {{-- Mitglieder-Tabelle --}}
+            <div class="mt-8">
+                <h3 class="text-lg font-semibold text-base-content mb-2">Mitglieder</h3>
+                <x-card>
+                    <table class="table">
                         <thead>
                             <tr>
-                                <th class="px-4 py-2 text-left text-gray-800 dark:text-gray-200">Name</th>
-                                <th class="px-4 py-2 text-left text-gray-800 dark:text-gray-200">Rolle</th>
+                                <th>Name</th>
+                                <th>Rolle</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                        <tbody>
                             @foreach($team->users as $member)
                                 <tr>
-                                    <td class="px-4 py-2 text-gray-700 dark:text-gray-300">{{ $member->name }}</td>
-                                    <td class="px-4 py-2 text-gray-700 dark:text-gray-300">
-                                        {{ $member->id === $team->user_id ? 'AG-Leiter' : 'Mitwirkender' }}
-                                    </td>
+                                    <td>{{ $member->name }}</td>
+                                    <td>{{ $member->id === $team->user_id ? 'AG-Leiter' : 'Mitwirkender' }}</td>
                                 </tr>
                             @endforeach
                         </tbody>
                     </table>
-                </div>
+                </x-card>
 
                 @can('addTeamMember', $team)
-                    <form action="{{ route('arbeitsgruppen.add-member', $team) }}" method="POST" class="flex flex-col sm:flex-row sm:items-center gap-2">
+                    <form action="{{ route('arbeitsgruppen.add-member', $team) }}" method="POST" class="flex flex-col sm:flex-row sm:items-center gap-2 mt-4">
                         @csrf
-                        <select name="user_id" required class="flex-1 rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
-                            <option value="" disabled selected>Mitglied auswählen</option>
-                            @foreach($availableMembers as $member)
-                                <option value="{{ $member->id }}">{{ $member->name }}</option>
-                            @endforeach
-                        </select>
-                        <button type="submit" class="inline-flex items-center px-4 py-2 bg-[#8B0116] dark:bg-[#C41E3A] border border-transparent rounded-md font-semibold text-white hover:bg-[#A50019] dark:hover:bg-[#D63A4D] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#8B0116] dark:focus:ring-[#FF6B81]">Hinzufügen</button>
+                        @php
+                            $availableMemberOptions = $availableMembers->map(fn($u) => ['id' => $u->id, 'name' => $u->name])->toArray();
+                        @endphp
+                        <x-select
+                            name="user_id"
+                            :options="$availableMemberOptions"
+                            placeholder="Mitglied auswählen"
+                            required
+                            class="flex-1"
+                        />
+                        <x-button label="Hinzufügen" type="submit" class="btn-primary" icon="o-plus" />
                     </form>
                     @error('user_id', 'addTeamMember')
-                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                        <p class="mt-1 text-sm text-error">{{ $message }}</p>
                     @enderror
                 @endcan
             </div>
-        </div>
+        </x-card>
     </x-member-page>
 </x-app-layout>

@@ -1,69 +1,68 @@
 <x-app-layout>
     <x-member-page class="max-w-3xl">
-        <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
-            <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-6">Neue AG</h2>
+        <x-header title="Neue AG" separator>
+            <x-slot:actions>
+                <x-button label="Zurück" icon="o-arrow-left" link="{{ route('dashboard') }}" class="btn-ghost" />
+            </x-slot:actions>
+        </x-header>
 
+        <x-card>
             <form action="{{ route('arbeitsgruppen.store') }}" method="POST" enctype="multipart/form-data">
                 @csrf
 
-                <div class="mb-4">
-                    <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Name der AG</label>
-                    <input type="text" name="name" id="name" value="{{ old('name') }}" required class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
-                    @error('name')
-                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                    @enderror
+                <div class="space-y-4">
+                    <x-input
+                        name="name"
+                        label="Name der AG"
+                        value="{{ old('name') }}"
+                        required
+                    />
+
+                    @php
+                        $userOptions = $users->map(fn($u) => ['id' => $u->id, 'name' => $u->name])->toArray();
+                    @endphp
+                    <x-select
+                        name="leader_id"
+                        label="AG-Leiter"
+                        :options="$userOptions"
+                        placeholder="-- Mitglied wählen --"
+                        :value="old('leader_id')"
+                        required
+                    />
+
+                    <x-textarea
+                        name="description"
+                        label="Beschreibung"
+                        rows="3"
+                    >{{ old('description') }}</x-textarea>
+
+                    <x-input
+                        name="email"
+                        label="E-Mail-Adresse"
+                        type="email"
+                        value="{{ old('email') }}"
+                    />
+
+                    <x-input
+                        name="meeting_schedule"
+                        label="Wiederkehrender Termin"
+                        value="{{ old('meeting_schedule') }}"
+                    />
+
+                    <div>
+                        <label for="logo" class="label label-text">Logo</label>
+                        <input type="file" name="logo" id="logo" accept="image/*" class="file-input file-input-bordered w-full">
+                        @error('logo')
+                            <p class="mt-1 text-sm text-error">{{ $message }}</p>
+                        @enderror
+                    </div>
                 </div>
 
-                <div class="mb-4">
-                    <label for="leader_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">AG-Leiter</label>
-                    <select name="leader_id" id="leader_id" required class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
-                        <option value="">-- Mitglied wählen --</option>
-                        @foreach($users as $member)
-                            <option value="{{ $member->id }}" {{ old('leader_id') == $member->id ? 'selected' : '' }}>{{ $member->name }}</option>
-                        @endforeach
-                    </select>
-                    @error('leader_id')
-                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <div class="mb-4">
-                    <label for="description" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Beschreibung</label>
-                    <textarea name="description" id="description" rows="3" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">{{ old('description') }}</textarea>
-                    @error('description')
-                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <div class="mb-4">
-                    <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">E-Mail-Adresse</label>
-                    <input type="email" name="email" id="email" value="{{ old('email') }}" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
-                    @error('email')
-                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <div class="mb-4">
-                    <label for="meeting_schedule" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Wiederkehrender Termin</label>
-                    <input type="text" name="meeting_schedule" id="meeting_schedule" value="{{ old('meeting_schedule') }}" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
-                    @error('meeting_schedule')
-                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <div class="mb-6">
-                    <label for="logo" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Logo</label>
-                    <input type="file" name="logo" id="logo" accept="image/*" class="w-full px-3 py-2 rounded-md shadow-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:outline-none focus:border-[#8B0116] dark:focus:border-[#ff4b63] focus:ring-2 focus:ring-offset-2 focus:ring-[#8B0116] dark:focus:ring-[#ff4b63] focus:ring-offset-white dark:focus:ring-offset-gray-900">
-                    @error('logo')
-                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <div class="flex justify-end">
-                    <a href="{{ route('dashboard') }}" class="mr-3 inline-flex items-center px-4 py-2 bg-gray-300 dark:bg-gray-600 border border-transparent rounded-md font-semibold text-gray-800 dark:text-white hover:bg-gray-400 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">Abbrechen</a>
-                    <button type="submit" class="inline-flex items-center px-4 py-2 bg-[#8B0116] dark:bg-[#C41E3A] border border-transparent rounded-md font-semibold text-white hover:bg-[#A50019] dark:hover:bg-[#D63A4D] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#8B0116] dark:focus:ring-[#FF6B81]">Speichern</button>
+                <div class="flex justify-end gap-3 mt-6">
+                    <x-button label="Abbrechen" link="{{ route('dashboard') }}" class="btn-ghost" />
+                    <x-button label="Speichern" type="submit" class="btn-primary" icon="o-check" />
                 </div>
             </form>
-        </div>
+        </x-card>
     </x-member-page>
 </x-app-layout>

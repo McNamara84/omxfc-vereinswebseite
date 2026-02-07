@@ -1,6 +1,5 @@
-<div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
-    <h1 class="text-2xl font-bold text-[#8B0116] dark:text-[#FF6B81] mb-6">{{ $heading }}</h1>
-
+<x-card>
+    <x-header :title="$heading" separator />
     <form action="{{ $formAction }}" method="POST" enctype="multipart/form-data" id="offer-form">
         @csrf
         @if($formMethod !== 'POST')
@@ -28,22 +27,19 @@
         @endphp
 
         @if(session('error'))
-            <div class="mb-4 p-4 bg-red-100 border border-red-400 text-red-800 dark:bg-red-800 dark:border-red-700 dark:text-red-100 rounded">
-                {{ session('error') }}
-            </div>
+            <x-alert title="Fehler" :description="session('error')" icon="o-x-circle" class="alert-error mb-4" />
         @endif
 
         <div class="grid gap-6 md:grid-cols-2">
-            <div class="md:col-span-1">
-                <div class="mb-4">
-                    <label for="series-select" class="block font-medium text-gray-700 dark:text-gray-200 mb-2">Serie</label>
+            <div class="md:col-span-1 space-y-4">
+                <div>
+                    <label for="series-select" class="label label-text">Serie</label>
                     <select
                         name="series"
                         id="series-select"
                         @class([
-                            'w-full rounded bg-gray-50 dark:bg-gray-700 border text-gray-800 dark:text-gray-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#8B0116] dark:focus-visible:ring-[#FF6B81]',
-                            'border-red-500 focus-visible:ring-red-500 dark:border-red-500' => $seriesError,
-                            'border-gray-300 dark:border-gray-600' => !$seriesError,
+                            'select select-bordered w-full',
+                            'select-error' => $seriesError,
                         ])
                         @if($seriesError)
                             aria-invalid="true"
@@ -55,19 +51,18 @@
                         @endforeach
                     </select>
                     @error('series')
-                        <p id="series-error" class="mt-2 text-sm text-red-600 dark:text-red-400" role="alert">{{ $message }}</p>
+                        <p id="series-error" class="text-sm text-error mt-1" role="alert">{{ $message }}</p>
                     @enderror
                 </div>
 
-                <div class="mb-4">
-                    <label for="book-select" class="block font-medium text-gray-700 dark:text-gray-200 mb-2">Roman</label>
+                <div>
+                    <label for="book-select" class="label label-text">Roman</label>
                     <select
                         name="book_number"
                         id="book-select"
                         @class([
-                            'w-full rounded bg-gray-50 dark:bg-gray-700 border text-gray-800 dark:text-gray-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#8B0116] dark:focus-visible:ring-[#FF6B81]',
-                            'border-red-500 focus-visible:ring-red-500 dark:border-red-500' => $bookNumberError,
-                            'border-gray-300 dark:border-gray-600' => !$bookNumberError,
+                            'select select-bordered w-full',
+                            'select-error' => $bookNumberError,
                         ])
                         @if($bookNumberError)
                             aria-invalid="true"
@@ -85,19 +80,18 @@
                         @endforeach
                     </select>
                     @error('book_number')
-                        <p id="book_number-error" class="mt-2 text-sm text-red-600 dark:text-red-400" role="alert">{{ $message }}</p>
+                        <p id="book_number-error" class="text-sm text-error mt-1" role="alert">{{ $message }}</p>
                     @enderror
                 </div>
 
-                <div class="mb-6">
-                    <label for="condition-select" class="block font-medium text-gray-700 dark:text-gray-200 mb-2">Zustand</label>
+                <div>
+                    <label for="condition-select" class="label label-text">Zustand</label>
                     <select
                         name="condition"
                         id="condition-select"
                         @class([
-                            'w-full rounded bg-gray-50 dark:bg-gray-700 border text-gray-800 dark:text-gray-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#8B0116] dark:focus-visible:ring-[#FF6B81]',
-                            'border-red-500 focus-visible:ring-red-500 dark:border-red-500' => $conditionError,
-                            'border-gray-300 dark:border-gray-600' => !$conditionError,
+                            'select select-bordered w-full',
+                            'select-error' => $conditionError,
                         ])
                         @if($conditionError)
                             aria-invalid="true"
@@ -115,22 +109,22 @@
                         <option value="Z4" @selected($selectedCondition === 'Z4')>Z4 - Sehr schlecht erhalten</option>
                     </select>
                     @error('condition')
-                        <p id="condition-error" class="mt-2 text-sm text-red-600 dark:text-red-400" role="alert">{{ $message }}</p>
+                        <p id="condition-error" class="text-sm text-error mt-1" role="alert">{{ $message }}</p>
                     @enderror
                 </div>
             </div>
 
             <div class="md:col-span-1 space-y-6">
                 @if($displayPhotos->isNotEmpty())
-                    <fieldset class="border border-gray-200 dark:border-gray-600 rounded-lg p-4">
-                        <legend class="text-sm font-semibold text-gray-700 dark:text-gray-200">Vorhandene Fotos</legend>
-                        <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">Markiere Fotos, die du entfernen möchtest. Sie werden beim Speichern gelöscht.</p>
+                    <fieldset class="border border-base-content/10 rounded-lg p-4">
+                        <legend class="text-sm font-semibold text-base-content">Vorhandene Fotos</legend>
+                        <p class="text-sm text-base-content/60 mb-3">Markiere Fotos, die du entfernen möchtest. Sie werden beim Speichern gelöscht.</p>
                         <ul class="grid gap-4 sm:grid-cols-2" aria-live="polite">
                             @foreach($displayPhotos as $index => $photo)
-                                <li class="flex flex-col rounded-lg overflow-hidden border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700">
+                                <li class="flex flex-col rounded-lg overflow-hidden border border-base-content/10 bg-base-200">
                                     <img src="{{ Storage::disk('public')->url($photo['path']) }}" alt="Foto {{ $loop->iteration }} des Angebots" class="h-32 w-full object-cover">
-                                    <label for="remove-photo-{{ $index }}" class="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-200">
-                                        <input type="checkbox" id="remove-photo-{{ $index }}" name="remove_photos[]" value="{{ $photo['path'] }}" @checked($photo['marked_for_removal']) class="rounded border-gray-300 text-[#8B0116] focus:ring-[#8B0116] dark:bg-gray-800 dark:border-gray-500">
+                                    <label for="remove-photo-{{ $index }}" class="flex items-center gap-2 px-3 py-2 text-sm text-base-content">
+                                        <input type="checkbox" id="remove-photo-{{ $index }}" name="remove_photos[]" value="{{ $photo['path'] }}" @checked($photo['marked_for_removal']) class="checkbox checkbox-primary checkbox-sm">
                                         <span>Foto entfernen</span>
                                     </label>
                                 </li>
@@ -140,9 +134,9 @@
                 @endif
 
                 <div>
-                    <label for="photos" data-dropzone-label class="block font-medium text-gray-700 dark:text-gray-200 mb-2">Neue Fotos hochladen</label>
-                    <p id="photos-help" class="text-sm text-gray-600 dark:text-gray-400 mb-2">Du kannst bis zu {{ $maxNewPhotos }} neue Fotos hinzufügen. Insgesamt sind maximal drei Fotos erlaubt.</p>
-                    <p id="photos-size" class="text-xs text-gray-500 dark:text-gray-400 mb-4">Unterstützte Dateiformate: JPG, JPEG, PNG, GIF und WebP. Die maximale Dateigröße beträgt 2&nbsp;MB pro Foto.</p>
+                    <label for="photos" data-dropzone-label class="label label-text">Neue Fotos hochladen</label>
+                    <p id="photos-help" class="text-sm text-base-content/60 mb-2">Du kannst bis zu {{ $maxNewPhotos }} neue Fotos hinzufügen. Insgesamt sind maximal drei Fotos erlaubt.</p>
+                    <p id="photos-size" class="text-xs text-base-content/50 mb-4">Unterstützte Dateiformate: JPG, JPEG, PNG, GIF und WebP. Die maximale Dateigröße beträgt 2&nbsp;MB pro Foto.</p>
 
                     <div
                         data-romantausch-dropzone
@@ -155,10 +149,10 @@
                                 role="button"
                                 tabindex="0"
                                 aria-describedby="photos-help photos-size photos-status{{ $photosErrorMessage ? ' photos-error' : '' }}"
-                                class="relative flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 px-4 py-6 text-center transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8B0116] focus-visible:ring-offset-2 hover:border-[#8B0116] hover:bg-white dark:border-gray-600 dark:bg-gray-700 dark:hover:border-[#FF6B81] dark:hover:bg-gray-800"
+                                class="relative flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-base-content/20 bg-base-200 px-4 py-6 text-center transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 hover:border-primary hover:bg-base-100"
                             >
-                                <span data-dropzone-instruction-text class="font-medium text-gray-700 dark:text-gray-200">Ziehe deine Fotos hierher oder klicke, um sie auszuwählen.</span>
-                                <span class="text-sm text-gray-600 dark:text-gray-300">
+                                <span data-dropzone-instruction-text class="font-medium text-base-content">Ziehe deine Fotos hierher oder klicke, um sie auszuwählen.</span>
+                                <span class="text-sm text-base-content/60">
                                     <span data-dropzone-counter>0</span>
                                     /
                                     <span data-dropzone-max="true">{{ $maxNewPhotos }}</span>
@@ -170,7 +164,7 @@
                             <div
                                 id="photos-status"
                                 data-dropzone-status
-                                class="text-sm text-gray-600 dark:text-gray-300"
+                                class="text-sm text-base-content/60"
                                 aria-live="polite"
                                 role="status"
                             ></div>
@@ -191,9 +185,8 @@
                                 multiple
                                 accept="image/*"
                                 @class([
-                                    'w-full px-3 py-2 rounded bg-gray-50 dark:bg-gray-700 border text-gray-800 dark:text-gray-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#8B0116] dark:focus-visible:ring-[#FF6B81]',
-                                    'border-red-500 focus-visible:ring-red-500 dark:border-red-500' => $photosErrorMessage,
-                                    'border-gray-300 dark:border-gray-600' => !$photosErrorMessage,
+                                    'file-input file-input-bordered w-full',
+                                    'file-input-error' => $photosErrorMessage,
                                 ])
                                 aria-describedby="photos-help photos-size{{ $photosErrorMessage ? ' photos-error' : '' }}"
                                 @if($photosErrorMessage)
@@ -204,21 +197,18 @@
                     </div>
 
                     @if($photosErrorMessage)
-                        <p id="photos-error" class="mt-2 text-sm text-red-600 dark:text-red-400" role="alert">{{ $photosErrorMessage }}</p>
+                        <p id="photos-error" class="text-sm text-error mt-1" role="alert">{{ $photosErrorMessage }}</p>
                     @endif
                 </div>
             </div>
         </div>
 
         <div class="mt-8 flex flex-wrap gap-3">
-            <button type="submit"
-                class="inline-flex items-center px-4 py-2 bg-[#8B0116] dark:bg-[#C41E3A] text-white font-semibold rounded hover:bg-[#A50019] dark:hover:bg-[#D63A4D] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#8B0116] dark:focus-visible:ring-[#FF6B81]">
-                {{ $submitLabel }}
-            </button>
-            <a href="{{ route('romantausch.index') }}" class="inline-flex items-center px-4 py-2 bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-100 font-semibold rounded hover:bg-gray-300 dark:hover:bg-gray-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-gray-400">Abbrechen</a>
+            <x-button :label="$submitLabel" type="submit" class="btn-primary" icon="o-check" />
+            <x-button label="Abbrechen" link="{{ route('romantausch.index') }}" class="btn-ghost" />
         </div>
     </form>
-</div>
+</x-card>
 
 @push('scripts')
     <script>
