@@ -13,7 +13,7 @@
             <div x-data="{ open: @js($filtersApplied) }" class="mb-6">
                 <button type="button" @click="open = !open" class="w-full flex justify-between items-center bg-base-100 shadow-xs rounded-lg p-4">
                     <span class="font-semibold text-base-content" x-text="open ? 'Filter ausblenden' : 'Filter anzeigen'"></span>
-                    <x-icon name="o-chevron-down" class="w-5 h-5 transform transition-transform" :class="{ 'rotate-180': open }" />
+                    <x-icon name="o-chevron-down" class="w-5 h-5 transform transition-transform" x-bind:class="{ 'rotate-180': open }" />
                 </button>
                 <div x-show="open" x-transition class="mt-4">
                     <form method="GET" action="{{ route('reviews.index') }}" class="bg-base-100 shadow-xs rounded-lg p-6">
