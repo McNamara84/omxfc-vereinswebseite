@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Enums\PollVisibility;
 use App\Services\Polls\ActivePollResolver;
+use App\View\Components\Alert;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Config;
@@ -100,5 +101,8 @@ class AppServiceProvider extends ServiceProvider
         });
 
         Blade::if('vorstand', fn () => auth()->check() && auth()->user()->hasVorstandRole());
+
+        // Override maryUI Alert: adds aria-label="Schließen" to dismiss button (WCAG AA)
+        Blade::component('alert', Alert::class);
     }
 }
