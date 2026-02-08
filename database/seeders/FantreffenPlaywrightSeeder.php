@@ -17,7 +17,7 @@ class FantreffenPlaywrightSeeder extends Seeder
             'pseudonym' => 'Ian Rolf Hill',
             'is_active' => true,
             'is_tentative' => false,
-            'sort_order' => 1,
+            'sort_order' => 0,
         ]);
 
         FantreffenVipAuthor::create([
@@ -25,7 +25,7 @@ class FantreffenPlaywrightSeeder extends Seeder
             'pseudonym' => null,
             'is_active' => true,
             'is_tentative' => true,
-            'sort_order' => 5,
+            'sort_order' => 1,
         ]);
     }
 }
