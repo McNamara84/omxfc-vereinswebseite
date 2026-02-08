@@ -32,8 +32,8 @@ test.describe('Fantreffen VIP-Autoren Verwaltung', () => {
         // "Neuen Autor hinzufügen"-Button klicken
         await page.getByRole('button', { name: /Neuen Autor hinzufügen/i }).click();
 
-        // Formular muss sichtbar sein (maryUI <x-card title> rendert als <div>)
-        await expect(page.getByText('Neuen Autor hinzufügen').nth(1)).toBeVisible();
+        // Formular muss sichtbar sein (maryUI <x-card title> rendert als <div>; Button ist jetzt weg)
+        await expect(page.getByText('Neuen Autor hinzufügen').first()).toBeVisible();
 
         // Name eingeben
         const nameInput = page.locator('input[wire\\:model="name"]');
