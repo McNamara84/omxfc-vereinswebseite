@@ -4,9 +4,9 @@
         <h3 class="text-lg font-medium text-base-content">
             @if ($this->enabled)
                 @if ($showingConfirmation)
-                    {{ __('Finish enabling two factor authentication.') }}
+                    {{ __('Zwei-Faktor-Authentifizierung abschließen') }}
                 @else
-                    {{ __('You have enabled two factor authentication.') }}
+                    {{ __('Du hast die Zwei-Faktor-Authentifizierung aktiviert.') }}
                 @endif
             @else
                 {{ __('Du hast die Zwei-Faktor-Authentifizierung nicht aktiviert.') }}
@@ -37,7 +37,7 @@
 
                 <div class="mt-4 max-w-xl text-sm text-base-content">
                     <p class="font-semibold">
-                        {{ __('Setup Key') }}: {{ decrypt($this->user->two_factor_secret) }}
+                        {{ __('Einrichtungsschlüssel') }}: {{ decrypt($this->user->two_factor_secret) }}
                     </p>
                 </div>
 
@@ -55,6 +55,9 @@
                             wire:model="code"
                             wire:keydown.enter="confirmTwoFactorAuthentication"
                         />
+                        @error('code', 'confirmTwoFactorAuthentication')
+                            <p class="text-sm text-error mt-2">{{ $message }}</p>
+                        @enderror
                     </div>
                 @endif
             @endif
@@ -62,7 +65,7 @@
             @if ($showingRecoveryCodes)
                 <div class="mt-4 max-w-xl text-sm text-base-content">
                     <p class="font-semibold">
-                        {{ __('Store these recovery codes in a secure password manager. They can be used to recover access to your account if your two factor authentication device is lost.') }}
+                        {{ __('Speichere diese Wiederherstellungscodes in einem sicheren Passwort-Manager. Sie können verwendet werden, um den Zugang zu deinem Konto wiederherzustellen, falls dein Zwei-Faktor-Authentifizierungsgerät verloren geht.') }}
                     </p>
                 </div>
 

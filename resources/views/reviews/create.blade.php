@@ -1,7 +1,7 @@
 <x-app-layout :title="$title" :description="$description">
     <x-member-page class="max-w-3xl">
         <x-header separator>
-            <x-slot:title>Neue Rezension zu „{{ $book->title }}" (Nr. {{ $book->roman_number }})</x-slot:title>
+            <x-slot:title>Neue Rezension zu „{{ $book->title }}“ (Nr. {{ $book->roman_number }})</x-slot:title>
         </x-header>
 
         <x-alert title="Hinweis" description="Du kannst die Rezensionen zu diesem Roman erst lesen, nachdem du selbst eine verfasst und gespeichert hast." icon="o-exclamation-triangle" class="alert-warning mb-6" />

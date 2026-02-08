@@ -27,7 +27,8 @@
             <x-input type="password" class="mt-1 block w-3/4" placeholder="{{ __('Passwort') }}" autocomplete="current-password"
                         x-ref="confirmable_password"
                         wire:model="confirmablePassword"
-                        wire:keydown.enter="confirmPassword" />
+                        wire:keydown.enter="confirmPassword"
+                        error-field="confirmable_password" />
         </div>
     </x-slot>
 
