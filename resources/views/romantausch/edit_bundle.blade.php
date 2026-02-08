@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-member-page class="max-w-4xl">
-        <x-header title="Stapel-Angebot bearbeiten" separator />
+        <x-header title="Stapel-Angebot bearbeiten" separator useH1 data-testid="page-title" />
 
         <x-card>
             @php

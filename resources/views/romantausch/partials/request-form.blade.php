@@ -1,5 +1,5 @@
 <x-card>
-    <x-header :title="$heading" separator />
+    <x-header :title="$heading" separator useH1 data-testid="page-title" />
     <form action="{{ $formAction }}" method="POST" id="request-form">
         @csrf
         @if($formMethod !== 'POST')

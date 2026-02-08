@@ -16,8 +16,7 @@ test.describe('Mitgliederkarte', () => {
 
         await page.goto('/mitglieder/karte');
 
-        // maryUI x-header rendert title als div, nicht als heading
-        await expect(page.getByText('Mitgliederkarte').first()).toBeVisible();
+        await expect(page.locator('[data-testid="page-title"]')).toContainText('Mitgliederkarte');
         const mapRegion = page.locator('[data-member-map]');
         await expect(mapRegion).toHaveAttribute('role', 'region');
         await expect(mapRegion).toHaveAttribute('aria-label', 'Mitgliederkarte');
@@ -30,10 +29,8 @@ test.describe('Mitgliederkarte', () => {
 
         await page.goto('/mitglieder/karte');
 
-        // maryUI x-header rendert title als div, nicht als heading
-        await expect(page.getByText('Mitgliederkarte').first()).toBeVisible();
-        // maryUI x-alert rendert title als div, nicht als heading
-        await expect(page.getByText('Karte noch nicht verfügbar').first()).toBeVisible();
+        await expect(page.locator('[data-testid="page-title"]')).toContainText('Mitgliederkarte');
+        await expect(page.getByText('Karte noch nicht verfügbar')).toBeVisible();
         await expect(page.getByRole('link', { name: 'Zu den verfügbaren Challenges' })).toBeVisible();
     });
 });

@@ -65,8 +65,7 @@ test.describe('Romantauschbörse - Stapel-Angebote', () => {
             await page.goto('/romantauschboerse/stapel-angebot-erstellen');
 
             await expect(page).toHaveURL(/stapel-angebot-erstellen$/);
-            // maryUI x-header rendert title als div, nicht als heading
-            await expect(page.getByText(/Stapel-Angebot erstellen/i).first()).toBeVisible();
+            await expect(page.locator('[data-testid="page-title"]')).toContainText(/Stapel-Angebot erstellen/i);
         });
 
         test('Formular zeigt Serien-Dropdown und Nummern-Eingabe', async ({ page }) => {
@@ -194,8 +193,7 @@ test.describe('Romantauschbörse - Stapel-Angebote', () => {
 
             // Bearbeiten-Seite sollte laden
             await expect(page).toHaveURL(/stapel\/.*\/bearbeiten$/);
-            // maryUI x-header rendert title als div, nicht als heading
-            await expect(page.getByText(/Stapel-Angebot bearbeiten/i).first()).toBeVisible();
+            await expect(page.locator('[data-testid="page-title"]')).toContainText(/Stapel-Angebot bearbeiten/i);
         });
 
         test('Bearbeiten-Formular zeigt aktuelle Werte', async ({ page }) => {

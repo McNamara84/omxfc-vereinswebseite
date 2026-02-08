@@ -60,6 +60,7 @@
                     name="content"
                     id="content"
                     rows="3"
+                    label="Kommentar"
                     placeholder="Schreibe einen Kommentar..."
                     required
                 >{{ old('content') }}</x-textarea>

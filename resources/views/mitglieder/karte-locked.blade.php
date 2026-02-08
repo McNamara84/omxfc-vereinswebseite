@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-member-page>
-        <x-header title="Mitgliederkarte" />
+        <x-header title="Mitgliederkarte" useH1 data-testid="page-title" />
 
         <x-alert title="Karte noch nicht verfügbar" icon="o-lock-closed" class="alert-warning">
             Die Mitgliederkarte wird freigeschaltet, sobald du mindestens eine Challenge erfolgreich abgeschlossen hast.

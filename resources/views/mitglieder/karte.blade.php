@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-member-page>
         <x-card shadow>
-                <x-header title="Mitgliederkarte" />
+                <x-header title="Mitgliederkarte" useH1 data-testid="page-title" />
 
                 <x-alert class="alert-warning mb-4" icon="o-exclamation-triangle" id="member-map-note" role="note">
                     Aus Datenschutzgründen werden die Standorte der Mitglieder nicht exakt angezeigt.

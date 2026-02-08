@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-member-page class="max-w-4xl">
         <x-card shadow>
-            <x-header title="Angebotsdetails" separator />
+            <x-header title="Angebotsdetails" separator useH1 data-testid="page-title" />
 
             <p class="mb-4">{{ $offer->series }} {{ $offer->book_number }} - {{ $offer->book_title }} ({{ $offer->condition }})</p>
 

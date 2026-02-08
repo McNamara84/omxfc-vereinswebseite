@@ -1,6 +1,6 @@
 <x-app-layout title="Protokolle – Offizieller MADDRAX Fanclub e. V." description="Versammlungsprotokolle als PDF zum Download.">
     <x-member-page class="max-w-4xl">
-        <x-header title="Protokolle" />
+        <x-header title="Protokolle" useH1 data-testid="page-title" />
 
         <x-card shadow>
             <div id="accordion" data-protokolle-accordion>

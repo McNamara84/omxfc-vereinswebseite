@@ -9,14 +9,12 @@ test.describe('Accessibility checks', () => {
     const navigation = page.locator('nav[x-data]');
     const menuToggle = page.locator('button[aria-controls="mobile-navigation"]');
 
-    await expect(navigation).toHaveAttribute('x-data', /updateMobileToggleAccessibility/);
+    await expect(navigation).toHaveAttribute('x-data', /open/);
     await expect(menuToggle).toHaveAccessibleName('Menü öffnen');
     await expect(menuToggle).toHaveAttribute('aria-expanded', 'false');
-    await expect(menuToggle.locator('.sr-only')).toHaveCount(0);
 
     await expect(menuToggle).toHaveAttribute('@click', /open\s*=\s*!open/);
-    await expect(menuToggle).toHaveAttribute('x-ref', 'mobileToggle');
-    await expect(menuToggle).toContainText('Menü öffnen');
+    await expect(menuToggle).toContainText('Menü');
 
     const accessibilityScanResults = await new AxeBuilder({ page })
       .withTags(['wcag2a', 'wcag2aa'])

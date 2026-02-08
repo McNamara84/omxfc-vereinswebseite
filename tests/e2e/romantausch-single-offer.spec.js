@@ -39,8 +39,7 @@ test.describe('Romantauschbörse - Einzelangebote', () => {
             await page.goto('/romantauschboerse/angebot-erstellen');
 
             await expect(page).toHaveURL(/angebot-erstellen$/);
-            // maryUI x-header rendert title als div, nicht als heading
-            await expect(page.getByText(/Neues Angebot erstellen/i).first()).toBeVisible();
+            await expect(page.locator('[data-testid="page-title"]')).toContainText(/Neues Angebot erstellen/i);
         });
 
         test('Formular zeigt alle erforderlichen Felder', async ({ page }) => {
@@ -140,8 +139,7 @@ test.describe('Romantauschbörse - Einzelangebote', () => {
             await expect(page.locator('#request-form')).toBeVisible();
             
             // Die Überschrift lautet "Neues Gesuch erstellen" (aus dem Partial)
-            // maryUI x-header rendert title als div, nicht als heading
-            await expect(page.getByText(/Gesuch/i).first()).toBeVisible();
+            await expect(page.locator('[data-testid="page-title"]')).toContainText(/Gesuch/i);
         });
 
         test('Erfolgreiches Erstellen eines Gesuchs', async ({ page }) => {
@@ -227,8 +225,7 @@ test.describe('Romantauschbörse - Einzelangebote', () => {
             // Bearbeiten-Seite sollte laden
             await expect(page).toHaveURL(/angebot\/\d+\/bearbeiten$/);
             // Die Überschrift beim Bearbeiten lautet "Angebot bearbeiten" (aus dem Partial)
-            // maryUI x-header rendert title als div, nicht als heading
-            await expect(page.getByText(/Angebot bearbeiten/i).first()).toBeVisible();
+            await expect(page.locator('[data-testid="page-title"]')).toContainText(/Angebot bearbeiten/i);
         });
     });
 

@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-member-page>
-        <x-header title="Fanfiction" separator>
+        <x-header title="Fanfiction" separator useH1 data-testid="page-title">
             <x-slot:subtitle>
                 Hier findest du Kurzgeschichten und Fanfiction aus dem MADDRAX-Universum, geschrieben von
                 unseren Mitgliedern und Gastautoren.

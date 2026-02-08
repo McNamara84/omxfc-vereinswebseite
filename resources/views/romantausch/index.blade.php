@@ -1,13 +1,14 @@
 <x-app-layout>
     <x-member-page>
         @if(session('success'))
-            <x-alert class="alert-success mb-4" icon="o-check-circle" dismissible>
+            <x-alert class="alert-success mb-4" icon="o-check-circle" dismissible
+                     role="alert" data-testid="flash-success">
                 {{ session('success') }}
             </x-alert>
         @endif
         <!-- Kopfzeile -->
         <x-card shadow class="mb-6">
-            <x-header title="Romantauschbörse" />
+            <x-header title="Romantauschbörse" useH1 data-testid="page-title" />
             <p class="mt-4 text-sm text-base-content/60">
                 Für jedes <strong>zehnte</strong> eingestellte Angebot erhältst du automatisch
                 <strong>1 Bakk</strong>. Bestätigen beide Parteien einen Tausch, bekommt ihr

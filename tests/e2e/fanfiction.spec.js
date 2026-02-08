@@ -198,8 +198,7 @@ test.describe('Fanfiction Übersicht für Mitglieder (Issue #495 & #496)', () =>
         await page.goto('/fanfiction');
 
         await expect(page).toHaveURL(/\/fanfiction$/);
-        // maryUI x-header rendert title als div, nicht als heading
-        await expect(page.getByText('Fanfiction', { exact: true }).first()).toBeVisible();
+        await expect(page.locator('[data-testid="page-title"]')).toContainText('Fanfiction');
     });
 
     test('Übersicht zeigt veröffentlichte Geschichten', async ({ page }) => {

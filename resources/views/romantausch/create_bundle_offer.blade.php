@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-member-page class="max-w-4xl">
-        <x-header title="Stapel-Angebot erstellen" separator />
+        <x-header title="Stapel-Angebot erstellen" separator useH1 data-testid="page-title" />
 
         <x-card>
             <p class="text-base-content/60 mb-6">
