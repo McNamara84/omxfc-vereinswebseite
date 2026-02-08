@@ -1,5 +1,5 @@
 <div>
-    <x-header title="{{ __('Mitgliedschaft kündigen') }}" subtitle="{{ __('Dies beendet automatisch deine Mitglieschaft im OMXFC e. V. und löscht auch deinen Account für den internen Mitgliederbereich.') }}" size="text-lg" class="!mb-4" />
+    <x-header title="{{ __('Mitgliedschaft kündigen') }}" subtitle="{{ __('Dies beendet automatisch deine Mitgliedschaft im OMXFC e. V. und löscht auch deinen Account für den internen Mitgliederbereich.') }}" size="text-lg" class="!mb-4" />
 
     <div class="max-w-xl text-sm text-base-content">
         {{ __('Wenn du deine Mitgliedschaft kündigst, werden sämtliche Daten von dir aus dem System gelöscht. Du hast dann keinen Zugang mehr zum internen Mitgliederbereich. Informationen, die du behalten möchtest, solltest du vorher sichern.') }}

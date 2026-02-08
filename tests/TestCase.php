@@ -72,7 +72,7 @@ abstract class TestCase extends BaseTestCase
         // Alle Error-Handler entfernen, PHPUnits ErrorHandler merken
         $phpunitHandler = null;
         while (true) {
-            $handler = set_error_handler(static fn () => false);
+            $handler = set_error_handler(static fn (int $errno, string $errstr, string $errfile = '', int $errline = 0): bool => false);
             restore_error_handler();
             if ($handler === null) {
                 break;

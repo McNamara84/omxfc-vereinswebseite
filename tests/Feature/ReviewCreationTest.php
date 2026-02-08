@@ -131,7 +131,7 @@ class ReviewCreationTest extends TestCase
         ])->assertForbidden();
     }
 
-    public function test_create_review_form_has_accessibility_attributes(): void
+    public function test_create_review_form_has_accessible_labels_and_structure(): void
     {
         $book = Book::create([
             'roman_number' => 99,
@@ -144,7 +144,9 @@ class ReviewCreationTest extends TestCase
 
         $response = $this->get("/rezensionen/{$book->id}/erstellen");
 
-        // maryUI <x-input> and <x-textarea> render label + error handling internally
+        // maryUI <x-input> renders <fieldset> + <legend> as accessible label
+        $response->assertSee('<fieldset', false);
+        $response->assertSee('fieldset-legend', false);
         $response->assertSee('Rezensionstitel', false);
         $response->assertSee('Rezensionstext', false);
         // content textarea has hint text
