@@ -10,9 +10,9 @@
         @if ($fanfictions->isEmpty())
             <x-card shadow>
                 <div class="text-center py-12">
-                    <x-icon name="o-book-open" class="mx-auto h-12 w-12 text-base-content/40" />
+                    <x-icon name="o-book-open" class="mx-auto h-12 w-12 text-base-content" />
                     <h3 class="mt-2 text-sm font-medium">Noch keine Fanfiction</h3>
-                    <p class="mt-1 text-sm text-base-content/60">
+                    <p class="mt-1 text-sm text-base-content">
                         Es wurden noch keine Geschichten veröffentlicht.
                     </p>
                 </div>
@@ -28,7 +28,7 @@
                                     {{ $fanfiction->title }}
                                 </a>
                             </h3>
-                            <p class="text-sm text-base-content/60">
+                            <p class="text-sm text-base-content">
                                 von <span class="font-medium">{{ $fanfiction->author_display_name }}</span>
                                 @if ($fanfiction->published_at)
                                     • {{ $fanfiction->published_at->format('d.m.Y') }}
@@ -86,7 +86,7 @@
                                 </template>
                             </x-button>
 
-                            <div class="flex items-center gap-4 text-sm text-base-content/60">
+                            <div class="flex items-center gap-4 text-sm text-base-content">
                                 <span class="flex items-center gap-1" data-comment-count>
                                     <x-icon name="o-chat-bubble-left-ellipsis" class="w-4 h-4" />
                                     {{ $fanfiction->comments_count ?? $fanfiction->comments->count() }}
@@ -108,7 +108,7 @@
                             </h4>
 
                             @if ($fanfiction->comments->isEmpty())
-                                <p class="text-sm text-base-content/60">
+                                <p class="text-sm text-base-content">
                                     Noch keine Kommentare.
                                     <a href="{{ route('fanfiction.show', $fanfiction) }}" class="text-primary hover:underline">
                                         Sei der Erste!
@@ -122,11 +122,11 @@
                                             <div class="flex-grow min-w-0">
                                                 <p class="font-medium">
                                                     {{ $comment->user?->name ?? 'Unbekannt' }}
-                                                    <span class="font-normal text-base-content/60">
+                                                    <span class="font-normal text-base-content">
                                                         • {{ $comment->created_at->diffForHumans() }}
                                                     </span>
                                                 </p>
-                                                <p class="text-base-content/80 truncate">{{ $comment->content }}</p>
+                                                <p class="text-base-content truncate">{{ $comment->content }}</p>
                                             </div>
                                         </div>
                                     @endforeach

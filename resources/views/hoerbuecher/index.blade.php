@@ -15,21 +15,21 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div id="card-unfilled-roles" data-unfilled-roles="{{ $totalUnfilledRoles }}" class="p-4 border border-base-content/10 rounded cursor-pointer text-center hover:bg-base-200">
                     <div class="text-3xl font-bold text-base-content">{{ $totalUnfilledRoles }}</div>
-                    <div class="text-base-content/60">Unbesetzte Rollen</div>
+                    <div class="text-base-content">Unbesetzte Rollen</div>
                 </div>
                 <div id="card-next-event" data-episode-id="{{ $nextEpisode?->id }}" data-days-left="{{ $daysUntilNextEvt }}" class="p-4 border border-base-content/10 rounded cursor-pointer text-center hover:bg-base-200">
                     @if($nextEpisode)
                         <div class="text-3xl font-bold text-base-content">{{ $daysUntilNextEvt }}</div>
-                        <div class="text-base-content/60">
+                        <div class="text-base-content">
                             Tage bis {{ $nextEpisode->title }} veröffentlicht wird ({{ $nextEpisode->planned_release_date_parsed->format('d.m.Y') }})
                         </div>
                     @else
-                        <div class="text-base-content/60">Kein Termin</div>
+                        <div class="text-base-content">Kein Termin</div>
                     @endif
                 </div>
                 <div id="card-open-episodes" data-open-episodes="{{ $episodesWithUnassignedRoles }}" class="p-4 border border-base-content/10 rounded cursor-pointer text-center hover:bg-base-200">
                     <div class="text-3xl font-bold text-base-content">{{ $episodesWithUnassignedRoles }}</div>
-                    <div class="text-base-content/60">Folgen mit offenen Rollen</div>
+                    <div class="text-base-content">Folgen mit offenen Rollen</div>
                 </div>
             </div>
         </x-card>
@@ -162,7 +162,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="px-4 py-2 text-center text-base-content/60">Keine Hörbuchfolgen vorhanden.</td>
+                                <td colspan="6" class="px-4 py-2 text-center text-base-content">Keine Hörbuchfolgen vorhanden.</td>
                             </tr>
                         @endforelse
                     </tbody>

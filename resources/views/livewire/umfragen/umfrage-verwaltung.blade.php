@@ -91,11 +91,11 @@
             {{-- Start/Ende Datum --}}
             <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div>
-                    <label for="startsAt" class="label"><span class="label-text font-medium">Start</span></label>
+                    <label for="startsAt" class="fieldset-legend">Start</label>
                     <input id="startsAt" type="datetime-local" wire:model="startsAt" class="input input-bordered w-full" data-testid="starts-at-input" />
                 </div>
                 <div>
-                    <label for="endsAt" class="label"><span class="label-text font-medium">Ende</span></label>
+                    <label for="endsAt" class="fieldset-legend">Ende</label>
                     <input id="endsAt" type="datetime-local" wire:model="endsAt" class="input input-bordered w-full" data-testid="ends-at-input" />
                 </div>
             </div>
@@ -262,7 +262,7 @@
                 Auswertung aktualisiert. Gesamtstimmen: {{ $totalVotes }}. Mitglieder: {{ (int) ($this->chartData['totals']['members'] ?? 0) }}. Gäste: {{ (int) ($this->chartData['totals']['guests'] ?? 0) }}.
             </div>
 
-            <p class="mt-2 text-xs text-base-content/60">
+            <p class="mt-2 text-xs text-base-content">
                 Hinweis: Die Auswertung ist nur für Admin/Vorstand sichtbar.
             </p>
         @endif

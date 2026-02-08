@@ -14,7 +14,7 @@
                                         reader.readAsDataURL($refs.photo.files[0]);
                                 " />
 
-                <label class="label label-text font-medium">{{ __('Foto') }}</label>
+                <label class="fieldset-legend">{{ __('Foto') }}</label>
 
                 <div class="mt-2" x-show="! photoPreview">
                     <img loading="lazy" src="{{ $this->user->profile_photo_url }}" alt="{{ $this->user->name }}"
@@ -38,7 +38,7 @@
                     @endif
                 </div>
 
-                <p class="mt-2 text-sm text-base-content/70">
+                <p class="mt-2 text-sm text-base-content">
                     {{ __('Erlaubte Dateiformate: jpg, jpeg, png, gif, webp. Max. Größe: 8 MB.') }}
                 </p>
 

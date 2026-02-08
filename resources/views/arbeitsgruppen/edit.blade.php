@@ -39,7 +39,7 @@
                         />
                     @else
                         <div>
-                            <label class="label label-text">AG-Leiter</label>
+                            <label class="fieldset-legend">AG-Leiter</label>
                             <select disabled class="select select-bordered w-full opacity-60">
                                 @foreach($users as $member)
                                     <option value="{{ $member->id }}" {{ old('leader_id', $team->user_id) == $member->id ? 'selected' : '' }}>{{ $member->name }}</option>
@@ -69,7 +69,7 @@
                     />
 
                     <div>
-                        <label for="logo" class="label label-text">Logo</label>
+                        <label for="logo" class="fieldset-legend">Logo</label>
                         <input type="file" name="logo" id="logo" accept="image/*" class="file-input file-input-bordered w-full">
                         @error('logo')
                             <p class="mt-1 text-sm text-error">{{ $message }}</p>

@@ -9,7 +9,7 @@
         <!-- Kopfzeile -->
         <x-card shadow class="mb-6">
             <x-header title="Romantauschbörse" useH1 data-testid="page-title" />
-            <p class="mt-4 text-sm text-base-content/60">
+            <p class="mt-4 text-sm text-base-content">
                 Für jedes <strong>zehnte</strong> eingestellte Angebot erhältst du automatisch
                 <strong>1 Bakk</strong>. Bestätigen beide Parteien einen Tausch, bekommt ihr
                 jeweils <strong>2 Baxx</strong> zusätzlich gutgeschrieben.
@@ -21,7 +21,7 @@
                     <h2 id="swap-process-heading" class="text-xl font-semibold text-primary">
                         {{ $romantauschInfo['title'] }}
                     </h2>
-                    <p class="mt-2 text-sm text-base-content/60 max-w-3xl">
+                    <p class="mt-2 text-sm text-base-content max-w-3xl">
                         {{ $romantauschInfo['intro'] }}
                     </p>
                 </div>
@@ -34,7 +34,7 @@
                             {{ $romantauschInfo['steps']['offer']['title'] }}
                         </h3>
                     </div>
-                    <p class="text-sm text-base-content/60">
+                    <p class="text-sm text-base-content">
                         {{ $romantauschInfo['steps']['offer']['description'] }}
                     </p>
                     <div class="mt-auto">
@@ -52,12 +52,12 @@
                             {{ $romantauschInfo['steps']['request']['title'] }}
                         </h3>
                     </div>
-                    <p class="text-sm text-base-content/60">
+                    <p class="text-sm text-base-content">
                         {{ $romantauschInfo['steps']['request']['description'] }}
                     </p>
                     <div class="mt-auto">
                         <a href="{{ route('romantausch.create-request') }}"
-                           class="inline-flex items-center justify-center rounded-md bg-neutral px-4 py-2 text-sm font-semibold text-primary-content transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-neutral hover:bg-neutral/80"
+                           class="inline-flex items-center justify-center rounded-md bg-neutral px-4 py-2 text-sm font-semibold text-neutral-content transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-neutral hover:bg-neutral/80"
                            aria-label="{{ $romantauschInfo['steps']['request']['cta_aria'] }}">
                             {{ $romantauschInfo['steps']['request']['cta'] }}
                         </a>
@@ -70,7 +70,7 @@
                             {{ $romantauschInfo['steps']['match']['title'] }}
                         </h3>
                     </div>
-                    <p class="text-sm text-base-content/60">
+                    <p class="text-sm text-base-content">
                         {{ $romantauschInfo['steps']['match']['description'] }}
                     </p>
                 </li>
@@ -81,7 +81,7 @@
                             {{ $romantauschInfo['steps']['confirm']['title'] }}
                         </h3>
                     </div>
-                    <p class="text-sm text-base-content/60">
+                    <p class="text-sm text-base-content">
                         {{ $romantauschInfo['steps']['confirm']['description'] }}
                     </p>
                 </li>
@@ -90,14 +90,14 @@
         @if($activeSwaps->isNotEmpty())
             <x-card shadow class="mb-6">
                 <h2 class="text-xl font-semibold text-primary mb-2">Deine Matches</h2>
-                <p class="mb-4 text-base-content/60">Kontaktiert euch gegenseitig über die angezeigten Mailadressen und klickt anschließend auf „Tausch abgeschlossen“. Für jeden abgeschlossenen Tausch gibt es <strong>2 Baxx</strong>!</p>
+                <p class="mb-4 text-base-content">Kontaktiert euch gegenseitig über die angezeigten Mailadressen und klickt anschließend auf „Tausch abgeschlossen“. Für jeden abgeschlossenen Tausch gibt es <strong>2 Baxx</strong>!</p>
                 <ul class="space-y-4">
                     @foreach($activeSwaps as $swap)
                         <li class="bg-base-200 p-3 rounded">
                             <div class="font-semibold mb-1">
                                 <a href="{{ route('romantausch.show-offer', $swap->offer) }}" class="text-primary hover:underline">{{ $swap->offer->series }} {{ $swap->offer->book_number }} - {{ $swap->offer->book_title }}</a>
                             </div>
-                            <div class="text-sm text-base-content/60 mb-2">
+                            <div class="text-sm text-base-content mb-2">
                                 <a href="{{ route('profile.view', $swap->offer->user->id) }}" class="text-primary hover:underline">{{ $swap->offer->user->name }}</a> ({{ $swap->offer->user->email }}) ↔ <a href="{{ route('profile.view', $swap->request->user->id) }}" class="text-primary hover:underline">{{ $swap->request->user->name }}</a> ({{ $swap->request->user->email }})
                             </div>
                             @php $user = auth()->user(); @endphp
@@ -121,10 +121,10 @@
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
                     <div>
                         <h2 class="text-xl font-semibold text-primary">Stapel-Angebote</h2>
-                        <p class="text-sm text-base-content/60 mt-1">Sammlungen mit mehreren Romanen</p>
+                        <p class="text-sm text-base-content mt-1">Sammlungen mit mehreren Romanen</p>
                     </div>
                     <a href="{{ route('romantausch.create-bundle-offer') }}"
-                       class="inline-flex items-center px-4 py-2 bg-neutral border border-transparent rounded-md font-semibold text-primary-content hover:bg-neutral/80">
+                       class="inline-flex items-center px-4 py-2 bg-neutral border border-transparent rounded-md font-semibold text-neutral-content hover:bg-neutral/80">
                         Stapel erstellen
                     </a>
                 </div>
@@ -161,12 +161,12 @@
                                     <div class="flex-1 min-w-0">
                                         <div class="flex flex-wrap items-center gap-2">
                                             <span class="font-semibold text-base-content">{{ $bundle->series }}</span>
-                                            <span class="text-sm text-base-content/60">({{ $bundle->total_count }} Romane)</span>
+                                            <span class="text-sm text-base-content">({{ $bundle->total_count }} Romane)</span>
                                         </div>
-                                        <p class="text-sm text-base-content/60 mt-1 truncate" title="{{ $bundle->book_numbers_display }}">
+                                        <p class="text-sm text-base-content mt-1 truncate" title="{{ $bundle->book_numbers_display }}">
                                             Nummern: {{ Str::limit($bundle->book_numbers_display, 50) }}
                                         </p>
-                                        <div class="text-sm text-base-content/60 mt-1">
+                                        <div class="text-sm text-base-content mt-1">
                                             von <a href="{{ route('profile.view', $bundle->user->id) }}" class="text-primary hover:underline">{{ $bundle->user->name }}</a>
                                             • Zustand: {{ $bundle->condition_range }}
                                         </div>
@@ -185,12 +185,12 @@
                                     <div class="flex items-center gap-2 flex-shrink-0">
                                         @if((int) $bundle->user_id === (int) auth()->id())
                                             <a href="{{ route('romantausch.edit-bundle', $bundle->bundle_id) }}"
-                                                class="px-3 py-1.5 text-sm bg-neutral text-primary-content rounded hover:bg-neutral/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-neutral">
+                                                class="px-3 py-1.5 text-sm bg-neutral text-neutral-content rounded hover:bg-neutral/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-neutral">
                                                 Bearbeiten
                                             </a>
                                         @endif
                                         <button type="button" @click="expanded = !expanded"
-                                            class="px-3 py-1.5 text-sm border border-base-content/20 text-base-content/80  rounded hover:bg-base-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-base-content/30"
+                                            class="px-3 py-1.5 text-sm border border-base-content/20 text-base-content  rounded hover:bg-base-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-base-content/30"
                                             :aria-expanded="expanded.toString()">
                                             <span x-show="!expanded">Details</span>
                                             <span x-show="expanded" x-cloak>Einklappen</span>
@@ -214,7 +214,7 @@
 
                                 {{-- Romanliste --}}
                                 <div class="p-4 max-h-64 overflow-y-auto">
-                                    <p class="text-sm font-medium text-base-content/80 mb-2">Enthaltene Romane:</p>
+                                    <p class="text-sm font-medium text-base-content mb-2">Enthaltene Romane:</p>
                                     <ul class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 text-sm">
                                         @foreach($bundle->offers as $offer)
                                             @php
@@ -223,7 +223,7 @@
                                             <li @class([
                                                 'px-2 py-1.5 rounded flex items-center justify-between gap-2',
                                                 'bg-success/10 text-success' => $isMatch,
-                                                'bg-base-100 text-base-content/80' => !$isMatch,
+                                                'bg-base-100 text-base-content' => !$isMatch,
                                             ])>
                                                 <span class="truncate" title="{{ $offer->book_title }}">
                                                     <strong>{{ $offer->book_number }}</strong> - {{ Str::limit($offer->book_title, 25) }}
@@ -248,7 +248,7 @@
                 <h2 class="text-xl font-semibold text-primary">Einzelne Angebote</h2>
                 <div class="flex gap-2">
                     <a href="{{ route('romantausch.create-bundle-offer') }}"
-                       class="inline-flex items-center px-4 py-2 bg-neutral border border-transparent rounded-md font-semibold text-primary-content hover:bg-neutral/80 text-sm">
+                       class="inline-flex items-center px-4 py-2 bg-neutral border border-transparent rounded-md font-semibold text-neutral-content hover:bg-neutral/80 text-sm">
                         Stapel erstellen
                     </a>
                     <a href="{{ route('romantausch.create-offer') }}"
@@ -258,7 +258,7 @@
                 </div>
             </div>
             @if($offers->isEmpty())
-                <p class="text-base-content/60">Keine Einzelangebote vorhanden.</p>
+                <p class="text-base-content">Keine Einzelangebote vorhanden.</p>
             @else
                 <ul class="space-y-3">
                     @foreach($offers as $offer)
@@ -299,7 +299,7 @@
                                                 </li>
                                             @endforeach
                                         </ul>
-                                        <p class="text-xs text-base-content/60">Zum Vergrößern ein Foto auswählen.</p>
+                                        <p class="text-xs text-base-content">Zum Vergrößern ein Foto auswählen.</p>
                                         <div id="offer-{{ $offer->id }}-dialog-title" class="sr-only">Fotoansicht für {{ $bookDescription }}</div>
                                         <div
                                             class="hidden"
@@ -319,7 +319,7 @@
                                                         <h3 class="text-sm font-semibold text-base-content">{{ $bookDescription }}</h3>
                                                         <button
                                                             type="button"
-                                                            class="inline-flex items-center rounded-md p-2 text-base-content/60 transition hover:text-base-content focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary   "
+                                                            class="inline-flex items-center rounded-md p-2 text-base-content transition hover:text-base-content focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary   "
                                                             data-photo-dialog-close
                                                             data-photo-dialog-initial-focus
                                                             aria-label="Fotoansicht schließen"
@@ -357,7 +357,7 @@
                                                             </svg>
                                                         </button>
                                                     </div>
-                                                    <div class="flex items-center justify-between gap-3 border-t border-base-content/10 bg-base-200 px-4 py-3 text-xs text-base-content/60  ">
+                                                    <div class="flex items-center justify-between gap-3 border-t border-base-content/10 bg-base-200 px-4 py-3 text-xs text-base-content  ">
                                                         <span data-photo-dialog-counter>1 / {{ count($photos) }}</span>
                                                         <span data-photo-dialog-caption>{{ "Foto 1 von {$bookDescription}" }}</span>
                                                     </div>
@@ -375,7 +375,7 @@
                                         </div>
                                     @else
                                         <div
-                                            class="flex h-24 w-24 items-center justify-center rounded-md border border-dashed border-base-content/20 bg-gradient-to-br from-base-200 to-base-300 text-center text-xs font-medium text-base-content/60 shadow-sm   "
+                                            class="flex h-24 w-24 items-center justify-center rounded-md border border-dashed border-base-content/20 bg-gradient-to-br from-base-200 to-base-300 text-center text-xs font-medium text-base-content shadow-sm   "
                                             role="img"
                                             aria-label="Kein Foto vorhanden für {{ $bookDescription }}"
                                         >
@@ -401,8 +401,8 @@
                                                 </span>
                                             @endif
                                         </div>
-                                        <p class="text-sm text-base-content/60">Zustand: {{ $offer->condition }}</p>
-                                        <p class="text-sm text-base-content/60">von <a href="{{ route('profile.view', $offer->user->id) }}" class="text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary ">{{ $offer->user->name }}</a></p>
+                                        <p class="text-sm text-base-content">Zustand: {{ $offer->condition }}</p>
+                                        <p class="text-sm text-base-content">von <a href="{{ route('profile.view', $offer->user->id) }}" class="text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary ">{{ $offer->user->name }}</a></p>
                                     </div>
                                     @if(auth()->id() === $offer->user_id)
                                         <div class="flex flex-wrap items-center gap-2">
@@ -435,12 +435,12 @@
             <div class="flex justify-between items-center mb-4">
                 <h2 class="text-xl font-semibold text-primary">Aktuelle Gesuche</h2>
                 <a href="{{ route('romantausch.create-request') }}"
-                   class="inline-flex items-center px-4 py-2 bg-neutral border border-transparent rounded-md font-semibold text-primary-content hover:bg-neutral/80">
+                   class="inline-flex items-center px-4 py-2 bg-neutral border border-transparent rounded-md font-semibold text-neutral-content hover:bg-neutral/80">
                     Gesuch erstellen
                 </a>
             </div>
             @if($requests->isEmpty())
-                <p class="text-base-content/60">Keine Gesuche vorhanden.</p>
+                <p class="text-base-content">Keine Gesuche vorhanden.</p>
             @else
                 <ul class="space-y-3">
                     @foreach($requests as $request)
@@ -461,7 +461,7 @@
                                     @endif
                                 </div>
                                 <div class="flex flex-wrap items-center gap-3">
-                                    <span class="text-sm text-base-content/60">von <a href="{{ route('profile.view', $request->user->id) }}" class="text-primary hover:underline">{{ $request->user->name }}</a></span>
+                                    <span class="text-sm text-base-content">von <a href="{{ route('profile.view', $request->user->id) }}" class="text-primary hover:underline">{{ $request->user->name }}</a></span>
                                     @if(auth()->id() === $request->user_id)
                                         <div class="flex items-center gap-2">
                                             <a href="{{ route('romantausch.edit-request', $request) }}" class="inline-flex items-center gap-2 rounded px-3 py-1.5 text-sm font-semibold text-primary border border-transparent hover:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary " aria-label="Gesuch bearbeiten: {{ $request->series }} {{ $request->book_number }}">
@@ -492,7 +492,7 @@
         <x-card shadow>
             <h2 class="text-xl font-semibold text-primary mb-4">Erfolgreiche Tauschaktionen</h2>
             @if($completedSwaps->isEmpty())
-                <p class="text-base-content/60">Bisher wurden noch keine Tauschaktionen abgeschlossen.</p>
+                <p class="text-base-content">Bisher wurden noch keine Tauschaktionen abgeschlossen.</p>
             @else
                 <ul class="space-y-3">
                     @foreach($completedSwaps as $swap)

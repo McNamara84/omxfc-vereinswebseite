@@ -48,7 +48,7 @@
         <div class="flex flex-wrap gap-4 items-center">
             <label class="inline-flex items-center">
                 <input type="checkbox" name="filters[]" value="online" @checked(in_array('online', $filters ?? [])) @change="$root.submit()" class="rounded border-base-content/20 text-primary shadow-sm focus:ring-primary">
-                <span class="ml-2 text-base-content/80">Nur online</span>
+                <span class="ml-2 text-base-content">Nur online</span>
             </label>
         </div>
     </form>
@@ -57,7 +57,7 @@
     <div class="mb-6">
         <div x-data="{ showExportOptions: false, showEmailCopy: false, emailsCopied: false }" class="bg-base-200 rounded-lg p-4">
             <div class="flex flex-wrap gap-4 items-center justify-between">
-                <h3 class="text-lg font-medium text-base-content/80">Datenexport & Funktionen</h3>
+                <h3 class="text-lg font-medium text-base-content">Datenexport & Funktionen</h3>
                 
                 <div class="flex space-x-2">
                     <!-- CSV Export Button -->
@@ -100,23 +100,23 @@
                 <form action="{{ route('mitglieder.export-csv') }}" method="POST" class="bg-base-100 p-4 rounded-md shadow">
                     @csrf
                     <div class="mb-3">
-                        <h4 class="font-medium text-base-content/80 mb-2">Zu exportierende Daten auswählen:</h4>
+                        <h4 class="font-medium text-base-content mb-2">Zu exportierende Daten auswählen:</h4>
                         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                             <label class="inline-flex items-center">
                                 <input type="checkbox" name="export_fields[]" value="name" class="checkbox checkbox-primary" checked>
-                                <span class="ml-2 text-base-content/80">Name (Vor-/Nachname)</span>
+                                <span class="ml-2 text-base-content">Name (Vor-/Nachname)</span>
                             </label>
                             <label class="inline-flex items-center">
                                 <input type="checkbox" name="export_fields[]" value="email" class="checkbox checkbox-primary" checked>
-                                <span class="ml-2 text-base-content/80">E-Mail-Adresse</span>
+                                <span class="ml-2 text-base-content">E-Mail-Adresse</span>
                             </label>
                             <label class="inline-flex items-center">
                                 <input type="checkbox" name="export_fields[]" value="adresse" class="checkbox checkbox-primary">
-                                <span class="ml-2 text-base-content/80">Postadresse</span>
+                                <span class="ml-2 text-base-content">Postadresse</span>
                             </label>
                             <label class="inline-flex items-center">
                                 <input type="checkbox" name="export_fields[]" value="bezahlt_bis" class="checkbox checkbox-primary">
-                                <span class="ml-2 text-base-content/80">Bezahlt bis</span>
+                                <span class="ml-2 text-base-content">Bezahlt bis</span>
                             </label>
                         </div>
                     </div>
@@ -163,7 +163,7 @@
     @endphp
     <th scope="col" class="px-4 py-2 text-left" data-members-sort-column="nachname" aria-sort="{{ $nachnameSortState }}">
     <a href="{{ route('mitglieder.index', array_merge(request()->query(), ['sort' => 'nachname', 'dir' => ($sortBy === 'nachname' && $sortDir === 'asc') ? 'desc' : 'asc'])) }}"
-    class="flex items-center group text-base-content/80 hover:text-primary ">
+    class="flex items-center group text-base-content hover:text-primary ">
     Name
     @if($sortBy === 'nachname')
     <span class="ml-1">
@@ -183,7 +183,7 @@
 
     <th scope="col" class="px-4 py-2 text-left" data-members-sort-column="mitglied_seit" aria-sort="{{ $mitgliedSeitSortState }}">
     <a href="{{ route('mitglieder.index', array_merge(request()->query(), ['sort' => 'mitglied_seit', 'dir' => ($sortBy === 'mitglied_seit' && $sortDir === 'asc') ? 'desc' : 'asc'])) }}"
-    class="flex items-center group text-base-content/80 hover:text-primary ">
+    class="flex items-center group text-base-content hover:text-primary ">
     Mitglied seit
     @if($sortBy === 'mitglied_seit')
     <span class="ml-1">
@@ -203,7 +203,7 @@
 
     <th scope="col" class="px-4 py-2 text-left" data-members-sort-column="role" aria-sort="{{ $roleSortState }}">
     <a href="{{ route('mitglieder.index', array_merge(request()->query(), ['sort' => 'role', 'dir' => ($sortBy === 'role' && $sortDir === 'asc') ? 'desc' : 'asc'])) }}"
-    class="flex items-center group text-base-content/80 hover:text-primary ">
+    class="flex items-center group text-base-content hover:text-primary ">
     Rolle
     @if($sortBy === 'role')
     <span class="ml-1">
@@ -224,7 +224,7 @@
     @if($canViewDetails)
     <th scope="col" class="px-4 py-2 text-left" data-members-sort-column="last_activity" aria-sort="{{ $lastActivitySortState }}">
     <a href="{{ route('mitglieder.index', array_merge(request()->query(), ['sort' => 'last_activity', 'dir' => ($sortBy === 'last_activity' && $sortDir === 'desc') ? 'asc' : 'desc'])) }}"
-    class="flex items-center group text-base-content/80 hover:text-primary ">
+    class="flex items-center group text-base-content hover:text-primary ">
     Zuletzt online
     @if($sortBy === 'last_activity')
     <span class="ml-1">
@@ -244,7 +244,7 @@
 
     <th scope="col" class="px-4 py-2 text-left" data-members-sort-column="mitgliedsbeitrag" aria-sort="{{ $beitragSortState }}">
     <a href="{{ route('mitglieder.index', array_merge(request()->query(), ['sort' => 'mitgliedsbeitrag', 'dir' => ($sortBy === 'mitgliedsbeitrag' && $sortDir === 'asc') ? 'desc' : 'asc'])) }}"
-    class="flex items-center group text-base-content/80 hover:text-primary ">
+    class="flex items-center group text-base-content hover:text-primary ">
     Beitrag
     @if($sortBy === 'mitgliedsbeitrag')
     <span class="ml-1">
@@ -262,10 +262,10 @@
     </a>
     </th>
     
-    <th scope="col" class="px-4 py-2 text-left text-base-content/80 hidden lg:table-cell">Details</th>
+    <th scope="col" class="px-4 py-2 text-left text-base-content hidden lg:table-cell">Details</th>
     @endif
 
-    <th scope="col" class="px-4 py-2 text-center text-base-content/80">Aktionen</th>
+    <th scope="col" class="px-4 py-2 text-center text-base-content">Aktionen</th>
     </tr>
     </thead>
     <tbody class="">
@@ -282,7 +282,7 @@
         {{ $member->name }}
     </div>
     @if($canViewDetails)
-    <div class="text-sm text-base-content/60">{{ $member->vorname }} {{ $member->nachname }}</div>
+    <div class="text-sm text-base-content">{{ $member->vorname }} {{ $member->nachname }}</div>
     @endif
     </div>
     </a>
@@ -305,7 +305,7 @@
     {{ $member->mitgliedsbeitrag }}
     </td>
     
-    <td class="px-4 py-3 text-sm text-base-content/60 hidden lg:table-cell">
+    <td class="px-4 py-3 text-sm text-base-content hidden lg:table-cell">
     <div x-data="{ showDetails: false }" class="relative">
     <button @click="showDetails = !showDetails" type="button"
     class="inline-flex items-center text-info hover:underline">
@@ -378,7 +378,7 @@
     @method('PUT')
     <input type="hidden" name="role" value="{{ $role }}">
     <button type="submit"
-    class="block w-full text-left px-4 py-2 text-sm text-base-content/80 hover:bg-base-200">
+    class="block w-full text-left px-4 py-2 text-sm text-base-content hover:bg-base-200">
     Zu {{ $role }} ändern
     </button>
     </form>
@@ -416,27 +416,27 @@
     <div class="md:hidden space-y-6">
     <!-- Sortieroptionen für Mobile -->
     <div class="mb-4 bg-base-200 rounded-lg p-3">
-    <h3 class="text-sm font-medium text-base-content/80 mb-2">Sortieren nach:</h3>
+    <h3 class="text-sm font-medium text-base-content mb-2">Sortieren nach:</h3>
     <div class="flex flex-wrap gap-2">
     <a href="{{ route('mitglieder.index', array_merge(request()->query(), ['sort' => 'nachname', 'dir' => ($sortBy === 'nachname' && $sortDir === 'asc') ? 'desc' : 'asc'])) }}"
-    class="px-3 py-1 text-xs rounded-full {{ $sortBy === 'nachname' ? 'bg-primary text-white' : 'bg-base-200 text-base-content/80' }}">
+    class="px-3 py-1 text-xs rounded-full {{ $sortBy === 'nachname' ? 'bg-primary text-white' : 'bg-base-200 text-base-content' }}">
     Name {{ $sortBy === 'nachname' ? ($sortDir === 'asc' ? '↑' : '↓') : '' }}
     </a>
     <a href="{{ route('mitglieder.index', array_merge(request()->query(), ['sort' => 'mitglied_seit', 'dir' => ($sortBy === 'mitglied_seit' && $sortDir === 'asc') ? 'desc' : 'asc'])) }}"
-    class="px-3 py-1 text-xs rounded-full {{ $sortBy === 'mitglied_seit' ? 'bg-primary text-white' : 'bg-base-200 text-base-content/80' }}">
+    class="px-3 py-1 text-xs rounded-full {{ $sortBy === 'mitglied_seit' ? 'bg-primary text-white' : 'bg-base-200 text-base-content' }}">
     Mitglied seit {{ $sortBy === 'mitglied_seit' ? ($sortDir === 'asc' ? '↑' : '↓') : '' }}
     </a>
     <a href="{{ route('mitglieder.index', array_merge(request()->query(), ['sort' => 'role', 'dir' => ($sortBy === 'role' && $sortDir === 'asc') ? 'desc' : 'asc'])) }}"
-    class="px-3 py-1 text-xs rounded-full {{ $sortBy === 'role' ? 'bg-primary text-white' : 'bg-base-200 text-base-content/80' }}">
+    class="px-3 py-1 text-xs rounded-full {{ $sortBy === 'role' ? 'bg-primary text-white' : 'bg-base-200 text-base-content' }}">
     Rolle {{ $sortBy === 'role' ? ($sortDir === 'asc' ? '↑' : '↓') : '' }}
     </a>
     @if($canViewDetails)
     <a href="{{ route('mitglieder.index', array_merge(request()->query(), ['sort' => 'last_activity', 'dir' => ($sortBy === 'last_activity' && $sortDir === 'desc') ? 'asc' : 'desc'])) }}"
-    class="px-3 py-1 text-xs rounded-full {{ $sortBy === 'last_activity' ? 'bg-primary text-white' : 'bg-base-200 text-base-content/80' }}">
+    class="px-3 py-1 text-xs rounded-full {{ $sortBy === 'last_activity' ? 'bg-primary text-white' : 'bg-base-200 text-base-content' }}">
     Zuletzt online {{ $sortBy === 'last_activity' ? ($sortDir === 'asc' ? '↑' : '↓') : '' }}
     </a>
     <a href="{{ route('mitglieder.index', array_merge(request()->query(), ['sort' => 'mitgliedsbeitrag', 'dir' => ($sortBy === 'mitgliedsbeitrag' && $sortDir === 'asc') ? 'desc' : 'asc'])) }}"
-    class="px-3 py-1 text-xs rounded-full {{ $sortBy === 'mitgliedsbeitrag' ? 'bg-primary text-white' : 'bg-base-200 text-base-content/80' }}">
+    class="px-3 py-1 text-xs rounded-full {{ $sortBy === 'mitgliedsbeitrag' ? 'bg-primary text-white' : 'bg-base-200 text-base-content' }}">
     Beitrag {{ $sortBy === 'mitgliedsbeitrag' ? ($sortDir === 'asc' ? '↑' : '↓') : '' }}
     </a>
     @endif
@@ -454,7 +454,7 @@
         <span class="inline-block w-2 h-2 rounded-full mr-2 {{ in_array($member->id, $onlineUserIds) ? 'bg-success' : 'bg-base-content/40' }}" title="{{ in_array($member->id, $onlineUserIds) ? 'Online' : 'Offline' }}"></span>
         {{ $member->name }}
     </div>
-    <div class="text-xs text-base-content/60">
+    <div class="text-xs text-base-content">
     {{ $member->membership->role }} •
     Mitglied seit {{ $member->mitglied_seit ? $member->mitglied_seit->format('d.m.Y') : 'k.A.' }}
     </div>
@@ -465,14 +465,14 @@
     <div class="grid grid-cols-2 gap-4">
     @if($canViewDetails)
     <div>
-    <h4 class="text-xs uppercase tracking-wide text-base-content/60 font-semibold mb-1">Zuletzt online</h4>
+    <h4 class="text-xs uppercase tracking-wide text-base-content font-semibold mb-1">Zuletzt online</h4>
     <div class="text-sm text-base-content">
     {{ $member->last_activity ? \Carbon\Carbon::createFromTimestamp($member->last_activity, config('app.timezone'))->format('d.m.Y H:i') : '-' }}
     </div>
     </div>
     
     <div>
-    <h4 class="text-xs uppercase tracking-wide text-base-content/60 font-semibold mb-1">Beitrag</h4>
+    <h4 class="text-xs uppercase tracking-wide text-base-content font-semibold mb-1">Beitrag</h4>
     <div class="text-sm text-base-content">{{ $member->mitgliedsbeitrag }}</div>
     </div>
     @endif
@@ -482,7 +482,7 @@
     @if($canViewDetails)
     <div x-data="{ open: false }" class="mb-4">
     <button @click="open = !open" type="button"
-    class="flex items-center justify-between w-full px-4 py-2 text-sm font-medium text-left text-base-content/80 bg-base-200 rounded-md hover:bg-base-300 focus:outline-none focus-visible:ring focus-visible:ring-opacity-75">
+    class="flex items-center justify-between w-full px-4 py-2 text-sm font-medium text-left text-base-content bg-base-200 rounded-md hover:bg-base-300 focus:outline-none focus-visible:ring focus-visible:ring-opacity-75">
     <span>Weitere Details anzeigen</span>
     <svg :class="{'transform rotate-180': open}" class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
     <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
@@ -498,16 +498,16 @@
     class="mt-2 space-y-3">
     
     <div>
-    <h4 class="text-xs uppercase tracking-wide text-base-content/60 font-semibold mb-1">Kontaktdaten</h4>
+    <h4 class="text-xs uppercase tracking-wide text-base-content font-semibold mb-1">Kontaktdaten</h4>
     <div class="text-sm text-base-content">{{ $member->email }}</div>
-    <div class="text-sm text-base-content/80">{{ $member->telefon }}</div>
+    <div class="text-sm text-base-content">{{ $member->telefon }}</div>
     </div>
     
     <div>
-    <h4 class="text-xs uppercase tracking-wide text-base-content/60 font-semibold mb-1">Adresse</h4>
+    <h4 class="text-xs uppercase tracking-wide text-base-content font-semibold mb-1">Adresse</h4>
     <div class="text-sm text-base-content">{{ $member->strasse }} {{ $member->hausnummer }}</div>
-    <div class="text-sm text-base-content/80">{{ $member->plz }} {{ $member->stadt }}</div>
-    <div class="text-sm text-base-content/80">{{ $member->land }}</div>
+    <div class="text-sm text-base-content">{{ $member->plz }} {{ $member->stadt }}</div>
+    <div class="text-sm text-base-content">{{ $member->land }}</div>
     </div>
     </div>
     </div>
@@ -554,7 +554,7 @@
     @method('PUT')
     <input type="hidden" name="role" value="{{ $role }}">
     <button type="submit"
-    class="block w-full text-left px-4 py-2 text-sm text-base-content/80 hover:bg-base-200">
+    class="block w-full text-left px-4 py-2 text-sm text-base-content hover:bg-base-200">
     Zu {{ $role }} ändern
     </button>
     </form>

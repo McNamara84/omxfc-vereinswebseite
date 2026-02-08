@@ -15,7 +15,7 @@
                     @foreach($years as $year)
                         <button
                             class="jahr-tab py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap
-                            {{ $year === $activeYear ? 'border-primary text-primary' : 'border-transparent text-base-content/50 hover:text-base-content/80 hover:border-base-content/30' }}"
+                            {{ $year === $activeYear ? 'border-primary text-primary' : 'border-transparent text-base-content hover:text-base-content hover:border-base-content/30' }}"
                             data-year="{{ $year }}"
                         >
                             Fotos {{ $year }}
@@ -41,7 +41,7 @@
                         @if(isset($photos[$year]) && count($photos[$year]) > 0)
                             <img src="{{ $photos[$year][0] }}" alt="Foto {{ $year }}" class="main-image object-contain max-h-full max-w-full">
                         @else
-                            <div class="text-base-content/50">Keine Fotos für {{ $year }} verfügbar</div>
+                            <div class="text-base-content">Keine Fotos für {{ $year }} verfügbar</div>
                         @endif
                     </div>
                     
@@ -81,11 +81,11 @@
                 // Alle Tabs zurücksetzen
                 jahresTabs.forEach(t => {
                     t.classList.remove('border-primary', 'text-primary');
-                    t.classList.add('border-transparent', 'text-base-content/50');
+                    t.classList.add('border-transparent', 'text-base-content');
                 });
                 
                 // Aktiven Tab setzen
-                this.classList.remove('border-transparent', 'text-base-content/50');
+                this.classList.remove('border-transparent', 'text-base-content');
                 this.classList.add('border-primary', 'text-primary');
                 
                 // Galerien anzeigen/verstecken

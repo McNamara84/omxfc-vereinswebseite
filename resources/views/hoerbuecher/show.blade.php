@@ -66,7 +66,7 @@
                                         {{ $role->user?->name ?? $role->speaker_name ?? '-' }}
                                         @php($prev = $previousSpeakers[$role->name] ?? null)
                                         @if($prev)
-                                            <div class="text-xs text-base-content/60">Bisheriger Sprecher: {{ $prev }}</div>
+                                            <div class="text-xs text-base-content">Bisheriger Sprecher: {{ $prev }}</div>
                                         @endif
                                     </td>
                                 </tr>

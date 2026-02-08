@@ -3,7 +3,7 @@
         <x-header title="Stapel-Angebot erstellen" separator useH1 data-testid="page-title" />
 
         <x-card>
-            <p class="text-base-content/60 mb-6">
+            <p class="text-base-content mb-6">
                 Mit einem Stapel-Angebot kannst du viele Romane auf einmal einstellen. Gib einfach die Nummern als Bereiche (z.B. 1-50) oder einzeln (z.B. 52, 55) ein.
             </p>
 
@@ -31,7 +31,7 @@
                     <div class="md:col-span-1 space-y-4">
                         {{-- Serie --}}
                         <div>
-                            <label for="series-select" class="label label-text">Serie</label>
+                            <label for="series-select" class="fieldset-legend">Serie</label>
                             <select
                                 name="series"
                                 id="series-select"
@@ -57,7 +57,7 @@
 
                         {{-- Roman-Nummern --}}
                         <div x-data="bundlePreview()">
-                            <label for="book-numbers-input" class="label label-text">Roman-Nummern</label>
+                            <label for="book-numbers-input" class="fieldset-legend">Roman-Nummern</label>
                             <input
                                 type="text"
                                 name="book_numbers"
@@ -74,7 +74,7 @@
                                 aria-describedby="book-numbers-help{{ $bookNumbersError ? ' book-numbers-error' : '' }}"
                                 @if($bookNumbersError) aria-invalid="true" @endif
                             >
-                            <p id="book-numbers-help" class="mt-1 text-sm text-base-content/50">
+                            <p id="book-numbers-help" class="mt-1 text-sm text-base-content">
                                 Gib Nummern einzeln (1, 5, 7) oder als Bereich (1-50) an, getrennt durch Kommas.
                             </p>
                             @error('book_numbers')
@@ -86,7 +86,7 @@
                                 <p class="text-sm font-medium text-base-content">
                                     <span x-text="numbers.length"></span> Romane erkannt
                                 </p>
-                                <p class="text-xs text-base-content/60 mt-1 max-h-20 overflow-y-auto" x-text="formatPreview()"></p>
+                                <p class="text-xs text-base-content mt-1 max-h-20 overflow-y-auto" x-text="formatPreview()"></p>
                             </div>
                             <div x-show="input && numbers.length === 0" x-cloak class="mt-3 p-3 bg-warning/10 border border-warning/30 rounded-lg">
                                 <p class="text-sm text-warning-content">Keine gültigen Nummern erkannt. Bitte überprüfe deine Eingabe.</p>
@@ -95,10 +95,10 @@
 
                         {{-- Zustandsbereich --}}
                         <div>
-                            <label class="label label-text">Zustandsbereich</label>
+                            <label class="fieldset-legend">Zustandsbereich</label>
                             <div class="grid grid-cols-2 gap-3">
                                 <div>
-                                    <label for="condition-min" class="block text-sm text-base-content/60 mb-1">Von (bester Zustand)</label>
+                                    <label for="condition-min" class="block text-sm text-base-content mb-1">Von (bester Zustand)</label>
                                     <select
                                         name="condition"
                                         id="condition-min"
@@ -111,7 +111,7 @@
                                     </select>
                                 </div>
                                 <div>
-                                    <label for="condition-max" class="block text-sm text-base-content/60 mb-1">Bis (schlechtester)</label>
+                                    <label for="condition-max" class="block text-sm text-base-content mb-1">Bis (schlechtester)</label>
                                     <select
                                         name="condition_max"
                                         id="condition-max"
@@ -127,7 +127,7 @@
                             @error('condition_max')
                                 <p class="mt-2 text-sm text-error" role="alert">{{ $message }}</p>
                             @enderror
-                            <p class="mt-1 text-xs text-base-content/50">
+                            <p class="mt-1 text-xs text-base-content">
                                 Bei gemischten Zuständen gibst du den Bereich an, z.B. „Z1 bis Z2“.
                             </p>
                         </div>
@@ -136,11 +136,11 @@
                     {{-- Fotos --}}
                     <div class="md:col-span-1">
                         <div>
-                            <label for="photos" class="label label-text">Fotos (optional)</label>
-                            <p id="photos-help" class="text-sm text-base-content/60 mb-2">
+                            <label for="photos" class="fieldset-legend">Fotos (optional)</label>
+                            <p id="photos-help" class="text-sm text-base-content mb-2">
                                 Du kannst bis zu 3 Übersichtsfotos für den gesamten Stapel hochladen.
                             </p>
-                            <p id="photos-size" class="text-xs text-base-content/50 mb-4">
+                            <p id="photos-size" class="text-xs text-base-content mb-4">
                                 Unterstützte Formate: JPG, JPEG, PNG, GIF, WebP. Max. 2 MB pro Foto.
                             </p>
 

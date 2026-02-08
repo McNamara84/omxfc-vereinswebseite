@@ -3,9 +3,11 @@
         <x-card shadow>
                 <x-header title="Mitgliederkarte" useH1 data-testid="page-title" />
 
-                <x-alert class="alert-warning mb-4" icon="o-exclamation-triangle" id="member-map-note" role="note">
-                    Aus Datenschutzgründen werden die Standorte der Mitglieder nicht exakt angezeigt.
-                </x-alert>
+                <div id="member-map-note">
+                    <x-alert class="alert-warning mb-4" icon="o-exclamation-triangle" role="note">
+                        Aus Datenschutzgründen werden die Standorte der Mitglieder nicht exakt angezeigt.
+                    </x-alert>
+                </div>
                 <!-- Karten-Container -->
                 <div
                     id="map"

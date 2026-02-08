@@ -18,7 +18,7 @@
         <div class="grid gap-6 md:grid-cols-2">
             <div class="md:col-span-1 space-y-4">
                 <div>
-                    <label for="series-select" class="label label-text">Serie</label>
+                    <label for="series-select" class="fieldset-legend">Serie</label>
                     <select
                         name="series"
                         id="series-select"
@@ -41,7 +41,7 @@
                 </div>
 
                 <div>
-                    <label for="book-select" class="label label-text">Roman</label>
+                    <label for="book-select" class="fieldset-legend">Roman</label>
                     <select
                         name="book_number"
                         id="book-select"
@@ -70,7 +70,7 @@
                 </div>
 
                 <div>
-                    <label for="condition-select" class="label label-text">Zustand bis einschließlich</label>
+                    <label for="condition-select" class="fieldset-legend">Zustand bis einschließlich</label>
                     <select
                         name="condition"
                         id="condition-select"
@@ -100,7 +100,7 @@
             </div>
 
             <div class="md:col-span-1 flex items-center">
-                <p class="text-sm text-base-content/60 leading-relaxed">Beschreibe so genau wie möglich, welchen Roman du suchst und in welchem Zustand er mindestens sein soll. Mit präzisen Angaben erhöhst du die Chancen auf einen passenden Tausch.</p>
+                <p class="text-sm text-base-content leading-relaxed">Beschreibe so genau wie möglich, welchen Roman du suchst und in welchem Zustand er mindestens sein soll. Mit präzisen Angaben erhöhst du die Chancen auf einen passenden Tausch.</p>
             </div>
         </div>
 

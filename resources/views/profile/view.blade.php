@@ -22,11 +22,11 @@
                             <!-- Name und Rolle -->
                             <div>
                                 <h1 class="text-2xl font-bold text-base-content">{{ $user->name }}</h1>
-                                <p class="text-lg text-base-content/70">{{ $user->vorname }}
+                                <p class="text-lg text-base-content">{{ $user->vorname }}
                                     {{ $user->nachname }}
                                 </p>
                                 <x-badge value="{{ $memberRole }}" class="badge-primary mt-1" />
-                                <div class="mt-2 text-sm text-base-content/60 flex items-center">
+                                <div class="mt-2 text-sm text-base-content flex items-center">
                                     @if ($isOnline)
                                         <span class="flex items-center">
                                             <span class="relative flex h-3 w-3 mr-2">
@@ -56,7 +56,7 @@
                                                 <h3 class="text-sm font-medium text-base-content text-center">
                                                     {{ $badge['name'] }}
                                                 </h3>
-                                                <p class="text-xs text-base-content/60 text-center mt-1">
+                                                <p class="text-xs text-base-content text-center mt-1">
                                                     {{ $badge['description'] }}
                                                 </p>
                                             </div>
@@ -71,13 +71,13 @@
                                     <h2 class="text-lg font-semibold text-base-content mb-3">Kontaktdaten</h2>
                                     <div class="space-y-2">
                                         <div class="flex items-center">
-                                            <x-icon name="o-envelope" class="w-5 h-5 text-base-content/50 mr-2" />
-                                            <span class="text-base-content/80">{{ $user->email }}</span>
+                                            <x-icon name="o-envelope" class="w-5 h-5 text-base-content mr-2" />
+                                            <span class="text-base-content">{{ $user->email }}</span>
                                         </div>
                                         @if($user->telefon)
                                             <div class="flex items-center">
-                                                <x-icon name="o-phone" class="w-5 h-5 text-base-content/50 mr-2" />
-                                                <span class="text-base-content/80">{{ $user->telefon }}</span>
+                                                <x-icon name="o-phone" class="w-5 h-5 text-base-content mr-2" />
+                                                <span class="text-base-content">{{ $user->telefon }}</span>
                                             </div>
                                         @endif
                                     </div>
@@ -85,7 +85,7 @@
 
                                 <div class="bg-base-200 rounded-lg p-5">
                                     <h2 class="text-lg font-semibold text-base-content mb-3">Adresse</h2>
-                                    <address class="not-italic text-base-content/80">
+                                    <address class="not-italic text-base-content">
                                         @if($user->strasse && $user->hausnummer)
                                             {{ $user->strasse }} {{ $user->hausnummer }}<br>
                                         @endif
@@ -101,7 +101,7 @@
                                 <div class="bg-base-200 rounded-lg p-5">
                                     <h2 class="text-lg font-semibold text-base-content mb-3">Mitgliedsbeitrag
                                     </h2>
-                                    <p class="text-base-content/80">{{ $user->mitgliedsbeitrag }}</p>
+                                    <p class="text-base-content">{{ $user->mitgliedsbeitrag }}</p>
                                 </div>
                             @endif
                         </div>
@@ -120,21 +120,21 @@
                                 <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-8">
                                     <div
                                         class="text-center sm:text-left mb-6 sm:mb-0 bg-base-100 p-4 rounded-lg shadow-sm flex-1 mr-0 sm:mr-4">
-                                        <h3 class="text-sm font-medium text-base-content/60 mb-1">
+                                        <h3 class="text-sm font-medium text-base-content mb-1">
                                             Baxx</h3>
                                         <p class="text-4xl font-bold text-primary">
                                             {{ $userPoints }}
                                         </p>
-                                        <p class="text-sm text-base-content/60 mt-1">Baxx</p>
+                                        <p class="text-sm text-base-content mt-1">Baxx</p>
                                     </div>
                                     <div
                                         class="text-center sm:text-left bg-base-100 p-4 rounded-lg shadow-sm flex-1">
-                                        <h3 class="text-sm font-medium text-base-content/60 mb-1">Erledigte
+                                        <h3 class="text-sm font-medium text-base-content mb-1">Erledigte
                                             Challenges</h3>
-                                        <p class="text-4xl font-bold text-base-content/80">
+                                        <p class="text-4xl font-bold text-base-content">
                                             {{ $completedTasks }}
                                         </p>
-                                        <p class="text-sm text-base-content/60 mt-1">Challenges</p>
+                                        <p class="text-sm text-base-content mt-1">Challenges</p>
                                     </div>
                                 </div>
                             </div>
@@ -151,7 +151,7 @@
                                 @if($user->einstiegsroman)
                                     <div class="bg-base-200 p-4 rounded-lg shadow">
                                         <h3 class="font-semibold text-base-content mb-2">Einstiegsroman</h3>
-                                        <p class="text-base-content/70">{{ $user->einstiegsroman }}</p>
+                                        <p class="text-base-content">{{ $user->einstiegsroman }}</p>
                                     </div>
                                 @endif
 
@@ -159,42 +159,42 @@
                                     <div class="bg-base-200 p-4 rounded-lg shadow">
                                         <h3 class="font-semibold text-base-content mb-2">Aktueller Lesestand
                                         </h3>
-                                        <p class="text-base-content/70">{{ $user->lesestand }}</p>
+                                        <p class="text-base-content">{{ $user->lesestand }}</p>
                                     </div>
                                 @endif
 
                                 @if($user->lieblingsroman)
                                     <div class="bg-base-200 p-4 rounded-lg shadow">
                                         <h3 class="font-semibold text-base-content mb-2">Lieblingsroman</h3>
-                                        <p class="text-base-content/70">{{ $user->lieblingsroman }}</p>
+                                        <p class="text-base-content">{{ $user->lieblingsroman }}</p>
                                     </div>
                                 @endif
 
                                 @if($user->lieblingshardcover)
                                     <div class="bg-base-200 p-4 rounded-lg shadow">
                                         <h3 class="font-semibold text-base-content mb-2">Lieblingshardcover</h3>
-                                        <p class="text-base-content/70">{{ $user->lieblingshardcover }}</p>
+                                        <p class="text-base-content">{{ $user->lieblingshardcover }}</p>
                                     </div>
                                 @endif
 
                                 @if($user->lieblingscover)
                                     <div class="bg-base-200 p-4 rounded-lg shadow">
                                         <h3 class="font-semibold text-base-content mb-2">Lieblingscover</h3>
-                                        <p class="text-base-content/70">{{ $user->lieblingscover }}</p>
+                                        <p class="text-base-content">{{ $user->lieblingscover }}</p>
                                     </div>
                                 @endif
 
                                 @if($user->lieblingsfigur)
                                     <div class="bg-base-200 p-4 rounded-lg shadow">
                                         <h3 class="font-semibold text-base-content mb-2">Lieblingsfigur</h3>
-                                        <p class="text-base-content/70">{{ $user->lieblingsfigur }}</p>
+                                        <p class="text-base-content">{{ $user->lieblingsfigur }}</p>
                                     </div>
                                 @endif
 
                                 @if($user->lieblingsmutation)
                                     <div class="bg-base-200 p-4 rounded-lg shadow">
                                         <h3 class="font-semibold text-base-content mb-2">Lieblingsmutation</h3>
-                                        <p class="text-base-content/70">{{ $user->lieblingsmutation }}</p>
+                                        <p class="text-base-content">{{ $user->lieblingsmutation }}</p>
                                     </div>
                                 @endif
 
@@ -202,27 +202,27 @@
                                     <div class="bg-base-200 p-4 rounded-lg shadow">
                                         <h3 class="font-semibold text-base-content mb-2">Lieblingsschauplatz
                                         </h3>
-                                        <p class="text-base-content/70">{{ $user->lieblingsschauplatz }}</p>
+                                        <p class="text-base-content">{{ $user->lieblingsschauplatz }}</p>
                                     </div>
                                 @endif
 
                                 @if($user->lieblingsautor)
                                     <div class="bg-base-200 p-4 rounded-lg shadow">
                                         <h3 class="font-semibold text-base-content mb-2">Lieblingsautor</h3>
-                                        <p class="text-base-content/70">{{ $user->lieblingsautor }}</p>
+                                        <p class="text-base-content">{{ $user->lieblingsautor }}</p>
                                     </div>
                                 @endif
 
                                 @if($user->lieblingszyklus)
                                     <div class="bg-base-200 p-4 rounded-lg shadow">
                                         <h3 class="font-semibold text-base-content mb-2">Lieblingszyklus</h3>
-                                        <p class="text-base-content/70">{{ $user->lieblingszyklus }}-Zyklus</p>
+                                        <p class="text-base-content">{{ $user->lieblingszyklus }}-Zyklus</p>
                                     </div>
                                 @endif
                                 @if($user->lieblingsthema)
                                     <div class="bg-base-200 p-4 rounded-lg shadow">
                                         <h3 class="font-semibold text-base-content mb-2">Lieblingsthema</h3>
-                                        <p class="text-base-content/70">{{ $user->lieblingsthema }}</p>
+                                        <p class="text-base-content">{{ $user->lieblingsthema }}</p>
                                     </div>
                                 @endif
                             </div>
@@ -248,7 +248,7 @@
             <div class="flex justify-center mb-6">
                 <img loading="lazy" id="badgeModalImage" src="" alt="Badge" class="w-32 h-32 object-contain">
             </div>
-            <p id="badgeModalDescription" class="text-base text-base-content/80 text-center"></p>
+            <p id="badgeModalDescription" class="text-base text-base-content text-center"></p>
             <x-slot:actions>
                 <x-button label="Schließen" class="btn-primary" onclick="document.getElementById('badgeModal').close()" />
             </x-slot:actions>

@@ -6,7 +6,7 @@
             {{ $title }}
         </div>
 
-        <div class="mt-4 text-sm text-base-content/70">
+        <div class="mt-4 text-sm text-base-content">
             {{ $content }}
         </div>
     </div>

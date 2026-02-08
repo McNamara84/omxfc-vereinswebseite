@@ -50,7 +50,7 @@
                     />
 
                     <div>
-                        <label for="logo" class="label label-text">Logo</label>
+                        <label for="logo" class="fieldset-legend">Logo</label>
                         <input type="file" name="logo" id="logo" accept="image/*" class="file-input file-input-bordered w-full">
                         @error('logo')
                             <p class="mt-1 text-sm text-error">{{ $message }}</p>

@@ -12,7 +12,7 @@
                 <h1 class="text-2xl md:text-3xl font-bold mb-2">
                     {{ $fanfiction->title }}
                 </h1>
-                <p class="text-base-content/60">
+                <p class="text-base-content">
                     von <span class="font-medium">{{ $fanfiction->author_display_name }}</span>
                     @if ($fanfiction->published_at)
                         • Veröffentlicht am {{ $fanfiction->published_at->format('d.m.Y') }}
@@ -43,7 +43,7 @@
 
             {{-- Teilen-Hinweis --}}
             <div class="mt-8 pt-6 border-t border-base-content/10">
-                <p class="text-sm text-base-content/60">
+                <p class="text-sm text-base-content">
                     Hat dir die Geschichte gefallen? Teile sie mit anderen Mitgliedern!
                 </p>
             </div>
@@ -61,6 +61,7 @@
                     id="content"
                     rows="3"
                     label="Kommentar"
+                    aria-label="Kommentar"
                     placeholder="Schreibe einen Kommentar..."
                     required
                 >{{ old('content') }}</x-textarea>
@@ -74,7 +75,7 @@
 
             {{-- Kommentarliste --}}
             @if ($fanfiction->comments->isEmpty())
-                <p class="text-base-content/60 text-center py-4">
+                <p class="text-base-content text-center py-4">
                     Noch keine Kommentare. Sei der Erste!
                 </p>
             @else

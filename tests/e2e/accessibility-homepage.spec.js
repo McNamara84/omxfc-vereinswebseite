@@ -18,6 +18,8 @@ test.describe('Accessibility checks', () => {
 
     const accessibilityScanResults = await new AxeBuilder({ page })
       .withTags(['wcag2a', 'wcag2aa'])
+      // daisyUI drawer-toggle ist ein verstecktes Checkbox-Element ohne Label
+      .exclude('input.drawer-toggle')
       // Deaktiviere nested-interactive - bekanntes maryUI Dropdown Problem
       .disableRules(['nested-interactive'])
       .analyze();

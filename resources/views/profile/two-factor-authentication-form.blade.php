@@ -13,7 +13,7 @@
             @endif
         </h3>
 
-        <div class="mt-3 max-w-xl text-sm text-base-content/70">
+        <div class="mt-3 max-w-xl text-sm text-base-content">
             <p>
                 {{ __('Wenn die Zwei-Faktor-Authentifizierung aktiviert ist, wirst du während des Logins zur Eingabe eines sicheren, zufälligen Codes aufgefordert. Du kannst diesen Code über die Google Authenticator App deines Telefons abrufen.') }}
             </p>
@@ -21,7 +21,7 @@
 
         @if ($this->enabled)
             @if ($showingQrCode)
-                <div class="mt-4 max-w-xl text-sm text-base-content/70">
+                <div class="mt-4 max-w-xl text-sm text-base-content">
                     <p class="font-semibold">
                         @if ($showingConfirmation)
                             {{ __('Um die Aktivierung der Zwei-Faktor-Authentifizierung abzuschließen, scanne den folgenden QR-Code mit der Authenticator App deines Telefons oder gebe den Einrichtungsschlüssel und den generierten OTP-Code ein.') }}
@@ -35,7 +35,7 @@
                     {!! $this->user->twoFactorQrCodeSvg() !!}
                 </div>
 
-                <div class="mt-4 max-w-xl text-sm text-base-content/70">
+                <div class="mt-4 max-w-xl text-sm text-base-content">
                     <p class="font-semibold">
                         {{ __('Setup Key') }}: {{ decrypt($this->user->two_factor_secret) }}
                     </p>
@@ -60,7 +60,7 @@
             @endif
 
             @if ($showingRecoveryCodes)
-                <div class="mt-4 max-w-xl text-sm text-base-content/70">
+                <div class="mt-4 max-w-xl text-sm text-base-content">
                     <p class="font-semibold">
                         {{ __('Store these recovery codes in a secure password manager. They can be used to recover access to your account if your two factor authentication device is lost.') }}
                     </p>

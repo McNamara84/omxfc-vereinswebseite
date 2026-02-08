@@ -32,12 +32,12 @@
 
                 <!-- Beschreibung -->
                 <div class="mb-6">
-                    <h3 class="text-sm font-medium text-base-content/80 mb-2">Beschreibung</h3>
+                    <h3 class="text-sm font-medium text-base-content mb-2">Beschreibung</h3>
                     <div class="bg-base-200 p-4 rounded-md text-base-content">
                         @if($todo->description)
                             {!! nl2br(e($todo->description)) !!}
                         @else
-                            <span class="text-base-content/60 italic">Keine Beschreibung vorhanden</span>
+                            <span class="text-base-content italic">Keine Beschreibung vorhanden</span>
                         @endif
                     </div>
                 </div>
@@ -45,23 +45,23 @@
                 <!-- Details -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                     <div>
-                        <h3 class="text-sm font-medium text-base-content/80 mb-2">Details</h3>
+                        <h3 class="text-sm font-medium text-base-content mb-2">Details</h3>
                         <div class="bg-base-200 p-4 rounded-md">
                             <div class="mb-2">
-                                <span class="text-base-content/60 text-sm">Baxx:</span>
+                                <span class="text-base-content text-sm">Baxx:</span>
                                 <span
                                     class="ml-2 text-base-content font-semibold">{{ $todo->points }}</span>
                             </div>
                             <div class="mb-2">
-                                <span class="text-base-content/60 text-sm">Kategorie:</span>
+                                <span class="text-base-content text-sm">Kategorie:</span>
                                 <span class="ml-2 text-base-content">{{ $todo->category ? $todo->category->name : 'Keine Kategorie' }}</span>
                             </div>
                             <div class="mb-2">
-                                <span class="text-base-content/60 text-sm">Erstellt von:</span>
+                                <span class="text-base-content text-sm">Erstellt von:</span>
                                 <span class="ml-2 text-base-content"><a href="{{ route('profile.view', $todo->creator->id) }}" class="text-primary hover:underline">{{ $todo->creator->name }}</a></span>
                             </div>
                             <div class="mb-2">
-                                <span class="text-base-content/60 text-sm">Erstellt am:</span>
+                                <span class="text-base-content text-sm">Erstellt am:</span>
                                 <span
                                     class="ml-2 text-base-content">{{ $todo->created_at->format('d.m.Y H:i') }}</span>
                             </div>
@@ -69,18 +69,18 @@
                     </div>
 
                     <div>
-                        <h3 class="text-sm font-medium text-base-content/80 mb-2">Status</h3>
+                        <h3 class="text-sm font-medium text-base-content mb-2">Status</h3>
                         <div class="bg-base-200 p-4 rounded-md">
                             @if($todo->assigned_to)
                                 <div class="mb-2">
-                                    <span class="text-base-content/60 text-sm">Zugewiesen an:</span>
+                                    <span class="text-base-content text-sm">Zugewiesen an:</span>
                                     <span class="ml-2 text-base-content"><a href="{{ route('profile.view', $todo->assignee->id) }}" class="text-primary hover:underline">{{ $todo->assignee->name }}</a></span>
                                 </div>
                             @endif
 
                             @if($todo->completed_at)
                                 <div class="mb-2">
-                                    <span class="text-base-content/60 text-sm">Erledigt am:</span>
+                                    <span class="text-base-content text-sm">Erledigt am:</span>
                                     <span
                                         class="ml-2 text-base-content">{{ $todo->completed_at->format('d.m.Y H:i') }}</span>
                                 </div>
@@ -88,11 +88,11 @@
 
                             @if($todo->verified_by)
                                 <div class="mb-2">
-                                    <span class="text-base-content/60 text-sm">Verifiziert von:</span>
+                                    <span class="text-base-content text-sm">Verifiziert von:</span>
                                     <span class="ml-2 text-base-content"><a href="{{ route('profile.view', $todo->verifier->id) }}" class="text-primary hover:underline">{{ $todo->verifier->name }}</a></span>
                                 </div>
                                 <div class="mb-2">
-                                    <span class="text-base-content/60 text-sm">Verifiziert am:</span>
+                                    <span class="text-base-content text-sm">Verifiziert am:</span>
                                     <span
                                         class="ml-2 text-base-content">{{ $todo->verified_at->format('d.m.Y H:i') }}</span>
                                 </div>

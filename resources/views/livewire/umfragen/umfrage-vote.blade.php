@@ -9,12 +9,12 @@
         @if (! $this->poll)
             <x-card shadow>
                 <x-header title="Umfrage" size="text-2xl" useH1 data-testid="page-title" />
-                <p class="text-base-content/60">Aktuell ist keine Umfrage aktiv.</p>
+                <p class="text-base-content">Aktuell ist keine Umfrage aktiv.</p>
             </x-card>
         @else
             <x-card shadow>
                 <x-header title="{{ $this->poll->question }}" size="text-2xl" useH1 data-testid="page-title" />
-                <p class="text-base-content/60">
+                <p class="text-base-content">
                     @if ($this->poll->visibility->value === 'internal')
                         Diese Umfrage richtet sich an Vereinsmitglieder.
                     @else
@@ -76,7 +76,7 @@
                         <x-button type="submit" label="Stimme abgeben" icon="o-check" class="btn-primary" :disabled="! $canVote" />
 
                         @if (! $canVote)
-                            <span class="text-sm text-base-content/60">
+                            <span class="text-sm text-base-content">
                                 @if ($hasVoted)
                                     Abstimmung abgeschlossen.
                                 @else

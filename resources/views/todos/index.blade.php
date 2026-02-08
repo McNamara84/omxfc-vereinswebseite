@@ -16,7 +16,7 @@
             <header class="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <div>
                     <h1 class="text-2xl font-bold text-base-content">Challenges &amp; Baxx</h1>
-                    <p class="text-sm text-base-content/60">
+                    <p class="text-sm text-base-content">
                         Behalte deine Fortschritte und die Ziele des Vereins im Blick.
                     </p>
                 </div>
@@ -33,7 +33,7 @@
                     <div class="space-y-1">
                         <h2 class="text-xl font-semibold text-primary">Challenges filtern</h2>
                         <p id="todo-filter-status" data-todo-filter-status role="status" aria-live="polite"
-                            class="text-sm text-base-content/60">
+                            class="text-sm text-base-content">
                             {{ $currentFilter === 'pending' ? 'Zeigt Challenges, die auf eine Verifizierung warten.' : 'Zeigt alle verfügbaren Challenges.' }}
                         </p>
                     </div>
@@ -60,24 +60,24 @@
                                         Alle
                                     </button>
                                     <button type="button" data-todo-filter data-filter="assigned" data-active="false"
-                                        class="px-4 py-2 rounded-md border border-base-content/20 text-base-content/80 font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary   data-[active=true]:bg-primary data-[active=true]:text-primary-content  ">
+                                        class="px-4 py-2 rounded-md border border-base-content/20 text-base-content font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary   data-[active=true]:bg-primary data-[active=true]:text-primary-content  ">
                                         Eigene Challenges
                                     </button>
                                     <button type="button" data-todo-filter data-filter="open" data-active="false"
-                                        class="px-4 py-2 rounded-md border border-base-content/20 text-base-content/80 font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary data-[active=true]:bg-primary data-[active=true]:text-primary-content">
+                                        class="px-4 py-2 rounded-md border border-base-content/20 text-base-content font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary data-[active=true]:bg-primary data-[active=true]:text-primary-content">
                                         Offene Challenges
                                     </button>
                                     @if($canVerifyTodos)
                                         <button type="submit" name="filter" value="pending" data-todo-filter
                                             data-filter="pending"
                                             data-active="{{ $currentFilter === 'pending' ? 'true' : 'false' }}"
-                                            class="px-4 py-2 rounded-md border border-base-content/20 text-base-content/80 font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary data-[active=true]:bg-primary data-[active=true]:text-primary-content">
+                                            class="px-4 py-2 rounded-md border border-base-content/20 text-base-content font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary data-[active=true]:bg-primary data-[active=true]:text-primary-content">
                                             Zu verifizieren
                                         </button>
                                     @endif
                                 </div>
                                 <noscript>
-                                    <p class="text-xs text-base-content/60">
+                                    <p class="text-xs text-base-content">
                                         Für weitere Filteroptionen aktiviere JavaScript in deinem Browser.
                                     </p>
                                 </noscript>
@@ -109,11 +109,11 @@
                             <tbody class="">
                                 @foreach($completedTodos->where('status', 'completed') as $todo)
                                     <tr>
-                                        <td class="px-4 py-2 text-base-content/80">{{ $todo->title }}</td>
-                                        <td class="px-4 py-2 text-base-content/80"><a href="{{ route('profile.view', $todo->assignee->id) }}" class="text-primary hover:underline">{{ $todo->assignee->name }}</a></td>
-                                        <td class="px-4 py-2 text-base-content/80">
+                                        <td class="px-4 py-2 text-base-content">{{ $todo->title }}</td>
+                                        <td class="px-4 py-2 text-base-content"><a href="{{ route('profile.view', $todo->assignee->id) }}" class="text-primary hover:underline">{{ $todo->assignee->name }}</a></td>
+                                        <td class="px-4 py-2 text-base-content">
                                             {{ $todo->completed_at->format('d.m.Y H:i') }}</td>
-                                        <td class="px-4 py-2 text-base-content/80">{{ $todo->points }}</td>
+                                        <td class="px-4 py-2 text-base-content">{{ $todo->points }}</td>
                                         <td class="px-4 py-2 text-center">
                                             <a href="{{ route('todos.show', $todo) }}"
                                                 class="text-primary hover:underline mr-2">
@@ -144,16 +144,16 @@
                                     <h3 class="font-semibold text-base-content">{{ $todo->title }}</h3>
                                 </div>
                                 <div class="mb-2">
-                                    <span class="text-sm text-base-content/60">Bearbeitet von:</span>
+                                    <span class="text-sm text-base-content">Bearbeitet von:</span>
                                     <div class="mt-1 text-base-content"><a href="{{ route('profile.view', $todo->assignee->id) }}" class="text-primary hover:underline">{{ $todo->assignee->name }}</a></div>
                                 </div>
                                 <div class="mb-2">
-                                    <span class="text-sm text-base-content/60">Erledigt am:</span>
+                                    <span class="text-sm text-base-content">Erledigt am:</span>
                                     <div class="mt-1 text-base-content">
                                         {{ $todo->completed_at->format('d.m.Y H:i') }}</div>
                                 </div>
                                 <div class="mb-3">
-                                    <span class="text-sm text-base-content/60">Baxx:</span>
+                                    <span class="text-sm text-base-content">Baxx:</span>
                                     <div class="mt-1 font-semibold text-base-content">{{ $todo->points }}</div>
                                 </div>
                                 <div class="flex gap-2">
@@ -202,10 +202,10 @@
                             <tbody class="">
                                 @foreach($inProgressTodos as $todo)
                                     <tr>
-                                        <td class="px-4 py-2 text-base-content/80">{{ $todo->title }}</td>
-                                        <td class="px-4 py-2 text-base-content/80">{{ $todo->category ? $todo->category->name : '-' }}</td>
-                                        <td class="px-4 py-2 text-base-content/80"><a href="{{ route('profile.view', $todo->assignee->id) }}" class="text-primary hover:underline">{{ $todo->assignee->name }}</a></td>
-                                        <td class="px-4 py-2 text-base-content/80">{{ $todo->points }}</td>
+                                        <td class="px-4 py-2 text-base-content">{{ $todo->title }}</td>
+                                        <td class="px-4 py-2 text-base-content">{{ $todo->category ? $todo->category->name : '-' }}</td>
+                                        <td class="px-4 py-2 text-base-content"><a href="{{ route('profile.view', $todo->assignee->id) }}" class="text-primary hover:underline">{{ $todo->assignee->name }}</a></td>
+                                        <td class="px-4 py-2 text-base-content">{{ $todo->points }}</td>
                                         <td class="px-4 py-2 text-center">
                                             <a href="{{ route('todos.show', $todo) }}"
                                                 class="text-primary hover:underline">
@@ -228,15 +228,15 @@
                                     <h3 class="font-semibold text-base-content">{{ $todo->title }}</h3>
                                 </div>
                                 <div class="mb-2">
-                                    <span class="text-sm text-base-content/60">Kategorie:</span>
+                                    <span class="text-sm text-base-content">Kategorie:</span>
                                     <div class="mt-1 text-base-content">{{ $todo->category ? $todo->category->name : '-' }}</div>
                                 </div>
                                 <div class="mb-2">
-                                    <span class="text-sm text-base-content/60">Bearbeitet von:</span>
+                                    <span class="text-sm text-base-content">Bearbeitet von:</span>
                                     <div class="mt-1 text-base-content"><a href="{{ route('profile.view', $todo->assignee->id) }}" class="text-primary hover:underline">{{ $todo->assignee->name }}</a></div>
                                 </div>
                                 <div class="mb-3">
-                                    <span class="text-sm text-base-content/60">Baxx:</span>
+                                    <span class="text-sm text-base-content">Baxx:</span>
                                     <div class="mt-1 font-semibold text-base-content">{{ $todo->points }}</div>
                                 </div>
                                 <div class="flex gap-2">
@@ -259,7 +259,7 @@
                 <h2 id="todo-assigned-heading"
                     class="text-xl font-semibold text-primary mb-4">Deine Challenges</h2>
                 @if($assignedTodos->isEmpty())
-                    <p class="text-base-content/60">Du hast aktuell keine übernommenen Challenges.</p>
+                    <p class="text-base-content">Du hast aktuell keine übernommenen Challenges.</p>
                 @else
                     <!-- Desktop-Ansicht (versteckt auf Mobilgeräten) -->
                     <div class="hidden md:block">
@@ -275,7 +275,7 @@
                             <tbody class="">
                                 @foreach($assignedTodos as $todo)
                                     <tr>
-                                        <td class="px-4 py-2 text-base-content/80">{{ $todo->title }}</td>
+                                        <td class="px-4 py-2 text-base-content">{{ $todo->title }}</td>
                                         <td class="px-4 py-2">
                                             @if($todo->status->value === 'assigned')
                                                 <span
@@ -290,7 +290,7 @@
                                                     class="badge badge-success">Verifiziert</span>
                                             @endif
                                         </td>
-                                        <td class="px-4 py-2 text-base-content/80">{{ $todo->points }}</td>
+                                        <td class="px-4 py-2 text-base-content">{{ $todo->points }}</td>
                                         <td class="px-4 py-2 text-center">
                                             <a href="{{ route('todos.show', $todo) }}"
                                                 class="text-primary hover:underline">
@@ -323,7 +323,7 @@
                                     <h3 class="font-semibold text-base-content">{{ $todo->title }}</h3>
                                 </div>
                                 <div class="mb-2">
-                                    <span class="text-sm text-base-content/60">Status:</span>
+                                    <span class="text-sm text-base-content">Status:</span>
                                     <div class="mt-1">
                                         @if($todo->status->value === 'assigned')
                                             <span
@@ -340,7 +340,7 @@
                                     </div>
                                 </div>
                                 <div class="mb-3">
-                                    <span class="text-sm text-base-content/60">Baxx:</span>
+                                    <span class="text-sm text-base-content">Baxx:</span>
                                     <div class="mt-1 font-semibold text-base-content">{{ $todo->points }}</div>
                                 </div>
                                 <div class="flex gap-2">
@@ -375,7 +375,7 @@
                 <h2 id="todo-open-heading"
                     class="text-xl font-semibold text-primary mb-4">Offene Challenges</h2>
                 @if($unassignedTodos->isEmpty())
-                    <p class="text-base-content/60">Es sind aktuell keine offenen Challenges verfügbar.</p>
+                    <p class="text-base-content">Es sind aktuell keine offenen Challenges verfügbar.</p>
                 @else
                     <!-- Desktop-Ansicht (versteckt auf Mobilgeräten) -->
                     <div class="hidden md:block">
@@ -392,10 +392,10 @@
                             <tbody class="">
                                 @foreach($unassignedTodos as $todo)
                                     <tr>
-                                        <td class="px-4 py-2 text-base-content/80">{{ $todo->title }}</td>
-                                        <td class="px-4 py-2 text-base-content/80">{{ $todo->category ? $todo->category->name : '-' }}</td>
-                                        <td class="px-4 py-2 text-base-content/80"><a href="{{ route('profile.view', $todo->creator->id) }}" class="text-primary hover:underline">{{ $todo->creator->name }}</a></td>
-                                        <td class="px-4 py-2 text-base-content/80">{{ $todo->points }}</td>
+                                        <td class="px-4 py-2 text-base-content">{{ $todo->title }}</td>
+                                        <td class="px-4 py-2 text-base-content">{{ $todo->category ? $todo->category->name : '-' }}</td>
+                                        <td class="px-4 py-2 text-base-content"><a href="{{ route('profile.view', $todo->creator->id) }}" class="text-primary hover:underline">{{ $todo->creator->name }}</a></td>
+                                        <td class="px-4 py-2 text-base-content">{{ $todo->points }}</td>
                                         <td class="px-4 py-2 text-center">
                                             <a href="{{ route('todos.show', $todo) }}"
                                                 class="text-primary hover:underline mr-2">
@@ -425,15 +425,15 @@
                                     <h3 class="font-semibold text-base-content">{{ $todo->title }}</h3>
                                 </div>
                                 <div class="mb-2">
-                                    <span class="text-sm text-base-content/60">Kategorie:</span>
+                                    <span class="text-sm text-base-content">Kategorie:</span>
                                     <div class="mt-1 text-base-content">{{ $todo->category ? $todo->category->name : '-' }}</div>
                                 </div>
                                 <div class="mb-2">
-                                    <span class="text-sm text-base-content/60">Erstellt von:</span>
+                                    <span class="text-sm text-base-content">Erstellt von:</span>
                                     <div class="mt-1 text-base-content"><a href="{{ route('profile.view', $todo->creator->id) }}" class="text-primary hover:underline">{{ $todo->creator->name }}</a></div>
                                 </div>
                                 <div class="mb-3">
-                                    <span class="text-sm text-base-content/60">Baxx:</span>
+                                    <span class="text-sm text-base-content">Baxx:</span>
                                     <div class="mt-1 font-semibold text-base-content">{{ $todo->points }}</div>
                                 </div>
                                 <div class="flex gap-2">
@@ -489,7 +489,7 @@
                     <div>
                         <h2 id="todo-dashboard-heading"
                             class="text-xl font-semibold text-base-content">Vereins-Dashboard</h2>
-                        <p class="text-sm text-base-content/60">
+                        <p class="text-sm text-base-content">
                             Fortschritt, Vergleich und Ziele deines Vereins auf einen Blick.
                         </p>
                     </div>
@@ -503,7 +503,7 @@
                                     class="text-lg font-semibold text-primary">
                                     Wochenziel
                                 </h3>
-                                <p class="mt-1 text-sm text-base-content/60">
+                                <p class="mt-1 text-sm text-base-content">
                                     Sammle kontinuierlich Baxx, um dein Wochenziel zu erreichen.
                                 </p>
                             </div>
@@ -511,7 +511,7 @@
                                 <span class="text-2xl font-bold leading-none tracking-tight text-base-content sm:text-3xl xl:text-4xl">
                                     {{ number_format($weeklyTotal, 0, ',', '.') }}
                                 </span>
-                                <p class="text-xs text-base-content/60">
+                                <p class="text-xs text-base-content">
                                     von {{ number_format($weeklyTarget, 0, ',', '.') }} Baxx
                                 </p>
                             </div>
@@ -525,7 +525,7 @@
                                     class="h-full bg-primary"
                                     style="width: {{ $weeklyProgress }}%"></div>
                             </div>
-                            <p class="mt-2 text-sm text-base-content/60">
+                            <p class="mt-2 text-sm text-base-content">
                                 {{ number_format($weeklyTotal, 0, ',', '.') }} von {{ number_format($weeklyTarget, 0, ',', '.') }} Baxx gesammelt.
                             </p>
                         </div>
@@ -538,7 +538,7 @@
                                     class="text-lg font-semibold text-primary">
                                     Vereinsdurchschnitt
                                 </h3>
-                                <p class="mt-1 text-sm text-base-content/60">
+                                <p class="mt-1 text-sm text-base-content">
                                     Vergleiche deine Punkte mit dem Durchschnitt des Vereins.
                                 </p>
                             </div>
@@ -546,7 +546,7 @@
                                 <span class="text-2xl font-bold leading-none tracking-tight text-base-content sm:text-3xl xl:text-4xl">
                                     {{ number_format($teamAverage, 1, ',', '.') }}
                                 </span>
-                                <p class="text-xs text-base-content/60">Ø Vereins-Baxx</p>
+                                <p class="text-xs text-base-content">Ø Vereins-Baxx</p>
                             </div>
                         </div>
                         <div class="mt-4" data-progress-bar data-progress-value="{{ $userTotalPoints }}"
@@ -558,7 +558,7 @@
                                     class="h-full bg-secondary"
                                     style="width: {{ $teamAverageProgress }}%"></div>
                             </div>
-                            <p class="mt-2 text-sm text-base-content/60">
+                            <p class="mt-2 text-sm text-base-content">
                                 @if(! is_null($teamAverageRatio))
                                     Du liegst bei {{ number_format($teamAverageRatio, 1, ',', '.') }} % des
                                     Vereinsdurchschnitts.
@@ -576,7 +576,7 @@
                                     class="text-lg font-semibold text-primary">
                                     Dein Punktestand
                                 </h3>
-                                <p class="mt-1 text-sm text-base-content/60">
+                                <p class="mt-1 text-sm text-base-content">
                                     Alle gesammelten Baxx deines Vereinskontos.
                                 </p>
                             </div>
@@ -584,16 +584,16 @@
                                 <span class="text-2xl font-bold leading-none tracking-tight text-base-content sm:text-3xl xl:text-4xl">
                                     {{ number_format($userTotalPoints, 0, ',', '.') }}
                                 </span>
-                                <p class="text-xs text-base-content/60">gesammelte Baxx</p>
+                                <p class="text-xs text-base-content">gesammelte Baxx</p>
                             </div>
                         </div>
                         @if($teamAverage > 0)
-                            <p class="mt-4 text-sm text-base-content/60">
+                            <p class="mt-4 text-sm text-base-content">
                                 Du liegst {{ $userTotalPoints >= $teamAverage ? 'über' : 'unter' }} dem Vereinsdurchschnitt
                                 von {{ number_format($teamAverage, 1, ',', '.') }} Baxx.
                             </p>
                         @else
-                            <p class="mt-4 text-sm text-base-content/60">
+                            <p class="mt-4 text-sm text-base-content">
                                 Sobald Baxx gesammelt wurden, erscheint hier dein Vergleich zum Verein.
                             </p>
                         @endif
@@ -604,7 +604,7 @@
                             class="text-lg font-semibold text-primary">
                             Rangliste
                         </h3>
-                        <p class="mt-1 text-sm text-base-content/60">
+                        <p class="mt-1 text-sm text-base-content">
                             So steht dein Verein aktuell da.
                         </p>
                         <ol class="mt-4 space-y-3" role="list">
@@ -612,7 +612,7 @@
                                 <li
                                     class="flex items-center justify-between gap-3 rounded-md px-3 py-2 @if($entry['is_current_user']) bg-primary text-primary-content @else bg-base-100 text-base-content @endif border border-base-content/10">
                                     <div class="flex items-center gap-3">
-                                        <span class="text-sm font-semibold @if($entry['is_current_user']) text-primary-content @else text-base-content/60 @endif">
+                                        <span class="text-sm font-semibold @if($entry['is_current_user']) text-primary-content @else text-base-content @endif">
                                             {{ $entry['rank'] ? '#' . $entry['rank'] : '–' }}
                                         </span>
                                         <span class="text-sm font-semibold">{{ $entry['name'] }}</span>
@@ -620,7 +620,7 @@
                                     <span class="text-sm font-semibold">{{ number_format($entry['points'], 0, ',', '.') }} Baxx</span>
                                 </li>
                             @empty
-                                <li class="text-sm text-base-content/60">
+                                <li class="text-sm text-base-content">
                                     Sobald Punkte gesammelt wurden, erscheint hier die Rangliste.
                                 </li>
                             @endforelse

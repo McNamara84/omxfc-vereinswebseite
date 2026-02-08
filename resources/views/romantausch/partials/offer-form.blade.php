@@ -33,7 +33,7 @@
         <div class="grid gap-6 md:grid-cols-2">
             <div class="md:col-span-1 space-y-4">
                 <div>
-                    <label for="series-select" class="label label-text">Serie</label>
+                    <label for="series-select" class="fieldset-legend">Serie</label>
                     <select
                         name="series"
                         id="series-select"
@@ -56,7 +56,7 @@
                 </div>
 
                 <div>
-                    <label for="book-select" class="label label-text">Roman</label>
+                    <label for="book-select" class="fieldset-legend">Roman</label>
                     <select
                         name="book_number"
                         id="book-select"
@@ -85,7 +85,7 @@
                 </div>
 
                 <div>
-                    <label for="condition-select" class="label label-text">Zustand</label>
+                    <label for="condition-select" class="fieldset-legend">Zustand</label>
                     <select
                         name="condition"
                         id="condition-select"
@@ -118,7 +118,7 @@
                 @if($displayPhotos->isNotEmpty())
                     <fieldset class="border border-base-content/10 rounded-lg p-4">
                         <legend class="text-sm font-semibold text-base-content">Vorhandene Fotos</legend>
-                        <p class="text-sm text-base-content/60 mb-3">Markiere Fotos, die du entfernen möchtest. Sie werden beim Speichern gelöscht.</p>
+                        <p class="text-sm text-base-content mb-3">Markiere Fotos, die du entfernen möchtest. Sie werden beim Speichern gelöscht.</p>
                         <ul class="grid gap-4 sm:grid-cols-2" aria-live="polite">
                             @foreach($displayPhotos as $index => $photo)
                                 <li class="flex flex-col rounded-lg overflow-hidden border border-base-content/10 bg-base-200">
@@ -134,9 +134,9 @@
                 @endif
 
                 <div>
-                    <label for="photos" data-dropzone-label class="label label-text">Neue Fotos hochladen</label>
-                    <p id="photos-help" class="text-sm text-base-content/60 mb-2">Du kannst bis zu {{ $maxNewPhotos }} neue Fotos hinzufügen. Insgesamt sind maximal drei Fotos erlaubt.</p>
-                    <p id="photos-size" class="text-xs text-base-content/50 mb-4">Unterstützte Dateiformate: JPG, JPEG, PNG, GIF und WebP. Die maximale Dateigröße beträgt 2&nbsp;MB pro Foto.</p>
+                    <label for="photos" data-dropzone-label class="fieldset-legend">Neue Fotos hochladen</label>
+                    <p id="photos-help" class="text-sm text-base-content mb-2">Du kannst bis zu {{ $maxNewPhotos }} neue Fotos hinzufügen. Insgesamt sind maximal drei Fotos erlaubt.</p>
+                    <p id="photos-size" class="text-xs text-base-content mb-4">Unterstützte Dateiformate: JPG, JPEG, PNG, GIF und WebP. Die maximale Dateigröße beträgt 2&nbsp;MB pro Foto.</p>
 
                     <div
                         data-romantausch-dropzone
@@ -152,7 +152,7 @@
                                 class="relative flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-base-content/20 bg-base-200 px-4 py-6 text-center transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 hover:border-primary hover:bg-base-100"
                             >
                                 <span data-dropzone-instruction-text class="font-medium text-base-content">Ziehe deine Fotos hierher oder klicke, um sie auszuwählen.</span>
-                                <span class="text-sm text-base-content/60">
+                                <span class="text-sm text-base-content">
                                     <span data-dropzone-counter>0</span>
                                     /
                                     <span data-dropzone-max="true">{{ $maxNewPhotos }}</span>
@@ -164,7 +164,7 @@
                             <div
                                 id="photos-status"
                                 data-dropzone-status
-                                class="text-sm text-base-content/60"
+                                class="text-sm text-base-content"
                                 aria-live="polite"
                                 role="status"
                             ></div>

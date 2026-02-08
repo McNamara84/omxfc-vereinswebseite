@@ -13,9 +13,9 @@
                     <div class="flex items-start justify-between">
                         <div>
                             <h2 class="text-lg font-semibold text-primary">{{ $reward['title'] }}</h2>
-                            <p class="text-base-content/70">{{ $reward['description'] }}</p>
+                            <p class="text-base-content">{{ $reward['description'] }}</p>
                             @if(isset($reward['percentage']))
-                                <p class="mt-1 text-sm text-base-content/50">
+                                <p class="mt-1 text-sm text-base-content">
                                     {{ $reward['percentage'] }}% der Mitglieder haben diese Belohnung freigeschaltet
                                 </p>
                             @endif

@@ -11,7 +11,7 @@
             @forelse($reviews as $review)
                 <x-card shadow class="mb-6">
                     <h2 class="text-lg font-semibold text-base-content">{{ $review->title }}</h2>
-                    <p class="text-sm text-base-content/60">
+                    <p class="text-sm text-base-content">
                         von
                         <a href="{{ route('profile.view', $review->user->id) }}" class="text-primary hover:underline">{{ $review->user->name }}</a>
                         am {{ $review->created_at->format('d.m.Y H:i') }} Uhr
@@ -48,7 +48,7 @@
                     </div>
                 </x-card>
             @empty
-                <p class="text-base-content/60">Noch keine Rezensionen vorhanden.</p>
+                <p class="text-base-content">Noch keine Rezensionen vorhanden.</p>
             @endforelse
 
             <x-button label="← Zurück zur Übersicht" link="{{ route('reviews.index') }}" class="btn-ghost btn-sm text-primary" />

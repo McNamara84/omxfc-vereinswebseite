@@ -8,7 +8,7 @@
                 @endif
             </div>
             @if(request()->routeIs('ag.index') && Auth::user()->ownedTeams()->where('personal_team', false)->exists())
-                <p class="mb-6 text-base-content/80">Als AG-Leiter kannst du hier deine AG verwalten. Die Beschreibung, das Logo, der Termin für das regelmäßige AG-Treffen und die angegebene E-Mail-Adresse werden auch im öffentlichen Bereich für Nicht-Mitglieder angezeigt. Bitte halte diese Informationen daher stets aktuell.</p>
+                <p class="mb-6 text-base-content">Als AG-Leiter kannst du hier deine AG verwalten. Die Beschreibung, das Logo, der Termin für das regelmäßige AG-Treffen und die angegebene E-Mail-Adresse werden auch im öffentlichen Bereich für Nicht-Mitglieder angezeigt. Bitte halte diese Informationen daher stets aktuell.</p>
             @endif
             <div class="overflow-x-auto">
                 <table class="table">
@@ -34,7 +34,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="5" class="text-center text-base-content/60">Keine Arbeitsgruppen vorhanden.</td>
+                                <td colspan="5" class="text-center text-base-content">Keine Arbeitsgruppen vorhanden.</td>
                             </tr>
                         @endforelse
                     </tbody>

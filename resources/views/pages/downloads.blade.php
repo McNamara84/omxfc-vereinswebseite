@@ -35,7 +35,7 @@
                                         @if($userPoints >= $file['punkte'])
                                             <x-button label="Herunterladen" link="{{ route('downloads.download', $file['datei']) }}" icon="o-arrow-down-tray" class="btn-ghost btn-sm text-primary" />
                                         @else
-                                            <span class="flex items-center text-base-content/40" title="Mehr Baxx nötig">
+                                            <span class="flex items-center text-base-content" title="Mehr Baxx nötig">
                                                 <x-icon name="o-lock-closed" class="w-4 h-4 mr-1" />
                                                 Gesperrt
                                             </span>

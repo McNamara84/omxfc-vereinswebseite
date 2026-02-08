@@ -28,7 +28,7 @@
                         />
 
                         <div>
-                            <label for="status" class="block text-sm font-medium text-base-content/70 mb-1">Status</label>
+                            <label for="status" class="block text-sm font-medium text-base-content mb-1">Status</label>
                             <select name="status" id="status" required class="select select-bordered w-full">
                                 <option value="">-- Status wählen --</option>
                                 @foreach($statuses as $status)
@@ -81,7 +81,7 @@
 
                     {{-- Rollen-Bereich (JS-gesteuert, bleibt nativ) --}}
                     <div>
-                        <label class="block text-sm font-medium text-base-content/70 mb-1">Rollen</label>
+                        <label class="block text-sm font-medium text-base-content mb-1">Rollen</label>
                         <div
                             class="grid grid-cols-1 gap-2"
                             id="roles_list"
@@ -89,7 +89,7 @@
                             data-previous-speaker-url="{{ route('hoerbuecher.previous-speaker') }}"
                             data-role-index="{{ count(old('roles', $episode->roles->toArray())) }}"
                         >
-                            <div class="grid grid-cols-1 md:grid-cols-[1.5fr_2fr_auto_2fr_2fr_2fr_auto_auto] gap-2 md:items-center text-xs font-semibold uppercase tracking-wide text-base-content/60 role-row-header">
+                            <div class="grid grid-cols-1 md:grid-cols-[1.5fr_2fr_auto_2fr_2fr_2fr_auto_auto] gap-2 md:items-center text-xs font-semibold uppercase tracking-wide text-base-content role-row-header">
                                 <span>Rolle</span>
                                 <span>Beschreibung</span>
                                 <span class="md:text-center">Takes</span>
@@ -113,7 +113,7 @@
                                             <input type="hidden" name="roles[{{ $i }}][member_id]" value="{{ $role['user_id'] ?? ($role['member_id'] ?? '') }}" />
                                         </div>
                                         @php($prev = $previousSpeakers[$role['name'] ?? ''] ?? null)
-                                        <div class="text-xs text-base-content/50 previous-speaker" aria-live="polite">
+                                        <div class="text-xs text-base-content previous-speaker" aria-live="polite">
                                             {{ $prev ? 'Bisheriger Sprecher: ' . $prev : '' }}
                                         </div>
                                     </div>

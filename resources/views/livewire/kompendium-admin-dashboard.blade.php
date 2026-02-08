@@ -181,10 +181,10 @@
                                         </span>
                                     @endif
                                 </td>
-                                <td class="text-base-content/60">
+                                <td class="text-base-content">
                                     {{ $this->serien[$roman->serie] ?? $roman->serie }}
                                 </td>
-                                <td class="text-base-content/60">
+                                <td class="text-base-content">
                                     {{ $roman->zyklus ?? '-' }}
                                 </td>
                                 <td>
@@ -203,7 +203,7 @@
                                             @break
                                     @endswitch
                                 </td>
-                                <td class="text-base-content/60">
+                                <td class="text-base-content">
                                     {{ $roman->hochgeladen_am->format('d.m.Y H:i') }}
                                 </td>
                                 <td class="text-right space-x-1">
@@ -239,7 +239,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="text-center py-8 text-base-content/60">
+                                <td colspan="7" class="text-center py-8 text-base-content">
                                     @if($filterSerie || $filterStatus || $suchbegriff)
                                         <x-icon name="o-funnel" class="w-12 h-12 mx-auto mb-2 opacity-30" />
                                         Keine Romane gefunden, die den Filterkriterien entsprechen.

@@ -28,12 +28,12 @@
     <div class="bg-base-100 p-6 rounded-lg shadow-xl max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto">
         <div class="flex justify-between items-start mb-4">
             <h3 id="mission-title" class="text-xl font-bold"></h3>
-            <button id="close-mission-modal" class="text-base-content/50 hover:text-base-content">
+            <button id="close-mission-modal" class="text-base-content hover:text-base-content">
                 ✕
             </button>
         </div>
-        <div id="mission-duration" class="mb-2 text-base-content/60"></div>
-        <div id="mission-description" class="mb-6 text-base-content/70"></div>
+        <div id="mission-duration" class="mb-2 text-base-content"></div>
+        <div id="mission-description" class="mb-6 text-base-content"></div>
         <button id="start-mission" class="btn btn-primary w-full">
             Starte Mission
         </button>

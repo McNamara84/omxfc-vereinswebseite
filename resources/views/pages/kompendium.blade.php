@@ -6,7 +6,7 @@
             {{-- Info-Card --------------------------------------------------- --}}
             <div class="mb-6 p-4 border-l-4 border-primary bg-base-200 rounded">
                 @if($indexierteRomaneSummary->isEmpty())
-                    <p class="text-base-content/60">
+                    <p class="text-base-content">
                         Aktuell sind keine Romane für die Suche indexiert.
                     </p>
                 @else
@@ -35,7 +35,7 @@
                 {{-- Serien-Filter (wird per JS befüllt) ----------------------- --}}
                 <div id="serien-filter" class="mb-4 hidden">
                     <fieldset role="group" aria-labelledby="serien-filter-legend">
-                        <legend id="serien-filter-legend" class="text-sm font-medium text-base-content/70 mb-2">
+                        <legend id="serien-filter-legend" class="text-sm font-medium text-base-content mb-2">
                             Serien filtern:
                         </legend>
                         <div id="serien-checkboxes" class="flex flex-wrap gap-x-4 gap-y-2" role="group">
@@ -130,7 +130,7 @@
                         const checkboxId = `serie-checkbox-${key}`;
 
                         const label = document.createElement('label');
-                        label.className = 'inline-flex items-center text-sm text-base-content/70 cursor-pointer';
+                        label.className = 'inline-flex items-center text-sm text-base-content cursor-pointer';
                         label.setAttribute('for', checkboxId);
 
                         const checkbox = document.createElement('input');

@@ -79,7 +79,7 @@
 
                     {{-- Rollen-Bereich (JS-gesteuert, bleibt nativ) --}}
                     <div>
-                        <label class="block text-sm font-medium text-base-content/70 mb-1">Rollen</label>
+                        <label class="block text-sm font-medium text-base-content mb-1">Rollen</label>
                         <div
                             id="roles_list"
                             data-members-target="#members"

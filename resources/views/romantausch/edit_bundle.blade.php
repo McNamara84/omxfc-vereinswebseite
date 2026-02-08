@@ -24,7 +24,7 @@
             @endphp
 
             <div class="mb-6 p-4 bg-base-200 rounded-lg">
-                <p class="text-sm text-base-content/60">
+                <p class="text-sm text-base-content">
                     <strong>Serie:</strong> {{ $firstOffer->series }}<br>
                     <strong>Aktuell:</strong> {{ $offers->count() }} Romane
                 </p>
@@ -47,7 +47,7 @@
                     <div class="md:col-span-1 space-y-4">
                         {{-- Roman-Nummern --}}
                         <div x-data="bundlePreview()">
-                            <label for="book-numbers-input" class="label label-text">Roman-Nummern</label>
+                            <label for="book-numbers-input" class="fieldset-legend">Roman-Nummern</label>
                             <input
                                 type="text"
                                 name="book_numbers"
@@ -64,7 +64,7 @@
                                 aria-describedby="book-numbers-help{{ $bookNumbersError ? ' book-numbers-error' : '' }}"
                                 @if($bookNumbersError) aria-invalid="true" @endif
                             >
-                            <p id="book-numbers-help" class="mt-1 text-sm text-base-content/50">
+                            <p id="book-numbers-help" class="mt-1 text-sm text-base-content">
                                 Gib Nummern einzeln (1, 5, 7) oder als Bereich (1-50) an, getrennt durch Kommas.
                             </p>
                             @error('book_numbers')
@@ -76,16 +76,16 @@
                                 <p class="text-sm font-medium text-base-content">
                                     <span x-text="numbers.length"></span> Romane erkannt
                                 </p>
-                                <p class="text-xs text-base-content/60 mt-1 max-h-20 overflow-y-auto" x-text="formatPreview()"></p>
+                                <p class="text-xs text-base-content mt-1 max-h-20 overflow-y-auto" x-text="formatPreview()"></p>
                             </div>
                         </div>
 
                         {{-- Zustandsbereich --}}
                         <div>
-                            <label class="label label-text">Zustandsbereich</label>
+                            <label class="fieldset-legend">Zustandsbereich</label>
                             <div class="grid grid-cols-2 gap-3">
                                 <div>
-                                    <label for="condition-min" class="block text-sm text-base-content/60 mb-1">Von (bester Zustand)</label>
+                                    <label for="condition-min" class="block text-sm text-base-content mb-1">Von (bester Zustand)</label>
                                     <select
                                         name="condition"
                                         id="condition-min"
@@ -98,7 +98,7 @@
                                     </select>
                                 </div>
                                 <div>
-                                    <label for="condition-max" class="block text-sm text-base-content/60 mb-1">Bis (schlechtester)</label>
+                                    <label for="condition-max" class="block text-sm text-base-content mb-1">Bis (schlechtester)</label>
                                     <select
                                         name="condition_max"
                                         id="condition-max"
@@ -122,7 +122,7 @@
                         @if($displayPhotos->isNotEmpty())
                             <fieldset class="border border-base-content/10 rounded-lg p-4">
                                 <legend class="text-sm font-semibold text-base-content">Vorhandene Fotos</legend>
-                                <p class="text-sm text-base-content/60 mb-3">Markiere Fotos, die du entfernen möchtest.</p>
+                                <p class="text-sm text-base-content mb-3">Markiere Fotos, die du entfernen möchtest.</p>
                                 <ul class="grid gap-4 sm:grid-cols-2">
                                     @foreach($displayPhotos as $index => $photo)
                                         <li class="flex flex-col rounded-lg overflow-hidden border border-base-content/10 bg-base-200">
@@ -138,8 +138,8 @@
                         @endif
 
                         <div>
-                            <label for="photos" class="label label-text">Neue Fotos hinzufügen</label>
-                            <p class="text-sm text-base-content/60 mb-2">
+                            <label for="photos" class="fieldset-legend">Neue Fotos hinzufügen</label>
+                            <p class="text-sm text-base-content mb-2">
                                 Du kannst bis zu {{ $maxNewPhotos }} neue Fotos hinzufügen. Insgesamt max. 3 Fotos.
                             </p>
                             <input

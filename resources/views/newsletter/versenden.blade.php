@@ -69,7 +69,7 @@
                 <div x-show="showConfirm" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-base-300/75">
                     <div class="bg-base-100 p-6 rounded-box shadow-xl max-w-md w-full mx-4">
                         <h3 class="text-lg font-medium mb-4">Bestätigung</h3>
-                        <p class="mb-6 text-base-content/80" x-text="pendingTest ? 'Testnewsletter wirklich versenden?' : 'Wirklich Newsletter versenden?'"></p>
+                        <p class="mb-6 text-base-content" x-text="pendingTest ? 'Testnewsletter wirklich versenden?' : 'Wirklich Newsletter versenden?'"></p>
                         <div class="flex justify-end gap-2">
                             <x-button label="Abbrechen" class="btn-ghost" @click="showConfirm = false" />
                             <x-button label="Ja, versenden" class="btn-primary" @click="submit" />

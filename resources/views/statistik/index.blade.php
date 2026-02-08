@@ -218,21 +218,21 @@
                         <div class="text-3xl font-bold text-base-content">
                             {{ number_format($averageRating, 2, ',', '.') }}
                         </div>
-                        <div class="text-base-content/60">Ø-Bewertung</div>
+                        <div class="text-base-content">Ø-Bewertung</div>
                     </div>
 
                     <div>
                         <div class="text-3xl font-bold text-base-content">
                             {{ $totalVotes }}
                         </div>
-                        <div class="text-base-content/60">Stimmen insgesamt</div>
+                        <div class="text-base-content">Stimmen insgesamt</div>
                     </div>
 
                     <div>
                         <div class="text-3xl font-bold text-base-content">
                             {{ number_format($averageVotes, 2, ',', '.') }}
                         </div>
-                        <div class="text-base-content/60">Ø-Stimmen pro Roman</div>
+                        <div class="text-base-content">Ø-Stimmen pro Roman</div>
                     </div>
                     @if($userPoints < $min)
                         @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
@@ -256,21 +256,21 @@
                             <div class="text-3xl font-bold text-base-content">
                                 {{ $totalReviews }}
                             </div>
-                            <div class="text-base-content/60">Rezensionen insgesamt</div>
+                            <div class="text-base-content">Rezensionen insgesamt</div>
                         </div>
 
                         <div>
                             <div class="text-3xl font-bold text-base-content">
                                 {{ number_format($averageReviewsPerBook, 2, ',', '.') }}
                             </div>
-                            <div class="text-base-content/60">Ø Rezensionen pro Roman</div>
+                            <div class="text-base-content">Ø Rezensionen pro Roman</div>
                         </div>
 
                         <div>
                             <div class="text-3xl font-bold text-base-content">
                                 {{ number_format($avgCommentsPerReview, 2, ',', '.') }}
                             </div>
-                            <div class="text-base-content/60">Ø Kommentare pro Rezension</div>
+                            <div class="text-base-content">Ø Kommentare pro Rezension</div>
                         </div>
                     </div>
 

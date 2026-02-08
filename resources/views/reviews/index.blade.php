@@ -2,7 +2,7 @@
     <x-member-page>
             <x-card shadow class="mb-6">
                 <x-header title="Rezensionen" class="!mb-2" />
-                <p class="text-base text-base-content/80">
+                <p class="text-base text-base-content">
                     Für jede <strong>zehnte</strong> verfasste Rezension erhältst du automatisch
                     <strong>1 Baxx</strong>.
                 </p>
