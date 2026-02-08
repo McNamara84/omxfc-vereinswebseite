@@ -1,159 +1,161 @@
 <x-app-layout>
     <x-member-page class="max-w-3xl">
-        <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
-            <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-6">Hörbuchfolge bearbeiten</h2>
+        <x-header title="Hörbuchfolge bearbeiten" separator>
+            <x-slot:actions>
+                <x-button label="Zurück" icon="o-arrow-left" link="{{ route('hoerbuecher.index') }}" class="btn-ghost" />
+            </x-slot:actions>
+        </x-header>
 
+        <x-card>
             <form action="{{ route('hoerbuecher.update', $episode) }}" method="POST">
                 @csrf
                 @method('PUT')
 
-                <div class="mb-4">
-                    <label for="title" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Titel</label>
-                    <input type="text" name="title" id="title" value="{{ old('title', $episode->title) }}" required class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
-                    @error('title')
-                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                    @enderror
-                </div>
+                <div class="space-y-4">
+                    <x-input
+                        name="title"
+                        label="Titel"
+                        value="{{ old('title', $episode->title) }}"
+                        required
+                    />
 
-                <div class="mb-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                        <label for="episode_number" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Folgenummer</label>
-                        <input type="text" name="episode_number" id="episode_number" value="{{ old('episode_number', $episode->episode_number) }}" required class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
-                        @error('episode_number')
-                            <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                        @enderror
-                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <x-input
+                            name="episode_number"
+                            label="Folgenummer"
+                            value="{{ old('episode_number', $episode->episode_number) }}"
+                            required
+                        />
 
-                    <div>
-                        <label for="status" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Status</label>
-                        <select name="status" id="status" required class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
-                            <option value="">-- Status wählen --</option>
-                            @foreach($statuses as $status)
-                                <option value="{{ $status }}" {{ old('status', $episode->status->value) === $status ? 'selected' : '' }}>{{ $status }}</option>
-                            @endforeach
-                        </select>
-                        @error('status')
-                            <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <div>
-                        <label for="planned_release_date" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Ziel-EVT</label>
-                        <input type="text" name="planned_release_date" id="planned_release_date" value="{{ old('planned_release_date', $episode->planned_release_date) }}" required placeholder="JJJJ, MM.JJJJ oder TT.MM.JJJJ" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
-                        @error('planned_release_date')
-                            <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                        @enderror
-                    </div>
-                </div>
-
-                <div class="mb-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                        <label for="author" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Autor</label>
-                        <input type="text" name="author" id="author" value="{{ old('author', $episode->author) }}" required class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
-                        @error('author')
-                            <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <div>
-                        <label for="responsible_user_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Verantwortlicher Bearbeiter</label>
-                        <select name="responsible_user_id" id="responsible_user_id" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
-                            <option value="">-- Mitglied wählen --</option>
-                            @foreach($users as $member)
-                                <option value="{{ $member->id }}" {{ old('responsible_user_id', $episode->responsible_user_id) == $member->id ? 'selected' : '' }}>{{ $member->name }}</option>
-                            @endforeach
-                        </select>
-                        @error('responsible_user_id')
-                            <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <div>
-                        <label for="progress" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Fortschritt (%)</label>
-                        <input type="number" name="progress" id="progress" value="{{ old('progress', $episode->progress) }}" min="0" max="100" required class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">
-                        @error('progress')
-                            <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                        @enderror
-                    </div>
-                </div>
-
-                <div class="mb-6">
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Rollen</label>
-                    <div
-                        class="grid grid-cols-1 gap-2"
-                        id="roles_list"
-                        data-members-target="#members"
-                        data-previous-speaker-url="{{ route('hoerbuecher.previous-speaker') }}"
-                        data-role-index="{{ count(old('roles', $episode->roles->toArray())) }}"
-                    >
-                        <div class="grid grid-cols-1 md:grid-cols-[1.5fr_2fr_auto_2fr_2fr_2fr_auto_auto] gap-2 md:items-center text-xs font-semibold uppercase tracking-wide text-gray-600 dark:text-gray-300 role-row-header">
-                            <span>Rolle</span>
-                            <span>Beschreibung</span>
-                            <span class="md:text-center">Takes</span>
-                            <span>Kontakt (optional)</span>
-                            <span>Pseudonym (optional)</span>
-                            <span>Sprecher</span>
-                            <span id="roles-uploaded-header" class="md:text-center">Aufnahme hochgeladen</span>
-                            <span class="sr-only md:not-sr-only md:text-right">Aktionen</span>
+                        <div>
+                            <label for="status" class="block text-sm font-medium text-base-content mb-1">Status</label>
+                            <select name="status" id="status" required class="select select-bordered w-full">
+                                <option value="">-- Status wählen --</option>
+                                @foreach($statuses as $status)
+                                    <option value="{{ $status }}" {{ old('status', $episode->status->value) === $status ? 'selected' : '' }}>{{ $status }}</option>
+                                @endforeach
+                            </select>
+                            @error('status')
+                                <p class="mt-1 text-sm text-error">{{ $message }}</p>
+                            @enderror
                         </div>
-                        @foreach(old('roles', $episode->roles->toArray()) as $i => $role)
-                            @php($uploaded = $role['uploaded'] ?? false)
-                            <div class="grid grid-cols-1 md:grid-cols-[1.5fr_2fr_auto_2fr_2fr_2fr_auto_auto] gap-2 mb-2 items-start md:items-center role-row">
-                                <input type="text" name="roles[{{ $i }}][name]" value="{{ $role['name'] ?? '' }}" placeholder="Rolle" aria-label="Rollenname" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50" />
-                                <input type="text" name="roles[{{ $i }}][description]" value="{{ $role['description'] ?? '' }}" placeholder="Beschreibung" aria-label="Rollenbeschreibung" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50" />
-                                <input type="number" name="roles[{{ $i }}][takes]" value="{{ $role['takes'] ?? 0 }}" min="0" max="999" inputmode="numeric" placeholder="Takes" aria-label="Anzahl Takes" class="w-full md:max-w-[6rem] rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50" />
-                                <input type="email" name="roles[{{ $i }}][contact_email]" value="{{ $role['contact_email'] ?? '' }}" placeholder="Kontakt (optional)" aria-label="Kontakt E-Mail" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50" />
-                                <input type="text" name="roles[{{ $i }}][speaker_pseudonym]" value="{{ $role['speaker_pseudonym'] ?? '' }}" placeholder="Pseudonym (optional)" aria-label="Sprecherpseudonym" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50" />
-                                <div class="flex flex-col gap-2">
-                                    <div>
-                                        <input type="text" name="roles[{{ $i }}][member_name]" value="{{ $role['speaker_name'] ?? ($role['member_name'] ?? '') }}" list="members" placeholder="Sprecher" aria-label="Name des Sprechers" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50" />
-                                        <input type="hidden" name="roles[{{ $i }}][member_id]" value="{{ $role['user_id'] ?? ($role['member_id'] ?? '') }}" />
-                                    </div>
-                                    @php($prev = $previousSpeakers[$role['name'] ?? ''] ?? null)
-                                    <div class="text-xs text-gray-500 previous-speaker" aria-live="polite">
-                                        {{ $prev ? 'Bisheriger Sprecher: ' . $prev : '' }}
-                                    </div>
-                                </div>
-                                <div class="flex items-center md:justify-center">
-                                    <input type="hidden" name="roles[{{ $i }}][uploaded]" value="0">
-                                    <input
-                                        type="checkbox"
-                                        name="roles[{{ $i }}][uploaded]"
-                                        value="1"
-                                        {{ $uploaded ? 'checked' : '' }}
-                                        aria-labelledby="roles-uploaded-header"
-                                        class="rounded border-gray-300 dark:border-gray-600 text-[#8B0116] focus:ring-[#8B0116] dark:focus:ring-[#FF6B81]"
-                                    >
-                                </div>
-                                <button type="button" class="text-red-600 md:text-right" aria-label="Rolle entfernen" data-role-remove>&times;</button>
-                            </div>
-                        @endforeach
+
+                        <x-input
+                            name="planned_release_date"
+                            label="Ziel-EVT"
+                            value="{{ old('planned_release_date', $episode->planned_release_date) }}"
+                            placeholder="JJJJ, MM.JJJJ oder TT.MM.JJJJ"
+                            required
+                        />
                     </div>
-                    <button type="button" id="add_role" class="mt-2 inline-flex items-center px-2 py-1 bg-gray-200 dark:bg-gray-600 rounded">Rolle hinzufügen</button>
-                    <datalist id="members">
-                        @foreach($users as $member)
-                            <option data-id="{{ $member->id }}" value="{{ $member->name }}"></option>
-                        @endforeach
-                    </datalist>
-                    @error('roles')
-                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                    @enderror
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <x-input
+                            name="author"
+                            label="Autor"
+                            value="{{ old('author', $episode->author) }}"
+                            required
+                        />
+
+                        @php
+                            $userOptions = $users->map(fn($u) => ['id' => $u->id, 'name' => $u->name])->toArray();
+                        @endphp
+                        <x-select
+                            name="responsible_user_id"
+                            label="Verantwortlicher Bearbeiter"
+                            :options="$userOptions"
+                            placeholder="-- Mitglied wählen --"
+                            :value="old('responsible_user_id', $episode->responsible_user_id)"
+                        />
+
+                        <x-input
+                            name="progress"
+                            label="Fortschritt (%)"
+                            type="number"
+                            value="{{ old('progress', $episode->progress) }}"
+                            min="0"
+                            max="100"
+                            required
+                        />
+                    </div>
+
+                    {{-- Rollen-Bereich (JS-gesteuert, bleibt nativ) --}}
+                    <div>
+                        <label class="block text-sm font-medium text-base-content mb-1">Rollen</label>
+                        <div
+                            class="grid grid-cols-1 gap-2"
+                            id="roles_list"
+                            data-members-target="#members"
+                            data-previous-speaker-url="{{ route('hoerbuecher.previous-speaker') }}"
+                            data-role-index="{{ count(old('roles', $episode->roles->toArray())) }}"
+                        >
+                            <div class="grid grid-cols-1 md:grid-cols-[1.5fr_2fr_auto_2fr_2fr_2fr_auto_auto] gap-2 md:items-center text-xs font-semibold uppercase tracking-wide text-base-content role-row-header">
+                                <span>Rolle</span>
+                                <span>Beschreibung</span>
+                                <span class="md:text-center">Takes</span>
+                                <span>Kontakt (optional)</span>
+                                <span>Pseudonym (optional)</span>
+                                <span>Sprecher</span>
+                                <span id="roles-uploaded-header" class="md:text-center">Aufnahme hochgeladen</span>
+                                <span class="sr-only md:not-sr-only md:text-right">Aktionen</span>
+                            </div>
+                            @foreach(old('roles', $episode->roles->toArray()) as $i => $role)
+                                @php($uploaded = $role['uploaded'] ?? false)
+                                <div class="grid grid-cols-1 md:grid-cols-[1.5fr_2fr_auto_2fr_2fr_2fr_auto_auto] gap-2 mb-2 items-start md:items-center role-row">
+                                    <input type="text" name="roles[{{ $i }}][name]" value="{{ $role['name'] ?? '' }}" placeholder="Rolle" aria-label="Rollenname" class="input input-bordered input-sm w-full" />
+                                    <input type="text" name="roles[{{ $i }}][description]" value="{{ $role['description'] ?? '' }}" placeholder="Beschreibung" aria-label="Rollenbeschreibung" class="input input-bordered input-sm w-full" />
+                                    <input type="number" name="roles[{{ $i }}][takes]" value="{{ $role['takes'] ?? 0 }}" min="0" max="999" inputmode="numeric" placeholder="Takes" aria-label="Anzahl Takes" class="input input-bordered input-sm w-full md:max-w-[6rem]" />
+                                    <input type="email" name="roles[{{ $i }}][contact_email]" value="{{ $role['contact_email'] ?? '' }}" placeholder="Kontakt (optional)" aria-label="Kontakt E-Mail" class="input input-bordered input-sm w-full" />
+                                    <input type="text" name="roles[{{ $i }}][speaker_pseudonym]" value="{{ $role['speaker_pseudonym'] ?? '' }}" placeholder="Pseudonym (optional)" aria-label="Sprecherpseudonym" class="input input-bordered input-sm w-full" />
+                                    <div class="flex flex-col gap-2">
+                                        <div>
+                                            <input type="text" name="roles[{{ $i }}][member_name]" value="{{ $role['speaker_name'] ?? ($role['member_name'] ?? '') }}" list="members" placeholder="Sprecher" aria-label="Name des Sprechers" class="input input-bordered input-sm w-full" />
+                                            <input type="hidden" name="roles[{{ $i }}][member_id]" value="{{ $role['user_id'] ?? ($role['member_id'] ?? '') }}" />
+                                        </div>
+                                        @php($prev = $previousSpeakers[$role['name'] ?? ''] ?? null)
+                                        <div class="text-xs text-base-content previous-speaker" aria-live="polite">
+                                            {{ $prev ? 'Bisheriger Sprecher: ' . $prev : '' }}
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center md:justify-center">
+                                        <input type="hidden" name="roles[{{ $i }}][uploaded]" value="0">
+                                        <input
+                                            type="checkbox"
+                                            name="roles[{{ $i }}][uploaded]"
+                                            value="1"
+                                            {{ $uploaded ? 'checked' : '' }}
+                                            aria-labelledby="roles-uploaded-header"
+                                            class="checkbox checkbox-primary checkbox-sm"
+                                        >
+                                    </div>
+                                    <button type="button" class="text-error md:text-right" aria-label="Rolle entfernen" data-role-remove>&times;</button>
+                                </div>
+                            @endforeach
+                        </div>
+                        <x-button type="button" id="add_role" label="Rolle hinzufügen" icon="o-plus" class="btn-ghost btn-sm mt-2" />
+                        <datalist id="members">
+                            @foreach($users as $member)
+                                <option data-id="{{ $member->id }}" value="{{ $member->name }}"></option>
+                            @endforeach
+                        </datalist>
+                        @error('roles')
+                            <p class="mt-1 text-sm text-error">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <x-textarea
+                        name="notes"
+                        label="Anmerkungen"
+                        rows="4"
+                    >{{ old('notes', $episode->notes) }}</x-textarea>
                 </div>
 
-                <div class="mb-6">
-                    <label for="notes" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Anmerkungen</label>
-                    <textarea name="notes" id="notes" rows="4" class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50">{{ old('notes', $episode->notes) }}</textarea>
-                    @error('notes')
-                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <div class="flex justify-end">
-                    <a href="{{ route('hoerbuecher.index') }}" class="mr-3 inline-flex items-center px-4 py-2 bg-gray-300 dark:bg-gray-600 border border-transparent rounded-md font-semibold text-gray-800 dark:text-white hover:bg-gray-400 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">Abbrechen</a>
-                    <button type="submit" class="inline-flex items-center px-4 py-2 bg-[#8B0116] dark:bg-[#C41E3A] border border-transparent rounded-md font-semibold text-white hover:bg-[#A50019] dark:hover:bg-[#D63A4D] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#8B0116] dark:focus:ring-[#FF6B81]">Aktualisieren</button>
+                <div class="flex justify-end gap-3 mt-6">
+                    <x-button label="Abbrechen" link="{{ route('hoerbuecher.index') }}" class="btn-ghost" />
+                    <x-button label="Aktualisieren" type="submit" class="btn-primary" icon="o-check" />
                 </div>
             </form>
-        </div>
+        </x-card>
     </x-member-page>
     @vite(['resources/js/hoerbuch-role-form.js'])
 </x-app-layout>

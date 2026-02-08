@@ -62,7 +62,7 @@
                     </div>
                 </div>
 
-                <x-slot:actions>
+                <div class="flex justify-end gap-3 pt-4">
                     <x-button label="Abbrechen" wire:click="closeForm" class="btn-ghost" />
                     <x-button 
                         label="{{ $editingId ? 'Aktualisieren' : 'Hinzufügen' }}" 
@@ -71,7 +71,7 @@
                         class="btn-primary" 
                         spinner="save"
                     />
-                </x-slot:actions>
+                </div>
             </form>
         </x-card>
     @endif

@@ -1,7 +1,7 @@
 <div>
     <x-header title="{{ __('Browser-Sitzungen') }}" subtitle="{{ __('Verwalte und beende Browser-Sitzungen auf deinen unterschiedlichen Endgeräten.') }}" size="text-lg" class="!mb-4" />
 
-    <div class="max-w-xl text-sm text-base-content/70">
+    <div class="max-w-xl text-sm text-base-content">
         {{ __('Falls erforderlich, kannst du dich von allen anderen Browser-Sitzungen auf allen deinen Geräten abmelden. Einige deiner letzten Sitzungen sind unten aufgeführt; diese Liste ist jedoch möglicherweise nicht vollständig. Wenn du glauben solltest, dass dein Konto kompromittiert wurde, solltest du auch dein Passwort aktualisieren.') }}
     </div>
 
@@ -12,19 +12,19 @@
                 <div class="flex items-center">
                     <div>
                         @if ($session->agent->isDesktop())
-                            <x-icon name="o-computer-desktop" class="size-8 text-base-content/50" />
+                            <x-icon name="o-computer-desktop" class="size-8 text-base-content" />
                         @else
-                            <x-icon name="o-device-phone-mobile" class="size-8 text-base-content/50" />
+                            <x-icon name="o-device-phone-mobile" class="size-8 text-base-content" />
                         @endif
                     </div>
 
                     <div class="ms-3">
-                        <div class="text-sm text-base-content/70">
+                        <div class="text-sm text-base-content">
                             {{ $session->agent->platform() ? $session->agent->platform() : __('Unbekannt') }} - {{ $session->agent->browser() ? $session->agent->browser() : __('Unbekannt') }}
                         </div>
 
                         <div>
-                            <div class="text-xs text-base-content/50">
+                            <div class="text-xs text-base-content">
                                 {{ $session->ip_address }},
 
                                 @if ($session->is_current_device)
@@ -53,7 +53,7 @@
     <!-- Log Out Other Devices Confirmation Modal -->
     @if($confirmingLogout)
     <x-mary-modal wire:model="confirmingLogout" title="{{ __('Alle anderen Browser-Sitzungen beenden') }}" separator>
-        <p class="text-base-content/70">
+        <p class="text-base-content">
             {{ __('Bitte gib dein Passwort ein, um zu bestätigen, dass du dich von deinen anderen Browser-Sitzungen auf allen deinen Geräten abmelden möchten.') }}
         </p>
 

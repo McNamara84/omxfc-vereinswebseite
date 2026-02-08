@@ -27,7 +27,7 @@ test.describe('Umfragen', () => {
     await expect(page.getByRole('link', { name: 'Playwright Umfrage' }).first()).toBeVisible();
 
     await page.goto('/umfrage');
-    await expect(page.getByRole('heading', { name: 'Playwright: Öffentliche Umfrage?' })).toBeVisible();
+    await expect(page.locator('[data-testid="page-title"]')).toContainText('Playwright: Öffentliche Umfrage?');
 
     await page.getByRole('radio', { name: 'Option A' }).check();
     
@@ -87,7 +87,8 @@ test.describe('Umfragen', () => {
 
     await page.goto('/umfrage');
 
-    await expect(page.getByRole('heading', { name: 'Playwright: Interne Umfrage?' })).toBeVisible();
+    // maryUI x-header rendert title als h1 mit data-testid
+    await expect(page.locator('[data-testid="page-title"]')).toContainText('Playwright: Interne Umfrage?');
     await expect(page.getByRole('status')).toContainText('Bitte logge dich ein');
     await expect(page.getByRole('button', { name: 'Stimme abgeben' })).toBeDisabled();
   });
@@ -108,7 +109,7 @@ test.describe('Umfragen', () => {
     await login(page, 'playwright-member@example.com');
 
     await page.goto('/umfrage');
-    await expect(page.getByRole('heading', { name: 'Playwright: Interne Umfrage?' })).toBeVisible();
+    await expect(page.locator('[data-testid="page-title"]')).toContainText('Playwright: Interne Umfrage?');
 
     await page.getByRole('radio', { name: 'Ja' }).check();
     

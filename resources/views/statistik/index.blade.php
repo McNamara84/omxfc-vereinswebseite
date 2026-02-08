@@ -3,8 +3,8 @@
     <x-member-page>
         {{-- Kopfzeile --}}
         <div
-            class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <h1 class="text-2xl font-semibold text-[#8B0116] dark:text-[#FF6B81]">
+            class="bg-base-100 shadow-xl rounded-lg p-6 mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <h1 class="text-2xl font-semibold text-primary">
                 Statistik
             </h1>
         </div>
@@ -28,8 +28,8 @@
                     data-statistik-section
                     data-min-points="{{ $min }}"
                     tabindex="-1"
-                    class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
-                    <h2 id="authorChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                    class="relative bg-base-100 shadow-xl rounded-lg p-6">
+                    <h2 id="authorChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Maddrax-Romane je Autor:in
                     </h2>
                     <div data-chart-wrapper class="mt-4">
@@ -55,8 +55,8 @@
                     data-statistik-section
                     data-min-points="{{ $min }}"
                     tabindex="-1"
-                    class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
-                    <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                    class="relative bg-base-100 shadow-xl rounded-lg p-6">
+                    <h2 class="text-xl font-semibold text-primary mb-4 text-center">
                         Top Teamplayer
                     </h2>
 
@@ -93,8 +93,8 @@
                     data-statistik-section
                     data-min-points="{{ $min }}"
                     tabindex="-1"
-                    class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
-                    <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                    class="relative bg-base-100 shadow-xl rounded-lg p-6">
+                    <h2 class="text-xl font-semibold text-primary mb-4 text-center">
                         Top 10 Maddrax-Romane
                     </h2>
 
@@ -134,8 +134,8 @@
                     data-statistik-section
                     data-min-points="{{ $min }}"
                     tabindex="-1"
-                    class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
-                    <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                    class="relative bg-base-100 shadow-xl rounded-lg p-6">
+                    <h2 class="text-xl font-semibold text-primary mb-4 text-center">
                         Top 10 Autor:innen nach Ø-Bewertung
                     </h2>
 
@@ -172,8 +172,8 @@
                     data-statistik-section
                     data-min-points="{{ $min }}"
                     tabindex="-1"
-                    class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
-                    <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                    class="relative bg-base-100 shadow-xl rounded-lg p-6">
+                    <h2 class="text-xl font-semibold text-primary mb-4 text-center">
                         Top 10 Charaktere nach Auftritten
                     </h2>
 
@@ -210,29 +210,29 @@
                     data-statistik-section
                     data-min-points="{{ $min }}"
                     tabindex="-1"
-                    class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6 grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
-                    <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 col-span-1 md:col-span-3">
+                    class="relative bg-base-100 shadow-xl rounded-lg p-6 grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+                    <h2 class="text-xl font-semibold text-primary mb-4 col-span-1 md:col-span-3">
                         Bewertungen im Maddraxikon
                     </h2>
                     <div>
-                        <div class="text-3xl font-bold text-gray-900 dark:text-gray-100">
+                        <div class="text-3xl font-bold text-base-content">
                             {{ number_format($averageRating, 2, ',', '.') }}
                         </div>
-                        <div class="text-gray-600 dark:text-gray-400">Ø-Bewertung</div>
+                        <div class="text-base-content">Ø-Bewertung</div>
                     </div>
 
                     <div>
-                        <div class="text-3xl font-bold text-gray-900 dark:text-gray-100">
+                        <div class="text-3xl font-bold text-base-content">
                             {{ $totalVotes }}
                         </div>
-                        <div class="text-gray-600 dark:text-gray-400">Stimmen insgesamt</div>
+                        <div class="text-base-content">Stimmen insgesamt</div>
                     </div>
 
                     <div>
-                        <div class="text-3xl font-bold text-gray-900 dark:text-gray-100">
+                        <div class="text-3xl font-bold text-base-content">
                             {{ number_format($averageVotes, 2, ',', '.') }}
                         </div>
-                        <div class="text-gray-600 dark:text-gray-400">Ø-Stimmen pro Roman</div>
+                        <div class="text-base-content">Ø-Stimmen pro Roman</div>
                     </div>
                     @if($userPoints < $min)
                         @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
@@ -246,31 +246,31 @@
                     data-statistik-section
                     data-min-points="{{ $min }}"
                     tabindex="-1"
-                    class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
-                    <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                    class="relative bg-base-100 shadow-xl rounded-lg p-6">
+                    <h2 class="text-xl font-semibold text-primary mb-4 text-center">
                         Rezensionen unserer Mitglieder
                     </h2>
 
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
                         <div>
-                            <div class="text-3xl font-bold text-gray-900 dark:text-gray-100">
+                            <div class="text-3xl font-bold text-base-content">
                                 {{ $totalReviews }}
                             </div>
-                            <div class="text-gray-600 dark:text-gray-400">Rezensionen insgesamt</div>
+                            <div class="text-base-content">Rezensionen insgesamt</div>
                         </div>
 
                         <div>
-                            <div class="text-3xl font-bold text-gray-900 dark:text-gray-100">
+                            <div class="text-3xl font-bold text-base-content">
                                 {{ number_format($averageReviewsPerBook, 2, ',', '.') }}
                             </div>
-                            <div class="text-gray-600 dark:text-gray-400">Ø Rezensionen pro Roman</div>
+                            <div class="text-base-content">Ø Rezensionen pro Roman</div>
                         </div>
 
                         <div>
-                            <div class="text-3xl font-bold text-gray-900 dark:text-gray-100">
+                            <div class="text-3xl font-bold text-base-content">
                                 {{ number_format($avgCommentsPerReview, 2, ',', '.') }}
                             </div>
-                            <div class="text-gray-600 dark:text-gray-400">Ø Kommentare pro Rezension</div>
+                            <div class="text-base-content">Ø Kommentare pro Rezension</div>
                         </div>
                     </div>
 
@@ -319,8 +319,8 @@
                     data-statistik-section
                     data-min-points="{{ $min }}"
                     tabindex="-1"
-                    class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
-                    <h2 id="eureeChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                    class="relative bg-base-100 shadow-xl rounded-lg p-6">
+                    <h2 id="eureeChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Bewertungen des Euree-Zyklus
                     </h2>
                     <div data-chart-wrapper class="mt-4">
@@ -344,8 +344,8 @@
                     data-statistik-section
                     data-min-points="{{ $min }}"
                     tabindex="-1"
-                    class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
-                    <h2 id="meerakaChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                    class="relative bg-base-100 shadow-xl rounded-lg p-6">
+                    <h2 id="meerakaChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Bewertungen des Meeraka-Zyklus
                     </h2>
                     <div data-chart-wrapper class="mt-4">
@@ -369,8 +369,8 @@
                     data-statistik-section
                     data-min-points="{{ $min }}"
                     tabindex="-1"
-                    class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
-                    <h2 id="expeditionChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                    class="relative bg-base-100 shadow-xl rounded-lg p-6">
+                    <h2 id="expeditionChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Bewertungen des Expeditions-Zyklus
                     </h2>
                     <div data-chart-wrapper class="mt-4">
@@ -394,8 +394,8 @@
                     data-statistik-section
                     data-min-points="{{ $min }}"
                     tabindex="-1"
-                    class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
-                    <h2 id="kraterseeChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                    class="relative bg-base-100 shadow-xl rounded-lg p-6">
+                    <h2 id="kraterseeChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Bewertungen des Kratersee-Zyklus
                     </h2>
                     <div data-chart-wrapper class="mt-4">
@@ -419,8 +419,8 @@
                     data-statistik-section
                     data-min-points="{{ $min }}"
                     tabindex="-1"
-                    class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
-                    <h2 id="daaMurenChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                    class="relative bg-base-100 shadow-xl rounded-lg p-6">
+                    <h2 id="daaMurenChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Bewertungen des Daa'muren-Zyklus
                     </h2>
                     <div data-chart-wrapper class="mt-4">
@@ -444,8 +444,8 @@
                     data-statistik-section
                     data-min-points="{{ $min }}"
                     tabindex="-1"
-                    class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
-                    <h2 id="wandlerChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                    class="relative bg-base-100 shadow-xl rounded-lg p-6">
+                    <h2 id="wandlerChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Bewertungen des Wandler-Zyklus
                     </h2>
                     <div data-chart-wrapper class="mt-4">
@@ -469,8 +469,8 @@
                     data-statistik-section
                     data-min-points="{{ $min }}"
                     tabindex="-1"
-                    class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
-                    <h2 id="marsChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                    class="relative bg-base-100 shadow-xl rounded-lg p-6">
+                    <h2 id="marsChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Bewertungen des Mars-Zyklus
                     </h2>
                     <div data-chart-wrapper class="mt-4">
@@ -494,8 +494,8 @@
                     data-statistik-section
                     data-min-points="{{ $min }}"
                     tabindex="-1"
-                    class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
-                    <h2 id="ausalaChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                    class="relative bg-base-100 shadow-xl rounded-lg p-6">
+                    <h2 id="ausalaChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Bewertungen des Ausala-Zyklus
                     </h2>
                     <div data-chart-wrapper class="mt-4">
@@ -519,8 +519,8 @@
                     data-statistik-section
                     data-min-points="{{ $min }}"
                     tabindex="-1"
-                    class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
-                    <h2 id="afraChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                    class="relative bg-base-100 shadow-xl rounded-lg p-6">
+                    <h2 id="afraChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Bewertungen des Afra-Zyklus
                     </h2>
                     <div data-chart-wrapper class="mt-4">
@@ -544,8 +544,8 @@
                     data-statistik-section
                     data-min-points="{{ $min }}"
                     tabindex="-1"
-                    class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
-                    <h2 id="antarktisChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                    class="relative bg-base-100 shadow-xl rounded-lg p-6">
+                    <h2 id="antarktisChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Bewertungen des Antarktis-Zyklus
                     </h2>
                     <div data-chart-wrapper class="mt-4">
@@ -569,8 +569,8 @@
                     data-statistik-section
                     data-min-points="{{ $min }}"
                     tabindex="-1"
-                    class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
-                    <h2 id="schattenChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                    class="relative bg-base-100 shadow-xl rounded-lg p-6">
+                    <h2 id="schattenChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Bewertungen des Schatten-Zyklus
                     </h2>
                     <div data-chart-wrapper class="mt-4">
@@ -594,8 +594,8 @@
                     data-statistik-section
                     data-min-points="{{ $min }}"
                     tabindex="-1"
-                    class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
-                    <h2 id="ursprungChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                    class="relative bg-base-100 shadow-xl rounded-lg p-6">
+                    <h2 id="ursprungChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Bewertungen des Ursprung-Zyklus
                     </h2>
                     <div data-chart-wrapper class="mt-4">
@@ -619,8 +619,8 @@
                     data-statistik-section
                     data-min-points="{{ $min }}"
                     tabindex="-1"
-                    class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
-                    <h2 id="streiterChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                    class="relative bg-base-100 shadow-xl rounded-lg p-6">
+                    <h2 id="streiterChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Bewertungen des Streiter-Zyklus
                     </h2>
                     <div data-chart-wrapper class="mt-4">
@@ -644,8 +644,8 @@
                     data-statistik-section
                     data-min-points="{{ $min }}"
                     tabindex="-1"
-                    class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
-                    <h2 id="archivarChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                    class="relative bg-base-100 shadow-xl rounded-lg p-6">
+                    <h2 id="archivarChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Bewertungen des Archivar-Zyklus
                     </h2>
                     <div data-chart-wrapper class="mt-4">
@@ -669,8 +669,8 @@
                     data-statistik-section
                     data-min-points="{{ $min }}"
                     tabindex="-1"
-                    class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
-                    <h2 id="zeitsprungChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                    class="relative bg-base-100 shadow-xl rounded-lg p-6">
+                    <h2 id="zeitsprungChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Bewertungen des Zeitsprung-Zyklus
                     </h2>
                     <div data-chart-wrapper class="mt-4">
@@ -694,8 +694,8 @@
                     data-statistik-section
                     data-min-points="{{ $min }}"
                     tabindex="-1"
-                    class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
-                    <h2 id="fremdweltChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                    class="relative bg-base-100 shadow-xl rounded-lg p-6">
+                    <h2 id="fremdweltChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Bewertungen des Fremdwelt-Zyklus
                     </h2>
                     <div data-chart-wrapper class="mt-4">
@@ -719,8 +719,8 @@
                     data-statistik-section
                     data-min-points="{{ $min }}"
                     tabindex="-1"
-                    class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
-                    <h2 id="parallelweltChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                    class="relative bg-base-100 shadow-xl rounded-lg p-6">
+                    <h2 id="parallelweltChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Bewertungen des Parallelwelt-Zyklus
                     </h2>
                     <div data-chart-wrapper class="mt-4">
@@ -744,8 +744,8 @@
                     data-statistik-section
                     data-min-points="{{ $min }}"
                     tabindex="-1"
-                    class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
-                    <h2 id="weltenrissChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                    class="relative bg-base-100 shadow-xl rounded-lg p-6">
+                    <h2 id="weltenrissChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Bewertungen des Weltenriss-Zyklus
                     </h2>
                     <div data-chart-wrapper class="mt-4">
@@ -769,8 +769,8 @@
                     data-statistik-section
                     data-min-points="{{ $min }}"
                     tabindex="-1"
-                    class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
-                    <h2 id="amrakaChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                    class="relative bg-base-100 shadow-xl rounded-lg p-6">
+                    <h2 id="amrakaChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Bewertungen des Amraka-Zyklus
                     </h2>
                     <div data-chart-wrapper class="mt-4">
@@ -794,8 +794,8 @@
                     data-statistik-section
                     data-min-points="{{ $min }}"
                     tabindex="-1"
-                    class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
-                    <h2 id="weltratChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                    class="relative bg-base-100 shadow-xl rounded-lg p-6">
+                    <h2 id="weltratChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Bewertungen des Weltrat-Zyklus
                     </h2>
                     <div data-chart-wrapper class="mt-4">
@@ -819,8 +819,8 @@
                     data-statistik-section
                     data-min-points="{{ $min }}"
                     tabindex="-1"
-                    class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
-                    <h2 id="hardcoverChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                    class="relative bg-base-100 shadow-xl rounded-lg p-6">
+                    <h2 id="hardcoverChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Bewertungen der Hardcover
                     </h2>
                     <div data-chart-wrapper class="mt-4">
@@ -844,8 +844,8 @@
                     data-statistik-section
                     data-min-points="{{ $min }}"
                     tabindex="-1"
-                    class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
-                    <h2 id="hardcoverAuthorChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                    class="relative bg-base-100 shadow-xl rounded-lg p-6">
+                    <h2 id="hardcoverAuthorChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Maddrax-Hardcover je Autor:in
                     </h2>
                     <div data-chart-wrapper class="mt-4">
@@ -868,8 +868,8 @@
                     data-statistik-section
                     data-min-points="{{ $min }}"
                     tabindex="-1"
-                    class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
-                    <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                    class="relative bg-base-100 shadow-xl rounded-lg p-6">
+                    <h2 class="text-xl font-semibold text-primary mb-4 text-center">
                         TOP20 Maddrax-Themen
                     </h2>
 
@@ -906,8 +906,8 @@
                     data-statistik-section
                     data-min-points="{{ $min }}"
                     tabindex="-1"
-                    class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
-                    <h2 id="missionMarsChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                    class="relative bg-base-100 shadow-xl rounded-lg p-6">
+                    <h2 id="missionMarsChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Bewertungen der Mission Mars-Heftromane
                     </h2>
                     <div data-chart-wrapper class="mt-4">
@@ -931,8 +931,8 @@
                     data-statistik-section
                     data-min-points="{{ $min }}"
                     tabindex="-1"
-                    class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
-                    <h2 id="missionMarsAuthorChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                    class="relative bg-base-100 shadow-xl rounded-lg p-6">
+                    <h2 id="missionMarsAuthorChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Mission Mars-Heftromane je Autor:in
                     </h2>
                     <div data-chart-wrapper class="mt-4">
@@ -956,8 +956,8 @@
                     data-statistik-section
                     data-min-points="{{ $min }}"
                     tabindex="-1"
-                    class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
-                    <h2 id="volkDerTiefeChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                    class="relative bg-base-100 shadow-xl rounded-lg p-6">
+                    <h2 id="volkDerTiefeChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Bewertungen der Das Volk der Tiefe-Heftromane
                     </h2>
                     <div data-chart-wrapper class="mt-4">
@@ -981,8 +981,8 @@
                     data-statistik-section
                     data-min-points="{{ $min }}"
                     tabindex="-1"
-                    class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
-                    <h2 id="volkDerTiefeAuthorChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                    class="relative bg-base-100 shadow-xl rounded-lg p-6">
+                    <h2 id="volkDerTiefeAuthorChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Das Volk der Tiefe-Heftromane je Autor:in
                     </h2>
                     <div data-chart-wrapper class="mt-4">
@@ -1006,8 +1006,8 @@
                     data-statistik-section
                     data-min-points="{{ $min }}"
                     tabindex="-1"
-                    class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
-                    <h2 id="zweitausendzwoelfChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                    class="relative bg-base-100 shadow-xl rounded-lg p-6">
+                    <h2 id="zweitausendzwoelfChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Bewertungen der 2012-Heftromane
                     </h2>
                     <div data-chart-wrapper class="mt-4">
@@ -1031,8 +1031,8 @@
                     data-statistik-section
                     data-min-points="{{ $min }}"
                     tabindex="-1"
-                    class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
-                    <h2 id="zweitausendzwoelfAuthorChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                    class="relative bg-base-100 shadow-xl rounded-lg p-6">
+                    <h2 id="zweitausendzwoelfAuthorChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         2012-Heftromane je Autor:in
                     </h2>
                     <div data-chart-wrapper class="mt-4">
@@ -1056,8 +1056,8 @@
                     data-statistik-section
                     data-min-points="{{ $min }}"
                     tabindex="-1"
-                    class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
-                    <h2 id="abenteurerChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                    class="relative bg-base-100 shadow-xl rounded-lg p-6">
+                    <h2 id="abenteurerChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Bewertungen der Die Abenteurer-Heftromane
                     </h2>
                     <div data-chart-wrapper class="mt-4">
@@ -1081,8 +1081,8 @@
                     data-statistik-section
                     data-min-points="{{ $min }}"
                     tabindex="-1"
-                    class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
-                    <h2 id="abenteurerAuthorChartTitle" class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                    class="relative bg-base-100 shadow-xl rounded-lg p-6">
+                    <h2 id="abenteurerAuthorChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Die Abenteurer-Heftromane je Autor:in
                     </h2>
                     <div data-chart-wrapper class="mt-4">
@@ -1106,8 +1106,8 @@
                     data-statistik-section
                     data-min-points="{{ $min }}"
                     tabindex="-1"
-                    class="relative bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
-                    <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81] mb-4 text-center">
+                    class="relative bg-base-100 shadow-xl rounded-lg p-6">
+                    <h2 class="text-xl font-semibold text-primary mb-4 text-center">
                         TOP10 Lieblingsthemen
                     </h2>
 

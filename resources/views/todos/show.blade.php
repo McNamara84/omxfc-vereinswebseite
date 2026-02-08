@@ -2,50 +2,42 @@
     <x-member-page class="max-w-3xl">
 
             @if(session('status'))
-                <div role="status" aria-live="polite"
-                    class="mb-4 p-4 bg-green-100 dark:bg-green-900 border border-green-400 dark:border-green-600 text-green-800 dark:text-green-200 rounded">
+                <x-alert class="alert-success mb-4" role="status" aria-live="polite">
                     {{ session('status') }}
-                </div>
+                </x-alert>
             @endif
 
             @if(session('error'))
-                <div role="alert"
-                    class="mb-4 p-4 bg-red-100 dark:bg-red-900 border border-red-400 dark:border-red-600 text-red-800 dark:text-red-200 rounded">
+                <x-alert class="alert-error mb-4" role="alert">
                     {{ session('error') }}
-                </div>
+                </x-alert>
             @endif
 
-            <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
+            <x-card shadow>
                 <!-- Titel und Status -->
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
-                    <h2 class="text-xl font-semibold text-[#8B0116] dark:text-[#FF6B81]">{{ $todo->title }}</h2>
+                    <h2 class="text-xl font-semibold text-primary">{{ $todo->title }}</h2>
                     <div class="mt-2 md:mt-0">
                         @if($todo->status->value === 'open')
-                            <span
-                                class="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-full text-sm">Offen</span>
+                            <span class="badge badge-ghost">Offen</span>
                         @elseif($todo->status->value === 'assigned')
-                            <span
-                                class="px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full text-sm">In
-                                Bearbeitung</span>
+                            <span class="badge badge-info">In Bearbeitung</span>
                         @elseif($todo->status->value === 'completed')
-                            <span
-                                class="px-2 py-1 bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 rounded-full text-sm">Wartet
-                                auf Verifizierung</span>
+                            <span class="badge badge-warning">Wartet auf Verifizierung</span>
                         @elseif($todo->status->value === 'verified')
-                            <span
-                                class="px-2 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded-full text-sm">Verifiziert</span>
+                            <span class="badge badge-success">Verifiziert</span>
                         @endif
                     </div>
                 </div>
 
                 <!-- Beschreibung -->
                 <div class="mb-6">
-                    <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Beschreibung</h3>
-                    <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-md text-gray-800 dark:text-gray-200">
+                    <h3 class="text-sm font-medium text-base-content mb-2">Beschreibung</h3>
+                    <div class="bg-base-200 p-4 rounded-md text-base-content">
                         @if($todo->description)
                             {!! nl2br(e($todo->description)) !!}
                         @else
-                            <span class="text-gray-500 dark:text-gray-400 italic">Keine Beschreibung vorhanden</span>
+                            <span class="text-base-content italic">Keine Beschreibung vorhanden</span>
                         @endif
                     </div>
                 </div>
@@ -53,56 +45,56 @@
                 <!-- Details -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                     <div>
-                        <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Details</h3>
-                        <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-md">
+                        <h3 class="text-sm font-medium text-base-content mb-2">Details</h3>
+                        <div class="bg-base-200 p-4 rounded-md">
                             <div class="mb-2">
-                                <span class="text-gray-600 dark:text-gray-400 text-sm">Baxx:</span>
+                                <span class="text-base-content text-sm">Baxx:</span>
                                 <span
-                                    class="ml-2 text-gray-800 dark:text-gray-200 font-semibold">{{ $todo->points }}</span>
+                                    class="ml-2 text-base-content font-semibold">{{ $todo->points }}</span>
                             </div>
                             <div class="mb-2">
-                                <span class="text-gray-600 dark:text-gray-400 text-sm">Kategorie:</span>
-                                <span class="ml-2 text-gray-800 dark:text-gray-200">{{ $todo->category ? $todo->category->name : 'Keine Kategorie' }}</span>
+                                <span class="text-base-content text-sm">Kategorie:</span>
+                                <span class="ml-2 text-base-content">{{ $todo->category ? $todo->category->name : 'Keine Kategorie' }}</span>
                             </div>
                             <div class="mb-2">
-                                <span class="text-gray-600 dark:text-gray-400 text-sm">Erstellt von:</span>
-                                <span class="ml-2 text-gray-800 dark:text-gray-200"><a href="{{ route('profile.view', $todo->creator->id) }}" class="text-[#8B0116] hover:underline">{{ $todo->creator->name }}</a></span>
+                                <span class="text-base-content text-sm">Erstellt von:</span>
+                                <span class="ml-2 text-base-content"><a href="{{ route('profile.view', $todo->creator->id) }}" class="text-primary hover:underline">{{ $todo->creator->name }}</a></span>
                             </div>
                             <div class="mb-2">
-                                <span class="text-gray-600 dark:text-gray-400 text-sm">Erstellt am:</span>
+                                <span class="text-base-content text-sm">Erstellt am:</span>
                                 <span
-                                    class="ml-2 text-gray-800 dark:text-gray-200">{{ $todo->created_at->format('d.m.Y H:i') }}</span>
+                                    class="ml-2 text-base-content">{{ $todo->created_at->format('d.m.Y H:i') }}</span>
                             </div>
                         </div>
                     </div>
 
                     <div>
-                        <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Status</h3>
-                        <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-md">
+                        <h3 class="text-sm font-medium text-base-content mb-2">Status</h3>
+                        <div class="bg-base-200 p-4 rounded-md">
                             @if($todo->assigned_to)
                                 <div class="mb-2">
-                                    <span class="text-gray-600 dark:text-gray-400 text-sm">Zugewiesen an:</span>
-                                    <span class="ml-2 text-gray-800 dark:text-gray-200"><a href="{{ route('profile.view', $todo->assignee->id) }}" class="text-[#8B0116] hover:underline">{{ $todo->assignee->name }}</a></span>
+                                    <span class="text-base-content text-sm">Zugewiesen an:</span>
+                                    <span class="ml-2 text-base-content"><a href="{{ route('profile.view', $todo->assignee->id) }}" class="text-primary hover:underline">{{ $todo->assignee->name }}</a></span>
                                 </div>
                             @endif
 
                             @if($todo->completed_at)
                                 <div class="mb-2">
-                                    <span class="text-gray-600 dark:text-gray-400 text-sm">Erledigt am:</span>
+                                    <span class="text-base-content text-sm">Erledigt am:</span>
                                     <span
-                                        class="ml-2 text-gray-800 dark:text-gray-200">{{ $todo->completed_at->format('d.m.Y H:i') }}</span>
+                                        class="ml-2 text-base-content">{{ $todo->completed_at->format('d.m.Y H:i') }}</span>
                                 </div>
                             @endif
 
                             @if($todo->verified_by)
                                 <div class="mb-2">
-                                    <span class="text-gray-600 dark:text-gray-400 text-sm">Verifiziert von:</span>
-                                    <span class="ml-2 text-gray-800 dark:text-gray-200"><a href="{{ route('profile.view', $todo->verifier->id) }}" class="text-[#8B0116] hover:underline">{{ $todo->verifier->name }}</a></span>
+                                    <span class="text-base-content text-sm">Verifiziert von:</span>
+                                    <span class="ml-2 text-base-content"><a href="{{ route('profile.view', $todo->verifier->id) }}" class="text-primary hover:underline">{{ $todo->verifier->name }}</a></span>
                                 </div>
                                 <div class="mb-2">
-                                    <span class="text-gray-600 dark:text-gray-400 text-sm">Verifiziert am:</span>
+                                    <span class="text-base-content text-sm">Verifiziert am:</span>
                                     <span
-                                        class="ml-2 text-gray-800 dark:text-gray-200">{{ $todo->verified_at->format('d.m.Y H:i') }}</span>
+                                        class="ml-2 text-base-content">{{ $todo->verified_at->format('d.m.Y H:i') }}</span>
                                 </div>
                             @endif
                         </div>
@@ -112,28 +104,20 @@
                 <!-- Aktionen -->
                 <div class="mt-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                     <div class="flex flex-wrap items-center gap-2">
-                        <a href="{{ route('todos.index') }}"
-                            class="inline-flex items-center px-4 py-2 bg-gray-200 dark:bg-gray-700 border border-transparent rounded-md font-semibold text-gray-800 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
-                            <svg class="h-5 w-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                                xmlns="http://www.w3.org/2000/svg">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
-                            </svg>
+                        <x-button link="{{ route('todos.index') }}" icon="o-arrow-left" class="btn-ghost">
                             Zurück zur Übersicht
-                        </a>
+                        </x-button>
                         @if($canEdit)
-                            <a href="{{ route('todos.edit', $todo) }}"
-                                class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            <x-button link="{{ route('todos.edit', $todo) }}" icon="o-pencil" class="btn-info">
                                 Bearbeiten
-                            </a>
+                            </x-button>
                         @endif
                     </div>
                     <div class="flex flex-wrap items-center gap-2 md:justify-end">
                         @if($canAssign)
                             <form action="{{ route('todos.assign', $todo) }}" method="POST" class="inline">
                                 @csrf
-                                <button type="submit"
-                                    class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                <button type="submit" class="btn btn-info">
                                     Challenge übernehmen
                                 </button>
                             </form>
@@ -142,8 +126,7 @@
                         @if($canComplete)
                             <form action="{{ route('todos.complete', $todo) }}" method="POST" class="inline">
                                 @csrf
-                                <button type="submit"
-                                    class="inline-flex items-center px-4 py-2 bg-yellow-500 border border-transparent rounded-md font-semibold text-white hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500">
+                                <button type="submit" class="btn btn-warning">
                                     Als erledigt markieren
                                 </button>
                             </form>
@@ -152,8 +135,7 @@
                         @if($canVerify)
                             <form action="{{ route('todos.verify', $todo) }}" method="POST" class="inline">
                                 @csrf
-                                <button type="submit"
-                                    class="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                                <button type="submit" class="btn btn-success">
                                     Verifizieren und Baxx vergeben
                                 </button>
                             </form>
@@ -161,8 +143,7 @@
                         @if($todo->assigned_to === Auth::id() && $todo->status->value === 'assigned')
                             <form action="{{ route('todos.release', $todo) }}" method="POST" class="inline">
                                 @csrf
-                                <button type="submit"
-                                    class="inline-flex items-center px-4 py-2 bg-gray-500 border border-transparent rounded-md font-semibold text-white hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+                                <button type="submit" class="btn btn-ghost">
                                     Challenge freigeben
                                 </button>
                             </form>
@@ -172,19 +153,14 @@
                                 onsubmit="return confirm('Möchtest du diese Challenge wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.');">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit"
-                                    class="inline-flex items-center px-4 py-2 bg-red-600 border border-transparent rounded-md font-semibold text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
-                                    <svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                                        xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5-4h4m-4 0a1 1 0 00-1 1v1h6V4a1 1 0 00-1-1m-4 0h4"></path>
-                                    </svg>
+                                <button type="submit" class="btn btn-error">
+                                    <x-icon name="o-trash" class="w-5 h-5" />
                                     Challenge löschen
                                 </button>
                             </form>
                         @endif
                     </div>
                 </div>
-            </div>
+            </x-card>
     </x-member-page>
 </x-app-layout>

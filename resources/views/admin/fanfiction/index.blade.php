@@ -25,7 +25,7 @@
 
         <x-card>
             @if($fanfictions->isEmpty())
-                <div class="text-center py-12 text-base-content/60">
+                <div class="text-center py-12 text-base-content">
                     <x-icon name="o-document-text" class="w-16 h-16 mx-auto mb-4" />
                     <p class="mb-2">Noch keine Fanfiction vorhanden.</p>
                     <x-button
@@ -53,7 +53,7 @@
                                     <td>
                                         <span class="font-medium">{{ $fanfiction->title }}</span>
                                         @if($fanfiction->photos && count($fanfiction->photos) > 0)
-                                            <span class="text-xs text-base-content/50 ml-2">
+                                            <span class="text-xs text-base-content ml-2">
                                                 <x-icon name="o-photo" class="w-3 h-3 inline" /> {{ count($fanfiction->photos) }}
                                             </span>
                                         @endif
@@ -66,7 +66,7 @@
                                                 Mitglied
                                             </a>
                                         @else
-                                            <span class="text-xs text-base-content/50 block">Externer Autor</span>
+                                            <span class="text-xs text-base-content block">Externer Autor</span>
                                         @endif
                                     </td>
                                     <td>
@@ -77,7 +77,7 @@
                                         @endif
                                     </td>
                                     <td>
-                                        <span class="text-sm text-base-content/70">
+                                        <span class="text-sm text-base-content">
                                             {{ $fanfiction->created_at->format('d.m.Y H:i') }}
                                         </span>
                                     </td>

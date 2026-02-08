@@ -231,7 +231,7 @@ class HoerbuchControllerTest extends TestCase
         $response->assertDontSee('uploaded-role-');
         $response->assertDontSee('data-auto-submit');
         $response->assertSee('Upload vorhanden');
-        $response->assertSee('bg-green-100', false);
+        $response->assertSee('bg-success/10', false);
     }
 
     public function test_vorstand_can_store_episode(): void
@@ -385,7 +385,7 @@ class HoerbuchControllerTest extends TestCase
             ->assertSee('id="episode-select-filters"', false)
             ->assertSee('<fieldset', false)
             ->assertSee('id="episode-checkbox-filters"', false)
-            ->assertSee('<legend class="text-sm font-semibold text-gray-700 dark:text-gray-200 w-full mb-2">Checkbox-Filter</legend>', false)
+            ->assertSee('<legend class="text-sm font-semibold text-base-content w-full mb-2">Checkbox-Filter</legend>', false)
             ->assertSee('data-href="'.route('hoerbuecher.show', $episode).'"', false)
             ->assertSee('role="button"', false)
             ->assertSee('tabindex="0"', false)

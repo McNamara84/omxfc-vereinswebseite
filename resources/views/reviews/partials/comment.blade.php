@@ -1,33 +1,33 @@
 @php
     $depth = $depth ?? 0;
 @endphp
-<div class="mt-4 bg-gray-50 dark:bg-gray-700 p-4 rounded">
-    <p class="text-sm text-gray-500 dark:text-gray-300">
-        <a href="{{ route('profile.view', $comment->user->id) }}" class="text-[#8B0116] hover:underline">{{ $comment->user->name }}</a> am {{ $comment->created_at->format('d.m.Y H:i') }}
+<div class="mt-4 bg-base-200 p-4 rounded">
+    <p class="text-sm text-base-content">
+        <a href="{{ route('profile.view', $comment->user->id) }}" class="text-primary hover:underline">{{ $comment->user->name }}</a> am {{ $comment->created_at->format('d.m.Y H:i') }}
     </p>
     @isset($parentAuthor)
-        <p class="text-xs text-gray-500 dark:text-gray-400 md:hidden">
+        <p class="text-xs text-base-content md:hidden">
             Antwort auf {{ $parentAuthor }}
         </p>
     @endisset
-    <div class="mt-2 text-gray-800 dark:text-gray-200 whitespace-pre-line">
+    <div class="mt-2 text-base-content whitespace-pre-line">
         {{ $comment->content }}
     </div>
 
     @if(auth()->id() === $comment->user_id)
         @php $editId = 'edit-content-' . $comment->id; @endphp
         <div x-data="{ editing: false }" class="mt-2">
-            <button type="button" @click="editing = !editing" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded">Bearbeiten</button>
+            <x-button label="Bearbeiten" @click="editing = !editing" class="btn-info btn-sm" />
 
             <form x-show="editing" method="POST" action="{{ route('reviews.comments.update', $comment) }}" class="mt-2">
                 @csrf
                 @method('PUT')
                 <x-field-group name="content" label="Kommentar" :id="$editId">
-                    <textarea id="{{ $editId }}" name="content" aria-describedby="{{ $editId }}-error" rows="2" class="w-full border-gray-300 dark:border-gray-600 dark:bg-gray-800 rounded mt-1" required>{{ old('content', $comment->content) }}</textarea>
+                    <textarea id="{{ $editId }}" name="content" aria-describedby="{{ $editId }}-error" rows="2" class="textarea textarea-bordered w-full" required>{{ old('content', $comment->content) }}</textarea>
                 </x-field-group>
                 <div class="mt-2 flex flex-col sm:flex-row gap-2">
-                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded">Speichern</button>
-                    <button type="button" @click="editing = false" class="bg-gray-600 hover:bg-gray-700 text-white px-3 py-1 rounded">Abbrechen</button>
+                    <x-button label="Speichern" type="submit" class="btn-info btn-sm" />
+                    <x-button label="Abbrechen" @click="editing = false" class="btn-ghost btn-sm" />
                 </div>
             </form>
         </div>
@@ -37,7 +37,7 @@
         <form method="POST" action="{{ route('reviews.comments.destroy', $comment) }}" class="mt-2">
             @csrf
             @method('DELETE')
-            <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded">Löschen</button>
+            <x-button label="Löschen" type="submit" class="btn-error btn-sm" />
         </form>
     @endif
 
@@ -66,8 +66,8 @@
         @csrf
         <input type="hidden" name="parent_id" value="{{ $comment->id }}">
         <x-field-group name="content" label="Kommentar" :id="$replyId">
-            <textarea id="{{ $replyId }}" name="content" aria-describedby="{{ $replyId }}-error" rows="2" class="w-full border-gray-300 dark:border-gray-600 dark:bg-gray-800 rounded mt-1" required></textarea>
+            <textarea id="{{ $replyId }}" name="content" aria-describedby="{{ $replyId }}-error" rows="2" class="textarea textarea-bordered w-full" required></textarea>
         </x-field-group>
-        <button type="submit" class="mt-2 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded">Antworten</button>
+        <x-button label="Antworten" type="submit" class="btn-info btn-sm mt-2" />
     </form>
 </div>

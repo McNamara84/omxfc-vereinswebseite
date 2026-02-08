@@ -1,7 +1,7 @@
 <div>
-    <x-header title="{{ __('Mitgliedschaft kündigen') }}" subtitle="{{ __('Dies beendet automatisch deine Mitglieschaft im OMXFC e. V. und löscht auch deinen Account für den internen Mitgliederbereich.') }}" size="text-lg" class="!mb-4" />
+    <x-header title="{{ __('Mitgliedschaft kündigen') }}" subtitle="{{ __('Dies beendet automatisch deine Mitgliedschaft im OMXFC e. V. und löscht auch deinen Account für den internen Mitgliederbereich.') }}" size="text-lg" class="!mb-4" />
 
-    <div class="max-w-xl text-sm text-base-content/70">
+    <div class="max-w-xl text-sm text-base-content">
         {{ __('Wenn du deine Mitgliedschaft kündigst, werden sämtliche Daten von dir aus dem System gelöscht. Du hast dann keinen Zugang mehr zum internen Mitgliederbereich. Informationen, die du behalten möchtest, solltest du vorher sichern.') }}
     </div>
 
@@ -14,7 +14,7 @@
     <!-- Delete User Confirmation Modal -->
     @if($confirmingUserDeletion)
     <x-mary-modal wire:model="confirmingUserDeletion" title="{{ __('Mitgliedschaft kündigen') }}" separator>
-        <p class="text-base-content/70">
+        <p class="text-base-content">
             {{ __('Bist du sicher, dass du deine Mitgliedschaft wirklich beenden möchtest? Dies löscht deinen Account dauerhaft und kann nicht rückgängig gemacht werden. Bitte gib zur Sicherheit dein Passwort ein.') }}
         </p>
 

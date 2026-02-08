@@ -16,7 +16,7 @@ test.describe('Mitgliederkarte', () => {
 
         await page.goto('/mitglieder/karte');
 
-        await expect(page.getByRole('heading', { name: 'Mitgliederkarte' })).toBeVisible();
+        await expect(page.locator('[data-testid="page-title"]')).toContainText('Mitgliederkarte');
         const mapRegion = page.locator('[data-member-map]');
         await expect(mapRegion).toHaveAttribute('role', 'region');
         await expect(mapRegion).toHaveAttribute('aria-label', 'Mitgliederkarte');
@@ -29,8 +29,8 @@ test.describe('Mitgliederkarte', () => {
 
         await page.goto('/mitglieder/karte');
 
-        await expect(page.getByRole('heading', { name: 'Mitgliederkarte' })).toBeVisible();
-        await expect(page.getByRole('heading', { name: 'Karte noch nicht verfügbar' })).toBeVisible();
+        await expect(page.locator('[data-testid="page-title"]')).toContainText('Mitgliederkarte');
+        await expect(page.getByText('Karte noch nicht verfügbar')).toBeVisible();
         await expect(page.getByRole('link', { name: 'Zu den verfügbaren Challenges' })).toBeVisible();
     });
 });

@@ -22,6 +22,9 @@
     /* Accent ← Original Primary (black) */
     --color-accent: oklch(0% 0 0);
     --color-accent-content: oklch(100% 0 0);
+
+    /* Error: dunkleres Rot für besseren Kontrast auf hellen Hintergründen (WCAG AA ≥ 4.5:1) */
+    --color-error: oklch(48% 0.19 25);
 }
 
 [x-cloak] {

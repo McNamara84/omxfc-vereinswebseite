@@ -22,7 +22,7 @@ test.describe('Protokolle page', () => {
         await page.goto('/protokolle');
 
         await expect(page).toHaveURL(/\/protokolle$/);
-        await expect(page.getByRole('heading', { level: 1, name: 'Protokolle' })).toBeVisible();
+        await expect(page.locator('[data-testid="page-title"]')).toContainText('Protokolle');
         await expect(page.getByText('3 Dokumente')).toBeVisible();
 
         const firstAccordion = page.locator('details[data-protokolle-accordion-item]').first();

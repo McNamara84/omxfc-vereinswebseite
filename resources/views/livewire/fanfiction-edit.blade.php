@@ -34,7 +34,7 @@
                     </label>
                 </div>
                 @error('authorType')
-                    <label class="label"><span class="label-text-alt text-error">{{ $message }}</span></label>
+                    <p class="text-sm text-error mt-1">{{ $message }}</p>
                 @enderror
             </div>
 

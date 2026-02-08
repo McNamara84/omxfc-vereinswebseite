@@ -1,43 +1,37 @@
 <x-app-layout :title="$title" :description="$description">
     <x-member-page class="max-w-3xl">
-            <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-6">
-                Neue Rezension zu „{{ $book->title }}“ (Nr. {{ $book->roman_number }})
-            </h1>
+        <x-header separator>
+            <x-slot:title>Neue Rezension zu „{{ $book->title }}“ (Nr. {{ $book->roman_number }})</x-slot:title>
+        </x-header>
 
-            <div class="mb-6 p-4 bg-yellow-100 dark:bg-yellow-800 border-l-4 border-yellow-500 dark:border-yellow-300 text-yellow-700 dark:text-yellow-200">
-                <p class="font-bold">Hinweis</p>
-                <p>Du kannst die Rezensionen zu diesem Roman erst lesen, nachdem du selbst eine verfasst und gespeichert hast.</p>
-            </div>
+        <x-alert title="Hinweis" description="Du kannst die Rezensionen zu diesem Roman erst lesen, nachdem du selbst eine verfasst und gespeichert hast." icon="o-exclamation-triangle" class="alert-warning mb-6" />
 
-            <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
-                <form action="{{ route('reviews.store', $book) }}" method="POST">
-                    @csrf
+        <x-card>
+            <form action="{{ route('reviews.store', $book) }}" method="POST">
+                @csrf
 
-                    <x-forms.text-field
+                <div class="space-y-4">
+                    <x-input
                         name="title"
                         label="Rezensionstitel"
-                        :value="old('title')"
+                        value="{{ old('title') }}"
                         required
-                        class="mb-4"
                     />
 
-                    <x-forms.textarea-field
+                    <x-textarea
                         name="content"
                         label="Rezensionstext"
-                        :value="old('content')"
                         rows="8"
-                        help="Mindestens 140 Zeichen."
+                        hint="Mindestens 140 Zeichen."
                         required
-                        class="mb-4"
-                    />
+                    >{{ old('content') }}</x-textarea>
+                </div>
 
-                    <div class="flex flex-col sm:flex-row sm:justify-between gap-4">
-                        <a href="{{ route('reviews.index') }}" class="text-gray-600 dark:text-gray-400 hover:underline">Abbrechen</a>
-                        <button type="submit" class="bg-[#8B0116] dark:bg-[#FCA5A5] text-white px-4 py-2 rounded">
-                            Rezension absenden
-                        </button>
-                    </div>
-                </form>
-            </div>
+                <div class="flex justify-end gap-3 mt-6">
+                    <x-button label="Abbrechen" link="{{ route('reviews.index') }}" class="btn-ghost" />
+                    <x-button label="Rezension absenden" type="submit" class="btn-primary" icon="o-check" />
+                </div>
+            </form>
+        </x-card>
     </x-member-page>
 </x-app-layout>

@@ -20,14 +20,14 @@
             {{-- Card 1: Mitgliedsbeitrag Status (Für alle Rollen) --}}
             <x-card title="Dein Mitgliedsbeitrag" shadow>
                 <div class="mb-4">
-                    <p class="text-sm text-base-content/60">Dein aktueller Mitgliedsbeitrag:</p>
+                    <p class="text-sm text-base-content">Dein aktueller Mitgliedsbeitrag:</p>
                     <p class="text-xl font-semibold">
                         {{ $memberData->mitgliedsbeitrag ? number_format($memberData->mitgliedsbeitrag, 2, ',', '.') . ' €' : 'Nicht festgelegt' }}
                     </p>
                 </div>
                 
                 <div>
-                    <p class="text-sm text-base-content/60">Bezahlt bis:</p>
+                    <p class="text-sm text-base-content">Bezahlt bis:</p>
                     @if($memberData->bezahlt_bis)
                         @php
                             $bezahlt_bis = \Carbon\Carbon::parse($memberData->bezahlt_bis);
@@ -64,7 +64,7 @@
             
             {{-- Card 2: Aktueller Kassenstand (Für alle Rollen) --}}
             <x-card title="Aktueller Kassenstand" shadow data-testid="kassenstand-card">
-                <p class="text-sm text-base-content/60">Kassenstand zum {{ \Carbon\Carbon::parse($kassenstand->letzte_aktualisierung)->format('d.m.Y') }}</p>
+                <p class="text-sm text-base-content">Kassenstand zum {{ \Carbon\Carbon::parse($kassenstand->letzte_aktualisierung)->format('d.m.Y') }}</p>
                 <p class="mt-1 text-2xl font-bold {{ $kassenstand->betrag >= 0 ? 'text-success' : 'text-error' }}">
                     {{ number_format($kassenstand->betrag, 2, ',', '.') }} €
                 </p>
@@ -87,16 +87,16 @@
                                     <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
                                         <div class="flex-1">
                                             <p class="font-medium">{{ $request->entry->beschreibung }}</p>
-                                            <p class="text-sm text-base-content/60 mt-1">
+                                            <p class="text-sm text-base-content mt-1">
                                                 {{ number_format(abs($request->entry->betrag), 2, ',', '.') }} € 
                                                 ({{ $request->entry->typ->value === 'einnahme' ? 'Einnahme' : 'Ausgabe' }})
                                                 – {{ $request->entry->buchungsdatum->format('d.m.Y') }}
                                             </p>
-                                            <p class="text-sm text-base-content/60 mt-2">
+                                            <p class="text-sm text-base-content mt-2">
                                                 <strong>Begründung:</strong> 
                                                 {{ $request->getFormattedReason() }}
                                             </p>
-                                            <p class="text-xs text-base-content/40 mt-1">
+                                            <p class="text-xs text-base-content mt-1">
                                                 Angefragt von 
                                                 <a href="{{ route('profile.view', $request->requester->id) }}" class="text-primary hover:underline">{{ $request->requester->name }}</a>
                                                 am {{ $request->created_at->format('d.m.Y \u\m H:i') }} Uhr
@@ -148,14 +148,14 @@
                                                 <x-avatar :image="$member->profile_photo_url" class="!w-8 !h-8" />
                                                 <div>
                                                     <div class="font-medium">{{ $member->name }}</div>
-                                                    <div class="text-xs text-base-content/60">{{ $member->vorname }} {{ $member->nachname }}</div>
+                                                    <div class="text-xs text-base-content">{{ $member->vorname }} {{ $member->nachname }}</div>
                                                 </div>
                                             </a>
                                         </td>
-                                        <td class="text-base-content/60">
+                                        <td class="text-base-content">
                                             {{ $member->email }}
                                         </td>
-                                        <td class="text-base-content/60">
+                                        <td class="text-base-content">
                                             {{ $member->mitgliedsbeitrag ? number_format($member->mitgliedsbeitrag, 2, ',', '.') . ' €' : '-' }}
                                         </td>
                                         <td>
@@ -237,13 +237,13 @@
                             <tbody>
                                 @forelse($kassenbuchEntries as $entry)
                                     <tr class="hover">
-                                        <td class="text-base-content/60">
+                                        <td class="text-base-content">
                                             {{ \Carbon\Carbon::parse($entry->buchungsdatum)->format('d.m.Y') }}
                                         </td>
                                         <td>
                                             <span>{{ $entry->beschreibung }}</span>
                                             @if($entry->wasEdited())
-                                                <span class="ml-1 text-xs text-base-content/40" title="Zuletzt bearbeitet am {{ $entry->last_edited_at->format('d.m.Y H:i') }} Uhr">(bearbeitet)</span>
+                                                <span class="ml-1 text-xs text-base-content" title="Zuletzt bearbeitet am {{ $entry->last_edited_at->format('d.m.Y H:i') }} Uhr">(bearbeitet)</span>
                                             @endif
                                         </td>
                                         <td>
@@ -299,7 +299,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="{{ $canManageKassenbuch ? 6 : 5 }}" class="text-center py-8 text-base-content/60">
+                                        <td colspan="{{ $canManageKassenbuch ? 6 : 5 }}" class="text-center py-8 text-base-content">
                                             <x-icon name="o-document-text" class="w-12 h-12 mx-auto mb-2 opacity-30" />
                                             Keine Einträge vorhanden.
                                         </td>
@@ -356,7 +356,7 @@
                             <x-button icon="o-x-mark" class="btn-ghost btn-sm" @click="open = false" />
                         </div>
 
-                        <p class="text-sm text-base-content/60 mb-4" x-text="'Mitglied: ' + user_name"></p>
+                        <p class="text-sm text-base-content mb-4" x-text="'Mitglied: ' + user_name"></p>
                         
                         <form :action="'/kassenbuch/zahlung-aktualisieren/' + user_id" method="POST">
                             @csrf
@@ -432,7 +432,7 @@
                             <x-button icon="o-x-mark" class="btn-ghost btn-sm" @click="open = false" />
                         </div>
 
-                        <p class="text-sm text-base-content/60 mb-4">
+                        <p class="text-sm text-base-content mb-4">
                             Erfasse hier Einnahmen und Ausgaben des Vereins und halte die Finanzdaten aktuell.
                         </p>
 
@@ -523,7 +523,7 @@
                             <x-button icon="o-x-mark" class="btn-ghost btn-sm" @click="open = false" />
                         </div>
 
-                        <p class="text-sm text-base-content/60 mb-2">Eintrag:</p>
+                        <p class="text-sm text-base-content mb-2">Eintrag:</p>
                         <p class="text-sm font-medium mb-4" x-text="entry_desc"></p>
 
                         <form :action="'/kassenbuch/eintrag/' + entry_id + '/bearbeitung-anfragen'" method="POST">
@@ -550,7 +550,7 @@
                                 </div>
                             </div>
 
-                            <p class="text-xs text-base-content/40 mt-2 mb-4">
+                            <p class="text-xs text-base-content mt-2 mb-4">
                                 Hinweis: Bei "Sonstiges" ist eine Begründung erforderlich.
                             </p>
 
@@ -687,7 +687,7 @@
                             <x-button icon="o-x-mark" class="btn-ghost btn-sm" @click="open = false" />
                         </div>
 
-                        <p class="text-sm text-base-content/60 mb-2">Eintrag:</p>
+                        <p class="text-sm text-base-content mb-2">Eintrag:</p>
                         <p class="text-sm font-medium mb-4" x-text="beschreibung"></p>
 
                         <form :action="'/kassenbuch/anfrage/' + request_id + '/ablehnen'" method="POST">
