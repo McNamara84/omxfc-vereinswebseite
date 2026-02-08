@@ -3,13 +3,13 @@
     $buttonId = 'accordion-button-' . $id;
     $contentId = 'content-' . $id;
 @endphp
-<div class="mb-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+<div class="mb-4 border border-base-content/10 rounded-lg">
     <h2>
         <button
             id="{{ $buttonId }}"
             data-accordion-button="{{ $id }}"
             type="button"
-            class="w-full flex justify-between items-center bg-gray-100 dark:bg-gray-700 px-4 py-3 rounded-t-lg font-semibold"
+            class="w-full flex justify-between items-center bg-base-200 px-4 py-3 rounded-t-lg font-semibold"
             onclick="toggleAccordion('{{ $id }}')"
             aria-expanded="{{ $initiallyOpen ? 'true' : 'false' }}"
             aria-controls="{{ $contentId }}"
@@ -20,7 +20,7 @@
     </h2>
     <div
         id="{{ $contentId }}"
-        class="{{ $initiallyOpen ? '' : 'hidden' }} bg-white dark:bg-gray-900 px-4 py-2 rounded-b-lg"
+        class="{{ $initiallyOpen ? '' : 'hidden' }} bg-base-100 px-4 py-2 rounded-b-lg"
         role="region"
         aria-labelledby="{{ $buttonId }}"
     >

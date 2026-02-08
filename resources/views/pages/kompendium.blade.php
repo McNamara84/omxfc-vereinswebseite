@@ -1,90 +1,64 @@
 <x-app-layout title="Kompendium – Offizieller MADDRAX Fanclub e. V." description="Volltextsuche durch Maddrax-Romane für Mitglieder.">
-    <div class="pb-8">
-        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
-                {{-- Überschrift ------------------------------------------------ --}}
-                <h1 class="text-2xl font-semibold text-[#8B0116] dark:text-[#ff4b63] mb-6">
-                    Maddrax-Kompendium
-                </h1>
+    <x-member-page class="max-w-4xl">
+        <x-header title="Maddrax-Kompendium" />
 
-                {{-- Info-Card --------------------------------------------------- --}}
-                <div class="mb-6 p-4 border-l-4 border-[#8B0116] dark:border-[#ff4b63] bg-gray-50 dark:bg-gray-700 rounded">
-                    @if($indexierteRomaneSummary->isEmpty())
-                        <p class="text-gray-600 dark:text-gray-400">
-                            Aktuell sind keine Romane für die Suche indexiert.
-                        </p>
-                    @else
-                        <p class="mb-2">Aktuell sind die folgenden Romane für die Suche indexiert:</p>
-                        <ul class="list-disc ml-6">
-                            @foreach($indexierteRomaneSummary as $gruppe)
-                                <li>
-                                    <strong>{{ $gruppe['name'] }}</strong>
-                                    (Band {{ $gruppe['bandbereich'] }})
-                                </li>
-                            @endforeach
-                        </ul>
-                    @endif
-
-                    @if($istAdmin ?? false)
-                        <a href="{{ route('kompendium.admin') }}"
-                           class="inline-flex items-center mt-4 text-sm text-[#8B0116] dark:text-[#ff4b63] hover:underline">
-                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                            </svg>
-                            Kompendium verwalten
-                        </a>
-                    @endif
-                </div>
-
-                {{-- Suchschlitz (ab 100 Baxx) -------------------------------- --}}
-                @if($showSearch)
-                    <div class="mb-4">
-                        <label for="search" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                            Volltextsuche
-                        </label>
-                        <input id="search"
-                               type="text"
-                               placeholder="Suchbegriff eingeben … (Enter)"
-                               class="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-[#8B0116]"
-                        >
-                    </div>
-
-                    {{-- Serien-Filter (wird per JS befüllt) ----------------------- --}}
-                    <div id="serien-filter" class="mb-4 hidden">
-                        <fieldset role="group" aria-labelledby="serien-filter-legend">
-                            <legend id="serien-filter-legend" class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                Serien filtern:
-                            </legend>
-                            <div id="serien-checkboxes" class="flex flex-wrap gap-x-4 gap-y-2" role="group">
-                                {{-- Wird per JavaScript dynamisch befüllt --}}
-                            </div>
-                        </fieldset>
-                    </div>
-                @else
-                    <p class="mb-4 text-sm text-gray-600 dark:text-gray-400">
-                        Die Suche wird ab <strong>{{ $required }}</strong> Baxx freigeschaltet.<br>
-                        Dein aktueller Stand: <span class="font-semibold">{{ $userPoints }}</span>.
+        <x-card shadow>
+            {{-- Info-Card --------------------------------------------------- --}}
+            <div class="mb-6 p-4 border-l-4 border-primary bg-base-200 rounded">
+                @if($indexierteRomaneSummary->isEmpty())
+                    <p class="text-base-content/60">
+                        Aktuell sind keine Romane für die Suche indexiert.
                     </p>
+                @else
+                    <p class="mb-2">Aktuell sind die folgenden Romane für die Suche indexiert:</p>
+                    <ul class="list-disc ml-6">
+                        @foreach($indexierteRomaneSummary as $gruppe)
+                            <li>
+                                <strong>{{ $gruppe['name'] }}</strong>
+                                (Band {{ $gruppe['bandbereich'] }})
+                            </li>
+                        @endforeach
+                    </ul>
                 @endif
 
-                {{-- Trefferliste ---------------------------------------------- --}}
-                <div id="results" class="space-y-6"></div>
-
-                {{-- Loader ----------------------------------------------------- --}}
-                <div id="loading" class="hidden text-center py-4">
-                    <svg class="animate-spin h-6 w-6 mx-auto"
-                         xmlns="http://www.w3.org/2000/svg"
-                         fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10"
-                                stroke="currentColor" stroke-width="4"></circle>
-                        <path class="opacity-75" fill="currentColor"
-                              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                    </svg>
-                </div>
+                @if($istAdmin ?? false)
+                    <x-button label="Kompendium verwalten" link="{{ route('kompendium.admin') }}" icon="o-cog-6-tooth" class="btn-ghost btn-sm text-primary mt-4" />
+                @endif
             </div>
-        </div>
-    </div>
+
+            {{-- Suchschlitz (ab 100 Baxx) -------------------------------- --}}
+            @if($showSearch)
+                <div class="mb-4">
+                    <x-input id="search" placeholder="Suchbegriff eingeben … (Enter)" icon="o-magnifying-glass" />
+                </div>
+
+                {{-- Serien-Filter (wird per JS befüllt) ----------------------- --}}
+                <div id="serien-filter" class="mb-4 hidden">
+                    <fieldset role="group" aria-labelledby="serien-filter-legend">
+                        <legend id="serien-filter-legend" class="text-sm font-medium text-base-content/70 mb-2">
+                            Serien filtern:
+                        </legend>
+                        <div id="serien-checkboxes" class="flex flex-wrap gap-x-4 gap-y-2" role="group">
+                            {{-- Wird per JavaScript dynamisch befüllt --}}
+                        </div>
+                    </fieldset>
+                </div>
+            @else
+                <x-alert icon="o-lock-closed" class="alert-warning mb-4">
+                    Die Suche wird ab <strong>{{ $required }}</strong> Baxx freigeschaltet.
+                    Dein aktueller Stand: <strong>{{ $userPoints }}</strong>.
+                </x-alert>
+            @endif
+
+            {{-- Trefferliste ---------------------------------------------- --}}
+            <div id="results" class="space-y-6"></div>
+
+            {{-- Loader ----------------------------------------------------- --}}
+            <div id="loading" class="hidden text-center py-4">
+                <x-loading class="loading-spinner loading-md" />
+            </div>
+        </x-card>
+    </x-member-page>
 
     {{-- JavaScript nur, wenn Suche erlaubt ---------------------------------- --}}
     @if($userPoints >= 100)
@@ -108,9 +82,9 @@
                 function showError(message) {
                     $results.innerHTML = '';
                     const errorDiv = document.createElement('div');
-                    errorDiv.className = 'p-4 border-l-4 border-red-500 bg-red-50 dark:bg-red-900/20 rounded';
+                    errorDiv.className = 'p-4 border-l-4 border-error bg-error/10 rounded';
                     const errorP = document.createElement('p');
-                    errorP.className = 'text-red-700 dark:text-red-400';
+                    errorP.className = 'text-error';
                     errorP.textContent = message;
                     errorDiv.appendChild(errorP);
                     $results.appendChild(errorDiv);
@@ -156,7 +130,7 @@
                         const checkboxId = `serie-checkbox-${key}`;
 
                         const label = document.createElement('label');
-                        label.className = 'inline-flex items-center text-sm text-gray-700 dark:text-gray-300 cursor-pointer';
+                        label.className = 'inline-flex items-center text-sm text-base-content/70 cursor-pointer';
                         label.setAttribute('for', checkboxId);
 
                         const checkbox = document.createElement('input');
@@ -165,7 +139,7 @@
                         checkbox.name = 'serien';
                         checkbox.value = key;
                         checkbox.checked = true;
-                        checkbox.className = 'rounded border-gray-300 text-[#8B0116] shadow-sm focus:ring-[#8B0116] mr-1.5';
+                        checkbox.className = 'checkbox checkbox-primary checkbox-sm mr-1.5';
                         checkbox.setAttribute('aria-describedby', 'serien-filter-legend');
 
                         const span = document.createElement('span');
@@ -229,8 +203,8 @@
 
                 // HTML-Template pro Roman (mit Escaping für User-Daten)
                 const tpl = (roman) => `
-                    <div class="border border-gray-200 dark:border-gray-700 rounded p-4">
-                        <h2 class="font-semibold text-[#8B0116] dark:text-[#ff4b63] mb-2">
+                    <div class="border border-base-content/10 rounded p-4">
+                        <h2 class="font-semibold text-primary mb-2">
                             ${escapeHtml(roman.cycle)} – ${escapeHtml(roman.romanNr)}: ${escapeHtml(roman.title)}
                         </h2>
                         ${roman.snippets.map(s => `<p class="mb-2 text-sm leading-relaxed">${s}</p>`).join('')}

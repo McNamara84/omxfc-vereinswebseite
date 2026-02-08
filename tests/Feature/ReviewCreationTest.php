@@ -144,9 +144,11 @@ class ReviewCreationTest extends TestCase
 
         $response = $this->get("/rezensionen/{$book->id}/erstellen");
 
-        $response->assertSee('aria-describedby="title-error"', false);
-        // content has help text, so aria-describedby includes both hint and error
-        $response->assertSee('aria-describedby="content-hint content-error"', false);
+        // maryUI <x-input> and <x-textarea> render label + error handling internally
+        $response->assertSee('Rezensionstitel', false);
+        $response->assertSee('Rezensionstext', false);
+        // content textarea has hint text
+        $response->assertSee('Mindestens 140 Zeichen.', false);
     }
 
     public function test_review_creation_validation_errors(): void

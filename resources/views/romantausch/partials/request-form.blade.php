@@ -1,6 +1,5 @@
-<div class="bg-white dark:bg-gray-800 shadow-xl sm:rounded-lg p-6">
-    <h1 class="text-2xl font-bold text-[#8B0116] dark:text-[#FF6B81] mb-6">{{ $heading }}</h1>
-
+<x-card>
+    <x-header :title="$heading" separator />
     <form action="{{ $formAction }}" method="POST" id="request-form">
         @csrf
         @if($formMethod !== 'POST')
@@ -17,16 +16,15 @@
         @endphp
 
         <div class="grid gap-6 md:grid-cols-2">
-            <div class="md:col-span-1">
-                <div class="mb-4">
-                    <label for="series-select" class="block font-medium text-gray-700 dark:text-gray-200 mb-2">Serie</label>
+            <div class="md:col-span-1 space-y-4">
+                <div>
+                    <label for="series-select" class="label label-text">Serie</label>
                     <select
                         name="series"
                         id="series-select"
                         @class([
-                            'w-full rounded bg-gray-50 dark:bg-gray-700 border text-gray-800 dark:text-gray-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#8B0116] dark:focus-visible:ring-[#FF6B81]',
-                            'border-red-500 focus-visible:ring-red-500 dark:border-red-500' => $seriesError,
-                            'border-gray-300 dark:border-gray-600' => !$seriesError,
+                            'select select-bordered w-full',
+                            'select-error' => $seriesError,
                         ])
                         @if($seriesError)
                             aria-invalid="true"
@@ -38,19 +36,18 @@
                         @endforeach
                     </select>
                     @error('series')
-                        <p id="series-error" class="mt-2 text-sm text-red-600 dark:text-red-400" role="alert">{{ $message }}</p>
+                        <p id="series-error" class="text-sm text-error mt-1" role="alert">{{ $message }}</p>
                     @enderror
                 </div>
 
-                <div class="mb-4">
-                    <label for="book-select" class="block font-medium text-gray-700 dark:text-gray-200 mb-2">Roman</label>
+                <div>
+                    <label for="book-select" class="label label-text">Roman</label>
                     <select
                         name="book_number"
                         id="book-select"
                         @class([
-                            'w-full rounded bg-gray-50 dark:bg-gray-700 border text-gray-800 dark:text-gray-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#8B0116] dark:focus-visible:ring-[#FF6B81]',
-                            'border-red-500 focus-visible:ring-red-500 dark:border-red-500' => $bookNumberError,
-                            'border-gray-300 dark:border-gray-600' => !$bookNumberError,
+                            'select select-bordered w-full',
+                            'select-error' => $bookNumberError,
                         ])
                         @if($bookNumberError)
                             aria-invalid="true"
@@ -68,19 +65,18 @@
                         @endforeach
                     </select>
                     @error('book_number')
-                        <p id="book_number-error" class="mt-2 text-sm text-red-600 dark:text-red-400" role="alert">{{ $message }}</p>
+                        <p id="book_number-error" class="text-sm text-error mt-1" role="alert">{{ $message }}</p>
                     @enderror
                 </div>
 
-                <div class="mb-6">
-                    <label for="condition-select" class="block font-medium text-gray-700 dark:text-gray-200 mb-2">Zustand bis einschließlich</label>
+                <div>
+                    <label for="condition-select" class="label label-text">Zustand bis einschließlich</label>
                     <select
                         name="condition"
                         id="condition-select"
                         @class([
-                            'w-full rounded bg-gray-50 dark:bg-gray-700 border text-gray-800 dark:text-gray-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#8B0116] dark:focus-visible:ring-[#FF6B81]',
-                            'border-red-500 focus-visible:ring-red-500 dark:border-red-500' => $conditionError,
-                            'border-gray-300 dark:border-gray-600' => !$conditionError,
+                            'select select-bordered w-full',
+                            'select-error' => $conditionError,
                         ])
                         @if($conditionError)
                             aria-invalid="true"
@@ -98,25 +94,22 @@
                         <option value="Z4" @selected($selectedCondition === 'Z4')>Z4 - Sehr schlecht erhalten</option>
                     </select>
                     @error('condition')
-                        <p id="condition-error" class="mt-2 text-sm text-red-600 dark:text-red-400" role="alert">{{ $message }}</p>
+                        <p id="condition-error" class="text-sm text-error mt-1" role="alert">{{ $message }}</p>
                     @enderror
                 </div>
             </div>
 
             <div class="md:col-span-1 flex items-center">
-                <p class="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">Beschreibe so genau wie möglich, welchen Roman du suchst und in welchem Zustand er mindestens sein soll. Mit präzisen Angaben erhöhst du die Chancen auf einen passenden Tausch.</p>
+                <p class="text-sm text-base-content/60 leading-relaxed">Beschreibe so genau wie möglich, welchen Roman du suchst und in welchem Zustand er mindestens sein soll. Mit präzisen Angaben erhöhst du die Chancen auf einen passenden Tausch.</p>
             </div>
         </div>
 
         <div class="mt-8 flex flex-wrap gap-3">
-            <button type="submit"
-                class="inline-flex items-center px-4 py-2 bg-[#8B0116] dark:bg-[#C41E3A] text-white font-semibold rounded hover:bg-[#A50019] dark:hover:bg-[#D63A4D] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#8B0116] dark:focus-visible:ring-[#FF6B81]">
-                {{ $submitLabel }}
-            </button>
-            <a href="{{ route('romantausch.index') }}" class="inline-flex items-center px-4 py-2 bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-100 font-semibold rounded hover:bg-gray-300 dark:hover:bg-gray-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-gray-400">Abbrechen</a>
+            <x-button :label="$submitLabel" type="submit" class="btn-primary" icon="o-check" />
+            <x-button label="Abbrechen" link="{{ route('romantausch.index') }}" class="btn-ghost" />
         </div>
     </form>
-</div>
+</x-card>
 
 @push('scripts')
     <script>
