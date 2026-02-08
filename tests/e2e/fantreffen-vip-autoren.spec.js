@@ -17,8 +17,8 @@ test.describe('Fantreffen VIP-Autoren Verwaltung', () => {
         await page.goto('/admin/fantreffen-2026/vip-autoren');
         await page.waitForLoadState('networkidle');
 
-        // Überschrift sichtbar
-        await expect(page.getByRole('heading', { name: /VIP-Autoren verwalten/i })).toBeVisible();
+        // Überschrift sichtbar (maryUI <x-header> rendert als <div>, nicht als heading)
+        await expect(page.getByText('VIP-Autoren verwalten').first()).toBeVisible();
 
         // Bestehende Autoren aus dem Seeder sichtbar
         await expect(page.getByText('Oliver Fröhlich')).toBeVisible();
@@ -32,8 +32,8 @@ test.describe('Fantreffen VIP-Autoren Verwaltung', () => {
         // "Neuen Autor hinzufügen"-Button klicken
         await page.getByRole('button', { name: /Neuen Autor hinzufügen/i }).click();
 
-        // Formular muss sichtbar sein
-        await expect(page.getByRole('heading', { name: /Neuen Autor hinzufügen/i })).toBeVisible();
+        // Formular muss sichtbar sein (maryUI <x-card title> rendert als <div>)
+        await expect(page.getByText('Neuen Autor hinzufügen').nth(1)).toBeVisible();
 
         // Name eingeben
         const nameInput = page.locator('input[wire\\:model="name"]');
@@ -70,8 +70,8 @@ test.describe('Fantreffen VIP-Autoren Verwaltung', () => {
         await page.getByRole('button', { name: /Hinzufügen/i }).click();
         await page.waitForLoadState('networkidle');
 
-        // Fehlermeldung sichtbar
-        await expect(page.getByText(/name/i).locator('..').locator('.text-error')).toBeVisible();
+        // Fehlermeldung sichtbar (maryUI rendert Fehler als <div class="text-error"> in <fieldset>)
+        await expect(page.locator('.text-error').first()).toBeVisible();
     });
 
     test('Abbrechen-Button schließt das Formular', async ({ page }) => {
