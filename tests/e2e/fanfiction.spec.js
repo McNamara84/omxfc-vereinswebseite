@@ -198,7 +198,8 @@ test.describe('Fanfiction Übersicht für Mitglieder (Issue #495 & #496)', () =>
         await page.goto('/fanfiction');
 
         await expect(page).toHaveURL(/\/fanfiction$/);
-        await expect(page.getByRole('heading', { name: 'Fanfiction' })).toBeVisible();
+        // maryUI x-header rendert title als div, nicht als heading
+        await expect(page.getByText('Fanfiction', { exact: true }).first()).toBeVisible();
     });
 
     test('Übersicht zeigt veröffentlichte Geschichten', async ({ page }) => {
@@ -337,8 +338,8 @@ test.describe('Fanfiction Einzelansicht', () => {
         await page.getByRole('link', { name: 'Die Reise nach Doredo' }).first().click();
 
         // Prüfe ob existierende Kommentare mit Autorname angezeigt werden
-        // Suche den Kommentar-Text innerhalb eines spezifischen Containers
-        await expect(page.locator('.text-gray-700, .dark\\:text-gray-300').filter({ hasText: 'Spannende Geschichte' }).first()).toBeVisible();
+        // Suche den Kommentar-Text unabhängig von CSS-Klassen
+        await expect(page.getByText('Spannende Geschichte').first()).toBeVisible();
     });
 });
 

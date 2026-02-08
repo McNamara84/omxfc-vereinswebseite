@@ -39,7 +39,8 @@ test.describe('Romantauschbörse - Einzelangebote', () => {
             await page.goto('/romantauschboerse/angebot-erstellen');
 
             await expect(page).toHaveURL(/angebot-erstellen$/);
-            await expect(page.getByRole('heading', { name: /Neues Angebot erstellen/i })).toBeVisible();
+            // maryUI x-header rendert title als div, nicht als heading
+            await expect(page.getByText(/Neues Angebot erstellen/i).first()).toBeVisible();
         });
 
         test('Formular zeigt alle erforderlichen Felder', async ({ page }) => {
@@ -94,7 +95,7 @@ test.describe('Romantauschbörse - Einzelangebote', () => {
             // WICHTIG: Erfolgsmeldung prüfen - dieser Check fängt DB-Fehler wie den
             // Activity::create() Bug, bei dem ein nicht existierendes 'properties'-Feld
             // verwendet wurde. Ohne diesen Check würde ein 500er-Fehler unbemerkt bleiben.
-            const successMessage = page.locator('[data-testid="flash-success"], .bg-green-100, [role="alert"]').filter({ hasText: /Angebot erstellt/i });
+            const successMessage = page.locator('[data-testid="flash-success"], [role="alert"]').filter({ hasText: /Angebot erstellt/i });
             await expect(successMessage).toBeVisible();
         });
 
@@ -139,8 +140,8 @@ test.describe('Romantauschbörse - Einzelangebote', () => {
             await expect(page.locator('#request-form')).toBeVisible();
             
             // Die Überschrift lautet "Neues Gesuch erstellen" (aus dem Partial)
-            // Verwende h1-Selektor als Fallback für webkit-Kompatibilität
-            await expect(page.locator('h1').filter({ hasText: /Gesuch/i })).toBeVisible();
+            // maryUI x-header rendert title als div, nicht als heading
+            await expect(page.getByText(/Gesuch/i).first()).toBeVisible();
         });
 
         test('Erfolgreiches Erstellen eines Gesuchs', async ({ page }) => {
@@ -170,7 +171,7 @@ test.describe('Romantauschbörse - Einzelangebote', () => {
             await expect(page).toHaveURL(/romantauschboerse$/);
 
             // Erfolgsmeldung prüfen
-            const successMessage = page.locator('[data-testid="flash-success"], .bg-green-100, [role="alert"]').filter({ hasText: /Gesuch erstellt/i });
+            const successMessage = page.locator('[data-testid="flash-success"], [role="alert"]').filter({ hasText: /Gesuch erstellt/i });
             await expect(successMessage).toBeVisible();
         });
     });
@@ -226,7 +227,8 @@ test.describe('Romantauschbörse - Einzelangebote', () => {
             // Bearbeiten-Seite sollte laden
             await expect(page).toHaveURL(/angebot\/\d+\/bearbeiten$/);
             // Die Überschrift beim Bearbeiten lautet "Angebot bearbeiten" (aus dem Partial)
-            await expect(page.getByRole('heading', { name: /Angebot bearbeiten/i })).toBeVisible();
+            // maryUI x-header rendert title als div, nicht als heading
+            await expect(page.getByText(/Angebot bearbeiten/i).first()).toBeVisible();
         });
     });
 

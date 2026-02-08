@@ -22,7 +22,8 @@ test.describe('Protokolle page', () => {
         await page.goto('/protokolle');
 
         await expect(page).toHaveURL(/\/protokolle$/);
-        await expect(page.getByRole('heading', { level: 1, name: 'Protokolle' })).toBeVisible();
+        // maryUI x-header rendert title als div, nicht als heading
+        await expect(page.getByText('Protokolle').first()).toBeVisible();
         await expect(page.getByText('3 Dokumente')).toBeVisible();
 
         const firstAccordion = page.locator('details[data-protokolle-accordion-item]').first();

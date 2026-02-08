@@ -65,7 +65,8 @@ test.describe('Romantauschbörse - Stapel-Angebote', () => {
             await page.goto('/romantauschboerse/stapel-angebot-erstellen');
 
             await expect(page).toHaveURL(/stapel-angebot-erstellen$/);
-            await expect(page.getByRole('heading', { name: /Stapel-Angebot erstellen/i })).toBeVisible();
+            // maryUI x-header rendert title als div, nicht als heading
+            await expect(page.getByText(/Stapel-Angebot erstellen/i).first()).toBeVisible();
         });
 
         test('Formular zeigt Serien-Dropdown und Nummern-Eingabe', async ({ page }) => {
@@ -104,15 +105,14 @@ test.describe('Romantauschbörse - Stapel-Angebote', () => {
             // Suche nach Validierungsfehler unter dem book_numbers-Feld oder Session-Error im Formular
             //
             // HINWEIS zu Selektoren:
-            // Der Selektor kombiniert ARIA-Rolle und CSS-Klasse für Robustheit:
+            // Der Selektor nutzt ARIA-Rolle und data-testid für Robustheit:
             // - [role="alert"]: Semantisch korrekt, Framework-unabhängig
-            // - .bg-red-100: Tailwind-spezifisch, als Fallback
+            // - [data-testid]: Expliziter Test-Hook
             // Für bessere Wartbarkeit könnte ein data-testid="validation-error" Attribut
-            // in die Blade-Views eingefügt werden. Aktuell ist die Mischung akzeptabel
-            // da beide Selektoren funktional äquivalent sind.
+            // in die Blade-Views eingefügt werden.
             const form = page.locator('#bundle-offer-form');
             await expect(
-                form.locator('[role="alert"], .bg-red-100, [data-testid="validation-error"]')
+                form.locator('[role="alert"], [data-testid="validation-error"]')
             ).toBeVisible();
         });
 
@@ -134,7 +134,7 @@ test.describe('Romantauschbörse - Stapel-Angebote', () => {
             // WICHTIG: Erfolgsmeldung prüfen - dieser Check hätte den Bug mit dem
             // fehlenden 'properties'-Feld in Activity::create() gefangen, da bei
             // einem DB-Fehler keine Erfolgsmeldung angezeigt wird.
-            const successMessage = page.locator('[data-testid="flash-success"], .bg-green-100, [role="alert"]').filter({ hasText: /Stapel-Angebot.*erstellt/i });
+            const successMessage = page.locator('[data-testid="flash-success"], [role="alert"]').filter({ hasText: /Stapel-Angebot.*erstellt/i });
             await expect(successMessage).toBeVisible();
         });
     });
@@ -194,7 +194,8 @@ test.describe('Romantauschbörse - Stapel-Angebote', () => {
 
             // Bearbeiten-Seite sollte laden
             await expect(page).toHaveURL(/stapel\/.*\/bearbeiten$/);
-            await expect(page.getByRole('heading', { name: /Stapel-Angebot bearbeiten/i })).toBeVisible();
+            // maryUI x-header rendert title als div, nicht als heading
+            await expect(page.getByText(/Stapel-Angebot bearbeiten/i).first()).toBeVisible();
         });
 
         test('Bearbeiten-Formular zeigt aktuelle Werte', async ({ page }) => {
