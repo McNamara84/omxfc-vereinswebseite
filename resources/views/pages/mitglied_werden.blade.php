@@ -1,6 +1,6 @@
 <x-app-layout title="Mitglied werden – Offizieller MADDRAX Fanclub e. V." description="Online-Antrag zur Aufnahme in den Fanclub der MADDRAX-Romanserie.">
     <x-public-page>
-        <h1 class="text-2xl sm:text-3xl font-bold text-[#8B0116] dark:text-[#ff4b63] mb-4 sm:mb-8">Mitglied werden</h1>
+        <h1 class="text-2xl sm:text-3xl font-bold text-primary mb-4 sm:mb-8">Mitglied werden</h1>
         <!-- Erfolg-/Fehlermeldungen -->
         <div id="form-messages" class="mb-4 hidden"></div>
         <form id="mitgliedschaft-form" class="w-full">
@@ -68,25 +68,25 @@
                 <!-- Checkbox über volle Breite -->
                 <div class="col-span-1 md:col-span-2 flex items-start mt-2">
                     <input type="checkbox" id="satzung_check" name="satzung_check"
-                        class="mt-1 rounded border-gray-300 shadow-sm">
+                        class="mt-1 rounded border-base-content/30 shadow-sm">
                     <label for="satzung_check" class="ml-2 text-sm">
                         Ich habe die <a href="{{ route('satzung') }}" target="_blank"
-                            class="text-blue-600 dark:text-blue-400 hover:underline">Satzung</a> gelesen und bin mit ihr
+                            class="link link-primary">Satzung</a> gelesen und bin mit ihr
                         einverstanden.
                     </label>
                 </div>
             </div>
             <button type="submit" id="submit-button"
-                class="mt-6 bg-[#8B0116] text-white py-2 px-4 rounded-md hover:bg-[#7a0113] transition duration-150 opacity-50 cursor-not-allowed dark:bg-[#9f0119] dark:hover:bg-[#8a0115]"
+                class="mt-6 bg-primary text-primary-content py-2 px-4 rounded-md hover:bg-primary/80 transition duration-150 opacity-50 cursor-not-allowed"
                 disabled>Antrag absenden</button>
             <!-- Lade-Indikator -->
             <div id="loading-indicator" class="mt-4 hidden flex items-center justify-center">
-                <svg class="animate-spin h-8 w-8 text-[#8B0116]" xmlns="http://www.w3.org/2000/svg" fill="none"
+                <svg class="animate-spin h-8 w-8 text-primary" xmlns="http://www.w3.org/2000/svg" fill="none"
                     viewBox="0 0 24 24">
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v2.5A5.5 5.5 0 006.5 12H4z"></path>
                 </svg>
-                <span class="ml-2 font-medium text-[#8B0116]">Dein Antrag wird gesendet, bitte warten...</span>
+                <span class="ml-2 font-medium text-primary">Dein Antrag wird gesendet, bitte warten...</span>
             </div>
         </form>
     </x-public-page>
@@ -270,7 +270,7 @@
                         }
 
                         messages.textContent = 'Bitte korrigiere die markierten Felder.';
-                        messages.className = 'mb-4 p-4 bg-red-100 border border-red-400 text-red-800 rounded';
+                        messages.className = 'mb-4 p-4 bg-error/10 border border-error text-error rounded';
                         messages.classList.remove('hidden');
                         messages.scrollIntoView({ behavior: 'smooth' });
 
@@ -280,7 +280,7 @@
                         loadingIndicator.classList.add('hidden');
                     } else {
                         messages.textContent = 'Unbekannter Fehler aufgetreten.';
-                        messages.className = 'mb-4 p-4 bg-red-100 border border-red-400 text-red-800 rounded';
+                        messages.className = 'mb-4 p-4 bg-error/10 border border-error text-error rounded';
                         messages.classList.remove('hidden');
                         messages.scrollIntoView({ behavior: 'smooth' });
 

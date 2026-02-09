@@ -38,19 +38,20 @@
 
 <body class="font-sans antialiased">
     <x-banner />
-    <div class="min-h-screen bg-base-200 xl:pt-24">
+    <div class="min-h-screen bg-base-200">
         @livewire('navigation-menu')
 
         {{-- maryUI Main-Layout --}}
-        <x-main full-width>
+        <x-main with-nav>
             <x-slot:content>
                 {{ $slot }}
             </x-slot:content>
+
+            <x-slot:footer>
+                <x-footer />
+            </x-slot:footer>
         </x-main>
     </div>
-
-    <!-- Footer -->
-    <x-footer />
 
     @stack('modals')
     @stack('scripts')

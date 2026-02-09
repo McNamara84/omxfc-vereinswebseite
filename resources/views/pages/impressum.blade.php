@@ -1,6 +1,6 @@
 <x-app-layout title="Impressum – Offizieller MADDRAX Fanclub e. V." description="Verantwortliche Ansprechpartner, Kontakt und Vereinsregistereintrag gemäß §5 TMG.">
     <x-public-page>
-        <h1 class="text-2xl sm:text-3xl font-bold text-[#8B0116] dark:text-[#ff4b63] mb-4 sm:mb-8">Impressum</h1>
+        <h1 class="text-2xl sm:text-3xl font-bold text-primary mb-4 sm:mb-8">Impressum</h1>
 
         <p class="mb-6">Dieses Impressum gilt für alle Angebote unter der Domain <strong>maddrax-fanclub.de</strong>
             inklusive aller Subdomains (Unterseiten).</p>
@@ -10,11 +10,11 @@
             <p>Dieses Impressum gilt auch für unsere Auftritte in den folgenden sozialen Medien:</p>
             <ul class="list-disc ml-6 mt-2">
                 <li><a href="https://www.facebook.com/mxikon" target="_blank"
-                        class="text-blue-600 hover:underline">Facebook</a></li>
+                        class="link link-primary">Facebook</a></li>
                 <li><a href="https://www.instagram.com/offizieller_maddrax_fanclub/" target="_blank"
-                        class="text-blue-600 hover:underline">Instagram</a></li>
+                        class="link link-primary">Instagram</a></li>
                 <li><a href="https://www.youtube.com/@mxikon" target="_blank"
-                        class="text-blue-600 hover:underline">YouTube</a></li>
+                        class="link link-primary">YouTube</a></li>
             </ul>
         </section>
 
@@ -29,8 +29,8 @@
                 Deutschland</p>
 
             <p class="mt-4">E-Mail: <a href="mailto:vorstand@maddrax-fanclub.de"
-                    class="text-blue-600 hover:underline">vorstand@maddrax-fanclub.de</a><br>
-                Telefon: <a href="tel:+491794218330" class="text-blue-600 hover:underline">+49 179 4218330</a></p>
+                    class="link link-primary">vorstand@maddrax-fanclub.de</a><br>
+                Telefon: <a href="tel:+491794218330" class="link link-primary">+49 179 4218330</a></p>
         </section>
 
         <section>

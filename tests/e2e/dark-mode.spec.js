@@ -25,7 +25,7 @@ test.describe('dark mode respects preferences', () => {
 
   test('prioritises stored light preference over system dark mode', async ({ page }) => {
     await page.addInitScript(() => {
-      window.localStorage.setItem('theme', 'light');
+      window.localStorage.setItem('mary-theme', '"caramellatte"');
     });
 
     await page.goto('/');
@@ -36,7 +36,7 @@ test.describe('dark mode respects preferences', () => {
     const currentTheme = await page.evaluate(() => document.documentElement.dataset.theme);
     expect(currentTheme).toBe('caramellatte');
 
-    await page.evaluate(() => window.localStorage.removeItem('theme'));
+    await page.evaluate(() => window.localStorage.removeItem('mary-theme'));
   });
 
   test('dark mode keeps sufficient color contrast in main content', async ({ page }) => {
@@ -51,7 +51,7 @@ test.describe('system preference change handling', () => {
 
   test('updates theme when system preference changes and no stored preference exists', async ({ page }) => {
     await page.addInitScript(() => {
-      window.localStorage.removeItem('theme');
+      window.localStorage.removeItem('mary-theme');
     });
 
     await page.goto('/');
@@ -70,13 +70,13 @@ test.describe('system preference change handling', () => {
 
   test('reacts to storage theme updates', async ({ page }) => {
     await page.addInitScript(() => {
-      window.localStorage.removeItem('theme');
+      window.localStorage.removeItem('mary-theme');
     });
 
     await page.goto('/');
     await page.waitForFunction(() => typeof window.__omxfcApplyStoredTheme === 'function');
     const applied = await page.evaluate(() => {
-      window.localStorage.setItem('theme', 'dark');
+      window.localStorage.setItem('mary-theme', '"coffee"');
       return window.__omxfcApplyStoredTheme?.();
     });
 
@@ -87,7 +87,7 @@ test.describe('system preference change handling', () => {
     expect(currentTheme).toBe('coffee');
 
     const reverted = await page.evaluate(() => {
-      window.localStorage.setItem('theme', 'light');
+      window.localStorage.setItem('mary-theme', '"caramellatte"');
       return window.__omxfcApplyStoredTheme?.();
     });
 
@@ -97,7 +97,7 @@ test.describe('system preference change handling', () => {
     const revertedTheme = await page.evaluate(() => document.documentElement.dataset.theme);
     expect(revertedTheme).toBe('caramellatte');
 
-    await page.evaluate(() => window.localStorage.removeItem('theme'));
+    await page.evaluate(() => window.localStorage.removeItem('mary-theme'));
   });
 
   test('light mode keeps sufficient color contrast in main content', async ({ page }) => {

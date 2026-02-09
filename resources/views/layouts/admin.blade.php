@@ -26,11 +26,11 @@
 
 <body class="font-sans antialiased">
     <x-banner />
-    <div class="min-h-screen bg-base-200 xl:pt-24">
+    <div class="min-h-screen bg-base-200">
         @livewire('navigation-menu')
 
         {{-- maryUI Main-Layout mit optionaler Sidebar --}}
-        <x-main full-width>
+        <x-main with-nav>
             {{-- Optionale Admin-Sidebar --}}
             @isset($sidebar)
                 <x-slot:sidebar drawer="admin-drawer" collapsible class="bg-base-100 lg:bg-inherit">
@@ -44,11 +44,12 @@
                     {{ $slot }}
                 </div>
             </x-slot:content>
+
+            <x-slot:footer>
+                <x-footer />
+            </x-slot:footer>
         </x-main>
     </div>
-
-    <!-- Footer -->
-    <x-footer />
 
     @stack('modals')
     @stack('scripts')

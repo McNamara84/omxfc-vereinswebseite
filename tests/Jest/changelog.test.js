@@ -89,9 +89,9 @@ describe('changelog module', () => {
     classes.forEach((className) => {
       expect(className).toContain('min-w-[7rem]');
     });
-    expect(classes[0]).toContain('bg-red-600');
-    expect(classes[1]).toContain('bg-blue-600');
-    expect(classes[2]).toContain('bg-gray-600');
+    expect(classes[0]).toContain('bg-error');
+    expect(classes[1]).toContain('bg-info');
+    expect(classes[2]).toContain('bg-neutral');
   });
 
   test('only the most recent release is expanded on load', async () => {

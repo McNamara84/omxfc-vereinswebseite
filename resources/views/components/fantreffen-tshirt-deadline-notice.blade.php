@@ -8,31 +8,31 @@
 @if (!$tshirtDeadlinePassed)
     @if ($variant === 'compact')
         {{-- Kompakte Version für die Kostenübersicht --}}
-        <div class="mt-2 p-2 bg-orange-100 dark:bg-orange-900/40 rounded border border-orange-300 dark:border-orange-700"
+        <div class="mt-2 p-2 bg-warning/10 rounded border border-warning"
              @if($daysUntilDeadline <= 7) role="alert" @endif>
-            <p class="text-xs text-orange-800 dark:text-orange-200 font-semibold">
+            <p class="text-xs text-warning font-semibold">
                 ⏰ Bestellfrist: {{ $tshirtDeadlineFormatted }}
             </p>
-            <p class="text-xs text-orange-700 dark:text-orange-300 mt-0.5">
+            <p class="text-xs text-warning/80 mt-0.5">
                 T-Shirts können nur bis zur Bestellfrist mitbestellt werden!
             </p>
         </div>
     @else
         {{-- Prominente Version für das Anmeldeformular --}}
-        <div class="mb-3 p-3 bg-gradient-to-r from-orange-100 to-yellow-100 dark:from-orange-900/40 dark:to-yellow-900/40 rounded-lg border border-orange-300 dark:border-orange-600"
+        <div class="mb-3 p-3 bg-warning/10 rounded-lg border border-warning"
              @if($daysUntilDeadline <= 7) role="alert" @endif>
             <div class="flex items-center gap-2">
                 <span class="text-2xl" aria-hidden="true">👕</span>
                 <div>
-                    <p class="text-sm font-bold text-orange-800 dark:text-orange-200">
+                    <p class="text-sm font-bold text-warning">
                         T-Shirt nur bis {{ $tshirtDeadlineFormatted }} bestellbar!
                     </p>
                     @if ($daysUntilDeadline > 0)
-                        <p class="text-xs text-orange-700 dark:text-orange-300">
+                        <p class="text-xs text-warning/80">
                             Noch <strong>{{ $daysUntilDeadline }} {{ $daysUntilDeadline === 1 ? 'Tag' : 'Tage' }}</strong> Zeit für deine T-Shirt-Bestellung.
                         </p>
                     @else
-                        <p class="text-xs text-orange-700 dark:text-orange-300">
+                        <p class="text-xs text-warning/80">
                             Heute ist der letzte Tag für T-Shirt-Bestellungen!
                         </p>
                     @endif
@@ -43,8 +43,8 @@
 @else
     @if ($variant === 'compact')
         {{-- Kompakte Meldung für abgelaufene Deadline --}}
-        <div class="mt-2 p-2 bg-gray-100 dark:bg-gray-700 rounded">
-            <p class="text-xs text-gray-600 dark:text-gray-400">
+        <div class="mt-2 p-2 bg-base-200 rounded">
+            <p class="text-xs text-base-content/60">
                 ❌ Bestellfrist abgelaufen – T-Shirts können nicht mehr bestellt werden.
             </p>
         </div>

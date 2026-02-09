@@ -1,9 +1,7 @@
 import defaultTheme from 'tailwindcss/defaultTheme';
-import daisyui from 'daisyui';
 
 /** @type {import('tailwindcss').Config} */
 export default {
-    darkMode: 'class',
     content: [
         './vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php',
         './vendor/laravel/jetstream/**/*.blade.php',
@@ -21,13 +19,5 @@ export default {
                 sans: ['Figtree', ...defaultTheme.fontFamily.sans],
             },
         },
-    },
-
-    plugins: [daisyui],
-
-    // daisyUI Konfiguration
-    daisyui: {
-        themes: ['caramellatte', 'coffee'],
-        darkTheme: 'coffee',
     },
 };

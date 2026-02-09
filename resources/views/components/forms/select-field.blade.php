@@ -40,6 +40,6 @@
     </select>
 
     @if($help)
-        <p id="{{ $hintId }}" class="text-sm text-gray-600 dark:text-gray-300">{{ $help }}</p>
+        <p id="{{ $hintId }}" class="text-sm text-base-content/60">{{ $help }}</p>
     @endif
 </x-field-group>

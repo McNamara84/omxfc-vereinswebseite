@@ -3,67 +3,49 @@ import './bootstrap';
 // Alpine.js initialisieren (Logik in alpine-init.js für Testbarkeit extrahiert)
 import Alpine from 'alpinejs';
 import focus from '@alpinejs/focus';
+import persist from '@alpinejs/persist';
 import { scheduleInitAlpine } from './alpine-init';
 
-scheduleInitAlpine(Alpine, [focus]);
+scheduleInitAlpine(Alpine, [focus, persist]);
+
+// ── Theme: System-Preference- und Cross-Tab-Listener ──────────────────
+// Die initiale Theme-Anwendung erfolgt über bootstrap-inline.js (im <head>).
+// maryUI's <x-theme-toggle> steuert den Toggle via Alpine $persist.
+// Hier registrieren wir nur Listener für dynamische Änderungen.
+
+const LIGHT_THEME = 'caramellatte';
+const DARK_THEME  = 'coffee';
 
 const prefersDark = window.__omxfcPrefersDark ?? window.matchMedia('(prefers-color-scheme: dark)');
-const getSystemPrefersDark = () => prefersDark.matches;
 window.__omxfcPrefersDark = prefersDark;
 
-const applyDark = (isDark) => {
+const applyTheme = (isDark) => {
     const root = document.documentElement;
-    const nextIsDark = Boolean(isDark);
-
-    root.classList.toggle('dark', nextIsDark);
-    root.dataset.theme = nextIsDark ? 'dark' : 'light';
-
+    root.classList.toggle('dark', Boolean(isDark));
+    root.dataset.theme = isDark ? DARK_THEME : LIGHT_THEME;
     return root.classList.contains('dark');
 };
 
-const getStoredTheme = () => {
+const getStored = (key) => {
     try {
-        return window.localStorage.getItem('theme');
-    } catch (error) {
-        return null;
-    }
+        const raw = window.localStorage.getItem(key);
+        return raw ? raw.replaceAll('"', '') : null;
+    } catch { return null; }
 };
 
-const followsSystemPreference = (storedTheme = getStoredTheme()) => {
-    return storedTheme !== 'dark' && storedTheme !== 'light';
-};
-
-const fallbackApplySystemPreference = (matches = getSystemPrefersDark(), force = false) => {
-    const storedTheme = getStoredTheme();
-
-    if (!force && !followsSystemPreference(storedTheme)) {
+const applySystemPreference = (matches = prefersDark.matches, force = false) => {
+    if (!force && getStored('mary-theme')) {
         return document.documentElement.classList.contains('dark');
     }
-
-    return applyDark(Boolean(matches));
+    return applyTheme(Boolean(matches));
 };
 
-const fallbackApplyStoredTheme = (theme = getStoredTheme()) => {
-    if (theme === 'dark') {
-        return applyDark(true);
-    }
-
-    if (theme === 'light') {
-        return applyDark(false);
-    }
-
-    return fallbackApplySystemPreference(undefined, true);
+const applyStoredTheme = () => {
+    const stored = getStored('mary-theme');
+    if (stored === DARK_THEME) return applyTheme(true);
+    if (stored === LIGHT_THEME) return applyTheme(false);
+    return applySystemPreference(undefined, true);
 };
-
-const applySystemPreference =
-    typeof window.__omxfcApplySystemTheme === 'function'
-        ? window.__omxfcApplySystemTheme
-        : fallbackApplySystemPreference;
-
-const applyStoredTheme =
-    typeof window.__omxfcApplyStoredTheme === 'function'
-        ? window.__omxfcApplyStoredTheme
-        : fallbackApplyStoredTheme;
 
 window.__omxfcApplySystemTheme = applySystemPreference;
 window.__omxfcApplyStoredTheme = applyStoredTheme;
@@ -73,11 +55,8 @@ prefersDark.addEventListener('change', (event) => {
 });
 
 window.addEventListener('storage', (event) => {
-    if (event.key !== 'theme') {
-        return;
-    }
-
-    applyStoredTheme(event.newValue ?? undefined);
+    if (event.key !== 'mary-theme') return;
+    applyStoredTheme();
 });
 
 // Leaflet importieren

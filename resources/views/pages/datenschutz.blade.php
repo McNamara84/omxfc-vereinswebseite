@@ -1,6 +1,6 @@
 <x-app-layout title="Datenschutzerklärung – Offizieller MADDRAX Fanclub e. V." description="Wie der Verein personenbezogene Daten von Mitgliedsanträgen verarbeitet und schützt.">
     <x-public-page>
-        <h1 class="text-2xl sm:text-3xl font-bold text-[#8B0116] dark:text-[#ff4b63] mb-4 sm:mb-8">Datenschutzerklärung</h1>
+        <h1 class="text-2xl sm:text-3xl font-bold text-primary mb-4 sm:mb-8">Datenschutzerklärung</h1>
 
         <section class="mb-6">
             <h2 class="text-xl font-semibold mb-2">Verantwortlicher</h2>
@@ -8,7 +8,7 @@
                 Guido-Seeber-Weg 12<br>
                 14480 Potsdam<br>
                 <a href="mailto:omxfc.vorstand@gmail.com"
-                    class="text-blue-600 hover:underline">omxfc.vorstand@gmail.com</a>
+                    class="link link-primary">omxfc.vorstand@gmail.com</a>
             </p>
         </section>
 
