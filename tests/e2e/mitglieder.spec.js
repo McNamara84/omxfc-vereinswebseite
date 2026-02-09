@@ -4,10 +4,8 @@ const login = async (page, email, password = 'password') => {
     await page.goto('/login');
     await page.fill('input[name="email"]', email);
     await page.fill('input[name="password"]', password);
-    await Promise.all([
-        page.waitForNavigation({ waitUntil: 'networkidle' }),
-        page.click('button[type="submit"]'),
-    ]);
+    await page.click('button[type="submit"]');
+    await page.waitForURL((url) => !url.pathname.endsWith('/login'));
 };
 
 test.describe('Mitgliederliste', () => {
@@ -99,6 +97,9 @@ test.describe('Mitgliederliste', () => {
 
         await page.goto('/mitglieder');
         await expect(page).toHaveURL(/\/mitglieder$/);
+
+        // Warte auf Alpine.js-Initialisierung (nötig für @click Handler)
+        await page.waitForFunction(() => typeof window.Alpine !== 'undefined', { timeout: 10000 });
 
         const firstRow = page.locator('[data-members-table] tbody tr').first();
         await expect(firstRow).toBeVisible();

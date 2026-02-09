@@ -72,18 +72,14 @@
                                 class="btn-ghost btn-sm"
                                 data-fanfiction-toggle
                             >
-                                <template x-if="!expanded">
-                                    <span class="flex items-center gap-1">
-                                        <x-icon name="o-chevron-down" class="w-4 h-4" />
-                                        Geschichte aufklappen
-                                    </span>
-                                </template>
-                                <template x-if="expanded">
-                                    <span class="flex items-center gap-1">
-                                        <x-icon name="o-chevron-up" class="w-4 h-4" />
-                                        Geschichte zuklappen
-                                    </span>
-                                </template>
+                                <span x-show="!expanded" class="flex items-center gap-1">
+                                    <x-icon name="o-chevron-down" class="w-4 h-4" />
+                                    Geschichte aufklappen
+                                </span>
+                                <span x-show="expanded" x-cloak class="flex items-center gap-1">
+                                    <x-icon name="o-chevron-up" class="w-4 h-4" />
+                                    Geschichte zuklappen
+                                </span>
                             </x-button>
 
                             <div class="flex items-center gap-4 text-sm text-base-content">

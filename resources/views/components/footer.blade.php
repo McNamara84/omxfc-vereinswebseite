@@ -1,7 +1,7 @@
 <footer class="bg-neutral text-neutral-content py-4">
     <div class="container mx-auto px-4 text-center">
         <div class="mb-2">
-            <a href="{{ route('fantreffen.2026') }}" class="link link-warning font-semibold no-underline hover:underline">
+            <a href="{{ route('fantreffen.2026') }}" class="link font-semibold no-underline hover:underline">
                 🎉 Fantreffen 2026 – Jetzt anmelden!
             </a>
         </div>

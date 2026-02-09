@@ -50,12 +50,11 @@ test.describe('Kompendium Admin Dashboard', () => {
     test('can filter by series', async ({ page }) => {
         await page.goto('/kompendium/admin');
 
-        // Filter auf Mission Mars setzen - verwende data-testid
-        const filterSection = page.getByTestId('filter-section');
-        await filterSection.getByLabel('Serie').selectOption('missionmars');
+        // Filter auf Mission Mars setzen - maryUI rendert Label als <legend>, getByLabel funktioniert nicht
+        await page.getByTestId('series-filter').selectOption('missionmars');
 
         // Warten auf Livewire-Update
-        await page.waitForTimeout(1000);
+        await page.waitForTimeout(1500);
 
         // Mission Mars Roman sollte sichtbar sein
         await expect(page.getByRole('cell', { name: 'Expedition zum roten Planeten' })).toBeVisible();
@@ -67,12 +66,11 @@ test.describe('Kompendium Admin Dashboard', () => {
     test('can filter by status', async ({ page }) => {
         await page.goto('/kompendium/admin');
 
-        // Filter auf "indexiert" setzen - verwende data-testid
-        const filterSection = page.getByTestId('filter-section');
-        await filterSection.getByLabel('Status').selectOption('indexiert');
+        // Filter auf "indexiert" setzen - maryUI rendert Label als <legend>, getByLabel funktioniert nicht
+        await page.getByTestId('status-filter').selectOption('indexiert');
 
         // Warten auf Livewire-Update
-        await page.waitForTimeout(1000);
+        await page.waitForTimeout(1500);
 
         // Indexierter Roman sollte sichtbar sein
         await expect(page.getByRole('cell', { name: 'Stadt ohne Hoffnung' })).toBeVisible();
@@ -88,7 +86,7 @@ test.describe('Kompendium Admin Dashboard', () => {
         await page.getByTestId('search-input').fill('Dämonen');
 
         // Warten auf Livewire-Update (mit debounce)
-        await page.waitForTimeout(1000);
+        await page.waitForTimeout(1500);
 
         // Gesuchter Roman sollte sichtbar sein
         await expect(page.getByRole('cell', { name: 'Dämonen der Vergangenheit' })).toBeVisible();

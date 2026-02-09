@@ -183,16 +183,16 @@
                                                     label="Bearbeiten" 
                                                     icon="o-pencil" 
                                                     class="btn-primary btn-sm"
-                                                    x-data
                                                     data-kassenbuch-edit="true"
                                                     data-user-name="{{ $member->name }}"
-                                                    @click="$dispatch('edit-payment-modal', { 
-                                                        user_id: '{{ $member->id }}',
-                                                        user_name: {{ Js::from($member->name) }},
-                                                        mitgliedsbeitrag: '{{ $member->mitgliedsbeitrag }}',
-                                                        bezahlt_bis: '{{ $member->bezahlt_bis ? $member->bezahlt_bis->format('Y-m-d') : '' }}',
-                                                        mitglied_seit: '{{ $member->mitglied_seit ? $member->mitglied_seit->format('Y-m-d') : '' }}'
-                                                    })" />
+                                                    :data-params="json_encode([
+                                                        'user_id' => (string) $member->id,
+                                                        'user_name' => $member->name,
+                                                        'mitgliedsbeitrag' => (string) ($member->mitgliedsbeitrag ?? ''),
+                                                        'bezahlt_bis' => $member->bezahlt_bis ? $member->bezahlt_bis->format('Y-m-d') : '',
+                                                        'mitglied_seit' => $member->mitglied_seit ? $member->mitglied_seit->format('Y-m-d') : '',
+                                                    ])"
+                                                    onclick="window.dispatchEvent(new CustomEvent('edit-payment-modal', { detail: JSON.parse(this.dataset.params) }))" />
                                             </td>
                                         @endif
                                     </tr>
@@ -212,8 +212,7 @@
                                     label="Eintrag hinzufügen" 
                                     icon="o-plus" 
                                     class="btn-primary btn-sm"
-                                    x-data 
-                                    @click="$dispatch('kassenbuch-modal')" 
+                                    onclick="window.dispatchEvent(new CustomEvent('kassenbuch-modal'))"
                                     data-kassenbuch-modal-trigger="true"
                                     data-testid="add-entry-button" />
                             @endif

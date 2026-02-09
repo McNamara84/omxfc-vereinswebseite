@@ -32,11 +32,11 @@ test.describe('Fantreffen VIP-Autoren Verwaltung', () => {
         // "Neuen Autor hinzufügen"-Button klicken
         await page.getByRole('button', { name: /Neuen Autor hinzufügen/i }).click();
 
-        // Formular muss sichtbar sein (maryUI <x-card title> rendert als <div>; Button ist jetzt weg)
-        await expect(page.getByText('Neuen Autor hinzufügen').first()).toBeVisible();
+        // Warten auf Livewire-Re-Render (Formular muss sichtbar sein)
+        const nameInput = page.locator('input[wire\\:model="name"]');
+        await nameInput.waitFor({ state: 'visible', timeout: 10000 });
 
         // Name eingeben
-        const nameInput = page.locator('input[wire\\:model="name"]');
         await nameInput.fill('Testautor Playwright');
 
         // Pseudonym eingeben
@@ -66,6 +66,10 @@ test.describe('Fantreffen VIP-Autoren Verwaltung', () => {
         // Formular öffnen
         await page.getByRole('button', { name: /Neuen Autor hinzufügen/i }).click();
 
+        // Warten auf Livewire-Re-Render
+        const nameInput = page.locator('input[wire\\:model="name"]');
+        await nameInput.waitFor({ state: 'visible', timeout: 10000 });
+
         // Submit ohne Name
         await page.getByRole('button', { name: /Hinzufügen/i }).click();
         await page.waitForLoadState('networkidle');
@@ -80,7 +84,8 @@ test.describe('Fantreffen VIP-Autoren Verwaltung', () => {
 
         // Formular öffnen
         await page.getByRole('button', { name: /Neuen Autor hinzufügen/i }).click();
-        await expect(page.locator('input[wire\\:model="name"]')).toBeVisible();
+        const nameInput = page.locator('input[wire\\:model="name"]');
+        await nameInput.waitFor({ state: 'visible', timeout: 10000 });
 
         // Abbrechen klicken
         await page.getByRole('button', { name: /Abbrechen/i }).click();

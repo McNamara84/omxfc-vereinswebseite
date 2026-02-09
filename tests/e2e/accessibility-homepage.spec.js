@@ -20,6 +20,8 @@ test.describe('Accessibility checks', () => {
       .withTags(['wcag2a', 'wcag2aa'])
       // daisyUI drawer-toggle ist ein verstecktes Checkbox-Element ohne Label
       .exclude('input.drawer-toggle')
+      // maryUI ThemeToggle rendert eine versteckte Checkbox ohne aria-label
+      .exclude('input.theme-controller')
       // Deaktiviere nested-interactive - bekanntes maryUI Dropdown Problem
       .disableRules(['nested-interactive'])
       .analyze();

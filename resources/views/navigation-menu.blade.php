@@ -134,7 +134,8 @@
             <button
                 type="button"
                 @click="open = !open"
-                :aria-expanded="open"
+                aria-expanded="false"
+                x-bind:aria-expanded="open ? 'true' : 'false'"
                 aria-label="Menü öffnen"
                 aria-controls="mobile-navigation"
                 class="btn btn-ghost btn-sm"

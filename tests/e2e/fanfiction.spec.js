@@ -145,23 +145,33 @@ test.describe('Fanfiction Verwaltung für Vorstand (Issue #493)', () => {
     test('Vorstand kann Fanfiction mit externem Autor erstellen', async ({ page }) => {
         await page.goto('/vorstand/fanfiction/erstellen');
 
+        // Warte auf Livewire-Initialisierung
+        await page.waitForFunction(() => typeof window.Livewire !== 'undefined', { timeout: 10000 });
+
         // Wähle externen Autor (Radio-Button)
         await page.getByText('Externer Autor').click();
 
         // Fülle Formular aus - maryUI verwendet fieldset/legend, nutze wire:model Selektoren
-        await page.locator('[wire\\:model="title"]').fill('E2E Test Geschichte');
+        const titleInput = page.locator('[wire\\:model="title"]');
+        await titleInput.waitFor({ state: 'visible', timeout: 5000 });
+        await titleInput.fill('E2E Test Geschichte');
         await page.locator('[wire\\:model="authorName"]').fill('E2E Testautor');
         await page.locator('[wire\\:model="content"]').fill('Dies ist eine Testgeschichte für den E2E-Test. Sie enthält genug Text um die Validierung zu bestehen.');
 
         // Wähle Status "Entwurf" (Radio-Button, nicht Select)
         await page.getByText('Als Entwurf speichern').click();
 
-        // Speichern
+        // Speichern und auf Livewire-Response warten
+        const responsePromise = page.waitForResponse(
+            (response) => response.url().includes('/livewire') && response.status() === 200,
+            { timeout: 15000 }
+        );
         await page.click('button[type="submit"]');
+        await responsePromise;
 
         // Sollte zurück zur Übersicht leiten
-        await expect(page).toHaveURL(/vorstand\/fanfiction/);
-        await expect(page.getByRole('table').getByText('E2E Test Geschichte')).toBeVisible();
+        await expect(page).toHaveURL(/vorstand\/fanfiction/, { timeout: 10000 });
+        await expect(page.getByRole('table').getByText('E2E Test Geschichte')).toBeVisible({ timeout: 10000 });
     });
 
     test('Vorstand kann Entwurf veröffentlichen', async ({ page }) => {

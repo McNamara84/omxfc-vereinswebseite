@@ -88,11 +88,15 @@ test.describe('Umfragen Admin Dashboard', () => {
         // Zähle initiale Antwort-Felder
         const initialCount = await page.locator('[data-testid^="answer-option-"]').count();
 
-        // Klicke auf "Antwort hinzufügen"
+        // Klicke auf "Antwort hinzufügen" und warte auf Livewire-Response
+        const responsePromise = page.waitForResponse(
+            (response) => response.url().includes('/livewire') && response.status() === 200
+        );
         await page.getByTestId('add-option-button').click();
+        await responsePromise;
 
-        // Warten auf Livewire-Update
-        await page.waitForTimeout(500);
+        // Warte kurz auf DOM-Update
+        await page.waitForTimeout(300);
 
         // Prüfe ob neue Antwort hinzugefügt wurde
         const newCount = await page.locator('[data-testid^="answer-option-"]').count();
@@ -118,8 +122,12 @@ test.describe('Umfragen Admin Dashboard', () => {
         await page.goto('/admin/umfragen');
 
         // Klicke auf "Neue Umfrage" um sicherzustellen dass wir im richtigen Zustand sind
+        const newPollResponse = page.waitForResponse(
+            (response) => response.url().includes('/livewire') && response.status() === 200
+        );
         await page.getByRole('button', { name: 'Neue Umfrage' }).click();
-        await page.waitForTimeout(500);
+        await newPollResponse;
+        await page.waitForTimeout(300);
 
         // Fülle Frage aus - verwende data-testid
         await page.getByTestId('question-textarea').fill('Was ist dein Lieblings-MADDRAX-Roman?');
@@ -143,18 +151,28 @@ test.describe('Umfragen Admin Dashboard', () => {
         const firstAnswerInput = page.getByTestId('option-0-label');
         await firstAnswerInput.fill('Der Gott aus dem Eis');
 
-        // Zweite Antwort hinzufügen
+        // Zweite Antwort hinzufügen und auf Livewire-Response warten
+        let lwResponse = page.waitForResponse(
+            (response) => response.url().includes('/livewire') && response.status() === 200
+        );
         await page.getByTestId('add-option-button').click();
-        await page.waitForTimeout(300);
+        await lwResponse;
+        await page.waitForTimeout(200);
 
         const secondAnswerInput = page.getByTestId('option-1-label');
+        await secondAnswerInput.waitFor({ state: 'visible', timeout: 5000 });
         await secondAnswerInput.fill('Dämonen der Vergangenheit');
 
-        // Dritte Antwort hinzufügen
+        // Dritte Antwort hinzufügen und auf Livewire-Response warten
+        lwResponse = page.waitForResponse(
+            (response) => response.url().includes('/livewire') && response.status() === 200
+        );
         await page.getByTestId('add-option-button').click();
-        await page.waitForTimeout(300);
+        await lwResponse;
+        await page.waitForTimeout(200);
 
         const thirdAnswerInput = page.getByTestId('option-2-label');
+        await thirdAnswerInput.waitFor({ state: 'visible', timeout: 5000 });
         await thirdAnswerInput.fill('Stadt ohne Hoffnung');
 
         // Prüfe dass alle Felder ausgefüllt sind
@@ -169,22 +187,39 @@ test.describe('Umfragen Admin Dashboard', () => {
         await page.goto('/admin/umfragen');
 
         // Neue Umfrage starten
+        let lwResponse = page.waitForResponse(
+            (response) => response.url().includes('/livewire') && response.status() === 200
+        );
         await page.getByRole('button', { name: 'Neue Umfrage' }).click();
-        await page.waitForTimeout(500);
+        await lwResponse;
+        await page.waitForTimeout(300);
 
-        // Füge zwei Antworten hinzu
+        // Füge zwei Antworten hinzu und warte jeweils auf Livewire
+        lwResponse = page.waitForResponse(
+            (response) => response.url().includes('/livewire') && response.status() === 200
+        );
         await page.getByTestId('add-option-button').click();
-        await page.waitForTimeout(300);
+        await lwResponse;
+        await page.waitForTimeout(200);
+
+        lwResponse = page.waitForResponse(
+            (response) => response.url().includes('/livewire') && response.status() === 200
+        );
         await page.getByTestId('add-option-button').click();
-        await page.waitForTimeout(300);
+        await lwResponse;
+        await page.waitForTimeout(200);
 
         // Zähle Antwort-Cards
         const initialCards = await page.locator('[data-testid^="answer-option-"]').count();
 
-        // Klicke auf Löschen-Button der ersten Antwort
+        // Klicke auf Löschen-Button der ersten Antwort und warte auf Livewire
+        lwResponse = page.waitForResponse(
+            (response) => response.url().includes('/livewire') && response.status() === 200
+        );
         const deleteButton = page.locator('button[wire\\:click="removeOption(0)"]');
         await deleteButton.click();
-        await page.waitForTimeout(300);
+        await lwResponse;
+        await page.waitForTimeout(200);
 
         // Prüfe ob weniger Cards vorhanden sind
         const newCards = await page.locator('[data-testid^="answer-option-"]').count();

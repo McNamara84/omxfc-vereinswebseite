@@ -29,6 +29,9 @@ test.describe('Umfragen', () => {
     await page.goto('/umfrage');
     await expect(page.locator('[data-testid="page-title"]')).toContainText('Playwright: Öffentliche Umfrage?');
 
+    // Warte auf Livewire-Initialisierung (nötig damit wire:submit.prevent funktioniert)
+    await page.waitForFunction(() => typeof window.Livewire !== 'undefined', { timeout: 15000 });
+
     await page.getByRole('radio', { name: 'Option A' }).check();
     
     // DEBUG: Check Livewire/Alpine status before submit
@@ -110,6 +113,9 @@ test.describe('Umfragen', () => {
 
     await page.goto('/umfrage');
     await expect(page.locator('[data-testid="page-title"]')).toContainText('Playwright: Interne Umfrage?');
+
+    // Warte auf Livewire-Initialisierung (nötig damit wire:submit.prevent funktioniert)
+    await page.waitForFunction(() => typeof window.Livewire !== 'undefined', { timeout: 15000 });
 
     await page.getByRole('radio', { name: 'Ja' }).check();
     
