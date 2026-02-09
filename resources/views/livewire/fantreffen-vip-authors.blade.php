@@ -22,7 +22,7 @@
     {{-- Add Author Button --}}
     @if (!$showForm)
         <div class="mb-6">
-            <x-button label="Neuen Autor hinzufügen" wire:click="openForm" icon="o-plus" class="btn-primary" />
+            <x-button label="Neuen Autor hinzufügen" wire:click="openForm" icon="o-plus" class="btn-primary" data-testid="open-form-button" />
         </div>
     @endif
 
@@ -35,11 +35,13 @@
                         label="Name *" 
                         wire:model="name" 
                         placeholder="z.B. Oliver Fröhlich"
+                        data-testid="vip-author-name"
                     />
                     <x-input 
                         label="Pseudonym (optional)" 
                         wire:model="pseudonym" 
                         placeholder="z.B. Ian Rolf Hill"
+                        data-testid="vip-author-pseudonym"
                     />
                 </div>
 
@@ -63,13 +65,14 @@
                 </div>
 
                 <div class="flex justify-end gap-3 pt-4">
-                    <x-button label="Abbrechen" wire:click="closeForm" class="btn-ghost" />
+                    <x-button label="Abbrechen" wire:click="closeForm" class="btn-ghost" data-testid="cancel-form-button" />
                     <x-button 
                         label="{{ $editingId ? 'Aktualisieren' : 'Hinzufügen' }}" 
                         type="submit" 
                         icon="o-check" 
                         class="btn-primary" 
                         spinner="save"
+                        data-testid="submit-form-button"
                     />
                 </div>
             </form>

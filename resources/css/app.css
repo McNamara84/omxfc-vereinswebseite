@@ -17,7 +17,8 @@
 [data-theme="caramellatte"] {
     /* Primary ← Original Accent (brownish-red) */
     --color-primary: oklch(46.44% 0.111 37.85);
-    --color-primary-content: oklch(90% 0.076 70.697);
+    /* Weiß statt Creme – WCAG AA erfordert ≥ 4.5:1 Kontrast auf bg-primary */
+    --color-primary-content: oklch(100% 0 0);
     
     /* Accent ← Original Primary (black) */
     --color-accent: oklch(0% 0 0);

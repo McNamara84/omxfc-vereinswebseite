@@ -183,16 +183,20 @@
                                                     label="Bearbeiten" 
                                                     icon="o-pencil" 
                                                     class="btn-primary btn-sm"
+                                                    x-data
                                                     data-kassenbuch-edit="true"
+                                                    data-user-id="{{ $member->id }}"
                                                     data-user-name="{{ $member->name }}"
-                                                    :data-params="json_encode([
-                                                        'user_id' => (string) $member->id,
-                                                        'user_name' => $member->name,
-                                                        'mitgliedsbeitrag' => (string) ($member->mitgliedsbeitrag ?? ''),
-                                                        'bezahlt_bis' => $member->bezahlt_bis ? $member->bezahlt_bis->format('Y-m-d') : '',
-                                                        'mitglied_seit' => $member->mitglied_seit ? $member->mitglied_seit->format('Y-m-d') : '',
-                                                    ])"
-                                                    onclick="window.dispatchEvent(new CustomEvent('edit-payment-modal', { detail: JSON.parse(this.dataset.params) }))" />
+                                                    data-mitgliedsbeitrag="{{ $member->mitgliedsbeitrag }}"
+                                                    data-bezahlt-bis="{{ $member->bezahlt_bis ? $member->bezahlt_bis->format('Y-m-d') : '' }}"
+                                                    data-mitglied-seit="{{ $member->mitglied_seit ? $member->mitglied_seit->format('Y-m-d') : '' }}"
+                                                    @click="$dispatch('edit-payment-modal', { 
+                                                        user_id: '{{ $member->id }}',
+                                                        user_name: {{ Js::from($member->name) }},
+                                                        mitgliedsbeitrag: '{{ $member->mitgliedsbeitrag }}',
+                                                        bezahlt_bis: '{{ $member->bezahlt_bis ? $member->bezahlt_bis->format('Y-m-d') : '' }}',
+                                                        mitglied_seit: '{{ $member->mitglied_seit ? $member->mitglied_seit->format('Y-m-d') : '' }}'
+                                                    })" />
                                             </td>
                                         @endif
                                     </tr>
@@ -212,7 +216,8 @@
                                     label="Eintrag hinzufügen" 
                                     icon="o-plus" 
                                     class="btn-primary btn-sm"
-                                    onclick="window.dispatchEvent(new CustomEvent('kassenbuch-modal'))"
+                                    x-data
+                                    @click="$dispatch('kassenbuch-modal')"
                                     data-kassenbuch-modal-trigger="true"
                                     data-testid="add-entry-button" />
                             @endif

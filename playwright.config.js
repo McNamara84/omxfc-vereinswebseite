@@ -10,6 +10,9 @@ const isCI = !!process.env.CI;
 export default defineConfig({
   testDir: 'tests/e2e',
   globalSetup: './tests/e2e/global-setup.js',
+  timeout: 60_000,
+  expect: { timeout: 10_000 },
+  workers: isCI ? 1 : undefined,
   
   // Browser-Projekte explizit definieren
   projects: isCI
@@ -34,6 +37,7 @@ export default defineConfig({
     env: {
       APP_ENV: 'testing',
       APP_DEBUG: 'false',
+      APP_URL: 'http://127.0.0.1:8000',
       APP_KEY: process.env.APP_KEY ?? 'base64:oK0ZsJlI+o7C++h527lMcrrO4jzZrXqhouB/p0l+gFw=',
       DB_CONNECTION: 'sqlite',
       DB_DATABASE: databasePath,
@@ -46,5 +50,7 @@ export default defineConfig({
   },
   use: {
     baseURL: 'http://127.0.0.1:8000',
+    actionTimeout: 15_000,
+    screenshot: 'only-on-failure',
   },
 });

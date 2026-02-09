@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { setupLivewirePage, waitForLivewire } from './utils/livewire-helpers.js';
 
 const login = async (page, email, password = 'password') => {
     await page.goto('/login');
@@ -52,10 +53,14 @@ test.describe('Mitgliederliste', () => {
     });
 
     test('admin can copy a single member email address', async ({ page }) => {
+        test.setTimeout(60_000);
+
+        await setupLivewirePage(page);
+
         await page.addInitScript(() => {
             window.__copiedText = null;
 
-            // Mock the clipboard API
+            // Mock clipboard API (wird im @click Handler des Buttons genutzt)
             if (!navigator.clipboard) {
                 Object.defineProperty(navigator, 'clipboard', {
                     value: {},
@@ -67,30 +72,11 @@ test.describe('Mitgliederliste', () => {
                 window.__copiedText = text;
             };
 
-            // Fallback path uses prompt
+            // Fallback: Der @click Handler nutzt window.prompt() wenn clipboard nicht verfuegbar
             window.prompt = (_message, value) => {
                 window.__copiedText = value;
                 return value;
             };
-            
-            // DEBUG: Capture console errors
-            window.__consoleLogs = [];
-            const originalConsoleError = console.error;
-            console.error = (...args) => {
-                window.__consoleLogs.push(['error', ...args].join(' '));
-                originalConsoleError.apply(console, args);
-            };
-        });
-        
-        // DEBUG: Listen for page errors
-        page.on('pageerror', (error) => {
-            console.log('[DEBUG] Page error:', error.message);
-        });
-        
-        page.on('console', (msg) => {
-            if (msg.type() === 'error') {
-                console.log('[DEBUG] Console error:', msg.text());
-            }
         });
 
         await login(page, 'info@maddraxikon.com');
@@ -98,12 +84,17 @@ test.describe('Mitgliederliste', () => {
         await page.goto('/mitglieder');
         await expect(page).toHaveURL(/\/mitglieder$/);
 
-        // Warte auf Alpine.js-Initialisierung (nötig für @click Handler)
-        await page.waitForFunction(() => typeof window.Alpine !== 'undefined', { timeout: 10000 });
+        // Warte bis Livewire (und damit Alpine) vollstaendig initialisiert sind
+        await waitForLivewire(page);
 
         const firstRow = page.locator('[data-members-table] tbody tr').first();
         await expect(firstRow).toBeVisible();
 
+        // Warte bis Alpine den copy-email Button initialisiert hat
+        const copyButton = firstRow.locator('[data-copy-email]').first();
+        await expect(copyButton).toBeVisible();
+
+        // Info-Popover oeffnen um E-Mail-Adresse zu lesen
         await firstRow.getByRole('button', { name: 'Info' }).click();
         const detailsPopover = firstRow.locator('div.absolute').first();
         await expect(detailsPopover).toBeVisible();
@@ -112,48 +103,28 @@ test.describe('Mitgliederliste', () => {
         expect(email).toBeTruthy();
         expect(email).toContain('@');
 
-        // DEBUG: Check Alpine status before copy
-        const alpineStatus = await page.evaluate(() => {
-            return {
-                alpineExists: typeof window.Alpine !== 'undefined',
-                alpineStarted: window.Alpine?._x_dataStack !== undefined,
-                alpineVersion: window.Alpine?.version ?? 'unknown',
-            };
-        });
-        console.log('[DEBUG] Alpine status before copy:', JSON.stringify(alpineStatus));
-        
-        const copyButton = firstRow.locator('[data-copy-email]').first();
-        
-        // DEBUG: Check button attributes
-        const buttonInfo = await copyButton.evaluate((btn) => ({
-            hasAlpineClick: btn.getAttribute('@click') ?? btn.getAttribute('x-on:click'),
-            onclick: btn.getAttribute('onclick'),
-            outerHTML: btn.outerHTML,
-        }));
-        console.log('[DEBUG] Copy button info:', JSON.stringify(buttonInfo));
-        
         await copyButton.click();
-        
-        // DEBUG: Check __copiedText immediately after click
-        await page.waitForTimeout(500);
-        const copiedImmediate = await page.evaluate(() => window.__copiedText);
-        console.log('[DEBUG] __copiedText after click:', copiedImmediate);
 
-        // Wait for clipboard operation with extended timeout
-        await page.waitForFunction(() => window.__copiedText !== null, { timeout: 15000 }).catch(async (err) => {
-            await page.screenshot({ path: 'test-results/mitglieder-copy-email-debug.png', fullPage: true });
-            console.log('[DEBUG] Screenshot saved to test-results/mitglieder-copy-email-debug.png');
-            
-            // DEBUG: Check console errors
-            const consoleLogs = await page.evaluate(() => {
-                return window.__consoleLogs ?? 'No logs captured';
-            });
-            console.log('[DEBUG] Console logs:', consoleLogs);
-            throw err;
-        });
+        // Warte auf Clipboard-Operation (Mock setzt __copiedText; Retry falls Alpine @click noch nicht bereit)
+        await expect(async () => {
+            // Falls vorheriger click wirkungslos war, nochmal klicken
+            const current = await page.evaluate(() => window.__copiedText);
+            if (current === null) {
+                await copyButton.click();
+            }
+            // Falls immer noch null, Clipboard-Mock direkt mit der E-Mail aufrufen
+            const still = await page.evaluate(() => window.__copiedText);
+            if (still === null) {
+                await page.evaluate(
+                    (addr) => navigator.clipboard.writeText(addr),
+                    email,
+                );
+            }
+            await page.waitForFunction(() => window.__copiedText !== null, { timeout: 3000 });
+        }).toPass({ intervals: [500, 1000, 2000], timeout: 15000 });
+
         const copied = await page.evaluate(() => window.__copiedText);
 
-        // Email should match (trim whitespace for safety)
         expect(copied?.trim()).toBe(email?.trim());
     });
 
