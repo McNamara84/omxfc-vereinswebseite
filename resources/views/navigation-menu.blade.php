@@ -1,4 +1,5 @@
-<x-nav sticky full-width class="shadow-sm" x-data="{ open: false }">
+<nav x-data="{ open: false }">
+<x-nav sticky full-width class="shadow-sm">
     <x-slot:brand>
         <a href="{{ route('home') }}" class="shrink-0 mr-6" wire:navigate>
             <x-application-mark class="block h-9 w-auto" />
@@ -246,3 +247,4 @@
         @endguest
     </x-menu>
 </div>
+</nav>

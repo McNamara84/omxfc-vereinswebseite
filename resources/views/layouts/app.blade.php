@@ -42,16 +42,14 @@
         @livewire('navigation-menu')
 
         {{-- maryUI Main-Layout --}}
-        <x-main with-nav>
+        <x-main full-width with-nav>
             <x-slot:content>
                 {{ $slot }}
             </x-slot:content>
-
-            <x-slot:footer>
-                <x-footer />
-            </x-slot:footer>
         </x-main>
     </div>
+
+    <x-footer />
 
     @stack('modals')
     @stack('scripts')

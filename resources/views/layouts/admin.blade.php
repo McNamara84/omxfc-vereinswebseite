@@ -30,7 +30,7 @@
         @livewire('navigation-menu')
 
         {{-- maryUI Main-Layout mit optionaler Sidebar --}}
-        <x-main with-nav>
+        <x-main full-width with-nav>
             {{-- Optionale Admin-Sidebar --}}
             @isset($sidebar)
                 <x-slot:sidebar drawer="admin-drawer" collapsible class="bg-base-100 lg:bg-inherit">
@@ -44,12 +44,10 @@
                     {{ $slot }}
                 </div>
             </x-slot:content>
-
-            <x-slot:footer>
-                <x-footer />
-            </x-slot:footer>
         </x-main>
     </div>
+
+    <x-footer />
 
     @stack('modals')
     @stack('scripts')
