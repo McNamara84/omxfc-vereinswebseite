@@ -200,7 +200,7 @@
         <div class="mb-4 p-4 bg-warning/10 border-l-4 border-warning rounded">
             <h3 class="font-bold mb-2">ColoniaCon am selben Wochenende!</h3>
             <p class="mb-2">Am selben Wochenende findet auch die <a href="https://www.coloniacon-tng.de/2026" target="_blank" rel="noopener noreferrer" class="text-warning underline font-semibold hover:text-warning/80">ColoniaCon</a> statt. Auf der ColoniaCon erwartet euch am Samstag um 14:00 Uhr ein großes Maddrax-Panel mit zahlreichen Autor*innen:</p>
-            <p class="mb-2 font-semibold">Michael Schönenbröcher, Christin Schwarz, Michael Edelbrock, Tanja Guth, Thomas Ziebula, Ansgar Back (unter Vorbehalt), Claudia Kern (unter Vorbehalt), Michael Markus Turner (unter Vorbehalt), Wolfgang Hohlbein (unter Vorbehalt), Susan Schwarz (unter Vorbehalt).</p>
+            <p class="mb-2 font-semibold">Michael Schönenbröcher, Christian Schwarz, Michael Edelbrock, Tanja Guth, Thomas Ziebula, Ansgar Back (unter Vorbehalt), Claudia Kern (unter Vorbehalt), Michael Markus Turner (unter Vorbehalt), Wolfgang Hohlbein (unter Vorbehalt), Susan Schwarz (unter Vorbehalt).</p>
             <p class="mb-2">Außerdem gibt es am Sonntag um 10:40 Uhr eine spannende Vorstellung des OMXFC und des Maddraxikons – also unbedingt vorbeischauen!</p>
             <p>Und das Beste: Vom Veranstaltungsort der ColoniaCon sind es nur fünf Minuten zu Fuß bis zum Fantreffen – ideal, um das ganze Wochenende in Maddrax-Stimmung zu verbringen!</p>
         </div>
