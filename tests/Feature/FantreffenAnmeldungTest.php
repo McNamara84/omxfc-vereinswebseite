@@ -137,4 +137,48 @@ class FantreffenAnmeldungTest extends TestCase
         $response->assertStatus(200);
         $response->assertSee('PayPal');
     }
+
+    public function test_coloniacon_banner_shows_panel_info()
+    {
+        $response = $this->withoutVite()->get('/maddrax-fantreffen-2026');
+
+        $response->assertStatus(200);
+        $response->assertSee('ColoniaCon am selben Wochenende!');
+        $response->assertSee('Maddrax-Panel');
+        $response->assertSee('14:00 Uhr');
+    }
+
+    public function test_coloniacon_banner_shows_author_names()
+    {
+        $response = $this->withoutVite()->get('/maddrax-fantreffen-2026');
+
+        $response->assertStatus(200);
+        $response->assertSee('Michael Schönenbröcher');
+        $response->assertSee('Wolfgang Hohlbein (unter Vorbehalt)');
+    }
+
+    public function test_coloniacon_banner_shows_omxfc_presentation()
+    {
+        $response = $this->withoutVite()->get('/maddrax-fantreffen-2026');
+
+        $response->assertStatus(200);
+        $response->assertSee('Vorstellung des OMXFC und des Maddraxikons');
+        $response->assertSee('10:40 Uhr');
+    }
+
+    public function test_coloniacon_banner_shows_walking_distance()
+    {
+        $response = $this->withoutVite()->get('/maddrax-fantreffen-2026');
+
+        $response->assertStatus(200);
+        $response->assertSee('fünf Minuten zu Fuß');
+    }
+
+    public function test_coloniacon_banner_links_to_coloniacon_website()
+    {
+        $response = $this->withoutVite()->get('/maddrax-fantreffen-2026');
+
+        $response->assertStatus(200);
+        $response->assertSee('coloniacon-tng.de/2026');
+    }
 }

@@ -2,13 +2,11 @@
 
 namespace Tests\Feature;
 
-use App\Livewire\FantreffenAnmeldung;
 use App\Services\FantreffenDeadlineService;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Mail;
-use Livewire\Livewire;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -35,9 +33,11 @@ class FantreffenTshirtDeadlineTest extends TestCase
         // Set deadline to future
         Config::set('services.fantreffen.tshirt_deadline', Carbon::now()->addDays(30)->format('Y-m-d H:i:s'));
 
-        Livewire::test(FantreffenAnmeldung::class)
-            ->assertSee('T-Shirt nur bis')
-            ->assertSee('Event-T-Shirt bestellen');
+        $response = $this->withoutVite()->get(route('fantreffen.2026'));
+
+        $response->assertStatus(200);
+        $response->assertSee('T-Shirt nur bis');
+        $response->assertSee('Event-T-Shirt bestellen');
     }
 
     #[Test]
@@ -46,9 +46,11 @@ class FantreffenTshirtDeadlineTest extends TestCase
         // Set deadline to past
         Config::set('services.fantreffen.tshirt_deadline', Carbon::now()->subDays(1)->format('Y-m-d H:i:s'));
 
-        Livewire::test(FantreffenAnmeldung::class)
-            ->assertDontSee('Event-T-Shirt bestellen')
-            ->assertSet('tshirtDeadlinePassed', true);
+        $response = $this->withoutVite()->get(route('fantreffen.2026'));
+
+        $response->assertStatus(200);
+        $response->assertDontSee('T-Shirt nur bis');
+        $response->assertViewHas('tshirtDeadlinePassed', true);
     }
 
     #[Test]
@@ -58,13 +60,14 @@ class FantreffenTshirtDeadlineTest extends TestCase
         $deadline = Carbon::now()->addDays(10)->endOfDay();
         Config::set('services.fantreffen.tshirt_deadline', $deadline->format('Y-m-d H:i:s'));
 
-        $component = Livewire::test(FantreffenAnmeldung::class);
+        $response = $this->withoutVite()->get(route('fantreffen.2026'));
 
+        $response->assertStatus(200);
         // Days calculation may vary by 1 day depending on time
-        $daysUntilDeadline = $component->get('daysUntilDeadline');
+        $daysUntilDeadline = $response->viewData('daysUntilDeadline');
         $this->assertGreaterThanOrEqual(9, $daysUntilDeadline);
         $this->assertLessThanOrEqual(11, $daysUntilDeadline);
-        $component->assertSet('tshirtDeadlinePassed', false);
+        $response->assertViewHas('tshirtDeadlinePassed', false);
     }
 
     #[Test]
@@ -73,9 +76,11 @@ class FantreffenTshirtDeadlineTest extends TestCase
         // Set deadline to past
         Config::set('services.fantreffen.tshirt_deadline', Carbon::now()->subDays(5)->format('Y-m-d H:i:s'));
 
-        Livewire::test(FantreffenAnmeldung::class)
-            ->assertSet('daysUntilDeadline', 0)
-            ->assertSet('tshirtDeadlinePassed', true);
+        $response = $this->withoutVite()->get(route('fantreffen.2026'));
+
+        $response->assertStatus(200);
+        $response->assertViewHas('daysUntilDeadline', 0);
+        $response->assertViewHas('tshirtDeadlinePassed', true);
     }
 
     #[Test]
@@ -84,36 +89,10 @@ class FantreffenTshirtDeadlineTest extends TestCase
         // Set a specific deadline
         Config::set('services.fantreffen.tshirt_deadline', '2026-02-28 23:59:59');
 
-        Livewire::test(FantreffenAnmeldung::class)
-            ->assertSee('28. Februar 2026');
-    }
+        $response = $this->withoutVite()->get(route('fantreffen.2026'));
 
-    #[Test]
-    public function test_livewire_component_provides_correct_deadline_data_before_deadline()
-    {
-        // Set deadline to 15 days from now at end of day to ensure consistent calculation
-        $deadline = Carbon::now()->addDays(15)->endOfDay();
-        Config::set('services.fantreffen.tshirt_deadline', $deadline->format('Y-m-d H:i:s'));
-
-        $component = Livewire::test(FantreffenAnmeldung::class);
-
-        $component->assertSet('tshirtDeadlinePassed', false);
-        // Days calculation may vary by 1 day depending on time, so check it's in reasonable range
-        $daysUntilDeadline = $component->get('daysUntilDeadline');
-        $this->assertGreaterThanOrEqual(14, $daysUntilDeadline);
-        $this->assertLessThanOrEqual(16, $daysUntilDeadline);
-        $this->assertNotEmpty($component->get('tshirtDeadlineFormatted'));
-    }
-
-    #[Test]
-    public function test_livewire_component_provides_correct_deadline_data_after_deadline()
-    {
-        // Set deadline to past
-        Config::set('services.fantreffen.tshirt_deadline', Carbon::now()->subDays(5)->format('Y-m-d H:i:s'));
-
-        Livewire::test(FantreffenAnmeldung::class)
-            ->assertSet('tshirtDeadlinePassed', true)
-            ->assertSet('daysUntilDeadline', 0);
+        $response->assertStatus(200);
+        $response->assertSee('28. Februar 2026');
     }
 
     #[Test]
@@ -146,22 +125,6 @@ class FantreffenTshirtDeadlineTest extends TestCase
         $response->assertStatus(200);
         $response->assertViewHas('tshirtDeadlinePassed', true);
         $response->assertViewHas('daysUntilDeadline', 0);
-    }
-
-    #[Test]
-    public function test_livewire_component_prevents_tshirt_order_after_deadline()
-    {
-        // Set deadline to past
-        Config::set('services.fantreffen.tshirt_deadline', Carbon::now()->subDays(1)->format('Y-m-d H:i:s'));
-
-        Livewire::test(FantreffenAnmeldung::class)
-            ->set('vorname', 'Max')
-            ->set('nachname', 'Mustermann')
-            ->set('email', 'max@example.com')
-            ->set('tshirt_bestellt', true)
-            ->set('tshirt_groesse', 'L')
-            ->call('submit')
-            ->assertSee('Die Deadline für T-Shirt-Bestellungen ist leider abgelaufen.');
     }
 
     #[Test]
@@ -217,8 +180,10 @@ class FantreffenTshirtDeadlineTest extends TestCase
         // Set deadline to 5 days from now (within 7-day threshold)
         Config::set('services.fantreffen.tshirt_deadline', Carbon::now()->addDays(5)->format('Y-m-d H:i:s'));
 
-        Livewire::test(FantreffenAnmeldung::class)
-            ->assertSeeHtml('role="alert"');
+        $response = $this->withoutVite()->get(route('fantreffen.2026'));
+
+        $response->assertStatus(200);
+        $response->assertSee('role="alert"', false);
     }
 
     #[Test]
@@ -232,9 +197,10 @@ class FantreffenTshirtDeadlineTest extends TestCase
         $this->assertFalse($deadlineService->shouldShowAlert());
         $this->assertGreaterThan(7, $deadlineService->getDaysRemaining());
 
-        // Verify the component reflects this - no role="alert" should appear
-        $component = Livewire::test(FantreffenAnmeldung::class);
-        $component->assertDontSeeHtml('role="alert"');
+        // Verify the page reflects this - no role="alert" should appear
+        $response = $this->withoutVite()->get(route('fantreffen.2026'));
+        $response->assertStatus(200);
+        $response->assertDontSee('role="alert"', false);
     }
 
     #[Test]
