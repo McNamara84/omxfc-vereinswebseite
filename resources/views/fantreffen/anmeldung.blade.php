@@ -1,4 +1,4 @@
-﻿<x-app-layout 
+<x-app-layout 
     :title="'Maddrax-Fantreffen 2026 – Offizieller MADDRAX Fanclub e. V.'"
     :description="'Melde dich jetzt an zum Maddrax-Fantreffen am 9. Mai 2026 in Köln mit Signierstunde und Verleihung der Goldenen Taratze.'"
     :socialImage="asset('build/assets/omxfc-logo-Df-1StAj.png')">
@@ -214,7 +214,7 @@
                             <div>
                                 <h3 class="font-semibold">Signierstunde mit Autoren</h3>
                                 @if ($vipAuthors->isNotEmpty())
-                                    <p class="text-base-content/60">
+                                    <p class="text-base-content">
                                         Mit dabei:
                                         @foreach ($vipAuthors as $author)
                                             <span class="font-medium text-primary">
@@ -223,12 +223,12 @@
                                         @endforeach
                                     </p>
                                     @if ($vipAuthors->contains('is_tentative', true))
-                                        <p class="text-base-content/60 mt-2">
+                                        <p class="text-base-content mt-2">
                                             Einige Autor:innen haben ihre Teilnahme bereits zugesagt, andere sind noch angefragt oder haben nur vorläufig zugesagt. Bitte beachtet, dass sich die Gästeliste kurzfristig ändern kann.
                                         </p>
                                     @endif
                                 @else
-                                    <p class="text-base-content/60">Triff deine Lieblingsautoren!</p>
+                                    <p class="text-base-content">Triff deine Lieblingsautoren!</p>
                                 @endif
                             </div>
                         </div>
@@ -236,7 +236,7 @@
                             <span class="font-bold text-primary">20:00</span>
                             <div>
                                 <h3 class="font-semibold">Verleihung Goldene Taratze</h3>
-                                <p class="text-base-content/60">Die große Preisverleihung!</p>
+                                <p class="text-base-content">Die große Preisverleihung!</p>
                             </div>
                         </div>
                     </div>
@@ -246,18 +246,18 @@
                     <div class="space-y-3">
                         <div class="p-3 bg-success/10 rounded">
                             <div class="font-semibold text-base-content mb-1">Vereinsmitglieder</div>
-                            <p class="text-sm text-base-content/70">Teilnahme am Event: <strong class="text-success">kostenlos</strong></p>
+                            <p class="text-sm text-base-content">Teilnahme am Event: <strong class="text-success">kostenlos</strong></p>
                         </div>
                         <div class="p-3 bg-info/10 rounded">
                             <div class="font-semibold text-base-content mb-1">Gäste</div>
-                            <p class="text-sm text-base-content/70">Teilnahme am Event: <strong class="text-info">5,00 €</strong> Spende erbeten</p>
+                            <p class="text-sm text-base-content">Teilnahme am Event: <strong class="text-info">5,00 €</strong> Spende erbeten</p>
                         </div>
                         <div class="p-3 bg-secondary/10 rounded">
                             <div class="font-semibold text-base-content mb-1">Event-T-Shirt (optional)</div>
-                            <p class="text-sm text-base-content/70">
+                            <p class="text-sm text-base-content">
                                 <strong class="text-secondary">25,00 €</strong> Spende
                             </p>
-                            <p class="text-xs text-base-content/50 mt-1 italic">
+                            <p class="text-xs text-base-content mt-1 italic">
                                 Für Gäste zusammen mit Teilnahme: 30,00 €
                             </p>
                             <x-fantreffen-tshirt-deadline-notice 
@@ -278,7 +278,7 @@
                                 <span>Muss ich Vereinsmitglied sein?</span>
                                 <span x-text="open === 1 ? '−' : '+'"></span>
                             </button>
-                            <p x-show="open === 1" x-collapse class="mt-2 text-base-content/60 text-sm">
+                            <p x-show="open === 1" x-collapse class="mt-2 text-base-content text-sm">
                                 Nein! Auch Gäste sind herzlich willkommen. Als Mitglied ist die Teilnahme allerdings kostenlos.
                             </p>
                         </div>
@@ -287,7 +287,7 @@
                                 <span>Was ist die Goldene Taratze?</span>
                                 <span x-text="open === 2 ? '−' : '+'"></span>
                             </button>
-                            <p x-show="open === 2" x-collapse class="mt-2 text-base-content/60 text-sm">
+                            <p x-show="open === 2" x-collapse class="mt-2 text-base-content text-sm">
                                 Ein Fan-Preis, der jährlich an besondere Personen oder Projekte aus der MADDRAX-Community verliehen wird.
                             </p>
                         </div>
@@ -296,7 +296,7 @@
                                 <span>Kann ich ein T-Shirt bestellen?</span>
                                 <span x-text="open === 3 ? '−' : '+'"></span>
                             </button>
-                            <p x-show="open === 3" x-collapse class="mt-2 text-base-content/60 text-sm">
+                            <p x-show="open === 3" x-collapse class="mt-2 text-base-content text-sm">
                                 Ja! Für 25 € Spende (Gäste: 30 € inkl. Teilnahme) kannst du ein exklusives Event-T-Shirt bestellen.
                             </p>
                         </div>
@@ -305,7 +305,7 @@
                                 <span>Gibt es eine Signierstunde?</span>
                                 <span x-text="open === 4 ? '−' : '+'"></span>
                             </button>
-                            <p x-show="open === 4" x-collapse class="mt-2 text-base-content/60 text-sm">
+                            <p x-show="open === 4" x-collapse class="mt-2 text-base-content text-sm">
                                 Ja! Ab 19:00 Uhr kannst du deine Lieblingsautoren treffen und dir Bücher signieren lassen.
                             </p>
                         </div>
@@ -360,7 +360,7 @@
                             <div>
                                 <label class="block text-sm font-medium mb-2">Mobile Rufnummer (optional)</label>
                                 <input type="tel" name="mobile" value="{{ old('mobile', optional($user)->mobile ?? '') }}" class="w-full px-3 py-2 border rounded border-base-content/20" placeholder="+49 123 456789">
-                                <p class="text-xs text-base-content/50 mt-1">Für WhatsApp-Updates</p>
+                                <p class="text-xs text-base-content mt-1">Für WhatsApp-Updates</p>
                             </div>
 
                             @if(!$tshirtDeadlinePassed)
@@ -378,7 +378,7 @@
                                                class="w-5 h-5 mt-0.5">
                                         <div>
                                             <span class="font-medium">Event-T-Shirt bestellen</span>
-                                            <p class="text-xs text-base-content/50 mt-1">25,00 € Spende{{ !Auth::check() ? ' (zusammen mit Teilnahme: 30,00 €)' : '' }}</p>
+                                            <p class="text-xs text-base-content mt-1">25,00 € Spende{{ !Auth::check() ? ' (zusammen mit Teilnahme: 30,00 €)' : '' }}</p>
                                         </div>
                                     </label>
                                     

@@ -25,11 +25,11 @@
         >
     </div>
     <div class="ml-3">
-        <label for="{{ $fieldId }}" class="text-sm font-medium text-base-content/70">
+        <label for="{{ $fieldId }}" class="text-sm font-medium text-base-content">
             {{ $label }}
         </label>
         @if($help)
-            <p class="text-sm text-base-content/50">{{ $help }}</p>
+            <p class="text-sm text-base-content">{{ $help }}</p>
         @endif
     </div>
 </div>

@@ -1,4 +1,4 @@
-﻿<x-guest-layout>
+<x-guest-layout>
     <div class="min-h-screen bg-base-200">
         {{-- Header --}}
         <div class="bg-base-100 shadow">
@@ -8,7 +8,7 @@
                         <h1 class="text-3xl font-bold text-base-content">
                             Fanfiction
                         </h1>
-                        <p class="mt-1 text-sm text-base-content/60">
+                        <p class="mt-1 text-sm text-base-content">
                             Kurzgeschichten aus dem MADDRAX-Universum
                         </p>
                     </div>
@@ -45,12 +45,12 @@
 
             @if ($fanfictions->isEmpty())
                 <div class="bg-base-100 rounded-lg shadow-xl p-12 text-center">
-                    <svg class="mx-auto h-12 w-12 text-base-content/40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg class="mx-auto h-12 w-12 text-base-content/40" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                     </svg>
                     <h3 class="mt-2 text-sm font-medium text-base-content">Noch keine Fanfiction</h3>
-                    <p class="mt-1 text-sm text-base-content/50">
+                    <p class="mt-1 text-sm text-base-content">
                         Es wurden noch keine Geschichten veröffentlicht.
                     </p>
                 </div>
@@ -71,13 +71,13 @@
                                 <h2 class="text-xl font-semibold text-base-content mb-2">
                                     {{ $fanfiction->title }}
                                 </h2>
-                                <p class="text-sm text-base-content/50 mb-3">
+                                <p class="text-sm text-base-content mb-3">
                                     von {{ $fanfiction->author_display_name }}
                                     @if ($fanfiction->published_at)
                                         • {{ $fanfiction->published_at->format('d.m.Y') }}
                                     @endif
                                 </p>
-                                <div class="text-base-content/60 text-sm flex-grow">
+                                <div class="text-base-content text-sm flex-grow">
                                     <template x-if="!expanded">
                                         <p>{{ Str::limit($fanfiction->teaser, 200) }}</p>
                                     </template>

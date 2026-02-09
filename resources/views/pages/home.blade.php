@@ -36,19 +36,19 @@
             {{-- Wer wir sind --}}
             <div class="bg-base-100 rounded-lg shadow-md p-6">
                 <h2 class="text-2xl font-semibold text-primary mb-4">Wer wir sind</h2>
-                <p class="text-base-content/70">{{ $whoWeAre }}</p>
+                <p class="text-base-content">{{ $whoWeAre }}</p>
             </div>
 
             {{-- Was wir machen --}}
             <div class="bg-base-100 rounded-lg shadow-md p-6">
                 <h2 class="text-2xl font-semibold text-primary mb-4">Was wir machen</h2>
-                <p class="text-base-content/70">{{ $whatWeDo }}</p>
+                <p class="text-base-content">{{ $whatWeDo }}</p>
             </div>
 
             {{-- Aktuelle Projekte --}}
             <div class="md:col-span-2 bg-base-100 rounded-lg shadow-md p-6">
                 <h2 class="text-2xl font-semibold text-primary mb-4">Aktuelle Projekte</h2>
-                <ul class="list-disc ml-5 text-base-content/70 space-y-2">
+                <ul class="list-disc ml-5 text-base-content space-y-2">
                     @foreach($currentProjects as $project)
                     <li><strong>{{ $project['title'] }}</strong>: {{ $project['description'] }}</li>
                     @endForeach
@@ -59,7 +59,7 @@
             <div class="bg-base-100 rounded-lg shadow-md p-6">
                 <h2 class="text-2xl font-semibold text-primary mb-4">Vorteile einer Mitgliedschaft
                 </h2>
-                <ul class="list-disc ml-5 text-base-content/70">
+                <ul class="list-disc ml-5 text-base-content">
                     @foreach($membershipBenefits as $benefit)
                         <li>{{ $benefit }}</li>
                     @endforeach
@@ -80,10 +80,10 @@
                         </a>
                     @endauth
                 </div>
-                <p class="mt-1 text-sm text-base-content/60">Die neuesten Eindrücke aus unserer Community.</p>
+                <p class="mt-1 text-sm text-base-content">Die neuesten Eindrücke aus unserer Community.</p>
 
                 <div id="latest-reviews-loading" class="mt-4 space-y-3" role="status" aria-live="polite" aria-busy="true">
-                    <div class="flex items-center gap-2 text-base-content/60">
+                    <div class="flex items-center gap-2 text-base-content">
                         <span class="inline-block h-2 w-2 rounded-full bg-primary animate-pulse"></span>
                         <span>Lädt Community-Highlights …</span>
                     </div>
@@ -94,7 +94,7 @@
                     </div>
                 </div>
 
-                <p id="latest-reviews-empty" class="mt-4 text-sm text-base-content/60 hidden" role="status" aria-live="polite">
+                <p id="latest-reviews-empty" class="mt-4 text-sm text-base-content hidden" role="status" aria-live="polite">
                     Derzeit liegen keine Rezensionen vor. Schau später noch einmal vorbei.
                 </p>
 
@@ -108,17 +108,17 @@
                     <h3 id="stat-members-heading" class="text-lg font-semibold text-primary">Aktive Mitglieder</h3>
                     <div class="mt-2 flex items-baseline gap-2">
                         <span class="text-4xl font-bold text-primary">{{ $memberCount }}</span>
-                        <span class="text-base-content/70">aktive Mitglieder</span>
+                        <span class="text-base-content">aktive Mitglieder</span>
                     </div>
-                    <p id="stat-members-description" class="mt-3 text-sm text-base-content/60 text-center">Gemeinschaft, die sich regelmäßig austauscht und Projekte voranbringt.</p>
+                    <p id="stat-members-description" class="mt-3 text-sm text-base-content text-center">Gemeinschaft, die sich regelmäßig austauscht und Projekte voranbringt.</p>
                 </div>
                 <div class="bg-base-100 rounded-lg shadow-md p-6 flex flex-col items-center" aria-labelledby="stat-reviews-heading" aria-describedby="stat-reviews-description">
                     <h3 id="stat-reviews-heading" class="text-lg font-semibold text-primary">Rezensionen</h3>
                     <div class="mt-2 flex items-baseline gap-2">
                         <span class="text-4xl font-bold text-primary">{{ $reviewCount }}</span>
-                        <span class="text-base-content/70">Rezensionen</span>
+                        <span class="text-base-content">Rezensionen</span>
                     </div>
-                    <p id="stat-reviews-description" class="mt-3 text-sm text-base-content/60 text-center">Lesetipps und Eindrücke zu den Romanen unserer Lieblingsserie.</p>
+                    <p id="stat-reviews-description" class="mt-3 text-sm text-base-content text-center">Lesetipps und Eindrücke zu den Romanen unserer Lieblingsserie.</p>
                 </div>
             </div>
         </div>
@@ -184,7 +184,7 @@
                 badge.setAttribute('aria-label', `Roman Nummer ${review.roman_number}`);
 
                 const romanTitle = document.createElement('p');
-                romanTitle.className = 'text-sm text-base-content/70 font-medium';
+                romanTitle.className = 'text-sm text-base-content font-medium';
                 romanTitle.textContent = review.roman_title;
 
                 header.appendChild(badge);
@@ -197,7 +197,7 @@
                 titleText.textContent = review.review_title;
 
                 const reviewDate = document.createElement('time');
-                reviewDate.className = 'text-sm font-normal text-base-content/70';
+                reviewDate.className = 'text-sm font-normal text-base-content';
                 reviewDate.dateTime = review.reviewed_at;
 
                 const parsedDate = new Date(review.reviewed_at);
@@ -213,7 +213,7 @@
                 reviewTitle.appendChild(reviewDate);
 
                 const excerpt = document.createElement('p');
-                excerpt.className = 'mt-2 text-sm text-base-content/60 leading-relaxed';
+                excerpt.className = 'mt-2 text-sm text-base-content leading-relaxed';
                 excerpt.textContent = review.excerpt;
 
                 item.appendChild(header);

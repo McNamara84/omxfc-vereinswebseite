@@ -44,7 +44,7 @@
     @if ($variant === 'compact')
         {{-- Kompakte Meldung für abgelaufene Deadline --}}
         <div class="mt-2 p-2 bg-base-200 rounded">
-            <p class="text-xs text-base-content/60">
+            <p class="text-xs text-base-content">
                 ❌ Bestellfrist abgelaufen – T-Shirts können nicht mehr bestellt werden.
             </p>
         </div>

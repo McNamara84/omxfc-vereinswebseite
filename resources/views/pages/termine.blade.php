@@ -13,7 +13,7 @@
             <iframe src="{{ $calendarUrlAgenda }}" class="w-full h-full border-0" frameborder="0" scrolling="no">
             </iframe>
         </div>
-        <p class="mt-4 text-sm sm:text-base text-base-content/70">
+        <p class="mt-4 text-sm sm:text-base text-base-content">
             Hier findest du alle aktuellen Termine des Vereins. Den Kalender kannst du auch direkt bei
             <a href="{{ $calendarLink }}" target="_blank"
                 class="link link-primary">

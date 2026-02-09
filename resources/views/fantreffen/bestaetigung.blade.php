@@ -1,4 +1,4 @@
-﻿<x-app-layout
+<x-app-layout
     title="Anmeldebestätigung – Maddrax-Fantreffen 2026"
     description="Deine Anmeldung zum Maddrax-Fantreffen 2026 wurde erfolgreich gespeichert."
     :socialImage="asset('build/assets/omxfc-logo-Df-1StAj.png')">
@@ -13,7 +13,7 @@
                     </svg>
                 </div>
                 <h1 class="text-3xl font-bold text-base-content mb-2">Anmeldung erfolgreich!</h1>
-                <p class="text-base-content/60">Wir freuen uns auf dich beim Maddrax-Fantreffen 2026!</p>
+                <p class="text-base-content">Wir freuen uns auf dich beim Maddrax-Fantreffen 2026!</p>
             </div>
 
             <!-- Anmeldedaten -->
@@ -21,22 +21,22 @@
                 <h2 class="text-xl font-semibold text-base-content mb-4">Deine Anmeldedaten</h2>
                 <dl class="space-y-3">
                     <div class="flex justify-between">
-                        <dt class="text-base-content/60">Name:</dt>
+                        <dt class="text-base-content">Name:</dt>
                         <dd class="font-medium text-base-content">{{ $anmeldung->vorname }} {{ $anmeldung->nachname }}</dd>
                     </div>
                     <div class="flex justify-between">
-                        <dt class="text-base-content/60">E-Mail:</dt>
+                        <dt class="text-base-content">E-Mail:</dt>
                         <dd class="font-medium text-base-content">{{ $anmeldung->email }}</dd>
                     </div>
                     @if($anmeldung->mobile)
                     <div class="flex justify-between">
-                        <dt class="text-base-content/60">Mobilnummer:</dt>
+                        <dt class="text-base-content">Mobilnummer:</dt>
                         <dd class="font-medium text-base-content">{{ $anmeldung->mobile }}</dd>
                     </div>
                     @endif
                     @if($anmeldung->tshirt_bestellt)
                     <div class="flex justify-between">
-                        <dt class="text-base-content/60">T-Shirt:</dt>
+                        <dt class="text-base-content">T-Shirt:</dt>
                         <dd class="font-medium text-base-content">Größe {{ $anmeldung->tshirt_groesse }}</dd>
                     </div>
                     @endif
@@ -66,11 +66,11 @@
                 <!-- PayPal-Gastzahlung Anleitung -->
                 <div class="bg-base-200 rounded-lg p-4">
                     <h3 class="font-semibold text-base-content mb-3">💡 Kein PayPal-Account? Kein Problem!</h3>
-                    <p class="text-sm text-base-content/70 mb-3">
+                    <p class="text-sm text-base-content mb-3">
                         Du kannst auch ohne PayPal-Konto oder Kreditkarte bezahlen, indem du PayPal als Gast nutzt. 
                         So musst du kein Konto einrichten und zahlst einfach per SEPA-Lastschrift.
                     </p>
-                    <ol class="space-y-2 text-sm text-base-content/70">
+                    <ol class="space-y-2 text-sm text-base-content">
                         <li class="flex gap-2">
                             <span class="font-semibold text-primary flex-shrink-0">1.</span>
                             <span>Klicke oben auf den PayPal-Button. Du wirst zur PayPal-Bezahlseite weitergeleitet.</span>
@@ -90,8 +90,8 @@
                     </ol>
                 </div>
 
-                <p class="text-xs text-base-content/50 mt-4 text-center">
-                    📧 Bei Fragen zur Zahlung wende dich bitte an <a href="mailto:kassenwart@maddrax-fanclub.de" class="underline hover:text-base-content/70">kassenwart@maddrax-fanclub.de</a>
+                <p class="text-xs text-base-content mt-4 text-center">
+                    📧 Bei Fragen zur Zahlung wende dich bitte an <a href="mailto:kassenwart@maddrax-fanclub.de" class="underline hover:text-base-content">kassenwart@maddrax-fanclub.de</a>
                 </p>
             </div>
             @endif
@@ -103,10 +103,10 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
                     </svg>
                     <div>
-                        <p class="text-sm text-base-content/70">
+                        <p class="text-sm text-base-content">
                             Du hast eine Bestätigungs-E-Mail an <strong>{{ $anmeldung->email }}</strong> erhalten.
                         </p>
-                        <p class="text-xs text-base-content/50 mt-1">
+                        <p class="text-xs text-base-content mt-1">
                             Falls du keine E-Mail erhalten hast, überprüfe bitte deinen Spam-Ordner.
                         </p>
                     </div>
