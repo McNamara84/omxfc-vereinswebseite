@@ -40,6 +40,20 @@
     <x-banner />
     <div class="min-h-screen bg-base-200">
         @livewire('navigation-menu')
+        {{-- Repair maryUI ThemeToggle inline script: it sets class/data-theme to "undefined" when localStorage is empty --}}
+        <script>
+        (function() {
+            var d = document.documentElement;
+            var t = d.getAttribute('data-theme');
+            var c = d.getAttribute('class');
+            if (t === 'undefined' || c === 'undefined' || t === 'null' || c === 'null') {
+                if (c === 'undefined' || c === 'null') d.removeAttribute('class');
+                if (typeof window.__omxfcApplyStoredTheme === 'function') {
+                    window.__omxfcApplyStoredTheme();
+                }
+            }
+        })();
+        </script>
 
         {{-- maryUI Main-Layout --}}
         <x-main full-width with-nav>

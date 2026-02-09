@@ -22,6 +22,11 @@
         const nextIsDark = Boolean(isDark);
         root.classList.toggle('dark', nextIsDark);
         root.dataset.theme = nextIsDark ? DARK_THEME : LIGHT_THEME;
+        // Sync mary-class to localStorage so maryUI ThemeToggle's inline script
+        // reads a valid value instead of setting class="undefined".
+        try {
+            window.localStorage.setItem('mary-class', JSON.stringify(nextIsDark ? 'dark' : ''));
+        } catch {}
         return root.classList.contains('dark');
     };
 
