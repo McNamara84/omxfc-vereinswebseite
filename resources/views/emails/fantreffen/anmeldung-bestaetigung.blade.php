@@ -59,7 +59,7 @@ Empfänger: vorstand@maddrax-fanclub.de
 
 Wir freuen uns auf dich beim Maddrax-Fantreffen 2026!
 
-**Hinweis:** Am selben Wochenende findet auch die ColoniaCon statt, wo der Fanclub ebenfalls mit Programmpunkten vertreten sein wird.
+**Hinweis:** Am selben Wochenende findet auch die [ColoniaCon](https://www.coloniacon-tng.de/2026) statt – mit einem großen Maddrax-Panel am Samstag (14:00 Uhr) und einer OMXFC/Maddraxikon-Vorstellung am Sonntag (10:40 Uhr).
 
 Tuma sa feesa,
 
