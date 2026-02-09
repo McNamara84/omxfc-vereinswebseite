@@ -60,4 +60,3 @@
         applyTheme(prefersDark.matches);
     }
 })();
-})();

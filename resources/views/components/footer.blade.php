@@ -7,6 +7,6 @@
         </div>
         <a href="{{ route('impressum') }}" class="link link-hover">Impressum</a> |
         <a href="{{ route('datenschutz') }}" class="link link-hover">Datenschutz</a>
-        <p class="mt-2">© OMXFC e.V. {{ date('Y') }} | Version {{ $appVersion }} | <a href="{{ route('changelog') }}" class="hover:text-gray-300">Changelog</a></p>
+        <p class="mt-2">© OMXFC e.V. {{ date('Y') }} | Version {{ $appVersion }} | <a href="{{ route('changelog') }}" class="link link-hover">Changelog</a></p>
     </div>
 </footer>

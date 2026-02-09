@@ -116,12 +116,12 @@
             <!-- Buttons -->
             <div class="mt-8 flex flex-col sm:flex-row gap-3">
                 <a href="{{ route('home') }}" 
-                   class="flex-1 px-6 py-3 bg-gray-200 dark:bg-gray-700 text-base-content font-semibold rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 text-center">
+                   class="flex-1 px-6 py-3 bg-base-200 text-base-content font-semibold rounded-lg hover:bg-base-300 text-center">
                     🏠 Zur Startseite
                 </a>
                 @auth
                 <a href="{{ route('dashboard') }}" 
-                   class="flex-1 px-6 py-3 bg-[#8B0116] text-white font-semibold rounded-lg hover:bg-[#6b000e] text-center">
+                   class="flex-1 px-6 py-3 bg-primary text-primary-content font-semibold rounded-lg hover:bg-primary/80 text-center">
                     📊 Zum Dashboard
                 </a>
                 @endauth

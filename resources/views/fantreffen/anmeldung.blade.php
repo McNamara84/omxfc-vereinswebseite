@@ -351,7 +351,7 @@
                                     <input type="email" name="email" value="{{ old('email') }}" class="w-full px-3 py-2 border rounded border-base-content/20" required>
                                 </div>
                             @else
-                                <div class="p-4 bg-green-100 dark:bg-green-900 rounded">
+                                <div class="p-4 bg-success/10 rounded">
                                     <p class="text-sm">✅ Angemeldet als <strong>{{ $user->vorname }} {{ $user->nachname }}</strong></p>
                                     <p class="text-sm mt-1">Deine Teilnahme ist <strong>kostenlos</strong>!</p>
                                 </div>
