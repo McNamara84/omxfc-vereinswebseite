@@ -217,4 +217,132 @@ class KompendiumControllerTest extends TestCase
         $response->assertViewHas('showSearch', true);
         $response->assertViewHas('userPoints', 150);
     }
+
+    /* --------------------------------------------------------------------- */
+    /*  View-Rendering: data-testid Fix & Script-Block */
+    /* --------------------------------------------------------------------- */
+
+    public function test_index_renders_data_testid_on_search_input(): void
+    {
+        $user = $this->actingMemberWithPoints(150);
+
+        $response = $this->get('/kompendium');
+
+        $response->assertOk();
+        $response->assertSee('data-testid="kompendium-search"', false);
+    }
+
+    public function test_index_renders_search_script_with_correct_selector(): void
+    {
+        $user = $this->actingMemberWithPoints(150);
+
+        $response = $this->get('/kompendium');
+
+        $response->assertOk();
+        // Prüfe, dass der querySelector den data-testid Selektor verwendet (nicht getElementById)
+        $response->assertSee('querySelector(\'[data-testid="kompendium-search"]\')', false);
+        // Sicherstellen, dass der alte, fehlerhafte Selektor NICHT mehr vorhanden ist
+        $response->assertDontSee("getElementById('search')", false);
+    }
+
+    public function test_index_renders_script_when_search_allowed(): void
+    {
+        $user = $this->actingMemberWithPoints(150);
+
+        $response = $this->get('/kompendium');
+
+        $response->assertOk();
+        $response->assertSee('async function fetchHits()', false);
+    }
+
+    public function test_index_does_not_render_script_when_search_not_allowed(): void
+    {
+        $user = $this->actingMemberWithPoints(50);
+
+        $response = $this->get('/kompendium');
+
+        $response->assertOk();
+        $response->assertDontSee('async function fetchHits()', false);
+    }
+
+    public function test_ag_maddraxikon_member_with_low_points_gets_search_script(): void
+    {
+        $user = $this->actingMemberWithPoints(10);
+        $this->addUserToAgMaddraxikon($user);
+
+        $response = $this->get('/kompendium');
+
+        $response->assertOk();
+        $response->assertViewHas('showSearch', true);
+        // Script-Block muss gerendert werden, da showSearch = true
+        $response->assertSee('async function fetchHits()', false);
+    }
+
+    public function test_index_shows_no_romane_message_when_empty(): void
+    {
+        $user = $this->actingMemberWithPoints(150);
+
+        $response = $this->get('/kompendium');
+
+        $response->assertOk();
+        $response->assertSee('Aktuell sind keine Romane für die Suche indexiert.');
+    }
+
+    public function test_index_shows_indexed_romane_summary(): void
+    {
+        $user = $this->actingMemberWithPoints(150);
+
+        // Erstelle indexierten Roman mit Zyklus
+        KompendiumRoman::create([
+            'dateiname' => '001 - Test.txt',
+            'dateipfad' => 'romane/maddrax/001 - Test.txt',
+            'serie' => 'maddrax',
+            'roman_nr' => 1,
+            'titel' => 'Test',
+            'zyklus' => 'Euree',
+            'hochgeladen_am' => now(),
+            'hochgeladen_von' => $user->id,
+            'status' => 'indexiert',
+        ]);
+
+        $response = $this->get('/kompendium');
+
+        $response->assertOk();
+        $response->assertSee('Aktuell sind die folgenden Romane für die Suche indexiert:');
+        $response->assertSee('Euree');
+        $response->assertDontSee('Aktuell sind keine Romane für die Suche indexiert.');
+    }
+
+    public function test_index_shows_admin_button_for_admin(): void
+    {
+        $user = $this->actingMember(Role::Admin);
+        $user->incrementTeamPoints(150);
+
+        $response = $this->get('/kompendium');
+
+        $response->assertOk();
+        $response->assertSee('Kompendium verwalten');
+    }
+
+    public function test_index_hides_admin_button_for_non_admin(): void
+    {
+        $user = $this->actingMemberWithPoints(150);
+
+        $response = $this->get('/kompendium');
+
+        $response->assertOk();
+        $response->assertDontSee('Kompendium verwalten');
+    }
+
+    public function test_index_shows_points_warning_when_search_not_allowed(): void
+    {
+        $user = $this->actingMemberWithPoints(50);
+
+        $response = $this->get('/kompendium');
+
+        $response->assertOk();
+        $response->assertSee('Die Suche wird ab');
+        $response->assertSee('100');
+        $response->assertSee('Dein aktueller Stand:');
+    }
 }
