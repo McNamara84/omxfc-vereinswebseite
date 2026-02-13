@@ -1,9 +1,7 @@
 <x-app-layout>
     <x-member-page>
-        <x-header title="{{ __('Create Team') }}" separator />
+        <x-header title="Arbeitsgruppe erstellen" separator />
 
-        <div>
-            @livewire('teams.create-team-form')
-        </div>
+        @livewire('teams.create-team-form')
     </x-member-page>
 </x-app-layout>

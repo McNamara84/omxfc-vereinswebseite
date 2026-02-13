@@ -60,72 +60,52 @@
 
         {{-- Anwärter-Liste für Kassenwart, Vorstand und Admin --}}
         @if($anwaerter->isNotEmpty())
-            <x-card title="Mitgliedsanträge" class="mb-8" shadow>
-                {{-- Desktop-Ansicht --}}
-                <div class="hidden md:block overflow-auto">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th>E-Mail</th>
-                                <th>Beitrag</th>
-                                <th class="text-center">Aktion</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($anwaerter as $person)
-                                <tr class="hover">
-                                    <td>
-                                        <a href="{{ route('profile.view', $person->id) }}" class="text-primary hover:underline">{{ $person->name }}</a>
-                                    </td>
-                                    <td>{{ $person->email }}</td>
-                                    <td>{{ $person->mitgliedsbeitrag }}</td>
-                                    <td class="flex justify-center gap-2">
-                                        <form action="{{ route('anwaerter.approve', $person->id) }}" method="POST">
-                                            @csrf
-                                            <x-button type="submit" label="Genehmigen" class="btn-success btn-sm" />
-                                        </form>
-                                        <form action="{{ route('anwaerter.reject', $person->id) }}" method="POST"
-                                            onsubmit="return confirm('Antrag wirklich ablehnen und Nutzer löschen?');">
-                                            @csrf
-                                            <x-button type="submit" label="Ablehnen" class="btn-error btn-sm" />
-                                        </form>
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
+            @php
+                $anwaerterHeaders = [
+                    ['key' => 'name', 'label' => 'Name'],
+                    ['key' => 'email', 'label' => 'E-Mail'],
+                    ['key' => 'mitgliedsbeitrag', 'label' => 'Beitrag'],
+                    ['key' => 'actions', 'label' => 'Aktion', 'class' => 'text-center'],
+                ];
+            @endphp
 
-                {{-- Mobile-Ansicht --}}
-                <div class="md:hidden space-y-4">
-                    @foreach($anwaerter as $person)
-                        <div class="bg-base-200 p-4 rounded-lg">
-                            <div class="mb-2">
-                                <span class="font-semibold text-base-content">Name:</span>
-                                <a href="{{ route('profile.view', $person->id) }}" class="block mt-1 text-primary hover:underline">{{ $person->name }}</a>
-                            </div>
-                            <div class="mb-2">
-                                <span class="font-semibold text-base-content">E-Mail:</span>
-                                <span class="block mt-1 break-words">{{ $person->email }}</span>
-                            </div>
-                            <div class="mb-4">
-                                <span class="font-semibold text-base-content">Beitrag:</span>
-                                <span class="block mt-1">{{ $person->mitgliedsbeitrag }}</span>
-                            </div>
-                            <div class="flex gap-2">
-                                <form action="{{ route('anwaerter.approve', $person->id) }}" method="POST" class="flex-1">
+            <x-card title="Mitgliedsanträge" class="mb-8" shadow>
+                <div x-data="{ rejectUrl: '' }">
+                    <x-table :headers="$anwaerterHeaders" :rows="$anwaerter" striped>
+                        @scope('cell_name', $person)
+                            <a href="{{ route('profile.view', $person->id) }}" class="text-primary hover:underline">{{ $person->name }}</a>
+                        @endscope
+
+                        @scope('cell_actions', $person)
+                            <div class="flex justify-center gap-2">
+                                <form action="{{ route('anwaerter.approve', $person->id) }}" method="POST">
                                     @csrf
-                                    <x-button type="submit" label="Genehmigen" class="btn-success w-full" />
+                                    <x-button type="submit" label="Genehmigen" class="btn-success btn-sm" icon="o-check" />
                                 </form>
-                                <form action="{{ route('anwaerter.reject', $person->id) }}" method="POST" class="flex-1"
-                                    onsubmit="return confirm('Antrag wirklich ablehnen und Nutzer löschen?');">
-                                    @csrf
-                                    <x-button type="submit" label="Ablehnen" class="btn-error w-full" />
-                                </form>
+                                <x-button
+                                    label="Ablehnen"
+                                    class="btn-error btn-sm"
+                                    icon="o-x-mark"
+                                    @click="rejectUrl = '{{ route('anwaerter.reject', $person->id) }}'; document.getElementById('reject-anwaerter-modal').showModal()"
+                                />
                             </div>
-                        </div>
-                    @endforeach
+                        @endscope
+                    </x-table>
+
+                    {{-- Ablehnungs-Bestätigungsdialog --}}
+                    <x-mary-modal id="reject-anwaerter-modal" title="Antrag ablehnen" separator>
+                        <p class="text-base-content">
+                            Möchtest du diesen Mitgliedsantrag wirklich ablehnen? Der Nutzer wird dadurch gelöscht.
+                        </p>
+
+                        <x-slot:actions>
+                            <x-button label="Abbrechen" @click="document.getElementById('reject-anwaerter-modal').close()" />
+                            <form :action="rejectUrl" method="POST" class="inline">
+                                @csrf
+                                <x-button type="submit" label="Ablehnen" class="btn-error" icon="o-x-mark" />
+                            </form>
+                        </x-slot:actions>
+                    </x-mary-modal>
                 </div>
             </x-card>
         @endif

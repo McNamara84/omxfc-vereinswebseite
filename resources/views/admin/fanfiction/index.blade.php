@@ -36,86 +36,97 @@
                     />
                 </div>
             @else
-                <div class="overflow-x-auto">
-                    <table class="table table-zebra">
-                        <thead>
-                            <tr>
-                                <th>Titel</th>
-                                <th>Autor</th>
-                                <th>Status</th>
-                                <th>Erstellt</th>
-                                <th class="text-right">Aktionen</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($fanfictions as $fanfiction)
-                                <tr>
-                                    <td>
-                                        <span class="font-medium">{{ $fanfiction->title }}</span>
-                                        @if($fanfiction->photos && count($fanfiction->photos) > 0)
-                                            <span class="text-xs text-base-content ml-2">
-                                                <x-icon name="o-photo" class="w-3 h-3 inline" /> {{ count($fanfiction->photos) }}
-                                            </span>
-                                        @endif
-                                    </td>
-                                    <td>
-                                        <span>{{ $fanfiction->author_name }}</span>
-                                        @if($fanfiction->author)
-                                            <a href="{{ route('profile.view', $fanfiction->author->id) }}"
-                                               class="text-xs text-primary hover:underline block">
-                                                Mitglied
-                                            </a>
-                                        @else
-                                            <span class="text-xs text-base-content block">Externer Autor</span>
-                                        @endif
-                                    </td>
-                                    <td>
-                                        @if($fanfiction->status === \App\Enums\FanfictionStatus::Published)
-                                            <x-badge value="Veröffentlicht" class="badge-success" />
-                                        @else
-                                            <x-badge value="Entwurf" class="badge-warning" />
-                                        @endif
-                                    </td>
-                                    <td>
-                                        <span class="text-sm text-base-content">
-                                            {{ $fanfiction->created_at->format('d.m.Y H:i') }}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <div class="flex items-center justify-end gap-1">
-                                            @if($fanfiction->status === \App\Enums\FanfictionStatus::Draft)
-                                                <form action="{{ route('admin.fanfiction.publish', $fanfiction) }}" method="POST" class="inline">
-                                                    @csrf
-                                                    <x-button
-                                                        type="submit"
-                                                        icon="o-check"
-                                                        class="btn-ghost btn-sm text-success"
-                                                        tooltip="Veröffentlichen"
-                                                    />
-                                                </form>
-                                            @endif
-                                            <x-button
-                                                icon="o-pencil-square"
-                                                link="{{ route('admin.fanfiction.edit', $fanfiction) }}"
-                                                class="btn-ghost btn-sm text-info"
-                                                tooltip="Bearbeiten"
-                                            />
-                                            <form action="{{ route('admin.fanfiction.destroy', $fanfiction) }}" method="POST" class="inline" onsubmit="return confirm('Fanfiction wirklich löschen?');">
-                                                @csrf
-                                                @method('DELETE')
-                                                <x-button
-                                                    type="submit"
-                                                    icon="o-trash"
-                                                    class="btn-ghost btn-sm text-error"
-                                                    tooltip="Löschen"
-                                                />
-                                            </form>
-                                        </div>
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
+                @php
+                    $headers = [
+                        ['key' => 'title', 'label' => 'Titel'],
+                        ['key' => 'author_name', 'label' => 'Autor'],
+                        ['key' => 'status', 'label' => 'Status'],
+                        ['key' => 'created_at', 'label' => 'Erstellt'],
+                        ['key' => 'actions', 'label' => 'Aktionen', 'class' => 'text-right'],
+                    ];
+                @endphp
+
+                <div x-data="{ deleteUrl: '' }">
+                    <x-table :headers="$headers" :rows="$fanfictions" striped>
+                        @scope('cell_title', $fanfiction)
+                            <span class="font-medium">{{ $fanfiction->title }}</span>
+                            @if($fanfiction->photos && count($fanfiction->photos) > 0)
+                                <span class="text-xs text-base-content ml-2">
+                                    <x-icon name="o-photo" class="w-3 h-3 inline" /> {{ count($fanfiction->photos) }}
+                                </span>
+                            @endif
+                        @endscope
+
+                        @scope('cell_author_name', $fanfiction)
+                            <span>{{ $fanfiction->author_name }}</span>
+                            @if($fanfiction->author)
+                                <a href="{{ route('profile.view', $fanfiction->author->id) }}"
+                                   class="text-xs text-primary hover:underline block">
+                                    Mitglied
+                                </a>
+                            @else
+                                <span class="text-xs text-base-content block">Externer Autor</span>
+                            @endif
+                        @endscope
+
+                        @scope('cell_status', $fanfiction)
+                            @if($fanfiction->status === \App\Enums\FanfictionStatus::Published)
+                                <x-badge value="Veröffentlicht" class="badge-success" />
+                            @else
+                                <x-badge value="Entwurf" class="badge-warning" />
+                            @endif
+                        @endscope
+
+                        @scope('cell_created_at', $fanfiction)
+                            <span class="text-sm text-base-content">
+                                {{ $fanfiction->created_at->format('d.m.Y H:i') }}
+                            </span>
+                        @endscope
+
+                        @scope('cell_actions', $fanfiction)
+                            <div class="flex items-center justify-end gap-1">
+                                @if($fanfiction->status === \App\Enums\FanfictionStatus::Draft)
+                                    <form action="{{ route('admin.fanfiction.publish', $fanfiction) }}" method="POST" class="inline">
+                                        @csrf
+                                        <x-button
+                                            type="submit"
+                                            icon="o-check"
+                                            class="btn-ghost btn-sm text-success"
+                                            tooltip="Veröffentlichen"
+                                        />
+                                    </form>
+                                @endif
+                                <x-button
+                                    icon="o-pencil-square"
+                                    link="{{ route('admin.fanfiction.edit', $fanfiction) }}"
+                                    class="btn-ghost btn-sm text-info"
+                                    tooltip="Bearbeiten"
+                                />
+                                <x-button
+                                    icon="o-trash"
+                                    class="btn-ghost btn-sm text-error"
+                                    tooltip="Löschen"
+                                    @click="deleteUrl = '{{ route('admin.fanfiction.destroy', $fanfiction) }}'; document.getElementById('delete-fanfiction-modal').showModal()"
+                                />
+                            </div>
+                        @endscope
+                    </x-table>
+
+                    {{-- Lösch-Bestätigungsdialog --}}
+                    <x-mary-modal id="delete-fanfiction-modal" title="Fanfiction löschen" separator>
+                        <p class="text-base-content">
+                            Möchtest du diese Fanfiction wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.
+                        </p>
+
+                        <x-slot:actions>
+                            <x-button label="Abbrechen" @click="document.getElementById('delete-fanfiction-modal').close()" />
+                            <form :action="deleteUrl" method="POST" class="inline">
+                                @csrf
+                                @method('DELETE')
+                                <x-button type="submit" label="Löschen" class="btn-error" icon="o-trash" />
+                            </form>
+                        </x-slot:actions>
+                    </x-mary-modal>
                 </div>
             @endif
         </x-card>
