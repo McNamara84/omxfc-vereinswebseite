@@ -19,8 +19,12 @@
 
         @if (Gate::check('update', $team))
             <div class="mt-6 flex items-center justify-end gap-3">
-                <x-icon name="o-check-circle" class="w-5 h-5 text-success" x-cloak x-show="$wire.recentlySuccessful" aria-hidden="true" />
-                <span class="text-sm text-success" x-cloak x-show="$wire.recentlySuccessful">Gespeichert.</span>
+                <x-action-message class="me-3" on="saved">
+                    <span class="text-sm text-success flex items-center gap-1">
+                        <x-icon name="o-check-circle" class="w-5 h-5" aria-hidden="true" />
+                        Gespeichert.
+                    </span>
+                </x-action-message>
 
                 <x-button type="submit" label="Speichern" class="btn-primary" />
             </div>
