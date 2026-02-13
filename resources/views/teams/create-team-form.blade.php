@@ -1,36 +1,19 @@
-<x-form-section submit="createTeam">
-    <x-slot name="title">
-        {{ __('Team Details') }}
-    </x-slot>
+<x-card>
+    <x-header title="Details der Arbeitsgruppe" subtitle="Erstelle eine neue Arbeitsgruppe, um mit anderen an Projekten zusammenzuarbeiten." size="text-lg" class="!mb-4" />
 
-    <x-slot name="description">
-        {{ __('Create a new team to collaborate with others on projects.') }}
-    </x-slot>
-
-    <x-slot name="form">
-        <div class="col-span-6">
-            <x-label value="{{ __('Team Owner') }}" />
-
-            <div class="flex items-center mt-2">
-                <img loading="lazy" class="size-12 rounded-full object-cover" src="{{ $this->user->profile_photo_url }}" alt="{{ $this->user->name }}">
-
-                <div class="ms-4 leading-tight">
-                    <div class="text-gray-900 dark:text-white">{{ $this->user->name }}</div>
-                    <div class="text-gray-700 dark:text-gray-300 text-sm">{{ $this->user->email }}</div>
-                </div>
-            </div>
+    <div class="flex items-center mb-6">
+        <x-avatar :image="$this->user->profile_photo_url" class="!w-12 !h-12" />
+        <div class="ms-4 leading-tight">
+            <div class="text-base-content font-medium">{{ $this->user->name }}</div>
+            <div class="text-base-content/70 text-sm">{{ $this->user->email }}</div>
         </div>
+    </div>
 
-        <div class="col-span-6 sm:col-span-4">
-            <x-label for="name" value="{{ __('Team Name') }}" />
-            <x-input id="name" type="text" class="mt-1 block w-full" wire:model="state.name" autofocus />
-            <x-input-error for="name" class="mt-2" />
+    <form wire:submit="createTeam">
+        <x-input label="Name der Arbeitsgruppe" wire:model="state.name" errorField="name" autofocus />
+
+        <div class="mt-6 flex justify-end">
+            <x-button type="submit" label="Erstellen" class="btn-primary" />
         </div>
-    </x-slot>
-
-    <x-slot name="actions">
-        <x-button>
-            {{ __('Create') }}
-        </x-button>
-    </x-slot>
-</x-form-section>
+    </form>
+</x-card>

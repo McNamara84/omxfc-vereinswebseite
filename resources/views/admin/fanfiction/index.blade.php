@@ -36,7 +36,7 @@
                     />
                 </div>
             @else
-                <div class="overflow-x-auto">
+                <div class="overflow-x-auto" x-data="{ deleteUrl: '' }">
                     <table class="table table-zebra">
                         <thead>
                             <tr>
@@ -100,22 +100,34 @@
                                                 class="btn-ghost btn-sm text-info"
                                                 tooltip="Bearbeiten"
                                             />
-                                            <form action="{{ route('admin.fanfiction.destroy', $fanfiction) }}" method="POST" class="inline" onsubmit="return confirm('Fanfiction wirklich löschen?');">
-                                                @csrf
-                                                @method('DELETE')
-                                                <x-button
-                                                    type="submit"
-                                                    icon="o-trash"
-                                                    class="btn-ghost btn-sm text-error"
-                                                    tooltip="Löschen"
-                                                />
-                                            </form>
+                                            <x-button
+                                                icon="o-trash"
+                                                class="btn-ghost btn-sm text-error"
+                                                tooltip="Löschen"
+                                                @click="deleteUrl = '{{ route('admin.fanfiction.destroy', $fanfiction) }}'; document.getElementById('delete-fanfiction-modal').showModal()"
+                                            />
                                         </div>
                                     </td>
                                 </tr>
                             @endforeach
                         </tbody>
                     </table>
+
+                    {{-- Lösch-Bestätigungsdialog --}}
+                    <x-mary-modal id="delete-fanfiction-modal" title="Fanfiction löschen" separator>
+                        <p class="text-base-content">
+                            Möchtest du diese Fanfiction wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.
+                        </p>
+
+                        <x-slot:actions>
+                            <x-button label="Abbrechen" @click="document.getElementById('delete-fanfiction-modal').close()" />
+                            <form :action="deleteUrl" method="POST" class="inline">
+                                @csrf
+                                @method('DELETE')
+                                <x-button type="submit" label="Löschen" class="btn-error" icon="o-trash" />
+                            </form>
+                        </x-slot:actions>
+                    </x-mary-modal>
                 </div>
             @endif
         </x-card>
