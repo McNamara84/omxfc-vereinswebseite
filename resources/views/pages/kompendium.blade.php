@@ -29,7 +29,7 @@
             {{-- Suchschlitz (ab 100 Baxx) -------------------------------- --}}
             @if($showSearch)
                 <div class="mb-4">
-                    <x-input id="search" placeholder="Suchbegriff eingeben … (Enter)" icon="o-magnifying-glass" />
+                    <x-input id="search" placeholder="Suchbegriff eingeben … (Enter)" icon="o-magnifying-glass" data-testid="kompendium-search" />
                 </div>
 
                 {{-- Serien-Filter (wird per JS befüllt) ----------------------- --}}
@@ -61,7 +61,7 @@
     </x-member-page>
 
     {{-- JavaScript nur, wenn Suche erlaubt ---------------------------------- --}}
-    @if($userPoints >= 100)
+    @if($showSearch)
         <script>
             (() => {
                 let page   = 1;
@@ -72,7 +72,7 @@
                 let lastPage = 1;
 
                 const perFetchOffset = 200;                       // px vor Seitenende
-                const $search  = document.getElementById('search');
+                const $search  = document.querySelector('[data-testid="kompendium-search"]');
                 const $results = document.getElementById('results');
                 const $loading = document.getElementById('loading');
                 const $serienFilter = document.getElementById('serien-filter');
