@@ -41,12 +41,10 @@
     <div class="min-h-screen bg-base-200 xl:pt-24">
         @livewire('navigation-menu')
 
-        {{-- maryUI Main-Layout --}}
-        <x-main full-width>
-            <x-slot:content>
-                {{ $slot }}
-            </x-slot:content>
-        </x-main>
+        {{-- Main Content --}}
+        <main class="w-full">
+            {{ $slot }}
+        </main>
     </div>
 
     <!-- Footer -->
