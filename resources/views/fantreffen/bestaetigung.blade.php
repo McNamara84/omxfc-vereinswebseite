@@ -59,8 +59,7 @@
                     label="💳 Jetzt mit PayPal bezahlen ({{ number_format($anmeldung->payment_amount, 2, ',', '.') }} €)"
                     link="https://www.paypal.com/paypalme/OMXFC/{{ number_format($anmeldung->payment_amount, 2, '.', '') }}"
                     external
-                    class="btn-block mb-4"
-                    style="background-color: #0070ba; border-color: #0070ba; color: white;"
+                    class="btn-block mb-4 bg-[#0070ba] border-[#0070ba] text-white hover:bg-[#005a92] hover:border-[#005a92]"
                     data-testid="fantreffen-paypal-button"
                 />
 
