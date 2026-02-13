@@ -11,7 +11,7 @@
             </p>
 
             <form wire:submit="addTeamMember">
-                <x-input label="E-Mail-Adresse" type="email" wire:model="addTeamMemberForm.email" />
+                <x-input label="E-Mail-Adresse" type="email" wire:model="addTeamMemberForm.email" errorField="email" />
 
                 {{-- Rollenauswahl --}}
                 @if (count($this->roles) > 0)
@@ -49,7 +49,7 @@
                 @endif
 
                 <div class="mt-6 flex items-center justify-end gap-3">
-                    <x-icon name="o-check-circle" class="w-5 h-5 text-success" x-cloak x-show="$wire.recentlySuccessful" />
+                    <x-icon name="o-check-circle" class="w-5 h-5 text-success" x-cloak x-show="$wire.recentlySuccessful" aria-hidden="true" />
                     <span class="text-sm text-success" x-cloak x-show="$wire.recentlySuccessful">Hinzugefügt.</span>
 
                     <x-button type="submit" label="Hinzufügen" class="btn-primary" icon="o-plus" />

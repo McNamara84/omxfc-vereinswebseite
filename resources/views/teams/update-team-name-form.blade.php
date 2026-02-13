@@ -13,12 +13,13 @@
         <x-input
             label="Name der Arbeitsgruppe"
             wire:model="state.name"
+            errorField="name"
             :disabled="! Gate::check('update', $team)"
         />
 
         @if (Gate::check('update', $team))
             <div class="mt-6 flex items-center justify-end gap-3">
-                <x-icon name="o-check-circle" class="w-5 h-5 text-success" x-cloak x-show="$wire.recentlySuccessful" />
+                <x-icon name="o-check-circle" class="w-5 h-5 text-success" x-cloak x-show="$wire.recentlySuccessful" aria-hidden="true" />
                 <span class="text-sm text-success" x-cloak x-show="$wire.recentlySuccessful">Gespeichert.</span>
 
                 <x-button type="submit" label="Speichern" class="btn-primary" />

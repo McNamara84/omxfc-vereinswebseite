@@ -10,7 +10,7 @@
     </div>
 
     <form wire:submit="createTeam">
-        <x-input label="Name der Arbeitsgruppe" wire:model="state.name" autofocus />
+        <x-input label="Name der Arbeitsgruppe" wire:model="state.name" errorField="name" autofocus />
 
         <div class="mt-6 flex justify-end">
             <x-button type="submit" label="Erstellen" class="btn-primary" />
