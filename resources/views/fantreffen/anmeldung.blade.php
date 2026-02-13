@@ -1,4 +1,4 @@
-<x-app-layout 
+<x-app-layout
     :title="'Maddrax-Fantreffen 2026 – Offizieller MADDRAX Fanclub e. V.'"
     :description="'Melde dich jetzt an zum Maddrax-Fantreffen am 9. Mai 2026 in Köln mit Signierstunde und Verleihung der Goldenen Taratze.'"
     :socialImage="asset('build/assets/omxfc-logo-Df-1StAj.png')">
@@ -142,7 +142,8 @@
 </script>
 </x-slot>
 
-<div class="bg-gray-50 dark:bg-gray-900 -mt-8">
+<div class="bg-base-200 -mt-8">
+    {{-- Hero-Banner --}}
     <div class="relative bg-gradient-to-br from-[#8B0116] to-[#6b000e] text-white py-12 sm:py-16">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <h1 class="text-5xl font-bold mb-6">Maddrax-Fantreffen 2026 in Köln</h1>
@@ -151,7 +152,7 @@
                 <span>🕖 ab 19:00 Uhr</span>
                 <span>📍 L´Osteria Köln Mülheim</span>
             </div>
-            <a href="https://maps.app.goo.gl/dzLHUqVHqJrkWDkr5" target="_blank" class="inline-block px-6 py-3 bg-white text-[#8B0116] font-semibold rounded-lg hover:bg-gray-100">📍 Route in Google Maps</a>
+            <x-button label="📍 Route in Google Maps" link="https://maps.app.goo.gl/dzLHUqVHqJrkWDkr5" external class="btn-outline border-white text-white hover:bg-white hover:text-[#8B0116]" />
         </div>
     </div>
 
@@ -161,9 +162,7 @@
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex flex-col md:flex-row items-center justify-center gap-4 text-center">
                     <div class="flex items-center gap-3">
-                        <svg class="w-10 h-10 text-amber-800 dark:text-amber-900 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                        </svg>
+                        <x-icon name="o-star" class="w-10 h-10 text-amber-800 dark:text-amber-900 flex-shrink-0" />
                         <div>
                             <h2 id="vip-authors-heading" class="text-xl md:text-2xl font-bold text-amber-900 dark:text-amber-950">
                                 VIP-Autoren bestätigt!
@@ -175,15 +174,7 @@
                     </div>
                     <div class="flex flex-wrap justify-center gap-2 md:gap-3">
                         @foreach ($vipAuthors as $author)
-                            <span class="inline-flex items-center px-4 py-2 bg-white/90 dark:bg-gray-900/80 text-amber-900 dark:text-amber-300 font-semibold rounded-full shadow-md text-sm md:text-base">
-                                <svg class="w-4 h-4 mr-2 text-amber-500" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                                </svg>
-                                {{ $author->display_name }}
-                                @if ($author->is_tentative)
-                                    <span class="ml-2 text-xs font-semibold text-amber-800 dark:text-amber-200">(unter Vorbehalt)</span>
-                                @endif
-                            </span>
+                            <x-badge value="{{ $author->display_name }}{{ $author->is_tentative ? ' (unter Vorbehalt)' : '' }}" class="badge-lg bg-white/90 dark:bg-gray-900/80 text-amber-900 dark:text-amber-300 font-semibold shadow-md" />
                         @endforeach
                     </div>
                 </div>
@@ -193,74 +184,83 @@
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         @if(session('success'))
-            <div class="mb-4 p-4 bg-green-100 dark:bg-green-900 border-l-4 border-green-500 rounded">
-                <p class="text-green-800 dark:text-green-200">{{ session('success') }}</p>
-            </div>
+            <x-alert icon="o-check-circle" class="alert-success mb-4" dismissible>
+                {{ session('success') }}
+            </x-alert>
         @endif
-        <div class="mb-4 p-4 bg-yellow-100 dark:bg-yellow-900 border-l-4 border-yellow-500 rounded">
+
+        <x-alert icon="o-information-circle" class="alert-warning mb-4">
             <h3 class="font-bold mb-2">ColoniaCon am selben Wochenende!</h3>
-            <p class="mb-2">Am selben Wochenende findet auch die <a href="https://www.coloniacon-tng.de/2026" target="_blank" rel="noopener noreferrer" class="text-yellow-900 dark:text-yellow-100 underline font-semibold hover:text-yellow-700 dark:hover:text-yellow-200">ColoniaCon</a> statt. Auf der ColoniaCon erwartet euch am Samstag um 14:00 Uhr ein großes Maddrax-Panel mit zahlreichen Autor*innen:</p>
+            <p class="mb-2">Am selben Wochenende findet auch die <a href="https://www.coloniacon-tng.de/2026" target="_blank" rel="noopener noreferrer" class="underline font-semibold hover:opacity-80">ColoniaCon</a> statt. Auf der ColoniaCon erwartet euch am Samstag um 14:00 Uhr ein großes Maddrax-Panel mit zahlreichen Autor*innen:</p>
             <p class="mb-2 font-semibold">Michael Schönenbröcher, Christin Schwarz, Michael Edelbrock, Tanja Guth, Thomas Ziebula, Ansgar Back (unter Vorbehalt), Claudia Kern (unter Vorbehalt), Michael Markus Turner (unter Vorbehalt), Wolfgang Hohlbein (unter Vorbehalt), Susan Schwarz (unter Vorbehalt).</p>
             <p class="mb-2">Außerdem gibt es am Sonntag um 10:40 Uhr eine spannende Vorstellung des OMXFC und des Maddraxikons – also unbedingt vorbeischauen!</p>
             <p>Und das Beste: Vom Veranstaltungsort der ColoniaCon sind es nur fünf Minuten zu Fuß bis zum Fantreffen – ideal, um das ganze Wochenende in Maddrax-Stimmung zu verbringen!</p>
-        </div>
+        </x-alert>
+
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div class="lg:col-span-2 space-y-8">
-                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
-                    <h2 class="text-2xl font-bold mb-4 text-[#8B0116] dark:text-[#ff4b63]">Programm</h2>
+                {{-- Programm --}}
+                <x-card shadow>
+                    <x-slot:title>
+                        <span class="text-2xl text-primary">Programm</span>
+                    </x-slot:title>
                     <div class="space-y-4">
                         <div class="flex gap-4">
-                            <span class="font-bold text-[#8B0116] dark:text-[#ff4b63]">19:00</span>
+                            <span class="font-bold text-primary">19:00</span>
                             <div>
                                 <h3 class="font-semibold">Signierstunde mit Autoren</h3>
                                 @if ($vipAuthors->isNotEmpty())
-                                    <p class="text-gray-600 dark:text-gray-300">
+                                    <p class="text-base-content/70">
                                         Mit dabei:
                                         @foreach ($vipAuthors as $author)
-                                            <span class="font-medium text-[#8B0116] dark:text-[#ff4b63]">
+                                            <span class="font-medium text-primary">
                                                 {{ $author->display_name }}@if ($author->is_tentative) <span class="text-xs font-semibold">(unter Vorbehalt)</span>@endif
                                             </span>@if (!$loop->last), @endif
                                         @endforeach
                                     </p>
                                     @if ($vipAuthors->contains('is_tentative', true))
-                                        <p class="text-gray-600 dark:text-gray-300 mt-2">
+                                        <p class="text-base-content/70 mt-2">
                                             Einige Autor:innen haben ihre Teilnahme bereits zugesagt, andere sind noch angefragt oder haben nur vorläufig zugesagt. Bitte beachtet, dass sich die Gästeliste kurzfristig ändern kann.
                                         </p>
                                     @endif
                                 @else
-                                    <p class="text-gray-600 dark:text-gray-300">Triff deine Lieblingsautoren!</p>
+                                    <p class="text-base-content/70">Triff deine Lieblingsautoren!</p>
                                 @endif
                             </div>
                         </div>
                         <div class="flex gap-4">
-                            <span class="font-bold text-[#8B0116] dark:text-[#ff4b63]">20:00</span>
+                            <span class="font-bold text-primary">20:00</span>
                             <div>
                                 <h3 class="font-semibold">Verleihung Goldene Taratze</h3>
-                                <p class="text-gray-600 dark:text-gray-300">Die große Preisverleihung!</p>
+                                <p class="text-base-content/70">Die große Preisverleihung!</p>
                             </div>
                         </div>
                     </div>
-                </div>
-                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
-                    <h2 class="text-2xl font-bold mb-4 text-[#8B0116] dark:text-[#ff4b63]">Kosten</h2>
+                </x-card>
+
+                {{-- Kosten --}}
+                <x-card shadow>
+                    <x-slot:title>
+                        <span class="text-2xl text-primary">Kosten</span>
+                    </x-slot:title>
                     <div class="space-y-3">
-                        <div class="p-3 bg-green-50 dark:bg-green-900/20 rounded">
-                            <div class="font-semibold text-gray-900 dark:text-white mb-1">Vereinsmitglieder</div>
-                            <p class="text-sm text-gray-700 dark:text-gray-300">Teilnahme am Event: <strong class="text-green-600 dark:text-green-400">kostenlos</strong></p>
+                        <div class="p-3 bg-success/10 rounded-box">
+                            <div class="font-semibold text-base-content mb-1">Vereinsmitglieder</div>
+                            <p class="text-sm text-base-content/70">Teilnahme am Event: <strong class="text-success">kostenlos</strong></p>
                         </div>
-                        <div class="p-3 bg-blue-50 dark:bg-blue-900/20 rounded">
-                            <div class="font-semibold text-gray-900 dark:text-white mb-1">Gäste</div>
-                            <p class="text-sm text-gray-700 dark:text-gray-300">Teilnahme am Event: <strong class="text-blue-600 dark:text-blue-400">5,00 €</strong> Spende erbeten</p>
+                        <div class="p-3 bg-info/10 rounded-box">
+                            <div class="font-semibold text-base-content mb-1">Gäste</div>
+                            <p class="text-sm text-base-content/70">Teilnahme am Event: <strong class="text-info">5,00 €</strong> Spende erbeten</p>
                         </div>
-                        <div class="p-3 bg-purple-50 dark:bg-purple-900/20 rounded">
-                            <div class="font-semibold text-gray-900 dark:text-white mb-1">Event-T-Shirt (optional)</div>
-                            <p class="text-sm text-gray-700 dark:text-gray-300">
-                                <strong class="text-purple-600 dark:text-purple-400">25,00 €</strong> Spende
+                        <div class="p-3 bg-secondary/10 rounded-box">
+                            <div class="font-semibold text-base-content mb-1">Event-T-Shirt (optional)</div>
+                            <p class="text-sm text-base-content/70">
+                                <strong class="text-secondary">25,00 €</strong> Spende
                             </p>
-                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 italic">
+                            <p class="text-xs text-base-content/50 mt-1 italic">
                                 Für Gäste zusammen mit Teilnahme: 30,00 €
                             </p>
-                            <x-fantreffen-tshirt-deadline-notice 
+                            <x-fantreffen-tshirt-deadline-notice
                                 :tshirtDeadlinePassed="$tshirtDeadlinePassed"
                                 :tshirtDeadlineFormatted="$tshirtDeadlineFormatted"
                                 :daysUntilDeadline="$daysUntilDeadline"
@@ -268,143 +268,120 @@
                             />
                         </div>
                     </div>
-                </div>
+                </x-card>
+
                 {{-- FAQ-Sektion --}}
-                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
-                    <h2 class="text-2xl font-bold mb-4 text-[#8B0116] dark:text-[#ff4b63]">Häufige Fragen</h2>
-                    <div class="space-y-3" x-data="{ open: null }">
-                        <div class="border-b border-gray-200 dark:border-gray-700 pb-3">
-                            <button @click="open = open === 1 ? null : 1" class="flex justify-between w-full text-left font-semibold text-gray-900 dark:text-white">
-                                <span>Muss ich Vereinsmitglied sein?</span>
-                                <span x-text="open === 1 ? '−' : '+'"></span>
-                            </button>
-                            <p x-show="open === 1" x-collapse class="mt-2 text-gray-600 dark:text-gray-300 text-sm">
-                                Nein! Auch Gäste sind herzlich willkommen. Als Mitglied ist die Teilnahme allerdings kostenlos.
-                            </p>
-                        </div>
-                        <div class="border-b border-gray-200 dark:border-gray-700 pb-3">
-                            <button @click="open = open === 2 ? null : 2" class="flex justify-between w-full text-left font-semibold text-gray-900 dark:text-white">
-                                <span>Was ist die Goldene Taratze?</span>
-                                <span x-text="open === 2 ? '−' : '+'"></span>
-                            </button>
-                            <p x-show="open === 2" x-collapse class="mt-2 text-gray-600 dark:text-gray-300 text-sm">
-                                Ein Fan-Preis, der jährlich an besondere Personen oder Projekte aus der MADDRAX-Community verliehen wird.
-                            </p>
-                        </div>
-                        <div class="border-b border-gray-200 dark:border-gray-700 pb-3">
-                            <button @click="open = open === 3 ? null : 3" class="flex justify-between w-full text-left font-semibold text-gray-900 dark:text-white">
-                                <span>Kann ich ein T-Shirt bestellen?</span>
-                                <span x-text="open === 3 ? '−' : '+'"></span>
-                            </button>
-                            <p x-show="open === 3" x-collapse class="mt-2 text-gray-600 dark:text-gray-300 text-sm">
-                                Ja! Für 25 € Spende (Gäste: 30 € inkl. Teilnahme) kannst du ein exklusives Event-T-Shirt bestellen.
-                            </p>
-                        </div>
-                        <div class="pb-1">
-                            <button @click="open = open === 4 ? null : 4" class="flex justify-between w-full text-left font-semibold text-gray-900 dark:text-white">
-                                <span>Gibt es eine Signierstunde?</span>
-                                <span x-text="open === 4 ? '−' : '+'"></span>
-                            </button>
-                            <p x-show="open === 4" x-collapse class="mt-2 text-gray-600 dark:text-gray-300 text-sm">
-                                Ja! Ab 19:00 Uhr kannst du deine Lieblingsautoren treffen und dir Bücher signieren lassen.
-                            </p>
-                        </div>
+                <x-card shadow>
+                    <x-slot:title>
+                        <span class="text-2xl text-primary">Häufige Fragen</span>
+                    </x-slot:title>
+                    <div class="space-y-1">
+                        <x-collapse name="faq-group" class="collapse-arrow border border-base-content/10 rounded-box">
+                            <x-slot:heading>Muss ich Vereinsmitglied sein?</x-slot:heading>
+                            <x-slot:content>
+                                <p class="text-sm text-base-content/70">Nein! Auch Gäste sind herzlich willkommen. Als Mitglied ist die Teilnahme allerdings kostenlos.</p>
+                            </x-slot:content>
+                        </x-collapse>
+                        <x-collapse name="faq-group" class="collapse-arrow border border-base-content/10 rounded-box">
+                            <x-slot:heading>Was ist die Goldene Taratze?</x-slot:heading>
+                            <x-slot:content>
+                                <p class="text-sm text-base-content/70">Ein Fan-Preis, der jährlich an besondere Personen oder Projekte aus der MADDRAX-Community verliehen wird.</p>
+                            </x-slot:content>
+                        </x-collapse>
+                        <x-collapse name="faq-group" class="collapse-arrow border border-base-content/10 rounded-box">
+                            <x-slot:heading>Kann ich ein T-Shirt bestellen?</x-slot:heading>
+                            <x-slot:content>
+                                <p class="text-sm text-base-content/70">Ja! Für 25 € Spende (Gäste: 30 € inkl. Teilnahme) kannst du ein exklusives Event-T-Shirt bestellen.</p>
+                            </x-slot:content>
+                        </x-collapse>
+                        <x-collapse name="faq-group" class="collapse-arrow border border-base-content/10 rounded-box">
+                            <x-slot:heading>Gibt es eine Signierstunde?</x-slot:heading>
+                            <x-slot:content>
+                                <p class="text-sm text-base-content/70">Ja! Ab 19:00 Uhr kannst du deine Lieblingsautoren treffen und dir Bücher signieren lassen.</p>
+                            </x-slot:content>
+                        </x-collapse>
                     </div>
-                </div>
+                </x-card>
             </div>
+
+            {{-- Anmeldeformular (rechte Spalte) --}}
             <div class="lg:col-span-1">
-                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden sticky top-4">
+                <div class="bg-base-100 rounded-xl shadow-lg overflow-hidden sticky top-4">
                     <div class="bg-gradient-to-r from-[#8B0116] to-[#a01526] px-6 py-4">
                         <h2 class="text-2xl font-bold text-white">Anmeldung</h2>
                     </div>
                     <div class="p-6">
                         @if(isset($errors) && $errors->any())
-                            <div class="mb-4 p-4 bg-red-100 dark:bg-red-900 border-l-4 border-red-500 rounded">
-                                <ul class="text-sm text-red-800 dark:text-red-200 space-y-1">
+                            <x-alert icon="o-exclamation-triangle" class="alert-error mb-4">
+                                <ul class="text-sm space-y-1">
                                     @foreach($errors->all() as $error)
                                         <li>{{ $error }}</li>
                                     @endforeach
                                 </ul>
-                            </div>
+                            </x-alert>
                         @endif
-                        
+
                         @if(!Auth::check())
-                            <div class="mb-4 p-3 bg-orange-100 dark:bg-orange-900 rounded">
-                                <p class="text-sm">Bist du Vereinsmitglied? <a href="{{ route('login') }}" class="underline font-bold">Jetzt einloggen</a> um kostenlos teilzunehmen!</p>
-                            </div>
+                            <x-alert icon="o-information-circle" class="alert-warning mb-4">
+                                <p class="text-sm">Bist du Vereinsmitglied? <a href="{{ route('login') }}" class="underline font-bold link">Jetzt einloggen</a> um kostenlos teilzunehmen!</p>
+                            </x-alert>
                         @endif
 
                         <form method="POST" action="{{ route('fantreffen.2026.store') }}" id="fantreffen-form" class="space-y-4">
                             @csrf
 
                             @guest
-                                <div>
-                                    <label class="block text-sm font-medium mb-2">Vorname *</label>
-                                    <input type="text" name="vorname" value="{{ old('vorname') }}" class="w-full px-3 py-2 border rounded dark:bg-gray-700 dark:border-gray-600" required>
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium mb-2">Nachname *</label>
-                                    <input type="text" name="nachname" value="{{ old('nachname') }}" class="w-full px-3 py-2 border rounded dark:bg-gray-700 dark:border-gray-600" required>
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium mb-2">E-Mail *</label>
-                                    <input type="email" name="email" value="{{ old('email') }}" class="w-full px-3 py-2 border rounded dark:bg-gray-700 dark:border-gray-600" required>
-                                </div>
+                                <x-input label="Vorname *" name="vorname" :value="old('vorname')" required data-testid="fantreffen-vorname" />
+                                <x-input label="Nachname *" name="nachname" :value="old('nachname')" required data-testid="fantreffen-nachname" />
+                                <x-input label="E-Mail *" type="email" name="email" :value="old('email')" required data-testid="fantreffen-email" />
                             @else
-                                <div class="p-4 bg-green-100 dark:bg-green-900 rounded">
-                                    <p class="text-sm">✅ Angemeldet als <strong>{{ $user->vorname }} {{ $user->nachname }}</strong></p>
+                                <x-alert icon="o-check-circle" class="alert-success">
+                                    <p class="text-sm">Angemeldet als <strong>{{ $user->vorname }} {{ $user->nachname }}</strong></p>
                                     <p class="text-sm mt-1">Deine Teilnahme ist <strong>kostenlos</strong>!</p>
-                                </div>
+                                </x-alert>
                             @endguest
 
                             <div>
-                                <label class="block text-sm font-medium mb-2">Mobile Rufnummer (optional)</label>
-                                <input type="tel" name="mobile" value="{{ old('mobile', optional($user)->mobile ?? '') }}" class="w-full px-3 py-2 border rounded dark:bg-gray-700 dark:border-gray-600" placeholder="+49 123 456789">
-                                <p class="text-xs text-gray-500 mt-1">Für WhatsApp-Updates</p>
+                                <x-input label="Mobile Rufnummer (optional)" type="tel" name="mobile" :value="old('mobile', optional($user)->mobile ?? '')" placeholder="+49 123 456789" hint="Für WhatsApp-Updates" data-testid="fantreffen-mobile" />
                             </div>
 
                             @if(!$tshirtDeadlinePassed)
-                                <div class="border-t pt-4">
+                                <div class="border-t border-base-content/10 pt-4">
                                     {{-- Prominenter Hinweis zur Bestellfrist --}}
-                                    <x-fantreffen-tshirt-deadline-notice 
+                                    <x-fantreffen-tshirt-deadline-notice
                                         :tshirtDeadlinePassed="$tshirtDeadlinePassed"
                                         :tshirtDeadlineFormatted="$tshirtDeadlineFormatted"
                                         :daysUntilDeadline="$daysUntilDeadline"
                                         variant="prominent"
                                     />
-                                    <label class="flex items-start gap-2">
-                                        <input type="checkbox" name="tshirt_bestellt" id="tshirt_bestellt" value="1" 
+                                    <label class="flex items-start gap-2 cursor-pointer">
+                                        <input type="checkbox" name="tshirt_bestellt" id="tshirt_bestellt" value="1"
                                                {{ old('tshirt_bestellt') ? 'checked' : '' }}
-                                               class="w-5 h-5 mt-0.5">
+                                               class="checkbox checkbox-primary mt-0.5">
                                         <div>
                                             <span class="font-medium">Event-T-Shirt bestellen</span>
-                                            <p class="text-xs text-gray-500 mt-1">25,00 € Spende{{ !Auth::check() ? ' (zusammen mit Teilnahme: 30,00 €)' : '' }}</p>
+                                            <p class="text-xs text-base-content/50 mt-1">25,00 € Spende{{ !Auth::check() ? ' (zusammen mit Teilnahme: 30,00 €)' : '' }}</p>
                                         </div>
                                     </label>
-                                    
+
                                     <div id="tshirt-groesse-container" class="mt-3 hidden">
                                         <label class="block text-sm font-medium mb-2">T-Shirt-Größe *</label>
-                                        <select name="tshirt_groesse" id="tshirt_groesse" class="w-full px-3 py-2 border rounded dark:bg-gray-700 dark:border-gray-600">
+                                        <select name="tshirt_groesse" id="tshirt_groesse" class="select select-bordered w-full" data-testid="fantreffen-tshirt-groesse">
                                             <option value="">Bitte wählen...</option>
-                                            <option value="XS" {{ old('tshirt_groesse') === 'XS' ? 'selected' : '' }}>XS</option>
-                                            <option value="S" {{ old('tshirt_groesse') === 'S' ? 'selected' : '' }}>S</option>
-                                            <option value="M" {{ old('tshirt_groesse') === 'M' ? 'selected' : '' }}>M</option>
-                                            <option value="L" {{ old('tshirt_groesse') === 'L' ? 'selected' : '' }}>L</option>
-                                            <option value="XL" {{ old('tshirt_groesse') === 'XL' ? 'selected' : '' }}>XL</option>
-                                            <option value="XXL" {{ old('tshirt_groesse') === 'XXL' ? 'selected' : '' }}>XXL</option>
-                                            <option value="XXXL" {{ old('tshirt_groesse') === 'XXXL' ? 'selected' : '' }}>XXXL</option>
+                                            @foreach(['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL'] as $size)
+                                                <option value="{{ $size }}" {{ old('tshirt_groesse') === $size ? 'selected' : '' }}>{{ $size }}</option>
+                                            @endforeach
                                         </select>
                                     </div>
                                 </div>
                             @endif
 
-                            <button type="submit" class="w-full px-6 py-3 bg-[#8B0116] text-white font-bold rounded-lg hover:bg-[#6b000e] transition">
-                                @if($paymentAmount > 0)
-                                    Weiter zur Zahlung ({{ number_format($paymentAmount, 2, ',', '.') }} €)
-                                @else
-                                    Jetzt anmelden
-                                @endif
-                            </button>
+                            <x-button
+                                type="submit"
+                                :label="$paymentAmount > 0 ? 'Weiter zur Zahlung (' . number_format($paymentAmount, 2, ',', '.') . ' €)' : 'Jetzt anmelden'"
+                                class="btn-primary w-full"
+                                data-testid="fantreffen-submit"
+                            />
                         </form>
                     </div>
                 </div>
