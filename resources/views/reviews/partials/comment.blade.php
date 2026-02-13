@@ -22,9 +22,10 @@
             <form x-show="editing" method="POST" action="{{ route('reviews.comments.update', $comment) }}" class="mt-2">
                 @csrf
                 @method('PUT')
-                <x-field-group name="content" label="Kommentar" :id="$editId">
-                    <textarea id="{{ $editId }}" name="content" aria-describedby="{{ $editId }}-error" rows="2" class="textarea textarea-bordered w-full" required>{{ old('content', $comment->content) }}</textarea>
-                </x-field-group>
+                <fieldset class="fieldset py-0">
+                    <legend class="fieldset-legend mb-0.5">Kommentar</legend>
+                    <textarea id="{{ $editId }}" name="content" aria-describedby="{{ $editId }}-error" rows="2" class="textarea w-full" required>{{ old('content', $comment->content) }}</textarea>
+                </fieldset>
                 <div class="mt-2 flex flex-col sm:flex-row gap-2">
                     <x-button label="Speichern" type="submit" class="btn-info btn-sm" />
                     <x-button label="Abbrechen" @click="editing = false" class="btn-ghost btn-sm" />
@@ -65,9 +66,10 @@
     <form method="POST" action="{{ route('reviews.comments.store', $comment->review) }}" class="mt-2">
         @csrf
         <input type="hidden" name="parent_id" value="{{ $comment->id }}">
-        <x-field-group name="content" label="Kommentar" :id="$replyId">
-            <textarea id="{{ $replyId }}" name="content" aria-describedby="{{ $replyId }}-error" rows="2" class="textarea textarea-bordered w-full" required></textarea>
-        </x-field-group>
+        <fieldset class="fieldset py-0">
+            <legend class="fieldset-legend mb-0.5">Kommentar</legend>
+            <textarea id="{{ $replyId }}" name="content" aria-describedby="{{ $replyId }}-error" rows="2" class="textarea w-full" required></textarea>
+        </fieldset>
         <x-button label="Antworten" type="submit" class="btn-info btn-sm mt-2" />
     </form>
 </div>

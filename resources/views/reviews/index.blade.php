@@ -10,30 +10,34 @@
             @php
                 $filtersApplied = request()->filled('roman_number') || request()->filled('title') || request()->filled('author') || request()->filled('review_status');
             @endphp
+            @php
+                $reviewStatusOptions = [
+                    ['id' => '', 'name' => 'Alle'],
+                    ['id' => 'with', 'name' => 'Mit Rezension'],
+                    ['id' => 'without', 'name' => 'Ohne Rezension'],
+                ];
+            @endphp
             <div x-data="{ open: @js($filtersApplied) }" class="mb-6">
-                <button type="button" @click="open = !open" class="w-full flex justify-between items-center bg-base-100 shadow-xs rounded-lg p-4">
+                <x-button
+                    @click="open = !open"
+                    class="w-full flex justify-between items-center btn-ghost bg-base-100 shadow-xs rounded-lg p-4"
+                >
                     <span class="font-semibold text-base-content" x-text="open ? 'Filter ausblenden' : 'Filter anzeigen'"></span>
                     <x-icon name="o-chevron-down" class="w-5 h-5 transform transition-transform" x-bind:class="{ 'rotate-180': open }" />
-                </button>
+                </x-button>
                 <div x-show="open" x-transition class="mt-4">
                     <form method="GET" action="{{ route('reviews.index') }}" class="bg-base-100 shadow-xs rounded-lg p-6">
                         <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                            <x-field-group name="roman_number" label="Nr.">
-                                <input id="roman_number" name="roman_number" aria-describedby="roman_number-error" type="text" value="{{ request('roman_number') }}" class="input input-bordered w-full mt-1" />
-                            </x-field-group>
-                            <x-field-group name="title" label="Titel">
-                                <input id="title" name="title" aria-describedby="title-error" type="text" value="{{ request('title') }}" class="input input-bordered w-full mt-1" />
-                            </x-field-group>
-                            <x-field-group name="author" label="Autor">
-                                <input id="author" name="author" aria-describedby="author-error" type="text" value="{{ request('author') }}" class="input input-bordered w-full mt-1" />
-                            </x-field-group>
-                            <x-field-group name="review_status" label="Rezensionsstatus">
-                                <select id="review_status" name="review_status" aria-describedby="review_status-error" class="select select-bordered w-full mt-1">
-                                    <option value="">Alle</option>
-                                    <option value="with" @selected(request('review_status') === 'with')>Mit Rezension</option>
-                                    <option value="without" @selected(request('review_status') === 'without')>Ohne Rezension</option>
-                                </select>
-                            </x-field-group>
+                            <x-input name="roman_number" label="Nr." value="{{ request('roman_number') }}" />
+                            <x-input name="title" label="Titel" value="{{ request('title') }}" />
+                            <x-input name="author" label="Autor" value="{{ request('author') }}" />
+                            <x-select
+                                name="review_status"
+                                label="Rezensionsstatus"
+                                :options="$reviewStatusOptions"
+                                :value="request('review_status', '')"
+                                placeholder=""
+                            />
                         </div>
                         <div class="mt-4 flex flex-col sm:flex-row sm:items-center gap-2">
                             <x-button label="Filtern" type="submit" class="btn-primary" />

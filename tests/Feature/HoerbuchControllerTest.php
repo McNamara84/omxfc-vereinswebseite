@@ -482,8 +482,8 @@ class HoerbuchControllerTest extends TestCase
         $response = $this->actingAs($user)->get(route('hoerbuecher.index'));
 
         $response->assertOk();
-        $response->assertSee('<span class="ml-2">Besetzt</span>', false);
-        $response->assertSee('<span class="ml-2">Unbesetzt</span>', false);
+        $response->assertSee('<span>Besetzt</span>', false);
+        $response->assertSee('<span>Unbesetzt</span>', false);
         $response->assertDontSee('Rollen besetzt');
         $response->assertDontSee('Rollen unbesetzt');
     }
