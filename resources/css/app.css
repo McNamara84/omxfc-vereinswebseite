@@ -27,6 +27,12 @@
     --color-error: oklch(48% 0.19 25);
 }
 
+/* fieldset-label (maryUI Hint-Text): DaisyUI-Standard hat zu wenig Kontrast (~3.4:1).
+   oklch(0.44 0 0) ≈ #616161 ergibt ≥ 5:1 auf Creme-Hintergrund (WCAG AA) */
+[data-theme="caramellatte"] .fieldset-label {
+    color: oklch(0.44 0 0);
+}
+
 [x-cloak] {
     display: none !important;
 }

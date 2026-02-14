@@ -1267,9 +1267,9 @@ class RomantauschControllerTest extends TestCase
 
         $followUp = $this->get(route('romantausch.create-request'));
         $followUp->assertSeeText('Bitte gib den gewünschten Zustand an.');
-        // Prüfe, dass der zuvor gewählte Serien-Wert als value-Attribut auf dem Select erhalten bleibt
+        // Prüfe, dass der zuvor gewählte Serien-Wert als value-Attribut auf dem Serien-Select erhalten bleibt
         $this->assertMatchesRegularExpression(
-            '/value="'.preg_quote(BookType::MissionMars->value, '/').'"/si',
+            '/<select\b(?=[^>]*\bname="series")(?=[^>]*\bvalue="'.preg_quote(BookType::MissionMars->value, '/').'")[^>]*>/si',
             $followUp->getContent()
         );
     }

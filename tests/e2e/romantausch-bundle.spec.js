@@ -298,7 +298,7 @@ test.describe('Romantauschbörse - Stapel-Angebote', () => {
             const accessibilityScanResults = await new AxeBuilder({ page })
                 .withTags(['wcag2a', 'wcag2aa'])
                 .exclude('.leaflet-container')
-                // Deaktiviere nested-interactive - bekanntes maryUI Dropdown Problem
+
                 .disableRules(['nested-interactive'])
                 .analyze();
 

@@ -259,6 +259,13 @@
                             }
                         }
 
+                        // Erstes fehlerhaftes Feld fokussieren und Browser-Validierungshinweis anzeigen
+                        const firstInvalid = form.querySelector('[aria-invalid="true"]');
+                        if (firstInvalid) {
+                            firstInvalid.focus();
+                            firstInvalid.reportValidity();
+                        }
+
                         messages.textContent = 'Bitte korrigiere die markierten Felder.';
                         messages.className = 'mb-4 p-4 bg-red-100 border border-red-400 text-red-800 rounded';
                         messages.classList.remove('hidden');

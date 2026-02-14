@@ -20,27 +20,8 @@
                     $photosErrorMessage = $photoError ?: (count($photoItemErrors) > 0 ? implode(' ', $photoItemErrors) : null);
 
                     $seriesOptions = collect($types)->map(fn($t) => ['id' => $t->value, 'name' => $t->value])->toArray();
-                    $conditionOptions = [
-                        ['id' => 'Z0', 'name' => 'Z0 - ' . __('romantausch.condition.Z0')],
-                        ['id' => 'Z0-1', 'name' => 'Z0-1 - ' . __('romantausch.condition.Z0-1')],
-                        ['id' => 'Z1', 'name' => 'Z1 - ' . __('romantausch.condition.Z1')],
-                        ['id' => 'Z1-2', 'name' => 'Z1-2 - ' . __('romantausch.condition.Z1-2')],
-                        ['id' => 'Z2', 'name' => 'Z2 - ' . __('romantausch.condition.Z2')],
-                        ['id' => 'Z2-3', 'name' => 'Z2-3 - ' . __('romantausch.condition.Z2-3')],
-                        ['id' => 'Z3', 'name' => 'Z3 - ' . __('romantausch.condition.Z3')],
-                    ];
-                    $conditionMaxOptions = [
-                        ['id' => '', 'name' => __('romantausch.condition.same')],
-                        ['id' => 'Z0', 'name' => 'Z0 - ' . __('romantausch.condition.Z0')],
-                        ['id' => 'Z0-1', 'name' => 'Z0-1 - ' . __('romantausch.condition.Z0-1')],
-                        ['id' => 'Z1', 'name' => 'Z1 - ' . __('romantausch.condition.Z1')],
-                        ['id' => 'Z1-2', 'name' => 'Z1-2 - ' . __('romantausch.condition.Z1-2')],
-                        ['id' => 'Z2', 'name' => 'Z2 - ' . __('romantausch.condition.Z2')],
-                        ['id' => 'Z2-3', 'name' => 'Z2-3 - ' . __('romantausch.condition.Z2-3')],
-                        ['id' => 'Z3', 'name' => 'Z3 - ' . __('romantausch.condition.Z3')],
-                        ['id' => 'Z3-4', 'name' => 'Z3-4 - ' . __('romantausch.condition.Z3-4')],
-                        ['id' => 'Z4', 'name' => 'Z4 - ' . __('romantausch.condition.Z4')],
-                    ];
+                    $conditionOptions = \App\Support\ConditionOptions::standard();
+                    $conditionMaxOptions = \App\Support\ConditionOptions::withSameOption();
                 @endphp
 
                 @if(session('error'))
@@ -176,5 +157,16 @@
         </x-card>
     </x-member-page>
 </x-app-layout>
+
+@push('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // maryUI Select: value-Attribut zu DOM-Selection synchronisieren (old()-Werte)
+            document.querySelectorAll('#bundle-offer-form select[value]').forEach(s => {
+                s.value = s.getAttribute('value');
+            });
+        });
+    </script>
+@endpush
 
 @vite(['resources/js/romantausch-bundle-preview.js'])

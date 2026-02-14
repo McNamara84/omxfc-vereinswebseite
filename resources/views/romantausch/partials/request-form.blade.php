@@ -13,17 +13,7 @@
 
             $seriesOptions = collect($types)->map(fn($t) => ['id' => $t->value, 'name' => $t->value])->toArray();
             $bookOptions = $books->map(fn($b) => ['id' => $b->roman_number, 'name' => $b->roman_number . ' - ' . $b->title])->toArray();
-            $conditionOptions = [
-                ['id' => 'Z0', 'name' => 'Z0 - ' . __('romantausch.condition.Z0')],
-                ['id' => 'Z0-1', 'name' => 'Z0-1 - ' . __('romantausch.condition.Z0-1')],
-                ['id' => 'Z1', 'name' => 'Z1 - ' . __('romantausch.condition.Z1')],
-                ['id' => 'Z1-2', 'name' => 'Z1-2 - ' . __('romantausch.condition.Z1-2')],
-                ['id' => 'Z2', 'name' => 'Z2 - ' . __('romantausch.condition.Z2')],
-                ['id' => 'Z2-3', 'name' => 'Z2-3 - ' . __('romantausch.condition.Z2-3')],
-                ['id' => 'Z3', 'name' => 'Z3 - ' . __('romantausch.condition.Z3')],
-                ['id' => 'Z3-4', 'name' => 'Z3-4 - ' . __('romantausch.condition.Z3-4')],
-                ['id' => 'Z4', 'name' => 'Z4 - ' . __('romantausch.condition.Z4')],
-            ];
+            $conditionOptions = \App\Support\ConditionOptions::full();
 
             $booksBySeries = $books->groupBy(fn($b) => $b->type->value)
                 ->map(fn($group) => $group->pluck('roman_number')->map(fn($n) => (string) $n)->values());
@@ -77,6 +67,11 @@
 @push('scripts')
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+            // maryUI Select: value-Attribut zu DOM-Selection synchronisieren (old()-Werte)
+            document.querySelectorAll('#request-form select[value]').forEach(s => {
+                s.value = s.getAttribute('value');
+            });
+
             const seriesSelect = document.getElementById('series-select');
             const bookSelect = document.getElementById('book-select');
             const booksBySeries = @json($booksBySeries);
