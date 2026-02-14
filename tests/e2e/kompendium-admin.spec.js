@@ -50,9 +50,11 @@ test.describe('Kompendium Admin Dashboard', () => {
     test('can filter by series', async ({ page }) => {
         await page.goto('/kompendium/admin');
 
-        // Filter auf Mission Mars setzen - verwende data-testid
-        const filterSection = page.getByTestId('filter-section');
-        await filterSection.getByLabel('Serie').selectOption('missionmars');
+        // Standard-Tab ist Maddrax - prüfe dass Maddrax-Roman sichtbar ist
+        await expect(page.getByRole('cell', { name: 'Der Gott aus dem Eis' })).toBeVisible();
+
+        // Auf Mission Mars Tab klicken
+        await page.getByTestId('tab-missionmars').click();
 
         // Warten auf Livewire-Update
         await page.waitForTimeout(1000);
