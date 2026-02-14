@@ -24,7 +24,7 @@
                 @method('PUT')
                 <fieldset class="fieldset py-0">
                     <legend class="fieldset-legend mb-0.5">Kommentar</legend>
-                    <textarea id="{{ $editId }}" name="content" aria-describedby="{{ $editId }}-error" rows="2" class="textarea w-full" required>{{ old('content', $comment->content) }}</textarea>
+                    <textarea id="{{ $editId }}" name="content" aria-describedby="{{ $editId }}-error" rows="2" class="textarea textarea-bordered w-full" required>{{ old('content', $comment->content) }}</textarea>
                 </fieldset>
                 <div class="mt-2 flex flex-col sm:flex-row gap-2">
                     <x-button label="Speichern" type="submit" class="btn-info btn-sm" />
@@ -68,7 +68,7 @@
         <input type="hidden" name="parent_id" value="{{ $comment->id }}">
         <fieldset class="fieldset py-0">
             <legend class="fieldset-legend mb-0.5">Kommentar</legend>
-            <textarea id="{{ $replyId }}" name="content" aria-describedby="{{ $replyId }}-error" rows="2" class="textarea w-full" required></textarea>
+            <textarea id="{{ $replyId }}" name="content" aria-describedby="{{ $replyId }}-error" rows="2" class="textarea textarea-bordered w-full" required></textarea>
         </fieldset>
         <x-button label="Antworten" type="submit" class="btn-info btn-sm mt-2" />
     </form>
