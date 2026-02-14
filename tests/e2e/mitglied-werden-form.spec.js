@@ -18,7 +18,7 @@ test('form requires acceptance of Satzung before enabling submit', async ({ page
   await fillRequiredFields(page);
   const submitButton = page.getByRole('button', { name: 'Antrag absenden' });
   await expect(submitButton).toBeDisabled();
-  await page.locator('#satzung_check').check();
+  await page.getByRole('checkbox', { name: /Satzung/ }).check();
   await expect(submitButton).toBeEnabled();
 });
 

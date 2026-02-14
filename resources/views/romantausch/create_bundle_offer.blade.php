@@ -76,7 +76,7 @@
                                 hint="Gib Nummern einzeln (1, 5, 7) oder als Bereich (1-50) an, getrennt durch Kommas."
                                 error-field="book_numbers"
                                 x-model="input"
-                                x-init="input = $el.querySelector('input')?.value || input; parseNumbers()"
+                                x-init="input = $el.value || input; parseNumbers()"
                                 @input.debounce.300ms="parseNumbers()"
                             />
 

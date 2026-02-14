@@ -15,6 +15,6 @@ test('mitglied-werden form enables submit button after validation and terms acce
   await page.locator('input[name="passwort_confirmation"]').fill('Passwort1');
   const submitButton = page.getByRole('button', { name: 'Antrag absenden' });
   await expect(submitButton).toBeDisabled();
-  await page.locator('#satzung_check').check();
+  await page.getByRole('checkbox', { name: /Satzung/ }).check();
   await expect(submitButton).toBeEnabled();
 });

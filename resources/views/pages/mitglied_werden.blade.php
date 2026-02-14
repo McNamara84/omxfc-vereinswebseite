@@ -51,6 +51,7 @@
                         min="12"
                         max="120"
                         step="1"
+                        value="{{ old('mitgliedsbeitrag', 12) }}"
                         x-model="beitrag"
                         class="range range-primary w-full"
                     >
