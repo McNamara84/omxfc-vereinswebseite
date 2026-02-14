@@ -27,6 +27,7 @@
                 <x-select
                     name="land"
                     label="Land"
+                    aria-label="Land"
                     class="w-full"
                     placeholder="Bitte wählen"
                     :options="$landOptions"
@@ -72,6 +73,7 @@
                 <x-select
                     name="verein_gefunden"
                     label="Wie hast du von uns erfahren? (optional)"
+                    aria-label="Wie hast du von uns erfahren?"
                     class="w-full"
                     placeholder="Bitte auswählen"
                     :options="$vereinGefundenOptions"

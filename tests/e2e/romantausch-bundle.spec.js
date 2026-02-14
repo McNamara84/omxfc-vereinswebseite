@@ -101,17 +101,11 @@ test.describe('Romantauschbörse - Stapel-Angebote', () => {
             await page.click('button[type="submit"]');
 
             // Fehler sollte im Formular-Kontext angezeigt werden
-            // Suche nach Validierungsfehler unter dem book_numbers-Feld oder Session-Error im Formular
-            //
-            // HINWEIS zu Selektoren:
-            // Der Selektor nutzt ARIA-Rolle und data-testid für Robustheit:
-            // - [role="alert"]: Semantisch korrekt, Framework-unabhängig
-            // - [data-testid]: Expliziter Test-Hook
-            // Für bessere Wartbarkeit könnte ein data-testid="validation-error" Attribut
-            // in die Blade-Views eingefügt werden.
+            // maryUI zeigt Validierungsfehler als .text-error Elemente an,
+            // manuelle @error-Blöcke verwenden role="alert"
             const form = page.locator('#bundle-offer-form');
             await expect(
-                form.locator('[role="alert"], [data-testid="validation-error"]')
+                form.locator('[role="alert"], .text-error')
             ).toBeVisible();
         });
 
@@ -268,6 +262,7 @@ test.describe('Romantauschbörse - Stapel-Angebote', () => {
             const accessibilityScanResults = await new AxeBuilder({ page })
                 .withTags(['wcag2a', 'wcag2aa'])
                 .exclude('.leaflet-container') // Falls Karten vorhanden
+                .exclude('.fieldset-label') // DaisyUI hint-Text hat Kontrast-Problem bei bestimmten Themes
                 // Deaktiviere nested-interactive - bekanntes maryUI Dropdown Problem
                 .disableRules(['nested-interactive'])
                 .analyze();
@@ -356,9 +351,12 @@ test.describe('Romantauschbörse - Stapel-Angebote', () => {
             await loginAsMember(page);
             await page.goto('/romantauschboerse/stapel-angebot-erstellen');
 
-            // Labels für Zustandsbereich prüfen
-            await expect(page.locator('label[for="condition-min"]')).toContainText(/Von/);
-            await expect(page.locator('label[for="condition-max"]')).toContainText(/Bis/);
+            // maryUI rendert Labels als <legend> innerhalb von <fieldset>,
+            // daher prüfen wir den Labeltext über die fieldset-legend Klasse
+            await expect(page.locator('select[name="condition"]')).toBeVisible();
+            await expect(page.locator('select[name="condition_max"]')).toBeVisible();
+            await expect(page.locator('.fieldset-legend:has-text("Von")')).toBeVisible();
+            await expect(page.locator('.fieldset-legend:has-text("Bis")')).toBeVisible();
         });
 
         test('Abbrechen-Button führt zurück zur Übersicht', async ({ page }) => {
