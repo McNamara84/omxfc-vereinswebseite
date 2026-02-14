@@ -47,9 +47,9 @@ class AuthenticationTest extends TestCase
         $response = $this->get('/login');
 
         // data-testid-Attribute für E2E-Tests
-        $response->assertSee('data-testid="login-email-input"', false);
-        $response->assertSee('data-testid="login-password-input"', false);
-        $response->assertSee('data-testid="login-submit-button"', false);
+        $response->assertSee('data-testid="login-email"', false);
+        $response->assertSee('data-testid="login-password"', false);
+        $response->assertSee('data-testid="login-submit"', false);
 
         // Semantische Struktur: H1-Heading, Label-Legenden, Formular-Action
         $html = $response->getContent();

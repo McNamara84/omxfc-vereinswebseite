@@ -44,6 +44,7 @@
                     <div class="flex items-center justify-end mt-6">
                         <x-button
                             label="Wiederherstellungscode verwenden"
+                            type="button"
                             class="btn-ghost btn-sm"
                             x-show="! recovery"
                             x-on:click.prevent="
@@ -55,6 +56,7 @@
 
                         <x-button
                             label="Authentifizierungscode verwenden"
+                            type="button"
                             class="btn-ghost btn-sm"
                             x-cloak
                             x-show="recovery"

@@ -23,7 +23,7 @@
                     required
                     autofocus
                     autocomplete="username"
-                    data-testid="login-email-input"
+                    data-testid="login-email"
                 />
 
                 <x-input
@@ -34,7 +34,7 @@
                     required
                     autocomplete="current-password"
                     class="mt-4"
-                    data-testid="login-password-input"
+                    data-testid="login-password"
                 />
 
                 <div class="mt-4">
@@ -45,7 +45,7 @@
                     @if (Route::has('password.request'))
                         <x-button label="Passwort vergessen?" :link="route('password.request')" class="btn-ghost btn-sm" data-testid="login-forgot-password" />
                     @endif
-                    <x-button label="Login" type="submit" class="btn-primary" data-testid="login-submit-button" />
+                    <x-button label="Login" type="submit" class="btn-primary" data-testid="login-submit" />
                 </div>
             </form>
         </x-card>
