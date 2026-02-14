@@ -5,70 +5,81 @@
         <div id="form-messages" class="mb-4 hidden"></div>
         <form id="mitgliedschaft-form" class="w-full">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-                <x-forms.text-field name="vorname" label="Vorname" required class="w-full" autocomplete="given-name" />
+                <x-input name="vorname" label="Vorname" required class="w-full" autocomplete="given-name" />
 
-                <x-forms.text-field name="nachname" label="Nachname" required class="w-full" autocomplete="family-name" />
+                <x-input name="nachname" label="Nachname" required class="w-full" autocomplete="family-name" />
 
-                <x-forms.text-field name="strasse" label="Straße" required class="w-full" autocomplete="address-line1" />
+                <x-input name="strasse" label="Straße" required class="w-full" autocomplete="address-line1" />
 
-                <x-forms.text-field name="hausnummer" label="Hausnummer" required class="w-full" autocomplete="address-line2" />
+                <x-input name="hausnummer" label="Hausnummer" required class="w-full" autocomplete="address-line2" />
 
-                <x-forms.text-field name="plz" label="Postleitzahl" required class="w-full" autocomplete="postal-code" />
+                <x-input name="plz" label="Postleitzahl" required class="w-full" autocomplete="postal-code" />
 
-                <x-forms.text-field name="stadt" label="Stadt" required class="w-full" autocomplete="address-level2" />
+                <x-input name="stadt" label="Stadt" required class="w-full" autocomplete="address-level2" />
 
-                <x-forms.select-field
+                @php
+                    $landOptions = [
+                        ['id' => 'Deutschland', 'name' => 'Deutschland'],
+                        ['id' => 'Österreich', 'name' => 'Österreich'],
+                        ['id' => 'Schweiz', 'name' => 'Schweiz'],
+                    ];
+                @endphp
+                <x-select
                     name="land"
                     label="Land"
                     class="w-full"
                     placeholder="Bitte wählen"
-                    :options="[
-                        'Deutschland' => 'Deutschland',
-                        'Österreich' => 'Österreich',
-                        'Schweiz' => 'Schweiz',
-                    ]"
+                    :options="$landOptions"
                     required
                 />
 
-                <x-forms.text-field name="mail" label="Mailadresse" type="email" required class="w-full" autocomplete="username" />
+                <x-input name="mail" label="Mailadresse" type="email" required class="w-full" autocomplete="username" />
 
-                <x-forms.text-field name="passwort" label="Passwort" type="password" required class="w-full" autocomplete="new-password" help="Mindestens 6 Zeichen." />
+                <x-input name="passwort" label="Passwort" type="password" required class="w-full" autocomplete="new-password" hint="Mindestens 6 Zeichen." />
 
-                <x-forms.text-field name="passwort_confirmation" label="Passwort wiederholen" type="password" required class="w-full" autocomplete="new-password" help="Bitte wiederhole dein Passwort." />
-                <x-forms.range-field
-                    name="mitgliedsbeitrag"
-                    label="Jährlicher Mitgliedsbeitrag"
-                    class="col-span-1 md:col-span-2 w-full"
-                    min="12"
-                    max="120"
-                    step="1"
-                    value="12"
-                    output-id="beitrag-output"
-                    output-suffix="€"
-                    help="Du kannst deinen Mitgliedsbeitrag ab einem monatlichen Beitrag von 1€/Monat (12€/Jahr) selbst wählen. Diesen Mitgliedsbeitrag kannst du jederzeit in deinen Einstellungen im internen Mitgliederbereich ändern und so deinen nächsten Jahresbeitrag anpassen. Bei Fragen hierzu wende dich gerne an den Vorstand."
-                />
-                <x-forms.text-field name="telefon" label="Handynummer (optional)" type="tel" class="w-full" autocomplete="tel" placeholder="+49 170 1234567" help="Optional. Bitte im internationalen Format eingeben." />
+                <x-input name="passwort_confirmation" label="Passwort wiederholen" type="password" required class="w-full" autocomplete="new-password" hint="Bitte wiederhole dein Passwort." />
 
-                <x-forms.select-field
+                <div class="col-span-1 md:col-span-2 w-full space-y-2" x-data="{ beitrag: {{ old('mitgliedsbeitrag', 12) }} }">
+                    <label for="mitgliedsbeitrag" class="pt-0 label label-text font-semibold">
+                        Jährlicher Mitgliedsbeitrag: <span id="beitrag-output" class="font-semibold text-[#8B0116] dark:text-[#ff4b63]" aria-live="polite" x-text="beitrag + '€'">{{ old('mitgliedsbeitrag', 12) }}€</span>
+                    </label>
+                    <input
+                        type="range"
+                        id="mitgliedsbeitrag"
+                        name="mitgliedsbeitrag"
+                        min="12"
+                        max="120"
+                        step="1"
+                        x-model="beitrag"
+                        class="range range-primary w-full"
+                    >
+                    <p class="text-sm text-base-content/70">Du kannst deinen Mitgliedsbeitrag ab einem monatlichen Beitrag von 1€/Monat (12€/Jahr) selbst wählen. Diesen Mitgliedsbeitrag kannst du jederzeit in deinen Einstellungen im internen Mitgliederbereich ändern und so deinen nächsten Jahresbeitrag anpassen. Bei Fragen hierzu wende dich gerne an den Vorstand.</p>
+                </div>
+
+                <x-input name="telefon" label="Handynummer (optional)" type="tel" class="w-full" autocomplete="tel" placeholder="+49 170 1234567" hint="Optional. Bitte im internationalen Format eingeben." />
+
+                @php
+                    $vereinGefundenOptions = [
+                        ['id' => 'Facebook', 'name' => 'Facebook'],
+                        ['id' => 'Instagram', 'name' => 'Instagram'],
+                        ['id' => 'Leserkontaktseite', 'name' => 'Leserkontaktseite'],
+                        ['id' => 'Befreundete Person', 'name' => 'Befreundete Person'],
+                        ['id' => 'Fantreffen/MaddraxCon', 'name' => 'Fantreffen/MaddraxCon'],
+                        ['id' => 'Google', 'name' => 'Google'],
+                        ['id' => 'Sonstiges', 'name' => 'Sonstiges'],
+                    ];
+                @endphp
+                <x-select
                     name="verein_gefunden"
                     label="Wie hast du von uns erfahren? (optional)"
                     class="w-full"
                     placeholder="Bitte auswählen"
-                    :options="[
-                        'Facebook' => 'Facebook',
-                        'Instagram' => 'Instagram',
-                        'Leserkontaktseite' => 'Leserkontaktseite',
-                        'Befreundete Person' => 'Befreundete Person',
-                        'Fantreffen/MaddraxCon' => 'Fantreffen/MaddraxCon',
-                        'Google' => 'Google',
-                        'Sonstiges' => 'Sonstiges',
-                    ]"
+                    :options="$vereinGefundenOptions"
                 />
 
                 <!-- Checkbox über volle Breite -->
                 <div class="col-span-1 md:col-span-2 flex items-start mt-2">
-                    <input type="checkbox" id="satzung_check" name="satzung_check"
-                        class="mt-1 rounded border-gray-300 shadow-sm">
+                    <input type="checkbox" id="satzung_check" name="satzung_check" class="checkbox mt-1">
                     <label for="satzung_check" class="ml-2 text-sm">
                         Ich habe die <a href="{{ route('satzung') }}" target="_blank"
                             class="text-blue-600 dark:text-blue-400 hover:underline">Satzung</a> gelesen und bin mit ihr
@@ -76,16 +87,10 @@
                     </label>
                 </div>
             </div>
-            <button type="submit" id="submit-button"
-                class="mt-6 bg-[#8B0116] text-white py-2 px-4 rounded-md hover:bg-[#7a0113] transition duration-150 opacity-50 cursor-not-allowed dark:bg-[#9f0119] dark:hover:bg-[#8a0115]"
-                disabled>Antrag absenden</button>
+            <x-button label="Antrag absenden" type="submit" id="submit-button" class="btn-primary mt-6 opacity-50 cursor-not-allowed" disabled />
             <!-- Lade-Indikator -->
             <div id="loading-indicator" class="mt-4 hidden flex items-center justify-center">
-                <svg class="animate-spin h-8 w-8 text-[#8B0116]" xmlns="http://www.w3.org/2000/svg" fill="none"
-                    viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v2.5A5.5 5.5 0 006.5 12H4z"></path>
-                </svg>
+                <x-loading class="loading-spinner loading-lg text-[#8B0116]" />
                 <span class="ml-2 font-medium text-[#8B0116]">Dein Antrag wird gesendet, bitte warten...</span>
             </div>
         </form>
@@ -93,11 +98,6 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const form = document.getElementById('mitgliedschaft-form');
-            const beitrag = document.getElementById('mitgliedsbeitrag');
-            const beitragOutputId = beitrag?.dataset.outputTarget || 'beitrag-output';
-            const beitragOutput = document.getElementById(beitragOutputId);
-            const beitragOutputPrefix = beitrag?.dataset.outputPrefix || '';
-            const beitragOutputSuffix = beitrag?.dataset.outputSuffix || '';
             const satzungCheck = document.getElementById('satzung_check');
             const submitButton = document.getElementById('submit-button');
             const missingFieldWarnings = new Set();
@@ -124,20 +124,6 @@
                     optional: true,
                 },
             };
-
-            function updateContributionOutput() {
-                if (!beitrag || !beitragOutput) {
-                    return;
-                }
-
-                beitragOutput.textContent = `${beitragOutputPrefix}${beitrag.value}${beitragOutputSuffix}`;
-            }
-
-            updateContributionOutput();
-
-            if (beitrag) {
-                beitrag.addEventListener('input', updateContributionOutput);
-            }
 
             satzungCheck.addEventListener('change', toggleSubmit);
             form.addEventListener('input', validateForm);
@@ -169,7 +155,8 @@
             }
 
             function setFieldError(input, message) {
-                const errorElem = getErrorElement(input.id);
+                const fieldName = input.getAttribute('name') || input.id;
+                const errorElem = getErrorElement(fieldName);
 
                 if (errorElem) {
                     errorElem.textContent = message;
@@ -190,7 +177,7 @@
                 let isValid = true;
 
                 for (const [id, rules] of Object.entries(fields)) {
-                    const input = document.getElementById(id);
+                    const input = form.querySelector(`[name="${id}"]`);
 
                     if (!input) {
                         warnMissingField(id);
@@ -203,7 +190,7 @@
                     }
 
                     if (rules.matchWith) {
-                        const matchElem = document.getElementById(rules.matchWith);
+                        const matchElem = form.querySelector(`[name="${rules.matchWith}"]`);
                         const hasError = input.value !== matchElem.value;
                         isValid = setFieldError(input, hasError ? rules.error : '') && isValid;
                     } else {
@@ -256,7 +243,7 @@
                     } else if (response.status === 422 && result && result.errors) {
                         // Serverseitige Validierungsfehler den jeweiligen Feldern zuordnen
                         for (const [field, msgs] of Object.entries(result.errors)) {
-                            const input = document.getElementById(field);
+                            const input = form.querySelector(`[name="${field}"]`);
                             const message = msgs.join(' ');
                             if (input) {
                                 setFieldError(input, message);
