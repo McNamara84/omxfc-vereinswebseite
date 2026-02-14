@@ -54,44 +54,39 @@
             </legend>
         @endif
 
-        <label>
-            <div class="w-full">
-                <label
-                    {{
-                        $attributes->whereStartsWith('class')->class([
-                            'select w-full',
-                            '!select-error' => $hasError,
-                        ])
-                    }}
-                >
-                    <select {{ $attributes->whereDoesntStartWith('class') }}>
-                        @if($placeholder)
-                            <option
-                                value="{{ $placeholderValue }}"
-                                @selected($value === null || (string) $value === (string) $placeholderValue)
-                            >{{ $placeholder }}</option>
-                        @endif
+        <div class="w-full">
+            <label
+                {{
+                    $attributes->whereStartsWith('class')->class([
+                        'select w-full',
+                        '!select-error' => $hasError,
+                    ])
+                }}
+            >
+                <select {{ $attributes->whereDoesntStartWith('class') }}>
+                    @if($placeholder)
+                        <option
+                            value="{{ $placeholderValue }}"
+                            @selected($value === null || (string) $value === (string) $placeholderValue)
+                        >{{ $placeholder }}</option>
+                    @endif
 
-                        @foreach($options as $option)
-                            <option
-                                value="{{ data_get($option, $optionValue) }}"
-                                @selected((string) data_get($option, $optionValue) === (string) $value)
-                                @if(data_get($option, 'disabled')) disabled @endif
-                            >{{ data_get($option, $optionLabel) }}</option>
-                        @endforeach
-                    </select>
-                </label>
-            </div>
-        </label>
+                    @foreach($options as $option)
+                        <option
+                            value="{{ data_get($option, $optionValue) }}"
+                            @selected((string) data_get($option, $optionValue) === (string) $value)
+                            @if(data_get($option, 'disabled')) disabled @endif
+                            @if(data_get($option, 'title')) title="{{ data_get($option, 'title') }}" @endif
+                        >{{ data_get($option, $optionLabel) }}</option>
+                    @endforeach
+                </select>
+            </label>
+        </div>
 
         {{-- ERROR --}}
-        @if($hasError)
-            @foreach($errors->get($errorFieldName) as $message)
-                @foreach(\Illuminate\Support\Arr::wrap($message) as $line)
-                    <div class="text-error">{{ $line }}</div>
-                @endforeach
-            @endforeach
-        @endif
+        @foreach($errors->get($errorFieldName) as $message)
+            <div class="text-error">{{ $message }}</div>
+        @endforeach
 
         {{-- HINT --}}
         @if($hint)

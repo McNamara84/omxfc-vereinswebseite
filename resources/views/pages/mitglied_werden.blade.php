@@ -117,7 +117,7 @@
                 passwort: { regex: /^.{6,}$/, error: 'Passwort mindestens 6 Zeichen.' },
                 passwort_confirmation: { matchWith: 'passwort', error: 'Passwörter stimmen nicht überein.' },
                 telefon: {
-                    regex: /^(\+\d{1,3}[\s\-]?)?[\d\s\-]{4,20}$/,
+                    regex: /^(\+\d{1,3})?\d{4,14}$/,
                     normalize: v => v.replace(/[\s\-\/()]/g, ''),
                     error: 'Bitte gültige Handynummer eingeben.',
                     optional: true,
