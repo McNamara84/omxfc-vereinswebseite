@@ -1,36 +1,53 @@
-<x-guest-layout>
-    <x-authentication-card>
-        <x-slot name="logo">
-            <x-authentication-card-logo />
-        </x-slot>
+<x-app-layout title="Passwort zurücksetzen – Offizieller MADDRAX Fanclub e. V." description="Setze dein Passwort zurück.">
+    <div class="max-w-md mx-auto px-6 py-12">
+        <x-card shadow data-testid="reset-password-card">
+            <x-header title="Passwort zurücksetzen" class="mb-4" />
 
-        <x-validation-errors class="mb-4" />
+            <x-validation-errors class="mb-4" />
 
-        <form method="POST" action="{{ route('password.update') }}">
-            @csrf
+            <form method="POST" action="{{ route('password.update') }}">
+                @csrf
 
-            <input type="hidden" name="token" value="{{ $request->route('token') }}">
+                <input type="hidden" name="token" value="{{ $request->route('token') }}">
 
-            <div class="block">
-                <x-label for="email" value="{{ __('Email') }}" />
-                <x-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email', $request->email)" required autofocus autocomplete="username" />
-            </div>
+                <x-input
+                    label="E-Mail"
+                    id="email"
+                    name="email"
+                    type="email"
+                    :value="old('email', $request->email)"
+                    required
+                    autofocus
+                    autocomplete="username"
+                    data-testid="reset-password-email"
+                />
 
-            <div class="mt-4">
-                <x-label for="password" value="{{ __('Password') }}" />
-                <x-input id="password" class="block mt-1 w-full" type="password" name="password" required autocomplete="new-password" />
-            </div>
+                <x-input
+                    label="Passwort"
+                    id="password"
+                    name="password"
+                    type="password"
+                    required
+                    autocomplete="new-password"
+                    class="mt-4"
+                    data-testid="reset-password-password"
+                />
 
-            <div class="mt-4">
-                <x-label for="password_confirmation" value="{{ __('Confirm Password') }}" />
-                <x-input id="password_confirmation" class="block mt-1 w-full" type="password" name="password_confirmation" required autocomplete="new-password" />
-            </div>
+                <x-input
+                    label="Passwort bestätigen"
+                    id="password_confirmation"
+                    name="password_confirmation"
+                    type="password"
+                    required
+                    autocomplete="new-password"
+                    class="mt-4"
+                    data-testid="reset-password-confirm"
+                />
 
-            <div class="flex items-center justify-end mt-4">
-                <x-button>
-                    {{ __('Reset Password') }}
-                </x-button>
-            </div>
-        </form>
-    </x-authentication-card>
-</x-guest-layout>
+                <div class="flex items-center justify-end mt-6">
+                    <x-button label="Passwort zurücksetzen" type="submit" class="btn-primary" data-testid="reset-password-submit" />
+                </div>
+            </form>
+        </x-card>
+    </div>
+</x-app-layout>

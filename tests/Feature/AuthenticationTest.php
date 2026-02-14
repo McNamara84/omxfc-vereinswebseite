@@ -46,8 +46,9 @@ class AuthenticationTest extends TestCase
     {
         $response = $this->get('/login');
 
-        $response->assertSee('aria-describedby="email-error"', false);
-        $response->assertSee('aria-describedby="password-error"', false);
+        $response->assertSee('data-testid="login-email-input"', false);
+        $response->assertSee('data-testid="login-password-input"', false);
+        $response->assertSee('data-testid="login-submit-button"', false);
     }
 
     public function test_login_validation_errors(): void

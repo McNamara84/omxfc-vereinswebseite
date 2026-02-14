@@ -47,7 +47,7 @@
         <input type="hidden" name="dir" value="{{ $sortDir }}">
         <div class="flex flex-wrap gap-4 items-center">
             <label class="inline-flex items-center">
-                <input type="checkbox" name="filters[]" value="online" @checked(in_array('online', $filters ?? [])) @change="$root.submit()" class="rounded border-base-content/20 text-primary shadow-sm focus:ring-primary">
+                <input type="checkbox" name="filters[]" value="online" @checked(in_array('online', $filters ?? [])) @change="$root.submit()" class="checkbox checkbox-primary" data-testid="mitglieder-filter-online">
                 <span class="ml-2 text-base-content">Nur online</span>
             </label>
         </div>
@@ -61,13 +61,7 @@
                 
                 <div class="flex space-x-2">
                     <!-- CSV Export Button -->
-                    <button @click="showExportOptions = !showExportOptions" type="button" 
-                        class="inline-flex items-center px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/80">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                        CSV Export
-                    </button>
+                    <x-button icon="o-arrow-down-tray" label="CSV Export" @click="showExportOptions = !showExportOptions" class="btn-primary" data-testid="mitglieder-csv-export-btn" />
                     
                     <!-- E-Mail-Adressen kopieren -->
                     <button @click="
@@ -86,10 +80,8 @@
                             })
                             .catch(error => console.error('Fehler beim Abrufen der E-Mails: ', error));
                         " 
-                        class="inline-flex items-center px-4 py-2 btn-info rounded-md hover:bg-info/80">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" />
-                        </svg>
+                        class="btn btn-info">
+                        <x-icon name="o-clipboard-document" class="h-5 w-5 mr-2" />
                         E-Mail-Adressen kopieren
                     </button>
                 </div>
@@ -121,21 +113,14 @@
                         </div>
                     </div>
                     <div class="flex justify-end">
-                        <button type="submit" class="inline-flex items-center px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/80">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                            </svg>
-                            CSV herunterladen
-                        </button>
+                        <x-button type="submit" icon="o-arrow-down-tray" label="CSV herunterladen" class="btn-primary" />
                     </div>
                 </form>
             </div>
             
             <!-- Erfolgsmeldung für E-Mail-Kopieren -->
             <div x-show="emailsCopied" x-transition class="mt-3 text-sm text-success">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block mr-1" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                </svg>
+                <x-icon name="o-check-circle" class="h-5 w-5 inline-block mr-1" />
                 E-Mail-Adressen wurden in die Zwischenablage kopiert!
             </div>
         </div>
@@ -168,13 +153,9 @@
     @if($sortBy === 'nachname')
     <span class="ml-1">
     @if($sortDir === 'asc')
-    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
-    </svg>
+    <x-icon name="o-chevron-up" class="h-4 w-4" />
     @else
-    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-    </svg>
+    <x-icon name="o-chevron-down" class="h-4 w-4" />
     @endif
     </span>
     @endif
@@ -188,13 +169,9 @@
     @if($sortBy === 'mitglied_seit')
     <span class="ml-1">
     @if($sortDir === 'asc')
-    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
-    </svg>
+    <x-icon name="o-chevron-up" class="h-4 w-4" />
     @else
-    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-    </svg>
+    <x-icon name="o-chevron-down" class="h-4 w-4" />
     @endif
     </span>
     @endif
@@ -208,13 +185,9 @@
     @if($sortBy === 'role')
     <span class="ml-1">
     @if($sortDir === 'asc')
-    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
-    </svg>
+    <x-icon name="o-chevron-up" class="h-4 w-4" />
     @else
-    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-    </svg>
+    <x-icon name="o-chevron-down" class="h-4 w-4" />
     @endif
     </span>
     @endif
@@ -229,13 +202,9 @@
     @if($sortBy === 'last_activity')
     <span class="ml-1">
     @if($sortDir === 'asc')
-    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
-    </svg>
+    <x-icon name="o-chevron-up" class="h-4 w-4" />
     @else
-    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-    </svg>
+    <x-icon name="o-chevron-down" class="h-4 w-4" />
     @endif
     </span>
     @endif
@@ -249,13 +218,9 @@
     @if($sortBy === 'mitgliedsbeitrag')
     <span class="ml-1">
     @if($sortDir === 'asc')
-    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
-    </svg>
+    <x-icon name="o-chevron-up" class="h-4 w-4" />
     @else
-    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-    </svg>
+    <x-icon name="o-chevron-down" class="h-4 w-4" />
     @endif
     </span>
     @endif
@@ -309,9 +274,7 @@
     <div x-data="{ showDetails: false }" class="relative">
     <button @click="showDetails = !showDetails" type="button"
     class="inline-flex items-center text-info hover:underline">
-    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-    </svg>
+    <x-icon name="o-information-circle" class="h-4 w-4 mr-1" />
     Info
     </button>
     
@@ -337,12 +300,9 @@
     <td class="px-4 py-3 text-center">
     <div class="flex justify-center items-center space-x-1">
     <a href="{{ route('profile.view', $member->id) }}"
-    class="inline-flex items-center justify-center btn-info text-xs px-2 py-1 rounded"
+    class="inline-flex items-center justify-center btn btn-info btn-xs"
     title="Profil ansehen">
-    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-    </svg>
+    <x-icon name="o-eye" class="h-4 w-4" />
     <span class="ml-1 hidden xl:inline">Profil</span>
     </a>
 
@@ -360,11 +320,9 @@
     <!-- Rolle ändern (Dropdown) -->
     <div class="relative" x-data="{ open: false }">
     <button @click="open = !open" type="button"
-    class="inline-flex items-center justify-center btn-warning text-xs px-2 py-1 rounded"
+    class="inline-flex items-center justify-center btn btn-warning btn-xs"
     title="Rolle ändern">
-    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-    </svg>
+    <x-icon name="o-pencil-square" class="h-4 w-4" />
     <span class="ml-1 hidden xl:inline">Rolle</span>
     </button>
     
@@ -394,11 +352,9 @@
     @csrf
     @method('DELETE')
     <button type="submit"
-    class="inline-flex items-center justify-center btn-error text-xs px-2 py-1 rounded"
+    class="inline-flex items-center justify-center btn btn-error btn-xs"
     title="Mitgliedschaft beenden">
-    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-    </svg>
+    <x-icon name="o-trash" class="h-4 w-4" />
     <span class="ml-1 hidden xl:inline">Löschen</span>
     </button>
     </form>
@@ -484,9 +440,9 @@
     <button @click="open = !open" type="button"
     class="flex items-center justify-between w-full px-4 py-2 text-sm font-medium text-left text-base-content bg-base-200 rounded-md hover:bg-base-300 focus:outline-none focus-visible:ring focus-visible:ring-opacity-75">
     <span>Weitere Details anzeigen</span>
-    <svg :class="{'transform rotate-180': open}" class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-    </svg>
+    <span :class="{'transform rotate-180': open}">
+        <x-icon name="o-chevron-down" class="w-5 h-5" />
+    </span>
     </button>
     <div x-show="open"
     x-transition:enter="transition ease-out duration-100"
@@ -515,11 +471,8 @@
     
     <div class="flex flex-row gap-2">
     <a href="{{ route('profile.view', $member->id) }}"
-    class="flex-1 flex justify-center items-center btn-info py-2 px-3 rounded">
-    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-    </svg>
+    class="flex-1 flex justify-center items-center btn btn-info py-2 px-3 rounded">
+    <x-icon name="o-eye" class="h-4 w-4 mr-1" />
     Profil
     </a>
 
@@ -537,10 +490,8 @@
     <!-- Rolle ändern (Mobile) -->
     <div class="relative flex-1" x-data="{ open: false }">
     <button @click="open = !open" type="button"
-    class="w-full flex justify-center items-center btn-warning py-2 px-3 rounded">
-    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-    </svg>
+    class="w-full flex justify-center items-center btn btn-warning py-2 px-3 rounded">
+    <x-icon name="o-pencil-square" class="h-4 w-4 mr-1" />
     Rolle
     </button>
     
@@ -570,10 +521,8 @@
     @csrf
     @method('DELETE')
     <button type="submit"
-    class="w-full flex justify-center items-center btn-error py-2 px-3 rounded">
-    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-    </svg>
+    class="w-full flex justify-center items-center btn btn-error py-2 px-3 rounded">
+    <x-icon name="o-trash" class="h-4 w-4 mr-1" />
     Löschen
     </button>
     </form>
