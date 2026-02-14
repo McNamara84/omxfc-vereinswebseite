@@ -52,6 +52,7 @@
                     label="Serie"
                     :options="$seriesOptions"
                     :value="$selectedSeries"
+                    error-field="series"
                 />
 
                 <x-select
@@ -60,6 +61,7 @@
                     label="Roman"
                     :options="$bookOptions"
                     :value="$selectedBookNumber"
+                    error-field="book_number"
                 />
 
                 <x-select
@@ -68,6 +70,7 @@
                     label="Zustand"
                     :options="$conditionOptions"
                     :value="$selectedCondition"
+                    error-field="condition"
                 />
             </div>
 

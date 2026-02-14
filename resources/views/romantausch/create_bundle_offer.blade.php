@@ -56,6 +56,7 @@
                             label="Serie"
                             :options="$seriesOptions"
                             :value="$selectedSeries"
+                            error-field="series"
                         />
 
                         <script>
@@ -99,6 +100,7 @@
                                     label="Von (bester Zustand)"
                                     :options="$conditionOptions"
                                     :value="$selectedCondition"
+                                    error-field="condition"
                                 />
                                 <x-select
                                     id="condition-max"
@@ -106,6 +108,7 @@
                                     label="Bis (schlechtester)"
                                     :options="$conditionMaxOptions"
                                     :value="$selectedConditionMax"
+                                    error-field="condition_max"
                                 />
                             </div>
                             @error('condition')
