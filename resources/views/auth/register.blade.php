@@ -56,15 +56,14 @@
 
                 @if (Laravel\Jetstream\Jetstream::hasTermsAndPrivacyPolicyFeature())
                     <div class="mt-4">
-                        <div class="flex items-center">
-                            <x-checkbox name="terms" id="terms" required data-testid="register-terms" />
-                            <div class="ms-2 text-sm">
+                        <x-checkbox name="terms" id="terms" required data-testid="register-terms">
+                            <x-slot:label>
                                 {!! __('Ich stimme den :terms_of_service und der :privacy_policy zu.', [
-                                        'terms_of_service' => '<a target="_blank" rel="noopener noreferrer" href="'.route('terms.show').'" class="underline text-sm text-base-content/70 hover:text-base-content">'.__('Nutzungsbedingungen').'</a>',
-                                        'privacy_policy' => '<a target="_blank" rel="noopener noreferrer" href="'.route('policy.show').'" class="underline text-sm text-base-content/70 hover:text-base-content">'.__('Datenschutzerklärung').'</a>',
+                                        'terms_of_service' => '<a target="_blank" rel="noopener noreferrer" href="'.route('terms.show').'" class="underline text-base-content/70 hover:text-base-content" onclick="event.stopPropagation()">'.__('Nutzungsbedingungen').'</a>',
+                                        'privacy_policy' => '<a target="_blank" rel="noopener noreferrer" href="'.route('policy.show').'" class="underline text-base-content/70 hover:text-base-content" onclick="event.stopPropagation()">'.__('Datenschutzerklärung').'</a>',
                                 ]) !!}
-                            </div>
-                        </div>
+                            </x-slot:label>
+                        </x-checkbox>
                     </div>
                 @endif
 
