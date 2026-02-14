@@ -3,15 +3,12 @@
 namespace Tests\Unit;
 
 use App\Support\ConditionOptions;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\TestCase;
 use PHPUnit\Framework\Attributes\CoversClass;
-use Tests\TestCase;
 
 #[CoversClass(ConditionOptions::class)]
 class ConditionOptionsTest extends TestCase
 {
-    use RefreshDatabase;
-
     protected function setUp(): void
     {
         parent::setUp();
