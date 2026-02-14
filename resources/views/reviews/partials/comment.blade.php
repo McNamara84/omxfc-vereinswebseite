@@ -25,6 +25,7 @@
                 <fieldset class="fieldset py-0">
                     <legend class="fieldset-legend mb-0.5">Kommentar</legend>
                     <textarea id="{{ $editId }}" name="content" aria-describedby="{{ $editId }}-error" rows="2" class="textarea textarea-bordered w-full" required>{{ old('content', $comment->content) }}</textarea>
+                    <x-input-error for="content" :id="$editId . '-error'" />
                 </fieldset>
                 <div class="mt-2 flex flex-col sm:flex-row gap-2">
                     <x-button label="Speichern" type="submit" class="btn-info btn-sm" />
@@ -69,6 +70,7 @@
         <fieldset class="fieldset py-0">
             <legend class="fieldset-legend mb-0.5">Kommentar</legend>
             <textarea id="{{ $replyId }}" name="content" aria-describedby="{{ $replyId }}-error" rows="2" class="textarea textarea-bordered w-full" required></textarea>
+            <x-input-error for="content" :id="$replyId . '-error'" />
         </fieldset>
         <x-button label="Antworten" type="submit" class="btn-info btn-sm mt-2" />
     </form>
