@@ -321,9 +321,6 @@
         {{-- Hinweis zur Verarbeitung --}}
         @if($this->statistiken['in_bearbeitung'] > 0)
             <x-alert icon="o-arrow-path" class="alert-info mt-4">
-                <x-slot:icon>
-                    <x-icon name="o-arrow-path" class="w-5 h-5 animate-spin" />
-                </x-slot:icon>
                 <strong>{{ $this->statistiken['in_bearbeitung'] }}</strong> Roman(e) werden gerade indexiert.
                 Diese Seite aktualisiert sich automatisch alle 5 Sekunden.
             </x-alert>
