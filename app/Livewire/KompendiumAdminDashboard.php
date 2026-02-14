@@ -8,6 +8,7 @@ use App\Models\KompendiumRoman;
 use App\Services\KompendiumSearchService;
 use App\Services\KompendiumService;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -57,7 +58,7 @@ class KompendiumAdminDashboard extends Component
         return [
             'uploads' => 'required|array|min:1',
             'uploads.*' => 'required|file|mimes:txt|max:10240', // 10 MB
-            'ausgewaehlteSerie' => 'required|in:maddrax,hardcovers,missionmars,volkdertiefe,2012,abenteurer',
+            'ausgewaehlteSerie' => ['required', Rule::in(array_keys(KompendiumService::SERIEN))],
         ];
     }
 
@@ -223,7 +224,7 @@ class KompendiumAdminDashboard extends Component
     public function speichern(): void
     {
         $this->validate([
-            'editSerie' => 'required|in:maddrax,hardcovers,missionmars,volkdertiefe,2012,abenteurer',
+            'editSerie' => ['required', Rule::in(array_keys(KompendiumService::SERIEN))],
             'editZyklus' => 'nullable|string|max:100',
             'editNummer' => 'required|integer|min:1',
             'editTitel' => 'required|string|max:255',
@@ -238,8 +239,14 @@ class KompendiumAdminDashboard extends Component
             return;
         }
 
-        // Neuen Dateipfad berechnen
-        $neuerDateiname = str_pad($this->editNummer, 3, '0', STR_PAD_LEFT).' - '.$this->editTitel.'.txt';
+        // Neuen Dateipfad berechnen (Titel sanitizen gegen Path-Traversal)
+        $sichererTitel = $this->sanitizeTitelFuerPfad($this->editTitel);
+        if ($sichererTitel === '') {
+            $this->addError('editTitel', 'Der Titel darf nicht nur aus Sonderzeichen bestehen.');
+
+            return;
+        }
+        $neuerDateiname = str_pad($this->editNummer, 3, '0', STR_PAD_LEFT).' - '.$sichererTitel.'.txt';
         $neuerPfad = "romane/{$this->editSerie}/{$neuerDateiname}";
         $alterPfad = $roman->dateipfad;
 
@@ -262,7 +269,7 @@ class KompendiumAdminDashboard extends Component
             'serie' => $this->editSerie,
             'zyklus' => $this->editZyklus ?: null,
             'roman_nr' => $this->editNummer,
-            'titel' => $this->editTitel,
+            'titel' => $sichererTitel,
             'dateiname' => $neuerDateiname,
             'dateipfad' => $neuerPfad,
         ]);
@@ -273,9 +280,9 @@ class KompendiumAdminDashboard extends Component
             $searchService->removeFromIndex($alterPfad);
             $roman->update(['status' => 'hochgeladen', 'indexiert_am' => null]);
             IndexiereRomanJob::dispatch($roman->fresh());
-            session()->flash('info', "Roman \"{$this->editTitel}\" aktualisiert. Re-Indexierung gestartet.");
+            session()->flash('info', "Roman \"{$sichererTitel}\" aktualisiert. Re-Indexierung gestartet.");
         } else {
-            session()->flash('success', "Roman \"{$this->editTitel}\" aktualisiert.");
+            session()->flash('success', "Roman \"{$sichererTitel}\" aktualisiert.");
         }
 
         $this->showEditModal = false;
@@ -285,6 +292,24 @@ class KompendiumAdminDashboard extends Component
     /* --------------------------------------------------------------------- */
     /*  Indexierung & Löschung */
     /* --------------------------------------------------------------------- */
+
+    /**
+     * Bereinigt einen Titel für die Verwendung in Dateipfaden.
+     * Entfernt Pfadseparatoren, Traversal-Sequenzen und gefährliche Zeichen.
+     */
+    private function sanitizeTitelFuerPfad(string $titel): string
+    {
+        // Pfadseparatoren und Traversal-Sequenzen entfernen
+        $titel = str_replace(['/', '\\', '..'], '', $titel);
+
+        // Steuerzeichen und nicht-druckbare Zeichen entfernen
+        $titel = preg_replace('/[\x00-\x1F\x7F]/', '', $titel);
+
+        // Mehrfache Leerzeichen normalisieren und trimmen
+        $titel = trim(preg_replace('/\s+/', ' ', $titel));
+
+        return $titel;
+    }
 
     public function indexieren(int $id): void
     {

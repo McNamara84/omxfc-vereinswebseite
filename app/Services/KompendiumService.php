@@ -303,7 +303,7 @@ class KompendiumService
                 $teile[] = "{$zyklus}-Zyklus";
             } else {
                 $nummern = $zyklusRomane->pluck('roman_nr')->sort()->values();
-                $teile[] = "{$zyklus}zyklus Band ".$this->formatBandbereich($nummern);
+                $teile[] = "{$zyklus}-Zyklus Band ".$this->formatBandbereich($nummern);
             }
         }
 

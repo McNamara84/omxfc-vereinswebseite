@@ -140,7 +140,7 @@
                 <button
                     wire:click="$set('filterSerie', '{{ $key }}')"
                     role="tab"
-                    :aria-selected="{{ $filterSerie === $key ? 'true' : 'false' }}"
+                    aria-selected="{{ $filterSerie === $key ? 'true' : 'false' }}"
                     @class([
                         'btn btn-sm',
                         'btn-primary' => $filterSerie === $key,
@@ -327,45 +327,49 @@
         @endif
 
         {{-- Edit-Modal --}}
-        <x-modal wire:model="showEditModal" title="Roman bearbeiten" data-testid="edit-modal">
-            <div class="space-y-4">
-                @php
-                    $editSerienOptions = collect($this->serien)->map(fn($name, $key) => ['id' => $key, 'name' => $name])->values()->toArray();
-                @endphp
-                <x-select
-                    label="Serie"
-                    :options="$editSerienOptions"
-                    wire:model="editSerie"
-                    data-testid="edit-serie" />
+        <x-dialog-modal wire:model="showEditModal" data-testid="edit-modal">
+            <x-slot name="title">Roman bearbeiten</x-slot>
 
-                <x-input
-                    label="Zyklus"
-                    wire:model="editZyklus"
-                    placeholder="z.B. Euree, Meeraka..."
-                    hint="Leer lassen falls Miniserie ohne Zyklen"
-                    data-testid="edit-zyklus" />
+            <x-slot name="content">
+                <div class="space-y-4">
+                    @php
+                        $editSerienOptions = collect($this->serien)->map(fn($name, $key) => ['id' => $key, 'name' => $name])->values()->toArray();
+                    @endphp
+                    <x-select
+                        label="Serie"
+                        :options="$editSerienOptions"
+                        wire:model="editSerie"
+                        data-testid="edit-serie" />
 
-                <x-input
-                    label="Roman-Nummer"
-                    type="number"
-                    wire:model="editNummer"
-                    min="1"
-                    data-testid="edit-nummer" />
+                    <x-input
+                        label="Zyklus"
+                        wire:model="editZyklus"
+                        placeholder="z.B. Euree, Meeraka..."
+                        hint="Leer lassen falls Miniserie ohne Zyklen"
+                        data-testid="edit-zyklus" />
 
-                <x-input
-                    label="Titel"
-                    wire:model="editTitel"
-                    data-testid="edit-titel" />
+                    <x-input
+                        label="Roman-Nummer"
+                        type="number"
+                        wire:model="editNummer"
+                        min="1"
+                        data-testid="edit-nummer" />
 
-                @error('editTitel')
-                    <span class="text-error text-sm">{{ $message }}</span>
-                @enderror
-            </div>
+                    <x-input
+                        label="Titel"
+                        wire:model="editTitel"
+                        data-testid="edit-titel" />
 
-            <x-slot:actions>
+                    @error('editTitel')
+                        <span class="text-error text-sm">{{ $message }}</span>
+                    @enderror
+                </div>
+            </x-slot>
+
+            <x-slot name="footer">
                 <x-button label="Abbrechen" @click="$wire.showEditModal = false" />
                 <x-button label="Speichern" wire:click="speichern" class="btn-primary" spinner="speichern" data-testid="edit-save" />
-            </x-slot:actions>
-        </x-modal>
+            </x-slot>
+        </x-dialog-modal>
     </div>
 </div>
