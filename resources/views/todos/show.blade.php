@@ -19,13 +19,13 @@
                     <h2 class="text-xl font-semibold text-primary">{{ $todo->title }}</h2>
                     <div class="mt-2 md:mt-0">
                         @if($todo->status->value === 'open')
-                            <span class="badge badge-ghost">Offen</span>
+                            <x-badge value="Offen" class="badge-ghost" />
                         @elseif($todo->status->value === 'assigned')
-                            <span class="badge badge-info">In Bearbeitung</span>
+                            <x-badge value="In Bearbeitung" class="badge-info" />
                         @elseif($todo->status->value === 'completed')
-                            <span class="badge badge-warning">Wartet auf Verifizierung</span>
+                            <x-badge value="Wartet auf Verifizierung" class="badge-warning" />
                         @elseif($todo->status->value === 'verified')
-                            <span class="badge badge-success">Verifiziert</span>
+                            <x-badge value="Verifiziert" class="badge-success" />
                         @endif
                     </div>
                 </div>
@@ -117,35 +117,27 @@
                         @if($canAssign)
                             <form action="{{ route('todos.assign', $todo) }}" method="POST" class="inline">
                                 @csrf
-                                <button type="submit" class="btn btn-info">
-                                    Challenge übernehmen
-                                </button>
+                                <x-button label="Challenge übernehmen" type="submit" class="btn-info" />
                             </form>
                         @endif
 
                         @if($canComplete)
                             <form action="{{ route('todos.complete', $todo) }}" method="POST" class="inline">
                                 @csrf
-                                <button type="submit" class="btn btn-warning">
-                                    Als erledigt markieren
-                                </button>
+                                <x-button label="Als erledigt markieren" type="submit" class="btn-warning" />
                             </form>
                         @endif
 
                         @if($canVerify)
                             <form action="{{ route('todos.verify', $todo) }}" method="POST" class="inline">
                                 @csrf
-                                <button type="submit" class="btn btn-success">
-                                    Verifizieren und Baxx vergeben
-                                </button>
+                                <x-button label="Verifizieren und Baxx vergeben" type="submit" class="btn-success" />
                             </form>
                         @endif
                         @if($todo->assigned_to === Auth::id() && $todo->status->value === 'assigned')
                             <form action="{{ route('todos.release', $todo) }}" method="POST" class="inline">
                                 @csrf
-                                <button type="submit" class="btn btn-ghost">
-                                    Challenge freigeben
-                                </button>
+                                <x-button label="Challenge freigeben" type="submit" class="btn-ghost" />
                             </form>
                         @endif
                         @if($canDelete)
@@ -153,10 +145,7 @@
                                 onsubmit="return confirm('Möchtest du diese Challenge wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.');">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="btn btn-error">
-                                    <x-icon name="o-trash" class="w-5 h-5" />
-                                    Challenge löschen
-                                </button>
+                                <x-button label="Challenge löschen" type="submit" icon="o-trash" class="btn-error" />
                             </form>
                         @endif
                     </div>

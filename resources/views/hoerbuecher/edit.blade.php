@@ -27,18 +27,17 @@
                             required
                         />
 
-                        <div>
-                            <label for="status" class="block text-sm font-medium text-base-content mb-1">Status</label>
-                            <select name="status" id="status" required class="select select-bordered w-full">
-                                <option value="">-- Status wählen --</option>
-                                @foreach($statuses as $status)
-                                    <option value="{{ $status }}" {{ old('status', $episode->status->value) === $status ? 'selected' : '' }}>{{ $status }}</option>
-                                @endforeach
-                            </select>
-                            @error('status')
-                                <p class="mt-1 text-sm text-error">{{ $message }}</p>
-                            @enderror
-                        </div>
+                        @php
+                            $statusOptions = collect($statuses)->map(fn($s) => ['id' => $s, 'name' => $s])->toArray();
+                        @endphp
+                        <x-select
+                            name="status"
+                            label="Status"
+                            :options="$statusOptions"
+                            placeholder="-- Status wählen --"
+                            :value="old('status', $episode->status->value)"
+                            required
+                        />
 
                         <x-input
                             name="planned_release_date"

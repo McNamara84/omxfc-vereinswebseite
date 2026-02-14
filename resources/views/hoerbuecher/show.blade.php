@@ -28,41 +28,33 @@
                 <div class="md:col-span-2">
                     <span class="font-medium">Rollen:</span>
                     <div class="mt-1 overflow-x-auto">
-                        <table class="min-w-full text-sm">
-                            <thead class="bg-base-200">
+                        <table class="table table-sm">
+                            <thead>
                                 <tr>
-                                    <th class="px-2 py-1 text-left">Rolle</th>
-                                    <th class="px-2 py-1 text-left">Beschreibung</th>
-                                    <th class="px-2 py-1 text-left">Takes</th>
-                                    <th class="px-2 py-1 text-left">Sprecher</th>
+                                    <th>Rolle</th>
+                                    <th>Beschreibung</th>
+                                    <th>Takes</th>
+                                    <th>Sprecher</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach($episode->roles as $role)
                                 @php
-                                    $rowClasses = 'border-t border-base-content/10 transition-colors';
-                                    if ($role->uploaded) {
-                                        $rowClasses .= ' bg-success/10 text-success-content';
-                                    } else {
-                                        $rowClasses .= ' hover:bg-base-200/50';
-                                    }
+                                    $rowClasses = $role->uploaded ? 'bg-success/10 text-success-content' : '';
                                 @endphp
                                 <tr class="{{ $rowClasses }}">
-                                    <td class="px-2 py-1 align-top">
+                                    <td class="align-top">
                                         <div class="flex flex-wrap items-center gap-2">
                                             <span>{{ $role->name }}</span>
                                             @if($role->uploaded)
-                                                <span class="inline-flex items-center gap-1 rounded-full bg-success/10 px-2 py-0.5 text-xs font-semibold text-success" role="status" aria-label="Aufnahme für diese Rolle wurde hochgeladen">
-                                                    <x-icon name="o-check" class="h-3.5 w-3.5" />
-                                                    <span>Upload vorhanden</span>
-                                                </span>
+                                                <x-badge value="Upload vorhanden" class="badge-success badge-sm" role="status" aria-label="Aufnahme für diese Rolle wurde hochgeladen" />
                                                 <span class="sr-only">Für diese Rolle wurde bereits eine Aufnahme hochgeladen.</span>
                                             @endif
                                         </div>
                                     </td>
-                                    <td class="px-2 py-1">{{ $role->description }}</td>
-                                    <td class="px-2 py-1">{{ $role->takes }}</td>
-                                    <td class="px-2 py-1">
+                                    <td>{{ $role->description }}</td>
+                                    <td>{{ $role->takes }}</td>
+                                    <td>
                                         {{ $role->user?->name ?? $role->speaker_name ?? '-' }}
                                         @php($prev = $previousSpeakers[$role->name] ?? null)
                                         @if($prev)

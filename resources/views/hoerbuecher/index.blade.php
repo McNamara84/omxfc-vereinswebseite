@@ -81,23 +81,23 @@
                     <p id="checkbox-filter-hint" class="sr-only">
                         Aktiviere einen oder mehrere Checkbox-Filter, um unveröffentlichte Folgen oder Episoden mit vollständig besetzten Rollen einzublenden.
                     </p>
-                    <label class="inline-flex items-center">
-                        <input type="checkbox" id="roles-filter" class="form-checkbox">
-                        <span class="ml-2">Besetzt</span>
+                    <label class="inline-flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" id="roles-filter" class="checkbox checkbox-primary checkbox-sm">
+                        <span>Besetzt</span>
                     </label>
-                    <label class="inline-flex items-center">
-                        <input type="checkbox" id="roles-unfilled-filter" class="form-checkbox">
-                        <span class="ml-2">Unbesetzt</span>
+                    <label class="inline-flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" id="roles-unfilled-filter" class="checkbox checkbox-primary checkbox-sm">
+                        <span>Unbesetzt</span>
                     </label>
-                    <label class="inline-flex items-center">
+                    <label class="inline-flex items-center gap-2 cursor-pointer">
                         <input
                             type="checkbox"
                             id="hide-released-filter"
-                            class="form-checkbox"
+                            class="checkbox checkbox-primary checkbox-sm"
                             checked
                             aria-describedby="hide-released-hint"
                         >
-                        <span class="ml-2">
+                        <span>
                             Unveröffentlicht<span class="sr-only">e Folgen anzeigen</span>
                         </span>
                     </label>
