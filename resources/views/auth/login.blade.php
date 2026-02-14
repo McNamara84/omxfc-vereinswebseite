@@ -1,7 +1,7 @@
 <x-app-layout title="Login – Offizieller MADDRAX Fanclub e. V." description="Melde dich mit deinem Konto beim Offiziellen MADDRAX Fanclub an.">
     <div class="max-w-md mx-auto px-6 py-12">
         <x-card shadow data-testid="login-card">
-            <x-header title="Login" class="mb-4" />
+            <x-header title="Login" class="mb-4" useH1 />
 
             <x-validation-errors class="mb-4" />
 

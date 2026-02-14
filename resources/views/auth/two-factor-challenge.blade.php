@@ -1,7 +1,7 @@
 <x-app-layout title="Zwei-Faktor-Authentifizierung – Offizieller MADDRAX Fanclub e. V." description="Bestätige den Zugang zu deinem Konto mit deinem Authentifizierungscode.">
     <div class="max-w-md mx-auto px-6 py-12">
         <x-card shadow data-testid="two-factor-card">
-            <x-header title="Zwei-Faktor-Authentifizierung" class="mb-4" />
+            <x-header title="Zwei-Faktor-Authentifizierung" class="mb-4" useH1 />
 
             <div x-data="{ recovery: false }">
                 <p class="mb-4 text-sm text-base-content/70" x-show="! recovery">

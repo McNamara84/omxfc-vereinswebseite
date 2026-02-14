@@ -1,7 +1,7 @@
 <x-app-layout title="Passwort vergessen – Offizieller MADDRAX Fanclub e. V." description="Fordere einen Link zum Zurücksetzen deines Passworts an.">
     <div class="max-w-md mx-auto px-6 py-12">
         <x-card shadow data-testid="forgot-password-card">
-            <x-header title="Passwort vergessen" class="mb-4" />
+            <x-header title="Passwort vergessen" class="mb-4" useH1 />
 
             <p class="mb-4 text-sm text-base-content/70">
                 Du hast dein Passwort vergessen? Das ist kein Problem. Teile uns einfach deine E-Mail-Adresse mit und wir senden dir einen Link zum Zurücksetzen des Passworts zu, mit dem du ein neues wählen kannst.

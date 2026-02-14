@@ -1,7 +1,7 @@
 <x-app-layout title="Passwort zurücksetzen – Offizieller MADDRAX Fanclub e. V." description="Setze dein Passwort zurück.">
     <div class="max-w-md mx-auto px-6 py-12">
         <x-card shadow data-testid="reset-password-card">
-            <x-header title="Passwort zurücksetzen" class="mb-4" />
+            <x-header title="Passwort zurücksetzen" class="mb-4" useH1 />
 
             <x-validation-errors class="mb-4" />
 

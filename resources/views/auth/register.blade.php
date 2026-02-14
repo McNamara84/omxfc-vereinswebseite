@@ -1,7 +1,7 @@
 <x-app-layout title="Registrieren – Offizieller MADDRAX Fanclub e. V." description="Erstelle ein Konto beim Offiziellen MADDRAX Fanclub.">
     <div class="max-w-md mx-auto px-6 py-12">
         <x-card shadow data-testid="register-card">
-            <x-header title="Registrieren" class="mb-4" />
+            <x-header title="Registrieren" class="mb-4" useH1 />
 
             <x-validation-errors class="mb-4" />
 

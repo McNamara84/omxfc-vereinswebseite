@@ -1,7 +1,7 @@
 <x-app-layout title="E-Mail bestätigen – Offizieller MADDRAX Fanclub e. V." description="Bestätige deine E-Mail-Adresse, um fortzufahren.">
     <div class="max-w-md mx-auto px-6 py-12">
         <x-card shadow data-testid="verify-email-card">
-            <x-header title="E-Mail bestätigen" class="mb-4" />
+            <x-header title="E-Mail bestätigen" class="mb-4" useH1 />
 
             <p class="mb-4 text-sm text-base-content/70">
                 Bevor du fortfährst, bestätige bitte deine E-Mail-Adresse, indem du auf den Link klickst, den wir dir gerade per E-Mail geschickt haben. Falls du die E-Mail nicht erhalten hast, senden wir dir gerne eine neue.

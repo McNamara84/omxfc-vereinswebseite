@@ -1,6 +1,6 @@
 <x-app-layout title="Mitglied werden – Offizieller MADDRAX Fanclub e. V." description="Online-Antrag zur Aufnahme in den Fanclub der MADDRAX-Romanserie.">
     <x-public-page>
-        <x-header title="Mitglied werden" class="mb-4 sm:mb-8" data-testid="mitglied-werden-header" />
+        <x-header title="Mitglied werden" class="mb-4 sm:mb-8" data-testid="mitglied-werden-header" useH1 />
         <!-- Erfolg-/Fehlermeldungen -->
         <div id="form-messages" class="mb-4 hidden" role="alert"></div>
         <form id="mitgliedschaft-form" class="w-full">
@@ -90,7 +90,10 @@
                     </label>
                 </div>
             </div>
-            <x-button label="Antrag absenden" type="submit" id="submit-button" icon="o-paper-airplane" class="btn-primary mt-6 opacity-50 cursor-not-allowed" disabled data-testid="mitglied-submit" />
+            <button type="submit" id="submit-button" class="btn btn-primary mt-6 opacity-50 cursor-not-allowed" disabled data-testid="mitglied-submit">
+                <x-icon name="o-paper-airplane" class="h-5 w-5" />
+                Antrag absenden
+            </button>
             <!-- Lade-Indikator -->
             <div id="loading-indicator" class="mt-4 hidden flex items-center justify-center">
                 <x-loading class="loading-spinner loading-lg text-primary" />
