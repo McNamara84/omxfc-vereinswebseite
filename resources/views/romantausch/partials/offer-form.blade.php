@@ -10,9 +10,6 @@
             $selectedSeries = old('series', optional($offer)->series ?? ($types[0]->value ?? ''));
             $selectedBookNumber = old('book_number', optional($offer)->book_number ?? null);
             $selectedCondition = old('condition', optional($offer)->condition ?? 'Z0');
-            $seriesError = $errors->first('series');
-            $bookNumberError = $errors->first('book_number');
-            $conditionError = $errors->first('condition');
             $photoError = $errors->first('photos');
             $photoItemError = $errors->first('photos.*');
             $photosErrorMessage = $photoError ?: $photoItemError;
@@ -24,6 +21,13 @@
             ]);
             $keptPhotosCount = $displayPhotos->reject(fn ($photo) => $photo['marked_for_removal'])->count();
             $maxNewPhotos = max(0, 3 - $keptPhotosCount);
+
+            $seriesOptions = collect($types)->map(fn($t) => ['id' => $t->value, 'name' => $t->value])->toArray();
+            $bookOptions = $books->map(fn($b) => ['id' => $b->roman_number, 'name' => $b->roman_number . ' - ' . $b->title])->toArray();
+            $conditionOptions = \App\Support\ConditionOptions::full();
+
+            $booksBySeries = $books->groupBy(fn($b) => $b->type->value)
+                ->map(fn($group) => $group->pluck('roman_number')->map(fn($n) => (string) $n)->values());
         @endphp
 
         @if(session('error'))
@@ -32,86 +36,35 @@
 
         <div class="grid gap-6 md:grid-cols-2">
             <div class="md:col-span-1 space-y-4">
-                <div>
-                    <label for="series-select" class="fieldset-legend">Serie</label>
-                    <select
-                        name="series"
-                        id="series-select"
-                        @class([
-                            'select select-bordered w-full',
-                            'select-error' => $seriesError,
-                        ])
-                        @if($seriesError)
-                            aria-invalid="true"
-                            aria-describedby="series-error"
-                        @endif
-                    >
-                        @foreach($types as $type)
-                            <option value="{{ $type->value }}" @selected($selectedSeries === $type->value)>{{ $type->value }}</option>
-                        @endforeach
-                    </select>
-                    @error('series')
-                        <p id="series-error" class="text-sm text-error mt-1" role="alert">{{ $message }}</p>
-                    @enderror
-                </div>
+                <x-form-select
+                    id="series-select"
+                    name="series"
+                    label="Serie"
+                    aria-label="Serie"
+                    :options="$seriesOptions"
+                    :value="$selectedSeries"
+                    error-field="series"
+                />
 
-                <div>
-                    <label for="book-select" class="fieldset-legend">Roman</label>
-                    <select
-                        name="book_number"
-                        id="book-select"
-                        @class([
-                            'select select-bordered w-full',
-                            'select-error' => $bookNumberError,
-                        ])
-                        @if($bookNumberError)
-                            aria-invalid="true"
-                            aria-describedby="book_number-error"
-                        @endif
-                    >
-                        @foreach($books as $book)
-                            <option
-                                value="{{ $book->roman_number }}"
-                                data-series="{{ $book->type->value }}"
-                                @selected((string) $selectedBookNumber === (string) $book->roman_number)
-                            >
-                                {{ $book->roman_number }} - {{ $book->title }}
-                            </option>
-                        @endforeach
-                    </select>
-                    @error('book_number')
-                        <p id="book_number-error" class="text-sm text-error mt-1" role="alert">{{ $message }}</p>
-                    @enderror
-                </div>
+                <x-form-select
+                    id="book-select"
+                    name="book_number"
+                    label="Roman"
+                    aria-label="Roman"
+                    :options="$bookOptions"
+                    :value="$selectedBookNumber"
+                    error-field="book_number"
+                />
 
-                <div>
-                    <label for="condition-select" class="fieldset-legend">Zustand</label>
-                    <select
-                        name="condition"
-                        id="condition-select"
-                        @class([
-                            'select select-bordered w-full',
-                            'select-error' => $conditionError,
-                        ])
-                        @if($conditionError)
-                            aria-invalid="true"
-                            aria-describedby="condition-error"
-                        @endif
-                    >
-                        <option value="Z0" @selected($selectedCondition === 'Z0')>Z0 - Druckfrisch (Top Zustand)</option>
-                        <option value="Z0-1" @selected($selectedCondition === 'Z0-1')>Z0-1 - Druckfrisch, minimale Mängel</option>
-                        <option value="Z1" @selected($selectedCondition === 'Z1')>Z1 - Sehr gut, Kleinstfehler</option>
-                        <option value="Z1-2" @selected($selectedCondition === 'Z1-2')>Z1-2 - Sehr gut, leichte Gebrauchsspuren</option>
-                        <option value="Z2" @selected($selectedCondition === 'Z2')>Z2 - Gut, kleine Mängel</option>
-                        <option value="Z2-3" @selected($selectedCondition === 'Z2-3')>Z2-3 - Gut, stärker gebraucht</option>
-                        <option value="Z3" @selected($selectedCondition === 'Z3')>Z3 - Deutlich gebraucht</option>
-                        <option value="Z3-4" @selected($selectedCondition === 'Z3-4')>Z3-4 - Sehr stark gebraucht</option>
-                        <option value="Z4" @selected($selectedCondition === 'Z4')>Z4 - Sehr schlecht erhalten</option>
-                    </select>
-                    @error('condition')
-                        <p id="condition-error" class="text-sm text-error mt-1" role="alert">{{ $message }}</p>
-                    @enderror
-                </div>
+                <x-form-select
+                    id="condition-select"
+                    name="condition"
+                    label="Zustand"
+                    aria-label="Zustand"
+                    :options="$conditionOptions"
+                    :value="$selectedCondition"
+                    error-field="condition"
+                />
             </div>
 
             <div class="md:col-span-1 space-y-6">
@@ -215,13 +168,16 @@
         document.addEventListener('DOMContentLoaded', function () {
             const seriesSelect = document.getElementById('series-select');
             const bookSelect = document.getElementById('book-select');
+            const booksBySeries = @json($booksBySeries);
 
             function filterBooks() {
                 const series = seriesSelect.value;
+                const allowedNumbers = new Set(booksBySeries[series] || []);
                 let firstVisibleIndex = -1;
                 let hasVisibleSelection = false;
                 Array.from(bookSelect.options).forEach((option, idx) => {
-                    const match = option.dataset.series === series;
+                    if (!option.value) return;
+                    const match = allowedNumbers.has(String(option.value));
                     option.hidden = !match;
                     option.disabled = !match;
                     if (match) {

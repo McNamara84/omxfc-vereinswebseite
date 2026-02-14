@@ -15,12 +15,13 @@
                     $bookNumbersInput = old('book_numbers', '');
                     $selectedCondition = old('condition', 'Z1');
                     $selectedConditionMax = old('condition_max', '');
-                    $seriesError = $errors->first('series');
-                    $bookNumbersError = $errors->first('book_numbers');
-                    $conditionError = $errors->first('condition');
                     $photoError = $errors->first('photos');
                     $photoItemErrors = $errors->get('photos.*');
                     $photosErrorMessage = $photoError ?: (count($photoItemErrors) > 0 ? implode(' ', $photoItemErrors) : null);
+
+                    $seriesOptions = collect($types)->map(fn($t) => ['id' => $t->value, 'name' => $t->value])->toArray();
+                    $conditionOptions = \App\Support\ConditionOptions::standard();
+                    $conditionMaxOptions = \App\Support\ConditionOptions::withSameOption();
                 @endphp
 
                 @if(session('error'))
@@ -30,25 +31,15 @@
                 <div class="grid gap-6 md:grid-cols-2">
                     <div class="md:col-span-1 space-y-4">
                         {{-- Serie --}}
-                        <div>
-                            <label for="series-select" class="fieldset-legend">Serie</label>
-                            <select
-                                name="series"
-                                id="series-select"
-                                @class([
-                                    'select select-bordered w-full',
-                                    'select-error' => $seriesError,
-                                ])
-                                @if($seriesError) aria-invalid="true" aria-describedby="series-error" @endif
-                            >
-                                @foreach($types as $type)
-                                    <option value="{{ $type->value }}" @selected($selectedSeries === $type->value)>{{ $type->value }}</option>
-                                @endforeach
-                            </select>
-                            @error('series')
-                                <p id="series-error" class="text-sm text-error mt-1" role="alert">{{ $message }}</p>
-                            @enderror
-                        </div>
+                        <x-form-select
+                            id="series-select"
+                            name="series"
+                            label="Serie"
+                            aria-label="Serie"
+                            :options="$seriesOptions"
+                            :value="$selectedSeries"
+                            error-field="series"
+                        />
 
                         <script>
                             window.MAX_RANGE_SPAN = {{ App\Services\Romantausch\BundleService::MAX_RANGE_SPAN }};
@@ -57,29 +48,18 @@
 
                         {{-- Roman-Nummern --}}
                         <div x-data="bundlePreview()">
-                            <label for="book-numbers-input" class="fieldset-legend">Roman-Nummern</label>
-                            <input
-                                type="text"
-                                name="book_numbers"
+                            <x-input
                                 id="book-numbers-input"
-                                x-model="input"
-                                x-init="input = $el.getAttribute('value') || input; parseNumbers()"
-                                @input.debounce.300ms="parseNumbers()"
+                                name="book_numbers"
+                                label="Roman-Nummern"
                                 placeholder="z.B. 1-50, 52, 55-100"
-                                value="{{ $bookNumbersInput }}"
-                                @class([
-                                    'input input-bordered w-full',
-                                    'input-error' => $bookNumbersError,
-                                ])
-                                aria-describedby="book-numbers-help{{ $bookNumbersError ? ' book-numbers-error' : '' }}"
-                                @if($bookNumbersError) aria-invalid="true" @endif
-                            >
-                            <p id="book-numbers-help" class="mt-1 text-sm text-base-content">
-                                Gib Nummern einzeln (1, 5, 7) oder als Bereich (1-50) an, getrennt durch Kommas.
-                            </p>
-                            @error('book_numbers')
-                                <p id="book-numbers-error" class="mt-2 text-sm text-error" role="alert">{{ $message }}</p>
-                            @enderror
+                                :value="$bookNumbersInput"
+                                hint="Gib Nummern einzeln (1, 5, 7) oder als Bereich (1-50) an, getrennt durch Kommas."
+                                error-field="book_numbers"
+                                x-model="input"
+                                x-init="input = $el.value || input; parseNumbers()"
+                                @input.debounce.300ms="parseNumbers()"
+                            />
 
                             {{-- Vorschau --}}
                             <div x-show="numbers.length > 0" x-cloak class="mt-3 p-3 bg-base-200 rounded-lg">
@@ -97,29 +77,24 @@
                         <div>
                             <label class="fieldset-legend">Zustandsbereich</label>
                             <div class="grid grid-cols-2 gap-3">
-                                <div>
-                                    <label for="condition-min" class="block text-sm text-base-content mb-1">Von (bester Zustand)</label>
-                                    <select
-                                        name="condition"
-                                        id="condition-min"
-                                        @class([
-                                            'select select-bordered w-full',
-                                            'select-error' => $conditionError,
-                                        ])
-                                    >
-                                        <x-condition-select-options :selected="$selectedCondition" />
-                                    </select>
-                                </div>
-                                <div>
-                                    <label for="condition-max" class="block text-sm text-base-content mb-1">Bis (schlechtester)</label>
-                                    <select
-                                        name="condition_max"
-                                        id="condition-max"
-                                        class="select select-bordered w-full"
-                                    >
-                                        <x-condition-select-options :selected="$selectedConditionMax" :include-empty="true" :include-worst="true" />
-                                    </select>
-                                </div>
+                                <x-form-select
+                                    id="condition-min"
+                                    name="condition"
+                                    label="Von (bester Zustand)"
+                                    aria-label="Von (bester Zustand)"
+                                    :options="$conditionOptions"
+                                    :value="$selectedCondition"
+                                    error-field="condition"
+                                />
+                                <x-form-select
+                                    id="condition-max"
+                                    name="condition_max"
+                                    label="Bis (schlechtester)"
+                                    aria-label="Bis (schlechtester)"
+                                    :options="$conditionMaxOptions"
+                                    :value="$selectedConditionMax"
+                                    error-field="condition_max"
+                                />
                             </div>
                             @error('condition')
                                 <p class="mt-2 text-sm text-error" role="alert">{{ $message }}</p>

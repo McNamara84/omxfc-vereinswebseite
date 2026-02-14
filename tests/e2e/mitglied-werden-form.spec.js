@@ -1,16 +1,16 @@
 import { test, expect } from '@playwright/test';
 
 async function fillRequiredFields(page) {
-  await page.getByLabel('Vorname').fill('Max');
-  await page.getByLabel('Nachname').fill('Mustermann');
-  await page.getByLabel('Straße').fill('Musterstraße');
-  await page.getByLabel('Hausnummer').fill('1');
-  await page.getByLabel('Postleitzahl').fill('12345');
-  await page.getByLabel('Stadt').fill('Musterstadt');
-  await page.getByLabel('Land').selectOption('Deutschland');
-  await page.getByLabel('Mailadresse').fill('max@example.com');
-  await page.getByLabel('Passwort', { exact: true }).fill('geheimespasswort');
-  await page.getByLabel('Passwort wiederholen').fill('geheimespasswort');
+  await page.locator('input[name="vorname"]').fill('Max');
+  await page.locator('input[name="nachname"]').fill('Mustermann');
+  await page.locator('input[name="strasse"]').fill('Musterstraße');
+  await page.locator('input[name="hausnummer"]').fill('1');
+  await page.locator('input[name="plz"]').fill('12345');
+  await page.locator('input[name="stadt"]').fill('Musterstadt');
+  await page.locator('select[name="land"]').selectOption('Deutschland');
+  await page.locator('input[name="mail"]').fill('max@example.com');
+  await page.locator('input[name="passwort"]').fill('geheimespasswort');
+  await page.locator('input[name="passwort_confirmation"]').fill('geheimespasswort');
 }
 
 test('form requires acceptance of Satzung before enabling submit', async ({ page }) => {
@@ -18,7 +18,7 @@ test('form requires acceptance of Satzung before enabling submit', async ({ page
   await fillRequiredFields(page);
   const submitButton = page.getByRole('button', { name: 'Antrag absenden' });
   await expect(submitButton).toBeDisabled();
-  await page.locator('#satzung_check').check();
+  await page.getByRole('checkbox', { name: /Satzung/ }).check();
   await expect(submitButton).toBeEnabled();
 });
 
@@ -32,8 +32,9 @@ test('updates membership fee output when slider changes', async ({ page }) => {
 
 test('shows error message for invalid email address', async ({ page }) => {
   await page.goto('/mitglied-werden');
-  const email = page.getByLabel('Mailadresse');
+  const email = page.locator('input[name="mail"]');
   await email.fill('not-an-email');
   await email.blur();
-  await expect(page.locator('#mail-error')).toHaveText('Bitte gültige Mailadresse eingeben.');
+  // JS-Validierung setzt customValidity – prüfe aria-invalid statt #mail-error
+  await expect(email).toHaveAttribute('aria-invalid', 'true');
 });

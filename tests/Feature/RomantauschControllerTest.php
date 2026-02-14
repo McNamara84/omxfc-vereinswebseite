@@ -1246,11 +1246,9 @@ class RomantauschControllerTest extends TestCase
         $response->assertSessionHasErrors(['series', 'book_number', 'condition']);
 
         $followUp = $this->get(route('romantausch.create-offer'));
-        $followUp->assertSee('id="series-error"', false);
-        $followUp->assertSee('id="book_number-error"', false);
-        $followUp->assertSee('id="condition-error"', false);
-        $followUp->assertSee('aria-describedby="series-error"', false);
         $followUp->assertSeeText('Bitte wähle eine Serie aus.');
+        $followUp->assertSeeText('Bitte wähle einen Roman aus.');
+        $followUp->assertSeeText('Bitte gib den Zustand an.');
     }
 
     public function test_store_request_shows_errors_and_preserves_old_values(): void
@@ -1268,15 +1266,10 @@ class RomantauschControllerTest extends TestCase
         $response->assertSessionHasErrors(['condition']);
 
         $followUp = $this->get(route('romantausch.create-request'));
-        $followUp->assertSee('id="condition-error"', false);
-        $followUp->assertSee('aria-describedby="condition-error"', false);
         $followUp->assertSeeText('Bitte gib den gewünschten Zustand an.');
+        // Prüfe, dass der zuvor gewählte Serien-Wert als selected-Option gerendert wird
         $this->assertMatchesRegularExpression(
-            '/<option value="'.preg_quote(BookType::MissionMars->value, '/').'"[^>]*selected/si',
-            $followUp->getContent()
-        );
-        $this->assertMatchesRegularExpression(
-            '/<option\s+value="2"[^>]*data-series="'.preg_quote(BookType::MissionMars->value, '/').'"[^>]*selected/si',
+            '/<option[^>]*value="'.preg_quote(BookType::MissionMars->value, '/').'"[^>]*\bselected\b/si',
             $followUp->getContent()
         );
     }

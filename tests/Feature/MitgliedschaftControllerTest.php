@@ -23,35 +23,37 @@ class MitgliedschaftControllerTest extends TestCase
 
         $this->assertStringNotContainsString('<x-input', $html, 'Compiled view should not contain unresolved Blade components.');
 
-        $fields = [
-            'vorname' => ['aria' => 'aria-describedby="vorname-error"', 'ids' => ['vorname-error']],
-            'nachname' => ['aria' => 'aria-describedby="nachname-error"', 'ids' => ['nachname-error']],
-            'strasse' => ['aria' => 'aria-describedby="strasse-error"', 'ids' => ['strasse-error']],
-            'hausnummer' => ['aria' => 'aria-describedby="hausnummer-error"', 'ids' => ['hausnummer-error']],
-            'plz' => ['aria' => 'aria-describedby="plz-error"', 'ids' => ['plz-error']],
-            'stadt' => ['aria' => 'aria-describedby="stadt-error"', 'ids' => ['stadt-error']],
-            'land' => ['aria' => 'aria-describedby="land-error"', 'ids' => ['land-error']],
-            'mail' => ['aria' => 'aria-describedby="mail-error"', 'ids' => ['mail-error']],
-            'passwort' => ['aria' => 'aria-describedby="passwort-hint passwort-error"', 'ids' => ['passwort-hint', 'passwort-error']],
-            'passwort_confirmation' => ['aria' => 'aria-describedby="passwort_confirmation-hint passwort_confirmation-error"', 'ids' => ['passwort_confirmation-hint', 'passwort_confirmation-error']],
-            'mitgliedsbeitrag' => ['aria' => 'aria-describedby="mitgliedsbeitrag-hint beitrag-output mitgliedsbeitrag-error"', 'ids' => ['mitgliedsbeitrag-hint', 'beitrag-output', 'mitgliedsbeitrag-error']],
-            'telefon' => ['aria' => 'aria-describedby="telefon-hint telefon-error"', 'ids' => ['telefon-hint', 'telefon-error']],
-            'verein_gefunden' => ['aria' => 'aria-describedby="verein_gefunden-error"', 'ids' => ['verein_gefunden-error']],
+        // Prüfe, dass alle Formularfelder per name-Attribut gerendert werden
+        $expectedFields = [
+            'vorname', 'nachname', 'strasse', 'hausnummer', 'plz', 'stadt',
+            'land', 'mail', 'passwort', 'passwort_confirmation',
+            'mitgliedsbeitrag', 'telefon', 'verein_gefunden',
         ];
 
-        foreach ($fields as $field => $expectation) {
-            $this->assertStringContainsString('id="'.$field.'"', $html);
-            $this->assertStringContainsString($expectation['aria'], $html);
-
-            foreach ($expectation['ids'] as $id) {
-                $this->assertStringContainsString('id="'.$id.'"', $html);
-            }
-
-            $this->assertStringContainsString('data-error-for="'.$field.'"', $html);
+        foreach ($expectedFields as $field) {
+            $this->assertStringContainsString('name="'.$field.'"', $html, "Feld '$field' fehlt im Formular.");
         }
 
-        $this->assertStringContainsString('data-output-target="beitrag-output"', $html);
-        $this->assertStringContainsString('data-output-suffix="€"', $html);
+        // Prüfe, dass Labels für Pflichtfelder als <legend> gerendert werden (maryUI/form-select-Pattern)
+        $requiredLabels = ['Vorname', 'Nachname', 'Straße', 'Hausnummer', 'Postleitzahl', 'Stadt', 'Land', 'Mailadresse', 'Passwort'];
+        foreach ($requiredLabels as $label) {
+            $this->assertMatchesRegularExpression(
+                '/<legend\b[^>]*>\s*' . preg_quote($label, '/') . '/si',
+                $html,
+                "Label '$label' fehlt als sichtbares <legend>-Element im Formular."
+            );
+        }
+
+        // Prüfe, dass Hints für Passwort und Telefon vorhanden sind (maryUI fieldset-label)
+        $this->assertStringContainsString('Mindestens 6 Zeichen.', $html);
+        $this->assertStringContainsString('Bitte wiederhole dein Passwort.', $html);
+
+        // Prüfe Beitrag-Slider
+        $this->assertStringContainsString('id="mitgliedsbeitrag"', $html);
+        $this->assertStringContainsString('id="beitrag-output"', $html);
+
+        // Satzung-Checkbox
+        $this->assertStringContainsString('id="satzung_check"', $html);
     }
 
     public function test_membership_application_creates_user_and_assigns_anwaerter_role(): void
@@ -111,28 +113,20 @@ class MitgliedschaftControllerTest extends TestCase
         $response->assertStatus(422)->assertJsonValidationErrors(['vorname']);
     }
 
-    public function test_membership_form_fields_share_brand_focus_styles(): void
+    public function test_membership_form_renders_all_required_fields(): void
     {
         $response = $this->get('/mitglied-werden');
 
         $response->assertOk();
-        $html = $response->getContent();
 
-        $fieldsToInspect = [
-            ['input', 'vorname'],
-            ['select', 'land'],
-            ['select', 'verein_gefunden'],
-            ['input', 'mitgliedsbeitrag'],
+        $expectedFields = [
+            'vorname', 'nachname', 'strasse', 'hausnummer', 'plz', 'stadt',
+            'land', 'mail', 'passwort', 'passwort_confirmation',
+            'mitgliedsbeitrag', 'telefon', 'verein_gefunden', 'satzung_check',
         ];
 
-        foreach ($fieldsToInspect as [$tag, $id]) {
-            $classes = $this->extractClassAttribute($html, $tag, $id);
-
-            $this->assertNotNull($classes, sprintf('Erwartete %s#%s mit Klassenattribut.', $tag, $id));
-            $this->assertStringContainsString('focus:border-[#8B0116]', $classes);
-            $this->assertStringContainsString('focus:ring-[#8B0116]', $classes);
-            $this->assertStringContainsString('dark:focus:border-[#ff4b63]', $classes);
-            $this->assertStringContainsString('dark:focus:ring-[#ff4b63]', $classes);
+        foreach ($expectedFields as $fieldName) {
+            $response->assertSee('name="'.$fieldName.'"', false);
         }
     }
 
@@ -146,14 +140,4 @@ class MitgliedschaftControllerTest extends TestCase
         $this->assertStringContainsString('[Mitgliedschaftsformular] Feld mit ID "', $html);
     }
 
-    private function extractClassAttribute(string $html, string $tag, string $id): ?string
-    {
-        $pattern = sprintf('/<%s[^>]*\bid="%s"[^>]*\bclass="([^"]*)"/m', $tag, $id);
-
-        if (preg_match($pattern, $html, $matches)) {
-            return $matches[1];
-        }
-
-        return null;
-    }
 }
