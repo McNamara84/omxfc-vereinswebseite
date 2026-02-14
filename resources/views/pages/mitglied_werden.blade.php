@@ -89,7 +89,7 @@
                     </label>
                 </div>
             </div>
-            <x-button label="Antrag absenden" type="submit" id="submit-button" class="btn-primary mt-6 opacity-50 cursor-not-allowed" disabled />
+            <button type="submit" id="submit-button" class="btn btn-primary mt-6 opacity-50 cursor-not-allowed" disabled>Antrag absenden</button>
             <!-- Lade-Indikator -->
             <div id="loading-indicator" class="mt-4 hidden flex items-center justify-center">
                 <x-loading class="loading-spinner loading-lg text-[#8B0116]" />
