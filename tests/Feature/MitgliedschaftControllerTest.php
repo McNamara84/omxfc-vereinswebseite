@@ -34,10 +34,14 @@ class MitgliedschaftControllerTest extends TestCase
             $this->assertStringContainsString('name="'.$field.'"', $html, "Feld '$field' fehlt im Formular.");
         }
 
-        // Prüfe, dass Labels für Pflichtfelder mit Sternchen gerendert werden (maryUI-Pattern)
+        // Prüfe, dass Labels für Pflichtfelder als <legend> gerendert werden (maryUI/form-select-Pattern)
         $requiredLabels = ['Vorname', 'Nachname', 'Straße', 'Hausnummer', 'Postleitzahl', 'Stadt', 'Land', 'Mailadresse', 'Passwort'];
         foreach ($requiredLabels as $label) {
-            $this->assertStringContainsString($label, $html, "Label '$label' fehlt im Formular.");
+            $this->assertMatchesRegularExpression(
+                '/<legend\b[^>]*>\s*' . preg_quote($label, '/') . '/si',
+                $html,
+                "Label '$label' fehlt als sichtbares <legend>-Element im Formular."
+            );
         }
 
         // Prüfe, dass Hints für Passwort und Telefon vorhanden sind (maryUI fieldset-label)

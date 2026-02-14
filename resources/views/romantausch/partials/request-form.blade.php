@@ -21,7 +21,7 @@
 
         <div class="grid gap-6 md:grid-cols-2">
             <div class="md:col-span-1 space-y-4">
-                <x-select
+                <x-form-select
                     id="series-select"
                     name="series"
                     label="Serie"
@@ -31,7 +31,7 @@
                     error-field="series"
                 />
 
-                <x-select
+                <x-form-select
                     id="book-select"
                     name="book_number"
                     label="Roman"
@@ -41,7 +41,7 @@
                     error-field="book_number"
                 />
 
-                <x-select
+                <x-form-select
                     id="condition-select"
                     name="condition"
                     label="Zustand bis einschließlich"
@@ -67,11 +67,6 @@
 @push('scripts')
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            // maryUI Select: value-Attribut zu DOM-Selection synchronisieren (old()-Werte)
-            document.querySelectorAll('#request-form select[value]').forEach(s => {
-                s.value = s.getAttribute('value');
-            });
-
             const seriesSelect = document.getElementById('series-select');
             const bookSelect = document.getElementById('book-select');
             const booksBySeries = @json($booksBySeries);

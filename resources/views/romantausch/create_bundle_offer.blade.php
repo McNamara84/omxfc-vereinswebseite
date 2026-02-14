@@ -31,7 +31,7 @@
                 <div class="grid gap-6 md:grid-cols-2">
                     <div class="md:col-span-1 space-y-4">
                         {{-- Serie --}}
-                        <x-select
+                        <x-form-select
                             id="series-select"
                             name="series"
                             label="Serie"
@@ -77,7 +77,7 @@
                         <div>
                             <label class="fieldset-legend">Zustandsbereich</label>
                             <div class="grid grid-cols-2 gap-3">
-                                <x-select
+                                <x-form-select
                                     id="condition-min"
                                     name="condition"
                                     label="Von (bester Zustand)"
@@ -86,7 +86,7 @@
                                     :value="$selectedCondition"
                                     error-field="condition"
                                 />
-                                <x-select
+                                <x-form-select
                                     id="condition-max"
                                     name="condition_max"
                                     label="Bis (schlechtester)"
@@ -157,16 +157,5 @@
         </x-card>
     </x-member-page>
 </x-app-layout>
-
-@push('scripts')
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            // maryUI Select: value-Attribut zu DOM-Selection synchronisieren (old()-Werte)
-            document.querySelectorAll('#bundle-offer-form select[value]').forEach(s => {
-                s.value = s.getAttribute('value');
-            });
-        });
-    </script>
-@endpush
 
 @vite(['resources/js/romantausch-bundle-preview.js'])

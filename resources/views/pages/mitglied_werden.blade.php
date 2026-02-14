@@ -24,7 +24,7 @@
                         ['id' => 'Schweiz', 'name' => 'Schweiz'],
                     ];
                 @endphp
-                <x-select
+                <x-form-select
                     name="land"
                     label="Land"
                     aria-label="Land"
@@ -71,7 +71,7 @@
                         ['id' => 'Sonstiges', 'name' => 'Sonstiges'],
                     ];
                 @endphp
-                <x-select
+                <x-form-select
                     name="verein_gefunden"
                     label="Wie hast du von uns erfahren? (optional)"
                     aria-label="Wie hast du von uns erfahren?"
@@ -117,7 +117,8 @@
                 passwort: { regex: /^.{6,}$/, error: 'Passwort mindestens 6 Zeichen.' },
                 passwort_confirmation: { matchWith: 'passwort', error: 'Passwörter stimmen nicht überein.' },
                 telefon: {
-                    regex: /^(\+\d{1,3}\s?)?(\d{4,14})$/,
+                    regex: /^(\+\d{1,3}[\s\-]?)?[\d\s\-]{4,20}$/,
+                    normalize: v => v.replace(/[\s\-\/()]/g, ''),
                     error: 'Bitte gültige Handynummer eingeben.',
                     optional: true,
                 },
@@ -197,7 +198,11 @@
                         const hasError = input.value !== matchElem.value;
                         isValid = setFieldError(input, hasError ? rules.error : '') && isValid;
                     } else {
-                        const hasError = !rules.regex.test(input.value.trim());
+                        let testValue = input.value.trim();
+                        if (rules.normalize) {
+                            testValue = rules.normalize(testValue);
+                        }
+                        const hasError = !rules.regex.test(testValue);
                         isValid = setFieldError(input, hasError ? rules.error : '') && isValid;
                     }
                 }
