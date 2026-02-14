@@ -42,13 +42,23 @@ class AuthenticationTest extends TestCase
         $this->assertGuest();
     }
 
-    public function test_login_form_has_accessibility_attributes(): void
+    public function test_login_form_has_accessible_structure_and_test_ids(): void
     {
         $response = $this->get('/login');
 
+        // data-testid-Attribute für E2E-Tests
         $response->assertSee('data-testid="login-email-input"', false);
         $response->assertSee('data-testid="login-password-input"', false);
         $response->assertSee('data-testid="login-submit-button"', false);
+
+        // Semantische Struktur: H1-Heading, Label-Legenden, Formular-Action
+        $html = $response->getContent();
+        $this->assertStringContainsString('<h1', $html);
+        $this->assertStringContainsString('Login', $html);
+        $this->assertMatchesRegularExpression('/<legend[^>]*>\s*E-Mail/si', $html);
+        $this->assertMatchesRegularExpression('/<legend[^>]*>\s*Passwort/si', $html);
+        $this->assertStringContainsString('autocomplete="username"', $html);
+        $this->assertStringContainsString('autocomplete="current-password"', $html);
     }
 
     public function test_login_validation_errors(): void

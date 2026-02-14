@@ -85,7 +85,7 @@
                     <label class="flex gap-3 items-center cursor-pointer" data-testid="mitglied-satzung-check">
                         <input type="checkbox" id="satzung_check" name="satzung_check" class="checkbox" />
                         <span class="text-sm font-medium">
-                            Ich habe die <a href="{{ route('satzung') }}" target="_blank" class="link link-primary">Satzung</a> gelesen und bin mit ihr einverstanden.
+                            Ich habe die <a href="{{ route('satzung') }}" target="_blank" rel="noopener noreferrer" class="link link-primary">Satzung</a> gelesen und bin mit ihr einverstanden.
                         </span>
                     </label>
                 </div>
