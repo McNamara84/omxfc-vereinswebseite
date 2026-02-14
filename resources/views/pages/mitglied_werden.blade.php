@@ -1,8 +1,8 @@
 <x-app-layout title="Mitglied werden – Offizieller MADDRAX Fanclub e. V." description="Online-Antrag zur Aufnahme in den Fanclub der MADDRAX-Romanserie.">
     <x-public-page>
-        <h1 class="text-2xl sm:text-3xl font-bold text-[#8B0116] dark:text-[#ff4b63] mb-4 sm:mb-8">Mitglied werden</h1>
+        <x-header title="Mitglied werden" class="mb-4 sm:mb-8" data-testid="mitglied-werden-header" useH1 />
         <!-- Erfolg-/Fehlermeldungen -->
-        <div id="form-messages" class="mb-4 hidden"></div>
+        <div id="form-messages" class="mb-4 hidden" role="alert"></div>
         <form id="mitgliedschaft-form" class="w-full">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                 <x-input name="vorname" label="Vorname" required class="w-full" autocomplete="given-name" />
@@ -81,20 +81,23 @@
                 />
 
                 <!-- Checkbox über volle Breite -->
-                <div class="col-span-1 md:col-span-2 flex items-start mt-2">
-                    <input type="checkbox" id="satzung_check" name="satzung_check" class="checkbox mt-1">
-                    <label for="satzung_check" class="ml-2 text-sm">
-                        Ich habe die <a href="{{ route('satzung') }}" target="_blank"
-                            class="text-blue-600 dark:text-blue-400 hover:underline">Satzung</a> gelesen und bin mit ihr
-                        einverstanden.
+                <div class="col-span-1 md:col-span-2 mt-2">
+                    <label class="flex gap-3 items-center cursor-pointer" data-testid="mitglied-satzung-check">
+                        <input type="checkbox" id="satzung_check" name="satzung_check" class="checkbox" />
+                        <span class="text-sm font-medium">
+                            Ich habe die <a href="{{ route('satzung') }}" target="_blank" rel="noopener noreferrer" class="link link-primary" onclick="event.stopPropagation()">Satzung</a> gelesen und bin mit ihr einverstanden.
+                        </span>
                     </label>
                 </div>
             </div>
-            <button type="submit" id="submit-button" class="btn btn-primary mt-6 opacity-50 cursor-not-allowed" disabled>Antrag absenden</button>
+            <button type="submit" id="submit-button" class="btn btn-primary mt-6 opacity-50 cursor-not-allowed" disabled data-testid="mitglied-submit">
+                <x-icon name="o-paper-airplane" class="h-5 w-5" />
+                Antrag absenden
+            </button>
             <!-- Lade-Indikator -->
             <div id="loading-indicator" class="mt-4 hidden flex items-center justify-center">
-                <x-loading class="loading-spinner loading-lg text-[#8B0116]" />
-                <span class="ml-2 font-medium text-[#8B0116]">Dein Antrag wird gesendet, bitte warten...</span>
+                <x-loading class="loading-spinner loading-lg text-primary" />
+                <span class="ml-2 font-medium text-primary">Dein Antrag wird gesendet, bitte warten...</span>
             </div>
         </form>
     </x-public-page>

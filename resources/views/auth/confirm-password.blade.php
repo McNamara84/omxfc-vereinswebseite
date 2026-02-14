@@ -1,28 +1,32 @@
-<x-guest-layout>
-    <x-authentication-card>
-        <x-slot name="logo">
-            <x-authentication-card-logo />
-        </x-slot>
+<x-app-layout title="Passwort bestätigen – Offizieller MADDRAX Fanclub e. V." description="Bestätige dein Passwort, um fortzufahren.">
+    <div class="max-w-md mx-auto px-6 py-12">
+        <x-card shadow data-testid="confirm-password-card">
+            <x-header title="Passwort bestätigen" class="mb-4" useH1 />
 
-        <div class="mb-4 text-sm text-gray-600 dark:text-gray-400">
-            {{ __('This is a secure area of the application. Please confirm your password before continuing.') }}
-        </div>
+            <x-alert icon="o-information-circle" class="alert-info mb-4">
+                Dies ist ein geschützter Bereich der Anwendung. Bitte bestätige dein Passwort, bevor du fortfährst.
+            </x-alert>
 
-        <x-validation-errors class="mb-4" />
+            <x-validation-errors class="mb-4" />
 
-        <form method="POST" action="{{ route('password.confirm') }}">
-            @csrf
+            <form method="POST" action="{{ route('password.confirm') }}">
+                @csrf
 
-            <div>
-                <x-label for="password" value="{{ __('Password') }}" />
-                <x-input id="password" class="block mt-1 w-full" type="password" name="password" required autocomplete="current-password" autofocus />
-            </div>
+                <x-input
+                    label="Passwort"
+                    id="password"
+                    name="password"
+                    type="password"
+                    required
+                    autocomplete="current-password"
+                    autofocus
+                    data-testid="confirm-password-input"
+                />
 
-            <div class="flex justify-end mt-4">
-                <x-button class="ms-4">
-                    {{ __('Confirm') }}
-                </x-button>
-            </div>
-        </form>
-    </x-authentication-card>
-</x-guest-layout>
+                <div class="flex justify-end mt-6">
+                    <x-button label="Bestätigen" type="submit" class="btn-primary" data-testid="confirm-password-submit" />
+                </div>
+            </form>
+        </x-card>
+    </div>
+</x-app-layout>
