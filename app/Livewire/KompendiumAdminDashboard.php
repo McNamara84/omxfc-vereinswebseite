@@ -18,7 +18,7 @@ use Livewire\WithPagination;
 /**
  * Livewire-Komponente für die Admin-Verwaltung des Kompendiums.
  *
- * Ermöglicht das Hochladen, Indexieren, De-Indexieren und Löschen von Romantexten.
+ * Ermöglicht das Hochladen, Indexieren, De-Indexieren, Bearbeiten und Löschen von Romantexten.
  */
 #[Layout('layouts.app')]
 #[Title('Kompendium-Administration')]
@@ -32,11 +32,25 @@ class KompendiumAdminDashboard extends Component
 
     public string $ausgewaehlteSerie = 'maddrax';
 
-    public string $filterSerie = '';
+    /** Tab-Navigation: Aktive Serie (Default: Maddrax) */
+    public string $filterSerie = 'maddrax';
 
     public string $filterStatus = '';
 
     public string $suchbegriff = '';
+
+    /** Bearbeitungs-Modal State */
+    public bool $showEditModal = false;
+
+    public ?int $editId = null;
+
+    public string $editSerie = '';
+
+    public string $editZyklus = '';
+
+    public int $editNummer = 0;
+
+    public string $editTitel = '';
 
     protected function rules(): array
     {
@@ -59,15 +73,14 @@ class KompendiumAdminDashboard extends Component
     public function romane()
     {
         return KompendiumRoman::query()
-            ->when($this->filterSerie, fn ($q) => $q->where('serie', $this->filterSerie))
+            ->where('serie', $this->filterSerie)
             ->when($this->filterStatus, fn ($q) => $q->where('status', $this->filterStatus))
             ->when($this->suchbegriff, fn ($q) => $q->where(function ($query) {
                 $query->where('titel', 'like', "%{$this->suchbegriff}%")
                     ->orWhere('roman_nr', 'like', "%{$this->suchbegriff}%");
             }))
-            ->orderBy('serie')
             ->orderBy('roman_nr')
-            ->paginate(25);
+            ->paginate(50);
     }
 
     #[Computed]
@@ -80,6 +93,24 @@ class KompendiumAdminDashboard extends Component
     public function serien(): array
     {
         return app(KompendiumService::class)->getSerienListe();
+    }
+
+    /** Anzahl Romane pro Serie für Tab-Badges. */
+    #[Computed]
+    public function romanZahlenProSerie(): array
+    {
+        return KompendiumRoman::query()
+            ->selectRaw('serie, COUNT(*) as anzahl')
+            ->groupBy('serie')
+            ->pluck('anzahl', 'serie')
+            ->toArray();
+    }
+
+    /** Zyklen-Fortschritt für das Statistik-Dashboard. */
+    #[Computed]
+    public function zyklenFortschritt()
+    {
+        return app(KompendiumService::class)->getZyklenFortschritt();
     }
 
     public function updatedFilterSerie(): void
@@ -115,8 +146,8 @@ class KompendiumAdminDashboard extends Component
                 continue;
             }
 
-            // Metadaten aus JSON laden
-            $meta = $service->findeMetadaten($parsed['nummer'], $parsed['titel']);
+            // Metadaten aus JSON laden (mit Fuzzy-Match)
+            $meta = $service->findeMetadatenMitFuzzy($parsed['nummer'], $parsed['titel']);
 
             // Serie bestimmen: Falls Metadaten gefunden, diese nutzen, sonst ausgewählte Serie
             $serie = $meta['serie'] ?? $this->ausgewaehlteSerie;
@@ -158,8 +189,102 @@ class KompendiumAdminDashboard extends Component
             session()->flash('error', implode("\n", $fehler));
         }
 
-        unset($this->romane, $this->statistiken);
+        unset($this->romane, $this->statistiken, $this->romanZahlenProSerie, $this->zyklenFortschritt);
     }
+
+    /* --------------------------------------------------------------------- */
+    /*  Bearbeitung (Edit-Modal) */
+    /* --------------------------------------------------------------------- */
+
+    /**
+     * Öffnet das Edit-Modal mit den Daten des Romans.
+     */
+    public function bearbeiten(int $id): void
+    {
+        $roman = KompendiumRoman::findOrFail($id);
+
+        if ($roman->status === 'indexierung_laeuft') {
+            session()->flash('warning', 'Roman kann während der Indexierung nicht bearbeitet werden.');
+
+            return;
+        }
+
+        $this->editId = $roman->id;
+        $this->editSerie = $roman->serie;
+        $this->editZyklus = $roman->zyklus ?? '';
+        $this->editNummer = $roman->roman_nr;
+        $this->editTitel = $roman->titel;
+        $this->showEditModal = true;
+    }
+
+    /**
+     * Speichert die Änderungen am Roman und verschiebt ggf. die Datei.
+     */
+    public function speichern(): void
+    {
+        $this->validate([
+            'editSerie' => 'required|in:maddrax,hardcovers,missionmars,volkdertiefe,2012,abenteurer',
+            'editZyklus' => 'nullable|string|max:100',
+            'editNummer' => 'required|integer|min:1',
+            'editTitel' => 'required|string|max:255',
+        ]);
+
+        $roman = KompendiumRoman::findOrFail($this->editId);
+
+        if ($roman->status === 'indexierung_laeuft') {
+            session()->flash('warning', 'Roman kann während der Indexierung nicht bearbeitet werden.');
+            $this->showEditModal = false;
+
+            return;
+        }
+
+        // Neuen Dateipfad berechnen
+        $neuerDateiname = str_pad($this->editNummer, 3, '0', STR_PAD_LEFT).' - '.$this->editTitel.'.txt';
+        $neuerPfad = "romane/{$this->editSerie}/{$neuerDateiname}";
+        $alterPfad = $roman->dateipfad;
+
+        // Duplikat-Prüfung (anderer Roman mit gleichem Pfad)
+        if ($alterPfad !== $neuerPfad && KompendiumRoman::where('dateipfad', $neuerPfad)->where('id', '!=', $roman->id)->exists()) {
+            $this->addError('editTitel', 'Ein Roman mit diesem Pfad existiert bereits.');
+
+            return;
+        }
+
+        // Falls Pfad geändert: Datei physisch verschieben
+        if ($alterPfad !== $neuerPfad && Storage::disk('private')->exists($alterPfad)) {
+            Storage::disk('private')->move($alterPfad, $neuerPfad);
+        }
+
+        $warIndexiert = $roman->status === 'indexiert';
+
+        // DB aktualisieren
+        $roman->update([
+            'serie' => $this->editSerie,
+            'zyklus' => $this->editZyklus ?: null,
+            'roman_nr' => $this->editNummer,
+            'titel' => $this->editTitel,
+            'dateiname' => $neuerDateiname,
+            'dateipfad' => $neuerPfad,
+        ]);
+
+        // Falls indexiert und Pfad geändert: De-Indexieren (muss neu indexiert werden)
+        if ($warIndexiert && $alterPfad !== $neuerPfad) {
+            $searchService = app(KompendiumSearchService::class);
+            $searchService->removeFromIndex($alterPfad);
+            $roman->update(['status' => 'hochgeladen', 'indexiert_am' => null]);
+            IndexiereRomanJob::dispatch($roman->fresh());
+            session()->flash('info', "Roman \"{$this->editTitel}\" aktualisiert. Re-Indexierung gestartet.");
+        } else {
+            session()->flash('success', "Roman \"{$this->editTitel}\" aktualisiert.");
+        }
+
+        $this->showEditModal = false;
+        unset($this->romane, $this->statistiken, $this->romanZahlenProSerie, $this->zyklenFortschritt);
+    }
+
+    /* --------------------------------------------------------------------- */
+    /*  Indexierung & Löschung */
+    /* --------------------------------------------------------------------- */
 
     public function indexieren(int $id): void
     {
@@ -174,7 +299,7 @@ class KompendiumAdminDashboard extends Component
         IndexiereRomanJob::dispatch($roman);
         session()->flash('info', "Indexierung von \"{$roman->titel}\" gestartet.");
 
-        unset($this->romane, $this->statistiken);
+        unset($this->romane, $this->statistiken, $this->romanZahlenProSerie, $this->zyklenFortschritt);
     }
 
     public function deIndexieren(int $id): void
@@ -190,7 +315,7 @@ class KompendiumAdminDashboard extends Component
         DeIndexiereRomanJob::dispatch($roman);
         session()->flash('info', "De-Indexierung von \"{$roman->titel}\" gestartet.");
 
-        unset($this->romane, $this->statistiken);
+        unset($this->romane, $this->statistiken, $this->romanZahlenProSerie, $this->zyklenFortschritt);
     }
 
     public function loeschen(int $id, KompendiumSearchService $searchService): void
@@ -211,7 +336,7 @@ class KompendiumAdminDashboard extends Component
 
         session()->flash('success', "Roman \"{$titel}\" gelöscht.");
 
-        unset($this->romane, $this->statistiken);
+        unset($this->romane, $this->statistiken, $this->romanZahlenProSerie, $this->zyklenFortschritt);
     }
 
     public function alleIndexieren(): void
@@ -230,7 +355,7 @@ class KompendiumAdminDashboard extends Component
 
         session()->flash('info', "{$romane->count()} Romane zur Indexierung eingereiht.");
 
-        unset($this->romane, $this->statistiken);
+        unset($this->romane, $this->statistiken, $this->romanZahlenProSerie, $this->zyklenFortschritt);
     }
 
     public function alleDeIndexieren(): void
@@ -249,7 +374,7 @@ class KompendiumAdminDashboard extends Component
 
         session()->flash('info', "{$romane->count()} Romane zur De-Indexierung eingereiht.");
 
-        unset($this->romane, $this->statistiken);
+        unset($this->romane, $this->statistiken, $this->romanZahlenProSerie, $this->zyklenFortschritt);
     }
 
     public function retryFehler(int $id): void
@@ -268,7 +393,7 @@ class KompendiumAdminDashboard extends Component
         IndexiereRomanJob::dispatch($roman);
         session()->flash('info', "Erneuter Indexierungsversuch für \"{$roman->titel}\" gestartet.");
 
-        unset($this->romane, $this->statistiken);
+        unset($this->romane, $this->statistiken, $this->romanZahlenProSerie, $this->zyklenFortschritt);
     }
 
     public function render()

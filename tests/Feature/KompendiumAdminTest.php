@@ -386,4 +386,216 @@ class KompendiumAdminTest extends TestCase
         $this->assertEquals('hochgeladen', $roman->status);
         $this->assertNull($roman->fehler_nachricht);
     }
+
+    /* --------------------------------------------------------------------- */
+    /*  Bearbeiten / Speichern Tests                                         */
+    /* --------------------------------------------------------------------- */
+
+    #[Test]
+    public function bearbeiten_oeffnet_modal_mit_daten(): void
+    {
+        $roman = KompendiumRoman::create([
+            'dateiname' => '001 - TestRoman.txt',
+            'dateipfad' => 'romane/maddrax/001 - TestRoman.txt',
+            'serie' => 'maddrax',
+            'roman_nr' => 1,
+            'titel' => 'TestRoman',
+            'zyklus' => 'Euree',
+            'hochgeladen_am' => now(),
+            'hochgeladen_von' => $this->admin->id,
+            'status' => 'hochgeladen',
+        ]);
+
+        Livewire::actingAs($this->admin)
+            ->test(KompendiumAdminDashboard::class)
+            ->call('bearbeiten', $roman->id)
+            ->assertSet('showEditModal', true)
+            ->assertSet('editId', $roman->id)
+            ->assertSet('editSerie', 'maddrax')
+            ->assertSet('editZyklus', 'Euree')
+            ->assertSet('editNummer', 1)
+            ->assertSet('editTitel', 'TestRoman');
+    }
+
+    #[Test]
+    public function bearbeiten_blockiert_bei_laufender_indexierung(): void
+    {
+        $roman = KompendiumRoman::create([
+            'dateiname' => '001 - TestRoman.txt',
+            'dateipfad' => 'romane/maddrax/001 - TestRoman.txt',
+            'serie' => 'maddrax',
+            'roman_nr' => 1,
+            'titel' => 'TestRoman',
+            'hochgeladen_am' => now(),
+            'hochgeladen_von' => $this->admin->id,
+            'status' => 'indexierung_laeuft',
+        ]);
+
+        Livewire::actingAs($this->admin)
+            ->test(KompendiumAdminDashboard::class)
+            ->call('bearbeiten', $roman->id)
+            ->assertSet('showEditModal', false);
+    }
+
+    #[Test]
+    public function speichern_aktualisiert_roman_daten(): void
+    {
+        Storage::disk('private')->put('romane/maddrax/001 - AlterTitel.txt', 'Inhalt');
+
+        $roman = KompendiumRoman::create([
+            'dateiname' => '001 - AlterTitel.txt',
+            'dateipfad' => 'romane/maddrax/001 - AlterTitel.txt',
+            'serie' => 'maddrax',
+            'roman_nr' => 1,
+            'titel' => 'AlterTitel',
+            'zyklus' => 'Euree',
+            'hochgeladen_am' => now(),
+            'hochgeladen_von' => $this->admin->id,
+            'status' => 'hochgeladen',
+        ]);
+
+        Livewire::actingAs($this->admin)
+            ->test(KompendiumAdminDashboard::class)
+            ->call('bearbeiten', $roman->id)
+            ->set('editSerie', 'missionmars')
+            ->set('editZyklus', '')
+            ->set('editNummer', 5)
+            ->set('editTitel', 'NeuerTitel')
+            ->call('speichern')
+            ->assertSet('showEditModal', false);
+
+        $roman->refresh();
+        $this->assertEquals('missionmars', $roman->serie);
+        $this->assertNull($roman->zyklus);
+        $this->assertEquals(5, $roman->roman_nr);
+        $this->assertEquals('NeuerTitel', $roman->titel);
+        $this->assertEquals('romane/missionmars/005 - NeuerTitel.txt', $roman->dateipfad);
+
+        // Datei wurde verschoben
+        Storage::disk('private')->assertExists('romane/missionmars/005 - NeuerTitel.txt');
+        Storage::disk('private')->assertMissing('romane/maddrax/001 - AlterTitel.txt');
+    }
+
+    #[Test]
+    public function speichern_blockiert_duplikat_pfad(): void
+    {
+        KompendiumRoman::create([
+            'dateiname' => '005 - Existiert.txt',
+            'dateipfad' => 'romane/maddrax/005 - Existiert.txt',
+            'serie' => 'maddrax',
+            'roman_nr' => 5,
+            'titel' => 'Existiert',
+            'hochgeladen_am' => now(),
+            'hochgeladen_von' => $this->admin->id,
+            'status' => 'hochgeladen',
+        ]);
+
+        $roman = KompendiumRoman::create([
+            'dateiname' => '001 - Anderer.txt',
+            'dateipfad' => 'romane/maddrax/001 - Anderer.txt',
+            'serie' => 'maddrax',
+            'roman_nr' => 1,
+            'titel' => 'Anderer',
+            'hochgeladen_am' => now(),
+            'hochgeladen_von' => $this->admin->id,
+            'status' => 'hochgeladen',
+        ]);
+
+        Livewire::actingAs($this->admin)
+            ->test(KompendiumAdminDashboard::class)
+            ->call('bearbeiten', $roman->id)
+            ->set('editNummer', 5)
+            ->set('editTitel', 'Existiert')
+            ->call('speichern')
+            ->assertHasErrors('editTitel');
+    }
+
+    #[Test]
+    public function speichern_reindexiert_bei_pfadaenderung_indexierter_romane(): void
+    {
+        Queue::fake();
+        Storage::disk('private')->put('romane/maddrax/001 - Alt.txt', 'Inhalt');
+
+        $roman = KompendiumRoman::create([
+            'dateiname' => '001 - Alt.txt',
+            'dateipfad' => 'romane/maddrax/001 - Alt.txt',
+            'serie' => 'maddrax',
+            'roman_nr' => 1,
+            'titel' => 'Alt',
+            'zyklus' => 'Euree',
+            'hochgeladen_am' => now(),
+            'hochgeladen_von' => $this->admin->id,
+            'status' => 'indexiert',
+            'indexiert_am' => now(),
+        ]);
+
+        Livewire::actingAs($this->admin)
+            ->test(KompendiumAdminDashboard::class)
+            ->call('bearbeiten', $roman->id)
+            ->set('editTitel', 'Neu')
+            ->call('speichern');
+
+        $roman->refresh();
+        // Status wird auf "hochgeladen" zurückgesetzt und Re-Indexierung gestartet
+        $this->assertEquals('hochgeladen', $roman->status);
+        $this->assertNull($roman->indexiert_am);
+
+        Queue::assertPushed(IndexiereRomanJob::class);
+    }
+
+    /* --------------------------------------------------------------------- */
+    /*  Tab-Navigation Tests                                                 */
+    /* --------------------------------------------------------------------- */
+
+    #[Test]
+    public function standard_filter_serie_ist_maddrax(): void
+    {
+        Livewire::actingAs($this->admin)
+            ->test(KompendiumAdminDashboard::class)
+            ->assertSet('filterSerie', 'maddrax');
+    }
+
+    #[Test]
+    public function roman_zahlen_pro_serie_computed_funktioniert(): void
+    {
+        KompendiumRoman::create([
+            'dateiname' => '001 - M1.txt',
+            'dateipfad' => 'romane/maddrax/001 - M1.txt',
+            'serie' => 'maddrax',
+            'roman_nr' => 1,
+            'titel' => 'M1',
+            'hochgeladen_am' => now(),
+            'hochgeladen_von' => $this->admin->id,
+            'status' => 'hochgeladen',
+        ]);
+
+        KompendiumRoman::create([
+            'dateiname' => '002 - M2.txt',
+            'dateipfad' => 'romane/maddrax/002 - M2.txt',
+            'serie' => 'maddrax',
+            'roman_nr' => 2,
+            'titel' => 'M2',
+            'hochgeladen_am' => now(),
+            'hochgeladen_von' => $this->admin->id,
+            'status' => 'indexiert',
+        ]);
+
+        KompendiumRoman::create([
+            'dateiname' => '001 - Mars.txt',
+            'dateipfad' => 'romane/missionmars/001 - Mars.txt',
+            'serie' => 'missionmars',
+            'roman_nr' => 1,
+            'titel' => 'Mars',
+            'hochgeladen_am' => now(),
+            'hochgeladen_von' => $this->admin->id,
+            'status' => 'hochgeladen',
+        ]);
+
+        $component = Livewire::actingAs($this->admin)
+            ->test(KompendiumAdminDashboard::class);
+
+        $zahlen = $component->get('romanZahlenProSerie');
+        $this->assertEquals(2, $zahlen['maddrax']);
+        $this->assertEquals(1, $zahlen['missionmars']);
+    }
 }

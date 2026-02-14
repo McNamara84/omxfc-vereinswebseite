@@ -309,6 +309,8 @@ class KompendiumControllerTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('Aktuell sind die folgenden Romane für die Suche indexiert:');
+        // Zusammengefasste Übersicht: Maddrax als Serie-Name, Euree in Beschreibung
+        $response->assertSee('Maddrax');
         $response->assertSee('Euree');
         $response->assertDontSee('Aktuell sind keine Romane für die Suche indexiert.');
     }

@@ -78,6 +78,74 @@ class KompendiumService
     }
 
     /**
+     * Findet Metadaten mit Fuzzy-Matching.
+     *
+     * Strategie (in Reihenfolge):
+     * 1. Exakter Match (Nummer + Titel)
+     * 2. Normalisierter Match (case-insensitive + Sonderzeichen bereinigt)
+     * 3. Nummer-Match (eindeutig über alle Serien)
+     *
+     * @return array{serie: string, serie_name: string, zyklus: string|null, roman: array, match_typ: string}|null
+     */
+    public function findeMetadatenMitFuzzy(int $nummer, string $titel): ?array
+    {
+        // 1. Exakter Match
+        $exakt = $this->findeMetadaten($nummer, $titel);
+        if ($exakt) {
+            $exakt['match_typ'] = 'exakt';
+
+            return $exakt;
+        }
+
+        // 2. Normalisierter Match (case-insensitive, Sonderzeichen bereinigt)
+        $normalisiertTitel = $this->normalisiereTitel($titel);
+        foreach (self::SERIEN as $serienKey => $serienName) {
+            $serie = $this->maddraxDataService->getSeries($serienKey);
+            $roman = $serie->first(fn ($r) => ($r['nummer'] ?? null) === $nummer &&
+                $this->normalisiereTitel($r['titel'] ?? '') === $normalisiertTitel
+            );
+
+            if ($roman) {
+                return [
+                    'serie' => $serienKey,
+                    'serie_name' => $serienName,
+                    'zyklus' => $roman['zyklus'] ?? null,
+                    'roman' => $roman,
+                    'match_typ' => 'normalisiert',
+                ];
+            }
+        }
+
+        // 3. Nummer-Match (nur wenn eindeutig über alle Serien)
+        $treffer = $this->findeRomaneNachNummer($nummer);
+        if ($treffer->count() === 1) {
+            $match = $treffer->first();
+
+            return [
+                'serie' => $match['serie'],
+                'serie_name' => $match['serie_name'],
+                'zyklus' => $match['zyklus'],
+                'roman' => $match,
+                'match_typ' => 'nummer',
+            ];
+        }
+
+        return null;
+    }
+
+    /**
+     * Normalisiert einen Titel für Fuzzy-Vergleich.
+     * Lowercase, Sonderzeichen entfernt, mehrfache Leerzeichen normalisiert.
+     */
+    public function normalisiereTitel(string $titel): string
+    {
+        $titel = mb_strtolower($titel);
+        $titel = preg_replace('/[^\p{L}\p{N}\s]/u', '', $titel);
+
+        return preg_replace('/\s+/', ' ', trim($titel));
+    }
+
+    /**
      * Sucht nach möglichen Übereinstimmungen nur anhand der Nummer.
      * Nützlich wenn der Titel leicht abweicht.
      *
@@ -158,6 +226,174 @@ class KompendiumService
                 'bandbereich' => $this->formatBandbereich($nummern),
             ];
         });
+    }
+
+    /**
+     * Erstellt eine zusammengefasste Serien-Übersicht für die Kompendium-Startseite.
+     *
+     * Maddrax-Zyklen werden unter einem Eintrag zusammengefasst:
+     * - Vollständige Zyklen: nur Name (z.B. "Euree-Zyklus")
+     * - Unvollständige Zyklen: Name + Bandbereich (z.B. "Expeditionszyklus Band 50-55, 57-74")
+     * - Miniserien: einfach Serienname + Bandbereich
+     *
+     * @return Collection<int, array{serie: string, serie_name: string, beschreibung: string, anzahl: int}>
+     */
+    public function getZusammengefassteUebersicht(): Collection
+    {
+        $indexierte = KompendiumRoman::indexiert()
+            ->orderBy('serie')
+            ->orderBy('roman_nr')
+            ->get();
+
+        if ($indexierte->isEmpty()) {
+            return collect();
+        }
+
+        $nachSerie = $indexierte->groupBy('serie');
+        $ergebnis = collect();
+
+        foreach ($nachSerie as $serienKey => $romane) {
+            $serienName = $this->getSerienName($serienKey);
+
+            if ($serienKey === 'maddrax') {
+                $beschreibung = $this->formatMaddraxZyklenBeschreibung($romane);
+                $ergebnis->push([
+                    'serie' => $serienKey,
+                    'serie_name' => 'Maddrax',
+                    'beschreibung' => $beschreibung,
+                    'anzahl' => $romane->count(),
+                ]);
+            } else {
+                $nummern = $romane->pluck('roman_nr')->sort()->values();
+                $bandbereich = $this->formatBandbereich($nummern);
+                $ergebnis->push([
+                    'serie' => $serienKey,
+                    'serie_name' => $serienName,
+                    'beschreibung' => "Band {$bandbereich}",
+                    'anzahl' => $romane->count(),
+                ]);
+            }
+        }
+
+        return $ergebnis;
+    }
+
+    /**
+     * Formatiert die Zyklen-Beschreibung für die Maddrax-Hauptserie.
+     *
+     * Vollständige Zyklen werden nur mit Namen angezeigt,
+     * unvollständige mit Bandbereich.
+     */
+    private function formatMaddraxZyklenBeschreibung(Collection $romane): string
+    {
+        $nachZyklus = $romane->groupBy(fn ($r) => $r->zyklus ?? 'Ohne Zyklus');
+        $teile = [];
+
+        foreach ($nachZyklus as $zyklus => $zyklusRomane) {
+            if ($zyklus === 'Ohne Zyklus') {
+                $nummern = $zyklusRomane->pluck('roman_nr')->sort()->values();
+                $teile[] = 'Band '.$this->formatBandbereich($nummern);
+
+                continue;
+            }
+
+            $istVollstaendig = $this->istZyklusVollstaendig($zyklus, $zyklusRomane);
+
+            if ($istVollstaendig) {
+                $teile[] = "{$zyklus}-Zyklus";
+            } else {
+                $nummern = $zyklusRomane->pluck('roman_nr')->sort()->values();
+                $teile[] = "{$zyklus}zyklus Band ".$this->formatBandbereich($nummern);
+            }
+        }
+
+        if (empty($teile)) {
+            return '';
+        }
+
+        if (count($teile) === 1) {
+            return $teile[0];
+        }
+
+        $letzter = array_pop($teile);
+
+        return implode(', ', $teile).' und '.$letzter;
+    }
+
+    /**
+     * Prüft ob alle Romane eines Zyklus der Maddrax-Hauptserie indexiert sind.
+     */
+    private function istZyklusVollstaendig(string $zyklus, Collection $indexierteRomane): bool
+    {
+        $sollAnzahl = $this->maddraxDataService->getSeries('maddrax')
+            ->where('zyklus', $zyklus)
+            ->count();
+
+        if ($sollAnzahl === 0) {
+            return false;
+        }
+
+        return $indexierteRomane->count() >= $sollAnzahl;
+    }
+
+    /**
+     * Berechnet den Indexierungsfortschritt pro Zyklus/Serie.
+     *
+     * @return Collection<int, array{zyklus: string, serie: string, soll: int, ist: int, prozent: float, status: string}>
+     */
+    public function getZyklenFortschritt(): Collection
+    {
+        $fortschritt = collect();
+
+        foreach (self::SERIEN as $serienKey => $serienName) {
+            $sollRomane = $this->maddraxDataService->getSeries($serienKey);
+            $istRomane = KompendiumRoman::where('serie', $serienKey)
+                ->indexiert()
+                ->get();
+
+            if ($serienKey === 'maddrax') {
+                // Pro Zyklus aufteilen
+                $zyklen = $sollRomane->groupBy('zyklus');
+                foreach ($zyklen as $zyklus => $sollInZyklus) {
+                    $istInZyklus = $istRomane->where('zyklus', $zyklus);
+                    $prozent = $sollInZyklus->count() > 0
+                        ? round(($istInZyklus->count() / $sollInZyklus->count()) * 100, 1)
+                        : 0;
+
+                    $fortschritt->push([
+                        'zyklus' => $zyklus,
+                        'serie' => $serienName,
+                        'soll' => $sollInZyklus->count(),
+                        'ist' => $istInZyklus->count(),
+                        'prozent' => $prozent,
+                        'status' => match (true) {
+                            $prozent >= 100 => 'vollstaendig',
+                            $prozent > 0 => 'teilweise',
+                            default => 'leer',
+                        },
+                    ]);
+                }
+            } else {
+                $prozent = $sollRomane->count() > 0
+                    ? round(($istRomane->count() / $sollRomane->count()) * 100, 1)
+                    : 0;
+
+                $fortschritt->push([
+                    'zyklus' => $serienName,
+                    'serie' => $serienName,
+                    'soll' => $sollRomane->count(),
+                    'ist' => $istRomane->count(),
+                    'prozent' => $prozent,
+                    'status' => match (true) {
+                        $prozent >= 100 => 'vollstaendig',
+                        $prozent > 0 => 'teilweise',
+                        default => 'leer',
+                    },
+                ]);
+            }
+        }
+
+        return $fortschritt;
     }
 
     /**
