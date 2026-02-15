@@ -46,7 +46,12 @@
                         <span class="w-28 text-sm truncate font-medium" title="{{ $eintrag['zyklus'] }}">
                             {{ $eintrag['zyklus'] }}
                         </span>
-                        <div class="flex-1 bg-base-200 rounded-full h-4 overflow-hidden">
+                        <div class="flex-1 bg-base-200 rounded-full h-4 overflow-hidden"
+                            role="progressbar"
+                            aria-valuenow="{{ $eintrag['prozent'] }}"
+                            aria-valuemin="0"
+                            aria-valuemax="100"
+                            aria-label="{{ $eintrag['zyklus'] }}: {{ $eintrag['ist'] }} von {{ $eintrag['soll'] }} indexiert ({{ $eintrag['prozent'] }}%)">
                             <div
                                 @class([
                                     'h-4 rounded-full transition-all duration-500',
