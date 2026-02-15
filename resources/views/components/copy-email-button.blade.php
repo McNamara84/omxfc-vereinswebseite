@@ -44,6 +44,8 @@
         x-cloak
         icon="o-check"
         :label="$isMobile ? 'Kopiert' : null"
+        title="E-Mail kopiert"
+        aria-label="E-Mail-Adresse wurde kopiert"
         class="{{ $isMobile ? 'btn-success btn-sm flex-1' : 'btn-success btn-xs' }}"
     >
         @unless($isMobile)

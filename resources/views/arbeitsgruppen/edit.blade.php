@@ -36,14 +36,15 @@
                             required
                         />
                     @else
-                        <x-select
-                            name=""
-                            label="AG-Leiter"
-                            :options="$userOptions"
-                            :value="old('leader_id', $team->user_id)"
-                            disabled
-                        />
-                        <input type="hidden" name="leader_id" value="{{ old('leader_id', $team->user_id) }}">
+                        <div>
+                            <label class="fieldset-legend">AG-Leiter</label>
+                            <select disabled class="select select-bordered w-full opacity-60">
+                                @foreach($users as $member)
+                                    <option value="{{ $member->id }}" @selected(old('leader_id', $team->user_id) == $member->id)>{{ $member->name }}</option>
+                                @endforeach
+                            </select>
+                            <input type="hidden" name="leader_id" value="{{ old('leader_id', $team->user_id) }}">
+                        </div>
                     @endif
 
                     <x-textarea
@@ -126,6 +127,9 @@
                             />
                             <x-button label="Hinzufügen" type="submit" class="btn-primary" icon="o-plus" />
                         </div>
+                        @error('user_id', 'addTeamMember')
+                            <p class="mt-1 text-sm text-error">{{ $message }}</p>
+                        @enderror
                     </x-form>
                 @endcan
             </div>
