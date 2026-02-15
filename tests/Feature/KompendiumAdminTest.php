@@ -11,6 +11,7 @@ use App\Models\Team;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
@@ -597,5 +598,185 @@ class KompendiumAdminTest extends TestCase
         $zahlen = $component->get('romanZahlenProSerie');
         $this->assertEquals(2, $zahlen['maddrax']);
         $this->assertEquals(1, $zahlen['missionmars']);
+    }
+
+    /* --------------------------------------------------------------------- */
+    /*  Path-Traversal-Schutz Tests                                          */
+    /* --------------------------------------------------------------------- */
+
+    #[Test]
+    public function speichern_sanitized_einfache_traversal_sequenz(): void
+    {
+        Storage::disk('private')->put('romane/maddrax/001 - Test.txt', 'Inhalt');
+
+        $roman = KompendiumRoman::create([
+            'dateiname' => '001 - Test.txt',
+            'dateipfad' => 'romane/maddrax/001 - Test.txt',
+            'serie' => 'maddrax',
+            'roman_nr' => 1,
+            'titel' => 'Test',
+            'hochgeladen_am' => now(),
+            'hochgeladen_von' => $this->admin->id,
+            'status' => 'hochgeladen',
+        ]);
+
+        Livewire::actingAs($this->admin)
+            ->test(KompendiumAdminDashboard::class)
+            ->call('bearbeiten', $roman->id)
+            ->set('editTitel', '../../../etc/passwd')
+            ->call('speichern')
+            ->assertSet('showEditModal', false);
+
+        $roman->refresh();
+        $this->assertStringNotContainsString('..', $roman->titel);
+        $this->assertStringNotContainsString('/', $roman->titel);
+        $this->assertEquals('etcpasswd', $roman->titel);
+    }
+
+    #[Test]
+    public function speichern_sanitized_backslash_traversal(): void
+    {
+        Storage::disk('private')->put('romane/maddrax/001 - Test.txt', 'Inhalt');
+
+        $roman = KompendiumRoman::create([
+            'dateiname' => '001 - Test.txt',
+            'dateipfad' => 'romane/maddrax/001 - Test.txt',
+            'serie' => 'maddrax',
+            'roman_nr' => 1,
+            'titel' => 'Test',
+            'hochgeladen_am' => now(),
+            'hochgeladen_von' => $this->admin->id,
+            'status' => 'hochgeladen',
+        ]);
+
+        Livewire::actingAs($this->admin)
+            ->test(KompendiumAdminDashboard::class)
+            ->call('bearbeiten', $roman->id)
+            ->set('editTitel', '..\\..\\windows\\system32')
+            ->call('speichern')
+            ->assertSet('showEditModal', false);
+
+        $roman->refresh();
+        $this->assertStringNotContainsString('\\', $roman->titel);
+        $this->assertStringNotContainsString('..', $roman->titel);
+        $this->assertEquals('windowssystem32', $roman->titel);
+    }
+
+    #[Test]
+    public function speichern_sanitized_verschachtelte_traversal_muster(): void
+    {
+        Storage::disk('private')->put('romane/maddrax/001 - Test.txt', 'Inhalt');
+
+        $roman = KompendiumRoman::create([
+            'dateiname' => '001 - Test.txt',
+            'dateipfad' => 'romane/maddrax/001 - Test.txt',
+            'serie' => 'maddrax',
+            'roman_nr' => 1,
+            'titel' => 'Test',
+            'hochgeladen_am' => now(),
+            'hochgeladen_von' => $this->admin->id,
+            'status' => 'hochgeladen',
+        ]);
+
+        // "....//"-Muster: nach Entfernung von / bleiben "....", nach iterativer Entfernung von ".." bleibt ""
+        Livewire::actingAs($this->admin)
+            ->test(KompendiumAdminDashboard::class)
+            ->call('bearbeiten', $roman->id)
+            ->set('editTitel', '....//Titel')
+            ->call('speichern')
+            ->assertSet('showEditModal', false);
+
+        $roman->refresh();
+        $this->assertStringNotContainsString('..', $roman->titel);
+        $this->assertStringNotContainsString('/', $roman->titel);
+        $this->assertEquals('Titel', $roman->titel);
+    }
+
+    #[Test]
+    public function speichern_sanitized_gemischte_traversal_sequenzen(): void
+    {
+        Storage::disk('private')->put('romane/maddrax/001 - Test.txt', 'Inhalt');
+
+        $roman = KompendiumRoman::create([
+            'dateiname' => '001 - Test.txt',
+            'dateipfad' => 'romane/maddrax/001 - Test.txt',
+            'serie' => 'maddrax',
+            'roman_nr' => 1,
+            'titel' => 'Test',
+            'hochgeladen_am' => now(),
+            'hochgeladen_von' => $this->admin->id,
+            'status' => 'hochgeladen',
+        ]);
+
+        // "./../"-Muster
+        Livewire::actingAs($this->admin)
+            ->test(KompendiumAdminDashboard::class)
+            ->call('bearbeiten', $roman->id)
+            ->set('editTitel', './../geheim')
+            ->call('speichern')
+            ->assertSet('showEditModal', false);
+
+        $roman->refresh();
+        $this->assertStringNotContainsString('..', $roman->titel);
+        $this->assertStringNotContainsString('/', $roman->titel);
+        // "./../geheim" → remove "/" → "...geheim" → remove ".." → ".geheim"
+        $this->assertEquals('.geheim', $roman->titel);
+    }
+
+    #[Test]
+    public function speichern_lehnt_nur_sonderzeichen_titel_ab(): void
+    {
+        $roman = KompendiumRoman::create([
+            'dateiname' => '001 - Test.txt',
+            'dateipfad' => 'romane/maddrax/001 - Test.txt',
+            'serie' => 'maddrax',
+            'roman_nr' => 1,
+            'titel' => 'Test',
+            'hochgeladen_am' => now(),
+            'hochgeladen_von' => $this->admin->id,
+            'status' => 'hochgeladen',
+        ]);
+
+        Livewire::actingAs($this->admin)
+            ->test(KompendiumAdminDashboard::class)
+            ->call('bearbeiten', $roman->id)
+            ->set('editTitel', '../../..')
+            ->call('speichern')
+            ->assertHasErrors('editTitel');
+
+        // Titel in DB wurde NICHT geändert
+        $roman->refresh();
+        $this->assertEquals('Test', $roman->titel);
+    }
+
+    #[Test]
+    public function speichern_loggt_warnung_bei_fehlender_datei(): void
+    {
+        // Datei bewusst NICHT erstellen → fehlt im Storage
+        $roman = KompendiumRoman::create([
+            'dateiname' => '001 - Verschwunden.txt',
+            'dateipfad' => 'romane/maddrax/001 - Verschwunden.txt',
+            'serie' => 'maddrax',
+            'roman_nr' => 1,
+            'titel' => 'Verschwunden',
+            'hochgeladen_am' => now(),
+            'hochgeladen_von' => $this->admin->id,
+            'status' => 'hochgeladen',
+        ]);
+
+        Log::shouldReceive('warning')
+            ->once()
+            ->withArgs(fn ($msg, $ctx) => str_contains($msg, 'Datei fehlt') && $ctx['roman_id'] === $roman->id);
+
+        Livewire::actingAs($this->admin)
+            ->test(KompendiumAdminDashboard::class)
+            ->call('bearbeiten', $roman->id)
+            ->set('editTitel', 'NeuerName')
+            ->call('speichern')
+            ->assertSet('showEditModal', false);
+
+        // DB wurde trotzdem aktualisiert (Titel-Korrektur ist trotzdem sinnvoll)
+        $roman->refresh();
+        $this->assertEquals('NeuerName', $roman->titel);
     }
 }

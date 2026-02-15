@@ -356,7 +356,10 @@ class KompendiumService
                 // Pro Zyklus aufteilen
                 $zyklen = $sollRomane->groupBy('zyklus');
                 foreach ($zyklen as $zyklus => $sollInZyklus) {
-                    $istInZyklus = $istRomane->where('zyklus', $zyklus);
+                    // Explizite Null-Behandlung: groupBy kann null-Keys erzeugen
+                    $istInZyklus = $zyklus === '' || $zyklus === null
+                        ? $istRomane->whereNull('zyklus')
+                        : $istRomane->where('zyklus', $zyklus);
                     $prozent = $sollInZyklus->count() > 0
                         ? round(($istInZyklus->count() / $sollInZyklus->count()) * 100, 1)
                         : 0;

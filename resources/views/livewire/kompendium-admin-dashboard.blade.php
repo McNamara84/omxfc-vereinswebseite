@@ -41,7 +41,7 @@
         {{-- Fortschritts-Dashboard --}}
         <x-card title="Indexierungs-Fortschritt" class="mb-6" shadow data-testid="progress-section">
             <div class="space-y-2">
-                @foreach($this->zyklenFortschritt as $eintrag)
+                @forelse($this->zyklenFortschritt as $eintrag)
                     <div class="flex items-center gap-3">
                         <span class="w-28 text-sm truncate font-medium" title="{{ $eintrag['zyklus'] }}">
                             {{ $eintrag['zyklus'] }}
@@ -54,7 +54,7 @@
                                     'bg-warning' => $eintrag['status'] === 'teilweise',
                                     'bg-base-300' => $eintrag['status'] === 'leer',
                                 ])
-                                style="width: {{ min($eintrag['prozent'], 100) }}%">
+                                style="width: {{ min((float) $eintrag['prozent'], 100) }}%">
                             </div>
                         </div>
                         <span class="w-16 text-xs text-right tabular-nums">
@@ -64,7 +64,11 @@
                             {{ $eintrag['prozent'] }}%
                         </span>
                     </div>
-                @endforeach
+                @empty
+                    <p class="text-base-content/60 text-sm text-center py-4">
+                        Noch keine Seriendaten verfügbar. Bitte Romane hochladen.
+                    </p>
+                @endforelse
             </div>
         </x-card>
 

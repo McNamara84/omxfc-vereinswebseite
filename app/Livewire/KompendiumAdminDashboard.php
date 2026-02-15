@@ -7,6 +7,7 @@ use App\Jobs\IndexiereRomanJob;
 use App\Models\KompendiumRoman;
 use App\Services\KompendiumSearchService;
 use App\Services\KompendiumService;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
@@ -269,17 +270,38 @@ class KompendiumAdminDashboard extends Component
             return;
         }
 
-        // Falls Pfad geändert: Zielverzeichnis sicherstellen und Datei verschieben
-        if ($alterPfad !== $neuerPfad && Storage::disk('private')->exists($alterPfad)) {
-            $zielVerzeichnis = dirname($neuerPfad);
-            if (! Storage::disk('private')->exists($zielVerzeichnis)) {
-                Storage::disk('private')->makeDirectory($zielVerzeichnis);
-            }
-            Storage::disk('private')->move($alterPfad, $neuerPfad);
-        }
-
         $warIndexiert = $roman->status === 'indexiert';
         $pfadGeaendert = $alterPfad !== $neuerPfad;
+
+        // Falls Pfad geändert: Datei verschieben (mit Error Handling)
+        if ($pfadGeaendert) {
+            if (! Storage::disk('private')->exists($alterPfad)) {
+                Log::warning('Kompendium: Datei fehlt bei Pfadänderung.', [
+                    'roman_id' => $roman->id,
+                    'alter_pfad' => $alterPfad,
+                    'neuer_pfad' => $neuerPfad,
+                ]);
+            } else {
+                try {
+                    $zielVerzeichnis = dirname($neuerPfad);
+                    if (! Storage::disk('private')->exists($zielVerzeichnis)) {
+                        Storage::disk('private')->makeDirectory($zielVerzeichnis);
+                    }
+                    Storage::disk('private')->move($alterPfad, $neuerPfad);
+                } catch (\Throwable $e) {
+                    Log::error('Kompendium: Datei konnte nicht verschoben werden.', [
+                        'roman_id' => $roman->id,
+                        'alter_pfad' => $alterPfad,
+                        'neuer_pfad' => $neuerPfad,
+                        'fehler' => $e->getMessage(),
+                    ]);
+                    session()->flash('error', 'Fehler beim Verschieben der Datei: '.$e->getMessage());
+                    $this->showEditModal = false;
+
+                    return;
+                }
+            }
+        }
 
         // DB aktualisieren (ein einzelner Update-Aufruf für alle Felder)
         $updateDaten = [
@@ -323,11 +345,17 @@ class KompendiumAdminDashboard extends Component
      */
     private function sanitizeTitelFuerPfad(string $titel): string
     {
-        // Pfadseparatoren und Traversal-Sequenzen entfernen
-        $titel = str_replace(['/', '\\', '..'], '', $titel);
-
         // Steuerzeichen und nicht-druckbare Zeichen entfernen
         $titel = preg_replace('/[\x00-\x1F\x7F]/', '', $titel);
+
+        // Pfadseparatoren entfernen
+        $titel = str_replace(['/', '\\'], '', $titel);
+
+        // Traversal-Sequenzen iterativ entfernen (verhindert Bypass durch verschachtelte Muster wie '....//') 
+        do {
+            $vorher = $titel;
+            $titel = str_replace('..', '', $titel);
+        } while ($titel !== $vorher);
 
         // Mehrfache Leerzeichen normalisieren und trimmen
         $titel = trim(preg_replace('/\s+/', ' ', $titel));
