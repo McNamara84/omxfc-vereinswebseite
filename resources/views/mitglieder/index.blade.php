@@ -13,7 +13,11 @@
     @endif
 
     <x-card shadow>
-        <x-header title="Mitgliederliste" data-members-heading class="!mb-0" />
+        <x-header class="!mb-0">
+            <x-slot:title>
+                <h2 data-members-heading>Mitgliederliste</h2>
+            </x-slot:title>
+        </x-header>
 
     @php
         $sortLabels = [
@@ -152,7 +156,7 @@
         aria-describedby="members-table-summary">
     <thead class="text-base-content">
     <tr>
-        <th data-members-sort-column="nachname" aria-sort="{{ $nachnameSortState }}">
+        <th scope="col" data-members-sort-column="nachname" aria-sort="{{ $nachnameSortState }}">
             <a href="{{ $sortLink('nachname') }}"
                class="flex items-center group text-base-content hover:text-primary">
                 Name
@@ -162,7 +166,7 @@
             </a>
         </th>
 
-        <th data-members-sort-column="mitglied_seit" aria-sort="{{ $mitgliedSeitSortState }}">
+        <th scope="col" data-members-sort-column="mitglied_seit" aria-sort="{{ $mitgliedSeitSortState }}">
             <a href="{{ $sortLink('mitglied_seit') }}"
                class="flex items-center group text-base-content hover:text-primary">
                 Mitglied seit
@@ -172,7 +176,7 @@
             </a>
         </th>
 
-        <th data-members-sort-column="role" aria-sort="{{ $roleSortState }}">
+        <th scope="col" data-members-sort-column="role" aria-sort="{{ $roleSortState }}">
             <a href="{{ $sortLink('role') }}"
                class="flex items-center group text-base-content hover:text-primary">
                 Rolle
@@ -183,7 +187,7 @@
         </th>
 
         @if($canViewDetails)
-        <th data-members-sort-column="last_activity" aria-sort="{{ $lastActivitySortState }}">
+        <th scope="col" data-members-sort-column="last_activity" aria-sort="{{ $lastActivitySortState }}">
             <a href="{{ $sortLink('last_activity', 'desc') }}"
                class="flex items-center group text-base-content hover:text-primary">
                 Zuletzt online
@@ -193,7 +197,7 @@
             </a>
         </th>
 
-        <th data-members-sort-column="mitgliedsbeitrag" aria-sort="{{ $beitragSortState }}">
+        <th scope="col" data-members-sort-column="mitgliedsbeitrag" aria-sort="{{ $beitragSortState }}">
             <a href="{{ $sortLink('mitgliedsbeitrag') }}"
                class="flex items-center group text-base-content hover:text-primary">
                 Beitrag
@@ -203,10 +207,10 @@
             </a>
         </th>
 
-        <th class="hidden lg:table-cell">Details</th>
+        <th scope="col" class="hidden lg:table-cell">Details</th>
         @endif
 
-        <th class="text-center">Aktionen</th>
+        <th scope="col" class="text-center">Aktionen</th>
     </tr>
     </thead>
     <tbody>
