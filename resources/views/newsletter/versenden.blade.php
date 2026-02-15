@@ -15,10 +15,7 @@
                 
                 {{-- Betreff --}}
                 <div class="mb-4">
-                    <label class="label" for="subject">
-                        <span class="label-text">Betreff</span>
-                    </label>
-                    <input id="subject" name="subject" type="text" class="input input-bordered w-full" required />
+                    <x-input label="Betreff" id="subject" name="subject" required />
                 </div>
 
                 {{-- Zielgruppen --}}
@@ -28,10 +25,7 @@
                     </label>
                     <div class="mt-2 space-y-2">
                         @foreach($roles as $role)
-                            <label class="label cursor-pointer justify-start gap-2">
-                                <input type="checkbox" name="roles[]" value="{{ $role->value }}" @checked($role === $defaultRole) class="checkbox checkbox-primary" />
-                                <span class="label-text">{{ $role->value }}</span>
-                            </label>
+                            <x-checkbox name="roles[]" value="{{ $role->value }}" :checked="$role === $defaultRole" label="{{ $role->value }}" />
                         @endforeach
                     </div>
                 </div>
@@ -67,14 +61,14 @@
 
                 {{-- Confirm-Modal --}}
                 <div x-show="showConfirm" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-base-300/75">
-                    <div class="bg-base-100 p-6 rounded-box shadow-xl max-w-md w-full mx-4">
-                        <h3 class="text-lg font-medium mb-4">Bestätigung</h3>
+                    <x-card class="max-w-md w-full mx-4 shadow-xl">
+                        <x-header title="Bestätigung" class="!mb-2" />
                         <p class="mb-6 text-base-content" x-text="pendingTest ? 'Testnewsletter wirklich versenden?' : 'Wirklich Newsletter versenden?'"></p>
                         <div class="flex justify-end gap-2">
                             <x-button label="Abbrechen" class="btn-ghost" @click="showConfirm = false" />
                             <x-button label="Ja, versenden" class="btn-primary" @click="submit" />
                         </div>
-                    </div>
+                    </x-card>
                 </div>
             </form>
         </x-card>

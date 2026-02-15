@@ -13,24 +13,39 @@
         </x-card>
         <x-card shadow class="mb-6">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div id="card-unfilled-roles" data-unfilled-roles="{{ $totalUnfilledRoles }}" class="p-4 border border-base-content/10 rounded cursor-pointer text-center hover:bg-base-200">
-                    <div class="text-3xl font-bold text-base-content">{{ $totalUnfilledRoles }}</div>
-                    <div class="text-base-content">Unbesetzte Rollen</div>
-                </div>
-                <div id="card-next-event" data-episode-id="{{ $nextEpisode?->id }}" data-days-left="{{ $daysUntilNextEvt }}" class="p-4 border border-base-content/10 rounded cursor-pointer text-center hover:bg-base-200">
+                <x-stat
+                    id="card-unfilled-roles"
+                    data-unfilled-roles="{{ $totalUnfilledRoles }}"
+                    title="Unbesetzte Rollen"
+                    :value="$totalUnfilledRoles"
+                    icon="o-user-minus"
+                    class="cursor-pointer hover:bg-base-200"
+                />
+                <div id="card-next-event" data-episode-id="{{ $nextEpisode?->id }}" data-days-left="{{ $daysUntilNextEvt }}" class="cursor-pointer">
                     @if($nextEpisode)
-                        <div class="text-3xl font-bold text-base-content">{{ $daysUntilNextEvt }}</div>
-                        <div class="text-base-content">
-                            Tage bis {{ $nextEpisode->title }} veröffentlicht wird ({{ $nextEpisode->planned_release_date_parsed->format('d.m.Y') }})
-                        </div>
+                        <x-stat
+                            title="Tage bis {{ $nextEpisode->title }} veröffentlicht wird ({{ $nextEpisode->planned_release_date_parsed->format('d.m.Y') }})"
+                            :value="$daysUntilNextEvt"
+                            icon="o-calendar"
+                            class="hover:bg-base-200"
+                        />
                     @else
-                        <div class="text-base-content">Kein Termin</div>
+                        <x-stat
+                            title="Kein Termin"
+                            value="–"
+                            icon="o-calendar"
+                            class="hover:bg-base-200"
+                        />
                     @endif
                 </div>
-                <div id="card-open-episodes" data-open-episodes="{{ $episodesWithUnassignedRoles }}" class="p-4 border border-base-content/10 rounded cursor-pointer text-center hover:bg-base-200">
-                    <div class="text-3xl font-bold text-base-content">{{ $episodesWithUnassignedRoles }}</div>
-                    <div class="text-base-content">Folgen mit offenen Rollen</div>
-                </div>
+                <x-stat
+                    id="card-open-episodes"
+                    data-open-episodes="{{ $episodesWithUnassignedRoles }}"
+                    title="Folgen mit offenen Rollen"
+                    :value="$episodesWithUnassignedRoles"
+                    icon="o-microphone"
+                    class="cursor-pointer hover:bg-base-200"
+                />
             </div>
         </x-card>
         <x-card shadow>
@@ -81,26 +96,15 @@
                     <p id="checkbox-filter-hint" class="sr-only">
                         Aktiviere einen oder mehrere Checkbox-Filter, um unveröffentlichte Folgen oder Episoden mit vollständig besetzten Rollen einzublenden.
                     </p>
-                    <label class="inline-flex items-center gap-2 cursor-pointer">
-                        <input type="checkbox" id="roles-filter" class="checkbox checkbox-primary checkbox-sm">
-                        <span>Besetzt</span>
-                    </label>
-                    <label class="inline-flex items-center gap-2 cursor-pointer">
-                        <input type="checkbox" id="roles-unfilled-filter" class="checkbox checkbox-primary checkbox-sm">
-                        <span>Unbesetzt</span>
-                    </label>
-                    <label class="inline-flex items-center gap-2 cursor-pointer">
-                        <input
-                            type="checkbox"
-                            id="hide-released-filter"
-                            class="checkbox checkbox-primary checkbox-sm"
-                            checked
-                            aria-describedby="hide-released-hint"
-                        >
-                        <span>
-                            Unveröffentlicht<span class="sr-only">e Folgen anzeigen</span>
-                        </span>
-                    </label>
+                    <x-checkbox id="roles-filter" label="Besetzt" class="checkbox-sm" />
+                    <x-checkbox id="roles-unfilled-filter" label="Unbesetzt" class="checkbox-sm" />
+                    <x-checkbox
+                        id="hide-released-filter"
+                        label="Unveröffentlicht"
+                        checked
+                        aria-describedby="hide-released-hint"
+                        class="checkbox-sm"
+                    />
                 </fieldset>
                 <p id="hide-released-hint" class="sr-only">
                     Unveröffentlichte Folgen werden angezeigt, solange der Filter aktiv ist. Deaktiviere den Filter, um bereits veröffentlichte Folgen einzublenden.

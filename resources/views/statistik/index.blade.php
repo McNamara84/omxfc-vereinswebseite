@@ -56,24 +56,19 @@
                     </h2>
 
                     <div class="overflow-x-auto">
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>Rang</th>
-                                    <th>Autor:in</th>
-                                    <th>Gemeinsame Romane</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($teamplayerTable as $i => $row)
-                                    <tr>
-                                        <td>{{ $i + 1 }}</td>
-                                        <td>{{ $row['author'] }}</td>
-                                        <td>{{ $row['count'] }}</td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
+                        @php
+                            $teamplayerHeaders = [
+                                ['key' => 'rang', 'label' => 'Rang'],
+                                ['key' => 'author', 'label' => 'Autor:in'],
+                                ['key' => 'count', 'label' => 'Gemeinsame Romane'],
+                            ];
+                            $teamplayerRows = collect($teamplayerTable)->map(fn($row, $i) => [
+                                'rang' => $i + 1,
+                                'author' => $row['author'],
+                                'count' => $row['count'],
+                            ]);
+                        @endphp
+                        <x-table :headers="$teamplayerHeaders" :rows="$teamplayerRows" />
                     </div>
                     @if($userPoints < $min)
                         @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
@@ -94,28 +89,23 @@
                     </h2>
 
                     <div class="overflow-x-auto">
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>Nr.</th>
-                                    <th>Titel</th>
-                                    <th>Autor:in</th>
-                                    <th>Ø&nbsp;Bewertung</th>
-                                    <th>Stimmen</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($romaneTable as $row)
-                                    <tr>
-                                        <td>{{ $row['nummer'] }}</td>
-                                        <td>{{ $row['titel'] }}</td>
-                                        <td>{{ $row['autor'] }}</td>
-                                        <td>{{ number_format($row['bewertung'], 2, ',', '.') }}</td>
-                                        <td>{{ $row['stimmen'] }}</td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
+                        @php
+                            $romaneHeaders = [
+                                ['key' => 'nummer', 'label' => 'Nr.'],
+                                ['key' => 'titel', 'label' => 'Titel'],
+                                ['key' => 'autor', 'label' => 'Autor:in'],
+                                ['key' => 'bewertung', 'label' => 'Ø\xc2\xa0Bewertung'],
+                                ['key' => 'stimmen', 'label' => 'Stimmen'],
+                            ];
+                            $romaneRows = collect($romaneTable)->map(fn($row) => [
+                                'nummer' => $row['nummer'],
+                                'titel' => $row['titel'],
+                                'autor' => $row['autor'],
+                                'bewertung' => number_format($row['bewertung'], 2, ',', '.'),
+                                'stimmen' => $row['stimmen'],
+                            ]);
+                        @endphp
+                        <x-table :headers="$romaneHeaders" :rows="$romaneRows" />
                     </div>
                     @if($userPoints < $min)
                         @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
@@ -135,24 +125,19 @@
                     </h2>
 
                     <div class="overflow-x-auto">
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>Rang</th>
-                                    <th>Autor:in</th>
-                                    <th>Ø&nbsp;Bewertung</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($topAuthorRatings as $i => $row)
-                                    <tr>
-                                        <td>{{ $i + 1 }}</td>
-                                        <td>{{ $row['author'] }}</td>
-                                        <td>{{ number_format($row['average'], 2, ',', '.') }}</td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
+                        @php
+                            $authorRatingHeaders = [
+                                ['key' => 'rang', 'label' => 'Rang'],
+                                ['key' => 'author', 'label' => 'Autor:in'],
+                                ['key' => 'average', 'label' => 'Ø\xc2\xa0Bewertung'],
+                            ];
+                            $authorRatingRows = collect($topAuthorRatings)->map(fn($row, $i) => [
+                                'rang' => $i + 1,
+                                'author' => $row['author'],
+                                'average' => number_format($row['average'], 2, ',', '.'),
+                            ]);
+                        @endphp
+                        <x-table :headers="$authorRatingHeaders" :rows="$authorRatingRows" />
                     </div>
                     @if($userPoints < $min)
                         @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
@@ -173,24 +158,19 @@
                     </h2>
 
                     <div class="overflow-x-auto">
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>Rang</th>
-                                    <th>Charakter</th>
-                                    <th>Auftritte</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($topCharacters as $i => $row)
-                                    <tr>
-                                        <td>{{ $i + 1 }}</td>
-                                        <td>{{ $row['name'] }}</td>
-                                        <td>{{ $row['count'] }}</td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
+                        @php
+                            $characterHeaders = [
+                                ['key' => 'rang', 'label' => 'Rang'],
+                                ['key' => 'name', 'label' => 'Charakter'],
+                                ['key' => 'count', 'label' => 'Auftritte'],
+                            ];
+                            $characterRows = collect($topCharacters)->map(fn($row, $i) => [
+                                'rang' => $i + 1,
+                                'name' => $row['name'],
+                                'count' => $row['count'],
+                            ]);
+                        @endphp
+                        <x-table :headers="$characterHeaders" :rows="$characterRows" />
                     </div>
                     @if($userPoints < $min)
                         @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
@@ -205,29 +185,14 @@
                     data-statistik-section
                     data-min-points="{{ $min }}"
                     tabindex="-1"
-                    shadow class="relative grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
-                    <h2 class="text-xl font-semibold text-primary mb-4 col-span-1 md:col-span-3">
+                    shadow class="relative">
+                    <h2 class="text-xl font-semibold text-primary mb-4 text-center col-span-1 md:col-span-3">
                         Bewertungen im Maddraxikon
                     </h2>
-                    <div>
-                        <div class="text-3xl font-bold text-base-content">
-                            {{ number_format($averageRating, 2, ',', '.') }}
-                        </div>
-                        <div class="text-base-content">Ø-Bewertung</div>
-                    </div>
-
-                    <div>
-                        <div class="text-3xl font-bold text-base-content">
-                            {{ $totalVotes }}
-                        </div>
-                        <div class="text-base-content">Stimmen insgesamt</div>
-                    </div>
-
-                    <div>
-                        <div class="text-3xl font-bold text-base-content">
-                            {{ number_format($averageVotes, 2, ',', '.') }}
-                        </div>
-                        <div class="text-base-content">Ø-Stimmen pro Roman</div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <x-stat title="Ø-Bewertung" :value="number_format($averageRating, 2, ',', '.')" icon="o-star" />
+                        <x-stat title="Stimmen insgesamt" :value="$totalVotes" icon="o-hand-thumb-up" />
+                        <x-stat title="Ø-Stimmen pro Roman" :value="number_format($averageVotes, 2, ',', '.')" icon="o-chart-bar" />
                     </div>
                     @if($userPoints < $min)
                         @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
@@ -246,27 +211,10 @@
                         Rezensionen unserer Mitglieder
                     </h2>
 
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
-                        <div>
-                            <div class="text-3xl font-bold text-base-content">
-                                {{ $totalReviews }}
-                            </div>
-                            <div class="text-base-content">Rezensionen insgesamt</div>
-                        </div>
-
-                        <div>
-                            <div class="text-3xl font-bold text-base-content">
-                                {{ number_format($averageReviewsPerBook, 2, ',', '.') }}
-                            </div>
-                            <div class="text-base-content">Ø Rezensionen pro Roman</div>
-                        </div>
-
-                        <div>
-                            <div class="text-3xl font-bold text-base-content">
-                                {{ number_format($avgCommentsPerReview, 2, ',', '.') }}
-                            </div>
-                            <div class="text-base-content">Ø Kommentare pro Rezension</div>
-                        </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <x-stat title="Rezensionen insgesamt" :value="$totalReviews" icon="o-document-text" />
+                        <x-stat title="Ø Rezensionen pro Roman" :value="number_format($averageReviewsPerBook, 2, ',', '.')" icon="o-book-open" />
+                        <x-stat title="Ø Kommentare pro Rezension" :value="number_format($avgCommentsPerReview, 2, ',', '.')" icon="o-chat-bubble-left-right" />
                     </div>
 
                     <div class="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -869,24 +817,19 @@
                     </h2>
 
                     <div class="overflow-x-auto">
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>Rang</th>
-                                    <th>Schlagwort</th>
-                                    <th>Ø&nbsp;Bewertung</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($topThemes as $i => $row)
-                                    <tr>
-                                        <td>{{ $i + 1 }}</td>
-                                        <td>{{ $row['keyword'] }}</td>
-                                        <td>{{ number_format($row['average'], 2, ',', '.') }}</td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
+                        @php
+                            $themeHeaders = [
+                                ['key' => 'rang', 'label' => 'Rang'],
+                                ['key' => 'keyword', 'label' => 'Schlagwort'],
+                                ['key' => 'average', 'label' => 'Ø\xc2\xa0Bewertung'],
+                            ];
+                            $themeRows = collect($topThemes)->map(fn($row, $i) => [
+                                'rang' => $i + 1,
+                                'keyword' => $row['keyword'],
+                                'average' => number_format($row['average'], 2, ',', '.'),
+                            ]);
+                        @endphp
+                        <x-table :headers="$themeHeaders" :rows="$themeRows" />
                     </div>
                 @if($userPoints < $min)
                     @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
@@ -1107,24 +1050,19 @@
                     </h2>
 
                     <div class="overflow-x-auto">
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>Rang</th>
-                                    <th>Thema</th>
-                                    <th>Anzahl</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($topFavoriteThemes as $i => $row)
-                                    <tr>
-                                        <td>{{ $i + 1 }}</td>
-                                        <td>{{ $row['thema'] }}</td>
-                                        <td>{{ $row['count'] }}</td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
+                        @php
+                            $favThemeHeaders = [
+                                ['key' => 'rang', 'label' => 'Rang'],
+                                ['key' => 'thema', 'label' => 'Thema'],
+                                ['key' => 'count', 'label' => 'Anzahl'],
+                            ];
+                            $favThemeRows = collect($topFavoriteThemes)->map(fn($row, $i) => [
+                                'rang' => $i + 1,
+                                'thema' => $row['thema'],
+                                'count' => $row['count'],
+                            ]);
+                        @endphp
+                        <x-table :headers="$favThemeHeaders" :rows="$favThemeRows" />
                     </div>
                     @if($userPoints < $min)
                         @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
