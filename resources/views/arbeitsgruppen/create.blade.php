@@ -50,7 +50,7 @@
 
                     <fieldset class="fieldset py-0">
                         <legend class="fieldset-legend mb-0.5">Logo</legend>
-                        <input type="file" name="logo" accept="image/*" class="file-input w-full" />
+                        <input type="file" name="logo" accept="image/*" class="file-input file-input-bordered w-full" />
                         @error('logo')
                             <p class="mt-1 text-sm text-error">{{ $message }}</p>
                         @enderror
