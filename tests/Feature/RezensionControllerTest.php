@@ -467,7 +467,7 @@ class RezensionControllerTest extends TestCase
         }
     }
 
-    public function test_volk_der_tiefe_button_includes_accessibility_attributes(): void
+    public function test_volk_der_tiefe_accordion_renders_as_daisyui_collapse(): void
     {
         $path = storage_path('app/private/maddrax.json');
         $original = file_get_contents($path);
@@ -488,11 +488,16 @@ class RezensionControllerTest extends TestCase
             $user = $this->actingMember();
             $this->actingAs($user);
 
-            $this->get('/rezensionen')
-                ->assertOk()
-                ->assertSee('data-accordion-button="das-volk-der-tiefe"', false)
-                ->assertSee('aria-controls="content-das-volk-der-tiefe"', false)
-                ->assertSee('aria-expanded="false"', false);
+            $response = $this->get('/rezensionen');
+            $response->assertOk();
+
+            // Verify that "Das Volk der Tiefe" is rendered inside a DaisyUI collapse panel
+            $html = $response->getContent();
+            $this->assertMatchesRegularExpression(
+                '/class="collapse collapse-arrow[^"]*"[^<]*<input[^>]*aria-label="Das Volk der Tiefe ein-\/ausklappen"/',
+                $html,
+                'Das Volk der Tiefe section should be rendered as a DaisyUI collapse with matching aria-label'
+            );
         } finally {
             file_put_contents($path, $original);
         }
