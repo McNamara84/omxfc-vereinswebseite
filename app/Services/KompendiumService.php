@@ -345,11 +345,12 @@ class KompendiumService
     {
         $fortschritt = collect();
 
+        // Alle indexierten Romane einmal laden und nach Serie gruppieren (vermeidet N+1)
+        $alleIndexierten = KompendiumRoman::indexiert()->get()->groupBy('serie');
+
         foreach (self::SERIEN as $serienKey => $serienName) {
             $sollRomane = $this->maddraxDataService->getSeries($serienKey);
-            $istRomane = KompendiumRoman::where('serie', $serienKey)
-                ->indexiert()
-                ->get();
+            $istRomane = $alleIndexierten->get($serienKey, collect());
 
             if ($serienKey === 'maddrax') {
                 // Pro Zyklus aufteilen

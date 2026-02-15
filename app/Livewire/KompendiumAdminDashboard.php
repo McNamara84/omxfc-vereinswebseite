@@ -53,6 +53,9 @@ class KompendiumAdminDashboard extends Component
 
     public string $editTitel = '';
 
+    /** Timestamp für Optimistic Locking beim Bearbeiten */
+    public ?string $editUpdatedAt = null;
+
     protected function rules(): array
     {
         return [
@@ -215,6 +218,7 @@ class KompendiumAdminDashboard extends Component
         $this->editZyklus = $roman->zyklus ?? '';
         $this->editNummer = $roman->roman_nr;
         $this->editTitel = $roman->titel;
+        $this->editUpdatedAt = $roman->updated_at?->toISOString();
         $this->showEditModal = true;
     }
 
@@ -231,6 +235,14 @@ class KompendiumAdminDashboard extends Component
         ]);
 
         $roman = KompendiumRoman::findOrFail($this->editId);
+
+        // Optimistic Locking: Prüfen ob der Roman zwischenzeitlich geändert wurde
+        if ($this->editUpdatedAt && $roman->updated_at?->toISOString() !== $this->editUpdatedAt) {
+            session()->flash('warning', 'Der Roman wurde zwischenzeitlich von jemand anderem geändert. Bitte erneut öffnen.');
+            $this->showEditModal = false;
+
+            return;
+        }
 
         if ($roman->status === 'indexierung_laeuft') {
             session()->flash('warning', 'Roman kann während der Indexierung nicht bearbeitet werden.');
@@ -257,28 +269,40 @@ class KompendiumAdminDashboard extends Component
             return;
         }
 
-        // Falls Pfad geändert: Datei physisch verschieben
+        // Falls Pfad geändert: Zielverzeichnis sicherstellen und Datei verschieben
         if ($alterPfad !== $neuerPfad && Storage::disk('private')->exists($alterPfad)) {
+            $zielVerzeichnis = dirname($neuerPfad);
+            if (! Storage::disk('private')->exists($zielVerzeichnis)) {
+                Storage::disk('private')->makeDirectory($zielVerzeichnis);
+            }
             Storage::disk('private')->move($alterPfad, $neuerPfad);
         }
 
         $warIndexiert = $roman->status === 'indexiert';
+        $pfadGeaendert = $alterPfad !== $neuerPfad;
 
-        // DB aktualisieren
-        $roman->update([
+        // DB aktualisieren (ein einzelner Update-Aufruf für alle Felder)
+        $updateDaten = [
             'serie' => $this->editSerie,
             'zyklus' => $this->editZyklus ?: null,
             'roman_nr' => $this->editNummer,
             'titel' => $sichererTitel,
             'dateiname' => $neuerDateiname,
             'dateipfad' => $neuerPfad,
-        ]);
+        ];
 
-        // Falls indexiert und Pfad geändert: De-Indexieren (muss neu indexiert werden)
-        if ($warIndexiert && $alterPfad !== $neuerPfad) {
+        // Falls indexiert und Pfad geändert: Status zurücksetzen für Re-Indexierung
+        if ($warIndexiert && $pfadGeaendert) {
             $searchService = app(KompendiumSearchService::class);
             $searchService->removeFromIndex($alterPfad);
-            $roman->update(['status' => 'hochgeladen', 'indexiert_am' => null]);
+            $updateDaten['status'] = 'hochgeladen';
+            $updateDaten['indexiert_am'] = null;
+        }
+
+        $roman->update($updateDaten);
+
+        // Re-Indexierung anstoßen falls nötig
+        if ($warIndexiert && $pfadGeaendert) {
             IndexiereRomanJob::dispatch($roman->fresh());
             session()->flash('info', "Roman \"{$sichererTitel}\" aktualisiert. Re-Indexierung gestartet.");
         } else {
