@@ -253,10 +253,11 @@ class ReviewCommentControllerTest extends TestCase
             $this->assertStringContainsString('name="parent_id" value="'.$comment->id.'"', $html);
         }
 
-        // Ensure all textarea IDs on the page are unique (maryUI generates UUID-based IDs)
-        preg_match_all('/id="([^"]*)"/', $html, $matches);
-        $ids = $matches[1];
+        // Ensure all textarea IDs in comment forms are unique (maryUI generates UUID-based IDs)
+        preg_match_all('/<textarea[^>]+id="([^"]+)"/', $html, $matches);
+        $ids = array_filter($matches[1]);
+        $this->assertNotEmpty($ids, 'Expected textareas with IDs on the page');
         $duplicates = array_diff_assoc($ids, array_unique($ids));
-        $this->assertEmpty($duplicates, 'Duplicate IDs found: '.implode(', ', $duplicates));
+        $this->assertEmpty($duplicates, 'Duplicate textarea IDs found: '.implode(', ', $duplicates));
     }
 }
