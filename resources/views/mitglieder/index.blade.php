@@ -318,7 +318,7 @@
                             </x-slot:trigger>
                             @foreach($roleRanks as $role => $rank)
                                 @if($rank <= $currentUserRank && $role !== $memberRole)
-                                    <x-menu-item>
+                                    <li>
                                         <form action="{{ route('mitglieder.change-role', $member->id) }}" method="POST">
                                             @csrf
                                             @method('PUT')
@@ -327,7 +327,7 @@
                                                 Zu {{ $role }} ändern
                                             </button>
                                         </form>
-                                    </x-menu-item>
+                                    </li>
                                 @endif
                             @endforeach
                         </x-dropdown>
@@ -478,7 +478,7 @@
                             </x-slot:trigger>
                             @foreach($roleRanks as $role => $rank)
                                 @if($rank <= $currentUserRank && $role !== $memberRole)
-                                    <x-menu-item>
+                                    <li>
                                         <form action="{{ route('mitglieder.change-role', $member->id) }}" method="POST">
                                             @csrf
                                             @method('PUT')
@@ -487,7 +487,7 @@
                                                 Zu {{ $role }} ändern
                                             </button>
                                         </form>
-                                    </x-menu-item>
+                                    </li>
                                 @endif
                             @endforeach
                         </x-dropdown>
