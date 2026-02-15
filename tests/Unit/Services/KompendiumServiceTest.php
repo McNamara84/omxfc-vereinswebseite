@@ -270,4 +270,262 @@ class KompendiumServiceTest extends TestCase
         $this->assertEquals('1-3, 5', $euree['bandbereich']);
         $this->assertEquals(4, $euree['anzahl']);
     }
+
+    /* --------------------------------------------------------------------- */
+    /*  Fuzzy-Match Tests                                                    */
+    /* --------------------------------------------------------------------- */
+
+    #[Test]
+    public function fuzzy_match_findet_exakten_treffer(): void
+    {
+        $this->maddraxDataService
+            ->shouldReceive('getSeries')
+            ->with('maddrax')
+            ->andReturn(collect([
+                ['nummer' => 1, 'titel' => 'Der Gott aus dem Eis', 'zyklus' => 'Euree'],
+            ]));
+
+        $this->maddraxDataService
+            ->shouldReceive('getSeries')
+            ->withAnyArgs()
+            ->andReturn(collect([]));
+
+        $result = $this->service->findeMetadatenMitFuzzy(1, 'Der Gott aus dem Eis');
+
+        $this->assertNotNull($result);
+        $this->assertEquals('maddrax', $result['serie']);
+        $this->assertEquals('Euree', $result['zyklus']);
+        $this->assertEquals('exakt', $result['match_typ']);
+    }
+
+    #[Test]
+    public function fuzzy_match_findet_normalisierten_treffer(): void
+    {
+        $this->maddraxDataService
+            ->shouldReceive('getSeries')
+            ->with('maddrax')
+            ->andReturn(collect([
+                ['nummer' => 1, 'titel' => 'Der Gott aus dem Eis!', 'zyklus' => 'Euree'],
+            ]));
+
+        $this->maddraxDataService
+            ->shouldReceive('getSeries')
+            ->withAnyArgs()
+            ->andReturn(collect([]));
+
+        // Leicht abweichender Titel (Klein, ohne Sonderzeichen)
+        $result = $this->service->findeMetadatenMitFuzzy(1, 'der gott aus dem eis');
+
+        $this->assertNotNull($result);
+        $this->assertEquals('maddrax', $result['serie']);
+        $this->assertEquals('normalisiert', $result['match_typ']);
+    }
+
+    #[Test]
+    public function fuzzy_match_findet_nur_nummer_treffer(): void
+    {
+        $this->maddraxDataService
+            ->shouldReceive('getSeries')
+            ->with('maddrax')
+            ->andReturn(collect([
+                ['nummer' => 42, 'titel' => 'Ganz anderer Titel', 'zyklus' => 'Euree'],
+            ]));
+
+        $this->maddraxDataService
+            ->shouldReceive('getSeries')
+            ->withAnyArgs()
+            ->andReturn(collect([]));
+
+        // Titel stimmt überhaupt nicht, aber nur ein Roman mit Nr. 42
+        $result = $this->service->findeMetadatenMitFuzzy(42, 'Falscher Titel komplett');
+
+        $this->assertNotNull($result);
+        $this->assertEquals('maddrax', $result['serie']);
+        $this->assertEquals('nummer', $result['match_typ']);
+    }
+
+    #[Test]
+    public function fuzzy_match_gibt_null_bei_mehrfach_nummer_ohne_titel(): void
+    {
+        // Nummer 1 kommt in maddrax UND missionmars vor → keine eindeutige Zuordnung
+        $this->maddraxDataService
+            ->shouldReceive('getSeries')
+            ->with('maddrax')
+            ->andReturn(collect([
+                ['nummer' => 1, 'titel' => 'Maddrax Titel', 'zyklus' => 'Euree'],
+            ]));
+
+        $this->maddraxDataService
+            ->shouldReceive('getSeries')
+            ->with('missionmars')
+            ->andReturn(collect([
+                ['nummer' => 1, 'titel' => 'Mission Mars Titel', 'zyklus' => null],
+            ]));
+
+        $this->maddraxDataService
+            ->shouldReceive('getSeries')
+            ->withAnyArgs()
+            ->andReturn(collect([]));
+
+        $result = $this->service->findeMetadatenMitFuzzy(1, 'Ganz was anderes');
+
+        $this->assertNull($result);
+    }
+
+    #[Test]
+    public function fuzzy_match_gibt_null_wenn_nichts_gefunden(): void
+    {
+        $this->maddraxDataService
+            ->shouldReceive('getSeries')
+            ->withAnyArgs()
+            ->andReturn(collect([]));
+
+        $result = $this->service->findeMetadatenMitFuzzy(999, 'Existiert nicht');
+
+        $this->assertNull($result);
+    }
+
+    #[Test]
+    public function normalisiere_titel_entfernt_sonderzeichen_und_whitespace(): void
+    {
+        $this->assertEquals('der gott aus dem eis', $this->service->normalisiereTitel('Der Gott aus dem Eis'));
+        $this->assertEquals('der gott aus dem eis', $this->service->normalisiereTitel('Der Gott  aus  dem  Eis!'));
+        $this->assertEquals('test', $this->service->normalisiereTitel('  TEST  '));
+        $this->assertEquals('rückkehr', $this->service->normalisiereTitel('Rückkehr'));
+    }
+
+    /* --------------------------------------------------------------------- */
+    /*  Zusammengefasste Übersicht Tests                                     */
+    /* --------------------------------------------------------------------- */
+
+    #[Test]
+    public function zusammengefasste_uebersicht_gibt_leer_bei_keinen_indexierten(): void
+    {
+        $result = $this->service->getZusammengefassteUebersicht();
+
+        $this->assertTrue($result->isEmpty());
+    }
+
+    #[Test]
+    public function zusammengefasste_uebersicht_konsolidiert_maddrax_zyklen(): void
+    {
+        $user = \App\Models\User::factory()->withPersonalTeam()->create();
+
+        // Euree-Zyklus: Band 1
+        KompendiumRoman::create([
+            'dateiname' => '001 - Test1.txt',
+            'dateipfad' => 'romane/maddrax/001 - Test1.txt',
+            'serie' => 'maddrax',
+            'roman_nr' => 1,
+            'titel' => 'Test1',
+            'zyklus' => 'Euree',
+            'hochgeladen_am' => now(),
+            'hochgeladen_von' => $user->id,
+            'status' => 'indexiert',
+        ]);
+
+        // Meeraka-Zyklus: Band 25
+        KompendiumRoman::create([
+            'dateiname' => '025 - Test25.txt',
+            'dateipfad' => 'romane/maddrax/025 - Test25.txt',
+            'serie' => 'maddrax',
+            'roman_nr' => 25,
+            'titel' => 'Test25',
+            'zyklus' => 'Meeraka',
+            'hochgeladen_am' => now(),
+            'hochgeladen_von' => $user->id,
+            'status' => 'indexiert',
+        ]);
+
+        $this->maddraxDataService
+            ->shouldReceive('getSeries')
+            ->withAnyArgs()
+            ->andReturn(collect([]));
+
+        $result = $this->service->getZusammengefassteUebersicht();
+
+        $this->assertCount(1, $result);
+
+        $maddrax = $result->first();
+        $this->assertEquals('maddrax', $maddrax['serie']);
+        $this->assertEquals('Maddrax', $maddrax['serie_name']);
+        $this->assertEquals(2, $maddrax['anzahl']);
+        // Beschreibung enthält Euree und Meeraka
+        $this->assertStringContainsString('Euree', $maddrax['beschreibung']);
+        $this->assertStringContainsString('Meeraka', $maddrax['beschreibung']);
+    }
+
+    #[Test]
+    public function zusammengefasste_uebersicht_miniserie_als_ein_eintrag(): void
+    {
+        $user = \App\Models\User::factory()->withPersonalTeam()->create();
+
+        foreach ([1, 2, 3] as $nr) {
+            KompendiumRoman::create([
+                'dateiname' => str_pad($nr, 3, '0', STR_PAD_LEFT)." - Mars{$nr}.txt",
+                'dateipfad' => 'romane/missionmars/'.str_pad($nr, 3, '0', STR_PAD_LEFT)." - Mars{$nr}.txt",
+                'serie' => 'missionmars',
+                'roman_nr' => $nr,
+                'titel' => "Mars{$nr}",
+                'hochgeladen_am' => now(),
+                'hochgeladen_von' => $user->id,
+                'status' => 'indexiert',
+            ]);
+        }
+
+        $result = $this->service->getZusammengefassteUebersicht();
+
+        $this->assertCount(1, $result);
+        $mars = $result->first();
+        $this->assertEquals('missionmars', $mars['serie']);
+        $this->assertEquals('Mission Mars', $mars['serie_name']);
+        $this->assertStringContainsString('Band 1-3', $mars['beschreibung']);
+    }
+
+    /* --------------------------------------------------------------------- */
+    /*  Zyklen-Fortschritt Tests                                             */
+    /* --------------------------------------------------------------------- */
+
+    #[Test]
+    public function zyklen_fortschritt_zeigt_status_korrekt(): void
+    {
+        $user = \App\Models\User::factory()->withPersonalTeam()->create();
+
+        // Ein Roman im Euree-Zyklus (Soll: 24 Romane laut JSON)
+        KompendiumRoman::create([
+            'dateiname' => '001 - Test1.txt',
+            'dateipfad' => 'romane/maddrax/001 - Test1.txt',
+            'serie' => 'maddrax',
+            'roman_nr' => 1,
+            'titel' => 'Test1',
+            'zyklus' => 'Euree',
+            'hochgeladen_am' => now(),
+            'hochgeladen_von' => $user->id,
+            'status' => 'indexiert',
+        ]);
+
+        // Mock: Maddrax hat 24 Romane im Euree-Zyklus
+        $this->maddraxDataService
+            ->shouldReceive('getSeries')
+            ->with('maddrax')
+            ->andReturn(collect([
+                ...array_map(fn ($n) => ['nummer' => $n, 'titel' => "Roman {$n}", 'zyklus' => 'Euree'], range(1, 24)),
+            ]));
+
+        $this->maddraxDataService
+            ->shouldReceive('getSeries')
+            ->withAnyArgs()
+            ->andReturn(collect([]));
+
+        $fortschritt = $this->service->getZyklenFortschritt();
+
+        $this->assertNotEmpty($fortschritt);
+
+        // Finde den Euree-Eintrag
+        $euree = collect($fortschritt)->firstWhere('zyklus', 'Euree');
+        $this->assertNotNull($euree);
+        $this->assertEquals(24, $euree['soll']);
+        $this->assertEquals(1, $euree['ist']);
+        $this->assertEquals('teilweise', $euree['status']);
+    }
 }

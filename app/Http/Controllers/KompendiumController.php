@@ -99,8 +99,8 @@ class KompendiumController extends Controller
         $userPoints = $this->teamPointService->getUserPoints($user);
         $hatZugang = $this->hatKompendiumZugang($user, $userPoints);
 
-        // Indexierte Romane gruppiert laden
-        $indexierteRomaneSummary = $this->kompendiumService->getIndexierteRomaneSummary();
+        // Zusammengefasste Übersicht (Maddrax-Zyklen konsolidiert, Miniserien als ein Eintrag)
+        $indexierteRomaneSummary = $this->kompendiumService->getZusammengefassteUebersicht();
 
         // Prüfen ob User Admin ist
         $istAdmin = $user?->currentTeam?->hasUserWithRole($user, Role::Admin->value) ?? false;

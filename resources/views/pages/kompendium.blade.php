@@ -14,8 +14,8 @@
                     <ul class="list-disc ml-6">
                         @foreach($indexierteRomaneSummary as $gruppe)
                             <li>
-                                <strong>{{ $gruppe['name'] }}</strong>
-                                (Band {{ $gruppe['bandbereich'] }})
+                                <strong>{{ $gruppe['serie_name'] }}</strong>
+                                ({{ $gruppe['beschreibung'] }})
                             </li>
                         @endforeach
                     </ul>

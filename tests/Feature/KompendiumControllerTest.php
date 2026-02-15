@@ -309,7 +309,9 @@ class KompendiumControllerTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('Aktuell sind die folgenden Romane für die Suche indexiert:');
-        $response->assertSee('Euree');
+        // Zusammengefasste \u00dcbersicht: Serienname im <strong>-Tag und Zyklus in der Beschreibung
+        $response->assertSee('<strong>Maddrax</strong>', false);
+        $response->assertSee('Euree-Zyklus');
         $response->assertDontSee('Aktuell sind keine Romane für die Suche indexiert.');
     }
 
