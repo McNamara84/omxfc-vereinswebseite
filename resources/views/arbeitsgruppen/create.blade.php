@@ -7,9 +7,8 @@
         </x-header>
 
         <x-card>
-            <form action="{{ route('arbeitsgruppen.store') }}" method="POST" enctype="multipart/form-data">
+            <x-form method="POST" action="{{ route('arbeitsgruppen.store') }}" no-separator enctype="multipart/form-data">
                 @csrf
-
                 <div class="space-y-4">
                     <x-input
                         name="name"
@@ -49,20 +48,20 @@
                         value="{{ old('meeting_schedule') }}"
                     />
 
-                    <div>
-                        <label for="logo" class="fieldset-legend">Logo</label>
-                        <input type="file" name="logo" id="logo" accept="image/*" class="file-input file-input-bordered w-full">
+                    <fieldset class="fieldset py-0">
+                        <legend class="fieldset-legend mb-0.5">Logo</legend>
+                        <input type="file" name="logo" accept="image/*" class="file-input file-input-bordered w-full" />
                         @error('logo')
                             <p class="mt-1 text-sm text-error">{{ $message }}</p>
                         @enderror
-                    </div>
+                    </fieldset>
                 </div>
 
-                <div class="flex justify-end gap-3 mt-6">
+                <x-slot:actions>
                     <x-button label="Abbrechen" link="{{ route('dashboard') }}" class="btn-ghost" />
                     <x-button label="Speichern" type="submit" class="btn-primary" icon="o-check" />
-                </div>
-            </form>
+                </x-slot:actions>
+            </x-form>
         </x-card>
     </x-member-page>
 </x-app-layout>
