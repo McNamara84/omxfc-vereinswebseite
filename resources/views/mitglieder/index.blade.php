@@ -316,6 +316,7 @@
                                     <span class="hidden xl:inline">Rolle</span>
                                 </x-button>
                             </x-slot:trigger>
+                            <x-slot:content>
                             @foreach($roleRanks as $role => $rank)
                                 @if($rank <= $currentUserRank && $role !== $memberRole)
                                     <li>
@@ -330,6 +331,7 @@
                                     </li>
                                 @endif
                             @endforeach
+                            </x-slot:content>
                         </x-dropdown>
 
                         {{-- Mitgliedschaft beenden --}}
@@ -476,6 +478,7 @@
                             <x-slot:trigger>
                                 <x-button icon="o-pencil-square" label="Rolle" class="btn-warning btn-sm w-full" />
                             </x-slot:trigger>
+                            <x-slot:content>
                             @foreach($roleRanks as $role => $rank)
                                 @if($rank <= $currentUserRank && $role !== $memberRole)
                                     <li>
@@ -490,6 +493,7 @@
                                     </li>
                                 @endif
                             @endforeach
+                            </x-slot:content>
                         </x-dropdown>
 
                         <form action="{{ route('mitglieder.remove', $member->id) }}" method="POST"
