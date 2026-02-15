@@ -74,7 +74,7 @@
     <!-- Export-Funktionen für berechtigte Benutzer -->
     @if($canViewDetails)
     <div class="mb-6">
-        <div x-data="{ showExportOptions: false, showEmailCopy: false, emailsCopied: false }" class="bg-base-200 rounded-lg p-4">
+        <div x-data="{ showExportOptions: false, emailsCopied: false }" class="bg-base-200 rounded-lg p-4">
             <div class="flex flex-wrap gap-4 items-center justify-between">
                 <h3 class="text-lg font-medium text-base-content">Datenexport & Funktionen</h3>
 
@@ -88,7 +88,6 @@
                         label="E-Mail-Adressen kopieren"
                         class="btn-info"
                         @click="
-                            showEmailCopy = true;
                             fetch('{{ route('mitglieder.all-emails') }}')
                                 .then(response => response.json())
                                 .then(data => {
@@ -316,7 +315,6 @@
                                     <span class="hidden xl:inline">Rolle</span>
                                 </x-button>
                             </x-slot:trigger>
-                            <x-slot:content>
                             @foreach($roleRanks as $role => $rank)
                                 @if($rank <= $currentUserRank && $role !== $memberRole)
                                     <li>
@@ -331,7 +329,6 @@
                                     </li>
                                 @endif
                             @endforeach
-                            </x-slot:content>
                         </x-dropdown>
 
                         {{-- Mitgliedschaft beenden --}}
@@ -478,7 +475,6 @@
                             <x-slot:trigger>
                                 <x-button icon="o-pencil-square" label="Rolle" class="btn-warning btn-sm w-full" />
                             </x-slot:trigger>
-                            <x-slot:content>
                             @foreach($roleRanks as $role => $rank)
                                 @if($rank <= $currentUserRank && $role !== $memberRole)
                                     <li>
@@ -493,7 +489,6 @@
                                     </li>
                                 @endif
                             @endforeach
-                            </x-slot:content>
                         </x-dropdown>
 
                         <form action="{{ route('mitglieder.remove', $member->id) }}" method="POST"
