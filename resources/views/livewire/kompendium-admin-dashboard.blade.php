@@ -331,7 +331,7 @@
         @endif
 
         {{-- Edit-Modal --}}
-        <x-dialog-modal wire:model="showEditModal" data-testid="edit-modal">
+        <x-dialog-modal wire:model.live="showEditModal" data-testid="edit-modal">
             <x-slot name="title">Roman bearbeiten</x-slot>
 
             <x-slot name="content">

@@ -352,7 +352,7 @@ class KompendiumAdminDashboard extends Component
         // Pfadseparatoren entfernen
         $titel = str_replace(['/', '\\'], '', $titel);
 
-        // Traversal-Sequenzen iterativ entfernen (verhindert Bypass durch verschachtelte Muster wie '....//') 
+        // Traversal-Sequenzen iterativ entfernen (verhindert Bypass durch verschachtelte Muster wie '....//')
         do {
             $vorher = $titel;
             $titel = str_replace('..', '', $titel);
