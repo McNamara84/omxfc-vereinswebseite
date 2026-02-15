@@ -7,9 +7,7 @@
         </x-header>
 
         <x-card>
-            <form action="{{ route('arbeitsgruppen.update', $team) }}" method="POST" enctype="multipart/form-data">
-                @csrf
-                @method('PUT')
+            <x-form method="PUT" action="{{ route('arbeitsgruppen.update', $team) }}" no-separator enctype="multipart/form-data">
                 @php
                     $isAdmin = Auth::user()->hasRole(\App\Enums\Role::Admin);
                 @endphp
@@ -38,15 +36,14 @@
                             required
                         />
                     @else
-                        <div>
-                            <label class="fieldset-legend">AG-Leiter</label>
-                            <select disabled class="select select-bordered w-full opacity-60">
-                                @foreach($users as $member)
-                                    <option value="{{ $member->id }}" {{ old('leader_id', $team->user_id) == $member->id ? 'selected' : '' }}>{{ $member->name }}</option>
-                                @endforeach
-                            </select>
-                            <input type="hidden" name="leader_id" value="{{ old('leader_id', $team->user_id) }}">
-                        </div>
+                        <x-select
+                            name=""
+                            label="AG-Leiter"
+                            :options="$userOptions"
+                            :value="old('leader_id', $team->user_id)"
+                            disabled
+                        />
+                        <input type="hidden" name="leader_id" value="{{ old('leader_id', $team->user_id) }}">
                     @endif
 
                     <x-textarea
@@ -68,61 +65,65 @@
                         value="{{ old('meeting_schedule', $team->meeting_schedule) }}"
                     />
 
-                    <div>
-                        <label for="logo" class="fieldset-legend">Logo</label>
-                        <input type="file" name="logo" id="logo" accept="image/*" class="file-input file-input-bordered w-full">
-                        @error('logo')
-                            <p class="mt-1 text-sm text-error">{{ $message }}</p>
-                        @enderror
-                    </div>
+                    <fieldset class="fieldset py-0">
+                        <legend class="fieldset-legend mb-0.5">Logo</legend>
+                        <input type="file" name="logo" accept="image/*" class="file-input w-full" />
+                    </fieldset>
                 </div>
 
-                <div class="flex justify-end gap-3 mt-6">
+                <x-slot:actions>
                     <x-button label="Abbrechen" link="{{ route('arbeitsgruppen.index') }}" class="btn-ghost" />
                     <x-button label="Speichern" type="submit" class="btn-primary" icon="o-check" />
-                </div>
-            </form>
+                </x-slot:actions>
+            </x-form>
 
             {{-- Mitglieder-Tabelle --}}
             <div class="mt-8">
-                <h3 class="text-lg font-semibold text-base-content mb-2">Mitglieder</h3>
-                <x-card>
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th>Rolle</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($team->users as $member)
-                                <tr>
-                                    <td>{{ $member->name }}</td>
-                                    <td>{{ $member->id === $team->user_id ? 'AG-Leiter' : 'Mitwirkender' }}</td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </x-card>
+                <x-header title="Mitglieder" size="text-lg" separator />
+
+                <div class="overflow-x-auto">
+                <table class="table table-zebra">
+                    <thead class="text-base-content">
+                        <tr>
+                            <th>Name</th>
+                            <th>Rolle</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @forelse($team->users as $member)
+                        <tr class="hover:bg-base-200">
+                            <td>{{ $member->name }}</td>
+                            <td>{{ $member->id === $team->user_id ? 'AG-Leiter' : 'Mitwirkender' }}</td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="2" class="text-center py-8 text-base-content/50">
+                                <x-icon name="o-users" class="w-12 h-12 opacity-30 mx-auto" />
+                                <p class="mt-2">Keine Mitglieder in dieser AG.</p>
+                            </td>
+                        </tr>
+                    @endforelse
+                    </tbody>
+                </table>
+                </div>
 
                 @can('addTeamMember', $team)
-                    <form action="{{ route('arbeitsgruppen.add-member', $team) }}" method="POST" class="flex flex-col sm:flex-row sm:items-center gap-2 mt-4">
-                        @csrf
-                        @php
-                            $availableMemberOptions = $availableMembers->map(fn($u) => ['id' => $u->id, 'name' => $u->name])->toArray();
-                        @endphp
-                        <x-select
-                            name="user_id"
-                            :options="$availableMemberOptions"
-                            placeholder="Mitglied auswählen"
-                            required
-                            class="flex-1"
-                        />
-                        <x-button label="Hinzufügen" type="submit" class="btn-primary" icon="o-plus" />
-                    </form>
-                    @error('user_id', 'addTeamMember')
-                        <p class="mt-1 text-sm text-error">{{ $message }}</p>
-                    @enderror
+                    <x-form method="POST" action="{{ route('arbeitsgruppen.add-member', $team) }}" no-separator class="mt-4">
+                        <div class="flex flex-col sm:flex-row sm:items-end gap-2">
+                            @php
+                                $availableMemberOptions = $availableMembers->map(fn($u) => ['id' => $u->id, 'name' => $u->name])->toArray();
+                            @endphp
+                            <x-select
+                                name="user_id"
+                                label="Mitglied hinzufügen"
+                                :options="$availableMemberOptions"
+                                placeholder="Mitglied auswählen"
+                                required
+                                class="flex-1"
+                            />
+                            <x-button label="Hinzufügen" type="submit" class="btn-primary" icon="o-plus" />
+                        </div>
+                    </x-form>
                 @endcan
             </div>
         </x-card>
