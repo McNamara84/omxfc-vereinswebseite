@@ -395,7 +395,7 @@
             </div>
         </div>
 
-        @foreach($members as $member)
+        @forelse($members as $member)
         <x-card shadow class="!p-4">
             <a href="{{ route('profile.view', $member->id) }}" class="flex items-center mb-4">
                 <x-avatar :image="$member->profile_photo_url" class="!w-12 !h-12" />
@@ -433,7 +433,7 @@
             <div x-data="{ open: false }" class="border-t border-base-200 pt-2">
                 <button @click="open = !open" type="button" class="flex items-center justify-between w-full text-sm font-medium text-base-content hover:text-primary">
                     <span>Weitere Details anzeigen</span>
-                    <x-icon name="o-chevron-down" class="h-4 w-4 transition-transform" ::class="open && 'rotate-180'" />
+                    <x-icon name="o-chevron-down" class="h-4 w-4 transition-transform" x-bind:class="{ 'rotate-180': open }" />
                 </button>
                 <div x-show="open" x-transition class="mt-3 space-y-3">
                     <div>
@@ -508,7 +508,12 @@
                 @endif
             </div>
         </x-card>
-        @endforeach
+        @empty
+        <div class="text-center py-8 text-base-content/50">
+            <x-icon name="o-users" class="w-12 h-12 opacity-30 mx-auto" />
+            <p class="mt-2">Keine Mitglieder gefunden.</p>
+        </div>
+        @endforelse
     </div>
     </x-card>
     </x-member-page>
