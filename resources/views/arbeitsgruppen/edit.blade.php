@@ -7,7 +7,9 @@
         </x-header>
 
         <x-card>
-            <x-form method="PUT" action="{{ route('arbeitsgruppen.update', $team) }}" no-separator enctype="multipart/form-data">
+            <x-form method="POST" action="{{ route('arbeitsgruppen.update', $team) }}" no-separator enctype="multipart/form-data">
+                @csrf
+                @method('PUT')
                 @php
                     $isAdmin = Auth::user()->hasRole(\App\Enums\Role::Admin);
                 @endphp
@@ -113,6 +115,7 @@
 
                 @can('addTeamMember', $team)
                     <x-form method="POST" action="{{ route('arbeitsgruppen.add-member', $team) }}" no-separator class="mt-4">
+                        @csrf
                         <div class="flex flex-col sm:flex-row sm:items-end gap-2">
                             @php
                                 $availableMemberOptions = $availableMembers->map(fn($u) => ['id' => $u->id, 'name' => $u->name])->toArray();

@@ -219,7 +219,7 @@
         {{-- Name --}}
         <td>
             <a href="{{ route('profile.view', $member->id) }}" class="flex items-center">
-                <x-avatar :image="$member->profile_photo_url" class="!w-10 !h-10" />
+                <x-avatar :image="$member->profile_photo_url" :alt="$member->name" class="!w-10 !h-10" />
                 <div class="ml-4">
                     <div class="font-medium text-base-content flex items-center">
                         <span class="inline-block w-2 h-2 rounded-full mr-2 {{ in_array($member->id, $onlineUserIds) ? 'bg-success' : 'bg-base-content/40' }}" title="{{ in_array($member->id, $onlineUserIds) ? 'Online' : 'Offline' }}"></span>
@@ -400,7 +400,7 @@
         @forelse($members as $member)
         <x-card shadow class="!p-4">
             <a href="{{ route('profile.view', $member->id) }}" class="flex items-center mb-4">
-                <x-avatar :image="$member->profile_photo_url" class="!w-12 !h-12" />
+                <x-avatar :image="$member->profile_photo_url" :alt="$member->name" class="!w-12 !h-12" />
                 <div class="ml-4">
                     <div class="font-medium text-base-content flex items-center">
                         <span class="inline-block w-2 h-2 rounded-full mr-2 {{ in_array($member->id, $onlineUserIds) ? 'bg-success' : 'bg-base-content/40' }}" title="{{ in_array($member->id, $onlineUserIds) ? 'Online' : 'Offline' }}"></span>

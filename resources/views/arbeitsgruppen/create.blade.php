@@ -8,6 +8,7 @@
 
         <x-card>
             <x-form method="POST" action="{{ route('arbeitsgruppen.store') }}" no-separator enctype="multipart/form-data">
+                @csrf
                 <div class="space-y-4">
                     <x-input
                         name="name"
