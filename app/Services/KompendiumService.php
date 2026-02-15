@@ -89,18 +89,29 @@ class KompendiumService
      */
     public function findeMetadatenMitFuzzy(int $nummer, string $titel): ?array
     {
-        // 1. Exakter Match
-        $exakt = $this->findeMetadaten($nummer, $titel);
-        if ($exakt) {
-            $exakt['match_typ'] = 'exakt';
-
-            return $exakt;
-        }
-
-        // 2. Normalisierter Match (case-insensitive, Sonderzeichen bereinigt)
         $normalisiertTitel = $this->normalisiereTitel($titel);
+        $nummerTreffer = collect();
+
+        // Alle Serien in einer einzigen Schleife prüfen (exakt + normalisiert + Nummer)
         foreach (self::SERIEN as $serienKey => $serienName) {
             $serie = $this->maddraxDataService->getSeries($serienKey);
+
+            // 1. Exakter Match (Nummer + Titel)
+            $roman = $serie->first(fn ($r) => ($r['nummer'] ?? null) === $nummer &&
+                ($r['titel'] ?? '') === $titel
+            );
+
+            if ($roman) {
+                return [
+                    'serie' => $serienKey,
+                    'serie_name' => $serienName,
+                    'zyklus' => $roman['zyklus'] ?? null,
+                    'roman' => $roman,
+                    'match_typ' => 'exakt',
+                ];
+            }
+
+            // 2. Normalisierter Match (case-insensitive, Sonderzeichen bereinigt)
             $roman = $serie->first(fn ($r) => ($r['nummer'] ?? null) === $nummer &&
                 $this->normalisiereTitel($r['titel'] ?? '') === $normalisiertTitel
             );
@@ -114,12 +125,23 @@ class KompendiumService
                     'match_typ' => 'normalisiert',
                 ];
             }
+
+            // 3. Nummern-Treffer sammeln (für späteren eindeutigen Match)
+            $romane = $serie->filter(fn ($r) => ($r['nummer'] ?? null) === $nummer);
+            foreach ($romane as $r) {
+                $nummerTreffer->push([
+                    'serie' => $serienKey,
+                    'serie_name' => $serienName,
+                    'nummer' => $r['nummer'],
+                    'titel' => $r['titel'] ?? '',
+                    'zyklus' => $r['zyklus'] ?? null,
+                ]);
+            }
         }
 
         // 3. Nummer-Match (nur wenn eindeutig über alle Serien)
-        $treffer = $this->findeRomaneNachNummer($nummer);
-        if ($treffer->count() === 1) {
-            $match = $treffer->first();
+        if ($nummerTreffer->count() === 1) {
+            $match = $nummerTreffer->first();
 
             return [
                 'serie' => $match['serie'],
@@ -289,6 +311,11 @@ class KompendiumService
         $nachZyklus = $romane->groupBy(fn ($r) => $r->zyklus ?? 'Ohne Zyklus');
         $teile = [];
 
+        // Soll-Anzahl pro Zyklus einmal vorberechnen (vermeidet wiederholte Cache-Reads)
+        $sollProZyklus = $this->maddraxDataService->getSeries('maddrax')
+            ->groupBy('zyklus')
+            ->map->count();
+
         foreach ($nachZyklus as $zyklus => $zyklusRomane) {
             if ($zyklus === 'Ohne Zyklus') {
                 $nummern = $zyklusRomane->pluck('roman_nr')->sort()->values();
@@ -297,7 +324,7 @@ class KompendiumService
                 continue;
             }
 
-            $istVollstaendig = $this->istZyklusVollstaendig($zyklus, $zyklusRomane);
+            $istVollstaendig = $this->istZyklusVollstaendig($zyklus, $zyklusRomane, $sollProZyklus);
 
             if ($istVollstaendig) {
                 $teile[] = "{$zyklus}-Zyklus";
@@ -323,11 +350,9 @@ class KompendiumService
     /**
      * Prüft ob alle Romane eines Zyklus der Maddrax-Hauptserie indexiert sind.
      */
-    private function istZyklusVollstaendig(string $zyklus, Collection $indexierteRomane): bool
+    private function istZyklusVollstaendig(string $zyklus, Collection $indexierteRomane, Collection $sollProZyklus): bool
     {
-        $sollAnzahl = $this->maddraxDataService->getSeries('maddrax')
-            ->where('zyklus', $zyklus)
-            ->count();
+        $sollAnzahl = $sollProZyklus->get($zyklus, 0);
 
         if ($sollAnzahl === 0) {
             return false;
