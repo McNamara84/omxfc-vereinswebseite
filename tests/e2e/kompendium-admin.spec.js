@@ -56,10 +56,7 @@ test.describe('Kompendium Admin Dashboard', () => {
         // Auf Mission Mars Tab klicken
         await page.getByTestId('tab-missionmars').click();
 
-        // Warten auf Livewire-Update
-        await page.waitForTimeout(1000);
-
-        // Mission Mars Roman sollte sichtbar sein
+        // Warten bis Livewire die Mission-Mars-Daten gerendert hat
         await expect(page.getByRole('cell', { name: 'Expedition zum roten Planeten' })).toBeVisible();
 
         // Maddrax Romane sollten nicht sichtbar sein
@@ -73,10 +70,7 @@ test.describe('Kompendium Admin Dashboard', () => {
         const filterSection = page.getByTestId('filter-section');
         await filterSection.getByLabel('Status').selectOption('indexiert');
 
-        // Warten auf Livewire-Update
-        await page.waitForTimeout(1000);
-
-        // Indexierter Roman sollte sichtbar sein
+        // Warten bis Livewire die gefilterten Daten gerendert hat
         await expect(page.getByRole('cell', { name: 'Stadt ohne Hoffnung' })).toBeVisible();
 
         // Nicht indexierter Roman sollte nicht sichtbar sein
@@ -89,10 +83,7 @@ test.describe('Kompendium Admin Dashboard', () => {
         // Suche nach einem Roman - verwende data-testid
         await page.getByTestId('search-input').fill('Dämonen');
 
-        // Warten auf Livewire-Update (mit debounce)
-        await page.waitForTimeout(1000);
-
-        // Gesuchter Roman sollte sichtbar sein
+        // Warten bis Livewire die Suche ausgeführt hat (debounce + Render)
         await expect(page.getByRole('cell', { name: 'Dämonen der Vergangenheit' })).toBeVisible();
 
         // Andere Romane sollten nicht sichtbar sein
@@ -141,10 +132,7 @@ test.describe('Kompendium Admin Dashboard', () => {
         // Klicke auf Hochladen
         await page.getByRole('button', { name: 'Hochladen' }).click();
 
-        // Warten auf Upload und Livewire-Update - Livewire braucht Zeit
-        await page.waitForTimeout(3000);
-
-        // Der neue Roman sollte in der Tabelle erscheinen
+        // Warten bis Livewire den neuen Roman in der Tabelle zeigt
         await expect(page.getByText('Playwright Testroman')).toBeVisible();
     });
 
@@ -155,10 +143,7 @@ test.describe('Kompendium Admin Dashboard', () => {
         const filterSection = page.getByTestId('filter-section');
         await filterSection.getByLabel('Status').selectOption('fehler');
 
-        // Warten auf Livewire-Update
-        await page.waitForTimeout(1000);
-
-        // Fehlerhafter Roman sollte sichtbar sein
+        // Warten bis Livewire die Fehler-Romane gerendert hat
         await expect(page.getByRole('cell', { name: 'Fehlerhafter Roman' })).toBeVisible();
     });
 

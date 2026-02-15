@@ -229,6 +229,7 @@ class KompendiumAdminDashboard extends Component
     public function speichern(): void
     {
         $this->validate([
+            'editId' => 'required|integer|exists:kompendium_romane,id',
             'editSerie' => ['required', Rule::in(array_keys(KompendiumService::SERIEN))],
             'editZyklus' => 'nullable|string|max:100',
             'editNummer' => 'required|integer|min:1',
@@ -346,7 +347,7 @@ class KompendiumAdminDashboard extends Component
     private function sanitizeTitelFuerPfad(string $titel): string
     {
         // Steuerzeichen und nicht-druckbare Zeichen entfernen
-        $titel = preg_replace('/[\x00-\x1F\x7F]/', '', $titel);
+        $titel = preg_replace('/[\x00-\x1F\x7F]/', '', $titel) ?? $titel;
 
         // Pfadseparatoren entfernen
         $titel = str_replace(['/', '\\'], '', $titel);
@@ -358,7 +359,7 @@ class KompendiumAdminDashboard extends Component
         } while ($titel !== $vorher);
 
         // Mehrfache Leerzeichen normalisieren und trimmen
-        $titel = trim(preg_replace('/\s+/', ' ', $titel));
+        $titel = trim(preg_replace('/\s+/', ' ', $titel) ?? $titel);
 
         return $titel;
     }

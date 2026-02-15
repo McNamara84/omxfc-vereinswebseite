@@ -140,9 +140,9 @@ class KompendiumService
     public function normalisiereTitel(string $titel): string
     {
         $titel = mb_strtolower($titel);
-        $titel = preg_replace('/[^\p{L}\p{N}\s]/u', '', $titel);
+        $titel = preg_replace('/[^\p{L}\p{N}\s]/u', '', $titel) ?? $titel;
 
-        return preg_replace('/\s+/', ' ', trim($titel));
+        return preg_replace('/\s+/', ' ', trim($titel)) ?? $titel;
     }
 
     /**
@@ -365,7 +365,7 @@ class KompendiumService
                         : 0;
 
                     $fortschritt->push([
-                        'zyklus' => $zyklus,
+                        'zyklus' => ($zyklus === '' || $zyklus === null) ? 'Ohne Zyklus' : $zyklus,
                         'serie' => $serienName,
                         'soll' => $sollInZyklus->count(),
                         'ist' => $istInZyklus->count(),
