@@ -244,12 +244,19 @@ class ReviewCommentControllerTest extends TestCase
         $response = $this->get(route('reviews.show', $book));
         $html = $response->getContent();
 
-        $this->assertSame(1, substr_count($html, 'id="content"'));
+        // Each comment owned by the user gets an edit form (PUT) and a reply form
+        // Plus 1 main new-comment form = 5 textareas total with name="content"
+        $this->assertSame(5, substr_count($html, 'name="content"'));
+
+        // Each comment has a reply form with a hidden parent_id
         foreach ([$commentOne, $commentTwo] as $comment) {
-            $this->assertStringContainsString('id="edit-content-'.$comment->id.'"', $html);
-            $this->assertStringContainsString('aria-describedby="edit-content-'.$comment->id.'-error"', $html);
-            $this->assertStringContainsString('id="reply-content-'.$comment->id.'"', $html);
-            $this->assertStringContainsString('aria-describedby="reply-content-'.$comment->id.'-error"', $html);
+            $this->assertStringContainsString('name="parent_id" value="'.$comment->id.'"', $html);
         }
+
+        // Ensure all textarea IDs on the page are unique (maryUI generates UUID-based IDs)
+        preg_match_all('/id="([^"]*)"/', $html, $matches);
+        $ids = $matches[1];
+        $duplicates = array_diff_assoc($ids, array_unique($ids));
+        $this->assertEmpty($duplicates, 'Duplicate IDs found: '.implode(', ', $duplicates));
     }
 }
