@@ -363,7 +363,7 @@
                                                 ->map(fn($s) => ['id' => $s, 'name' => $s])
                                                 ->toArray();
                                         @endphp
-                                        <x-select label="T-Shirt-Größe *" id="tshirt_groesse" name="tshirt_groesse" :options="$tshirtGroessen" placeholder="Bitte wählen..." :value="old('tshirt_groesse')" data-testid="fantreffen-tshirt-groesse" />
+                                        <x-form-select label="T-Shirt-Größe *" id="tshirt_groesse" name="tshirt_groesse" :options="$tshirtGroessen" placeholder="Bitte wählen..." :value="old('tshirt_groesse')" data-testid="fantreffen-tshirt-groesse" required />
                                     </div>
                                 </div>
                             @endif
