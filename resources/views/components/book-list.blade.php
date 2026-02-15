@@ -1,7 +1,7 @@
 {{--
     Component: book-list
 
-    Renders a list of books for desktop (table) and mobile (cards) views.
+    Renders a responsive table of books (uses overflow-x-auto for small screens).
 
     Props:
     - $books: iterable collection of book models or arrays. Each book is expected to provide:

@@ -488,10 +488,16 @@ class RezensionControllerTest extends TestCase
             $user = $this->actingMember();
             $this->actingAs($user);
 
-            $this->get('/rezensionen')
-                ->assertOk()
-                ->assertSee('Das Volk der Tiefe')
-                ->assertSee('class="collapse collapse-arrow', false);
+            $response = $this->get('/rezensionen');
+            $response->assertOk();
+
+            // Verify that "Das Volk der Tiefe" is rendered inside a DaisyUI collapse panel
+            $html = $response->getContent();
+            $this->assertMatchesRegularExpression(
+                '/class="collapse collapse-arrow[^"]*"[^<]*<input[^>]*aria-label="Das Volk der Tiefe ein-\/ausklappen"/',
+                $html,
+                'Das Volk der Tiefe section should be rendered as a DaisyUI collapse with matching aria-label'
+            );
         } finally {
             file_put_contents($path, $original);
         }
