@@ -7,7 +7,7 @@
     $isMobile = $variant === 'mobile';
 @endphp
 
-<div x-data="{ emailCopied: false }">
+<div x-data="{ emailCopied: false, email: @js($email) }">
     <span class="sr-only" role="status" aria-live="polite" x-text="emailCopied ? 'E-Mail-Adresse wurde in die Zwischenablage kopiert.' : ''"></span>
 
     {{-- Default state --}}
@@ -19,7 +19,6 @@
         title="E-Mail kopieren"
         aria-label="E-Mail-Adresse kopieren"
         @click="
-            const email = @js($email);
             const markCopied = () => { emailCopied = true; setTimeout(() => emailCopied = false, 2000); };
             const fallback = () => window.prompt('E-Mail kopieren:', email);
 
