@@ -22,11 +22,7 @@
             <form x-show="editing" method="POST" action="{{ route('reviews.comments.update', $comment) }}" class="mt-2">
                 @csrf
                 @method('PUT')
-                <fieldset class="fieldset py-0">
-                    <legend class="fieldset-legend mb-0.5">Kommentar</legend>
-                    <textarea id="{{ $editId }}" name="content" aria-describedby="{{ $editId }}-error" rows="2" class="textarea textarea-bordered w-full" required>{{ old('content', $comment->content) }}</textarea>
-                    <x-input-error for="content" :id="$editId . '-error'" />
-                </fieldset>
+                <x-textarea label="Kommentar" name="content" :id="$editId" rows="2" required>{{ old('content', $comment->content) }}</x-textarea>
                 <div class="mt-2 flex flex-col sm:flex-row gap-2">
                     <x-button label="Speichern" type="submit" class="btn-info btn-sm" />
                     <x-button label="Abbrechen" @click="editing = false" class="btn-ghost btn-sm" />
@@ -67,11 +63,7 @@
     <form method="POST" action="{{ route('reviews.comments.store', $comment->review) }}" class="mt-2">
         @csrf
         <input type="hidden" name="parent_id" value="{{ $comment->id }}">
-        <fieldset class="fieldset py-0">
-            <legend class="fieldset-legend mb-0.5">Kommentar</legend>
-            <textarea id="{{ $replyId }}" name="content" aria-describedby="{{ $replyId }}-error" rows="2" class="textarea textarea-bordered w-full" required></textarea>
-            <x-input-error for="content" :id="$replyId . '-error'" />
-        </fieldset>
+        <x-textarea label="Kommentar" name="content" :id="$replyId" rows="2" required />
         <x-button label="Antworten" type="submit" class="btn-info btn-sm mt-2" />
     </form>
 </div>

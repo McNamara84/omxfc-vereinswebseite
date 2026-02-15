@@ -1,29 +1,12 @@
 @php
     $reviewCount = $books->sum('reviews_count');
-    $buttonId = 'accordion-button-' . $id;
-    $contentId = 'content-' . $id;
 @endphp
-<div class="mb-4 border border-base-content/10 rounded-lg">
-    <h2>
-        <button
-            id="{{ $buttonId }}"
-            data-accordion-button="{{ $id }}"
-            type="button"
-            class="w-full flex justify-between items-center bg-base-200 px-4 py-3 rounded-t-lg font-semibold"
-            onclick="toggleAccordion('{{ $id }}')"
-            aria-expanded="{{ $initiallyOpen ? 'true' : 'false' }}"
-            aria-controls="{{ $contentId }}"
-        >
-            {{ $title }} ({{ $reviewCount }} {{ $reviewCount === 1 ? 'Rezension' : 'Rezensionen' }})
-            <span id="icon-{{ $id }}">{{ $initiallyOpen ? '-' : '+' }}</span>
-        </button>
-    </h2>
-    <div
-        id="{{ $contentId }}"
-        class="{{ $initiallyOpen ? '' : 'hidden' }} bg-base-100 px-4 py-2 rounded-b-lg"
-        role="region"
-        aria-labelledby="{{ $buttonId }}"
-    >
+<div class="collapse collapse-arrow mb-4 border border-base-content/10 rounded-lg bg-base-100">
+    <input type="checkbox" {{ $initiallyOpen ? 'checked' : '' }} />
+    <div class="collapse-title font-semibold bg-base-200 rounded-t-lg">
+        {{ $title }} ({{ $reviewCount }} {{ $reviewCount === 1 ? 'Rezension' : 'Rezensionen' }})
+    </div>
+    <div class="collapse-content">
         <x-book-list :books="$books" />
     </div>
 </div>

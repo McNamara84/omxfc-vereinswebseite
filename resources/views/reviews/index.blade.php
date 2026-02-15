@@ -152,18 +152,5 @@
                 @endif
             </div>
 
-    <script>
-        function toggleAccordion(id) {
-            const content = document.getElementById('content-' + id);
-            const icon = document.getElementById('icon-' + id);
-            const button = document.querySelector('[data-accordion-button="' + id + '"]');
-            content.classList.toggle('hidden');
-            const expanded = !content.classList.contains('hidden');
-            icon.textContent = expanded ? '-' : '+';
-            if (button) {
-                button.setAttribute('aria-expanded', expanded ? 'true' : 'false');
-            }
-        }
-    </script>
     </x-member-page>
 </x-app-layout>

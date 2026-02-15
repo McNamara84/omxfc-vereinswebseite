@@ -62,76 +62,34 @@
         @if($anwaerter->isNotEmpty())
             <x-card title="Mitgliedsanträge" class="mb-8" shadow>
                 <div x-data="{ rejectUrl: '' }">
-                    {{-- Desktop-Ansicht --}}
-                    <div class="hidden md:block overflow-auto">
-                        <table class="table table-zebra">
-                            <thead>
-                                <tr>
-                                    <th>Name</th>
-                                    <th>E-Mail</th>
-                                    <th>Beitrag</th>
-                                    <th class="text-center">Aktion</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach($anwaerter as $person)
-                                    <tr class="hover">
-                                        <td>
-                                            <a href="{{ route('profile.view', $person->id) }}" class="text-primary hover:underline">{{ $person->name }}</a>
-                                        </td>
-                                        <td>{{ $person->email }}</td>
-                                        <td>{{ $person->mitgliedsbeitrag }}</td>
-                                        <td>
-                                            <div class="flex justify-center gap-2">
-                                                <form action="{{ route('anwaerter.approve', $person->id) }}" method="POST">
-                                                    @csrf
-                                                    <x-button type="submit" label="Genehmigen" class="btn-success btn-sm" icon="o-check" />
-                                                </form>
-                                                <x-button
-                                                    label="Ablehnen"
-                                                    class="btn-error btn-sm"
-                                                    icon="o-x-mark"
-                                                    @click="rejectUrl = '{{ route('anwaerter.reject', $person->id) }}'; document.getElementById('reject-anwaerter-modal').showModal()"
-                                                />
-                                            </div>
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
+                    <x-table :headers="$anwaerterHeaders" :rows="$anwaerter" striped>
+                        @scope('cell_name', $person)
+                            <a href="{{ route('profile.view', $person->id) }}" class="text-primary hover:underline">{{ $person->name }}</a>
+                        @endscope
 
-                    {{-- Mobile-Ansicht --}}
-                    <div class="md:hidden space-y-4">
-                        @foreach($anwaerter as $person)
-                            <div class="bg-base-200 p-4 rounded-lg">
-                                <div class="mb-2">
-                                    <span class="font-semibold text-base-content">Name:</span>
-                                    <a href="{{ route('profile.view', $person->id) }}" class="block mt-1 text-primary hover:underline">{{ $person->name }}</a>
-                                </div>
-                                <div class="mb-2">
-                                    <span class="font-semibold text-base-content">E-Mail:</span>
-                                    <span class="block mt-1 break-words">{{ $person->email }}</span>
-                                </div>
-                                <div class="mb-4">
-                                    <span class="font-semibold text-base-content">Beitrag:</span>
-                                    <span class="block mt-1">{{ $person->mitgliedsbeitrag }}</span>
-                                </div>
-                                <div class="flex gap-2">
-                                    <form action="{{ route('anwaerter.approve', $person->id) }}" method="POST" class="flex-1">
-                                        @csrf
-                                        <x-button type="submit" label="Genehmigen" class="btn-success w-full" icon="o-check" />
-                                    </form>
-                                    <x-button
-                                        label="Ablehnen"
-                                        class="btn-error flex-1"
-                                        icon="o-x-mark"
-                                        @click="rejectUrl = '{{ route('anwaerter.reject', $person->id) }}'; document.getElementById('reject-anwaerter-modal').showModal()"
-                                    />
-                                </div>
+                        @scope('cell_email', $person)
+                            {{ $person->email }}
+                        @endscope
+
+                        @scope('cell_mitgliedsbeitrag', $person)
+                            {{ $person->mitgliedsbeitrag }}
+                        @endscope
+
+                        @scope('cell_aktion', $person)
+                            <div class="flex justify-center gap-2">
+                                <form action="{{ route('anwaerter.approve', $person->id) }}" method="POST">
+                                    @csrf
+                                    <x-button type="submit" label="Genehmigen" class="btn-success btn-sm" icon="o-check" />
+                                </form>
+                                <x-button
+                                    label="Ablehnen"
+                                    class="btn-error btn-sm"
+                                    icon="o-x-mark"
+                                    @click="rejectUrl = '{{ route('anwaerter.reject', $person->id) }}'; document.getElementById('reject-anwaerter-modal').showModal()"
+                                />
                             </div>
-                        @endforeach
-                    </div>
+                        @endscope
+                    </x-table>
 
                     {{-- Ablehnungs-Bestätigungsdialog --}}
                     <x-mary-modal id="reject-anwaerter-modal" title="Antrag ablehnen" separator>

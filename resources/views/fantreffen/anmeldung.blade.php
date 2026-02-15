@@ -354,24 +354,16 @@
                                         :daysUntilDeadline="$daysUntilDeadline"
                                         variant="prominent"
                                     />
-                                    <label class="flex items-start gap-2 cursor-pointer">
-                                        <input type="checkbox" name="tshirt_bestellt" id="tshirt_bestellt" value="1"
-                                               {{ old('tshirt_bestellt') ? 'checked' : '' }}
-                                               class="checkbox checkbox-primary mt-0.5">
-                                        <div>
-                                            <span class="font-medium">Event-T-Shirt bestellen</span>
-                                            <p class="text-xs text-base-content/50 mt-1">25,00 € Spende{{ !Auth::check() ? ' (zusammen mit Teilnahme: 30,00 €)' : '' }}</p>
-                                        </div>
-                                    </label>
+                                    <x-checkbox label="Event-T-Shirt bestellen" id="tshirt_bestellt" name="tshirt_bestellt" value="1" :checked="old('tshirt_bestellt')" />
+                                    <p class="text-xs text-base-content/50 mt-1 ml-8">25,00 € Spende{{ !Auth::check() ? ' (zusammen mit Teilnahme: 30,00 €)' : '' }}</p>
 
                                     <div id="tshirt-groesse-container" class="mt-3 hidden">
-                                        <label class="block text-sm font-medium mb-2">T-Shirt-Größe *</label>
-                                        <select name="tshirt_groesse" id="tshirt_groesse" class="select select-bordered w-full" data-testid="fantreffen-tshirt-groesse">
-                                            <option value="">Bitte wählen...</option>
-                                            @foreach(['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL'] as $size)
-                                                <option value="{{ $size }}" {{ old('tshirt_groesse') === $size ? 'selected' : '' }}>{{ $size }}</option>
-                                            @endforeach
-                                        </select>
+                                        @php
+                                            $tshirtGroessen = collect(['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL'])
+                                                ->map(fn($s) => ['id' => $s, 'name' => $s])
+                                                ->toArray();
+                                        @endphp
+                                        <x-select label="T-Shirt-Größe *" id="tshirt_groesse" name="tshirt_groesse" :options="$tshirtGroessen" placeholder="Bitte wählen..." :value="old('tshirt_groesse')" data-testid="fantreffen-tshirt-groesse" />
                                     </div>
                                 </div>
                             @endif

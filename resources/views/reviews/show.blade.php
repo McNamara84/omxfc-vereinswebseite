@@ -40,11 +40,7 @@
 
                         <form method="POST" action="{{ route('reviews.comments.store', $review) }}" class="mt-4">
                             @csrf
-                            <fieldset class="fieldset py-0">
-                                <legend class="fieldset-legend mb-0.5">Kommentar</legend>
-                                <textarea id="content" name="content" aria-describedby="content-error" rows="2" class="textarea textarea-bordered w-full" placeholder="Kommentieren..." required></textarea>
-                                <x-input-error for="content" id="content-error" />
-                            </fieldset>
+                            <x-textarea label="Kommentar" name="content" rows="2" placeholder="Kommentieren..." required />
                             <x-button label="Kommentar hinzufügen" type="submit" class="btn-info btn-sm mt-2" />
                         </form>
                     </div>

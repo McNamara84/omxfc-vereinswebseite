@@ -185,8 +185,16 @@ class DashboardController extends Controller
             ->limit(10)
             ->get();
 
+        $anwaerterHeaders = [
+            ['key' => 'name', 'label' => 'Name'],
+            ['key' => 'email', 'label' => 'E-Mail'],
+            ['key' => 'mitgliedsbeitrag', 'label' => 'Beitrag'],
+            ['key' => 'aktion', 'label' => 'Aktion', 'class' => 'text-center'],
+        ];
+
         return view('dashboard', compact(
             'anwaerter',
+            'anwaerterHeaders',
             'openTodos',
             'userPoints',
             'pendingVerification',
