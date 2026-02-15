@@ -467,7 +467,7 @@ class RezensionControllerTest extends TestCase
         }
     }
 
-    public function test_volk_der_tiefe_button_includes_accessibility_attributes(): void
+    public function test_volk_der_tiefe_accordion_renders_as_daisyui_collapse(): void
     {
         $path = storage_path('app/private/maddrax.json');
         $original = file_get_contents($path);
@@ -490,9 +490,8 @@ class RezensionControllerTest extends TestCase
 
             $this->get('/rezensionen')
                 ->assertOk()
-                ->assertSee('data-accordion-button="das-volk-der-tiefe"', false)
-                ->assertSee('aria-controls="content-das-volk-der-tiefe"', false)
-                ->assertSee('aria-expanded="false"', false);
+                ->assertSee('Das Volk der Tiefe')
+                ->assertSee('class="collapse collapse-arrow', false);
         } finally {
             file_put_contents($path, $original);
         }
