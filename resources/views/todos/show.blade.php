@@ -142,7 +142,7 @@
                         @endif
                         @if($canDelete)
                             <form action="{{ route('todos.destroy', $todo) }}" method="POST" class="inline"
-                                onsubmit="return confirm('Möchtest du diese Challenge wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.');">
+                                onsubmit="return confirm('{{ $todo->status->value === 'verified' ? 'Achtung: Die gutgeschriebenen ' . $todo->points . ' Baxx werden dem Mitglied abgezogen!\n\nMöchtest du diese Challenge wirklich löschen?' : 'Möchtest du diese Challenge wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.' }}');">
                                 @csrf
                                 @method('DELETE')
                                 <x-button label="Challenge löschen" type="submit" icon="o-trash" class="btn-error" />

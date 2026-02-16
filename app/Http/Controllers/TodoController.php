@@ -352,9 +352,19 @@ class TodoController extends Controller
 
         $this->authorize('delete', $todo);
 
+        // Punkte entfernen, falls die Challenge bereits verifiziert war
+        $wasVerified = $todo->status === TodoStatus::Verified;
+        if ($wasVerified) {
+            UserPoint::where('todo_id', $todo->id)->delete();
+        }
+
         $todo->delete();
 
+        $message = $wasVerified
+            ? 'Challenge wurde erfolgreich gelöscht. Die gutgeschriebenen Baxx wurden abgezogen.'
+            : 'Challenge wurde erfolgreich gelöscht.';
+
         return redirect()->route('todos.index')
-            ->with('status', 'Challenge wurde erfolgreich gelöscht.');
+            ->with('status', $message);
     }
 }
