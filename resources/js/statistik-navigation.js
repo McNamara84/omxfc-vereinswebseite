@@ -5,6 +5,17 @@ let previousObserver = null;
 let previousAbortController = null;
 
 function setupStatistikNavigation() {
+    /* ── Alte Observer/Listener aufräumen (vor Early-Returns, damit
+       beim Wegnavigieren keine verwaisten Referenzen bleiben) ──────────── */
+    if (previousObserver) {
+        previousObserver.disconnect();
+        previousObserver = null;
+    }
+    if (previousAbortController) {
+        previousAbortController.abort();
+        previousAbortController = null;
+    }
+
     const nav = document.querySelector('[data-statistik-nav]');
     if (!nav) return;
 
@@ -14,13 +25,6 @@ function setupStatistikNavigation() {
         return;
     }
 
-    /* ── Alte Observer/Listener aufräumen ──────────────────────────────────── */
-    if (previousObserver) {
-        previousObserver.disconnect();
-    }
-    if (previousAbortController) {
-        previousAbortController.abort();
-    }
     const abortController = new AbortController();
     previousAbortController = abortController;
 

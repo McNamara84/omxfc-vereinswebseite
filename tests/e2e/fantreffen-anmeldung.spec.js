@@ -47,7 +47,7 @@ test.describe('Fantreffen 2026 Anmeldung', () => {
         await page.waitForURL(/bestaetigung/, { timeout: 10000 });
     });
 
-    test('T-Shirt Checkbox togglet Größen-Dropdown korrekt', async ({ page }) => {
+    test('T-Shirt Checkbox schaltet Größen-Dropdown korrekt um', async ({ page }) => {
         await page.goto('/maddrax-fantreffen-2026');
         await page.waitForLoadState('networkidle');
 
