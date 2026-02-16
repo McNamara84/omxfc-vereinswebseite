@@ -292,7 +292,7 @@ class TodoControllerTest extends TestCase
         $todoAssigned = $this->createTodo($user, ['assigned_to' => $user->id, 'status' => TodoStatus::Assigned->value]);
         $todoCompleted = $this->createTodo($user, ['assigned_to' => $other->id, 'status' => TodoStatus::Completed->value]);
 
-        \App\Models\UserPoint::create([
+        UserPoint::create([
             'user_id' => $user->id,
             'team_id' => $user->currentTeam->id,
             'points' => 3,
