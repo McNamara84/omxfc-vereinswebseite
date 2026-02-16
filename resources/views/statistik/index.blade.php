@@ -205,29 +205,14 @@
                     data-statistik-section
                     data-min-points="{{ $min }}"
                     tabindex="-1"
-                    shadow class="relative grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
-                    <h2 class="text-xl font-semibold text-primary mb-4 col-span-1 md:col-span-3">
+                    shadow class="relative">
+                    <h2 class="text-xl font-semibold text-primary mb-4 text-center">
                         Bewertungen im Maddraxikon
                     </h2>
-                    <div>
-                        <div class="text-3xl font-bold text-base-content">
-                            {{ number_format($averageRating, 2, ',', '.') }}
-                        </div>
-                        <div class="text-base-content">Ø-Bewertung</div>
-                    </div>
-
-                    <div>
-                        <div class="text-3xl font-bold text-base-content">
-                            {{ $totalVotes }}
-                        </div>
-                        <div class="text-base-content">Stimmen insgesamt</div>
-                    </div>
-
-                    <div>
-                        <div class="text-3xl font-bold text-base-content">
-                            {{ number_format($averageVotes, 2, ',', '.') }}
-                        </div>
-                        <div class="text-base-content">Ø-Stimmen pro Roman</div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <x-stat title="Ø-Bewertung" :value="number_format($averageRating, 2, ',', '.')" icon="o-star" />
+                        <x-stat title="Stimmen insgesamt" :value="$totalVotes" icon="o-hand-thumb-up" />
+                        <x-stat title="Ø-Stimmen pro Roman" :value="number_format($averageVotes, 2, ',', '.')" icon="o-chart-bar" />
                     </div>
                     @if($userPoints < $min)
                         @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
@@ -246,27 +231,10 @@
                         Rezensionen unserer Mitglieder
                     </h2>
 
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
-                        <div>
-                            <div class="text-3xl font-bold text-base-content">
-                                {{ $totalReviews }}
-                            </div>
-                            <div class="text-base-content">Rezensionen insgesamt</div>
-                        </div>
-
-                        <div>
-                            <div class="text-3xl font-bold text-base-content">
-                                {{ number_format($averageReviewsPerBook, 2, ',', '.') }}
-                            </div>
-                            <div class="text-base-content">Ø Rezensionen pro Roman</div>
-                        </div>
-
-                        <div>
-                            <div class="text-3xl font-bold text-base-content">
-                                {{ number_format($avgCommentsPerReview, 2, ',', '.') }}
-                            </div>
-                            <div class="text-base-content">Ø Kommentare pro Rezension</div>
-                        </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <x-stat title="Rezensionen insgesamt" :value="$totalReviews" icon="o-document-text" />
+                        <x-stat title="Ø Rezensionen pro Roman" :value="number_format($averageReviewsPerBook, 2, ',', '.')" icon="o-book-open" />
+                        <x-stat title="Ø Kommentare pro Rezension" :value="number_format($avgCommentsPerReview, 2, ',', '.')" icon="o-chat-bubble-left-right" />
                     </div>
 
                     <div class="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">

@@ -20,7 +20,7 @@
                     </x-slot:actions>
                 @endif
             </x-header>
-            <section class="bg-base-100 shadow-xl sm:rounded-lg p-6 mb-6" data-todo-filter-wrapper>
+            <x-card shadow class="mb-6" data-todo-filter-wrapper>
                 <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                     <div class="space-y-1">
                         <h2 class="text-xl font-semibold text-primary">Challenges filtern</h2>
@@ -91,12 +91,11 @@
                         </form>
                     </div>
                 </details>
-            </section>
+            </x-card>
 
             <!-- Zu verifizierende Challenges (nur wenn Verifizierungsrechte vorhanden) -->
             @if($canVerifyTodos && $completedTodos->where('status', 'completed')->isNotEmpty())
-                <section data-todo-section="pending" aria-labelledby="todo-pending-heading"
-                    class="bg-base-100 shadow-xl sm:rounded-lg p-6 mb-6">
+                <x-card shadow class="mb-6" data-todo-section="pending" aria-labelledby="todo-pending-heading">
                     <h2 id="todo-pending-heading"
                         class="text-xl font-semibold text-primary mb-4">Zu verifizierende Challenges
                     </h2>
@@ -135,7 +134,7 @@
                             </tbody>
                         </table>
                     </div>
-                </section>
+                </x-card>
             @endif
 
             <!-- In Bearbeitung befindliche Challenges (andere Nutzer) - nur anzeigen, wenn es welche gibt -->
@@ -143,8 +142,7 @@
                 $inProgressTodos = $todos->where('status', 'assigned')->where('assigned_to', '!=', Auth::id());
             @endphp
             @if($inProgressTodos->isNotEmpty())
-                <section data-todo-section="in-progress" aria-labelledby="todo-progress-heading"
-                    class="bg-base-100 shadow-xl sm:rounded-lg p-6 mb-6">
+                <x-card shadow class="mb-6" data-todo-section="in-progress" aria-labelledby="todo-progress-heading">
                     <h2 id="todo-progress-heading"
                         class="text-xl font-semibold text-primary mb-4">In Bearbeitung befindliche Challenges</h2>
                     <div class="overflow-x-auto">
@@ -178,11 +176,10 @@
                             </tbody>
                         </table>
                     </div>
-                </section>
+                </x-card>
             @endif
             <!-- Deine Challenges -->
-            <section data-todo-section="assigned" aria-labelledby="todo-assigned-heading"
-                class="bg-base-100 shadow-xl sm:rounded-lg p-6 mb-6">
+            <x-card shadow class="mb-6" data-todo-section="assigned" aria-labelledby="todo-assigned-heading">
                 <h2 id="todo-assigned-heading"
                     class="text-xl font-semibold text-primary mb-4">Deine Challenges</h2>
                 @if($assignedTodos->isEmpty())
@@ -236,10 +233,9 @@
                         </table>
                     </div>
                 @endif
-            </section>
+            </x-card>
             <!-- Offene Challenges -->
-            <section data-todo-section="open" aria-labelledby="todo-open-heading"
-                class="bg-base-100 shadow-xl sm:rounded-lg p-6 mb-6">
+            <x-card shadow class="mb-6" data-todo-section="open" aria-labelledby="todo-open-heading">
                 <h2 id="todo-open-heading"
                     class="text-xl font-semibold text-primary mb-4">Offene Challenges</h2>
                 @if($unassignedTodos->isEmpty())
@@ -281,7 +277,7 @@
                         </table>
                     </div>
                 @endif
-            </section>
+            </x-card>
 
             @php
                 $dashboard = $dashboardMetrics ?? [
@@ -308,8 +304,7 @@
                 $pointsToNext = $dashboard['points_to_next_rank'] ?? null;
                 $userTotalPoints = $dashboard['user_points'] ?? $userPoints;
             @endphp
-            <section aria-labelledby="todo-dashboard-heading"
-                class="bg-base-100 shadow-xl sm:rounded-lg p-6 mb-6">
+            <x-card shadow class="mb-6" aria-labelledby="todo-dashboard-heading">
                 <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                         <h2 id="todo-dashboard-heading"
@@ -320,7 +315,7 @@
                     </div>
                 </div>
                 <div class="mt-6 grid gap-6 md:grid-cols-2 xl:grid-cols-4" data-todo-dashboard>
-                    <article class="rounded-lg border border-base-content/10 p-5 bg-base-200 md:col-span-2 xl:col-span-1"
+                    <x-card class="bg-base-200 md:col-span-2 xl:col-span-1"
                         aria-labelledby="weekly-goal-heading">
                         <div class="flex flex-wrap items-start justify-between gap-4">
                             <div>
@@ -354,7 +349,7 @@
                                 {{ number_format($weeklyTotal, 0, ',', '.') }} von {{ number_format($weeklyTarget, 0, ',', '.') }} Baxx gesammelt.
                             </p>
                         </div>
-                    </article>
+                    </x-card>
                     <article class="rounded-lg border border-base-content/10 p-5 bg-base-200"
                         aria-labelledby="team-average-heading">
                         <div class="flex flex-wrap items-start justify-between gap-4">
@@ -393,7 +388,7 @@
                             </p>
                         </div>
                     </article>
-                    <article class="rounded-lg border border-base-content/10 p-5 bg-base-200"
+                    <x-card class="bg-base-200"
                         aria-labelledby="personal-points-heading">
                         <div class="flex flex-wrap items-start justify-between gap-4">
                             <div>
@@ -422,8 +417,8 @@
                                 Sobald Baxx gesammelt wurden, erscheint hier dein Vergleich zum Verein.
                             </p>
                         @endif
-                    </article>
-                    <article class="rounded-lg border border-base-content/10 p-5 bg-base-200 md:col-span-2 xl:col-span-1"
+                    </x-card>
+                    <x-card class="bg-base-200 md:col-span-2 xl:col-span-1"
                         aria-labelledby="leaderboard-heading">
                         <h3 id="leaderboard-heading"
                             class="text-lg font-semibold text-primary">
@@ -450,8 +445,8 @@
                                 </li>
                             @endforelse
                         </ol>
-                    </article>
+                    </x-card>
                 </div>
-            </section>
+            </x-card>
     </x-member-page>
 </x-app-layout>

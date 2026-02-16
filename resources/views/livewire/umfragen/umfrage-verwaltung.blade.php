@@ -90,14 +90,8 @@
 
             {{-- Start/Ende Datum --}}
             <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <div>
-                    <label for="startsAt" class="fieldset-legend">Start</label>
-                    <input id="startsAt" type="datetime-local" wire:model="startsAt" class="input input-bordered w-full" data-testid="starts-at-input" />
-                </div>
-                <div>
-                    <label for="endsAt" class="fieldset-legend">Ende</label>
-                    <input id="endsAt" type="datetime-local" wire:model="endsAt" class="input input-bordered w-full" data-testid="ends-at-input" />
-                </div>
+                <x-datetime label="Start" wire:model="startsAt" type="datetime-local" id="startsAt" data-testid="starts-at-input" />
+                <x-datetime label="Ende" wire:model="endsAt" type="datetime-local" id="endsAt" data-testid="ends-at-input" />
             </div>
 
             {{-- Antwortmöglichkeiten --}}
