@@ -15,9 +15,9 @@ describe('hoerbuecher module', () => {
       <select id="type-filter"><option value=""></option><option value="A">A</option><option value="B">B</option><option value="C">C</option></select>
       <select id="year-filter"><option value=""></option><option value="2023">2023</option><option value="2024">2024</option></select>
       <select id="role-name-filter"><option value=""></option><option value="Held">Held</option><option value="Schurke">Schurke</option><option value="Nebenfigur">Nebenfigur</option></select>
-      <input type="checkbox" id="roles-filter" />
-      <input type="checkbox" id="roles-unfilled-filter" />
-      <input type="checkbox" id="hide-released-filter" checked />
+      <input type="checkbox" id="roles-filter" data-filter="roles" />
+      <input type="checkbox" id="roles-unfilled-filter" data-filter="roles-unfilled" />
+      <input type="checkbox" id="hide-released-filter" data-filter="hide-released" checked />
       <div id="card-unfilled-roles"></div>
       <div id="card-open-episodes"></div>
       <div id="card-next-event" data-episode-id="2"></div>

@@ -740,10 +740,9 @@ function initCharEditor() {
     function recomputeAll() {
         lockAdvantage('Zäh');
         state.hasKindZweierWelten = isAdvantageChosen('Kind zweier Welten');
-        let chosenAdv = countChosenAdvantagesExcl('Zäh');
-        updateAdvantageCounter(state.base.freeAdvantages - chosenAdv);
         enforceAdvantageLimit();
-        chosenAdv = countChosenAdvantagesExcl('Zäh');
+        const chosenAdv = countChosenAdvantagesExcl('Zäh');
+        updateAdvantageCounter(state.base.freeAdvantages - chosenAdv);
         const chosenDisadv = countDisadvantages();
 
         enforceAttributeCaps();

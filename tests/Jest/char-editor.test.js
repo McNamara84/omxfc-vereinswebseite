@@ -2,8 +2,8 @@ import { jest } from '@jest/globals';
 
 const BASE_HTML = `
 <div data-char-editor>
-  <input id="player_name" />
-  <input id="character_name" />
+  <input id="player_name" name="player_name" />
+  <input id="character_name" name="character_name" />
   <select id="race"><option value=""></option><option value="Barbar">Barbar</option><option value="Guul">Guul</option></select>
   <select id="culture"><option value=""></option><option value="Landbewohner">Landbewohner</option><option value="Stadtbewohner">Stadtbewohner</option></select>
   <input id="portrait" type="file" />
@@ -51,13 +51,13 @@ const BASE_HTML = `
   </datalist>
   <button id="continue-button" class="hidden"></button>
   <fieldset id="advanced-fields"></fieldset>
-  <input id="st" />
-  <input id="ge" />
-  <input id="ro" />
-  <input id="wi" />
-  <input id="wa" />
-  <input id="in" />
-  <input id="au" />
+  <input id="st" name="attributes[st]" />
+  <input id="ge" name="attributes[ge]" />
+  <input id="ro" name="attributes[ro]" />
+  <input id="wi" name="attributes[wi]" />
+  <input id="wa" name="attributes[wa]" />
+  <input id="in" name="attributes[in]" />
+  <input id="au" name="attributes[au]" />
 </div>
 `;
 

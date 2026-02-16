@@ -79,10 +79,6 @@ function drawCycleChart(canvasId, labels, data) {
 
 /* ── Autostart nach DOM-Load / SPA-Navigation ────────────────────────────────── */
 function initStatistikCharts() {
-    const firstCanvas = document.getElementById('authorChart');
-    if (!firstCanvas) {
-        return; // Nicht auf der Statistik-Seite
-    }
     const labels = window.authorChartLabels ?? [];
     const values = window.authorChartValues ?? [];
     drawAuthorChart('authorChart', labels, values);
