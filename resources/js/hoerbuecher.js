@@ -1,5 +1,24 @@
-document.addEventListener('DOMContentLoaded', () => {
+// Hinweis: maryUI-Komponenten (<x-checkbox>) generieren eigene IDs
+// ("mary" + md5 + übergebene id). Daher werden hier data-filter-Attribute
+// statt IDs für die Selektion der Checkboxen verwendet.
+//
+// Die Initialisierung muss sowohl bei vollem Seitenlade (DOMContentLoaded)
+// als auch nach SPA-Navigation via Livewire/Alpine (livewire:navigated)
+// erfolgen, da wire:navigate kein neues DOMContentLoaded auslöst.
+function initHoerbuecher() {
     const rows = Array.from(document.querySelectorAll('tr[data-href]'));
+    if (!rows.length) {
+        return; // Nicht auf dieser Seite
+    }
+
+    // Verhindere doppelte Initialisierung
+    const table = rows[0].closest('table');
+    if (table && table.dataset.hoerbucherInitialized) {
+        return;
+    }
+    if (table) {
+        table.dataset.hoerbucherInitialized = 'true';
+    }
 
     rows.forEach(row => {
         row.addEventListener('click', () => {
@@ -17,9 +36,9 @@ document.addEventListener('DOMContentLoaded', () => {
         type: document.getElementById('type-filter'),
         year: document.getElementById('year-filter'),
         roleName: document.getElementById('role-name-filter'),
-        roles: document.getElementById('roles-filter'),
-        rolesUnfilled: document.getElementById('roles-unfilled-filter'),
-        hideReleased: document.getElementById('hide-released-filter'),
+        roles: document.querySelector('[data-filter="roles"]'),
+        rolesUnfilled: document.querySelector('[data-filter="roles-unfilled"]'),
+        hideReleased: document.querySelector('[data-filter="hide-released"]'),
     };
 
     let onlyEpisodeId = null;
@@ -161,4 +180,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     applyFilters();
-});
+}
+
+document.addEventListener('DOMContentLoaded', initHoerbuecher);
+document.addEventListener('livewire:navigated', initHoerbuecher);

@@ -99,4 +99,6 @@ if (document.readyState === 'loading') {
     setupStatistikNavigation();
 }
 
+document.addEventListener('livewire:navigated', setupStatistikNavigation);
+
 export { setupStatistikNavigation };

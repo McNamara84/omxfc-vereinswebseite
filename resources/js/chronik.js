@@ -1,6 +1,12 @@
-document.addEventListener('DOMContentLoaded', () => {
+function initChronikLightbox() {
     const modal = document.getElementById('chronik-modal');
     if (!modal) return;
+
+    // Verhindere doppelte Listener
+    if (modal.dataset.chronikInitialized) {
+        return;
+    }
+    modal.dataset.chronikInitialized = 'true';
 
     const img = document.getElementById('chronik-modal-img');
     const srcAvif = document.getElementById('chronik-modal-avif');
@@ -30,4 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
             modal.classList.add('hidden');
         }
     });
-});
+}
+
+document.addEventListener('DOMContentLoaded', initChronikLightbox);
+document.addEventListener('livewire:navigated', initChronikLightbox);

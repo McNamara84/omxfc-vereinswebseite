@@ -148,4 +148,8 @@ if (typeof document !== 'undefined') {
     } else {
         setupMitgliederAccessibility(document);
     }
+
+    document.addEventListener('livewire:navigated', () => {
+        setupMitgliederAccessibility(document);
+    });
 }

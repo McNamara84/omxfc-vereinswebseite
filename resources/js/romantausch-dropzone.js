@@ -471,6 +471,8 @@ if (typeof document !== 'undefined') {
     } else {
         initRomantauschDropzone();
     }
+
+    document.addEventListener('livewire:navigated', () => initRomantauschDropzone());
 }
 
 export default initRomantauschDropzone;

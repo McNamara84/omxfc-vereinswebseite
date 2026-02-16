@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', async () => {
+async function initChangelog() {
     const container = document.getElementById('release-notes');
     if (!container) {
         return;
@@ -110,4 +110,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     } catch (e) {
         container.innerText = 'Fehler beim Laden des Changelogs.';
     }
-});
+}
+
+document.addEventListener('DOMContentLoaded', initChangelog);
+document.addEventListener('livewire:navigated', initChangelog);

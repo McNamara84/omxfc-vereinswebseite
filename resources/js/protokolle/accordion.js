@@ -68,6 +68,11 @@ if (typeof document !== 'undefined') {
     } else {
         bootstrapAccordion();
     }
+
+    document.addEventListener('livewire:navigated', () => {
+        window.__omxfcProtokolleAccordionInitialised = false;
+        bootstrapAccordion();
+    });
 }
 
 export default setupProtokolleAccordion;
