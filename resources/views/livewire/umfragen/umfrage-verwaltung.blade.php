@@ -69,8 +69,14 @@
                         <span class="label-text font-medium">Sichtbarkeit</span>
                     </div>
                     <div class="mt-2 space-y-2">
-                        <x-radio wire:model="visibility" name="visibility" value="internal" label="Intern – Nur Vereinsmitglieder (1 Stimme pro Mitglied)" data-testid="visibility-internal" />
-                        <x-radio wire:model="visibility" name="visibility" value="public" label="Öffentlich – Gäste + Mitglieder (1 Stimme pro IP)" data-testid="visibility-public" />
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="radio" wire:model="visibility" name="visibility" value="internal" class="radio radio-primary" data-testid="visibility-internal" />
+                            <span class="label-text">Intern – Nur Vereinsmitglieder (1 Stimme pro Mitglied)</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="radio" wire:model="visibility" name="visibility" value="public" class="radio radio-primary" data-testid="visibility-public" />
+                            <span class="label-text">Öffentlich – Gäste + Mitglieder (1 Stimme pro IP)</span>
+                        </label>
                     </div>
                 </div>
 
@@ -84,8 +90,8 @@
 
             {{-- Start/Ende Datum --}}
             <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <x-datetime label="Start" wire:model="startsAt" id="startsAt" data-testid="starts-at-input" />
-                <x-datetime label="Ende" wire:model="endsAt" id="endsAt" data-testid="ends-at-input" />
+                <x-datetime label="Start" wire:model="startsAt" type="datetime-local" id="startsAt" data-testid="starts-at-input" />
+                <x-datetime label="Ende" wire:model="endsAt" type="datetime-local" id="endsAt" data-testid="ends-at-input" />
             </div>
 
             {{-- Antwortmöglichkeiten --}}
@@ -207,52 +213,42 @@
 
             {{-- Results Table --}}
             <div class="mt-8 overflow-x-auto">
-                @php
-                    $pollHeaders = [
-                        ['key' => 'label', 'label' => 'Antwort'],
-                        ['key' => 'votes', 'label' => 'Stimmen', 'class' => 'text-right'],
-                        ['key' => 'pct', 'label' => '%', 'class' => 'text-right'],
-                        ['key' => 'members', 'label' => 'Mitglieder', 'class' => 'text-right'],
-                        ['key' => 'guests', 'label' => 'Gäste', 'class' => 'text-right'],
-                    ];
-                    $pollRows = collect($this->chartData['options']['labels'] ?? [])->map(function ($label, $i) use ($totalVotes) {
-                        $votes = (int) ($this->chartData['options']['total'][$i] ?? 0);
-                        return [
-                            'label' => $label,
-                            'votes' => $votes,
-                            'pct' => ($totalVotes > 0 ? round(($votes / $totalVotes) * 100, 1) : 0) . '%',
-                            'members' => (int) ($this->chartData['options']['members'][$i] ?? 0),
-                            'guests' => (int) ($this->chartData['options']['guests'][$i] ?? 0),
-                        ];
-                    });
-                @endphp
-                <x-table :headers="$pollHeaders" :rows="$pollRows" id="poll-results-table">
-                    <x-slot:caption>
-                        <caption class="sr-only">Tabellarische Auswertung der Umfrage</caption>
-                    </x-slot:caption>
-                    @scope('cell_votes', $row)
-                        <div class="text-right">{{ $row['votes'] }}</div>
-                    @endscope
-                    @scope('cell_pct', $row)
-                        <div class="text-right">{{ $row['pct'] }}</div>
-                    @endscope
-                    @scope('cell_members', $row)
-                        <div class="text-right">{{ $row['members'] }}</div>
-                    @endscope
-                    @scope('cell_guests', $row)
-                        <div class="text-right">{{ $row['guests'] }}</div>
-                    @endscope
-                </x-table>
-
-                {{-- Gesamt-Zeile --}}
-                <div class="flex justify-between font-semibold px-4 py-2 border-t border-base-content/10">
-                    <span>Gesamt</span>
-                    <div class="flex gap-8">
-                        <span>{{ $totalVotes }}</span>
-                        <span>{{ (int) ($this->chartData['totals']['members'] ?? 0) }}</span>
-                        <span>{{ (int) ($this->chartData['totals']['guests'] ?? 0) }}</span>
-                    </div>
-                </div>
+                <table id="poll-results-table" class="table">
+                    <caption class="sr-only">Tabellarische Auswertung der Umfrage</caption>
+                    <thead>
+                        <tr>
+                            <th>Antwort</th>
+                            <th class="text-right">Stimmen</th>
+                            <th class="text-right">%</th>
+                            <th class="text-right">Mitglieder</th>
+                            <th class="text-right">Gäste</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (($this->chartData['options']['labels'] ?? []) as $i => $label)
+                            @php($votes = (int) (($this->chartData['options']['total'][$i] ?? 0)))
+                            @php($members = (int) (($this->chartData['options']['members'][$i] ?? 0)))
+                            @php($guests = (int) (($this->chartData['options']['guests'][$i] ?? 0)))
+                            @php($pct = $totalVotes > 0 ? round(($votes / $totalVotes) * 100, 1) : 0)
+                            <tr>
+                                <td class="font-medium">{{ $label }}</td>
+                                <td class="text-right">{{ $votes }}</td>
+                                <td class="text-right">{{ $pct }}%</td>
+                                <td class="text-right">{{ $members }}</td>
+                                <td class="text-right">{{ $guests }}</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                    <tfoot>
+                        <tr class="font-semibold">
+                            <td>Gesamt</td>
+                            <td class="text-right">{{ $totalVotes }}</td>
+                            <td></td>
+                            <td class="text-right">{{ (int) ($this->chartData['totals']['members'] ?? 0) }}</td>
+                            <td class="text-right">{{ (int) ($this->chartData['totals']['guests'] ?? 0) }}</td>
+                        </tr>
+                    </tfoot>
+                </table>
             </div>
 
             {{-- Screen Reader Update --}}
