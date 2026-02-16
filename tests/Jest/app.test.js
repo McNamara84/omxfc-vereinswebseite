@@ -25,7 +25,7 @@ async function loadApp(matches) {
   delete window.__omxfcApplyStoredTheme;
 
   document.documentElement.classList.toggle('dark', matches);
-  document.documentElement.dataset.theme = matches ? 'dark' : 'light';
+  document.documentElement.dataset.theme = matches ? 'coffee' : 'caramellatte';
 
   let handler;
   window.matchMedia = jest.fn().mockReturnValue({
@@ -57,19 +57,19 @@ describe('app module', () => {
   test('applies dark class based on preference', async () => {
     const handler = await loadApp(true);
     expect(document.documentElement.classList.contains('dark')).toBe(true);
-    expect(document.documentElement.dataset.theme).toBe('dark');
+    expect(document.documentElement.dataset.theme).toBe('coffee');
     handler({ matches: false });
     expect(document.documentElement.classList.contains('dark')).toBe(false);
-    expect(document.documentElement.dataset.theme).toBe('light');
+    expect(document.documentElement.dataset.theme).toBe('caramellatte');
   });
 
   test('adds dark class when preference changes to dark', async () => {
     const handler = await loadApp(false);
     expect(document.documentElement.classList.contains('dark')).toBe(false);
-    expect(document.documentElement.dataset.theme).toBe('light');
+    expect(document.documentElement.dataset.theme).toBe('caramellatte');
     handler({ matches: true });
     expect(document.documentElement.classList.contains('dark')).toBe(true);
-    expect(document.documentElement.dataset.theme).toBe('dark');
+    expect(document.documentElement.dataset.theme).toBe('coffee');
   });
 
   test('exposes Leaflet globally', async () => {
