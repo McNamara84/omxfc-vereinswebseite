@@ -16,7 +16,7 @@ const applyDark = (isDark) => {
     const nextIsDark = Boolean(isDark);
 
     root.classList.toggle('dark', nextIsDark);
-    root.dataset.theme = nextIsDark ? 'dark' : 'light';
+    root.dataset.theme = nextIsDark ? 'coffee' : 'caramellatte';
 
     return root.classList.contains('dark');
 };
