@@ -206,7 +206,7 @@
                     data-min-points="{{ $min }}"
                     tabindex="-1"
                     shadow class="relative">
-                    <h2 class="text-xl font-semibold text-primary mb-4 text-center col-span-1 md:col-span-3">
+                    <h2 class="text-xl font-semibold text-primary mb-4 text-center">
                         Bewertungen im Maddraxikon
                     </h2>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">

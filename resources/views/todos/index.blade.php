@@ -339,7 +339,12 @@
                         <div class="mt-4" data-progress-bar data-progress-value="{{ $weeklyTotal }}"
                             data-progress-max="{{ max($weeklyTarget, 1) }}"
                             data-progress-label="Fortschritt Richtung Wochenziel">
-                            <x-progress value="{{ $weeklyProgress }}" max="100" class="progress-primary h-2" />
+                            <div class="h-2 w-full bg-base-100 rounded-full overflow-hidden"
+                                aria-hidden="true">
+                                <div data-progress-fill
+                                    class="h-full bg-primary"
+                                    style="width: {{ $weeklyProgress }}%"></div>
+                            </div>
                             <p class="mt-2 text-sm text-base-content">
                                 {{ number_format($weeklyTotal, 0, ',', '.') }} von {{ number_format($weeklyTarget, 0, ',', '.') }} Baxx gesammelt.
                             </p>

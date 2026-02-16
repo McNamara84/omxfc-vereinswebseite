@@ -25,7 +25,7 @@
                     </label>
                     <div class="mt-2 space-y-2">
                         @foreach($roles as $role)
-                            <x-checkbox name="roles[]" value="{{ $role->value }}" :checked="$role === $defaultRole" label="{{ $role->value }}" />
+                            <x-checkbox name="roles[]" :value="$role->value" :checked="$role === $defaultRole" :label="$role->value" />
                         @endforeach
                     </div>
                 </div>
