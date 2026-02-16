@@ -622,7 +622,10 @@ class TodoControllerTest extends TestCase
         ]);
 
         // Challenge löschen
-        $this->delete(route('todos.destroy', $todo));
+        $response = $this->delete(route('todos.destroy', $todo));
+
+        $response->assertRedirect(route('todos.index', [], false));
+        $response->assertSessionHas('status', 'Challenge wurde erfolgreich gelöscht. Die gutgeschriebenen Baxx wurden abgezogen.');
 
         // Punkte müssen weg sein
         $this->assertDatabaseMissing('user_points', [

@@ -355,7 +355,7 @@ class TodoController extends Controller
         // Punkte entfernen, falls die Challenge bereits verifiziert war
         $wasVerified = $todo->status === TodoStatus::Verified;
         if ($wasVerified) {
-            UserPoint::where('todo_id', $todo->id)->delete();
+            $todo->userPoint()->delete();
         }
 
         $todo->delete();
