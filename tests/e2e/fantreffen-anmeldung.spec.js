@@ -16,14 +16,10 @@ test.describe('Fantreffen 2026 Anmeldung', () => {
         await page.goto('/maddrax-fantreffen-2026');
         await page.waitForLoadState('networkidle');
 
-        // Prüfe, ob die Input-Felder korrekte name-Attribute haben
-        const vornameInput = page.locator('input[name="vorname"]');
-        const nachnameInput = page.locator('input[name="nachname"]');
-        const emailInput = page.locator('input[name="email"]');
-
-        await expect(vornameInput).toBeVisible();
-        await expect(nachnameInput).toBeVisible();
-        await expect(emailInput).toBeVisible();
+        // Input-Felder mit korrekten name-Attributen vorhanden
+        await expect(page.locator('input[name="vorname"]')).toBeVisible();
+        await expect(page.locator('input[name="nachname"]')).toBeVisible();
+        await expect(page.locator('input[name="email"]')).toBeVisible();
     });
 
     test('Submit-Button hat type=submit', async ({ page }) => {
@@ -32,13 +28,10 @@ test.describe('Fantreffen 2026 Anmeldung', () => {
 
         const submitButton = page.getByTestId('fantreffen-submit');
         await expect(submitButton).toBeVisible();
-
-        // Prüfe, dass der Button type="submit" hat
-        const type = await submitButton.getAttribute('type');
-        expect(type).toBe('submit');
+        await expect(submitButton).toHaveAttribute('type', 'submit');
     });
 
-    test('Gast kann sich erfolgreich registrieren', async ({ page }) => {
+    test('Gast kann sich erfolgreich ohne T-Shirt registrieren', async ({ page }) => {
         await page.goto('/maddrax-fantreffen-2026');
         await page.waitForLoadState('networkidle');
 
@@ -47,86 +40,63 @@ test.describe('Fantreffen 2026 Anmeldung', () => {
         await page.fill('input[name="nachname"]', 'Mustermann');
         await page.fill('input[name="email"]', 'max.mustermann@example.com');
 
-        // Submit Button klicken
-        const submitButton = page.getByTestId('fantreffen-submit');
-        await submitButton.click();
+        // Submit
+        await page.getByTestId('fantreffen-submit').click();
 
-        // Erwarte Weiterleitung zur Bestätigungsseite
+        // Weiterleitung zur Bestätigungsseite
         await page.waitForURL(/bestaetigung/, { timeout: 10000 });
-        await expect(page.locator('body')).toContainText('Anmeldung');
     });
 
-    test('T-Shirt Checkbox und Größen-Dropdown Toggle funktioniert', async ({ page }) => {
+    test('T-Shirt Checkbox toggled Größen-Dropdown korrekt', async ({ page }) => {
         await page.goto('/maddrax-fantreffen-2026');
         await page.waitForLoadState('networkidle');
 
-        // T-Shirt Container initial hidden
         const tshirtContainer = page.locator('#tshirt-groesse-container');
+        const checkbox = page.locator('input[name="tshirt_bestellt"]');
 
-        // Checkbox suchen und klicken
-        const checkbox = page.locator('#tshirt_bestellt');
-        const checkboxExists = await checkbox.count();
+        // Container ist initial versteckt
+        await expect(tshirtContainer).toHaveClass(/hidden/);
 
-        if (checkboxExists > 0) {
-            // Prüfe ob Checkbox anklickbar ist
-            await checkbox.check();
-            // Nach dem Check sollte der Container sichtbar sein
-            await expect(tshirtContainer).not.toHaveClass(/hidden/);
-        }
+        // Checkbox anklicken → Container sichtbar
+        await checkbox.check();
+        await expect(tshirtContainer).not.toHaveClass(/hidden/);
+
+        // Größen-Select ist jetzt required
+        const select = page.locator('select[name="tshirt_groesse"]');
+        await expect(select).toHaveAttribute('required', '');
+
+        // Checkbox abwählen → Container wird wieder versteckt
+        await checkbox.uncheck();
+        await expect(tshirtContainer).toHaveClass(/hidden/);
     });
 
-    test('HTML-Struktur des Formulars ist korrekt für Submission', async ({ page }) => {
+    test('Formular ist valide und wird korrekt an den Server gesendet', async ({ page }) => {
         await page.goto('/maddrax-fantreffen-2026');
         await page.waitForLoadState('networkidle');
 
-        // Prüfe, ob ein <form> Element mit POST method und korrekter action existiert
+        // Form vorhanden mit POST-Methode
         const form = page.locator('form#fantreffen-form');
         await expect(form).toBeVisible();
+        await expect(form).toHaveAttribute('method', 'POST');
 
-        const method = await form.getAttribute('method');
-        expect(method?.toUpperCase()).toBe('POST');
+        // CSRF-Token vorhanden
+        await expect(page.locator('form#fantreffen-form input[name="_token"]')).toBeAttached();
 
-        // CSRF Token muss vorhanden sein
-        const csrfToken = page.locator('form#fantreffen-form input[name="_token"]');
-        await expect(csrfToken).toBeAttached();
-
-        // Submit-Button muss INNERHALB des Formulars liegen
+        // Submit-Button innerhalb des Formulars
         const buttonInForm = page.locator('form#fantreffen-form button[type="submit"]');
-        const buttonCount = await buttonInForm.count();
-        expect(buttonCount).toBeGreaterThan(0);
-
-        // Alle Inputs müssen name-Attribute haben und innerhalb des Forms liegen
-        const vornameInForm = page.locator('form#fantreffen-form input[name="vorname"]');
-        await expect(vornameInForm).toBeVisible();
+        await expect(buttonInForm).toHaveCount(1);
     });
 
-    test('Debug: Rendered HTML des Submit-Buttons prüfen', async ({ page }) => {
+    test('T-Shirt-Größe blockiert das Formular nicht wenn Checkbox nicht gesetzt', async ({ page }) => {
         await page.goto('/maddrax-fantreffen-2026');
         await page.waitForLoadState('networkidle');
 
-        // Hole den HTML-Schnipsel des Submit-Bereichs
-        const formHTML = await page.locator('form#fantreffen-form').innerHTML();
-        console.log('=== FORM HTML ===');
-        console.log(formHTML);
-        console.log('=== END FORM HTML ===');
+        // tshirt_groesse darf nicht required sein wenn Checkbox nicht gesetzt
+        const selectRequired = await page.evaluate(() => {
+            const select = document.querySelector('select[name="tshirt_groesse"]');
+            return select?.required ?? null;
+        });
 
-        // Prüfe ob button[type=submit] existiert  
-        const submitButtons = page.locator('form#fantreffen-form button[type="submit"]');
-        const count = await submitButtons.count();
-        console.log(`Submit buttons found: ${count}`);
-
-        // Falls kein submit-button: Prüfe alle buttons
-        if (count === 0) {
-            const allButtons = page.locator('form#fantreffen-form button');
-            const allCount = await allButtons.count();
-            console.log(`Total buttons in form: ${allCount}`);
-            for (let i = 0; i < allCount; i++) {
-                const btn = allButtons.nth(i);
-                const outerHTML = await btn.evaluate(el => el.outerHTML);
-                console.log(`Button ${i}: ${outerHTML}`);
-            }
-        }
-
-        expect(count).toBeGreaterThan(0);
+        expect(selectRequired).toBe(false);
     });
 });

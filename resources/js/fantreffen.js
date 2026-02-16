@@ -1,8 +1,11 @@
 // Fantreffen Anmeldeformular - T-Shirt Dropdown Toggle
+// Hinweis: maryUI-Komponenten (<x-checkbox>, <x-form-select>) generieren
+// eigene IDs ("mary" + md5 + übergebene id). Daher werden hier
+// name-Attribute statt IDs für die Selektion verwendet.
 document.addEventListener('DOMContentLoaded', () => {
-    const checkbox = document.getElementById('tshirt_bestellt');
+    const checkbox = document.querySelector('input[name="tshirt_bestellt"]');
     const container = document.getElementById('tshirt-groesse-container');
-    const select = document.getElementById('tshirt_groesse');
+    const select = document.querySelector('select[name="tshirt_groesse"]');
     
     if (!checkbox || !container || !select) {
         return; // Nicht auf dieser Seite
