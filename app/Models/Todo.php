@@ -8,6 +8,7 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 /**
  * @property int $id
@@ -29,6 +30,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property-read User|null $assignee
  * @property-read User|null $verifier
  * @property-read TodoCategory|null $category
+ * @property-read UserPoint|null $userPoint
  */
 class Todo extends Model
 {
@@ -95,6 +97,14 @@ class Todo extends Model
     public function category(): BelongsTo
     {
         return $this->belongsTo(TodoCategory::class);
+    }
+
+    /**
+     * Get the user point entry associated with this todo.
+     */
+    public function userPoint(): HasOne
+    {
+        return $this->hasOne(UserPoint::class);
     }
 
     /**

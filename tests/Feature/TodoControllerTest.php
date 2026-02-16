@@ -8,6 +8,7 @@ use App\Models\Team;
 use App\Models\Todo;
 use App\Models\TodoCategory;
 use App\Models\User;
+use App\Models\UserPoint;
 use App\Services\MembersTeamProvider;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Concerns\CreatesUserWithRole;
@@ -291,7 +292,7 @@ class TodoControllerTest extends TestCase
         $todoAssigned = $this->createTodo($user, ['assigned_to' => $user->id, 'status' => TodoStatus::Assigned->value]);
         $todoCompleted = $this->createTodo($user, ['assigned_to' => $other->id, 'status' => TodoStatus::Completed->value]);
 
-        \App\Models\UserPoint::create([
+        UserPoint::create([
             'user_id' => $user->id,
             'team_id' => $user->currentTeam->id,
             'points' => 3,
@@ -596,5 +597,77 @@ class TodoControllerTest extends TestCase
 
         $response->assertRedirect(route('todos.index', [], false));
         $response->assertSessionHas('error', 'Challenge nicht gefunden.');
+    }
+
+    public function test_deleting_verified_todo_removes_user_points(): void
+    {
+        $vorstand = $this->actingMember('Vorstand');
+        $member = $this->actingMember();
+        $todo = $this->createTodo($vorstand);
+
+        // Challenge zuweisen, erledigen und verifizieren
+        $todo->update([
+            'assigned_to' => $member->id,
+            'status' => 'completed',
+            'completed_at' => now(),
+        ]);
+
+        $this->actingAs($vorstand);
+        $this->post(route('todos.verify', $todo));
+
+        // Punkte wurden gutgeschrieben
+        $this->assertDatabaseHas('user_points', [
+            'user_id' => $member->id,
+            'todo_id' => $todo->id,
+        ]);
+
+        // Challenge löschen
+        $response = $this->delete(route('todos.destroy', $todo));
+
+        $response->assertRedirect(route('todos.index', [], false));
+        $response->assertSessionHas('status', 'Challenge wurde erfolgreich gelöscht. Die gutgeschriebenen Baxx wurden abgezogen.');
+
+        // Punkte müssen weg sein
+        $this->assertDatabaseMissing('user_points', [
+            'user_id' => $member->id,
+            'todo_id' => $todo->id,
+        ]);
+        $this->assertDatabaseMissing('todos', ['id' => $todo->id]);
+    }
+
+    public function test_deleting_unverified_todo_does_not_affect_points(): void
+    {
+        $vorstand = $this->actingMember('Vorstand');
+        $todo = $this->createTodo($vorstand);
+        $this->actingAs($vorstand);
+
+        // Sicherstellen, dass keine Punkte existieren
+        $this->assertDatabaseMissing('user_points', ['todo_id' => $todo->id]);
+
+        $response = $this->delete(route('todos.destroy', $todo));
+
+        $response->assertRedirect(route('todos.index', [], false));
+        $response->assertSessionHas('status', 'Challenge wurde erfolgreich gelöscht.');
+    }
+
+    public function test_deleting_verified_todo_shows_baxx_deduction_message(): void
+    {
+        $vorstand = $this->actingMember('Vorstand');
+        $member = $this->actingMember();
+        $todo = $this->createTodo($vorstand);
+
+        $todo->update([
+            'assigned_to' => $member->id,
+            'status' => 'completed',
+            'completed_at' => now(),
+        ]);
+
+        $this->actingAs($vorstand);
+        $this->post(route('todos.verify', $todo));
+
+        $response = $this->delete(route('todos.destroy', $todo));
+
+        $response->assertRedirect(route('todos.index', [], false));
+        $response->assertSessionHas('status', 'Challenge wurde erfolgreich gelöscht. Die gutgeschriebenen Baxx wurden abgezogen.');
     }
 }
