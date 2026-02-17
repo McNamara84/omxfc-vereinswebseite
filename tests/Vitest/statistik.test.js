@@ -1,8 +1,10 @@
 import { describe, it, expect, vi } from 'vitest';
 
-vi.mock('chart.js/auto', () => ({
-  default: vi.fn(),
-}));
+vi.mock('chart.js/auto', () => {
+  const MockChart = vi.fn();
+  MockChart.getChart = vi.fn(() => null);
+  return { default: MockChart };
+});
 
 import { drawAuthorChart } from '@/statistik.js';
 import Chart from 'chart.js/auto';

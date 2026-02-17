@@ -11,3 +11,5 @@ if (document.readyState === 'loading') {
 } else {
     initTodosPage();
 }
+
+document.addEventListener('livewire:navigated', initTodosPage);

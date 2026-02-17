@@ -330,4 +330,5 @@ async function loadMissionStatus() {
 
 // Lade den Mission-Status beim Start
 document.addEventListener('DOMContentLoaded', loadMissionStatus);
+document.addEventListener('livewire:navigated', loadMissionStatus);
 

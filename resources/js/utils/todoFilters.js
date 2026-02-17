@@ -99,6 +99,11 @@ export function initTodoFilters(root = document) {
         return;
     }
 
+    if (form.dataset.todoFilterInitialized) {
+        return;
+    }
+    form.dataset.todoFilterInitialized = 'true';
+
     const buttons = Array.from(form.querySelectorAll('[data-todo-filter]'));
 
     if (buttons.length === 0) {

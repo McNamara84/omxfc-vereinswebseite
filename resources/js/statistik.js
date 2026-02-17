@@ -10,6 +10,9 @@ function drawAuthorChart(canvasId, labels, data) {
     const canvas = document.getElementById(canvasId);
     if (!canvas) return;
 
+    const existing = Chart.getChart(canvas);
+    if (existing) existing.destroy();
+
     new Chart(canvas.getContext('2d'), {
         type: 'bar',
         data: {
@@ -48,6 +51,9 @@ function drawCycleChart(canvasId, labels, data) {
     const average = validValues.length ? validValues.reduce((sum, val) => sum + val, 0) / validValues.length : 0;
     const averageData = Array(labels.length).fill(average);
 
+    const existing = Chart.getChart(canvas);
+    if (existing) existing.destroy();
+
     new Chart(canvas.getContext('2d'), {
         type: 'line',
         data: {
@@ -77,8 +83,8 @@ function drawCycleChart(canvasId, labels, data) {
 }
 
 
-/* ── Autostart nach DOM-Load ───────────────────────────────────────────── */
-document.addEventListener('DOMContentLoaded', () => {
+/* ── Autostart nach DOM-Load / SPA-Navigation ────────────────────────────────── */
+function initStatistikCharts() {
     const labels = window.authorChartLabels ?? [];
     const values = window.authorChartValues ?? [];
     drawAuthorChart('authorChart', labels, values);
@@ -116,7 +122,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const hardcoverValues = window.hardcoverChartValues ?? [];
         drawCycleChart('hardcoverChart', hardcoverLabels, hardcoverValues);
     }
-});
+}
+
+document.addEventListener('DOMContentLoaded', initStatistikCharts);
+document.addEventListener('livewire:navigated', initStatistikCharts);
 
 /* ── optionale Named-Exports (falls du die Funktionen woanders brauchst) */
 export { drawAuthorChart, drawCycleChart };

@@ -42,6 +42,12 @@ export function setupProtokolleAccordion(root = document) {
             return;
         }
 
+        /* Listener nur einmal pro Container registrieren */
+        if (container.dataset.accordionInitialized) {
+            return;
+        }
+        container.dataset.accordionInitialized = 'true';
+
         const icon = button.querySelector('[data-protokolle-accordion-icon]');
         const isExpanded = Boolean(container.open);
         applyAccordionState(button, panel, icon, isExpanded, container);
@@ -68,6 +74,10 @@ if (typeof document !== 'undefined') {
     } else {
         bootstrapAccordion();
     }
+
+    document.addEventListener('livewire:navigated', () => {
+        bootstrapAccordion();
+    });
 }
 
 export default setupProtokolleAccordion;

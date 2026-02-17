@@ -343,3 +343,5 @@ if (document.readyState === 'loading') {
 } else {
     initialiseGalleries();
 }
+
+document.addEventListener('livewire:navigated', initialiseGalleries);

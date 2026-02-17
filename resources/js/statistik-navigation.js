@@ -1,6 +1,21 @@
 /* resources/js/statistik-navigation.js */
 
+/* Cleanup-Referenzen für vorherige Initialisierung */
+let previousObserver = null;
+let previousAbortController = null;
+
 function setupStatistikNavigation() {
+    /* ── Alte Observer/Listener aufräumen (vor Early-Returns, damit
+       beim Wegnavigieren keine verwaisten Referenzen bleiben) ──────────── */
+    if (previousObserver) {
+        previousObserver.disconnect();
+        previousObserver = null;
+    }
+    if (previousAbortController) {
+        previousAbortController.abort();
+        previousAbortController = null;
+    }
+
     const nav = document.querySelector('[data-statistik-nav]');
     if (!nav) return;
 
@@ -9,6 +24,9 @@ function setupStatistikNavigation() {
     if (!links.length || !sections.length) {
         return;
     }
+
+    const abortController = new AbortController();
+    previousAbortController = abortController;
 
     const prefersReducedMotion = window.matchMedia
         ? window.matchMedia('(prefers-reduced-motion: reduce)')
@@ -39,7 +57,7 @@ function setupStatistikNavigation() {
                 section.focus({ preventScroll: true });
             });
             setActive(targetId);
-        });
+        }, { signal: abortController.signal });
     });
 
     let currentActiveId = null;
@@ -71,6 +89,7 @@ function setupStatistikNavigation() {
         rootMargin: '-40% 0px -40% 0px',
         threshold: [0.25, 0.5, 0.75],
     });
+    previousObserver = observer;
 
     sections.forEach((section) => {
         if (section.id) {
@@ -90,7 +109,7 @@ function setupStatistikNavigation() {
         if (newHash && linkMap.has(newHash)) {
             setActive(newHash);
         }
-    });
+    }, { signal: abortController.signal });
 }
 
 if (document.readyState === 'loading') {
@@ -98,5 +117,7 @@ if (document.readyState === 'loading') {
 } else {
     setupStatistikNavigation();
 }
+
+document.addEventListener('livewire:navigated', setupStatistikNavigation);
 
 export { setupStatistikNavigation };

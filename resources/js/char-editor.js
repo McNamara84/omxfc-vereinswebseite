@@ -1,10 +1,23 @@
 // Charaktereditor logic for Barbar race and Landbewohner culture
-
-document.addEventListener('DOMContentLoaded', () => {
+// Hinweis: maryUI-Komponenten (<x-input>, <x-textarea>) generieren
+// eigene IDs ("mary" + md5 + übergebene id). Daher werden hier
+// name-Attribute statt IDs für die Selektion dieser Elemente verwendet.
+//
+// Die Initialisierung muss sowohl bei vollem Seitenlade (DOMContentLoaded)
+// als auch nach SPA-Navigation via Livewire/Alpine (livewire:navigated)
+// erfolgen, da wire:navigate kein neues DOMContentLoaded auslöst.
+function initCharEditor() {
     // Only run if we're on the char-editor page
-    if (!document.querySelector('[data-char-editor]')) {
+    const editorRoot = document.querySelector('[data-char-editor]');
+    if (!editorRoot) {
         return;
     }
+
+    // Verhindere doppelte Initialisierung
+    if (editorRoot.dataset.charEditorInitialized) {
+        return;
+    }
+    editorRoot.dataset.charEditorInitialized = 'true';
     
     const state = {
         niveau: 3,
@@ -27,7 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const attributeIds = ['st','ge','ro','wi','wa','in','au'];
     const attributeInputs = {};
     attributeIds.forEach(id => {
-        const el = document.getElementById(id);
+        const el = document.querySelector(`input[name="attributes[${id}]"]`);
         if (el) {
             attributeInputs[id] = el;
             el.dataset.base = 0;
@@ -46,9 +59,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const advantageInput = document.getElementById('available_advantage_points');
     const raceSelect = document.getElementById('race');
     const cultureSelect = document.getElementById('culture');
-    const descriptionField = document.getElementById('description');
-    const playerName = document.getElementById('player_name');
-    const characterName = document.getElementById('character_name');
+    const descriptionField = document.querySelector('textarea[name="description"]');
+    const playerName = document.querySelector('input[name="player_name"]');
+    const characterName = document.querySelector('input[name="character_name"]');
     const portraitInput = document.getElementById('portrait');
     const portraitPreview = document.getElementById('portrait-preview');
     const lockableWrappers = document.querySelectorAll('[data-lockable]');
@@ -727,10 +740,9 @@ document.addEventListener('DOMContentLoaded', () => {
     function recomputeAll() {
         lockAdvantage('Zäh');
         state.hasKindZweierWelten = isAdvantageChosen('Kind zweier Welten');
-        let chosenAdv = countChosenAdvantagesExcl('Zäh');
-        updateAdvantageCounter(state.base.freeAdvantages - chosenAdv);
         enforceAdvantageLimit();
-        chosenAdv = countChosenAdvantagesExcl('Zäh');
+        const chosenAdv = countChosenAdvantagesExcl('Zäh');
+        updateAdvantageCounter(state.base.freeAdvantages - chosenAdv);
         const chosenDisadv = countDisadvantages();
 
         enforceAttributeCaps();
@@ -748,5 +760,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const valid = apRemaining === 0 && fpRemaining === 0 && chosenDisadv >= chosenAdv;
         updateSubmitButton(valid);
     }
-});
+}
+
+document.addEventListener('DOMContentLoaded', initCharEditor);
+document.addEventListener('livewire:navigated', initCharEditor);
 
