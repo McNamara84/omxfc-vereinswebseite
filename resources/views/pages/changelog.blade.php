@@ -4,5 +4,4 @@
         <p class="mb-6">Auf dieser Seite werden sämtliche Änderungen an der Vereinswebseite des Offiziellen Maddrax Fanclub e. V. dokumentiert.</p>
         <div id="release-notes"></div>
     </x-public-page>
-    @vite(['resources/js/changelog.js'])
 </x-app-layout>

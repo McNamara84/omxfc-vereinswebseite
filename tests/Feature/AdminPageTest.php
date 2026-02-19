@@ -170,8 +170,8 @@ class AdminPageTest extends TestCase
             return true;
         });
 
-        $response->assertSee('allOption.selected = true;', false);
-        $response->assertSee("updateActiveChart('all');", false);
+        // Chart-Logik ist in admin/charts.js extrahiert – Config-Element mit Daten prüfen
+        $response->assertSee('id="admin-charts-config"', false);
         $response->assertSee('id="activeUsersWeekdayChart"', false);
         $response->assertSee('aria-describedby="active-users-weekday-description"', false);
     }

@@ -1,6 +1,11 @@
-const container = document.getElementById('roles_list');
+function initHoerbuchRoleForm() {
+    const container = document.getElementById('roles_list');
 
-if (container) {
+    if (!container) return;
+
+    // Guard: nicht doppelt initialisieren
+    if (container.dataset.roleFormInitialized) return;
+    container.dataset.roleFormInitialized = 'true';
     const datalistSelector = container.dataset.membersTarget;
     const datalist = datalistSelector ? document.querySelector(datalistSelector) : null;
     const members = datalist ? Array.from(datalist.options).map(option => ({
@@ -118,3 +123,11 @@ if (container) {
     document.getElementById('add_role')?.addEventListener('click', addRole);
     container.querySelectorAll('.role-row').forEach(bindRoleRow);
 }
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initHoerbuchRoleForm);
+} else {
+    initHoerbuchRoleForm();
+}
+
+document.addEventListener('livewire:navigated', initHoerbuchRoleForm);

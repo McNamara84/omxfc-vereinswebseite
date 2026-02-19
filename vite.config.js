@@ -12,7 +12,6 @@ export default defineConfig({
                 'resources/js/app.js',
                 'resources/js/maddraxiversum.js',
                 'resources/js/statistik.js',
-                'resources/js/changelog.js',
                 'resources/js/hoerbuecher.js',
                 'resources/js/hoerbuch-role-form.js',
                 'resources/js/hoerbuch-role-upload-toggle.js',

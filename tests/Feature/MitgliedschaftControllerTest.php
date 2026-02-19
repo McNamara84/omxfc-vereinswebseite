@@ -130,14 +130,16 @@ class MitgliedschaftControllerTest extends TestCase
         }
     }
 
-    public function test_membership_form_script_logs_missing_field_warnings(): void
+    public function test_membership_form_has_ids_for_external_js_module(): void
     {
         $response = $this->get('/mitglied-werden');
 
         $response->assertOk();
         $html = $response->getContent();
 
-        $this->assertStringContainsString('[Mitgliedschaftsformular] Feld mit ID "', $html);
+        // Das externe JS-Modul (mitglied-werden.js) benötigt diese IDs zur Initialisierung
+        $this->assertStringContainsString('id="mitgliedschaft-form"', $html);
+        $this->assertStringContainsString('id="submit-button"', $html);
     }
 
 }

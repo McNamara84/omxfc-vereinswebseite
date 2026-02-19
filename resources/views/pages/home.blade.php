@@ -98,7 +98,7 @@
                     Derzeit liegen keine Rezensionen vor. Schau später noch einmal vorbei.
                 </p>
 
-                <ul id="latest-reviews-list" class="mt-4 divide-y divide-gray-200 dark:divide-gray-600 hidden" aria-label="Neueste Rezensionen">
+                <ul id="latest-reviews-list" class="mt-4 divide-y divide-gray-200 dark:divide-gray-600 hidden" aria-label="Neueste Rezensionen" data-api-url="{{ route('api.reviews.latest') }}">
                 </ul>
             </div>
 
@@ -124,21 +124,6 @@
         </div>
     </x-public-page>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const images = document.querySelectorAll('#gallery img');
-            let current = 0;
-
-            images[current].classList.remove('opacity-0');
-
-            setInterval(() => {
-                images[current].classList.add('opacity-0');
-                current = (current + 1) % images.length;
-                images[current].classList.remove('opacity-0');
-            }, 4000);
-        });
-    </script>
-
     <script type="application/ld+json">
         {!! json_encode($structuredData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}
     </script>
@@ -163,105 +148,5 @@
             "name": "MADDRAX Fan-Community"
         }
     }
-    </script>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const list = document.getElementById('latest-reviews-list');
-            const loading = document.getElementById('latest-reviews-loading');
-            const empty = document.getElementById('latest-reviews-empty');
-
-            const renderReview = (review) => {
-                const item = document.createElement('li');
-                item.className = 'py-4';
-
-                const header = document.createElement('div');
-                header.className = 'flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2';
-
-                const badge = document.createElement('span');
-                badge.className = 'inline-flex w-fit items-center gap-2 rounded-full bg-[#8B0116]/10 text-[#8B0116] dark:bg-[#ff4b63]/15 dark:text-[#ff4b63] px-3 py-1 text-xs font-semibold';
-                badge.textContent = `Roman Nr. ${review.roman_number}`;
-                badge.setAttribute('aria-label', `Roman Nummer ${review.roman_number}`);
-
-                const romanTitle = document.createElement('p');
-                romanTitle.className = 'text-sm text-gray-700 dark:text-gray-200 font-medium';
-                romanTitle.textContent = review.roman_title;
-
-                header.appendChild(badge);
-                header.appendChild(romanTitle);
-
-                const reviewTitle = document.createElement('h3');
-                reviewTitle.className = 'mt-3 text-base font-semibold text-gray-900 dark:text-white flex flex-wrap items-center gap-1';
-
-                const titleText = document.createElement('span');
-                titleText.textContent = review.review_title;
-
-                const reviewDate = document.createElement('time');
-                reviewDate.className = 'text-sm font-normal text-gray-700 dark:text-gray-300';
-                reviewDate.dateTime = review.reviewed_at;
-
-                const parsedDate = new Date(review.reviewed_at);
-                const formattedDate = Number.isNaN(parsedDate.getTime())
-                    ? 'Unbekanntes Datum'
-                    : new Intl.DateTimeFormat('de-DE', { dateStyle: 'medium' }).format(parsedDate);
-
-                reviewDate.textContent = formattedDate;
-                reviewDate.setAttribute('aria-label', `Rezension veröffentlicht am ${formattedDate}`);
-
-                reviewTitle.appendChild(titleText);
-                reviewTitle.appendChild(document.createTextNode(' vom '));
-                reviewTitle.appendChild(reviewDate);
-
-                const excerpt = document.createElement('p');
-                excerpt.className = 'mt-2 text-sm text-gray-600 dark:text-gray-300 leading-relaxed';
-                excerpt.textContent = review.excerpt;
-
-                item.appendChild(header);
-                item.appendChild(reviewTitle);
-                item.appendChild(excerpt);
-
-                return item;
-            };
-
-            fetch('{{ route('api.reviews.latest') }}', {
-                headers: {
-                    'Accept': 'application/json',
-                },
-            })
-                .then((response) => response.ok ? response.json() : Promise.reject(response))
-                .then((data) => {
-                    loading.setAttribute('aria-busy', 'false');
-                    loading.classList.add('hidden');
-                    if (!Array.isArray(data) || data.length === 0) {
-                        empty.classList.remove('hidden');
-                        list.classList.add('hidden');
-                        return;
-                    }
-
-                    list.innerHTML = '';
-                    data.forEach((review) => list.appendChild(renderReview(review)));
-                    list.classList.remove('hidden');
-                })
-                .catch(() => {
-                    loading.setAttribute('aria-busy', 'false');
-                    loading.classList.add('hidden');
-
-                    const errorMessage = document.createElement('div');
-                    errorMessage.className = 'mt-4 flex items-center gap-2 text-sm text-red-700 dark:text-red-300';
-                    errorMessage.setAttribute('role', 'status');
-                    errorMessage.setAttribute('aria-live', 'polite');
-
-                    const dot = document.createElement('span');
-                    dot.className = 'inline-block h-2 w-2 rounded-full bg-red-600';
-
-                    const text = document.createElement('span');
-                    text.textContent = 'Rezensionen konnten nicht geladen werden.';
-
-                    errorMessage.appendChild(dot);
-                    errorMessage.appendChild(text);
-
-                    loading.after(errorMessage);
-                });
-        });
     </script>
 </x-app-layout>

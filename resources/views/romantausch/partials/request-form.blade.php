@@ -61,42 +61,7 @@
             <x-button :label="$submitLabel" type="submit" class="btn-primary" icon="o-check" />
             <x-button label="Abbrechen" link="{{ route('romantausch.index') }}" class="btn-ghost" />
         </div>
+
+        <div data-romantausch-books-by-series="{{ json_encode($booksBySeries) }}" class="hidden"></div>
     </form>
 </x-card>
-
-@push('scripts')
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const seriesSelect = document.getElementById('series-select');
-            const bookSelect = document.getElementById('book-select');
-            const booksBySeries = @json($booksBySeries);
-
-            function filterBooks() {
-                const series = seriesSelect.value;
-                const allowedNumbers = new Set(booksBySeries[series] || []);
-                let firstVisibleIndex = -1;
-                let hasVisibleSelection = false;
-                Array.from(bookSelect.options).forEach((option, idx) => {
-                    if (!option.value) return;
-                    const match = allowedNumbers.has(String(option.value));
-                    option.hidden = !match;
-                    option.disabled = !match;
-                    if (match) {
-                        if (firstVisibleIndex === -1) {
-                            firstVisibleIndex = idx;
-                        }
-                        if (option.selected) {
-                            hasVisibleSelection = true;
-                        }
-                    }
-                });
-                if (!hasVisibleSelection && firstVisibleIndex !== -1) {
-                    bookSelect.selectedIndex = firstVisibleIndex;
-                }
-            }
-
-            filterBooks();
-            seriesSelect.addEventListener('change', filterBooks);
-        });
-    </script>
-@endpush

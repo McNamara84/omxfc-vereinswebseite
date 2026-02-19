@@ -99,3 +99,26 @@ import './romantausch-gallery';
 import './romantausch-dropzone';
 
 import './polls/charts';
+
+// Wire-navigate-kompatible Module (Dual-Event-Listener)
+import './mitglied-werden';
+import './home';
+import './fotogalerie';
+import './changelog';
+import './kompendium';
+import './mitglieder/karte';
+import './romantausch/serien-filter';
+
+// Admin-Charts (inkl. Chart.js) nur laden, wenn das Admin-Dashboard aktiv ist (Code-Splitting)
+async function loadAdminChartsIfNeeded() {
+    if (document.getElementById('admin-charts-config')) {
+        try {
+            const { initAdminCharts } = await import('./admin/charts');
+            initAdminCharts();
+        } catch (error) {
+            console.error('[Admin-Charts] Laden/Initialisierung fehlgeschlagen:', error);
+        }
+    }
+}
+document.addEventListener('DOMContentLoaded', loadAdminChartsIfNeeded);
+document.addEventListener('livewire:navigated', loadAdminChartsIfNeeded);
