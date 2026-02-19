@@ -130,14 +130,16 @@ class MitgliedschaftControllerTest extends TestCase
         }
     }
 
-    public function test_membership_form_script_logs_missing_field_warnings(): void
+    public function test_membership_form_contains_submit_button_and_form(): void
     {
         $response = $this->get('/mitglied-werden');
 
         $response->assertOk();
         $html = $response->getContent();
 
-        $this->assertStringContainsString('[Mitgliedschaftsformular] Feld mit ID "', $html);
+        // Das Formular und der Submit-Button müssen vorhanden sein
+        $this->assertStringContainsString('id="mitgliedschaft-form"', $html);
+        $this->assertStringContainsString('id="submit-button"', $html);
     }
 
 }
