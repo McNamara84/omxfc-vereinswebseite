@@ -164,6 +164,10 @@ function initAdminCharts() {
     const configEl = document.getElementById('admin-charts-config');
     if (!configEl) return;
 
+    // Guard: nicht doppelt initialisieren
+    if (configEl.dataset.initialized) return;
+    configEl.dataset.initialized = 'true';
+
     // Vorherige Chart-Instanzen aufräumen
     destroyAllCharts();
 
@@ -372,4 +376,9 @@ document.addEventListener('DOMContentLoaded', initAdminCharts);
 document.addEventListener('livewire:navigated', initAdminCharts);
 
 // Cleanup bei Navigation weg von der Seite
-document.addEventListener('livewire:navigating', destroyAllCharts);
+document.addEventListener('livewire:navigating', () => {
+    destroyAllCharts();
+    // Guard zurücksetzen, damit bei erneuter Navigation re-initialisiert wird
+    const configEl = document.getElementById('admin-charts-config');
+    if (configEl) delete configEl.dataset.initialized;
+});

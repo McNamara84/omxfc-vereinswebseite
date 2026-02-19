@@ -9,6 +9,9 @@
  * - #kompendium-config[data-serien-url]  → Route für verfügbare Serien
  */
 
+// Modulweite Referenz auf den scroll-Handler, damit livewire:navigating ihn entfernen kann
+let activeScrollHandler = null;
+
 function initKompendium() {
     const $search = document.querySelector('[data-testid="kompendium-search"]');
     if (!$search) return;
@@ -210,6 +213,9 @@ function initKompendium() {
         }
     }
 
+    // Modulweite Referenz aktualisieren, damit livewire:navigating den Handler entfernen kann
+    activeScrollHandler = onScroll;
+
     $search.addEventListener('keyup', e => {
         if (e.key === 'Enter' && $search.value.trim().length >= 2) {
             query = $search.value.trim();
@@ -231,3 +237,11 @@ function initKompendium() {
 
 document.addEventListener('DOMContentLoaded', initKompendium);
 document.addEventListener('livewire:navigated', initKompendium);
+
+// Scroll-Listener aufräumen bei Navigation weg von der Seite
+document.addEventListener('livewire:navigating', () => {
+    if (activeScrollHandler) {
+        window.removeEventListener('scroll', activeScrollHandler);
+        activeScrollHandler = null;
+    }
+});
