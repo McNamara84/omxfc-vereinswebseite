@@ -372,8 +372,8 @@ function initAdminCharts() {
     }
 }
 
-document.addEventListener('DOMContentLoaded', initAdminCharts);
-document.addEventListener('livewire:navigated', initAdminCharts);
+// Export für dynamischen Import aus app.js (Code-Splitting)
+export { initAdminCharts };
 
 // Cleanup bei Navigation weg von der Seite
 document.addEventListener('livewire:navigating', () => {

@@ -68,7 +68,7 @@ function initMitgliedWerden() {
         missingFieldWarnings.add(id);
 
         if (typeof console !== 'undefined' && typeof console.warn === 'function') {
-            console.warn(`[Mitgliedschaftsformular] Feld mit ID "${id}" wurde nicht gefunden. Bitte überprüfe die Formularstruktur.`);
+            console.warn(`[Mitgliedschaftsformular] Feld mit name="${id}" wurde nicht gefunden. Bitte überprüfe die Formularstruktur.`);
         }
     }
 
