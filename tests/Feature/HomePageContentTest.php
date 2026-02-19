@@ -37,10 +37,8 @@ class HomePageContentTest extends TestCase
             ->assertSee('Letzte Rezensionen')
             ->assertSee('Lädt Community-Highlights', false)
             ->assertSee('Lesetipps und Eindrücke zu den Romanen unserer Lieblingsserie.', false)
-            ->assertSee("const reviewDate = document.createElement('time');", false)
-            ->assertSee('reviewDate.dateTime = review.reviewed_at;', false)
-            ->assertSee("reviewTitle.appendChild(document.createTextNode(' vom '));", false)
-            ->assertSee('Rezension veröffentlicht am', false)
+            ->assertSee('data-api-url=', false)
+            ->assertSee('id="latest-reviews-list"', false)
             ->assertSee('aktive Mitglieder');
     }
 
@@ -190,10 +188,10 @@ class HomePageContentTest extends TestCase
 
         $response->assertOk()
             ->assertSee('id="latest-reviews-loading"', false)
-            ->assertSee('aria-busy="true"', false)
-            ->assertSee("loading.setAttribute('aria-busy', 'false');", false)
-            ->assertSee("errorMessage.setAttribute('role', 'status');", false)
-            ->assertSee("document.addEventListener('DOMContentLoaded', () => {", false);
+            ->assertSee('aria-busy="true"', false);
+
+        // Die Review-Liste muss eine data-api-url haben (für das externe JS-Modul)
+        $response->assertSee('data-api-url=', false);
 
         $this->assertDoesNotMatchRegularExpression(
             '/id="latest-reviews-list"[^>]+aria-live=/',
