@@ -114,7 +114,7 @@ function renderDoughnutChart(canvasId, entries) {
     const colors = getPalette(labels.length);
     const total = values.reduce((sum, value) => sum + value, 0) || 1;
 
-    new Chart(canvas.getContext('2d'), {
+    chartInstances.push(new Chart(canvas.getContext('2d'), {
         type: 'doughnut',
         data: {
             labels,
@@ -147,7 +147,7 @@ function renderDoughnutChart(canvasId, entries) {
                 },
             },
         },
-    });
+    }));
 }
 
 /** Alle Chart-Instanzen, um sie bei erneuter Initialisierung zu zerstören */

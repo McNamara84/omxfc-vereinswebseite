@@ -15,6 +15,25 @@
 
 let mapInstance = null;
 
+/** HTML-Zeichen escapen, um XSS bei benutzerkontrollierten Werten zu verhindern */
+function escapeHtml(str) {
+    if (typeof str !== 'string') return '';
+    return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+/** Attribut-Wert escapen und auf erlaubte URL-Schemata prüfen (für href etc.) */
+function escapeAttr(url) {
+    if (typeof url !== 'string') return '';
+    // Nur relative URLs und http(s) erlauben
+    if (!/^(\/|https?:\/\/)/i.test(url.trim())) return '#';
+    return escapeHtml(url);
+}
+
 function initMitgliederKarte() {
     const mapEl = document.querySelector('#map[data-member-map]');
     if (!mapEl) return;
@@ -109,10 +128,10 @@ function initMitgliederKarte() {
             ? mapUtils.buildMemberPopup(member)
             : `
                 <div class="text-center">
-                    <strong>${member.name}</strong><br>
-                    ${member.city}<br>
-                    <em>${member.role}</em><br>
-                    <a href="${member.profile_url}" class="text-blue-500 hover:underline mt-2 inline-block">
+                    <strong>${escapeHtml(member.name)}</strong><br>
+                    ${escapeHtml(member.city)}<br>
+                    <em>${escapeHtml(member.role)}</em><br>
+                    <a href="${escapeAttr(member.profile_url)}" class="text-blue-500 hover:underline mt-2 inline-block">
                         Zum Profil
                     </a>
                 </div>
@@ -130,9 +149,9 @@ function initMitgliederKarte() {
 
         marker.bindPopup(`
             <div class="text-center">
-                <strong>${stammtisch.name}</strong><br>
-                ${stammtisch.address}<br>
-                <em>${stammtisch.info}</em>
+                <strong>${escapeHtml(stammtisch.name)}</strong><br>
+                ${escapeHtml(stammtisch.address)}<br>
+                <em>${escapeHtml(stammtisch.info)}</em>
             </div>
         `);
     });
