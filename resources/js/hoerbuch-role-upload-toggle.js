@@ -7,6 +7,10 @@ function initializeUploadToggles() {
             return;
         }
 
+        // Guard: keinen doppelten Listener bei erneuter Initialisierung
+        if (checkbox.dataset.toggleInitialized) return;
+        checkbox.dataset.toggleInitialized = 'true';
+
         if (hidden) {
             hidden.disabled = checkbox.checked;
         }

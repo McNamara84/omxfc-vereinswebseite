@@ -112,8 +112,12 @@ import './romantausch/serien-filter';
 // Admin-Charts (inkl. Chart.js) nur laden, wenn das Admin-Dashboard aktiv ist (Code-Splitting)
 async function loadAdminChartsIfNeeded() {
     if (document.getElementById('admin-charts-config')) {
-        const { initAdminCharts } = await import('./admin/charts');
-        initAdminCharts();
+        try {
+            const { initAdminCharts } = await import('./admin/charts');
+            initAdminCharts();
+        } catch (error) {
+            console.error('[Admin-Charts] Laden/Initialisierung fehlgeschlagen:', error);
+        }
     }
 }
 document.addEventListener('DOMContentLoaded', loadAdminChartsIfNeeded);

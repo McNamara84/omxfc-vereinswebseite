@@ -166,10 +166,11 @@ function initAdminCharts() {
 
     // Guard: nicht doppelt initialisieren
     if (configEl.dataset.initialized) return;
-    configEl.dataset.initialized = 'true';
 
     // Vorherige Chart-Instanzen aufräumen
     destroyAllCharts();
+
+    try {
 
     // Daten aus data-Attributen lesen
     const visitData = JSON.parse(configEl.dataset.visitData || '[]');
@@ -369,6 +370,14 @@ function initAdminCharts() {
                 },
             }),
         }));
+    }
+
+    // Alle Charts erfolgreich erstellt – Guard setzen
+    configEl.dataset.initialized = 'true';
+
+    } catch (error) {
+        console.error('[Admin-Charts] Initialisierung fehlgeschlagen:', error);
+        destroyAllCharts();
     }
 }
 
