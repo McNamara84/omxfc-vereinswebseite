@@ -99,3 +99,13 @@ import './romantausch-gallery';
 import './romantausch-dropzone';
 
 import './polls/charts';
+
+// Wire-navigate-kompatible Module (Dual-Event-Listener)
+import './mitglied-werden';
+import './home';
+import './fotogalerie';
+import './changelog';
+import './kompendium';
+import './mitglieder/karte';
+import './admin/charts';
+import './romantausch/serien-filter';

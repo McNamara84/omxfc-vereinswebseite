@@ -35,3 +35,5 @@ if (document.readyState === 'loading') {
 } else {
     initializeUploadToggles();
 }
+
+document.addEventListener('livewire:navigated', initializeUploadToggles);
