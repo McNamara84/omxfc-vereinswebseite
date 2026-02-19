@@ -124,5 +124,10 @@ function initHoerbuchRoleForm() {
     container.querySelectorAll('.role-row').forEach(bindRoleRow);
 }
 
-document.addEventListener('DOMContentLoaded', initHoerbuchRoleForm);
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initHoerbuchRoleForm);
+} else {
+    initHoerbuchRoleForm();
+}
+
 document.addEventListener('livewire:navigated', initHoerbuchRoleForm);
