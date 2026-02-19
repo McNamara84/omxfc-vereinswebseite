@@ -239,10 +239,10 @@ class KompendiumControllerTest extends TestCase
         $response = $this->get('/kompendium');
 
         $response->assertOk();
-        // Prüfe, dass der querySelector den data-testid Selektor verwendet (nicht getElementById)
-        $response->assertSee('querySelector(\'[data-testid="kompendium-search"]\')', false);
-        // Sicherstellen, dass der alte, fehlerhafte Selektor NICHT mehr vorhanden ist
-        $response->assertDontSee("getElementById('search')", false);
+        // Prüfe, dass der data-testid Selektor im Markup vorhanden ist
+        $response->assertSee('data-testid="kompendium-search"', false);
+        // Prüfe, dass das Config-Element für das externe JS-Modul vorhanden ist
+        $response->assertSee('id="kompendium-config"', false);
     }
 
     public function test_index_renders_script_when_search_allowed(): void
@@ -252,7 +252,8 @@ class KompendiumControllerTest extends TestCase
         $response = $this->get('/kompendium');
 
         $response->assertOk();
-        $response->assertSee('async function fetchHits()', false);
+        // Das Kompendium-Config-Element muss gerendert werden (JS-Modul liest Daten daraus)
+        $response->assertSee('id="kompendium-config"', false);
     }
 
     public function test_index_does_not_render_script_when_search_not_allowed(): void
@@ -262,7 +263,8 @@ class KompendiumControllerTest extends TestCase
         $response = $this->get('/kompendium');
 
         $response->assertOk();
-        $response->assertDontSee('async function fetchHits()', false);
+        // Kein Kompendium-Config-Element, da Suche nicht erlaubt
+        $response->assertDontSee('id="kompendium-config"', false);
     }
 
     public function test_ag_maddraxikon_member_with_low_points_gets_search_script(): void
@@ -274,8 +276,8 @@ class KompendiumControllerTest extends TestCase
 
         $response->assertOk();
         $response->assertViewHas('showSearch', true);
-        // Script-Block muss gerendert werden, da showSearch = true
-        $response->assertSee('async function fetchHits()', false);
+        // Config-Element muss gerendert werden, da showSearch = true
+        $response->assertSee('id="kompendium-config"', false);
     }
 
     public function test_index_shows_no_romane_message_when_empty(): void
