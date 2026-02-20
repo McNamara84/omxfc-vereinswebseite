@@ -26,11 +26,10 @@
                     data-testid="login-email"
                 />
 
-                <x-input
+                <x-password
                     label="Passwort"
                     id="password"
                     name="password"
-                    type="password"
                     required
                     autocomplete="current-password"
                     class="mt-4"

@@ -174,7 +174,7 @@
                     </div>
                     <div class="flex flex-wrap justify-center gap-2 md:gap-3">
                         @foreach ($vipAuthors as $author)
-                            <x-badge value="{{ $author->display_name }}{{ $author->is_tentative ? ' (unter Vorbehalt)' : '' }}" class="badge-lg bg-white/90 dark:bg-gray-900/80 text-amber-900 dark:text-amber-300 font-semibold shadow-md" />
+                            <x-badge :value="$author->display_name . ($author->is_tentative ? ' (unter Vorbehalt)' : '')" class="badge-lg bg-white/90 dark:bg-gray-900/80 text-amber-900 dark:text-amber-300 font-semibold shadow-md" />
                         @endforeach
                     </div>
                 </div>

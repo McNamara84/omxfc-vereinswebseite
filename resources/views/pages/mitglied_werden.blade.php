@@ -42,7 +42,7 @@
 
                 <div class="col-span-1 md:col-span-2 w-full space-y-2" x-data="{ beitrag: {{ old('mitgliedsbeitrag', 12) }} }">
                     <label for="mitgliedsbeitrag" class="pt-0 label label-text font-semibold">
-                        Jährlicher Mitgliedsbeitrag: <span id="beitrag-output" class="font-semibold text-[#8B0116] dark:text-[#ff4b63]" aria-live="polite" x-text="beitrag + '€'">{{ old('mitgliedsbeitrag', 12) }}€</span>
+                        Jährlicher Mitgliedsbeitrag: <span id="beitrag-output" class="font-semibold text-primary" aria-live="polite" x-text="beitrag + '€'">{{ old('mitgliedsbeitrag', 12) }}€</span>
                     </label>
                     <input
                         type="range"
@@ -55,7 +55,7 @@
                         x-model="beitrag"
                         class="range range-primary w-full"
                     >
-                    <p class="text-sm text-base-content/70">Du kannst deinen Mitgliedsbeitrag ab einem monatlichen Beitrag von 1€/Monat (12€/Jahr) selbst wählen. Diesen Mitgliedsbeitrag kannst du jederzeit in deinen Einstellungen im internen Mitgliederbereich ändern und so deinen nächsten Jahresbeitrag anpassen. Bei Fragen hierzu wende dich gerne an den Vorstand.</p>
+                    <p class="text-sm text-base-content/80">Du kannst deinen Mitgliedsbeitrag ab einem monatlichen Beitrag von 1€/Monat (12€/Jahr) selbst wählen. Diesen Mitgliedsbeitrag kannst du jederzeit in deinen Einstellungen im internen Mitgliederbereich ändern und so deinen nächsten Jahresbeitrag anpassen. Bei Fragen hierzu wende dich gerne an den Vorstand.</p>
                 </div>
 
                 <x-input name="telefon" label="Handynummer (optional)" type="tel" class="w-full" autocomplete="tel" placeholder="+49 170 1234567" hint="Optional. Bitte im internationalen Format eingeben." />
@@ -82,12 +82,11 @@
 
                 <!-- Checkbox über volle Breite -->
                 <div class="col-span-1 md:col-span-2 mt-2">
-                    <label class="flex gap-3 items-center cursor-pointer" data-testid="mitglied-satzung-check">
-                        <input type="checkbox" id="satzung_check" name="satzung_check" class="checkbox" />
-                        <span class="text-sm font-medium">
+                    <x-checkbox id="satzung_check" name="satzung_check" data-testid="mitglied-satzung-check">
+                        <x-slot:label>
                             Ich habe die <a href="{{ route('satzung') }}" target="_blank" rel="noopener noreferrer" class="link link-primary" onclick="event.stopPropagation()">Satzung</a> gelesen und bin mit ihr einverstanden.
-                        </span>
-                    </label>
+                        </x-slot:label>
+                    </x-checkbox>
                 </div>
             </div>
             <button type="submit" id="submit-button" class="btn btn-primary mt-6 opacity-50 cursor-not-allowed" disabled data-testid="mitglied-submit">

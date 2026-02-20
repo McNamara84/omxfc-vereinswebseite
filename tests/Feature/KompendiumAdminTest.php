@@ -389,7 +389,7 @@ class KompendiumAdminTest extends TestCase
     }
 
     /* --------------------------------------------------------------------- */
-    /*  Bearbeiten / Speichern Tests                                         */
+    /*  Bearbeiten / Speichern Tests */
     /* --------------------------------------------------------------------- */
 
     #[Test]
@@ -545,7 +545,7 @@ class KompendiumAdminTest extends TestCase
     }
 
     /* --------------------------------------------------------------------- */
-    /*  Tab-Navigation Tests                                                 */
+    /*  Tab-Navigation Tests */
     /* --------------------------------------------------------------------- */
 
     #[Test]
@@ -601,7 +601,7 @@ class KompendiumAdminTest extends TestCase
     }
 
     /* --------------------------------------------------------------------- */
-    /*  Path-Traversal-Schutz Tests                                          */
+    /*  Path-Traversal-Schutz Tests */
     /* --------------------------------------------------------------------- */
 
     #[Test]

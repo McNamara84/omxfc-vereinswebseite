@@ -38,7 +38,7 @@ class MitgliedschaftControllerTest extends TestCase
         $requiredLabels = ['Vorname', 'Nachname', 'Straße', 'Hausnummer', 'Postleitzahl', 'Stadt', 'Land', 'Mailadresse', 'Passwort'];
         foreach ($requiredLabels as $label) {
             $this->assertMatchesRegularExpression(
-                '/<legend\b[^>]*>\s*' . preg_quote($label, '/') . '/si',
+                '/<legend\b[^>]*>\s*'.preg_quote($label, '/').'/si',
                 $html,
                 "Label '$label' fehlt als sichtbares <legend>-Element im Formular."
             );
@@ -52,8 +52,8 @@ class MitgliedschaftControllerTest extends TestCase
         $this->assertStringContainsString('id="mitgliedsbeitrag"', $html);
         $this->assertStringContainsString('id="beitrag-output"', $html);
 
-        // Satzung-Checkbox
-        $this->assertStringContainsString('id="satzung_check"', $html);
+        // Satzung-Checkbox (maryUI prefixes the id with a hash, so check by name attribute)
+        $this->assertStringContainsString('name="satzung_check"', $html);
     }
 
     public function test_membership_application_creates_user_and_assigns_anwaerter_role(): void
@@ -141,5 +141,4 @@ class MitgliedschaftControllerTest extends TestCase
         $this->assertStringContainsString('id="mitgliedschaft-form"', $html);
         $this->assertStringContainsString('id="submit-button"', $html);
     }
-
 }

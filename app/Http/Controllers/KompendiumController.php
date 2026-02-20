@@ -45,7 +45,6 @@ class KompendiumController extends Controller
      *
      * @param  User|null  $user  Der zu prüfende User
      * @param  int|null  $userPoints  Bereits berechnete Punkte (vermeidet doppelten Service-Call)
-     * @return bool
      */
     private function hatKompendiumZugang(?User $user, ?int $userPoints = null): bool
     {

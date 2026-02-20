@@ -9,7 +9,9 @@ function initMitgliedWerden() {
     const form = document.getElementById('mitgliedschaft-form');
     if (!form) return;
 
-    const satzungCheck = document.getElementById('satzung_check');
+    // maryUI <x-checkbox> leitet data-testid direkt an das <input> weiter
+    // (via $attributes->whereDoesntStartWith("id")), nicht an den Wrapper-<div>.
+    const satzungCheck = document.querySelector('[data-testid="mitglied-satzung-check"]');
     const submitButton = document.getElementById('submit-button');
     if (!satzungCheck || !submitButton) return;
 

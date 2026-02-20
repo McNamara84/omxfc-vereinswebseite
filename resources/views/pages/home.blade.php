@@ -1,10 +1,10 @@
 <x-app-layout title="Startseite – Offizieller MADDRAX Fanclub e. V." :description="$homeDescription">
     <x-public-page>
-        <h1 class="text-3xl font-bold text-[#8B0116] dark:text-[#ff4b63] mb-8 text-center">Willkommen beim Offiziellen MADDRAX Fanclub e. V.!</h1>
+        <x-header title="Willkommen beim Offiziellen MADDRAX Fanclub e. V.!" class="mb-8 text-center" useH1 />
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             {{-- Fotogalerie --}}
-            <div class="md:col-span-2 bg-white dark:bg-gray-700 rounded-lg shadow-md overflow-hidden">
+            <div class="md:col-span-2 bg-base-100 rounded-lg shadow-md overflow-hidden">
                 <div id="gallery" class="relative w-full h-48 sm:h-64 md:h-72">
                     @foreach($galleryImages as $image)
                         <picture>
@@ -18,37 +18,37 @@
             </div>
 
             {{-- Fantreffen 2026 Banner --}}
-            <div class="md:col-span-2 bg-gradient-to-r from-[#8B0116] to-[#a01526] rounded-lg shadow-lg p-6 text-white">
+            <div class="md:col-span-2 bg-primary text-primary-content rounded-lg shadow-lg p-6">
                 <div class="flex flex-col md:flex-row items-center justify-between gap-4">
                     <div>
                         <h2 class="text-2xl font-bold mb-2">🎉 Maddrax-Fantreffen 2026 in Köln</h2>
-                        <p class="text-white/90">
+                        <p class="text-primary-content/90">
                             <strong>Samstag, 9. Mai 2026</strong> – Signierstunde mit Autoren, Verleihung der Goldenen Taratze & mehr!
                         </p>
                     </div>
                     <a href="{{ route('fantreffen.2026') }}" 
-                       class="inline-block px-6 py-3 bg-white text-[#8B0116] font-bold rounded-lg hover:bg-gray-100 transition whitespace-nowrap">
+                       class="btn btn-secondary whitespace-nowrap">
                         Jetzt anmelden →
                     </a>
                 </div>
             </div>
 
             {{-- Wer wir sind --}}
-            <div class="bg-white dark:bg-gray-700 rounded-lg shadow-md p-6">
-                <h2 class="text-2xl font-semibold text-[#8B0116] dark:text-[#ff4b63] mb-4">Wer wir sind</h2>
-                <p class="text-gray-700 dark:text-gray-300">{{ $whoWeAre }}</p>
+            <div class="bg-base-100 rounded-lg shadow-md p-6">
+                <h2 class="text-2xl font-semibold text-primary mb-4">Wer wir sind</h2>
+                <p class="text-base-content/80">{{ $whoWeAre }}</p>
             </div>
 
             {{-- Was wir machen --}}
-            <div class="bg-white dark:bg-gray-700 rounded-lg shadow-md p-6">
-                <h2 class="text-2xl font-semibold text-[#8B0116] dark:text-[#ff4b63] mb-4">Was wir machen</h2>
-                <p class="text-gray-700 dark:text-gray-300">{{ $whatWeDo }}</p>
+            <div class="bg-base-100 rounded-lg shadow-md p-6">
+                <h2 class="text-2xl font-semibold text-primary mb-4">Was wir machen</h2>
+                <p class="text-base-content/80">{{ $whatWeDo }}</p>
             </div>
 
             {{-- Aktuelle Projekte --}}
-            <div class="md:col-span-2 bg-white dark:bg-gray-700 rounded-lg shadow-md p-6">
-                <h2 class="text-2xl font-semibold text-[#8B0116] dark:text-[#ff4b63] mb-4">Aktuelle Projekte</h2>
-                <ul class="list-disc ml-5 text-gray-700 dark:text-gray-300 space-y-2">
+            <div class="md:col-span-2 bg-base-100 rounded-lg shadow-md p-6">
+                <h2 class="text-2xl font-semibold text-primary mb-4">Aktuelle Projekte</h2>
+                <ul class="list-disc ml-5 text-base-content/80 space-y-2">
                     @foreach($currentProjects as $project)
                     <li><strong>{{ $project['title'] }}</strong>: {{ $project['description'] }}</li>
                     @endForeach
@@ -56,10 +56,10 @@
             </div>
 
             {{-- Vorteile einer Mitgliedschaft --}}
-            <div class="bg-white dark:bg-gray-700 rounded-lg shadow-md p-6">
-                <h2 class="text-2xl font-semibold text-[#8B0116] dark:text-[#ff4b63] mb-4">Vorteile einer Mitgliedschaft
+            <div class="bg-base-100 rounded-lg shadow-md p-6">
+                <h2 class="text-2xl font-semibold text-primary mb-4">Vorteile einer Mitgliedschaft
                 </h2>
-                <ul class="list-disc ml-5 text-gray-700 dark:text-gray-300">
+                <ul class="list-disc ml-5 text-base-content/80">
                     @foreach($membershipBenefits as $benefit)
                         <li>{{ $benefit }}</li>
                     @endforeach
@@ -67,58 +67,58 @@
             </div>
 
             {{-- Letzte Rezensionen --}}
-            <div class="bg-white dark:bg-gray-700 rounded-lg shadow-md p-6" id="latest-reviews-card">
+            <div class="bg-base-100 rounded-lg shadow-md p-6" id="latest-reviews-card">
                 <div class="flex items-start justify-between gap-3">
-                    <h2 class="text-2xl font-semibold text-[#8B0116] dark:text-[#ff8a9a]">Letzte Rezensionen</h2>
+                    <h2 class="text-2xl font-semibold text-primary">Letzte Rezensionen</h2>
                     @auth
-                        <a class="text-sm font-semibold text-[#8B0116] dark:text-[#ff8a9a] hover:underline" href="{{ route('reviews.index') }}">
+                        <a class="text-sm font-semibold link link-primary" href="{{ route('reviews.index') }}">
                             Alle ansehen
                         </a>
                     @else
-                        <a class="text-sm font-semibold text-[#8B0116] dark:text-[#ff8a9a] hover:underline" href="{{ route('mitglied.werden') }}">
+                        <a class="text-sm font-semibold link link-primary" href="{{ route('mitglied.werden') }}">
                             Alle ansehen
                         </a>
                     @endauth
                 </div>
-                <p class="mt-1 text-sm text-gray-600 dark:text-gray-300">Die neuesten Eindrücke aus unserer Community.</p>
+                <p class="mt-1 text-sm text-base-content/80">Die neuesten Eindrücke aus unserer Community.</p>
 
                 <div id="latest-reviews-loading" class="mt-4 space-y-3" role="status" aria-live="polite" aria-busy="true">
-                    <div class="flex items-center gap-2 text-gray-600 dark:text-gray-300">
-                        <span class="inline-block h-2 w-2 rounded-full bg-[#8B0116] animate-pulse"></span>
+                    <div class="flex items-center gap-2 text-base-content/80">
+                        <span class="inline-block h-2 w-2 rounded-full bg-primary animate-pulse"></span>
                         <span>Lädt Community-Highlights …</span>
                     </div>
                     <div class="space-y-2" aria-hidden="true">
                         @for($i = 0; $i < 3; $i++)
-                            <div class="h-3 rounded bg-gray-200 dark:bg-gray-600 animate-pulse"></div>
+                            <div class="h-3 rounded bg-base-200 animate-pulse"></div>
                         @endfor
                     </div>
                 </div>
 
-                <p id="latest-reviews-empty" class="mt-4 text-sm text-gray-600 dark:text-gray-300 hidden" role="status" aria-live="polite">
+                <p id="latest-reviews-empty" class="mt-4 text-sm text-base-content/80 hidden" role="status" aria-live="polite">
                     Derzeit liegen keine Rezensionen vor. Schau später noch einmal vorbei.
                 </p>
 
-                <ul id="latest-reviews-list" class="mt-4 divide-y divide-gray-200 dark:divide-gray-600 hidden" aria-label="Neueste Rezensionen" data-api-url="{{ route('api.reviews.latest') }}">
+                <ul id="latest-reviews-list" class="mt-4 divide-y divide-base-content/10 hidden" aria-label="Neueste Rezensionen" data-api-url="{{ route('api.reviews.latest') }}">
                 </ul>
             </div>
 
             {{-- Kennzahlen --}}
             <div class="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div class="bg-white dark:bg-gray-700 rounded-lg shadow-md p-6 flex flex-col items-center" aria-labelledby="stat-members-heading" aria-describedby="stat-members-description">
-                    <h3 id="stat-members-heading" class="text-lg font-semibold text-[#8B0116] dark:text-[#ff8a9a]">Aktive Mitglieder</h3>
+                <div class="bg-base-100 rounded-lg shadow-md p-6 flex flex-col items-center" aria-labelledby="stat-members-heading" aria-describedby="stat-members-description">
+                    <h3 id="stat-members-heading" class="text-lg font-semibold text-primary">Aktive Mitglieder</h3>
                     <div class="mt-2 flex items-baseline gap-2">
-                        <span class="text-4xl font-bold text-[#8B0116] dark:text-[#ff8a9a]">{{ $memberCount }}</span>
-                        <span class="text-gray-700 dark:text-gray-300">aktive Mitglieder</span>
+                        <span class="text-4xl font-bold text-primary">{{ $memberCount }}</span>
+                        <span class="text-base-content/80">aktive Mitglieder</span>
                     </div>
-                    <p id="stat-members-description" class="mt-3 text-sm text-gray-600 dark:text-gray-300 text-center">Gemeinschaft, die sich regelmäßig austauscht und Projekte voranbringt.</p>
+                    <p id="stat-members-description" class="mt-3 text-sm text-base-content/80 text-center">Gemeinschaft, die sich regelmäßig austauscht und Projekte voranbringt.</p>
                 </div>
-                <div class="bg-white dark:bg-gray-700 rounded-lg shadow-md p-6 flex flex-col items-center" aria-labelledby="stat-reviews-heading" aria-describedby="stat-reviews-description">
-                    <h3 id="stat-reviews-heading" class="text-lg font-semibold text-[#8B0116] dark:text-[#ff8a9a]">Rezensionen</h3>
+                <div class="bg-base-100 rounded-lg shadow-md p-6 flex flex-col items-center" aria-labelledby="stat-reviews-heading" aria-describedby="stat-reviews-description">
+                    <h3 id="stat-reviews-heading" class="text-lg font-semibold text-primary">Rezensionen</h3>
                     <div class="mt-2 flex items-baseline gap-2">
-                        <span class="text-4xl font-bold text-[#8B0116] dark:text-[#ff8a9a]">{{ $reviewCount }}</span>
-                        <span class="text-gray-700 dark:text-gray-300">Rezensionen</span>
+                        <span class="text-4xl font-bold text-primary">{{ $reviewCount }}</span>
+                        <span class="text-base-content/80">Rezensionen</span>
                     </div>
-                    <p id="stat-reviews-description" class="mt-3 text-sm text-gray-600 dark:text-gray-300 text-center">Lesetipps und Eindrücke zu den Romanen unserer Lieblingsserie.</p>
+                    <p id="stat-reviews-description" class="mt-3 text-sm text-base-content/80 text-center">Lesetipps und Eindrücke zu den Romanen unserer Lieblingsserie.</p>
                 </div>
             </div>
         </div>

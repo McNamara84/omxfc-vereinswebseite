@@ -22,22 +22,20 @@
                     data-testid="reset-password-email"
                 />
 
-                <x-input
+                <x-password
                     label="Passwort"
                     id="password"
                     name="password"
-                    type="password"
                     required
                     autocomplete="new-password"
                     class="mt-4"
                     data-testid="reset-password-password"
                 />
 
-                <x-input
+                <x-password
                     label="Passwort bestätigen"
                     id="password_confirmation"
                     name="password_confirmation"
-                    type="password"
                     required
                     autocomplete="new-password"
                     class="mt-4"

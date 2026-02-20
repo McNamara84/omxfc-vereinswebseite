@@ -118,7 +118,7 @@
                     <div class="text-center pt-4">
                         <a 
                             href="{{ $paypalMeUrl }}" 
-                            target="_blank"
+                            target="_blank" rel="noopener noreferrer"
                             class="inline-flex items-center gap-2 bg-[#0070ba] hover:bg-[#005ea6] text-white font-bold py-3 px-8 rounded-lg transition-colors shadow-lg"
                         >
                             <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">

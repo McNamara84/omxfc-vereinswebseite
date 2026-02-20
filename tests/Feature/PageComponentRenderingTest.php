@@ -16,7 +16,7 @@ class PageComponentRenderingTest extends TestCase
         $this->get('/chronik')
             ->assertOk()
             ->assertSee('max-w-6xl', false)
-            ->assertSee('bg-gray-100', false);
+            ->assertSee('bg-base-100', false);
     }
 
     public function test_member_page_component_renders_for_dashboard(): void

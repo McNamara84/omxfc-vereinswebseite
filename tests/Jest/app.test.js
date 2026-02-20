@@ -21,7 +21,6 @@ async function loadApp(matches) {
   delete window.L;
   delete window.Alpine;
   delete window.__omxfcPrefersDark;
-  delete window.__omxfcApplySystemTheme;
   delete window.__omxfcApplyStoredTheme;
 
   document.documentElement.classList.toggle('dark', matches);

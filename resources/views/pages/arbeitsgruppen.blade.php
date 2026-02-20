@@ -1,6 +1,6 @@
 <x-app-layout title="Arbeitsgruppen – Offizieller MADDRAX Fanclub e. V." description="Überblick über alle Projektteams des Vereins.">
     <x-public-page>
-        <h1 class="text-2xl sm:text-3xl font-bold text-[#8B0116] dark:text-[#ff4b63] mb-4 sm:mb-8">Arbeitsgruppen des OMXFC e.V.</h1>
+        <x-header title="Arbeitsgruppen des OMXFC e.V." class="mb-4 sm:mb-8" useH1 />
 
         @foreach($ags as $ag)
             <section class="mb-12">
@@ -19,7 +19,7 @@
                         <strong>Treffen:</strong> {{ $ag->meeting_schedule }}<br>
                     @endif
                     @if($ag->email)
-                        <strong>Kontakt:</strong> <a href="mailto:{{ $ag->email }}" class="text-blue-600 hover:underline">{{ $ag->email }}</a>
+                        <strong>Kontakt:</strong> <a href="mailto:{{ $ag->email }}" class="link link-primary">{{ $ag->email }}</a>
                     @endif
                 </p>
             </section>
