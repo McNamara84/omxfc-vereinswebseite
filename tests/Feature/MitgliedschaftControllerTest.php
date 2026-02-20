@@ -38,7 +38,7 @@ class MitgliedschaftControllerTest extends TestCase
         $requiredLabels = ['Vorname', 'Nachname', 'Straße', 'Hausnummer', 'Postleitzahl', 'Stadt', 'Land', 'Mailadresse', 'Passwort'];
         foreach ($requiredLabels as $label) {
             $this->assertMatchesRegularExpression(
-                '/<legend\b[^>]*>\s*' . preg_quote($label, '/') . '/si',
+                '/<legend\b[^>]*>\s*'.preg_quote($label, '/').'/si',
                 $html,
                 "Label '$label' fehlt als sichtbares <legend>-Element im Formular."
             );
@@ -141,5 +141,4 @@ class MitgliedschaftControllerTest extends TestCase
         $this->assertStringContainsString('id="mitgliedschaft-form"', $html);
         $this->assertStringContainsString('id="submit-button"', $html);
     }
-
 }

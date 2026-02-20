@@ -272,7 +272,7 @@ class KompendiumServiceTest extends TestCase
     }
 
     /* --------------------------------------------------------------------- */
-    /*  Fuzzy-Match Tests                                                    */
+    /*  Fuzzy-Match Tests */
     /* --------------------------------------------------------------------- */
 
     #[Test]
@@ -395,7 +395,7 @@ class KompendiumServiceTest extends TestCase
     }
 
     /* --------------------------------------------------------------------- */
-    /*  Zusammengefasste Übersicht Tests                                     */
+    /*  Zusammengefasste Übersicht Tests */
     /* --------------------------------------------------------------------- */
 
     #[Test]
@@ -483,7 +483,7 @@ class KompendiumServiceTest extends TestCase
     }
 
     /* --------------------------------------------------------------------- */
-    /*  Zyklen-Fortschritt Tests                                             */
+    /*  Zyklen-Fortschritt Tests */
     /* --------------------------------------------------------------------- */
 
     #[Test]

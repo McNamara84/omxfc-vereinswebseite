@@ -14,6 +14,7 @@ class ConditionOptionsTest extends TestCase
         parent::setUp();
         app()->setLocale('de');
     }
+
     public function test_standard_returns_seven_options(): void
     {
         $options = ConditionOptions::standard();
@@ -54,7 +55,7 @@ class ConditionOptionsTest extends TestCase
     public function test_option_names_start_with_condition_code(): void
     {
         foreach (ConditionOptions::full() as $option) {
-            $this->assertStringStartsWith($option['id'] . ' - ', $option['name']);
+            $this->assertStringStartsWith($option['id'].' - ', $option['name']);
         }
     }
 
