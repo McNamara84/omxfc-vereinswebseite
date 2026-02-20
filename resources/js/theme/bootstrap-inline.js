@@ -2,60 +2,54 @@
     const root = document.documentElement;
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
 
+    const DARK_THEME = 'coffee';
+    const LIGHT_THEME = 'caramellatte';
+
     const applyTheme = (isDark) => {
         const nextIsDark = Boolean(isDark);
-
         root.classList.toggle('dark', nextIsDark);
-        // daisyUI Theme setzen (caramellatte = light, coffee = dark)
-        root.dataset.theme = nextIsDark ? 'coffee' : 'caramellatte';
-
-        return root.classList.contains('dark');
+        root.dataset.theme = nextIsDark ? DARK_THEME : LIGHT_THEME;
+        return nextIsDark;
     };
 
     const getStoredTheme = () => {
         try {
-            return window.localStorage.getItem('theme');
-        } catch (error) {
+            const raw = window.localStorage.getItem('_x_mary-theme');
+            return raw ? JSON.parse(raw) : null;
+        } catch {
             return null;
         }
     };
 
-    const followsSystemPreference = (storedTheme = getStoredTheme()) => {
-        return storedTheme !== 'dark' && storedTheme !== 'light';
-    };
-
-    const applySystemTheme = (matches = prefersDark.matches, force = false) => {
+    const applyStoredOrSystemTheme = () => {
         const storedTheme = getStoredTheme();
 
-        if (!force && !followsSystemPreference(storedTheme)) {
-            return root.classList.contains('dark');
-        }
-
-        return applyTheme(Boolean(matches));
-    };
-
-    const applyStoredTheme = (theme = getStoredTheme()) => {
-        if (theme === 'dark') {
+        if (storedTheme === DARK_THEME) {
             return applyTheme(true);
         }
 
-        if (theme === 'light') {
+        if (storedTheme === LIGHT_THEME) {
             return applyTheme(false);
         }
 
-        return applySystemTheme(prefersDark.matches, true);
+        // Kein gespeichertes Theme → Systempräferenz verwenden
+        return applyTheme(prefersDark.matches);
     };
 
+    // Einmalige Migration vom alten 'theme'-Key
+    try {
+        const oldTheme = window.localStorage.getItem('theme');
+        if (oldTheme === 'dark' || oldTheme === 'light') {
+            const newTheme = oldTheme === 'dark' ? DARK_THEME : LIGHT_THEME;
+            const newClass = oldTheme === 'dark' ? 'dark' : '';
+            window.localStorage.setItem('_x_mary-theme', JSON.stringify(newTheme));
+            window.localStorage.setItem('_x_mary-class', JSON.stringify(newClass));
+            window.localStorage.removeItem('theme');
+        }
+    } catch {}
+
     window.__omxfcPrefersDark = prefersDark;
-    window.__omxfcApplySystemTheme = applySystemTheme;
-    window.__omxfcApplyStoredTheme = applyStoredTheme;
+    window.__omxfcApplyStoredTheme = applyStoredOrSystemTheme;
 
-    const storedTheme = getStoredTheme();
-
-    if (storedTheme === 'dark' || storedTheme === 'light') {
-        applyTheme(storedTheme === 'dark');
-        return;
-    }
-
-    applyTheme(prefersDark.matches);
+    applyStoredOrSystemTheme();
 })();

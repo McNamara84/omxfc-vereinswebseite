@@ -7,8 +7,10 @@ import { scheduleInitAlpine } from './alpine-init';
 
 scheduleInitAlpine(Alpine, [focus]);
 
+const DARK_THEME = 'coffee';
+const LIGHT_THEME = 'caramellatte';
+
 const prefersDark = window.__omxfcPrefersDark ?? window.matchMedia('(prefers-color-scheme: dark)');
-const getSystemPrefersDark = () => prefersDark.matches;
 window.__omxfcPrefersDark = prefersDark;
 
 const applyDark = (isDark) => {
@@ -16,68 +18,50 @@ const applyDark = (isDark) => {
     const nextIsDark = Boolean(isDark);
 
     root.classList.toggle('dark', nextIsDark);
-    root.dataset.theme = nextIsDark ? 'coffee' : 'caramellatte';
+    root.dataset.theme = nextIsDark ? DARK_THEME : LIGHT_THEME;
 
-    return root.classList.contains('dark');
+    return nextIsDark;
 };
 
 const getStoredTheme = () => {
     try {
-        return window.localStorage.getItem('theme');
-    } catch (error) {
+        const raw = window.localStorage.getItem('_x_mary-theme');
+        return raw ? JSON.parse(raw) : null;
+    } catch {
         return null;
     }
 };
 
-const followsSystemPreference = (storedTheme = getStoredTheme()) => {
-    return storedTheme !== 'dark' && storedTheme !== 'light';
-};
-
-const fallbackApplySystemPreference = (matches = getSystemPrefersDark(), force = false) => {
+const applyStoredOrSystemTheme = () => {
     const storedTheme = getStoredTheme();
 
-    if (!force && !followsSystemPreference(storedTheme)) {
-        return document.documentElement.classList.contains('dark');
-    }
-
-    return applyDark(Boolean(matches));
-};
-
-const fallbackApplyStoredTheme = (theme = getStoredTheme()) => {
-    if (theme === 'dark') {
+    if (storedTheme === DARK_THEME) {
         return applyDark(true);
     }
 
-    if (theme === 'light') {
+    if (storedTheme === LIGHT_THEME) {
         return applyDark(false);
     }
 
-    return fallbackApplySystemPreference(undefined, true);
+    return applyDark(prefersDark.matches);
 };
 
-const applySystemPreference =
-    typeof window.__omxfcApplySystemTheme === 'function'
-        ? window.__omxfcApplySystemTheme
-        : fallbackApplySystemPreference;
-
-const applyStoredTheme =
-    typeof window.__omxfcApplyStoredTheme === 'function'
-        ? window.__omxfcApplyStoredTheme
-        : fallbackApplyStoredTheme;
-
-window.__omxfcApplySystemTheme = applySystemPreference;
-window.__omxfcApplyStoredTheme = applyStoredTheme;
+window.__omxfcApplyStoredTheme = applyStoredOrSystemTheme;
 
 prefersDark.addEventListener('change', (event) => {
-    applySystemPreference(event.matches);
+    // Nur reagieren wenn kein explizites Theme gespeichert ist
+    const storedTheme = getStoredTheme();
+    if (!storedTheme || (storedTheme !== DARK_THEME && storedTheme !== LIGHT_THEME)) {
+        applyDark(event.matches);
+    }
 });
 
 window.addEventListener('storage', (event) => {
-    if (event.key !== 'theme') {
+    if (event.key !== '_x_mary-theme') {
         return;
     }
 
-    applyStoredTheme(event.newValue ?? undefined);
+    applyStoredOrSystemTheme();
 });
 
 // Leaflet importieren
