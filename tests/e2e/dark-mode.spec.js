@@ -63,6 +63,14 @@ test.describe('system preference change handling', () => {
     let hasDarkClass = await page.evaluate(() => document.documentElement.classList.contains('dark'));
     expect(hasDarkClass).toBe(false);
 
+    // Alpine $persist schreibt beim Init automatisch das aktuelle Theme in localStorage.
+    // Damit der Change-Handler die Systempräferenz-Änderung nicht als "User hat Theme gewählt"
+    // interpretiert, localStorage NACH dem Laden der Seite nochmals leeren.
+    await page.evaluate(() => {
+      window.localStorage.removeItem('mary-theme');
+      window.localStorage.removeItem('mary-class');
+    });
+
     // Systempräferenz auf Dark ändern via Playwright
     await page.emulateMedia({ colorScheme: 'dark' });
 
