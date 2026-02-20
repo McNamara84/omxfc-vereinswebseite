@@ -25,8 +25,8 @@ test.describe('dark mode respects preferences', () => {
 
   test('prioritises stored light preference over system dark mode', async ({ page }) => {
     await page.addInitScript(() => {
-      window.localStorage.setItem('_x_mary-theme', JSON.stringify('caramellatte'));
-      window.localStorage.setItem('_x_mary-class', JSON.stringify(''));
+      window.localStorage.setItem('mary-theme', JSON.stringify('caramellatte'));
+      window.localStorage.setItem('mary-class', JSON.stringify(''));
     });
 
     await page.goto('/');
@@ -38,8 +38,8 @@ test.describe('dark mode respects preferences', () => {
     expect(currentTheme).toBe('caramellatte');
 
     await page.evaluate(() => {
-      window.localStorage.removeItem('_x_mary-theme');
-      window.localStorage.removeItem('_x_mary-class');
+      window.localStorage.removeItem('mary-theme');
+      window.localStorage.removeItem('mary-class');
     });
   });
 
@@ -55,8 +55,8 @@ test.describe('system preference change handling', () => {
 
   test('updates theme when system preference changes and no stored preference exists', async ({ page }) => {
     await page.addInitScript(() => {
-      window.localStorage.removeItem('_x_mary-theme');
-      window.localStorage.removeItem('_x_mary-class');
+      window.localStorage.removeItem('mary-theme');
+      window.localStorage.removeItem('mary-class');
     });
 
     await page.goto('/');
@@ -76,15 +76,15 @@ test.describe('system preference change handling', () => {
 
   test('reacts to storage theme updates', async ({ page }) => {
     await page.addInitScript(() => {
-      window.localStorage.removeItem('_x_mary-theme');
-      window.localStorage.removeItem('_x_mary-class');
+      window.localStorage.removeItem('mary-theme');
+      window.localStorage.removeItem('mary-class');
     });
 
     await page.goto('/');
     await page.waitForFunction(() => typeof window.__omxfcApplyStoredTheme === 'function');
     const applied = await page.evaluate(() => {
-      window.localStorage.setItem('_x_mary-theme', JSON.stringify('coffee'));
-      window.localStorage.setItem('_x_mary-class', JSON.stringify('dark'));
+      window.localStorage.setItem('mary-theme', JSON.stringify('coffee'));
+      window.localStorage.setItem('mary-class', JSON.stringify('dark'));
       return window.__omxfcApplyStoredTheme?.();
     });
 
@@ -95,8 +95,8 @@ test.describe('system preference change handling', () => {
     expect(currentTheme).toBe('coffee');
 
     const reverted = await page.evaluate(() => {
-      window.localStorage.setItem('_x_mary-theme', JSON.stringify('caramellatte'));
-      window.localStorage.setItem('_x_mary-class', JSON.stringify(''));
+      window.localStorage.setItem('mary-theme', JSON.stringify('caramellatte'));
+      window.localStorage.setItem('mary-class', JSON.stringify(''));
       return window.__omxfcApplyStoredTheme?.();
     });
 
@@ -107,8 +107,8 @@ test.describe('system preference change handling', () => {
     expect(revertedTheme).toBe('caramellatte');
 
     await page.evaluate(() => {
-      window.localStorage.removeItem('_x_mary-theme');
-      window.localStorage.removeItem('_x_mary-class');
+      window.localStorage.removeItem('mary-theme');
+      window.localStorage.removeItem('mary-class');
     });
   });
 

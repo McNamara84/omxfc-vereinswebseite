@@ -25,7 +25,7 @@ const applyDark = (isDark) => {
 
 const getStoredTheme = () => {
     try {
-        const raw = window.localStorage.getItem('_x_mary-theme');
+        const raw = window.localStorage.getItem('mary-theme');
         return raw ? JSON.parse(raw) : null;
     } catch {
         return null;
@@ -57,7 +57,7 @@ prefersDark.addEventListener('change', (event) => {
 });
 
 window.addEventListener('storage', (event) => {
-    if (event.key !== '_x_mary-theme') {
+    if (event.key !== 'mary-theme') {
         return;
     }
 

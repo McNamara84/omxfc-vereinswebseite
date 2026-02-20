@@ -14,7 +14,7 @@
 
     const getStoredTheme = () => {
         try {
-            const raw = window.localStorage.getItem('_x_mary-theme');
+            const raw = window.localStorage.getItem('mary-theme');
             return raw ? JSON.parse(raw) : null;
         } catch {
             return null;
@@ -42,8 +42,8 @@
         if (oldTheme === 'dark' || oldTheme === 'light') {
             const newTheme = oldTheme === 'dark' ? DARK_THEME : LIGHT_THEME;
             const newClass = oldTheme === 'dark' ? 'dark' : '';
-            window.localStorage.setItem('_x_mary-theme', JSON.stringify(newTheme));
-            window.localStorage.setItem('_x_mary-class', JSON.stringify(newClass));
+            window.localStorage.setItem('mary-theme', JSON.stringify(newTheme));
+            window.localStorage.setItem('mary-class', JSON.stringify(newClass));
             window.localStorage.removeItem('theme');
         }
     } catch {}

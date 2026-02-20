@@ -9,7 +9,7 @@ function initMitgliedWerden() {
     const form = document.getElementById('mitgliedschaft-form');
     if (!form) return;
 
-    const satzungCheck = document.getElementById('satzung_check');
+    const satzungCheck = document.querySelector('[data-testid="mitglied-satzung-check"]');
     const submitButton = document.getElementById('submit-button');
     if (!satzungCheck || !submitButton) return;
 
