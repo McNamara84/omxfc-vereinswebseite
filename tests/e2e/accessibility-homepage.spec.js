@@ -6,10 +6,13 @@ test.describe('Accessibility checks', () => {
     await page.setViewportSize({ width: 375, height: 812 });
     await page.goto('/');
 
-    const navigation = page.locator('nav[x-data]');
+    // maryUI <x-nav> rendert ein <div>, kein <nav> – x-data liegt auf dem Hamburger-Wrapper
+    const hamburgerWrapper = page.locator('div[x-data]').filter({
+      has: page.locator('button[aria-controls="mobile-navigation"]'),
+    });
     const menuToggle = page.locator('button[aria-controls="mobile-navigation"]');
 
-    await expect(navigation).toHaveAttribute('x-data', /open/);
+    await expect(hamburgerWrapper).toHaveAttribute('x-data', /open/);
     await expect(menuToggle).toHaveAccessibleName('Menü öffnen');
     await expect(menuToggle).toHaveAttribute('aria-expanded', 'false');
 
