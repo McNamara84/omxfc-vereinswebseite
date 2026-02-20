@@ -31,7 +31,7 @@
                         594) und 2025 für <em>Die Gestade der Zeit</em> (MX 628).
                     </p>
                     <div class="mt-auto">
-                        <a href="https://de.maddraxikon.com/index.php?title=Michael_Edelbrock" target="_blank"
+                        <a href="https://de.maddraxikon.com/index.php?title=Michael_Edelbrock" target="_blank" rel="noopener noreferrer"
                             class="btn btn-primary btn-sm w-full">
                             Mehr über Michael erfahren
                         </a>
@@ -58,7 +58,7 @@
                             Hügel</em> (MX 607).
                     </p>
                     <div class="mt-auto">
-                        <a href="https://de.maddraxikon.com/index.php?title=Lucy_Guth" target="_blank"
+                        <a href="https://de.maddraxikon.com/index.php?title=Lucy_Guth" target="_blank" rel="noopener noreferrer"
                             class="btn btn-primary btn-sm w-full">Mehr
                             über Lucy erfahren</a>
                     </div>
@@ -83,7 +83,7 @@
                         zu treten.
                     </p>
                     <div class="mt-auto">
-                        <a href="https://de.maddraxikon.com/index.php?title=Ian_Rolf_Hill" target="_blank"
+                        <a href="https://de.maddraxikon.com/index.php?title=Ian_Rolf_Hill" target="_blank" rel="noopener noreferrer"
                             class="btn btn-primary btn-sm w-full">Mehr
                             über Ian Rolf erfahren</a>
                     </div>
@@ -107,7 +107,7 @@
                         2021 erhielt er den Leserpreis „Goldenen Taratze“ für seinen Roman <em>Der Giftplanet</em> (MX 540).
                     </p>
                     <div class="mt-auto">
-                        <a href="https://de.maddraxikon.com/index.php?title=Oliver_Müller" target="_blank"
+                        <a href="https://de.maddraxikon.com/index.php?title=Oliver_Müller" target="_blank" rel="noopener noreferrer"
                             class="btn btn-primary btn-sm w-full">Mehr
                             über Oliver erfahren</a>
                     </div>
@@ -133,7 +133,7 @@
                         anfertigen.
                     </p>
                     <div class="mt-auto">
-                        <a href="https://de.maddraxikon.com/index.php?title=Michael_Schönenbröcher" target="_blank"
+                        <a href="https://de.maddraxikon.com/index.php?title=Michael_Schönenbröcher" target="_blank" rel="noopener noreferrer"
                             class="btn btn-primary btn-sm w-full">Mehr
                             über Mike erfahren</a>
                     </div>
@@ -158,7 +158,7 @@
                         2001 gewann er den Deutschen Phantastik-Preis als Bester Autor.
                     </p>
                     <div class="mt-auto">
-                        <a href="https://de.maddraxikon.com/index.php?title=Jo_Zybell" target="_blank"
+                        <a href="https://de.maddraxikon.com/index.php?title=Jo_Zybell" target="_blank" rel="noopener noreferrer"
                             class="btn btn-primary btn-sm w-full">Mehr
                             über Jo erfahren</a>
                     </div>

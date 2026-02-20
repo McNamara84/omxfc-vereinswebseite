@@ -15,7 +15,7 @@
         </div>
         <p class="mt-4 text-sm sm:text-base text-base-content/80">
             Hier findest du alle aktuellen Termine des Vereins. Den Kalender kannst du auch direkt bei
-            <a href="{{ $calendarLink }}" target="_blank"
+            <a href="{{ $calendarLink }}" target="_blank" rel="noopener noreferrer"
                 class="link link-primary">
                 Google Kalender
             </a>

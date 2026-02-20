@@ -9,11 +9,11 @@
             <h2 class="text-xl font-semibold mb-2">Soziale Medien</h2>
             <p>Dieses Impressum gilt auch für unsere Auftritte in den folgenden sozialen Medien:</p>
             <ul class="list-disc ml-6 mt-2">
-                <li><a href="https://www.facebook.com/mxikon" target="_blank"
+                <li><a href="https://www.facebook.com/mxikon" target="_blank" rel="noopener noreferrer"
                         class="link link-primary">Facebook</a></li>
-                <li><a href="https://www.instagram.com/offizieller_maddrax_fanclub/" target="_blank"
+                <li><a href="https://www.instagram.com/offizieller_maddrax_fanclub/" target="_blank" rel="noopener noreferrer"
                         class="link link-primary">Instagram</a></li>
-                <li><a href="https://www.youtube.com/@mxikon" target="_blank"
+                <li><a href="https://www.youtube.com/@mxikon" target="_blank" rel="noopener noreferrer"
                         class="link link-primary">YouTube</a></li>
             </ul>
         </section>
