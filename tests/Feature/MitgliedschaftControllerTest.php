@@ -52,8 +52,8 @@ class MitgliedschaftControllerTest extends TestCase
         $this->assertStringContainsString('id="mitgliedsbeitrag"', $html);
         $this->assertStringContainsString('id="beitrag-output"', $html);
 
-        // Satzung-Checkbox
-        $this->assertStringContainsString('id="satzung_check"', $html);
+        // Satzung-Checkbox (maryUI prefixes the id with a hash, so check by name attribute)
+        $this->assertStringContainsString('name="satzung_check"', $html);
     }
 
     public function test_membership_application_creates_user_and_assigns_anwaerter_role(): void
