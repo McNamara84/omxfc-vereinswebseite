@@ -354,16 +354,21 @@
                                         :daysUntilDeadline="$daysUntilDeadline"
                                         variant="prominent"
                                     />
-                                    <x-checkbox label="Event-T-Shirt bestellen" id="tshirt_bestellt" name="tshirt_bestellt" value="1" :checked="old('tshirt_bestellt')" />
-                                    <p class="text-xs text-base-content/50 mt-1 ml-8">25,00 € Spende{{ !Auth::check() ? ' (zusammen mit Teilnahme: 30,00 €)' : '' }}</p>
+                                    <div x-data="{ tshirtBestellt: {{ old('tshirt_bestellt') ? 'true' : 'false' }} }">
+                                        <x-checkbox label="Event-T-Shirt bestellen" id="tshirt_bestellt" name="tshirt_bestellt" value="1" x-model="tshirtBestellt" data-testid="fantreffen-tshirt-checkbox" />
+                                        <p class="text-xs text-base-content/50 mt-1 ml-8">25,00 € Spende{{ !Auth::check() ? ' (zusammen mit Teilnahme: 30,00 €)' : '' }}</p>
 
-                                    <div id="tshirt-groesse-container" class="mt-3 hidden">
-                                        @php
-                                            $tshirtGroessen = collect(['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL'])
-                                                ->map(fn($s) => ['id' => $s, 'name' => $s])
-                                                ->toArray();
-                                        @endphp
-                                        <x-form-select label="T-Shirt-Größe *" id="tshirt_groesse" name="tshirt_groesse" :options="$tshirtGroessen" placeholder="Bitte wählen..." :value="old('tshirt_groesse')" data-testid="fantreffen-tshirt-groesse" required />
+                                        <div id="tshirt-groesse-container" data-testid="fantreffen-tshirt-container" class="mt-3" x-show="tshirtBestellt" x-cloak
+                                             x-transition:enter="transition ease-out duration-200"
+                                             x-transition:enter-start="opacity-0 -translate-y-1"
+                                             x-transition:enter-end="opacity-100 translate-y-0">
+                                            @php
+                                                $tshirtGroessen = collect(['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL'])
+                                                    ->map(fn($s) => ['id' => $s, 'name' => $s])
+                                                    ->toArray();
+                                            @endphp
+                                            <x-form-select label="T-Shirt-Größe *" id="tshirt_groesse" name="tshirt_groesse" :options="$tshirtGroessen" placeholder="Bitte wählen..." :value="old('tshirt_groesse')" data-testid="fantreffen-tshirt-groesse" x-bind:required="tshirtBestellt" />
+                                        </div>
                                     </div>
                                 </div>
                             @endif
@@ -381,7 +386,5 @@
         </div>
     </div>
 </div>
-
-@vite(['resources/js/fantreffen.js'])
 
 </x-app-layout>
