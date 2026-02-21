@@ -42,7 +42,7 @@
         @livewire('navigation-menu')
 
         {{-- Main Content --}}
-        <main class="w-full">
+        <main class="w-full pt-2">
             {{ $slot }}
         </main>
     </div>
