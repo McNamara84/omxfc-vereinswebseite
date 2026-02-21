@@ -4435,16 +4435,16 @@
         },
         {
             "name": "robsontenorio/mary",
-            "version": "2.7.0",
+            "version": "2.7.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/robsontenorio/mary.git",
-                "reference": "2657244f907eec450853a093274a8c763c8fb6fa"
+                "reference": "d7d9071e5a26fe21b7bb179465457ba6db7fe3dd"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/robsontenorio/mary/zipball/2657244f907eec450853a093274a8c763c8fb6fa",
-                "reference": "2657244f907eec450853a093274a8c763c8fb6fa",
+                "url": "https://api.github.com/repos/robsontenorio/mary/zipball/d7d9071e5a26fe21b7bb179465457ba6db7fe3dd",
+                "reference": "d7d9071e5a26fe21b7bb179465457ba6db7fe3dd",
                 "shasum": ""
             },
             "require": {
@@ -4509,7 +4509,7 @@
             ],
             "support": {
                 "issues": "https://github.com/robsontenorio/mary/issues",
-                "source": "https://github.com/robsontenorio/mary/tree/2.7.0"
+                "source": "https://github.com/robsontenorio/mary/tree/2.7.1"
             },
             "funding": [
                 {
@@ -4517,7 +4517,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-02-07T20:44:14+00:00"
+            "time": "2026-02-20T17:11:48+00:00"
         },
         {
             "name": "spatie/browsershot",

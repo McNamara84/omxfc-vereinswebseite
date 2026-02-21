@@ -53,6 +53,25 @@
     margin-right: auto;
 }
 
+/* ===================================================================
+ * Chromium/WebKit Autofill Override für DaisyUI-5-Inputs
+ *
+ * Problem: Browser-Autofill setzt eigene Hintergrundfarben auf <input>,
+ * die mit dem DaisyUI-Theme kollidieren.
+ * DaisyUI 5 nutzt .input als Container-Klasse, das innere <input> hat
+ * transparent background – Autofill überschreibt das.
+ *
+ * Lösung: box-shadow-Trick erzwingt Theme-konforme Hintergrundfarbe,
+ * -webkit-text-fill-color behält die Theme-Textfarbe.
+ * =================================================================== */
+.input input:autofill,
+.input input:-webkit-autofill {
+    -webkit-box-shadow: 0 0 0px 1000px var(--color-base-100) inset !important;
+    -webkit-text-fill-color: var(--color-base-content) !important;
+    transition: background-color 5000s ease-in-out 0s;
+    caret-color: var(--color-base-content);
+}
+
 @layer base {
     /* Hintergrund wird jetzt vom daisyUI-Theme gesteuert (caramellatte/coffee) */
 
