@@ -22,25 +22,27 @@
                     data-testid="reset-password-email"
                 />
 
-                <x-password
-                    label="Passwort"
-                    id="password"
-                    name="password"
-                    required
-                    autocomplete="new-password"
-                    class="mt-4"
-                    data-testid="reset-password-password"
-                />
+                <div class="mt-4">
+                    <x-password
+                        label="Passwort"
+                        id="password"
+                        name="password"
+                        required
+                        autocomplete="new-password"
+                        data-testid="reset-password-password"
+                    />
+                </div>
 
-                <x-password
-                    label="Passwort bestätigen"
-                    id="password_confirmation"
-                    name="password_confirmation"
-                    required
-                    autocomplete="new-password"
-                    class="mt-4"
-                    data-testid="reset-password-confirm"
-                />
+                <div class="mt-4">
+                    <x-password
+                        label="Passwort bestätigen"
+                        id="password_confirmation"
+                        name="password_confirmation"
+                        required
+                        autocomplete="new-password"
+                        data-testid="reset-password-confirm"
+                    />
+                </div>
 
                 <div class="flex items-center justify-end mt-6">
                     <x-button label="Passwort zurücksetzen" type="submit" class="btn-primary" data-testid="reset-password-submit" />

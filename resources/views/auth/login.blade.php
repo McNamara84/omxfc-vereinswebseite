@@ -26,15 +26,16 @@
                     data-testid="login-email"
                 />
 
-                <x-password
-                    label="Passwort"
-                    id="password"
-                    name="password"
-                    required
-                    autocomplete="current-password"
-                    class="mt-4"
-                    data-testid="login-password"
-                />
+                <div class="mt-4">
+                    <x-password
+                        label="Passwort"
+                        id="password"
+                        name="password"
+                        required
+                        autocomplete="current-password"
+                        data-testid="login-password"
+                    />
+                </div>
 
                 <div class="mt-4">
                     <x-checkbox label="Merken" id="remember_me" name="remember" data-testid="login-remember" />

@@ -20,37 +20,40 @@
                     data-testid="register-name"
                 />
 
-                <x-input
-                    label="E-Mail"
-                    id="email"
-                    name="email"
-                    type="email"
-                    :value="old('email')"
-                    required
-                    autocomplete="username"
-                    class="mt-4"
-                    data-testid="register-email"
-                />
+                <div class="mt-4">
+                    <x-input
+                        label="E-Mail"
+                        id="email"
+                        name="email"
+                        type="email"
+                        :value="old('email')"
+                        required
+                        autocomplete="username"
+                        data-testid="register-email"
+                    />
+                </div>
 
-                <x-password
-                    label="Passwort"
-                    id="password"
-                    name="password"
-                    required
-                    autocomplete="new-password"
-                    class="mt-4"
-                    data-testid="register-password"
-                />
+                <div class="mt-4">
+                    <x-password
+                        label="Passwort"
+                        id="password"
+                        name="password"
+                        required
+                        autocomplete="new-password"
+                        data-testid="register-password"
+                    />
+                </div>
 
-                <x-password
-                    label="Passwort bestätigen"
-                    id="password_confirmation"
-                    name="password_confirmation"
-                    required
-                    autocomplete="new-password"
-                    class="mt-4"
-                    data-testid="register-password-confirm"
-                />
+                <div class="mt-4">
+                    <x-password
+                        label="Passwort bestätigen"
+                        id="password_confirmation"
+                        name="password_confirmation"
+                        required
+                        autocomplete="new-password"
+                        data-testid="register-password-confirm"
+                    />
+                </div>
 
                 @if (Laravel\Jetstream\Jetstream::hasTermsAndPrivacyPolicyFeature())
                     <div class="mt-4">
