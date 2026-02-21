@@ -355,10 +355,10 @@
                                         variant="prominent"
                                     />
                                     <div x-data="{ tshirtBestellt: {{ old('tshirt_bestellt') ? 'true' : 'false' }} }">
-                                        <x-checkbox label="Event-T-Shirt bestellen" id="tshirt_bestellt" name="tshirt_bestellt" value="1" x-model="tshirtBestellt" />
+                                        <x-checkbox label="Event-T-Shirt bestellen" id="tshirt_bestellt" name="tshirt_bestellt" value="1" x-model="tshirtBestellt" data-testid="fantreffen-tshirt-checkbox" />
                                         <p class="text-xs text-base-content/50 mt-1 ml-8">25,00 € Spende{{ !Auth::check() ? ' (zusammen mit Teilnahme: 30,00 €)' : '' }}</p>
 
-                                        <div id="tshirt-groesse-container" class="mt-3" x-show="tshirtBestellt" x-cloak
+                                        <div id="tshirt-groesse-container" data-testid="fantreffen-tshirt-container" class="mt-3" x-show="tshirtBestellt" x-cloak
                                              x-transition:enter="transition ease-out duration-200"
                                              x-transition:enter-start="opacity-0 -translate-y-1"
                                              x-transition:enter-end="opacity-100 translate-y-0">
