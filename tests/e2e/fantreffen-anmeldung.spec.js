@@ -54,12 +54,12 @@ test.describe('Fantreffen 2026 Anmeldung', () => {
         const tshirtContainer = page.locator('#tshirt-groesse-container');
         const checkbox = page.locator('input[name="tshirt_bestellt"]');
 
-        // Container ist initial versteckt
-        await expect(tshirtContainer).toHaveClass(/hidden/);
+        // Container ist initial versteckt (Alpine.js x-show setzt display:none)
+        await expect(tshirtContainer).toBeHidden();
 
         // Checkbox anklicken → Container sichtbar
         await checkbox.check();
-        await expect(tshirtContainer).not.toHaveClass(/hidden/);
+        await expect(tshirtContainer).toBeVisible();
 
         // Größen-Select ist jetzt required
         const select = page.locator('select[name="tshirt_groesse"]');
@@ -67,7 +67,7 @@ test.describe('Fantreffen 2026 Anmeldung', () => {
 
         // Checkbox abwählen → Container wird wieder versteckt
         await checkbox.uncheck();
-        await expect(tshirtContainer).toHaveClass(/hidden/);
+        await expect(tshirtContainer).toBeHidden();
     });
 
     test('Formular ist valide und wird korrekt an den Server gesendet', async ({ page }) => {
