@@ -5,7 +5,7 @@
         </a>
 
         {{-- Desktop-Menü --}}
-        <div class="hidden flex-1 justify-center xl:flex xl:items-center xl:gap-1">
+        <div class="hidden flex-1 justify-between xl:flex xl:items-center">
             @auth
                 <x-button label="Dashboard" link="{{ route('dashboard') }}" class="btn-ghost btn-sm" />
                 <x-button label="Fantreffen 2026" link="{{ route('fantreffen.2026') }}" class="btn-ghost btn-sm" />
