@@ -1,5 +1,25 @@
 [ 
   {
+    "version": "1.9.1",
+    "pub_date": "2026-02-21",
+    "notes": [
+      "[New] Kompendium: Alle Romane für die Volltextsuche indexiert",
+      "[New] Kompendium: Serienfilter für gezielte Suche nach Hauptserie, Hardcover und Miniserien",
+      "[New] Kompendium: Beta-Zugang für Mitglieder der AG Maddraxikon",
+      "[New] Light-/Dark-Mode mit manueller Umschaltmöglichkeit",
+      "[New] Toast-Benachrichtigungen für Nutzer-Feedback bei Aktionen",
+      "[Improved] Optimierte Darstellung auf Smartphones und Tablets",
+      "[Improved] Hauptmenü für Desktop und Mobile überarbeitet",
+      "[Improved] Protokoll-Downloads öffnen sich in neuem Tab",
+      "[Improved] Mitgliederkarte zeigt jetzt Wohnorte statt Standorte",
+      "[Fixed] Fantreffen-Anmeldung funktioniert wieder korrekt",
+      "[Fixed] T-Shirt-Auswahl bei Fantreffen-Anmeldung repariert",
+      "[Fixed] Mitgliedsantrag funktioniert wieder korrekt",
+      "[Fixed] Login-Formular wird korrekt dargestellt",
+      "[Fixed] Baxx werden beim Löschen verifizierter Challenges korrekt abgezogen"
+    ]
+  },
+  {
     "version": "1.9.0",
     "pub_date": "2026-02-01",
     "notes": [
