@@ -126,7 +126,7 @@
                         <h2 class="text-xl font-semibold text-primary">Aktivitäten</h2>
                         <p class="text-sm text-base-content">Neueste Rezensionen, Kommentare & Aktionen im Überblick.</p>
                     </div>
-                    <x-badge value="Live-Feed" class="badge-primary badge-outline" />
+                    <x-badge value="Live-Feed" class="badge-primary badge-outline hidden sm:inline-flex" />
                 </div>
             </x-slot:title>
 

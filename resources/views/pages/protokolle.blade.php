@@ -38,6 +38,8 @@
                                         <a
                                             href="{{ route('protokolle.download', $protokoll['datei']) }}"
                                             class="inline-flex items-center gap-2 text-primary hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
+                                            x-data
+                                            @click="$dispatch('mary-toast', { title: 'Download gestartet', description: 'Die PDF-Datei wird heruntergeladen…', position: 'toast-bottom toast-end', icon: 'o-arrow-down-tray', css: 'alert-info', timeout: 3000 })"
                                         >
                                             <x-icon name="o-document-text" class="w-4 h-4" />
                                             <span>{{ $protokoll['datum'] }} – {{ $protokoll['titel'] }}</span>
