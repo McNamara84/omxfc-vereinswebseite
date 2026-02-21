@@ -2,10 +2,11 @@ import './bootstrap';
 
 // Alpine.js initialisieren (Logik in alpine-init.js für Testbarkeit extrahiert)
 import Alpine from 'alpinejs';
+import anchor from '@alpinejs/anchor';
 import focus from '@alpinejs/focus';
 import { scheduleInitAlpine } from './alpine-init';
 
-scheduleInitAlpine(Alpine, [focus]);
+scheduleInitAlpine(Alpine, [anchor, focus]);
 
 const DARK_THEME = 'coffee';
 const LIGHT_THEME = 'caramellatte';
