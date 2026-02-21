@@ -1,11 +1,11 @@
-<x-nav sticky full-width>
+<x-nav sticky>
     <x-slot:brand>
         <a href="{{ route('home') }}" class="shrink-0">
             <x-application-mark class="block h-9 w-auto" />
         </a>
 
         {{-- Desktop-Menü --}}
-        <div class="hidden flex-1 xl:flex xl:items-center xl:gap-1">
+        <div class="hidden xl:flex xl:items-center xl:gap-0.5">
             @auth
                 <x-button label="Dashboard" link="{{ route('dashboard') }}" class="btn-ghost btn-sm flex-1" />
                 <x-button label="Fantreffen 2026" link="{{ route('fantreffen.2026') }}" class="btn-ghost btn-sm flex-1" />
