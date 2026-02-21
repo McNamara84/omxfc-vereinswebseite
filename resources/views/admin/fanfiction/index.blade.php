@@ -114,7 +114,7 @@
                     </table>
 
                     {{-- Lösch-Bestätigungsdialog --}}
-                    <x-mary-modal id="delete-fanfiction-modal" title="Fanfiction löschen" separator>
+                    <x-mary-modal id="delete-fanfiction-modal" title="Fanfiction löschen" separator without-trap-focus>
                         <p class="text-base-content">
                             Möchtest du diese Fanfiction wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.
                         </p>

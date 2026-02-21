@@ -233,7 +233,7 @@
         </x-card>
 
         <!-- Profile Photo Modal -->
-        <x-mary-modal id="profilePhotoModal" box-class="max-w-lg">
+        <x-mary-modal id="profilePhotoModal" box-class="max-w-lg" without-trap-focus>
             <div class="flex justify-center">
                 <img loading="lazy" id="profilePhotoModalImage" src="" alt="Profilbild" class="max-w-full max-h-[80vh] object-contain">
             </div>
@@ -243,7 +243,7 @@
         </x-mary-modal>
 
         <!-- Badge Modal -->
-        <x-mary-modal id="badgeModal" box-class="max-w-lg">
+        <x-mary-modal id="badgeModal" box-class="max-w-lg" without-trap-focus>
             <h3 id="badgeModalTitle" class="text-xl font-bold text-base-content mb-5"></h3>
             <div class="flex justify-center mb-6">
                 <img loading="lazy" id="badgeModalImage" src="" alt="Badge" class="w-32 h-32 object-contain">

@@ -101,7 +101,7 @@
                     </div>
 
                     {{-- Ablehnungs-Bestätigungsdialog --}}
-                    <x-mary-modal id="reject-anwaerter-modal" title="Antrag ablehnen" separator>
+                    <x-mary-modal id="reject-anwaerter-modal" title="Antrag ablehnen" separator without-trap-focus>
                         <p class="text-base-content">
                             Möchtest du diesen Mitgliedsantrag wirklich ablehnen? Der Nutzer wird dadurch gelöscht.
                         </p>
