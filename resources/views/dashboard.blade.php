@@ -101,7 +101,7 @@
                     </div>
 
                     {{-- Ablehnungs-Bestätigungsdialog --}}
-                    <x-mary-modal id="reject-anwaerter-modal" title="Antrag ablehnen" separator>
+                    <x-mary-modal id="reject-anwaerter-modal" title="Antrag ablehnen" separator without-trap-focus>
                         <p class="text-base-content">
                             Möchtest du diesen Mitgliedsantrag wirklich ablehnen? Der Nutzer wird dadurch gelöscht.
                         </p>
@@ -126,7 +126,7 @@
                         <h2 class="text-xl font-semibold text-primary">Aktivitäten</h2>
                         <p class="text-sm text-base-content">Neueste Rezensionen, Kommentare & Aktionen im Überblick.</p>
                     </div>
-                    <x-badge value="Live-Feed" class="badge-primary badge-outline" />
+                    <x-badge value="Live-Feed" class="badge-primary badge-outline hidden sm:inline-flex" />
                 </div>
             </x-slot:title>
 

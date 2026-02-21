@@ -14,7 +14,6 @@
     <x-button
         x-show="!emailCopied"
         icon="o-clipboard-document"
-        :label="$isMobile ? 'Mail' : null"
         data-copy-email
         title="E-Mail kopieren"
         aria-label="E-Mail-Adresse kopieren"
@@ -33,9 +32,7 @@
         "
         class="{{ $isMobile ? 'btn-sm flex-1' : 'btn-xs' }}"
     >
-        @unless($isMobile)
-            <span class="hidden xl:inline">Mail</span>
-        @endunless
+        <span class="hidden {{ $isMobile ? 'sm:inline' : 'xl:inline' }}">Mail</span>
     </x-button>
 
     {{-- Copied state --}}
@@ -43,13 +40,10 @@
         x-show="emailCopied"
         x-cloak
         icon="o-check"
-        :label="$isMobile ? 'Kopiert' : null"
         title="E-Mail kopiert"
         aria-label="E-Mail-Adresse wurde kopiert"
         class="{{ $isMobile ? 'btn-success btn-sm flex-1' : 'btn-success btn-xs' }}"
     >
-        @unless($isMobile)
-            <span class="hidden xl:inline">Kopiert</span>
-        @endunless
+        <span class="hidden {{ $isMobile ? 'sm:inline' : 'xl:inline' }}">Kopiert</span>
     </x-button>
 </div>

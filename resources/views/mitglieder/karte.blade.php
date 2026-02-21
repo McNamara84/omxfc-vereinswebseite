@@ -5,7 +5,7 @@
 
                 <div id="member-map-note">
                     <x-alert class="alert-warning mb-4" icon="o-exclamation-triangle" role="note">
-                        Aus Datenschutzgründen werden die Standorte der Mitglieder nicht exakt angezeigt.
+                        Aus Datenschutzgründen werden die Wohnorte der Mitglieder nicht exakt angezeigt.
                     </x-alert>
                 </div>
                 <!-- Karten-Container -->

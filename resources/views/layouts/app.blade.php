@@ -53,6 +53,8 @@
     @stack('modals')
     @stack('scripts')
 
+    <x-toast />
+
     @vite(['resources/js/app.js'])
 </body>
 </html>

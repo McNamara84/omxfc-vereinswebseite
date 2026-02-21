@@ -454,10 +454,11 @@
             <div class="flex flex-row gap-2 mt-4">
                 <x-button
                     icon="o-eye"
-                    label="Profil"
                     link="{{ route('profile.view', $member->id) }}"
                     class="btn-info btn-sm flex-1"
-                />
+                >
+                    <span class="hidden sm:inline">Profil</span>
+                </x-button>
 
                 @if($canViewDetails)
                     <x-copy-email-button :email="$member->email" variant="mobile" />
@@ -473,7 +474,9 @@
                         {{-- Rolle ändern (Mobile) --}}
                         <x-dropdown class="flex-1">
                             <x-slot:trigger>
-                                <x-button icon="o-pencil-square" label="Rolle" class="btn-warning btn-sm w-full" />
+                                <x-button icon="o-pencil-square" class="btn-warning btn-sm w-full">
+                                    <span class="hidden sm:inline">Rolle</span>
+                                </x-button>
                             </x-slot:trigger>
                             @foreach($roleRanks as $role => $rank)
                                 @if($rank <= $currentUserRank && $role !== $memberRole)
@@ -499,9 +502,10 @@
                             <x-button
                                 type="submit"
                                 icon="o-trash"
-                                label="Löschen"
                                 class="btn-error btn-sm w-full"
-                            />
+                            >
+                                <span class="hidden sm:inline">Löschen</span>
+                            </x-button>
                         </form>
                     @endif
                 @endif
