@@ -14,7 +14,7 @@
                 @endif
 
                 {{-- Dropdown Verein --}}
-                <x-dropdown label="Verein" class="btn-ghost btn-sm" no-x-anchor>
+                <x-dropdown label="Verein" class="btn-ghost btn-sm">
                     <x-menu-item title="Fanfiction" link="{{ route('fanfiction.index') }}" />
                     <x-menu-item title="Mitgliederliste" link="{{ route('mitglieder.index') }}" />
                     <x-menu-item title="Mitgliederkarte" link="{{ route('mitglieder.karte') }}" />
@@ -26,20 +26,20 @@
                 </x-dropdown>
 
                 {{-- Dropdown Veranstaltungen --}}
-                <x-dropdown label="Veranstaltungen" class="btn-ghost btn-sm" no-x-anchor>
+                <x-dropdown label="Veranstaltungen" class="btn-ghost btn-sm">
                     <x-menu-item title="Fotos" link="{{ route('fotogalerie') }}" />
                     <x-menu-item title="Meetings" link="{{ route('meetings') }}" />
                     <x-menu-item title="Termine" link="{{ route('termine') }}" />
                 </x-dropdown>
 
                 {{-- Dropdown Baxx --}}
-                <x-dropdown label="Baxx" class="btn-ghost btn-sm" no-x-anchor>
+                <x-dropdown label="Baxx" class="btn-ghost btn-sm">
                     <x-menu-item title="Challenges" link="{{ route('todos.index') }}" />
                     <x-menu-item title="Belohnungen" link="{{ route('rewards.index') }}" />
                 </x-dropdown>
 
                 {{-- Dropdown Belohnungen --}}
-                <x-dropdown label="Belohnungen" class="btn-ghost btn-sm" no-x-anchor>
+                <x-dropdown label="Belohnungen" class="btn-ghost btn-sm">
                     <x-menu-item title="Maddraxiversum" link="{{ route('maddraxiversum.index') }}" />
                     <x-menu-item title="Downloads" link="{{ route('downloads') }}" />
                     <x-menu-item title="Kompendium" link="{{ route('kompendium.index') }}" />
@@ -48,7 +48,7 @@
 
                 {{-- Dropdown AG (nur wenn Mitglied einer AG oder Vorstand) --}}
                 @if(Auth::user()->teams()->where('personal_team', false)->exists() || Auth::user()->hasVorstandRole())
-                    <x-dropdown label="AG" class="btn-ghost btn-sm" no-x-anchor>
+                    <x-dropdown label="AG" class="btn-ghost btn-sm">
                         @if(Auth::user()->hasVorstandRole() || Auth::user()->isMemberOfTeam('AG Fanhörbücher'))
                             <x-menu-item title="EARDRAX Dashboard" link="{{ route('hoerbuecher.index') }}" />
                         @endif
@@ -63,7 +63,7 @@
 
                 {{-- Dropdown Vorstand (nur Vorstand/Kassenwart/Admin) --}}
                 @if(Auth::user()->hasAnyRole(\App\Enums\Role::Admin, \App\Enums\Role::Vorstand, \App\Enums\Role::Kassenwart))
-                    <x-dropdown label="Vorstand" class="btn-ghost btn-sm" no-x-anchor>
+                    <x-dropdown label="Vorstand" class="btn-ghost btn-sm">
                         <x-menu-item title="Statistik" link="{{ route('admin.statistiken.index') }}" />
                         <x-menu-item title="Anmeldungen FT" link="{{ route('admin.fantreffen.2026') }}" />
                         <x-menu-item title="Fanfiction" link="{{ route('admin.fanfiction.index') }}" />
@@ -75,7 +75,7 @@
 
                 {{-- Dropdown Admin (nur Admin) --}}
                 @if(Auth::user()->hasRole(\App\Enums\Role::Admin))
-                    <x-dropdown label="Admin" class="btn-ghost btn-sm" no-x-anchor>
+                    <x-dropdown label="Admin" class="btn-ghost btn-sm">
                         <x-menu-item title="Newsletter versenden" link="{{ route('newsletter.create') }}" />
                         <x-menu-item title="Kurznachrichten" link="{{ route('admin.messages.index') }}" />
                         <x-menu-item title="Charakter-Editor" link="{{ route('rpg.char-editor') }}" />
@@ -108,7 +108,7 @@
         {{-- Profil-Dropdown / Login (Desktop) --}}
         <div class="hidden xl:flex xl:items-center">
             @auth
-                <x-dropdown no-x-anchor class="dropdown-end">
+                <x-dropdown right>
                     <x-slot:trigger>
                         <button class="flex items-center">
                             <img class="h-8 w-8 rounded-full object-cover" src="{{ Auth::user()->profile_photo_url }}" alt="{{ Auth::user()->name }}" />
