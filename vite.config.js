@@ -15,7 +15,6 @@ export default defineConfig({
                 'resources/js/hoerbuecher.js',
                 'resources/js/hoerbuch-role-form.js',
                 'resources/js/hoerbuch-role-upload-toggle.js',
-                'resources/js/fantreffen.js',
                 'resources/js/romantausch-bundle-preview.js',
             ],
             refresh: true,

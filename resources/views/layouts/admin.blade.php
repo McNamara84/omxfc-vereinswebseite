@@ -26,7 +26,7 @@
 
 <body class="font-sans antialiased">
     <x-banner />
-    <div class="min-h-screen bg-base-200 xl:pt-24">
+    <div class="min-h-screen bg-base-200">
         @livewire('navigation-menu')
 
         {{-- maryUI Main-Layout mit optionaler Sidebar --}}
