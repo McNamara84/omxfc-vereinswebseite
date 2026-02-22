@@ -78,6 +78,8 @@ class ThreeDModelService
     {
         $oldFilePath = null;
         $oldThumbnailPath = null;
+        $newFilePath = null;
+        $newThumbnailPath = null;
 
         // Neue 3D-Datei? → Neue speichern, alte merken zum späteren Löschen
         if ($file) {
@@ -87,7 +89,8 @@ class ThreeDModelService
             $uuid = Str::uuid();
             $filename = $uuid.'.'.$extension;
 
-            $model->file_path = $file->storeAs(self::MODEL_STORAGE_PATH, $filename, 'private');
+            $newFilePath = $file->storeAs(self::MODEL_STORAGE_PATH, $filename, 'private');
+            $model->file_path = $newFilePath;
             $model->file_format = self::EXTENSION_TO_FORMAT[$extension] ?? $extension;
             $model->file_size = $file->getSize();
         }
@@ -98,14 +101,28 @@ class ThreeDModelService
 
             $thumbExtension = strtolower($thumbnail->getClientOriginalExtension());
             $thumbFilename = Str::uuid().'.'.$thumbExtension;
-            $model->thumbnail_path = $thumbnail->storeAs(self::THUMBNAIL_STORAGE_PATH, $thumbFilename, 'public');
+            $newThumbnailPath = $thumbnail->storeAs(self::THUMBNAIL_STORAGE_PATH, $thumbFilename, 'public');
+            $model->thumbnail_path = $newThumbnailPath;
         }
 
         $model->name = $metadata['name'];
         $model->description = $metadata['description'];
         $model->maddraxikon_url = $metadata['maddraxikon_url'] ?? null;
         $model->required_baxx = $metadata['required_baxx'];
-        $model->save();
+
+        try {
+            $model->save();
+        } catch (\Throwable $e) {
+            // Neue Dateien aufräumen, da save() fehlgeschlagen ist
+            if ($newFilePath) {
+                Storage::disk('private')->delete($newFilePath);
+            }
+            if ($newThumbnailPath) {
+                Storage::disk('public')->delete($newThumbnailPath);
+            }
+
+            throw $e;
+        }
 
         // Alte Dateien erst nach erfolgreichem Speichern löschen
         if ($oldFilePath) {
