@@ -7,6 +7,7 @@ use App\Models\BookRequest;
 use App\Models\KassenbuchEntry;
 use App\Models\Poll;
 use App\Models\Team;
+use App\Models\ThreeDModel;
 use App\Models\Todo;
 use App\Models\User;
 use App\Policies\BookOfferPolicy;
@@ -14,6 +15,7 @@ use App\Policies\BookRequestPolicy;
 use App\Policies\KassenbuchEntryPolicy;
 use App\Policies\PollPolicy;
 use App\Policies\TeamPolicy;
+use App\Policies\ThreeDModelPolicy;
 use App\Policies\TodoPolicy;
 use App\Policies\UserPolicy;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
@@ -34,6 +36,7 @@ class AuthServiceProvider extends ServiceProvider
         KassenbuchEntry::class => KassenbuchEntryPolicy::class,
         User::class => UserPolicy::class,
         Poll::class => PollPolicy::class,
+        ThreeDModel::class => ThreeDModelPolicy::class,
     ];
 
     /**

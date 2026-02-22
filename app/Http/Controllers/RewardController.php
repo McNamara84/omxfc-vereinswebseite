@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ThreeDModel;
 use App\Models\User;
 use App\Services\TeamPointService;
 use Illuminate\Support\Facades\Auth;
@@ -22,6 +23,21 @@ class RewardController extends Controller
         $userPoints = $this->teamPointService->getUserPoints($user);
 
         $rewards = config('rewards', []);
+
+        // 3D-Modelle dynamisch als Belohnungen hinzufügen
+        $threeDModels = ThreeDModel::orderBy('required_baxx')->get();
+        foreach ($threeDModels as $model) {
+            $rewards[] = [
+                'title' => '3D-Modell - '.$model->name,
+                'description' => $model->description,
+                'points' => $model->required_baxx,
+                'url' => route('3d-modelle.show', $model),
+                'type' => '3d-modell',
+            ];
+        }
+
+        // Nach Punkten sortieren (statische + dynamische Rewards gemischt)
+        usort($rewards, fn ($a, $b) => $a['points'] <=> $b['points']);
 
         if ($currentTeam) {
             $members = $currentTeam->activeUsers()->get();

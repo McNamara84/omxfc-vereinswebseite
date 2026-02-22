@@ -28,6 +28,7 @@ use App\Http\Controllers\RezensionController;
 use App\Http\Controllers\RomantauschController;
 use App\Http\Controllers\RpgCharEditorController;
 use App\Http\Controllers\StatistikController;
+use App\Http\Controllers\ThreeDModelController;
 use App\Http\Controllers\TodoController;
 use App\Http\Middleware\RedirectIfAnwaerter;
 use App\Livewire\FanfictionCreate;
@@ -242,6 +243,20 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
     Route::prefix('downloads')->controller(DownloadsController::class)->group(function () {
         Route::get('/', 'index')->name('downloads');
         Route::get('herunterladen/{datei}', 'download')->name('downloads.download');
+    });
+
+    Route::prefix('3d-modelle')->name('3d-modelle.')->controller(ThreeDModelController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::middleware('admin-or-vorstand')->group(function () {
+            Route::get('erstellen', 'create')->name('create');
+            Route::post('/', 'store')->name('store');
+            Route::get('{threeDModel}/bearbeiten', 'edit')->name('edit');
+            Route::put('{threeDModel}', 'update')->name('update');
+            Route::delete('{threeDModel}', 'destroy')->name('destroy');
+        });
+        Route::get('{threeDModel}', 'show')->name('show');
+        Route::get('{threeDModel}/herunterladen', 'download')->name('download');
+        Route::get('{threeDModel}/vorschau', 'preview')->name('preview');
     });
 
     Route::prefix('kompendium')->name('kompendium.')->group(function () {
