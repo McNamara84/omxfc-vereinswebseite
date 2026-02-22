@@ -8,20 +8,20 @@
         {{-- Desktop-Menü --}}
         <div class="hidden xl:flex xl:items-center flex-1">
             @auth
-                <div class="flex-1 text-center">
+                <div class="flex-1 grid">
                     <x-button label="Dashboard" link="{{ route('dashboard') }}" class="btn-ghost btn-sm w-full whitespace-nowrap" />
                 </div>
-                <div class="flex-1 text-center">
+                <div class="flex-1 grid">
                     <x-button label="Fantreffen 2026" link="{{ route('fantreffen.2026') }}" class="btn-ghost btn-sm w-full whitespace-nowrap" />
                 </div>
                 @if(($showActivePollForAuth ?? false) && ($activePollMenuLabel ?? null))
-                    <div class="flex-1 text-center">
+                    <div class="flex-1 grid">
                         <x-button label="{{ $activePollMenuLabel }}" link="{{ route('umfrage.aktuell') }}" class="btn-ghost btn-sm w-full whitespace-nowrap" />
                     </div>
                 @endif
 
                 {{-- Dropdown Verein --}}
-                <div class="flex-1 text-center">
+                <div class="flex-1 grid">
                     <x-dropdown label="Verein" class="btn-ghost btn-sm w-full whitespace-nowrap">
                         <x-menu-item title="Fanfiction" link="{{ route('fanfiction.index') }}" />
                         <x-menu-item title="Mitgliederliste" link="{{ route('mitglieder.index') }}" />
@@ -35,7 +35,7 @@
                 </div>
 
                 {{-- Dropdown Veranstaltungen --}}
-                <div class="flex-1 text-center">
+                <div class="flex-1 grid">
                     <x-dropdown label="Veranstaltungen" class="btn-ghost btn-sm w-full whitespace-nowrap">
                         <x-menu-item title="Fotos" link="{{ route('fotogalerie') }}" />
                         <x-menu-item title="Meetings" link="{{ route('meetings') }}" />
@@ -44,7 +44,7 @@
                 </div>
 
                 {{-- Dropdown Baxx --}}
-                <div class="flex-1 text-center">
+                <div class="flex-1 grid">
                     <x-dropdown label="Baxx" class="btn-ghost btn-sm w-full whitespace-nowrap">
                         <x-menu-item title="Challenges" link="{{ route('todos.index') }}" />
                         <x-menu-item title="Belohnungen" link="{{ route('rewards.index') }}" />
@@ -52,7 +52,7 @@
                 </div>
 
                 {{-- Dropdown Belohnungen --}}
-                <div class="flex-1 text-center">
+                <div class="flex-1 grid">
                     <x-dropdown label="Belohnungen" class="btn-ghost btn-sm w-full whitespace-nowrap">
                         <x-menu-item title="Maddraxiversum" link="{{ route('maddraxiversum.index') }}" />
                         <x-menu-item title="Downloads" link="{{ route('downloads') }}" />
@@ -63,7 +63,7 @@
 
                 {{-- Dropdown AG (nur wenn Mitglied einer AG oder Vorstand) --}}
                 @if(Auth::user()->teams()->where('personal_team', false)->exists() || Auth::user()->hasVorstandRole())
-                    <div class="flex-1 text-center">
+                    <div class="flex-1 grid">
                         <x-dropdown label="AG" class="btn-ghost btn-sm w-full whitespace-nowrap">
                             @if(Auth::user()->hasVorstandRole() || Auth::user()->isMemberOfTeam('AG Fanhörbücher'))
                                 <x-menu-item title="EARDRAX Dashboard" link="{{ route('hoerbuecher.index') }}" />
@@ -80,7 +80,7 @@
 
                 {{-- Dropdown Vorstand (nur Vorstand/Kassenwart/Admin) --}}
                 @if(Auth::user()->hasAnyRole(\App\Enums\Role::Admin, \App\Enums\Role::Vorstand, \App\Enums\Role::Kassenwart))
-                    <div class="flex-1 text-center">
+                    <div class="flex-1 grid">
                         <x-dropdown label="Vorstand" class="btn-ghost btn-sm w-full whitespace-nowrap">
                             <x-menu-item title="Statistik" link="{{ route('admin.statistiken.index') }}" />
                             <x-menu-item title="Anmeldungen FT" link="{{ route('admin.fantreffen.2026') }}" />
@@ -94,7 +94,7 @@
 
                 {{-- Dropdown Admin (nur Admin) --}}
                 @if(Auth::user()->hasRole(\App\Enums\Role::Admin))
-                    <div class="flex-1 text-center">
+                    <div class="flex-1 grid">
                         <x-dropdown label="Admin" class="btn-ghost btn-sm w-full whitespace-nowrap">
                             <x-menu-item title="Newsletter versenden" link="{{ route('newsletter.create') }}" />
                             <x-menu-item title="Kurznachrichten" link="{{ route('admin.messages.index') }}" />
@@ -106,36 +106,36 @@
             @endauth
 
             @guest
-                <div class="flex-1 text-center">
+                <div class="flex-1 grid">
                     <x-button label="Fantreffen 2026" link="{{ route('fantreffen.2026') }}" class="btn-ghost btn-sm w-full whitespace-nowrap" />
                 </div>
                 @if(($showActivePollForGuest ?? false) && ($activePollMenuLabel ?? null))
-                    <div class="flex-1 text-center">
+                    <div class="flex-1 grid">
                         <x-button label="{{ $activePollMenuLabel }}" link="{{ route('umfrage.aktuell') }}" class="btn-ghost btn-sm w-full whitespace-nowrap" />
                     </div>
                 @endif
-                <div class="flex-1 text-center">
+                <div class="flex-1 grid">
                     <x-button label="Chronik" link="{{ route('chronik') }}" class="btn-ghost btn-sm w-full whitespace-nowrap" />
                 </div>
-                <div class="flex-1 text-center">
+                <div class="flex-1 grid">
                     <x-button label="Ehrenmitglieder" link="{{ route('ehrenmitglieder') }}" class="btn-ghost btn-sm w-full whitespace-nowrap" />
                 </div>
-                <div class="flex-1 text-center">
+                <div class="flex-1 grid">
                     <x-button label="Termine" link="{{ route('termine') }}" class="btn-ghost btn-sm w-full whitespace-nowrap" />
                 </div>
-                <div class="flex-1 text-center">
+                <div class="flex-1 grid">
                     <x-button label="Arbeitsgruppen" link="{{ route('arbeitsgruppen') }}" class="btn-ghost btn-sm w-full whitespace-nowrap" />
                 </div>
-                <div class="flex-1 text-center">
+                <div class="flex-1 grid">
                     <x-button label="Satzung" link="{{ route('satzung') }}" class="btn-ghost btn-sm w-full whitespace-nowrap" />
                 </div>
-                <div class="flex-1 text-center">
+                <div class="flex-1 grid">
                     <x-button label="Mitglied werden" link="{{ route('mitglied.werden') }}" class="btn-ghost btn-sm w-full whitespace-nowrap" />
                 </div>
-                <div class="flex-1 text-center">
+                <div class="flex-1 grid">
                     <x-button label="Spenden" link="{{ route('spenden') }}" class="btn-ghost btn-sm w-full whitespace-nowrap" />
                 </div>
-                <div class="flex-1 text-center">
+                <div class="flex-1 grid">
                     <x-button label="Changelog" link="{{ route('changelog') }}" class="btn-ghost btn-sm w-full whitespace-nowrap" />
                 </div>
             @endguest
