@@ -71,6 +71,10 @@ RUN mkdir -p storage/app/public \
     && chown -R www-data:www-data /var/www/html \
     && chmod -R 775 storage bootstrap/cache
 
+# PHP upload limits (3D-Modelle bis 100 MB + Thumbnail bis 2 MB)
+RUN echo 'upload_max_filesize = 110M' > /usr/local/etc/php/conf.d/uploads.ini \
+    && echo 'post_max_size = 120M' >> /usr/local/etc/php/conf.d/uploads.ini
+
 # Ensure PHP-FPM runs as www-data
 RUN sed -i 's/user = www-data/user = www-data/g' /usr/local/etc/php-fpm.d/www.conf \
     && sed -i 's/group = www-data/group = www-data/g' /usr/local/etc/php-fpm.d/www.conf
