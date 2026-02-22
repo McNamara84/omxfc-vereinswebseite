@@ -15,7 +15,7 @@ import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
 export function initThreeDViewer(container, fileUrl, format) {
     // Scene Setup
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x1a1a2e);
+    scene.background = new THREE.Color(0xe0e0e0);
 
     // Camera
     const camera = new THREE.PerspectiveCamera(
@@ -42,10 +42,6 @@ export function initThreeDViewer(container, fileUrl, format) {
     const directionalLight2 = new THREE.DirectionalLight(0xffffff, 1);
     directionalLight2.position.set(-1, -1, -1);
     scene.add(directionalLight2);
-
-    // Grid Helper
-    const gridHelper = new THREE.GridHelper(100, 20, 0x444444, 0x222222);
-    scene.add(gridHelper);
 
     // Controls
     const controls = new OrbitControls(camera, renderer.domElement);
