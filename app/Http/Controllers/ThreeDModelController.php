@@ -122,9 +122,11 @@ class ThreeDModelController extends Controller
     {
         $this->teamPointService->assertMinPoints($threeDModel->required_baxx);
 
-        $filename = $threeDModel->name.'.'.$threeDModel->file_format;
+        $filename = $threeDModel->name . '.' . $threeDModel->file_format;
 
-        return Storage::disk('private')->download($threeDModel->file_path, $filename);
+        return Storage::disk('private')->download($threeDModel->file_path, $filename, [
+            'Content-Type' => $this->getMimeType($threeDModel->file_format),
+        ]);
     }
 
     /**
@@ -134,16 +136,20 @@ class ThreeDModelController extends Controller
     {
         $this->teamPointService->assertMinPoints($threeDModel->required_baxx);
 
-        $mimeTypes = [
+        return Storage::disk('private')->response($threeDModel->file_path, null, [
+            'Content-Type' => $this->getMimeType($threeDModel->file_format),
+        ]);
+    }
+
+    /**
+     * MIME-Type für 3D-Dateiformate ermitteln.
+     */
+    private function getMimeType(string $format): string
+    {
+        return match ($format) {
             'stl' => 'application/sla',
             'obj' => 'text/plain',
-            'fbx' => 'application/octet-stream',
-        ];
-
-        $mimeType = $mimeTypes[$threeDModel->file_format] ?? 'application/octet-stream';
-
-        return Storage::disk('private')->response($threeDModel->file_path, null, [
-            'Content-Type' => $mimeType,
-        ]);
+            default => 'application/octet-stream',
+        };
     }
 }
