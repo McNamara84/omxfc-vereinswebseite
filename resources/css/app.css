@@ -72,6 +72,12 @@
     caret-color: var(--color-base-content);
 }
 
+/* Nav-Dropdown-Menüpunkte an btn-sm angleichen (gleiche Schriftgröße und -gewicht) */
+details.dropdown:has(> summary.btn-sm) > ul.menu {
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
 @layer base {
     /* Hintergrund wird jetzt vom daisyUI-Theme gesteuert (caramellatte/coffee) */
 
