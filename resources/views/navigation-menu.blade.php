@@ -23,6 +23,7 @@
                 {{-- Dropdown Verein --}}
                 <div class="flex-1 grid">
                     <x-dropdown label="Verein" class="btn-ghost btn-sm w-full whitespace-nowrap">
+                        <x-menu-item title="3D-Modelle" link="{{ route('3d-modelle.index') }}" />
                         <x-menu-item title="Fanfiction" link="{{ route('fanfiction.index') }}" />
                         <x-menu-item title="Mitgliederliste" link="{{ route('mitglieder.index') }}" />
                         <x-menu-item title="Mitgliederkarte" link="{{ route('mitglieder.karte') }}" />
@@ -204,6 +205,7 @@
             @endif
 
             <x-menu-sub title="Verein" icon="o-user-group">
+                <x-menu-item title="3D-Modelle" link="{{ route('3d-modelle.index') }}" />
                 <x-menu-item title="Fanfiction" link="{{ route('fanfiction.index') }}" />
                 <x-menu-item title="Mitgliederliste" link="{{ route('mitglieder.index') }}" />
                 <x-menu-item title="Mitgliederkarte" link="{{ route('mitglieder.karte') }}" />

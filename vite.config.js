@@ -16,6 +16,7 @@ export default defineConfig({
                 'resources/js/hoerbuch-role-form.js',
                 'resources/js/hoerbuch-role-upload-toggle.js',
                 'resources/js/romantausch-bundle-preview.js',
+                'resources/js/three-d-viewer.js',
             ],
             refresh: true,
             // Explizit den public-Pfad setzen
