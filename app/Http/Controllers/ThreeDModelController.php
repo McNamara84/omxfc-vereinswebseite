@@ -9,6 +9,7 @@ use App\Services\ThreeDModelService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -120,11 +121,16 @@ class ThreeDModelController extends Controller
     /**
      * 3D-Datei herunterladen (Baxx-geschützt).
      */
-    public function download(ThreeDModel $threeDModel): StreamedResponse
+    public function download(ThreeDModel $threeDModel): StreamedResponse|RedirectResponse
     {
         $this->teamPointService->assertMinPoints($threeDModel->required_baxx);
 
-        $filename = $threeDModel->name.'.'.$threeDModel->file_format;
+        if (! Storage::disk('private')->exists($threeDModel->file_path)) {
+            return redirect()->route('3d-modelle.show', $threeDModel)
+                ->withErrors('Die 3D-Datei existiert nicht mehr.');
+        }
+
+        $filename = Str::slug($threeDModel->name, '-').'.'.$threeDModel->file_format;
 
         return Storage::disk('private')->download($threeDModel->file_path, $filename, [
             'Content-Type' => $this->getMimeType($threeDModel->file_format),
@@ -134,9 +140,14 @@ class ThreeDModelController extends Controller
     /**
      * 3D-Datei für Three.js Viewer streamen (Baxx-geschützt).
      */
-    public function preview(ThreeDModel $threeDModel): StreamedResponse
+    public function preview(ThreeDModel $threeDModel): StreamedResponse|RedirectResponse
     {
         $this->teamPointService->assertMinPoints($threeDModel->required_baxx);
+
+        if (! Storage::disk('private')->exists($threeDModel->file_path)) {
+            return redirect()->route('3d-modelle.show', $threeDModel)
+                ->withErrors('Die 3D-Datei existiert nicht mehr.');
+        }
 
         return Storage::disk('private')->response($threeDModel->file_path, null, [
             'Content-Type' => $this->getMimeType($threeDModel->file_format),

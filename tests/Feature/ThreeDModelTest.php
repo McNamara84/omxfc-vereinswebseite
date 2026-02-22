@@ -230,6 +230,24 @@ class ThreeDModelTest extends TestCase
         $response->assertSessionHasErrors(['maddraxikon_url']);
     }
 
+    public function test_upload_validierung_ungueltiges_dateiformat(): void
+    {
+        Storage::fake('private');
+
+        $this->actingAdmin();
+
+        $file = UploadedFile::fake()->create('modell.zip', 512);
+
+        $response = $this->post('/3d-modelle', [
+            'name' => 'Test',
+            'description' => 'Test',
+            'required_baxx' => 10,
+            'model_file' => $file,
+        ]);
+
+        $response->assertSessionHasErrors(['model_file']);
+    }
+
     // ── Edit / Update (Admin/Vorstand) ──────────────────────
 
     public function test_admin_kann_modell_bearbeiten(): void
@@ -335,6 +353,22 @@ class ThreeDModelTest extends TestCase
         $response->assertForbidden();
     }
 
+    public function test_download_fehlende_datei_gibt_fehler(): void
+    {
+        Storage::fake('private');
+
+        $this->actingMemberWithPoints(20);
+
+        $model = ThreeDModel::factory()->create(['required_baxx' => 10]);
+
+        // Datei wird bewusst NICHT erstellt
+
+        $response = $this->get("/3d-modelle/{$model->id}/herunterladen");
+
+        $response->assertRedirect();
+        $response->assertSessionHasErrors();
+    }
+
     // ── Preview (Baxx-geschützt) ──────────────────────────
 
     public function test_vorschau_mit_genuegend_baxx(): void
@@ -361,6 +395,22 @@ class ThreeDModelTest extends TestCase
         $response = $this->get("/3d-modelle/{$model->id}/vorschau");
 
         $response->assertForbidden();
+    }
+
+    public function test_vorschau_fehlende_datei_gibt_fehler(): void
+    {
+        Storage::fake('private');
+
+        $this->actingMemberWithPoints(20);
+
+        $model = ThreeDModel::factory()->create(['required_baxx' => 10]);
+
+        // Datei wird bewusst NICHT erstellt
+
+        $response = $this->get("/3d-modelle/{$model->id}/vorschau");
+
+        $response->assertRedirect();
+        $response->assertSessionHasErrors();
     }
 
     // ── Belohnungen-Integration ─────────────────────────────

@@ -171,12 +171,21 @@ export function initThreeDViewer(container, fileUrl, format) {
 }
 
 // Auto-Init: Alle Viewer-Container auf der Seite initialisieren
-document.addEventListener('DOMContentLoaded', () => {
+function initThreeDViewers() {
     document.querySelectorAll('[data-three-d-viewer]').forEach((container) => {
+        // Doppelte Initialisierung verhindern
+        if (container.dataset.threeDInitialized) {
+            return;
+        }
+        container.dataset.threeDInitialized = 'true';
+
         const fileUrl = container.dataset.fileUrl;
         const format = container.dataset.format;
         if (fileUrl && format) {
             initThreeDViewer(container, fileUrl, format);
         }
     });
-});
+}
+
+document.addEventListener('DOMContentLoaded', initThreeDViewers);
+document.addEventListener('livewire:navigated', initThreeDViewers);

@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('file_format', 10);
             $table->unsignedBigInteger('file_size');
             $table->string('thumbnail_path', 500)->nullable();
+            $table->string('maddraxikon_url', 500)->nullable();
             $table->unsignedInteger('required_baxx');
             $table->foreignId('uploaded_by')->constrained('users')->cascadeOnDelete();
             $table->timestamps();
