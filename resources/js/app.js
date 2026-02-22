@@ -107,3 +107,17 @@ async function loadAdminChartsIfNeeded() {
 }
 document.addEventListener('DOMContentLoaded', loadAdminChartsIfNeeded);
 document.addEventListener('livewire:navigated', loadAdminChartsIfNeeded);
+
+// 3D-Viewer (inkl. Three.js) nur laden, wenn ein Viewer-Container auf der Seite ist (Code-Splitting)
+async function loadThreeDViewerIfNeeded() {
+    if (document.querySelector('[data-three-d-viewer]')) {
+        try {
+            const { initThreeDViewers } = await import('./three-d-viewer');
+            initThreeDViewers();
+        } catch (error) {
+            console.error('[3D-Viewer] Laden/Initialisierung fehlgeschlagen:', error);
+        }
+    }
+}
+document.addEventListener('DOMContentLoaded', loadThreeDViewerIfNeeded);
+document.addEventListener('livewire:navigated', loadThreeDViewerIfNeeded);

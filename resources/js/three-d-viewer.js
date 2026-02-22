@@ -194,7 +194,7 @@ export function initThreeDViewer(container, fileUrl, format) {
 const activeCleanups = new Map();
 
 // Auto-Init: Alle Viewer-Container auf der Seite initialisieren
-function initThreeDViewers() {
+export function initThreeDViewers() {
     document.querySelectorAll('[data-three-d-viewer]').forEach((container) => {
         // Doppelte Initialisierung verhindern
         if (container.dataset.threeDInitialized) {
@@ -220,6 +220,5 @@ function cleanupAllViewers() {
     activeCleanups.clear();
 }
 
-document.addEventListener('DOMContentLoaded', initThreeDViewers);
-document.addEventListener('livewire:navigated', initThreeDViewers);
+// Cleanup bei SPA-Navigation registrieren (Init wird von app.js gesteuert)
 document.addEventListener('livewire:navigating', cleanupAllViewers);

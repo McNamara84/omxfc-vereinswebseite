@@ -94,9 +94,4 @@
             @endcan
         </x-card>
     </x-member-page>
-
-    {{-- Three.js nur laden wenn freigeschaltet --}}
-    @if ($isUnlocked)
-        @vite('resources/js/three-d-viewer.js')
-    @endif
 </x-app-layout>
