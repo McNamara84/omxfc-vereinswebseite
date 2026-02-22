@@ -134,6 +134,16 @@ class ThreeDModelController extends Controller
     {
         $this->teamPointService->assertMinPoints($threeDModel->required_baxx);
 
-        return Storage::disk('private')->response($threeDModel->file_path);
+        $mimeTypes = [
+            'stl' => 'application/sla',
+            'obj' => 'text/plain',
+            'fbx' => 'application/octet-stream',
+        ];
+
+        $mimeType = $mimeTypes[$threeDModel->file_format] ?? 'application/octet-stream';
+
+        return Storage::disk('private')->response($threeDModel->file_path, null, [
+            'Content-Type' => $mimeType,
+        ]);
     }
 }
