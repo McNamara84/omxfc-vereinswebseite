@@ -54,6 +54,8 @@ class ThreeDModelController extends Controller
      */
     public function create(): View
     {
+        $this->authorize('create', ThreeDModel::class);
+
         return view('three-d-models.create');
     }
 
@@ -62,6 +64,8 @@ class ThreeDModelController extends Controller
      */
     public function store(ThreeDModelRequest $request): RedirectResponse
     {
+        $this->authorize('create', ThreeDModel::class);
+
         $this->threeDModelService->storeModel(
             file: $request->file('model_file'),
             metadata: [
@@ -83,6 +87,8 @@ class ThreeDModelController extends Controller
      */
     public function edit(ThreeDModel $threeDModel): View
     {
+        $this->authorize('update', $threeDModel);
+
         return view('three-d-models.edit', ['model' => $threeDModel]);
     }
 
@@ -91,6 +97,8 @@ class ThreeDModelController extends Controller
      */
     public function update(ThreeDModelRequest $request, ThreeDModel $threeDModel): RedirectResponse
     {
+        $this->authorize('update', $threeDModel);
+
         $this->threeDModelService->updateModel(
             model: $threeDModel,
             metadata: [
@@ -112,6 +120,8 @@ class ThreeDModelController extends Controller
      */
     public function destroy(ThreeDModel $threeDModel): RedirectResponse
     {
+        $this->authorize('delete', $threeDModel);
+
         $this->threeDModelService->deleteModel($threeDModel);
 
         return redirect()->route('3d-modelle.index')
@@ -140,13 +150,12 @@ class ThreeDModelController extends Controller
     /**
      * 3D-Datei für Three.js Viewer streamen (Baxx-geschützt).
      */
-    public function preview(ThreeDModel $threeDModel): StreamedResponse|RedirectResponse
+    public function preview(ThreeDModel $threeDModel): StreamedResponse
     {
         $this->teamPointService->assertMinPoints($threeDModel->required_baxx);
 
         if (! Storage::disk('private')->exists($threeDModel->file_path)) {
-            return redirect()->route('3d-modelle.show', $threeDModel)
-                ->withErrors('Die 3D-Datei existiert nicht mehr.');
+            abort(404, 'Die 3D-Datei existiert nicht mehr.');
         }
 
         return Storage::disk('private')->response($threeDModel->file_path, null, [

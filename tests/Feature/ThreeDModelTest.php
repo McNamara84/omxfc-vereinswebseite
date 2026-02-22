@@ -409,8 +409,7 @@ class ThreeDModelTest extends TestCase
 
         $response = $this->get("/3d-modelle/{$model->id}/vorschau");
 
-        $response->assertRedirect();
-        $response->assertSessionHasErrors();
+        $response->assertNotFound();
     }
 
     // ── Belohnungen-Integration ─────────────────────────────

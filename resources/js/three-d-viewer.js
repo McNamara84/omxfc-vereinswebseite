@@ -28,7 +28,7 @@ export function initThreeDViewer(container, fileUrl, format) {
     // Renderer
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(container.clientWidth, container.clientHeight);
-    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     container.appendChild(renderer.domElement);
 
     // Lighting
@@ -165,10 +165,37 @@ export function initThreeDViewer(container, fileUrl, format) {
     return () => {
         resizeObserver.disconnect();
         cancelAnimationFrame(animationFrameId);
+
+        // Geometrien, Materialien und Texturen traversieren und disposen
+        scene.traverse((object) => {
+            if (object.isMesh) {
+                if (object.geometry) {
+                    object.geometry.dispose();
+                }
+                if (object.material) {
+                    const materials = Array.isArray(object.material)
+                        ? object.material
+                        : [object.material];
+                    materials.forEach((material) => {
+                        Object.values(material).forEach((value) => {
+                            if (value && typeof value.dispose === 'function') {
+                                value.dispose();
+                            }
+                        });
+                        material.dispose();
+                    });
+                }
+            }
+        });
+
+        renderer.domElement.remove();
         renderer.dispose();
         controls.dispose();
     };
 }
+
+// Aktive Cleanup-Funktionen pro Container speichern
+const activeCleanups = new Map();
 
 // Auto-Init: Alle Viewer-Container auf der Seite initialisieren
 function initThreeDViewers() {
@@ -182,10 +209,20 @@ function initThreeDViewers() {
         const fileUrl = container.dataset.fileUrl;
         const format = container.dataset.format;
         if (fileUrl && format) {
-            initThreeDViewer(container, fileUrl, format);
+            const cleanup = initThreeDViewer(container, fileUrl, format);
+            activeCleanups.set(container, cleanup);
         }
     });
 }
 
+// Cleanup bei SPA-Navigation: WebGL-Context, Animation-Loop und Observer freigeben
+function cleanupAllViewers() {
+    activeCleanups.forEach((cleanup, container) => {
+        cleanup();
+    });
+    activeCleanups.clear();
+}
+
 document.addEventListener('DOMContentLoaded', initThreeDViewers);
 document.addEventListener('livewire:navigated', initThreeDViewers);
+document.addEventListener('livewire:navigating', cleanupAllViewers);
