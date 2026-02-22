@@ -99,7 +99,7 @@ class UpdateProfileInformationFormTest extends TestCase
         Livewire::test(UpdateProfileInformationForm::class)
             ->set('state', $data)
             ->call('updateProfileInformation')
-            ->assertDispatched('saved')
+            ->assertHasNoErrors()
             ->assertDispatched('refresh-navigation-menu');
 
         $this->assertTrue($called);

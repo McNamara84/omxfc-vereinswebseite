@@ -108,9 +108,6 @@
         </div>
 
         <x-slot:actions>
-            <x-action-message class="me-3" on="saved">
-                {{ __('Gespeichert.') }}
-            </x-action-message>
             <x-button type="submit" class="btn-primary" wire:loading.attr="disabled">
                 {{ __('Speichern') }}
             </x-button>

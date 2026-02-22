@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
+use Livewire\Livewire;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -104,5 +105,11 @@ class AppServiceProvider extends ServiceProvider
 
         // Override maryUI Alert: adds aria-label="Schließen" to dismiss button (WCAG AA)
         Blade::component('alert', Alert::class);
+
+        // Override Jetstream Livewire components with maryUI Toast support
+        Livewire::component('profile.update-password-form', \App\Livewire\Profile\UpdatePasswordForm::class);
+        Livewire::component('profile.logout-other-browser-sessions-form', \App\Livewire\Profile\LogoutOtherBrowserSessionsForm::class);
+        Livewire::component('teams.update-team-name-form', \App\Livewire\Teams\UpdateTeamNameForm::class);
+        Livewire::component('teams.team-member-manager', \App\Livewire\Teams\TeamMemberManager::class);
     }
 }

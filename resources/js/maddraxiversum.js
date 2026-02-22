@@ -105,19 +105,14 @@ const missionTitle = document.getElementById('mission-title');
 const missionDescription = document.getElementById('mission-description');
 const missionDuration = document.getElementById('mission-duration');
 const startMissionButton = document.getElementById('start-mission');
-const closeModalButton = document.getElementById('close-mission-modal');
 
 export function openMissionModal(mission) {
     missionTitle.textContent = mission.name;
     missionDescription.textContent = mission.description;
     missionDuration.textContent = `Dauer: ${mission.mission_duration} min`;
     startMissionButton.dataset.mission = JSON.stringify(mission);
-    modal.classList.replace('hidden', 'flex');
+    modal.showModal();
 }
-
-closeModalButton.addEventListener('click', () => {
-    modal.classList.replace('flex', 'hidden');
-});
 
 export function calculateBearing(from, to) {
     const startLat = from[0] * Math.PI / 180;
@@ -222,7 +217,7 @@ startMissionButton.addEventListener('click', async () => {
             headers: { 'X-CSRF-TOKEN': csrfToken }
         });
         console.log('Mission gestartet:', response.data);
-        modal.classList.replace('flex', 'hidden');
+        modal.close();
 
         // 1. Flug zur Missionsdestination
         await animateGlider(coordinates.Waashton, coordinates[mission.destination], mission.travel_duration);

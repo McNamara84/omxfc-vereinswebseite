@@ -44,10 +44,6 @@
         <x-button class="btn-primary" wire:click="confirmLogout" wire:loading.attr="disabled">
             {{ __('Alle anderen Browser-Sitzungen beenden') }}
         </x-button>
-
-        <x-action-message class="ms-3" on="loggedOut">
-            {{ __('Erledigt.') }}
-        </x-action-message>
     </div>
 
     <!-- Log Out Other Devices Confirmation Modal -->
