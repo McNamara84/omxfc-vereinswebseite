@@ -250,15 +250,13 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
         Route::middleware('admin-or-vorstand')->group(function () {
             Route::get('erstellen', 'create')->name('create');
             Route::post('/', 'store')->name('store');
-        });
-        Route::get('{threeDModel}', 'show')->name('show');
-        Route::get('{threeDModel}/herunterladen', 'download')->name('download');
-        Route::get('{threeDModel}/vorschau', 'preview')->name('preview');
-        Route::middleware('admin-or-vorstand')->group(function () {
             Route::get('{threeDModel}/bearbeiten', 'edit')->name('edit');
             Route::put('{threeDModel}', 'update')->name('update');
             Route::delete('{threeDModel}', 'destroy')->name('destroy');
         });
+        Route::get('{threeDModel}', 'show')->name('show');
+        Route::get('{threeDModel}/herunterladen', 'download')->name('download');
+        Route::get('{threeDModel}/vorschau', 'preview')->name('preview');
     });
 
     Route::prefix('kompendium')->name('kompendium.')->group(function () {

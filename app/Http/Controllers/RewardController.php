@@ -31,6 +31,8 @@ class RewardController extends Controller
                 'title' => '3D-Modell - '.$model->name,
                 'description' => $model->description,
                 'points' => $model->required_baxx,
+                'url' => route('3d-modelle.show', $model),
+                'type' => '3d-modell',
             ];
         }
 

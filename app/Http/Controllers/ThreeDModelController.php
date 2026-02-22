@@ -172,6 +172,7 @@ class ThreeDModelController extends Controller
         return match ($format) {
             'stl' => 'model/stl',
             'obj' => 'text/plain',
+            'fbx' => 'application/octet-stream',
             default => 'application/octet-stream',
         };
     }

@@ -285,6 +285,43 @@ class ThreeDModelTest extends TestCase
         $this->assertEquals('https://maddraxikon.de/Neu', $model->maddraxikon_url);
     }
 
+    public function test_admin_kann_modell_mit_neuer_datei_aktualisieren(): void
+    {
+        Storage::fake('private');
+
+        $this->actingAdmin();
+
+        $model = ThreeDModel::factory()->create([
+            'name' => 'Original',
+            'file_format' => 'stl',
+            'file_size' => 1024,
+        ]);
+
+        // Alte Datei anlegen
+        Storage::disk('private')->put($model->file_path, 'old-content');
+        $oldFilePath = $model->file_path;
+
+        $newFile = UploadedFile::fake()->create('neues-modell.obj', 2048);
+
+        $response = $this->put("/3d-modelle/{$model->id}", [
+            'name' => 'Aktualisiert',
+            'description' => 'Neue Beschreibung',
+            'required_baxx' => 15,
+            'model_file' => $newFile,
+        ]);
+
+        $response->assertRedirect('/3d-modelle');
+
+        $model->refresh();
+        $this->assertEquals('Aktualisiert', $model->name);
+        $this->assertEquals('obj', $model->file_format);
+        $this->assertNotEquals($oldFilePath, $model->file_path);
+
+        // Alte Datei wurde gelöscht, neue existiert
+        Storage::disk('private')->assertMissing($oldFilePath);
+        Storage::disk('private')->assertExists($model->file_path);
+    }
+
     public function test_normales_mitglied_kann_nicht_bearbeiten(): void
     {
         $this->actingSimpleMember();
@@ -307,10 +344,14 @@ class ThreeDModelTest extends TestCase
 
         $model = ThreeDModel::factory()->create();
 
+        // Dateien im Storage anlegen
+        Storage::disk('private')->put($model->file_path, 'fake-content');
+
         $response = $this->delete("/3d-modelle/{$model->id}");
 
         $response->assertRedirect('/3d-modelle');
         $this->assertDatabaseMissing('three_d_models', ['id' => $model->id]);
+        Storage::disk('private')->assertMissing($model->file_path);
     }
 
     public function test_normales_mitglied_kann_nicht_loeschen(): void
@@ -428,5 +469,48 @@ class ThreeDModelTest extends TestCase
         $response->assertOk();
         $response->assertSee('3D-Modell - Belohnungs-Modell');
         $response->assertSee('25 Baxx');
+    }
+
+    // ── Validierung: Dateigröße ──────────────────────────────
+
+    public function test_upload_validierung_datei_zu_gross(): void
+    {
+        Storage::fake('private');
+
+        $this->actingAdmin();
+
+        // 100 MB + 1 KB überschreitet das Limit
+        $file = UploadedFile::fake()->create('modell.stl', 102401);
+
+        $response = $this->post('/3d-modelle', [
+            'name' => 'Zu gro\u00df',
+            'description' => 'Test',
+            'required_baxx' => 10,
+            'model_file' => $file,
+        ]);
+
+        $response->assertSessionHasErrors(['model_file']);
+    }
+
+    public function test_upload_validierung_thumbnail_zu_gross(): void
+    {
+        Storage::fake('private');
+        Storage::fake('public');
+
+        $this->actingAdmin();
+
+        $file = UploadedFile::fake()->create('modell.stl', 512);
+        // 2 MB + 1 KB überschreitet das Thumbnail-Limit
+        $thumbnail = UploadedFile::fake()->image('vorschau.jpg')->size(2049);
+
+        $response = $this->post('/3d-modelle', [
+            'name' => 'Thumbnail zu gro\u00df',
+            'description' => 'Test',
+            'required_baxx' => 10,
+            'model_file' => $file,
+            'thumbnail' => $thumbnail,
+        ]);
+
+        $response->assertSessionHasErrors(['thumbnail']);
     }
 }
