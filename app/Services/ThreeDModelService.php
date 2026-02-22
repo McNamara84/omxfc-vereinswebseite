@@ -54,6 +54,7 @@ class ThreeDModelService
             'file_format' => self::EXTENSION_TO_FORMAT[$extension] ?? $extension,
             'file_size' => $file->getSize(),
             'thumbnail_path' => $thumbnailPath,
+            'maddraxikon_url' => $metadata['maddraxikon_url'] ?? null,
             'required_baxx' => $metadata['required_baxx'],
             'uploaded_by' => $metadata['uploaded_by'],
         ]);
@@ -90,6 +91,7 @@ class ThreeDModelService
 
         $model->name = $metadata['name'];
         $model->description = $metadata['description'];
+        $model->maddraxikon_url = $metadata['maddraxikon_url'] ?? null;
         $model->required_baxx = $metadata['required_baxx'];
         $model->save();
 

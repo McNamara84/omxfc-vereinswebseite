@@ -46,6 +46,7 @@ class ThreeDModelTest extends TestCase
             'name' => 'Testmodell',
             'description' => 'Beschreibung',
             'required_baxx' => 5,
+            'maddraxikon_url' => 'https://maddraxikon.de/Testmodell',
         ]);
 
         $response = $this->get("/3d-modelle/{$model->id}");
@@ -53,6 +54,23 @@ class ThreeDModelTest extends TestCase
         $response->assertOk();
         $response->assertSee('Testmodell');
         $response->assertSee('Beschreibung');
+        $response->assertSee('https://maddraxikon.de/Testmodell');
+        $response->assertSee('Im Maddraxikon ansehen');
+    }
+
+    public function test_detailseite_ohne_maddraxikon_link(): void
+    {
+        $user = $this->actingSimpleMember();
+
+        $model = ThreeDModel::factory()->create([
+            'name' => 'Ohne Link',
+            'maddraxikon_url' => null,
+        ]);
+
+        $response = $this->get("/3d-modelle/{$model->id}");
+
+        $response->assertOk();
+        $response->assertDontSee('Im Maddraxikon ansehen');
     }
 
     public function test_gesperrtes_modell_zeigt_lock_hinweis(): void
@@ -152,6 +170,7 @@ class ThreeDModelTest extends TestCase
             'name' => 'OBJ-Modell',
             'description' => 'Ein OBJ-Modell mit Vorschaubild',
             'required_baxx' => 10,
+            'maddraxikon_url' => 'https://maddraxikon.de/Euphoriewurm',
             'model_file' => $file,
             'thumbnail' => $thumbnail,
         ]);
@@ -162,6 +181,7 @@ class ThreeDModelTest extends TestCase
         $this->assertNotNull($model);
         $this->assertNotNull($model->thumbnail_path);
         $this->assertEquals('obj', $model->file_format);
+        $this->assertEquals('https://maddraxikon.de/Euphoriewurm', $model->maddraxikon_url);
     }
 
     public function test_upload_validierung_fehlende_pflichtfelder(): void
@@ -191,6 +211,25 @@ class ThreeDModelTest extends TestCase
         $response->assertSessionHasErrors(['required_baxx']);
     }
 
+    public function test_upload_validierung_ungueltige_maddraxikon_url(): void
+    {
+        Storage::fake('private');
+
+        $this->actingAdmin();
+
+        $file = UploadedFile::fake()->create('modell.stl', 512);
+
+        $response = $this->post('/3d-modelle', [
+            'name' => 'Test',
+            'description' => 'Test',
+            'required_baxx' => 10,
+            'model_file' => $file,
+            'maddraxikon_url' => 'keine-url',
+        ]);
+
+        $response->assertSessionHasErrors(['maddraxikon_url']);
+    }
+
     // ── Edit / Update (Admin/Vorstand) ──────────────────────
 
     public function test_admin_kann_modell_bearbeiten(): void
@@ -217,6 +256,7 @@ class ThreeDModelTest extends TestCase
             'name' => 'Neu',
             'description' => 'Neue Beschreibung',
             'required_baxx' => 20,
+            'maddraxikon_url' => 'https://maddraxikon.de/Neu',
         ]);
 
         $response->assertRedirect('/3d-modelle');
@@ -224,6 +264,7 @@ class ThreeDModelTest extends TestCase
         $model->refresh();
         $this->assertEquals('Neu', $model->name);
         $this->assertEquals(20, $model->required_baxx);
+        $this->assertEquals('https://maddraxikon.de/Neu', $model->maddraxikon_url);
     }
 
     public function test_normales_mitglied_kann_nicht_bearbeiten(): void

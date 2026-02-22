@@ -1,0 +1,28 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::table('three_d_models', function (Blueprint $table) {
+            $table->string('maddraxikon_url', 500)->nullable()->after('thumbnail_path');
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::table('three_d_models', function (Blueprint $table) {
+            $table->dropColumn('maddraxikon_url');
+        });
+    }
+};

@@ -67,6 +67,20 @@
                 <p class="mt-1">{{ $model->description }}</p>
             </div>
 
+            @if ($model->maddraxikon_url)
+                <div class="mt-4">
+                    <span class="text-sm text-base-content/60">Maddraxikon</span>
+                    <p class="mt-1">
+                        <a href="{{ $model->maddraxikon_url }}" target="_blank" rel="noopener noreferrer"
+                            class="link link-primary inline-flex items-center gap-1"
+                            data-testid="maddraxikon-link">
+                            <x-icon name="o-arrow-top-right-on-square" class="w-4 h-4" />
+                            Im Maddraxikon ansehen
+                        </a>
+                    </p>
+                </div>
+            @endif
+
             @can('delete', $model)
                 <div class="mt-6 pt-4 border-t border-base-300">
                     <form method="POST" action="{{ route('3d-modelle.destroy', $model) }}"

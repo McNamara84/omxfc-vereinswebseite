@@ -66,6 +66,7 @@ class ThreeDModelController extends Controller
             metadata: [
                 'name' => $request->validated('name'),
                 'description' => $request->validated('description'),
+                'maddraxikon_url' => $request->validated('maddraxikon_url'),
                 'required_baxx' => $request->validated('required_baxx'),
                 'uploaded_by' => Auth::id(),
             ],
@@ -94,6 +95,7 @@ class ThreeDModelController extends Controller
             metadata: [
                 'name' => $request->validated('name'),
                 'description' => $request->validated('description'),
+                'maddraxikon_url' => $request->validated('maddraxikon_url'),
                 'required_baxx' => $request->validated('required_baxx'),
             ],
             file: $request->file('model_file'),
@@ -122,7 +124,7 @@ class ThreeDModelController extends Controller
     {
         $this->teamPointService->assertMinPoints($threeDModel->required_baxx);
 
-        $filename = $threeDModel->name . '.' . $threeDModel->file_format;
+        $filename = $threeDModel->name.'.'.$threeDModel->file_format;
 
         return Storage::disk('private')->download($threeDModel->file_path, $filename, [
             'Content-Type' => $this->getMimeType($threeDModel->file_format),

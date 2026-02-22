@@ -31,6 +31,7 @@ class ThreeDModelRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'description' => ['required', 'string', 'max:2000'],
             'required_baxx' => ['required', 'integer', 'min:1', 'max:1000'],
+            'maddraxikon_url' => ['nullable', 'url', 'max:500'],
             'thumbnail' => ['nullable', 'image', "mimes:{$thumbExtensions}", "max:{$maxThumbSize}"],
         ];
 
@@ -61,6 +62,8 @@ class ThreeDModelRequest extends FormRequest
             'required_baxx.max' => 'Der Baxx-Preis darf maximal 1000 sein.',
             'model_file.required' => 'Bitte lade eine 3D-Datei hoch.',
             'model_file.max' => 'Die Datei darf maximal 100 MB groß sein.',
+            'maddraxikon_url.url' => 'Bitte gib eine gültige URL ein.',
+            'maddraxikon_url.max' => 'Die URL darf maximal 500 Zeichen lang sein.',
             'thumbnail.image' => 'Das Vorschaubild muss ein Bild sein.',
             'thumbnail.max' => 'Das Vorschaubild darf maximal 2 MB groß sein.',
         ];

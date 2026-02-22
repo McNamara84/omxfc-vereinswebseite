@@ -42,6 +42,19 @@
                     </div>
 
                     <div>
+                        <label for="maddraxikon_url" class="label label-text font-semibold">Maddraxikon-Link (optional)</label>
+                        <input type="url" name="maddraxikon_url" id="maddraxikon_url"
+                            value="{{ old('maddraxikon_url', $model->maddraxikon_url) }}"
+                            class="input input-bordered w-full"
+                            placeholder="https://maddraxikon.de/..."
+                            data-testid="maddraxikon-url-input" />
+                        <p class="text-sm text-base-content/60 mt-1">Link zum entsprechenden Artikel im Maddraxikon</p>
+                        @error('maddraxikon_url')
+                            <p class="text-error text-sm mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div>
                         <label for="model_file" class="label label-text font-semibold">Neue 3D-Datei (optional)</label>
                         <input type="file" name="model_file" id="model_file"
                             class="file-input file-input-bordered w-full"

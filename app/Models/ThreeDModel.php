@@ -19,6 +19,7 @@ class ThreeDModel extends Model
         'file_format',
         'file_size',
         'thumbnail_path',
+        'maddraxikon_url',
         'required_baxx',
         'uploaded_by',
     ];
