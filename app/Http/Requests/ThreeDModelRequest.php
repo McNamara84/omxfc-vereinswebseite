@@ -36,10 +36,12 @@ class ThreeDModelRequest extends FormRequest
         ];
 
         // Bei Erstellung ist die 3D-Datei Pflicht, bei Update optional
+        // "extensions" statt "mimes": 3D-Dateien (FBX/STL/OBJ) haben MIME-Type
+        // application/octet-stream, den mimes nicht korrekt auflösen kann.
         if ($this->isMethod('POST')) {
-            $rules['model_file'] = ['required', 'file', "mimes:{$extensions}", "max:{$maxSize}"];
+            $rules['model_file'] = ['required', 'file', "extensions:{$extensions}", "max:{$maxSize}"];
         } else {
-            $rules['model_file'] = ['nullable', 'file', "mimes:{$extensions}", "max:{$maxSize}"];
+            $rules['model_file'] = ['nullable', 'file', "extensions:{$extensions}", "max:{$maxSize}"];
         }
 
         return $rules;
@@ -61,7 +63,7 @@ class ThreeDModelRequest extends FormRequest
             'required_baxx.min' => 'Der Baxx-Preis muss mindestens 1 sein.',
             'required_baxx.max' => 'Der Baxx-Preis darf maximal 1000 sein.',
             'model_file.required' => 'Bitte lade eine 3D-Datei hoch.',
-            'model_file.mimes' => 'Die Datei muss im Format STL, OBJ oder FBX sein.',
+            'model_file.extensions' => 'Die Datei muss im Format STL, OBJ oder FBX sein.',
             'model_file.max' => 'Die Datei darf maximal 100 MB groß sein.',
             'maddraxikon_url.url' => 'Bitte gib eine gültige URL ein.',
             'maddraxikon_url.max' => 'Die URL darf maximal 500 Zeichen lang sein.',
