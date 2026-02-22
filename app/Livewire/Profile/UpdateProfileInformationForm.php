@@ -5,9 +5,11 @@ namespace App\Livewire\Profile;
 use Laravel\Fortify\Contracts\UpdatesUserProfileInformation;
 use Livewire\Component;
 use Livewire\WithFileUploads;
+use Mary\Traits\Toast;
 
 class UpdateProfileInformationForm extends Component
 {
+    use Toast;
     use WithFileUploads;
 
     /**
@@ -65,7 +67,13 @@ class UpdateProfileInformationForm extends Component
             $this->photo = null;
         }
 
-        $this->dispatch('saved');
+        $this->toast(
+            type: 'success',
+            title: __('Gespeichert.'),
+            position: 'toast-bottom toast-end',
+            icon: 'o-check-circle',
+            timeout: 3000,
+        );
         $this->dispatch('refresh-navigation-menu');
     }
 

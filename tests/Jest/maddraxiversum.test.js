@@ -40,14 +40,19 @@ describe('maddraxiversum', () => {
     jest.spyOn(axios, 'post').mockResolvedValue({ data: { status: 'completed', mission: {} } });
 
     document.body.innerHTML = `
-      <div id="mission-modal" class="hidden"></div>
+      <dialog id="mission-modal"></dialog>
       <h3 id="mission-title"></h3>
       <p id="mission-description"></p>
       <span id="mission-duration"></span>
       <button id="start-mission"></button>
-      <button id="close-mission-modal"></button>
       <div id="map"></div>
     `;
+
+    // Polyfill: jsdom unterstützt keine native <dialog>-API
+    const dialogEl = document.getElementById('mission-modal');
+    dialogEl.showModal = jest.fn(function () { this.open = true; });
+    dialogEl.close = jest.fn(function () { this.open = false; });
+
     global.tileUrl = 'http://tiles.example';
 
     mod = await import('../../resources/js/maddraxiversum.js');
@@ -78,18 +83,8 @@ describe('maddraxiversum', () => {
     const startBtn = document.getElementById('start-mission');
     expect(startBtn.dataset.mission).toBe(JSON.stringify(mission));
     const modalEl = document.getElementById('mission-modal');
-    expect(modalEl.classList.contains('flex')).toBe(true);
-    expect(modalEl.classList.contains('hidden')).toBe(false);
-  });
-
-  test('close button hides mission modal', () => {
-    const { openMissionModal } = mod;
-    const mission = { name: 'Test', description: 'Desc', mission_duration: 10 };
-    openMissionModal(mission);
-    const modalEl = document.getElementById('mission-modal');
-    document.getElementById('close-mission-modal').click();
-    expect(modalEl.classList.contains('hidden')).toBe(true);
-    expect(modalEl.classList.contains('flex')).toBe(false);
+    expect(modalEl.showModal).toHaveBeenCalled();
+    expect(modalEl.open).toBe(true);
   });
 
   test('animateGlider moves marker along path and cleans up', async () => {
@@ -173,15 +168,20 @@ describe('maddraxiversum extended behaviour', () => {
     jest.spyOn(axios, 'post').mockResolvedValue({ data: { status: 'completed', mission: {} } });
 
     document.body.innerHTML = `
-      <div id="mission-modal" class="hidden"></div>
+      <dialog id="mission-modal"></dialog>
       <h3 id="mission-title"></h3>
       <p id="mission-description"></p>
       <span id="mission-duration"></span>
       <button id="start-mission"></button>
-      <button id="close-mission-modal"></button>
       <div id="map"></div>
       <meta name="csrf-token" content="TOKEN" />
     `;
+
+    // Polyfill: jsdom unterstützt keine native <dialog>-API
+    const dialogEl = document.getElementById('mission-modal');
+    dialogEl.showModal = jest.fn(function () { this.open = true; });
+    dialogEl.close = jest.fn(function () { this.open = false; });
+
     global.tileUrl = 'http://tiles.example';
     global.csrfToken = 'TOKEN';
 
@@ -215,7 +215,8 @@ describe('maddraxiversum extended behaviour', () => {
     popupOpen();
     link.click();
     const modalEl = document.getElementById('mission-modal');
-    expect(modalEl.classList.contains('flex')).toBe(true);
+    expect(modalEl.showModal).toHaveBeenCalled();
+    expect(modalEl.open).toBe(true);
   });
 
   test('start mission button posts data and animates', async () => {

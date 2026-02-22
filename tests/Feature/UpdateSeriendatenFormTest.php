@@ -132,7 +132,7 @@ class UpdateSeriendatenFormTest extends TestCase
                 'lieblingscover' => 'HC 2 Hardcover2',
             ])
             ->call('updateSeriendaten')
-            ->assertDispatched('saved');
+            ->assertHasNoErrors();
 
         $user->refresh();
 

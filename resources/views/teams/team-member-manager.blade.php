@@ -48,14 +48,7 @@
                     </div>
                 @endif
 
-                <div class="mt-6 flex items-center justify-end gap-3">
-                    <x-action-message class="me-3" on="saved">
-                        <span class="text-sm text-success flex items-center gap-1">
-                            <x-icon name="o-check-circle" class="w-5 h-5" aria-hidden="true" />
-                            Hinzugefügt.
-                        </span>
-                    </x-action-message>
-
+                <div class="mt-6 flex items-center justify-end">
                     <x-button type="submit" label="Hinzufügen" class="btn-primary" icon="o-plus" />
                 </div>
             </form>

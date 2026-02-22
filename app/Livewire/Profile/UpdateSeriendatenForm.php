@@ -10,9 +10,12 @@ use App\Models\Book;
 use App\Services\MaddraxDataService;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
+use Mary\Traits\Toast;
 
 class UpdateSeriendatenForm extends Component
 {
+    use Toast;
+
     public array $state = [];
 
     public array $autoren = [];
@@ -79,7 +82,13 @@ class UpdateSeriendatenForm extends Component
     public function updateSeriendaten(UpdateUserSeriendaten $updater)
     {
         $updater->update(Auth::user(), $this->state);
-        $this->dispatch('saved');
+        $this->toast(
+            type: 'success',
+            title: __('Gespeichert.'),
+            position: 'toast-bottom toast-end',
+            icon: 'o-check-circle',
+            timeout: 3000,
+        );
     }
 
     public function render()

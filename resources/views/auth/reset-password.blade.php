@@ -3,7 +3,16 @@
         <x-card shadow data-testid="reset-password-card">
             <x-header title="Passwort zurücksetzen" class="mb-4" useH1 />
 
-            <x-validation-errors class="mb-4" />
+            @if ($errors->any())
+                <x-alert icon="o-exclamation-triangle" class="alert-error mb-4">
+                    <div class="font-medium">{{ __('Es gibt ein Problem.') }}</div>
+                    <ul class="mt-2 list-disc list-inside text-sm">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </x-alert>
+            @endif
 
             <form method="POST" action="{{ route('password.update') }}">
                 @csrf

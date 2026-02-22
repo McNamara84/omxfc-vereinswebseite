@@ -23,20 +23,15 @@
             </div>
         </div>
     </div>
-</x-app-layout>
-<div id="mission-modal" class="fixed inset-0 bg-neutral/50 z-[2000] flex items-center justify-center hidden">
-    <div class="bg-base-100 p-6 rounded-lg shadow-xl max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto">
-        <div class="flex justify-between items-start mb-4">
-            <h3 id="mission-title" class="text-xl font-bold"></h3>
-            <button id="close-mission-modal" class="text-base-content hover:text-base-content">
-                ✕
-            </button>
-        </div>
+
+    {{-- Mission Modal --}}
+    <x-modal id="mission-modal">
+        <h3 id="mission-title" class="text-xl font-bold mb-4"></h3>
         <div id="mission-duration" class="mb-2 text-base-content"></div>
         <div id="mission-description" class="mb-6 text-base-content"></div>
-        <button id="start-mission" class="btn btn-primary w-full">
-            Starte Mission
-        </button>
-    </div>
-</div>
+        <x-slot:actions>
+            <x-button id="start-mission" label="Starte Mission" class="btn-primary w-full" />
+        </x-slot:actions>
+    </x-modal>
+</x-app-layout>
 

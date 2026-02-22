@@ -3,7 +3,16 @@
         <x-card shadow data-testid="login-card">
             <x-header title="Login" class="mb-4" useH1 />
 
-            <x-validation-errors class="mb-4" />
+            @if ($errors->any())
+                <x-alert icon="o-exclamation-triangle" class="alert-error mb-4">
+                    <div class="font-medium">{{ __('Es gibt ein Problem bei der Anmeldung.') }}</div>
+                    <ul class="mt-2 list-disc list-inside text-sm">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </x-alert>
+            @endif
 
             @session('status')
                 <x-alert icon="o-check-circle" class="alert-success mb-4">

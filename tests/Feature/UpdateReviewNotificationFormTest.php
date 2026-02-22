@@ -28,7 +28,7 @@ class UpdateReviewNotificationFormTest extends TestCase
         Livewire::test(UpdateReviewNotificationForm::class)
             ->set('notifyNewReview', true)
             ->call('save')
-            ->assertDispatched('saved');
+            ->assertHasNoErrors();
 
         $this->assertTrue($user->fresh()->notify_new_review);
     }
@@ -40,7 +40,7 @@ class UpdateReviewNotificationFormTest extends TestCase
         Livewire::test(UpdateReviewNotificationForm::class)
             ->set('notifyNewReview', false)
             ->call('save')
-            ->assertDispatched('saved');
+            ->assertHasNoErrors();
 
         $this->assertFalse($user->fresh()->notify_new_review);
     }
