@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\ThreeDModel;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -47,17 +48,27 @@ class ThreeDModelService
             $thumbnailPath = $thumbnail->storeAs(self::THUMBNAIL_STORAGE_PATH, $thumbFilename, 'public');
         }
 
-        return ThreeDModel::create([
-            'name' => $metadata['name'],
-            'description' => $metadata['description'],
-            'file_path' => $filePath,
-            'file_format' => self::EXTENSION_TO_FORMAT[$extension] ?? $extension,
-            'file_size' => $file->getSize(),
-            'thumbnail_path' => $thumbnailPath,
-            'maddraxikon_url' => $metadata['maddraxikon_url'] ?? null,
-            'required_baxx' => $metadata['required_baxx'],
-            'uploaded_by' => $metadata['uploaded_by'],
-        ]);
+        try {
+            return DB::transaction(fn () => ThreeDModel::create([
+                'name' => $metadata['name'],
+                'description' => $metadata['description'],
+                'file_path' => $filePath,
+                'file_format' => self::EXTENSION_TO_FORMAT[$extension] ?? $extension,
+                'file_size' => $file->getSize(),
+                'thumbnail_path' => $thumbnailPath,
+                'maddraxikon_url' => $metadata['maddraxikon_url'] ?? null,
+                'required_baxx' => $metadata['required_baxx'],
+                'uploaded_by' => $metadata['uploaded_by'],
+            ]));
+        } catch (\Throwable $e) {
+            // Verwaiste Dateien aufräumen
+            Storage::disk('private')->delete($filePath);
+            if ($thumbnailPath) {
+                Storage::disk('public')->delete($thumbnailPath);
+            }
+
+            throw $e;
+        }
     }
 
     /**
@@ -65,9 +76,12 @@ class ThreeDModelService
      */
     public function updateModel(ThreeDModel $model, array $metadata, ?UploadedFile $file = null, ?UploadedFile $thumbnail = null): ThreeDModel
     {
-        // Neue 3D-Datei? → Alte löschen, neue speichern
+        $oldFilePath = null;
+        $oldThumbnailPath = null;
+
+        // Neue 3D-Datei? → Neue speichern, alte merken zum späteren Löschen
         if ($file) {
-            Storage::disk('private')->delete($model->file_path);
+            $oldFilePath = $model->file_path;
 
             $extension = strtolower($file->getClientOriginalExtension());
             $uuid = Str::uuid();
@@ -78,11 +92,9 @@ class ThreeDModelService
             $model->file_size = $file->getSize();
         }
 
-        // Neues Thumbnail? → Altes löschen, neues speichern
+        // Neues Thumbnail? → Neues speichern, altes merken zum späteren Löschen
         if ($thumbnail) {
-            if ($model->thumbnail_path) {
-                Storage::disk('public')->delete($model->thumbnail_path);
-            }
+            $oldThumbnailPath = $model->thumbnail_path;
 
             $thumbExtension = strtolower($thumbnail->getClientOriginalExtension());
             $thumbFilename = Str::uuid().'.'.$thumbExtension;
@@ -94,6 +106,14 @@ class ThreeDModelService
         $model->maddraxikon_url = $metadata['maddraxikon_url'] ?? null;
         $model->required_baxx = $metadata['required_baxx'];
         $model->save();
+
+        // Alte Dateien erst nach erfolgreichem Speichern löschen
+        if ($oldFilePath) {
+            Storage::disk('private')->delete($oldFilePath);
+        }
+        if ($oldThumbnailPath) {
+            Storage::disk('public')->delete($oldThumbnailPath);
+        }
 
         return $model;
     }

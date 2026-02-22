@@ -39,6 +39,7 @@ class ThreeDModelController extends Controller
      */
     public function show(ThreeDModel $threeDModel): View
     {
+        $threeDModel->loadMissing('uploader');
         $userPoints = $this->teamPointService->getUserPoints(Auth::user());
         $isUnlocked = $userPoints >= $threeDModel->required_baxx;
 
@@ -169,7 +170,7 @@ class ThreeDModelController extends Controller
     private function getMimeType(string $format): string
     {
         return match ($format) {
-            'stl' => 'application/sla',
+            'stl' => 'model/stl',
             'obj' => 'text/plain',
             default => 'application/octet-stream',
         };

@@ -219,6 +219,7 @@ function initThreeDViewers() {
 function cleanupAllViewers() {
     activeCleanups.forEach((cleanup, container) => {
         cleanup();
+        delete container.dataset.threeDInitialized;
     });
     activeCleanups.clear();
 }
