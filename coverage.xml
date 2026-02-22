@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1771693743">
-  <project timestamp="1771693743" name="Clover Coverage">
+<coverage generated="1771735448">
+  <project timestamp="1771735448" name="Clover Coverage">
     <package name="App\Actions\Fortify">
       <file name="/home/runner/work/omxfc-vereinswebseite/omxfc-vereinswebseite/app/Actions/Fortify/CreateNewUser.php">
         <class name="App\Actions\Fortify\CreateNewUser" namespace="App\Actions\Fortify">
@@ -3509,15 +3509,15 @@
         <line num="150" type="stmt" count="13"/>
         <line num="151" type="stmt" count="13"/>
         <line num="153" type="stmt" count="13"/>
-        <line num="154" type="stmt" count="5"/>
-        <line num="155" type="stmt" count="5"/>
-        <line num="156" type="stmt" count="5"/>
-        <line num="157" type="stmt" count="5"/>
-        <line num="158" type="stmt" count="5"/>
-        <line num="159" type="stmt" count="5"/>
-        <line num="160" type="stmt" count="5"/>
-        <line num="161" type="stmt" count="5"/>
-        <line num="163" type="stmt" count="5"/>
+        <line num="154" type="stmt" count="10"/>
+        <line num="155" type="stmt" count="10"/>
+        <line num="156" type="stmt" count="10"/>
+        <line num="157" type="stmt" count="10"/>
+        <line num="158" type="stmt" count="10"/>
+        <line num="159" type="stmt" count="10"/>
+        <line num="160" type="stmt" count="10"/>
+        <line num="161" type="stmt" count="10"/>
+        <line num="163" type="stmt" count="10"/>
         <line num="164" type="stmt" count="1"/>
         <line num="165" type="stmt" count="1"/>
         <line num="166" type="stmt" count="1"/>
@@ -3528,15 +3528,15 @@
         <line num="175" type="stmt" count="13"/>
         <line num="176" type="stmt" count="13"/>
         <line num="178" type="stmt" count="13"/>
-        <line num="179" type="stmt" count="8"/>
-        <line num="180" type="stmt" count="8"/>
-        <line num="181" type="stmt" count="8"/>
-        <line num="182" type="stmt" count="8"/>
-        <line num="183" type="stmt" count="8"/>
-        <line num="184" type="stmt" count="8"/>
-        <line num="185" type="stmt" count="8"/>
-        <line num="186" type="stmt" count="8"/>
-        <line num="188" type="stmt" count="8"/>
+        <line num="179" type="stmt" count="2"/>
+        <line num="180" type="stmt" count="2"/>
+        <line num="181" type="stmt" count="2"/>
+        <line num="182" type="stmt" count="2"/>
+        <line num="183" type="stmt" count="2"/>
+        <line num="184" type="stmt" count="2"/>
+        <line num="185" type="stmt" count="2"/>
+        <line num="186" type="stmt" count="2"/>
+        <line num="188" type="stmt" count="2"/>
         <line num="189" type="stmt" count="1"/>
         <line num="190" type="stmt" count="1"/>
         <line num="191" type="stmt" count="1"/>
@@ -6356,8 +6356,8 @@
         <line num="59" type="stmt" count="7"/>
         <line num="61" type="stmt" count="7"/>
         <line num="62" type="stmt" count="7"/>
-        <line num="63" type="stmt" count="7"/>
-        <line num="65" type="stmt" count="7"/>
+        <line num="63" type="stmt" count="2"/>
+        <line num="65" type="stmt" count="2"/>
         <line num="66" type="stmt" count="7"/>
         <line num="67" type="stmt" count="7"/>
         <line num="69" type="stmt" count="7"/>
@@ -7531,8 +7531,8 @@
         <class name="App\Models\Review" namespace="App\Models">
           <metrics complexity="35" methods="8" coveredmethods="3" conditionals="0" coveredconditionals="0" statements="82" coveredstatements="44" elements="90" coveredelements="47"/>
         </class>
-        <line num="46" type="method" name="book" visibility="public" complexity="1" crap="1" count="27"/>
-        <line num="48" type="stmt" count="27"/>
+        <line num="46" type="method" name="book" visibility="public" complexity="1" crap="1" count="26"/>
+        <line num="48" type="stmt" count="26"/>
         <line num="54" type="method" name="user" visibility="public" complexity="1" crap="1" count="6"/>
         <line num="56" type="stmt" count="6"/>
         <line num="62" type="method" name="comments" visibility="public" complexity="1" crap="1" count="64"/>
@@ -8740,7 +8740,7 @@
         <line num="251" type="stmt" count="8"/>
         <line num="252" type="stmt" count="8"/>
         <line num="254" type="stmt" count="8"/>
-        <line num="255" type="stmt" count="8"/>
+        <line num="255" type="stmt" count="3"/>
         <line num="256" type="stmt" count="8"/>
         <line num="262" type="method" name="getFiguren" visibility="public" complexity="1" crap="1" count="8"/>
         <line num="264" type="stmt" count="8"/>
