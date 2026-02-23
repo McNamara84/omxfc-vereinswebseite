@@ -19,19 +19,18 @@ class MaddraxiversumController extends Controller
 
     /**
      * Zeigt die Maddraxiversum-Seite mit der Karte an,
-     * wenn der Benutzer genügend Punkte hat.
+     * wenn der Benutzer das Feature freigeschaltet hat.
      */
     public function index(Request $request): View
     {
         /** @var User $user */
         $user = Auth::user();
-        $requiredPoints = 9; // Mindestpunktzahl für den Zugriff
         $userPoints = $this->teamPointService->getUserPoints($user);
         $showMap = $user->hasRole(Role::Ehrenmitglied);
 
         if (! $showMap) {
             try {
-                $this->teamPointService->assertMinPoints($requiredPoints);
+                $this->teamPointService->assertRewardUnlocked('maddraxiversum');
                 $showMap = true;
             } catch (AuthorizationException $e) {
                 $showMap = false;
@@ -41,7 +40,7 @@ class MaddraxiversumController extends Controller
         return view('maddraxiversum.index', [
             'showMap' => $showMap,
             'userPoints' => $userPoints,
-            'requiredPoints' => $requiredPoints,
+            'requiredPoints' => 0,
             'tileUrl' => 'https://mapdraxv2.maddraxikon.com/v2/{z}/{x}/{y}.png', // URL-Muster für die Tiles
         ]);
     }
@@ -142,7 +141,8 @@ class MaddraxiversumController extends Controller
 
                 // Punkte vergeben
                 if ($user->currentTeam) {
-                    $user->incrementTeamPoints($mission->reward ?? 5);
+                    $defaultPoints = \App\Models\BaxxEarningRule::getPointsFor('maddraxiversum_mission');
+                    $user->incrementTeamPoints($mission->reward ?? $defaultPoints);
                     \Log::info('Punkte vergeben:', [
                         'user_id' => $user->id,
                         'team_id' => $user->currentTeam->id,

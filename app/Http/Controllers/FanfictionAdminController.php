@@ -263,7 +263,10 @@ class FanfictionAdminController extends Controller
 
         // Award Baxx points if author is a member
         if ($fanfiction->user_id && $fanfiction->author) {
-            $fanfiction->author->incrementTeamPoints(5);
+            $points = \App\Models\BaxxEarningRule::getPointsFor('fanfiction_publish');
+            if ($points > 0) {
+                $fanfiction->author->incrementTeamPoints($points);
+            }
         }
     }
 

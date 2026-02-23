@@ -23,7 +23,6 @@ use App\Http\Controllers\PageController;
 use App\Http\Controllers\PhotoGalleryController;
 use App\Http\Controllers\ProfileViewController;
 use App\Http\Controllers\ReviewCommentController;
-use App\Http\Controllers\RewardController;
 use App\Http\Controllers\RezensionController;
 use App\Http\Controllers\RomantauschController;
 use App\Http\Controllers\RpgCharEditorController;
@@ -181,7 +180,12 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
 
     Route::get('/ag', [ArbeitsgruppenController::class, 'leaderIndex'])->name('ag.index');
 
-    Route::get('/belohnungen', [RewardController::class, 'index'])->name('rewards.index');
+    Route::livewire('/belohnungen', \App\Livewire\BelohnungenIndex::class)
+        ->name('rewards.index');
+
+    Route::livewire('/belohnungen/admin', \App\Livewire\BelohnungenAdmin::class)
+        ->name('rewards.admin')
+        ->middleware('admin');
 
     Route::prefix('treffen')->controller(MeetingController::class)->group(function () {
         Route::get('/', 'index')->name('meetings');

@@ -135,6 +135,8 @@ class TeamPointService
      * Ensure the authenticated user has at least the required points.
      *
      * @throws AuthorizationException
+     *
+     * @deprecated Use assertRewardUnlocked() instead. Will be removed in a future version.
      */
     public function assertMinPoints(int $required): void
     {
@@ -147,6 +149,16 @@ class TeamPointService
         if ($this->getUserPoints($user) < $required) {
             throw new AuthorizationException("Mindestens {$required} Baxx erforderlich.");
         }
+    }
+
+    /**
+     * Ensure the authenticated user has unlocked a specific reward.
+     *
+     * @throws AuthorizationException
+     */
+    public function assertRewardUnlocked(string $rewardSlug): void
+    {
+        app(RewardService::class)->assertRewardUnlocked($rewardSlug);
     }
 
     /**

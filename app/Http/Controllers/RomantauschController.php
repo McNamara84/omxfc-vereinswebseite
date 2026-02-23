@@ -630,7 +630,10 @@ class RomantauschController extends Controller
     {
         $offerCount = BookOffer::where('user_id', Auth::id())->count();
         if ($offerCount % 10 === 0) {
-            Auth::user()->incrementTeamPoints();
+            $points = \App\Models\BaxxEarningRule::getPointsFor('romantausch_offer');
+            if ($points > 0) {
+                Auth::user()->incrementTeamPoints($points);
+            }
         }
     }
 

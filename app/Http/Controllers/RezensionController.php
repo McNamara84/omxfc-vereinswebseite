@@ -273,12 +273,15 @@ class RezensionController extends Controller
             'content' => $data['content'],
         ]);
 
-        // Award one Baxx for every tenth review of the member
+        // Award Baxx for every tenth review of the member
         $reviewCount = Review::where('team_id', $teamId)
             ->where('user_id', $user->id)
             ->count();
         if ($reviewCount % 10 === 0) {
-            $user->incrementTeamPoints();
+            $points = \App\Models\BaxxEarningRule::getPointsFor('rezension');
+            if ($points > 0) {
+                $user->incrementTeamPoints($points);
+            }
         }
 
         // Autoren des Romans über neue Rezension informieren
