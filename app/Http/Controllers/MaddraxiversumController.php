@@ -141,11 +141,14 @@ class MaddraxiversumController extends Controller
                 // Punkte vergeben
                 if ($user->currentTeam) {
                     $defaultPoints = \App\Models\BaxxEarningRule::getPointsFor('maddraxiversum_mission');
-                    $user->incrementTeamPoints($mission->reward ?? $defaultPoints);
+                    $earnedPoints = $mission->reward ?? $defaultPoints;
+                    if ($earnedPoints > 0) {
+                        $user->incrementTeamPoints($earnedPoints);
+                    }
                     \Log::info('Punkte vergeben:', [
                         'user_id' => $user->id,
                         'team_id' => $user->currentTeam->id,
-                        'points' => $mission->reward ?? 5,
+                        'points' => $earnedPoints,
                     ]);
                 } else {
                     \Log::warning('Kein Team gefunden für Benutzer: '.$user->id);

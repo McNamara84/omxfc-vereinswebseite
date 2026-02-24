@@ -30,11 +30,16 @@ class RewardService
         }
 
         return DB::transaction(function () use ($user, $reward) {
-            // Lock user's purchases to prevent concurrent spending
+            // Lock ALL purchases of this user to prevent concurrent double-spending.
+            // This ensures getSpentBaxx sees a consistent snapshot and no two
+            // concurrent requests can both pass the balance check.
+            RewardPurchase::where('user_id', $user->id)
+                ->lockForUpdate()
+                ->count();
+
             $existingPurchase = RewardPurchase::where('user_id', $user->id)
                 ->where('reward_id', $reward->id)
                 ->active()
-                ->lockForUpdate()
                 ->first();
 
             if ($existingPurchase) {
