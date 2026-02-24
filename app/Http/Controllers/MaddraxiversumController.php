@@ -40,7 +40,6 @@ class MaddraxiversumController extends Controller
         return view('maddraxiversum.index', [
             'showMap' => $showMap,
             'userPoints' => $userPoints,
-            'requiredPoints' => 0,
             'tileUrl' => 'https://mapdraxv2.maddraxikon.com/v2/{z}/{x}/{y}.png', // URL-Muster für die Tiles
         ]);
     }

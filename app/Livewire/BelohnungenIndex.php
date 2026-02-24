@@ -108,8 +108,8 @@ class BelohnungenIndex extends Component
             $this->dispatch('toast', type: 'error', title: 'Fehler', description: $message);
         }
 
-        // Invalidate computed caches
-        unset($this->availableBaxx, $this->earnedBaxx, $this->spentBaxx, $this->rewards);
+        // Invalidate computed caches (earnedBaxx bleibt – ein Kauf ändert nicht die verdienten Baxx)
+        unset($this->availableBaxx, $this->spentBaxx, $this->rewards);
     }
 
     public function updatedFilter(): void

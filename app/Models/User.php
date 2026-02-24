@@ -282,7 +282,7 @@ class User extends Authenticatable
      */
     public function getSpentBaxx(): int
     {
-        return (int) $this->activeRewardPurchases()->sum('cost_baxx');
+        return app(RewardService::class)->getSpentBaxx($this);
     }
 
     /**

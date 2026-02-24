@@ -29,25 +29,27 @@ class RewardService
             ]);
         }
 
-        $existingPurchase = RewardPurchase::where('user_id', $user->id)
-            ->where('reward_id', $reward->id)
-            ->active()
-            ->first();
-
-        if ($existingPurchase) {
-            throw ValidationException::withMessages([
-                'reward' => 'Du hast diese Belohnung bereits freigeschaltet.',
-            ]);
-        }
-
-        $availableBaxx = $this->getAvailableBaxx($user);
-        if ($availableBaxx < $reward->cost_baxx) {
-            throw ValidationException::withMessages([
-                'reward' => "Du benötigst {$reward->cost_baxx} Baxx, hast aber nur {$availableBaxx} verfügbar.",
-            ]);
-        }
-
         return DB::transaction(function () use ($user, $reward) {
+            // Lock user's purchases to prevent concurrent spending
+            $existingPurchase = RewardPurchase::where('user_id', $user->id)
+                ->where('reward_id', $reward->id)
+                ->active()
+                ->lockForUpdate()
+                ->first();
+
+            if ($existingPurchase) {
+                throw ValidationException::withMessages([
+                    'reward' => 'Du hast diese Belohnung bereits freigeschaltet.',
+                ]);
+            }
+
+            $availableBaxx = $this->getAvailableBaxx($user);
+            if ($availableBaxx < $reward->cost_baxx) {
+                throw ValidationException::withMessages([
+                    'reward' => "Du benötigst {$reward->cost_baxx} Baxx, hast aber nur {$availableBaxx} verfügbar.",
+                ]);
+            }
+
             return RewardPurchase::create([
                 'user_id' => $user->id,
                 'reward_id' => $reward->id,

@@ -161,12 +161,16 @@ class BelohnungenAdminTest extends TestCase
             'refunded_by' => $admin->id,
         ]);
 
-        Livewire::test(BelohnungenAdmin::class)
-            ->call('refundPurchase', $purchase->id);
+        $originalRefundedAt = $purchase->refunded_at;
 
-        // Refunded_by should still be admin (not changed)
+        Livewire::test(BelohnungenAdmin::class)
+            ->call('refundPurchase', $purchase->id)
+            ->assertDispatched('toast', type: 'error', title: 'Fehler');
+
+        // refunded_at darf sich nicht geändert haben
         $purchase->refresh();
         $this->assertEquals($admin->id, $purchase->refunded_by);
+        $this->assertEquals($originalRefundedAt->toDateTimeString(), $purchase->refunded_at->toDateTimeString());
     }
 
     // ── Statistiken ────────────────────────────────────────
