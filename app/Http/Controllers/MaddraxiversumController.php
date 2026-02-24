@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\Role;
+use App\Models\BaxxEarningRule;
 use App\Models\Mission;
 use App\Models\User;
 use App\Services\TeamPointService;
@@ -140,8 +141,8 @@ class MaddraxiversumController extends Controller
 
                 // Punkte vergeben
                 if ($user->currentTeam) {
-                    $defaultPoints = \App\Models\BaxxEarningRule::getPointsFor('maddraxiversum_mission');
-                    $earnedPoints = $mission->reward ?? $defaultPoints;
+                    $defaultPoints = BaxxEarningRule::getPointsFor('maddraxiversum_mission');
+                    $earnedPoints = $mission->reward ?: $defaultPoints;
                     if ($earnedPoints > 0) {
                         $user->incrementTeamPoints($earnedPoints);
                     }

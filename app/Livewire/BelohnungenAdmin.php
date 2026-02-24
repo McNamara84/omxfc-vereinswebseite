@@ -7,7 +7,6 @@ use App\Models\Reward;
 use App\Models\RewardPurchase;
 use App\Services\RewardService;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Str;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Url;
 use Livewire\Component;
@@ -137,7 +136,7 @@ class BelohnungenAdmin extends Component
             $reward->update($data);
             $this->dispatch('toast', type: 'success', title: 'Belohnung aktualisiert');
         } else {
-            $data['slug'] = Str::slug($this->rewardTitle);
+            // Slug wird automatisch im Model::booted() erzeugt (mit Kollisionserkennung)
             Reward::create($data);
             $this->dispatch('toast', type: 'success', title: 'Belohnung erstellt');
         }
@@ -225,7 +224,7 @@ class BelohnungenAdmin extends Component
 
         try {
             $service->refundPurchase($purchase, Auth::user());
-            $this->dispatch('toast', type: 'success', title: 'Erstattung durchgeführt', description: "{$purchase->user->name} erhält {$purchase->cost_baxx} Baxx zurück.");
+            $this->dispatch('toast', type: 'success', title: 'Erstattung durchgeführt', description: e($purchase->user->name).' erhält '.$purchase->cost_baxx.' Baxx zurück.');
         } catch (\Illuminate\Validation\ValidationException $e) {
             $message = collect($e->errors())->flatten()->first();
             $this->dispatch('toast', type: 'error', title: 'Fehler', description: $message);

@@ -6,6 +6,7 @@ use App\Enums\FanfictionStatus;
 use App\Http\Controllers\Concerns\MembersTeamAware;
 use App\Http\Requests\FanfictionRequest;
 use App\Models\Activity;
+use App\Models\BaxxEarningRule;
 use App\Models\Fanfiction;
 use App\Models\User;
 use App\Services\UserRoleService;
@@ -263,7 +264,7 @@ class FanfictionAdminController extends Controller
 
         // Award Baxx points if author is a member
         if ($fanfiction->user_id && $fanfiction->author) {
-            $points = \App\Models\BaxxEarningRule::getPointsFor('fanfiction_publish');
+            $points = BaxxEarningRule::getPointsFor('fanfiction_publish');
             if ($points > 0) {
                 $fanfiction->author->incrementTeamPoints($points);
             }

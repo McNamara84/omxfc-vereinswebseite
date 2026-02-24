@@ -35,7 +35,16 @@ class Reward extends Model
     {
         static::creating(function (Reward $reward) {
             if (empty($reward->slug)) {
-                $reward->slug = Str::slug($reward->title);
+                $baseSlug = Str::slug($reward->title);
+                $slug = $baseSlug;
+                $counter = 2;
+
+                while (static::where('slug', $slug)->exists()) {
+                    $slug = "{$baseSlug}-{$counter}";
+                    $counter++;
+                }
+
+                $reward->slug = $slug;
             }
         });
     }

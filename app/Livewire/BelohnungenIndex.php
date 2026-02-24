@@ -102,7 +102,7 @@ class BelohnungenIndex extends Component
 
         try {
             $service->purchaseReward(Auth::user(), $reward);
-            $this->dispatch('toast', type: 'success', title: "{$reward->title} freigeschaltet!", description: "{$reward->cost_baxx} Baxx wurden abgezogen.");
+            $this->dispatch('toast', type: 'success', title: e($reward->title).' freigeschaltet!', description: "{$reward->cost_baxx} Baxx wurden abgezogen.");
         } catch (\Illuminate\Validation\ValidationException $e) {
             $message = collect($e->errors())->flatten()->first();
             $this->dispatch('toast', type: 'error', title: 'Fehler', description: $message);
