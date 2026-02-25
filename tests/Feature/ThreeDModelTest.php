@@ -454,21 +454,24 @@ class ThreeDModelTest extends TestCase
     }
 
     // ── Belohnungen-Integration ─────────────────────────────
+    // 3D-Modelle werden seit der Umstellung auf das aktive Kaufsystem (Livewire)
+    // nicht mehr auf /belohnungen angezeigt. Sie nutzen ihr eigenes Zugriffssystem
+    // über ThreeDModelController::assertMinPoints(). Siehe BelohnungenIndexTest für
+    // das neue Belohnungssystem.
 
-    public function test_belohnungen_seite_zeigt_3d_modelle(): void
+    public function test_3d_modelle_nutzen_eigenes_zugriffssystem(): void
     {
-        $this->actingSimpleMember();
+        $user = $this->actingMemberWithPoints(25);
 
         ThreeDModel::factory()->create([
-            'name' => 'Belohnungs-Modell',
+            'name' => 'Zugriffs-Modell',
             'required_baxx' => 25,
         ]);
 
-        $response = $this->get('/belohnungen');
-
+        // 3D-Modelle sind über ihre eigene Route erreichbar, nicht über /belohnungen
+        $response = $this->get('/3d-modelle');
         $response->assertOk();
-        $response->assertSee('3D-Modell - Belohnungs-Modell');
-        $response->assertSee('25 Baxx');
+        $response->assertSee('Zugriffs-Modell');
     }
 
     // ── Validierung: Dateigröße ──────────────────────────────

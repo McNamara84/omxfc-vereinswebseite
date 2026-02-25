@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\Role;
 use App\Jobs\GeocodeUser;
+use App\Services\RewardService;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -250,5 +251,46 @@ class User extends Authenticatable
     public function isOwnerOfTeam(string $teamName): bool
     {
         return $this->ownedTeams()->where('name', $teamName)->exists();
+    }
+
+    /**
+     * Get all reward purchases for this user.
+     */
+    public function rewardPurchases(): HasMany
+    {
+        return $this->hasMany(RewardPurchase::class);
+    }
+
+    /**
+     * Get only active (non-refunded) reward purchases.
+     */
+    public function activeRewardPurchases(): HasMany
+    {
+        return $this->hasMany(RewardPurchase::class)->whereNull('refunded_at');
+    }
+
+    /**
+     * Check if the user has unlocked a specific reward by slug.
+     */
+    public function hasUnlockedReward(string $slug): bool
+    {
+        return app(RewardService::class)->hasUnlockedReward($this, $slug);
+    }
+
+    /**
+     * Get total Baxx spent on active (non-refunded) purchases.
+     */
+    public function getSpentBaxx(): int
+    {
+        return app(RewardService::class)->getSpentBaxx($this);
+    }
+
+    /**
+     * Get the available (spendable) Baxx for the user.
+     * Available = Earned - Spent on active purchases.
+     */
+    public function getAvailableBaxx(): int
+    {
+        return app(RewardService::class)->getAvailableBaxx($this);
     }
 }

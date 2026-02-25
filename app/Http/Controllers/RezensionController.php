@@ -8,6 +8,7 @@ use App\Http\Controllers\Concerns\MembersTeamAware;
 use App\Http\Requests\ReviewRequest;
 use App\Mail\NewReviewNotification;
 use App\Models\Activity;
+use App\Models\BaxxEarningRule;
 use App\Models\Book;
 use App\Models\Review;
 use App\Models\User;
@@ -273,12 +274,15 @@ class RezensionController extends Controller
             'content' => $data['content'],
         ]);
 
-        // Award one Baxx for every tenth review of the member
+        // Award Baxx for every tenth review of the member
         $reviewCount = Review::where('team_id', $teamId)
             ->where('user_id', $user->id)
             ->count();
         if ($reviewCount % 10 === 0) {
-            $user->incrementTeamPoints();
+            $points = BaxxEarningRule::getPointsFor('rezension');
+            if ($points > 0) {
+                $user->incrementTeamPoints($points);
+            }
         }
 
         // Autoren des Romans über neue Rezension informieren

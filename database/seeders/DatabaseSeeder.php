@@ -23,6 +23,8 @@ class DatabaseSeeder extends Seeder
             DefaultAdminAndTeamSeeder::class,
             UpdateAudiobookEpisodeStatusSeeder::class,
             TodoCategorySeeder::class,
+            RewardSeeder::class,
+            BaxxEarningRuleSeeder::class,
         ]);
     }
 }

@@ -2,6 +2,8 @@
 
 namespace Tests\Feature;
 
+use App\Models\Reward;
+use App\Models\RewardPurchase;
 use App\Models\Team;
 use App\Models\User;
 use Carbon\Carbon;
@@ -25,9 +27,34 @@ class MaddraxiversumControllerTest extends TestCase
         return $user;
     }
 
-    public function test_index_shows_map_when_user_has_enough_points(): void
+    /**
+     * Erstellt die Maddraxiversum-Belohnung und kauft sie für den User.
+     */
+    private function purchaseMaddraxiversumReward(User $user): void
+    {
+        $reward = Reward::firstOrCreate(
+            ['slug' => 'maddraxiversum'],
+            [
+                'title' => 'Maddraxiversum',
+                'description' => 'Zugang zum Maddraxiversum',
+                'category' => 'Minispiele',
+                'cost_baxx' => 9,
+                'is_active' => true,
+                'sort_order' => 0,
+            ]
+        );
+
+        RewardPurchase::factory()->create([
+            'user_id' => $user->id,
+            'reward_id' => $reward->id,
+            'cost_baxx' => $reward->cost_baxx,
+        ]);
+    }
+
+    public function test_index_shows_map_when_user_has_unlocked_reward(): void
     {
         $user = $this->actingMember('Mitglied', 15);
+        $this->purchaseMaddraxiversumReward($user);
         $this->actingAs($user);
 
         $response = $this->get('/maddraxiversum');
@@ -45,7 +72,7 @@ class MaddraxiversumControllerTest extends TestCase
         $this->get('/maddraxiversum')->assertOk();
     }
 
-    public function test_index_hides_map_when_points_are_too_low(): void
+    public function test_index_hides_map_when_reward_not_purchased(): void
     {
         $user = $this->actingMember('Mitglied', 2);
         $this->actingAs($user);

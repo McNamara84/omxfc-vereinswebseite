@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * @deprecated Diese Konfiguration wird nicht mehr zur Laufzeit verwendet.
+ * Die Belohnungen werden jetzt in der Datenbank-Tabelle `rewards` verwaltet.
+ * Diese Datei dient nur noch als Referenz für den RewardSeeder.
+ *
+ * @see \Database\Seeders\RewardSeeder
+ * @see \App\Models\Reward
+ */
 return [
     [
         'title' => 'Mitgliederkarte',

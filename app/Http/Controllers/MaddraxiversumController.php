@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\Role;
+use App\Models\BaxxEarningRule;
 use App\Models\Mission;
 use App\Models\User;
 use App\Services\TeamPointService;
@@ -19,19 +20,18 @@ class MaddraxiversumController extends Controller
 
     /**
      * Zeigt die Maddraxiversum-Seite mit der Karte an,
-     * wenn der Benutzer genügend Punkte hat.
+     * wenn der Benutzer das Feature freigeschaltet hat.
      */
     public function index(Request $request): View
     {
         /** @var User $user */
         $user = Auth::user();
-        $requiredPoints = 9; // Mindestpunktzahl für den Zugriff
         $userPoints = $this->teamPointService->getUserPoints($user);
         $showMap = $user->hasRole(Role::Ehrenmitglied);
 
         if (! $showMap) {
             try {
-                $this->teamPointService->assertMinPoints($requiredPoints);
+                $this->teamPointService->assertRewardUnlocked('maddraxiversum');
                 $showMap = true;
             } catch (AuthorizationException $e) {
                 $showMap = false;
@@ -41,7 +41,6 @@ class MaddraxiversumController extends Controller
         return view('maddraxiversum.index', [
             'showMap' => $showMap,
             'userPoints' => $userPoints,
-            'requiredPoints' => $requiredPoints,
             'tileUrl' => 'https://mapdraxv2.maddraxikon.com/v2/{z}/{x}/{y}.png', // URL-Muster für die Tiles
         ]);
     }
@@ -142,11 +141,15 @@ class MaddraxiversumController extends Controller
 
                 // Punkte vergeben
                 if ($user->currentTeam) {
-                    $user->incrementTeamPoints($mission->reward ?? 5);
+                    $defaultPoints = BaxxEarningRule::getPointsFor('maddraxiversum_mission');
+                    $earnedPoints = $mission->reward ?: $defaultPoints;
+                    if ($earnedPoints > 0) {
+                        $user->incrementTeamPoints($earnedPoints);
+                    }
                     \Log::info('Punkte vergeben:', [
                         'user_id' => $user->id,
                         'team_id' => $user->currentTeam->id,
-                        'points' => $mission->reward ?? 5,
+                        'points' => $earnedPoints,
                     ]);
                 } else {
                     \Log::warning('Kein Team gefunden für Benutzer: '.$user->id);

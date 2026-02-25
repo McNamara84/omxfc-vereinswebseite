@@ -15,8 +15,8 @@
                     @else
                         <div class="bg-warning/10 border-l-4 border-warning text-warning-content p-4">
                             <p class="font-bold">Zugriff eingeschränkt</p>
-                            <p>Du benötigst mindestens {{ $requiredPoints }} Baxx, um die Maddraxiversum-Karte anzuzeigen.</p>
-                            <p>Du hast aktuell {{ $userPoints }} Baxx in deinem Team gesammelt.</p>
+                            <p>Du musst diese Belohnung zuerst unter <a href="/belohnungen" class="underline font-semibold">Belohnungen</a> freischalten.</p>
+                            <p>Du hast aktuell {{ $userPoints }} Baxx gesammelt.</p>
                         </div>
                     @endif
                 </div>

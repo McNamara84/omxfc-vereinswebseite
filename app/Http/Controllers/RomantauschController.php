@@ -8,6 +8,7 @@ use App\Http\Requests\StoreBundleOfferRequest;
 use App\Http\Requests\UpdateBookOfferRequest;
 use App\Http\Requests\UpdateBundleOfferRequest;
 use App\Models\Activity;
+use App\Models\BaxxEarningRule;
 use App\Models\Book;
 use App\Models\BookOffer;
 use App\Models\BookRequest;
@@ -630,7 +631,10 @@ class RomantauschController extends Controller
     {
         $offerCount = BookOffer::where('user_id', Auth::id())->count();
         if ($offerCount % 10 === 0) {
-            Auth::user()->incrementTeamPoints();
+            $points = BaxxEarningRule::getPointsFor('romantausch_offer');
+            if ($points > 0) {
+                Auth::user()->incrementTeamPoints($points);
+            }
         }
     }
 

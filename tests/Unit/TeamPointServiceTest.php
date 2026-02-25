@@ -3,6 +3,8 @@
 namespace Tests\Unit;
 
 use App\Enums\Role;
+use App\Models\Reward;
+use App\Models\RewardPurchase;
 use App\Models\Team;
 use App\Models\User;
 use App\Services\TeamPointService;
@@ -185,5 +187,32 @@ class TeamPointServiceTest extends TestCase
 
         $this->assertSame(5, $metrics['weekly']['target']);
         $this->assertSame(80, $metrics['weekly']['progress']);
+    }
+
+    // ── assertRewardUnlocked ───────────────────────────────
+
+    public function test_assert_reward_unlocked_passes_when_purchased(): void
+    {
+        $user = $this->memberWithPoints(0);
+        $this->actingAs($user);
+        $reward = Reward::factory()->create(['slug' => 'test-unlock', 'cost_baxx' => 5]);
+        RewardPurchase::factory()->create([
+            'user_id' => $user->id,
+            'reward_id' => $reward->id,
+            'cost_baxx' => 5,
+        ]);
+
+        $this->service->assertRewardUnlocked('test-unlock');
+        $this->assertTrue(true); // No exception thrown
+    }
+
+    public function test_assert_reward_unlocked_throws_when_not_purchased(): void
+    {
+        $user = $this->memberWithPoints(0);
+        $this->actingAs($user);
+        Reward::factory()->create(['slug' => 'locked-feature', 'cost_baxx' => 5]);
+
+        $this->expectException(AuthorizationException::class);
+        $this->service->assertRewardUnlocked('locked-feature');
     }
 }
