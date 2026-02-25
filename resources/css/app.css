@@ -1,4 +1,5 @@
 @config "../../tailwind.config.js";
+@source "../../vendor/robsontenorio/mary/src/View/Components/**/*.php";
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 @plugin "daisyui" {
