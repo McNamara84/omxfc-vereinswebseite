@@ -4,18 +4,19 @@
 
         {{-- Neue Nachricht erstellen --}}
         <x-card class="mb-6">
-            <form method="POST" action="{{ route('admin.messages.store') }}">
+            <form id="admin-message-form" method="POST" action="{{ route('admin.messages.store') }}">
                 @csrf
                 <x-input
                     id="message"
                     name="message"
                     label="Nachricht"
+                    :value="old('message')"
                     placeholder="Kurznachricht eingeben (max. 140 Zeichen)"
                     maxlength="140"
                     required
                 />
                 <x-slot:actions>
-                    <x-button type="submit" icon="o-paper-airplane" class="btn-primary">
+                    <x-button type="submit" form="admin-message-form" icon="o-paper-airplane" class="btn-primary">
                         Speichern
                     </x-button>
                 </x-slot:actions>

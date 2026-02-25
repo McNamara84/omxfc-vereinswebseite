@@ -43,6 +43,17 @@ class AdminMessageControllerTest extends TestCase
         $response->assertSee('Hallo Welt');
     }
 
+    public function test_index_links_submit_button_to_message_form(): void
+    {
+        $admin = $this->actingAdmin();
+
+        $response = $this->actingAs($admin)->get(route('admin.messages.index'));
+
+        $response->assertOk();
+        $response->assertSee('id="admin-message-form"', false);
+        $response->assertSee('form="admin-message-form"', false);
+    }
+
     public function test_store_creates_message_and_activity(): void
     {
         $admin = $this->actingAdmin();
