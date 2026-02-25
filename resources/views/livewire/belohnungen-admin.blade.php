@@ -216,7 +216,7 @@
         </x-tabs>
 
         {{-- Modal: Belohnung bearbeiten/erstellen --}}
-        <x-modal wire:model="showRewardModal" title="{{ $editingRewardId ? 'Belohnung bearbeiten' : 'Neue Belohnung' }}">
+        <x-mary-modal wire:model="showRewardModal" title="{{ $editingRewardId ? 'Belohnung bearbeiten' : 'Neue Belohnung' }}">
             <div class="space-y-4">
                 <x-input wire:model="rewardTitle" label="Titel" placeholder="Name der Belohnung" />
                 <x-textarea wire:model="rewardDescription" label="Beschreibung" placeholder="Was wird freigeschaltet?" />
@@ -230,10 +230,10 @@
                 <x-button label="Abbrechen" wire:click="$set('showRewardModal', false)" />
                 <x-button label="Speichern" class="btn-primary" wire:click="saveReward" />
             </x-slot:actions>
-        </x-modal>
+        </x-mary-modal>
 
         {{-- Modal: Vergaberegel bearbeiten --}}
-        <x-modal wire:model="showRuleModal" title="Vergaberegel bearbeiten">
+        <x-mary-modal wire:model="showRuleModal" title="Vergaberegel bearbeiten">
             <div class="space-y-4">
                 <x-input wire:model="ruleLabel" label="Bezeichnung" />
                 <x-textarea wire:model="ruleDescription" label="Beschreibung" />
@@ -245,6 +245,6 @@
                 <x-button label="Abbrechen" wire:click="$set('showRuleModal', false)" />
                 <x-button label="Speichern" class="btn-primary" wire:click="saveRule" />
             </x-slot:actions>
-        </x-modal>
+        </x-mary-modal>
     </div>
 </div>

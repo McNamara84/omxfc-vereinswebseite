@@ -336,7 +336,7 @@
         @endif
 
         {{-- Edit-Modal --}}
-        <x-modal wire:model="showEditModal" title="Roman bearbeiten" separator data-testid="edit-modal">
+        <x-mary-modal wire:model="showEditModal" title="Roman bearbeiten" separator data-testid="edit-modal">
             <div class="space-y-4">
                 @php
                     $editSerienOptions = collect($this->serien)->map(fn($name, $key) => ['id' => $key, 'name' => $name])->values()->toArray();
@@ -375,6 +375,6 @@
                 <x-button label="Abbrechen" @click="$wire.showEditModal = false" />
                 <x-button label="Speichern" wire:click="speichern" class="btn-primary" spinner="speichern" data-testid="edit-save" />
             </x-slot:actions>
-        </x-modal>
+        </x-mary-modal>
     </div>
 </div>

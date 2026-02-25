@@ -15,7 +15,7 @@
 </span>
 
 @once
-<x-modal wire:model="confirmingPassword" title="{{ $title }}" separator>
+<x-mary-modal wire:model="confirmingPassword" title="{{ $title }}" separator>
     {{ $content }}
 
     <div class="mt-4" x-data="{}" x-on:confirming-password.window="setTimeout(() => $refs.confirmable_password.focus(), 250)">
@@ -35,5 +35,5 @@
             {{ $button }}
         </x-button>
     </x-slot:actions>
-</x-modal>
+</x-mary-modal>
 @endonce

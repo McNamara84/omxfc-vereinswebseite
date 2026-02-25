@@ -25,13 +25,13 @@
     </div>
 
     {{-- Mission Modal --}}
-    <x-modal id="mission-modal">
+    <x-mary-modal id="mission-modal">
         <h3 id="mission-title" class="text-xl font-bold mb-4"></h3>
         <div id="mission-duration" class="mb-2 text-base-content"></div>
         <div id="mission-description" class="mb-6 text-base-content"></div>
         <x-slot:actions>
             <x-button id="start-mission" label="Starte Mission" class="btn-primary w-full" />
         </x-slot:actions>
-    </x-modal>
+    </x-mary-modal>
 </x-app-layout>
 
