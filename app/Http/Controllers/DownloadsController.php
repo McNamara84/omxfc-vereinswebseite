@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Download;
-use App\Models\Reward;
 use App\Models\RewardPurchase;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
@@ -20,20 +19,23 @@ class DownloadsController extends Controller
         /** @var User $user */
         $user = Auth::user();
 
+        // Eager-Load die Rewards-Relation, um N+1 in der View zu vermeiden
         $downloads = Download::active()
+            ->with(['rewards:id,title,download_id'])
             ->orderBy('category')
             ->orderBy('sort_order')
             ->orderBy('title')
             ->get()
             ->groupBy('category');
 
-        // Ermittle alle Download-IDs, die der User über Reward-Käufe freigeschaltet hat
-        $unlockedDownloadIds = RewardPurchase::where('user_id', $user->id)
+        // Ermittle alle Download-IDs, die der User über Reward-Käufe freigeschaltet hat.
+        // Per Join statt lazy Loading, um N+1-Queries zu vermeiden.
+        $unlockedDownloadIds = RewardPurchase::where('reward_purchases.user_id', $user->id)
             ->active()
-            ->whereHas('reward', fn ($q) => $q->whereNotNull('download_id'))
-            ->get()
-            ->pluck('reward.download_id')
-            ->unique()
+            ->join('rewards', 'reward_purchases.reward_id', '=', 'rewards.id')
+            ->whereNotNull('rewards.download_id')
+            ->distinct()
+            ->pluck('rewards.download_id')
             ->toArray();
 
         return view('pages.downloads', [
@@ -47,16 +49,18 @@ class DownloadsController extends Controller
      */
     public function download(Download $download)
     {
+        // Inaktive Downloads sind nicht abrufbar
+        abort_if(! $download->is_active, 404);
+
         /** @var User $user */
         $user = Auth::user();
 
-        // Prüfe ob eine Belohnung mit diesem Download verknüpft ist
-        $reward = Reward::where('download_id', $download->id)->first();
-
-        if ($reward) {
+        // Prüfe ob mindestens eine Belohnung mit diesem Download verknüpft ist
+        if ($download->rewards()->exists()) {
+            // Prüfe ob der User IRGENDEINE der verknüpften Belohnungen freigeschaltet hat
             $hasAccess = RewardPurchase::where('user_id', $user->id)
-                ->where('reward_id', $reward->id)
                 ->active()
+                ->whereHas('reward', fn ($q) => $q->where('download_id', $download->id))
                 ->exists();
 
             if (! $hasAccess) {

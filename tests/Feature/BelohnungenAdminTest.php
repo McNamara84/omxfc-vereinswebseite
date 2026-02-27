@@ -327,6 +327,37 @@ class BelohnungenAdminTest extends TestCase
         ]);
     }
 
+    public function test_create_reward_with_invalid_download_id_fails(): void
+    {
+        $this->actingAdmin();
+
+        Livewire::test(BelohnungenAdmin::class)
+            ->set('rewardTitle', 'Ungültig')
+            ->set('rewardDescription', 'Test')
+            ->set('rewardCategory', 'Test')
+            ->set('rewardCostBaxx', 5)
+            ->set('rewardDownloadId', 99999)
+            ->call('saveReward')
+            ->assertHasErrors('rewardDownloadId');
+    }
+
+    public function test_create_reward_with_already_linked_download_fails(): void
+    {
+        $this->actingAdmin();
+
+        $download = Download::factory()->create();
+        Reward::factory()->create(['download_id' => $download->id]);
+
+        Livewire::test(BelohnungenAdmin::class)
+            ->set('rewardTitle', 'Duplikat')
+            ->set('rewardDescription', 'Test')
+            ->set('rewardCategory', 'Test')
+            ->set('rewardCostBaxx', 5)
+            ->set('rewardDownloadId', $download->id)
+            ->call('saveReward')
+            ->assertHasErrors('rewardDownloadId');
+    }
+
     public function test_downloads_tab_shows_downloads(): void
     {
         $this->actingAdmin();

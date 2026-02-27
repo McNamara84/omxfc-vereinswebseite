@@ -128,6 +128,49 @@ class DownloadsTest extends TestCase
         $response->assertDontSee('Versteckt');
     }
 
+    public function test_download_of_inactive_download_returns_404(): void
+    {
+        $this->actingMember();
+
+        $download = Download::factory()->create([
+            'file_path' => 'downloads/inactive.pdf',
+            'is_active' => false,
+        ]);
+
+        Storage::disk('private')->put('downloads/inactive.pdf', 'dummy content');
+
+        $response = $this->get('/downloads/herunterladen/'.$download->id);
+
+        $response->assertNotFound();
+    }
+
+    public function test_download_succeeds_with_multiple_rewards_linked(): void
+    {
+        $user = $this->actingMember();
+
+        $download = Download::factory()->create([
+            'file_path' => 'downloads/multi.pdf',
+            'original_filename' => 'Multi.pdf',
+        ]);
+
+        // Zwei Rewards zeigen auf denselben Download
+        $reward1 = Reward::factory()->create(['download_id' => $download->id]);
+        $reward2 = Reward::factory()->create(['download_id' => $download->id]);
+
+        // User hat nur Reward 2 gekauft
+        RewardPurchase::factory()->create([
+            'user_id' => $user->id,
+            'reward_id' => $reward2->id,
+        ]);
+
+        Storage::disk('private')->put('downloads/multi.pdf', 'dummy content');
+
+        $response = $this->get('/downloads/herunterladen/'.$download->id);
+
+        $response->assertOk();
+        $response->assertHeader('content-disposition');
+    }
+
     public function test_guest_is_redirected_to_login_when_accessing_downloads_page(): void
     {
         $this->get('/downloads')->assertRedirect('/login');

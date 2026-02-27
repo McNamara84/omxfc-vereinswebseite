@@ -9,6 +9,7 @@ use App\Models\RewardPurchase;
 use App\Services\RewardService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Url;
 use Livewire\Component;
@@ -130,7 +131,8 @@ class BelohnungenAdmin extends Component
     #[Computed]
     public function downloads(): \Illuminate\Database\Eloquent\Collection
     {
-        return Download::orderBy('category')
+        return Download::with(['rewards:id,title,download_id'])
+            ->orderBy('category')
             ->orderBy('sort_order')
             ->orderBy('title')
             ->get();
@@ -178,6 +180,11 @@ class BelohnungenAdmin extends Component
             'rewardCategory' => 'required|string|max:255',
             'rewardCostBaxx' => 'required|integer|min:1',
             'rewardSortOrder' => 'required|integer|min:0',
+            'rewardDownloadId' => [
+                'nullable',
+                'exists:downloads,id',
+                Rule::unique('rewards', 'download_id')->ignore($this->editingRewardId),
+            ],
         ]);
 
         $data = [
