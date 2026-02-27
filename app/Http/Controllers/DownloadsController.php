@@ -2,86 +2,75 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Download;
+use App\Models\Reward;
+use App\Models\RewardPurchase;
 use App\Models\User;
-use App\Services\TeamPointService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
 class DownloadsController extends Controller
 {
-    public function __construct(private TeamPointService $teamPointService) {}
-
     /**
-     * Gesamte Download‑Konfiguration (Kategorie → Dateien).
-     * Jede Datei enthält den Titel, den Dateinamen im privaten Storage
-     * und die benötigte Mindestpunktzahl.
-     */
-    private array $downloads = [
-        'Klemmbaustein-Anleitungen' => [
-            [
-                'titel' => 'Bauanleitung Euphoriewurm',
-                'datei' => 'BauanleitungEuphoriewurmV2.pdf',
-                'punkte' => 6,
-            ],
-            [
-                'titel' => 'Bauanleitung Prototyp XP-1',
-                'datei' => 'BauanleitungProtoV11.pdf',
-                'punkte' => 8,
-            ],
-        ],
-        'Fanstories' => [
-            [
-                'titel' => 'Das Flüstern der Vergangenheit von Max T. Hardwet',
-                'datei' => 'DasFlüsternDerVergangenheit.pdf',
-                'punkte' => 3,
-            ],
-        ],
-    ];
-
-    /**
-     * Zeigt die Downloads‑Seite.
+     * Zeigt die Downloads-Seite.
+     * Downloads sind über die DB verwaltet und über Belohnungen freigeschaltet.
      */
     public function index()
     {
         /** @var User $user */
         $user = Auth::user();
-        $userPoints = $this->teamPointService->getUserPoints($user);
+
+        $downloads = Download::active()
+            ->orderBy('category')
+            ->orderBy('sort_order')
+            ->orderBy('title')
+            ->get()
+            ->groupBy('category');
+
+        // Ermittle alle Download-IDs, die der User über Reward-Käufe freigeschaltet hat
+        $unlockedDownloadIds = RewardPurchase::where('user_id', $user->id)
+            ->active()
+            ->whereHas('reward', fn ($q) => $q->whereNotNull('download_id'))
+            ->get()
+            ->pluck('reward.download_id')
+            ->unique()
+            ->toArray();
 
         return view('pages.downloads', [
-            'downloads' => $this->downloads,
-            'userPoints' => $userPoints,
+            'downloads' => $downloads,
+            'unlockedDownloadIds' => $unlockedDownloadIds,
         ]);
     }
 
     /**
-     * Liefert eine Datei aus, wenn der Nutzer genug Punkte hat.
-     *
-     * @param  string  $datei  Dateiname (wie in $downloads angegeben)
+     * Liefert eine Datei aus, wenn der Nutzer die entsprechende Belohnung freigeschaltet hat.
      */
-    public function download(string $datei)
+    public function download(Download $download)
     {
-        // passende Metadaten heraussuchen
-        $meta = collect($this->downloads)
-            ->flatten(1)
-            ->firstWhere('datei', $datei);
-
-        if (! $meta) {
-            return back()->withErrors('Die Datei wurde nicht gefunden.');
-        }
-
         /** @var User $user */
         $user = Auth::user();
-        $userPoints = $this->teamPointService->getUserPoints($user);
 
-        if ($userPoints < $meta['punkte']) {
-            return back()->withErrors('Du hast nicht genügend Punkte für diesen Download.');
+        // Prüfe ob eine Belohnung mit diesem Download verknüpft ist
+        $reward = Reward::where('download_id', $download->id)->first();
+
+        if ($reward) {
+            $hasAccess = RewardPurchase::where('user_id', $user->id)
+                ->where('reward_id', $reward->id)
+                ->active()
+                ->exists();
+
+            if (! $hasAccess) {
+                return back()->withErrors('Du musst diese Belohnung erst unter /belohnungen freischalten.');
+            }
         }
 
-        $path = 'downloads/'.$datei;
+        // Downloads ohne verknüpfte Belohnung sind frei verfügbar
+
+        $path = $download->file_path;
         if (! Storage::disk('private')->exists($path)) {
             return back()->withErrors('Die Datei existiert nicht.');
         }
 
-        return Storage::disk('private')->download($path, $meta['titel'].'.pdf');
+        return Storage::disk('private')->download($path, $download->original_filename);
     }
 }

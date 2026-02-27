@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 
@@ -20,6 +21,7 @@ class Reward extends Model
         'cost_baxx',
         'is_active',
         'sort_order',
+        'download_id',
     ];
 
     protected function casts(): array
@@ -47,6 +49,14 @@ class Reward extends Model
                 $reward->slug = $slug;
             }
         });
+    }
+
+    /**
+     * The download linked to this reward (optional).
+     */
+    public function download(): BelongsTo
+    {
+        return $this->belongsTo(Download::class);
     }
 
     /**

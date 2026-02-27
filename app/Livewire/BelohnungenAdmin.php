@@ -3,40 +3,78 @@
 namespace App\Livewire;
 
 use App\Models\BaxxEarningRule;
+use App\Models\Download;
 use App\Models\Reward;
 use App\Models\RewardPurchase;
 use App\Services\RewardService;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Url;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 
 class BelohnungenAdmin extends Component
 {
+    use WithFileUploads;
+
     #[Url(except: 'rewards')]
     public string $activeTab = 'rewards';
 
     // --- Reward editing ---
     public bool $showRewardModal = false;
+
     public ?int $editingRewardId = null;
+
     public string $rewardTitle = '';
+
     public string $rewardDescription = '';
+
     public string $rewardCategory = '';
+
     public int $rewardCostBaxx = 1;
+
     public int $rewardSortOrder = 0;
+
     public bool $rewardIsActive = true;
 
     // --- Purchase filter ---
     public string $purchaseSearch = '';
+
     public string $purchaseRewardFilter = 'alle';
 
     // --- Earning rule editing ---
     public bool $showRuleModal = false;
+
     public ?int $editingRuleId = null;
+
     public string $ruleLabel = '';
+
     public string $ruleDescription = '';
+
     public int $rulePoints = 1;
+
     public bool $ruleIsActive = true;
+
+    // --- Download management ---
+    public bool $showDownloadModal = false;
+
+    public ?int $editingDownloadId = null;
+
+    public string $downloadTitle = '';
+
+    public string $downloadDescription = '';
+
+    public string $downloadCategory = '';
+
+    public int $downloadSortOrder = 0;
+
+    public bool $downloadIsActive = true;
+
+    public $downloadFile = null;
+
+    // --- Reward → Download link ---
+    public ?int $rewardDownloadId = null;
 
     #[Computed]
     public function rewards(): \Illuminate\Database\Eloquent\Collection
@@ -89,6 +127,25 @@ class BelohnungenAdmin extends Component
             ->toArray();
     }
 
+    #[Computed]
+    public function downloads(): \Illuminate\Database\Eloquent\Collection
+    {
+        return Download::orderBy('category')
+            ->orderBy('sort_order')
+            ->orderBy('title')
+            ->get();
+    }
+
+    #[Computed]
+    public function downloadCategories(): array
+    {
+        return Download::select('category')
+            ->distinct()
+            ->orderBy('category')
+            ->pluck('category')
+            ->toArray();
+    }
+
     // =====================================================
     // Reward CRUD
     // =====================================================
@@ -109,6 +166,7 @@ class BelohnungenAdmin extends Component
         $this->rewardCostBaxx = $reward->cost_baxx;
         $this->rewardSortOrder = $reward->sort_order;
         $this->rewardIsActive = $reward->is_active;
+        $this->rewardDownloadId = $reward->download_id;
         $this->showRewardModal = true;
     }
 
@@ -129,6 +187,7 @@ class BelohnungenAdmin extends Component
             'cost_baxx' => $this->rewardCostBaxx,
             'sort_order' => $this->rewardSortOrder,
             'is_active' => $this->rewardIsActive,
+            'download_id' => $this->rewardDownloadId,
         ];
 
         if ($this->editingRewardId) {
@@ -164,6 +223,7 @@ class BelohnungenAdmin extends Component
         $this->rewardCostBaxx = 1;
         $this->rewardSortOrder = 0;
         $this->rewardIsActive = true;
+        $this->rewardDownloadId = null;
     }
 
     // =====================================================
@@ -241,6 +301,130 @@ class BelohnungenAdmin extends Component
     public function updatedPurchaseRewardFilter(): void
     {
         unset($this->purchases);
+    }
+
+    // =====================================================
+    // Download CRUD
+    // =====================================================
+
+    public function openCreateDownload(): void
+    {
+        $this->resetDownloadForm();
+        $this->showDownloadModal = true;
+    }
+
+    public function openEditDownload(int $downloadId): void
+    {
+        $download = Download::findOrFail($downloadId);
+        $this->editingDownloadId = $download->id;
+        $this->downloadTitle = $download->title;
+        $this->downloadDescription = $download->description ?? '';
+        $this->downloadCategory = $download->category;
+        $this->downloadSortOrder = $download->sort_order;
+        $this->downloadIsActive = $download->is_active;
+        $this->downloadFile = null;
+        $this->showDownloadModal = true;
+    }
+
+    public function saveDownload(): void
+    {
+        $rules = [
+            'downloadTitle' => 'required|string|max:255',
+            'downloadCategory' => 'required|string|max:255',
+            'downloadSortOrder' => 'required|integer|min:0',
+        ];
+
+        if (! $this->editingDownloadId) {
+            $rules['downloadFile'] = 'required|file|mimes:pdf,zip,epub|max:51200';
+        } else {
+            $rules['downloadFile'] = 'nullable|file|mimes:pdf,zip,epub|max:51200';
+        }
+
+        $this->validate($rules);
+
+        $data = [
+            'title' => $this->downloadTitle,
+            'description' => $this->downloadDescription ?: null,
+            'category' => $this->downloadCategory,
+            'sort_order' => $this->downloadSortOrder,
+            'is_active' => $this->downloadIsActive,
+        ];
+
+        if ($this->downloadFile) {
+            $originalFilename = $this->downloadFile->getClientOriginalName();
+            $path = $this->downloadFile->store('downloads', 'private');
+
+            $data['file_path'] = $path;
+            $data['original_filename'] = $originalFilename;
+            $data['mime_type'] = $this->downloadFile->getMimeType();
+            $data['file_size'] = $this->downloadFile->getSize();
+
+            // Delete old file when replacing
+            if ($this->editingDownloadId) {
+                $existing = Download::find($this->editingDownloadId);
+                if ($existing && Storage::disk('private')->exists($existing->file_path)) {
+                    Storage::disk('private')->delete($existing->file_path);
+                }
+            }
+        }
+
+        if ($this->editingDownloadId) {
+            $download = Download::findOrFail($this->editingDownloadId);
+            $download->update($data);
+            $this->dispatch('toast', type: 'success', title: 'Download aktualisiert');
+        } else {
+            Download::create($data);
+            $this->dispatch('toast', type: 'success', title: 'Download erstellt');
+        }
+
+        $this->showDownloadModal = false;
+        $this->resetDownloadForm();
+        unset($this->downloads);
+    }
+
+    public function toggleDownloadActive(int $downloadId): void
+    {
+        $download = Download::findOrFail($downloadId);
+        $download->update(['is_active' => ! $download->is_active]);
+        $status = $download->is_active ? 'aktiviert' : 'deaktiviert';
+        $this->dispatch('toast', type: 'success', title: "Download {$status}");
+        unset($this->downloads);
+    }
+
+    public function deleteDownload(int $downloadId): void
+    {
+        $download = Download::findOrFail($downloadId);
+
+        // Check if any rewards reference this download with active purchases
+        $hasActivePurchases = RewardPurchase::active()
+            ->whereHas('reward', fn ($q) => $q->where('download_id', $download->id))
+            ->exists();
+
+        if ($hasActivePurchases) {
+            $this->dispatch('toast', type: 'error', title: 'Löschen nicht möglich', description: 'Dieser Download ist mit Belohnungen verknüpft, die aktive Freischaltungen haben.');
+
+            return;
+        }
+
+        // Delete the file from storage
+        if (Storage::disk('private')->exists($download->file_path)) {
+            Storage::disk('private')->delete($download->file_path);
+        }
+
+        $download->delete();
+        $this->dispatch('toast', type: 'success', title: 'Download gelöscht');
+        unset($this->downloads, $this->rewards);
+    }
+
+    private function resetDownloadForm(): void
+    {
+        $this->editingDownloadId = null;
+        $this->downloadTitle = '';
+        $this->downloadDescription = '';
+        $this->downloadCategory = '';
+        $this->downloadSortOrder = 0;
+        $this->downloadIsActive = true;
+        $this->downloadFile = null;
     }
 
     public function render()
