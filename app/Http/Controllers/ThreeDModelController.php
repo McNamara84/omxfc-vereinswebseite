@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\ThreeDModelRequest;
 use App\Models\ThreeDModel;
-use App\Services\TeamPointService;
+use App\Services\RewardService;
 use App\Services\ThreeDModelService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
@@ -17,7 +17,7 @@ class ThreeDModelController extends Controller
 {
     public function __construct(
         private readonly ThreeDModelService $threeDModelService,
-        private readonly TeamPointService $teamPointService,
+        private readonly RewardService $rewardService,
     ) {}
 
     /**
@@ -25,12 +25,20 @@ class ThreeDModelController extends Controller
      */
     public function index(): View
     {
-        $models = ThreeDModel::orderByDesc('created_at')->get();
-        $userPoints = $this->teamPointService->getUserPoints(Auth::user());
+        $user = Auth::user();
+        $models = ThreeDModel::with('reward')->orderByDesc('created_at')->get();
+        $availableBaxx = $this->rewardService->getAvailableBaxx($user);
+
+        // Prüfe welche Modelle freigeschaltet sind
+        $unlockedModelIds = $models
+            ->filter(fn ($model) => $model->reward && $user->hasUnlockedReward($model->reward->slug))
+            ->pluck('id')
+            ->toArray();
 
         return view('three-d-models.index', [
             'models' => $models,
-            'userPoints' => $userPoints,
+            'availableBaxx' => $availableBaxx,
+            'unlockedModelIds' => $unlockedModelIds,
         ]);
     }
 
@@ -39,13 +47,14 @@ class ThreeDModelController extends Controller
      */
     public function show(ThreeDModel $threeDModel): View
     {
-        $threeDModel->loadMissing('uploader');
-        $userPoints = $this->teamPointService->getUserPoints(Auth::user());
-        $isUnlocked = $userPoints >= $threeDModel->required_baxx;
+        $threeDModel->loadMissing(['uploader', 'reward']);
+        $user = Auth::user();
+        $isUnlocked = $threeDModel->reward && $user->hasUnlockedReward($threeDModel->reward->slug);
+        $availableBaxx = $this->rewardService->getAvailableBaxx($user);
 
         return view('three-d-models.show', [
             'model' => $threeDModel,
-            'userPoints' => $userPoints,
+            'availableBaxx' => $availableBaxx,
             'isUnlocked' => $isUnlocked,
         ]);
     }
@@ -73,7 +82,7 @@ class ThreeDModelController extends Controller
                 'name' => $request->validated('name'),
                 'description' => $request->validated('description'),
                 'maddraxikon_url' => $request->validated('maddraxikon_url'),
-                'required_baxx' => $request->validated('required_baxx'),
+                'cost_baxx' => $request->validated('cost_baxx'),
                 'uploaded_by' => Auth::id(),
             ],
             thumbnail: $request->file('thumbnail'),
@@ -106,7 +115,7 @@ class ThreeDModelController extends Controller
                 'name' => $request->validated('name'),
                 'description' => $request->validated('description'),
                 'maddraxikon_url' => $request->validated('maddraxikon_url'),
-                'required_baxx' => $request->validated('required_baxx'),
+                'cost_baxx' => $request->validated('cost_baxx'),
             ],
             file: $request->file('model_file'),
             thumbnail: $request->file('thumbnail'),
@@ -130,11 +139,15 @@ class ThreeDModelController extends Controller
     }
 
     /**
-     * 3D-Datei herunterladen (Baxx-geschützt).
+     * 3D-Datei herunterladen (Reward-geschützt).
      */
     public function download(ThreeDModel $threeDModel): StreamedResponse|RedirectResponse
     {
-        $this->teamPointService->assertMinPoints($threeDModel->required_baxx);
+        $threeDModel->loadMissing('reward');
+
+        if ($threeDModel->reward) {
+            $this->rewardService->assertRewardUnlocked($threeDModel->reward->slug);
+        }
 
         if (! Storage::disk('private')->exists($threeDModel->file_path)) {
             return redirect()->route('3d-modelle.show', $threeDModel)
@@ -149,11 +162,15 @@ class ThreeDModelController extends Controller
     }
 
     /**
-     * 3D-Datei für Three.js Viewer streamen (Baxx-geschützt).
+     * 3D-Datei für Three.js Viewer streamen (Reward-geschützt).
      */
     public function preview(ThreeDModel $threeDModel): StreamedResponse
     {
-        $this->teamPointService->assertMinPoints($threeDModel->required_baxx);
+        $threeDModel->loadMissing('reward');
+
+        if ($threeDModel->reward) {
+            $this->rewardService->assertRewardUnlocked($threeDModel->reward->slug);
+        }
 
         if (! Storage::disk('private')->exists($threeDModel->file_path)) {
             abort(404, 'Die 3D-Datei existiert nicht mehr.');
@@ -162,6 +179,29 @@ class ThreeDModelController extends Controller
         return Storage::disk('private')->response($threeDModel->file_path, null, [
             'Content-Type' => $this->getMimeType($threeDModel->file_format),
         ]);
+    }
+
+    /**
+     * 3D-Modell per Baxx-Kauf freischalten.
+     */
+    public function purchase(ThreeDModel $threeDModel): RedirectResponse
+    {
+        $threeDModel->loadMissing('reward');
+
+        if (! $threeDModel->reward) {
+            return redirect()->route('3d-modelle.show', $threeDModel)
+                ->withErrors('Dieses Modell hat keine zugeordnete Belohnung.');
+        }
+
+        try {
+            $this->rewardService->purchaseReward(Auth::user(), $threeDModel->reward);
+
+            return redirect()->route('3d-modelle.show', $threeDModel)
+                ->with('success', '3D-Modell erfolgreich für '.$threeDModel->reward->cost_baxx.' Baxx freigeschaltet!');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return redirect()->route('3d-modelle.show', $threeDModel)
+                ->withErrors($e->errors());
+        }
     }
 
     /**

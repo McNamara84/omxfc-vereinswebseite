@@ -9,6 +9,9 @@
  * @see \App\Models\Reward
  */
 return [
+    'fanfiction_default_cost_baxx' => env('FANFICTION_DEFAULT_COST_BAXX', 5),
+
+    'legacy' => [
     [
         'title' => 'Mitgliederkarte',
         'description' => 'Zeigt die Wohnorte der Vereinsmitglieder auf einer Karte.',
@@ -233,5 +236,6 @@ return [
         'title' => 'Kompendium-Suche',
         'description' => 'Erlaubt die Volltextsuche im Maddrax-Kompendium.',
         'points' => 100,
+    ],
     ],
 ];

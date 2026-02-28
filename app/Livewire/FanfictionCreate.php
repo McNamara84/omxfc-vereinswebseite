@@ -7,6 +7,7 @@ use App\Models\Activity;
 use App\Models\Fanfiction;
 use App\Models\Team;
 use App\Models\User;
+use App\Services\FanfictionService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
@@ -114,6 +115,7 @@ class FanfictionCreate extends Component
         ]);
 
         if ($this->status === 'published') {
+            app(FanfictionService::class)->createRewardForFanfiction($fanfiction);
             $this->handlePublishActions($fanfiction);
             $this->invalidateFanfictionCountCache($membersTeam);
         }

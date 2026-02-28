@@ -15,7 +15,7 @@ class RewardSeeder extends Seeder
      */
     public function run(): void
     {
-        $rewards = config('rewards', []);
+        $rewards = config('rewards.legacy', []);
 
         $sortOrder = 0;
         foreach ($rewards as $reward) {

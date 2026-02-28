@@ -84,6 +84,7 @@ class BelohnungenAdmin extends Component
         return Reward::orderBy('sort_order')
             ->orderBy('cost_baxx')
             ->withCount(['activePurchases as purchase_count'])
+            ->with(['threeDModel:id,name,reward_id', 'fanfiction:id,title,reward_id', 'download:id,title'])
             ->get();
     }
 

@@ -2,7 +2,7 @@
     <x-member-page class="max-w-6xl">
         <x-header title="3D-Modelle" separator data-testid="page-header">
             <x-slot:subtitle>
-                Dein aktuelles Baxx-Guthaben: <x-badge :value="$userPoints" class="badge-primary" />
+                Dein verfügbares Baxx-Guthaben: <x-badge :value="$availableBaxx" class="badge-primary" />
             </x-slot:subtitle>
             @can('create', App\Models\ThreeDModel::class)
                 <x-slot:actions>
@@ -25,7 +25,7 @@
         @else
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 @foreach ($models as $model)
-                    @php $unlocked = $userPoints >= $model->required_baxx; @endphp
+                    @php $unlocked = in_array($model->id, $unlockedModelIds); @endphp
                     <x-card class="{{ $unlocked ? '' : 'opacity-50' }}" data-testid="model-card">
                         {{-- Thumbnail oder Platzhalter --}}
                         <div class="aspect-video bg-base-200 rounded-lg overflow-hidden flex items-center justify-center">
@@ -43,8 +43,12 @@
                             <h3 class="font-bold text-lg">{{ $model->name }}</h3>
                             <p class="text-sm text-base-content/60 mt-1 line-clamp-2">{{ $model->description }}</p>
                             <div class="flex items-center justify-between mt-3">
-                                <x-badge :value="$model->required_baxx . ' Baxx'"
-                                    class="{{ $unlocked ? 'badge-success' : 'badge-ghost' }}" />
+                                @if ($model->reward)
+                                    <x-badge :value="$model->reward->cost_baxx . ' Baxx'"
+                                        class="{{ $unlocked ? 'badge-success' : 'badge-ghost' }}" />
+                                @else
+                                    <x-badge value="Kostenlos" class="badge-success" />
+                                @endif
                                 <span class="text-xs text-base-content/40 uppercase font-mono">{{ strtoupper($model->file_format) }}</span>
                             </div>
                         </div>

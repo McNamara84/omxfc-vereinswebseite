@@ -7,6 +7,7 @@ use App\Http\Controllers\Concerns\MembersTeamAware;
 use App\Models\Activity;
 use App\Models\Fanfiction;
 use App\Models\FanfictionComment;
+use App\Services\RewardService;
 use App\Services\UserRoleService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -16,7 +17,10 @@ class FanfictionCommentController extends Controller
 {
     use MembersTeamAware;
 
-    public function __construct(private readonly UserRoleService $userRoleService) {}
+    public function __construct(
+        private readonly UserRoleService $userRoleService,
+        private readonly RewardService $rewardService,
+    ) {}
 
     protected function getUserRoleService(): UserRoleService
     {
@@ -30,6 +34,11 @@ class FanfictionCommentController extends Controller
     {
         $user = Auth::user();
         $this->authorizeMemberArea();
+
+        // Prüfe ob die Fanfiction freigeschaltet wurde
+        if ($fanfiction->reward) {
+            $this->rewardService->assertRewardUnlocked($fanfiction->reward->slug);
+        }
 
         $request->validate([
             'content' => 'required|string|min:1',

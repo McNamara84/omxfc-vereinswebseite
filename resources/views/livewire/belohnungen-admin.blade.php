@@ -16,9 +16,22 @@
                     ['key' => 'category', 'label' => 'Kategorie'],
                     ['key' => 'cost_baxx', 'label' => 'Preis (Baxx)'],
                     ['key' => 'purchase_count', 'label' => 'Käufe'],
+                    ['key' => 'linked_content', 'label' => 'Verknüpft mit'],
                     ['key' => 'is_active', 'label' => 'Status'],
                     ['key' => 'actions', 'label' => 'Aktionen'],
                 ]" :rows="$this->rewards" striped>
+
+                    @scope('cell_linked_content', $reward)
+                        @if($reward->threeDModel)
+                            <x-badge value="3D: {{ Str::limit($reward->threeDModel->name, 20) }}" class="badge-info badge-sm" />
+                        @elseif($reward->fanfiction)
+                            <x-badge value="FF: {{ Str::limit($reward->fanfiction->title, 20) }}" class="badge-accent badge-sm" />
+                        @elseif($reward->download)
+                            <x-badge value="DL: {{ Str::limit($reward->download->title, 20) }}" class="badge-warning badge-sm" />
+                        @else
+                            <span class="text-base-content/50 text-xs">—</span>
+                        @endif
+                    @endscope
 
                     @scope('cell_is_active', $reward)
                         @if($reward->is_active)

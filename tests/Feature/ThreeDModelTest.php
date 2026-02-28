@@ -2,10 +2,14 @@
 
 namespace Tests\Feature;
 
+use App\Models\Reward;
+use App\Models\RewardPurchase;
 use App\Models\ThreeDModel;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Tests\Concerns\CreatesUserWithRole;
 use Tests\TestCase;
 
@@ -45,7 +49,6 @@ class ThreeDModelTest extends TestCase
         $model = ThreeDModel::factory()->create([
             'name' => 'Testmodell',
             'description' => 'Beschreibung',
-            'required_baxx' => 5,
             'maddraxikon_url' => 'https://maddraxikon.de/Testmodell',
         ]);
 
@@ -77,7 +80,7 @@ class ThreeDModelTest extends TestCase
     {
         $user = $this->actingSimpleMember();
 
-        $model = ThreeDModel::factory()->create(['required_baxx' => 999]);
+        $model = $this->createModelWithReward(999);
 
         $response = $this->get("/3d-modelle/{$model->id}");
 
@@ -90,7 +93,8 @@ class ThreeDModelTest extends TestCase
     {
         $user = $this->actingMemberWithPoints(10);
 
-        $model = ThreeDModel::factory()->create(['required_baxx' => 5]);
+        $model = $this->createModelWithReward(5);
+        $this->purchaseModelForUser($model, $user);
 
         $response = $this->withoutVite()->get("/3d-modelle/{$model->id}");
 
@@ -141,7 +145,7 @@ class ThreeDModelTest extends TestCase
         $response = $this->post('/3d-modelle', [
             'name' => 'Testmodell',
             'description' => 'Ein tolles 3D-Modell',
-            'required_baxx' => 15,
+            'cost_baxx' => 15,
             'model_file' => $file,
         ]);
 
@@ -151,9 +155,13 @@ class ThreeDModelTest extends TestCase
         $this->assertDatabaseHas('three_d_models', [
             'name' => 'Testmodell',
             'description' => 'Ein tolles 3D-Modell',
-            'required_baxx' => 15,
             'file_format' => 'stl',
         ]);
+
+        // Reward wurde automatisch erstellt
+        $model = ThreeDModel::where('name', 'Testmodell')->first();
+        $this->assertNotNull($model->reward);
+        $this->assertEquals(15, $model->reward->cost_baxx);
     }
 
     public function test_admin_kann_3d_modell_mit_thumbnail_hochladen(): void
@@ -169,7 +177,7 @@ class ThreeDModelTest extends TestCase
         $response = $this->post('/3d-modelle', [
             'name' => 'OBJ-Modell',
             'description' => 'Ein OBJ-Modell mit Vorschaubild',
-            'required_baxx' => 10,
+            'cost_baxx' => 10,
             'maddraxikon_url' => 'https://maddraxikon.de/Euphoriewurm',
             'model_file' => $file,
             'thumbnail' => $thumbnail,
@@ -190,7 +198,7 @@ class ThreeDModelTest extends TestCase
 
         $response = $this->post('/3d-modelle', []);
 
-        $response->assertSessionHasErrors(['name', 'description', 'required_baxx', 'model_file']);
+        $response->assertSessionHasErrors(['name', 'description', 'cost_baxx', 'model_file']);
     }
 
     public function test_upload_validierung_baxx_min_1(): void
@@ -204,11 +212,11 @@ class ThreeDModelTest extends TestCase
         $response = $this->post('/3d-modelle', [
             'name' => 'Test',
             'description' => 'Test',
-            'required_baxx' => 0,
+            'cost_baxx' => 0,
             'model_file' => $file,
         ]);
 
-        $response->assertSessionHasErrors(['required_baxx']);
+        $response->assertSessionHasErrors(['cost_baxx']);
     }
 
     public function test_upload_validierung_ungueltige_maddraxikon_url(): void
@@ -222,7 +230,7 @@ class ThreeDModelTest extends TestCase
         $response = $this->post('/3d-modelle', [
             'name' => 'Test',
             'description' => 'Test',
-            'required_baxx' => 10,
+            'cost_baxx' => 10,
             'model_file' => $file,
             'maddraxikon_url' => 'keine-url',
         ]);
@@ -241,7 +249,7 @@ class ThreeDModelTest extends TestCase
         $response = $this->post('/3d-modelle', [
             'name' => 'Test',
             'description' => 'Test',
-            'required_baxx' => 10,
+            'cost_baxx' => 10,
             'model_file' => $file,
         ]);
 
@@ -268,12 +276,12 @@ class ThreeDModelTest extends TestCase
 
         $this->actingAdmin();
 
-        $model = ThreeDModel::factory()->create(['name' => 'Alt', 'required_baxx' => 5]);
+        $model = ThreeDModel::factory()->create(['name' => 'Alt']);
 
         $response = $this->put("/3d-modelle/{$model->id}", [
             'name' => 'Neu',
             'description' => 'Neue Beschreibung',
-            'required_baxx' => 20,
+            'cost_baxx' => 20,
             'maddraxikon_url' => 'https://maddraxikon.de/Neu',
         ]);
 
@@ -281,7 +289,8 @@ class ThreeDModelTest extends TestCase
 
         $model->refresh();
         $this->assertEquals('Neu', $model->name);
-        $this->assertEquals(20, $model->required_baxx);
+        $this->assertNotNull($model->reward);
+        $this->assertEquals(20, $model->reward->cost_baxx);
         $this->assertEquals('https://maddraxikon.de/Neu', $model->maddraxikon_url);
     }
 
@@ -306,7 +315,7 @@ class ThreeDModelTest extends TestCase
         $response = $this->put("/3d-modelle/{$model->id}", [
             'name' => 'Aktualisiert',
             'description' => 'Neue Beschreibung',
-            'required_baxx' => 15,
+            'cost_baxx' => 15,
             'model_file' => $newFile,
         ]);
 
@@ -371,9 +380,10 @@ class ThreeDModelTest extends TestCase
     {
         Storage::fake('private');
 
-        $this->actingMemberWithPoints(20);
+        $user = $this->actingMemberWithPoints(20);
 
-        $model = ThreeDModel::factory()->create(['required_baxx' => 10]);
+        $model = $this->createModelWithReward(10);
+        $this->purchaseModelForUser($model, $user);
 
         // Datei im fake Storage erstellen
         Storage::disk('private')->put($model->file_path, 'fake-content');
@@ -385,9 +395,9 @@ class ThreeDModelTest extends TestCase
 
     public function test_download_ohne_genuegend_baxx_wird_abgelehnt(): void
     {
-        $this->actingMemberWithPoints(2);
+        $this->actingSimpleMember();
 
-        $model = ThreeDModel::factory()->create(['required_baxx' => 50]);
+        $model = $this->createModelWithReward(50);
 
         $response = $this->get("/3d-modelle/{$model->id}/herunterladen");
 
@@ -398,9 +408,10 @@ class ThreeDModelTest extends TestCase
     {
         Storage::fake('private');
 
-        $this->actingMemberWithPoints(20);
+        $user = $this->actingMemberWithPoints(20);
 
-        $model = ThreeDModel::factory()->create(['required_baxx' => 10]);
+        $model = $this->createModelWithReward(10);
+        $this->purchaseModelForUser($model, $user);
 
         // Datei wird bewusst NICHT erstellt
 
@@ -416,9 +427,10 @@ class ThreeDModelTest extends TestCase
     {
         Storage::fake('private');
 
-        $this->actingMemberWithPoints(20);
+        $user = $this->actingMemberWithPoints(20);
 
-        $model = ThreeDModel::factory()->create(['required_baxx' => 10]);
+        $model = $this->createModelWithReward(10);
+        $this->purchaseModelForUser($model, $user);
 
         Storage::disk('private')->put($model->file_path, 'fake-content');
 
@@ -429,9 +441,9 @@ class ThreeDModelTest extends TestCase
 
     public function test_vorschau_ohne_genuegend_baxx_wird_abgelehnt(): void
     {
-        $this->actingMemberWithPoints(2);
+        $this->actingSimpleMember();
 
-        $model = ThreeDModel::factory()->create(['required_baxx' => 50]);
+        $model = $this->createModelWithReward(50);
 
         $response = $this->get("/3d-modelle/{$model->id}/vorschau");
 
@@ -442,9 +454,10 @@ class ThreeDModelTest extends TestCase
     {
         Storage::fake('private');
 
-        $this->actingMemberWithPoints(20);
+        $user = $this->actingMemberWithPoints(20);
 
-        $model = ThreeDModel::factory()->create(['required_baxx' => 10]);
+        $model = $this->createModelWithReward(10);
+        $this->purchaseModelForUser($model, $user);
 
         // Datei wird bewusst NICHT erstellt
 
@@ -454,10 +467,9 @@ class ThreeDModelTest extends TestCase
     }
 
     // ── Belohnungen-Integration ─────────────────────────────
-    // 3D-Modelle werden seit der Umstellung auf das aktive Kaufsystem (Livewire)
-    // nicht mehr auf /belohnungen angezeigt. Sie nutzen ihr eigenes Zugriffssystem
-    // über ThreeDModelController::assertMinPoints(). Siehe BelohnungenIndexTest für
-    // das neue Belohnungssystem.
+    // 3D-Modelle nutzen seit der Umstellung auf das aktive Kaufsystem
+    // einen eigenen Reward pro Modell. Der Kauf erfolgt über
+    // RewardService::purchaseReward() statt über automatische Baxx-Level-Prüfung.
 
     public function test_3d_modelle_nutzen_eigenes_zugriffssystem(): void
     {
@@ -465,7 +477,6 @@ class ThreeDModelTest extends TestCase
 
         ThreeDModel::factory()->create([
             'name' => 'Zugriffs-Modell',
-            'required_baxx' => 25,
         ]);
 
         // 3D-Modelle sind über ihre eigene Route erreichbar, nicht über /belohnungen
@@ -488,7 +499,7 @@ class ThreeDModelTest extends TestCase
         $response = $this->post('/3d-modelle', [
             'name' => 'Zu gro\u00df',
             'description' => 'Test',
-            'required_baxx' => 10,
+            'cost_baxx' => 10,
             'model_file' => $file,
         ]);
 
@@ -509,11 +520,48 @@ class ThreeDModelTest extends TestCase
         $response = $this->post('/3d-modelle', [
             'name' => 'Thumbnail zu gro\u00df',
             'description' => 'Test',
-            'required_baxx' => 10,
+            'cost_baxx' => 10,
             'model_file' => $file,
             'thumbnail' => $thumbnail,
         ]);
 
         $response->assertSessionHasErrors(['thumbnail']);
+    }
+
+    // ── Hilfsmethoden ─────────────────────────────────────────
+
+    /**
+     * Erstellt ein 3D-Modell mit zugehörigem Reward.
+     */
+    private function createModelWithReward(int $costBaxx = 10, array $attributes = []): ThreeDModel
+    {
+        $model = ThreeDModel::factory()->create($attributes);
+
+        $reward = Reward::create([
+            'title' => $model->name,
+            'slug' => '3d-' . Str::slug($model->name) . '-' . $model->id,
+            'description' => $model->description ?? '',
+            'category' => '3D-Modelle',
+            'cost_baxx' => $costBaxx,
+            'is_active' => true,
+            'sort_order' => 0,
+        ]);
+
+        $model->update(['reward_id' => $reward->id]);
+
+        return $model->refresh();
+    }
+
+    /**
+     * Erstellt einen RewardPurchase für den User und das Modell.
+     */
+    private function purchaseModelForUser(ThreeDModel $model, User $user): RewardPurchase
+    {
+        return RewardPurchase::create([
+            'user_id' => $user->id,
+            'reward_id' => $model->reward_id,
+            'cost_baxx' => $model->reward->cost_baxx,
+            'purchased_at' => now(),
+        ]);
     }
 }
