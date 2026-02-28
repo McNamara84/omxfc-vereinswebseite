@@ -381,7 +381,7 @@ class BelohnungenAdmin extends Component
         $oldFilePath = null;
 
         if ($this->downloadFile) {
-            $originalFilename = $this->downloadFile->getClientOriginalName();
+            $originalFilename = $this->sanitizeFilename($this->downloadFile->getClientOriginalName());
             $newFilePath = $this->downloadFile->store('downloads', 'private');
 
             $data['file_path'] = $newFilePath;
@@ -485,6 +485,32 @@ class BelohnungenAdmin extends Component
         $this->downloadSortOrder = 0;
         $this->downloadIsActive = true;
         $this->downloadFile = null;
+    }
+
+    /**
+     * Bereinigt einen vom Client übermittelten Dateinamen.
+     * Entfernt Pfadbestandteile, Steuerzeichen und kürzt auf max. 255 Zeichen.
+     */
+    private function sanitizeFilename(string $filename): string
+    {
+        // Nur den Dateinamen ohne Pfad verwenden
+        $filename = basename($filename);
+
+        // Steuerzeichen entfernen (ASCII 0-31 und 127)
+        $filename = preg_replace('/[\x00-\x1F\x7F]/', '', $filename);
+
+        // Mehrfache Leerzeichen/Punkte normalisieren
+        $filename = preg_replace('/\s+/', ' ', $filename);
+
+        // Auf 255 Zeichen kürzen (Dateisystem-Limit)
+        if (mb_strlen($filename) > 255) {
+            $extension = pathinfo($filename, PATHINFO_EXTENSION);
+            $name = pathinfo($filename, PATHINFO_FILENAME);
+            $maxNameLength = 255 - mb_strlen($extension) - 1;
+            $filename = mb_substr($name, 0, $maxNameLength).'.'.$extension;
+        }
+
+        return $filename ?: 'download';
     }
 
     public function render()

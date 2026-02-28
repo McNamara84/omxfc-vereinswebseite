@@ -70,9 +70,10 @@ class DownloadSeeder extends Seeder
                     ->update(['download_id' => $download->id]);
             }
 
-            // In lokaler/Test-Umgebung Dummy-Dateien anlegen, damit Downloads nicht fehlschlagen
-            if (App::environment(['local', 'testing']) && ! Storage::disk('private')->exists($data['file_path'])) {
-                Storage::disk('private')->put($data['file_path'], 'Dummy-Datei für Entwicklung/Tests');
+            // In lokaler Umgebung Dummy-Dateien anlegen, damit Downloads nicht fehlschlagen.
+            // Nicht in testing: Tests nutzen Storage::fake('private') und erzeugen Dateien selbst.
+            if (App::environment('local') && ! Storage::disk('private')->exists($data['file_path'])) {
+                Storage::disk('private')->put($data['file_path'], 'Dummy-Datei für Entwicklung');
             }
         }
     }

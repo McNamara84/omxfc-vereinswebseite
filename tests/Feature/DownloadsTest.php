@@ -216,6 +216,33 @@ class DownloadsTest extends TestCase
         $response->assertDontSee('Herunterladen');
     }
 
+    public function test_active_purchase_with_inactive_reward_does_not_show_as_unlocked(): void
+    {
+        $user = $this->actingMember();
+
+        $download = Download::factory()->create([
+            'title' => 'Deaktivierter Reward Download',
+            'file_path' => 'downloads/inactive-reward.pdf',
+        ]);
+        $reward = Reward::factory()->create([
+            'download_id' => $download->id,
+            'is_active' => false,
+        ]);
+
+        // Aktive Purchase existiert, aber Reward ist deaktiviert
+        RewardPurchase::factory()->create([
+            'user_id' => $user->id,
+            'reward_id' => $reward->id,
+        ]);
+
+        $response = $this->get('/downloads');
+
+        $response->assertOk();
+        // Trotz aktiver Purchase sollte "Nicht verfügbar" statt "Herunterladen" angezeigt werden
+        $response->assertSee('Nicht verfügbar');
+        $response->assertSee('Deaktivierter Reward Download');
+    }
+
     public function test_inactive_reward_shows_nicht_verfuegbar_instead_of_freischalten(): void
     {
         $user = $this->actingMember();

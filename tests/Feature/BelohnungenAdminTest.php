@@ -375,6 +375,27 @@ class BelohnungenAdminTest extends TestCase
             ->assertHasErrors('rewardDownloadId');
     }
 
+    public function test_create_download_sanitizes_original_filename(): void
+    {
+        Storage::fake('private');
+        $this->actingAdmin();
+
+        // Simuliere einen Upload mit problematischem Dateinamen
+        $file = UploadedFile::fake()->create("test\x00file\x1F.pdf", 512, 'application/pdf');
+
+        Livewire::test(BelohnungenAdmin::class)
+            ->set('downloadTitle', 'Sanitize Test')
+            ->set('downloadCategory', 'Test')
+            ->set('downloadFile', $file)
+            ->call('saveDownload');
+
+        $download = Download::where('title', 'Sanitize Test')->first();
+        $this->assertNotNull($download);
+        // Steuerzeichen müssen entfernt sein
+        $this->assertStringNotContainsString("\x00", $download->original_filename);
+        $this->assertStringNotContainsString("\x1F", $download->original_filename);
+    }
+
     public function test_downloads_tab_shows_downloads(): void
     {
         $this->actingAdmin();

@@ -34,6 +34,7 @@ class DownloadsController extends Controller
             ->active()
             ->join('rewards', 'reward_purchases.reward_id', '=', 'rewards.id')
             ->whereNotNull('rewards.download_id')
+            ->where('rewards.is_active', true)
             ->distinct()
             ->pluck('rewards.download_id')
             ->flip();
