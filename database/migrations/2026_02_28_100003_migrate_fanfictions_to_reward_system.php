@@ -14,7 +14,7 @@ return new class extends Migration
             ->where('status', 'published')
             ->whereNull('reward_id')
             ->orderBy('id')
-            ->chunk(100, function ($fanfictions) use ($defaultCost) {
+            ->chunkById(100, function ($fanfictions) use ($defaultCost) {
                 foreach ($fanfictions as $fanfiction) {
                     $baseSlug = Str::slug($fanfiction->title);
                     $slug = 'fanfiction-'.$baseSlug;
@@ -25,8 +25,9 @@ return new class extends Migration
                         $counter++;
                     }
 
-                    // Plaintext-Teaser aus dem Rohinhalt erzeugen (ohne Model-Accessor)
-                    $plainText = strip_tags($fanfiction->content ?? '');
+                    // Markdown rendern, dann HTML-Tags entfernen für sauberen Plaintext-Teaser
+                    $html = Str::markdown($fanfiction->content ?? '');
+                    $plainText = strip_tags($html);
                     $plainText = html_entity_decode($plainText, ENT_QUOTES, 'UTF-8');
                     $plainText = preg_replace('/\s+/', ' ', trim($plainText));
                     $teaser = Str::limit($plainText, 200);
@@ -52,6 +53,7 @@ return new class extends Migration
 
     public function down(): void
     {
+        // Nur reward_id zurücksetzen und Rewards löschen, die von dieser Migration stammen
         $rewardIds = DB::table('fanfictions')
             ->whereNotNull('reward_id')
             ->pluck('reward_id');
@@ -62,6 +64,7 @@ return new class extends Migration
 
         DB::table('rewards')
             ->whereIn('id', $rewardIds)
+            ->where('category', 'Fanfiction')
             ->delete();
     }
 };

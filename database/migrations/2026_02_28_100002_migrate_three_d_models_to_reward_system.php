@@ -11,7 +11,7 @@ return new class extends Migration
         DB::table('three_d_models')
             ->whereNull('reward_id')
             ->orderBy('id')
-            ->chunk(100, function ($models) {
+            ->chunkById(100, function ($models) {
                 foreach ($models as $model) {
                     $baseSlug = Str::slug($model->name);
                     $slug = '3d-'.$baseSlug;
@@ -43,6 +43,7 @@ return new class extends Migration
 
     public function down(): void
     {
+        // Nur reward_id zurücksetzen und Rewards löschen, die von dieser Migration stammen
         $rewardIds = DB::table('three_d_models')
             ->whereNotNull('reward_id')
             ->pluck('reward_id');
@@ -53,6 +54,7 @@ return new class extends Migration
 
         DB::table('rewards')
             ->whereIn('id', $rewardIds)
+            ->where('category', '3D-Modelle')
             ->delete();
     }
 };
