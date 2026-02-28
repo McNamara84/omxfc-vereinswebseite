@@ -101,6 +101,7 @@
                             <x-menu-item title="Kurznachrichten" link="{{ route('admin.messages.index') }}" />
                             <x-menu-item title="Charakter-Editor" link="{{ route('rpg.char-editor') }}" />
                             <x-menu-item title="Arbeitsgruppen" link="{{ route('arbeitsgruppen.index') }}" />
+                            <x-menu-item title="Belohnungen" link="{{ route('rewards.admin') }}" />
                         </x-dropdown>
                     </div>
                 @endif
@@ -265,6 +266,7 @@
                     <x-menu-item title="Kurznachrichten" link="{{ route('admin.messages.index') }}" />
                     <x-menu-item title="Charakter-Editor" link="{{ route('rpg.char-editor') }}" />
                     <x-menu-item title="Arbeitsgruppen" link="{{ route('arbeitsgruppen.index') }}" />
+                    <x-menu-item title="Belohnungen" link="{{ route('rewards.admin') }}" />
                 </x-menu-sub>
             @endif
 

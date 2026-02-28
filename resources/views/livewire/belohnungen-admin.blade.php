@@ -213,6 +213,61 @@
                 @endif
 
             </x-tab>
+
+            <x-tab name="downloads" label="Downloads" icon="o-arrow-down-tray">
+
+                <div class="flex justify-end mb-4">
+                    <x-button label="Neuer Download" icon="o-plus" class="btn-primary" wire:click="openCreateDownload" />
+                </div>
+
+                <x-table :headers="[
+                    ['key' => 'sort_order', 'label' => '#'],
+                    ['key' => 'title', 'label' => 'Titel'],
+                    ['key' => 'category', 'label' => 'Kategorie'],
+                    ['key' => 'original_filename', 'label' => 'Datei'],
+                    ['key' => 'formatted_file_size', 'label' => 'Größe'],
+                    ['key' => 'is_active', 'label' => 'Status'],
+                    ['key' => 'linked_reward', 'label' => 'Verknüpfte Belohnung'],
+                    ['key' => 'actions', 'label' => 'Aktionen'],
+                ]" :rows="$this->downloads" striped>
+
+                    @scope('cell_is_active', $download)
+                        @if($download->is_active)
+                            <x-badge value="Aktiv" class="badge-success" />
+                        @else
+                            <x-badge value="Inaktiv" class="badge-ghost" />
+                        @endif
+                    @endscope
+
+                    @scope('cell_linked_reward', $download)
+                        @if($download->reward)
+                            <x-badge :value="$download->reward->title" class="badge-info badge-sm" />
+                        @else
+                            <span class="text-base-content/50 text-sm">Keine</span>
+                        @endif
+                    @endscope
+
+                    @scope('cell_actions', $download)
+                        <div class="flex gap-2">
+                            <x-button icon="o-pencil" class="btn-ghost btn-xs" wire:click="openEditDownload({{ $download->id }})" tooltip="Bearbeiten" />
+                            <x-button
+                                icon="{{ $download->is_active ? 'o-eye-slash' : 'o-eye' }}"
+                                class="btn-ghost btn-xs"
+                                wire:click="toggleDownloadActive({{ $download->id }})"
+                                tooltip="{{ $download->is_active ? 'Deaktivieren' : 'Aktivieren' }}"
+                            />
+                            <x-button
+                                icon="o-trash"
+                                class="btn-ghost btn-xs text-error"
+                                wire:click="deleteDownload({{ $download->id }})"
+                                wire:confirm="Download '{{ $download->title }}' wirklich löschen? Die Datei wird ebenfalls entfernt."
+                                tooltip="Löschen"
+                            />
+                        </div>
+                    @endscope
+                </x-table>
+
+            </x-tab>
         </x-tabs>
 
         {{-- Modal: Belohnung bearbeiten/erstellen --}}
@@ -224,6 +279,16 @@
                 <x-input wire:model="rewardCostBaxx" label="Preis (Baxx)" type="number" min="1" />
                 <x-input wire:model="rewardSortOrder" label="Sortierung" type="number" min="0" />
                 <x-toggle wire:model="rewardIsActive" label="Aktiv" />
+
+                <x-select
+                    wire:model="rewardDownloadId"
+                    label="Verknüpfter Download (optional)"
+                    placeholder="Keinen Download verknüpfen"
+                    :options="$this->availableDownloadsForReward->map(fn($d) => ['id' => $d->id, 'name' => $d->title . ' (' . $d->category . ')'])->toArray()"
+                    option-value="id"
+                    option-label="name"
+                    placeholder-value=""
+                />
             </div>
 
             <x-slot:actions>
@@ -244,6 +309,34 @@
             <x-slot:actions>
                 <x-button label="Abbrechen" wire:click="$set('showRuleModal', false)" />
                 <x-button label="Speichern" class="btn-primary" wire:click="saveRule" />
+            </x-slot:actions>
+        </x-modal>
+
+        {{-- Modal: Download bearbeiten/erstellen --}}
+        <x-modal wire:model="showDownloadModal" title="{{ $editingDownloadId ? 'Download bearbeiten' : 'Neuer Download' }}">
+            <div class="space-y-4">
+                <x-input wire:model="downloadTitle" label="Titel" placeholder="Name des Downloads" />
+                <x-textarea wire:model="downloadDescription" label="Beschreibung (optional)" placeholder="Beschreibung des Downloads" />
+                <x-input wire:model="downloadCategory" label="Kategorie" placeholder="z.B. Klemmbaustein-Anleitungen, Fanstories" />
+                <x-input wire:model="downloadSortOrder" label="Sortierung" type="number" min="0" />
+                <x-toggle wire:model="downloadIsActive" label="Aktiv" />
+
+                <div>
+                    <label class="label">
+                        <span class="label-text font-semibold">Datei{{ $editingDownloadId ? ' (optional – ersetzt bestehende)' : '' }}</span>
+                    </label>
+                    <input type="file" wire:model="downloadFile" accept=".pdf,.zip,.epub" class="file-input file-input-bordered w-full" />
+                    @error('downloadFile') <span class="text-error text-sm">{{ $message }}</span> @enderror
+
+                    <div wire:loading wire:target="downloadFile" class="text-sm text-info mt-1">
+                        Datei wird hochgeladen...
+                    </div>
+                </div>
+            </div>
+
+            <x-slot:actions>
+                <x-button label="Abbrechen" wire:click="$set('showDownloadModal', false)" />
+                <x-button label="Speichern" class="btn-primary" wire:click="saveDownload" />
             </x-slot:actions>
         </x-modal>
     </div>

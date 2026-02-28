@@ -4,10 +4,12 @@ namespace Tests\Feature;
 
 use App\Livewire\BelohnungenAdmin;
 use App\Models\BaxxEarningRule;
+use App\Models\Download;
 use App\Models\Reward;
 use App\Models\RewardPurchase;
-use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 use Tests\Concerns\CreatesUserWithRole;
 use Tests\TestCase;
@@ -188,5 +190,220 @@ class BelohnungenAdminTest extends TestCase
         Livewire::test(BelohnungenAdmin::class)
             ->set('activeTab', 'statistics')
             ->assertSee('15'); // 3 × 5 Baxx total spent
+    }
+
+    // ── Download CRUD ──────────────────────────────────────
+
+    public function test_create_download_with_file_upload(): void
+    {
+        Storage::fake('private');
+        $this->actingAdmin();
+
+        $file = UploadedFile::fake()->create('anleitung.pdf', 1024, 'application/pdf');
+
+        Livewire::test(BelohnungenAdmin::class)
+            ->set('downloadTitle', 'Test Anleitung')
+            ->set('downloadDescription', 'Eine Testbeschreibung')
+            ->set('downloadCategory', 'Klemmbaustein-Anleitungen')
+            ->set('downloadSortOrder', 5)
+            ->set('downloadIsActive', true)
+            ->set('downloadFile', $file)
+            ->call('saveDownload');
+
+        $this->assertDatabaseHas('downloads', [
+            'title' => 'Test Anleitung',
+            'category' => 'Klemmbaustein-Anleitungen',
+            'sort_order' => 5,
+        ]);
+
+        $download = Download::where('title', 'Test Anleitung')->first();
+        Storage::disk('private')->assertExists($download->file_path);
+    }
+
+    public function test_create_download_fails_without_file(): void
+    {
+        $this->actingAdmin();
+
+        Livewire::test(BelohnungenAdmin::class)
+            ->set('downloadTitle', 'Ohne Datei')
+            ->set('downloadCategory', 'Test')
+            ->call('saveDownload')
+            ->assertHasErrors('downloadFile');
+    }
+
+    public function test_update_download_without_replacing_file(): void
+    {
+        $this->actingAdmin();
+
+        $download = Download::factory()->create([
+            'title' => 'Alt',
+            'category' => 'Alt',
+        ]);
+
+        Livewire::test(BelohnungenAdmin::class)
+            ->call('openEditDownload', $download->id)
+            ->set('downloadTitle', 'Neu')
+            ->set('downloadCategory', 'Neu')
+            ->call('saveDownload');
+
+        $this->assertDatabaseHas('downloads', [
+            'id' => $download->id,
+            'title' => 'Neu',
+            'category' => 'Neu',
+        ]);
+    }
+
+    public function test_toggle_download_active(): void
+    {
+        $this->actingAdmin();
+
+        $download = Download::factory()->create(['is_active' => true]);
+
+        Livewire::test(BelohnungenAdmin::class)
+            ->call('toggleDownloadActive', $download->id);
+
+        $this->assertDatabaseHas('downloads', [
+            'id' => $download->id,
+            'is_active' => false,
+        ]);
+    }
+
+    public function test_delete_download_succeeds_without_active_purchases(): void
+    {
+        Storage::fake('private');
+        $this->actingAdmin();
+
+        $download = Download::factory()->create([
+            'file_path' => 'downloads/to-delete.pdf',
+        ]);
+        Storage::disk('private')->put('downloads/to-delete.pdf', 'dummy');
+
+        Livewire::test(BelohnungenAdmin::class)
+            ->call('deleteDownload', $download->id);
+
+        $this->assertDatabaseMissing('downloads', ['id' => $download->id]);
+        Storage::disk('private')->assertMissing('downloads/to-delete.pdf');
+    }
+
+    public function test_delete_download_fails_with_active_reward(): void
+    {
+        $this->actingAdmin();
+
+        $download = Download::factory()->create();
+        Reward::factory()->create([
+            'download_id' => $download->id,
+            'is_active' => true,
+        ]);
+
+        Livewire::test(BelohnungenAdmin::class)
+            ->call('deleteDownload', $download->id)
+            ->assertDispatched('toast', type: 'error');
+
+        $this->assertDatabaseHas('downloads', ['id' => $download->id]);
+    }
+
+    public function test_delete_download_fails_with_active_purchases(): void
+    {
+        $this->actingAdmin();
+
+        $download = Download::factory()->create();
+        $reward = Reward::factory()->create(['download_id' => $download->id]);
+        $user = $this->createUserWithRole(\App\Enums\Role::Mitglied);
+
+        RewardPurchase::factory()->create([
+            'user_id' => $user->id,
+            'reward_id' => $reward->id,
+        ]);
+
+        Livewire::test(BelohnungenAdmin::class)
+            ->call('deleteDownload', $download->id)
+            ->assertDispatched('toast', type: 'error');
+
+        $this->assertDatabaseHas('downloads', ['id' => $download->id]);
+    }
+
+    // ── Reward ↔ Download Verknüpfung ──────────────────────
+
+    public function test_create_reward_with_download_link(): void
+    {
+        $this->actingAdmin();
+
+        $download = Download::factory()->create();
+
+        Livewire::test(BelohnungenAdmin::class)
+            ->set('rewardTitle', 'Download-Belohnung')
+            ->set('rewardDescription', 'Ein Download')
+            ->set('rewardCategory', 'Downloads')
+            ->set('rewardCostBaxx', 5)
+            ->set('rewardDownloadId', $download->id)
+            ->call('saveReward');
+
+        $this->assertDatabaseHas('rewards', [
+            'title' => 'Download-Belohnung',
+            'download_id' => $download->id,
+        ]);
+    }
+
+    public function test_create_reward_with_invalid_download_id_fails(): void
+    {
+        $this->actingAdmin();
+
+        Livewire::test(BelohnungenAdmin::class)
+            ->set('rewardTitle', 'Ungültig')
+            ->set('rewardDescription', 'Test')
+            ->set('rewardCategory', 'Test')
+            ->set('rewardCostBaxx', 5)
+            ->set('rewardDownloadId', 99999)
+            ->call('saveReward')
+            ->assertHasErrors('rewardDownloadId');
+    }
+
+    public function test_create_reward_with_already_linked_download_fails(): void
+    {
+        $this->actingAdmin();
+
+        $download = Download::factory()->create();
+        Reward::factory()->create(['download_id' => $download->id]);
+
+        Livewire::test(BelohnungenAdmin::class)
+            ->set('rewardTitle', 'Duplikat')
+            ->set('rewardDescription', 'Test')
+            ->set('rewardCategory', 'Test')
+            ->set('rewardCostBaxx', 5)
+            ->set('rewardDownloadId', $download->id)
+            ->call('saveReward')
+            ->assertHasErrors('rewardDownloadId');
+    }
+
+    public function test_create_download_sanitizes_original_filename(): void
+    {
+        Storage::fake('private');
+        $this->actingAdmin();
+
+        // Simuliere einen Upload mit problematischem Dateinamen
+        $file = UploadedFile::fake()->create("test\x00file\x1F.pdf", 512, 'application/pdf');
+
+        Livewire::test(BelohnungenAdmin::class)
+            ->set('downloadTitle', 'Sanitize Test')
+            ->set('downloadCategory', 'Test')
+            ->set('downloadFile', $file)
+            ->call('saveDownload');
+
+        $download = Download::where('title', 'Sanitize Test')->first();
+        $this->assertNotNull($download);
+        // Steuerzeichen müssen entfernt sein
+        $this->assertStringNotContainsString("\x00", $download->original_filename);
+        $this->assertStringNotContainsString("\x1F", $download->original_filename);
+    }
+
+    public function test_downloads_tab_shows_downloads(): void
+    {
+        $this->actingAdmin();
+
+        Download::factory()->create(['title' => 'Mein Download']);
+
+        Livewire::test(BelohnungenAdmin::class)
+            ->set('activeTab', 'downloads')
+            ->assertSee('Mein Download');
     }
 }

@@ -3,40 +3,80 @@
 namespace App\Livewire;
 
 use App\Models\BaxxEarningRule;
+use App\Models\Download;
 use App\Models\Reward;
 use App\Models\RewardPurchase;
 use App\Services\RewardService;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Url;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 
 class BelohnungenAdmin extends Component
 {
+    use WithFileUploads;
+
     #[Url(except: 'rewards')]
     public string $activeTab = 'rewards';
 
     // --- Reward editing ---
     public bool $showRewardModal = false;
+
     public ?int $editingRewardId = null;
+
     public string $rewardTitle = '';
+
     public string $rewardDescription = '';
+
     public string $rewardCategory = '';
+
     public int $rewardCostBaxx = 1;
+
     public int $rewardSortOrder = 0;
+
     public bool $rewardIsActive = true;
 
     // --- Purchase filter ---
     public string $purchaseSearch = '';
+
     public string $purchaseRewardFilter = 'alle';
 
     // --- Earning rule editing ---
     public bool $showRuleModal = false;
+
     public ?int $editingRuleId = null;
+
     public string $ruleLabel = '';
+
     public string $ruleDescription = '';
+
     public int $rulePoints = 1;
+
     public bool $ruleIsActive = true;
+
+    // --- Download management ---
+    public bool $showDownloadModal = false;
+
+    public ?int $editingDownloadId = null;
+
+    public string $downloadTitle = '';
+
+    public string $downloadDescription = '';
+
+    public string $downloadCategory = '';
+
+    public int $downloadSortOrder = 0;
+
+    public bool $downloadIsActive = true;
+
+    public $downloadFile = null;
+
+    // --- Reward → Download link ---
+    public ?int $rewardDownloadId = null;
 
     #[Computed]
     public function rewards(): \Illuminate\Database\Eloquent\Collection
@@ -89,6 +129,45 @@ class BelohnungenAdmin extends Component
             ->toArray();
     }
 
+    #[Computed]
+    public function downloads(): \Illuminate\Database\Eloquent\Collection
+    {
+        return Download::with(['reward:id,title,download_id'])
+            ->orderBy('category')
+            ->orderBy('sort_order')
+            ->orderBy('title')
+            ->get();
+    }
+
+    #[Computed]
+    public function downloadCategories(): array
+    {
+        return Download::select('category')
+            ->distinct()
+            ->orderBy('category')
+            ->pluck('category')
+            ->toArray();
+    }
+
+    /**
+     * Downloads, die im Reward-Modal als Optionen angeboten werden:
+     * nur solche ohne bestehende Reward-Verknüpfung
+     * + der aktuell verknüpfte Download beim Bearbeiten.
+     */
+    #[Computed]
+    public function availableDownloadsForReward(): \Illuminate\Database\Eloquent\Collection
+    {
+        return Download::where(function ($query) {
+            $query->whereDoesntHave('reward');
+
+            if ($this->rewardDownloadId) {
+                $query->orWhere('id', $this->rewardDownloadId);
+            }
+        })
+            ->orderBy('title')
+            ->get(['id', 'title', 'category']);
+    }
+
     // =====================================================
     // Reward CRUD
     // =====================================================
@@ -109,6 +188,7 @@ class BelohnungenAdmin extends Component
         $this->rewardCostBaxx = $reward->cost_baxx;
         $this->rewardSortOrder = $reward->sort_order;
         $this->rewardIsActive = $reward->is_active;
+        $this->rewardDownloadId = $reward->download_id;
         $this->showRewardModal = true;
     }
 
@@ -120,6 +200,11 @@ class BelohnungenAdmin extends Component
             'rewardCategory' => 'required|string|max:255',
             'rewardCostBaxx' => 'required|integer|min:1',
             'rewardSortOrder' => 'required|integer|min:0',
+            'rewardDownloadId' => [
+                'nullable',
+                'exists:downloads,id',
+                Rule::unique('rewards', 'download_id')->ignore($this->editingRewardId),
+            ],
         ]);
 
         $data = [
@@ -129,6 +214,7 @@ class BelohnungenAdmin extends Component
             'cost_baxx' => $this->rewardCostBaxx,
             'sort_order' => $this->rewardSortOrder,
             'is_active' => $this->rewardIsActive,
+            'download_id' => $this->rewardDownloadId,
         ];
 
         if ($this->editingRewardId) {
@@ -164,6 +250,7 @@ class BelohnungenAdmin extends Component
         $this->rewardCostBaxx = 1;
         $this->rewardSortOrder = 0;
         $this->rewardIsActive = true;
+        $this->rewardDownloadId = null;
     }
 
     // =====================================================
@@ -241,6 +328,189 @@ class BelohnungenAdmin extends Component
     public function updatedPurchaseRewardFilter(): void
     {
         unset($this->purchases);
+    }
+
+    // =====================================================
+    // Download CRUD
+    // =====================================================
+
+    public function openCreateDownload(): void
+    {
+        $this->resetDownloadForm();
+        $this->showDownloadModal = true;
+    }
+
+    public function openEditDownload(int $downloadId): void
+    {
+        $download = Download::findOrFail($downloadId);
+        $this->editingDownloadId = $download->id;
+        $this->downloadTitle = $download->title;
+        $this->downloadDescription = $download->description ?? '';
+        $this->downloadCategory = $download->category;
+        $this->downloadSortOrder = $download->sort_order;
+        $this->downloadIsActive = $download->is_active;
+        $this->downloadFile = null;
+        $this->showDownloadModal = true;
+    }
+
+    public function saveDownload(): void
+    {
+        $rules = [
+            'downloadTitle' => 'required|string|max:255',
+            'downloadCategory' => 'required|string|max:255',
+            'downloadSortOrder' => 'required|integer|min:0',
+        ];
+
+        if (! $this->editingDownloadId) {
+            $rules['downloadFile'] = 'required|file|mimes:pdf,zip,epub|max:51200';
+        } else {
+            $rules['downloadFile'] = 'nullable|file|mimes:pdf,zip,epub|max:51200';
+        }
+
+        $this->validate($rules);
+
+        $data = [
+            'title' => $this->downloadTitle,
+            'description' => $this->downloadDescription ?: null,
+            'category' => $this->downloadCategory,
+            'sort_order' => $this->downloadSortOrder,
+            'is_active' => $this->downloadIsActive,
+        ];
+
+        $newFilePath = null;
+        $oldFilePath = null;
+
+        if ($this->downloadFile) {
+            $originalFilename = $this->sanitizeFilename($this->downloadFile->getClientOriginalName());
+            $newFilePath = $this->downloadFile->store('downloads', 'private');
+
+            $data['file_path'] = $newFilePath;
+            $data['original_filename'] = $originalFilename;
+            $data['mime_type'] = $this->downloadFile->getMimeType();
+            $data['file_size'] = $this->downloadFile->getSize();
+
+            // Alte Datei merken, wird erst nach erfolgreichem DB-Update gelöscht
+            if ($this->editingDownloadId) {
+                $existing = Download::find($this->editingDownloadId);
+                if ($existing) {
+                    $oldFilePath = $existing->file_path;
+                }
+            }
+        }
+
+        try {
+            DB::transaction(function () use ($data) {
+                if ($this->editingDownloadId) {
+                    $download = Download::findOrFail($this->editingDownloadId);
+                    $download->update($data);
+                } else {
+                    Download::create($data);
+                }
+            });
+
+            // DB-Update erfolgreich – jetzt alte Datei löschen
+            if ($oldFilePath && $oldFilePath !== ($data['file_path'] ?? null)
+                && Storage::disk('private')->exists($oldFilePath)) {
+                Storage::disk('private')->delete($oldFilePath);
+            }
+
+            $this->dispatch('toast', type: 'success', title: $this->editingDownloadId ? 'Download aktualisiert' : 'Download erstellt');
+        } catch (\Throwable $e) {
+            // DB-Update fehlgeschlagen – neue Datei aufräumen
+            if ($newFilePath && Storage::disk('private')->exists($newFilePath)) {
+                Storage::disk('private')->delete($newFilePath);
+            }
+
+            throw $e;
+        }
+
+        $this->showDownloadModal = false;
+        $this->resetDownloadForm();
+        unset($this->downloads);
+    }
+
+    public function toggleDownloadActive(int $downloadId): void
+    {
+        $download = Download::findOrFail($downloadId);
+        $download->update(['is_active' => ! $download->is_active]);
+        $status = $download->is_active ? 'aktiviert' : 'deaktiviert';
+        $this->dispatch('toast', type: 'success', title: "Download {$status}");
+        unset($this->downloads);
+    }
+
+    public function deleteDownload(int $downloadId): void
+    {
+        $download = Download::findOrFail($downloadId);
+
+        // Prüfen ob eine aktive Belohnung oder aktive Käufe mit diesem Download verknüpft sind
+        $hasActiveReward = $download->reward()
+            ->where('is_active', true)
+            ->exists();
+
+        if ($hasActiveReward) {
+            $this->dispatch('toast', type: 'error', title: 'Löschen nicht möglich', description: 'Dieser Download ist mit einer aktiven Belohnung verknüpft. Bitte zuerst die Belohnung deaktivieren oder die Verknüpfung entfernen.');
+
+            return;
+        }
+
+        $hasActivePurchases = RewardPurchase::active()
+            ->whereHas('reward', fn ($q) => $q->where('download_id', $download->id))
+            ->exists();
+
+        if ($hasActivePurchases) {
+            $this->dispatch('toast', type: 'error', title: 'Löschen nicht möglich', description: 'Dieser Download ist mit Belohnungen verknüpft, die aktive Freischaltungen haben.');
+
+            return;
+        }
+
+        $filePath = $download->file_path;
+
+        // Zuerst DB löschen, dann Datei entfernen
+        $download->delete();
+
+        if (Storage::disk('private')->exists($filePath)) {
+            Storage::disk('private')->delete($filePath);
+        }
+
+        $this->dispatch('toast', type: 'success', title: 'Download gelöscht');
+        unset($this->downloads, $this->rewards);
+    }
+
+    private function resetDownloadForm(): void
+    {
+        $this->editingDownloadId = null;
+        $this->downloadTitle = '';
+        $this->downloadDescription = '';
+        $this->downloadCategory = '';
+        $this->downloadSortOrder = 0;
+        $this->downloadIsActive = true;
+        $this->downloadFile = null;
+    }
+
+    /**
+     * Bereinigt einen vom Client übermittelten Dateinamen.
+     * Entfernt Pfadbestandteile, Steuerzeichen und kürzt auf max. 255 Zeichen.
+     */
+    private function sanitizeFilename(string $filename): string
+    {
+        // Nur den Dateinamen ohne Pfad verwenden
+        $filename = basename($filename);
+
+        // Steuerzeichen entfernen (ASCII 0-31 und 127)
+        $filename = preg_replace('/[\x00-\x1F\x7F]/', '', $filename);
+
+        // Mehrfache Leerzeichen/Punkte normalisieren
+        $filename = preg_replace('/\s+/', ' ', $filename);
+
+        // Auf 255 Zeichen kürzen (Dateisystem-Limit)
+        if (mb_strlen($filename) > 255) {
+            $extension = pathinfo($filename, PATHINFO_EXTENSION);
+            $name = pathinfo($filename, PATHINFO_FILENAME);
+            $maxNameLength = 255 - mb_strlen($extension) - 1;
+            $filename = mb_substr($name, 0, $maxNameLength).'.'.$extension;
+        }
+
+        return $filename ?: 'download';
     }
 
     public function render()
