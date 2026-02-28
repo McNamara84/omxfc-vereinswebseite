@@ -46,8 +46,10 @@ class FanfictionCommentController extends Controller
             abort(404);
         }
 
-        // Prüfe ob die Fanfiction freigeschaltet wurde
-        if ($fanfiction->reward && ! $this->rewardService->hasUnlockedRewardId($user, $fanfiction->reward->id)) {
+        // Prüfe ob die Fanfiction freigeschaltet wurde (Vorstand/Admin dürfen immer kommentieren)
+        if ($fanfiction->reward
+            && ! in_array($role, [Role::Vorstand, Role::Admin], true)
+            && ! $this->rewardService->hasUnlockedRewardId($user, $fanfiction->reward->id)) {
             return redirect()->route('fanfiction.show', $fanfiction)
                 ->withErrors(['reward' => 'Du musst diese Fanfiction zuerst freischalten, um kommentieren zu können.']);
         }

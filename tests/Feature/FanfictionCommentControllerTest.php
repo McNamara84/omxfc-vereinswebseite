@@ -5,9 +5,12 @@ namespace Tests\Feature;
 use App\Enums\Role;
 use App\Models\Fanfiction;
 use App\Models\FanfictionComment;
+use App\Models\Reward;
+use App\Models\RewardPurchase;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Str;
 use Tests\TestCase;
 
 class FanfictionCommentControllerTest extends TestCase
@@ -183,5 +186,92 @@ class FanfictionCommentControllerTest extends TestCase
 
         // Anwärter werden zur Freischaltungsseite redirected
         $response->assertRedirect();
+    }
+
+    public function test_member_cannot_comment_on_locked_fanfiction(): void
+    {
+        $reward = $this->createRewardForFanfiction($this->fanfiction);
+
+        $response = $this->actingAs($this->member)
+            ->post(route('fanfiction.comments.store', $this->fanfiction), [
+                'content' => 'Versuch ohne Freischaltung',
+            ]);
+
+        $response->assertRedirect(route('fanfiction.show', $this->fanfiction));
+        $response->assertSessionHasErrors('reward');
+
+        $this->assertDatabaseMissing('fanfiction_comments', [
+            'fanfiction_id' => $this->fanfiction->id,
+            'user_id' => $this->member->id,
+            'content' => 'Versuch ohne Freischaltung',
+        ]);
+    }
+
+    public function test_member_can_comment_after_purchasing_fanfiction(): void
+    {
+        $reward = $this->createRewardForFanfiction($this->fanfiction);
+
+        RewardPurchase::create([
+            'user_id' => $this->member->id,
+            'reward_id' => $reward->id,
+            'cost_baxx' => $reward->cost_baxx,
+            'purchased_at' => now(),
+        ]);
+
+        $response = $this->actingAs($this->member)
+            ->post(route('fanfiction.comments.store', $this->fanfiction), [
+                'content' => 'Kommentar nach Freischaltung',
+            ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('fanfiction_comments', [
+            'fanfiction_id' => $this->fanfiction->id,
+            'user_id' => $this->member->id,
+            'content' => 'Kommentar nach Freischaltung',
+        ]);
+    }
+
+    public function test_vorstand_can_comment_on_locked_fanfiction_without_purchase(): void
+    {
+        $vorstand = User::factory()->create();
+        $vorstand->teams()->attach($this->memberTeam, ['role' => Role::Vorstand->value]);
+        $vorstand->switchTeam($this->memberTeam);
+
+        $this->createRewardForFanfiction($this->fanfiction);
+
+        $response = $this->actingAs($vorstand)
+            ->post(route('fanfiction.comments.store', $this->fanfiction), [
+                'content' => 'Vorstand-Kommentar ohne Kauf',
+            ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('fanfiction_comments', [
+            'fanfiction_id' => $this->fanfiction->id,
+            'user_id' => $vorstand->id,
+            'content' => 'Vorstand-Kommentar ohne Kauf',
+        ]);
+    }
+
+    // ── Hilfsmethoden ─────────────────────────────────────────
+
+    private function createRewardForFanfiction(Fanfiction $fanfiction, int $costBaxx = 5): Reward
+    {
+        $reward = Reward::create([
+            'title' => $fanfiction->title,
+            'slug' => 'fanfiction-'.Str::slug($fanfiction->title).'-'.$fanfiction->id,
+            'description' => Str::limit($fanfiction->content ?? '', 200),
+            'category' => 'Fanfiction',
+            'cost_baxx' => $costBaxx,
+            'is_active' => true,
+            'sort_order' => 0,
+        ]);
+
+        $fanfiction->update(['reward_id' => $reward->id]);
+
+        return $reward;
     }
 }
