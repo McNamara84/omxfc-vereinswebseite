@@ -30,7 +30,6 @@ class ThreeDModelFactory extends Factory
             'file_size' => $this->faker->numberBetween(1024, 104857600),
             'thumbnail_path' => null,
             'maddraxikon_url' => null,
-            'required_baxx' => $this->faker->numberBetween(1, 50),
             'uploaded_by' => User::factory(),
         ];
     }

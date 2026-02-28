@@ -53,6 +53,7 @@ class Fanfiction extends Model
         'photos',
         'status',
         'published_at',
+        'reward_id',
     ];
 
     protected $casts = [
@@ -66,6 +67,14 @@ class Fanfiction extends Model
     public function team(): BelongsTo
     {
         return $this->belongsTo(Team::class);
+    }
+
+    /**
+     * The reward linked to this fanfiction for purchase-based unlocking.
+     */
+    public function reward(): BelongsTo
+    {
+        return $this->belongsTo(Reward::class);
     }
 
     /**

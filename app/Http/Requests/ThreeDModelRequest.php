@@ -30,7 +30,7 @@ class ThreeDModelRequest extends FormRequest
         $rules = [
             'name' => ['required', 'string', 'max:255'],
             'description' => ['required', 'string', 'max:2000'],
-            'required_baxx' => ['required', 'integer', 'min:1', 'max:1000'],
+            'cost_baxx' => ['required', 'integer', 'min:1', 'max:1000'],
             'maddraxikon_url' => ['nullable', 'url:https', 'max:500'],
             'thumbnail' => ['nullable', 'image', "mimes:{$thumbExtensions}", "max:{$maxThumbSize}"],
         ];
@@ -59,9 +59,9 @@ class ThreeDModelRequest extends FormRequest
             'name.max' => 'Der Name darf maximal 255 Zeichen lang sein.',
             'description.required' => 'Bitte gib eine Beschreibung ein.',
             'description.max' => 'Die Beschreibung darf maximal 2000 Zeichen lang sein.',
-            'required_baxx.required' => 'Bitte gib die benötigten Baxx ein.',
-            'required_baxx.min' => 'Der Baxx-Preis muss mindestens 1 sein.',
-            'required_baxx.max' => 'Der Baxx-Preis darf maximal 1000 sein.',
+            'cost_baxx.required' => 'Bitte gib den Baxx-Preis ein.',
+            'cost_baxx.min' => 'Der Baxx-Preis muss mindestens 1 sein.',
+            'cost_baxx.max' => 'Der Baxx-Preis darf maximal 1000 sein.',
             'model_file.required' => 'Bitte lade eine 3D-Datei hoch.',
             'model_file.extensions' => 'Die Datei muss im Format STL, OBJ oder FBX sein.',
             'model_file.max' => 'Die Datei darf maximal 100 MB groß sein.',

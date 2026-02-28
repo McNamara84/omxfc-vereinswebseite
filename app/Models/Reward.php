@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Str;
 
 class Reward extends Model
@@ -57,6 +58,22 @@ class Reward extends Model
     public function download(): BelongsTo
     {
         return $this->belongsTo(Download::class);
+    }
+
+    /**
+     * The 3D model linked to this reward (optional).
+     */
+    public function threeDModel(): HasOne
+    {
+        return $this->hasOne(ThreeDModel::class);
+    }
+
+    /**
+     * The fanfiction linked to this reward (optional).
+     */
+    public function fanfiction(): HasOne
+    {
+        return $this->hasOne(Fanfiction::class);
     }
 
     /**

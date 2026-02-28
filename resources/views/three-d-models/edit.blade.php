@@ -31,12 +31,12 @@
                     </div>
 
                     <div>
-                        <label for="required_baxx" class="label label-text font-semibold">Benötigte Baxx</label>
-                        <input type="number" name="required_baxx" id="required_baxx"
-                            value="{{ old('required_baxx', $model->required_baxx) }}" min="1" max="1000"
+                        <label for="cost_baxx" class="label label-text font-semibold">Preis in Baxx</label>
+                        <input type="number" name="cost_baxx" id="cost_baxx"
+                            value="{{ old('cost_baxx', $model->reward?->cost_baxx ?? 10) }}" min="1" max="1000"
                             class="input input-bordered w-full" required
                             data-testid="baxx-input" />
-                        @error('required_baxx')
+                        @error('cost_baxx')
                             <p class="text-error text-sm mt-1">{{ $message }}</p>
                         @enderror
                     </div>

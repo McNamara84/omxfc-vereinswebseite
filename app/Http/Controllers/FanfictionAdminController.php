@@ -9,6 +9,7 @@ use App\Models\Activity;
 use App\Models\BaxxEarningRule;
 use App\Models\Fanfiction;
 use App\Models\User;
+use App\Services\FanfictionService;
 use App\Services\UserRoleService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -32,6 +33,7 @@ class FanfictionAdminController extends Controller
 
     public function __construct(
         private readonly UserRoleService $userRoleService,
+        private readonly FanfictionService $fanfictionService,
     ) {}
 
     protected function getUserRoleService(): UserRoleService
@@ -90,6 +92,7 @@ class FanfictionAdminController extends Controller
         ]);
 
         if ($validated['status'] === 'published') {
+            $this->fanfictionService->createRewardForFanfiction($fanfiction);
             $this->handlePublishActions($fanfiction);
             $this->invalidateFanfictionCountCache();
         }
@@ -161,6 +164,14 @@ class FanfictionAdminController extends Controller
             'photos' => $allPhotos ?: null,
         ]);
 
+        // Reward-Titel/Beschreibung synchronisieren (falls vorhanden)
+        if ($fanfiction->reward) {
+            $this->fanfictionService->updateRewardForFanfiction(
+                $fanfiction,
+                $fanfiction->reward->cost_baxx,
+            );
+        }
+
         return redirect()
             ->route('admin.fanfiction.index')
             ->with('success', 'Fanfiction erfolgreich aktualisiert.');
@@ -177,6 +188,7 @@ class FanfictionAdminController extends Controller
         }
 
         $wasPublished = $fanfiction->status === FanfictionStatus::Published;
+        $this->fanfictionService->deleteRewardForFanfiction($fanfiction);
         $fanfiction->delete();
 
         if ($wasPublished) {
@@ -203,6 +215,11 @@ class FanfictionAdminController extends Controller
             'status' => FanfictionStatus::Published,
             'published_at' => now(),
         ]);
+
+        // Reward erstellen beim Veröffentlichen
+        if (! $fanfiction->reward) {
+            $this->fanfictionService->createRewardForFanfiction($fanfiction);
+        }
 
         $this->handlePublishActions($fanfiction);
         $this->invalidateFanfictionCountCache();

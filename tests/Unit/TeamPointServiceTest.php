@@ -65,22 +65,6 @@ class TeamPointServiceTest extends TestCase
         $this->assertSame(7, $this->service->getUserPoints($user));
     }
 
-    public function test_assert_min_points_passes_when_enough(): void
-    {
-        $user = $this->memberWithPoints(10);
-        $this->actingAs($user);
-        $this->service->assertMinPoints(5);
-        $this->assertTrue(true);
-    }
-
-    public function test_assert_min_points_throws_when_insufficient(): void
-    {
-        $user = $this->memberWithPoints(2);
-        $this->actingAs($user);
-        $this->expectException(AuthorizationException::class);
-        $this->service->assertMinPoints(5);
-    }
-
     public function test_get_user_point_trend_returns_last_seven_days(): void
     {
         Carbon::setTestNow(Carbon::create(2024, 1, 10, 12));

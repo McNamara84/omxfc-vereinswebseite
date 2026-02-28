@@ -301,4 +301,47 @@ class FanfictionAdminControllerTest extends TestCase
         $response->assertRedirect(route('admin.fanfiction.index'));
         $response->assertSessionHas('info', 'Diese Fanfiction ist bereits veröffentlicht.');
     }
+
+    public function test_publishing_creates_reward_for_fanfiction(): void
+    {
+        $fanfiction = Fanfiction::factory()->draft()->create([
+            'team_id' => $this->memberTeam->id,
+            'created_by' => $this->vorstand->id,
+            'user_id' => $this->member->id,
+        ]);
+
+        $this->assertNull($fanfiction->reward_id);
+
+        $this->actingAs($this->vorstand)
+            ->post(route('admin.fanfiction.publish', $fanfiction));
+
+        $fanfiction->refresh();
+        $this->assertNotNull($fanfiction->reward_id);
+        $this->assertNotNull($fanfiction->reward);
+        $this->assertEquals(config('rewards.fanfiction_default_cost_baxx'), $fanfiction->reward->cost_baxx);
+        $this->assertTrue($fanfiction->reward->is_active);
+    }
+
+    public function test_deleting_published_fanfiction_removes_reward(): void
+    {
+        $fanfiction = Fanfiction::factory()->draft()->create([
+            'team_id' => $this->memberTeam->id,
+            'created_by' => $this->vorstand->id,
+        ]);
+
+        // Veröffentlichen, um Reward zu erstellen
+        $this->actingAs($this->vorstand)
+            ->post(route('admin.fanfiction.publish', $fanfiction));
+
+        $fanfiction->refresh();
+        $rewardId = $fanfiction->reward_id;
+        $this->assertNotNull($rewardId);
+
+        // Fanfiction löschen
+        $this->actingAs($this->vorstand)
+            ->delete(route('admin.fanfiction.destroy', $fanfiction));
+
+        $this->assertSoftDeleted('fanfictions', ['id' => $fanfiction->id]);
+        $this->assertDatabaseMissing('rewards', ['id' => $rewardId]);
+    }
 }

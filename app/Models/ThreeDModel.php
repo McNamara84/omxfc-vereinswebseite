@@ -20,18 +20,25 @@ class ThreeDModel extends Model
         'file_size',
         'thumbnail_path',
         'maddraxikon_url',
-        'required_baxx',
+        'reward_id',
         'uploaded_by',
     ];
 
     protected $casts = [
         'file_size' => 'integer',
-        'required_baxx' => 'integer',
     ];
 
     public function uploader(): BelongsTo
     {
         return $this->belongsTo(User::class, 'uploaded_by');
+    }
+
+    /**
+     * The reward linked to this 3D model for purchase-based unlocking.
+     */
+    public function reward(): BelongsTo
+    {
+        return $this->belongsTo(Reward::class);
     }
 
     public function getFileSizeFormattedAttribute(): string

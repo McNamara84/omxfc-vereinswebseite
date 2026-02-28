@@ -1,14 +1,26 @@
 <?php
 
 /**
- * @deprecated Diese Konfiguration wird nicht mehr zur Laufzeit verwendet.
- * Die Belohnungen werden jetzt in der Datenbank-Tabelle `rewards` verwaltet.
- * Diese Datei dient nur noch als Referenz für den RewardSeeder.
+ * Reward-Konfiguration.
  *
- * @see \Database\Seeders\RewardSeeder
+ * Die Root-Level-Keys (z.B. `fanfiction_default_cost_baxx`) werden zur Laufzeit
+ * von Services und Migrationen gelesen und sind NICHT deprecated.
+ *
+ * @deprecated Nur das `legacy`-Array ist deprecated – es wird nicht mehr zur
+ *             Laufzeit verwendet. Die darin enthaltenen Belohnungen werden jetzt
+ *             in der Datenbank-Tabelle `rewards` verwaltet. Das Array dient nur
+ *             noch als Referenz für den RewardSeeder.
+ *
+ * @see \App\Services\FanfictionService    Liest `fanfiction_default_cost_baxx`
+ * @see \Database\Seeders\RewardSeeder     Verwendet das `legacy`-Array
  * @see \App\Models\Reward
  */
 return [
+    // Standard-Baxx-Kosten für neue Fanfictions (Runtime-Wert)
+    'fanfiction_default_cost_baxx' => env('FANFICTION_DEFAULT_COST_BAXX', 5),
+
+    /** @deprecated Nur als Referenz für RewardSeeder – nicht zur Laufzeit verwenden. */
+    'legacy' => [
     [
         'title' => 'Mitgliederkarte',
         'description' => 'Zeigt die Wohnorte der Vereinsmitglieder auf einer Karte.',
@@ -233,5 +245,6 @@ return [
         'title' => 'Kompendium-Suche',
         'description' => 'Erlaubt die Volltextsuche im Maddrax-Kompendium.',
         'points' => 100,
+    ],
     ],
 ];

@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Models\Reward;
+use App\Models\RewardPurchase;
 use App\Models\ThreeDModel;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -49,17 +51,22 @@ class ThreeDModelService
         }
 
         try {
-            return DB::transaction(fn () => ThreeDModel::create([
-                'name' => $metadata['name'],
-                'description' => $metadata['description'],
-                'file_path' => $filePath,
-                'file_format' => self::EXTENSION_TO_FORMAT[$extension] ?? $extension,
-                'file_size' => $file->getSize(),
-                'thumbnail_path' => $thumbnailPath,
-                'maddraxikon_url' => $metadata['maddraxikon_url'] ?? null,
-                'required_baxx' => $metadata['required_baxx'],
-                'uploaded_by' => $metadata['uploaded_by'],
-            ]));
+            return DB::transaction(function () use ($extension, $filePath, $thumbnailPath, $metadata, $file) {
+                $model = ThreeDModel::create([
+                    'name' => $metadata['name'],
+                    'description' => $metadata['description'],
+                    'file_path' => $filePath,
+                    'file_format' => self::EXTENSION_TO_FORMAT[$extension] ?? $extension,
+                    'file_size' => $file->getSize(),
+                    'thumbnail_path' => $thumbnailPath,
+                    'maddraxikon_url' => $metadata['maddraxikon_url'] ?? null,
+                    'uploaded_by' => $metadata['uploaded_by'],
+                ]);
+
+                $this->createRewardForModel($model, $metadata['cost_baxx']);
+
+                return $model;
+            });
         } catch (\Throwable $e) {
             // Verwaiste Dateien aufräumen
             Storage::disk('private')->delete($filePath);
@@ -108,10 +115,12 @@ class ThreeDModelService
         $model->name = $metadata['name'];
         $model->description = $metadata['description'];
         $model->maddraxikon_url = $metadata['maddraxikon_url'] ?? null;
-        $model->required_baxx = $metadata['required_baxx'];
 
         try {
-            $model->save();
+            DB::transaction(function () use ($model, $metadata) {
+                $model->save();
+                $this->updateRewardForModel($model, $metadata['cost_baxx']);
+            });
         } catch (\Throwable $e) {
             // Neue Dateien aufräumen, da save() fehlgeschlagen ist
             if ($newFilePath) {
@@ -136,7 +145,7 @@ class ThreeDModelService
     }
 
     /**
-     * Löscht ein 3D-Modell samt zugehöriger Dateien.
+     * Löscht ein 3D-Modell samt zugehöriger Dateien und Reward.
      */
     public function deleteModel(ThreeDModel $model): void
     {
@@ -146,6 +155,80 @@ class ThreeDModelService
             Storage::disk('public')->delete($model->thumbnail_path);
         }
 
+        $this->deleteRewardForModel($model);
+
         $model->delete();
+    }
+
+    /**
+     * Erstellt einen Reward für ein 3D-Modell.
+     */
+    public function createRewardForModel(ThreeDModel $model, int $costBaxx): Reward
+    {
+        $baseSlug = Str::slug($model->name);
+        $slug = '3d-'.$baseSlug;
+        $counter = 2;
+
+        while (Reward::where('slug', $slug)->exists()) {
+            $slug = '3d-'.$baseSlug.'-'.$counter;
+            $counter++;
+        }
+
+        $reward = Reward::create([
+            'title' => $model->name,
+            'description' => Str::limit($model->description, 200),
+            'category' => '3D-Modelle',
+            'slug' => $slug,
+            'cost_baxx' => $costBaxx,
+            'is_active' => true,
+            'sort_order' => 0,
+        ]);
+
+        $model->update(['reward_id' => $reward->id]);
+
+        return $reward;
+    }
+
+    /**
+     * Aktualisiert den Reward eines 3D-Modells.
+     */
+    public function updateRewardForModel(ThreeDModel $model, int $costBaxx): void
+    {
+        $reward = $model->reward;
+
+        if (! $reward) {
+            $this->createRewardForModel($model, $costBaxx);
+
+            return;
+        }
+
+        $reward->update([
+            'title' => $model->name,
+            'description' => Str::limit($model->description, 200),
+            'cost_baxx' => $costBaxx,
+        ]);
+    }
+
+    /**
+     * Löscht oder deaktiviert den Reward eines 3D-Modells.
+     * Deaktiviert statt löschen, wenn aktive Käufe existieren.
+     */
+    public function deleteRewardForModel(ThreeDModel $model): void
+    {
+        $reward = $model->reward;
+
+        if (! $reward) {
+            return;
+        }
+
+        $hasActivePurchases = RewardPurchase::where('reward_id', $reward->id)
+            ->active()
+            ->exists();
+
+        if ($hasActivePurchases) {
+            $reward->update(['is_active' => false]);
+        } else {
+            $reward->delete();
+        }
     }
 }

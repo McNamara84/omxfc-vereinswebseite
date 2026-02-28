@@ -19,6 +19,13 @@
             </x-slot:actions>
         </x-header>
 
+        {{-- Fehlermeldungen (z.B. Kauf fehlgeschlagen, Download/Preview abgelehnt) --}}
+        @error('reward')
+            <x-alert icon="o-exclamation-triangle" class="alert-warning mb-4" data-testid="reward-error">
+                {{ $message }}
+            </x-alert>
+        @enderror
+
         {{-- 3D-Viewer (nur wenn freigeschaltet) --}}
         @if ($isUnlocked)
             <div data-three-d-viewer
@@ -31,10 +38,31 @@
             <x-card class="mb-6">
                 <div class="text-center py-12">
                     <x-icon name="o-lock-closed" class="w-16 h-16 mx-auto text-base-content/30 mb-4" />
-                    <p class="text-lg font-semibold">Dieses Modell erfordert {{ $model->required_baxx }} Baxx</p>
-                    <p class="text-base-content/60 mt-1">
-                        Du hast aktuell {{ $userPoints }} Baxx. Sammle mehr, um die 3D-Vorschau und den Download freizuschalten!
-                    </p>
+                    @if ($model->reward)
+                        <p class="text-lg font-semibold">Dieses Modell kostet {{ $model->reward->cost_baxx }} Baxx</p>
+                        <p class="text-base-content/60 mt-1">
+                            Du hast aktuell {{ $availableBaxx }} verfügbare Baxx.
+                        </p>
+                        @if (! $model->reward->is_active)
+                            <p class="text-sm text-base-content/40 mt-2">
+                                Dieses Modell ist derzeit nicht verfügbar.
+                            </p>
+                        @elseif ($availableBaxx >= $model->reward->cost_baxx)
+                            <form method="POST" action="{{ route('3d-modelle.purchase', $model) }}" class="mt-4"
+                                onsubmit="return confirm('Möchtest du dieses 3D-Modell für {{ $model->reward->cost_baxx }} Baxx freischalten?')">
+                                @csrf
+                                <x-button label="Für {{ $model->reward->cost_baxx }} Baxx freischalten"
+                                    icon="o-lock-open" type="submit" class="btn-primary"
+                                    data-testid="purchase-button" />
+                            </form>
+                        @else
+                            <p class="text-sm text-base-content/40 mt-2">
+                                Dir fehlen noch {{ $model->reward->cost_baxx - $availableBaxx }} Baxx.
+                            </p>
+                        @endif
+                    @else
+                        <p class="text-lg font-semibold">Dieses Modell ist nicht verfügbar</p>
+                    @endif
                 </div>
             </x-card>
         @endif
@@ -51,10 +79,14 @@
                     <p class="font-semibold">{{ $model->file_size_formatted }}</p>
                 </div>
                 <div>
-                    <span class="text-sm text-base-content/60">Benötigte Baxx</span>
+                    <span class="text-sm text-base-content/60">Preis</span>
                     <div class="mt-1">
-                        <x-badge :value="$model->required_baxx . ' Baxx'"
-                            class="{{ $isUnlocked ? 'badge-success' : 'badge-ghost' }}" />
+                        @if ($model->reward)
+                            <x-badge :value="$model->reward->cost_baxx . ' Baxx'"
+                                class="{{ $isUnlocked ? 'badge-success' : 'badge-ghost' }}" />
+                        @else
+                            <x-badge value="Kostenlos" class="badge-success" />
+                        @endif
                     </div>
                 </div>
                 <div>

@@ -259,6 +259,7 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
             Route::delete('{threeDModel}', 'destroy')->name('destroy');
         });
         Route::get('{threeDModel}', 'show')->name('show');
+        Route::post('{threeDModel}/kaufen', 'purchase')->name('purchase');
         Route::get('{threeDModel}/herunterladen', 'download')->name('download');
         Route::get('{threeDModel}/vorschau', 'preview')->name('preview');
     });
@@ -282,6 +283,7 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
     Route::prefix('fanfiction')->name('fanfiction.')->group(function () {
         Route::get('/', [FanfictionController::class, 'index'])->name('index');
         Route::get('/{fanfiction}', [FanfictionController::class, 'show'])->name('show');
+        Route::post('/{fanfiction}/kaufen', [FanfictionController::class, 'purchase'])->name('purchase');
         Route::post('/{fanfiction}/kommentar', [FanfictionCommentController::class, 'store'])->name('comments.store');
         Route::put('/kommentar/{comment}', [FanfictionCommentController::class, 'update'])->name('comments.update');
         Route::delete('/kommentar/{comment}', [FanfictionCommentController::class, 'destroy'])->name('comments.destroy');
