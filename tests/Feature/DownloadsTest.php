@@ -144,6 +144,54 @@ class DownloadsTest extends TestCase
         $response->assertNotFound();
     }
 
+    public function test_refunded_purchase_does_not_grant_download_access(): void
+    {
+        $user = $this->actingMember();
+
+        $download = Download::factory()->create([
+            'file_path' => 'downloads/refunded.pdf',
+            'original_filename' => 'Refunded.pdf',
+        ]);
+        $reward = Reward::factory()->create(['download_id' => $download->id]);
+
+        // Purchase wurde erstattet
+        RewardPurchase::factory()->refunded()->create([
+            'user_id' => $user->id,
+            'reward_id' => $reward->id,
+        ]);
+
+        Storage::disk('private')->put('downloads/refunded.pdf', 'dummy content');
+
+        $response = $this->from('/downloads')->get('/downloads/herunterladen/'.$download->slug);
+
+        $response->assertRedirect('/downloads');
+        $response->assertSessionHasErrors();
+    }
+
+    public function test_refunded_purchase_does_not_show_download_as_unlocked(): void
+    {
+        $user = $this->actingMember();
+
+        $download = Download::factory()->create([
+            'title' => 'Erstatteter Download',
+            'file_path' => 'downloads/refunded-index.pdf',
+        ]);
+        $reward = Reward::factory()->create(['download_id' => $download->id]);
+
+        // Purchase wurde erstattet
+        RewardPurchase::factory()->refunded()->create([
+            'user_id' => $user->id,
+            'reward_id' => $reward->id,
+        ]);
+
+        $response = $this->get('/downloads');
+
+        $response->assertOk();
+        // Der Download sollte als gesperrt angezeigt werden (Freischalten-Link statt Herunterladen)
+        $response->assertSee('Freischalten');
+        $response->assertDontSee('Herunterladen');
+    }
+
     public function test_guest_is_redirected_to_login_when_accessing_downloads_page(): void
     {
         $this->get('/downloads')->assertRedirect('/login');

@@ -284,7 +284,7 @@
                     wire:model="rewardDownloadId"
                     label="Verknüpfter Download (optional)"
                     placeholder="Keinen Download verknüpfen"
-                    :options="$this->downloads->map(fn($d) => ['id' => $d->id, 'name' => $d->title . ' (' . $d->category . ')'])->toArray()"
+                    :options="$this->availableDownloadsForReward->map(fn($d) => ['id' => $d->id, 'name' => $d->title . ' (' . $d->category . ')'])->toArray()"
                     option-value="id"
                     option-label="name"
                     placeholder-value=""

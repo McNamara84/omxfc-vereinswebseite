@@ -8,6 +8,7 @@ use App\Models\Reward;
 use App\Models\RewardPurchase;
 use App\Services\RewardService;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
@@ -146,6 +147,25 @@ class BelohnungenAdmin extends Component
             ->orderBy('category')
             ->pluck('category')
             ->toArray();
+    }
+
+    /**
+     * Downloads, die im Reward-Modal als Optionen angeboten werden:
+     * nur solche ohne bestehende Reward-Verknüpfung
+     * + der aktuell verknüpfte Download beim Bearbeiten.
+     */
+    #[Computed]
+    public function availableDownloadsForReward(): \Illuminate\Database\Eloquent\Collection
+    {
+        return Download::where(function ($query) {
+            $query->whereDoesntHave('reward');
+
+            if ($this->rewardDownloadId) {
+                $query->orWhere('id', $this->rewardDownloadId);
+            }
+        })
+            ->orderBy('title')
+            ->get(['id', 'title', 'category']);
     }
 
     // =====================================================
@@ -357,31 +377,51 @@ class BelohnungenAdmin extends Component
             'is_active' => $this->downloadIsActive,
         ];
 
+        $newFilePath = null;
+        $oldFilePath = null;
+
         if ($this->downloadFile) {
             $originalFilename = $this->downloadFile->getClientOriginalName();
-            $path = $this->downloadFile->store('downloads', 'private');
+            $newFilePath = $this->downloadFile->store('downloads', 'private');
 
-            $data['file_path'] = $path;
+            $data['file_path'] = $newFilePath;
             $data['original_filename'] = $originalFilename;
             $data['mime_type'] = $this->downloadFile->getMimeType();
             $data['file_size'] = $this->downloadFile->getSize();
 
-            // Delete old file when replacing
+            // Alte Datei merken, wird erst nach erfolgreichem DB-Update gelöscht
             if ($this->editingDownloadId) {
                 $existing = Download::find($this->editingDownloadId);
-                if ($existing && Storage::disk('private')->exists($existing->file_path)) {
-                    Storage::disk('private')->delete($existing->file_path);
+                if ($existing) {
+                    $oldFilePath = $existing->file_path;
                 }
             }
         }
 
-        if ($this->editingDownloadId) {
-            $download = Download::findOrFail($this->editingDownloadId);
-            $download->update($data);
-            $this->dispatch('toast', type: 'success', title: 'Download aktualisiert');
-        } else {
-            Download::create($data);
-            $this->dispatch('toast', type: 'success', title: 'Download erstellt');
+        try {
+            DB::transaction(function () use ($data) {
+                if ($this->editingDownloadId) {
+                    $download = Download::findOrFail($this->editingDownloadId);
+                    $download->update($data);
+                } else {
+                    Download::create($data);
+                }
+            });
+
+            // DB-Update erfolgreich – jetzt alte Datei löschen
+            if ($oldFilePath && $oldFilePath !== ($data['file_path'] ?? null)
+                && Storage::disk('private')->exists($oldFilePath)) {
+                Storage::disk('private')->delete($oldFilePath);
+            }
+
+            $this->dispatch('toast', type: 'success', title: $this->editingDownloadId ? 'Download aktualisiert' : 'Download erstellt');
+        } catch (\Throwable $e) {
+            // DB-Update fehlgeschlagen – neue Datei aufräumen
+            if ($newFilePath && Storage::disk('private')->exists($newFilePath)) {
+                Storage::disk('private')->delete($newFilePath);
+            }
+
+            throw $e;
         }
 
         $this->showDownloadModal = false;
