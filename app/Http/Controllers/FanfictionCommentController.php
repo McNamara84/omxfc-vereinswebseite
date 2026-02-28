@@ -33,7 +33,18 @@ class FanfictionCommentController extends Controller
     public function store(Request $request, Fanfiction $fanfiction): RedirectResponse
     {
         $user = Auth::user();
-        $this->authorizeMemberArea();
+        $role = $this->authorizeMemberArea();
+
+        // Team-Scoping: Fanfiction muss zum Mitglieder-Team gehören
+        if ($fanfiction->team_id !== $this->memberTeam()->id) {
+            abort(404);
+        }
+
+        // Entwürfe dürfen nur Vorstand/Admin kommentieren
+        if ($fanfiction->status !== \App\Enums\FanfictionStatus::Published
+            && ! in_array($role, [Role::Vorstand, Role::Admin], true)) {
+            abort(404);
+        }
 
         // Prüfe ob die Fanfiction freigeschaltet wurde
         if ($fanfiction->reward) {

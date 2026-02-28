@@ -12,33 +12,35 @@ return new class extends Migration
     {
         $defaultCost = (int) config('rewards.fanfiction_default_cost_baxx', 5);
 
-        $fanfictions = Fanfiction::where('status', FanfictionStatus::Published)->get();
+        Fanfiction::where('status', FanfictionStatus::Published)
+            ->whereNull('reward_id')
+            ->chunkById(100, function ($fanfictions) use ($defaultCost) {
+                foreach ($fanfictions as $fanfiction) {
+                    $baseSlug = Str::slug($fanfiction->title);
+                    $slug = 'fanfiction-'.$baseSlug;
+                    $counter = 2;
 
-        foreach ($fanfictions as $fanfiction) {
-            $baseSlug = Str::slug($fanfiction->title);
-            $slug = 'fanfiction-'.$baseSlug;
-            $counter = 2;
+                    while (Reward::where('slug', $slug)->exists()) {
+                        $slug = 'fanfiction-'.$baseSlug.'-'.$counter;
+                        $counter++;
+                    }
 
-            while (Reward::where('slug', $slug)->exists()) {
-                $slug = 'fanfiction-'.$baseSlug.'-'.$counter;
-                $counter++;
-            }
+                    $teaser = strip_tags(Str::markdown($fanfiction->content));
+                    $teaser = Str::limit($teaser, 200);
 
-            $teaser = strip_tags(Str::markdown($fanfiction->content));
-            $teaser = Str::limit($teaser, 200);
+                    $reward = Reward::create([
+                        'title' => $fanfiction->title,
+                        'description' => $teaser,
+                        'category' => 'Fanfiction',
+                        'slug' => $slug,
+                        'cost_baxx' => $defaultCost,
+                        'is_active' => true,
+                        'sort_order' => 0,
+                    ]);
 
-            $reward = Reward::create([
-                'title' => $fanfiction->title,
-                'description' => $teaser,
-                'category' => 'Fanfiction',
-                'slug' => $slug,
-                'cost_baxx' => $defaultCost,
-                'is_active' => true,
-                'sort_order' => 0,
-            ]);
-
-            $fanfiction->update(['reward_id' => $reward->id]);
-        }
+                    $fanfiction->update(['reward_id' => $reward->id]);
+                }
+            });
     }
 
     public function down(): void

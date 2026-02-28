@@ -401,7 +401,8 @@ class ThreeDModelTest extends TestCase
 
         $response = $this->get("/3d-modelle/{$model->id}/herunterladen");
 
-        $response->assertForbidden();
+        $response->assertRedirect(route('3d-modelle.show', $model));
+        $response->assertSessionHasErrors('reward');
     }
 
     public function test_download_fehlende_datei_gibt_fehler(): void
@@ -447,7 +448,8 @@ class ThreeDModelTest extends TestCase
 
         $response = $this->get("/3d-modelle/{$model->id}/vorschau");
 
-        $response->assertForbidden();
+        $response->assertRedirect(route('3d-modelle.show', $model));
+        $response->assertSessionHasErrors('reward');
     }
 
     public function test_vorschau_fehlende_datei_gibt_fehler(): void
@@ -589,8 +591,9 @@ class ThreeDModelTest extends TestCase
         $this->post("/3d-modelle/{$model->id}/kaufen");
 
         // Nach dem Kauf im Index werden 20 Baxx angezeigt
-        $response = $this->get('/3d-modelle');
+        $response = $this->withoutVite()->get('/3d-modelle');
         $response->assertOk();
+        $response->assertSee('20');
 
         // Prüfe dass der Kauf registriert wurde und Baxx abgezogen
         $this->assertDatabaseHas('reward_purchases', [

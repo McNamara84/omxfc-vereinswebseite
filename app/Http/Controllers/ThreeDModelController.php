@@ -150,8 +150,9 @@ class ThreeDModelController extends Controller
     {
         $threeDModel->loadMissing('reward');
 
-        if ($threeDModel->reward) {
-            $this->rewardService->assertRewardUnlocked($threeDModel->reward->slug);
+        if ($threeDModel->reward && ! $this->rewardService->hasUnlockedReward(Auth::user(), $threeDModel->reward->slug)) {
+            return redirect()->route('3d-modelle.show', $threeDModel)
+                ->withErrors(['reward' => 'Du musst dieses 3D-Modell zuerst freischalten.']);
         }
 
         if (! Storage::disk('private')->exists($threeDModel->file_path)) {
@@ -169,12 +170,13 @@ class ThreeDModelController extends Controller
     /**
      * 3D-Datei für Three.js Viewer streamen (Reward-geschützt).
      */
-    public function preview(ThreeDModel $threeDModel): StreamedResponse
+    public function preview(ThreeDModel $threeDModel): StreamedResponse|RedirectResponse
     {
         $threeDModel->loadMissing('reward');
 
-        if ($threeDModel->reward) {
-            $this->rewardService->assertRewardUnlocked($threeDModel->reward->slug);
+        if ($threeDModel->reward && ! $this->rewardService->hasUnlockedReward(Auth::user(), $threeDModel->reward->slug)) {
+            return redirect()->route('3d-modelle.show', $threeDModel)
+                ->withErrors(['reward' => 'Du musst dieses 3D-Modell zuerst freischalten.']);
         }
 
         if (! Storage::disk('private')->exists($threeDModel->file_path)) {
@@ -195,7 +197,7 @@ class ThreeDModelController extends Controller
 
         if (! $threeDModel->reward) {
             return redirect()->route('3d-modelle.show', $threeDModel)
-                ->withErrors('Dieses Modell hat keine zugeordnete Belohnung.');
+                ->withErrors(['reward' => 'Dieses Modell hat keine zugeordnete Belohnung.']);
         }
 
         try {
