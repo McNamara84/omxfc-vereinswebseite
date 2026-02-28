@@ -1,9 +1,7 @@
 <?php
 
-use App\Enums\FanfictionStatus;
-use App\Models\Fanfiction;
-use App\Models\Reward;
 use Illuminate\Database\Migrations\Migration;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 return new class extends Migration
@@ -12,22 +10,28 @@ return new class extends Migration
     {
         $defaultCost = (int) config('rewards.fanfiction_default_cost_baxx', 5);
 
-        Fanfiction::where('status', FanfictionStatus::Published)
+        DB::table('fanfictions')
+            ->where('status', 'published')
             ->whereNull('reward_id')
-            ->chunkById(100, function ($fanfictions) use ($defaultCost) {
+            ->orderBy('id')
+            ->chunk(100, function ($fanfictions) use ($defaultCost) {
                 foreach ($fanfictions as $fanfiction) {
                     $baseSlug = Str::slug($fanfiction->title);
                     $slug = 'fanfiction-'.$baseSlug;
                     $counter = 2;
 
-                    while (Reward::where('slug', $slug)->exists()) {
+                    while (DB::table('rewards')->where('slug', $slug)->exists()) {
                         $slug = 'fanfiction-'.$baseSlug.'-'.$counter;
                         $counter++;
                     }
 
-                    $teaser = Str::limit($fanfiction->teaser, 200);
+                    // Plaintext-Teaser aus dem Rohinhalt erzeugen (ohne Model-Accessor)
+                    $plainText = strip_tags($fanfiction->content ?? '');
+                    $plainText = html_entity_decode($plainText, ENT_QUOTES, 'UTF-8');
+                    $plainText = preg_replace('/\s+/', ' ', trim($plainText));
+                    $teaser = Str::limit($plainText, 200);
 
-                    $reward = Reward::create([
+                    $rewardId = DB::table('rewards')->insertGetId([
                         'title' => $fanfiction->title,
                         'description' => $teaser,
                         'category' => 'Fanfiction',
@@ -35,18 +39,29 @@ return new class extends Migration
                         'cost_baxx' => $defaultCost,
                         'is_active' => true,
                         'sort_order' => 0,
+                        'created_at' => now(),
+                        'updated_at' => now(),
                     ]);
 
-                    $fanfiction->update(['reward_id' => $reward->id]);
+                    DB::table('fanfictions')
+                        ->where('id', $fanfiction->id)
+                        ->update(['reward_id' => $rewardId]);
                 }
             });
     }
 
     public function down(): void
     {
-        // Verknüpfte Rewards der Fanfictions entfernen
-        $rewardIds = Fanfiction::whereNotNull('reward_id')->pluck('reward_id');
-        Fanfiction::whereNotNull('reward_id')->update(['reward_id' => null]);
-        Reward::whereIn('id', $rewardIds)->delete();
+        $rewardIds = DB::table('fanfictions')
+            ->whereNotNull('reward_id')
+            ->pluck('reward_id');
+
+        DB::table('fanfictions')
+            ->whereNotNull('reward_id')
+            ->update(['reward_id' => null]);
+
+        DB::table('rewards')
+            ->whereIn('id', $rewardIds)
+            ->delete();
     }
 };

@@ -148,7 +148,8 @@ class RewardService
         return RewardPurchase::where('user_id', $user->id)
             ->active()
             ->pluck('reward_id')
-            ->toArray();
+            ->map(fn ($id) => (int) $id)
+            ->all();
     }
 
     /**
