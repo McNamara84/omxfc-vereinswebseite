@@ -65,10 +65,13 @@ class FanfictionController extends Controller
         $user = Auth::user();
         $availableBaxx = $this->rewardService->getAvailableBaxx($user);
 
-        // Sammle IDs aller freigeschalteten Fanfictions
-        $unlockedFanfictionIds = $fanfictions->filter(function ($fanfiction) use ($user) {
-            return $fanfiction->reward
-                && $this->rewardService->hasUnlockedReward($user, $fanfiction->reward->slug);
+        // Einmalig alle freigeschalteten Reward-IDs laden (statt N+1 Queries)
+        $unlockedRewardIds = $this->rewardService->getUnlockedRewardIds($user);
+
+        // Fanfictions ohne Reward gelten als kostenlos/freigeschaltet
+        $unlockedFanfictionIds = $fanfictions->filter(function ($fanfiction) use ($unlockedRewardIds) {
+            return ! $fanfiction->reward
+                || in_array($fanfiction->reward_id, $unlockedRewardIds, true);
         })->pluck('id')->toArray();
 
         return view('fanfiction.index', [
@@ -85,6 +88,11 @@ class FanfictionController extends Controller
     public function show(Fanfiction $fanfiction): View
     {
         $role = $this->authorizeMemberArea();
+
+        // Team-Scoping: Fanfiction muss zum Mitglieder-Team gehören
+        if ($fanfiction->team_id !== $this->memberTeam()->id) {
+            abort(404);
+        }
 
         // Ensure fanfiction is published (unless user is Vorstand/Admin)
         if ($fanfiction->status !== FanfictionStatus::Published && ! in_array($role, [Role::Vorstand, Role::Admin], true)) {
@@ -112,13 +120,27 @@ class FanfictionController extends Controller
      */
     public function purchase(Fanfiction $fanfiction): RedirectResponse
     {
-        /** @var \App\Models\User $user */
-        $user = Auth::user();
+        $this->authorizeMemberArea();
+
+        // Team-Scoping: Fanfiction muss zum Mitglieder-Team gehören
+        if ($fanfiction->team_id !== $this->memberTeam()->id) {
+            abort(404);
+        }
+
+        // Nur veröffentlichte Fanfictions können gekauft werden
+        if ($fanfiction->status !== FanfictionStatus::Published) {
+            abort(404);
+        }
+
+        $fanfiction->loadMissing('reward');
 
         if (! $fanfiction->reward) {
             return redirect()->route('fanfiction.show', $fanfiction)
                 ->with('info', 'Diese Fanfiction ist kostenlos verfügbar.');
         }
+
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
 
         try {
             $this->rewardService->purchaseReward($user, $fanfiction->reward);

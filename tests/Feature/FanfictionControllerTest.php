@@ -5,9 +5,12 @@ namespace Tests\Feature;
 use App\Enums\Role;
 use App\Models\Fanfiction;
 use App\Models\FanfictionComment;
+use App\Models\Reward;
+use App\Models\RewardPurchase;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Str;
 use Tests\TestCase;
 
 class FanfictionControllerTest extends TestCase
@@ -149,5 +152,111 @@ class FanfictionControllerTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('3');
+    }
+
+    // ── Kauf (Purchase) ────────────────────────────────────────
+
+    public function test_member_can_purchase_fanfiction_with_reward(): void
+    {
+        $this->member->incrementTeamPoints(20);
+
+        $fanfiction = Fanfiction::factory()->published()->create([
+            'team_id' => $this->memberTeam->id,
+            'created_by' => $this->member->id,
+        ]);
+        $reward = $this->createRewardForFanfiction($fanfiction);
+
+        $response = $this->actingAs($this->member)
+            ->post(route('fanfiction.purchase', $fanfiction));
+
+        $response->assertRedirect(route('fanfiction.show', $fanfiction));
+        $response->assertSessionHas('success');
+
+        $this->assertDatabaseHas('reward_purchases', [
+            'user_id' => $this->member->id,
+            'reward_id' => $reward->id,
+            'cost_baxx' => 5,
+        ]);
+    }
+
+    public function test_purchase_with_insufficient_baxx_fails(): void
+    {
+        // Member hat 0 Baxx
+        $fanfiction = Fanfiction::factory()->published()->create([
+            'team_id' => $this->memberTeam->id,
+            'created_by' => $this->member->id,
+        ]);
+        $reward = $this->createRewardForFanfiction($fanfiction, 50);
+
+        $response = $this->actingAs($this->member)
+            ->post(route('fanfiction.purchase', $fanfiction));
+
+        $response->assertRedirect(route('fanfiction.show', $fanfiction));
+        $response->assertSessionHasErrors(['reward']);
+
+        $this->assertDatabaseMissing('reward_purchases', [
+            'reward_id' => $reward->id,
+        ]);
+    }
+
+    public function test_double_purchase_is_rejected(): void
+    {
+        $this->member->incrementTeamPoints(100);
+
+        $fanfiction = Fanfiction::factory()->published()->create([
+            'team_id' => $this->memberTeam->id,
+            'created_by' => $this->member->id,
+        ]);
+        $reward = $this->createRewardForFanfiction($fanfiction);
+
+        // Erster Kauf
+        RewardPurchase::create([
+            'user_id' => $this->member->id,
+            'reward_id' => $reward->id,
+            'cost_baxx' => $reward->cost_baxx,
+            'purchased_at' => now(),
+        ]);
+
+        // Zweiter Kauf wird abgelehnt
+        $response = $this->actingAs($this->member)
+            ->post(route('fanfiction.purchase', $fanfiction));
+
+        $response->assertRedirect(route('fanfiction.show', $fanfiction));
+        $response->assertSessionHasErrors(['reward']);
+    }
+
+    public function test_purchase_unpublished_fanfiction_returns_404(): void
+    {
+        $this->member->incrementTeamPoints(20);
+
+        $fanfiction = Fanfiction::factory()->draft()->create([
+            'team_id' => $this->memberTeam->id,
+            'created_by' => $this->member->id,
+        ]);
+        $this->createRewardForFanfiction($fanfiction);
+
+        $response = $this->actingAs($this->member)
+            ->post(route('fanfiction.purchase', $fanfiction));
+
+        $response->assertNotFound();
+    }
+
+    // ── Hilfsmethoden ─────────────────────────────────────────
+
+    private function createRewardForFanfiction(Fanfiction $fanfiction, int $costBaxx = 5): Reward
+    {
+        $reward = Reward::create([
+            'title' => $fanfiction->title,
+            'slug' => 'fanfiction-' . Str::slug($fanfiction->title) . '-' . $fanfiction->id,
+            'description' => Str::limit($fanfiction->content ?? '', 200),
+            'category' => 'Fanfiction',
+            'cost_baxx' => $costBaxx,
+            'is_active' => true,
+            'sort_order' => 0,
+        ]);
+
+        $fanfiction->update(['reward_id' => $reward->id]);
+
+        return $reward;
     }
 }

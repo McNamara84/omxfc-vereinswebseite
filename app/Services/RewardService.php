@@ -122,6 +122,22 @@ class RewardService
     }
 
     /**
+     * Get all reward IDs the user has actively purchased (single query).
+     *
+     * Useful in list views to avoid N+1 queries when checking unlock status
+     * for multiple rewards at once.
+     *
+     * @return array<int>
+     */
+    public function getUnlockedRewardIds(User $user): array
+    {
+        return RewardPurchase::where('user_id', $user->id)
+            ->active()
+            ->pluck('reward_id')
+            ->toArray();
+    }
+
+    /**
      * Ensure the authenticated user has unlocked a reward by slug.
      *
      * @throws AuthorizationException

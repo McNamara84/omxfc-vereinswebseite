@@ -528,6 +528,92 @@ class ThreeDModelTest extends TestCase
         $response->assertSessionHasErrors(['thumbnail']);
     }
 
+    // ── Kauf (Purchase) ────────────────────────────────────────
+
+    public function test_kauf_erfolgreich_mit_genuegend_baxx(): void
+    {
+        $user = $this->actingMemberWithPoints(20);
+
+        $model = $this->createModelWithReward(10);
+
+        $response = $this->post("/3d-modelle/{$model->id}/kaufen");
+
+        $response->assertRedirect("/3d-modelle/{$model->id}");
+        $response->assertSessionHas('success');
+
+        // RewardPurchase wurde angelegt
+        $this->assertDatabaseHas('reward_purchases', [
+            'user_id' => $user->id,
+            'reward_id' => $model->reward_id,
+            'cost_baxx' => 10,
+        ]);
+    }
+
+    public function test_kauf_mit_zu_wenig_baxx_schlaegt_fehl(): void
+    {
+        $this->actingMemberWithPoints(5);
+
+        $model = $this->createModelWithReward(50);
+
+        $response = $this->post("/3d-modelle/{$model->id}/kaufen");
+
+        $response->assertRedirect("/3d-modelle/{$model->id}");
+        $response->assertSessionHasErrors(['reward']);
+
+        // Kein RewardPurchase erstellt
+        $this->assertDatabaseMissing('reward_purchases', [
+            'reward_id' => $model->reward_id,
+        ]);
+    }
+
+    public function test_doppelkauf_wird_abgelehnt(): void
+    {
+        $user = $this->actingMemberWithPoints(100);
+
+        $model = $this->createModelWithReward(10);
+        $this->purchaseModelForUser($model, $user);
+
+        $response = $this->post("/3d-modelle/{$model->id}/kaufen");
+
+        $response->assertRedirect("/3d-modelle/{$model->id}");
+        $response->assertSessionHasErrors(['reward']);
+    }
+
+    public function test_kauf_reduziert_verfuegbare_baxx(): void
+    {
+        $user = $this->actingMemberWithPoints(30);
+
+        $model = $this->createModelWithReward(10);
+
+        // Vor dem Kauf: 30 Baxx verfügbar
+        $this->post("/3d-modelle/{$model->id}/kaufen");
+
+        // Nach dem Kauf im Index werden 20 Baxx angezeigt
+        $response = $this->get('/3d-modelle');
+        $response->assertOk();
+
+        // Prüfe dass der Kauf registriert wurde und Baxx abgezogen
+        $this->assertDatabaseHas('reward_purchases', [
+            'user_id' => $user->id,
+            'reward_id' => $model->reward_id,
+            'cost_baxx' => 10,
+        ]);
+    }
+
+    public function test_modell_ohne_reward_gilt_als_freigeschaltet(): void
+    {
+        $user = $this->actingSimpleMember();
+
+        // Modell ohne Reward (kostenlos)
+        $model = ThreeDModel::factory()->create(['name' => 'Kostenloses Modell']);
+
+        $response = $this->withoutVite()->get("/3d-modelle/{$model->id}");
+
+        $response->assertOk();
+        // Kostenlose Modelle zeigen den Viewer
+        $response->assertSee('data-three-d-viewer');
+    }
+
     // ── Hilfsmethoden ─────────────────────────────────────────
 
     /**

@@ -29,9 +29,12 @@ class ThreeDModelController extends Controller
         $models = ThreeDModel::with('reward')->orderByDesc('created_at')->get();
         $availableBaxx = $this->rewardService->getAvailableBaxx($user);
 
-        // Prüfe welche Modelle freigeschaltet sind
+        // Einmalig alle freigeschalteten Reward-IDs laden (statt N+1 Queries)
+        $unlockedRewardIds = $this->rewardService->getUnlockedRewardIds($user);
+
+        // Modelle ohne Reward gelten als kostenlos/freigeschaltet
         $unlockedModelIds = $models
-            ->filter(fn ($model) => $model->reward && $user->hasUnlockedReward($model->reward->slug))
+            ->filter(fn ($model) => ! $model->reward || in_array($model->reward_id, $unlockedRewardIds, true))
             ->pluck('id')
             ->toArray();
 
@@ -49,7 +52,9 @@ class ThreeDModelController extends Controller
     {
         $threeDModel->loadMissing(['uploader', 'reward']);
         $user = Auth::user();
-        $isUnlocked = $threeDModel->reward && $user->hasUnlockedReward($threeDModel->reward->slug);
+        // Kein Reward = kostenlos/freigeschaltet
+        $isUnlocked = ! $threeDModel->reward
+            || $this->rewardService->hasUnlockedReward($user, $threeDModel->reward->slug);
         $availableBaxx = $this->rewardService->getAvailableBaxx($user);
 
         return view('three-d-models.show', [
@@ -151,7 +156,7 @@ class ThreeDModelController extends Controller
 
         if (! Storage::disk('private')->exists($threeDModel->file_path)) {
             return redirect()->route('3d-modelle.show', $threeDModel)
-                ->withErrors('Die 3D-Datei existiert nicht mehr.');
+                ->withErrors(['reward' => 'Die 3D-Datei existiert nicht mehr.']);
         }
 
         $filename = Str::slug($threeDModel->name, '-').'.'.$threeDModel->file_format;
