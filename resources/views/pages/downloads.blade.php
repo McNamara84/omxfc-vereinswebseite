@@ -38,7 +38,7 @@
                                                 @endif
                                             </span>
 
-                                            @if(in_array($download->id, $unlockedDownloadIds) || $download->reward === null)
+                                            @if(isset($unlockedDownloadIds[$download->id]) || $download->reward === null)
                                                 <x-button label="Herunterladen" link="{{ route('downloads.download', $download) }}" icon="o-arrow-down-tray" class="btn-ghost btn-sm text-primary" />
                                             @elseif($download->reward->is_active)
                                                 <a href="{{ route('rewards.index') }}" class="flex items-center text-base-content hover:text-primary" title="Unter Belohnungen freischalten">

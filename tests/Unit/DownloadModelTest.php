@@ -48,6 +48,29 @@ class DownloadModelTest extends TestCase
         $this->assertEquals('test-download-2', $download2->slug);
     }
 
+    public function test_slug_fallback_when_title_has_only_special_characters(): void
+    {
+        $download = Download::factory()->create([
+            'title' => '!!!???',
+            'slug' => null,
+        ]);
+
+        $download->refresh();
+        $this->assertEquals('download', $download->slug);
+    }
+
+    public function test_slug_fallback_collision_is_resolved(): void
+    {
+        Download::factory()->create(['slug' => 'download']);
+        $download2 = Download::factory()->create([
+            'title' => '***',
+            'slug' => null,
+        ]);
+
+        $download2->refresh();
+        $this->assertEquals('download-2', $download2->slug);
+    }
+
     public function test_route_key_name_is_slug(): void
     {
         $download = Download::factory()->create();

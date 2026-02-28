@@ -38,7 +38,7 @@ class Download extends Model
     {
         static::creating(function (Download $download) {
             if (empty($download->slug)) {
-                $baseSlug = Str::slug($download->title);
+                $baseSlug = Str::slug($download->title) ?: 'download';
                 $slug = $baseSlug;
                 $counter = 2;
 

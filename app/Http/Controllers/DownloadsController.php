@@ -36,7 +36,7 @@ class DownloadsController extends Controller
             ->whereNotNull('rewards.download_id')
             ->distinct()
             ->pluck('rewards.download_id')
-            ->toArray();
+            ->flip();
 
         return view('pages.downloads', [
             'downloads' => $downloads,
