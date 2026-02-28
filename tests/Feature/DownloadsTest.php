@@ -75,6 +75,30 @@ class DownloadsTest extends TestCase
         $response->assertSessionHasErrors();
     }
 
+    public function test_download_with_inactive_reward_shows_nicht_verfuegbar_message(): void
+    {
+        $this->actingMember();
+
+        $download = Download::factory()->create([
+            'file_path' => 'downloads/locked.pdf',
+        ]);
+        Reward::factory()->create([
+            'download_id' => $download->id,
+            'is_active' => false,
+        ]);
+
+        Storage::disk('private')->put('downloads/locked.pdf', 'dummy content');
+
+        $response = $this->from('/downloads')->get('/downloads/herunterladen/'.$download->slug);
+
+        $response->assertRedirect('/downloads');
+        $response->assertSessionHas('errors');
+        $this->assertStringContainsString(
+            'nicht verfügbar',
+            $response->getSession()->get('errors')->first()
+        );
+    }
+
     public function test_download_available_without_linked_reward(): void
     {
         $this->actingMember();

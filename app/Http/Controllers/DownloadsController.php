@@ -64,6 +64,12 @@ class DownloadsController extends Controller
                 ->exists();
 
             if (! $hasAccess) {
+                $download->load('reward');
+
+                if (! $download->reward->is_active) {
+                    return back()->withErrors('Dieser Download ist derzeit nicht verfügbar.');
+                }
+
                 return back()->withErrors('Du musst diese Belohnung erst unter Belohnungen freischalten.');
             }
         }
