@@ -55,8 +55,15 @@ class DownloadsController extends Controller
         /** @var User $user */
         $user = Auth::user();
 
+        // Relation einmalig laden, um doppelte Queries zu vermeiden
+        $download->loadMissing('reward');
+
         // Prüfe ob eine Belohnung mit diesem Download verknüpft ist
-        if ($download->reward()->exists()) {
+        if ($download->reward) {
+            if (! $download->reward->is_active) {
+                return back()->withErrors('Dieser Download ist derzeit nicht verfügbar.');
+            }
+
             // Prüfe ob der User die verknüpfte Belohnung freigeschaltet hat
             $hasAccess = RewardPurchase::where('user_id', $user->id)
                 ->active()
@@ -64,12 +71,6 @@ class DownloadsController extends Controller
                 ->exists();
 
             if (! $hasAccess) {
-                $download->load('reward');
-
-                if (! $download->reward->is_active) {
-                    return back()->withErrors('Dieser Download ist derzeit nicht verfügbar.');
-                }
-
                 return back()->withErrors('Du musst diese Belohnung erst unter Belohnungen freischalten.');
             }
         }

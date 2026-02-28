@@ -5,6 +5,8 @@ namespace Database\Seeders;
 use App\Models\Download;
 use App\Models\Reward;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Storage;
 
 class DownloadSeeder extends Seeder
 {
@@ -66,6 +68,11 @@ class DownloadSeeder extends Seeder
                 Reward::where('slug', $rewardSlug)
                     ->whereNull('download_id')
                     ->update(['download_id' => $download->id]);
+            }
+
+            // In lokaler/Test-Umgebung Dummy-Dateien anlegen, damit Downloads nicht fehlschlagen
+            if (App::environment(['local', 'testing']) && ! Storage::disk('private')->exists($data['file_path'])) {
+                Storage::disk('private')->put($data['file_path'], 'Dummy-Datei für Entwicklung/Tests');
             }
         }
     }
