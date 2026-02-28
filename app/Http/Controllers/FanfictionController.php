@@ -69,7 +69,7 @@ class FanfictionController extends Controller
         $unlockedRewardIds = $this->rewardService->getUnlockedRewardIds($user);
 
         // Fanfictions ohne Reward gelten als kostenlos/freigeschaltet
-        $unlockedFanfictionIds = $fanfictions->filter(function ($fanfiction) use ($unlockedRewardIds) {
+        $unlockedFanfictionIds = $fanfictions->getCollection()->filter(function ($fanfiction) use ($unlockedRewardIds) {
             return ! $fanfiction->reward
                 || in_array($fanfiction->reward_id, $unlockedRewardIds, true);
         })->pluck('id')->toArray();
