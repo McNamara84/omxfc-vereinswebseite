@@ -10,7 +10,7 @@
             <x-card shadow>
                 <div id="accordion">
                     @foreach($downloads as $kategorie => $files)
-                        @php $id = \Illuminate\Support\Str::slug($kategorie); @endphp
+                        @php $id = 'kategorie-' . $loop->index; @endphp
 
                         <div class="mb-4 border border-base-content/10 rounded-lg">
                             <h2>
