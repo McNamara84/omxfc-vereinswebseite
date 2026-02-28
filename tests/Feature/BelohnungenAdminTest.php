@@ -285,6 +285,23 @@ class BelohnungenAdminTest extends TestCase
         Storage::disk('private')->assertMissing('downloads/to-delete.pdf');
     }
 
+    public function test_delete_download_fails_with_active_reward(): void
+    {
+        $this->actingAdmin();
+
+        $download = Download::factory()->create();
+        Reward::factory()->create([
+            'download_id' => $download->id,
+            'is_active' => true,
+        ]);
+
+        Livewire::test(BelohnungenAdmin::class)
+            ->call('deleteDownload', $download->id)
+            ->assertDispatched('toast', type: 'error');
+
+        $this->assertDatabaseHas('downloads', ['id' => $download->id]);
+    }
+
     public function test_delete_download_fails_with_active_purchases(): void
     {
         $this->actingAdmin();

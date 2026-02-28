@@ -442,7 +442,17 @@ class BelohnungenAdmin extends Component
     {
         $download = Download::findOrFail($downloadId);
 
-        // Check if any rewards reference this download with active purchases
+        // Prüfen ob eine aktive Belohnung oder aktive Käufe mit diesem Download verknüpft sind
+        $hasActiveReward = $download->reward()
+            ->where('is_active', true)
+            ->exists();
+
+        if ($hasActiveReward) {
+            $this->dispatch('toast', type: 'error', title: 'Löschen nicht möglich', description: 'Dieser Download ist mit einer aktiven Belohnung verknüpft. Bitte zuerst die Belohnung deaktivieren oder die Verknüpfung entfernen.');
+
+            return;
+        }
+
         $hasActivePurchases = RewardPurchase::active()
             ->whereHas('reward', fn ($q) => $q->where('download_id', $download->id))
             ->exists();
@@ -453,12 +463,15 @@ class BelohnungenAdmin extends Component
             return;
         }
 
-        // Delete the file from storage
-        if (Storage::disk('private')->exists($download->file_path)) {
-            Storage::disk('private')->delete($download->file_path);
+        $filePath = $download->file_path;
+
+        // Zuerst DB löschen, dann Datei entfernen
+        $download->delete();
+
+        if (Storage::disk('private')->exists($filePath)) {
+            Storage::disk('private')->delete($filePath);
         }
 
-        $download->delete();
         $this->dispatch('toast', type: 'success', title: 'Download gelöscht');
         unset($this->downloads, $this->rewards);
     }

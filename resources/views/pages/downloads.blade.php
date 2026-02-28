@@ -40,11 +40,16 @@
 
                                             @if(in_array($download->id, $unlockedDownloadIds) || $download->reward === null)
                                                 <x-button label="Herunterladen" link="{{ route('downloads.download', $download) }}" icon="o-arrow-down-tray" class="btn-ghost btn-sm text-primary" />
-                                            @else
+                                            @elseif($download->reward->is_active)
                                                 <a href="{{ route('rewards.index') }}" class="flex items-center text-base-content hover:text-primary" title="Unter Belohnungen freischalten">
                                                     <x-icon name="o-lock-closed" class="w-4 h-4 mr-1" />
                                                     <span class="text-sm">Freischalten</span>
                                                 </a>
+                                            @else
+                                                <span class="flex items-center text-base-content/40" title="Die verknüpfte Belohnung ist derzeit nicht verfügbar">
+                                                    <x-icon name="o-lock-closed" class="w-4 h-4 mr-1" />
+                                                    <span class="text-sm">Nicht verfügbar</span>
+                                                </span>
                                             @endif
                                         </li>
                                     @endforeach

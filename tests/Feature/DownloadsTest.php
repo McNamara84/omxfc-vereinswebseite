@@ -192,6 +192,27 @@ class DownloadsTest extends TestCase
         $response->assertDontSee('Herunterladen');
     }
 
+    public function test_inactive_reward_shows_nicht_verfuegbar_instead_of_freischalten(): void
+    {
+        $user = $this->actingMember();
+
+        $download = Download::factory()->create([
+            'title' => 'Gesperrter Download',
+            'file_path' => 'downloads/locked.pdf',
+        ]);
+        Reward::factory()->create([
+            'download_id' => $download->id,
+            'is_active' => false,
+        ]);
+
+        $response = $this->get('/downloads');
+
+        $response->assertOk();
+        $response->assertSee('Nicht verfügbar');
+        // Der spezifische Download darf nicht als "Herunterladen" erscheinen
+        $response->assertSee('Gesperrter Download');
+    }
+
     public function test_guest_is_redirected_to_login_when_accessing_downloads_page(): void
     {
         $this->get('/downloads')->assertRedirect('/login');

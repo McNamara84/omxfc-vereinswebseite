@@ -21,7 +21,7 @@ class DownloadsController extends Controller
 
         // Eager-Load die Reward-Relation, um N+1 in der View zu vermeiden
         $downloads = Download::active()
-            ->with(['reward:id,title,download_id'])
+            ->with(['reward:id,title,download_id,is_active'])
             ->orderBy('category')
             ->orderBy('sort_order')
             ->orderBy('title')
