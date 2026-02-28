@@ -21,6 +21,7 @@ class DownloadFactory extends Factory
     {
         return [
             'title' => $this->faker->unique()->sentence(3),
+            'slug' => $this->faker->unique()->slug(3),
             'description' => $this->faker->sentence(),
             'category' => $this->faker->randomElement(['Klemmbaustein-Anleitungen', 'Fanstories', 'Sonstiges']),
             'file_path' => 'downloads/test-'.$this->faker->unique()->slug(2).'.pdf',

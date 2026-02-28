@@ -19,9 +19,9 @@ class DownloadsController extends Controller
         /** @var User $user */
         $user = Auth::user();
 
-        // Eager-Load die Rewards-Relation, um N+1 in der View zu vermeiden
+        // Eager-Load die Reward-Relation, um N+1 in der View zu vermeiden
         $downloads = Download::active()
-            ->with(['rewards:id,title,download_id'])
+            ->with(['reward:id,title,download_id'])
             ->orderBy('category')
             ->orderBy('sort_order')
             ->orderBy('title')
@@ -55,9 +55,9 @@ class DownloadsController extends Controller
         /** @var User $user */
         $user = Auth::user();
 
-        // Prüfe ob mindestens eine Belohnung mit diesem Download verknüpft ist
-        if ($download->rewards()->exists()) {
-            // Prüfe ob der User IRGENDEINE der verknüpften Belohnungen freigeschaltet hat
+        // Prüfe ob eine Belohnung mit diesem Download verknüpft ist
+        if ($download->reward()->exists()) {
+            // Prüfe ob der User die verknüpfte Belohnung freigeschaltet hat
             $hasAccess = RewardPurchase::where('user_id', $user->id)
                 ->active()
                 ->whereHas('reward', fn ($q) => $q->where('download_id', $download->id))

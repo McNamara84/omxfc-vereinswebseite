@@ -25,6 +25,7 @@ class DatabaseSeeder extends Seeder
             TodoCategorySeeder::class,
             RewardSeeder::class,
             BaxxEarningRuleSeeder::class,
+            DownloadSeeder::class,
         ]);
     }
 }

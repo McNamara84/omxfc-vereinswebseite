@@ -12,13 +12,14 @@ class DownloadSeeder extends Seeder
      * Migrate existing hardcoded downloads into the downloads table
      * and link them to their corresponding rewards.
      *
-     * Safe to run multiple times (upserts by title).
+     * Safe to run multiple times (upserts by file_path).
      */
     public function run(): void
     {
         $downloads = [
             [
                 'title' => 'Bauanleitung Euphoriewurm',
+                'slug' => 'bauanleitung-euphoriewurm',
                 'description' => 'Exklusive Klemmbaustein-Bauanleitung für den Euphoriewurm aus MX 658.',
                 'category' => 'Klemmbaustein-Anleitungen',
                 'file_path' => 'downloads/BauanleitungEuphoriewurmV2.pdf',
@@ -29,6 +30,7 @@ class DownloadSeeder extends Seeder
             ],
             [
                 'title' => 'Bauanleitung Prototyp XP-1',
+                'slug' => 'bauanleitung-prototyp-xp-1',
                 'description' => 'Exklusive Klemmbaustein-Bauanleitung für den Amphibienpanzer Prototyp XP-1.',
                 'category' => 'Klemmbaustein-Anleitungen',
                 'file_path' => 'downloads/BauanleitungProtoV11.pdf',
@@ -39,6 +41,7 @@ class DownloadSeeder extends Seeder
             ],
             [
                 'title' => 'Das Flüstern der Vergangenheit',
+                'slug' => 'das-fluestern-der-vergangenheit',
                 'description' => 'Exklusive MADDRAX-Kurzgeschichte "Das Flüstern der Vergangenheit" von Max T. Hardwet.',
                 'category' => 'Fanstories',
                 'file_path' => 'downloads/DasFlüsternDerVergangenheit.pdf',
@@ -54,7 +57,7 @@ class DownloadSeeder extends Seeder
             unset($data['reward_slug']);
 
             $download = Download::updateOrCreate(
-                ['title' => $data['title']],
+                ['file_path' => $data['file_path']],
                 $data
             );
 

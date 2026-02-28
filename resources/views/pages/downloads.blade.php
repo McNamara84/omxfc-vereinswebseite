@@ -33,12 +33,12 @@
                                                 @if($download->description)
                                                     <span class="text-base-content/60 text-sm block">{{ $download->description }}</span>
                                                 @endif
-                                                @if($download->formatted_file_size !== '–')
+                                                @if($download->file_size !== null)
                                                     <x-badge :value="$download->formatted_file_size" class="badge-ghost badge-sm ml-1" />
                                                 @endif
                                             </span>
 
-                                            @if(in_array($download->id, $unlockedDownloadIds) || $download->rewards->isEmpty())
+                                            @if(in_array($download->id, $unlockedDownloadIds) || $download->reward === null)
                                                 <x-button label="Herunterladen" link="{{ route('downloads.download', $download) }}" icon="o-arrow-down-tray" class="btn-ghost btn-sm text-primary" />
                                             @else
                                                 <a href="{{ route('rewards.index') }}" class="flex items-center text-base-content hover:text-primary" title="Unter Belohnungen freischalten">

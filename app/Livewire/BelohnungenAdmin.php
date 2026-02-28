@@ -131,7 +131,7 @@ class BelohnungenAdmin extends Component
     #[Computed]
     public function downloads(): \Illuminate\Database\Eloquent\Collection
     {
-        return Download::with(['rewards:id,title,download_id'])
+        return Download::with(['reward:id,title,download_id'])
             ->orderBy('category')
             ->orderBy('sort_order')
             ->orderBy('title')

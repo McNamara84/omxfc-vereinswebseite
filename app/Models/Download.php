@@ -5,7 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Str;
 
 class Download extends Model
 {
@@ -13,6 +14,7 @@ class Download extends Model
 
     protected $fillable = [
         'title',
+        'slug',
         'description',
         'category',
         'file_path',
@@ -32,12 +34,38 @@ class Download extends Model
         ];
     }
 
-    /**
-     * Rewards that link to this download.
-     */
-    public function rewards(): HasMany
+    protected static function booted(): void
     {
-        return $this->hasMany(Reward::class);
+        static::creating(function (Download $download) {
+            if (empty($download->slug)) {
+                $baseSlug = Str::slug($download->title);
+                $slug = $baseSlug;
+                $counter = 2;
+
+                while (static::where('slug', $slug)->exists()) {
+                    $slug = "{$baseSlug}-{$counter}";
+                    $counter++;
+                }
+
+                $download->slug = $slug;
+            }
+        });
+    }
+
+    /**
+     * Get the route key name for model binding.
+     */
+    public function getRouteKeyName(): string
+    {
+        return 'slug';
+    }
+
+    /**
+     * The reward linked to this download (1:1).
+     */
+    public function reward(): HasOne
+    {
+        return $this->hasOne(Reward::class);
     }
 
     /**

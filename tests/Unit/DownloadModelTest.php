@@ -25,6 +25,35 @@ class DownloadModelTest extends TestCase
         ]);
     }
 
+    public function test_slug_is_auto_generated(): void
+    {
+        $download = Download::factory()->create([
+            'title' => 'Mein neuer Download',
+            'slug' => null,
+        ]);
+
+        $download->refresh();
+        $this->assertEquals('mein-neuer-download', $download->slug);
+    }
+
+    public function test_slug_collision_is_resolved(): void
+    {
+        Download::factory()->create(['slug' => 'test-download']);
+        $download2 = Download::factory()->create([
+            'title' => 'Test Download',
+            'slug' => null,
+        ]);
+
+        $download2->refresh();
+        $this->assertEquals('test-download-2', $download2->slug);
+    }
+
+    public function test_route_key_name_is_slug(): void
+    {
+        $download = Download::factory()->create();
+        $this->assertEquals('slug', $download->getRouteKeyName());
+    }
+
     public function test_active_scope_filters_inactive(): void
     {
         Download::factory()->create(['is_active' => true, 'title' => 'Aktiv']);
@@ -47,15 +76,15 @@ class DownloadModelTest extends TestCase
         $this->assertFalse($stories->contains('title', 'Bauanleitung'));
     }
 
-    public function test_rewards_relationship(): void
+    public function test_reward_relationship(): void
     {
         $download = Download::factory()->create();
         $reward = Reward::factory()->create([
             'download_id' => $download->id,
         ]);
 
-        $this->assertCount(1, $download->rewards);
-        $this->assertEquals($reward->id, $download->rewards->first()->id);
+        $this->assertNotNull($download->reward);
+        $this->assertEquals($reward->id, $download->reward->id);
     }
 
     public function test_formatted_file_size_bytes(): void

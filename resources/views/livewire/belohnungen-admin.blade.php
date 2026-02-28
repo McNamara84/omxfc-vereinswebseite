@@ -240,9 +240,8 @@
                     @endscope
 
                     @scope('cell_linked_reward', $download)
-                        @php $reward = $download->rewards->first(); @endphp
-                        @if($reward)
-                            <x-badge :value="$reward->title" class="badge-info badge-sm" />
+                        @if($download->reward)
+                            <x-badge :value="$download->reward->title" class="badge-info badge-sm" />
                         @else
                             <span class="text-base-content/50 text-sm">Keine</span>
                         @endif
