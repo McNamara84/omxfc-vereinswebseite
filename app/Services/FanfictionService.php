@@ -27,7 +27,7 @@ class FanfictionService
 
         $reward = Reward::create([
             'title' => $fanfiction->title,
-            'description' => Str::limit(strip_tags($fanfiction->content), 200),
+            'description' => Str::limit($fanfiction->teaser, 200),
             'category' => 'Fanfiction',
             'slug' => $slug,
             'cost_baxx' => $costBaxx,
@@ -55,7 +55,7 @@ class FanfictionService
 
         $reward->update([
             'title' => $fanfiction->title,
-            'description' => Str::limit(strip_tags($fanfiction->content), 200),
+            'description' => Str::limit($fanfiction->teaser, 200),
             'cost_baxx' => $costBaxx,
         ]);
     }

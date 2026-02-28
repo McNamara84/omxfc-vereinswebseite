@@ -25,8 +25,7 @@ return new class extends Migration
                         $counter++;
                     }
 
-                    $teaser = strip_tags(Str::markdown($fanfiction->content));
-                    $teaser = Str::limit($teaser, 200);
+                    $teaser = Str::limit($fanfiction->teaser, 200);
 
                     $reward = Reward::create([
                         'title' => $fanfiction->title,

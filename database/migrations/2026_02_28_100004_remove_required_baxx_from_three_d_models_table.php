@@ -16,7 +16,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('three_d_models', function (Blueprint $table) {
-            $table->unsignedInteger('required_baxx')->default(0);
+            $table->unsignedInteger('required_baxx');
         });
     }
 };

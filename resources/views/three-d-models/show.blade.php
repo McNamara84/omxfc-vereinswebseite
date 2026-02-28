@@ -19,6 +19,13 @@
             </x-slot:actions>
         </x-header>
 
+        {{-- Fehlermeldungen (z.B. Kauf fehlgeschlagen, Download/Preview abgelehnt) --}}
+        @error('reward')
+            <x-alert icon="o-exclamation-triangle" class="alert-warning mb-4" data-testid="reward-error">
+                {{ $message }}
+            </x-alert>
+        @enderror
+
         {{-- 3D-Viewer (nur wenn freigeschaltet) --}}
         @if ($isUnlocked)
             <div data-three-d-viewer
