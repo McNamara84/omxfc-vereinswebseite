@@ -54,7 +54,7 @@ class ThreeDModelController extends Controller
         $user = Auth::user();
         // Kein Reward = kostenlos/freigeschaltet
         $isUnlocked = ! $threeDModel->reward
-            || $this->rewardService->hasUnlockedReward($user, $threeDModel->reward->slug);
+            || $this->rewardService->hasUnlockedRewardId($user, $threeDModel->reward->id);
         $availableBaxx = $this->rewardService->getAvailableBaxx($user);
 
         return view('three-d-models.show', [
@@ -150,7 +150,7 @@ class ThreeDModelController extends Controller
     {
         $threeDModel->loadMissing('reward');
 
-        if ($threeDModel->reward && ! $this->rewardService->hasUnlockedReward(Auth::user(), $threeDModel->reward->slug)) {
+        if ($threeDModel->reward && ! $this->rewardService->hasUnlockedRewardId(Auth::user(), $threeDModel->reward->id)) {
             return redirect()->route('3d-modelle.show', $threeDModel)
                 ->withErrors(['reward' => 'Du musst dieses 3D-Modell zuerst freischalten.']);
         }
@@ -174,7 +174,7 @@ class ThreeDModelController extends Controller
     {
         $threeDModel->loadMissing('reward');
 
-        if ($threeDModel->reward && ! $this->rewardService->hasUnlockedReward(Auth::user(), $threeDModel->reward->slug)) {
+        if ($threeDModel->reward && ! $this->rewardService->hasUnlockedRewardId(Auth::user(), $threeDModel->reward->id)) {
             return redirect()->route('3d-modelle.show', $threeDModel)
                 ->withErrors(['reward' => 'Du musst dieses 3D-Modell zuerst freischalten.']);
         }

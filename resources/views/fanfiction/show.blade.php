@@ -74,7 +74,11 @@
                         Dein Guthaben: <strong>{{ $availableBaxx }} Baxx</strong>
                     </p>
 
-                    @if ($availableBaxx >= $fanfiction->reward->cost_baxx)
+                    @if (! $fanfiction->reward->is_active)
+                        <p class="text-sm text-base-content/60 font-medium">
+                            Diese Fanfiction ist derzeit nicht verfügbar.
+                        </p>
+                    @elseif ($availableBaxx >= $fanfiction->reward->cost_baxx)
                         <form action="{{ route('fanfiction.purchase', $fanfiction) }}" method="POST"
                             onsubmit="return confirm('Möchtest du diese Fanfiction für {{ $fanfiction->reward->cost_baxx }} Baxx freischalten?')">
                             @csrf

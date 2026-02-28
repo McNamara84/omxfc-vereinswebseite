@@ -104,7 +104,7 @@ class FanfictionController extends Controller
         /** @var \App\Models\User $user */
         $user = Auth::user();
         $hasUnlocked = ! $fanfiction->reward
-            || $this->rewardService->hasUnlockedReward($user, $fanfiction->reward->slug);
+            || $this->rewardService->hasUnlockedRewardId($user, $fanfiction->reward->id);
         $availableBaxx = $this->rewardService->getAvailableBaxx($user);
 
         return view('fanfiction.show', [

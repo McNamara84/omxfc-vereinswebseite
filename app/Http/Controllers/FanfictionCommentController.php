@@ -47,7 +47,7 @@ class FanfictionCommentController extends Controller
         }
 
         // Prüfe ob die Fanfiction freigeschaltet wurde
-        if ($fanfiction->reward && ! $this->rewardService->hasUnlockedReward($user, $fanfiction->reward->slug)) {
+        if ($fanfiction->reward && ! $this->rewardService->hasUnlockedRewardId($user, $fanfiction->reward->id)) {
             return redirect()->route('fanfiction.show', $fanfiction)
                 ->withErrors(['reward' => 'Du musst diese Fanfiction zuerst freischalten, um kommentieren zu können.']);
         }

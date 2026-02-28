@@ -122,6 +122,20 @@ class RewardService
     }
 
     /**
+     * Check if a user has unlocked a specific reward by ID.
+     *
+     * More efficient than hasUnlockedReward() when the Reward model is already loaded,
+     * since it skips the extra slug-based lookup.
+     */
+    public function hasUnlockedRewardId(User $user, int $rewardId): bool
+    {
+        return RewardPurchase::where('user_id', $user->id)
+            ->where('reward_id', $rewardId)
+            ->active()
+            ->exists();
+    }
+
+    /**
      * Get all reward IDs the user has actively purchased (single query).
      *
      * Useful in list views to avoid N+1 queries when checking unlock status

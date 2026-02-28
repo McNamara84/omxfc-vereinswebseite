@@ -117,8 +117,10 @@ class ThreeDModelService
         $model->maddraxikon_url = $metadata['maddraxikon_url'] ?? null;
 
         try {
-            $model->save();
-            $this->updateRewardForModel($model, $metadata['cost_baxx']);
+            DB::transaction(function () use ($model, $metadata) {
+                $model->save();
+                $this->updateRewardForModel($model, $metadata['cost_baxx']);
+            });
         } catch (\Throwable $e) {
             // Neue Dateien aufräumen, da save() fehlgeschlagen ist
             if ($newFilePath) {

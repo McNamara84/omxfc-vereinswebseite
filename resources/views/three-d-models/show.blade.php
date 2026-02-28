@@ -43,7 +43,11 @@
                         <p class="text-base-content/60 mt-1">
                             Du hast aktuell {{ $availableBaxx }} verfügbare Baxx.
                         </p>
-                        @if ($availableBaxx >= $model->reward->cost_baxx)
+                        @if (! $model->reward->is_active)
+                            <p class="text-sm text-base-content/40 mt-2">
+                                Dieses Modell ist derzeit nicht verfügbar.
+                            </p>
+                        @elseif ($availableBaxx >= $model->reward->cost_baxx)
                             <form method="POST" action="{{ route('3d-modelle.purchase', $model) }}" class="mt-4"
                                 onsubmit="return confirm('Möchtest du dieses 3D-Modell für {{ $model->reward->cost_baxx }} Baxx freischalten?')">
                                 @csrf
