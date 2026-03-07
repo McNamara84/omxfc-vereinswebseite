@@ -5,13 +5,13 @@
         <x-card shadow>
             <div id="accordion" data-protokolle-accordion>
                 @foreach($protokolle as $jahr => $dokumente)
-                    <details class="mb-4 border border-base-content/10 rounded-lg" data-protokolle-accordion-item>
+                    <details class="mb-4 border border-base-content/10 rounded-lg" data-protokolle-accordion-item @if($loop->first) open @endif>
                         <summary
                             id="accordion-trigger-{{ $jahr }}"
                             class="list-none w-full flex justify-between items-center gap-4 bg-base-200 px-4 py-3 rounded-t-lg font-semibold text-left cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
                             data-protokolle-accordion-button
                             aria-controls="content-{{ $jahr }}"
-                            aria-expanded="false"
+                            aria-expanded="{{ $loop->first ? 'true' : 'false' }}"
                             role="button"
                         >
                             <span class="flex flex-col sm:flex-row sm:items-center sm:gap-2">
@@ -29,7 +29,7 @@
                             class="bg-base-100 px-4 py-2 rounded-b-lg"
                             role="region"
                             aria-labelledby="accordion-trigger-{{ $jahr }}"
-                            aria-hidden="true"
+                            aria-hidden="{{ $loop->first ? 'false' : 'true' }}"
                             data-protokolle-accordion-panel
                         >
                             <ul class="space-y-2">

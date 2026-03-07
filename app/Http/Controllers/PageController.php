@@ -202,8 +202,14 @@ class PageController extends Controller
             ],
             2025 => [
                 ['datum' => '9. Februar 2025', 'titel' => 'Jahreshauptversammlung', 'datei' => '2025-02-09-jhv.pdf'],
+                ['datum' => '21. August 2025', 'titel' => 'Außerordentliche Mitgliederversammlung', 'datei' => '2025-08-21-aomv.pdf'],
+            ],
+            2026 => [
+                ['datum' => '6. März 2026', 'titel' => 'Außerordentliche Mitgliederversammlung', 'datei' => '2026-03-06-aomv.pdf'],
             ],
         ];
+
+        krsort($protokolle);
 
         return view('pages.protokolle', compact('protokolle'));
     }
