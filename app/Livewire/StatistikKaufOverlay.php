@@ -45,7 +45,6 @@ class StatistikKaufOverlay extends Component
         try {
             $rewardService->purchaseReward($user, $reward);
             $this->purchased = true;
-            $this->dispatch('statistik-unlocked', sectionId: $this->sectionId);
         } catch (\Illuminate\Validation\ValidationException $e) {
             $this->errorMessage = collect($e->errors())->flatten()->first();
         }

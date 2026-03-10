@@ -61,30 +61,31 @@ return new class extends Migration
         foreach ($this->getStatisticSections() as $sortOrder => $section) {
             $slug = 'statistik-'.$section['id'];
 
-            // Nur erstellen, wenn noch nicht vorhanden
-            if (DB::table('rewards')->where('slug', $slug)->exists()) {
-                continue;
-            }
-
-            DB::table('rewards')->insert([
+            $data = [
                 'title' => $section['label'],
                 'description' => $section['description'],
                 'category' => 'Statistiken',
-                'slug' => $slug,
                 'cost_baxx' => $defaultCost,
                 'is_active' => true,
                 'sort_order' => $sortOrder,
-                'created_at' => now(),
                 'updated_at' => now(),
-            ]);
+            ];
+
+            if (DB::table('rewards')->where('slug', $slug)->exists()) {
+                DB::table('rewards')->where('slug', $slug)->update($data);
+            } else {
+                DB::table('rewards')->insert(array_merge(['slug' => $slug, 'created_at' => now()], $data));
+            }
         }
     }
 
     public function down(): void
     {
-        DB::table('rewards')
-            ->where('category', 'Statistiken')
-            ->where('slug', 'like', 'statistik-%')
-            ->delete();
+        $slugs = array_map(
+            fn ($section) => 'statistik-'.$section['id'],
+            $this->getStatisticSections()
+        );
+
+        DB::table('rewards')->whereIn('slug', $slugs)->delete();
     }
 };
