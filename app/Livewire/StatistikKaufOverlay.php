@@ -34,6 +34,13 @@ class StatistikKaufOverlay extends Component
         $this->errorMessage = '';
 
         $user = Auth::user();
+
+        if (! $user) {
+            $this->errorMessage = 'Deine Sitzung ist abgelaufen. Bitte lade die Seite neu und melde dich erneut an.';
+
+            return;
+        }
+
         $reward = Reward::find($this->rewardId);
 
         if (! $reward) {

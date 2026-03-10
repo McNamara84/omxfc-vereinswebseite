@@ -34,11 +34,6 @@
                     @include('statistik.lock-message', ['sectionId' => $section['id']])
                 </x-card>
 
-                {{-- Chart-Daten global für JS-Modul --}}
-                <script>
-                    window.availableBaxx = {{ $availableBaxx }};
-                </script>
-
                 @if($sectionUnlocked)
                 <script>
                     window.authorChartLabels = @json($authorCounts->keys());

@@ -45,7 +45,7 @@
                     </fieldset>
                 </div>
             @else
-                @if($kompendiumReward)
+                @if($kompendiumReward && $kompendiumReward->is_active)
                     @livewire('kompendium-kauf-overlay', [
                         'rewardId' => $kompendiumReward->id,
                         'costBaxx' => $kompendiumReward->cost_baxx,
