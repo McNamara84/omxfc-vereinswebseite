@@ -3,6 +3,8 @@
 namespace Tests\Feature;
 
 use App\Models\Book;
+use App\Models\Reward;
+use App\Models\RewardPurchase;
 use App\Models\Review;
 use App\Models\ReviewComment;
 use App\Models\Team;
@@ -245,6 +247,21 @@ class StatistikTest extends TestCase
         file_put_contents($path, json_encode($data));
     }
 
+    private function purchaseStatistikReward(User $user, string ...$sectionIds): void
+    {
+        foreach ($sectionIds as $sectionId) {
+            $slug = 'statistik-' . $sectionId;
+            $reward = Reward::where('slug', $slug)->first();
+            if ($reward) {
+                RewardPurchase::create([
+                    'user_id' => $user->id,
+                    'reward_id' => $reward->id,
+                    'cost_baxx' => $reward->cost_baxx,
+                    'purchased_at' => now(),
+                ]);
+            }
+        }
+    }
     public function test_statistics_page_shows_computed_values(): void
     {
         $this->createDataFile();
@@ -260,10 +277,11 @@ class StatistikTest extends TestCase
         $response->assertSee('Roman2');
     }
 
-    public function test_top_author_table_visible_with_enough_points(): void
+    public function test_top_author_table_visible_when_purchased(): void
     {
         $this->createDataFile();
         $user = $this->actingMemberWithPoints(10);
+                $this->purchaseStatistikReward($user, 'author-chart');
         $this->actingAs($user);
 
         $response = $this->get('/statistiken');
@@ -273,7 +291,7 @@ class StatistikTest extends TestCase
         $response->assertSee('Author2');
     }
 
-    public function test_top_author_statistic_locked_below_threshold(): void
+    public function test_top_author_statistic_locked_when_not_purchased(): void
     {
         $this->createDataFile();
         $user = $this->actingMemberWithPoints(7);
@@ -282,8 +300,8 @@ class StatistikTest extends TestCase
         $response = $this->get('/statistiken');
 
         $response->assertOk();
-        $response->assertSee('wird ab');
-        $response->assertSee('8');
+        $response->assertSee('Diese Statistik kostet');
+        $response->assertSee('1 Baxx');
     }
 
     public function test_statistics_page_works_gracefully_when_file_missing(): void
@@ -298,10 +316,11 @@ class StatistikTest extends TestCase
         $response->assertOk();
     }
 
-    public function test_teamplayer_table_visible_with_enough_points(): void
+    public function test_teamplayer_table_visible_when_purchased(): void
     {
         $this->createDataFile();
         $user = $this->actingMemberWithPoints(4);
+                $this->purchaseStatistikReward($user, 'teamplayer');
         $this->actingAs($user);
 
         $response = $this->get('/statistiken');
@@ -311,7 +330,7 @@ class StatistikTest extends TestCase
         $response->assertSee('Author2');
     }
 
-    public function test_teamplayer_table_locked_below_threshold(): void
+    public function test_teamplayer_table_locked_when_not_purchased(): void
     {
         $this->createDataFile();
         $user = $this->actingMemberWithPoints(1);
@@ -321,13 +340,14 @@ class StatistikTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('Top Teamplayer');
-        $response->assertSee('4 Baxx');
+        $response->assertSee('1 Baxx');
     }
 
     public function test_teamplayer_table_limits_to_top_10(): void
     {
         $this->createTeamplayerDataFile();
         $user = $this->actingMemberWithPoints(4);
+                $this->purchaseStatistikReward($user, 'teamplayer');
         $this->actingAs($user);
 
         $response = $this->get('/statistiken');
@@ -362,10 +382,11 @@ class StatistikTest extends TestCase
         $response->assertDontSee('window.browserFamilyLabels', false);
     }
 
-    public function test_character_table_visible_with_enough_points(): void
+    public function test_character_table_visible_when_purchased(): void
     {
         $this->createDataFile();
         $user = $this->actingMemberWithPoints(16);
+                $this->purchaseStatistikReward($user, 'top-charaktere');
         $this->actingAs($user);
 
         $response = $this->get('/statistiken');
@@ -375,7 +396,7 @@ class StatistikTest extends TestCase
         $response->assertSee('Char2');
     }
 
-    public function test_character_statistic_locked_below_threshold(): void
+    public function test_character_statistic_locked_when_not_purchased(): void
     {
         $this->createDataFile();
         $user = $this->actingMemberWithPoints(9);
@@ -384,16 +405,17 @@ class StatistikTest extends TestCase
         $response = $this->get('/statistiken');
 
         $response->assertOk();
-        $response->assertSee('wird ab');
-        $response->assertSee('10');
+        $response->assertSee('Diese Statistik kostet');
+        $response->assertSee('1 Baxx');
     }
 
-    public function test_review_statistics_visible_with_enough_points(): void
+    public function test_review_statistics_visible_when_purchased(): void
     {
         $this->createDataFile();
         $team = Team::membersTeam();
 
         $viewer = $this->actingMemberWithPoints(12);
+                $this->purchaseStatistikReward($viewer, 'mitglieds-rezensionen');
         $this->actingAs($viewer);
 
         $user2 = User::factory()->create(['current_team_id' => $team->id]);
@@ -423,7 +445,7 @@ class StatistikTest extends TestCase
         $response->assertSee($viewer->name);
     }
 
-    public function test_review_statistics_locked_below_threshold(): void
+    public function test_review_statistics_locked_when_not_purchased(): void
     {
         $this->createDataFile();
         $user = $this->actingMemberWithPoints(11);
@@ -433,13 +455,14 @@ class StatistikTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('Rezensionen unserer Mitglieder');
-        $response->assertSee('12 Baxx');
+        $response->assertSee('1 Baxx');
     }
 
-    public function test_afra_cycle_chart_visible_with_enough_points(): void
+    public function test_afra_cycle_chart_visible_when_purchased(): void
     {
         $this->createDataFile();
         $user = $this->actingMemberWithPoints(21);
+                $this->purchaseStatistikReward($user, 'zyklus-afra');
         $this->actingAs($user);
 
         $response = $this->get('/statistiken');
@@ -448,7 +471,7 @@ class StatistikTest extends TestCase
         $response->assertSee('Bewertungen des Afra-Zyklus');
     }
 
-    public function test_afra_cycle_chart_locked_below_threshold(): void
+    public function test_afra_cycle_chart_locked_when_not_purchased(): void
     {
         $this->createDataFile();
         $user = $this->actingMemberWithPoints(20);
@@ -458,13 +481,14 @@ class StatistikTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('Bewertungen des Afra-Zyklus');
-        $response->assertSee('21 Baxx');
+        $response->assertSee('1 Baxx');
     }
 
-    public function test_antarktis_cycle_chart_visible_with_enough_points(): void
+    public function test_antarktis_cycle_chart_visible_when_purchased(): void
     {
         $this->createDataFile();
         $user = $this->actingMemberWithPoints(22);
+                $this->purchaseStatistikReward($user, 'zyklus-antarktis');
         $this->actingAs($user);
 
         $response = $this->get('/statistiken');
@@ -473,7 +497,7 @@ class StatistikTest extends TestCase
         $response->assertSee('Bewertungen des Antarktis-Zyklus');
     }
 
-    public function test_antarktis_cycle_chart_locked_below_threshold(): void
+    public function test_antarktis_cycle_chart_locked_when_not_purchased(): void
     {
         $this->createDataFile();
         $user = $this->actingMemberWithPoints(21);
@@ -483,13 +507,14 @@ class StatistikTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('Bewertungen des Antarktis-Zyklus');
-        $response->assertSee('22 Baxx');
+        $response->assertSee('1 Baxx');
     }
 
-    public function test_schatten_cycle_chart_visible_with_enough_points(): void
+    public function test_schatten_cycle_chart_visible_when_purchased(): void
     {
         $this->createDataFile();
         $user = $this->actingMemberWithPoints(23);
+                $this->purchaseStatistikReward($user, 'zyklus-schatten');
         $this->actingAs($user);
 
         $response = $this->get('/statistiken');
@@ -498,7 +523,7 @@ class StatistikTest extends TestCase
         $response->assertSee('Bewertungen des Schatten-Zyklus');
     }
 
-    public function test_schatten_cycle_chart_locked_below_threshold(): void
+    public function test_schatten_cycle_chart_locked_when_not_purchased(): void
     {
         $this->createDataFile();
         $user = $this->actingMemberWithPoints(22);
@@ -508,13 +533,14 @@ class StatistikTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('Bewertungen des Schatten-Zyklus');
-        $response->assertSee('23 Baxx');
+        $response->assertSee('1 Baxx');
     }
 
-    public function test_ursprung_cycle_chart_visible_with_enough_points(): void
+    public function test_ursprung_cycle_chart_visible_when_purchased(): void
     {
         $this->createDataFile();
         $user = $this->actingMemberWithPoints(24);
+                $this->purchaseStatistikReward($user, 'zyklus-ursprung');
         $this->actingAs($user);
 
         $response = $this->get('/statistiken');
@@ -523,7 +549,7 @@ class StatistikTest extends TestCase
         $response->assertSee('Bewertungen des Ursprung-Zyklus');
     }
 
-    public function test_ursprung_cycle_chart_locked_below_threshold(): void
+    public function test_ursprung_cycle_chart_locked_when_not_purchased(): void
     {
         $this->createDataFile();
         $user = $this->actingMemberWithPoints(23);
@@ -533,13 +559,14 @@ class StatistikTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('Bewertungen des Ursprung-Zyklus');
-        $response->assertSee('24 Baxx');
+        $response->assertSee('1 Baxx');
     }
 
-    public function test_streiter_cycle_chart_visible_with_enough_points(): void
+    public function test_streiter_cycle_chart_visible_when_purchased(): void
     {
         $this->createDataFile();
         $user = $this->actingMemberWithPoints(25);
+                $this->purchaseStatistikReward($user, 'zyklus-streiter');
         $this->actingAs($user);
 
         $response = $this->get('/statistiken');
@@ -548,7 +575,7 @@ class StatistikTest extends TestCase
         $response->assertSee('Bewertungen des Streiter-Zyklus');
     }
 
-    public function test_streiter_cycle_chart_locked_below_threshold(): void
+    public function test_streiter_cycle_chart_locked_when_not_purchased(): void
     {
         $this->createDataFile();
         $user = $this->actingMemberWithPoints(24);
@@ -558,13 +585,14 @@ class StatistikTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('Bewertungen des Streiter-Zyklus');
-        $response->assertSee('25 Baxx');
+        $response->assertSee('1 Baxx');
     }
 
-    public function test_archivar_cycle_chart_visible_with_enough_points(): void
+    public function test_archivar_cycle_chart_visible_when_purchased(): void
     {
         $this->createDataFile();
         $user = $this->actingMemberWithPoints(26);
+                $this->purchaseStatistikReward($user, 'zyklus-archivar');
         $this->actingAs($user);
 
         $response = $this->get('/statistiken');
@@ -573,7 +601,7 @@ class StatistikTest extends TestCase
         $response->assertSee('Bewertungen des Archivar-Zyklus');
     }
 
-    public function test_archivar_cycle_chart_locked_below_threshold(): void
+    public function test_archivar_cycle_chart_locked_when_not_purchased(): void
     {
         $this->createDataFile();
         $user = $this->actingMemberWithPoints(25);
@@ -583,13 +611,14 @@ class StatistikTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('Bewertungen des Archivar-Zyklus');
-        $response->assertSee('26 Baxx');
+        $response->assertSee('1 Baxx');
     }
 
-    public function test_zeitsprung_cycle_chart_visible_with_enough_points(): void
+    public function test_zeitsprung_cycle_chart_visible_when_purchased(): void
     {
         $this->createDataFile();
         $user = $this->actingMemberWithPoints(27);
+                $this->purchaseStatistikReward($user, 'zyklus-zeitsprung');
         $this->actingAs($user);
 
         $response = $this->get('/statistiken');
@@ -598,7 +627,7 @@ class StatistikTest extends TestCase
         $response->assertSee('Bewertungen des Zeitsprung-Zyklus');
     }
 
-    public function test_zeitsprung_cycle_chart_locked_below_threshold(): void
+    public function test_zeitsprung_cycle_chart_locked_when_not_purchased(): void
     {
         $this->createDataFile();
         $user = $this->actingMemberWithPoints(26);
@@ -608,13 +637,14 @@ class StatistikTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('Bewertungen des Zeitsprung-Zyklus');
-        $response->assertSee('27 Baxx');
+        $response->assertSee('1 Baxx');
     }
 
-    public function test_fremdwelt_cycle_chart_visible_with_enough_points(): void
+    public function test_fremdwelt_cycle_chart_visible_when_purchased(): void
     {
         $this->createDataFile();
         $user = $this->actingMemberWithPoints(28);
+                $this->purchaseStatistikReward($user, 'zyklus-fremdwelt');
         $this->actingAs($user);
 
         $response = $this->get('/statistiken');
@@ -623,7 +653,7 @@ class StatistikTest extends TestCase
         $response->assertSee('Bewertungen des Fremdwelt-Zyklus');
     }
 
-    public function test_fremdwelt_cycle_chart_locked_below_threshold(): void
+    public function test_fremdwelt_cycle_chart_locked_when_not_purchased(): void
     {
         $this->createDataFile();
         $user = $this->actingMemberWithPoints(27);
@@ -633,13 +663,14 @@ class StatistikTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('Bewertungen des Fremdwelt-Zyklus');
-        $response->assertSee('28 Baxx');
+        $response->assertSee('1 Baxx');
     }
 
-    public function test_parallelwelt_cycle_chart_visible_with_enough_points(): void
+    public function test_parallelwelt_cycle_chart_visible_when_purchased(): void
     {
         $this->createDataFile();
         $user = $this->actingMemberWithPoints(29);
+                $this->purchaseStatistikReward($user, 'zyklus-parallelwelt');
         $this->actingAs($user);
 
         $response = $this->get('/statistiken');
@@ -648,7 +679,7 @@ class StatistikTest extends TestCase
         $response->assertSee('Bewertungen des Parallelwelt-Zyklus');
     }
 
-    public function test_parallelwelt_cycle_chart_locked_below_threshold(): void
+    public function test_parallelwelt_cycle_chart_locked_when_not_purchased(): void
     {
         $this->createDataFile();
         $user = $this->actingMemberWithPoints(28);
@@ -658,13 +689,14 @@ class StatistikTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('Bewertungen des Parallelwelt-Zyklus');
-        $response->assertSee('29 Baxx');
+        $response->assertSee('1 Baxx');
     }
 
-    public function test_weltenriss_cycle_chart_visible_with_enough_points(): void
+    public function test_weltenriss_cycle_chart_visible_when_purchased(): void
     {
         $this->createDataFile();
         $user = $this->actingMemberWithPoints(30);
+                $this->purchaseStatistikReward($user, 'zyklus-weltenriss');
         $this->actingAs($user);
 
         $response = $this->get('/statistiken');
@@ -673,7 +705,7 @@ class StatistikTest extends TestCase
         $response->assertSee('Bewertungen des Weltenriss-Zyklus');
     }
 
-    public function test_weltenriss_cycle_chart_locked_below_threshold(): void
+    public function test_weltenriss_cycle_chart_locked_when_not_purchased(): void
     {
         $this->createDataFile();
         $user = $this->actingMemberWithPoints(29);
@@ -683,13 +715,14 @@ class StatistikTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('Bewertungen des Weltenriss-Zyklus');
-        $response->assertSee('30 Baxx');
+        $response->assertSee('1 Baxx');
     }
 
-    public function test_amraka_cycle_chart_visible_with_enough_points(): void
+    public function test_amraka_cycle_chart_visible_when_purchased(): void
     {
         $this->createDataFile();
         $user = $this->actingMemberWithPoints(31);
+                $this->purchaseStatistikReward($user, 'zyklus-amraka');
         $this->actingAs($user);
 
         $response = $this->get('/statistiken');
@@ -698,7 +731,7 @@ class StatistikTest extends TestCase
         $response->assertSee('Bewertungen des Amraka-Zyklus');
     }
 
-    public function test_amraka_cycle_chart_locked_below_threshold(): void
+    public function test_amraka_cycle_chart_locked_when_not_purchased(): void
     {
         $this->createDataFile();
         $user = $this->actingMemberWithPoints(30);
@@ -708,13 +741,14 @@ class StatistikTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('Bewertungen des Amraka-Zyklus');
-        $response->assertSee('31 Baxx');
+        $response->assertSee('1 Baxx');
     }
 
-    public function test_weltrat_cycle_chart_visible_with_enough_points(): void
+    public function test_weltrat_cycle_chart_visible_when_purchased(): void
     {
         $this->createDataFile();
         $user = $this->actingMemberWithPoints(32);
+                $this->purchaseStatistikReward($user, 'zyklus-weltrat');
         $this->actingAs($user);
 
         $response = $this->get('/statistiken');
@@ -723,7 +757,7 @@ class StatistikTest extends TestCase
         $response->assertSee('Bewertungen des Weltrat-Zyklus');
     }
 
-    public function test_weltrat_cycle_chart_locked_below_threshold(): void
+    public function test_weltrat_cycle_chart_locked_when_not_purchased(): void
     {
         $this->createDataFile();
         $user = $this->actingMemberWithPoints(31);
@@ -733,14 +767,15 @@ class StatistikTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('Bewertungen des Weltrat-Zyklus');
-        $response->assertSee('32 Baxx');
+        $response->assertSee('1 Baxx');
     }
 
-    public function test_hardcover_chart_visible_with_enough_points(): void
+    public function test_hardcover_chart_visible_when_purchased(): void
     {
         $this->createDataFile();
         $this->createHardcoversFile();
         $user = $this->actingMemberWithPoints(40);
+                $this->purchaseStatistikReward($user, 'hardcover-bewertungen');
         $this->actingAs($user);
 
         $response = $this->get('/statistiken');
@@ -749,7 +784,7 @@ class StatistikTest extends TestCase
         $response->assertSee('Bewertungen der Hardcover');
     }
 
-    public function test_hardcover_chart_locked_below_threshold(): void
+    public function test_hardcover_chart_locked_when_not_purchased(): void
     {
         $this->createDataFile();
         $this->createHardcoversFile();
@@ -760,14 +795,15 @@ class StatistikTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('Bewertungen der Hardcover');
-        $response->assertSee('40 Baxx');
+        $response->assertSee('1 Baxx');
     }
 
-    public function test_hardcover_author_chart_visible_with_enough_points(): void
+    public function test_hardcover_author_chart_visible_when_purchased(): void
     {
         $this->createDataFile();
         $this->createHardcoversFile();
         $user = $this->actingMemberWithPoints(41);
+                $this->purchaseStatistikReward($user, 'hardcover-autoren');
         $this->actingAs($user);
 
         $response = $this->get('/statistiken');
@@ -776,7 +812,7 @@ class StatistikTest extends TestCase
         $response->assertSee('Maddrax-Hardcover je Autor:in');
     }
 
-    public function test_hardcover_author_chart_locked_below_threshold(): void
+    public function test_hardcover_author_chart_locked_when_not_purchased(): void
     {
         $this->createDataFile();
         $this->createHardcoversFile();
@@ -787,13 +823,14 @@ class StatistikTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('Maddrax-Hardcover je Autor:in');
-        $response->assertSee('41 Baxx');
+        $response->assertSee('1 Baxx');
     }
 
-    public function test_top_themes_visible_with_enough_points(): void
+    public function test_top_themes_visible_when_purchased(): void
     {
         $this->createDataFile();
         $user = $this->actingMemberWithPoints(42);
+                $this->purchaseStatistikReward($user, 'top-themen');
         $this->actingAs($user);
 
         $response = $this->get('/statistiken');
@@ -802,7 +839,7 @@ class StatistikTest extends TestCase
         $response->assertSee('TOP20 Maddrax-Themen');
     }
 
-    public function test_top_themes_locked_below_threshold(): void
+    public function test_top_themes_locked_when_not_purchased(): void
     {
         $this->createDataFile();
         $user = $this->actingMemberWithPoints(41);
@@ -812,7 +849,7 @@ class StatistikTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('TOP20 Maddrax-Themen');
-        $response->assertSee('42 Baxx');
+        $response->assertSee('1 Baxx');
     }
 
     public function test_top_themes_ignore_books_with_few_votes(): void
@@ -832,6 +869,7 @@ class StatistikTest extends TestCase
         file_put_contents($path, json_encode($data));
 
         $user = $this->actingMemberWithPoints(42);
+                $this->purchaseStatistikReward($user, 'top-themen');
         $this->actingAs($user);
 
         $response = $this->get('/statistiken');
@@ -841,11 +879,12 @@ class StatistikTest extends TestCase
         $response->assertDontSee('LowVotesTheme');
     }
 
-    public function test_mission_mars_chart_visible_with_enough_points(): void
+    public function test_mission_mars_chart_visible_when_purchased(): void
     {
         $this->createDataFile();
         $this->createMissionMarsFile();
         $user = $this->actingMemberWithPoints(44);
+                $this->purchaseStatistikReward($user, 'mission-mars-bewertungen', 'mission-mars-autoren');
         $this->actingAs($user);
 
         $response = $this->get('/statistiken');
@@ -857,7 +896,7 @@ class StatistikTest extends TestCase
         $response->assertSee('Mission Mars Co-Autor');
     }
 
-    public function test_mission_mars_chart_locked_below_threshold(): void
+    public function test_mission_mars_chart_locked_when_not_purchased(): void
     {
         $this->createDataFile();
         $this->createMissionMarsFile();
@@ -869,14 +908,15 @@ class StatistikTest extends TestCase
         $response->assertOk();
         $response->assertSee('Bewertungen der Mission Mars-Heftromane');
         $response->assertSee('Mission Mars-Heftromane je Autor:in');
-        $response->assertSee('44 Baxx');
+        $response->assertSee('1 Baxx');
     }
 
-    public function test_volk_der_tiefe_chart_visible_with_enough_points(): void
+    public function test_volk_der_tiefe_chart_visible_when_purchased(): void
     {
         $this->createDataFile();
         $this->createVolkDerTiefeFile();
         $user = $this->actingMemberWithPoints(46);
+                $this->purchaseStatistikReward($user, 'volk-der-tiefe-bewertungen', 'volk-der-tiefe-autoren');
         $this->actingAs($user);
 
         $response = $this->get('/statistiken');
@@ -888,7 +928,7 @@ class StatistikTest extends TestCase
         $response->assertSee('Volk der Tiefe Co-Autor');
     }
 
-    public function test_volk_der_tiefe_ratings_chart_locked_below_threshold(): void
+    public function test_volk_der_tiefe_ratings_chart_locked_when_not_purchased(): void
     {
         $this->createDataFile();
         $this->createVolkDerTiefeFile();
@@ -900,10 +940,10 @@ class StatistikTest extends TestCase
         $response->assertOk();
         $response->assertSee('Bewertungen der Das Volk der Tiefe-Heftromane');
         $response->assertSee('Das Volk der Tiefe-Heftromane je Autor:in');
-        $response->assertSee('45 Baxx');
+        $response->assertSee('1 Baxx');
     }
 
-    public function test_volk_der_tiefe_author_chart_locked_below_threshold(): void
+    public function test_volk_der_tiefe_author_chart_locked_when_not_purchased(): void
     {
         $this->createDataFile();
         $this->createVolkDerTiefeFile();
@@ -915,14 +955,15 @@ class StatistikTest extends TestCase
         $response->assertOk();
         $response->assertSee('Bewertungen der Das Volk der Tiefe-Heftromane');
         $response->assertSee('Das Volk der Tiefe-Heftromane je Autor:in');
-        $response->assertSee('46 Baxx');
+        $response->assertSee('1 Baxx');
     }
 
-    public function test_zweitausendzwoelf_chart_visible_with_enough_points(): void
+    public function test_zweitausendzwoelf_chart_visible_when_purchased(): void
     {
         $this->createDataFile();
         $this->createZweitausendzwoelfFile();
         $user = $this->actingMemberWithPoints(48);
+                $this->purchaseStatistikReward($user, 'zweitausendzwoelf-bewertungen', 'zweitausendzwoelf-autoren');
         $this->actingAs($user);
 
         $response = $this->get('/statistiken');
@@ -934,7 +975,7 @@ class StatistikTest extends TestCase
         $response->assertSee('2012 Co-Autor');
     }
 
-    public function test_zweitausendzwoelf_ratings_chart_locked_below_threshold(): void
+    public function test_zweitausendzwoelf_ratings_chart_locked_when_not_purchased(): void
     {
         $this->createDataFile();
         $this->createZweitausendzwoelfFile();
@@ -946,10 +987,10 @@ class StatistikTest extends TestCase
         $response->assertOk();
         $response->assertSee('Bewertungen der 2012-Heftromane');
         $response->assertSee('2012-Heftromane je Autor:in');
-        $response->assertSee('47 Baxx');
+        $response->assertSee('1 Baxx');
     }
 
-    public function test_zweitausendzwoelf_author_chart_locked_below_threshold(): void
+    public function test_zweitausendzwoelf_author_chart_locked_when_not_purchased(): void
     {
         $this->createDataFile();
         $this->createZweitausendzwoelfFile();
@@ -961,14 +1002,15 @@ class StatistikTest extends TestCase
         $response->assertOk();
         $response->assertSee('Bewertungen der 2012-Heftromane');
         $response->assertSee('2012-Heftromane je Autor:in');
-        $response->assertSee('48 Baxx');
+        $response->assertSee('1 Baxx');
     }
 
-    public function test_abenteurer_charts_visible_with_sufficient_points(): void
+    public function test_abenteurer_charts_visible_when_purchased(): void
     {
         $this->createDataFile();
         $this->createAbenteurerFile();
         $user = $this->actingMemberWithPoints(34);
+                $this->purchaseStatistikReward($user, 'abenteurer-bewertungen', 'abenteurer-autoren');
         $this->actingAs($user);
 
         $response = $this->get('/statistiken');
@@ -980,7 +1022,7 @@ class StatistikTest extends TestCase
         $response->assertSee('Abenteurer Co-Autor');
     }
 
-    public function test_abenteurer_ratings_chart_locked_below_threshold(): void
+    public function test_abenteurer_ratings_chart_locked_when_not_purchased(): void
     {
         $this->createDataFile();
         $this->createAbenteurerFile();
@@ -992,10 +1034,10 @@ class StatistikTest extends TestCase
         $response->assertOk();
         $response->assertSee('Bewertungen der Die Abenteurer-Heftromane');
         $response->assertSee('Die Abenteurer-Heftromane je Autor:in');
-        $response->assertSee('33 Baxx');
+        $response->assertSee('1 Baxx');
     }
 
-    public function test_abenteurer_author_chart_locked_below_threshold(): void
+    public function test_abenteurer_author_chart_locked_when_not_purchased(): void
     {
         $this->createDataFile();
         $this->createAbenteurerFile();
@@ -1007,7 +1049,7 @@ class StatistikTest extends TestCase
         $response->assertOk();
         $response->assertSee('Bewertungen der Die Abenteurer-Heftromane');
         $response->assertSee('Die Abenteurer-Heftromane je Autor:in');
-        $response->assertSee('34 Baxx');
+        $response->assertSee('1 Baxx');
     }
 
     public function test_top_themes_require_minimum_book_count(): void
@@ -1029,6 +1071,7 @@ class StatistikTest extends TestCase
         file_put_contents($path, json_encode($data));
 
         $user = $this->actingMemberWithPoints(42);
+                $this->purchaseStatistikReward($user, 'top-themen');
         $this->actingAs($user);
 
         $response = $this->get('/statistiken');
@@ -1039,7 +1082,7 @@ class StatistikTest extends TestCase
         $response->assertDontSee('Thema1');
     }
 
-    public function test_favorite_themes_visible_with_enough_points(): void
+    public function test_favorite_themes_visible_when_purchased(): void
     {
         $this->createDataFile();
         User::factory()->create(['lieblingsthema' => 'Thema1']);
@@ -1047,6 +1090,7 @@ class StatistikTest extends TestCase
         User::factory()->create(['lieblingsthema' => 'Thema2']);
         User::factory()->create(['lieblingsthema' => 'Thema3']);
         $user = $this->actingMemberWithPoints(50);
+                $this->purchaseStatistikReward($user, 'lieblingsthemen');
         $this->actingAs($user);
 
         $response = $this->get('/statistiken');
@@ -1058,7 +1102,7 @@ class StatistikTest extends TestCase
         $response->assertSee('Thema3');
     }
 
-    public function test_favorite_themes_locked_below_threshold(): void
+    public function test_favorite_themes_locked_when_not_purchased(): void
     {
         $this->createDataFile();
         $user = $this->actingMemberWithPoints(49);
@@ -1068,7 +1112,7 @@ class StatistikTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('TOP10 Lieblingsthemen');
-        $response->assertSee('50 Baxx');
+        $response->assertSee('1 Baxx');
     }
 
     public function test_statistic_quick_navigation_lists_all_sections(): void
@@ -1084,7 +1128,7 @@ class StatistikTest extends TestCase
 
         $response->assertOk();
 
-        /** @var array<int, array{id: string, label: string, minPoints?: int}> $sections */
+        /** @var array<int, array{id: string, label: string}> $sections */
         $sections = $response->viewData('statisticSections');
         $this->assertNotEmpty($sections);
 
@@ -1110,9 +1154,8 @@ class StatistikTest extends TestCase
             $linkText = trim(preg_replace('/\s+/', ' ', $link->textContent));
             $this->assertStringContainsString($section['label'], $linkText);
 
-            if (! empty($section['minPoints'])) {
-                $this->assertStringContainsString((string) $section['minPoints'], $linkText);
-            }
+            // Rewards cost is shown in the quicknav (cost_baxx from reward)
+            // No minPoints-based assertion needed anymore
         }
     }
 }

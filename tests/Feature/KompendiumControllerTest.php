@@ -4,6 +4,8 @@ namespace Tests\Feature;
 
 use App\Enums\Role;
 use App\Models\KompendiumRoman;
+use App\Models\Reward;
+use App\Models\RewardPurchase;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -31,7 +33,24 @@ class KompendiumControllerTest extends TestCase
         return $ag;
     }
 
-    public function test_index_hides_search_when_points_insufficient(): void
+    /**
+     * Kauft das Kompendium-Reward für einen User.
+     */
+    private function purchaseKompendiumForUser(User $user): void
+    {
+        $reward = Reward::where('slug', 'kompendium')->first();
+        if (! $reward) {
+            return;
+        }
+        RewardPurchase::create([
+            'user_id' => $user->id,
+            'reward_id' => $reward->id,
+            'cost_baxx' => $reward->cost_baxx,
+            'purchased_at' => now(),
+        ]);
+    }
+
+    public function test_index_hides_search_when_reward_not_purchased(): void
     {
         $user = $this->actingMemberWithPoints(50);
 
@@ -39,23 +58,23 @@ class KompendiumControllerTest extends TestCase
 
         $response->assertOk();
         $response->assertViewHas('showSearch', false);
-        $response->assertViewHas('userPoints', 50);
     }
 
-    public function test_index_shows_search_when_enough_points(): void
+    public function test_index_shows_search_when_reward_purchased(): void
     {
         $user = $this->actingMemberWithPoints(120);
+        $this->purchaseKompendiumForUser($user);
 
         $response = $this->get('/kompendium');
 
         $response->assertOk();
         $response->assertViewHas('showSearch', true);
-        $response->assertViewHas('userPoints', 120);
     }
 
     public function test_serien_endpoint_returns_only_indexed_serien(): void
     {
         $user = $this->actingMemberWithPoints(150);
+        $this->purchaseKompendiumForUser($user);
 
         // Erstelle indexierte Romane für verschiedene Serien
         KompendiumRoman::create([
@@ -111,6 +130,7 @@ class KompendiumControllerTest extends TestCase
     public function test_serien_endpoint_returns_empty_when_no_indexed_romane(): void
     {
         $user = $this->actingMemberWithPoints(150);
+        $this->purchaseKompendiumForUser($user);
 
         // Keine indexierten Romane
 
@@ -120,20 +140,20 @@ class KompendiumControllerTest extends TestCase
         $this->assertEmpty($response->json());
     }
 
-    public function test_serien_endpoint_requires_enough_points(): void
+    public function test_serien_endpoint_requires_purchased_reward(): void
     {
-        $user = $this->actingMemberWithPoints(50); // below 100
+        $user = $this->actingMemberWithPoints(50);
 
         $this->getJson('/kompendium/serien')
             ->assertStatus(403)
-            ->assertJson(['message' => 'Zugang erfordert mindestens 100 Punkte oder AG-Maddraxikon-Mitgliedschaft (du hast 50 Punkte).']);
+            ->assertJson(['message' => 'Zugang erfordert den Kauf des Kompendium-Rewards oder AG-Maddraxikon-Mitgliedschaft.']);
     }
 
     /* --------------------------------------------------------------------- */
     /*  AG Maddraxikon – Zugang ohne 100 Baxx */
     /* --------------------------------------------------------------------- */
 
-    public function test_ag_maddraxikon_member_sees_search_without_enough_points(): void
+    public function test_ag_maddraxikon_member_sees_search_without_purchased_reward(): void
     {
         $user = $this->actingMemberWithPoints(10);
         $this->addUserToAgMaddraxikon($user);
@@ -142,7 +162,6 @@ class KompendiumControllerTest extends TestCase
 
         $response->assertOk();
         $response->assertViewHas('showSearch', true);
-        $response->assertViewHas('userPoints', 10);
     }
 
     public function test_ag_maddraxikon_member_can_use_serien_endpoint(): void
@@ -154,7 +173,7 @@ class KompendiumControllerTest extends TestCase
             ->assertOk();
     }
 
-    public function test_non_ag_member_without_enough_points_cannot_see_search(): void
+    public function test_non_ag_member_without_reward_cannot_see_search(): void
     {
         $user = $this->actingMemberWithPoints(50);
 
@@ -164,9 +183,10 @@ class KompendiumControllerTest extends TestCase
         $response->assertViewHas('showSearch', false);
     }
 
-    public function test_user_with_100_points_but_no_ag_can_still_search(): void
+    public function test_user_with_purchased_reward_but_no_ag_can_still_search(): void
     {
         $user = $this->actingMemberWithPoints(100);
+        $this->purchaseKompendiumForUser($user);
 
         $response = $this->get('/kompendium');
 
@@ -188,25 +208,26 @@ class KompendiumControllerTest extends TestCase
             ->assertStatus(422);
     }
 
-    public function test_user_with_enough_points_without_ag_can_use_search_endpoint(): void
+    public function test_user_with_purchased_reward_without_ag_can_use_search_endpoint(): void
     {
         $user = $this->actingMemberWithPoints(150);
+        $this->purchaseKompendiumForUser($user);
 
         // q=t hat min:2 → 422 zeigt, dass der Zugangs-Check (403) bestanden wurde
         $this->getJson('/kompendium/suche?q=t')
             ->assertStatus(422);
     }
 
-    public function test_user_without_ag_and_without_enough_points_cannot_use_search(): void
+    public function test_user_without_ag_and_without_purchased_reward_cannot_use_search(): void
     {
         $user = $this->actingMemberWithPoints(50);
 
         $this->getJson('/kompendium/suche?q=test')
             ->assertStatus(403)
-            ->assertJson(['message' => 'Zugang erfordert mindestens 100 Punkte oder AG-Maddraxikon-Mitgliedschaft (du hast 50 Punkte).']);
+            ->assertJson(['message' => 'Zugang erfordert den Kauf des Kompendium-Rewards oder AG-Maddraxikon-Mitgliedschaft.']);
     }
 
-    public function test_ag_maddraxikon_member_with_enough_points_can_search(): void
+    public function test_ag_maddraxikon_member_with_purchased_reward_can_search(): void
     {
         $user = $this->actingMemberWithPoints(150);
         $this->addUserToAgMaddraxikon($user);
@@ -215,7 +236,6 @@ class KompendiumControllerTest extends TestCase
 
         $response->assertOk();
         $response->assertViewHas('showSearch', true);
-        $response->assertViewHas('userPoints', 150);
     }
 
     /* --------------------------------------------------------------------- */
@@ -225,6 +245,7 @@ class KompendiumControllerTest extends TestCase
     public function test_index_renders_data_testid_on_search_input(): void
     {
         $user = $this->actingMemberWithPoints(150);
+        $this->purchaseKompendiumForUser($user);
 
         $response = $this->get('/kompendium');
 
@@ -235,6 +256,7 @@ class KompendiumControllerTest extends TestCase
     public function test_index_renders_search_script_with_correct_selector(): void
     {
         $user = $this->actingMemberWithPoints(150);
+        $this->purchaseKompendiumForUser($user);
 
         $response = $this->get('/kompendium');
 
@@ -248,6 +270,7 @@ class KompendiumControllerTest extends TestCase
     public function test_index_renders_script_when_search_allowed(): void
     {
         $user = $this->actingMemberWithPoints(150);
+        $this->purchaseKompendiumForUser($user);
 
         $response = $this->get('/kompendium');
 
@@ -321,6 +344,7 @@ class KompendiumControllerTest extends TestCase
     {
         $user = $this->actingMember(Role::Admin);
         $user->incrementTeamPoints(150);
+        $this->purchaseKompendiumForUser($user);
 
         $response = $this->get('/kompendium');
 
@@ -338,15 +362,13 @@ class KompendiumControllerTest extends TestCase
         $response->assertDontSee('Kompendium verwalten');
     }
 
-    public function test_index_shows_points_warning_when_search_not_allowed(): void
+    public function test_index_shows_purchase_overlay_when_search_not_allowed(): void
     {
         $user = $this->actingMemberWithPoints(50);
 
         $response = $this->get('/kompendium');
 
         $response->assertOk();
-        $response->assertSee('Die Suche wird ab');
-        $response->assertSee('100');
-        $response->assertSee('Dein aktueller Stand:');
+        $response->assertSee('Baxx');
     }
 }

@@ -4,9 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Enums\Role;
 use App\Models\KompendiumRoman;
+use App\Models\Reward;
 use App\Models\User;
 use App\Services\KompendiumSearchService;
 use App\Services\KompendiumService;
+use App\Services\RewardService;
 use App\Services\TeamPointService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -23,10 +25,11 @@ class KompendiumController extends Controller
     public function __construct(
         private TeamPointService $teamPointService,
         private KompendiumService $kompendiumService,
-        private KompendiumSearchService $searchService
+        private KompendiumSearchService $searchService,
+        private RewardService $rewardService
     ) {}
 
-    /** Mindest-Punktzahl für die Suche */
+    /** Mindest-Baxx-Kosten für das Kompendium (nur noch als Fallback-Anzeige) */
     private const REQUIRED_POINTS = 100;
 
     /** Regex-Pattern für Pfad-Trennung (Windows-Backslash und Unix-Slash) */
@@ -36,17 +39,14 @@ class KompendiumController extends Controller
     private const ALLOWED_BASE_PATH = 'romane/';
 
     /* --------------------------------------------------------------------- */
-    /*  Zugangs-Check: ≥ 100 Baxx ODER AG-Maddraxikon-Mitglied */
+    /*  Zugangs-Check: Reward gekauft ODER AG-Maddraxikon-Mitglied */
     /* --------------------------------------------------------------------- */
 
     /**
      * Prüft ob der User Zugang zur Kompendium-Suche hat.
-     * Zugang besteht bei ≥ 100 Baxx ODER Mitgliedschaft in AG Maddraxikon.
-     *
-     * @param  User|null  $user  Der zu prüfende User
-     * @param  int|null  $userPoints  Bereits berechnete Punkte (vermeidet doppelten Service-Call)
+     * Zugang besteht bei gekauftem Kompendium-Reward ODER Mitgliedschaft in AG Maddraxikon.
      */
-    private function hatKompendiumZugang(?User $user, ?int $userPoints = null): bool
+    private function hatKompendiumZugang(?User $user): bool
     {
         if (! $user) {
             return false;
@@ -57,10 +57,8 @@ class KompendiumController extends Controller
             return true;
         }
 
-        // Fallback: Punkte-basierter Zugang
-        $userPoints ??= $this->teamPointService->getUserPoints($user);
-
-        return $userPoints >= self::REQUIRED_POINTS;
+        // Reward-basierter Zugang
+        return $this->rewardService->hasUnlockedReward($user, 'kompendium');
     }
 
     /* --------------------------------------------------------------------- */
@@ -95,8 +93,11 @@ class KompendiumController extends Controller
     public function index(Request $request): View
     {
         $user = Auth::user();
-        $userPoints = $this->teamPointService->getUserPoints($user);
-        $hatZugang = $this->hatKompendiumZugang($user, $userPoints);
+        $hatZugang = $this->hatKompendiumZugang($user);
+
+        // Kompendium-Reward aus der DB laden
+        $kompendiumReward = Reward::where('slug', 'kompendium')->where('is_active', true)->first();
+        $availableBaxx = $this->rewardService->getAvailableBaxx($user);
 
         // Zusammengefasste Übersicht (Maddrax-Zyklen konsolidiert, Miniserien als ein Eintrag)
         $indexierteRomaneSummary = $this->kompendiumService->getZusammengefassteUebersicht();
@@ -105,9 +106,9 @@ class KompendiumController extends Controller
         $istAdmin = $user?->currentTeam?->hasUserWithRole($user, Role::Admin->value) ?? false;
 
         return view('pages.kompendium', [
-            'userPoints' => $userPoints,
             'showSearch' => $hatZugang,
-            'required' => self::REQUIRED_POINTS,
+            'kompendiumReward' => $kompendiumReward,
+            'availableBaxx' => $availableBaxx,
             'indexierteRomaneSummary' => $indexierteRomaneSummary,
             'istAdmin' => $istAdmin,
         ]);
@@ -120,11 +121,10 @@ class KompendiumController extends Controller
     {
         /* ----- Zugangs-Check ----------------------------------------------- */
         $user = Auth::user();
-        $userPoints = $this->teamPointService->getUserPoints($user);
 
-        if (! $this->hatKompendiumZugang($user, $userPoints)) {
+        if (! $this->hatKompendiumZugang($user)) {
             return response()->json([
-                'message' => 'Zugang erfordert mindestens '.self::REQUIRED_POINTS." Punkte oder AG-Maddraxikon-Mitgliedschaft (du hast $userPoints Punkte).",
+                'message' => 'Zugang erfordert den Kauf des Kompendium-Rewards oder AG-Maddraxikon-Mitgliedschaft.',
             ], 403);
         }
 
@@ -253,11 +253,10 @@ class KompendiumController extends Controller
     {
         /* ----- Zugangs-Check ----------------------------------------------- */
         $user = Auth::user();
-        $userPoints = $this->teamPointService->getUserPoints($user);
 
-        if (! $this->hatKompendiumZugang($user, $userPoints)) {
+        if (! $this->hatKompendiumZugang($user)) {
             return response()->json([
-                'message' => 'Zugang erfordert mindestens '.self::REQUIRED_POINTS." Punkte oder AG-Maddraxikon-Mitgliedschaft (du hast $userPoints Punkte).",
+                'message' => 'Zugang erfordert den Kauf des Kompendium-Rewards oder AG-Maddraxikon-Mitgliedschaft.',
             ], 403);
         }
 

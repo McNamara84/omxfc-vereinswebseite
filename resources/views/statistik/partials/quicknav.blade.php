@@ -19,8 +19,9 @@
                         aria-current="false"
                     >
                         <span class="font-semibold leading-5">{{ $section['label'] }}</span>
-                        @if (! empty($section['minPoints']))
-                            <span class="text-xs text-base-content">ab {{ $section['minPoints'] }} Baxx</span>
+                        @php($reward = ($statistikRewards ?? collect())->get('statistik-' . $section['id']))
+                        @if ($reward)
+                            <span class="text-xs text-base-content">{{ $reward->cost_baxx }} Baxx</span>
                         @endif
                     </a>
                 </li>

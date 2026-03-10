@@ -35,7 +35,8 @@ class KompendiumPathValidationTest extends TestCase
         $this->controller = new KompendiumController(
             $this->createMock(TeamPointService::class),
             $this->createMock(KompendiumService::class),
-            $this->createMock(KompendiumSearchService::class)
+            $this->createMock(KompendiumSearchService::class),
+            $this->createMock(\App\Services\RewardService::class)
         );
     }
 

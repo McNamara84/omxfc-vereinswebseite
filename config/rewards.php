@@ -19,6 +19,12 @@ return [
     // Standard-Baxx-Kosten für neue Fanfictions (Runtime-Wert)
     'fanfiction_default_cost_baxx' => env('FANFICTION_DEFAULT_COST_BAXX', 5),
 
+    // Standard-Baxx-Kosten für eine einzelne Statistik-Card
+    'statistik_default_cost_baxx' => env('STATISTIK_DEFAULT_COST_BAXX', 1),
+
+    // Standard-Baxx-Kosten für den Kompendium-Zugang
+    'kompendium_default_cost_baxx' => env('KOMPENDIUM_DEFAULT_COST_BAXX', 100),
+
     /** @deprecated Nur als Referenz für RewardSeeder – nicht zur Laufzeit verwenden. */
     'legacy' => [
     [

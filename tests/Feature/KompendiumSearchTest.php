@@ -13,24 +13,39 @@ class KompendiumSearchTest extends TestCase
     use RefreshDatabase;
     use \Tests\Concerns\CreatesUserWithRole;
 
+    private function purchaseKompendiumForUser(\App\Models\User $user): void
+    {
+        $reward = \App\Models\Reward::where('slug', 'kompendium')->first();
+        if (! $reward) {
+            return;
+        }
+        \App\Models\RewardPurchase::create([
+            'user_id' => $user->id,
+            'reward_id' => $reward->id,
+            'cost_baxx' => $reward->cost_baxx,
+            'purchased_at' => now(),
+        ]);
+    }
+
     protected function tearDown(): void
     {
         Mockery::close();
         parent::tearDown();
     }
 
-    public function test_search_requires_enough_points(): void
+    public function test_search_requires_purchased_reward(): void
     {
-        $user = $this->actingMemberWithPoints(50); // below 100
+        $user = $this->actingMemberWithPoints(50);
 
         $this->getJson('/kompendium/suche?q=test')
             ->assertStatus(403)
-            ->assertJson(['message' => 'Zugang erfordert mindestens 100 Punkte oder AG-Maddraxikon-Mitgliedschaft (du hast 50 Punkte).']);
+            ->assertJson(['message' => 'Zugang erfordert den Kauf des Kompendium-Rewards oder AG-Maddraxikon-Mitgliedschaft.']);
     }
 
     public function test_search_validates_query_length(): void
     {
         $user = $this->actingMemberWithPoints(150);
+        $this->purchaseKompendiumForUser($user);
 
         $this->getJson('/kompendium/suche?q=a')
             ->assertStatus(422);
@@ -39,6 +54,7 @@ class KompendiumSearchTest extends TestCase
     public function test_search_returns_formatted_results(): void
     {
         $user = $this->actingMemberWithPoints(150);
+        $this->purchaseKompendiumForUser($user);
 
         Storage::fake('private');
         Storage::disk('private')->put('romane/maddrax/001 - ExampleTitle.txt', 'Some example content with query word');
@@ -75,6 +91,7 @@ class KompendiumSearchTest extends TestCase
     public function test_search_returns_empty_when_no_matches_found(): void
     {
         $user = $this->actingMemberWithPoints(150);
+        $this->purchaseKompendiumForUser($user);
 
         Storage::fake('private');
 
@@ -103,6 +120,7 @@ class KompendiumSearchTest extends TestCase
     public function test_search_filters_by_serien_parameter(): void
     {
         $user = $this->actingMemberWithPoints(150);
+        $this->purchaseKompendiumForUser($user);
 
         Storage::fake('private');
         Storage::disk('private')->put('romane/maddrax/001 - MaddraxRoman.txt', 'Content maddrax');
@@ -144,6 +162,7 @@ class KompendiumSearchTest extends TestCase
     public function test_search_returns_all_serien_when_no_filter(): void
     {
         $user = $this->actingMemberWithPoints(150);
+        $this->purchaseKompendiumForUser($user);
 
         Storage::fake('private');
         Storage::disk('private')->put('romane/maddrax/001 - MaddraxRoman.txt', 'Content maddrax');
@@ -175,6 +194,7 @@ class KompendiumSearchTest extends TestCase
     public function test_search_validates_invalid_serien_parameter(): void
     {
         $user = $this->actingMemberWithPoints(150);
+        $this->purchaseKompendiumForUser($user);
 
         // Ungültige Serie "invalid-serie" sollte Validierungsfehler auslösen
         $response = $this->getJson('/kompendium/suche?q=test&serien[]=invalid-serie');
@@ -186,6 +206,7 @@ class KompendiumSearchTest extends TestCase
     public function test_search_accepts_valid_serien_parameter(): void
     {
         $user = $this->actingMemberWithPoints(150);
+        $this->purchaseKompendiumForUser($user);
 
         Storage::fake('private');
 
@@ -208,6 +229,7 @@ class KompendiumSearchTest extends TestCase
     public function test_search_ignores_path_traversal_attempts(): void
     {
         $user = $this->actingMemberWithPoints(150);
+        $this->purchaseKompendiumForUser($user);
 
         Storage::fake('private');
         // Legitime Datei erstellen
@@ -245,6 +267,7 @@ class KompendiumSearchTest extends TestCase
     public function test_search_paginates_results_correctly(): void
     {
         $user = $this->actingMemberWithPoints(150);
+        $this->purchaseKompendiumForUser($user);
 
         Storage::fake('private');
 
@@ -288,6 +311,7 @@ class KompendiumSearchTest extends TestCase
     public function test_search_generates_snippets_with_mark_highlighting(): void
     {
         $user = $this->actingMemberWithPoints(150);
+        $this->purchaseKompendiumForUser($user);
 
         Storage::fake('private');
         Storage::disk('private')->put(
@@ -324,6 +348,7 @@ class KompendiumSearchTest extends TestCase
     public function test_search_skips_files_that_no_longer_exist(): void
     {
         $user = $this->actingMemberWithPoints(150);
+        $this->purchaseKompendiumForUser($user);
 
         Storage::fake('private');
         // Nur eine von zwei Dateien existiert
@@ -359,6 +384,7 @@ class KompendiumSearchTest extends TestCase
     public function test_search_handles_multiple_serien_filters(): void
     {
         $user = $this->actingMemberWithPoints(150);
+        $this->purchaseKompendiumForUser($user);
 
         Storage::fake('private');
         Storage::disk('private')->put('romane/maddrax/001 - MaddraxRoman.txt', 'Content testterm maddrax');
@@ -402,6 +428,7 @@ class KompendiumSearchTest extends TestCase
     public function test_search_handles_filename_without_separator(): void
     {
         $user = $this->actingMemberWithPoints(150);
+        $this->purchaseKompendiumForUser($user);
 
         Storage::fake('private');
         Storage::disk('private')->put('romane/maddrax/BadFormat.txt', 'Some badformat content');
@@ -433,6 +460,7 @@ class KompendiumSearchTest extends TestCase
     public function test_search_response_contains_all_required_fields(): void
     {
         $user = $this->actingMemberWithPoints(150);
+        $this->purchaseKompendiumForUser($user);
 
         Storage::fake('private');
         Storage::disk('private')->put('romane/maddrax/001 - TestRoman.txt', 'Content structtest');
@@ -467,6 +495,7 @@ class KompendiumSearchTest extends TestCase
     public function test_search_returns_empty_data_beyond_last_page(): void
     {
         $user = $this->actingMemberWithPoints(150);
+        $this->purchaseKompendiumForUser($user);
 
         Storage::fake('private');
         Storage::disk('private')->put('romane/maddrax/001 - OnlyOne.txt', 'Content pagetest');

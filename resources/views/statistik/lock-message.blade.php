@@ -1,6 +1,16 @@
 {{-- resources/views/statistik/lock-message.blade.php --}}
-<div class="absolute inset-0 flex flex-col items-center justify-center bg-base-100/70 backdrop-blur-sm text-sm text-base-content text-center space-y-1">
-    <p>Diese Statistik wird ab <strong>{{ $min }} Baxx</strong> freigeschaltet.</p>
-    <p>Dein aktueller Stand: <span class="font-semibold">{{ $userPoints }}</span>.</p>
-</div>
+@php
+    $slug = 'statistik-' . $sectionId;
+    $reward = $statistikRewards->get($slug);
+    $isLocked = $reward && !in_array($slug, $unlockedSlugs);
+@endphp
+
+@if($isLocked)
+    @livewire('statistik-kauf-overlay', [
+        'rewardId' => $reward->id,
+        'costBaxx' => $reward->cost_baxx,
+        'availableBaxx' => $availableBaxx,
+        'sectionId' => $sectionId,
+    ], key('overlay-' . $sectionId))
+@endif
 
