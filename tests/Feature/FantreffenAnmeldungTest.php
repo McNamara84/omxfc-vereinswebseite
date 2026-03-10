@@ -6,6 +6,7 @@ use App\Models\FantreffenAnmeldung;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 
@@ -41,6 +42,7 @@ class FantreffenAnmeldungTest extends TestCase
 
     public function test_guest_can_register_with_tshirt()
     {
+        Carbon::setTestNow(Carbon::create(2026, 2, 15, 12));
         Mail::fake();
         $response = $this->post('/maddrax-fantreffen-2026', [
             'vorname' => 'Max',
