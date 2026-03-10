@@ -265,6 +265,7 @@ class StatistikTest extends TestCase
     {
         $this->createDataFile();
         $user = $this->actingMemberWithPoints(11);
+        $this->purchaseStatistikReward($user, 'maddraxikon-bewertungen', 'top-romane');
         $this->actingAs($user);
 
         $response = $this->get('/statistiken');
