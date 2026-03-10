@@ -11,7 +11,6 @@ use Illuminate\View\View;
 /**
  * @deprecated Ersetzt durch \App\Livewire\BelohnungenIndex (aktives Kaufsystem).
  * Diese Klasse wird nicht mehr über Routen angesprochen und kann entfernt werden.
- *
  * @see \App\Livewire\BelohnungenIndex
  * @see \App\Livewire\BelohnungenAdmin
  */

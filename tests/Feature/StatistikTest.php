@@ -3,10 +3,10 @@
 namespace Tests\Feature;
 
 use App\Models\Book;
-use App\Models\Reward;
-use App\Models\RewardPurchase;
 use App\Models\Review;
 use App\Models\ReviewComment;
+use App\Models\Reward;
+use App\Models\RewardPurchase;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -250,18 +250,17 @@ class StatistikTest extends TestCase
     private function purchaseStatistikReward(User $user, string ...$sectionIds): void
     {
         foreach ($sectionIds as $sectionId) {
-            $slug = 'statistik-' . $sectionId;
-            $reward = Reward::where('slug', $slug)->first();
-            if ($reward) {
-                RewardPurchase::create([
-                    'user_id' => $user->id,
-                    'reward_id' => $reward->id,
-                    'cost_baxx' => $reward->cost_baxx,
-                    'purchased_at' => now(),
-                ]);
-            }
+            $slug = 'statistik-'.$sectionId;
+            $reward = Reward::where('slug', $slug)->firstOrFail();
+            RewardPurchase::create([
+                'user_id' => $user->id,
+                'reward_id' => $reward->id,
+                'cost_baxx' => $reward->cost_baxx,
+                'purchased_at' => now(),
+            ]);
         }
     }
+
     public function test_statistics_page_shows_computed_values(): void
     {
         $this->createDataFile();
@@ -281,7 +280,7 @@ class StatistikTest extends TestCase
     {
         $this->createDataFile();
         $user = $this->actingMemberWithPoints(10);
-                $this->purchaseStatistikReward($user, 'author-chart');
+        $this->purchaseStatistikReward($user, 'author-chart');
         $this->actingAs($user);
 
         $response = $this->get('/statistiken');
@@ -289,6 +288,7 @@ class StatistikTest extends TestCase
         $response->assertOk();
         $response->assertSee('Top 10 Autor');
         $response->assertSee('Author2');
+        $response->assertDontSee('statistik-purchase-author-chart');
     }
 
     public function test_top_author_statistic_locked_when_not_purchased(): void
@@ -320,7 +320,7 @@ class StatistikTest extends TestCase
     {
         $this->createDataFile();
         $user = $this->actingMemberWithPoints(4);
-                $this->purchaseStatistikReward($user, 'teamplayer');
+        $this->purchaseStatistikReward($user, 'teamplayer');
         $this->actingAs($user);
 
         $response = $this->get('/statistiken');
@@ -328,6 +328,7 @@ class StatistikTest extends TestCase
         $response->assertOk();
         $response->assertSee('Top Teamplayer');
         $response->assertSee('Author2');
+        $response->assertDontSee('statistik-purchase-teamplayer');
     }
 
     public function test_teamplayer_table_locked_when_not_purchased(): void
@@ -347,7 +348,7 @@ class StatistikTest extends TestCase
     {
         $this->createTeamplayerDataFile();
         $user = $this->actingMemberWithPoints(4);
-                $this->purchaseStatistikReward($user, 'teamplayer');
+        $this->purchaseStatistikReward($user, 'teamplayer');
         $this->actingAs($user);
 
         $response = $this->get('/statistiken');
@@ -386,7 +387,7 @@ class StatistikTest extends TestCase
     {
         $this->createDataFile();
         $user = $this->actingMemberWithPoints(16);
-                $this->purchaseStatistikReward($user, 'top-charaktere');
+        $this->purchaseStatistikReward($user, 'top-charaktere');
         $this->actingAs($user);
 
         $response = $this->get('/statistiken');
@@ -394,6 +395,7 @@ class StatistikTest extends TestCase
         $response->assertOk();
         $response->assertSee('Top 10 Charaktere');
         $response->assertSee('Char2');
+        $response->assertDontSee('statistik-purchase-top-charaktere');
     }
 
     public function test_character_statistic_locked_when_not_purchased(): void
@@ -415,7 +417,7 @@ class StatistikTest extends TestCase
         $team = Team::membersTeam();
 
         $viewer = $this->actingMemberWithPoints(12);
-                $this->purchaseStatistikReward($viewer, 'mitglieds-rezensionen');
+        $this->purchaseStatistikReward($viewer, 'mitglieds-rezensionen');
         $this->actingAs($viewer);
 
         $user2 = User::factory()->create(['current_team_id' => $team->id]);
@@ -462,7 +464,7 @@ class StatistikTest extends TestCase
     {
         $this->createDataFile();
         $user = $this->actingMemberWithPoints(21);
-                $this->purchaseStatistikReward($user, 'zyklus-afra');
+        $this->purchaseStatistikReward($user, 'zyklus-afra');
         $this->actingAs($user);
 
         $response = $this->get('/statistiken');
@@ -488,7 +490,7 @@ class StatistikTest extends TestCase
     {
         $this->createDataFile();
         $user = $this->actingMemberWithPoints(22);
-                $this->purchaseStatistikReward($user, 'zyklus-antarktis');
+        $this->purchaseStatistikReward($user, 'zyklus-antarktis');
         $this->actingAs($user);
 
         $response = $this->get('/statistiken');
@@ -514,7 +516,7 @@ class StatistikTest extends TestCase
     {
         $this->createDataFile();
         $user = $this->actingMemberWithPoints(23);
-                $this->purchaseStatistikReward($user, 'zyklus-schatten');
+        $this->purchaseStatistikReward($user, 'zyklus-schatten');
         $this->actingAs($user);
 
         $response = $this->get('/statistiken');
@@ -540,7 +542,7 @@ class StatistikTest extends TestCase
     {
         $this->createDataFile();
         $user = $this->actingMemberWithPoints(24);
-                $this->purchaseStatistikReward($user, 'zyklus-ursprung');
+        $this->purchaseStatistikReward($user, 'zyklus-ursprung');
         $this->actingAs($user);
 
         $response = $this->get('/statistiken');
@@ -566,7 +568,7 @@ class StatistikTest extends TestCase
     {
         $this->createDataFile();
         $user = $this->actingMemberWithPoints(25);
-                $this->purchaseStatistikReward($user, 'zyklus-streiter');
+        $this->purchaseStatistikReward($user, 'zyklus-streiter');
         $this->actingAs($user);
 
         $response = $this->get('/statistiken');
@@ -592,7 +594,7 @@ class StatistikTest extends TestCase
     {
         $this->createDataFile();
         $user = $this->actingMemberWithPoints(26);
-                $this->purchaseStatistikReward($user, 'zyklus-archivar');
+        $this->purchaseStatistikReward($user, 'zyklus-archivar');
         $this->actingAs($user);
 
         $response = $this->get('/statistiken');
@@ -618,7 +620,7 @@ class StatistikTest extends TestCase
     {
         $this->createDataFile();
         $user = $this->actingMemberWithPoints(27);
-                $this->purchaseStatistikReward($user, 'zyklus-zeitsprung');
+        $this->purchaseStatistikReward($user, 'zyklus-zeitsprung');
         $this->actingAs($user);
 
         $response = $this->get('/statistiken');
@@ -644,7 +646,7 @@ class StatistikTest extends TestCase
     {
         $this->createDataFile();
         $user = $this->actingMemberWithPoints(28);
-                $this->purchaseStatistikReward($user, 'zyklus-fremdwelt');
+        $this->purchaseStatistikReward($user, 'zyklus-fremdwelt');
         $this->actingAs($user);
 
         $response = $this->get('/statistiken');
@@ -670,7 +672,7 @@ class StatistikTest extends TestCase
     {
         $this->createDataFile();
         $user = $this->actingMemberWithPoints(29);
-                $this->purchaseStatistikReward($user, 'zyklus-parallelwelt');
+        $this->purchaseStatistikReward($user, 'zyklus-parallelwelt');
         $this->actingAs($user);
 
         $response = $this->get('/statistiken');
@@ -696,7 +698,7 @@ class StatistikTest extends TestCase
     {
         $this->createDataFile();
         $user = $this->actingMemberWithPoints(30);
-                $this->purchaseStatistikReward($user, 'zyklus-weltenriss');
+        $this->purchaseStatistikReward($user, 'zyklus-weltenriss');
         $this->actingAs($user);
 
         $response = $this->get('/statistiken');
@@ -722,7 +724,7 @@ class StatistikTest extends TestCase
     {
         $this->createDataFile();
         $user = $this->actingMemberWithPoints(31);
-                $this->purchaseStatistikReward($user, 'zyklus-amraka');
+        $this->purchaseStatistikReward($user, 'zyklus-amraka');
         $this->actingAs($user);
 
         $response = $this->get('/statistiken');
@@ -748,7 +750,7 @@ class StatistikTest extends TestCase
     {
         $this->createDataFile();
         $user = $this->actingMemberWithPoints(32);
-                $this->purchaseStatistikReward($user, 'zyklus-weltrat');
+        $this->purchaseStatistikReward($user, 'zyklus-weltrat');
         $this->actingAs($user);
 
         $response = $this->get('/statistiken');
@@ -775,7 +777,7 @@ class StatistikTest extends TestCase
         $this->createDataFile();
         $this->createHardcoversFile();
         $user = $this->actingMemberWithPoints(40);
-                $this->purchaseStatistikReward($user, 'hardcover-bewertungen');
+        $this->purchaseStatistikReward($user, 'hardcover-bewertungen');
         $this->actingAs($user);
 
         $response = $this->get('/statistiken');
@@ -803,7 +805,7 @@ class StatistikTest extends TestCase
         $this->createDataFile();
         $this->createHardcoversFile();
         $user = $this->actingMemberWithPoints(41);
-                $this->purchaseStatistikReward($user, 'hardcover-autoren');
+        $this->purchaseStatistikReward($user, 'hardcover-autoren');
         $this->actingAs($user);
 
         $response = $this->get('/statistiken');
@@ -830,7 +832,7 @@ class StatistikTest extends TestCase
     {
         $this->createDataFile();
         $user = $this->actingMemberWithPoints(42);
-                $this->purchaseStatistikReward($user, 'top-themen');
+        $this->purchaseStatistikReward($user, 'top-themen');
         $this->actingAs($user);
 
         $response = $this->get('/statistiken');
@@ -869,7 +871,7 @@ class StatistikTest extends TestCase
         file_put_contents($path, json_encode($data));
 
         $user = $this->actingMemberWithPoints(42);
-                $this->purchaseStatistikReward($user, 'top-themen');
+        $this->purchaseStatistikReward($user, 'top-themen');
         $this->actingAs($user);
 
         $response = $this->get('/statistiken');
@@ -884,7 +886,7 @@ class StatistikTest extends TestCase
         $this->createDataFile();
         $this->createMissionMarsFile();
         $user = $this->actingMemberWithPoints(44);
-                $this->purchaseStatistikReward($user, 'mission-mars-bewertungen', 'mission-mars-autoren');
+        $this->purchaseStatistikReward($user, 'mission-mars-bewertungen', 'mission-mars-autoren');
         $this->actingAs($user);
 
         $response = $this->get('/statistiken');
@@ -916,7 +918,7 @@ class StatistikTest extends TestCase
         $this->createDataFile();
         $this->createVolkDerTiefeFile();
         $user = $this->actingMemberWithPoints(46);
-                $this->purchaseStatistikReward($user, 'volk-der-tiefe-bewertungen', 'volk-der-tiefe-autoren');
+        $this->purchaseStatistikReward($user, 'volk-der-tiefe-bewertungen', 'volk-der-tiefe-autoren');
         $this->actingAs($user);
 
         $response = $this->get('/statistiken');
@@ -963,7 +965,7 @@ class StatistikTest extends TestCase
         $this->createDataFile();
         $this->createZweitausendzwoelfFile();
         $user = $this->actingMemberWithPoints(48);
-                $this->purchaseStatistikReward($user, 'zweitausendzwoelf-bewertungen', 'zweitausendzwoelf-autoren');
+        $this->purchaseStatistikReward($user, 'zweitausendzwoelf-bewertungen', 'zweitausendzwoelf-autoren');
         $this->actingAs($user);
 
         $response = $this->get('/statistiken');
@@ -1010,7 +1012,7 @@ class StatistikTest extends TestCase
         $this->createDataFile();
         $this->createAbenteurerFile();
         $user = $this->actingMemberWithPoints(34);
-                $this->purchaseStatistikReward($user, 'abenteurer-bewertungen', 'abenteurer-autoren');
+        $this->purchaseStatistikReward($user, 'abenteurer-bewertungen', 'abenteurer-autoren');
         $this->actingAs($user);
 
         $response = $this->get('/statistiken');
@@ -1071,7 +1073,7 @@ class StatistikTest extends TestCase
         file_put_contents($path, json_encode($data));
 
         $user = $this->actingMemberWithPoints(42);
-                $this->purchaseStatistikReward($user, 'top-themen');
+        $this->purchaseStatistikReward($user, 'top-themen');
         $this->actingAs($user);
 
         $response = $this->get('/statistiken');
@@ -1090,7 +1092,7 @@ class StatistikTest extends TestCase
         User::factory()->create(['lieblingsthema' => 'Thema2']);
         User::factory()->create(['lieblingsthema' => 'Thema3']);
         $user = $this->actingMemberWithPoints(50);
-                $this->purchaseStatistikReward($user, 'lieblingsthemen');
+        $this->purchaseStatistikReward($user, 'lieblingsthemen');
         $this->actingAs($user);
 
         $response = $this->get('/statistiken');

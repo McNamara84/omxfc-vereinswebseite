@@ -9,7 +9,6 @@ use App\Models\User;
 use App\Services\KompendiumSearchService;
 use App\Services\KompendiumService;
 use App\Services\RewardService;
-use App\Services\TeamPointService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -23,14 +22,10 @@ use Illuminate\View\View;
 class KompendiumController extends Controller
 {
     public function __construct(
-        private TeamPointService $teamPointService,
         private KompendiumService $kompendiumService,
         private KompendiumSearchService $searchService,
         private RewardService $rewardService
     ) {}
-
-    /** Mindest-Baxx-Kosten für das Kompendium (nur noch als Fallback-Anzeige) */
-    private const REQUIRED_POINTS = 100;
 
     /** Regex-Pattern für Pfad-Trennung (Windows-Backslash und Unix-Slash) */
     private const PATH_SEPARATOR_PATTERN = '#[\\\\\/]+#';
@@ -96,7 +91,7 @@ class KompendiumController extends Controller
         $hatZugang = $this->hatKompendiumZugang($user);
 
         // Kompendium-Reward aus der DB laden
-        $kompendiumReward = Reward::where('slug', 'kompendium')->where('is_active', true)->first();
+        $kompendiumReward = Reward::where('slug', 'kompendium')->first();
         $availableBaxx = $this->rewardService->getAvailableBaxx($user);
 
         // Zusammengefasste Übersicht (Maddrax-Zyklen konsolidiert, Miniserien als ein Eintrag)

@@ -247,7 +247,7 @@ class FanfictionControllerTest extends TestCase
     {
         $reward = Reward::create([
             'title' => $fanfiction->title,
-            'slug' => 'fanfiction-' . Str::slug($fanfiction->title) . '-' . $fanfiction->id,
+            'slug' => 'fanfiction-'.Str::slug($fanfiction->title).'-'.$fanfiction->id,
             'description' => Str::limit($fanfiction->content ?? '', 200),
             'category' => 'Fanfiction',
             'cost_baxx' => $costBaxx,

@@ -2,10 +2,10 @@
 @php
     $slug = 'statistik-' . $sectionId;
     $reward = $statistikRewards->get($slug);
-    $isLocked = $reward && !in_array($slug, $unlockedSlugs);
+    $isLocked = !in_array($slug, $unlockedSlugs, true);
 @endphp
 
-@if($isLocked)
+@if($isLocked && $reward)
     @livewire('statistik-kauf-overlay', [
         'rewardId' => $reward->id,
         'costBaxx' => $reward->cost_baxx,

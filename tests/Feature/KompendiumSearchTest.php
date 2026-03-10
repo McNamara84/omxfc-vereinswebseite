@@ -15,10 +15,7 @@ class KompendiumSearchTest extends TestCase
 
     private function purchaseKompendiumForUser(\App\Models\User $user): void
     {
-        $reward = \App\Models\Reward::where('slug', 'kompendium')->first();
-        if (! $reward) {
-            return;
-        }
+        $reward = \App\Models\Reward::where('slug', 'kompendium')->firstOrFail();
         \App\Models\RewardPurchase::create([
             'user_id' => $user->id,
             'reward_id' => $reward->id,

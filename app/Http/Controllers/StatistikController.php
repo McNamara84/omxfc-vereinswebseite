@@ -2,12 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Reward;
 use App\Models\Review;
+use App\Models\Reward;
 use App\Models\User;
 use App\Services\MaddraxDataService;
 use App\Services\RewardService;
-use App\Services\TeamPointService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
@@ -15,7 +14,6 @@ use Illuminate\View\View;
 class StatistikController extends Controller
 {
     public function __construct(
-        private TeamPointService $teamPointService,
         private MaddraxDataService $maddraxDataService,
         private RewardService $rewardService,
     ) {}
@@ -38,7 +36,6 @@ class StatistikController extends Controller
 
         // Alle Statistik-Rewards aus der DB laden (category = Statistiken)
         $statistikRewards = Reward::where('category', 'Statistiken')
-            ->where('is_active', true)
             ->get()
             ->keyBy('slug');
 

@@ -2,7 +2,6 @@
 
 namespace App\Livewire\Teams;
 
-use Illuminate\Support\Facades\Auth;
 use Laravel\Jetstream\Contracts\UpdatesTeamNames;
 use Laravel\Jetstream\Http\Livewire\UpdateTeamNameForm as JetstreamUpdateTeamNameForm;
 use Mary\Traits\Toast;

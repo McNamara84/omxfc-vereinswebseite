@@ -5,7 +5,6 @@ namespace Tests\Unit;
 use App\Http\Controllers\KompendiumController;
 use App\Services\KompendiumSearchService;
 use App\Services\KompendiumService;
-use App\Services\TeamPointService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Log;
 use PHPUnit\Framework\Attributes\CoversMethod;
@@ -33,7 +32,6 @@ class KompendiumPathValidationTest extends TestCase
 
         // Controller mit gemockten Dependencies erstellen
         $this->controller = new KompendiumController(
-            $this->createMock(TeamPointService::class),
             $this->createMock(KompendiumService::class),
             $this->createMock(KompendiumSearchService::class),
             $this->createMock(\App\Services\RewardService::class)

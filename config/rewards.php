@@ -10,7 +10,6 @@
  *             Laufzeit verwendet. Die darin enthaltenen Belohnungen werden jetzt
  *             in der Datenbank-Tabelle `rewards` verwaltet. Das Array dient nur
  *             noch als Referenz für den RewardSeeder.
- *
  * @see \App\Services\FanfictionService    Liest `fanfiction_default_cost_baxx`
  * @see \Database\Seeders\RewardSeeder     Verwendet das `legacy`-Array
  * @see \App\Models\Reward
@@ -27,230 +26,230 @@ return [
 
     /** @deprecated Nur als Referenz für RewardSeeder – nicht zur Laufzeit verwenden. */
     'legacy' => [
-    [
-        'title' => 'Mitgliederkarte',
-        'description' => 'Zeigt die Wohnorte der Vereinsmitglieder auf einer Karte.',
-        'points' => 1,
-    ],
-    [
-        'title' => 'Statistik - Maddrax-Romane je Autor:in',
-        'description' => 'Balkendiagramm mit der Anzahl Maddrax-Romane je Autor:in.',
-        'points' => 2,
-    ],
-    [
-        'title' => 'Downloads - Kurzgeschichte 1',
-        'description' => 'Exklusive MADDRAX-Kurzgeschichte "Das Flüstern der Vergangenheit" von Max T. Hardwet.',
-        'points' => 3,
-    ],
-    [
-        'title' => 'Statistik - Top Teamplayer',
-        'description' => 'Schaltet Statistik zu Autor:innen frei, die häufig gemeinsam mit anderen Autor:innen MADDRAX-Romane schreiben.',
-        'points' => 4,
-    ],
-    [
-        'title' => 'Statistik - Top MADDRAX-Romane',
-        'description' => 'Schaltet die Statistik zu den am besten bewerteten MADDRAX-Romanen im Maddraxikon frei.',
-        'points' => 5,
-    ],
-    [
-        'title' => 'Downloads - Euphoriewurm',
-        'description' => 'Exklusive Klemmbaustein-Bauanleitung für den Euphoriewurm aus MX 658.',
-        'points' => 6,
-    ],
-    [
-        'title' => 'Statistik - Top MADDRAX-Autor:innen',
-        'description' => 'Schaltet die Statistik zu den am besten bewerteten MADDRAX-Autoren frei.',
-        'points' => 7,
-    ],
-    [
-        'title' => 'Downloads - PROTO',
-        'description' => 'Exklusive Klemmbaustein-Bauanleitung für den Amphibienpanzer Prototyp XP-1.',
-        'points' => 8,
-    ],
-    [
-        'title' => 'Maddraxiversum',
-        'description' => 'Exklusiver Beta-Zugang zur interaktiven Karte der Erde im Maddraxiversum, erstellt durch die AG MAPDRAX.',
-        'points' => 9,
-    ],
-    [
-        'title' => 'Statistik - TOP MADDRAX-Charaktere',
-        'description' => 'Schaltet die Statistik zu den am besten bewerteten MADDRAX-Charakteren im Maddraxikon frei.',
-        'points' => 10,
-    ],
-    [
-        'title' => 'Statistik - Bewertungen im Maddraxikon',
-        'description' => 'Zeigt Durchschnittsbewertung, Stimmenanzahl und Ø-Stimmen pro Roman.',
-        'points' => 11,
-    ],
-    [
-        'title' => 'Statistik - Rezensionen unserer Mitglieder',
-        'description' => 'Zeigt Analysen rund um die Rezensionen im Verein.',
-        'points' => 12,
-    ],
-    [
-        'title' => 'Statistik - Bewertungen des Euree-Zyklus',
-        'description' => 'Zeigt Bewertungen des Euree-Zyklus aus dem Maddraxikon in einem Liniendiagramm.',
-        'points' => 13,
-    ],
-    [
-        'title' => 'Statistik - Bewertungen des Meeraka-Zyklus',
-        'description' => 'Zeigt Bewertungen des Meeraka-Zyklus aus dem Maddraxikon in einem Liniendiagramm.',
-        'points' => 14,
-    ],
-    [
-        'title' => 'Statistik - Bewertungen des Expeditions-Zyklus',
-        'description' => 'Zeigt Bewertungen des Expeditions-Zyklus aus dem Maddraxikon in einem Liniendiagramm.',
-        'points' => 15,
-    ],
-    [
-        'title' => 'Statistik - Bewertungen des Kratersee-Zyklus',
-        'description' => 'Zeigt Bewertungen des Kratersee-Zyklus aus dem Maddraxikon in einem Liniendiagramm.',
-        'points' => 16,
-    ],
-    [
-        'title' => 'Statistik - Bewertungen des Daa\'muren-Zyklus',
-        'description' => 'Zeigt Bewertungen des Daa\'muren-Zyklus aus dem Maddraxikon in einem Liniendiagramm.',
-        'points' => 17,
-    ],
-    [
-        'title' => 'Statistik - Bewertungen des Wandler-Zyklus',
-        'description' => 'Zeigt Bewertungen des Wandler-Zyklus aus dem Maddraxikon in einem Liniendiagramm.',
-        'points' => 18,
-    ],
-    [
-        'title' => 'Statistik - Bewertungen des Mars-Zyklus',
-        'description' => 'Zeigt Bewertungen des Mars-Zyklus aus dem Maddraxikon in einem Liniendiagramm.',
-        'points' => 19,
-    ],
-    [
-        'title' => 'Statistik - Bewertungen des Ausala-Zyklus',
-        'description' => 'Zeigt Bewertungen des Ausala-Zyklus aus dem Maddraxikon in einem Liniendiagramm.',
-        'points' => 20,
-    ],
-    [
-        'title' => 'Statistik - Bewertungen des Afra-Zyklus',
-        'description' => 'Zeigt Bewertungen des Afra-Zyklus aus dem Maddraxikon in einem Liniendiagramm.',
-        'points' => 21,
-    ],
-    [
-        'title' => 'Statistik - Bewertungen des Antarktis-Zyklus',
-        'description' => 'Zeigt Bewertungen des Antarktis-Zyklus aus dem Maddraxikon in einem Liniendiagramm.',
-        'points' => 22,
-    ],
-    [
-        'title' => 'Statistik - Bewertungen des Schatten-Zyklus',
-        'description' => 'Zeigt Bewertungen des Schatten-Zyklus aus dem Maddraxikon in einem Liniendiagramm.',
-        'points' => 23,
-    ],
-    [
-        'title' => 'Statistik - Bewertungen des Ursprung-Zyklus',
-        'description' => 'Zeigt Bewertungen des Ursprung-Zyklus aus dem Maddraxikon in einem Liniendiagramm.',
-        'points' => 24,
-    ],
-    [
-        'title' => 'Statistik - Bewertungen des Streiter-Zyklus',
-        'description' => 'Zeigt Bewertungen des Streiter-Zyklus aus dem Maddraxikon in einem Liniendiagramm.',
-        'points' => 25,
-    ],
-    [
-        'title' => 'Statistik - Bewertungen des Archivar-Zyklus',
-        'description' => 'Zeigt Bewertungen des Archivar-Zyklus aus dem Maddraxikon in einem Liniendiagramm.',
-        'points' => 26,
-    ],
-    [
-        'title' => 'Statistik - Bewertungen des Zeitsprung-Zyklus',
-        'description' => 'Zeigt Bewertungen des Zeitsprung-Zyklus aus dem Maddraxikon in einem Liniendiagramm.',
-        'points' => 27,
-    ],
-    [
-        'title' => 'Statistik - Bewertungen des Fremdwelt-Zyklus',
-        'description' => 'Zeigt Bewertungen des Fremdwelt-Zyklus aus dem Maddraxikon in einem Liniendiagramm.',
-        'points' => 28,
-    ],
-    [
-        'title' => 'Statistik - Bewertungen des Parallelwelt-Zyklus',
-        'description' => 'Zeigt Bewertungen des Parallelwelt-Zyklus aus dem Maddraxikon in einem Liniendiagramm.',
-        'points' => 29,
-    ],
-    [
-        'title' => 'Statistik - Bewertungen des Weltenriss-Zyklus',
-        'description' => 'Zeigt Bewertungen des Weltenriss-Zyklus aus dem Maddraxikon in einem Liniendiagramm.',
-        'points' => 30,
-    ],
-    [
-        'title' => 'Statistik - Bewertungen des Amraka-Zyklus',
-        'description' => 'Zeigt Bewertungen des Amraka-Zyklus aus dem Maddraxikon in einem Liniendiagramm.',
-        'points' => 31,
-    ],
-    [
-        'title' => 'Statistik - Bewertungen des Weltrat-Zyklus',
-        'description' => 'Zeigt Bewertungen des Weltrat-Zyklus aus dem Maddraxikon in einem Liniendiagramm.',
-        'points' => 32,
-    ],
-    [
-        'title' => 'Statistik - Bewertungen der Die Abenteurer-Heftromane',
-        'description' => 'Zeigt Bewertungen der Die Abenteurer-Heftromane aus dem Maddraxikon in einem Liniendiagramm.',
-        'points' => 33,
-    ],
-    [
-        'title' => 'Statistik - Die Abenteurer-Heftromane je Autor:in',
-        'description' => 'Balkendiagramm mit der Anzahl der Die Abenteurer-Heftromane je Autor:in.',
-        'points' => 34,
-    ],
-    [
-        'title' => 'Statistik - Bewertungen der Hardcover',
-        'description' => 'Zeigt Bewertungen der Hardcover aus dem Maddraxikon in einem Liniendiagramm.',
-        'points' => 40,
-    ],
-    [
-        'title' => 'Statistik - Maddrax-Hardcover je Autor:in',
-        'description' => 'Balkendiagramm mit der Anzahl der Maddrax-Hardcover je Autor:in.',
-        'points' => 41,
-    ],
-    [
-        'title' => 'Statistik - TOP20 Maddrax-Themen',
-        'description' => 'Zeigt die 20 am besten bewerteten MADDRAX-Themen im Maddraxikon. Berücksichtigt nur Romane mit mindestens 8 Bewertungen.',
-        'points' => 42,
-    ],
-    [
-        'title' => 'Statistik - Bewertungen der Mission Mars-Heftromane',
-        'description' => 'Zeigt Bewertungen der Mission Mars-Heftromane aus dem Maddraxikon in einem Liniendiagramm.',
-        'points' => 43,
-    ],
-    [
-        'title' => 'Statistik - Mission Mars-Heftromane je Autor:in',
-        'description' => 'Balkendiagramm mit der Anzahl der Mission Mars-Heftromane je Autor:in.',
-        'points' => 44,
-    ],
-    [
-        'title' => 'Statistik - Bewertungen der Das Volk der Tiefe-Heftromane',
-        'description' => 'Zeigt Bewertungen der Das Volk der Tiefe-Heftromane aus dem Maddraxikon in einem Liniendiagramm.',
-        'points' => 45,
-    ],
-    [
-        'title' => 'Statistik - Das Volk der Tiefe-Heftromane je Autor:in',
-        'description' => 'Balkendiagramm mit der Anzahl der Das Volk der Tiefe-Heftromane je Autor:in.',
-        'points' => 46,
-    ],
-    [
-        'title' => 'Statistik - Bewertungen der 2012-Heftromane',
-        'description' => 'Zeigt Bewertungen der 2012-Heftromane aus dem Maddraxikon in einem Liniendiagramm.',
-        'points' => 47,
-    ],
-    [
-        'title' => 'Statistik - 2012-Heftromane je Autor:in',
-        'description' => 'Balkendiagramm mit der Anzahl der 2012-Heftromane je Autor:in.',
-        'points' => 48,
-    ],
-    [
-        'title' => 'Statistik - TOP10 Lieblingsthemen',
-        'description' => 'Zeigt die beliebtesten Lieblingsthemen der Mitglieder.',
-        'points' => 50,
-    ],
-    [
-        'title' => 'Kompendium-Suche',
-        'description' => 'Erlaubt die Volltextsuche im Maddrax-Kompendium.',
-        'points' => 100,
-    ],
+        [
+            'title' => 'Mitgliederkarte',
+            'description' => 'Zeigt die Wohnorte der Vereinsmitglieder auf einer Karte.',
+            'points' => 1,
+        ],
+        [
+            'title' => 'Statistik - Maddrax-Romane je Autor:in',
+            'description' => 'Balkendiagramm mit der Anzahl Maddrax-Romane je Autor:in.',
+            'points' => 2,
+        ],
+        [
+            'title' => 'Downloads - Kurzgeschichte 1',
+            'description' => 'Exklusive MADDRAX-Kurzgeschichte "Das Flüstern der Vergangenheit" von Max T. Hardwet.',
+            'points' => 3,
+        ],
+        [
+            'title' => 'Statistik - Top Teamplayer',
+            'description' => 'Schaltet Statistik zu Autor:innen frei, die häufig gemeinsam mit anderen Autor:innen MADDRAX-Romane schreiben.',
+            'points' => 4,
+        ],
+        [
+            'title' => 'Statistik - Top MADDRAX-Romane',
+            'description' => 'Schaltet die Statistik zu den am besten bewerteten MADDRAX-Romanen im Maddraxikon frei.',
+            'points' => 5,
+        ],
+        [
+            'title' => 'Downloads - Euphoriewurm',
+            'description' => 'Exklusive Klemmbaustein-Bauanleitung für den Euphoriewurm aus MX 658.',
+            'points' => 6,
+        ],
+        [
+            'title' => 'Statistik - Top MADDRAX-Autor:innen',
+            'description' => 'Schaltet die Statistik zu den am besten bewerteten MADDRAX-Autoren frei.',
+            'points' => 7,
+        ],
+        [
+            'title' => 'Downloads - PROTO',
+            'description' => 'Exklusive Klemmbaustein-Bauanleitung für den Amphibienpanzer Prototyp XP-1.',
+            'points' => 8,
+        ],
+        [
+            'title' => 'Maddraxiversum',
+            'description' => 'Exklusiver Beta-Zugang zur interaktiven Karte der Erde im Maddraxiversum, erstellt durch die AG MAPDRAX.',
+            'points' => 9,
+        ],
+        [
+            'title' => 'Statistik - TOP MADDRAX-Charaktere',
+            'description' => 'Schaltet die Statistik zu den am besten bewerteten MADDRAX-Charakteren im Maddraxikon frei.',
+            'points' => 10,
+        ],
+        [
+            'title' => 'Statistik - Bewertungen im Maddraxikon',
+            'description' => 'Zeigt Durchschnittsbewertung, Stimmenanzahl und Ø-Stimmen pro Roman.',
+            'points' => 11,
+        ],
+        [
+            'title' => 'Statistik - Rezensionen unserer Mitglieder',
+            'description' => 'Zeigt Analysen rund um die Rezensionen im Verein.',
+            'points' => 12,
+        ],
+        [
+            'title' => 'Statistik - Bewertungen des Euree-Zyklus',
+            'description' => 'Zeigt Bewertungen des Euree-Zyklus aus dem Maddraxikon in einem Liniendiagramm.',
+            'points' => 13,
+        ],
+        [
+            'title' => 'Statistik - Bewertungen des Meeraka-Zyklus',
+            'description' => 'Zeigt Bewertungen des Meeraka-Zyklus aus dem Maddraxikon in einem Liniendiagramm.',
+            'points' => 14,
+        ],
+        [
+            'title' => 'Statistik - Bewertungen des Expeditions-Zyklus',
+            'description' => 'Zeigt Bewertungen des Expeditions-Zyklus aus dem Maddraxikon in einem Liniendiagramm.',
+            'points' => 15,
+        ],
+        [
+            'title' => 'Statistik - Bewertungen des Kratersee-Zyklus',
+            'description' => 'Zeigt Bewertungen des Kratersee-Zyklus aus dem Maddraxikon in einem Liniendiagramm.',
+            'points' => 16,
+        ],
+        [
+            'title' => 'Statistik - Bewertungen des Daa\'muren-Zyklus',
+            'description' => 'Zeigt Bewertungen des Daa\'muren-Zyklus aus dem Maddraxikon in einem Liniendiagramm.',
+            'points' => 17,
+        ],
+        [
+            'title' => 'Statistik - Bewertungen des Wandler-Zyklus',
+            'description' => 'Zeigt Bewertungen des Wandler-Zyklus aus dem Maddraxikon in einem Liniendiagramm.',
+            'points' => 18,
+        ],
+        [
+            'title' => 'Statistik - Bewertungen des Mars-Zyklus',
+            'description' => 'Zeigt Bewertungen des Mars-Zyklus aus dem Maddraxikon in einem Liniendiagramm.',
+            'points' => 19,
+        ],
+        [
+            'title' => 'Statistik - Bewertungen des Ausala-Zyklus',
+            'description' => 'Zeigt Bewertungen des Ausala-Zyklus aus dem Maddraxikon in einem Liniendiagramm.',
+            'points' => 20,
+        ],
+        [
+            'title' => 'Statistik - Bewertungen des Afra-Zyklus',
+            'description' => 'Zeigt Bewertungen des Afra-Zyklus aus dem Maddraxikon in einem Liniendiagramm.',
+            'points' => 21,
+        ],
+        [
+            'title' => 'Statistik - Bewertungen des Antarktis-Zyklus',
+            'description' => 'Zeigt Bewertungen des Antarktis-Zyklus aus dem Maddraxikon in einem Liniendiagramm.',
+            'points' => 22,
+        ],
+        [
+            'title' => 'Statistik - Bewertungen des Schatten-Zyklus',
+            'description' => 'Zeigt Bewertungen des Schatten-Zyklus aus dem Maddraxikon in einem Liniendiagramm.',
+            'points' => 23,
+        ],
+        [
+            'title' => 'Statistik - Bewertungen des Ursprung-Zyklus',
+            'description' => 'Zeigt Bewertungen des Ursprung-Zyklus aus dem Maddraxikon in einem Liniendiagramm.',
+            'points' => 24,
+        ],
+        [
+            'title' => 'Statistik - Bewertungen des Streiter-Zyklus',
+            'description' => 'Zeigt Bewertungen des Streiter-Zyklus aus dem Maddraxikon in einem Liniendiagramm.',
+            'points' => 25,
+        ],
+        [
+            'title' => 'Statistik - Bewertungen des Archivar-Zyklus',
+            'description' => 'Zeigt Bewertungen des Archivar-Zyklus aus dem Maddraxikon in einem Liniendiagramm.',
+            'points' => 26,
+        ],
+        [
+            'title' => 'Statistik - Bewertungen des Zeitsprung-Zyklus',
+            'description' => 'Zeigt Bewertungen des Zeitsprung-Zyklus aus dem Maddraxikon in einem Liniendiagramm.',
+            'points' => 27,
+        ],
+        [
+            'title' => 'Statistik - Bewertungen des Fremdwelt-Zyklus',
+            'description' => 'Zeigt Bewertungen des Fremdwelt-Zyklus aus dem Maddraxikon in einem Liniendiagramm.',
+            'points' => 28,
+        ],
+        [
+            'title' => 'Statistik - Bewertungen des Parallelwelt-Zyklus',
+            'description' => 'Zeigt Bewertungen des Parallelwelt-Zyklus aus dem Maddraxikon in einem Liniendiagramm.',
+            'points' => 29,
+        ],
+        [
+            'title' => 'Statistik - Bewertungen des Weltenriss-Zyklus',
+            'description' => 'Zeigt Bewertungen des Weltenriss-Zyklus aus dem Maddraxikon in einem Liniendiagramm.',
+            'points' => 30,
+        ],
+        [
+            'title' => 'Statistik - Bewertungen des Amraka-Zyklus',
+            'description' => 'Zeigt Bewertungen des Amraka-Zyklus aus dem Maddraxikon in einem Liniendiagramm.',
+            'points' => 31,
+        ],
+        [
+            'title' => 'Statistik - Bewertungen des Weltrat-Zyklus',
+            'description' => 'Zeigt Bewertungen des Weltrat-Zyklus aus dem Maddraxikon in einem Liniendiagramm.',
+            'points' => 32,
+        ],
+        [
+            'title' => 'Statistik - Bewertungen der Die Abenteurer-Heftromane',
+            'description' => 'Zeigt Bewertungen der Die Abenteurer-Heftromane aus dem Maddraxikon in einem Liniendiagramm.',
+            'points' => 33,
+        ],
+        [
+            'title' => 'Statistik - Die Abenteurer-Heftromane je Autor:in',
+            'description' => 'Balkendiagramm mit der Anzahl der Die Abenteurer-Heftromane je Autor:in.',
+            'points' => 34,
+        ],
+        [
+            'title' => 'Statistik - Bewertungen der Hardcover',
+            'description' => 'Zeigt Bewertungen der Hardcover aus dem Maddraxikon in einem Liniendiagramm.',
+            'points' => 40,
+        ],
+        [
+            'title' => 'Statistik - Maddrax-Hardcover je Autor:in',
+            'description' => 'Balkendiagramm mit der Anzahl der Maddrax-Hardcover je Autor:in.',
+            'points' => 41,
+        ],
+        [
+            'title' => 'Statistik - TOP20 Maddrax-Themen',
+            'description' => 'Zeigt die 20 am besten bewerteten MADDRAX-Themen im Maddraxikon. Berücksichtigt nur Romane mit mindestens 8 Bewertungen.',
+            'points' => 42,
+        ],
+        [
+            'title' => 'Statistik - Bewertungen der Mission Mars-Heftromane',
+            'description' => 'Zeigt Bewertungen der Mission Mars-Heftromane aus dem Maddraxikon in einem Liniendiagramm.',
+            'points' => 43,
+        ],
+        [
+            'title' => 'Statistik - Mission Mars-Heftromane je Autor:in',
+            'description' => 'Balkendiagramm mit der Anzahl der Mission Mars-Heftromane je Autor:in.',
+            'points' => 44,
+        ],
+        [
+            'title' => 'Statistik - Bewertungen der Das Volk der Tiefe-Heftromane',
+            'description' => 'Zeigt Bewertungen der Das Volk der Tiefe-Heftromane aus dem Maddraxikon in einem Liniendiagramm.',
+            'points' => 45,
+        ],
+        [
+            'title' => 'Statistik - Das Volk der Tiefe-Heftromane je Autor:in',
+            'description' => 'Balkendiagramm mit der Anzahl der Das Volk der Tiefe-Heftromane je Autor:in.',
+            'points' => 46,
+        ],
+        [
+            'title' => 'Statistik - Bewertungen der 2012-Heftromane',
+            'description' => 'Zeigt Bewertungen der 2012-Heftromane aus dem Maddraxikon in einem Liniendiagramm.',
+            'points' => 47,
+        ],
+        [
+            'title' => 'Statistik - 2012-Heftromane je Autor:in',
+            'description' => 'Balkendiagramm mit der Anzahl der 2012-Heftromane je Autor:in.',
+            'points' => 48,
+        ],
+        [
+            'title' => 'Statistik - TOP10 Lieblingsthemen',
+            'description' => 'Zeigt die beliebtesten Lieblingsthemen der Mitglieder.',
+            'points' => 50,
+        ],
+        [
+            'title' => 'Kompendium-Suche',
+            'description' => 'Erlaubt die Volltextsuche im Maddrax-Kompendium.',
+            'points' => 100,
+        ],
     ],
 ];

@@ -8,7 +8,6 @@ use App\Models\UserPoint;
 use Carbon\Carbon;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Auth;
 
 class TeamPointService
 {
