@@ -20,8 +20,10 @@
                     >
                         <span class="font-semibold leading-5">{{ $section['label'] }}</span>
                         @php($reward = ($statistikRewards ?? collect())->get('statistik-' . $section['id']))
-                        @if ($reward)
+                        @if ($reward && $reward->is_active)
                             <span class="text-xs text-base-content">{{ $reward->cost_baxx }} Baxx</span>
+                        @elseif ($reward && ! $reward->is_active)
+                            <span class="text-xs text-base-content/50">Derzeit nicht verfügbar</span>
                         @endif
                     </a>
                 </li>

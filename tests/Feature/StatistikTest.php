@@ -33,6 +33,13 @@ class StatistikTest extends TestCase
         File::ensureDirectoryExists($this->testStoragePath.'/app/private');
     }
 
+    private function expectedBaxxLabel(): string
+    {
+        $cost = Reward::where('category', 'Statistiken')->value('cost_baxx');
+
+        return $cost.' Baxx';
+    }
+
     protected function tearDown(): void
     {
         File::deleteDirectory($this->testStoragePath);
@@ -302,7 +309,7 @@ class StatistikTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('Diese Statistik kostet');
-        $response->assertSee('1 Baxx');
+        $response->assertSee($this->expectedBaxxLabel());
     }
 
     public function test_statistics_page_works_gracefully_when_file_missing(): void
@@ -310,7 +317,7 @@ class StatistikTest extends TestCase
         $user = $this->actingMemberWithPoints(11);
         $this->actingAs($user);
 
-        // Keine Testdateien erstellt - MaddraxDataService gibt leere Collections zurück
+        // Keine Testdateien erstellt - MaddraxDataService gibt leere Collections zurÃ¼ck
         $response = $this->get('/statistiken');
 
         // Seite sollte trotzdem laden (graceful degradation statt 500-Fehler)
@@ -342,7 +349,7 @@ class StatistikTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('Top Teamplayer');
-        $response->assertSee('1 Baxx');
+        $response->assertSee($this->expectedBaxxLabel());
     }
 
     public function test_teamplayer_table_limits_to_top_10(): void
@@ -409,7 +416,7 @@ class StatistikTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('Diese Statistik kostet');
-        $response->assertSee('1 Baxx');
+        $response->assertSee($this->expectedBaxxLabel());
     }
 
     public function test_review_statistics_visible_when_purchased(): void
@@ -458,7 +465,7 @@ class StatistikTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('Rezensionen unserer Mitglieder');
-        $response->assertSee('1 Baxx');
+        $response->assertSee($this->expectedBaxxLabel());
     }
 
     public function test_afra_cycle_chart_visible_when_purchased(): void
@@ -484,7 +491,7 @@ class StatistikTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('Bewertungen des Afra-Zyklus');
-        $response->assertSee('1 Baxx');
+        $response->assertSee($this->expectedBaxxLabel());
     }
 
     public function test_antarktis_cycle_chart_visible_when_purchased(): void
@@ -510,7 +517,7 @@ class StatistikTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('Bewertungen des Antarktis-Zyklus');
-        $response->assertSee('1 Baxx');
+        $response->assertSee($this->expectedBaxxLabel());
     }
 
     public function test_schatten_cycle_chart_visible_when_purchased(): void
@@ -536,7 +543,7 @@ class StatistikTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('Bewertungen des Schatten-Zyklus');
-        $response->assertSee('1 Baxx');
+        $response->assertSee($this->expectedBaxxLabel());
     }
 
     public function test_ursprung_cycle_chart_visible_when_purchased(): void
@@ -562,7 +569,7 @@ class StatistikTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('Bewertungen des Ursprung-Zyklus');
-        $response->assertSee('1 Baxx');
+        $response->assertSee($this->expectedBaxxLabel());
     }
 
     public function test_streiter_cycle_chart_visible_when_purchased(): void
@@ -588,7 +595,7 @@ class StatistikTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('Bewertungen des Streiter-Zyklus');
-        $response->assertSee('1 Baxx');
+        $response->assertSee($this->expectedBaxxLabel());
     }
 
     public function test_archivar_cycle_chart_visible_when_purchased(): void
@@ -614,7 +621,7 @@ class StatistikTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('Bewertungen des Archivar-Zyklus');
-        $response->assertSee('1 Baxx');
+        $response->assertSee($this->expectedBaxxLabel());
     }
 
     public function test_zeitsprung_cycle_chart_visible_when_purchased(): void
@@ -640,7 +647,7 @@ class StatistikTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('Bewertungen des Zeitsprung-Zyklus');
-        $response->assertSee('1 Baxx');
+        $response->assertSee($this->expectedBaxxLabel());
     }
 
     public function test_fremdwelt_cycle_chart_visible_when_purchased(): void
@@ -666,7 +673,7 @@ class StatistikTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('Bewertungen des Fremdwelt-Zyklus');
-        $response->assertSee('1 Baxx');
+        $response->assertSee($this->expectedBaxxLabel());
     }
 
     public function test_parallelwelt_cycle_chart_visible_when_purchased(): void
@@ -692,7 +699,7 @@ class StatistikTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('Bewertungen des Parallelwelt-Zyklus');
-        $response->assertSee('1 Baxx');
+        $response->assertSee($this->expectedBaxxLabel());
     }
 
     public function test_weltenriss_cycle_chart_visible_when_purchased(): void
@@ -718,7 +725,7 @@ class StatistikTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('Bewertungen des Weltenriss-Zyklus');
-        $response->assertSee('1 Baxx');
+        $response->assertSee($this->expectedBaxxLabel());
     }
 
     public function test_amraka_cycle_chart_visible_when_purchased(): void
@@ -744,7 +751,7 @@ class StatistikTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('Bewertungen des Amraka-Zyklus');
-        $response->assertSee('1 Baxx');
+        $response->assertSee($this->expectedBaxxLabel());
     }
 
     public function test_weltrat_cycle_chart_visible_when_purchased(): void
@@ -770,7 +777,7 @@ class StatistikTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('Bewertungen des Weltrat-Zyklus');
-        $response->assertSee('1 Baxx');
+        $response->assertSee($this->expectedBaxxLabel());
     }
 
     public function test_hardcover_chart_visible_when_purchased(): void
@@ -798,7 +805,7 @@ class StatistikTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('Bewertungen der Hardcover');
-        $response->assertSee('1 Baxx');
+        $response->assertSee($this->expectedBaxxLabel());
     }
 
     public function test_hardcover_author_chart_visible_when_purchased(): void
@@ -826,7 +833,7 @@ class StatistikTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('Maddrax-Hardcover je Autor:in');
-        $response->assertSee('1 Baxx');
+        $response->assertSee($this->expectedBaxxLabel());
     }
 
     public function test_top_themes_visible_when_purchased(): void
@@ -852,7 +859,7 @@ class StatistikTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('TOP20 Maddrax-Themen');
-        $response->assertSee('1 Baxx');
+        $response->assertSee($this->expectedBaxxLabel());
     }
 
     public function test_top_themes_ignore_books_with_few_votes(): void
@@ -911,7 +918,7 @@ class StatistikTest extends TestCase
         $response->assertOk();
         $response->assertSee('Bewertungen der Mission Mars-Heftromane');
         $response->assertSee('Mission Mars-Heftromane je Autor:in');
-        $response->assertSee('1 Baxx');
+        $response->assertSee($this->expectedBaxxLabel());
     }
 
     public function test_volk_der_tiefe_chart_visible_when_purchased(): void
@@ -943,7 +950,7 @@ class StatistikTest extends TestCase
         $response->assertOk();
         $response->assertSee('Bewertungen der Das Volk der Tiefe-Heftromane');
         $response->assertSee('Das Volk der Tiefe-Heftromane je Autor:in');
-        $response->assertSee('1 Baxx');
+        $response->assertSee($this->expectedBaxxLabel());
     }
 
     public function test_volk_der_tiefe_author_chart_locked_when_not_purchased(): void
@@ -958,7 +965,7 @@ class StatistikTest extends TestCase
         $response->assertOk();
         $response->assertSee('Bewertungen der Das Volk der Tiefe-Heftromane');
         $response->assertSee('Das Volk der Tiefe-Heftromane je Autor:in');
-        $response->assertSee('1 Baxx');
+        $response->assertSee($this->expectedBaxxLabel());
     }
 
     public function test_zweitausendzwoelf_chart_visible_when_purchased(): void
@@ -990,7 +997,7 @@ class StatistikTest extends TestCase
         $response->assertOk();
         $response->assertSee('Bewertungen der 2012-Heftromane');
         $response->assertSee('2012-Heftromane je Autor:in');
-        $response->assertSee('1 Baxx');
+        $response->assertSee($this->expectedBaxxLabel());
     }
 
     public function test_zweitausendzwoelf_author_chart_locked_when_not_purchased(): void
@@ -1005,7 +1012,7 @@ class StatistikTest extends TestCase
         $response->assertOk();
         $response->assertSee('Bewertungen der 2012-Heftromane');
         $response->assertSee('2012-Heftromane je Autor:in');
-        $response->assertSee('1 Baxx');
+        $response->assertSee($this->expectedBaxxLabel());
     }
 
     public function test_abenteurer_charts_visible_when_purchased(): void
@@ -1037,7 +1044,7 @@ class StatistikTest extends TestCase
         $response->assertOk();
         $response->assertSee('Bewertungen der Die Abenteurer-Heftromane');
         $response->assertSee('Die Abenteurer-Heftromane je Autor:in');
-        $response->assertSee('1 Baxx');
+        $response->assertSee($this->expectedBaxxLabel());
     }
 
     public function test_abenteurer_author_chart_locked_when_not_purchased(): void
@@ -1052,7 +1059,7 @@ class StatistikTest extends TestCase
         $response->assertOk();
         $response->assertSee('Bewertungen der Die Abenteurer-Heftromane');
         $response->assertSee('Die Abenteurer-Heftromane je Autor:in');
-        $response->assertSee('1 Baxx');
+        $response->assertSee($this->expectedBaxxLabel());
     }
 
     public function test_top_themes_require_minimum_book_count(): void
@@ -1115,7 +1122,7 @@ class StatistikTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('TOP10 Lieblingsthemen');
-        $response->assertSee('1 Baxx');
+        $response->assertSee($this->expectedBaxxLabel());
     }
 
     public function test_statistic_quick_navigation_lists_all_sections(): void

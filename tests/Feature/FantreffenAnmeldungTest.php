@@ -43,19 +43,22 @@ class FantreffenAnmeldungTest extends TestCase
     public function test_guest_can_register_with_tshirt()
     {
         Carbon::setTestNow(Carbon::create(2026, 2, 15, 12));
-        Mail::fake();
-        $response = $this->post('/maddrax-fantreffen-2026', [
-            'vorname' => 'Max',
-            'nachname' => 'Mustermann',
-            'email' => 'max@example.com',
-            'tshirt_bestellt' => true,
-            'tshirt_groesse' => 'L',
-        ]);
-        $response->assertRedirect();
-        $this->assertDatabaseHas('fantreffen_anmeldungen', [
-            'payment_amount' => 30.00,
-        ]);
-        Carbon::setTestNow();
+        try {
+            Mail::fake();
+            $response = $this->post('/maddrax-fantreffen-2026', [
+                'vorname' => 'Max',
+                'nachname' => 'Mustermann',
+                'email' => 'max@example.com',
+                'tshirt_bestellt' => true,
+                'tshirt_groesse' => 'L',
+            ]);
+            $response->assertRedirect();
+            $this->assertDatabaseHas('fantreffen_anmeldungen', [
+                'payment_amount' => 30.00,
+            ]);
+        } finally {
+            Carbon::setTestNow();
+        }
     }
 
     public function test_logged_in_member_can_register_without_payment()
