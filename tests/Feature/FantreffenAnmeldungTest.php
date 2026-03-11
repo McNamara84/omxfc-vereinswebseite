@@ -55,6 +55,7 @@ class FantreffenAnmeldungTest extends TestCase
         $this->assertDatabaseHas('fantreffen_anmeldungen', [
             'payment_amount' => 30.00,
         ]);
+        Carbon::setTestNow();
     }
 
     public function test_logged_in_member_can_register_without_payment()

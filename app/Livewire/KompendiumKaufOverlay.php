@@ -5,14 +5,18 @@ namespace App\Livewire;
 use App\Models\Reward;
 use App\Services\RewardService;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 
 class KompendiumKaufOverlay extends Component
 {
+    #[Locked]
     public int $rewardId;
 
+    #[Locked]
     public int $costBaxx;
 
+    #[Locked]
     public int $availableBaxx;
 
     public bool $purchased = false;

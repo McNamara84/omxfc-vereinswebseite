@@ -56,10 +56,13 @@ return new class extends Migration
 
     public function up(): void
     {
-        $defaultCost = config('rewards.statistik_default_cost_baxx', 1);
+        $defaultCost = (int) config('rewards.statistik_default_cost_baxx', 1);
+
+        $newSlugs = [];
 
         foreach ($this->getStatisticSections() as $sortOrder => $section) {
             $slug = 'statistik-'.$section['id'];
+            $newSlugs[] = $slug;
 
             $data = [
                 'title' => $section['label'],
@@ -77,6 +80,12 @@ return new class extends Migration
                 DB::table('rewards')->insert(array_merge(['slug' => $slug, 'created_at' => now()], $data));
             }
         }
+
+        // Legacy-Statistik-Rewards deaktivieren, die nicht mehr zu den neuen Slugs gehören
+        DB::table('rewards')
+            ->where('category', 'Statistiken')
+            ->whereNotIn('slug', $newSlugs)
+            ->update(['is_active' => false]);
     }
 
     public function down(): void

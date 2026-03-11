@@ -5,16 +5,21 @@ namespace App\Livewire;
 use App\Models\Reward;
 use App\Services\RewardService;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 
 class StatistikKaufOverlay extends Component
 {
+    #[Locked]
     public int $rewardId;
 
+    #[Locked]
     public int $costBaxx;
 
+    #[Locked]
     public int $availableBaxx;
 
+    #[Locked]
     public string $sectionId;
 
     public bool $purchased = false;
