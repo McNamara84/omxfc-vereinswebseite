@@ -95,11 +95,13 @@ return new class extends Migration
             $this->getStatisticSections()
         );
 
-        DB::table('rewards')->whereIn('slug', $slugs)->delete();
+        // Neue Rewards nur deaktivieren statt löschen – bewahrt Kaufhistorie (cascadeOnDelete)
+        DB::table('rewards')->whereIn('slug', $slugs)->update(['is_active' => false]);
 
         // Legacy-Statistik-Rewards reaktivieren (Gegenstück zu up())
         DB::table('rewards')
             ->where('category', 'Statistiken')
+            ->whereNotIn('slug', $slugs)
             ->update(['is_active' => true]);
     }
 };

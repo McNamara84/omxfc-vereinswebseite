@@ -9,12 +9,13 @@ use App\Models\RewardPurchase;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\CreatesUserWithRole;
 use Tests\TestCase;
 
 class KompendiumControllerTest extends TestCase
 {
+    use CreatesUserWithRole;
     use RefreshDatabase;
-    use \Tests\Concerns\CreatesUserWithRole;
 
     /**
      * Erstellt eine AG Maddraxikon und fügt den User als Mitglied hinzu.

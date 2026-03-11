@@ -442,8 +442,8 @@ class StatistikController extends Controller
         $avgCommentsPerReview = 0;
         $mostReviewedBook = null;
 
-        if ($currentTeam) {
-            $teamId = $currentTeam->id;
+        if ($user->currentTeam) {
+            $teamId = $user->currentTeam->id;
 
             $totalReviews = Review::where('team_id', $teamId)->count();
             $booksReviewed = Review::where('team_id', $teamId)

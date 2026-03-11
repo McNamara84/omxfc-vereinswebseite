@@ -7,9 +7,11 @@ return new class extends Migration
 {
     public function up(): void
     {
-        $slug = 'kompendium';
+        $newSlug = 'kompendium';
+        $legacySlug = 'kompendium-suche';
 
         $data = [
+            'slug' => $newSlug,
             'title' => 'Maddrax-Kompendium',
             'description' => 'Schaltet den Zugang zum Maddrax-Kompendium frei – eine umfassende Suchmaschine für das gesamte Maddrax-Universum.',
             'category' => 'Kompendium',
@@ -19,27 +21,27 @@ return new class extends Migration
             'updated_at' => now(),
         ];
 
-        if (DB::table('rewards')->where('slug', $slug)->exists()) {
-            DB::table('rewards')->where('slug', $slug)->update($data);
+        // Legacy-Reward umbenennen statt deaktivieren – so bleiben bestehende Käufe erhalten
+        if (DB::table('rewards')->where('slug', $legacySlug)->exists()) {
+            DB::table('rewards')->where('slug', $legacySlug)->update($data);
+        } elseif (DB::table('rewards')->where('slug', $newSlug)->exists()) {
+            DB::table('rewards')->where('slug', $newSlug)->update($data);
         } else {
-            DB::table('rewards')->insert(array_merge(['slug' => $slug, 'created_at' => now()], $data));
+            DB::table('rewards')->insert(array_merge(['created_at' => now()], $data));
         }
-
-        // Legacy-Reward "Kompendium-Suche" deaktivieren
-        DB::table('rewards')
-            ->where('slug', 'kompendium-suche')
-            ->update(['is_active' => false]);
     }
 
     public function down(): void
     {
+        // Reward zurückbenennen statt löschen – bewahrt Kaufhistorie (cascadeOnDelete)
         DB::table('rewards')
             ->where('slug', 'kompendium')
-            ->delete();
-
-        // Legacy-Reward reaktivieren (Gegenstück zu up())
-        DB::table('rewards')
-            ->where('slug', 'kompendium-suche')
-            ->update(['is_active' => true]);
+            ->update([
+                'slug' => 'kompendium-suche',
+                'title' => 'Kompendium-Suche',
+                'category' => 'Kompendium',
+                'is_active' => true,
+                'updated_at' => now(),
+            ]);
     }
 };

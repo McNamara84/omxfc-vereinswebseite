@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\Role;
 use App\Models\Book;
 use App\Models\Review;
 use App\Models\ReviewComment;
@@ -13,14 +14,15 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\File;
 use PHPUnit\Framework\Attributes\Large;
 use Tests\Concerns\CreatesMemberClientSnapshot;
+use Tests\Concerns\CreatesUserWithRole;
 use Tests\TestCase;
 
 #[Large]
 class StatistikTest extends TestCase
 {
     use CreatesMemberClientSnapshot;
+    use CreatesUserWithRole;
     use RefreshDatabase;
-    use \Tests\Concerns\CreatesUserWithRole;
 
     private string $testStoragePath;
 
@@ -430,8 +432,8 @@ class StatistikTest extends TestCase
 
         $user2 = User::factory()->create(['current_team_id' => $team->id]);
         $user3 = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($user2, ['role' => \App\Enums\Role::Mitglied->value]);
-        $team->users()->attach($user3, ['role' => \App\Enums\Role::Mitglied->value]);
+        $team->users()->attach($user2, ['role' => Role::Mitglied->value]);
+        $team->users()->attach($user3, ['role' => Role::Mitglied->value]);
 
         $book1 = Book::create(['roman_number' => 1, 'title' => 'B1', 'author' => 'A1']);
         $book2 = Book::create(['roman_number' => 2, 'title' => 'B2', 'author' => 'A2']);
