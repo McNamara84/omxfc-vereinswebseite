@@ -33,9 +33,9 @@ class StatistikTest extends TestCase
         File::ensureDirectoryExists($this->testStoragePath.'/app/private');
     }
 
-    private function expectedBaxxLabel(): string
+    private function expectedBaxxLabel(string $sectionId = 'author-chart'): string
     {
-        $cost = Reward::where('category', 'Statistiken')->value('cost_baxx');
+        $cost = Reward::where('slug', 'statistik-'.$sectionId)->value('cost_baxx');
 
         return $cost.' Baxx';
     }
@@ -317,7 +317,7 @@ class StatistikTest extends TestCase
         $user = $this->actingMemberWithPoints(11);
         $this->actingAs($user);
 
-        // Keine Testdateien erstellt - MaddraxDataService gibt leere Collections zurÃ¼ck
+        // Keine Testdateien erstellt - MaddraxDataService gibt leere Collections zurück
         $response = $this->get('/statistiken');
 
         // Seite sollte trotzdem laden (graceful degradation statt 500-Fehler)

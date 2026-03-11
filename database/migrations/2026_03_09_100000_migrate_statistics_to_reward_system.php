@@ -96,5 +96,10 @@ return new class extends Migration
         );
 
         DB::table('rewards')->whereIn('slug', $slugs)->delete();
+
+        // Legacy-Statistik-Rewards reaktivieren (Gegenstück zu up())
+        DB::table('rewards')
+            ->where('category', 'Statistiken')
+            ->update(['is_active' => true]);
     }
 };

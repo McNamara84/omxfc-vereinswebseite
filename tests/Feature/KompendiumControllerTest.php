@@ -366,6 +366,6 @@ class KompendiumControllerTest extends TestCase
         $response = $this->get('/kompendium');
 
         $response->assertOk();
-        $response->assertSee('Baxx');
+        $response->assertSee('kompendium-purchase-overlay');
     }
 }

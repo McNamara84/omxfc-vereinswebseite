@@ -22,13 +22,12 @@ class StatistikController extends Controller
      * Zeigt die Statistik-Unterseite.
      *
      * ▸ Card 1: Ø-Bewertung, Gesamt-Stimmen, Ø-Stimmen/Roman
-     * ▸ Card 2: Balkendiagramm „Romane je Autor“ (ab ≥ 1 Punkt)
+     * ▸ Card 2: Balkendiagramm „Romane je Autor" (per Baxx freischaltbar)
      */
     public function index(Request $request): View
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = Auth::user();
-        $currentTeam = $user->currentTeam;
 
         // ── Reward-basiertes Freischalten ──────────────────────────────────────
         $availableBaxx = $this->rewardService->getAvailableBaxx($user);

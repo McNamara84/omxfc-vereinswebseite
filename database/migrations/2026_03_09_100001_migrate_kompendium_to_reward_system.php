@@ -36,5 +36,10 @@ return new class extends Migration
         DB::table('rewards')
             ->where('slug', 'kompendium')
             ->delete();
+
+        // Legacy-Reward reaktivieren (Gegenstück zu up())
+        DB::table('rewards')
+            ->where('slug', 'kompendium-suche')
+            ->update(['is_active' => true]);
     }
 };
