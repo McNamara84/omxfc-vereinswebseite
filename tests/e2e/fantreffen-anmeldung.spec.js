@@ -40,18 +40,19 @@ test.describe('Fantreffen 2026 Anmeldung', () => {
         await page.fill('input[name="nachname"]', 'Mustermann');
         await page.fill('input[name="email"]', 'max.mustermann@example.com');
 
-        // Response des POST-Requests abfangen für Debugging
-        const [response] = await Promise.all([
-            page.waitForResponse(resp =>
-                resp.url().includes('maddrax-fantreffen-2026') &&
-                resp.request().method() === 'POST'
-            ),
-            page.getByTestId('fantreffen-submit').click(),
-        ]);
-        console.log(`POST response: ${response.status()} → ${response.headers()['location'] ?? 'no redirect'}`);
+        // Submit und auf Navigation warten
+        await page.getByTestId('fantreffen-submit').click();
+        await page.waitForLoadState('networkidle');
 
-        // Weiterleitung zur Bestätigungsseite
-        await page.waitForURL(/bestaetigung/, { timeout: 10000 });
+        // Diagnostik: URL und Seiteninhalt bei Fehler erfassen
+        const currentUrl = page.url();
+        if (!currentUrl.includes('bestaetigung')) {
+            const bodyText = await page.textContent('body');
+            throw new Error(
+                `Redirect zu /bestaetigung/ erwartet, aber aktuelle URL: ${currentUrl}\n\n` +
+                `Seiteninhalt (erste 3000 Zeichen):\n${bodyText?.substring(0, 3000)}`
+            );
+        }
     });
 
     test('T-Shirt Checkbox schaltet Größen-Dropdown korrekt um', async ({ page }) => {
