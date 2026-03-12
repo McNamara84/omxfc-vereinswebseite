@@ -244,20 +244,26 @@ class FantreffenAnmeldungTest extends TestCase
         Mail::fake();
         // Hohen Schwellenwert setzen, damit der Test deterministisch bleibt,
         // auch auf langsamen CI-Umgebungen (Token ist immer "zu frisch")
+        $originalValue = config('services.fantreffen.min_form_time');
         config(['services.fantreffen.min_form_time' => 9999]);
-        $token = Crypt::encryptString((string) time());
 
-        $response = $this->post('/maddrax-fantreffen-2026', [
-            'vorname' => 'Bot',
-            'nachname' => 'Fast',
-            'email' => 'fast@bot.com',
-            'website' => '',
-            '_form_token' => $token,
-        ]);
+        try {
+            $token = Crypt::encryptString((string) time());
 
-        $response->assertRedirect(route('fantreffen.2026'));
-        $response->assertSessionHasErrors('error');
-        $this->assertDatabaseMissing('fantreffen_anmeldungen', ['email' => 'fast@bot.com']);
+            $response = $this->post('/maddrax-fantreffen-2026', [
+                'vorname' => 'Bot',
+                'nachname' => 'Fast',
+                'email' => 'fast@bot.com',
+                'website' => '',
+                '_form_token' => $token,
+            ]);
+
+            $response->assertRedirect(route('fantreffen.2026'));
+            $response->assertSessionHasErrors('error');
+            $this->assertDatabaseMissing('fantreffen_anmeldungen', ['email' => 'fast@bot.com']);
+        } finally {
+            config(['services.fantreffen.min_form_time' => $originalValue]);
+        }
     }
 
     public function test_missing_form_token_is_rejected(): void
@@ -357,5 +363,36 @@ class FantreffenAnmeldungTest extends TestCase
         $response->assertStatus(200);
         $response->assertSee('name="website"', false);
         $response->assertSee('name="_form_token"', false);
+    }
+
+    public function test_rate_limiter_blocks_after_five_requests(): void
+    {
+        Mail::fake();
+
+        // Rate Limiter für diesen Test gezielt aktivieren
+        config(['services.fantreffen.disable_rate_limit' => false]);
+
+        for ($i = 1; $i <= 5; $i++) {
+            $response = $this->post('/maddrax-fantreffen-2026', [
+                'vorname' => "User{$i}",
+                'nachname' => 'Test',
+                'email' => "user{$i}@example.com",
+                'website' => '',
+                '_form_token' => $this->validFormToken(),
+            ]);
+            $response->assertRedirect();
+            $response->assertSessionHasNoErrors();
+        }
+
+        // 6. Request sollte gedrosselt werden
+        $response = $this->post('/maddrax-fantreffen-2026', [
+            'vorname' => 'Blocked',
+            'nachname' => 'User',
+            'email' => 'blocked@example.com',
+            'website' => '',
+            '_form_token' => $this->validFormToken(),
+        ]);
+        $response->assertStatus(429);
+        $this->assertDatabaseMissing('fantreffen_anmeldungen', ['email' => 'blocked@example.com']);
     }
 }

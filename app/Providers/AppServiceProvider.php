@@ -38,9 +38,9 @@ class AppServiceProvider extends ServiceProvider
             $this->app['request']->server->set('HTTPS', true);
         }
 
-        // Rate Limiter für Fantreffen-Anmeldung (deaktiviert in Tests)
+        // Rate Limiter für Fantreffen-Anmeldung (deaktivierbar via Config für Tests)
         RateLimiter::for('fantreffen-registration', function ($request) {
-            if ($this->app->environment('testing')) {
+            if (config('services.fantreffen.disable_rate_limit')) {
                 return Limit::none();
             }
 

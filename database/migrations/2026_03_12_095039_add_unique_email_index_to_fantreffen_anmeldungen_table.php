@@ -14,8 +14,10 @@ return new class extends Migration
     {
         // Duplikate bereinigen bevor der Unique-Index angelegt wird:
         // Pro E-Mail wird nur die älteste Anmeldung (kleinste ID) behalten.
+        // NULL-E-Mails vom Deduplizieren ausschließen (nullable-Spalte)
         $duplicates = DB::table('fantreffen_anmeldungen')
             ->select('email')
+            ->whereNotNull('email')
             ->groupBy('email')
             ->havingRaw('COUNT(*) > 1')
             ->pluck('email');

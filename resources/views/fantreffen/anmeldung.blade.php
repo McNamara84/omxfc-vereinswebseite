@@ -336,8 +336,8 @@
                                 <input type="text" name="website" id="website" value="" tabindex="-1" autocomplete="off" />
                             </div>
 
-                            {{-- Timing-Token --}}
-                            <input type="hidden" name="_form_token" value="{{ $formLoadedAt }}" />
+                            {{-- Timing-Token (bei Validierungsfehler den alten Token beibehalten) --}}
+                            <input type="hidden" name="_form_token" value="{{ old('_form_token', $formLoadedAt) }}" />
 
                             @guest
                                 <x-input label="Vorname *" name="vorname" :value="old('vorname')" required data-testid="fantreffen-vorname" />
