@@ -85,7 +85,7 @@ class KompendiumController extends Controller
     /* --------------------------------------------------------------------- */
     /*  GET /kompendium  – Übersichtsseite */
     /* --------------------------------------------------------------------- */
-    public function index(Request $request): View
+    public function index(): View
     {
         $user = Auth::user();
         $hatZugang = $this->hatKompendiumZugang($user);

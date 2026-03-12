@@ -7,7 +7,6 @@ use App\Models\Reward;
 use App\Models\User;
 use App\Services\MaddraxDataService;
 use App\Services\RewardService;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
@@ -24,7 +23,7 @@ class StatistikController extends Controller
      * ▸ Card 1: Ø-Bewertung, Gesamt-Stimmen, Ø-Stimmen/Roman
      * ▸ Card 2: Balkendiagramm „Romane je Autor" (per Baxx freischaltbar)
      */
-    public function index(Request $request): View
+    public function index(): View
     {
         /** @var User $user */
         $user = Auth::user();

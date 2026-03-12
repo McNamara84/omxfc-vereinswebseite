@@ -15,7 +15,7 @@
             </div>
 
             <div class="flex-1 space-y-6" data-statistik-sections-wrapper>
-                {{-- Card 1 – Balkendiagramm (≥ 2 Bakk) --}}
+                {{-- Card 1 – Balkendiagramm (≥ 2 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('author-chart'))
                 @php($sectionUnlocked = in_array('statistik-' . $section['id'], $unlockedSlugs, true))
                 <x-card

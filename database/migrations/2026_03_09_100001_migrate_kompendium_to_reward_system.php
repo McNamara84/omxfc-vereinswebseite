@@ -33,15 +33,23 @@ return new class extends Migration
 
     public function down(): void
     {
-        // Reward zurückbenennen statt löschen – bewahrt Kaufhistorie (cascadeOnDelete)
-        DB::table('rewards')
-            ->where('slug', 'kompendium')
-            ->update([
-                'slug' => 'kompendium-suche',
-                'title' => 'Kompendium-Suche',
-                'category' => 'Kompendium',
-                'is_active' => true,
-                'updated_at' => now(),
-            ]);
+        // Slug-Konflikt vermeiden: Falls 'kompendium-suche' bereits existiert,
+        // beide Datensätze konsolidieren (den älteren deaktivieren)
+        if (DB::table('rewards')->where('slug', 'kompendium-suche')->exists()) {
+            DB::table('rewards')
+                ->where('slug', 'kompendium')
+                ->update(['is_active' => false, 'updated_at' => now()]);
+        } else {
+            // Reward zurückbenennen statt löschen – bewahrt Kaufhistorie (cascadeOnDelete)
+            DB::table('rewards')
+                ->where('slug', 'kompendium')
+                ->update([
+                    'slug' => 'kompendium-suche',
+                    'title' => 'Kompendium-Suche',
+                    'category' => 'Kompendium',
+                    'is_active' => true,
+                    'updated_at' => now(),
+                ]);
+        }
     }
 };
