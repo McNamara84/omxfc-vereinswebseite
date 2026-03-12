@@ -54,12 +54,13 @@ class FantreffenController extends Controller
                 ->with('success', 'Deine Anmeldung wurde erfolgreich gespeichert!');
         }
 
-        // Timing-Check: Formular muss mindestens 3 Sekunden alt sein
+        // Timing-Check: Formular muss mindestens N Sekunden alt sein
+        $minFormTime = (int) env('FANTREFFEN_MIN_FORM_TIME', 3);
         $formToken = $request->input('_form_token');
-        if ($formToken) {
+        if ($formToken && $minFormTime > 0) {
             try {
                 $loadedAt = (int) Crypt::decryptString($formToken);
-                if (time() - $loadedAt < 3) {
+                if (time() - $loadedAt < $minFormTime) {
                     Log::warning('Fantreffen Anmeldung: Timing check failed', [
                         'ip' => $request->ip(),
                         'elapsed_seconds' => time() - $loadedAt,

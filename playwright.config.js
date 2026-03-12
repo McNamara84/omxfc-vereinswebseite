@@ -43,6 +43,7 @@ export default defineConfig({
       MAIL_MAILER: 'array',
       FORTIFY_DISABLE_LOGIN_RATE_LIMIT: 'true',
       FANTREFFEN_TSHIRT_DEADLINE: '2099-12-31 23:59:59',
+      FANTREFFEN_MIN_FORM_TIME: '0',
     },
   },
   use: {
