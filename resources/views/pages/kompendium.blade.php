@@ -48,8 +48,6 @@
                 @if($kompendiumReward && $kompendiumReward->is_active)
                     @livewire('kompendium-kauf-overlay', [
                         'rewardId' => $kompendiumReward->id,
-                        'costBaxx' => $kompendiumReward->cost_baxx,
-                        'availableBaxx' => $availableBaxx,
                     ])
                 @else
                     <x-alert icon="o-lock-closed" class="alert-warning mb-4">

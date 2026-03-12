@@ -5,6 +5,8 @@ namespace App\Livewire;
 use App\Models\Reward;
 use App\Services\RewardService;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
 
@@ -13,21 +15,25 @@ class KompendiumKaufOverlay extends Component
     #[Locked]
     public int $rewardId;
 
-    #[Locked]
-    public int $costBaxx;
-
-    #[Locked]
-    public int $availableBaxx;
-
     public bool $purchased = false;
 
     public string $errorMessage = '';
 
-    public function mount(int $rewardId, int $costBaxx, int $availableBaxx): void
+    public function mount(int $rewardId): void
     {
         $this->rewardId = $rewardId;
-        $this->costBaxx = $costBaxx;
-        $this->availableBaxx = $availableBaxx;
+    }
+
+    #[Computed]
+    public function costBaxx(): int
+    {
+        return Reward::find($this->rewardId)?->cost_baxx ?? 0;
+    }
+
+    #[Computed]
+    public function availableBaxx(): int
+    {
+        return app(RewardService::class)->getAvailableBaxx(Auth::user());
     }
 
     public function purchase(RewardService $rewardService): void
@@ -53,7 +59,7 @@ class KompendiumKaufOverlay extends Component
         try {
             $rewardService->purchaseReward($user, $reward);
             $this->purchased = true;
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             $this->errorMessage = collect($e->errors())->flatten()->first();
         }
     }

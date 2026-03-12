@@ -9,8 +9,6 @@
     @if($reward && $reward->is_active)
         @livewire('statistik-kauf-overlay', [
             'rewardId' => $reward->id,
-            'costBaxx' => $reward->cost_baxx,
-            'availableBaxx' => $availableBaxx,
             'sectionId' => $sectionId,
         ], key('overlay-' . $sectionId))
     @else

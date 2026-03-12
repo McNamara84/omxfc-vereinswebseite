@@ -39,7 +39,8 @@ function drawCycleChart(canvasId, labels, data) {
     const canvas = document.getElementById(canvasId);
     if (!canvas) return;
 
-    const validValues = data.filter((val) => Number.isFinite(val));
+    const normalizedData = data.map((val) => (Number.isFinite(val) ? val : null));
+    const validValues = normalizedData.filter((val) => val !== null);
     const average = validValues.length ? validValues.reduce((sum, val) => sum + val, 0) / validValues.length : 0;
     const averageData = Array(labels.length).fill(average);
 
@@ -52,7 +53,7 @@ function drawCycleChart(canvasId, labels, data) {
             labels,
             datasets: [
                 {
-                    data: data,
+                    data: normalizedData,
                     borderColor: 'rgba(139, 1, 22, .8)',
                     backgroundColor: 'rgba(139, 1, 22, .3)',
                     tension: 0.3,

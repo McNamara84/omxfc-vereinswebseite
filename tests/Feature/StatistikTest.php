@@ -319,7 +319,7 @@ class StatistikTest extends TestCase
         $user = $this->actingMemberWithPoints(11);
         $this->actingAs($user);
 
-        // Keine Testdateien erstellt - MaddraxDataService gibt leere Collections zurÃ¼ck
+        // Keine Testdateien erstellt - MaddraxDataService gibt leere Collections zurück
         $response = $this->get('/statistiken');
 
         // Seite sollte trotzdem laden (graceful degradation statt 500-Fehler)

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Livewire\KompendiumKaufOverlay;
 use App\Models\Reward;
 use App\Models\RewardPurchase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -19,10 +20,8 @@ class KompendiumKaufOverlayTest extends TestCase
         $user = $this->actingMemberWithPoints(10);
         $reward = Reward::factory()->create(['cost_baxx' => 5, 'slug' => 'kompendium-test']);
 
-        Livewire::test(\App\Livewire\KompendiumKaufOverlay::class, [
+        Livewire::test(KompendiumKaufOverlay::class, [
             'rewardId' => $reward->id,
-            'costBaxx' => $reward->cost_baxx,
-            'availableBaxx' => 10,
         ])
             ->call('purchase')
             ->assertSet('purchased', true)
@@ -40,10 +39,8 @@ class KompendiumKaufOverlayTest extends TestCase
         $this->actingMemberWithPoints(2);
         $reward = Reward::factory()->create(['cost_baxx' => 10, 'slug' => 'kompendium-expensive']);
 
-        Livewire::test(\App\Livewire\KompendiumKaufOverlay::class, [
+        Livewire::test(KompendiumKaufOverlay::class, [
             'rewardId' => $reward->id,
-            'costBaxx' => $reward->cost_baxx,
-            'availableBaxx' => 2,
         ])
             ->call('purchase')
             ->assertSet('purchased', false)
@@ -65,10 +62,8 @@ class KompendiumKaufOverlayTest extends TestCase
             'cost_baxx' => 5,
         ]);
 
-        Livewire::test(\App\Livewire\KompendiumKaufOverlay::class, [
+        Livewire::test(KompendiumKaufOverlay::class, [
             'rewardId' => $reward->id,
-            'costBaxx' => $reward->cost_baxx,
-            'availableBaxx' => 15,
         ])
             ->call('purchase')
             ->assertSet('purchased', false)
@@ -85,10 +80,8 @@ class KompendiumKaufOverlayTest extends TestCase
         $this->actingMemberWithPoints(20);
         $reward = Reward::factory()->inactive()->create(['cost_baxx' => 5, 'slug' => 'kompendium-inactive']);
 
-        Livewire::test(\App\Livewire\KompendiumKaufOverlay::class, [
+        Livewire::test(KompendiumKaufOverlay::class, [
             'rewardId' => $reward->id,
-            'costBaxx' => $reward->cost_baxx,
-            'availableBaxx' => 20,
         ])
             ->call('purchase')
             ->assertSet('purchased', false)

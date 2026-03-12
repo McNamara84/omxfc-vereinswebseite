@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Livewire\StatistikKaufOverlay;
 use App\Models\Reward;
 use App\Models\RewardPurchase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -19,10 +20,8 @@ class StatistikKaufOverlayTest extends TestCase
         $user = $this->actingMemberWithPoints(10);
         $reward = Reward::factory()->create(['cost_baxx' => 5, 'slug' => 'statistik-test']);
 
-        Livewire::test(\App\Livewire\StatistikKaufOverlay::class, [
+        Livewire::test(StatistikKaufOverlay::class, [
             'rewardId' => $reward->id,
-            'costBaxx' => $reward->cost_baxx,
-            'availableBaxx' => 10,
             'sectionId' => 'test-section',
         ])
             ->call('purchase')
@@ -41,10 +40,8 @@ class StatistikKaufOverlayTest extends TestCase
         $this->actingMemberWithPoints(2);
         $reward = Reward::factory()->create(['cost_baxx' => 10, 'slug' => 'statistik-expensive']);
 
-        Livewire::test(\App\Livewire\StatistikKaufOverlay::class, [
+        Livewire::test(StatistikKaufOverlay::class, [
             'rewardId' => $reward->id,
-            'costBaxx' => $reward->cost_baxx,
-            'availableBaxx' => 2,
             'sectionId' => 'test-section',
         ])
             ->call('purchase')
@@ -67,10 +64,8 @@ class StatistikKaufOverlayTest extends TestCase
             'cost_baxx' => 5,
         ]);
 
-        Livewire::test(\App\Livewire\StatistikKaufOverlay::class, [
+        Livewire::test(StatistikKaufOverlay::class, [
             'rewardId' => $reward->id,
-            'costBaxx' => $reward->cost_baxx,
-            'availableBaxx' => 15,
             'sectionId' => 'test-section',
         ])
             ->call('purchase')
@@ -88,10 +83,8 @@ class StatistikKaufOverlayTest extends TestCase
         $this->actingMemberWithPoints(20);
         $reward = Reward::factory()->inactive()->create(['cost_baxx' => 5, 'slug' => 'statistik-inactive']);
 
-        Livewire::test(\App\Livewire\StatistikKaufOverlay::class, [
+        Livewire::test(StatistikKaufOverlay::class, [
             'rewardId' => $reward->id,
-            'costBaxx' => $reward->cost_baxx,
-            'availableBaxx' => 20,
             'sectionId' => 'test-section',
         ])
             ->call('purchase')
