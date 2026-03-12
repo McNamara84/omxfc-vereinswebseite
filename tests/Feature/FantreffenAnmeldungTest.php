@@ -370,29 +370,34 @@ class FantreffenAnmeldungTest extends TestCase
         Mail::fake();
 
         // Rate Limiter für diesen Test gezielt aktivieren
+        $originalValue = config('services.fantreffen.disable_rate_limit');
         config(['services.fantreffen.disable_rate_limit' => false]);
 
-        for ($i = 1; $i <= 5; $i++) {
+        try {
+            for ($i = 1; $i <= 5; $i++) {
+                $response = $this->post('/maddrax-fantreffen-2026', [
+                    'vorname' => "User{$i}",
+                    'nachname' => 'Test',
+                    'email' => "user{$i}@example.com",
+                    'website' => '',
+                    '_form_token' => $this->validFormToken(),
+                ]);
+                $response->assertRedirect();
+                $response->assertSessionHasNoErrors();
+            }
+
+            // 6. Request sollte gedrosselt werden
             $response = $this->post('/maddrax-fantreffen-2026', [
-                'vorname' => "User{$i}",
-                'nachname' => 'Test',
-                'email' => "user{$i}@example.com",
+                'vorname' => 'Blocked',
+                'nachname' => 'User',
+                'email' => 'blocked@example.com',
                 'website' => '',
                 '_form_token' => $this->validFormToken(),
             ]);
-            $response->assertRedirect();
-            $response->assertSessionHasNoErrors();
+            $response->assertStatus(429);
+            $this->assertDatabaseMissing('fantreffen_anmeldungen', ['email' => 'blocked@example.com']);
+        } finally {
+            config(['services.fantreffen.disable_rate_limit' => $originalValue]);
         }
-
-        // 6. Request sollte gedrosselt werden
-        $response = $this->post('/maddrax-fantreffen-2026', [
-            'vorname' => 'Blocked',
-            'nachname' => 'User',
-            'email' => 'blocked@example.com',
-            'website' => '',
-            '_form_token' => $this->validFormToken(),
-        ]);
-        $response->assertStatus(429);
-        $this->assertDatabaseMissing('fantreffen_anmeldungen', ['email' => 'blocked@example.com']);
     }
 }
