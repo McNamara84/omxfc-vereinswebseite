@@ -23,6 +23,10 @@ class RewardSeeder extends Seeder
             $slug = Str::slug($title);
             $category = $this->deriveCategory($title);
 
+            // Statistik- und Kompendium-Legacy-Rewards werden per Migration mit
+            // neuen Slugs verwaltet – Legacy-Slugs daher inaktiv anlegen.
+            $isActive = ! in_array($category, ['Statistiken', 'Kompendium'], true);
+
             Reward::updateOrCreate(
                 ['slug' => $slug],
                 [
@@ -30,7 +34,7 @@ class RewardSeeder extends Seeder
                     'description' => $reward['description'],
                     'category' => $category,
                     'cost_baxx' => $reward['points'],
-                    'is_active' => true,
+                    'is_active' => $isActive,
                     'sort_order' => $sortOrder++,
                 ]
             );
