@@ -28,7 +28,9 @@ class KompendiumKaufOverlay extends Component
     {
         $this->rewardId = $rewardId;
         $this->costBaxx = Reward::find($rewardId)?->cost_baxx ?? 0;
-        $this->availableBaxx = app(RewardService::class)->getAvailableBaxx(Auth::user());
+
+        $user = Auth::user();
+        $this->availableBaxx = $user ? app(RewardService::class)->getAvailableBaxx($user) : 0;
     }
 
     public function purchase(RewardService $rewardService): void

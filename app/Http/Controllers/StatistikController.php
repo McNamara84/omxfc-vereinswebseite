@@ -29,7 +29,6 @@ class StatistikController extends Controller
         $user = Auth::user();
 
         // ── Reward-basiertes Freischalten ──────────────────────────────────────
-        $availableBaxx = $this->rewardService->getAvailableBaxx($user);
         $unlockedRewardIds = $this->rewardService->getUnlockedRewardIds($user);
 
         // Alle Statistik-Rewards aus der DB laden (category = Statistiken)
@@ -516,7 +515,6 @@ class StatistikController extends Controller
             'topAuthorRatings' => $topAuthorRatings,
             'topCharacters' => $topCharacters,
             'topThemes' => $topThemes,
-            'availableBaxx' => $availableBaxx,
             'unlockedSlugs' => $unlockedSlugs,
             'statistikRewards' => $statistikRewards,
             'romaneTable' => $romaneTable,

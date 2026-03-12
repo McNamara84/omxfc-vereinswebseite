@@ -62,8 +62,6 @@ return new class extends Migration
 
     public function up(): void
     {
-        $defaultCost = (int) config('rewards.statistik_default_cost_baxx', 1);
-
         // Bestehende Statistik-Rewards per Slug indexieren (für Legacy-Matching)
         $existingBySlug = DB::table('rewards')
             ->where('category', 'Statistiken')

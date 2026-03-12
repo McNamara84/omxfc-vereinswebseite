@@ -52,6 +52,16 @@ describe('statistik module', () => {
     expect(config.data.datasets[1].data).toEqual([5, 5, 5]);
   });
 
+  test('drawCycleChart normalizes NaN, Infinity and string values to null', () => {
+    document.body.innerHTML = '<canvas id="cycle"></canvas>';
+    drawCycleChart('cycle', ['A', 'B', 'C', 'D', 'E'], [3, NaN, Infinity, -Infinity, 7]);
+
+    const config = mockChart.mock.calls[0][1];
+    expect(config.data.datasets[0].data).toEqual([3, null, null, null, 7]);
+    // Durchschnitt nur aus den gültigen Werten 3 und 7
+    expect(config.data.datasets[1].data).toEqual([5, 5, 5, 5, 5]);
+  });
+
   test('drawAuthorChart does nothing when canvas missing', () => {
     drawAuthorChart('missing', ['A'], [1]);
     expect(mockChart).not.toHaveBeenCalled();

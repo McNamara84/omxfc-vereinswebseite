@@ -92,7 +92,6 @@ class KompendiumController extends Controller
 
         // Kompendium-Reward aus der DB laden
         $kompendiumReward = Reward::where('slug', 'kompendium')->first();
-        $availableBaxx = $this->rewardService->getAvailableBaxx($user);
 
         // Zusammengefasste Übersicht (Maddrax-Zyklen konsolidiert, Miniserien als ein Eintrag)
         $indexierteRomaneSummary = $this->kompendiumService->getZusammengefassteUebersicht();
@@ -103,7 +102,6 @@ class KompendiumController extends Controller
         return view('pages.kompendium', [
             'showSearch' => $hatZugang,
             'kompendiumReward' => $kompendiumReward,
-            'availableBaxx' => $availableBaxx,
             'indexierteRomaneSummary' => $indexierteRomaneSummary,
             'istAdmin' => $istAdmin,
         ]);
