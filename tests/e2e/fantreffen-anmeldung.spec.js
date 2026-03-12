@@ -40,6 +40,9 @@ test.describe('Fantreffen 2026 Anmeldung', () => {
         await page.fill('input[name="nachname"]', 'Mustermann');
         await page.fill('input[name="email"]', 'max.mustermann@example.com');
 
+        // Spam-Schutz: Timing-Check erfordert mind. 3 Sekunden Ausfüllzeit
+        await page.waitForTimeout(3000);
+
         // Submit
         await page.getByTestId('fantreffen-submit').click();
 
