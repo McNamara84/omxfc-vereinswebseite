@@ -58,30 +58,52 @@ return new class extends Migration
     {
         $defaultCost = (int) config('rewards.statistik_default_cost_baxx', 1);
 
+        // Bestehende Statistik-Rewards per Beschreibung indexieren (für Legacy-Matching)
+        $existingByDescription = DB::table('rewards')
+            ->where('category', 'Statistiken')
+            ->get()
+            ->keyBy('description');
+
         $newSlugs = [];
 
         foreach ($this->getStatisticSections() as $sortOrder => $section) {
             $slug = 'statistik-'.$section['id'];
             $newSlugs[] = $slug;
 
-            $data = [
+            $metaData = [
                 'title' => $section['label'],
                 'description' => $section['description'],
                 'category' => 'Statistiken',
-                'cost_baxx' => $defaultCost,
                 'is_active' => true,
                 'sort_order' => $sortOrder,
                 'updated_at' => now(),
             ];
 
+            // 1. Reward mit neuem Slug existiert bereits → aktualisieren, cost_baxx bewahren
             if (DB::table('rewards')->where('slug', $slug)->exists()) {
-                DB::table('rewards')->where('slug', $slug)->update($data);
-            } else {
-                DB::table('rewards')->insert(array_merge(['slug' => $slug, 'created_at' => now()], $data));
+                DB::table('rewards')->where('slug', $slug)->update($metaData);
+
+                continue;
             }
+
+            // 2. Legacy-Reward per Beschreibung finden → umbenennen (bewahrt reward_purchases)
+            $legacy = $existingByDescription->get($section['description']);
+            if ($legacy && $legacy->slug !== $slug) {
+                DB::table('rewards')
+                    ->where('id', $legacy->id)
+                    ->update(array_merge(['slug' => $slug], $metaData));
+
+                continue;
+            }
+
+            // 3. Weder Legacy noch neuer Slug → neu anlegen mit Default-Kosten
+            DB::table('rewards')->insert(array_merge(
+                ['slug' => $slug, 'cost_baxx' => $defaultCost, 'created_at' => now()],
+                $metaData
+            ));
         }
 
-        // Legacy-Statistik-Rewards deaktivieren, die nicht mehr zu den neuen Slugs gehören
+        // Verbleibende Legacy-Statistik-Rewards deaktivieren (falls Beschreibung nicht gematcht)
         DB::table('rewards')
             ->where('category', 'Statistiken')
             ->whereNotIn('slug', $newSlugs)
