@@ -17,7 +17,9 @@ class FantreffenAnmeldungTest extends TestCase
 
     private function validFormToken(): string
     {
-        return Crypt::encryptString((string) (time() - 10));
+        $minFormTime = (int) config('services.fantreffen.min_form_time', 3);
+
+        return Crypt::encryptString((string) (time() - $minFormTime - 5));
     }
 
     public function test_fantreffen_page_is_accessible_without_authentication()

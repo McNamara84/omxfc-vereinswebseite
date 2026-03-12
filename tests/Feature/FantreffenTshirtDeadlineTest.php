@@ -14,10 +14,14 @@ use Tests\TestCase;
 class FantreffenTshirtDeadlineTest extends TestCase
 {
     use RefreshDatabase;
+
     private function validFormToken(): string
     {
-        return Crypt::encryptString((string) (time() - 10));
+        $minFormTime = (int) config('services.fantreffen.min_form_time', 3);
+
+        return Crypt::encryptString((string) (time() - $minFormTime - 5));
     }
+
     #[Test]
     public function test_tshirt_deadline_is_read_from_config()
     {

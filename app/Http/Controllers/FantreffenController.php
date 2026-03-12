@@ -44,6 +44,8 @@ class FantreffenController extends Controller
 
     public function store(Request $request)
     {
+        $spamErrorMessage = 'Die Anmeldung konnte nicht verarbeitet werden. Bitte versuche es erneut.';
+
         // Honeypot-Prüfung: Jeder nicht-leere Wert ist ein Bot.
         // TrimStrings-Middleware trimmt Whitespace → ' ' wird zu '' → kein False-Positive.
         // Validation nutzt nur 'nullable' (kein max:0), damit keine Fehlermeldung das Feld leakt.
@@ -54,7 +56,7 @@ class FantreffenController extends Controller
             ]);
 
             return redirect()->route('fantreffen.2026')
-                ->withErrors(['error' => 'Die Anmeldung konnte nicht verarbeitet werden. Bitte versuche es erneut.']);
+                ->withErrors(['error' => $spamErrorMessage]);
         }
 
         // Timing-Check: Formular muss mindestens N Sekunden alt sein
@@ -67,7 +69,7 @@ class FantreffenController extends Controller
             ]);
 
             return redirect()->route('fantreffen.2026')
-                ->withErrors(['error' => 'Die Anmeldung konnte nicht verarbeitet werden. Bitte versuche es erneut.']);
+                ->withErrors(['error' => $spamErrorMessage]);
         }
 
         if ($minFormTime > 0) {
@@ -80,7 +82,7 @@ class FantreffenController extends Controller
                     ]);
 
                     return redirect()->route('fantreffen.2026')
-                        ->withErrors(['error' => 'Die Anmeldung konnte nicht verarbeitet werden. Bitte versuche es erneut.']);
+                        ->withErrors(['error' => $spamErrorMessage]);
                 }
             } catch (DecryptException) {
                 Log::warning('Fantreffen Anmeldung: Invalid form token', [
@@ -88,7 +90,7 @@ class FantreffenController extends Controller
                 ]);
 
                 return redirect()->route('fantreffen.2026')
-                    ->withErrors(['error' => 'Die Anmeldung konnte nicht verarbeitet werden. Bitte versuche es erneut.']);
+                    ->withErrors(['error' => $spamErrorMessage]);
             }
         }
 

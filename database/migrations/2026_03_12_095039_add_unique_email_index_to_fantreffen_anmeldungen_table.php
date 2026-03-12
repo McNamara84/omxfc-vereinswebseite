@@ -14,25 +14,18 @@ return new class extends Migration
     {
         // Duplikate bereinigen bevor der Unique-Index angelegt wird:
         // Pro E-Mail wird nur die älteste Anmeldung (kleinste ID) behalten.
-        // NULL-E-Mails vom Deduplizieren ausschließen (nullable-Spalte)
-        $duplicates = DB::table('fantreffen_anmeldungen')
-            ->select('email')
-            ->whereNotNull('email')
-            ->groupBy('email')
-            ->havingRaw('COUNT(*) > 1')
-            ->pluck('email');
-
-        foreach ($duplicates as $email) {
-            $keepId = DB::table('fantreffen_anmeldungen')
-                ->where('email', $email)
-                ->orderBy('id')
-                ->value('id');
-
+        // Set-basierte Löschung in einer Transaktion für Performance und Konsistenz.
+        DB::transaction(function () {
             DB::table('fantreffen_anmeldungen')
-                ->where('email', $email)
-                ->where('id', '!=', $keepId)
+                ->whereNotNull('email')
+                ->whereNotIn('id', function ($query) {
+                    $query->select(DB::raw('MIN(id)'))
+                        ->from('fantreffen_anmeldungen')
+                        ->whereNotNull('email')
+                        ->groupBy('email');
+                })
                 ->delete();
-        }
+        });
 
         Schema::table('fantreffen_anmeldungen', function (Blueprint $table) {
             $table->unique('email');
