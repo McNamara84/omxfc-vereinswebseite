@@ -158,4 +158,6 @@
     </x-member-page>
 </x-app-layout>
 
-@vite(['resources/js/romantausch-bundle-preview.js'])
+@assets
+    @vite(['resources/js/romantausch-bundle-preview.js'])
+@endassets

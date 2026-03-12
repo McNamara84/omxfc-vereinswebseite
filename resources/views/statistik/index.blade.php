@@ -1152,6 +1152,8 @@
             </div>
         </div>
 
-        @vite(['resources/js/statistik.js'])
+        @assets
+            @vite(['resources/js/statistik.js'])
+        @endassets
     </x-member-page>
 </x-app-layout>
