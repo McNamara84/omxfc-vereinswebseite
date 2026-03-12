@@ -50,7 +50,7 @@ return [
     'fantreffen' => [
         'tshirt_deadline' => env('FANTREFFEN_TSHIRT_DEADLINE', '2026-02-28 23:59:59'),
         'min_form_time' => (int) env('FANTREFFEN_MIN_FORM_TIME', 3),
-        'disable_rate_limit' => (bool) env('FANTREFFEN_DISABLE_RATE_LIMIT', false),
+        'disable_rate_limit' => filter_var(env('FANTREFFEN_DISABLE_RATE_LIMIT', false), FILTER_VALIDATE_BOOLEAN),
     ],
 
 ];

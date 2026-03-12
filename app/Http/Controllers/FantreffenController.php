@@ -103,7 +103,7 @@ class FantreffenController extends Controller
             if (FantreffenAnmeldung::where('email', $email)->exists()) {
                 return back()->withErrors([
                     'email' => 'Du bist bereits für das Fantreffen 2026 angemeldet.',
-                ]);
+                ])->withInput();
             }
         }
 
