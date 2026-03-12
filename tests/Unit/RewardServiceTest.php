@@ -3,10 +3,7 @@
 namespace Tests\Unit;
 
 use App\Models\Reward;
-use App\Models\RewardPurchase;
-use App\Models\User;
 use App\Services\RewardService;
-use App\Services\TeamPointService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Validation\ValidationException;
 use Tests\Concerns\CreatesUserWithRole;

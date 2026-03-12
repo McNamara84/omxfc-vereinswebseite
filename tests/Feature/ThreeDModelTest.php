@@ -628,7 +628,7 @@ class ThreeDModelTest extends TestCase
 
         $reward = Reward::create([
             'title' => $model->name,
-            'slug' => '3d-' . Str::slug($model->name) . '-' . $model->id,
+            'slug' => '3d-'.Str::slug($model->name).'-'.$model->id,
             'description' => $model->description ?? '',
             'category' => '3D-Modelle',
             'cost_baxx' => $costBaxx,

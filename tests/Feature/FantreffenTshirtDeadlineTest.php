@@ -86,13 +86,17 @@ class FantreffenTshirtDeadlineTest extends TestCase
     #[Test]
     public function test_formatted_deadline_is_displayed_correctly()
     {
-        // Set a specific deadline
+        // Set a specific deadline and freeze time to before the deadline
         Config::set('services.fantreffen.tshirt_deadline', '2026-02-28 23:59:59');
+        Carbon::setTestNow(Carbon::create(2026, 2, 15, 12));
+        try {
+            $response = $this->withoutVite()->get(route('fantreffen.2026'));
 
-        $response = $this->withoutVite()->get(route('fantreffen.2026'));
-
-        $response->assertStatus(200);
-        $response->assertSee('28. Februar 2026');
+            $response->assertStatus(200);
+            $response->assertSee('28. Februar 2026');
+        } finally {
+            Carbon::setTestNow();
+        }
     }
 
     #[Test]

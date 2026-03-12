@@ -45,10 +45,15 @@
                     </fieldset>
                 </div>
             @else
-                <x-alert icon="o-lock-closed" class="alert-warning mb-4">
-                    Die Suche wird ab <strong>{{ $required }}</strong> Baxx freigeschaltet.
-                    Dein aktueller Stand: <strong>{{ $userPoints }}</strong>.
-                </x-alert>
+                @if($kompendiumReward && $kompendiumReward->is_active)
+                    @livewire('kompendium-kauf-overlay', [
+                        'rewardId' => $kompendiumReward->id,
+                    ])
+                @else
+                    <x-alert icon="o-lock-closed" class="alert-warning mb-4">
+                        Das Kompendium ist derzeit nicht verfügbar.
+                    </x-alert>
+                @endif
             @endif
 
             {{-- Trefferliste ---------------------------------------------- --}}

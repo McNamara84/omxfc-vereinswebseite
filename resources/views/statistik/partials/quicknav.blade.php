@@ -19,8 +19,14 @@
                         aria-current="false"
                     >
                         <span class="font-semibold leading-5">{{ $section['label'] }}</span>
-                        @if (! empty($section['minPoints']))
-                            <span class="text-xs text-base-content">ab {{ $section['minPoints'] }} Baxx</span>
+                        @php($reward = ($statistikRewards ?? collect())->get('statistik-' . $section['id']))
+                        @php($isUnlocked = in_array('statistik-' . $section['id'], $unlockedSlugs ?? [], true))
+                        @if ($isUnlocked)
+                            <span class="text-xs text-success">Freigeschaltet</span>
+                        @elseif ($reward && $reward->is_active)
+                            <span class="text-xs text-base-content">{{ $reward->cost_baxx }} Baxx</span>
+                        @elseif ($reward && ! $reward->is_active)
+                            <span class="text-xs text-base-content/50">Derzeit nicht verfügbar</span>
                         @endif
                     </a>
                 </li>

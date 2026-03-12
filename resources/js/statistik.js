@@ -39,15 +39,8 @@ function drawCycleChart(canvasId, labels, data) {
     const canvas = document.getElementById(canvasId);
     if (!canvas) return;
 
-    const parent = canvas.closest('[data-min-points]');
-    const min = parent ? Number(parent.dataset.minPoints) : 0;
-    const userPoints = window.userPoints ?? 0;
-
-    let values = data;
-    if (userPoints < min) {
-        values = data.map(() => +(Math.random() * 6).toFixed(2));
-    }
-    const validValues = values.filter((val) => Number.isFinite(val));
+    const normalizedData = data.map((val) => (Number.isFinite(val) ? val : null));
+    const validValues = normalizedData.filter((val) => val !== null);
     const average = validValues.length ? validValues.reduce((sum, val) => sum + val, 0) / validValues.length : 0;
     const averageData = Array(labels.length).fill(average);
 
@@ -60,7 +53,7 @@ function drawCycleChart(canvasId, labels, data) {
             labels,
             datasets: [
                 {
-                    data: values,
+                    data: normalizedData,
                     borderColor: 'rgba(139, 1, 22, .8)',
                     backgroundColor: 'rgba(139, 1, 22, .3)',
                     tension: 0.3,

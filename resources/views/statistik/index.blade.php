@@ -15,45 +15,44 @@
             </div>
 
             <div class="flex-1 space-y-6" data-statistik-sections-wrapper>
-                {{-- Card 1 – Balkendiagramm (≥ 2 Bakk) --}}
+                {{-- Card 1 – Balkendiagramm (≥ 2 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('author-chart'))
-                @php($min = $section['minPoints'] ?? 0)
+                @php($sectionUnlocked = in_array('statistik-' . $section['id'], $unlockedSlugs, true))
                 <x-card
                     id="{{ $section['id'] }}"
                     data-statistik-section
-                    data-min-points="{{ $min }}"
                     tabindex="-1"
                     shadow class="relative">
                     <h2 id="authorChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Maddrax-Romane je Autor:in
                     </h2>
+                    @if($sectionUnlocked)
                     <div data-chart-wrapper class="mt-4">
                         <canvas id="authorChart" height="140" role="img" aria-labelledby="authorChartTitle"></canvas>
                     </div>
-                    @if($userPoints < $min)
-                        @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
                     @endif
+                    @include('statistik.lock-message', ['sectionId' => $section['id']])
                 </x-card>
 
-                {{-- Chart-Daten global für JS-Modul --}}
+                @if($sectionUnlocked)
                 <script>
-                    window.userPoints = {{ $userPoints }};
                     window.authorChartLabels = @json($authorCounts->keys());
                     window.authorChartValues = @json($authorCounts->values());
                 </script>
+                @endif
 
                 {{-- Card 2 – Teamplayer-Tabelle (≥ 4 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('teamplayer'))
-                @php($min = $section['minPoints'] ?? 0)
+                @php($sectionUnlocked = in_array('statistik-' . $section['id'], $unlockedSlugs, true))
                 <x-card
                     id="{{ $section['id'] }}"
                     data-statistik-section
-                    data-min-points="{{ $min }}"
                     tabindex="-1"
                     shadow class="relative">
                     <h2 class="text-xl font-semibold text-primary mb-4 text-center">
                         Top Teamplayer
                     </h2>
+                    @if($sectionUnlocked)
 
                     <div class="overflow-x-auto">
                         <table class="table">
@@ -75,23 +74,22 @@
                             </tbody>
                         </table>
                     </div>
-                    @if($userPoints < $min)
-                        @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
                     @endif
+                    @include('statistik.lock-message', ['sectionId' => $section['id']])
                 </x-card>
 
                 {{-- Card 3 – Top 10 Maddrax-Romane (≥ 5 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('top-romane'))
-                @php($min = $section['minPoints'] ?? 0)
+                @php($sectionUnlocked = in_array('statistik-' . $section['id'], $unlockedSlugs, true))
                 <x-card
                     id="{{ $section['id'] }}"
                     data-statistik-section
-                    data-min-points="{{ $min }}"
                     tabindex="-1"
                     shadow class="relative">
                     <h2 class="text-xl font-semibold text-primary mb-4 text-center">
                         Top 10 Maddrax-Romane
                     </h2>
+                    @if($sectionUnlocked)
 
                     <div class="overflow-x-auto">
                         <table class="table">
@@ -117,22 +115,21 @@
                             </tbody>
                         </table>
                     </div>
-                    @if($userPoints < $min)
-                        @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
                     @endif
+                    @include('statistik.lock-message', ['sectionId' => $section['id']])
                 </x-card>
                 {{-- Card 4 – Top-Autor:innen nach Ø‑Bewertung (≥ 7 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('top-autoren'))
-                @php($min = $section['minPoints'] ?? 0)
+                @php($sectionUnlocked = in_array('statistik-' . $section['id'], $unlockedSlugs, true))
                 <x-card
                     id="{{ $section['id'] }}"
                     data-statistik-section
-                    data-min-points="{{ $min }}"
                     tabindex="-1"
                     shadow class="relative">
                     <h2 class="text-xl font-semibold text-primary mb-4 text-center">
                         Top 10 Autor:innen nach Ø-Bewertung
                     </h2>
+                    @if($sectionUnlocked)
 
                     <div class="overflow-x-auto">
                         <table class="table">
@@ -154,23 +151,22 @@
                             </tbody>
                         </table>
                     </div>
-                    @if($userPoints < $min)
-                        @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
                     @endif
+                    @include('statistik.lock-message', ['sectionId' => $section['id']])
                 </x-card>
 
                 {{-- Card 5 – Top-Charaktere nach Auftritten (≥ 10 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('top-charaktere'))
-                @php($min = $section['minPoints'] ?? 0)
+                @php($sectionUnlocked = in_array('statistik-' . $section['id'], $unlockedSlugs, true))
                 <x-card
                     id="{{ $section['id'] }}"
                     data-statistik-section
-                    data-min-points="{{ $min }}"
                     tabindex="-1"
                     shadow class="relative">
                     <h2 class="text-xl font-semibold text-primary mb-4 text-center">
                         Top 10 Charaktere nach Auftritten
                     </h2>
+                    @if($sectionUnlocked)
 
                     <div class="overflow-x-auto">
                         <table class="table">
@@ -192,44 +188,42 @@
                             </tbody>
                         </table>
                     </div>
-                    @if($userPoints < $min)
-                        @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
                     @endif
+                    @include('statistik.lock-message', ['sectionId' => $section['id']])
                 </x-card>
 
                 {{-- Card 6 – Bewertungen im Maddraxikon (≥ 11 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('maddraxikon-bewertungen'))
-                @php($min = $section['minPoints'] ?? 0)
+                @php($sectionUnlocked = in_array('statistik-' . $section['id'], $unlockedSlugs, true))
                 <x-card
                     id="{{ $section['id'] }}"
                     data-statistik-section
-                    data-min-points="{{ $min }}"
                     tabindex="-1"
                     shadow class="relative">
                     <h2 class="text-xl font-semibold text-primary mb-4 text-center">
                         Bewertungen im Maddraxikon
                     </h2>
+                    @if($sectionUnlocked)
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <x-stat title="Ø-Bewertung" :value="number_format($averageRating, 2, ',', '.')" icon="o-star" />
                         <x-stat title="Stimmen insgesamt" :value="$totalVotes" icon="o-hand-thumb-up" />
                         <x-stat title="Ø-Stimmen pro Roman" :value="number_format($averageVotes, 2, ',', '.')" icon="o-chart-bar" />
                     </div>
-                    @if($userPoints < $min)
-                        @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
                     @endif
+                    @include('statistik.lock-message', ['sectionId' => $section['id']])
                 </x-card>
             {{-- Card 7 – Rezensionen unserer Mitglieder (≥ 12 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('mitglieds-rezensionen'))
-                @php($min = $section['minPoints'] ?? 0)
+                @php($sectionUnlocked = in_array('statistik-' . $section['id'], $unlockedSlugs, true))
                 <x-card
                     id="{{ $section['id'] }}"
                     data-statistik-section
-                    data-min-points="{{ $min }}"
                     tabindex="-1"
                     shadow class="relative">
                     <h2 class="text-xl font-semibold text-primary mb-4 text-center">
                         Rezensionen unserer Mitglieder
                     </h2>
+                    @if($sectionUnlocked)
 
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <x-stat title="Rezensionen insgesamt" :value="$totalReviews" icon="o-document-text" />
@@ -270,571 +264,614 @@
                             </div>
                         @endif
                     </div>
-                    @if($userPoints < $min)
-                        @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
                     @endif
+                    @include('statistik.lock-message', ['sectionId' => $section['id']])
                 </x-card>
             {{-- Card 8 – Bewertungen des Euree-Zyklus (≥ 13 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('zyklus-euree'))
-                @php($min = $section['minPoints'] ?? 0)
+                @php($sectionUnlocked = in_array('statistik-' . $section['id'], $unlockedSlugs, true))
                 <x-card
                     id="{{ $section['id'] }}"
                     data-statistik-section
-                    data-min-points="{{ $min }}"
                     tabindex="-1"
                     shadow class="relative">
                     <h2 id="eureeChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Bewertungen des Euree-Zyklus
                     </h2>
+                    @if($sectionUnlocked)
                     <div data-chart-wrapper class="mt-4">
                         <canvas id="eureeChart" height="140" role="img" aria-labelledby="eureeChartTitle"></canvas>
                     </div>
-                    @if($userPoints < $min)
-                        @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
                     @endif
+                    @include('statistik.lock-message', ['sectionId' => $section['id']])
                 </x-card>
 
+
+                @if($sectionUnlocked)
                 <script>
                     window.eureeChartLabels = @json($eureeLabels);
                     window.eureeChartValues = @json($eureeValues);
                 </script>
+                @endif
 
             {{-- Card 9 – Bewertungen des Meeraka-Zyklus (≥ 14 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('zyklus-meeraka'))
-                @php($min = $section['minPoints'] ?? 0)
+                @php($sectionUnlocked = in_array('statistik-' . $section['id'], $unlockedSlugs, true))
                 <x-card
                     id="{{ $section['id'] }}"
                     data-statistik-section
-                    data-min-points="{{ $min }}"
                     tabindex="-1"
                     shadow class="relative">
                     <h2 id="meerakaChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Bewertungen des Meeraka-Zyklus
                     </h2>
+                    @if($sectionUnlocked)
                     <div data-chart-wrapper class="mt-4">
                         <canvas id="meerakaChart" height="140" role="img" aria-labelledby="meerakaChartTitle"></canvas>
                     </div>
-                    @if($userPoints < $min)
-                        @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
                     @endif
+                    @include('statistik.lock-message', ['sectionId' => $section['id']])
                 </x-card>
 
+
+                @if($sectionUnlocked)
                 <script>
                     window.meerakaChartLabels = @json($meerakaLabels);
                     window.meerakaChartValues = @json($meerakaValues);
                 </script>
+                @endif
 
             {{-- Card 10 – Bewertungen des Expeditions-Zyklus (≥ 15 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('zyklus-expedition'))
-                @php($min = $section['minPoints'] ?? 0)
+                @php($sectionUnlocked = in_array('statistik-' . $section['id'], $unlockedSlugs, true))
                 <x-card
                     id="{{ $section['id'] }}"
                     data-statistik-section
-                    data-min-points="{{ $min }}"
                     tabindex="-1"
                     shadow class="relative">
                     <h2 id="expeditionChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Bewertungen des Expeditions-Zyklus
                     </h2>
+                    @if($sectionUnlocked)
                     <div data-chart-wrapper class="mt-4">
                         <canvas id="expeditionChart" height="140" role="img" aria-labelledby="expeditionChartTitle"></canvas>
                     </div>
-                    @if($userPoints < $min)
-                        @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
                     @endif
+                    @include('statistik.lock-message', ['sectionId' => $section['id']])
                 </x-card>
 
+
+                @if($sectionUnlocked)
                 <script>
                     window.expeditionChartLabels = @json($expeditionLabels);
                     window.expeditionChartValues = @json($expeditionValues);
                 </script>
+                @endif
 
             {{-- Card 11 – Bewertungen des Kratersee-Zyklus (≥ 16 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('zyklus-kratersee'))
-                @php($min = $section['minPoints'] ?? 0)
+                @php($sectionUnlocked = in_array('statistik-' . $section['id'], $unlockedSlugs, true))
                 <x-card
                     id="{{ $section['id'] }}"
                     data-statistik-section
-                    data-min-points="{{ $min }}"
                     tabindex="-1"
                     shadow class="relative">
                     <h2 id="kraterseeChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Bewertungen des Kratersee-Zyklus
                     </h2>
+                    @if($sectionUnlocked)
                     <div data-chart-wrapper class="mt-4">
                         <canvas id="kraterseeChart" height="140" role="img" aria-labelledby="kraterseeChartTitle"></canvas>
                     </div>
-                    @if($userPoints < $min)
-                        @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
                     @endif
+                    @include('statistik.lock-message', ['sectionId' => $section['id']])
                 </x-card>
 
+
+                @if($sectionUnlocked)
                 <script>
                     window.kraterseeChartLabels = @json($kraterseeLabels);
                     window.kraterseeChartValues = @json($kraterseeValues);
                 </script>
+                @endif
 
             {{-- Card 12 – Bewertungen des Daa'muren-Zyklus (≥ 17 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('zyklus-daamuren'))
-                @php($min = $section['minPoints'] ?? 0)
+                @php($sectionUnlocked = in_array('statistik-' . $section['id'], $unlockedSlugs, true))
                 <x-card
                     id="{{ $section['id'] }}"
                     data-statistik-section
-                    data-min-points="{{ $min }}"
                     tabindex="-1"
                     shadow class="relative">
                     <h2 id="daaMurenChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Bewertungen des Daa'muren-Zyklus
                     </h2>
+                    @if($sectionUnlocked)
                     <div data-chart-wrapper class="mt-4">
                         <canvas id="daaMurenChart" height="140" role="img" aria-labelledby="daaMurenChartTitle"></canvas>
                     </div>
-                    @if($userPoints < $min)
-                        @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
                     @endif
+                    @include('statistik.lock-message', ['sectionId' => $section['id']])
                 </x-card>
 
+
+                @if($sectionUnlocked)
                 <script>
                     window.daaMurenChartLabels = @json($daaMurenLabels);
                     window.daaMurenChartValues = @json($daaMurenValues);
                 </script>
+                @endif
 
             {{-- Card 13 – Bewertungen des Wandler-Zyklus (≥ 18 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('zyklus-wandler'))
-                @php($min = $section['minPoints'] ?? 0)
+                @php($sectionUnlocked = in_array('statistik-' . $section['id'], $unlockedSlugs, true))
                 <x-card
                     id="{{ $section['id'] }}"
                     data-statistik-section
-                    data-min-points="{{ $min }}"
                     tabindex="-1"
                     shadow class="relative">
                     <h2 id="wandlerChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Bewertungen des Wandler-Zyklus
                     </h2>
+                    @if($sectionUnlocked)
                     <div data-chart-wrapper class="mt-4">
                         <canvas id="wandlerChart" height="140" role="img" aria-labelledby="wandlerChartTitle"></canvas>
                     </div>
-                    @if($userPoints < $min)
-                        @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
                     @endif
+                    @include('statistik.lock-message', ['sectionId' => $section['id']])
                 </x-card>
 
+
+                @if($sectionUnlocked)
                 <script>
                     window.wandlerChartLabels = @json($wandlerLabels);
                     window.wandlerChartValues = @json($wandlerValues);
                 </script>
+                @endif
 
             {{-- Card 14 – Bewertungen des Mars-Zyklus (≥ 19 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('zyklus-mars'))
-                @php($min = $section['minPoints'] ?? 0)
+                @php($sectionUnlocked = in_array('statistik-' . $section['id'], $unlockedSlugs, true))
                 <x-card
                     id="{{ $section['id'] }}"
                     data-statistik-section
-                    data-min-points="{{ $min }}"
                     tabindex="-1"
                     shadow class="relative">
                     <h2 id="marsChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Bewertungen des Mars-Zyklus
                     </h2>
+                    @if($sectionUnlocked)
                     <div data-chart-wrapper class="mt-4">
                         <canvas id="marsChart" height="140" role="img" aria-labelledby="marsChartTitle"></canvas>
                     </div>
-                    @if($userPoints < $min)
-                        @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
                     @endif
+                    @include('statistik.lock-message', ['sectionId' => $section['id']])
                 </x-card>
 
+
+                @if($sectionUnlocked)
                 <script>
                     window.marsChartLabels = @json($marsLabels);
                     window.marsChartValues = @json($marsValues);
                 </script>
+                @endif
 
             {{-- Card 15 – Bewertungen des Ausala-Zyklus (≥ 20 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('zyklus-ausala'))
-                @php($min = $section['minPoints'] ?? 0)
+                @php($sectionUnlocked = in_array('statistik-' . $section['id'], $unlockedSlugs, true))
                 <x-card
                     id="{{ $section['id'] }}"
                     data-statistik-section
-                    data-min-points="{{ $min }}"
                     tabindex="-1"
                     shadow class="relative">
                     <h2 id="ausalaChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Bewertungen des Ausala-Zyklus
                     </h2>
+                    @if($sectionUnlocked)
                     <div data-chart-wrapper class="mt-4">
                         <canvas id="ausalaChart" height="140" role="img" aria-labelledby="ausalaChartTitle"></canvas>
                     </div>
-                    @if($userPoints < $min)
-                        @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
                     @endif
+                    @include('statistik.lock-message', ['sectionId' => $section['id']])
                 </x-card>
 
+
+                @if($sectionUnlocked)
                 <script>
                     window.ausalaChartLabels = @json($ausalaLabels);
                     window.ausalaChartValues = @json($ausalaValues);
                 </script>
+                @endif
 
             {{-- Card 16 – Bewertungen des Afra-Zyklus (≥ 21 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('zyklus-afra'))
-                @php($min = $section['minPoints'] ?? 0)
+                @php($sectionUnlocked = in_array('statistik-' . $section['id'], $unlockedSlugs, true))
                 <x-card
                     id="{{ $section['id'] }}"
                     data-statistik-section
-                    data-min-points="{{ $min }}"
                     tabindex="-1"
                     shadow class="relative">
                     <h2 id="afraChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Bewertungen des Afra-Zyklus
                     </h2>
+                    @if($sectionUnlocked)
                     <div data-chart-wrapper class="mt-4">
                         <canvas id="afraChart" height="140" role="img" aria-labelledby="afraChartTitle"></canvas>
                     </div>
-                    @if($userPoints < $min)
-                        @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
                     @endif
+                    @include('statistik.lock-message', ['sectionId' => $section['id']])
                 </x-card>
 
+
+                @if($sectionUnlocked)
                 <script>
                     window.afraChartLabels = @json($afraLabels);
                     window.afraChartValues = @json($afraValues);
                 </script>
+                @endif
 
             {{-- Card 17 – Bewertungen des Antarktis-Zyklus (≥ 22 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('zyklus-antarktis'))
-                @php($min = $section['minPoints'] ?? 0)
+                @php($sectionUnlocked = in_array('statistik-' . $section['id'], $unlockedSlugs, true))
                 <x-card
                     id="{{ $section['id'] }}"
                     data-statistik-section
-                    data-min-points="{{ $min }}"
                     tabindex="-1"
                     shadow class="relative">
                     <h2 id="antarktisChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Bewertungen des Antarktis-Zyklus
                     </h2>
+                    @if($sectionUnlocked)
                     <div data-chart-wrapper class="mt-4">
                         <canvas id="antarktisChart" height="140" role="img" aria-labelledby="antarktisChartTitle"></canvas>
                     </div>
-                    @if($userPoints < $min)
-                        @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
                     @endif
+                    @include('statistik.lock-message', ['sectionId' => $section['id']])
                 </x-card>
 
+
+                @if($sectionUnlocked)
                 <script>
                     window.antarktisChartLabels = @json($antarktisLabels);
                     window.antarktisChartValues = @json($antarktisValues);
                 </script>
+                @endif
 
             {{-- Card 18 – Bewertungen des Schatten-Zyklus (≥ 23 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('zyklus-schatten'))
-                @php($min = $section['minPoints'] ?? 0)
+                @php($sectionUnlocked = in_array('statistik-' . $section['id'], $unlockedSlugs, true))
                 <x-card
                     id="{{ $section['id'] }}"
                     data-statistik-section
-                    data-min-points="{{ $min }}"
                     tabindex="-1"
                     shadow class="relative">
                     <h2 id="schattenChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Bewertungen des Schatten-Zyklus
                     </h2>
+                    @if($sectionUnlocked)
                     <div data-chart-wrapper class="mt-4">
                         <canvas id="schattenChart" height="140" role="img" aria-labelledby="schattenChartTitle"></canvas>
                     </div>
-                    @if($userPoints < $min)
-                        @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
                     @endif
+                    @include('statistik.lock-message', ['sectionId' => $section['id']])
                 </x-card>
 
+
+                @if($sectionUnlocked)
                 <script>
                     window.schattenChartLabels = @json($schattenLabels);
                     window.schattenChartValues = @json($schattenValues);
                 </script>
+                @endif
 
             {{-- Card 19 – Bewertungen des Ursprung-Zyklus (≥ 24 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('zyklus-ursprung'))
-                @php($min = $section['minPoints'] ?? 0)
+                @php($sectionUnlocked = in_array('statistik-' . $section['id'], $unlockedSlugs, true))
                 <x-card
                     id="{{ $section['id'] }}"
                     data-statistik-section
-                    data-min-points="{{ $min }}"
                     tabindex="-1"
                     shadow class="relative">
                     <h2 id="ursprungChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Bewertungen des Ursprung-Zyklus
                     </h2>
+                    @if($sectionUnlocked)
                     <div data-chart-wrapper class="mt-4">
                         <canvas id="ursprungChart" height="140" role="img" aria-labelledby="ursprungChartTitle"></canvas>
                     </div>
-                    @if($userPoints < $min)
-                        @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
                     @endif
+                    @include('statistik.lock-message', ['sectionId' => $section['id']])
                 </x-card>
 
+
+                @if($sectionUnlocked)
                 <script>
                     window.ursprungChartLabels = @json($ursprungLabels);
                     window.ursprungChartValues = @json($ursprungValues);
                 </script>
+                @endif
 
             {{-- Card 20 – Bewertungen des Streiter-Zyklus (≥ 25 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('zyklus-streiter'))
-                @php($min = $section['minPoints'] ?? 0)
+                @php($sectionUnlocked = in_array('statistik-' . $section['id'], $unlockedSlugs, true))
                 <x-card
                     id="{{ $section['id'] }}"
                     data-statistik-section
-                    data-min-points="{{ $min }}"
                     tabindex="-1"
                     shadow class="relative">
                     <h2 id="streiterChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Bewertungen des Streiter-Zyklus
                     </h2>
+                    @if($sectionUnlocked)
                     <div data-chart-wrapper class="mt-4">
                         <canvas id="streiterChart" height="140" role="img" aria-labelledby="streiterChartTitle"></canvas>
                     </div>
-                    @if($userPoints < $min)
-                        @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
                     @endif
+                    @include('statistik.lock-message', ['sectionId' => $section['id']])
                 </x-card>
 
+
+                @if($sectionUnlocked)
                 <script>
                     window.streiterChartLabels = @json($streiterLabels);
                     window.streiterChartValues = @json($streiterValues);
                 </script>
+                @endif
 
             {{-- Card 21 – Bewertungen des Archivar-Zyklus (≥ 26 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('zyklus-archivar'))
-                @php($min = $section['minPoints'] ?? 0)
+                @php($sectionUnlocked = in_array('statistik-' . $section['id'], $unlockedSlugs, true))
                 <x-card
                     id="{{ $section['id'] }}"
                     data-statistik-section
-                    data-min-points="{{ $min }}"
                     tabindex="-1"
                     shadow class="relative">
                     <h2 id="archivarChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Bewertungen des Archivar-Zyklus
                     </h2>
+                    @if($sectionUnlocked)
                     <div data-chart-wrapper class="mt-4">
                         <canvas id="archivarChart" height="140" role="img" aria-labelledby="archivarChartTitle"></canvas>
                     </div>
-                    @if($userPoints < $min)
-                        @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
                     @endif
+                    @include('statistik.lock-message', ['sectionId' => $section['id']])
                 </x-card>
 
+
+                @if($sectionUnlocked)
                 <script>
                     window.archivarChartLabels = @json($archivarLabels);
                     window.archivarChartValues = @json($archivarValues);
                 </script>
+                @endif
 
             {{-- Card 22 – Bewertungen des Zeitsprung-Zyklus (≥ 27 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('zyklus-zeitsprung'))
-                @php($min = $section['minPoints'] ?? 0)
+                @php($sectionUnlocked = in_array('statistik-' . $section['id'], $unlockedSlugs, true))
                 <x-card
                     id="{{ $section['id'] }}"
                     data-statistik-section
-                    data-min-points="{{ $min }}"
                     tabindex="-1"
                     shadow class="relative">
                     <h2 id="zeitsprungChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Bewertungen des Zeitsprung-Zyklus
                     </h2>
+                    @if($sectionUnlocked)
                     <div data-chart-wrapper class="mt-4">
                         <canvas id="zeitsprungChart" height="140" role="img" aria-labelledby="zeitsprungChartTitle"></canvas>
                     </div>
-                    @if($userPoints < $min)
-                        @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
                     @endif
+                    @include('statistik.lock-message', ['sectionId' => $section['id']])
                 </x-card>
 
+
+                @if($sectionUnlocked)
                 <script>
                     window.zeitsprungChartLabels = @json($zeitsprungLabels);
                     window.zeitsprungChartValues = @json($zeitsprungValues);
                 </script>
+                @endif
 
             {{-- Card 23 – Bewertungen des Fremdwelt-Zyklus (≥ 28 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('zyklus-fremdwelt'))
-                @php($min = $section['minPoints'] ?? 0)
+                @php($sectionUnlocked = in_array('statistik-' . $section['id'], $unlockedSlugs, true))
                 <x-card
                     id="{{ $section['id'] }}"
                     data-statistik-section
-                    data-min-points="{{ $min }}"
                     tabindex="-1"
                     shadow class="relative">
                     <h2 id="fremdweltChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Bewertungen des Fremdwelt-Zyklus
                     </h2>
+                    @if($sectionUnlocked)
                     <div data-chart-wrapper class="mt-4">
                         <canvas id="fremdweltChart" height="140" role="img" aria-labelledby="fremdweltChartTitle"></canvas>
                     </div>
-                    @if($userPoints < $min)
-                        @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
                     @endif
+                    @include('statistik.lock-message', ['sectionId' => $section['id']])
                 </x-card>
 
+
+                @if($sectionUnlocked)
                 <script>
                     window.fremdweltChartLabels = @json($fremdweltLabels);
                     window.fremdweltChartValues = @json($fremdweltValues);
                 </script>
+                @endif
 
             {{-- Card 24 – Bewertungen des Parallelwelt-Zyklus (≥ 29 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('zyklus-parallelwelt'))
-                @php($min = $section['minPoints'] ?? 0)
+                @php($sectionUnlocked = in_array('statistik-' . $section['id'], $unlockedSlugs, true))
                 <x-card
                     id="{{ $section['id'] }}"
                     data-statistik-section
-                    data-min-points="{{ $min }}"
                     tabindex="-1"
                     shadow class="relative">
                     <h2 id="parallelweltChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Bewertungen des Parallelwelt-Zyklus
                     </h2>
+                    @if($sectionUnlocked)
                     <div data-chart-wrapper class="mt-4">
                         <canvas id="parallelweltChart" height="140" role="img" aria-labelledby="parallelweltChartTitle"></canvas>
                     </div>
-                    @if($userPoints < $min)
-                        @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
                     @endif
+                    @include('statistik.lock-message', ['sectionId' => $section['id']])
                 </x-card>
 
+
+                @if($sectionUnlocked)
                 <script>
                     window.parallelweltChartLabels = @json($parallelweltLabels);
                     window.parallelweltChartValues = @json($parallelweltValues);
                 </script>
+                @endif
 
             {{-- Card 25 – Bewertungen des Weltenriss-Zyklus (≥ 30 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('zyklus-weltenriss'))
-                @php($min = $section['minPoints'] ?? 0)
+                @php($sectionUnlocked = in_array('statistik-' . $section['id'], $unlockedSlugs, true))
                 <x-card
                     id="{{ $section['id'] }}"
                     data-statistik-section
-                    data-min-points="{{ $min }}"
                     tabindex="-1"
                     shadow class="relative">
                     <h2 id="weltenrissChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Bewertungen des Weltenriss-Zyklus
                     </h2>
+                    @if($sectionUnlocked)
                     <div data-chart-wrapper class="mt-4">
                         <canvas id="weltenrissChart" height="140" role="img" aria-labelledby="weltenrissChartTitle"></canvas>
                     </div>
-                    @if($userPoints < $min)
-                        @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
                     @endif
+                    @include('statistik.lock-message', ['sectionId' => $section['id']])
                 </x-card>
 
+
+                @if($sectionUnlocked)
                 <script>
                     window.weltenrissChartLabels = @json($weltenrissLabels);
                     window.weltenrissChartValues = @json($weltenrissValues);
                 </script>
+                @endif
 
             {{-- Card 26 – Bewertungen des Amraka-Zyklus (≥ 31 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('zyklus-amraka'))
-                @php($min = $section['minPoints'] ?? 0)
+                @php($sectionUnlocked = in_array('statistik-' . $section['id'], $unlockedSlugs, true))
                 <x-card
                     id="{{ $section['id'] }}"
                     data-statistik-section
-                    data-min-points="{{ $min }}"
                     tabindex="-1"
                     shadow class="relative">
                     <h2 id="amrakaChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Bewertungen des Amraka-Zyklus
                     </h2>
+                    @if($sectionUnlocked)
                     <div data-chart-wrapper class="mt-4">
                         <canvas id="amrakaChart" height="140" role="img" aria-labelledby="amrakaChartTitle"></canvas>
                     </div>
-                    @if($userPoints < $min)
-                        @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
                     @endif
+                    @include('statistik.lock-message', ['sectionId' => $section['id']])
                 </x-card>
 
+
+                @if($sectionUnlocked)
                 <script>
                     window.amrakaChartLabels = @json($amrakaLabels);
                     window.amrakaChartValues = @json($amrakaValues);
                 </script>
+                @endif
 
             {{-- Card 27 – Bewertungen des Weltrat-Zyklus (≥ 32 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('zyklus-weltrat'))
-                @php($min = $section['minPoints'] ?? 0)
+                @php($sectionUnlocked = in_array('statistik-' . $section['id'], $unlockedSlugs, true))
                 <x-card
                     id="{{ $section['id'] }}"
                     data-statistik-section
-                    data-min-points="{{ $min }}"
                     tabindex="-1"
                     shadow class="relative">
                     <h2 id="weltratChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Bewertungen des Weltrat-Zyklus
                     </h2>
+                    @if($sectionUnlocked)
                     <div data-chart-wrapper class="mt-4">
                         <canvas id="weltratChart" height="140" role="img" aria-labelledby="weltratChartTitle"></canvas>
                     </div>
-                    @if($userPoints < $min)
-                        @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
                     @endif
+                    @include('statistik.lock-message', ['sectionId' => $section['id']])
                 </x-card>
 
+
+                @if($sectionUnlocked)
                 <script>
                     window.weltratChartLabels = @json($weltratLabels);
                     window.weltratChartValues = @json($weltratValues);
                 </script>
+                @endif
 
             {{-- Card 28 – Bewertungen der Hardcover (≥ 40 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('hardcover-bewertungen'))
-                @php($min = $section['minPoints'] ?? 0)
+                @php($sectionUnlocked = in_array('statistik-' . $section['id'], $unlockedSlugs, true))
                 <x-card
                     id="{{ $section['id'] }}"
                     data-statistik-section
-                    data-min-points="{{ $min }}"
                     tabindex="-1"
                     shadow class="relative">
                     <h2 id="hardcoverChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Bewertungen der Hardcover
                     </h2>
+                    @if($sectionUnlocked)
                     <div data-chart-wrapper class="mt-4">
                         <canvas id="hardcoverChart" height="140" role="img" aria-labelledby="hardcoverChartTitle"></canvas>
                     </div>
-                    @if($userPoints < $min)
-                        @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
                     @endif
+                    @include('statistik.lock-message', ['sectionId' => $section['id']])
                 </x-card>
 
+
+                @if($sectionUnlocked)
                 <script>
                     window.hardcoverChartLabels = @json($hardcoverLabels);
                     window.hardcoverChartValues = @json($hardcoverValues);
                 </script>
+                @endif
 
             {{-- Card 29 – Hardcover je Autor:in (≥ 41 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('hardcover-autoren'))
-                @php($min = $section['minPoints'] ?? 0)
+                @php($sectionUnlocked = in_array('statistik-' . $section['id'], $unlockedSlugs, true))
                 <x-card
                     id="{{ $section['id'] }}"
                     data-statistik-section
-                    data-min-points="{{ $min }}"
                     tabindex="-1"
                     shadow class="relative">
                     <h2 id="hardcoverAuthorChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Maddrax-Hardcover je Autor:in
                     </h2>
+                    @if($sectionUnlocked)
                     <div data-chart-wrapper class="mt-4">
                         <canvas id="hardcoverAuthorChart" height="140" role="img" aria-labelledby="hardcoverAuthorChartTitle"></canvas>
                     </div>
-                    @if($userPoints < $min)
-                        @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
                     @endif
+                    @include('statistik.lock-message', ['sectionId' => $section['id']])
                 </x-card>
 
+
+                @if($sectionUnlocked)
                 <script>
                     window.hardcoverAuthorChartLabels = @json($hardcoverAuthorCounts->keys());
                     window.hardcoverAuthorChartValues = @json($hardcoverAuthorCounts->values());
                 </script>
+                @endif
             {{-- Card 30 – TOP20 Maddrax-Themen (≥ 42 Baxx, nur Romane mit ≥ 8 Bewertungen, Themen in ≥ 5 Romanen) --}}
                 @php($section = $statisticSectionLookup->get('top-themen'))
-                @php($min = $section['minPoints'] ?? 0)
+                @php($sectionUnlocked = in_array('statistik-' . $section['id'], $unlockedSlugs, true))
                 <x-card
                     id="{{ $section['id'] }}"
                     data-statistik-section
-                    data-min-points="{{ $min }}"
                     tabindex="-1"
                     shadow class="relative">
                     <h2 class="text-xl font-semibold text-primary mb-4 text-center">
                         TOP20 Maddrax-Themen
                     </h2>
+                    @if($sectionUnlocked)
 
                     <div class="overflow-x-auto">
                         <table class="table">
@@ -856,223 +893,238 @@
                             </tbody>
                         </table>
                     </div>
-                @if($userPoints < $min)
-                    @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
                 @endif
+                @include('statistik.lock-message', ['sectionId' => $section['id']])
             </x-card>
 
             {{-- Card 31 – Bewertungen der Mission Mars-Heftromane (≥ 43 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('mission-mars-bewertungen'))
-                @php($min = $section['minPoints'] ?? 0)
+                @php($sectionUnlocked = in_array('statistik-' . $section['id'], $unlockedSlugs, true))
                 <x-card
                     id="{{ $section['id'] }}"
                     data-statistik-section
-                    data-min-points="{{ $min }}"
                     tabindex="-1"
                     shadow class="relative">
                     <h2 id="missionMarsChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Bewertungen der Mission Mars-Heftromane
                     </h2>
+                    @if($sectionUnlocked)
                     <div data-chart-wrapper class="mt-4">
                         <canvas id="missionMarsChart" height="140" role="img" aria-labelledby="missionMarsChartTitle"></canvas>
                     </div>
-                    @if($userPoints < $min)
-                        @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
                     @endif
+                    @include('statistik.lock-message', ['sectionId' => $section['id']])
                 </x-card>
 
+
+                @if($sectionUnlocked)
                 <script>
                     window.missionMarsChartLabels = @json($missionMarsLabels);
                     window.missionMarsChartValues = @json($missionMarsValues);
                 </script>
+                @endif
 
             {{-- Card 31b – Mission Mars-Heftromane je Autor:in (≥ 44 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('mission-mars-autoren'))
-                @php($min = $section['minPoints'] ?? 0)
+                @php($sectionUnlocked = in_array('statistik-' . $section['id'], $unlockedSlugs, true))
                 <x-card
                     id="{{ $section['id'] }}"
                     data-statistik-section
-                    data-min-points="{{ $min }}"
                     tabindex="-1"
                     shadow class="relative">
                     <h2 id="missionMarsAuthorChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Mission Mars-Heftromane je Autor:in
                     </h2>
+                    @if($sectionUnlocked)
                     <div data-chart-wrapper class="mt-4">
                         <canvas id="missionMarsAuthorChart" height="140" role="img" aria-labelledby="missionMarsAuthorChartTitle"></canvas>
                     </div>
-                    @if($userPoints < $min)
-                        @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
                     @endif
+                    @include('statistik.lock-message', ['sectionId' => $section['id']])
                 </x-card>
 
+
+                @if($sectionUnlocked)
                 <script>
                     window.missionMarsAuthorChartLabels = @json($missionMarsAuthorCounts->keys());
                     window.missionMarsAuthorChartValues = @json($missionMarsAuthorCounts->values());
                 </script>
+                @endif
 
             {{-- Card 32 – Bewertungen der Das Volk der Tiefe-Heftromane (≥ 45 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('volk-der-tiefe-bewertungen'))
-                @php($min = $section['minPoints'] ?? 0)
+                @php($sectionUnlocked = in_array('statistik-' . $section['id'], $unlockedSlugs, true))
                 <x-card
                     id="{{ $section['id'] }}"
                     data-statistik-section
-                    data-min-points="{{ $min }}"
                     tabindex="-1"
                     shadow class="relative">
                     <h2 id="volkDerTiefeChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Bewertungen der Das Volk der Tiefe-Heftromane
                     </h2>
+                    @if($sectionUnlocked)
                     <div data-chart-wrapper class="mt-4">
                         <canvas id="volkDerTiefeChart" height="140" role="img" aria-labelledby="volkDerTiefeChartTitle"></canvas>
                     </div>
-                    @if($userPoints < $min)
-                        @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
                     @endif
+                    @include('statistik.lock-message', ['sectionId' => $section['id']])
                 </x-card>
 
+
+                @if($sectionUnlocked)
                 <script>
                     window.volkDerTiefeChartLabels = @json($volkDerTiefeLabels);
                     window.volkDerTiefeChartValues = @json($volkDerTiefeValues);
                 </script>
+                @endif
 
             {{-- Card 32b – Das Volk der Tiefe-Heftromane je Autor:in (≥ 46 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('volk-der-tiefe-autoren'))
-                @php($min = $section['minPoints'] ?? 0)
+                @php($sectionUnlocked = in_array('statistik-' . $section['id'], $unlockedSlugs, true))
                 <x-card
                     id="{{ $section['id'] }}"
                     data-statistik-section
-                    data-min-points="{{ $min }}"
                     tabindex="-1"
                     shadow class="relative">
                     <h2 id="volkDerTiefeAuthorChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Das Volk der Tiefe-Heftromane je Autor:in
                     </h2>
+                    @if($sectionUnlocked)
                     <div data-chart-wrapper class="mt-4">
                         <canvas id="volkDerTiefeAuthorChart" height="140" role="img" aria-labelledby="volkDerTiefeAuthorChartTitle"></canvas>
                     </div>
-                    @if($userPoints < $min)
-                        @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
                     @endif
+                    @include('statistik.lock-message', ['sectionId' => $section['id']])
                 </x-card>
 
+
+                @if($sectionUnlocked)
                 <script>
                     window.volkDerTiefeAuthorChartLabels = @json($volkDerTiefeAuthorCounts->keys());
                     window.volkDerTiefeAuthorChartValues = @json($volkDerTiefeAuthorCounts->values());
                 </script>
+                @endif
 
             {{-- Card 33 – Bewertungen der 2012-Heftromane (≥ 47 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('zweitausendzwoelf-bewertungen'))
-                @php($min = $section['minPoints'] ?? 0)
+                @php($sectionUnlocked = in_array('statistik-' . $section['id'], $unlockedSlugs, true))
                 <x-card
                     id="{{ $section['id'] }}"
                     data-statistik-section
-                    data-min-points="{{ $min }}"
                     tabindex="-1"
                     shadow class="relative">
                     <h2 id="zweitausendzwoelfChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Bewertungen der 2012-Heftromane
                     </h2>
+                    @if($sectionUnlocked)
                     <div data-chart-wrapper class="mt-4">
                         <canvas id="zweitausendzwoelfChart" height="140" role="img" aria-labelledby="zweitausendzwoelfChartTitle"></canvas>
                     </div>
-                    @if($userPoints < $min)
-                        @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
                     @endif
+                    @include('statistik.lock-message', ['sectionId' => $section['id']])
                 </x-card>
 
+
+                @if($sectionUnlocked)
                 <script>
                     window.zweitausendzwoelfChartLabels = @json($zweitausendzwoelfLabels);
                     window.zweitausendzwoelfChartValues = @json($zweitausendzwoelfValues);
                 </script>
+                @endif
 
             {{-- Card 33b – 2012-Heftromane je Autor:in (≥ 48 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('zweitausendzwoelf-autoren'))
-                @php($min = $section['minPoints'] ?? 0)
+                @php($sectionUnlocked = in_array('statistik-' . $section['id'], $unlockedSlugs, true))
                 <x-card
                     id="{{ $section['id'] }}"
                     data-statistik-section
-                    data-min-points="{{ $min }}"
                     tabindex="-1"
                     shadow class="relative">
                     <h2 id="zweitausendzwoelfAuthorChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         2012-Heftromane je Autor:in
                     </h2>
+                    @if($sectionUnlocked)
                     <div data-chart-wrapper class="mt-4">
                         <canvas id="zweitausendzwoelfAuthorChart" height="140" role="img" aria-labelledby="zweitausendzwoelfAuthorChartTitle"></canvas>
                     </div>
-                    @if($userPoints < $min)
-                        @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
                     @endif
+                    @include('statistik.lock-message', ['sectionId' => $section['id']])
                 </x-card>
 
+
+                @if($sectionUnlocked)
                 <script>
                     window.zweitausendzwoelfAuthorChartLabels = @json($zweitausendzwoelfAuthorCounts->keys());
                     window.zweitausendzwoelfAuthorChartValues = @json($zweitausendzwoelfAuthorCounts->values());
                 </script>
+                @endif
 
             {{-- Card 34 – Bewertungen der Die Abenteurer-Heftromane (≥ 33 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('abenteurer-bewertungen'))
-                @php($min = $section['minPoints'] ?? 0)
+                @php($sectionUnlocked = in_array('statistik-' . $section['id'], $unlockedSlugs, true))
                 <x-card
                     id="{{ $section['id'] }}"
                     data-statistik-section
-                    data-min-points="{{ $min }}"
                     tabindex="-1"
                     shadow class="relative">
                     <h2 id="abenteurerChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Bewertungen der Die Abenteurer-Heftromane
                     </h2>
+                    @if($sectionUnlocked)
                     <div data-chart-wrapper class="mt-4">
                         <canvas id="abenteurerChart" height="140" role="img" aria-labelledby="abenteurerChartTitle"></canvas>
                     </div>
-                    @if($userPoints < $min)
-                        @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
                     @endif
+                    @include('statistik.lock-message', ['sectionId' => $section['id']])
                 </x-card>
 
+
+                @if($sectionUnlocked)
                 <script>
                     window.abenteurerChartLabels = @json($abenteurerLabels);
                     window.abenteurerChartValues = @json($abenteurerValues);
                 </script>
+                @endif
 
             {{-- Card 34b – Die Abenteurer-Heftromane je Autor:in (≥ 34 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('abenteurer-autoren'))
-                @php($min = $section['minPoints'] ?? 0)
+                @php($sectionUnlocked = in_array('statistik-' . $section['id'], $unlockedSlugs, true))
                 <x-card
                     id="{{ $section['id'] }}"
                     data-statistik-section
-                    data-min-points="{{ $min }}"
                     tabindex="-1"
                     shadow class="relative">
                     <h2 id="abenteurerAuthorChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Die Abenteurer-Heftromane je Autor:in
                     </h2>
+                    @if($sectionUnlocked)
                     <div data-chart-wrapper class="mt-4">
                         <canvas id="abenteurerAuthorChart" height="140" role="img" aria-labelledby="abenteurerAuthorChartTitle"></canvas>
                     </div>
-                    @if($userPoints < $min)
-                        @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
                     @endif
+                    @include('statistik.lock-message', ['sectionId' => $section['id']])
                 </x-card>
 
+
+                @if($sectionUnlocked)
                 <script>
                     window.abenteurerAuthorChartLabels = @json($abenteurerAuthorCounts->keys());
                     window.abenteurerAuthorChartValues = @json($abenteurerAuthorCounts->values());
                 </script>
+                @endif
 
             {{-- Card 35 – TOP10 Lieblingsthemen (≥ 50 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('lieblingsthemen'))
-                @php($min = $section['minPoints'] ?? 0)
+                @php($sectionUnlocked = in_array('statistik-' . $section['id'], $unlockedSlugs, true))
                 <x-card
                     id="{{ $section['id'] }}"
                     data-statistik-section
-                    data-min-points="{{ $min }}"
                     tabindex="-1"
                     shadow class="relative">
                     <h2 class="text-xl font-semibold text-primary mb-4 text-center">
                         TOP10 Lieblingsthemen
                     </h2>
+                    @if($sectionUnlocked)
 
                     <div class="overflow-x-auto">
                         <table class="table">
@@ -1094,9 +1146,8 @@
                             </tbody>
                         </table>
                     </div>
-                    @if($userPoints < $min)
-                        @include('statistik.lock-message', ['min' => $min, 'userPoints' => $userPoints])
                     @endif
+                    @include('statistik.lock-message', ['sectionId' => $section['id']])
                 </x-card>
             </div>
         </div>
