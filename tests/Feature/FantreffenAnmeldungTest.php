@@ -219,6 +219,7 @@ class FantreffenAnmeldungTest extends TestCase
         ]);
 
         $response->assertRedirect(route('fantreffen.2026'));
+        $response->assertSessionHasErrors('error');
         $this->assertDatabaseMissing('fantreffen_anmeldungen', ['email' => 'bot@spam.com']);
     }
 
@@ -252,7 +253,24 @@ class FantreffenAnmeldungTest extends TestCase
         ]);
 
         $response->assertRedirect(route('fantreffen.2026'));
+        $response->assertSessionHasErrors('error');
         $this->assertDatabaseMissing('fantreffen_anmeldungen', ['email' => 'fast@bot.com']);
+    }
+
+    public function test_missing_form_token_is_rejected(): void
+    {
+        Mail::fake();
+
+        $response = $this->post('/maddrax-fantreffen-2026', [
+            'vorname' => 'Bot',
+            'nachname' => 'NoToken',
+            'email' => 'notoken@bot.com',
+            'website' => '',
+        ]);
+
+        $response->assertRedirect(route('fantreffen.2026'));
+        $response->assertSessionHasErrors('error');
+        $this->assertDatabaseMissing('fantreffen_anmeldungen', ['email' => 'notoken@bot.com']);
     }
 
     public function test_manipulated_form_token_is_rejected(): void
@@ -268,6 +286,7 @@ class FantreffenAnmeldungTest extends TestCase
         ]);
 
         $response->assertRedirect(route('fantreffen.2026'));
+        $response->assertSessionHasErrors('error');
         $this->assertDatabaseMissing('fantreffen_anmeldungen', ['email' => 'hacker@evil.com']);
     }
 

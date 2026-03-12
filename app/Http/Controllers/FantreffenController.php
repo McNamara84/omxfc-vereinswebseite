@@ -51,13 +51,23 @@ class FantreffenController extends Controller
             ]);
 
             return redirect()->route('fantreffen.2026')
-                ->with('success', 'Deine Anmeldung wurde erfolgreich gespeichert!');
+                ->withErrors(['error' => 'Die Anmeldung konnte nicht verarbeitet werden. Bitte versuche es erneut.']);
         }
 
         // Timing-Check: Formular muss mindestens N Sekunden alt sein
         $minFormTime = (int) config('services.fantreffen.min_form_time', 3);
         $formToken = $request->input('_form_token');
-        if ($formToken && $minFormTime > 0) {
+
+        if (! $formToken) {
+            Log::warning('Fantreffen Anmeldung: Missing form token', [
+                'ip' => $request->ip(),
+            ]);
+
+            return redirect()->route('fantreffen.2026')
+                ->withErrors(['error' => 'Die Anmeldung konnte nicht verarbeitet werden. Bitte versuche es erneut.']);
+        }
+
+        if ($minFormTime > 0) {
             try {
                 $loadedAt = (int) Crypt::decryptString($formToken);
                 if (time() - $loadedAt < $minFormTime) {
@@ -67,7 +77,7 @@ class FantreffenController extends Controller
                     ]);
 
                     return redirect()->route('fantreffen.2026')
-                        ->with('success', 'Deine Anmeldung wurde erfolgreich gespeichert!');
+                        ->withErrors(['error' => 'Die Anmeldung konnte nicht verarbeitet werden. Bitte versuche es erneut.']);
                 }
             } catch (DecryptException) {
                 Log::warning('Fantreffen Anmeldung: Invalid form token', [
@@ -75,13 +85,13 @@ class FantreffenController extends Controller
                 ]);
 
                 return redirect()->route('fantreffen.2026')
-                    ->with('success', 'Deine Anmeldung wurde erfolgreich gespeichert!');
+                    ->withErrors(['error' => 'Die Anmeldung konnte nicht verarbeitet werden. Bitte versuche es erneut.']);
             }
         }
 
-        Log::info('Fantreffen Anmeldung: Form submission started', [
-            'request_data' => $request->all(),
+        Log::debug('Fantreffen Anmeldung: Form submission started', [
             'user_id' => Auth::id(),
+            'is_authenticated' => Auth::check(),
         ]);
 
         // Duplikat-Prüfung für eingeloggte User
