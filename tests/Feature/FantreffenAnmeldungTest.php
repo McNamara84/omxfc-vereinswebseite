@@ -242,6 +242,9 @@ class FantreffenAnmeldungTest extends TestCase
     public function test_timing_check_blocks_instant_submissions(): void
     {
         Mail::fake();
+        // Hohen Schwellenwert setzen, damit der Test deterministisch bleibt,
+        // auch auf langsamen CI-Umgebungen (Token ist immer "zu frisch")
+        config(['services.fantreffen.min_form_time' => 9999]);
         $token = Crypt::encryptString((string) time());
 
         $response = $this->post('/maddrax-fantreffen-2026', [

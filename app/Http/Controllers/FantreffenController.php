@@ -44,8 +44,11 @@ class FantreffenController extends Controller
 
     public function store(Request $request)
     {
-        // Honeypot-Prüfung: Wenn ausgefüllt, ist es ein Bot
-        if ($request->filled('website')) {
+        // Honeypot-Prüfung: Jeder nicht-leere Wert ist ein Bot.
+        // TrimStrings-Middleware trimmt Whitespace → ' ' wird zu '' → kein False-Positive.
+        // Validation nutzt nur 'nullable' (kein max:0), damit keine Fehlermeldung das Feld leakt.
+        $honeypotValue = $request->input('website');
+        if ($honeypotValue !== null && $honeypotValue !== '') {
             Log::warning('Fantreffen Anmeldung: Honeypot triggered', [
                 'ip' => $request->ip(),
             ]);

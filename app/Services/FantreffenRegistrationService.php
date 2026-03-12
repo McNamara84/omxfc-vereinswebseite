@@ -29,7 +29,7 @@ class FantreffenRegistrationService
     public function validationRules(bool $isAuthenticated): array
     {
         $rules = [
-            'website' => 'nullable|max:0',
+            'website' => 'nullable',
             'mobile' => 'nullable|string|max:50',
             'tshirt_bestellt' => 'boolean',
             'tshirt_groesse' => 'required_if:tshirt_bestellt,true|nullable|in:XS,S,M,L,XL,XXL,XXXL',
