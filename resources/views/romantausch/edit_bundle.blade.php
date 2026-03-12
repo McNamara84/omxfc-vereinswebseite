@@ -185,8 +185,7 @@
             </form>
         </x-card>
     </x-member-page>
+    @assets
+        @vite(['resources/js/romantausch-bundle-preview.js'])
+    @endassets
 </x-app-layout>
-
-@assets
-    @vite(['resources/js/romantausch-bundle-preview.js'])
-@endassets
