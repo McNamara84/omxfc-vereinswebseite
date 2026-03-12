@@ -29,6 +29,7 @@ class FantreffenRegistrationService
     public function validationRules(bool $isAuthenticated): array
     {
         $rules = [
+            'website' => 'nullable',
             'mobile' => 'nullable|string|max:50',
             'tshirt_bestellt' => 'boolean',
             'tshirt_groesse' => 'required_if:tshirt_bestellt,true|nullable|in:XS,S,M,L,XL,XXL,XXXL',
@@ -37,7 +38,7 @@ class FantreffenRegistrationService
         if (! $isAuthenticated) {
             $rules['vorname'] = 'required|string|max:255';
             $rules['nachname'] = 'required|string|max:255';
-            $rules['email'] = 'required|email|max:255';
+            $rules['email'] = 'required|email|max:255|unique:fantreffen_anmeldungen,email';
         }
 
         return $rules;
@@ -56,6 +57,7 @@ class FantreffenRegistrationService
             'mobile.string' => 'Bitte gib eine gültige Telefonnummer an.',
             'tshirt_groesse.required_if' => 'Bitte wähle eine T-Shirt-Größe aus.',
             'tshirt_groesse.in' => 'Bitte wähle eine gültige T-Shirt-Größe aus.',
+            'email.unique' => 'Diese E-Mail-Adresse ist bereits für das Fantreffen 2026 angemeldet.',
         ];
     }
 
@@ -127,9 +129,20 @@ class FantreffenRegistrationService
         }
 
         // Daten aus User oder Request
-        $vorname = $user?->vorname ?? $data['vorname'];
-        $nachname = $user?->nachname ?? $data['nachname'];
-        $email = $user?->email ?? $data['email'];
+        if ($isAuthenticated) {
+            if (empty($user->vorname) || empty($user->nachname) || empty($user->email)) {
+                throw new \InvalidArgumentException(
+                    'Dein Benutzerprofil ist unvollständig. Bitte ergänze Vorname, Nachname und E-Mail in deinen Profileinstellungen.'
+                );
+            }
+            $vorname = $user->vorname;
+            $nachname = $user->nachname;
+            $email = $user->email;
+        } else {
+            $vorname = $data['vorname'];
+            $nachname = $data['nachname'];
+            $email = $data['email'];
+        }
 
         // Zahlungsbetrag berechnen
         $paymentAmount = $this->calculatePaymentAmount($tshirtBestellt, $isAuthenticated);

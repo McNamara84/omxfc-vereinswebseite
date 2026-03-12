@@ -5,10 +5,12 @@ namespace App\Providers;
 use App\Enums\PollVisibility;
 use App\Services\Polls\ActivePollResolver;
 use App\View\Components\Alert;
+use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Process;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Vite;
@@ -35,6 +37,15 @@ class AppServiceProvider extends ServiceProvider
             URL::forceScheme('https');
             $this->app['request']->server->set('HTTPS', true);
         }
+
+        // Rate Limiter für Fantreffen-Anmeldung (deaktivierbar via Config für Tests)
+        RateLimiter::for('fantreffen-registration', function ($request) {
+            if (config('services.fantreffen.disable_rate_limit')) {
+                return Limit::none();
+            }
+
+            return Limit::perHour(5)->by($request->ip());
+        });
 
         $version = Config::get('app.version');
 

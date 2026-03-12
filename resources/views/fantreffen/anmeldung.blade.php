@@ -330,6 +330,15 @@
                         <form method="POST" action="{{ route('fantreffen.2026.store') }}" id="fantreffen-form" class="space-y-4">
                             @csrf
 
+                            {{-- Honeypot – unsichtbar, wird von Bots ausgefüllt --}}
+                            <div aria-hidden="true" style="position:absolute;left:-9999px;top:-9999px;">
+                                <label for="website">Website</label>
+                                <input type="text" name="website" id="website" value="" tabindex="-1" autocomplete="off" />
+                            </div>
+
+                            {{-- Timing-Token (bei Validierungsfehler den alten Token beibehalten) --}}
+                            <input type="hidden" name="_form_token" value="{{ old('_form_token', $formLoadedAt) }}" />
+
                             @guest
                                 <x-input label="Vorname *" name="vorname" :value="old('vorname')" required data-testid="fantreffen-vorname" />
                                 <x-input label="Nachname *" name="nachname" :value="old('nachname')" required data-testid="fantreffen-nachname" />

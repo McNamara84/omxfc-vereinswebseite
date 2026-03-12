@@ -8,10 +8,12 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Mail;
 use PHPUnit\Framework\Attributes\Test;
+use Tests\Concerns\CreatesFantreffenFormToken;
 use Tests\TestCase;
 
 class FantreffenTshirtDeadlineTest extends TestCase
 {
+    use CreatesFantreffenFormToken;
     use RefreshDatabase;
 
     #[Test]
@@ -145,6 +147,8 @@ class FantreffenTshirtDeadlineTest extends TestCase
             'email' => 'max@example.com',
             'tshirt_bestellt' => true,
             'tshirt_groesse' => 'L',
+            'website' => '',
+            '_form_token' => $this->validFormToken(),
         ]);
 
         $response->assertRedirect();
@@ -164,6 +168,8 @@ class FantreffenTshirtDeadlineTest extends TestCase
             'nachname' => 'Mustermann',
             'email' => 'max@example.com',
             'tshirt_bestellt' => false,
+            'website' => '',
+            '_form_token' => $this->validFormToken(),
         ]);
 
         // Should succeed without T-shirt
