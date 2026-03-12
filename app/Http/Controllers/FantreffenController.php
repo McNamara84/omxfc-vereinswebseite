@@ -5,9 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\FantreffenAnmeldung;
 use App\Models\FantreffenVipAuthor;
 use App\Services\FantreffenRegistrationService;
+use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Log;
 
 class FantreffenController extends Controller
@@ -35,16 +37,61 @@ class FantreffenController extends Controller
                 'user' => $user,
                 'paymentAmount' => $paymentAmount,
                 'vipAuthors' => $vipAuthors,
+                'formLoadedAt' => Crypt::encryptString((string) time()),
             ]
         ));
     }
 
     public function store(Request $request)
     {
+        // Honeypot-Prüfung: Wenn ausgefüllt, ist es ein Bot
+        if ($request->filled('website')) {
+            Log::warning('Fantreffen Anmeldung: Honeypot triggered', [
+                'ip' => $request->ip(),
+            ]);
+
+            return redirect()->route('fantreffen.2026')
+                ->with('success', 'Deine Anmeldung wurde erfolgreich gespeichert!');
+        }
+
+        // Timing-Check: Formular muss mindestens 3 Sekunden alt sein
+        $formToken = $request->input('_form_token');
+        if ($formToken) {
+            try {
+                $loadedAt = (int) Crypt::decryptString($formToken);
+                if (time() - $loadedAt < 3) {
+                    Log::warning('Fantreffen Anmeldung: Timing check failed', [
+                        'ip' => $request->ip(),
+                        'elapsed_seconds' => time() - $loadedAt,
+                    ]);
+
+                    return redirect()->route('fantreffen.2026')
+                        ->with('success', 'Deine Anmeldung wurde erfolgreich gespeichert!');
+                }
+            } catch (DecryptException) {
+                Log::warning('Fantreffen Anmeldung: Invalid form token', [
+                    'ip' => $request->ip(),
+                ]);
+
+                return redirect()->route('fantreffen.2026')
+                    ->with('success', 'Deine Anmeldung wurde erfolgreich gespeichert!');
+            }
+        }
+
         Log::info('Fantreffen Anmeldung: Form submission started', [
             'request_data' => $request->all(),
             'user_id' => Auth::id(),
         ]);
+
+        // Duplikat-Prüfung für eingeloggte User
+        if (Auth::check()) {
+            $email = Auth::user()->email;
+            if (FantreffenAnmeldung::where('email', $email)->exists()) {
+                return back()->withErrors([
+                    'email' => 'Du bist bereits für das Fantreffen 2026 angemeldet.',
+                ]);
+            }
+        }
 
         // Validierung über Service
         $isAuthenticated = Auth::check();
