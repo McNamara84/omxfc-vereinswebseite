@@ -129,9 +129,20 @@ class FantreffenRegistrationService
         }
 
         // Daten aus User oder Request
-        $vorname = $user?->vorname ?? $data['vorname'];
-        $nachname = $user?->nachname ?? $data['nachname'];
-        $email = $user?->email ?? $data['email'];
+        if ($isAuthenticated) {
+            if (empty($user->vorname) || empty($user->nachname) || empty($user->email)) {
+                throw new \InvalidArgumentException(
+                    'Dein Benutzerprofil ist unvollständig. Bitte ergänze Vorname, Nachname und E-Mail in deinen Profileinstellungen.'
+                );
+            }
+            $vorname = $user->vorname;
+            $nachname = $user->nachname;
+            $email = $user->email;
+        } else {
+            $vorname = $data['vorname'];
+            $nachname = $data['nachname'];
+            $email = $data['email'];
+        }
 
         // Zahlungsbetrag berechnen
         $paymentAmount = $this->calculatePaymentAmount($tshirtBestellt, $isAuthenticated);

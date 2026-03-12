@@ -6,21 +6,15 @@ use App\Services\FantreffenDeadlineService;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Config;
-use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Mail;
 use PHPUnit\Framework\Attributes\Test;
+use Tests\Concerns\CreatesFantreffenFormToken;
 use Tests\TestCase;
 
 class FantreffenTshirtDeadlineTest extends TestCase
 {
+    use CreatesFantreffenFormToken;
     use RefreshDatabase;
-
-    private function validFormToken(): string
-    {
-        $minFormTime = (int) config('services.fantreffen.min_form_time', 3);
-
-        return Crypt::encryptString((string) (time() - $minFormTime - 5));
-    }
 
     #[Test]
     public function test_tshirt_deadline_is_read_from_config()

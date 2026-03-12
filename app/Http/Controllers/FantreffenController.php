@@ -99,10 +99,9 @@ class FantreffenController extends Controller
             'is_authenticated' => Auth::check(),
         ]);
 
-        // Duplikat-Prüfung für eingeloggte User
+        // Duplikat-Prüfung für eingeloggte User (per user_id, nicht nur E-Mail)
         if (Auth::check()) {
-            $email = Auth::user()->email;
-            if (FantreffenAnmeldung::where('email', $email)->exists()) {
+            if (FantreffenAnmeldung::where('user_id', Auth::id())->exists()) {
                 return back()->withErrors([
                     'email' => 'Du bist bereits für das Fantreffen 2026 angemeldet.',
                 ])->withInput();
