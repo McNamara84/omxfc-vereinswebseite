@@ -58,7 +58,7 @@ Route::get('/fanfiction-teaser', [FanfictionController::class, 'publicIndex'])->
 
 // Maddrax-Fantreffen 2026
 Route::get('/maddrax-fantreffen-2026', [FantreffenController::class, 'create'])->name('fantreffen.2026');
-Route::post('/maddrax-fantreffen-2026', [FantreffenController::class, 'store'])->middleware('throttle:5,60')->name('fantreffen.2026.store');
+Route::post('/maddrax-fantreffen-2026', [FantreffenController::class, 'store'])->middleware('throttle:fantreffen-registration')->name('fantreffen.2026.store');
 Route::get('/maddrax-fantreffen-2026/bestaetigung/{id}', [FantreffenController::class, 'bestaetigung'])->name('fantreffen.2026.bestaetigung');
 
 // POST Route für Mitgliedschaftsantrag

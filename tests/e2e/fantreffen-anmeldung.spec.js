@@ -40,19 +40,11 @@ test.describe('Fantreffen 2026 Anmeldung', () => {
         await page.fill('input[name="nachname"]', 'Mustermann');
         await page.fill('input[name="email"]', 'max.mustermann@example.com');
 
-        // Submit und auf Navigation warten
+        // Submit
         await page.getByTestId('fantreffen-submit').click();
-        await page.waitForLoadState('networkidle');
 
-        // Diagnostik: URL und Seiteninhalt bei Fehler erfassen
-        const currentUrl = page.url();
-        if (!currentUrl.includes('bestaetigung')) {
-            const bodyText = await page.textContent('body');
-            throw new Error(
-                `Redirect zu /bestaetigung/ erwartet, aber aktuelle URL: ${currentUrl}\n\n` +
-                `Seiteninhalt (erste 3000 Zeichen):\n${bodyText?.substring(0, 3000)}`
-            );
-        }
+        // Weiterleitung zur Bestätigungsseite
+        await page.waitForURL(/bestaetigung/, { timeout: 10000 });
     });
 
     test('T-Shirt Checkbox schaltet Größen-Dropdown korrekt um', async ({ page }) => {
