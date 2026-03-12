@@ -174,6 +174,8 @@
                 </table>
             </div>
         </x-card>
-        @vite(['resources/js/hoerbuecher.js'])
+        @assets
+            @vite(['resources/js/hoerbuecher.js'])
+        @endassets
     </x-member-page>
 </x-app-layout>

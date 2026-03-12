@@ -11,7 +11,9 @@
                             const csrfToken = '{{ csrf_token() }}';
                             const tileUrl = '{{ $tileUrl }}';
                         </script>
-                        @vite(['resources/js/maddraxiversum.js'])
+                        @assets
+                            @vite(['resources/js/maddraxiversum.js'])
+                        @endassets
                     @else
                         <div class="bg-warning/10 border-l-4 border-warning text-warning-content p-4">
                             <p class="font-bold">Zugriff eingeschränkt</p>

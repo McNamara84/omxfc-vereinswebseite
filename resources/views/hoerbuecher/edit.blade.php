@@ -156,5 +156,7 @@
             </form>
         </x-card>
     </x-member-page>
-    @vite(['resources/js/hoerbuch-role-form.js'])
+    @assets
+        @vite(['resources/js/hoerbuch-role-form.js'])
+    @endassets
 </x-app-layout>
