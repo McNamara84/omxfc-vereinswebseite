@@ -55,7 +55,7 @@ class FantreffenController extends Controller
         }
 
         // Timing-Check: Formular muss mindestens N Sekunden alt sein
-        $minFormTime = (int) env('FANTREFFEN_MIN_FORM_TIME', 3);
+        $minFormTime = (int) config('services.fantreffen.min_form_time', 3);
         $formToken = $request->input('_form_token');
         if ($formToken && $minFormTime > 0) {
             try {

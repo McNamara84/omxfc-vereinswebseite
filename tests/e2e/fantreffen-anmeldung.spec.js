@@ -40,8 +40,15 @@ test.describe('Fantreffen 2026 Anmeldung', () => {
         await page.fill('input[name="nachname"]', 'Mustermann');
         await page.fill('input[name="email"]', 'max.mustermann@example.com');
 
-        // Submit
-        await page.getByTestId('fantreffen-submit').click();
+        // Response des POST-Requests abfangen für Debugging
+        const [response] = await Promise.all([
+            page.waitForResponse(resp =>
+                resp.url().includes('maddrax-fantreffen-2026') &&
+                resp.request().method() === 'POST'
+            ),
+            page.getByTestId('fantreffen-submit').click(),
+        ]);
+        console.log(`POST response: ${response.status()} → ${response.headers()['location'] ?? 'no redirect'}`);
 
         // Weiterleitung zur Bestätigungsseite
         await page.waitForURL(/bestaetigung/, { timeout: 10000 });
