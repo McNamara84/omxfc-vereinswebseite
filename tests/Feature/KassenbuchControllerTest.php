@@ -63,58 +63,6 @@ class KassenbuchControllerTest extends TestCase
         $this->assertEquals(42.00, $member->mitgliedsbeitrag);
     }
 
-    public function test_index_creates_initial_kassenstand_and_shows_basic_data(): void
-    {
-        $user = $this->actingMember();
-        $this->actingAs($user);
-
-        $this->assertDatabaseMissing('kassenstand', ['team_id' => $user->currentTeam->id]);
-
-        $response = $this->get('/kassenstand');
-
-        $response->assertOk();
-        $this->assertDatabaseHas('kassenstand', ['team_id' => $user->currentTeam->id, 'betrag' => 0.00]);
-
-        $response->assertViewHas('renewalWarning', false);
-    }
-
-    public function test_index_sets_renewal_warning_for_expiring_membership(): void
-    {
-        $user = $this->actingMember();
-        $user->update(['bezahlt_bis' => now()->addDays(10)]);
-        $this->actingAs($user);
-
-        $response = $this->get('/kassenstand');
-
-        $response->assertOk();
-        $response->assertViewHas('renewalWarning', true);
-    }
-
-    public function test_index_does_not_set_warning_when_membership_is_far_in_future(): void
-    {
-        $user = $this->actingMember();
-        $user->update(['bezahlt_bis' => now()->addDays(45)]);
-        $this->actingAs($user);
-
-        $response = $this->get('/kassenstand');
-
-        $response->assertOk();
-        $response->assertViewHas('renewalWarning', false);
-    }
-
-    public function test_index_marks_membership_as_expired_without_warning(): void
-    {
-        $user = $this->actingMember();
-        $user->update(['bezahlt_bis' => now()->subDays(5)]);
-        $this->actingAs($user);
-
-        $response = $this->get('/kassenstand');
-
-        $response->assertOk();
-        $response->assertViewHas('renewalWarning', false);
-        $response->assertSee('Deine Mitgliedschaft ist abgelaufen!', false);
-    }
-
     public function test_index_returns_members_and_entries_for_kassenwart(): void
     {
         $kassenwart = $this->actingKassenwart();

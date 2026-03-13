@@ -363,7 +363,7 @@ class KassenbuchController extends Controller
                 ['team_id' => $team->id],
                 ['betrag' => 0.00, 'letzte_aktualisierung' => now()]
             );
-        } catch (\Illuminate\Database\QueryException $e) {
+        } catch (\Illuminate\Database\UniqueConstraintViolationException) {
             return Kassenstand::where('team_id', $team->id)->firstOrFail();
         }
     }

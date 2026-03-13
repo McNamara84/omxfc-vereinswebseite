@@ -93,6 +93,44 @@ class KassenstandControllerTest extends TestCase
 
         $response->assertOk();
         $this->assertDatabaseHas('kassenstand', ['team_id' => $user->currentTeam->id, 'betrag' => 0.00]);
+        $response->assertViewHas('renewalWarning', false);
+    }
+
+    public function test_kassenstand_zeigt_erneuerungswarnung_bei_ablaufender_mitgliedschaft(): void
+    {
+        $user = $this->actingMember();
+        $user->update(['bezahlt_bis' => now()->addDays(10)]);
+        $this->actingAs($user);
+
+        $response = $this->get('/kassenstand');
+
+        $response->assertOk();
+        $response->assertViewHas('renewalWarning', true);
+    }
+
+    public function test_kassenstand_zeigt_keine_warnung_bei_langer_mitgliedschaft(): void
+    {
+        $user = $this->actingMember();
+        $user->update(['bezahlt_bis' => now()->addDays(45)]);
+        $this->actingAs($user);
+
+        $response = $this->get('/kassenstand');
+
+        $response->assertOk();
+        $response->assertViewHas('renewalWarning', false);
+    }
+
+    public function test_kassenstand_markiert_abgelaufene_mitgliedschaft_ohne_warnung(): void
+    {
+        $user = $this->actingMember();
+        $user->update(['bezahlt_bis' => now()->subDays(5)]);
+        $this->actingAs($user);
+
+        $response = $this->get('/kassenstand');
+
+        $response->assertOk();
+        $response->assertViewHas('renewalWarning', false);
+        $response->assertSee('Deine Mitgliedschaft ist abgelaufen!', false);
     }
 
     public function test_kassenstand_uses_members_team_provider(): void
