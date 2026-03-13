@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\KompendiumRoman;
+use App\Models\RomanExcerpt;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -44,8 +45,9 @@ class RebuildKompendiumIndexTest extends TestCase
 
     public function test_skips_rebuild_when_index_already_exists(): void
     {
-        // Index-Datei simulieren
-        file_put_contents($this->testStoragePath.'/app/roman_excerpts.index', 'fake-index');
+        // Index-Datei aus Model-Name ableiten
+        $indexName = (new RomanExcerpt)->searchableAs();
+        file_put_contents($this->testStoragePath.'/app/'.$indexName.'.index', 'fake-index');
 
         $this->artisan('kompendium:rebuild-index')
             ->expectsOutput('Index existiert bereits – kein Rebuild nötig.')

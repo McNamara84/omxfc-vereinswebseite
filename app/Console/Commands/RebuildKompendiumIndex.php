@@ -15,7 +15,8 @@ class RebuildKompendiumIndex extends Command
 
     public function handle(): int
     {
-        $indexPath = config('scout.tntsearch.storage').'/roman_excerpts.index';
+        $indexName = (new RomanExcerpt)->searchableAs();
+        $indexPath = config('scout.tntsearch.storage').DIRECTORY_SEPARATOR.$indexName.'.index';
 
         if (file_exists($indexPath)) {
             $this->info('Index existiert bereits – kein Rebuild nötig.');
