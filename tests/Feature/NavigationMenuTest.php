@@ -20,7 +20,7 @@ class NavigationMenuTest extends TestCase
         $response->assertSee(route('termine'));
     }
 
-    public function test_authenticated_users_see_satzung_between_protokolle_and_kassenbuch(): void
+    public function test_authenticated_users_see_satzung_between_protokolle_and_kassenstand(): void
     {
         $user = User::factory()->withPersonalTeam()->create();
 
@@ -30,7 +30,7 @@ class NavigationMenuTest extends TestCase
         $response->assertSeeInOrder([
             'Protokolle',
             'Satzung',
-            'Kassenbuch',
+            'Kassenstand',
         ], false);
     }
 
