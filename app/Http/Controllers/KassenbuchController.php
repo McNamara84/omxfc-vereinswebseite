@@ -358,17 +358,10 @@ class KassenbuchController extends Controller
 
     private function getOrCreateKassenstand($team): Kassenstand
     {
-        $kassenstand = Kassenstand::where('team_id', $team->id)->first();
-
-        if (! $kassenstand) {
-            $kassenstand = Kassenstand::create([
-                'team_id' => $team->id,
-                'betrag' => 0.00,
-                'letzte_aktualisierung' => now(),
-            ]);
-        }
-
-        return $kassenstand;
+        return Kassenstand::firstOrCreate(
+            ['team_id' => $team->id],
+            ['betrag' => 0.00, 'letzte_aktualisierung' => now()]
+        );
     }
 
     private function checkRenewalWarning($user): bool

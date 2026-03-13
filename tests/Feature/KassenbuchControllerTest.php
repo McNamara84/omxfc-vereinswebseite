@@ -358,12 +358,13 @@ class KassenbuchControllerTest extends TestCase
     public function test_index_uses_members_team_provider(): void
     {
         $team = Team::membersTeam();
-        $user = $this->actingKassenwart();
-        $this->actingAs($user);
 
         $this->mock(MembersTeamProvider::class, function ($mock) use ($team) {
             $mock->shouldReceive('getMembersTeamOrAbort')->once()->andReturn($team);
         });
+
+        $user = $this->createUserWithRole(Role::Kassenwart);
+        $this->actingAs($user);
 
         $this->get('/kassenbuch')->assertOk();
     }

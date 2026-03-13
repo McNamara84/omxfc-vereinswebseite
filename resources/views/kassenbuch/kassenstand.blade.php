@@ -9,7 +9,7 @@
                 <div class="mb-4">
                     <p class="text-sm text-base-content">Dein aktueller Mitgliedsbeitrag:</p>
                     <p class="text-xl font-semibold">
-                        {{ $memberData->mitgliedsbeitrag ? number_format($memberData->mitgliedsbeitrag, 2, ',', '.') . ' €' : 'Nicht festgelegt' }}
+                        {{ !is_null($memberData->mitgliedsbeitrag) ? number_format($memberData->mitgliedsbeitrag, 2, ',', '.') . ' €' : 'Nicht festgelegt' }}
                     </p>
                 </div>
                 

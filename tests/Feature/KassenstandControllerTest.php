@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\Role;
 use App\Models\Kassenstand;
 use App\Models\Team;
 use App\Services\MembersTeamProvider;
@@ -97,12 +98,13 @@ class KassenstandControllerTest extends TestCase
     public function test_kassenstand_uses_members_team_provider(): void
     {
         $team = Team::membersTeam();
-        $user = $this->actingMember();
-        $this->actingAs($user);
 
         $this->mock(MembersTeamProvider::class, function ($mock) use ($team) {
             $mock->shouldReceive('getMembersTeamOrAbort')->once()->andReturn($team);
         });
+
+        $user = $this->createUserWithRole(Role::Mitglied);
+        $this->actingAs($user);
 
         $this->get('/kassenstand')->assertOk();
     }
