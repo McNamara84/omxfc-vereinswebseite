@@ -78,15 +78,15 @@
             <div class="flex flex-wrap gap-4 items-center justify-between">
                 <h3 class="text-lg font-medium text-base-content">Datenexport & Funktionen</h3>
 
-                <div class="flex space-x-2">
+                <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                     <!-- CSV Export Button -->
-                    <x-button icon="o-arrow-down-tray" label="CSV Export" @click="showExportOptions = !showExportOptions" class="btn-primary" data-testid="mitglieder-csv-export-btn" />
+                    <x-button icon="o-arrow-down-tray" label="CSV Export" @click="showExportOptions = !showExportOptions" class="btn-primary w-full sm:w-auto" data-testid="mitglieder-csv-export-btn" />
 
                     <!-- E-Mail-Adressen kopieren -->
                     <x-button
                         icon="o-clipboard-document"
                         label="E-Mail-Adressen kopieren"
-                        class="btn-info"
+                        class="btn-info w-full sm:w-auto"
                         @click="
                             fetch('{{ route('mitglieder.all-emails') }}')
                                 .then(response => response.json())
