@@ -15,6 +15,12 @@ class RebuildKompendiumIndex extends Command
 
     public function handle(): int
     {
+        if (config('scout.driver') !== 'tntsearch') {
+            $this->warn('Scout-Driver ist nicht tntsearch – Rebuild nicht möglich.');
+
+            return self::FAILURE;
+        }
+
         $indexName = (new RomanExcerpt)->searchableAs();
         $indexPath = config('scout.tntsearch.storage').DIRECTORY_SEPARATOR.$indexName.'.index';
 

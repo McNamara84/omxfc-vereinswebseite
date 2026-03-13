@@ -29,7 +29,7 @@ class RebuildKompendiumIndexTest extends TestCase
         File::ensureDirectoryExists($this->testStoragePath.'/app/private/romane/maddrax');
         File::ensureDirectoryExists($this->testStoragePath.'/framework/views');
         config(['filesystems.disks.private.root' => $this->testStoragePath.'/app/private']);
-        config(['scout.driver' => 'null']);
+        config(['scout.driver' => 'tntsearch']);
         config(['scout.tntsearch.storage' => $this->testStoragePath.'/app']);
 
         $team = Team::membersTeam();
@@ -85,6 +85,10 @@ class RebuildKompendiumIndexTest extends TestCase
             ->expectsOutputToContain('Index fehlt – baue 1 Romane neu auf')
             ->expectsOutput('Index-Rebuild abgeschlossen.')
             ->assertExitCode(0);
+
+        // Verifiziere, dass die Index-Datei tatsächlich erstellt wurde
+        $indexName = (new RomanExcerpt)->searchableAs();
+        $this->assertFileExists($this->testStoragePath.'/app/'.$indexName.'.index');
     }
 
     public function test_marks_roman_as_fehler_when_file_missing(): void
@@ -108,6 +112,15 @@ class RebuildKompendiumIndexTest extends TestCase
         $roman->refresh();
         $this->assertEquals('fehler', $roman->status);
         $this->assertStringContainsString('Datei nicht gefunden', $roman->fehler_nachricht);
+    }
+
+    public function test_warns_when_scout_driver_is_not_tntsearch(): void
+    {
+        config(['scout.driver' => 'null']);
+
+        $this->artisan('kompendium:rebuild-index')
+            ->expectsOutput('Scout-Driver ist nicht tntsearch – Rebuild nicht möglich.')
+            ->assertExitCode(1);
     }
 
     public function test_ignores_non_indexed_romane(): void
