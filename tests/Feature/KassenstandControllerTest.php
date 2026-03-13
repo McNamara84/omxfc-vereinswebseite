@@ -16,7 +16,7 @@ class KassenstandControllerTest extends TestCase
 
     public function test_mitglied_kann_kassenstand_sehen(): void
     {
-        $user = $this->actingMember();
+        $this->actingMember();
 
         $response = $this->get('/kassenstand');
 
@@ -26,7 +26,7 @@ class KassenstandControllerTest extends TestCase
 
     public function test_kassenstand_zeigt_mitgliedsbeitrag(): void
     {
-        $user = $this->actingMember(attributes: ['mitgliedsbeitrag' => 36.00]);
+        $this->actingMember(attributes: ['mitgliedsbeitrag' => 36.00]);
 
         $response = $this->get('/kassenstand');
 
@@ -55,7 +55,7 @@ class KassenstandControllerTest extends TestCase
 
     public function test_kassenstand_zeigt_keine_verwaltung(): void
     {
-        $user = $this->actingMember();
+        $this->actingMember();
 
         $response = $this->get('/kassenstand');
 
@@ -66,7 +66,7 @@ class KassenstandControllerTest extends TestCase
 
     public function test_vorstand_sieht_kassenstand_wie_mitglied(): void
     {
-        $vorstand = $this->actingVorstand();
+        $this->actingVorstand();
 
         $response = $this->get('/kassenstand');
 

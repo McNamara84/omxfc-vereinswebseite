@@ -148,7 +148,7 @@ class KassenbuchController extends Controller
             ]);
 
             // Kassenstand aktualisieren
-            $kassenstand = Kassenstand::where('team_id', $team->id)->first();
+            $kassenstand = $this->getOrCreateKassenstand($team);
             $kassenstand->betrag += $amount;
             $kassenstand->letzte_aktualisierung = now();
             $kassenstand->save();
@@ -358,10 +358,14 @@ class KassenbuchController extends Controller
 
     private function getOrCreateKassenstand($team): Kassenstand
     {
-        return Kassenstand::firstOrCreate(
-            ['team_id' => $team->id],
-            ['betrag' => 0.00, 'letzte_aktualisierung' => now()]
-        );
+        try {
+            return Kassenstand::firstOrCreate(
+                ['team_id' => $team->id],
+                ['betrag' => 0.00, 'letzte_aktualisierung' => now()]
+            );
+        } catch (\Illuminate\Database\QueryException $e) {
+            return Kassenstand::where('team_id', $team->id)->firstOrFail();
+        }
     }
 
     private function checkRenewalWarning($user): bool
