@@ -249,8 +249,8 @@ test.describe('Romantauschbörse - Stapel-Angebote', () => {
             // Löschen
             await deleteButton.click();
 
-            // Sollte zur Übersicht weiterleiten
-            await expect(page).toHaveURL(/romantauschboerse$/);
+            // Sollte zur Übersicht weiterleiten (Firefox braucht mehr Zeit für Form-Submit nach Dialog)
+            await expect(page).toHaveURL(/romantauschboerse$/, { timeout: 15000 });
         });
     });
 
