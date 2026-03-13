@@ -23,6 +23,21 @@ class KassenbuchController extends Controller
         private MembersTeamProvider $membersTeamProvider
     ) {}
 
+    public function kassenstand()
+    {
+        $user = Auth::user();
+        $team = $this->membersTeamProvider->getMembersTeamOrAbort();
+
+        $kassenstand = $this->getOrCreateKassenstand($team);
+        $renewalWarning = $this->checkRenewalWarning($user);
+
+        return view('kassenbuch.kassenstand', [
+            'kassenstand' => $kassenstand,
+            'memberData' => $user,
+            'renewalWarning' => $renewalWarning,
+        ]);
+    }
+
     public function index()
     {
         $user = Auth::user();
@@ -36,16 +51,7 @@ class KassenbuchController extends Controller
         $canProcessEditRequests = $user->can('processEditRequest', KassenbuchEntry::class);
 
         // Aktuellen Kassenstand abrufen
-        $kassenstand = Kassenstand::where('team_id', $team->id)->first();
-
-        // Falls noch kein Kassenstand existiert, einen initialen Eintrag erstellen
-        if (! $kassenstand) {
-            $kassenstand = Kassenstand::create([
-                'team_id' => $team->id,
-                'betrag' => 0.00,
-                'letzte_aktualisierung' => now(),
-            ]);
-        }
+        $kassenstand = $this->getOrCreateKassenstand($team);
 
         // Für Vorstand und Kassenwart: Alle Mitglieder mit ihren Zahlungsdaten abrufen
         $members = null;
@@ -76,18 +82,7 @@ class KassenbuchController extends Controller
         $memberData = $user;
 
         // Prüfen, ob Mitgliedschaft bald abläuft (innerhalb eines Monats)
-        $renewalWarning = false;
-        if ($user->bezahlt_bis) {
-            $today = Carbon::now();
-            $expiryDate = $user->bezahlt_bis instanceof Carbon
-                ? $user->bezahlt_bis
-                : Carbon::parse((string) $user->bezahlt_bis);
-            $daysUntilExpiry = $today->diffInDays($expiryDate, false);
-
-            if ($daysUntilExpiry > 0 && $daysUntilExpiry <= 30) {
-                $renewalWarning = true;
-            }
-        }
+        $renewalWarning = $this->checkRenewalWarning($user);
 
         return view('kassenbuch.index', [
             'userRole' => $userRole,
@@ -152,11 +147,11 @@ class KassenbuchController extends Controller
                 'typ' => $data['typ'],
             ]);
 
-            // Kassenstand aktualisieren
-            $kassenstand = Kassenstand::where('team_id', $team->id)->first();
-            $kassenstand->betrag += $amount;
-            $kassenstand->letzte_aktualisierung = now();
-            $kassenstand->save();
+            // Kassenstand atomar aktualisieren
+            $kassenstand = Kassenstand::where('team_id', $team->id)->lockForUpdate()->first()
+                ?? $this->getOrCreateKassenstand($team);
+            $kassenstand->increment('betrag', $amount);
+            $kassenstand->update(['letzte_aktualisierung' => now()]);
         });
 
         return back()->with('status', 'Kassenbucheintrag wurde hinzugefügt.');
@@ -359,5 +354,32 @@ class KassenbuchController extends Controller
         });
 
         return back()->with('status', 'Kassenbucheintrag wurde aktualisiert.');
+    }
+
+    private function getOrCreateKassenstand($team): Kassenstand
+    {
+        try {
+            return Kassenstand::firstOrCreate(
+                ['team_id' => $team->id],
+                ['betrag' => 0.00, 'letzte_aktualisierung' => now()]
+            );
+        } catch (\Illuminate\Database\UniqueConstraintViolationException) {
+            return Kassenstand::where('team_id', $team->id)->firstOrFail();
+        }
+    }
+
+    private function checkRenewalWarning($user): bool
+    {
+        if (! $user->bezahlt_bis) {
+            return false;
+        }
+
+        $today = Carbon::now();
+        $expiryDate = $user->bezahlt_bis instanceof Carbon
+            ? $user->bezahlt_bis
+            : Carbon::parse((string) $user->bezahlt_bis);
+        $daysUntilExpiry = $today->diffInDays($expiryDate, false);
+
+        return $daysUntilExpiry > 0 && $daysUntilExpiry <= 30;
     }
 }
