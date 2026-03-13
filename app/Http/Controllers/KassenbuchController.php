@@ -147,11 +147,11 @@ class KassenbuchController extends Controller
                 'typ' => $data['typ'],
             ]);
 
-            // Kassenstand aktualisieren
-            $kassenstand = $this->getOrCreateKassenstand($team);
-            $kassenstand->betrag += $amount;
-            $kassenstand->letzte_aktualisierung = now();
-            $kassenstand->save();
+            // Kassenstand atomar aktualisieren
+            $kassenstand = Kassenstand::where('team_id', $team->id)->lockForUpdate()->first()
+                ?? $this->getOrCreateKassenstand($team);
+            $kassenstand->increment('betrag', $amount);
+            $kassenstand->update(['letzte_aktualisierung' => now()]);
         });
 
         return back()->with('status', 'Kassenbucheintrag wurde hinzugefügt.');

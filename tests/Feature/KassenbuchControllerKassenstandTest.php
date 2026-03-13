@@ -9,7 +9,7 @@ use App\Services\MembersTeamProvider;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-class KassenstandControllerTest extends TestCase
+class KassenbuchControllerKassenstandTest extends TestCase
 {
     use RefreshDatabase;
     use \Tests\Concerns\CreatesUserWithRole;
