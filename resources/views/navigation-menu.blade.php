@@ -29,7 +29,7 @@
                         <x-menu-item title="Mitgliederkarte" link="{{ route('mitglieder.karte') }}" />
                         <x-menu-item title="Protokolle" link="{{ route('protokolle') }}" />
                         <x-menu-item title="Satzung" link="{{ route('satzung') }}" />
-                        <x-menu-item title="Kassenbuch" link="{{ route('kassenbuch.index') }}" />
+                        <x-menu-item title="Kassenstand" link="{{ route('kassenstand.index') }}" />
                         <x-menu-item title="Rezensionen" link="{{ route('reviews.index') }}" />
                         <x-menu-item title="Tauschbörse" link="{{ route('romantausch.index') }}" />
                     </x-dropdown>
@@ -83,6 +83,7 @@
                 @if(Auth::user()->hasAnyRole(\App\Enums\Role::Admin, \App\Enums\Role::Vorstand, \App\Enums\Role::Kassenwart))
                     <div class="flex-1 grid">
                         <x-dropdown label="Vorstand" class="btn-ghost btn-sm w-full whitespace-nowrap">
+                            <x-menu-item title="Kassenbuch" link="{{ route('kassenbuch.index') }}" />
                             <x-menu-item title="Statistik" link="{{ route('admin.statistiken.index') }}" />
                             <x-menu-item title="Anmeldungen FT" link="{{ route('admin.fantreffen.2026') }}" />
                             <x-menu-item title="Fanfiction" link="{{ route('admin.fanfiction.index') }}" />
@@ -212,7 +213,7 @@
                 <x-menu-item title="Mitgliederkarte" link="{{ route('mitglieder.karte') }}" />
                 <x-menu-item title="Protokolle" link="{{ route('protokolle') }}" />
                 <x-menu-item title="Satzung" link="{{ route('satzung') }}" />
-                <x-menu-item title="Kassenbuch" link="{{ route('kassenbuch.index') }}" />
+                <x-menu-item title="Kassenstand" link="{{ route('kassenstand.index') }}" />
                 <x-menu-item title="Rezensionen" link="{{ route('reviews.index') }}" />
                 <x-menu-item title="Tauschbörse" link="{{ route('romantausch.index') }}" />
             </x-menu-sub>
@@ -251,6 +252,7 @@
 
             @if(Auth::user()->hasAnyRole(\App\Enums\Role::Admin, \App\Enums\Role::Vorstand, \App\Enums\Role::Kassenwart))
                 <x-menu-sub title="Vorstand" icon="o-shield-check">
+                    <x-menu-item title="Kassenbuch" link="{{ route('kassenbuch.index') }}" />
                     <x-menu-item title="Statistik" link="{{ route('admin.statistiken.index') }}" />
                     <x-menu-item title="Anmeldungen FT" link="{{ route('admin.fantreffen.2026') }}" />
                     <x-menu-item title="Fanfiction" link="{{ route('admin.fanfiction.index') }}" />

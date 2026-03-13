@@ -192,7 +192,9 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
         Route::post('umleiten', 'redirectToZoom')->name('meetings.redirect');
     });
 
-    Route::prefix('kassenbuch')->name('kassenbuch.')->controller(KassenbuchController::class)->group(function () {
+    Route::get('kassenstand', [KassenbuchController::class, 'kassenstand'])->name('kassenstand.index');
+
+    Route::prefix('kassenbuch')->name('kassenbuch.')->controller(KassenbuchController::class)->middleware('vorstand-or-kassenwart')->group(function () {
         Route::get('/', 'index')->name('index');
         Route::put('zahlung-aktualisieren/{user}', 'updatePaymentStatus')->name('update-payment');
         Route::post('eintrag-hinzufuegen', 'addKassenbuchEntry')->name('add-entry');

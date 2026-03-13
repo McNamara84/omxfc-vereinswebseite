@@ -70,16 +70,12 @@ class KassenbuchControllerTest extends TestCase
 
         $this->assertDatabaseMissing('kassenstand', ['team_id' => $user->currentTeam->id]);
 
-        $response = $this->get('/kassenbuch');
+        $response = $this->get('/kassenstand');
 
         $response->assertOk();
         $this->assertDatabaseHas('kassenstand', ['team_id' => $user->currentTeam->id, 'betrag' => 0.00]);
 
-        $response->assertViewHas('userRole', Role::Mitglied);
-        $response->assertViewHas('canViewKassenbuch', false);
-        $response->assertViewHas('canManageKassenbuch', false);
-        $this->assertNull($response->viewData('members'));
-        $this->assertNull($response->viewData('kassenbuchEntries'));
+        $response->assertViewHas('renewalWarning', false);
     }
 
     public function test_index_sets_renewal_warning_for_expiring_membership(): void
@@ -88,7 +84,7 @@ class KassenbuchControllerTest extends TestCase
         $user->update(['bezahlt_bis' => now()->addDays(10)]);
         $this->actingAs($user);
 
-        $response = $this->get('/kassenbuch');
+        $response = $this->get('/kassenstand');
 
         $response->assertOk();
         $response->assertViewHas('renewalWarning', true);
@@ -100,7 +96,7 @@ class KassenbuchControllerTest extends TestCase
         $user->update(['bezahlt_bis' => now()->addDays(45)]);
         $this->actingAs($user);
 
-        $response = $this->get('/kassenbuch');
+        $response = $this->get('/kassenstand');
 
         $response->assertOk();
         $response->assertViewHas('renewalWarning', false);
@@ -112,7 +108,7 @@ class KassenbuchControllerTest extends TestCase
         $user->update(['bezahlt_bis' => now()->subDays(5)]);
         $this->actingAs($user);
 
-        $response = $this->get('/kassenbuch');
+        $response = $this->get('/kassenstand');
 
         $response->assertOk();
         $response->assertViewHas('renewalWarning', false);
@@ -180,10 +176,7 @@ class KassenbuchControllerTest extends TestCase
         $member = $this->actingMember();
         $this->actingAs($member);
 
-        // initialize kassenstand
-        $this->get('/kassenbuch');
-
-        $response = $this->from('/kassenbuch')->post('/kassenbuch/eintrag-hinzufuegen', [
+        $response = $this->from('/kassenstand')->post('/kassenbuch/eintrag-hinzufuegen', [
             'buchungsdatum' => '2025-01-01',
             'betrag' => 5,
             'beschreibung' => 'Beitrag',
@@ -193,10 +186,6 @@ class KassenbuchControllerTest extends TestCase
         $response->assertForbidden();
 
         $this->assertDatabaseCount('kassenbuch_entries', 0);
-        $this->assertDatabaseHas('kassenstand', [
-            'team_id' => $member->currentTeam->id,
-            'betrag' => 0.00,
-        ]);
     }
 
     public function test_kassenbuch_forms_have_accessibility_attributes(): void
@@ -369,7 +358,7 @@ class KassenbuchControllerTest extends TestCase
     public function test_index_uses_members_team_provider(): void
     {
         $team = Team::membersTeam();
-        $user = $this->actingMember();
+        $user = $this->actingKassenwart();
         $this->actingAs($user);
 
         $this->mock(MembersTeamProvider::class, function ($mock) use ($team) {
@@ -377,5 +366,42 @@ class KassenbuchControllerTest extends TestCase
         });
 
         $this->get('/kassenbuch')->assertOk();
+    }
+
+    public function test_member_cannot_access_kassenbuch(): void
+    {
+        $member = $this->actingMember();
+        $this->actingAs($member);
+
+        $response = $this->get('/kassenbuch');
+
+        $response->assertForbidden();
+    }
+
+    public function test_vorstand_can_access_kassenbuch(): void
+    {
+        $vorstand = $this->actingVorstand();
+
+        $response = $this->get('/kassenbuch');
+
+        $response->assertOk();
+    }
+
+    public function test_kassenwart_can_access_kassenbuch(): void
+    {
+        $kassenwart = $this->actingKassenwart();
+
+        $response = $this->get('/kassenbuch');
+
+        $response->assertOk();
+    }
+
+    public function test_admin_can_access_kassenbuch(): void
+    {
+        $admin = $this->actingAdmin();
+
+        $response = $this->get('/kassenbuch');
+
+        $response->assertOk();
     }
 }
