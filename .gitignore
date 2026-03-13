@@ -5,6 +5,7 @@
 /public/storage
 /storage/*.key
 /storage/*.index
+/storage/app/*.index
 /storage/pail
 /vendor
 .env

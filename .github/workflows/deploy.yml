@@ -104,6 +104,10 @@ jobs:
             docker exec maddrax-app php artisan route:cache
             docker exec maddrax-app php artisan view:cache
             
+            # Kompendium-Index wiederherstellen falls nötig
+            echo "Checking Kompendium search index..."
+            docker exec maddrax-app php artisan kompendium:rebuild-index
+            
             # Berechtigungen setzen
             echo "Setting permissions..."
             docker exec maddrax-app chown -R www-data:www-data /var/www/html/storage
