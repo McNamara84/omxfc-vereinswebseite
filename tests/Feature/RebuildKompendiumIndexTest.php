@@ -32,6 +32,10 @@ class RebuildKompendiumIndexTest extends TestCase
         config(['scout.driver' => 'tntsearch']);
         config(['scout.tntsearch.storage' => $this->testStoragePath.'/app']);
 
+        // Sicherstellen, dass kein Index von vorherigen Tests existiert
+        $indexName = (new RomanExcerpt)->searchableAs();
+        @unlink($this->testStoragePath.'/app/'.$indexName.'.index');
+
         $team = Team::membersTeam();
         $this->admin = User::factory()->create(['current_team_id' => $team->id]);
     }
@@ -82,7 +86,7 @@ class RebuildKompendiumIndexTest extends TestCase
         ]);
 
         $this->artisan('kompendium:rebuild-index')
-            ->expectsOutputToContain('Index fehlt – baue 1 Romane neu auf')
+            ->expectsOutputToContain('Index fehlt – baue 1 Roman neu auf')
             ->expectsOutput('Index-Rebuild abgeschlossen.')
             ->assertExitCode(0);
 

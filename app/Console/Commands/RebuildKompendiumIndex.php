@@ -38,7 +38,9 @@ class RebuildKompendiumIndex extends Command
             return self::SUCCESS;
         }
 
-        $this->info("Index fehlt – baue {$romane->count()} Romane neu auf …");
+        $anzahl = $romane->count();
+        $label = $anzahl === 1 ? 'Roman' : 'Romane';
+        $this->info("Index fehlt – baue {$anzahl} {$label} neu auf …");
 
         $disk = Storage::disk('private');
         $bar = $this->output->createProgressBar($romane->count());
@@ -82,7 +84,8 @@ class RebuildKompendiumIndex extends Command
         $this->newLine(2);
 
         if ($fehler > 0) {
-            $this->warn("{$fehler} Roman(e) konnten nicht indexiert werden (Datei fehlt).");
+            $fehlerLabel = $fehler === 1 ? 'Roman konnte' : 'Romane konnten';
+            $this->warn("{$fehler} {$fehlerLabel} nicht indexiert werden (Datei fehlt).");
         }
 
         $this->info('Index-Rebuild abgeschlossen.');
