@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Livewire\BelohnungenAdmin;
+use App\Livewire\BelohnungenIndex;
 use App\Models\ThreeDModel;
 use App\Models\User;
 use App\Services\TeamPointService;
@@ -11,8 +13,8 @@ use Illuminate\View\View;
 /**
  * @deprecated Ersetzt durch \App\Livewire\BelohnungenIndex (aktives Kaufsystem).
  * Diese Klasse wird nicht mehr über Routen angesprochen und kann entfernt werden.
- * @see \App\Livewire\BelohnungenIndex
- * @see \App\Livewire\BelohnungenAdmin
+ * @see BelohnungenIndex
+ * @see BelohnungenAdmin
  */
 class RewardController extends Controller
 {

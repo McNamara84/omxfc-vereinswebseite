@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\Role;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -15,7 +16,7 @@ class ArbeitsgruppenLeaderIndexTest extends TestCase
     {
         $team = Team::membersTeam();
         $user = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($user, ['role' => \App\Enums\Role::Mitglied->value]);
+        $team->users()->attach($user, ['role' => Role::Mitglied->value]);
 
         return $user;
     }
@@ -28,7 +29,7 @@ class ArbeitsgruppenLeaderIndexTest extends TestCase
             'user_id' => $leader->id,
             'personal_team' => false,
         ]);
-        $ag->users()->attach($leader, ['role' => \App\Enums\Role::Mitglied->value]);
+        $ag->users()->attach($leader, ['role' => Role::Mitglied->value]);
 
         return [$leader, $ag];
     }

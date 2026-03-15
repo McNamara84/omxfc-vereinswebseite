@@ -1,5 +1,9 @@
 <?php
 
+use App\Models\Reward;
+use App\Services\FanfictionService;
+use Database\Seeders\RewardSeeder;
+
 /**
  * Reward-Konfiguration.
  *
@@ -10,9 +14,9 @@
  *             Laufzeit verwendet. Die darin enthaltenen Belohnungen werden jetzt
  *             in der Datenbank-Tabelle `rewards` verwaltet. Das Array dient nur
  *             noch als Referenz für den RewardSeeder.
- * @see \App\Services\FanfictionService    Liest `fanfiction_default_cost_baxx`
- * @see \Database\Seeders\RewardSeeder     Verwendet das `legacy`-Array
- * @see \App\Models\Reward
+ * @see FanfictionService    Liest `fanfiction_default_cost_baxx`
+ * @see RewardSeeder     Verwendet das `legacy`-Array
+ * @see Reward
  */
 return [
     // Standard-Baxx-Kosten für neue Fanfictions (Runtime-Wert)

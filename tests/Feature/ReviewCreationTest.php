@@ -8,12 +8,13 @@ use App\Models\Review;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
+use Tests\Concerns\CreatesUserWithRole;
 use Tests\TestCase;
 
 class ReviewCreationTest extends TestCase
 {
+    use CreatesUserWithRole;
     use RefreshDatabase;
-    use \Tests\Concerns\CreatesUserWithRole;
 
     public function test_member_can_store_review(): void
     {

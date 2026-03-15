@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 
 class FantreffenController extends Controller
 {
@@ -117,7 +118,7 @@ class FantreffenController extends Controller
                 $this->registrationService->validationMessages()
             );
             Log::info('Fantreffen Anmeldung: Validation passed');
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             Log::error('Fantreffen Anmeldung: Validation failed', ['errors' => $e->errors()]);
             throw $e;
         }

@@ -7,12 +7,13 @@ use App\Models\Reward;
 use App\Models\RewardPurchase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
+use Tests\Concerns\CreatesUserWithRole;
 use Tests\TestCase;
 
 class DownloadsTest extends TestCase
 {
+    use CreatesUserWithRole;
     use RefreshDatabase;
-    use \Tests\Concerns\CreatesUserWithRole;
 
     protected function setUp(): void
     {

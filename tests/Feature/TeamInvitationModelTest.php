@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\Role;
 use App\Models\Team;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -17,7 +18,7 @@ class TeamInvitationModelTest extends TestCase
 
         $invitation = $team->teamInvitations()->create([
             'email' => 'invitee@example.com',
-            'role' => \App\Enums\Role::Admin->value,
+            'role' => Role::Admin->value,
             'id' => 999,
         ]);
 
@@ -27,7 +28,7 @@ class TeamInvitationModelTest extends TestCase
             'id' => $invitation->id,
             'team_id' => $team->id,
             'email' => 'invitee@example.com',
-            'role' => \App\Enums\Role::Admin->value,
+            'role' => Role::Admin->value,
         ]);
         $this->assertNotEquals(999, $invitation->id);
     }
@@ -66,7 +67,7 @@ class TeamInvitationModelTest extends TestCase
 
         $team->teamInvitations()->create([
             'email' => 'duplicate@example.com',
-            'role' => \App\Enums\Role::Admin->value,
+            'role' => Role::Admin->value,
         ]);
 
         $this->expectException(QueryException::class);

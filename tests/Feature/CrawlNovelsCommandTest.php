@@ -2,7 +2,12 @@
 
 namespace Tests\Feature;
 
+use App\Console\Commands\Crawl2012;
+use App\Console\Commands\CrawlAbenteurer;
+use App\Console\Commands\CrawlHardcovers;
+use App\Console\Commands\CrawlMissionMars;
 use App\Console\Commands\CrawlNovels;
+use App\Console\Commands\CrawlVolkDerTiefe;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Console\OutputStyle;
@@ -154,11 +159,11 @@ class CrawlNovelsCommandTest extends TestCase
         ]);
         $command->shouldReceive('writeHeftromane')->once()->andReturn(true);
 
-        $command->shouldReceive('call')->once()->with(\App\Console\Commands\CrawlMissionMars::class)->andReturn(Command::SUCCESS);
-        $command->shouldReceive('call')->once()->with(\App\Console\Commands\Crawl2012::class)->andReturn(Command::SUCCESS);
-        $command->shouldReceive('call')->once()->with(\App\Console\Commands\CrawlVolkDerTiefe::class)->andReturn(Command::SUCCESS);
-        $command->shouldReceive('call')->once()->with(\App\Console\Commands\CrawlAbenteurer::class)->andReturn(Command::SUCCESS);
-        $command->shouldReceive('call')->once()->with(\App\Console\Commands\CrawlHardcovers::class)->andReturn(Command::SUCCESS);
+        $command->shouldReceive('call')->once()->with(CrawlMissionMars::class)->andReturn(Command::SUCCESS);
+        $command->shouldReceive('call')->once()->with(Crawl2012::class)->andReturn(Command::SUCCESS);
+        $command->shouldReceive('call')->once()->with(CrawlVolkDerTiefe::class)->andReturn(Command::SUCCESS);
+        $command->shouldReceive('call')->once()->with(CrawlAbenteurer::class)->andReturn(Command::SUCCESS);
+        $command->shouldReceive('call')->once()->with(CrawlHardcovers::class)->andReturn(Command::SUCCESS);
 
         $this->assertSame(Command::SUCCESS, $command->handle());
     }

@@ -3,6 +3,7 @@
 namespace Tests\Unit\Services;
 
 use App\Models\KompendiumRoman;
+use App\Models\User;
 use App\Services\KompendiumService;
 use App\Services\MaddraxDataService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -162,7 +163,7 @@ class KompendiumServiceTest extends TestCase
     #[Test]
     public function get_statistiken_gibt_korrekte_zahlen_zurueck(): void
     {
-        $user = \App\Models\User::factory()->withPersonalTeam()->create();
+        $user = User::factory()->withPersonalTeam()->create();
 
         // Erstelle Test-Romane
         KompendiumRoman::create([
@@ -210,7 +211,7 @@ class KompendiumServiceTest extends TestCase
     #[Test]
     public function get_indexierte_romane_gruppiert_nach_zyklus(): void
     {
-        $user = \App\Models\User::factory()->withPersonalTeam()->create();
+        $user = User::factory()->withPersonalTeam()->create();
 
         KompendiumRoman::create([
             'dateiname' => '001 - Test1.txt',
@@ -246,7 +247,7 @@ class KompendiumServiceTest extends TestCase
     #[Test]
     public function get_indexierte_romane_summary_formatiert_bandbereich_korrekt(): void
     {
-        $user = \App\Models\User::factory()->withPersonalTeam()->create();
+        $user = User::factory()->withPersonalTeam()->create();
 
         // Erstelle Romane für Band 1-3 und 5
         foreach ([1, 2, 3, 5] as $nr) {
@@ -409,7 +410,7 @@ class KompendiumServiceTest extends TestCase
     #[Test]
     public function zusammengefasste_uebersicht_konsolidiert_maddrax_zyklen(): void
     {
-        $user = \App\Models\User::factory()->withPersonalTeam()->create();
+        $user = User::factory()->withPersonalTeam()->create();
 
         // Euree-Zyklus: Band 1
         KompendiumRoman::create([
@@ -458,7 +459,7 @@ class KompendiumServiceTest extends TestCase
     #[Test]
     public function zusammengefasste_uebersicht_miniserie_als_ein_eintrag(): void
     {
-        $user = \App\Models\User::factory()->withPersonalTeam()->create();
+        $user = User::factory()->withPersonalTeam()->create();
 
         foreach ([1, 2, 3] as $nr) {
             KompendiumRoman::create([
@@ -489,7 +490,7 @@ class KompendiumServiceTest extends TestCase
     #[Test]
     public function zyklen_fortschritt_zeigt_status_korrekt(): void
     {
-        $user = \App\Models\User::factory()->withPersonalTeam()->create();
+        $user = User::factory()->withPersonalTeam()->create();
 
         // Ein Roman im Euree-Zyklus (Soll: 24 Romane laut JSON)
         KompendiumRoman::create([

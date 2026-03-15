@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\Role;
 use App\Models\Team;
 use App\Models\TodoCategory;
 use App\Models\User;
@@ -16,7 +17,7 @@ class TodoAuthorizationTest extends TestCase
     {
         $team = Team::membersTeam();
         $user = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($user, ['role' => \App\Enums\Role::Mitglied->value]);
+        $team->users()->attach($user, ['role' => Role::Mitglied->value]);
         $this->actingAs($user);
 
         $response = $this->get('/aufgaben/erstellen');
@@ -28,7 +29,7 @@ class TodoAuthorizationTest extends TestCase
     {
         $team = Team::membersTeam();
         $user = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($user, ['role' => \App\Enums\Role::Admin->value]);
+        $team->users()->attach($user, ['role' => Role::Admin->value]);
         $this->actingAs($user);
 
         TodoCategory::create(['name' => 'Test', 'slug' => 'test']);

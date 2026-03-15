@@ -12,6 +12,7 @@ use App\Models\User;
 use App\Services\MembersTeamProvider;
 use App\Services\UserRoleService;
 use Carbon\Carbon;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -363,7 +364,7 @@ class KassenbuchController extends Controller
                 ['team_id' => $team->id],
                 ['betrag' => 0.00, 'letzte_aktualisierung' => now()]
             );
-        } catch (\Illuminate\Database\UniqueConstraintViolationException) {
+        } catch (UniqueConstraintViolationException) {
             return Kassenstand::where('team_id', $team->id)->firstOrFail();
         }
     }

@@ -5,12 +5,13 @@ namespace Tests\Feature;
 use App\Mail\Newsletter;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
+use Tests\Concerns\CreatesUserWithRole;
 use Tests\TestCase;
 
 class NewsletterControllerTest extends TestCase
 {
+    use CreatesUserWithRole;
     use RefreshDatabase;
-    use \Tests\Concerns\CreatesUserWithRole;
 
     public function test_admin_can_view_newsletter_form(): void
     {

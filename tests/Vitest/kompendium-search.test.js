@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
+import { updatePhraseHint } from '../../resources/js/utils/kompendium-helpers.js';
 
 /**
  * Vitest für die Kompendium-Suche: DOM-Selektor-Verhalten.
@@ -294,5 +295,105 @@ describe('Kompendium Suche – Treffer-Template', () => {
 
         const html = tpl(roman);
         expect(html).not.toContain('<p class="mb-2');
+    });
+});
+
+describe('Kompendium Suche – Phrasen-Hinweis', () => {
+    let $phraseHint, $phraseHintText;
+
+    beforeEach(() => {
+        document.body.innerHTML = `
+            <div id="phrase-hint" class="mb-4 hidden" data-testid="phrase-hint">
+                <div class="flex items-center gap-2 p-3 text-sm">
+                    <span id="phrase-hint-text" class="text-base-content"></span>
+                </div>
+            </div>
+        `;
+        $phraseHint = document.getElementById('phrase-hint');
+        $phraseHintText = document.getElementById('phrase-hint-text');
+    });
+
+    it('zeigt Hinweis bei Phrasensuche', () => {
+        updatePhraseHint($phraseHint, $phraseHintText, {
+            isPhraseSearch: true,
+            searchInfo: { phrases: ['matthew drax'], terms: [] },
+        });
+
+        expect($phraseHint.classList.contains('hidden')).toBe(false);
+        expect($phraseHintText.textContent).toContain('Phrasensuche aktiv');
+        expect($phraseHintText.textContent).toContain('matthew drax');
+    });
+
+    it('zeigt Hinweis mit Phrase und freiem Begriff', () => {
+        updatePhraseHint($phraseHint, $phraseHintText, {
+            isPhraseSearch: true,
+            searchInfo: { phrases: ['matthew drax'], terms: ['abenteuer'] },
+        });
+
+        expect($phraseHintText.textContent).toContain('matthew drax');
+        expect($phraseHintText.textContent).toContain('abenteuer');
+        expect($phraseHintText.textContent).toContain('+');
+    });
+
+    it('verbirgt Hinweis bei normaler Suche', () => {
+        // Erst einblenden
+        updatePhraseHint($phraseHint, $phraseHintText, {
+            isPhraseSearch: true,
+            searchInfo: { phrases: ['test'], terms: [] },
+        });
+
+        // Dann normale Suche
+        updatePhraseHint($phraseHint, $phraseHintText, {
+            isPhraseSearch: false,
+            searchInfo: { phrases: [], terms: ['test'] },
+        });
+
+        expect($phraseHint.classList.contains('hidden')).toBe(true);
+    });
+
+    it('verbirgt Hinweis wenn isPhraseSearch fehlt', () => {
+        updatePhraseHint($phraseHint, $phraseHintText, { data: [] });
+
+        expect($phraseHint.classList.contains('hidden')).toBe(true);
+    });
+
+    it('verbirgt Hinweis bei null/undefined json', () => {
+        updatePhraseHint($phraseHint, $phraseHintText, null);
+        expect($phraseHint.classList.contains('hidden')).toBe(true);
+
+        updatePhraseHint($phraseHint, $phraseHintText, undefined);
+        expect($phraseHint.classList.contains('hidden')).toBe(true);
+    });
+
+    it('behandelt fehlende phrases/terms in searchInfo defensiv', () => {
+        // searchInfo ohne phrases/terms → kein Fehler, leerer Hinweis
+        updatePhraseHint($phraseHint, $phraseHintText, {
+            isPhraseSearch: true,
+            searchInfo: {},
+        });
+
+        expect($phraseHint.classList.contains('hidden')).toBe(false);
+        expect($phraseHintText.textContent).toContain('Phrasensuche aktiv');
+    });
+
+    it('behandelt nicht-Array phrases/terms defensiv', () => {
+        // phrases/terms als Strings statt Arrays → kein TypeError
+        updatePhraseHint($phraseHint, $phraseHintText, {
+            isPhraseSearch: true,
+            searchInfo: { phrases: 'not-an-array', terms: 42 },
+        });
+
+        expect($phraseHint.classList.contains('hidden')).toBe(false);
+        expect($phraseHintText.textContent).toContain('Phrasensuche aktiv');
+    });
+
+    it('zeigt Hinweis mit mehreren Phrasen', () => {
+        updatePhraseHint($phraseHint, $phraseHintText, {
+            isPhraseSearch: true,
+            searchInfo: { phrases: ['matthew drax', 'volk der tiefe'], terms: [] },
+        });
+
+        expect($phraseHintText.textContent).toContain('matthew drax');
+        expect($phraseHintText.textContent).toContain('volk der tiefe');
     });
 });

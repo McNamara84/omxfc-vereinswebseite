@@ -8,6 +8,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Laravel\Fortify\Contracts\UpdatesUserProfileInformation;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Livewire\Livewire;
 use Mockery;
 use Tests\TestCase;
@@ -147,7 +148,7 @@ class UpdateProfileInformationFormTest extends TestCase
         unset($inputWithoutPhoto['photo']);
         $this->assertEquals($data, $inputWithoutPhoto);
         $this->assertArrayHasKey('photo', $receivedInput);
-        $this->assertInstanceOf(\Livewire\Features\SupportFileUploads\TemporaryUploadedFile::class, $receivedInput['photo']);
+        $this->assertInstanceOf(TemporaryUploadedFile::class, $receivedInput['photo']);
     }
 
     public function test_delete_profile_photo_removes_file_and_dispatches_event(): void

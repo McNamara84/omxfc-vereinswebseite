@@ -6,6 +6,7 @@ use App\Enums\KassenbuchEntryType;
 use App\Models\KassenbuchEntry;
 use App\Models\Team;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -117,7 +118,7 @@ class KassenbuchEntryModelTest extends TestCase
             'typ' => KassenbuchEntryType::Einnahme->value,
         ]);
 
-        $this->assertInstanceOf(\Carbon\Carbon::class, $entry->buchungsdatum);
+        $this->assertInstanceOf(Carbon::class, $entry->buchungsdatum);
         $this->assertSame('123.45', $entry->betrag);
     }
 }

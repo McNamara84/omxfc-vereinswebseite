@@ -7,6 +7,7 @@ use App\Models\RewardPurchase;
 use App\Services\RewardService;
 use App\Services\TeamPointService;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Url;
 use Livewire\Component;
@@ -103,7 +104,7 @@ class BelohnungenIndex extends Component
         try {
             $service->purchaseReward(Auth::user(), $reward);
             $this->dispatch('toast', type: 'success', title: e($reward->title).' freigeschaltet!', description: "{$reward->cost_baxx} Baxx wurden abgezogen.");
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             $message = collect($e->errors())->flatten()->first();
             $this->dispatch('toast', type: 'error', title: 'Fehler', description: $message);
         }

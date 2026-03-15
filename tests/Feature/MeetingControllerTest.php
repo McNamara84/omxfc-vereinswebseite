@@ -4,12 +4,13 @@ namespace Tests\Feature;
 
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\CreatesUserWithRole;
 use Tests\TestCase;
 
 class MeetingControllerTest extends TestCase
 {
+    use CreatesUserWithRole;
     use RefreshDatabase;
-    use \Tests\Concerns\CreatesUserWithRole;
 
     public function test_unknown_meeting_is_forbidden(): void
     {

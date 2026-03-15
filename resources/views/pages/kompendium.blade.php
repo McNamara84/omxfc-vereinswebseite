@@ -44,6 +44,14 @@
                         </div>
                     </fieldset>
                 </div>
+
+                {{-- Phrasensuche-Hinweis (wird per JS ein-/ausgeblendet) --}}
+                <div id="phrase-hint" class="mb-4 hidden" data-testid="phrase-hint">
+                    <div class="flex items-center gap-2 p-3 text-sm bg-info/10 border border-info/30 rounded">
+                        <x-icon name="o-information-circle" class="w-5 h-5 text-info shrink-0" />
+                        <span id="phrase-hint-text" class="text-base-content"></span>
+                    </div>
+                </div>
             @else
                 @if($kompendiumReward && $kompendiumReward->is_active)
                     @livewire('kompendium-kauf-overlay', [

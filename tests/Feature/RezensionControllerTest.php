@@ -13,13 +13,14 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use PHPUnit\Framework\Attributes\Large;
+use Tests\Concerns\CreatesUserWithRole;
 use Tests\TestCase;
 
 #[Large]
 class RezensionControllerTest extends TestCase
 {
+    use CreatesUserWithRole;
     use RefreshDatabase;
-    use \Tests\Concerns\CreatesUserWithRole;
 
     public function test_store_creates_review_and_notifies_author(): void
     {

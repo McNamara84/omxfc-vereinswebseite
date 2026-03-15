@@ -6,6 +6,7 @@ use App\Models\Reward;
 use App\Models\RewardPurchase;
 use App\Models\User;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -175,9 +176,9 @@ class RewardService
      *
      * @return array{
      *     total_spent_baxx: int,
-     *     rewards_stats: \Illuminate\Support\Collection,
-     *     never_purchased_rewards: \Illuminate\Support\Collection,
-     *     recent_purchases: \Illuminate\Support\Collection
+     *     rewards_stats: Collection,
+     *     never_purchased_rewards: Collection,
+     *     recent_purchases: Collection
      * }
      */
     public function getAdminStatistics(): array

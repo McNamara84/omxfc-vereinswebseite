@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\Role;
 use App\Models\PageVisit;
 use App\Models\Team;
 use App\Models\User;
@@ -21,7 +22,7 @@ class AdminPageTest extends TestCase
     {
         $team = Team::membersTeam();
         $user = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($user, ['role' => \App\Enums\Role::Admin->value]);
+        $team->users()->attach($user, ['role' => Role::Admin->value]);
 
         return $user;
     }
@@ -30,7 +31,7 @@ class AdminPageTest extends TestCase
     {
         $team = Team::membersTeam();
         $user = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($user, ['role' => \App\Enums\Role::Vorstand->value]);
+        $team->users()->attach($user, ['role' => Role::Vorstand->value]);
 
         return $user;
     }
@@ -39,7 +40,7 @@ class AdminPageTest extends TestCase
     {
         $team = Team::membersTeam();
         $user = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($user, ['role' => \App\Enums\Role::Kassenwart->value]);
+        $team->users()->attach($user, ['role' => Role::Kassenwart->value]);
 
         return $user;
     }
@@ -48,7 +49,7 @@ class AdminPageTest extends TestCase
     {
         $team = Team::membersTeam();
         $user = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($user, ['role' => \App\Enums\Role::Mitglied->value]);
+        $team->users()->attach($user, ['role' => Role::Mitglied->value]);
 
         return $user;
     }
