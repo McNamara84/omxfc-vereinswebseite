@@ -5,6 +5,7 @@ namespace Tests\Unit;
 use App\Http\Controllers\KompendiumController;
 use App\Services\KompendiumSearchService;
 use App\Services\KompendiumService;
+use App\Services\RewardService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Log;
 use PHPUnit\Framework\Attributes\CoversMethod;
@@ -34,7 +35,7 @@ class KompendiumPathValidationTest extends TestCase
         $this->controller = new KompendiumController(
             $this->createMock(KompendiumService::class),
             $this->createMock(KompendiumSearchService::class),
-            $this->createMock(\App\Services\RewardService::class)
+            $this->createMock(RewardService::class)
         );
     }
 

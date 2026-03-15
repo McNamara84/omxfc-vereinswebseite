@@ -2,6 +2,7 @@
 
 namespace Tests\Unit;
 
+use App\Enums\Role;
 use App\Models\Reward;
 use App\Services\RewardService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -68,7 +69,7 @@ class RewardServiceTest extends TestCase
 
     public function test_purchase_after_refund_allows_repurchase(): void
     {
-        $admin = $this->createUserWithRole(\App\Enums\Role::Admin);
+        $admin = $this->createUserWithRole(Role::Admin);
         $user = $this->actingMemberWithPoints(20);
         $reward = Reward::factory()->create(['cost_baxx' => 5]);
 
@@ -82,7 +83,7 @@ class RewardServiceTest extends TestCase
 
     public function test_refund_purchase_sets_refunded_fields(): void
     {
-        $admin = $this->createUserWithRole(\App\Enums\Role::Admin);
+        $admin = $this->createUserWithRole(Role::Admin);
         $user = $this->actingMemberWithPoints(10);
         $reward = Reward::factory()->create(['cost_baxx' => 5]);
 
@@ -96,7 +97,7 @@ class RewardServiceTest extends TestCase
 
     public function test_refund_already_refunded_throws_exception(): void
     {
-        $admin = $this->createUserWithRole(\App\Enums\Role::Admin);
+        $admin = $this->createUserWithRole(Role::Admin);
         $user = $this->actingMemberWithPoints(10);
         $reward = Reward::factory()->create(['cost_baxx' => 5]);
 
@@ -119,7 +120,7 @@ class RewardServiceTest extends TestCase
 
     public function test_get_available_baxx_refund_restores_balance(): void
     {
-        $admin = $this->createUserWithRole(\App\Enums\Role::Admin);
+        $admin = $this->createUserWithRole(Role::Admin);
         $user = $this->actingMemberWithPoints(20);
         $reward = Reward::factory()->create(['cost_baxx' => 7]);
 
@@ -132,7 +133,7 @@ class RewardServiceTest extends TestCase
 
     public function test_get_spent_baxx_excludes_refunded(): void
     {
-        $admin = $this->createUserWithRole(\App\Enums\Role::Admin);
+        $admin = $this->createUserWithRole(Role::Admin);
         $user = $this->actingMemberWithPoints(30);
         $reward1 = Reward::factory()->create(['cost_baxx' => 5]);
         $reward2 = Reward::factory()->create(['cost_baxx' => 10]);
@@ -165,7 +166,7 @@ class RewardServiceTest extends TestCase
 
     public function test_has_unlocked_reward_returns_false_for_refunded(): void
     {
-        $admin = $this->createUserWithRole(\App\Enums\Role::Admin);
+        $admin = $this->createUserWithRole(Role::Admin);
         $user = $this->actingMemberWithPoints(10);
         $reward = Reward::factory()->create(['cost_baxx' => 5, 'slug' => 'test-feature']);
 
@@ -184,7 +185,7 @@ class RewardServiceTest extends TestCase
     public function test_get_admin_statistics_returns_correct_totals(): void
     {
         $user1 = $this->actingMemberWithPoints(50);
-        $user2 = $this->createUserWithRole(\App\Enums\Role::Mitglied);
+        $user2 = $this->createUserWithRole(Role::Mitglied);
         $user2->incrementTeamPoints(30);
 
         $reward1 = Reward::factory()->create(['cost_baxx' => 5]);

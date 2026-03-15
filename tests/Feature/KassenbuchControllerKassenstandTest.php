@@ -7,12 +7,13 @@ use App\Models\Kassenstand;
 use App\Models\Team;
 use App\Services\MembersTeamProvider;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\CreatesUserWithRole;
 use Tests\TestCase;
 
 class KassenbuchControllerKassenstandTest extends TestCase
 {
+    use CreatesUserWithRole;
     use RefreshDatabase;
-    use \Tests\Concerns\CreatesUserWithRole;
 
     public function test_mitglied_kann_kassenstand_sehen(): void
     {

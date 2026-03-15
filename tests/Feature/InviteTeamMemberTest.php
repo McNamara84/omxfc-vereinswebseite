@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\Role;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
@@ -28,7 +29,7 @@ class InviteTeamMemberTest extends TestCase
         Livewire::test(TeamMemberManager::class, ['team' => $user->currentTeam])
             ->set('addTeamMemberForm', [
                 'email' => 'test@example.com',
-                'role' => \App\Enums\Role::Admin->value,
+                'role' => Role::Admin->value,
             ])->call('addTeamMember');
 
         Mail::assertQueued(TeamInvitation::class);
@@ -50,7 +51,7 @@ class InviteTeamMemberTest extends TestCase
         $component = Livewire::test(TeamMemberManager::class, ['team' => $user->currentTeam])
             ->set('addTeamMemberForm', [
                 'email' => 'test@example.com',
-                'role' => \App\Enums\Role::Admin->value,
+                'role' => Role::Admin->value,
             ])->call('addTeamMember');
 
         $invitationId = $user->currentTeam->fresh()->teamInvitations->first()->id;

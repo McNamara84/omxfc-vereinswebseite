@@ -139,15 +139,83 @@ class KompendiumController extends Controller
         $radius = 200;
 
         /* ------------------------------------------------------------------ */
+        /*  Query parsen: Phrasen in Anführungszeichen vs. freie Begriffe */
+        /* ------------------------------------------------------------------ */
+        $parsed = $this->searchService->parseSearchQuery($query);
+        $tntQuery = $parsed['hadQuotes']
+            ? $this->searchService->buildTntSearchQuery($parsed)
+            : $query;
+
+        // Fallback: Wenn Quotes vorhanden waren, aber keine gültigen Begriffe extrahiert
+        // werden konnten (z.B. "A" oder ""), auf den bereinigten Original-Query zurückfallen.
+        if ($tntQuery === '') {
+            $stripped = preg_replace('/"[^"]*"/', '', $query);
+            $tntQuery = trim($stripped);
+
+            if ($tntQuery === '') {
+                // Kein brauchbarer Suchbegriff übrig → leere Ergebnisse zurückgeben
+                return response()->json([
+                    'data' => [],
+                    'currentPage' => $page,
+                    'lastPage' => 1,
+                    'serienCounts' => [],
+                    'isPhraseSearch' => false,
+                    'searchInfo' => ['phrases' => [], 'terms' => []],
+                ]);
+            }
+        }
+
+        /* ------------------------------------------------------------------ */
         /*  SCOUT-SUCHAUFRUF  (RAW) */
         /* ------------------------------------------------------------------ */
-        $raw = $this->searchService->search($query);
+        $raw = $this->searchService->search($tntQuery);
 
         $ids = $raw['ids'] ?? [];                               // enthält unsere "path"-Schlüssel
         $ids = array_values($ids);                              // re-indexieren
 
         // Sicherheitsprüfung: Nur gültige Pfade weiterverarbeiten
         $ids = array_values(array_filter($ids, fn ($path) => $this->isValidRomanPath($path)));
+
+        /* ------------------------------------------------------------------ */
+        /*  Phrasensuche: Post-Filterung auf exakte Übereinstimmung */
+        /*  Obergrenze für Kandidaten, um I/O und RAM zu begrenzen. */
+        /* ------------------------------------------------------------------ */
+        $textCache = [];
+        $maxPostFilterCandidates = 200;
+        $candidatesTruncated = false;
+
+        if ($parsed['isPhraseSearch']) {
+            if (count($ids) > $maxPostFilterCandidates) {
+                $candidatesTruncated = true;
+            }
+            $candidates = array_slice($ids, 0, $maxPostFilterCandidates);
+            $ids = array_values(array_filter($candidates, function ($path) use ($parsed, &$textCache) {
+                if (! Storage::disk('private')->exists($path)) {
+                    return false;
+                }
+
+                $text = Storage::disk('private')->get($path);
+
+                // Alle Phrasen müssen als exakte Substrings vorkommen
+                foreach ($parsed['phrases'] as $phrase) {
+                    if (mb_stripos($text, $phrase) === false) {
+                        return false;
+                    }
+                }
+
+                // Alle freien Begriffe müssen ebenfalls vorkommen
+                foreach ($parsed['terms'] as $term) {
+                    if (mb_stripos($text, $term) === false) {
+                        return false;
+                    }
+                }
+
+                // Nur Treffer cachen, um RAM zu sparen
+                $textCache[$path] = $text;
+
+                return true;
+            }));
+        }
 
         /* ------------------------------------------------------------------ */
         /*  Serien-Zählung und Filterung (kombiniert für Performance) */
@@ -170,6 +238,51 @@ class KompendiumController extends Controller
         $slice = array_slice($ids, ($page - 1) * $perPage, $perPage);
 
         /* ------------------------------------------------------------------ */
+        /*  Suchbegriffe für Snippet-Extraktion zusammenstellen */
+        /*  Immer aus den geparsten Begriffen ableiten, damit keine */
+        /*  Anführungszeichen in den Snippet-Suchterms landen. */
+        /* ------------------------------------------------------------------ */
+        if ($parsed['isPhraseSearch']) {
+            $snippetSearchTerms = array_merge($parsed['phrases'], $parsed['terms']);
+        } elseif (! empty($parsed['terms'])) {
+            // Quotes vorhanden oder normale Suche → individuelle Terme für Highlighting
+            $snippetSearchTerms = $parsed['terms'];
+        } else {
+            // Fallback (sollte selten auftreten)
+            $snippetSearchTerms = [$tntQuery];
+        }
+
+        // Begrenzung der Highlight-Terme: maximal 20 Terme verwenden,
+        // um bei sehr langen Queries das Regex nicht zu sprengen.
+        $maxHighlightTerms = 20;
+        if (count($snippetSearchTerms) > $maxHighlightTerms) {
+            $snippetSearchTerms = array_slice($snippetSearchTerms, 0, $maxHighlightTerms);
+        }
+
+        // Längere Begriffe zuerst → verhindert Teilmarkierungen bei Überlappung
+        usort($snippetSearchTerms, fn ($a, $b) => mb_strlen($b) - mb_strlen($a));
+
+        // Begriffe deduplizieren: Entferne Teilstrings, die bereits von einem längeren
+        // Begriff abgedeckt werden (z.B. "Matthew" wenn "Matthew Drax" schon enthalten ist)
+        $deduplicated = [];
+        foreach ($snippetSearchTerms as $term) {
+            $isSubstring = false;
+            foreach ($deduplicated as $existing) {
+                if (mb_stripos($existing, $term) !== false) {
+                    $isSubstring = true;
+                    break;
+                }
+            }
+            if (! $isSubstring) {
+                $deduplicated[] = $term;
+            }
+        }
+        $snippetSearchTerms = $deduplicated;
+
+        // Kombiniertes Regex-Pattern für Single-Pass-Highlighting (alle Begriffe als Alternation, auf Raw-Text)
+        $highlightPattern = '/('.implode('|', array_map(fn ($t) => preg_quote($t, '/'), $snippetSearchTerms)).')/iu';
+
+        /* ------------------------------------------------------------------ */
         /*  Treffer in Frontend-Format wandeln */
         /* ------------------------------------------------------------------ */
         $hits = [];
@@ -185,28 +298,37 @@ class KompendiumController extends Controller
 
             [$serie, $romanNr, $title] = $this->extractMetaFromPath($path);
 
-            /* Original-Text laden → Snippets bilden */
-            $text = Storage::disk('private')->get($path);
+            /* Original-Text laden (Cache nutzen falls vorhanden) → Snippets bilden */
+            $text = $textCache[$path] ?? Storage::disk('private')->get($path);
             $snippets = [];
-            $offset = 0;
 
-            while (
-                ($pos = mb_stripos($text, $query, $offset)) !== false &&
-                count($snippets) < $snippetsPerFile
-            ) {
-                $start = max($pos - $radius, 0);
-                $length = mb_strlen($query) + (2 * $radius);
-                $snippet = mb_substr($text, $start, $length);
+            foreach ($snippetSearchTerms as $searchTerm) {
+                $offset = 0;
 
-                $snippet = e($snippet);
-                $snippet = preg_replace(
-                    '/'.preg_quote($query, '/').'/iu',
-                    '<mark>$0</mark>',
-                    $snippet
-                );
+                while (
+                    ($pos = mb_stripos($text, $searchTerm, $offset)) !== false &&
+                    count($snippets) < $snippetsPerFile
+                ) {
+                    $start = max($pos - $radius, 0);
+                    $length = mb_strlen($searchTerm) + (2 * $radius);
+                    $snippet = mb_substr($text, $start, $length);
 
-                $snippets[] = $snippet;
-                $offset = $pos + mb_strlen($query);
+                    // Highlighting auf Raw-Text: in Segmente splitten, einzeln escapen,
+                    // Matches mit <mark> umschließen → keine Matches innerhalb von HTML-Entities
+                    $segments = preg_split($highlightPattern, $snippet, -1, PREG_SPLIT_DELIM_CAPTURE);
+                    $snippet = '';
+                    foreach ($segments as $i => $segment) {
+                        if ($i % 2 === 1) {
+                            // Ungerade Indizes = Matches (Capture-Group)
+                            $snippet .= '<mark>'.e($segment).'</mark>';
+                        } else {
+                            $snippet .= e($segment);
+                        }
+                    }
+
+                    $snippets[] = $snippet;
+                    $offset = $pos + mb_strlen($searchTerm);
+                }
             }
 
             // Zyklus-Name aus SERIEN-Konstante, Fallback auf formatierten Key
@@ -231,12 +353,23 @@ class KompendiumController extends Controller
             $page
         );
 
-        return response()->json([
+        $responseData = [
             'data' => $paginator->items(),
             'currentPage' => $paginator->currentPage(),
             'lastPage' => $paginator->lastPage(),
             'serienCounts' => $serienCounts,
-        ]);
+            'isPhraseSearch' => $parsed['isPhraseSearch'],
+            'searchInfo' => [
+                'phrases' => $parsed['phrases'],
+                'terms' => $parsed['terms'],
+            ],
+        ];
+
+        if ($candidatesTruncated) {
+            $responseData['candidatesTruncated'] = true;
+        }
+
+        return response()->json($responseData);
     }
 
     /* --------------------------------------------------------------------- */

@@ -9,6 +9,7 @@ use App\Models\BookRequest;
 use App\Models\BookSwap;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -196,7 +197,7 @@ class SwapMatchingService
                     'subject_id' => $swap->request_id,
                     'action' => 'match_cancelled_by_offer_owner',
                 ]);
-            } catch (\Illuminate\Database\QueryException $e) {
+            } catch (QueryException $e) {
                 $this->handleActivityCreationError($e, $swap, $affectedUser);
             }
         }
@@ -208,7 +209,7 @@ class SwapMatchingService
      * Behandelt Fehler bei der Activity-Erstellung.
      */
     private function handleActivityCreationError(
-        \Illuminate\Database\QueryException $e,
+        QueryException $e,
         BookSwap $swap,
         User $affectedUser
     ): void {

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\Role;
 use App\Mail\ReviewCommentNotification;
 use App\Models\Book;
 use App\Models\Review;
@@ -10,12 +11,13 @@ use App\Models\Team;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
+use Tests\Concerns\CreatesUserWithRole;
 use Tests\TestCase;
 
 class ReviewCommentControllerTest extends TestCase
 {
+    use CreatesUserWithRole;
     use RefreshDatabase;
-    use \Tests\Concerns\CreatesUserWithRole;
 
     public function test_comment_saves_and_notifies_author(): void
     {
@@ -23,7 +25,7 @@ class ReviewCommentControllerTest extends TestCase
 
         $team = Team::membersTeam();
         $author = User::factory()->create(['current_team_id' => $team->id, 'notify_new_review' => true]);
-        $team->users()->attach($author, ['role' => \App\Enums\Role::Mitglied->value]);
+        $team->users()->attach($author, ['role' => Role::Mitglied->value]);
         $book = Book::create(['roman_number' => 1, 'title' => 'Roman1', 'author' => 'Foo']);
         $review = Review::create([
             'team_id' => $team->id,

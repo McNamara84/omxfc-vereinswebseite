@@ -14,12 +14,13 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Tests\Concerns\CreatesUserWithRole;
 use Tests\TestCase;
 
 class BundleOfferTest extends TestCase
 {
+    use CreatesUserWithRole;
     use RefreshDatabase;
-    use \Tests\Concerns\CreatesUserWithRole;
 
     /**
      * Erstellt Test-Buchdaten für Maddrax-Serie (1-100) und Mission Mars (1).

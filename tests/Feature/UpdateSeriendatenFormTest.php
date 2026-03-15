@@ -9,12 +9,13 @@ use App\Services\MaddraxDataService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\File;
 use Livewire\Livewire;
+use Tests\Concerns\CreatesUserWithRole;
 use Tests\TestCase;
 
 class UpdateSeriendatenFormTest extends TestCase
 {
+    use CreatesUserWithRole;
     use RefreshDatabase;
-    use \Tests\Concerns\CreatesUserWithRole;
 
     private string $testStoragePath;
 

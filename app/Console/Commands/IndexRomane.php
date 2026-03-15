@@ -36,7 +36,7 @@ class IndexRomane extends Command
         $bar = $this->output->createProgressBar($txt->count());
         $bar->start();
 
-        /** @var Collection<\App\Models\RomanExcerpt> $batch */
+        /** @var Collection<RomanExcerpt> $batch */
         $batch = collect();
 
         foreach ($txt as $path) {

@@ -5,12 +5,13 @@ namespace Tests\Feature;
 use App\Models\Mission;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
+use Tests\Concerns\CreatesUserWithRole;
 use Tests\TestCase;
 
 class MaddraxiversumMissionTest extends TestCase
 {
+    use CreatesUserWithRole;
     use RefreshDatabase;
-    use \Tests\Concerns\CreatesUserWithRole;
 
     public function test_start_mission_creates_record(): void
     {

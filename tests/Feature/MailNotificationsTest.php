@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\Role;
 use App\Mail\MitgliedGenehmigtMail;
 use App\Mail\NewReviewNotification;
 use App\Mail\ReviewCommentNotification;
@@ -21,7 +22,7 @@ class MailNotificationsTest extends TestCase
     {
         $team = Team::membersTeam();
         $user = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($user, ['role' => \App\Enums\Role::Mitglied->value]);
+        $team->users()->attach($user, ['role' => Role::Mitglied->value]);
 
         return $user;
     }

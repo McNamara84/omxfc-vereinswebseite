@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\BookType;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use PHPUnit\Framework\Attributes\Test;
@@ -83,12 +84,12 @@ class FixMissionMarsEnumMigrationTest extends TestCase
     public function test_book_type_enum_matches_database_values(): void
     {
         $enumValues = [
-            \App\Enums\BookType::MaddraxDieDunkleZukunftDerErde->value,
-            \App\Enums\BookType::MaddraxHardcover->value,
-            \App\Enums\BookType::MissionMars->value,
-            \App\Enums\BookType::DasVolkDerTiefe->value,
-            \App\Enums\BookType::ZweiTausendZwölfDasJahrDerApokalypse->value,
-            \App\Enums\BookType::DieAbenteurer->value,
+            BookType::MaddraxDieDunkleZukunftDerErde->value,
+            BookType::MaddraxHardcover->value,
+            BookType::MissionMars->value,
+            BookType::DasVolkDerTiefe->value,
+            BookType::ZweiTausendZwölfDasJahrDerApokalypse->value,
+            BookType::DieAbenteurer->value,
         ];
 
         foreach ($enumValues as $index => $type) {

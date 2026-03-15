@@ -6,7 +6,7 @@ use App\Models\Download;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Download>
+ * @extends Factory<Download>
  */
 class DownloadFactory extends Factory
 {

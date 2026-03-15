@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Enums\BookType;
+use App\Enums\Role;
 use App\Mail\BookSwapMatched;
 use App\Models\Book;
 use App\Models\BookOffer;
@@ -23,7 +24,7 @@ class BookSwapProcessTest extends TestCase
     {
         $team = Team::membersTeam();
         $user = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($user, ['role' => \App\Enums\Role::Mitglied->value]);
+        $team->users()->attach($user, ['role' => Role::Mitglied->value]);
 
         return $user;
     }

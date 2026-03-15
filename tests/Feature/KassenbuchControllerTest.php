@@ -4,18 +4,20 @@ namespace Tests\Feature;
 
 use App\Enums\KassenbuchEntryType;
 use App\Enums\Role;
+use App\Models\KassenbuchEntry;
 use App\Models\Kassenstand;
 use App\Models\Team;
 use App\Models\User;
 use App\Services\MembersTeamProvider;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\CreatesUserWithRole;
 use Tests\TestCase;
 
 class KassenbuchControllerTest extends TestCase
 {
+    use CreatesUserWithRole;
     use RefreshDatabase;
-    use \Tests\Concerns\CreatesUserWithRole;
 
     public function test_add_entry_updates_balance(): void
     {
@@ -47,7 +49,7 @@ class KassenbuchControllerTest extends TestCase
 
         $team = $kassenwart->currentTeam;
         $member = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($member, ['role' => \App\Enums\Role::Mitglied->value]);
+        $team->users()->attach($member, ['role' => Role::Mitglied->value]);
 
         $response = $this->from('/kassenbuch')->put("/kassenbuch/zahlung-aktualisieren/{$member->id}", [
             'mitgliedsbeitrag' => 42,
@@ -69,9 +71,9 @@ class KassenbuchControllerTest extends TestCase
 
         $team = $kassenwart->currentTeam;
         $member = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($member, ['role' => \App\Enums\Role::Mitglied->value]);
+        $team->users()->attach($member, ['role' => Role::Mitglied->value]);
 
-        \App\Models\KassenbuchEntry::create([
+        KassenbuchEntry::create([
             'team_id' => $team->id,
             'created_by' => $kassenwart->id,
             'buchungsdatum' => now(),
@@ -103,7 +105,7 @@ class KassenbuchControllerTest extends TestCase
             'mitglied_seit' => '2020-01-01',
             'mitgliedsbeitrag' => 36.00,
         ]);
-        $team->users()->attach($target, ['role' => \App\Enums\Role::Mitglied->value]);
+        $team->users()->attach($target, ['role' => Role::Mitglied->value]);
 
         $response = $this->from('/kassenbuch')->put("/kassenbuch/zahlung-aktualisieren/{$target->id}", [
             'mitgliedsbeitrag' => 42,
@@ -287,7 +289,7 @@ class KassenbuchControllerTest extends TestCase
             'current_team_id' => $team->id,
             'mitglied_seit' => '2020-01-01',
         ]);
-        $team->users()->attach($member, ['role' => \App\Enums\Role::Mitglied->value]);
+        $team->users()->attach($member, ['role' => Role::Mitglied->value]);
 
         $response = $this->from('/kassenbuch')->put("/kassenbuch/zahlung-aktualisieren/{$member->id}", [
             'mitgliedsbeitrag' => 48,

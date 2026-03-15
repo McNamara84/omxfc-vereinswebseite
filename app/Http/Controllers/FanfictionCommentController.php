@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\FanfictionStatus;
 use App\Enums\Role;
 use App\Http\Controllers\Concerns\MembersTeamAware;
 use App\Models\Activity;
@@ -41,7 +42,7 @@ class FanfictionCommentController extends Controller
         }
 
         // Entwürfe dürfen nur Vorstand/Admin kommentieren
-        if ($fanfiction->status !== \App\Enums\FanfictionStatus::Published
+        if ($fanfiction->status !== FanfictionStatus::Published
             && ! in_array($role, [Role::Vorstand, Role::Admin], true)) {
             abort(404);
         }

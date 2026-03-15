@@ -894,7 +894,7 @@ class RomantauschControllerTest extends TestCase
             'condition' => 'gebraucht',
         ]);
 
-        $swap = \App\Models\BookSwap::create([
+        $swap = BookSwap::create([
             'offer_id' => $offer->id,
             'request_id' => $request->id,
             'completed_at' => now(),

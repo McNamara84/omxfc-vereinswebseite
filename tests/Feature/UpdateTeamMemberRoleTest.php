@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\Role;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Jetstream\Http\Livewire\TeamMemberManager;
@@ -17,7 +18,7 @@ class UpdateTeamMemberRoleTest extends TestCase
         $this->actingAs($user = User::factory()->withPersonalTeam()->create());
 
         $user->currentTeam->users()->attach(
-            $otherUser = User::factory()->create(), ['role' => \App\Enums\Role::Admin->value]
+            $otherUser = User::factory()->create(), ['role' => Role::Admin->value]
         );
 
         Livewire::test(TeamMemberManager::class, ['team' => $user->currentTeam])
@@ -35,7 +36,7 @@ class UpdateTeamMemberRoleTest extends TestCase
         $user = User::factory()->withPersonalTeam()->create();
 
         $user->currentTeam->users()->attach(
-            $otherUser = User::factory()->create(), ['role' => \App\Enums\Role::Admin->value]
+            $otherUser = User::factory()->create(), ['role' => Role::Admin->value]
         );
 
         $this->actingAs($otherUser);

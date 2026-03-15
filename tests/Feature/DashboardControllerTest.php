@@ -2,13 +2,23 @@
 
 namespace Tests\Feature;
 
+use App\Enums\BookType;
 use App\Enums\FanfictionStatus;
 use App\Enums\Role;
 use App\Enums\TodoStatus;
 use App\Mail\MitgliedGenehmigtMail;
+use App\Models\Book;
+use App\Models\BookOffer;
+use App\Models\BookRequest;
+use App\Models\BookSwap;
 use App\Models\Fanfiction;
+use App\Models\Review;
+use App\Models\ReviewComment;
 use App\Models\Team;
+use App\Models\Todo;
+use App\Models\TodoCategory;
 use App\Models\User;
+use App\Models\UserPoint;
 use App\Services\MembersTeamProvider;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
@@ -103,8 +113,8 @@ class DashboardControllerTest extends TestCase
         $team->users()->attach($member1, ['role' => Role::Mitglied->value]);
         $team->users()->attach($member2, ['role' => Role::Mitglied->value]);
 
-        $category = \App\Models\TodoCategory::first() ?? \App\Models\TodoCategory::create(['name' => 'Test', 'slug' => 'test']);
-        $assignedTodo = \App\Models\Todo::create([
+        $category = TodoCategory::first() ?? TodoCategory::create(['name' => 'Test', 'slug' => 'test']);
+        $assignedTodo = Todo::create([
             'team_id' => $team->id,
             'created_by' => $admin->id,
             'assigned_to' => $admin->id,
@@ -113,7 +123,7 @@ class DashboardControllerTest extends TestCase
             'status' => TodoStatus::Assigned->value,
             'category_id' => $category->id,
         ]);
-        \App\Models\Todo::create([
+        Todo::create([
             'team_id' => $team->id,
             'created_by' => $admin->id,
             'assigned_to' => $member1->id,
@@ -122,7 +132,7 @@ class DashboardControllerTest extends TestCase
             'status' => TodoStatus::Assigned->value,
             'category_id' => $category->id,
         ]);
-        \App\Models\Todo::create([
+        Todo::create([
             'team_id' => $team->id,
             'created_by' => $admin->id,
             'assigned_to' => $admin->id,
@@ -132,32 +142,32 @@ class DashboardControllerTest extends TestCase
             'category_id' => $category->id,
         ]);
 
-        \App\Models\UserPoint::create(['user_id' => $admin->id, 'team_id' => $team->id, 'todo_id' => $assignedTodo->id, 'points' => 5]);
-        \App\Models\UserPoint::create(['user_id' => $member1->id, 'team_id' => $team->id, 'todo_id' => $assignedTodo->id, 'points' => 10]);
-        \App\Models\UserPoint::create(['user_id' => $member2->id, 'team_id' => $team->id, 'todo_id' => $assignedTodo->id, 'points' => 7]);
+        UserPoint::create(['user_id' => $admin->id, 'team_id' => $team->id, 'todo_id' => $assignedTodo->id, 'points' => 5]);
+        UserPoint::create(['user_id' => $member1->id, 'team_id' => $team->id, 'todo_id' => $assignedTodo->id, 'points' => 10]);
+        UserPoint::create(['user_id' => $member2->id, 'team_id' => $team->id, 'todo_id' => $assignedTodo->id, 'points' => 7]);
 
-        $book = \App\Models\Book::create(['roman_number' => 1, 'title' => 'B1', 'author' => 'A']);
-        \App\Models\Review::create(['team_id' => $team->id, 'user_id' => $admin->id, 'book_id' => $book->id, 'title' => 'T', 'content' => 'X']);
-        $review2 = \App\Models\Review::create(['team_id' => $team->id, 'user_id' => $member1->id, 'book_id' => $book->id, 'title' => 'T2', 'content' => 'Y']);
-        \App\Models\ReviewComment::create(['review_id' => $review2->id, 'user_id' => $admin->id, 'content' => 'C']);
+        $book = Book::create(['roman_number' => 1, 'title' => 'B1', 'author' => 'A']);
+        Review::create(['team_id' => $team->id, 'user_id' => $admin->id, 'book_id' => $book->id, 'title' => 'T', 'content' => 'X']);
+        $review2 = Review::create(['team_id' => $team->id, 'user_id' => $member1->id, 'book_id' => $book->id, 'title' => 'T2', 'content' => 'Y']);
+        ReviewComment::create(['review_id' => $review2->id, 'user_id' => $admin->id, 'content' => 'C']);
 
-        $offer = \App\Models\BookOffer::create([
+        $offer = BookOffer::create([
             'user_id' => $admin->id,
-            'series' => \App\Enums\BookType::MaddraxDieDunkleZukunftDerErde->value,
+            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
             'book_number' => 1,
             'book_title' => 'B1',
             'condition' => 'gut',
         ]);
 
-        $request = \App\Models\BookRequest::create([
+        $request = BookRequest::create([
             'user_id' => $member1->id,
-            'series' => \App\Enums\BookType::MaddraxDieDunkleZukunftDerErde->value,
+            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
             'book_number' => 1,
             'book_title' => 'B1',
             'condition' => 'gut',
         ]);
 
-        \App\Models\BookSwap::create([
+        BookSwap::create([
             'offer_id' => $offer->id,
             'request_id' => $request->id,
         ]);
@@ -189,23 +199,23 @@ class DashboardControllerTest extends TestCase
         $offeringUser = User::factory()->create(['current_team_id' => $team->id]);
         $team->users()->attach($offeringUser, ['role' => Role::Mitglied->value]);
 
-        $offer = \App\Models\BookOffer::create([
+        $offer = BookOffer::create([
             'user_id' => $offeringUser->id,
-            'series' => \App\Enums\BookType::MaddraxDieDunkleZukunftDerErde->value,
+            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
             'book_number' => 5,
             'book_title' => 'Testroman',
             'condition' => 'gut',
         ]);
 
-        $request = \App\Models\BookRequest::create([
+        $request = BookRequest::create([
             'user_id' => $requestingUser->id,
-            'series' => \App\Enums\BookType::MaddraxDieDunkleZukunftDerErde->value,
+            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
             'book_number' => 5,
             'book_title' => 'Testroman',
             'condition' => 'gut',
         ]);
 
-        \App\Models\BookSwap::create([
+        BookSwap::create([
             'offer_id' => $offer->id,
             'request_id' => $request->id,
         ]);
@@ -243,27 +253,27 @@ class DashboardControllerTest extends TestCase
         $otherMember = User::factory()->create(['current_team_id' => $team->id]);
         $team->users()->attach($otherMember, ['role' => Role::Mitglied->value]);
 
-        \App\Models\BookOffer::create([
+        BookOffer::create([
             'user_id' => $member->id,
-            'series' => \App\Enums\BookType::MaddraxDieDunkleZukunftDerErde->value,
+            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
             'book_number' => 10,
             'book_title' => 'Offenes Angebot',
             'condition' => 'gut',
             'completed' => false,
         ]);
 
-        \App\Models\BookOffer::create([
+        BookOffer::create([
             'user_id' => $member->id,
-            'series' => \App\Enums\BookType::MaddraxDieDunkleZukunftDerErde->value,
+            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
             'book_number' => 11,
             'book_title' => 'Abgeschlossen',
             'condition' => 'gut',
             'completed' => true,
         ]);
 
-        \App\Models\BookOffer::create([
+        BookOffer::create([
             'user_id' => $otherMember->id,
-            'series' => \App\Enums\BookType::MaddraxDieDunkleZukunftDerErde->value,
+            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
             'book_number' => 12,
             'book_title' => 'Fremdes Angebot',
             'condition' => 'gut',
@@ -288,9 +298,9 @@ class DashboardControllerTest extends TestCase
         $otherMember = User::factory()->create(['current_team_id' => $team->id]);
         $team->users()->attach($otherMember, ['role' => Role::Mitglied->value]);
 
-        $category = \App\Models\TodoCategory::first() ?? \App\Models\TodoCategory::create(['name' => 'Test', 'slug' => 'test']);
+        $category = TodoCategory::first() ?? TodoCategory::create(['name' => 'Test', 'slug' => 'test']);
 
-        \App\Models\Todo::create([
+        Todo::create([
             'team_id' => $team->id,
             'created_by' => $member->id,
             'assigned_to' => $member->id,
@@ -300,7 +310,7 @@ class DashboardControllerTest extends TestCase
             'category_id' => $category->id,
         ]);
 
-        \App\Models\Todo::create([
+        Todo::create([
             'team_id' => $team->id,
             'created_by' => $member->id,
             'assigned_to' => $member->id,
@@ -310,7 +320,7 @@ class DashboardControllerTest extends TestCase
             'category_id' => $category->id,
         ]);
 
-        \App\Models\Todo::create([
+        Todo::create([
             'team_id' => $team->id,
             'created_by' => $otherMember->id,
             'assigned_to' => $otherMember->id,
@@ -320,7 +330,7 @@ class DashboardControllerTest extends TestCase
             'category_id' => $category->id,
         ]);
 
-        \App\Models\Todo::create([
+        Todo::create([
             'team_id' => $team->id,
             'created_by' => $member->id,
             'title' => 'Noch offen',
@@ -346,10 +356,10 @@ class DashboardControllerTest extends TestCase
         $user = User::factory()->create(['current_team_id' => $team->id]);
         $team->users()->attach($user, ['role' => Role::Mitglied->value]);
 
-        $category = \App\Models\TodoCategory::first()
-            ?? \App\Models\TodoCategory::create(['name' => 'Cache Test', 'slug' => 'cache-test']);
+        $category = TodoCategory::first()
+            ?? TodoCategory::create(['name' => 'Cache Test', 'slug' => 'cache-test']);
 
-        \App\Models\Todo::create([
+        Todo::create([
             'team_id' => $team->id,
             'created_by' => $user->id,
             'assigned_to' => $user->id,
@@ -362,7 +372,7 @@ class DashboardControllerTest extends TestCase
         $otherTeam = Team::factory()->create();
         $otherTeam->users()->attach($user, ['role' => Role::Mitglied->value]);
 
-        \App\Models\Todo::create([
+        Todo::create([
             'team_id' => $otherTeam->id,
             'created_by' => $user->id,
             'assigned_to' => $user->id,

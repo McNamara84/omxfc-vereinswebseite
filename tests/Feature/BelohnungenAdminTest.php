@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\Role;
 use App\Livewire\BelohnungenAdmin;
 use App\Models\BaxxEarningRule;
 use App\Models\Download;
@@ -133,7 +134,7 @@ class BelohnungenAdminTest extends TestCase
     public function test_refund_purchase(): void
     {
         $admin = $this->actingAdmin();
-        $member = $this->createUserWithRole(\App\Enums\Role::Mitglied);
+        $member = $this->createUserWithRole(Role::Mitglied);
         $reward = Reward::factory()->create(['cost_baxx' => 5, 'slug' => 'refund-test']);
 
         $purchase = RewardPurchase::factory()->create([
@@ -153,7 +154,7 @@ class BelohnungenAdminTest extends TestCase
     public function test_refund_already_refunded_purchase_fails(): void
     {
         $admin = $this->actingAdmin();
-        $member = $this->createUserWithRole(\App\Enums\Role::Mitglied);
+        $member = $this->createUserWithRole(Role::Mitglied);
         $reward = Reward::factory()->create(['cost_baxx' => 5, 'slug' => 'already-refunded']);
 
         $purchase = RewardPurchase::factory()->refunded()->create([
@@ -308,7 +309,7 @@ class BelohnungenAdminTest extends TestCase
 
         $download = Download::factory()->create();
         $reward = Reward::factory()->create(['download_id' => $download->id]);
-        $user = $this->createUserWithRole(\App\Enums\Role::Mitglied);
+        $user = $this->createUserWithRole(Role::Mitglied);
 
         RewardPurchase::factory()->create([
             'user_id' => $user->id,

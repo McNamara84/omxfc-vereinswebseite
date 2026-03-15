@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\Role;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -45,7 +46,7 @@ class NavigationMenuTest extends TestCase
     {
         $team = Team::membersTeam();
         $user = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($user, ['role' => \App\Enums\Role::Admin->value]);
+        $team->users()->attach($user, ['role' => Role::Admin->value]);
 
         $response = $this->actingAs($user)->get('/');
 
@@ -58,7 +59,7 @@ class NavigationMenuTest extends TestCase
     {
         $team = Team::membersTeam();
         $user = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($user, ['role' => \App\Enums\Role::Mitglied->value]);
+        $team->users()->attach($user, ['role' => Role::Mitglied->value]);
 
         $response = $this->actingAs($user)->get('/');
 
@@ -71,7 +72,7 @@ class NavigationMenuTest extends TestCase
     {
         $team = Team::membersTeam();
         $user = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($user, ['role' => \App\Enums\Role::Admin->value]);
+        $team->users()->attach($user, ['role' => Role::Admin->value]);
 
         $response = $this->actingAs($user)->get('/');
         $response->assertDontSee(route('hoerbuecher.create'));
@@ -81,7 +82,7 @@ class NavigationMenuTest extends TestCase
     {
         $team = Team::membersTeam();
         $user = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($user, ['role' => \App\Enums\Role::Mitglied->value]);
+        $team->users()->attach($user, ['role' => Role::Mitglied->value]);
 
         $response = $this->actingAs($user)->get('/');
 

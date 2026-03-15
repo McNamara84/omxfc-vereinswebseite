@@ -2,14 +2,17 @@
 
 namespace Tests\Feature;
 
+use App\Http\Controllers\PhotoGalleryController;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Tests\Concerns\CreatesUserWithRole;
 use Tests\TestCase;
 
 class PhotoGalleryControllerTest extends TestCase
 {
+    use CreatesUserWithRole;
     use RefreshDatabase;
-    use \Tests\Concerns\CreatesUserWithRole;
 
     /** @var string[] */
     private array $createdPlaceholders = [];
@@ -91,7 +94,7 @@ class PhotoGalleryControllerTest extends TestCase
             'cloud.maddrax-fanclub.de/*Foto1.jpg' => Http::response('img', 200, ['Content-Type' => 'image/jpeg']),
         ]);
 
-        $response = app(\App\Http\Controllers\PhotoGalleryController::class)->proxyImage('2025', 1);
+        $response = app(PhotoGalleryController::class)->proxyImage('2025', 1);
 
         $this->assertEquals(200, $response->getStatusCode());
         $this->assertEquals('image/jpeg', $response->headers->get('Content-Type'));
@@ -106,9 +109,9 @@ class PhotoGalleryControllerTest extends TestCase
             'cloud.maddrax-fanclub.de/*Foto1.jpg' => Http::response('', 404),
         ]);
 
-        $response = app(\App\Http\Controllers\PhotoGalleryController::class)->proxyImage('2025', 1);
+        $response = app(PhotoGalleryController::class)->proxyImage('2025', 1);
 
-        $this->assertInstanceOf(\Symfony\Component\HttpFoundation\BinaryFileResponse::class, $response);
+        $this->assertInstanceOf(BinaryFileResponse::class, $response);
         $this->assertStringEndsWith('images/galerie/2025/placeholder1.jpg', $response->getFile()->getPathname());
     }
 }
