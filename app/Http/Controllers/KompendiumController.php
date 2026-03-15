@@ -139,15 +139,55 @@ class KompendiumController extends Controller
         $radius = 200;
 
         /* ------------------------------------------------------------------ */
+        /*  Query parsen: Phrasen in Anführungszeichen vs. freie Begriffe */
+        /* ------------------------------------------------------------------ */
+        $parsed = $this->searchService->parseSearchQuery($query);
+        $tntQuery = $parsed['isPhraseSearch']
+            ? $this->searchService->buildTntSearchQuery($parsed)
+            : $query;
+
+        /* ------------------------------------------------------------------ */
         /*  SCOUT-SUCHAUFRUF  (RAW) */
         /* ------------------------------------------------------------------ */
-        $raw = $this->searchService->search($query);
+        $raw = $this->searchService->search($tntQuery);
 
         $ids = $raw['ids'] ?? [];                               // enthält unsere "path"-Schlüssel
         $ids = array_values($ids);                              // re-indexieren
 
         // Sicherheitsprüfung: Nur gültige Pfade weiterverarbeiten
         $ids = array_values(array_filter($ids, fn ($path) => $this->isValidRomanPath($path)));
+
+        /* ------------------------------------------------------------------ */
+        /*  Phrasensuche: Post-Filterung auf exakte Übereinstimmung */
+        /* ------------------------------------------------------------------ */
+        $textCache = [];
+
+        if ($parsed['isPhraseSearch']) {
+            $ids = array_values(array_filter($ids, function ($path) use ($parsed, &$textCache) {
+                if (! Storage::disk('private')->exists($path)) {
+                    return false;
+                }
+
+                $text = Storage::disk('private')->get($path);
+                $textCache[$path] = $text;
+
+                // Alle Phrasen müssen als exakte Substrings vorkommen
+                foreach ($parsed['phrases'] as $phrase) {
+                    if (mb_stripos($text, $phrase) === false) {
+                        return false;
+                    }
+                }
+
+                // Alle freien Begriffe müssen ebenfalls vorkommen
+                foreach ($parsed['terms'] as $term) {
+                    if (mb_stripos($text, $term) === false) {
+                        return false;
+                    }
+                }
+
+                return true;
+            }));
+        }
 
         /* ------------------------------------------------------------------ */
         /*  Serien-Zählung und Filterung (kombiniert für Performance) */
@@ -170,6 +210,16 @@ class KompendiumController extends Controller
         $slice = array_slice($ids, ($page - 1) * $perPage, $perPage);
 
         /* ------------------------------------------------------------------ */
+        /*  Suchbegriffe für Snippet-Extraktion zusammenstellen */
+        /* ------------------------------------------------------------------ */
+        $snippetSearchTerms = $parsed['isPhraseSearch']
+            ? array_merge($parsed['phrases'], $parsed['terms'])
+            : [$query];
+
+        // Längere Begriffe zuerst → verhindert Teilmarkierungen bei Überlappung
+        usort($snippetSearchTerms, fn ($a, $b) => mb_strlen($b) - mb_strlen($a));
+
+        /* ------------------------------------------------------------------ */
         /*  Treffer in Frontend-Format wandeln */
         /* ------------------------------------------------------------------ */
         $hits = [];
@@ -185,28 +235,35 @@ class KompendiumController extends Controller
 
             [$serie, $romanNr, $title] = $this->extractMetaFromPath($path);
 
-            /* Original-Text laden → Snippets bilden */
-            $text = Storage::disk('private')->get($path);
+            /* Original-Text laden (Cache nutzen falls vorhanden) → Snippets bilden */
+            $text = $textCache[$path] ?? Storage::disk('private')->get($path);
             $snippets = [];
-            $offset = 0;
 
-            while (
-                ($pos = mb_stripos($text, $query, $offset)) !== false &&
-                count($snippets) < $snippetsPerFile
-            ) {
-                $start = max($pos - $radius, 0);
-                $length = mb_strlen($query) + (2 * $radius);
-                $snippet = mb_substr($text, $start, $length);
+            foreach ($snippetSearchTerms as $searchTerm) {
+                $offset = 0;
 
-                $snippet = e($snippet);
-                $snippet = preg_replace(
-                    '/'.preg_quote($query, '/').'/iu',
-                    '<mark>$0</mark>',
-                    $snippet
-                );
+                while (
+                    ($pos = mb_stripos($text, $searchTerm, $offset)) !== false &&
+                    count($snippets) < $snippetsPerFile
+                ) {
+                    $start = max($pos - $radius, 0);
+                    $length = mb_strlen($searchTerm) + (2 * $radius);
+                    $snippet = mb_substr($text, $start, $length);
 
-                $snippets[] = $snippet;
-                $offset = $pos + mb_strlen($query);
+                    $snippet = e($snippet);
+
+                    // Alle Suchbegriffe im Snippet hervorheben (längste zuerst)
+                    foreach ($snippetSearchTerms as $highlightTerm) {
+                        $snippet = preg_replace(
+                            '/'.preg_quote(e($highlightTerm), '/').'/iu',
+                            '<mark>$0</mark>',
+                            $snippet
+                        );
+                    }
+
+                    $snippets[] = $snippet;
+                    $offset = $pos + mb_strlen($searchTerm);
+                }
             }
 
             // Zyklus-Name aus SERIEN-Konstante, Fallback auf formatierten Key
@@ -236,6 +293,11 @@ class KompendiumController extends Controller
             'currentPage' => $paginator->currentPage(),
             'lastPage' => $paginator->lastPage(),
             'serienCounts' => $serienCounts,
+            'isPhraseSearch' => $parsed['isPhraseSearch'],
+            'searchInfo' => [
+                'phrases' => $parsed['phrases'],
+                'terms' => $parsed['terms'],
+            ],
         ]);
     }
 

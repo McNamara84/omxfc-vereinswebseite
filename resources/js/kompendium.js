@@ -36,6 +36,8 @@ function initKompendium() {
     const $loading = document.getElementById('loading');
     const $serienFilter = document.getElementById('serien-filter');
     const $serienCheckboxes = document.getElementById('serien-checkboxes');
+    const $phraseHint = document.getElementById('phrase-hint');
+    const $phraseHintText = document.getElementById('phrase-hint-text');
 
     function showError(message) {
         $results.innerHTML = '';
@@ -148,6 +150,31 @@ function initKompendium() {
         return div.innerHTML;
     }
 
+    /**
+     * Prüft ob der Query Phrasen in Anführungszeichen enthält.
+     */
+    function hasPhrases(q) {
+        return /"[^"]{2,}"/.test(q);
+    }
+
+    /**
+     * Zeigt oder verbirgt den Phrasen-Hinweis basierend auf der Server-Response.
+     */
+    function updatePhraseHint(json) {
+        if (!$phraseHint || !$phraseHintText) return;
+
+        if (json.isPhraseSearch && json.searchInfo) {
+            const parts = [];
+            json.searchInfo.phrases.forEach(p => parts.push(`\u201E${p}\u201C`));
+            json.searchInfo.terms.forEach(t => parts.push(`\u201E${t}\u201C`));
+
+            $phraseHintText.textContent = `Phrasensuche aktiv: Nur exakte Treffer f\u00FCr ${parts.join(' + ')}`;
+            $phraseHint.classList.remove('hidden');
+        } else {
+            $phraseHint.classList.add('hidden');
+        }
+    }
+
     const tpl = (roman) => `
         <div class="border border-base-content/10 rounded p-4">
             <h2 class="font-semibold text-primary mb-2">
@@ -187,6 +214,11 @@ function initKompendium() {
             if (json.serienCounts) {
                 serienCounts = json.serienCounts;
                 updateCheckboxLabels();
+            }
+
+            // Phrasen-Hinweis aktualisieren (nur auf erster Seite)
+            if (page === 1) {
+                updatePhraseHint(json);
             }
 
             json.data.forEach(r => $results.insertAdjacentHTML('beforeend', tpl(r)));

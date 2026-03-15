@@ -296,3 +296,133 @@ describe('Kompendium Suche – Treffer-Template', () => {
         expect(html).not.toContain('<p class="mb-2');
     });
 });
+
+describe('Kompendium Suche – Phrasen-Erkennung', () => {
+    /**
+     * Prüft ob der Query Phrasen in Anführungszeichen enthält (Kopie aus kompendium.js).
+     */
+    function hasPhrases(q) {
+        return /"[^"]{2,}"/.test(q);
+    }
+
+    it('erkennt einfache Phrase', () => {
+        expect(hasPhrases('"Matthew Drax"')).toBe(true);
+    });
+
+    it('erkennt Phrase in gemischter Suche', () => {
+        expect(hasPhrases('"Matthew Drax" Abenteuer')).toBe(true);
+    });
+
+    it('erkennt mehrere Phrasen', () => {
+        expect(hasPhrases('"Matthew Drax" "Volk der Tiefe"')).toBe(true);
+    });
+
+    it('erkennt keine Phrase ohne Anführungszeichen', () => {
+        expect(hasPhrases('Matthew Drax')).toBe(false);
+    });
+
+    it('erkennt keine Phrase bei leeren Anführungszeichen', () => {
+        expect(hasPhrases('""')).toBe(false);
+    });
+
+    it('erkennt keine Phrase bei zu kurzem Inhalt', () => {
+        expect(hasPhrases('"A"')).toBe(false);
+    });
+
+    it('erkennt Phrase mit mindestens 2 Zeichen', () => {
+        expect(hasPhrases('"AB"')).toBe(true);
+    });
+});
+
+describe('Kompendium Suche – Phrasen-Hinweis', () => {
+    beforeEach(() => {
+        document.body.innerHTML = `
+            <div id="phrase-hint" class="mb-4 hidden" data-testid="phrase-hint">
+                <div class="flex items-center gap-2 p-3 text-sm">
+                    <span id="phrase-hint-text" class="text-base-content"></span>
+                </div>
+            </div>
+        `;
+    });
+
+    /**
+     * Simuliert die updatePhraseHint-Funktion aus kompendium.js.
+     */
+    function updatePhraseHint(json) {
+        const $phraseHint = document.getElementById('phrase-hint');
+        const $phraseHintText = document.getElementById('phrase-hint-text');
+        if (!$phraseHint || !$phraseHintText) return;
+
+        if (json.isPhraseSearch && json.searchInfo) {
+            const parts = [];
+            json.searchInfo.phrases.forEach(p => parts.push(`\u201E${p}\u201C`));
+            json.searchInfo.terms.forEach(t => parts.push(`\u201E${t}\u201C`));
+
+            $phraseHintText.textContent = `Phrasensuche aktiv: Nur exakte Treffer f\u00FCr ${parts.join(' + ')}`;
+            $phraseHint.classList.remove('hidden');
+        } else {
+            $phraseHint.classList.add('hidden');
+        }
+    }
+
+    it('zeigt Hinweis bei Phrasensuche', () => {
+        updatePhraseHint({
+            isPhraseSearch: true,
+            searchInfo: { phrases: ['matthew drax'], terms: [] },
+        });
+
+        const hint = document.getElementById('phrase-hint');
+        const text = document.getElementById('phrase-hint-text');
+
+        expect(hint.classList.contains('hidden')).toBe(false);
+        expect(text.textContent).toContain('Phrasensuche aktiv');
+        expect(text.textContent).toContain('matthew drax');
+    });
+
+    it('zeigt Hinweis mit Phrase und freiem Begriff', () => {
+        updatePhraseHint({
+            isPhraseSearch: true,
+            searchInfo: { phrases: ['matthew drax'], terms: ['abenteuer'] },
+        });
+
+        const text = document.getElementById('phrase-hint-text');
+        expect(text.textContent).toContain('matthew drax');
+        expect(text.textContent).toContain('abenteuer');
+        expect(text.textContent).toContain('+');
+    });
+
+    it('verbirgt Hinweis bei normaler Suche', () => {
+        // Erst einblenden
+        updatePhraseHint({
+            isPhraseSearch: true,
+            searchInfo: { phrases: ['test'], terms: [] },
+        });
+
+        // Dann normale Suche
+        updatePhraseHint({
+            isPhraseSearch: false,
+            searchInfo: { phrases: [], terms: ['test'] },
+        });
+
+        const hint = document.getElementById('phrase-hint');
+        expect(hint.classList.contains('hidden')).toBe(true);
+    });
+
+    it('verbirgt Hinweis wenn isPhraseSearch fehlt', () => {
+        updatePhraseHint({ data: [] });
+
+        const hint = document.getElementById('phrase-hint');
+        expect(hint.classList.contains('hidden')).toBe(true);
+    });
+
+    it('zeigt Hinweis mit mehreren Phrasen', () => {
+        updatePhraseHint({
+            isPhraseSearch: true,
+            searchInfo: { phrases: ['matthew drax', 'volk der tiefe'], terms: [] },
+        });
+
+        const text = document.getElementById('phrase-hint-text');
+        expect(text.textContent).toContain('matthew drax');
+        expect(text.textContent).toContain('volk der tiefe');
+    });
+});
