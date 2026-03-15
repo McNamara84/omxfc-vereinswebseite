@@ -357,6 +357,36 @@ describe('Kompendium Suche – Phrasen-Hinweis', () => {
         expect($phraseHint.classList.contains('hidden')).toBe(true);
     });
 
+    it('verbirgt Hinweis bei null/undefined json', () => {
+        updatePhraseHint($phraseHint, $phraseHintText, null);
+        expect($phraseHint.classList.contains('hidden')).toBe(true);
+
+        updatePhraseHint($phraseHint, $phraseHintText, undefined);
+        expect($phraseHint.classList.contains('hidden')).toBe(true);
+    });
+
+    it('behandelt fehlende phrases/terms in searchInfo defensiv', () => {
+        // searchInfo ohne phrases/terms → kein Fehler, leerer Hinweis
+        updatePhraseHint($phraseHint, $phraseHintText, {
+            isPhraseSearch: true,
+            searchInfo: {},
+        });
+
+        expect($phraseHint.classList.contains('hidden')).toBe(false);
+        expect($phraseHintText.textContent).toContain('Phrasensuche aktiv');
+    });
+
+    it('behandelt nicht-Array phrases/terms defensiv', () => {
+        // phrases/terms als Strings statt Arrays → kein TypeError
+        updatePhraseHint($phraseHint, $phraseHintText, {
+            isPhraseSearch: true,
+            searchInfo: { phrases: 'not-an-array', terms: 42 },
+        });
+
+        expect($phraseHint.classList.contains('hidden')).toBe(false);
+        expect($phraseHintText.textContent).toContain('Phrasensuche aktiv');
+    });
+
     it('zeigt Hinweis mit mehreren Phrasen', () => {
         updatePhraseHint($phraseHint, $phraseHintText, {
             isPhraseSearch: true,

@@ -548,6 +548,41 @@ class KompendiumControllerTest extends TestCase
 
         $response->assertOk();
         $this->assertFalse($response->json('isPhraseSearch'));
+
+        // Snippets müssen "Abenteuer" highlighten, nicht den Raw-Query mit Quotes
+        $data = $response->json('data');
+        $this->assertNotEmpty($data);
+        $snippets = $data[0]['snippets'];
+        $this->assertNotEmpty($snippets, 'Snippets sollten trotz leerer Quotes gefunden werden');
+        $this->assertStringContainsString('<mark>Abenteuer</mark>', $snippets[0]);
+        $this->assertStringNotContainsString('&quot;', $snippets[0], 'Keine HTML-escaped Quotes in Snippets');
+    }
+
+    public function test_search_with_short_quoted_term_highlights_remaining_terms(): void
+    {
+        $user = $this->actingMemberWithPoints(150);
+        $this->purchaseKompendiumForUser($user);
+
+        $this->setupSearchMock(
+            files: [
+                'romane/maddrax/001 - Test.txt' => 'Ein großes Abenteuer begann hier.',
+            ],
+            searchResultPaths: [
+                'romane/maddrax/001 - Test.txt',
+            ]
+        );
+
+        // "A" ist zu kurz für eine Phrase, "Abenteuer" ist ein freier Term
+        $response = $this->getJson('/kompendium/suche?q=%22A%22+Abenteuer');
+
+        $response->assertOk();
+        $this->assertFalse($response->json('isPhraseSearch'));
+
+        $data = $response->json('data');
+        $this->assertNotEmpty($data);
+        $snippets = $data[0]['snippets'];
+        $this->assertNotEmpty($snippets, 'Snippets sollten trotz ungültiger Phrase gefunden werden');
+        $this->assertStringContainsString('<mark>Abenteuer</mark>', $snippets[0]);
     }
 
     public function test_search_with_multiple_phrases(): void

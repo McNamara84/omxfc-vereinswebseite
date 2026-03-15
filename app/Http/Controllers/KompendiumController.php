@@ -233,10 +233,18 @@ class KompendiumController extends Controller
 
         /* ------------------------------------------------------------------ */
         /*  Suchbegriffe für Snippet-Extraktion zusammenstellen */
+        /*  Immer aus den geparsten Begriffen ableiten, damit keine */
+        /*  Anführungszeichen in den Snippet-Suchterms landen. */
         /* ------------------------------------------------------------------ */
-        $snippetSearchTerms = $parsed['isPhraseSearch']
-            ? array_merge($parsed['phrases'], $parsed['terms'])
-            : [$query];
+        if ($parsed['isPhraseSearch']) {
+            $snippetSearchTerms = array_merge($parsed['phrases'], $parsed['terms']);
+        } elseif ($parsed['hadQuotes'] && ! empty($parsed['terms'])) {
+            // Quotes vorhanden, aber keine gültige Phrase → extrahierte Terme nutzen
+            $snippetSearchTerms = $parsed['terms'];
+        } else {
+            // Normaler Fall oder Fallback (tntQuery ist bereits quote-bereinigt)
+            $snippetSearchTerms = [$tntQuery];
+        }
 
         // Längere Begriffe zuerst → verhindert Teilmarkierungen bei Überlappung
         usort($snippetSearchTerms, fn ($a, $b) => mb_strlen($b) - mb_strlen($a));
