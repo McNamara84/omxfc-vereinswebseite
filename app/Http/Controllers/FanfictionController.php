@@ -6,11 +6,13 @@ use App\Enums\FanfictionStatus;
 use App\Enums\Role;
 use App\Http\Controllers\Concerns\MembersTeamAware;
 use App\Models\Fanfiction;
+use App\Models\User;
 use App\Services\RewardService;
 use App\Services\UserRoleService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class FanfictionController extends Controller
@@ -61,7 +63,7 @@ class FanfictionController extends Controller
 
         $fanfictions = $query->orderByDesc('published_at')->paginate(15);
 
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = Auth::user();
         $availableBaxx = $this->rewardService->getAvailableBaxx($user);
 
@@ -101,7 +103,7 @@ class FanfictionController extends Controller
 
         $fanfiction->load(['author', 'comments.user', 'comments.children.user', 'reward']);
 
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = Auth::user();
         $hasUnlocked = ! $fanfiction->reward
             || $this->rewardService->hasUnlockedRewardId($user, $fanfiction->reward->id);
@@ -139,7 +141,7 @@ class FanfictionController extends Controller
                 ->with('info', 'Diese Fanfiction ist kostenlos verfügbar.');
         }
 
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = Auth::user();
 
         try {
@@ -147,7 +149,7 @@ class FanfictionController extends Controller
 
             return redirect()->route('fanfiction.show', $fanfiction)
                 ->with('success', 'Fanfiction erfolgreich freigeschaltet! Viel Spaß beim Lesen.');
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             return redirect()->route('fanfiction.show', $fanfiction)
                 ->withErrors($e->errors());
         }

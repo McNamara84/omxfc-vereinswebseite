@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Actions\Jetstream\AddTeamMember;
+use App\Enums\Role;
 use App\Models\User;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -62,7 +63,7 @@ class AddTeamMemberTest extends TestCase
         $otherUser = User::factory()->create();
 
         // Add the user once
-        $user->currentTeam->users()->attach($otherUser, ['role' => \App\Enums\Role::Admin->value]);
+        $user->currentTeam->users()->attach($otherUser, ['role' => Role::Admin->value]);
 
         $this->expectException(ValidationException::class);
 

@@ -1,5 +1,14 @@
 <?php
 
+use App\Http\Middleware\EnsureAdmin;
+use App\Http\Middleware\EnsureAdminOrVorstand;
+use App\Http\Middleware\EnsureHoerbuchAccess;
+use App\Http\Middleware\EnsureHoerbuchManage;
+use App\Http\Middleware\EnsureVorstand;
+use App\Http\Middleware\EnsureVorstandOrKassenwart;
+use App\Http\Middleware\LogPageVisit;
+use App\Http\Middleware\RedirectIfAnwaerter;
+use App\Http\Middleware\UpdateLastActivity;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -14,16 +23,16 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware) {
         // Globale Middleware hier registrieren (für alle Requests)
         $middleware->alias([
-            'redirect.if.anwaerter' => \App\Http\Middleware\RedirectIfAnwaerter::class,
-            'admin' => \App\Http\Middleware\EnsureAdmin::class,
-            'vorstand' => \App\Http\Middleware\EnsureVorstand::class,
-            'admin-or-vorstand' => \App\Http\Middleware\EnsureAdminOrVorstand::class,
-            'vorstand-or-kassenwart' => \App\Http\Middleware\EnsureVorstandOrKassenwart::class,
-            'hoerbuch-access' => \App\Http\Middleware\EnsureHoerbuchAccess::class,
-            'hoerbuch-manage' => \App\Http\Middleware\EnsureHoerbuchManage::class,
+            'redirect.if.anwaerter' => RedirectIfAnwaerter::class,
+            'admin' => EnsureAdmin::class,
+            'vorstand' => EnsureVorstand::class,
+            'admin-or-vorstand' => EnsureAdminOrVorstand::class,
+            'vorstand-or-kassenwart' => EnsureVorstandOrKassenwart::class,
+            'hoerbuch-access' => EnsureHoerbuchAccess::class,
+            'hoerbuch-manage' => EnsureHoerbuchManage::class,
         ]);
-        $middleware->appendToGroup('web', \App\Http\Middleware\UpdateLastActivity::class);
-        $middleware->appendToGroup('web', \App\Http\Middleware\LogPageVisit::class);
+        $middleware->appendToGroup('web', UpdateLastActivity::class);
+        $middleware->appendToGroup('web', LogPageVisit::class);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

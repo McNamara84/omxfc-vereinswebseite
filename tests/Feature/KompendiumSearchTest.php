@@ -2,21 +2,25 @@
 
 namespace Tests\Feature;
 
+use App\Models\Reward;
+use App\Models\RewardPurchase;
+use App\Models\User;
 use App\Services\KompendiumSearchService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
 use Mockery;
+use Tests\Concerns\CreatesUserWithRole;
 use Tests\TestCase;
 
 class KompendiumSearchTest extends TestCase
 {
+    use CreatesUserWithRole;
     use RefreshDatabase;
-    use \Tests\Concerns\CreatesUserWithRole;
 
-    private function purchaseKompendiumForUser(\App\Models\User $user): void
+    private function purchaseKompendiumForUser(User $user): void
     {
-        $reward = \App\Models\Reward::where('slug', 'kompendium')->firstOrFail();
-        \App\Models\RewardPurchase::create([
+        $reward = Reward::where('slug', 'kompendium')->firstOrFail();
+        RewardPurchase::create([
             'user_id' => $user->id,
             'reward_id' => $reward->id,
             'cost_baxx' => $reward->cost_baxx,

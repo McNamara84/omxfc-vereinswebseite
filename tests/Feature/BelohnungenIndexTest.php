@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Livewire\BelohnungenIndex;
 use App\Models\Reward;
 use App\Models\RewardPurchase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -62,7 +63,7 @@ class BelohnungenIndexTest extends TestCase
         $user = $this->actingMemberWithPoints(10);
         $reward = Reward::factory()->create(['cost_baxx' => 5, 'slug' => 'test-purchase']);
 
-        Livewire::test(\App\Livewire\BelohnungenIndex::class)
+        Livewire::test(BelohnungenIndex::class)
             ->call('purchase', $reward->id);
 
         $this->assertDatabaseHas('reward_purchases', [
@@ -77,7 +78,7 @@ class BelohnungenIndexTest extends TestCase
         $this->actingMemberWithPoints(2);
         $reward = Reward::factory()->create(['cost_baxx' => 10, 'slug' => 'expensive']);
 
-        Livewire::test(\App\Livewire\BelohnungenIndex::class)
+        Livewire::test(BelohnungenIndex::class)
             ->call('purchase', $reward->id);
 
         $this->assertDatabaseMissing('reward_purchases', [
@@ -96,7 +97,7 @@ class BelohnungenIndexTest extends TestCase
             'cost_baxx' => 5,
         ]);
 
-        Livewire::test(\App\Livewire\BelohnungenIndex::class)
+        Livewire::test(BelohnungenIndex::class)
             ->call('purchase', $reward->id);
 
         // Should still only have 1 purchase
@@ -111,7 +112,7 @@ class BelohnungenIndexTest extends TestCase
         $this->actingMemberWithPoints(20);
         $reward = Reward::factory()->inactive()->create(['cost_baxx' => 5, 'slug' => 'inactive']);
 
-        Livewire::test(\App\Livewire\BelohnungenIndex::class)
+        Livewire::test(BelohnungenIndex::class)
             ->call('purchase', $reward->id);
 
         $this->assertDatabaseMissing('reward_purchases', [

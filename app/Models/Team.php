@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\Role;
 use Carbon\Carbon;
+use Database\Factories\TeamFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -26,7 +27,7 @@ use Laravel\Jetstream\Team as JetstreamTeam;
  */
 class Team extends JetstreamTeam
 {
-    /** @use HasFactory<\Database\Factories\TeamFactory> */
+    /** @use HasFactory<TeamFactory> */
     use HasFactory;
 
     public const MEMBERS_TEAM_CACHE_KEY = 'team.members';

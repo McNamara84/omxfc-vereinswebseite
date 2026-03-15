@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Profile;
 
+use Illuminate\View\View;
 use Laravel\Fortify\Contracts\UpdatesUserProfileInformation;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -102,7 +103,7 @@ class UpdateProfileInformationForm extends Component
     /**
      * Render the component.
      *
-     * @return \Illuminate\View\View
+     * @return View
      */
     public function render()
     {

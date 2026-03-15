@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Enums\BookType;
+use App\Enums\Role;
 use App\Models\BookOffer;
 use App\Models\BookRequest;
 use App\Models\BookSwap;
@@ -19,7 +20,7 @@ class BookOfferModelTest extends TestCase
     {
         $team = Team::membersTeam();
         $user = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($user, ['role' => \App\Enums\Role::Mitglied->value]);
+        $team->users()->attach($user, ['role' => Role::Mitglied->value]);
 
         return $user;
     }

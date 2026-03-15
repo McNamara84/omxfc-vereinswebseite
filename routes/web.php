@@ -30,13 +30,21 @@ use App\Http\Controllers\StatistikController;
 use App\Http\Controllers\ThreeDModelController;
 use App\Http\Controllers\TodoController;
 use App\Http\Middleware\RedirectIfAnwaerter;
+use App\Livewire\BelohnungenAdmin;
+use App\Livewire\BelohnungenIndex;
 use App\Livewire\FanfictionCreate;
 use App\Livewire\FanfictionEdit;
+use App\Livewire\FantreffenAdminDashboard;
+use App\Livewire\FantreffenVipAuthors;
+use App\Livewire\KompendiumAdminDashboard;
+use App\Livewire\Umfragen\UmfrageVerwaltung;
+use App\Livewire\Umfragen\UmfrageVote;
+use App\Models\Poll;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 // Umfrage (aktuelle aktive) – öffentlich oder intern je nach Konfiguration
-Route::livewire('/umfrage', \App\Livewire\Umfragen\UmfrageVote::class)->name('umfrage.aktuell');
+Route::livewire('/umfrage', UmfrageVote::class)->name('umfrage.aktuell');
 
 // Öffentliche Seiten
 Route::get('/', [PageController::class, 'home'])->name('home');
@@ -75,17 +83,17 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
     Route::get('/admin/statistiken', [AdminController::class, 'index'])->name('admin.statistiken.index')->middleware('vorstand-or-kassenwart');
 
     // Umfragen verwalten (nur Admin/Vorstand)
-    Route::livewire('/admin/umfragen', \App\Livewire\Umfragen\UmfrageVerwaltung::class)
+    Route::livewire('/admin/umfragen', UmfrageVerwaltung::class)
         ->name('admin.umfragen.index')
-        ->middleware('can:manage,'.\App\Models\Poll::class);
+        ->middleware('can:manage,'.Poll::class);
 
     // Fantreffen 2026 Admin Dashboard
-    Route::livewire('/admin/fantreffen-2026', \App\Livewire\FantreffenAdminDashboard::class)
+    Route::livewire('/admin/fantreffen-2026', FantreffenAdminDashboard::class)
         ->name('admin.fantreffen.2026')
         ->middleware('vorstand-or-kassenwart');
 
     // Fantreffen 2026 VIP-Autoren verwalten
-    Route::livewire('/admin/fantreffen-2026/vip-autoren', \App\Livewire\FantreffenVipAuthors::class)
+    Route::livewire('/admin/fantreffen-2026/vip-autoren', FantreffenVipAuthors::class)
         ->name('admin.fantreffen.vip-authors')
         ->middleware('vorstand-or-kassenwart');
 
@@ -180,10 +188,10 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
 
     Route::get('/ag', [ArbeitsgruppenController::class, 'leaderIndex'])->name('ag.index');
 
-    Route::livewire('/belohnungen', \App\Livewire\BelohnungenIndex::class)
+    Route::livewire('/belohnungen', BelohnungenIndex::class)
         ->name('rewards.index');
 
-    Route::livewire('/belohnungen/admin', \App\Livewire\BelohnungenAdmin::class)
+    Route::livewire('/belohnungen/admin', BelohnungenAdmin::class)
         ->name('rewards.admin')
         ->middleware('admin');
 
@@ -274,7 +282,7 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
         });
 
         // Admin-Bereich (nur für Admins)
-        Route::get('admin', \App\Livewire\KompendiumAdminDashboard::class)
+        Route::get('admin', KompendiumAdminDashboard::class)
             ->middleware('admin')
             ->name('admin');
     });

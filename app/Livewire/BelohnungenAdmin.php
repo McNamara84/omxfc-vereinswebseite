@@ -7,10 +7,12 @@ use App\Models\Download;
 use App\Models\Reward;
 use App\Models\RewardPurchase;
 use App\Services\RewardService;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Url;
 use Livewire\Component;
@@ -95,7 +97,7 @@ class BelohnungenAdmin extends Component
     }
 
     #[Computed]
-    public function purchases(): \Illuminate\Support\Collection
+    public function purchases(): Collection
     {
         $query = RewardPurchase::with(['user', 'reward', 'refundedByUser'])
             ->latest('purchased_at');
@@ -313,7 +315,7 @@ class BelohnungenAdmin extends Component
         try {
             $service->refundPurchase($purchase, Auth::user());
             $this->dispatch('toast', type: 'success', title: 'Erstattung durchgeführt', description: e($purchase->user->name).' erhält '.$purchase->cost_baxx.' Baxx zurück.');
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             $message = collect($e->errors())->flatten()->first();
             $this->dispatch('toast', type: 'error', title: 'Fehler', description: $message);
         }

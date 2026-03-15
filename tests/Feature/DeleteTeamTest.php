@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\Role;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -22,7 +23,7 @@ class DeleteTeamTest extends TestCase
         ]));
 
         $team->users()->attach(
-            $otherUser = User::factory()->create(), ['role' => \App\Enums\Role::Mitglied->value]
+            $otherUser = User::factory()->create(), ['role' => Role::Mitglied->value]
         );
 
         Livewire::test(DeleteTeamForm::class, ['team' => $team->fresh()])

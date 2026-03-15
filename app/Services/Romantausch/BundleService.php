@@ -5,6 +5,7 @@ namespace App\Services\Romantausch;
 use App\Models\Activity;
 use App\Models\Book;
 use App\Models\BookOffer;
+use App\Models\User;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -448,7 +449,7 @@ class BundleService
         $newBaxx = intdiv($totalOfferCount, 10) - intdiv($previousCount, 10);
 
         if ($newBaxx > 0) {
-            $user = \App\Models\User::find($userId);
+            $user = User::find($userId);
             $user?->incrementTeamPoints($newBaxx);
         }
     }

@@ -4,14 +4,16 @@ namespace Tests\Feature;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Client\Factory;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use Tests\Concerns\CreatesUserWithRole;
 use Tests\TestCase;
 
 class MitgliederKarteFeatureTest extends TestCase
 {
+    use CreatesUserWithRole;
     use RefreshDatabase;
-    use \Tests\Concerns\CreatesUserWithRole;
 
     public function test_locked_view_when_user_has_no_points(): void
     {
@@ -30,7 +32,7 @@ class MitgliederKarteFeatureTest extends TestCase
         Cache::flush();
         $count = 0;
         $responses = ['12345' => ['lat' => self::DEFAULT_LAT, 'lon' => self::DEFAULT_LON]];
-        Http::swap(new \Illuminate\Http\Client\Factory);
+        Http::swap(new Factory);
         Http::fake([
             'nominatim.openstreetmap.org/*' => function ($request) use (&$count, $responses) {
                 $count++;
@@ -58,7 +60,7 @@ class MitgliederKarteFeatureTest extends TestCase
             '22222' => ['lat' => '52.0', 'lon' => '10.0'],
             '12345' => ['lat' => '53.0', 'lon' => '11.0'],
         ];
-        Http::swap(new \Illuminate\Http\Client\Factory);
+        Http::swap(new Factory);
         Http::fake([
             'nominatim.openstreetmap.org/*' => function ($request) use ($responses) {
                 parse_str(parse_url($request->url(), PHP_URL_QUERY), $query);
@@ -90,7 +92,7 @@ class MitgliederKarteFeatureTest extends TestCase
     public function test_map_data_is_cached(): void
     {
         Cache::flush();
-        Http::swap(new \Illuminate\Http\Client\Factory);
+        Http::swap(new Factory);
         Http::fake([
             'nominatim.openstreetmap.org/*' => Http::response([['lat' => self::DEFAULT_LAT, 'lon' => self::DEFAULT_LON]], 200),
         ]);
@@ -109,7 +111,7 @@ class MitgliederKarteFeatureTest extends TestCase
     public function test_map_view_contains_accessibility_attributes_and_data(): void
     {
         Cache::flush();
-        Http::swap(new \Illuminate\Http\Client\Factory);
+        Http::swap(new Factory);
         Http::fake([
             'nominatim.openstreetmap.org/*' => Http::response([['lat' => self::DEFAULT_LAT, 'lon' => self::DEFAULT_LON]], 200),
         ]);

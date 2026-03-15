@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\Role;
 use App\Models\Activity;
 use App\Models\AdminMessage;
 use App\Models\Team;
@@ -18,7 +19,7 @@ class AdminMessageControllerTest extends TestCase
     {
         $team = Team::membersTeam();
         $user = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($user, ['role' => \App\Enums\Role::Admin->value]);
+        $team->users()->attach($user, ['role' => Role::Admin->value]);
 
         return $user;
     }
@@ -27,7 +28,7 @@ class AdminMessageControllerTest extends TestCase
     {
         $team = Team::membersTeam();
         $user = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($user, ['role' => \App\Enums\Role::Mitglied->value]);
+        $team->users()->attach($user, ['role' => Role::Mitglied->value]);
 
         return $user;
     }

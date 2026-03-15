@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -15,13 +16,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $roman_nr
  * @property string $titel
  * @property string|null $zyklus
- * @property \Carbon\Carbon $hochgeladen_am
+ * @property Carbon $hochgeladen_am
  * @property int $hochgeladen_von
- * @property \Carbon\Carbon|null $indexiert_am
+ * @property Carbon|null $indexiert_am
  * @property string $status
  * @property string|null $fehler_nachricht
- * @property \Carbon\Carbon $created_at
- * @property \Carbon\Carbon $updated_at
+ * @property Carbon $created_at
+ * @property Carbon $updated_at
  */
 class KompendiumRoman extends Model
 {

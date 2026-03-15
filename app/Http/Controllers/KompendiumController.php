@@ -146,6 +146,25 @@ class KompendiumController extends Controller
             ? $this->searchService->buildTntSearchQuery($parsed)
             : $query;
 
+        // Fallback: Wenn Quotes vorhanden waren, aber keine gültigen Begriffe extrahiert
+        // werden konnten (z.B. "A" oder ""), auf den bereinigten Original-Query zurückfallen.
+        if ($tntQuery === '') {
+            $stripped = preg_replace('/"[^"]*"/', '', $query);
+            $tntQuery = trim($stripped);
+
+            if ($tntQuery === '') {
+                // Kein brauchbarer Suchbegriff übrig → leere Ergebnisse zurückgeben
+                return response()->json([
+                    'data' => [],
+                    'currentPage' => $page,
+                    'lastPage' => 1,
+                    'serienCounts' => [],
+                    'isPhraseSearch' => false,
+                    'searchInfo' => ['phrases' => [], 'terms' => []],
+                ]);
+            }
+        }
+
         /* ------------------------------------------------------------------ */
         /*  SCOUT-SUCHAUFRUF  (RAW) */
         /* ------------------------------------------------------------------ */
@@ -239,8 +258,8 @@ class KompendiumController extends Controller
         }
         $snippetSearchTerms = $deduplicated;
 
-        // Kombiniertes Regex-Pattern für Single-Pass-Highlighting (alle Begriffe als Alternation)
-        $highlightPattern = '/'.implode('|', array_map(fn ($t) => preg_quote(e($t), '/'), $snippetSearchTerms)).'/iu';
+        // Kombiniertes Regex-Pattern für Single-Pass-Highlighting (alle Begriffe als Alternation, auf Raw-Text)
+        $highlightPattern = '/('.implode('|', array_map(fn ($t) => preg_quote($t, '/'), $snippetSearchTerms)).')/iu';
 
         /* ------------------------------------------------------------------ */
         /*  Treffer in Frontend-Format wandeln */
@@ -273,10 +292,18 @@ class KompendiumController extends Controller
                     $length = mb_strlen($searchTerm) + (2 * $radius);
                     $snippet = mb_substr($text, $start, $length);
 
-                    $snippet = e($snippet);
-
-                    // Single-Pass-Highlighting: ein kombiniertes Regex für alle Begriffe
-                    $snippet = preg_replace($highlightPattern, '<mark>$0</mark>', $snippet);
+                    // Highlighting auf Raw-Text: in Segmente splitten, einzeln escapen,
+                    // Matches mit <mark> umschließen → keine Matches innerhalb von HTML-Entities
+                    $segments = preg_split($highlightPattern, $snippet, -1, PREG_SPLIT_DELIM_CAPTURE);
+                    $snippet = '';
+                    foreach ($segments as $i => $segment) {
+                        if ($i % 2 === 1) {
+                            // Ungerade Indizes = Matches (Capture-Group)
+                            $snippet .= '<mark>'.e($segment).'</mark>';
+                        } else {
+                            $snippet .= e($segment);
+                        }
+                    }
 
                     $snippets[] = $snippet;
                     $offset = $pos + mb_strlen($searchTerm);

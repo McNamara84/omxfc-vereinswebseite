@@ -5,6 +5,7 @@ namespace App\Models;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
 
 /**
  * @property int $id
@@ -119,9 +120,9 @@ class BookOffer extends Model
      * oder im Query-Builder:
      *   static::where('bundle_id', ...)->with(['user', 'swap'])->get()
      *
-     * @return \Illuminate\Support\Collection<int, BookOffer>
+     * @return Collection<int, BookOffer>
      */
-    public function bundleSiblings(): \Illuminate\Support\Collection
+    public function bundleSiblings(): Collection
     {
         if (! $this->bundle_id) {
             return collect();
@@ -141,9 +142,9 @@ class BookOffer extends Model
      * oder im Query-Builder:
      *   static::where('bundle_id', ...)->with(['user', 'swap'])->get()
      *
-     * @return \Illuminate\Support\Collection<int, BookOffer>
+     * @return Collection<int, BookOffer>
      */
-    public function bundleOffers(): \Illuminate\Support\Collection
+    public function bundleOffers(): Collection
     {
         if (! $this->bundle_id) {
             return collect([$this]);

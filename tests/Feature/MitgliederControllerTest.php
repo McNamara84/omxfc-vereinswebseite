@@ -49,8 +49,8 @@ class MitgliederControllerTest extends TestCase
     public function test_get_all_emails_returns_only_for_privileged_roles(): void
     {
         $team = Team::membersTeam();
-        $team->users()->attach(User::factory()->create(['email' => 'a@a.de']), ['role' => \App\Enums\Role::Mitglied->value]);
-        $team->users()->attach(User::factory()->create(['email' => 'b@a.de']), ['role' => \App\Enums\Role::Mitglied->value]);
+        $team->users()->attach(User::factory()->create(['email' => 'a@a.de']), ['role' => Role::Mitglied->value]);
+        $team->users()->attach(User::factory()->create(['email' => 'b@a.de']), ['role' => Role::Mitglied->value]);
 
         $this->actingAs($this->actingMember('Kassenwart'));
 
@@ -84,19 +84,19 @@ class MitgliederControllerTest extends TestCase
     {
         $team = Team::membersTeam();
         $board = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($board, ['role' => \App\Enums\Role::Vorstand->value]);
+        $team->users()->attach($board, ['role' => Role::Vorstand->value]);
         $member = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($member, ['role' => \App\Enums\Role::Mitglied->value]);
+        $team->users()->attach($member, ['role' => Role::Mitglied->value]);
         $this->actingAs($board);
 
         $response = $this->from('/mitglieder')->put("/mitglieder/{$member->id}/role", [
-            'role' => \App\Enums\Role::Ehrenmitglied->value,
+            'role' => Role::Ehrenmitglied->value,
         ]);
 
         $response->assertRedirect('/mitglieder');
         $this->assertDatabaseHas('team_user', [
             'user_id' => $member->id,
-            'role' => \App\Enums\Role::Ehrenmitglied->value,
+            'role' => Role::Ehrenmitglied->value,
         ]);
     }
 
@@ -106,10 +106,10 @@ class MitgliederControllerTest extends TestCase
         $acting = $this->actingMember('Mitglied');
         $this->actingAs($acting);
         $target = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($target, ['role' => \App\Enums\Role::Mitglied->value]);
+        $team->users()->attach($target, ['role' => Role::Mitglied->value]);
 
         $response = $this->from('/mitglieder')->put("/mitglieder/{$target->id}/role", [
-            'role' => \App\Enums\Role::Ehrenmitglied->value,
+            'role' => Role::Ehrenmitglied->value,
         ]);
 
         $response->assertStatus(403);
@@ -119,20 +119,20 @@ class MitgliederControllerTest extends TestCase
     {
         $team = Team::membersTeam();
         $board = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($board, ['role' => \App\Enums\Role::Vorstand->value]);
+        $team->users()->attach($board, ['role' => Role::Vorstand->value]);
         $member = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($member, ['role' => \App\Enums\Role::Mitglied->value]);
+        $team->users()->attach($member, ['role' => Role::Mitglied->value]);
         $this->actingAs($board);
 
         $response = $this->from('/mitglieder')->put("/mitglieder/{$member->id}/role", [
-            'role' => \App\Enums\Role::Admin->value,
+            'role' => Role::Admin->value,
         ]);
 
         $response->assertRedirect('/mitglieder');
         $response->assertSessionHas('error');
         $this->assertDatabaseHas('team_user', [
             'user_id' => $member->id,
-            'role' => \App\Enums\Role::Mitglied->value,
+            'role' => Role::Mitglied->value,
         ]);
     }
 
@@ -140,7 +140,7 @@ class MitgliederControllerTest extends TestCase
     {
         $team = Team::membersTeam();
         $board = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($board, ['role' => \App\Enums\Role::Vorstand->value]);
+        $team->users()->attach($board, ['role' => Role::Vorstand->value]);
         $this->actingAs($board);
 
         $response = $this->from('/mitglieder')->delete("/mitglieder/{$board->id}");
@@ -156,7 +156,7 @@ class MitgliederControllerTest extends TestCase
         $acting = $this->actingMember('Mitglied');
         $this->actingAs($acting);
         $target = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($target, ['role' => \App\Enums\Role::Mitglied->value]);
+        $team->users()->attach($target, ['role' => Role::Mitglied->value]);
 
         $response = $this->from('/mitglieder')->delete("/mitglieder/{$target->id}");
 
@@ -168,9 +168,9 @@ class MitgliederControllerTest extends TestCase
     {
         $team = Team::membersTeam();
         $board = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($board, ['role' => \App\Enums\Role::Vorstand->value]);
+        $team->users()->attach($board, ['role' => Role::Vorstand->value]);
         $member = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($member, ['role' => \App\Enums\Role::Mitglied->value]);
+        $team->users()->attach($member, ['role' => Role::Mitglied->value]);
         $this->actingAs($board);
 
         $response = $this->from('/mitglieder')->delete("/mitglieder/{$member->id}");
@@ -185,13 +185,13 @@ class MitgliederControllerTest extends TestCase
         $team = Team::membersTeam();
 
         $vorstand = User::factory()->create(['name' => 'Victor Vorstand', 'current_team_id' => $team->id]);
-        $team->users()->attach($vorstand, ['role' => \App\Enums\Role::Vorstand->value]);
+        $team->users()->attach($vorstand, ['role' => Role::Vorstand->value]);
 
         $kassenwart = User::factory()->create(['name' => 'Karl Kass', 'current_team_id' => $team->id]);
-        $team->users()->attach($kassenwart, ['role' => \App\Enums\Role::Kassenwart->value]);
+        $team->users()->attach($kassenwart, ['role' => Role::Kassenwart->value]);
 
         $ehren = User::factory()->create(['name' => 'Erika Ehren', 'current_team_id' => $team->id]);
-        $team->users()->attach($ehren, ['role' => \App\Enums\Role::Ehrenmitglied->value]);
+        $team->users()->attach($ehren, ['role' => Role::Ehrenmitglied->value]);
 
         $acting = $this->actingMember('Mitglied');
         $acting->update(['name' => 'Aaron Actor']);
@@ -222,7 +222,7 @@ class MitgliederControllerTest extends TestCase
             'nachname' => 'Alpha',
             'current_team_id' => $team->id,
         ]);
-        $team->users()->attach($a, ['role' => \App\Enums\Role::Ehrenmitglied->value]);
+        $team->users()->attach($a, ['role' => Role::Ehrenmitglied->value]);
 
         $z = User::factory()->create([
             'name' => 'Zara Zulu',
@@ -230,7 +230,7 @@ class MitgliederControllerTest extends TestCase
             'nachname' => 'Zulu',
             'current_team_id' => $team->id,
         ]);
-        $team->users()->attach($z, ['role' => \App\Enums\Role::Kassenwart->value]);
+        $team->users()->attach($z, ['role' => Role::Kassenwart->value]);
 
         $acting = $this->actingMember('Mitglied');
         $acting->update([
@@ -259,10 +259,10 @@ class MitgliederControllerTest extends TestCase
         $team = Team::membersTeam();
 
         $recent = User::factory()->create(['name' => 'Ralf Recent', 'current_team_id' => $team->id]);
-        $team->users()->attach($recent, ['role' => \App\Enums\Role::Mitglied->value]);
+        $team->users()->attach($recent, ['role' => Role::Mitglied->value]);
 
         $older = User::factory()->create(['name' => 'Olaf Old', 'current_team_id' => $team->id]);
-        $team->users()->attach($older, ['role' => \App\Enums\Role::Mitglied->value]);
+        $team->users()->attach($older, ['role' => Role::Mitglied->value]);
 
         $older->forceFill(['last_activity' => now()->subMinutes(10)->timestamp])->save();
         $recent->forceFill(['last_activity' => now()->timestamp])->save();
@@ -291,7 +291,7 @@ class MitgliederControllerTest extends TestCase
             'nachname' => 'First',
             'current_team_id' => $team->id,
         ]);
-        $team->users()->attach($first, ['role' => \App\Enums\Role::Mitglied->value]);
+        $team->users()->attach($first, ['role' => Role::Mitglied->value]);
 
         $second = User::factory()->create([
             'name' => 'Bob Second',
@@ -299,7 +299,7 @@ class MitgliederControllerTest extends TestCase
             'nachname' => 'Second',
             'current_team_id' => $team->id,
         ]);
-        $team->users()->attach($second, ['role' => \App\Enums\Role::Mitglied->value]);
+        $team->users()->attach($second, ['role' => Role::Mitglied->value]);
 
         $acting = $this->actingMember('Mitglied');
         $acting->update([
@@ -330,10 +330,10 @@ class MitgliederControllerTest extends TestCase
         $team = Team::membersTeam();
 
         $online = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($online, ['role' => \App\Enums\Role::Mitglied->value]);
+        $team->users()->attach($online, ['role' => Role::Mitglied->value]);
 
         $offline = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($offline, ['role' => \App\Enums\Role::Mitglied->value]);
+        $team->users()->attach($offline, ['role' => Role::Mitglied->value]);
 
         DB::table('sessions')->insert([
             'id' => Str::random(40),

@@ -7,6 +7,7 @@ use App\Models\Team;
 use App\Services\UserRoleService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Auth;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 /**
  * Trait für Controller, die mit dem Mitglieder-Team arbeiten.
@@ -77,7 +78,7 @@ trait MembersTeamAware
      * @param  Role  ...$allowedRoles  Die erlaubten Rollen
      * @return Role Die tatsächliche Rolle des Benutzers
      *
-     * @throws \Symfony\Component\HttpKernel\Exception\HttpException
+     * @throws HttpException
      */
     protected function authorizeMinimumRole(Role ...$allowedRoles): Role
     {

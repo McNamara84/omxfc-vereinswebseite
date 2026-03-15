@@ -24,7 +24,7 @@ return new class extends Migration
 
         if ($emailDuplicates->isNotEmpty()) {
             $list = $emailDuplicates->pluck('email')->implode(', ');
-            throw new \RuntimeException(
+            throw new RuntimeException(
                 "Migration abgebrochen: Es existieren doppelte E-Mail-Adressen in fantreffen_anmeldungen ({$list}). "
                 .'Bitte manuell bereinigen, bevor der Unique-Index angelegt werden kann.'
             );
@@ -39,7 +39,7 @@ return new class extends Migration
 
         if ($userIdDuplicates->isNotEmpty()) {
             $list = $userIdDuplicates->pluck('user_id')->implode(', ');
-            throw new \RuntimeException(
+            throw new RuntimeException(
                 "Migration abgebrochen: Es existieren doppelte user_id-Werte in fantreffen_anmeldungen ({$list}). "
                 .'Bitte manuell bereinigen, bevor der Unique-Index angelegt werden kann.'
             );

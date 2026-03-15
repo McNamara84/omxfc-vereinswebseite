@@ -3,9 +3,14 @@
 namespace App\Providers;
 
 use App\Enums\PollVisibility;
+use App\Livewire\Profile\LogoutOtherBrowserSessionsForm;
+use App\Livewire\Profile\UpdatePasswordForm;
+use App\Livewire\Teams\TeamMemberManager;
+use App\Livewire\Teams\UpdateTeamNameForm;
 use App\Services\Polls\ActivePollResolver;
 use App\View\Components\Alert;
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Config;
@@ -98,7 +103,7 @@ class AppServiceProvider extends ServiceProvider
                 $poll = Cache::remember($cacheKey, now()->addMinutes(10), function () {
                     return app(ActivePollResolver::class)->current();
                 });
-            } catch (\Illuminate\Database\QueryException $e) {
+            } catch (QueryException $e) {
                 // Table may not exist during tests before migrations run
             }
 
@@ -118,9 +123,9 @@ class AppServiceProvider extends ServiceProvider
         Blade::component('alert', Alert::class);
 
         // Override Jetstream Livewire components with maryUI Toast support
-        Livewire::component('profile.update-password-form', \App\Livewire\Profile\UpdatePasswordForm::class);
-        Livewire::component('profile.logout-other-browser-sessions-form', \App\Livewire\Profile\LogoutOtherBrowserSessionsForm::class);
-        Livewire::component('teams.update-team-name-form', \App\Livewire\Teams\UpdateTeamNameForm::class);
-        Livewire::component('teams.team-member-manager', \App\Livewire\Teams\TeamMemberManager::class);
+        Livewire::component('profile.update-password-form', UpdatePasswordForm::class);
+        Livewire::component('profile.logout-other-browser-sessions-form', LogoutOtherBrowserSessionsForm::class);
+        Livewire::component('teams.update-team-name-form', UpdateTeamNameForm::class);
+        Livewire::component('teams.team-member-manager', TeamMemberManager::class);
     }
 }

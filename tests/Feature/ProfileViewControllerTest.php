@@ -125,7 +125,7 @@ class ProfileViewControllerTest extends TestCase
         $viewer = $this->createMember();
         $otherTeam = Team::factory()->create(['personal_team' => false, 'name' => 'Other']);
         $target = User::factory()->create(['current_team_id' => $otherTeam->id]);
-        $otherTeam->users()->attach($target, ['role' => \App\Enums\Role::Mitglied->value]);
+        $otherTeam->users()->attach($target, ['role' => Role::Mitglied->value]);
         $this->actingAs($viewer);
 
         $response = $this->get("/profil/{$target->id}");

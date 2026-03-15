@@ -42,7 +42,7 @@ class ProfileEhrenmitgliedSettingTest extends TestCase
         $this->assertTrue($user->hasRole(Role::Ehrenmitglied));
         $this->assertDatabaseHas('team_user', [
             'user_id' => $user->id,
-            'role' => \App\Enums\Role::Ehrenmitglied->value,
+            'role' => Role::Ehrenmitglied->value,
         ]);
         $response->assertSee('E-Mail bei neuer Rezension erhalten');
     }

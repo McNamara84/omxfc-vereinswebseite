@@ -4,12 +4,13 @@ namespace Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
+use Tests\Concerns\CreatesUserWithRole;
 use Tests\TestCase;
 
 class ProtokolleTest extends TestCase
 {
+    use CreatesUserWithRole;
     use RefreshDatabase;
-    use \Tests\Concerns\CreatesUserWithRole;
 
     public function test_guest_is_redirected_from_protokolle(): void
     {

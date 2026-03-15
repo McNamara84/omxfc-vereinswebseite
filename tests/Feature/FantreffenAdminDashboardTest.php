@@ -3,12 +3,14 @@
 namespace Tests\Feature;
 
 use App\Enums\Role;
+use App\Livewire\FantreffenAdminDashboard;
 use App\Models\FantreffenAnmeldung;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use PHPUnit\Framework\Attributes\Test;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use Tests\TestCase;
 
 class FantreffenAdminDashboardTest extends TestCase
@@ -437,11 +439,11 @@ class FantreffenAdminDashboardTest extends TestCase
         // Call exportCsv directly on the component instance
         $this->actingAs($admin);
 
-        $livewireComponent = new \App\Livewire\FantreffenAdminDashboard;
+        $livewireComponent = new FantreffenAdminDashboard;
         $response = $livewireComponent->exportCsv();
 
         // Check that we got a StreamedResponse
-        $this->assertInstanceOf(\Symfony\Component\HttpFoundation\StreamedResponse::class, $response);
+        $this->assertInstanceOf(StreamedResponse::class, $response);
 
         // Check headers
         $this->assertEquals('text/csv; charset=UTF-8', $response->headers->get('Content-Type'));

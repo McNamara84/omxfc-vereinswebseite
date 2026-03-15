@@ -11,7 +11,6 @@ use App\Models\User;
 use App\Services\KompendiumSearchService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
-use Mockery;
 use Tests\Concerns\CreatesUserWithRole;
 use Tests\TestCase;
 
@@ -391,11 +390,10 @@ class KompendiumControllerTest extends TestCase
             Storage::disk('private')->put($path, $content);
         }
 
-        $mock = Mockery::mock(KompendiumSearchService::class)->makePartial();
-        $mock->shouldReceive('search')
-            ->andReturn(['ids' => $searchResultPaths]);
-
-        $this->app->instance(KompendiumSearchService::class, $mock);
+        $this->partialMock(KompendiumSearchService::class, function ($mock) use ($searchResultPaths) {
+            $mock->shouldReceive('search')
+                ->andReturn(['ids' => $searchResultPaths]);
+        });
     }
 
     public function test_search_with_phrase_returns_only_exact_matches(): void

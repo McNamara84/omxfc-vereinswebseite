@@ -10,6 +10,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -205,7 +206,7 @@ class ThreeDModelController extends Controller
 
             return redirect()->route('3d-modelle.show', $threeDModel)
                 ->with('success', '3D-Modell erfolgreich für '.$threeDModel->reward->cost_baxx.' Baxx freigeschaltet!');
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             return redirect()->route('3d-modelle.show', $threeDModel)
                 ->withErrors($e->errors());
         }

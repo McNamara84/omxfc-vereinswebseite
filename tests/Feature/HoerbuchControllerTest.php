@@ -10,12 +10,13 @@ use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Symfony\Component\DomCrawler\Crawler;
+use Tests\Concerns\CreatesUserWithRole;
 use Tests\TestCase;
 
 class HoerbuchControllerTest extends TestCase
 {
+    use CreatesUserWithRole;
     use RefreshDatabase;
-    use \Tests\Concerns\CreatesUserWithRole;
 
     private function createAgFanhoerbuchTeam(User $leader): Team
     {

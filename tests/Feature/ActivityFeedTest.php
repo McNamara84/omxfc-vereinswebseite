@@ -425,8 +425,8 @@ class ActivityFeedTest extends TestCase
         $user = $this->actingMember();
         $this->actingAs($user);
 
-        $category = \App\Models\TodoCategory::create(['name' => 'Test', 'slug' => 'test']);
-        $todo = \App\Models\Todo::create([
+        $category = TodoCategory::create(['name' => 'Test', 'slug' => 'test']);
+        $todo = Todo::create([
             'team_id' => $user->currentTeam->id,
             'created_by' => $user->id,
             'title' => 'Challenge',
@@ -442,7 +442,7 @@ class ActivityFeedTest extends TestCase
 
         $this->assertDatabaseHas('activities', [
             'user_id' => $user->id,
-            'subject_type' => \App\Models\Todo::class,
+            'subject_type' => Todo::class,
             'subject_id' => $todo->id,
             'action' => 'accepted',
         ]);
@@ -452,8 +452,8 @@ class ActivityFeedTest extends TestCase
     {
         $assignee = $this->actingMember();
         $admin = $this->actingMember(Role::Admin);
-        $category = \App\Models\TodoCategory::create(['name' => 'Test2', 'slug' => 'test2']);
-        $todo = \App\Models\Todo::create([
+        $category = TodoCategory::create(['name' => 'Test2', 'slug' => 'test2']);
+        $todo = Todo::create([
             'team_id' => $assignee->currentTeam->id,
             'created_by' => $admin->id,
             'assigned_to' => $assignee->id,
@@ -471,7 +471,7 @@ class ActivityFeedTest extends TestCase
 
         $this->assertDatabaseHas('activities', [
             'user_id' => $assignee->id,
-            'subject_type' => \App\Models\Todo::class,
+            'subject_type' => Todo::class,
             'subject_id' => $todo->id,
             'action' => 'completed',
         ]);

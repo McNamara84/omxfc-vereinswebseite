@@ -14,6 +14,7 @@ use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Livewire\WithFileUploads;
 use Livewire\WithPagination;
 
@@ -29,7 +30,7 @@ class KompendiumAdminDashboard extends Component
     use WithFileUploads;
     use WithPagination;
 
-    /** @var array<\Livewire\Features\SupportFileUploads\TemporaryUploadedFile> */
+    /** @var array<TemporaryUploadedFile> */
     public array $uploads = [];
 
     public string $ausgewaehlteSerie = 'maddrax';
