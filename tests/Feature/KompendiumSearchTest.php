@@ -56,8 +56,8 @@ class KompendiumSearchTest extends TestCase
         Storage::fake('private');
         Storage::disk('private')->put('romane/maddrax/001 - ExampleTitle.txt', 'Some example content with query word');
 
-        // Mock den KompendiumSearchService
-        $this->mock(KompendiumSearchService::class, function ($mock) {
+        // Mock den KompendiumSearchService (partialMock: parseSearchQuery/buildTntSearchQuery bleiben real)
+        $this->partialMock(KompendiumSearchService::class, function ($mock) {
             $mock->shouldReceive('search')
                 ->with('example')
                 ->once()
@@ -92,8 +92,8 @@ class KompendiumSearchTest extends TestCase
 
         Storage::fake('private');
 
-        // Mock den KompendiumSearchService
-        $this->mock(KompendiumSearchService::class, function ($mock) {
+        // Mock den KompendiumSearchService (partialMock: parseSearchQuery/buildTntSearchQuery bleiben real)
+        $this->partialMock(KompendiumSearchService::class, function ($mock) {
             $mock->shouldReceive('search')
                 ->with('nomatch')
                 ->once()
@@ -123,8 +123,8 @@ class KompendiumSearchTest extends TestCase
         Storage::disk('private')->put('romane/maddrax/001 - MaddraxRoman.txt', 'Content maddrax');
         Storage::disk('private')->put('romane/missionmars/001 - MarsRoman.txt', 'Content mars');
 
-        // Mock: Suche findet beide Romane
-        $this->mock(KompendiumSearchService::class, function ($mock) {
+        // Mock: Suche findet beide Romane (partialMock: parseSearchQuery/buildTntSearchQuery bleiben real)
+        $this->partialMock(KompendiumSearchService::class, function ($mock) {
             $mock->shouldReceive('search')
                 ->with('content')
                 ->once()
@@ -165,7 +165,7 @@ class KompendiumSearchTest extends TestCase
         Storage::disk('private')->put('romane/maddrax/001 - MaddraxRoman.txt', 'Content maddrax');
         Storage::disk('private')->put('romane/missionmars/001 - MarsRoman.txt', 'Content mars');
 
-        $this->mock(KompendiumSearchService::class, function ($mock) {
+        $this->partialMock(KompendiumSearchService::class, function ($mock) {
             $mock->shouldReceive('search')
                 ->with('content')
                 ->once()
@@ -207,7 +207,7 @@ class KompendiumSearchTest extends TestCase
 
         Storage::fake('private');
 
-        $this->mock(KompendiumSearchService::class, function ($mock) {
+        $this->partialMock(KompendiumSearchService::class, function ($mock) {
             $mock->shouldReceive('search')
                 ->with('test')
                 ->once()
@@ -232,8 +232,8 @@ class KompendiumSearchTest extends TestCase
         // Legitime Datei erstellen
         Storage::disk('private')->put('romane/maddrax/001 - ValidRoman.txt', 'Valid content');
 
-        // Mock: Suche gibt sowohl legitime als auch bösartige Pfade zurück
-        $this->mock(KompendiumSearchService::class, function ($mock) {
+        // Mock: Suche gibt sowohl legitime als auch bösartige Pfade zurück (partialMock)
+        $this->partialMock(KompendiumSearchService::class, function ($mock) {
             $mock->shouldReceive('search')
                 ->with('content')
                 ->once()
@@ -277,7 +277,7 @@ class KompendiumSearchTest extends TestCase
             $ids[] = $path;
         }
 
-        $this->mock(KompendiumSearchService::class, function ($mock) use ($ids) {
+        $this->partialMock(KompendiumSearchService::class, function ($mock) use ($ids) {
             $mock->shouldReceive('search')
                 ->with('searchterm')
                 ->twice()
@@ -316,7 +316,7 @@ class KompendiumSearchTest extends TestCase
             'Vor dem Suchbegriff steht Text und hier kommt der Maddrax und danach mehr Text.'
         );
 
-        $this->mock(KompendiumSearchService::class, function ($mock) {
+        $this->partialMock(KompendiumSearchService::class, function ($mock) {
             $mock->shouldReceive('search')
                 ->with('maddrax')
                 ->once()
@@ -351,7 +351,7 @@ class KompendiumSearchTest extends TestCase
         // Nur eine von zwei Dateien existiert
         Storage::disk('private')->put('romane/maddrax/001 - Exists.txt', 'Existing content test');
 
-        $this->mock(KompendiumSearchService::class, function ($mock) {
+        $this->partialMock(KompendiumSearchService::class, function ($mock) {
             $mock->shouldReceive('search')
                 ->with('content')
                 ->once()
@@ -388,7 +388,7 @@ class KompendiumSearchTest extends TestCase
         Storage::disk('private')->put('romane/missionmars/001 - MarsRoman.txt', 'Content testterm mars');
         Storage::disk('private')->put('romane/hardcovers/001 - HCRoman.txt', 'Content testterm hardcover');
 
-        $this->mock(KompendiumSearchService::class, function ($mock) {
+        $this->partialMock(KompendiumSearchService::class, function ($mock) {
             $mock->shouldReceive('search')
                 ->with('testterm')
                 ->once()
@@ -430,7 +430,7 @@ class KompendiumSearchTest extends TestCase
         Storage::fake('private');
         Storage::disk('private')->put('romane/maddrax/BadFormat.txt', 'Some badformat content');
 
-        $this->mock(KompendiumSearchService::class, function ($mock) {
+        $this->partialMock(KompendiumSearchService::class, function ($mock) {
             $mock->shouldReceive('search')
                 ->with('badformat')
                 ->once()
@@ -462,7 +462,7 @@ class KompendiumSearchTest extends TestCase
         Storage::fake('private');
         Storage::disk('private')->put('romane/maddrax/001 - TestRoman.txt', 'Content structtest');
 
-        $this->mock(KompendiumSearchService::class, function ($mock) {
+        $this->partialMock(KompendiumSearchService::class, function ($mock) {
             $mock->shouldReceive('search')
                 ->with('structtest')
                 ->once()
@@ -482,6 +482,8 @@ class KompendiumSearchTest extends TestCase
                 'currentPage',
                 'lastPage',
                 'serienCounts',
+                'isPhraseSearch',
+                'searchInfo',
             ]);
     }
 
@@ -497,7 +499,7 @@ class KompendiumSearchTest extends TestCase
         Storage::fake('private');
         Storage::disk('private')->put('romane/maddrax/001 - OnlyOne.txt', 'Content pagetest');
 
-        $this->mock(KompendiumSearchService::class, function ($mock) {
+        $this->partialMock(KompendiumSearchService::class, function ($mock) {
             $mock->shouldReceive('search')
                 ->with('pagetest')
                 ->once()
