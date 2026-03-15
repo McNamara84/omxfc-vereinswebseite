@@ -635,4 +635,73 @@ class KompendiumControllerTest extends TestCase
         $this->assertCount(1, $data);
         $this->assertNotEmpty($data[0]['snippets']);
     }
+
+    public function test_search_without_quotes_highlights_individual_words(): void
+    {
+        $user = $this->actingMemberWithPoints(150);
+        $this->purchaseKompendiumForUser($user);
+
+        $this->setupSearchMock(
+            files: [
+                // Text enthält "matthew" und "drax" getrennt, nicht als exakte Phrase
+                'romane/maddrax/001 - Test.txt' => 'Matthew ging einen langen Weg. Drax wartete am Ende.',
+            ],
+            searchResultPaths: [
+                'romane/maddrax/001 - Test.txt',
+            ]
+        );
+
+        // Normale Suche ohne Quotes: "matthew drax"
+        $response = $this->getJson('/kompendium/suche?q=matthew+drax');
+
+        $response->assertOk();
+        $data = $response->json('data');
+        $this->assertNotEmpty($data);
+        $snippets = $data[0]['snippets'];
+        $this->assertNotEmpty($snippets, 'Snippets sollten bei normaler Multi-Word-Suche gefunden werden');
+        // Beide Wörter sollten individuell highlighted werden
+        $this->assertStringContainsString('<mark>Matthew</mark>', $snippets[0]);
+    }
+
+    public function test_phrase_search_truncation_flag_present_when_candidates_exceed_limit(): void
+    {
+        $user = $this->actingMemberWithPoints(150);
+        $this->purchaseKompendiumForUser($user);
+
+        // Erzeuge 201 Dateien, um das Limit von 200 zu überschreiten
+        $files = [];
+        $searchResultPaths = [];
+        for ($i = 1; $i <= 201; $i++) {
+            $path = sprintf('romane/maddrax/%03d - Roman%d.txt', $i, $i);
+            $files[$path] = "Matthew Drax war hier im Roman $i.";
+            $searchResultPaths[] = $path;
+        }
+
+        $this->setupSearchMock(files: $files, searchResultPaths: $searchResultPaths);
+
+        $response = $this->getJson('/kompendium/suche?q=%22Matthew+Drax%22');
+
+        $response->assertOk();
+        $this->assertTrue($response->json('candidatesTruncated'), 'candidatesTruncated sollte true sein bei > 200 Kandidaten');
+    }
+
+    public function test_phrase_search_no_truncation_flag_when_candidates_within_limit(): void
+    {
+        $user = $this->actingMemberWithPoints(150);
+        $this->purchaseKompendiumForUser($user);
+
+        $this->setupSearchMock(
+            files: [
+                'romane/maddrax/001 - Test.txt' => 'Matthew Drax war hier.',
+            ],
+            searchResultPaths: [
+                'romane/maddrax/001 - Test.txt',
+            ]
+        );
+
+        $response = $this->getJson('/kompendium/suche?q=%22Matthew+Drax%22');
+
+        $response->assertOk();
+        $this->assertArrayNotHasKey('candidatesTruncated', $response->json());
+    }
 }

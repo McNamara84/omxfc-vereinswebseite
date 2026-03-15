@@ -182,8 +182,12 @@ class KompendiumController extends Controller
         /* ------------------------------------------------------------------ */
         $textCache = [];
         $maxPostFilterCandidates = 200;
+        $candidatesTruncated = false;
 
         if ($parsed['isPhraseSearch']) {
+            if (count($ids) > $maxPostFilterCandidates) {
+                $candidatesTruncated = true;
+            }
             $candidates = array_slice($ids, 0, $maxPostFilterCandidates);
             $ids = array_values(array_filter($candidates, function ($path) use ($parsed, &$textCache) {
                 if (! Storage::disk('private')->exists($path)) {
@@ -238,12 +242,19 @@ class KompendiumController extends Controller
         /* ------------------------------------------------------------------ */
         if ($parsed['isPhraseSearch']) {
             $snippetSearchTerms = array_merge($parsed['phrases'], $parsed['terms']);
-        } elseif ($parsed['hadQuotes'] && ! empty($parsed['terms'])) {
-            // Quotes vorhanden, aber keine gültige Phrase → extrahierte Terme nutzen
+        } elseif (! empty($parsed['terms'])) {
+            // Quotes vorhanden oder normale Suche → individuelle Terme für Highlighting
             $snippetSearchTerms = $parsed['terms'];
         } else {
-            // Normaler Fall oder Fallback (tntQuery ist bereits quote-bereinigt)
+            // Fallback (sollte selten auftreten)
             $snippetSearchTerms = [$tntQuery];
+        }
+
+        // Begrenzung der Highlight-Terme: maximal 20 Terme verwenden,
+        // um bei sehr langen Queries das Regex nicht zu sprengen.
+        $maxHighlightTerms = 20;
+        if (count($snippetSearchTerms) > $maxHighlightTerms) {
+            $snippetSearchTerms = array_slice($snippetSearchTerms, 0, $maxHighlightTerms);
         }
 
         // Längere Begriffe zuerst → verhindert Teilmarkierungen bei Überlappung
@@ -340,7 +351,7 @@ class KompendiumController extends Controller
             $page
         );
 
-        return response()->json([
+        $responseData = [
             'data' => $paginator->items(),
             'currentPage' => $paginator->currentPage(),
             'lastPage' => $paginator->lastPage(),
@@ -350,7 +361,13 @@ class KompendiumController extends Controller
                 'phrases' => $parsed['phrases'],
                 'terms' => $parsed['terms'],
             ],
-        ]);
+        ];
+
+        if ($candidatesTruncated) {
+            $responseData['candidatesTruncated'] = true;
+        }
+
+        return response()->json($responseData);
     }
 
     /* --------------------------------------------------------------------- */
