@@ -195,7 +195,6 @@ class KompendiumController extends Controller
                 }
 
                 $text = Storage::disk('private')->get($path);
-                $textCache[$path] = $text;
 
                 // Alle Phrasen müssen als exakte Substrings vorkommen
                 foreach ($parsed['phrases'] as $phrase) {
@@ -210,6 +209,9 @@ class KompendiumController extends Controller
                         return false;
                     }
                 }
+
+                // Nur Treffer cachen, um RAM zu sparen
+                $textCache[$path] = $text;
 
                 return true;
             }));

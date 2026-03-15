@@ -3,7 +3,7 @@
  *
  * @param {HTMLElement|null} $phraseHint  - Das Hint-Container-Element
  * @param {HTMLElement|null} $phraseHintText - Das Textfeld im Hint
- * @param {object} json - Die Server-Response mit isPhraseSearch und searchInfo
+ * @param {object|null|undefined} json - Die Server-Response mit isPhraseSearch und searchInfo
  */
 export function updatePhraseHint($phraseHint, $phraseHintText, json) {
     if (!$phraseHint || !$phraseHintText) return;
