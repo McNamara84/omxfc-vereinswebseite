@@ -142,7 +142,7 @@ class KompendiumController extends Controller
         /*  Query parsen: Phrasen in Anführungszeichen vs. freie Begriffe */
         /* ------------------------------------------------------------------ */
         $parsed = $this->searchService->parseSearchQuery($query);
-        $tntQuery = $parsed['isPhraseSearch']
+        $tntQuery = $parsed['hadQuotes']
             ? $this->searchService->buildTntSearchQuery($parsed)
             : $query;
 
@@ -159,11 +159,14 @@ class KompendiumController extends Controller
 
         /* ------------------------------------------------------------------ */
         /*  Phrasensuche: Post-Filterung auf exakte Übereinstimmung */
+        /*  Obergrenze für Kandidaten, um I/O und RAM zu begrenzen. */
         /* ------------------------------------------------------------------ */
         $textCache = [];
+        $maxPostFilterCandidates = 200;
 
         if ($parsed['isPhraseSearch']) {
-            $ids = array_values(array_filter($ids, function ($path) use ($parsed, &$textCache) {
+            $candidates = array_slice($ids, 0, $maxPostFilterCandidates);
+            $ids = array_values(array_filter($candidates, function ($path) use ($parsed, &$textCache) {
                 if (! Storage::disk('private')->exists($path)) {
                     return false;
                 }
@@ -219,6 +222,26 @@ class KompendiumController extends Controller
         // Längere Begriffe zuerst → verhindert Teilmarkierungen bei Überlappung
         usort($snippetSearchTerms, fn ($a, $b) => mb_strlen($b) - mb_strlen($a));
 
+        // Begriffe deduplizieren: Entferne Teilstrings, die bereits von einem längeren
+        // Begriff abgedeckt werden (z.B. "Matthew" wenn "Matthew Drax" schon enthalten ist)
+        $deduplicated = [];
+        foreach ($snippetSearchTerms as $term) {
+            $isSubstring = false;
+            foreach ($deduplicated as $existing) {
+                if (mb_stripos($existing, $term) !== false) {
+                    $isSubstring = true;
+                    break;
+                }
+            }
+            if (! $isSubstring) {
+                $deduplicated[] = $term;
+            }
+        }
+        $snippetSearchTerms = $deduplicated;
+
+        // Kombiniertes Regex-Pattern für Single-Pass-Highlighting (alle Begriffe als Alternation)
+        $highlightPattern = '/'.implode('|', array_map(fn ($t) => preg_quote(e($t), '/'), $snippetSearchTerms)).'/iu';
+
         /* ------------------------------------------------------------------ */
         /*  Treffer in Frontend-Format wandeln */
         /* ------------------------------------------------------------------ */
@@ -252,14 +275,8 @@ class KompendiumController extends Controller
 
                     $snippet = e($snippet);
 
-                    // Alle Suchbegriffe im Snippet hervorheben (längste zuerst)
-                    foreach ($snippetSearchTerms as $highlightTerm) {
-                        $snippet = preg_replace(
-                            '/'.preg_quote(e($highlightTerm), '/').'/iu',
-                            '<mark>$0</mark>',
-                            $snippet
-                        );
-                    }
+                    // Single-Pass-Highlighting: ein kombiniertes Regex für alle Begriffe
+                    $snippet = preg_replace($highlightPattern, '<mark>$0</mark>', $snippet);
 
                     $snippets[] = $snippet;
                     $offset = $pos + mb_strlen($searchTerm);

@@ -35,6 +35,7 @@ class KompendiumSearchQueryParserTest extends TestCase
         $result = $this->service->parseSearchQuery('"Matthew Drax"');
 
         $this->assertTrue($result['isPhraseSearch']);
+        $this->assertTrue($result['hadQuotes']);
         $this->assertEquals(['matthew drax'], $result['phrases']);
         $this->assertEmpty($result['terms']);
     }
@@ -45,6 +46,7 @@ class KompendiumSearchQueryParserTest extends TestCase
         $result = $this->service->parseSearchQuery('Abenteuer Mutation');
 
         $this->assertFalse($result['isPhraseSearch']);
+        $this->assertFalse($result['hadQuotes']);
         $this->assertEmpty($result['phrases']);
         $this->assertEquals(['abenteuer', 'mutation'], $result['terms']);
     }
@@ -55,6 +57,7 @@ class KompendiumSearchQueryParserTest extends TestCase
         $result = $this->service->parseSearchQuery('"Matthew Drax" Abenteuer');
 
         $this->assertTrue($result['isPhraseSearch']);
+        $this->assertTrue($result['hadQuotes']);
         $this->assertEquals(['matthew drax'], $result['phrases']);
         $this->assertEquals(['abenteuer'], $result['terms']);
     }
@@ -75,6 +78,7 @@ class KompendiumSearchQueryParserTest extends TestCase
         $result = $this->service->parseSearchQuery('"" Abenteuer');
 
         $this->assertFalse($result['isPhraseSearch']);
+        $this->assertTrue($result['hadQuotes']);
         $this->assertEmpty($result['phrases']);
         $this->assertEquals(['abenteuer'], $result['terms']);
     }
@@ -85,6 +89,7 @@ class KompendiumSearchQueryParserTest extends TestCase
         $result = $this->service->parseSearchQuery('"A" Abenteuer');
 
         $this->assertFalse($result['isPhraseSearch']);
+        $this->assertTrue($result['hadQuotes']);
         $this->assertEmpty($result['phrases']);
         $this->assertEquals(['abenteuer'], $result['terms']);
     }

@@ -12,6 +12,8 @@
 // Modulweite Referenz auf den scroll-Handler, damit livewire:navigating ihn entfernen kann
 let activeScrollHandler = null;
 
+import { updatePhraseHint } from './utils/kompendium-helpers.js';
+
 function initKompendium() {
     const $search = document.querySelector('[data-testid="kompendium-search"]');
     if (!$search) return;
@@ -150,31 +152,6 @@ function initKompendium() {
         return div.innerHTML;
     }
 
-    /**
-     * Prüft ob der Query Phrasen in Anführungszeichen enthält.
-     */
-    function hasPhrases(q) {
-        return /"[^"]{2,}"/.test(q);
-    }
-
-    /**
-     * Zeigt oder verbirgt den Phrasen-Hinweis basierend auf der Server-Response.
-     */
-    function updatePhraseHint(json) {
-        if (!$phraseHint || !$phraseHintText) return;
-
-        if (json.isPhraseSearch && json.searchInfo) {
-            const parts = [];
-            json.searchInfo.phrases.forEach(p => parts.push(`\u201E${p}\u201C`));
-            json.searchInfo.terms.forEach(t => parts.push(`\u201E${t}\u201C`));
-
-            $phraseHintText.textContent = `Phrasensuche aktiv: Nur exakte Treffer f\u00FCr ${parts.join(' + ')}`;
-            $phraseHint.classList.remove('hidden');
-        } else {
-            $phraseHint.classList.add('hidden');
-        }
-    }
-
     const tpl = (roman) => `
         <div class="border border-base-content/10 rounded p-4">
             <h2 class="font-semibold text-primary mb-2">
@@ -183,10 +160,17 @@ function initKompendium() {
             ${roman.snippets.map(s => `<p class="mb-2 text-sm leading-relaxed">${s}</p>`).join('')}
         </div>`;
 
+    function hidePhraseHint() {
+        if ($phraseHint) $phraseHint.classList.add('hidden');
+    }
+
     async function fetchHits() {
         if (busy) return;
         busy = true;
         $loading.classList.remove('hidden');
+
+        // Phrasen-Hinweis beim Start jeder neuen Suche zurücksetzen
+        if (page === 1) hidePhraseHint();
 
         const params = new URLSearchParams();
         params.append('q', query);
@@ -204,6 +188,7 @@ function initKompendium() {
                 const errorJson = await res.json().catch(() => ({}));
                 const message = errorJson.message || 'Fehler bei der Suche. Bitte versuche es später erneut.';
                 showError(message);
+                hidePhraseHint();
                 busy = false;
                 $loading.classList.add('hidden');
                 return;
@@ -218,7 +203,7 @@ function initKompendium() {
 
             // Phrasen-Hinweis aktualisieren (nur auf erster Seite)
             if (page === 1) {
-                updatePhraseHint(json);
+                updatePhraseHint($phraseHint, $phraseHintText, json);
             }
 
             json.data.forEach(r => $results.insertAdjacentHTML('beforeend', tpl(r)));
@@ -234,6 +219,7 @@ function initKompendium() {
         } catch (e) {
             console.error('Fehler bei der Suche:', e);
             showError('Verbindungsfehler. Bitte überprüfe deine Internetverbindung.');
+            hidePhraseHint();
             busy = false;
             $loading.classList.add('hidden');
         }
