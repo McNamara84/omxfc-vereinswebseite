@@ -59,7 +59,7 @@
 
             <div class="form-control w-full">
                 <div class="flex items-center justify-between mb-2">
-                    <label class="label-text font-medium">Geschichte</label>
+                    <label class="label-text font-medium">Geschichte *</label>
                     <x-button
                         wire:click="togglePreview"
                         :label="$showPreview ? 'Editor' : 'Vorschau'"
