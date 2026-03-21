@@ -50,7 +50,7 @@
                         </header>
 
                         {{-- Story-Inhalt --}}
-                        <div class="prose dark:prose-invert max-w-none">
+                        <div class="fanfiction-content prose dark:prose-invert max-w-none">
                             {{-- Teaser (immer sichtbar) --}}
                             <div @if ($isUnlocked) x-show="!expanded" @endif data-fanfiction-teaser>
                                 <p>{{ $fanfiction->teaser }}</p>
@@ -81,7 +81,7 @@
                                             <a href="{{ Storage::url($photo) }}" target="_blank"
                                                 class="block aspect-square overflow-hidden rounded-lg hover:opacity-90 transition-opacity">
                                                 <img src="{{ Storage::url($photo) }}"
-                                                    alt="{{ $fanfiction->title }}"
+                                                    alt="{{ $fanfiction->title }} – Bild {{ $loop->iteration }}"
                                                     class="w-full h-full object-cover">
                                             </a>
                                         @endforeach

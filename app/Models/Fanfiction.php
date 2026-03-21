@@ -39,7 +39,7 @@ class Fanfiction extends Model
 {
     use HasFactory, SoftDeletes;
 
-    private const ALLOWED_HTML_TAGS = '<p><strong><em><a><ul><ol><li><blockquote><code><pre><br><h1><h2><h3><h4><h5><h6><figure><figcaption><img>';
+    private const ALLOWED_HTML_TAGS = '<p><strong><em><a><ul><ol><li><blockquote><code><pre><br><h1><h2><h3><h4><h5><h6>';
 
     private const BILD_TAG_PATTERN = '/\[bild:(\d+)(?::(links|rechts|zentriert))?(?::([^\]]+))?\]/i';
 
@@ -335,7 +335,10 @@ class Fanfiction extends Model
             }
 
             $photoPath = $photos[$index];
-            $url = asset('storage/'.$photoPath);
+            // If already a full URL (e.g. temporary preview URL), use as-is; otherwise resolve via Storage
+            $url = preg_match('#^https?://#i', $photoPath)
+                ? $photoPath
+                : \Illuminate\Support\Facades\Storage::url($photoPath);
             $escapedUrl = e($url);
             $escapedCaption = e($caption);
             $altText = $escapedCaption ?: e($this->title ?? 'Fanfiction-Bild');

@@ -154,8 +154,8 @@ dialog.modal:is(.modal-open, [open], :target) {
     }
 }
 
-/* Clearfix nach Float-Bildern im Prose-Container */
-.prose::after {
+/* Clearfix nach Float-Bildern im Fanfiction-Prose-Container */
+.fanfiction-content .prose::after {
     content: "";
     display: table;
     clear: both;

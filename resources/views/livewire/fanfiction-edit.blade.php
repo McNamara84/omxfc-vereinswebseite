@@ -59,7 +59,7 @@
 
             <div class="form-control w-full">
                 <div class="flex items-center justify-between mb-2">
-                    <label class="label-text font-medium">Geschichte *</label>
+                    <label for="fanfiction-content" class="label-text font-medium">Geschichte *</label>
                     <x-button
                         wire:click="togglePreview"
                         :label="$showPreview ? 'Editor' : 'Vorschau'"
@@ -70,7 +70,7 @@
                 </div>
 
                 @if($showPreview)
-                    <div class="prose dark:prose-invert max-w-none border border-base-300 rounded-lg p-6 min-h-[20rem] bg-base-100" data-testid="preview-content">
+                    <div class="fanfiction-content prose dark:prose-invert max-w-none border border-base-300 rounded-lg p-6 min-h-[20rem] bg-base-100" data-testid="preview-content">
                         @if($previewHtml)
                             {!! $previewHtml !!}
                         @else
@@ -79,6 +79,7 @@
                     </div>
                 @else
                     <x-textarea
+                        id="fanfiction-content"
                         wire:model="content"
                         rows="15"
                         hint="Markdown-Formatierung wird unterstützt: **fett**, *kursiv*, > Zitat, etc."

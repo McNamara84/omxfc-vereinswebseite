@@ -106,11 +106,11 @@ class FanfictionCreate extends Component
             'title' => $this->title,
         ]);
 
-        // Build photo URLs from temporary uploads
+        // Build temporary URLs for preview (avoids leaking server paths)
         $previewPhotos = [];
         foreach ($this->photos as $photo) {
             if ($photo) {
-                $previewPhotos[] = $photo->getRealPath();
+                $previewPhotos[] = $photo->temporaryUrl();
             }
         }
 

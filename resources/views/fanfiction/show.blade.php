@@ -39,7 +39,7 @@
                                 <a href="{{ Storage::url($photo) }}" target="_blank"
                                     class="block aspect-square overflow-hidden rounded-lg hover:opacity-90 transition-opacity">
                                     <img src="{{ Storage::url($photo) }}"
-                                        alt="{{ $fanfiction->title }}"
+                                        alt="{{ $fanfiction->title }} – Bild {{ $loop->iteration }}"
                                         class="w-full h-full object-cover">
                                 </a>
                             @endforeach
@@ -48,8 +48,10 @@
                 @endif
 
                 {{-- Story-Inhalt (Markdown) --}}
-                <div class="prose dark:prose-invert max-w-none mb-8">
-                    {!! $fanfiction->formatted_content !!}
+                <div class="fanfiction-content">
+                    <div class="prose dark:prose-invert max-w-none mb-8">
+                        {!! $fanfiction->formatted_content !!}
+                    </div>
                 </div>
 
                 {{-- Teilen-Hinweis --}}
