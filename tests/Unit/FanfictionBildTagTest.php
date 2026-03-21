@@ -3,10 +3,14 @@
 namespace Tests\Unit;
 
 use App\Models\Fanfiction;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class FanfictionBildTagTest extends TestCase
 {
+    // Tests use in-memory models only, but TestCase::setUp() calls $this->seed()
+    // which requires migrated tables – RefreshDatabase provides them.
+    use RefreshDatabase;
     private function createFanfiction(string $content, array $photos = []): Fanfiction
     {
         $fanfiction = new Fanfiction([
