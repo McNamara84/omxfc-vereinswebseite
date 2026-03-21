@@ -78,6 +78,14 @@ details.dropdown:has(> summary.btn-sm) > ul.menu {
     font-weight: 600;
 }
 
+/* DaisyUI-Modal-Hintergrund: Die Backdrop-Regel (.modal.modal-open) liegt in
+   @layer daisyui.l1.l2 – layered Styles haben niedrigere Priorität als
+   un-layered Styles. Hier un-layered setzen, damit der halbtransparente
+   Overlay zuverlässig angezeigt wird. */
+dialog.modal:is(.modal-open, [open], :target) {
+    background-color: oklch(0% 0 0 / 40%);
+}
+
 @layer base {
     /* Hintergrund wird jetzt vom daisyUI-Theme gesteuert (caramellatte/coffee) */
 
