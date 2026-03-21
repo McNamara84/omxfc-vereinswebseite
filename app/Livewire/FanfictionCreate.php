@@ -116,7 +116,7 @@ class FanfictionCreate extends Component
             }
         }
 
-        return $tempFanfiction->renderFormattedContent($this->content, $previewPhotos ?: $tempFanfiction->photos);
+        return $tempFanfiction->renderFormattedContent($this->content, $previewPhotos);
     }
 
     public function save(): void
