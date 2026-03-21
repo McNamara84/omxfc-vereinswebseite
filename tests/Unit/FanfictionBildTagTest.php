@@ -16,8 +16,8 @@ class FanfictionBildTagTest extends TestCase
             'title' => 'Testgeschichte',
         ]);
 
-        // Set photos via the raw attribute to bypass DB
-        $fanfiction->setAttribute('photos', json_encode($photos));
+        // Set photos directly (model is not persisted, so no DB needed)
+        $fanfiction->photos = $photos;
 
         return $fanfiction;
     }

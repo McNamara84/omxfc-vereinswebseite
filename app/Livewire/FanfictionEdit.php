@@ -119,7 +119,7 @@ class FanfictionEdit extends Component
 
         // Use existing photos (minus those marked for removal) for preview
         $previewPhotos = collect($this->existingPhotos)
-            ->reject(fn ($path) => in_array($path, $this->photosToRemove))
+            ->reject(fn ($path) => in_array($path, $this->photosToRemove, true))
             ->values()
             ->toArray();
 
@@ -128,7 +128,7 @@ class FanfictionEdit extends Component
 
     public function togglePhotoRemoval(string $photo): void
     {
-        if (in_array($photo, $this->photosToRemove)) {
+        if (in_array($photo, $this->photosToRemove, true)) {
             $this->photosToRemove = array_values(array_diff($this->photosToRemove, [$photo]));
         } else {
             $this->photosToRemove[] = $photo;
@@ -155,7 +155,7 @@ class FanfictionEdit extends Component
 
         // Handle photo removal
         $photosToKeep = collect($this->existingPhotos)
-            ->reject(fn ($path) => in_array($path, $this->photosToRemove))
+            ->reject(fn ($path) => in_array($path, $this->photosToRemove, true))
             ->values();
 
         // Delete removed photos from storage

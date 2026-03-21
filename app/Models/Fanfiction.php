@@ -252,7 +252,11 @@ class Fanfiction extends Model
         // Each tag is replaced with a unique placeholder on its own line so
         // Markdown creates separate <p> elements for them.
         $placeholders = [];
-        $token = bin2hex(random_bytes(8));
+        try {
+            $token = bin2hex(random_bytes(8));
+        } catch (\Exception) {
+            $token = md5(($this->getKey() ?? 'new').'_'.$this->updated_at);
+        }
         $preparedMarkdown = preg_replace_callback(self::BILD_TAG_PATTERN, function (array $matches) use (&$placeholders, $token) {
             $id = '%%BILD_'.$token.'_'.count($placeholders).'%%';
             $placeholders[$id] = $matches[0]; // Store original tag
@@ -418,7 +422,7 @@ class Fanfiction extends Model
             }
         }
 
-        return array_unique($indices);
+        return array_values(array_unique($indices));
     }
 
     /**
