@@ -59,7 +59,7 @@
 
             <div class="form-control w-full">
                 <div class="flex items-center justify-between mb-2">
-                    <label for="fanfiction-content" class="label-text font-medium">Geschichte *</label>
+                    <label @if(!$showPreview) for="fanfiction-content" @endif class="label-text font-medium">Geschichte *</label>
                     <x-button
                         wire:click="togglePreview"
                         :label="$showPreview ? 'Editor' : 'Vorschau'"

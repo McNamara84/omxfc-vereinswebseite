@@ -504,6 +504,10 @@ class Fanfiction extends Model
     {
         $text = trim(strip_tags($html));
 
+        // Remove any unresolved placeholder tokens that may remain
+        $text = preg_replace('/%%BILD_[a-f0-9]+_\d+%%/', '', $text) ?? $text;
+        $text = trim($text);
+
         if ($text === '') {
             return '';
         }

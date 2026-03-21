@@ -45,6 +45,7 @@ class FanfictionEdit extends Component
 
     public bool $showPreview = false;
 
+    #[Locked]
     public string $previewHtml = '';
 
     public function mount(Fanfiction $fanfiction): void

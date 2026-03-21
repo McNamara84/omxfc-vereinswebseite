@@ -48,10 +48,8 @@
                 @endif
 
                 {{-- Story-Inhalt (Markdown) --}}
-                <div class="fanfiction-content">
-                    <div class="prose dark:prose-invert max-w-none mb-8">
-                        {!! $fanfiction->formatted_content !!}
-                    </div>
+                <div class="fanfiction-content prose dark:prose-invert max-w-none mb-8">
+                    {!! $fanfiction->formatted_content !!}
                 </div>
 
                 {{-- Teilen-Hinweis --}}

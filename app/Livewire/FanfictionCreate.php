@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\Locked;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -51,6 +52,7 @@ class FanfictionCreate extends Component
 
     public bool $showPreview = false;
 
+    #[Locked]
     public string $previewHtml = '';
 
     #[Computed]
