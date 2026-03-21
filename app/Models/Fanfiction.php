@@ -192,6 +192,11 @@ class Fanfiction extends Model
                 continue;
             }
 
+            // Reject external URLs – only relative storage paths may be persisted
+            if (preg_match('#^https?://#i', $normalizedPath)) {
+                continue;
+            }
+
             $normalized[] = $normalizedPath;
         }
 
@@ -257,6 +262,7 @@ class Fanfiction extends Model
     public function renderFormattedContent(string $markdown, ?array $photos = null): string
     {
         $resolvedPhotos = $photos ?? $this->photos;
+        $allowExternalUrls = $photos !== null;
 
         // Extract [bild:N:...] tags before Markdown parsing to prevent them
         // from ending up inside <p> tags (block-level <figure> in inline <p>).
@@ -342,7 +348,7 @@ class Fanfiction extends Model
                 $fragment .= $dom->saveHTML($child);
             }
 
-            return $this->replaceBildPlaceholders($fragment, $placeholders, $resolvedPhotos);
+            return $this->replaceBildPlaceholders($fragment, $placeholders, $resolvedPhotos, $allowExternalUrls);
         } finally {
             libxml_use_internal_errors($previousLibxmlSetting);
             libxml_clear_errors();
@@ -356,7 +362,7 @@ class Fanfiction extends Model
      * @param  array<string, string>  $placeholders  Map of placeholder → original [bild:...] tag
      * @param  array<int, string>  $photos
      */
-    private function replaceBildPlaceholders(string $html, array $placeholders, array $photos): string
+    private function replaceBildPlaceholders(string $html, array $placeholders, array $photos, bool $allowExternalUrls = false): string
     {
         if ($placeholders === []) {
             return $html;
@@ -365,7 +371,7 @@ class Fanfiction extends Model
         $photoCount = count($photos);
 
         foreach ($placeholders as $placeholder => $originalTag) {
-            $figureHtml = $this->buildFigureHtml($originalTag, $photos, $photoCount);
+            $figureHtml = $this->buildFigureHtml($originalTag, $photos, $photoCount, $allowExternalUrls);
 
             // Remove wrapping <p> if placeholder is its sole content
             $wrappedPattern = '#<p>\s*'.preg_quote($placeholder, '#').'\s*</p>#';
@@ -384,7 +390,7 @@ class Fanfiction extends Model
      *
      * @param  array<int, string>  $photos
      */
-    private function buildFigureHtml(string $tag, array $photos, int $photoCount): string
+    private function buildFigureHtml(string $tag, array $photos, int $photoCount, bool $allowExternalUrls = false): string
     {
         if (preg_match(self::BILD_TAG_PATTERN, $tag, $matches) !== 1) {
             return '';
@@ -399,7 +405,7 @@ class Fanfiction extends Model
         }
 
         $photoPath = $photos[$index];
-        $url = preg_match('#^https?://#i', $photoPath)
+        $url = ($allowExternalUrls && preg_match('#^https?://#i', $photoPath))
             ? $photoPath
             : \Illuminate\Support\Facades\Storage::url($photoPath);
         $escapedUrl = e($url);
