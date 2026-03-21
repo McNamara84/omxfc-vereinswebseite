@@ -252,8 +252,9 @@ class Fanfiction extends Model
         // Each tag is replaced with a unique placeholder on its own line so
         // Markdown creates separate <p> elements for them.
         $placeholders = [];
-        $preparedMarkdown = preg_replace_callback(self::BILD_TAG_PATTERN, function (array $matches) use (&$placeholders) {
-            $id = '%%BILD_'.count($placeholders).'%%';
+        $token = bin2hex(random_bytes(8));
+        $preparedMarkdown = preg_replace_callback(self::BILD_TAG_PATTERN, function (array $matches) use (&$placeholders, $token) {
+            $id = '%%BILD_'.$token.'_'.count($placeholders).'%%';
             $placeholders[$id] = $matches[0]; // Store original tag
             // Two newlines ensure Markdown puts this in its own <p>
             return "\n\n".$id."\n\n";
@@ -267,12 +268,8 @@ class Fanfiction extends Model
 
         $textOnly = trim(strip_tags($html));
 
-        // Check if only placeholders remain (no real text)
-        $textWithoutPlaceholders = $textOnly;
-        foreach (array_keys($placeholders) as $ph) {
-            $textWithoutPlaceholders = str_replace($ph, '', $textWithoutPlaceholders);
-        }
-        if (trim($textWithoutPlaceholders) === '' && $placeholders === []) {
+        // Return empty string when content has no real text and no bild-tags
+        if ($textOnly === '' && $placeholders === []) {
             return '';
         }
 

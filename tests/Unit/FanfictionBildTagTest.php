@@ -211,10 +211,10 @@ class FanfictionBildTagTest extends TestCase
 
         $html = $fanfiction->renderFormattedContent($fanfiction->content, $fanfiction->photos);
 
-        // <script> tags are stripped by Markdown pipeline + strip_tags before bild-tag processing
+        // Captions are escaped via e() in buildFigureHtml(), so <script> cannot appear as raw HTML
         $this->assertStringNotContainsString('<script>', $html);
         $this->assertStringNotContainsString('</script>', $html);
-        // The remaining text is still rendered (sanitized)
+        // The remaining text is still rendered (sanitized via htmlspecialchars)
         $this->assertStringContainsString('alert(', $html);
     }
 
