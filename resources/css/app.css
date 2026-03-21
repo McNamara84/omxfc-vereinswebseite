@@ -155,7 +155,7 @@ dialog.modal:is(.modal-open, [open], :target) {
 }
 
 /* Clearfix nach Float-Bildern im Fanfiction-Prose-Container */
-.fanfiction-content .prose::after {
+.fanfiction-content::after {
     content: "";
     display: table;
     clear: both;

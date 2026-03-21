@@ -245,7 +245,21 @@ class Fanfiction extends Model
      */
     public function renderFormattedContent(string $markdown, ?array $photos = null): string
     {
-        $html = Str::markdown($markdown, [
+        $resolvedPhotos = $photos ?? $this->photos;
+
+        // Extract [bild:N:...] tags before Markdown parsing to prevent them
+        // from ending up inside <p> tags (block-level <figure> in inline <p>).
+        // Each tag is replaced with a unique placeholder on its own line so
+        // Markdown creates separate <p> elements for them.
+        $placeholders = [];
+        $preparedMarkdown = preg_replace_callback(self::BILD_TAG_PATTERN, function (array $matches) use (&$placeholders) {
+            $id = '%%BILD_'.count($placeholders).'%%';
+            $placeholders[$id] = $matches[0]; // Store original tag
+            // Two newlines ensure Markdown puts this in its own <p>
+            return "\n\n".$id."\n\n";
+        }, $markdown) ?? $markdown;
+
+        $html = Str::markdown($preparedMarkdown, [
             'html_input' => 'strip',
         ]);
 
@@ -253,7 +267,12 @@ class Fanfiction extends Model
 
         $textOnly = trim(strip_tags($html));
 
-        if ($textOnly === '') {
+        // Check if only placeholders remain (no real text)
+        $textWithoutPlaceholders = $textOnly;
+        foreach (array_keys($placeholders) as $ph) {
+            $textWithoutPlaceholders = str_replace($ph, '', $textWithoutPlaceholders);
+        }
+        if (trim($textWithoutPlaceholders) === '' && $placeholders === []) {
             return '';
         }
 
@@ -306,7 +325,7 @@ class Fanfiction extends Model
                 $fragment .= $dom->saveHTML($child);
             }
 
-            return $this->replaceBildTags($fragment, $photos ?? $this->photos);
+            return $this->replaceBildPlaceholders($fragment, $placeholders, $resolvedPhotos);
         } finally {
             libxml_use_internal_errors($previousLibxmlSetting);
             libxml_clear_errors();
@@ -314,45 +333,71 @@ class Fanfiction extends Model
     }
 
     /**
-     * Replace [bild:N:position:caption] tags with <figure> elements.
+     * Replace bild placeholders with <figure> elements.
+     * Removes the wrapping <p> tag if the placeholder is the sole content of a paragraph.
+     *
+     * @param  array<string, string>  $placeholders  Map of placeholder → original [bild:...] tag
+     * @param  array<int, string>  $photos
+     */
+    private function replaceBildPlaceholders(string $html, array $placeholders, array $photos): string
+    {
+        if ($placeholders === []) {
+            return $html;
+        }
+
+        $photoCount = count($photos);
+
+        foreach ($placeholders as $placeholder => $originalTag) {
+            $figureHtml = $this->buildFigureHtml($originalTag, $photos, $photoCount);
+
+            // Remove wrapping <p> if placeholder is its sole content
+            $wrappedPattern = '#<p>\s*'.preg_quote($placeholder, '#').'\s*</p>#';
+            if (preg_match($wrappedPattern, $html) === 1) {
+                $html = preg_replace($wrappedPattern, $figureHtml, $html, 1) ?? $html;
+            } else {
+                $html = str_replace($placeholder, $figureHtml, $html);
+            }
+        }
+
+        return $html;
+    }
+
+    /**
+     * Build a <figure> HTML element from a [bild:N:position:caption] tag.
      *
      * @param  array<int, string>  $photos
      */
-    private function replaceBildTags(string $html, array $photos): string
+    private function buildFigureHtml(string $tag, array $photos, int $photoCount): string
     {
-        if ($photos === [] || preg_match(self::BILD_TAG_PATTERN, $html) !== 1) {
-            // Remove any bild tags if there are no photos
-            return preg_replace(self::BILD_TAG_PATTERN, '', $html);
+        if (preg_match(self::BILD_TAG_PATTERN, $tag, $matches) !== 1) {
+            return '';
         }
 
-        return preg_replace_callback(self::BILD_TAG_PATTERN, function (array $matches) use ($photos) {
-            $index = (int) $matches[1] - 1; // Convert 1-based to 0-based
-            $position = strtolower($matches[2] ?? 'zentriert') ?: 'zentriert';
-            $caption = trim($matches[3] ?? '');
+        $index = (int) $matches[1] - 1;
+        $position = strtolower($matches[2] ?? 'zentriert') ?: 'zentriert';
+        $caption = trim($matches[3] ?? '');
 
-            if ($index < 0 || $index >= count($photos)) {
-                return ''; // Invalid index: silently remove
-            }
+        if ($index < 0 || $index >= $photoCount) {
+            return '';
+        }
 
-            $photoPath = $photos[$index];
-            // If already a full URL (e.g. temporary preview URL), use as-is; otherwise resolve via Storage
-            $url = preg_match('#^https?://#i', $photoPath)
-                ? $photoPath
-                : \Illuminate\Support\Facades\Storage::url($photoPath);
-            $escapedUrl = e($url);
-            $escapedCaption = e($caption);
-            $altText = $escapedCaption ?: e($this->title ?? 'Fanfiction-Bild');
+        $photoPath = $photos[$index];
+        $url = preg_match('#^https?://#i', $photoPath)
+            ? $photoPath
+            : \Illuminate\Support\Facades\Storage::url($photoPath);
+        $escapedUrl = e($url);
+        $escapedCaption = e($caption);
+        $altText = $escapedCaption ?: e($this->title ?? 'Fanfiction-Bild');
 
-            $positionClass = match ($position) {
-                'links' => 'fanfiction-bild--links',
-                'rechts' => 'fanfiction-bild--rechts',
-                default => 'fanfiction-bild--zentriert',
-            };
+        $positionClass = match ($position) {
+            'links' => 'fanfiction-bild--links',
+            'rechts' => 'fanfiction-bild--rechts',
+            default => 'fanfiction-bild--zentriert',
+        };
 
-            $figcaptionHtml = $caption !== '' ? "\n  <figcaption>{$escapedCaption}</figcaption>" : '';
+        $figcaptionHtml = $caption !== '' ? "\n  <figcaption>{$escapedCaption}</figcaption>" : '';
 
-            return "<figure class=\"fanfiction-bild {$positionClass}\">\n  <img src=\"{$escapedUrl}\" alt=\"{$altText}\" loading=\"lazy\">{$figcaptionHtml}\n</figure>";
-        }, $html);
+        return "<figure class=\"fanfiction-bild {$positionClass}\">\n  <img src=\"{$escapedUrl}\" alt=\"{$altText}\" loading=\"lazy\">{$figcaptionHtml}\n</figure>";
     }
 
     /**
@@ -363,12 +408,14 @@ class Fanfiction extends Model
     public function getReferencedPhotoIndices(): array
     {
         $content = (string) ($this->content ?? '');
+        $photos = $this->photos;
+        $photoCount = count($photos);
         $indices = [];
 
-        if (preg_match_all(self::BILD_TAG_PATTERN, $content, $matches)) {
+        if ($photoCount > 0 && preg_match_all(self::BILD_TAG_PATTERN, $content, $matches)) {
             foreach ($matches[1] as $match) {
                 $index = (int) $match - 1;
-                if ($index >= 0 && $index < count($this->photos)) {
+                if ($index >= 0 && $index < $photoCount) {
                     $indices[] = $index;
                 }
             }
