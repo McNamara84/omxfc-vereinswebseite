@@ -166,7 +166,7 @@ class FanfictionEdit extends Component
         // Upload new photos
         $newPhotoPaths = $this->uploadPhotos();
 
-        // Merge existing and new photos (max 5)
+        // Merge existing and new photos
         $allPhotos = $photosToKeep->merge($newPhotoPaths)->take(self::MAX_PHOTOS)->values()->toArray();
 
         $fanfiction->update([

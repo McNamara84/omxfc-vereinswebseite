@@ -3,12 +3,10 @@
 namespace Tests\Unit;
 
 use App\Models\Fanfiction;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class FanfictionBildTagTest extends TestCase
 {
-    use RefreshDatabase;
     private function createFanfiction(string $content, array $photos = []): Fanfiction
     {
         $fanfiction = new Fanfiction([

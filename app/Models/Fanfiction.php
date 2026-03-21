@@ -242,6 +242,13 @@ class Fanfiction extends Model
 
     /**
      * Render Markdown to sanitized HTML with defense-in-depth escaping.
+     *
+     * Resolves [bild:N:position:caption] tags against the given photo array
+     * (or $this->photos when omitted). Photos are referenced by 1-based index.
+     * All output is sanitized through strip_tags and DOMDocument to prevent XSS.
+     *
+     * @param  string      $markdown  Raw Markdown content (may contain [bild:…] tags)
+     * @param  array|null  $photos    Optional photo paths for tag resolution; defaults to model photos
      */
     public function renderFormattedContent(string $markdown, ?array $photos = null): string
     {
