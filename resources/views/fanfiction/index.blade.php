@@ -72,15 +72,16 @@
                         </div>
 
                         @if ($isUnlocked)
-                            {{-- Bilder-Galerie (nur wenn aufgeklappt und Bilder vorhanden) --}}
-                            @if ($fanfiction->photos && count($fanfiction->photos) > 0)
+                            {{-- Bilder-Galerie (nur nicht-referenzierte Bilder, wenn aufgeklappt) --}}
+                            @php $unreferencedPhotos = $fanfiction->getUnreferencedPhotos(); @endphp
+                            @if (count($unreferencedPhotos) > 0)
                                 <div x-show="expanded" x-cloak class="mt-6" data-fanfiction-gallery>
                                     <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                                        @foreach ($fanfiction->photos as $index => $photo)
+                                        @foreach ($unreferencedPhotos as $photo)
                                             <a href="{{ Storage::url($photo) }}" target="_blank"
                                                 class="block aspect-square overflow-hidden rounded-lg hover:opacity-90 transition-opacity">
                                                 <img src="{{ Storage::url($photo) }}"
-                                                    alt="{{ $fanfiction->title }} - Bild {{ $index + 1 }}"
+                                                    alt="{{ $fanfiction->title }}"
                                                     class="w-full h-full object-cover">
                                             </a>
                                         @endforeach

@@ -236,7 +236,7 @@ class FanfictionAdminControllerTest extends TestCase
         $this->actingAs($this->vorstand);
 
         $photos = [];
-        for ($i = 0; $i < 6; $i++) {
+        for ($i = 0; $i < 11; $i++) {
             $photos[] = UploadedFile::fake()->image("test{$i}.jpg", 200, 200);
         }
 

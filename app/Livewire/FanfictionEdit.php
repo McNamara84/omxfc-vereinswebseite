@@ -18,7 +18,7 @@ class FanfictionEdit extends Component
 
     public const ALLOWED_PHOTO_EXTENSIONS = ['jpg', 'jpeg', 'png', 'webp'];
 
-    public const MAX_PHOTOS = 5;
+    public const MAX_PHOTOS = 10;
 
     public const MAX_PHOTO_SIZE_KB = 2048;
 
@@ -42,6 +42,10 @@ class FanfictionEdit extends Component
     public array $photosToRemove = [];
 
     public array $newPhotos = [];
+
+    public bool $showPreview = false;
+
+    public string $previewHtml = '';
 
     public function mount(Fanfiction $fanfiction): void
     {
@@ -95,6 +99,31 @@ class FanfictionEdit extends Component
             $this->userId = null;
             $this->authorName = '';
         }
+    }
+
+    public function togglePreview(): void
+    {
+        $this->showPreview = ! $this->showPreview;
+
+        if ($this->showPreview) {
+            $this->previewHtml = $this->renderPreview();
+        }
+    }
+
+    private function renderPreview(): string
+    {
+        $tempFanfiction = new Fanfiction([
+            'content' => $this->content,
+            'title' => $this->title,
+        ]);
+
+        // Use existing photos (minus those marked for removal) for preview
+        $previewPhotos = collect($this->existingPhotos)
+            ->reject(fn ($path) => in_array($path, $this->photosToRemove))
+            ->values()
+            ->toArray();
+
+        return $tempFanfiction->renderFormattedContent($this->content, $previewPhotos);
     }
 
     public function togglePhotoRemoval(string $photo): void

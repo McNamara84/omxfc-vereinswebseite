@@ -67,7 +67,7 @@ class FanfictionFactory extends Factory
         return $this->state(fn (array $attributes) => [
             'photos' => array_map(
                 fn ($i) => "fanfiction/photo-{$i}.jpg",
-                range(1, min($count, 5))
+                range(1, min($count, 10))
             ),
         ]);
     }

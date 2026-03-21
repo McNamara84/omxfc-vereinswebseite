@@ -23,7 +23,7 @@ class FanfictionCreate extends Component
 
     public const ALLOWED_PHOTO_EXTENSIONS = ['jpg', 'jpeg', 'png', 'webp'];
 
-    public const MAX_PHOTOS = 5;
+    public const MAX_PHOTOS = 10;
 
     public const MAX_PHOTO_SIZE_KB = 2048;
 
@@ -48,6 +48,10 @@ class FanfictionCreate extends Component
     public string $status = 'draft';
 
     public array $photos = [];
+
+    public bool $showPreview = false;
+
+    public string $previewHtml = '';
 
     #[Computed]
     public function members()
@@ -84,6 +88,33 @@ class FanfictionCreate extends Component
             $this->userId = null;
             $this->authorName = '';
         }
+    }
+
+    public function togglePreview(): void
+    {
+        $this->showPreview = ! $this->showPreview;
+
+        if ($this->showPreview) {
+            $this->previewHtml = $this->renderPreview();
+        }
+    }
+
+    private function renderPreview(): string
+    {
+        $tempFanfiction = new Fanfiction([
+            'content' => $this->content,
+            'title' => $this->title,
+        ]);
+
+        // Build photo URLs from temporary uploads
+        $previewPhotos = [];
+        foreach ($this->photos as $photo) {
+            if ($photo) {
+                $previewPhotos[] = $photo->getRealPath();
+            }
+        }
+
+        return $tempFanfiction->renderFormattedContent($this->content, $previewPhotos ?: $tempFanfiction->photos);
     }
 
     public function save(): void

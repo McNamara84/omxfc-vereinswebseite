@@ -39,7 +39,9 @@ class Fanfiction extends Model
 {
     use HasFactory, SoftDeletes;
 
-    private const ALLOWED_HTML_TAGS = '<p><strong><em><a><ul><ol><li><blockquote><code><pre><br><h1><h2><h3><h4><h5><h6>';
+    private const ALLOWED_HTML_TAGS = '<p><strong><em><a><ul><ol><li><blockquote><code><pre><br><h1><h2><h3><h4><h5><h6><figure><figcaption><img>';
+
+    private const BILD_TAG_PATTERN = '/\[bild:(\d+)(?::(links|rechts|zentriert))?(?::([^\]]+))?\]/i';
 
     private const TEASER_LENGTH = 400;
 
@@ -241,7 +243,7 @@ class Fanfiction extends Model
     /**
      * Render Markdown to sanitized HTML with defense-in-depth escaping.
      */
-    private function renderFormattedContent(string $markdown): string
+    public function renderFormattedContent(string $markdown, ?array $photos = null): string
     {
         $html = Str::markdown($markdown, [
             'html_input' => 'strip',
@@ -304,11 +306,91 @@ class Fanfiction extends Model
                 $fragment .= $dom->saveHTML($child);
             }
 
-            return $fragment;
+            return $this->replaceBildTags($fragment, $photos ?? $this->photos);
         } finally {
             libxml_use_internal_errors($previousLibxmlSetting);
             libxml_clear_errors();
         }
+    }
+
+    /**
+     * Replace [bild:N:position:caption] tags with <figure> elements.
+     *
+     * @param  array<int, string>  $photos
+     */
+    private function replaceBildTags(string $html, array $photos): string
+    {
+        if ($photos === [] || preg_match(self::BILD_TAG_PATTERN, $html) !== 1) {
+            // Remove any bild tags if there are no photos
+            return preg_replace(self::BILD_TAG_PATTERN, '', $html);
+        }
+
+        return preg_replace_callback(self::BILD_TAG_PATTERN, function (array $matches) use ($photos) {
+            $index = (int) $matches[1] - 1; // Convert 1-based to 0-based
+            $position = strtolower($matches[2] ?? 'zentriert') ?: 'zentriert';
+            $caption = trim($matches[3] ?? '');
+
+            if ($index < 0 || $index >= count($photos)) {
+                return ''; // Invalid index: silently remove
+            }
+
+            $photoPath = $photos[$index];
+            $url = asset('storage/'.$photoPath);
+            $escapedUrl = e($url);
+            $escapedCaption = e($caption);
+            $altText = $escapedCaption ?: e($this->title ?? 'Fanfiction-Bild');
+
+            $positionClass = match ($position) {
+                'links' => 'fanfiction-bild--links',
+                'rechts' => 'fanfiction-bild--rechts',
+                default => 'fanfiction-bild--zentriert',
+            };
+
+            $figcaptionHtml = $caption !== '' ? "\n  <figcaption>{$escapedCaption}</figcaption>" : '';
+
+            return "<figure class=\"fanfiction-bild {$positionClass}\">\n  <img src=\"{$escapedUrl}\" alt=\"{$altText}\" loading=\"lazy\">{$figcaptionHtml}\n</figure>";
+        }, $html);
+    }
+
+    /**
+     * Get 0-based indices of photos referenced by [bild:N] tags in the content.
+     *
+     * @return array<int>
+     */
+    public function getReferencedPhotoIndices(): array
+    {
+        $content = (string) ($this->content ?? '');
+        $indices = [];
+
+        if (preg_match_all(self::BILD_TAG_PATTERN, $content, $matches)) {
+            foreach ($matches[1] as $match) {
+                $index = (int) $match - 1;
+                if ($index >= 0 && $index < count($this->photos)) {
+                    $indices[] = $index;
+                }
+            }
+        }
+
+        return array_unique($indices);
+    }
+
+    /**
+     * Get photos that are NOT referenced by [bild:N] tags in the content.
+     *
+     * @return array<int, string>
+     */
+    public function getUnreferencedPhotos(): array
+    {
+        $referenced = $this->getReferencedPhotoIndices();
+        $unreferenced = [];
+
+        foreach ($this->photos as $index => $photo) {
+            if (! in_array($index, $referenced, true)) {
+                $unreferenced[] = $photo;
+            }
+        }
+
+        return $unreferenced;
     }
 
     /**
