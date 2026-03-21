@@ -234,7 +234,7 @@ class FanfictionPreviewTest extends TestCase
 
         $response->assertOk();
         // No separate gallery grid should be rendered
-        $response->assertDontSee('grid grid-cols-2 md:grid-cols-3 gap-4', false);
+        $response->assertDontSee('data-testid="fanfiction-gallery"', false);
     }
 
     // ── Foto-Limit ─────────────────────────────────────────────

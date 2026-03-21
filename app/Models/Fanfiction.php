@@ -245,7 +245,11 @@ class Fanfiction extends Model
      *
      * Resolves [bild:N:position:caption] tags against the given photo array
      * (or $this->photos when omitted). Photos are referenced by 1-based index.
-     * All output is sanitized through strip_tags and DOMDocument to prevent XSS.
+     *
+     * Sanitization boundary: Markdown output is sanitized through strip_tags and
+     * DOMDocument (attribute stripping). The <figure> HTML for [bild:…] tags is
+     * injected *after* DOMDocument sanitization; its values are escaped individually
+     * via e() in buildFigureHtml() and are therefore not covered by DOMDocument.
      *
      * @param  string      $markdown  Raw Markdown content (may contain [bild:…] tags)
      * @param  array|null  $photos    Optional photo paths for tag resolution; defaults to model photos
@@ -259,17 +263,22 @@ class Fanfiction extends Model
         // Each tag is replaced with a unique placeholder on its own line so
         // Markdown creates separate <p> elements for them.
         $placeholders = [];
-        try {
-            $token = bin2hex(random_bytes(8));
-        } catch (\Exception) {
-            $token = md5(($this->getKey() ?? 'new').'_'.$this->updated_at);
+        $hasBildTags = preg_match(self::BILD_TAG_PATTERN, $markdown) === 1;
+
+        if ($hasBildTags) {
+            try {
+                $token = bin2hex(random_bytes(8));
+            } catch (\Exception) {
+                $token = md5(($this->getKey() ?? 'new').'_'.$this->updated_at);
+            }
         }
-        $preparedMarkdown = preg_replace_callback(self::BILD_TAG_PATTERN, function (array $matches) use (&$placeholders, $token) {
+
+        $preparedMarkdown = $hasBildTags ? preg_replace_callback(self::BILD_TAG_PATTERN, function (array $matches) use (&$placeholders, $token) {
             $id = '%%BILD_'.$token.'_'.count($placeholders).'%%';
             $placeholders[$id] = $matches[0]; // Store original tag
             // Two newlines ensure Markdown puts this in its own <p>
             return "\n\n".$id."\n\n";
-        }, $markdown) ?? $markdown;
+        }, $markdown) ?? $markdown : $markdown;
 
         $html = Str::markdown($preparedMarkdown, [
             'html_input' => 'strip',

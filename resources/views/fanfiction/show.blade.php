@@ -34,7 +34,7 @@
                 @php $unreferencedPhotos = $fanfiction->getUnreferencedPhotos(); @endphp
                 @if (count($unreferencedPhotos) > 0)
                     <div class="mb-8">
-                        <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                        <div class="grid grid-cols-2 md:grid-cols-3 gap-4" data-testid="fanfiction-gallery">
                             @foreach ($unreferencedPhotos as $photo)
                                 <a href="{{ Storage::url($photo) }}" target="_blank"
                                     class="block aspect-square overflow-hidden rounded-lg hover:opacity-90 transition-opacity">
