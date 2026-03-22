@@ -416,7 +416,7 @@ class Fanfiction extends Model
             : \Illuminate\Support\Facades\Storage::url($photoPath);
         $escapedUrl = e($url);
         $escapedCaption = e($caption);
-        $altText = $escapedCaption ?: e($this->title ?? 'Fanfiction-Bild');
+        $altText = $escapedCaption ?: e($this->title ?: 'Fanfiction-Bild');
 
         $positionClass = "fanfiction-bild--{$position}";
 
