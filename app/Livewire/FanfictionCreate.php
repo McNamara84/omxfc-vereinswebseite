@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\Locked;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -23,7 +24,7 @@ class FanfictionCreate extends Component
 
     public const ALLOWED_PHOTO_EXTENSIONS = ['jpg', 'jpeg', 'png', 'webp'];
 
-    public const MAX_PHOTOS = 5;
+    public const MAX_PHOTOS = 10;
 
     public const MAX_PHOTO_SIZE_KB = 2048;
 
@@ -48,6 +49,11 @@ class FanfictionCreate extends Component
     public string $status = 'draft';
 
     public array $photos = [];
+
+    public bool $showPreview = false;
+
+    #[Locked]
+    public string $previewHtml = '';
 
     #[Computed]
     public function members()
@@ -84,6 +90,33 @@ class FanfictionCreate extends Component
             $this->userId = null;
             $this->authorName = '';
         }
+    }
+
+    public function togglePreview(): void
+    {
+        $this->showPreview = ! $this->showPreview;
+
+        if ($this->showPreview) {
+            $this->previewHtml = $this->renderPreview();
+        }
+    }
+
+    private function renderPreview(): string
+    {
+        $tempFanfiction = new Fanfiction([
+            'content' => $this->content,
+            'title' => $this->title,
+        ]);
+
+        // Build temporary URLs for preview (avoids leaking server paths)
+        $previewPhotos = [];
+        foreach ($this->photos as $photo) {
+            if ($photo) {
+                $previewPhotos[] = $photo->temporaryUrl();
+            }
+        }
+
+        return $tempFanfiction->renderFormattedContent($this->content, $previewPhotos);
     }
 
     public function save(): void

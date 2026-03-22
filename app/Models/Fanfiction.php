@@ -41,6 +41,8 @@ class Fanfiction extends Model
 
     private const ALLOWED_HTML_TAGS = '<p><strong><em><a><ul><ol><li><blockquote><code><pre><br><h1><h2><h3><h4><h5><h6>';
 
+    private const BILD_TAG_PATTERN = '/\[bild:(\d+)(?::([^:\]]*?))?(?::([^\]]*?))?\]/i';
+
     private const TEASER_LENGTH = 400;
 
     protected $fillable = [
@@ -190,6 +192,11 @@ class Fanfiction extends Model
                 continue;
             }
 
+            // Reject external URLs – only relative storage paths may be persisted
+            if (preg_match('#^https?://#i', $normalizedPath)) {
+                continue;
+            }
+
             $normalized[] = $normalizedPath;
         }
 
@@ -240,10 +247,46 @@ class Fanfiction extends Model
 
     /**
      * Render Markdown to sanitized HTML with defense-in-depth escaping.
+     *
+     * Resolves [bild:N:position:caption] tags against the given photo array
+     * (or $this->photos when omitted). Photos are referenced by 1-based index.
+     *
+     * Sanitization boundary: Markdown output is sanitized through strip_tags and
+     * DOMDocument (attribute stripping). The <figure> HTML for [bild:…] tags is
+     * injected *after* DOMDocument sanitization; its values are escaped individually
+     * via e() in buildFigureHtml() and are therefore not covered by DOMDocument.
+     *
+     * @param  string      $markdown  Raw Markdown content (may contain [bild:…] tags)
+     * @param  array|null  $photos    Optional photo paths for tag resolution; defaults to model photos
      */
-    private function renderFormattedContent(string $markdown): string
+    public function renderFormattedContent(string $markdown, ?array $photos = null): string
     {
-        $html = Str::markdown($markdown, [
+        $resolvedPhotos = $photos ?? $this->photos;
+        $allowExternalUrls = $photos !== null;
+
+        // Extract [bild:N:...] tags before Markdown parsing to prevent them
+        // from ending up inside <p> tags (block-level <figure> in inline <p>).
+        // Each tag is replaced with a unique placeholder on its own line so
+        // Markdown creates separate <p> elements for them.
+        $placeholders = [];
+        $hasBildTags = preg_match(self::BILD_TAG_PATTERN, $markdown) === 1;
+
+        if ($hasBildTags) {
+            try {
+                $token = bin2hex(random_bytes(8));
+            } catch (\Exception) {
+                $token = md5(($this->getKey() ?? 'new').'_'.$this->updated_at);
+            }
+        }
+
+        $preparedMarkdown = $hasBildTags ? preg_replace_callback(self::BILD_TAG_PATTERN, function (array $matches) use (&$placeholders, $token) {
+            $id = '%%BILD_'.$token.'_'.count($placeholders).'%%';
+            $placeholders[$id] = $matches[0]; // Store original tag
+            // Two newlines ensure Markdown puts this in its own <p>
+            return "\n\n".$id."\n\n";
+        }, $markdown) ?? $markdown : $markdown;
+
+        $html = Str::markdown($preparedMarkdown, [
             'html_input' => 'strip',
         ]);
 
@@ -251,7 +294,8 @@ class Fanfiction extends Model
 
         $textOnly = trim(strip_tags($html));
 
-        if ($textOnly === '') {
+        // Return empty string when content has no real text and no bild-tags
+        if ($textOnly === '' && $placeholders === []) {
             return '';
         }
 
@@ -304,11 +348,124 @@ class Fanfiction extends Model
                 $fragment .= $dom->saveHTML($child);
             }
 
-            return $fragment;
+            return $this->replaceBildPlaceholders($fragment, $placeholders, $resolvedPhotos, $allowExternalUrls);
         } finally {
             libxml_use_internal_errors($previousLibxmlSetting);
             libxml_clear_errors();
         }
+    }
+
+    /**
+     * Replace bild placeholders with <figure> elements.
+     * Removes the wrapping <p> tag if the placeholder is the sole content of a paragraph.
+     *
+     * @param  array<string, string>  $placeholders  Map of placeholder → original [bild:...] tag
+     * @param  array<int, string>  $photos
+     */
+    private function replaceBildPlaceholders(string $html, array $placeholders, array $photos, bool $allowExternalUrls = false): string
+    {
+        if ($placeholders === []) {
+            return $html;
+        }
+
+        $photoCount = count($photos);
+
+        foreach ($placeholders as $placeholder => $originalTag) {
+            $figureHtml = $this->buildFigureHtml($originalTag, $photos, $photoCount, $allowExternalUrls);
+
+            // Remove wrapping <p> if placeholder is its sole content.
+            // Use preg_replace_callback to return $figureHtml literally,
+            // avoiding PCRE backreference interpretation of $ in captions.
+            $wrappedPattern = '#<p>\s*'.preg_quote($placeholder, '#').'\s*</p>#';
+            if (preg_match($wrappedPattern, $html) === 1) {
+                $html = preg_replace_callback($wrappedPattern, fn () => $figureHtml, $html, 1) ?? $html;
+            } else {
+                $html = str_replace($placeholder, $figureHtml, $html);
+            }
+        }
+
+        return $html;
+    }
+
+    /**
+     * Build a <figure> HTML element from a [bild:N:position:caption] tag.
+     *
+     * @param  array<int, string>  $photos
+     */
+    private function buildFigureHtml(string $tag, array $photos, int $photoCount, bool $allowExternalUrls = false): string
+    {
+        if (preg_match(self::BILD_TAG_PATTERN, $tag, $matches) !== 1) {
+            return '';
+        }
+
+        $index = (int) $matches[1] - 1;
+        $rawPosition = strtolower(trim($matches[2] ?? ''));
+        $position = match ($rawPosition) {
+            'links', 'rechts', 'zentriert' => $rawPosition,
+            default => 'zentriert',
+        };
+        $caption = trim($matches[3] ?? '');
+
+        if ($index < 0 || $index >= $photoCount) {
+            return '';
+        }
+
+        $photoPath = $photos[$index];
+        $url = ($allowExternalUrls && preg_match('#^https?://#i', $photoPath))
+            ? $photoPath
+            : \Illuminate\Support\Facades\Storage::url($photoPath);
+        $escapedUrl = e($url);
+        $escapedCaption = e($caption);
+        $altText = $escapedCaption ?: e($this->title ?: 'Fanfiction-Bild');
+
+        $positionClass = "fanfiction-bild--{$position}";
+
+        $figcaptionHtml = $caption !== '' ? "\n  <figcaption>{$escapedCaption}</figcaption>" : '';
+
+        return "<figure class=\"fanfiction-bild {$positionClass}\">\n  <img src=\"{$escapedUrl}\" alt=\"{$altText}\" loading=\"lazy\">{$figcaptionHtml}\n</figure>";
+    }
+
+    /**
+     * Get 0-based indices of photos referenced by [bild:N] tags in the content.
+     *
+     * @return array<int>
+     */
+    public function getReferencedPhotoIndices(): array
+    {
+        $content = (string) ($this->content ?? '');
+        $photos = $this->photos;
+        $photoCount = count($photos);
+        $indices = [];
+
+        if ($photoCount > 0 && preg_match_all(self::BILD_TAG_PATTERN, $content, $matches)) {
+            foreach ($matches[1] as $match) {
+                $index = (int) $match - 1;
+                if ($index >= 0 && $index < $photoCount) {
+                    $indices[] = $index;
+                }
+            }
+        }
+
+        return array_values(array_unique($indices));
+    }
+
+    /**
+     * Get photos that are NOT referenced by [bild:N] tags in the content.
+     *
+     * @return array<int, string>
+     */
+    public function getUnreferencedPhotos(): array
+    {
+        $referenced = $this->getReferencedPhotoIndices();
+        $unreferenced = [];
+
+        foreach ($this->photos as $index => $photo) {
+            if (! in_array($index, $referenced, true)) {
+                $unreferenced[] = $photo;
+            }
+        }
+
+        return $unreferenced;
     }
 
     /**
@@ -354,6 +511,10 @@ class Fanfiction extends Model
     private function safeFallback(string $html): string
     {
         $text = trim(strip_tags($html));
+
+        // Remove any unresolved placeholder tokens that may remain
+        $text = preg_replace('/%%BILD_[a-f0-9]+_\d+%%/', '', $text) ?? $text;
+        $text = trim($text);
 
         if ($text === '') {
             return '';

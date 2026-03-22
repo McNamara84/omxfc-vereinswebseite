@@ -30,15 +30,16 @@
             </div>
 
             @if ($hasUnlocked)
-                {{-- Bilder als Galerie --}}
-                @if ($fanfiction->photos && count($fanfiction->photos) > 0)
+                {{-- Galerie nur für Bilder, die NICHT per [bild:N] im Text referenziert werden --}}
+                @php $unreferencedPhotos = $fanfiction->getUnreferencedPhotos(); @endphp
+                @if (count($unreferencedPhotos) > 0)
                     <div class="mb-8">
-                        <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-                            @foreach ($fanfiction->photos as $index => $photo)
+                        <div class="grid grid-cols-2 md:grid-cols-3 gap-4" data-testid="fanfiction-gallery">
+                            @foreach ($unreferencedPhotos as $photo)
                                 <a href="{{ Storage::url($photo) }}" target="_blank"
                                     class="block aspect-square overflow-hidden rounded-lg hover:opacity-90 transition-opacity">
                                     <img src="{{ Storage::url($photo) }}"
-                                        alt="{{ $fanfiction->title }} - Bild {{ $index + 1 }}"
+                                        alt="{{ $fanfiction->title }} – Bild {{ $loop->iteration }}"
                                         class="w-full h-full object-cover">
                                 </a>
                             @endforeach
@@ -47,7 +48,7 @@
                 @endif
 
                 {{-- Story-Inhalt (Markdown) --}}
-                <div class="prose dark:prose-invert max-w-none mb-8">
+                <div class="fanfiction-content prose dark:prose-invert max-w-none mb-8">
                     {!! $fanfiction->formatted_content !!}
                 </div>
 

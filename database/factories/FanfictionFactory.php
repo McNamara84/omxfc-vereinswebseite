@@ -64,10 +64,14 @@ class FanfictionFactory extends Factory
      */
     public function withPhotos(int $count = 2): static
     {
+        if ($count <= 0) {
+            return $this->state(fn (array $attributes) => ['photos' => []]);
+        }
+
         return $this->state(fn (array $attributes) => [
             'photos' => array_map(
                 fn ($i) => "fanfiction/photo-{$i}.jpg",
-                range(1, min($count, 5))
+                range(1, min($count, 10))
             ),
         ]);
     }

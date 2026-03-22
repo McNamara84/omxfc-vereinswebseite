@@ -57,14 +57,48 @@
                 required
             />
 
-            <x-textarea
-                wire:model="content"
-                label="Geschichte"
-                rows="15"
-                hint="Markdown-Formatierung wird unterstützt: **fett**, *kursiv*, > Zitat, etc."
-                class="font-mono"
-                required
-            />
+            <div class="form-control w-full">
+                <div class="flex items-center justify-between mb-2">
+                    <label @if(!$showPreview) for="fanfiction-content" @endif class="label-text font-medium">Geschichte *</label>
+                    <x-button
+                        wire:click="togglePreview"
+                        :label="$showPreview ? 'Editor' : 'Vorschau'"
+                        :icon="$showPreview ? 'o-pencil-square' : 'o-eye'"
+                        class="btn-ghost btn-sm"
+                        type="button"
+                    />
+                </div>
+
+                @if($showPreview)
+                    <div class="fanfiction-content prose dark:prose-invert max-w-none border border-base-300 rounded-lg p-6 min-h-[20rem] bg-base-100" data-testid="preview-content">
+                        @if($previewHtml)
+                            {!! $previewHtml !!}
+                        @else
+                            <p class="text-base-content/50 italic">Kein Inhalt zum Anzeigen.</p>
+                        @endif
+                    </div>
+                @else
+                    <x-textarea
+                        id="fanfiction-content"
+                        wire:model="content"
+                        rows="15"
+                        hint="Markdown-Formatierung wird unterstützt: **fett**, *kursiv*, > Zitat, etc."
+                        class="font-mono"
+                        required
+                    />
+                @endif
+
+                {{-- Bild-Tag Hilfe --}}
+                <div class="mt-2 p-3 bg-base-200 rounded-lg text-sm">
+                    <p class="font-medium mb-1">Bilder im Text positionieren:</p>
+                    <ul class="list-disc list-inside space-y-1 text-base-content/70">
+                        <li><code class="text-xs">[bild:1]</code> — Bild 1 zentriert einfügen</li>
+                        <li><code class="text-xs">[bild:2:links]</code> — Bild 2, links floatend</li>
+                        <li><code class="text-xs">[bild:3:rechts:Beschreibung]</code> — Bild 3, rechts mit Unterschrift</li>
+                    </ul>
+                    <p class="mt-1 text-base-content/50">Positionen: <code class="text-xs">links</code>, <code class="text-xs">rechts</code>, <code class="text-xs">zentriert</code> (Standard)</p>
+                </div>
+            </div>
 
             {{-- Vorhandene Bilder --}}
             @if(count($existingPhotos) > 0)
@@ -101,7 +135,7 @@
                 wire:model="newPhotos"
                 label="Neue Bilder hinzufügen (optional)"
                 accept="image/jpeg,image/png,image/webp"
-                hint="Erlaubte Formate: JPG, PNG, WebP. Max. 2 MB pro Bild. Insgesamt max. 5 Bilder."
+                hint="Erlaubte Formate: JPG, PNG, WebP. Max. 2 MB pro Bild. Insgesamt max. 10 Bilder."
                 multiple
             />
 

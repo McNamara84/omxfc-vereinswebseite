@@ -25,7 +25,7 @@ class FanfictionAdminController extends Controller
 
     public const ALLOWED_PHOTO_EXTENSIONS = ['jpg', 'jpeg', 'png', 'webp'];
 
-    public const MAX_PHOTOS = 5;
+    public const MAX_PHOTOS = 10;
 
     public const MAX_PHOTO_SIZE_KB = 2048;
 
