@@ -41,7 +41,7 @@ class Fanfiction extends Model
 
     private const ALLOWED_HTML_TAGS = '<p><strong><em><a><ul><ol><li><blockquote><code><pre><br><h1><h2><h3><h4><h5><h6>';
 
-    private const BILD_TAG_PATTERN = '/\[bild:(\d+)(?::(links|rechts|zentriert))?(?::([^\]]+))?\]/i';
+    private const BILD_TAG_PATTERN = '/\[bild:(\d+)(?::([^:\]]*?))?(?::([^\]]*?))?\]/i';
 
     private const TEASER_LENGTH = 400;
 
@@ -399,7 +399,11 @@ class Fanfiction extends Model
         }
 
         $index = (int) $matches[1] - 1;
-        $position = strtolower($matches[2] ?? 'zentriert') ?: 'zentriert';
+        $rawPosition = strtolower(trim($matches[2] ?? ''));
+        $position = match ($rawPosition) {
+            'links', 'rechts', 'zentriert' => $rawPosition,
+            default => 'zentriert',
+        };
         $caption = trim($matches[3] ?? '');
 
         if ($index < 0 || $index >= $photoCount) {
@@ -414,11 +418,7 @@ class Fanfiction extends Model
         $escapedCaption = e($caption);
         $altText = $escapedCaption ?: e($this->title ?? 'Fanfiction-Bild');
 
-        $positionClass = match ($position) {
-            'links' => 'fanfiction-bild--links',
-            'rechts' => 'fanfiction-bild--rechts',
-            default => 'fanfiction-bild--zentriert',
-        };
+        $positionClass = "fanfiction-bild--{$position}";
 
         $figcaptionHtml = $caption !== '' ? "\n  <figcaption>{$escapedCaption}</figcaption>" : '';
 
