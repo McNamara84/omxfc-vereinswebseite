@@ -373,10 +373,12 @@ class Fanfiction extends Model
         foreach ($placeholders as $placeholder => $originalTag) {
             $figureHtml = $this->buildFigureHtml($originalTag, $photos, $photoCount, $allowExternalUrls);
 
-            // Remove wrapping <p> if placeholder is its sole content
+            // Remove wrapping <p> if placeholder is its sole content.
+            // Use preg_replace_callback to return $figureHtml literally,
+            // avoiding PCRE backreference interpretation of $ in captions.
             $wrappedPattern = '#<p>\s*'.preg_quote($placeholder, '#').'\s*</p>#';
             if (preg_match($wrappedPattern, $html) === 1) {
-                $html = preg_replace($wrappedPattern, $figureHtml, $html, 1) ?? $html;
+                $html = preg_replace_callback($wrappedPattern, fn () => $figureHtml, $html, 1) ?? $html;
             } else {
                 $html = str_replace($placeholder, $figureHtml, $html);
             }
