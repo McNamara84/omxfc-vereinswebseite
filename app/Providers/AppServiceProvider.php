@@ -49,7 +49,7 @@ class AppServiceProvider extends ServiceProvider
                 return Limit::none();
             }
 
-            return Limit::perHour(5)->by($request->ip());
+            return Limit::perHour(15)->by($request->ip());
         });
 
         $version = Config::get('app.version');

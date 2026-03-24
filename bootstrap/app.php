@@ -21,6 +21,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
+        // Alle Proxies vertrauen (Docker: Nginx → PHP-FPM Container)
+        $middleware->trustProxies(at: '*');
+
         // Globale Middleware hier registrieren (für alle Requests)
         $middleware->alias([
             'redirect.if.anwaerter' => RedirectIfAnwaerter::class,

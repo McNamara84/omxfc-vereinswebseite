@@ -362,7 +362,7 @@ class FantreffenAnmeldungTest extends TestCase
         $response->assertSee('name="_form_token"', false);
     }
 
-    public function test_rate_limiter_blocks_after_five_requests(): void
+    public function test_rate_limiter_blocks_after_fifteen_requests(): void
     {
         Mail::fake();
 
@@ -371,7 +371,7 @@ class FantreffenAnmeldungTest extends TestCase
         config(['services.fantreffen.disable_rate_limit' => false]);
 
         try {
-            for ($i = 1; $i <= 5; $i++) {
+            for ($i = 1; $i <= 15; $i++) {
                 $response = $this->post('/maddrax-fantreffen-2026', [
                     'vorname' => "User{$i}",
                     'nachname' => 'Test',
@@ -383,7 +383,7 @@ class FantreffenAnmeldungTest extends TestCase
                 $response->assertSessionHasNoErrors();
             }
 
-            // 6. Request sollte gedrosselt werden
+            // 16. Request sollte gedrosselt werden
             $response = $this->post('/maddrax-fantreffen-2026', [
                 'vorname' => 'Blocked',
                 'nachname' => 'User',
@@ -393,6 +393,31 @@ class FantreffenAnmeldungTest extends TestCase
             ]);
             $response->assertStatus(429);
             $this->assertDatabaseMissing('fantreffen_anmeldungen', ['email' => 'blocked@example.com']);
+        } finally {
+            config(['services.fantreffen.disable_rate_limit' => $originalValue]);
+        }
+    }
+
+    public function test_rate_limiter_can_be_disabled_via_config(): void
+    {
+        Mail::fake();
+
+        $originalValue = config('services.fantreffen.disable_rate_limit');
+        config(['services.fantreffen.disable_rate_limit' => true]);
+
+        try {
+            // 20 Requests sollten alle durchgehen wenn Rate-Limit deaktiviert ist
+            for ($i = 1; $i <= 20; $i++) {
+                $response = $this->post('/maddrax-fantreffen-2026', [
+                    'vorname' => "User{$i}",
+                    'nachname' => 'Test',
+                    'email' => "user{$i}@example.com",
+                    'website' => '',
+                    '_form_token' => $this->validFormToken(),
+                ]);
+                $response->assertRedirect();
+                $response->assertSessionHasNoErrors();
+            }
         } finally {
             config(['services.fantreffen.disable_rate_limit' => $originalValue]);
         }
