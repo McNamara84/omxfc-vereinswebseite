@@ -99,4 +99,26 @@ test.describe('Fantreffen 2026 Anmeldung', () => {
 
         expect(selectRequired).toBe(false);
     });
+
+    test('Mehrere Gäste können sich nacheinander ohne 429-Fehler registrieren', async ({ page }) => {
+        const gaeste = [
+            { vorname: 'Anna', nachname: 'Schmidt', email: 'anna.schmidt@example.com' },
+            { vorname: 'Ben', nachname: 'Weber', email: 'ben.weber@example.com' },
+            { vorname: 'Clara', nachname: 'Fischer', email: 'clara.fischer@example.com' },
+        ];
+
+        for (const gast of gaeste) {
+            await page.goto('/maddrax-fantreffen-2026');
+            await page.waitForLoadState('networkidle');
+
+            await page.fill('input[name="vorname"]', gast.vorname);
+            await page.fill('input[name="nachname"]', gast.nachname);
+            await page.fill('input[name="email"]', gast.email);
+
+            await page.getByTestId('fantreffen-submit').click();
+
+            // Muss zur Bestätigungsseite weiterleiten, NICHT 429
+            await page.waitForURL(/bestaetigung/, { timeout: 10000 });
+        }
+    });
 });

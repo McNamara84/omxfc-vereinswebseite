@@ -21,6 +21,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
+        // Trusted Proxies konfigurierbar via ENV (Default: '*' für Docker-Setup)
+        $middleware->trustProxies(at: env('TRUSTED_PROXIES', '*'));
+
         // Globale Middleware hier registrieren (für alle Requests)
         $middleware->alias([
             'redirect.if.anwaerter' => RedirectIfAnwaerter::class,
