@@ -83,7 +83,6 @@ import './romantausch-dropzone';
 import './polls/charts';
 
 // Wire-navigate-kompatible Module (Dual-Event-Listener)
-import './kompendium';
 import './mitglieder/karte';
 import './romantausch/serien-filter';
 

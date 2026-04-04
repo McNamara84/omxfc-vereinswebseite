@@ -11,11 +11,11 @@
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                     <div :class="{ 'opacity-50': advancedUnlocked }">
-                        <x-input label="Spielername" name="player_name" x-model="playerName" :disabled="advancedUnlocked" />
+                        <x-input label="Spielername" name="player_name" x-model="playerName" x-bind:disabled="advancedUnlocked" />
                     </div>
 
                     <div :class="{ 'opacity-50': advancedUnlocked }">
-                        <x-input label="Charaktername" name="character_name" x-model="characterName" :disabled="advancedUnlocked" />
+                        <x-input label="Charaktername" name="character_name" x-model="characterName" x-bind:disabled="advancedUnlocked" />
                     </div>
 
                     <div :class="{ 'opacity-50': advancedUnlocked }">
@@ -59,7 +59,7 @@
                         <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
                             @foreach(['st' => 'Stärke (ST)', 'ge' => 'Geschicklichkeit (GE)', 'ro' => 'Robustheit (RO)', 'wi' => 'Willenskraft (WI)', 'wa' => 'Wahrnehmung (WA)', 'in' => 'Intelligenz (IN)', 'au' => 'Auftreten (AU)'] as $attrId => $label)
                             <div>
-                                <x-input type="number" label="{{ $label }}" name="attributes[{{ $attrId }}]" id="{{ $attrId }}" min="-1" :max="attributeMax" step="1" x-model.number="attributes.{{ $attrId }}" @change="clampAttribute('{{ $attrId }}')" />
+                                <x-input type="number" label="{{ $label }}" name="attributes[{{ $attrId }}]" id="{{ $attrId }}" min="-1" x-bind:max="attributeMax" step="1" x-model.number="attributes.{{ $attrId }}" @change="clampAttribute('{{ $attrId }}')" />
                             </div>
                             @endforeach
                         </div>
@@ -111,7 +111,7 @@
                                 </div>
                             </template>
                         </div>
-                        <x-button type="button" label="Fertigkeit hinzufügen" class="btn-primary btn-sm mt-2" @click="addSkill()" :disabled="fpRemaining <= 0" />
+                        <x-button type="button" label="Fertigkeit hinzufügen" class="btn-primary btn-sm mt-2" @click="addSkill()" x-bind:disabled="fpRemaining <= 0" />
                         <datalist id="skills-list">
                             <option value="Athletik"></option>
                             <option value="Beruf"></option>
@@ -188,8 +188,8 @@
                     </div>
 
                     <div class="flex justify-end space-x-2">
-                        <x-button id="pdf-button" type="submit" formaction="{{ route('rpg.char-editor.pdf') }}" formtarget="_blank" :disabled="!formValid" label="PDF drucken" icon="o-document-text" class="btn-ghost" data-testid="pdf-button" />
-                        <x-button id="submit-button" type="submit" :disabled="!formValid" label="Speichern" icon="o-check" class="btn-primary" data-testid="submit-button" />
+                        <x-button id="pdf-button" type="submit" formaction="{{ route('rpg.char-editor.pdf') }}" formtarget="_blank" x-bind:disabled="!formValid" label="PDF drucken" icon="o-document-text" class="btn-ghost" data-testid="pdf-button" />
+                        <x-button id="submit-button" type="submit" x-bind:disabled="!formValid" label="Speichern" icon="o-check" class="btn-primary" data-testid="submit-button" />
                     </div>
                 </fieldset>
             </form>

@@ -35,10 +35,8 @@ class HomePageContentTest extends TestCase
             ->assertSee('Vorteile einer Mitgliedschaft')
             ->assertSee('Kostenlose Teilnahme an den jährlichen Fantreffen')
             ->assertSee('Letzte Rezensionen')
-            ->assertSee('Lädt Community-Highlights', false)
+            ->assertSeeLivewire('home-reviews')
             ->assertSee('Lesetipps und Eindrücke zu den Romanen unserer Lieblingsserie.', false)
-            ->assertSee('data-api-url=', false)
-            ->assertSee('id="latest-reviews-list"', false)
             ->assertSee('aktive Mitglieder');
     }
 
@@ -182,21 +180,12 @@ class HomePageContentTest extends TestCase
             ->assertDontSee('href="'.route('mitglied.werden').'"', false);
     }
 
-    public function test_latest_reviews_loading_state_updates_aria_busy_on_error(): void
+    public function test_latest_reviews_rendered_by_livewire_component(): void
     {
         $response = $this->get('/');
 
         $response->assertOk()
-            ->assertSee('id="latest-reviews-loading"', false)
-            ->assertSee('aria-busy="true"', false);
-
-        // Die Review-Liste muss eine data-api-url haben (für das externe JS-Modul)
-        $response->assertSee('data-api-url=', false);
-
-        $this->assertDoesNotMatchRegularExpression(
-            '/id="latest-reviews-list"[^>]+aria-live=/',
-            $response->getContent(),
-        );
+            ->assertSeeLivewire('home-reviews');
     }
 
     public function test_latest_reviews_empty_state_is_announced_accessibly(): void
@@ -204,7 +193,6 @@ class HomePageContentTest extends TestCase
         $response = $this->get('/');
 
         $response->assertOk()
-            ->assertSee('id="latest-reviews-empty"', false)
             ->assertSee('role="status"', false)
             ->assertSee('aria-live="polite"', false);
     }

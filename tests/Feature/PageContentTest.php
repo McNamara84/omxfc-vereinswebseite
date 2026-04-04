@@ -21,6 +21,6 @@ class PageContentTest extends TestCase
     {
         $this->get('/changelog')
             ->assertOk()
-            ->assertSee('release-notes');
+            ->assertSeeLivewire('changelog');
     }
 }

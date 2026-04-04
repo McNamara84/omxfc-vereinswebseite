@@ -34,8 +34,8 @@ async function loadApp(matches) {
     },
   });
   await jest.unstable_mockModule('../../resources/js/bootstrap.js', () => ({}));
-  await jest.unstable_mockModule('../../resources/js/chronik.js', () => ({}));
-  await jest.unstable_mockModule('../../resources/js/char-editor.js', () => ({}));
+  await jest.unstable_mockModule('../../resources/js/alpine/char-editor.js', () => ({}));
+  await jest.unstable_mockModule('../../resources/js/alpine/hoerbuch-role-repeater.js', () => ({}));
   await jest.unstable_mockModule('leaflet', () => ({ default: {} }));
   
   // Mock Alpine.js and its focus plugin
