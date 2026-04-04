@@ -269,7 +269,22 @@
                         @endphp
                         <li class="bg-base-200 p-4 rounded">
                             <div class="flex flex-col gap-4 sm:flex-row sm:items-center">
-                                <div class="flex w-full flex-col gap-3 sm:w-48" {{ $hasPhotos ? 'data-romantausch-gallery' : '' }}>
+                                <div class="flex w-full flex-col gap-3 sm:w-48"
+                                    @if($hasPhotos)
+                                    x-data="{
+                                        isOpen: false,
+                                        idx: 0,
+                                        photos: @js(collect($photos)->map(fn($p, $i) => [
+                                            'src' => asset('storage/' . $p),
+                                            'label' => 'Foto ' . ($i + 1) . ' von ' . $bookDescription,
+                                        ])->values()),
+                                        open(i) { this.idx = i; this.isOpen = true; },
+                                        close() { this.isOpen = false; },
+                                        prev() { this.idx = (this.idx - 1 + this.photos.length) % this.photos.length; },
+                                        next() { this.idx = (this.idx + 1) % this.photos.length; },
+                                    }"
+                                    @endif
+                                >
                                     @if($hasPhotos)
                                         <ul class="grid grid-cols-3 gap-2 sm:grid-cols-2">
                                             @foreach($photos as $photoIndex => $photoPath)
@@ -282,11 +297,7 @@
                                                     <button
                                                         type="button"
                                                         class="group relative block aspect-square w-full overflow-hidden rounded-md ring-1 ring-inset ring-base-content/10 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary  "
-                                                        data-photo-dialog-trigger
-                                                        data-photo-src="{{ $thumbnailSrc }}"
-                                                        data-photo-alt="{{ $thumbnailLabel }}"
-                                                        data-photo-index="{{ $photoIndex }}"
-                                                        data-photo-label="{{ $thumbnailLabel }}"
+                                                        @click="open({{ $photoIndex }})"
                                                     >
                                                         <span class="sr-only">{{ $thumbnailLabel }} vergrößert anzeigen</span>
                                                         <img
@@ -302,17 +313,22 @@
                                         <p class="text-xs text-base-content">Zum Vergrößern ein Foto auswählen.</p>
                                         <div id="offer-{{ $offer->id }}-dialog-title" class="sr-only">Fotoansicht für {{ $bookDescription }}</div>
                                         <div
-                                            class="hidden"
-                                            data-photo-dialog
+                                            x-show="isOpen"
+                                            x-transition.opacity
+                                            x-trap.noscroll.inert="isOpen"
+                                            @keydown.escape.window="close()"
+                                            @keydown.arrow-left.prevent="prev()"
+                                            @keydown.arrow-right.prevent="next()"
                                             role="dialog"
                                             aria-modal="true"
                                             aria-labelledby="offer-{{ $offer->id }}-dialog-title"
+                                            class="fixed inset-0 z-50"
+                                            style="display: none;"
                                         >
                                             <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
-                                                <div class="absolute inset-0 bg-black/70" data-photo-dialog-overlay aria-hidden="true"></div>
+                                                <div class="absolute inset-0 bg-black/70" @click="close()" aria-hidden="true"></div>
                                                 <div
                                                     class="relative z-10 flex w-full max-w-3xl flex-col overflow-hidden rounded-lg bg-base-100 shadow-2xl outline-none focus-visible:outline-none "
-                                                    data-photo-dialog-panel
                                                     tabindex="-1"
                                                 >
                                                     <div class="flex items-center justify-between border-b border-base-content/10 bg-base-200 px-4 py-3 ">
@@ -320,8 +336,7 @@
                                                         <button
                                                             type="button"
                                                             class="inline-flex items-center rounded-md p-2 text-base-content transition hover:text-base-content focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary   "
-                                                            data-photo-dialog-close
-                                                            data-photo-dialog-initial-focus
+                                                            @click="close()"
                                                             aria-label="Fotoansicht schließen"
                                                         >
                                                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="h-5 w-5" aria-hidden="true">
@@ -333,7 +348,8 @@
                                                         <button
                                                             type="button"
                                                             class="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-base-100/90 p-2 text-base-content shadow transition hover:bg-base-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary disabled:pointer-events-none disabled:opacity-50 /90  dark:hover:bg-neutral/80 "
-                                                            data-photo-dialog-prev
+                                                            @click="prev()"
+                                                            :disabled="photos.length <= 1"
                                                             aria-label="Vorheriges Foto"
                                                         >
                                                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="h-5 w-5" aria-hidden="true">
@@ -341,15 +357,15 @@
                                                             </svg>
                                                         </button>
                                                         <img
-                                                            src="{{ asset('storage/' . $photos[0]) }}"
-                                                            alt="{{ "Foto 1 von {$bookDescription}" }}"
+                                                            :src="photos[idx]?.src"
+                                                            :alt="photos[idx]?.label"
                                                             class="max-h-[70vh] w-full max-w-2xl object-contain"
-                                                            data-photo-dialog-image
                                                         >
                                                         <button
                                                             type="button"
                                                             class="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-base-100/90 p-2 text-base-content shadow transition hover:bg-base-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary disabled:pointer-events-none disabled:opacity-50 /90  dark:hover:bg-neutral/80 "
-                                                            data-photo-dialog-next
+                                                            @click="next()"
+                                                            :disabled="photos.length <= 1"
                                                             aria-label="Nächstes Foto"
                                                         >
                                                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="h-5 w-5" aria-hidden="true">
@@ -358,14 +374,14 @@
                                                         </button>
                                                     </div>
                                                     <div class="flex items-center justify-between gap-3 border-t border-base-content/10 bg-base-200 px-4 py-3 text-xs text-base-content  ">
-                                                        <span data-photo-dialog-counter>1 / {{ count($photos) }}</span>
-                                                        <span data-photo-dialog-caption>{{ "Foto 1 von {$bookDescription}" }}</span>
+                                                        <span x-text="(idx + 1) + ' / ' + photos.length">1 / {{ count($photos) }}</span>
+                                                        <span x-text="photos[idx]?.label">{{ "Foto 1 von {$bookDescription}" }}</span>
                                                     </div>
                                                     <div class="flex justify-end border-t border-base-content/10 bg-base-200 px-4 py-3 ">
                                                         <button
                                                             type="button"
                                                             class="inline-flex items-center rounded-md bg-primary px-3 py-1.5 text-sm font-semibold text-primary-content shadow-sm transition hover:bg-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary "
-                                                            data-photo-dialog-close
+                                                            @click="close()"
                                                         >
                                                             Schließen
                                                         </button>

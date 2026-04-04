@@ -77,24 +77,13 @@
                         />
                     </div>
 
-                    {{-- Rollen-Bereich (JS-gesteuert, bleibt nativ) --}}
                     <div>
                         <label class="block text-sm font-medium text-base-content mb-1">Rollen</label>
-                        <div
-                            id="roles_list"
-                            data-members-target="#members"
-                            data-previous-speaker-url="{{ route('hoerbuecher.previous-speaker') }}"
-                            data-role-index="{{ count(old('roles', [])) }}"
-                        ></div>
-                        <x-button type="button" id="add_role" label="Rolle hinzufügen" icon="o-plus" class="btn-ghost btn-sm mt-2" />
-                        <datalist id="members">
-                            @foreach($users as $member)
-                                <option data-id="{{ $member->id }}" value="{{ $member->name }}"></option>
-                            @endforeach
-                        </datalist>
-                        @error('roles')
-                            <p class="mt-1 text-sm text-error">{{ $message }}</p>
-                        @enderror
+                        <x-hoerbuch-role-repeater
+                            :initial-roles="old('roles', [])"
+                            :users="$users"
+                            :previous-speaker-url="route('hoerbuecher.previous-speaker')"
+                        />
                     </div>
 
                     <x-textarea
@@ -111,7 +100,5 @@
             </form>
         </x-card>
     </x-member-page>
-    @assets
-        @vite(['resources/js/hoerbuch-role-form.js'])
-    @endassets
+
 </x-app-layout>

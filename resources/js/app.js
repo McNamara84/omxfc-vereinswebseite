@@ -72,24 +72,17 @@ import 'leaflet/dist/leaflet.css';
 // Leaflet global verfügbar machen
 window.L = L;
 
-import './chronik';
-import './char-editor';
+import './alpine/char-editor';
+import './alpine/hoerbuch-role-repeater';
 import './todos';
 import './dashboard';
 import './mitglieder/accessibility';
 import './mitglieder/map-utils';
-import './protokolle/accordion';
-import './kassenbuch/modals';
-import './romantausch-gallery';
 import './romantausch-dropzone';
 
 import './polls/charts';
 
 // Wire-navigate-kompatible Module (Dual-Event-Listener)
-import './mitglied-werden';
-import './home';
-import './fotogalerie';
-import './changelog';
 import './kompendium';
 import './mitglieder/karte';
 import './romantausch/serien-filter';

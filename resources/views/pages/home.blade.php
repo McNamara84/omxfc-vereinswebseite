@@ -5,7 +5,19 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             {{-- Fotogalerie --}}
             <div class="md:col-span-2 bg-base-100 rounded-lg shadow-md overflow-hidden">
-                <div id="gallery" class="relative w-full h-48 sm:h-64 md:h-72">
+                <div id="gallery" class="relative w-full h-48 sm:h-64 md:h-72"
+                     x-data="{
+                         current: 0,
+                         images: {{ count($galleryImages) }},
+                         init() {
+                             this.$el.querySelectorAll('img')[0]?.classList.remove('opacity-0');
+                             setInterval(() => {
+                                 this.$el.querySelectorAll('img')[this.current]?.classList.add('opacity-0');
+                                 this.current = (this.current + 1) % this.images;
+                                 this.$el.querySelectorAll('img')[this.current]?.classList.remove('opacity-0');
+                             }, 4000);
+                         }
+                     }">
                     @foreach($galleryImages as $image)
                         <picture>
                             <source type="image/avif" srcset="{{ asset($image . '.avif') }}" />
@@ -82,24 +94,7 @@
                 </div>
                 <p class="mt-1 text-sm text-base-content/80">Die neuesten Eindrücke aus unserer Community.</p>
 
-                <div id="latest-reviews-loading" class="mt-4 space-y-3" role="status" aria-live="polite" aria-busy="true">
-                    <div class="flex items-center gap-2 text-base-content/80">
-                        <span class="inline-block h-2 w-2 rounded-full bg-primary animate-pulse"></span>
-                        <span>Lädt Community-Highlights …</span>
-                    </div>
-                    <div class="space-y-2" aria-hidden="true">
-                        @for($i = 0; $i < 3; $i++)
-                            <div class="h-3 rounded bg-base-200 animate-pulse"></div>
-                        @endfor
-                    </div>
-                </div>
-
-                <p id="latest-reviews-empty" class="mt-4 text-sm text-base-content/80 hidden" role="status" aria-live="polite">
-                    Derzeit liegen keine Rezensionen vor. Schau später noch einmal vorbei.
-                </p>
-
-                <ul id="latest-reviews-list" class="mt-4 divide-y divide-base-content/10 hidden" aria-label="Neueste Rezensionen" data-api-url="{{ route('api.reviews.latest') }}">
-                </ul>
+                <livewire:home-reviews />
             </div>
 
             {{-- Kennzahlen --}}

@@ -13,8 +13,6 @@ export default defineConfig({
                 'resources/js/maddraxiversum.js',
                 'resources/js/statistik.js',
                 'resources/js/hoerbuecher.js',
-                'resources/js/hoerbuch-role-form.js',
-                'resources/js/hoerbuch-role-upload-toggle.js',
                 'resources/js/romantausch-bundle-preview.js',
             ],
             refresh: true,
