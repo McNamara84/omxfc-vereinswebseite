@@ -45,33 +45,26 @@
                         <span class="hidden group-open:inline">Filter ausblenden</span>
                     </summary>
                     <div class="mt-6 border-t border-base-content/10 pt-6">
-                        <fieldset class="space-y-4">
-                            <legend class="sr-only">Challenges filtern</legend>
-                            <div class="flex flex-wrap gap-2" role="group" aria-label="Challenges filtern">
+                            <nav class="flex flex-wrap gap-2" aria-label="Challenges filtern">
                                 <a href="{{ route('todos.index') }}"
                                     class="btn {{ $currentFilter === 'all' ? 'btn-primary font-semibold border border-primary' : 'btn-ghost font-semibold border border-primary text-primary' }}"
-                                    aria-pressed="{{ $currentFilter === 'all' ? 'true' : 'false' }}"
-                                    role="button"
+                                    @if($currentFilter === 'all') aria-current="page" @endif
                                 >Alle</a>
                                 <a href="{{ route('todos.index', ['filter' => 'assigned']) }}"
                                     class="btn {{ $currentFilter === 'assigned' ? 'btn-primary font-semibold border border-primary' : 'btn-ghost font-semibold border border-base-content/20' }}"
-                                    aria-pressed="{{ $currentFilter === 'assigned' ? 'true' : 'false' }}"
-                                    role="button"
+                                    @if($currentFilter === 'assigned') aria-current="page" @endif
                                 >Eigene Challenges</a>
                                 <a href="{{ route('todos.index', ['filter' => 'open']) }}"
                                     class="btn {{ $currentFilter === 'open' ? 'btn-primary font-semibold border border-primary' : 'btn-ghost font-semibold border border-base-content/20' }}"
-                                    aria-pressed="{{ $currentFilter === 'open' ? 'true' : 'false' }}"
-                                    role="button"
+                                    @if($currentFilter === 'open') aria-current="page" @endif
                                 >Offene Challenges</a>
                                 @if($canVerifyTodos)
                                     <a href="{{ route('todos.index', ['filter' => 'pending']) }}"
                                         class="btn {{ $currentFilter === 'pending' ? 'btn-primary font-semibold border border-primary' : 'btn-ghost font-semibold border border-base-content/20' }}"
-                                        aria-pressed="{{ $currentFilter === 'pending' ? 'true' : 'false' }}"
-                                        role="button"
+                                        @if($currentFilter === 'pending') aria-current="page" @endif
                                     >Zu verifizieren</a>
                                 @endif
-                            </div>
-                        </fieldset>
+                            </nav>
                     </div>
                 </details>
             </x-card>
