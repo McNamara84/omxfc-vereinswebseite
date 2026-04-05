@@ -989,10 +989,11 @@ class RomantauschControllerTest extends TestCase
 
         foreach ([$firstPath, $secondPath] as $index => $path) {
             $response->assertSee('src="'.asset('storage/'.$path).'"', false);
-            $response->assertSee('data-photo-index="'.$index.'"', false);
+            $response->assertSee('@click="open('.$index.')"', false);
         }
 
-        $response->assertSee('data-photo-dialog-counter', false);
+        // Alpine-gesteuerte Galerie enthält photos-Array
+        $response->assertSee('photos:', false);
     }
 
     public function test_create_request_loads_books_from_database(): void
