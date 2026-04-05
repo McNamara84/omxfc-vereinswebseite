@@ -6,3 +6,70 @@ test('chronik page displays timeline images with alt text', async ({ page }) => 
   await expect(page.getByRole('heading', { level: 1 })).toContainText('Chronik');
   await expect(page.getByAltText('Gründungsversammlung in Berlin 2023')).toBeVisible();
 });
+
+test.describe('Chronik Lightbox', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/chronik');
+  });
+
+  test('opens lightbox on image click and shows correct alt text', async ({ page }) => {
+    await page.getByAltText('Gründungsversammlung in Berlin 2023').click();
+
+    const dialog = page.locator('[role="dialog"]');
+    await expect(dialog).toBeVisible();
+    await expect(dialog).toHaveAttribute('aria-modal', 'true');
+    await expect(dialog).toHaveAttribute('aria-labelledby', 'chronik-lightbox-title');
+
+    const title = page.locator('#chronik-lightbox-title');
+    await expect(title).toHaveText('Gründungsversammlung in Berlin 2023');
+  });
+
+  test('closes lightbox via close button', async ({ page }) => {
+    await page.getByAltText('Gründungsversammlung in Berlin 2023').click();
+
+    const dialog = page.locator('[role="dialog"]');
+    await expect(dialog).toBeVisible();
+
+    await page.getByLabel('Bild schließen').click();
+    await expect(dialog).not.toBeVisible();
+  });
+
+  test('closes lightbox via Escape key', async ({ page }) => {
+    await page.getByAltText('Gründungsversammlung in Berlin 2023').click();
+
+    const dialog = page.locator('[role="dialog"]');
+    await expect(dialog).toBeVisible();
+
+    await page.keyboard.press('Escape');
+    await expect(dialog).not.toBeVisible();
+  });
+
+  test('closes lightbox via backdrop click', async ({ page }) => {
+    await page.getByAltText('Gründungsversammlung in Berlin 2023').click();
+
+    const dialog = page.locator('[role="dialog"]');
+    await expect(dialog).toBeVisible();
+
+    // Click the backdrop (the dialog overlay itself, not the inner content)
+    await dialog.click({ position: { x: 10, y: 10 } });
+    await expect(dialog).not.toBeVisible();
+  });
+
+  test('switches image when opening different lightbox triggers', async ({ page }) => {
+    await page.getByAltText('Gründungsversammlung in Berlin 2023').click();
+
+    const dialog = page.locator('[role="dialog"]');
+    await expect(dialog).toBeVisible();
+
+    const title = page.locator('#chronik-lightbox-title');
+    await expect(title).toHaveText('Gründungsversammlung in Berlin 2023');
+
+    // Close and open a different image
+    await page.keyboard.press('Escape');
+    await expect(dialog).not.toBeVisible();
+
+    await page.getByAltText('Jahreshauptversammlung in Köln 2024').click();
+    await expect(dialog).toBeVisible();
+    await expect(title).toHaveText('Jahreshauptversammlung in Köln 2024');
+  });
+});
