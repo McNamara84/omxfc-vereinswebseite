@@ -86,7 +86,7 @@ test.describe('Aufgaben (Mobile)', () => {
 
         await filterSummary.click();
         await expect(filterDetails).toHaveAttribute('open');
-        await expect(page.getByRole('button', { name: 'Zu verifizieren', exact: true })).toBeVisible();
+        await expect(page.getByRole('link', { name: 'Zu verifizieren', exact: true })).toBeVisible();
     });
 });
 
@@ -109,10 +109,10 @@ test('admin can filter and accept challenges', async ({ page }) => {
     await expect(page.getByRole('heading', { name: 'Deine Challenges' })).toBeVisible();
     await expect(page.locator('[data-todo-filter-status]')).toHaveText(/alle verfügbaren Challenges/i);
 
-    const verifyButton = page.getByRole('button', { name: 'Zu verifizieren', exact: true });
-    await expect(verifyButton).toBeVisible();
+    const verifyLink = page.getByRole('link', { name: 'Zu verifizieren', exact: true });
+    await expect(verifyLink).toBeVisible();
 
-    await verifyButton.click();
+    await verifyLink.click();
     await expect(page).toHaveURL(/filter=pending/);
     await expect(page.locator('[data-todo-filter-status]')).toHaveText(/Verifizierung warten/i);
     await expect(page.getByRole('heading', { name: 'Zu verifizierende Challenges' })).toBeVisible();
@@ -124,8 +124,8 @@ test('admin can filter and accept challenges', async ({ page }) => {
     await filterSummary.click();
     await expect(filterDetails).toHaveAttribute('open');
 
-    const allButton = page.getByRole('button', { name: 'Alle', exact: true });
-    await allButton.click();
+    const allLink = page.getByRole('link', { name: 'Alle', exact: true });
+    await allLink.click();
     await expect(page).not.toHaveURL(/filter=pending/);
 
     const assignButton = page.getByRole('button', { name: 'Übernehmen', exact: true }).first();
@@ -152,8 +152,8 @@ test('member can focus on own challenges and release one', async ({ page }) => {
     await expect(filterSummary).toBeVisible();
     await filterSummary.click();
 
-    const ownButton = page.getByRole('button', { name: 'Eigene Challenges', exact: true });
-    await ownButton.click();
+    const ownLink = page.getByRole('link', { name: 'Eigene Challenges', exact: true });
+    await ownLink.click();
 
     const releaseButton = page.getByRole('button', { name: 'Freigeben', exact: true }).first();
 
