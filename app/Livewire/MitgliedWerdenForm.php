@@ -6,6 +6,7 @@ use App\Enums\Role;
 use App\Mail\MitgliedAntragEingereicht;
 use App\Models\Team;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Livewire\Component;
@@ -99,24 +100,28 @@ class MitgliedWerdenForm extends Component
                 throw new \RuntimeException('Das Mitglieder-Team existiert nicht. Bitte den Administrator kontaktieren.');
             }
 
-            $user = User::create([
-                'name' => $this->vorname . ' ' . $this->nachname,
-                'email' => $this->mail,
-                'password' => Hash::make($this->passwort),
-                'vorname' => $this->vorname,
-                'nachname' => $this->nachname,
-                'strasse' => $this->strasse,
-                'hausnummer' => $this->hausnummer,
-                'plz' => $this->plz,
-                'stadt' => $this->stadt,
-                'land' => $this->land,
-                'telefon' => $this->telefon ?: null,
-                'verein_gefunden' => $this->verein_gefunden ?: null,
-                'mitgliedsbeitrag' => $this->mitgliedsbeitrag,
-            ]);
+            $user = DB::transaction(function () use ($team) {
+                $user = User::create([
+                    'name' => $this->vorname . ' ' . $this->nachname,
+                    'email' => $this->mail,
+                    'password' => Hash::make($this->passwort),
+                    'vorname' => $this->vorname,
+                    'nachname' => $this->nachname,
+                    'strasse' => $this->strasse,
+                    'hausnummer' => $this->hausnummer,
+                    'plz' => $this->plz,
+                    'stadt' => $this->stadt,
+                    'land' => $this->land,
+                    'telefon' => $this->telefon ?: null,
+                    'verein_gefunden' => $this->verein_gefunden ?: null,
+                    'mitgliedsbeitrag' => $this->mitgliedsbeitrag,
+                ]);
 
-            $team->users()->attach($user, ['role' => Role::Anwaerter->value]);
-            $user->switchTeam($team);
+                $team->users()->attach($user, ['role' => Role::Anwaerter->value]);
+                $user->switchTeam($team);
+
+                return $user;
+            });
 
             Mail::to($user->email)->queue(new MitgliedAntragEingereicht($user));
 

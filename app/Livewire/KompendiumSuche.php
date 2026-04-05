@@ -101,9 +101,10 @@ class KompendiumSuche extends Component
             $radius = 200;
 
             $parsed = $searchService->parseSearchQuery($query);
-            $tntQuery = $parsed['isPhraseSearch']
-                ? $searchService->buildTntSearchQuery($parsed)
-                : $query;
+            $tntQuery = $searchService->buildTntSearchQuery($parsed) ?: $query;
+
+            // Anführungszeichen aus dem Query entfernen, falls noch vorhanden
+            $tntQuery = str_replace('"', '', $tntQuery);
 
             if ($tntQuery === '') {
                 $stripped = preg_replace('/"[^"]*"/', '', $query);

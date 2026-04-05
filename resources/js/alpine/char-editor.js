@@ -1,5 +1,3 @@
-const Alpine = window.Alpine;
-
 const RACE_DESCRIPTIONS = {
     Barbar: 'Im 26. Jahrhundert besteht die Zivilisation zum größten Teil aus Barbaren. Sie leben in unterschiedlichen Kulturen, beispielsweise als Seefahrer (die Disuuslachter), Nomaden (die Wandernden Völker) oder Ruinenbewohner (die Loords von Landán). Die zeichnen sich durch Zähigkeit, Wildheit und Kampflust aus, sind zumeist primitiv und leben in Clans. Ehre und Mut werden hoch geschätzt. Technologisch bewegen sich die meisten Barbaren zwischen der späten Steinzeit und dem frühen Mittelalter.',
     Guul: 'Guule sind bedauernswerte Mutationen des Homo Sapiens. Sie sind dürr, fast zwei Meter groß und völlig unbehaart. Ihre langen knochigen Arme enden in Krallen. Die verhornten Füße laufen an den Fersen in einem fingerdicken Stachel aus. Aus dem Maul tropft weißlicher Schleim, was ihr abstoßendes Äußeres zusätzlich verstärkt. Guule sind meist nur mit einem Lendenschurz bekleidet. Sie ernähren sich von Aas und Gebeinen, die sie u.a. aus Gräbern holen.'
@@ -12,7 +10,8 @@ const CULTURE_DESCRIPTIONS = {
 
 const ATTRIBUTE_IDS = ['st', 'ge', 'ro', 'wi', 'wa', 'in', 'au'];
 
-Alpine.data('charEditor', () => ({
+document.addEventListener('alpine:init', () => {
+    window.Alpine.data('charEditor', () => ({
     // Basic info
     playerName: '',
     characterName: '',
@@ -404,3 +403,4 @@ Alpine.data('charEditor', () => ({
         return this.raceLocked.disadvantages.includes(value);
     },
 }));
+});

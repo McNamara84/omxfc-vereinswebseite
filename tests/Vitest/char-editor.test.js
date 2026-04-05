@@ -3,9 +3,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 /**
  * Tests für die Char-Editor Alpine-Komponente.
  *
- * Da char-editor.js `Alpine.data()` auf der aktiven Alpine-Instanz aufruft,
- * mocken wir `window.Alpine.data()` um die Factory-Funktion abzufangen
- * und instanziieren die Komponente dann manuell.
+ * char-editor.js registriert Alpine.data() im 'alpine:init'-Event.
+ * Wir mocken window.Alpine.data() und dispatchen das Event nach dem Import,
+ * um die Factory-Funktion abzufangen.
  */
 
 let editorFactory;
@@ -23,6 +23,9 @@ beforeEach(async () => {
     // Modul-Cache leeren und neu importieren
     vi.resetModules();
     await import('@/alpine/char-editor.js');
+
+    // alpine:init Event dispatchen, damit Alpine.data() aufgerufen wird
+    document.dispatchEvent(new CustomEvent('alpine:init'));
 });
 
 function createEditor(overrides = {}) {

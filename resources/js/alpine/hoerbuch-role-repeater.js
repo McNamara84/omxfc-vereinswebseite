@@ -1,6 +1,5 @@
-const Alpine = window.Alpine;
-
-Alpine.data('hoerbuchRoleRepeater', ({ initialRoles = [], members = [], previousSpeakerUrl = '' }) => ({
+document.addEventListener('alpine:init', () => {
+    window.Alpine.data('hoerbuchRoleRepeater', ({ initialRoles = [], members = [], previousSpeakerUrl = '' }) => ({
     roles: initialRoles,
     members,
     previousSpeakerUrl,
@@ -65,3 +64,4 @@ Alpine.data('hoerbuchRoleRepeater', ({ initialRoles = [], members = [], previous
         }
     },
 }));
+});

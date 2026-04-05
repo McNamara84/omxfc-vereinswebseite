@@ -1,4 +1,4 @@
-﻿<div>
+<div>
     <div class="mb-4">
         <x-input
             wire:model="query"
