@@ -9,13 +9,18 @@
                      x-data="{
                          current: 0,
                          images: {{ count($galleryImages) }},
+                         _interval: null,
                          init() {
                              this.$el.querySelectorAll('img')[0]?.classList.remove('opacity-0');
-                             setInterval(() => {
+                             if (this.images <= 1) return;
+                             this._interval = setInterval(() => {
                                  this.$el.querySelectorAll('img')[this.current]?.classList.add('opacity-0');
                                  this.current = (this.current + 1) % this.images;
                                  this.$el.querySelectorAll('img')[this.current]?.classList.remove('opacity-0');
                              }, 4000);
+                         },
+                         destroy() {
+                             if (this._interval) clearInterval(this._interval);
                          }
                      }">
                     @foreach($galleryImages as $image)
