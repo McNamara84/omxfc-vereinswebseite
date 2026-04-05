@@ -89,15 +89,11 @@ class RomantauschControllerTest extends TestCase
         }
 
         $response->assertDontSee('data-gallery-id', false);
-        $response->assertSee('data-photo-dialog-trigger', false);
-        $response->assertSee('data-photo-index="0"', false);
+        $response->assertSee('@click="open(0)"', false);
         $response->assertSee('role="dialog"', false);
         $response->assertSee('aria-modal="true"', false);
-        $response->assertSee('data-photo-dialog', false);
-        $this->assertStringNotContainsString(
-            'data-photo-dialog aria-hidden="true"',
-            str_replace(["\n", "\r"], ' ', $response->getContent())
-        );
+        $response->assertSee('x-show="isOpen"', false);
+        $response->assertSee('style="display: none;"', false);
         $response->assertSee('Fotoansicht schließen', false);
         $response->assertSee('Zum Vergrößern ein Foto auswählen.', false);
     }
@@ -937,7 +933,7 @@ class RomantauschControllerTest extends TestCase
 
         $response->assertSee('src="'.asset('storage/'.$photoPath).'"', false);
         $response->assertSee('alt="Foto 1 von '.e($description).'"', false);
-        $response->assertSee('data-photo-dialog-trigger', false);
+        $response->assertSee('@click="open(0)"', false);
     }
 
     public function test_index_renders_placeholder_for_offer_without_photo(): void
