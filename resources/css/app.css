@@ -102,6 +102,36 @@ dialog.modal:is(.modal-open, [open], :target) {
 }
 
 /* ===================================================================
+ * View Transitions: Einfacher Crossfade zwischen Seiten (wire:navigate)
+ * Wird automatisch von Livewire 4 via document.startViewTransition()
+ * aufgerufen. Graceful degradation für ältere Browser.
+ * =================================================================== */
+::view-transition-old(root) {
+    animation: vt-fade-out 0.2s ease-out;
+}
+
+::view-transition-new(root) {
+    animation: vt-fade-in 0.2s ease-in;
+}
+
+@keyframes vt-fade-out {
+    from { opacity: 1; }
+    to   { opacity: 0; }
+}
+
+@keyframes vt-fade-in {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    ::view-transition-old(root),
+    ::view-transition-new(root) {
+        animation: none;
+    }
+}
+
+/* ===================================================================
  * Fanfiction Bild-Tags: [bild:N:position:caption]
  * Erzeugt <figure class="fanfiction-bild fanfiction-bild--*"> Elemente
  * =================================================================== */

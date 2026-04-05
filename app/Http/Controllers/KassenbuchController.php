@@ -39,67 +39,6 @@ class KassenbuchController extends Controller
         ]);
     }
 
-    public function index()
-    {
-        $user = Auth::user();
-        $team = $this->membersTeamProvider->getMembersTeamOrAbort();
-
-        // Benutzerrolle ermitteln
-        $userRole = $this->userRoleService->getRole($user, $team);
-
-        $canViewKassenbuch = $user->can('viewAll', KassenbuchEntry::class);
-        $canManageKassenbuch = $user->can('manage', KassenbuchEntry::class);
-        $canProcessEditRequests = $user->can('processEditRequest', KassenbuchEntry::class);
-
-        // Aktuellen Kassenstand abrufen
-        $kassenstand = $this->getOrCreateKassenstand($team);
-
-        // Für Vorstand und Kassenwart: Alle Mitglieder mit ihren Zahlungsdaten abrufen
-        $members = null;
-        $kassenbuchEntries = null;
-        $pendingEditRequests = null;
-
-        if ($canViewKassenbuch) {
-            $members = $team->activeUsers()
-                ->orderBy('bezahlt_bis')
-                ->get();
-
-            $kassenbuchEntries = KassenbuchEntry::where('team_id', $team->id)
-                ->with(['pendingEditRequest', 'approvedEditRequest', 'creator', 'lastEditor'])
-                ->orderBy('buchungsdatum', 'desc')
-                ->get();
-        }
-
-        // Für Vorstand: Offene Bearbeitungsanfragen laden
-        if ($canProcessEditRequests) {
-            $pendingEditRequests = KassenbuchEditRequest::with(['entry', 'requester'])
-                ->where('status', KassenbuchEditRequest::STATUS_PENDING)
-                ->whereHas('entry', fn ($q) => $q->where('team_id', $team->id))
-                ->orderBy('created_at', 'desc')
-                ->get();
-        }
-
-        // Für das angemeldete Mitglied: Eigene Zahlungsdaten abrufen
-        $memberData = $user;
-
-        // Prüfen, ob Mitgliedschaft bald abläuft (innerhalb eines Monats)
-        $renewalWarning = $this->checkRenewalWarning($user);
-
-        return view('kassenbuch.index', [
-            'userRole' => $userRole,
-            'canViewKassenbuch' => $canViewKassenbuch,
-            'canManageKassenbuch' => $canManageKassenbuch,
-            'canProcessEditRequests' => $canProcessEditRequests,
-            'kassenstand' => $kassenstand,
-            'members' => $members,
-            'kassenbuchEntries' => $kassenbuchEntries,
-            'pendingEditRequests' => $pendingEditRequests,
-            'editReasonTypes' => KassenbuchEditReasonType::cases(),
-            'memberData' => $memberData,
-            'renewalWarning' => $renewalWarning,
-        ]);
-    }
-
     public function updatePaymentStatus(Request $request, User $user)
     {
         $data = $request->validate([

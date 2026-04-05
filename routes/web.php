@@ -36,7 +36,9 @@ use App\Livewire\FanfictionCreate;
 use App\Livewire\FanfictionEdit;
 use App\Livewire\FantreffenAdminDashboard;
 use App\Livewire\FantreffenVipAuthors;
+use App\Livewire\KassenbuchIndex;
 use App\Livewire\KompendiumAdminDashboard;
+use App\Livewire\MitgliederIndex;
 use App\Livewire\Umfragen\UmfrageVerwaltung;
 use App\Livewire\Umfragen\UmfrageVote;
 use App\Models\Poll;
@@ -130,12 +132,14 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
         Route::delete('{message}', 'destroy')->name('destroy');
     });
 
-    Route::prefix('mitglieder')->name('mitglieder.')->controller(MitgliederController::class)->group(function () {
-        Route::get('/', 'index')->name('index');
-        Route::put('/{user}/role', 'changeRole')->name('change-role');
-        Route::post('/export-csv', 'exportCsv')->name('export-csv');
-        Route::get('/all-emails', 'getAllEmails')->name('all-emails');
-        Route::delete('/{user}', 'removeMember')->name('remove');
+    Route::prefix('mitglieder')->name('mitglieder.')->group(function () {
+        Route::livewire('/', MitgliederIndex::class)->name('index');
+        Route::controller(MitgliederController::class)->group(function () {
+            Route::put('/{user}/role', 'changeRole')->name('change-role');
+            Route::post('/export-csv', 'exportCsv')->name('export-csv');
+            Route::get('/all-emails', 'getAllEmails')->name('all-emails');
+            Route::delete('/{user}', 'removeMember')->name('remove');
+        });
     });
 
     Route::prefix('profil')->name('profile.')->group(function () {
@@ -202,16 +206,18 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
 
     Route::get('kassenstand', [KassenbuchController::class, 'kassenstand'])->name('kassenstand.index');
 
-    Route::prefix('kassenbuch')->name('kassenbuch.')->controller(KassenbuchController::class)->middleware('vorstand-or-kassenwart')->group(function () {
-        Route::get('/', 'index')->name('index');
-        Route::put('zahlung-aktualisieren/{user}', 'updatePaymentStatus')->name('update-payment');
-        Route::post('eintrag-hinzufuegen', 'addKassenbuchEntry')->name('add-entry');
+    Route::prefix('kassenbuch')->name('kassenbuch.')->middleware('vorstand-or-kassenwart')->group(function () {
+        Route::livewire('/', KassenbuchIndex::class)->name('index');
+        Route::controller(KassenbuchController::class)->group(function () {
+            Route::put('zahlung-aktualisieren/{user}', 'updatePaymentStatus')->name('update-payment');
+            Route::post('eintrag-hinzufuegen', 'addKassenbuchEntry')->name('add-entry');
 
-        // Bearbeitungsanfragen
-        Route::post('eintrag/{entry}/bearbeitung-anfragen', 'requestEdit')->name('request-edit');
-        Route::put('eintrag/{entry}', 'updateEntry')->name('update-entry');
-        Route::post('anfrage/{editRequest}/freigeben', 'approveEditRequest')->name('approve-edit');
-        Route::post('anfrage/{editRequest}/ablehnen', 'rejectEditRequest')->name('reject-edit');
+            // Bearbeitungsanfragen
+            Route::post('eintrag/{entry}/bearbeitung-anfragen', 'requestEdit')->name('request-edit');
+            Route::put('eintrag/{entry}', 'updateEntry')->name('update-entry');
+            Route::post('anfrage/{editRequest}/freigeben', 'approveEditRequest')->name('approve-edit');
+            Route::post('anfrage/{editRequest}/ablehnen', 'rejectEditRequest')->name('reject-edit');
+        });
     });
 
     Route::controller(MaddraxiversumController::class)->group(function () {
