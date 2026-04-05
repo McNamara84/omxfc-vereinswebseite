@@ -55,8 +55,8 @@ test.describe('Chronik Lightbox', () => {
     const dialog = page.locator('[role="dialog"]');
     await expect(dialog).toBeVisible();
 
-    // Click the backdrop (the dialog overlay itself, not the inner content)
-    await dialog.click({ position: { x: 10, y: 10 } });
+    // Click the backdrop at a viewport corner guaranteed to be outside the centered content
+    await page.mouse.click(1, 1);
     await expect(dialog).not.toBeVisible();
   });
 
