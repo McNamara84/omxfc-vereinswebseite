@@ -27,16 +27,16 @@ class KompendiumSearchService
      * Zerlegt den Suchbegriff in Phrasen (in Anführungszeichen) und freie Begriffe.
      *
      * Beispiel: '"Matthew Drax" Abenteuer "Volk der Tiefe"'
-     * → ['phrases' => ['matthew drax', 'volk der tiefe'], 'terms' => ['abenteuer'], 'isPhraseSearch' => true, 'hadQuotes' => true]
+     * → ['phrases' => ['matthew drax', 'volk der tiefe'], 'terms' => ['abenteuer'], 'isPhraseSearch' => true]
      *
-     * @return array{phrases: list<string>, terms: list<string>, isPhraseSearch: bool, hadQuotes: bool}
+     * @return array{phrases: list<string>, terms: list<string>, isPhraseSearch: bool}
      */
     public function parseSearchQuery(string $query): array
     {
         $phrases = [];
 
-        // Erkennung ob überhaupt Anführungszeichen im Input vorhanden waren
-        $hadQuotes = str_contains($query, '"');
+        // Typografische Anführungszeichen zu geraden normalisieren
+        $query = str_replace(["\u{201C}", "\u{201D}", "\u{201E}", "\u{00AB}", "\u{00BB}"], '"', $query);
 
         // Phrasen in Anführungszeichen extrahieren
         if (preg_match_all('/"([^"]+)"/', $query, $matches)) {
@@ -62,7 +62,6 @@ class KompendiumSearchService
             'phrases' => $phrases,
             'terms' => $terms,
             'isPhraseSearch' => count($phrases) > 0,
-            'hadQuotes' => $hadQuotes,
         ];
     }
 

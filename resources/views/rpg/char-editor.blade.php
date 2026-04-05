@@ -3,125 +3,137 @@
         <x-header title="Charakter-Editor" separator data-testid="page-header" />
 
         <x-card shadow>
-            <form action="#" method="POST" enctype="multipart/form-data" data-char-editor data-testid="char-editor-form">
+            <form action="#" method="POST" enctype="multipart/form-data" x-data="charEditor" data-testid="char-editor-form">
                 @csrf
 
-                <input type="hidden" name="available_advantage_points" id="available_advantage_points" value="2">
-                <input type="hidden" name="figurenstaerke" id="figurenstaerke" value="1">
+                <input type="hidden" name="available_advantage_points" :value="freeAdvantagePoints">
+                <input type="hidden" name="figurenstaerke" value="1">
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                    <div data-lockable>
-                        <x-input label="Spielername" name="player_name" id="player_name" />
+                    <div :class="{ 'opacity-50': advancedUnlocked }">
+                        <x-input label="Spielername" name="player_name" x-model="playerName" x-bind:disabled="advancedUnlocked" />
                     </div>
 
-                    <div data-lockable>
-                        <x-input label="Charaktername" name="character_name" id="character_name" />
+                    <div :class="{ 'opacity-50': advancedUnlocked }">
+                        <x-input label="Charaktername" name="character_name" x-model="characterName" x-bind:disabled="advancedUnlocked" />
                     </div>
 
-                    <div data-lockable>
+                    <div :class="{ 'opacity-50': advancedUnlocked }">
                         <label for="race" class="block text-sm font-medium text-base-content mb-1">Rasse</label>
-                        <select name="race" id="race" class="select select-bordered w-full">
-                            <option value="" disabled selected>Rasse wählen</option>
-                            <option value="Barbar" title="Im 26. Jahrhundert besteht die Zivilisation zum größten Teil aus Barbaren. Sie leben in unterschiedlichen Kulturen, beispielsweise als Seefahrer (die Disuuslachter), Nomaden (die Wandernden Völker) oder Ruinenbewohner (die Loords von Landán). Die zeichnen sich durch Zähigkeit, Wildheit und Kampflust aus, sind zumeist primitiv und leben in Clans. Ehre und Mut werden hoch geschätzt. Technologisch bewegen sich die meisten Barbaren zwischen der späten Steinzeit und dem frühen Mittelalter.">Barbar</option>
-                            <option value="Guul" title="Guule sind bedauernswerte Mutationen des Homo Sapiens. Sie sind dürr, fast zwei Meter groß und völlig unbehaart. Ihre langen knochigen Arme enden in Krallen. Die verhornten Füße laufen an den Fersen in einem fingerdicken Stachel aus. Aus dem Maul tropft weißlicher Schleim, was ihr abstoßendes Äußeres zusätzlich verstärkt. Guule sind meist nur mit einem Lendenschurz bekleidet. Sie ernähren sich von Aas und Gebeinen, die sie u.a. aus Gräbern holen.">Guul</option>
+                        <select name="race" id="race" class="select select-bordered w-full" x-model="race" :disabled="advancedUnlocked">
+                            <option value="" disabled>Rasse wählen</option>
+                            <option value="Barbar">Barbar</option>
+                            <option value="Guul">Guul</option>
                         </select>
                     </div>
 
-                    <div data-lockable>
+                    <div :class="{ 'opacity-50': advancedUnlocked }">
                         <label for="culture" class="block text-sm font-medium text-base-content mb-1">Kultur</label>
-                        <select name="culture" id="culture" class="select select-bordered w-full">
-                            <option value="" disabled selected>Kultur wählen</option>
-                            <option value="Landbewohner" title="Landbewohner bewirtschaften den Boden und versuchen als Bauern und Viehzüchter ihren Lebensunterhalt zu verdienen. Die meisten sind einfache Menschen, die Ruhe und Frieden suchen, nicht viel von der Welt wissen und einfache Landgötter anbeten. Aberglauben ist weit verbreitet.">Landbewohner</option>
-                            <option value="Stadtbewohner" title="Stadtbewohner versuchen in der dunklen Zukunft der Erde neues Leben erblühen zu lassen. Dazu haben sie sich in neu erbauten Siedlungen (zuweilen auf Ruinen aus der Zeit vor dem Kometen) angesiedelt und leben als Händler, Handwerker und Bauern. Die Mauern ihrer Siedlungen schützen sie vor den Gefahren der Wildnis. Ihre Siedlungen sind somit Lichter der Hoffnung in der Dunkelheit.">Stadtbewohner</option>
+                        <select name="culture" id="culture" class="select select-bordered w-full" x-model="culture" :disabled="advancedUnlocked">
+                            <option value="" disabled>Kultur wählen</option>
+                            <option value="Landbewohner">Landbewohner</option>
+                            <option value="Stadtbewohner">Stadtbewohner</option>
                         </select>
                     </div>
 
-                    <div class="md:col-span-2" data-lockable>
+                    <div class="md:col-span-2" :class="{ 'opacity-50': advancedUnlocked }">
                         <label for="portrait" class="block text-sm font-medium text-base-content mb-1">Porträt/Symbol</label>
-                        <input type="file" name="portrait" id="portrait" accept="image/*" class="file-input file-input-bordered w-full">
-                        <img id="portrait-preview" class="hidden mt-2 w-24 h-24 object-cover rounded border border-base-content/20" alt="Portrait Vorschau">
+                        <input type="file" name="portrait" id="portrait" accept="image/*" class="file-input file-input-bordered w-full" @change="handlePortraitUpload($event)" :disabled="advancedUnlocked">
+                        <img x-show="portraitPreview" :src="portraitPreview" class="mt-2 w-24 h-24 object-cover rounded border border-base-content/20" alt="Portrait Vorschau">
                     </div>
 
                     <div class="md:col-span-2">
                         <h2 class="text-xl font-semibold text-primary mb-2">Beschreibung</h2>
-                        <x-textarea name="description" id="description" rows="4" />
+                        <x-textarea name="description" id="description" rows="4" x-model="description" @input="descriptionUserEdited = true" />
                     </div>
                 </div>
 
-                <div class="flex justify-end mb-6">
-                    <x-button id="continue-button" type="button" label="Weiter, bei Wudan" class="btn-primary hidden" />
+                <div class="flex justify-end mb-6" x-show="basicsFilled && !advancedUnlocked">
+                    <x-button type="button" label="Weiter, bei Wudan" class="btn-primary" @click="unlockAdvanced()" />
                 </div>
 
-                <fieldset id="advanced-fields" disabled class="opacity-50">
+                <fieldset :disabled="!advancedUnlocked" :class="{ 'opacity-50': !advancedUnlocked }">
                     <div class="mb-6">
                         <h2 class="text-xl font-semibold text-primary mb-2">Attribute</h2>
-                        <p id="attribute-points" class="text-sm text-base-content mb-2"></p>
+                        <p class="text-sm text-base-content mb-2" x-text="'Verfügbare Attributspunkte: ' + apRemaining"></p>
                         <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                            @foreach(['st' => 'Stärke (ST)', 'ge' => 'Geschicklichkeit (GE)', 'ro' => 'Robustheit (RO)', 'wi' => 'Willenskraft (WI)', 'wa' => 'Wahrnehmung (WA)', 'in' => 'Intelligenz (IN)', 'au' => 'Auftreten (AU)'] as $attrId => $label)
                             <div>
-                                <x-input type="number" label="Stärke (ST)" name="attributes[st]" id="st" min="-1" max="1" step="1" />
+                                <x-input type="number" label="{{ $label }}" name="attributes[{{ $attrId }}]" id="{{ $attrId }}" min="-1" x-bind:max="attributeMax" step="1" x-model.number="attributes.{{ $attrId }}" @change="clampAttribute('{{ $attrId }}')" />
                             </div>
-                            <div>
-                                <x-input type="number" label="Geschicklichkeit (GE)" name="attributes[ge]" id="ge" min="-1" max="1" step="1" />
-                            </div>
-                            <div>
-                                <x-input type="number" label="Robustheit (RO)" name="attributes[ro]" id="ro" min="-1" max="1" step="1" />
-                            </div>
-                            <div>
-                                <x-input type="number" label="Willenskraft (WI)" name="attributes[wi]" id="wi" min="-1" max="1" step="1" />
-                            </div>
-                            <div>
-                                <x-input type="number" label="Wahrnehmung (WA)" name="attributes[wa]" id="wa" min="-1" max="1" step="1" />
-                            </div>
-                            <div>
-                                <x-input type="number" label="Intelligenz (IN)" name="attributes[in]" id="in" min="-1" max="1" step="1" />
-                            </div>
-                            <div>
-                                <x-input type="number" label="Auftreten (AU)" name="attributes[au]" id="au" min="-1" max="1" step="1" />
-                            </div>
+                            @endforeach
                         </div>
                     </div>
 
                     <div class="mb-6">
                         <h2 class="text-xl font-semibold text-primary mb-2">Fertigkeiten</h2>
-                        <p id="skill-points" class="text-sm text-base-content mb-2"></p>
-                        <div id="barbar-combat-toggle" class="hidden mb-2">
+                        <p class="text-sm text-base-content mb-2" x-text="'Verfügbare Fertigkeitspunkte: ' + fpRemaining"></p>
+                        <div x-show="race === 'Barbar'" class="mb-2">
                             <label for="barbar-combat-select" class="text-sm font-medium text-base-content mb-1">Barbar Kampfbonus</label>
-                            <select id="barbar-combat-select" class="select select-bordered w-full sm:w-auto">
+                            <select id="barbar-combat-select" class="select select-bordered w-full sm:w-auto" x-model="barbarCombatSkill" @change="setBarbarCombatSkill(barbarCombatSkill)">
                                 <option value="Nahkampf">Nahkampf (+1)</option>
                                 <option value="Fernkampf">Fernkampf (+1)</option>
                             </select>
                         </div>
-                        <div id="city-skill-toggle" class="hidden mb-2">
+                        <div x-show="culture === 'Stadtbewohner'" class="mb-2">
                             <label for="city-skill-select" class="text-sm font-medium text-base-content mb-1">Stadtbewohner Bonus</label>
-                            <select id="city-skill-select" class="select select-bordered w-full sm:w-auto">
+                            <select id="city-skill-select" class="select select-bordered w-full sm:w-auto" x-model="citySkill" @change="setCitySkill(citySkill)">
                                 <option value="Unterhalten">Unterhalten (+1)</option>
                                 <option value="Sprachen">Sprachen (+1)</option>
                             </select>
                         </div>
-                        <div id="skills-container" class="space-y-2"></div>
-                        <x-button type="button" id="add-skill" label="Fertigkeit hinzufügen" class="btn-primary btn-sm mt-2" />
+                        <div class="space-y-2">
+                            <template x-for="(skill, index) in skills" :key="index">
+                                <div class="grid grid-cols-1 sm:grid-cols-4 gap-2 items-center">
+                                    <input type="text" list="skills-list"
+                                        :name="'skills[' + index + '][name]'"
+                                        class="skill-name sm:col-span-2 w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50"
+                                        placeholder="Fertigkeit"
+                                        x-model="skill.name"
+                                        :disabled="skill.nameDisabled"
+                                    >
+                                    <input type="number"
+                                        :name="'skills[' + index + '][value]'"
+                                        class="w-full rounded-md shadow-sm border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-[#8B0116] dark:focus:border-[#FF6B81] focus:ring focus:ring-[#8B0116] dark:focus:ring-[#FF6B81] focus:ring-opacity-50"
+                                        placeholder="FW" step="1"
+                                        x-model.number="skill.value"
+                                        :min="getSkillMin(skill.name)"
+                                        :max="getSkillMax(skill.name)"
+                                        :disabled="isSkillDisabled(skill)"
+                                        @change="clampSkillValue(skill)"
+                                    >
+                                    <template x-if="!skill.locked">
+                                        <button type="button" class="px-2 py-1 bg-red-500 text-white rounded-md" @click="removeSkill(index)">-</button>
+                                    </template>
+                                    <template x-if="skill.badge">
+                                        <span class="text-xs px-2 py-0.5 rounded bg-blue-200 dark:bg-blue-700 text-blue-800 dark:text-blue-200" x-text="skill.badge"></span>
+                                    </template>
+                                </div>
+                            </template>
+                        </div>
+                        <x-button type="button" label="Fertigkeit hinzufügen" class="btn-primary btn-sm mt-2" @click="addSkill()" x-bind:disabled="fpRemaining <= 0" />
                         <datalist id="skills-list">
-                            <option value="Athletik" data-description="Klettern, Schwimmen, Laufen, Fitness; hilft beim Ausweichen. (ST, GE, RO)"></option>
-                            <option value="Beruf" data-description="erlernter Beruf (Bauer, Schmied, Pilot, etc.), mehrere möglich. (GE, IN, AU)"></option>
-                            <option value="Bildung" data-description="zivilisierte Ausbildung, Voraussetzung für Technik &amp; Waffen. (IN, WA)"></option>
-                            <option value="Diebeskunst" data-description="Taschendiebstahl, Schlösser knacken, Diebesgut einschätzen. (GE, WA)"></option>
-                            <option value="Fahren" data-description="Wagen, Boote, Fahrzeuge, auch High-Tech. (GE, WA)"></option>
-                            <option value="Fernkampf" data-description="Speere, Bögen, Schleudern, Armbrüste usw. (GE, WA)"></option>
-                            <option value="Feuerwaffen" data-description="Schuss- &amp; Energiewaffen. (GE, WA, abhängig von Bildung)"></option>
-                            <option value="Handeln" data-description="Feilschen, Warenkenntnis, Handelsrouten. (AU, IN)"></option>
-                            <option value="Heiler" data-description="Wundversorgung, Heilkunst, Rettung vor dem Tod. (IN)"></option>
-                            <option value="Heimlichkeit" data-description="Schleichen, Verbergen. (GE)"></option>
-                            <option value="Intuition" data-description="„sechster Sinn", Gefahren erspüren (Alternative zu Bildung). (WA)"></option>
-                            <option value="Kunde" data-description="Fachkenntnis in speziellen Bereichen (Regionen, Tiere, Pflanzen, Bräuche). (IN, WA)"></option>
-                            <option value="Nahkampf" data-description="unbewaffneter Kampf und Nahkampfwaffen. (ST, GE)"></option>
-                            <option value="Natürliche Waffen" data-description="Schläge, Bisse, Krallen und andere natürliche Angriffe. (ST, GE)"></option>
-                            <option value="Pilot" data-description="Flieger aller Art (vom Gleiter bis zum Jet). (GE, WA)"></option>
-                            <option value="Reiten" data-description="Reittiere lenken und zähmen. (GE)"></option>
-                            <option value="Sprachen" data-description="pro Punkt eine Sprache/Dialekt (mit Bildung auch Lesen/Schreiben). (IN)"></option>
-                            <option value="Techniker" data-description="technische Geräte bedienen, warten, reparieren. (IN, GE)"></option>
-                            <option value="Unterhalten" data-description="Geschichten, Musik, Tanz, Gaukeln, Schauspiel. (AU, IN, GE)"></option>
-                            <option value="Überleben" data-description="Orientierung, Nahrung, Leben in der Wildnis. (RO, WA)"></option>
-                            <option value="Wissenschaftler" data-description="wissenschaftliche Disziplinen (Physik, Chemie, Biologie ...). Maximalwert ≤ Bildung. (IN)"></option>
+                            <option value="Athletik"></option>
+                            <option value="Beruf"></option>
+                            <option value="Bildung"></option>
+                            <option value="Diebeskunst"></option>
+                            <option value="Fahren"></option>
+                            <option value="Fernkampf"></option>
+                            <option value="Feuerwaffen"></option>
+                            <option value="Handeln"></option>
+                            <option value="Heiler"></option>
+                            <option value="Heimlichkeit"></option>
+                            <option value="Intuition"></option>
+                            <option value="Kunde"></option>
+                            <option value="Nahkampf"></option>
+                            <option value="Natürliche Waffen"></option>
+                            <option value="Pilot"></option>
+                            <option value="Reiten"></option>
+                            <option value="Sprachen"></option>
+                            <option value="Techniker"></option>
+                            <option value="Unterhalten"></option>
+                            <option value="Überleben"></option>
+                            <option value="Wissenschaftler"></option>
                         </datalist>
                     </div>
 
@@ -130,56 +142,54 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label for="advantages" class="block text-sm font-medium text-base-content mb-1">Vorteile</label>
-                                <select name="advantages[]" id="advantages" multiple aria-describedby="advantage-description" class="select select-bordered w-full min-h-40">
-                                    <option value="Anführer" data-description="+2 auf Proben zum Befehlen/Überzeugen">Anführer</option>
-                                    <option value="Gestaltwandler" data-description="Körper/Stimme verändern">Gestaltwandler</option>
-                                    <option value="Gesteigertes Attribut" data-description="+1 auf ein Attribut nach Wahl (muss begründet werden (Mutation, Cyborg, Nanotech etc.))">Gesteigertes Attribut</option>
-                                    <option value="Gesteigerter Sinn" data-description="+3 auf WA-Proben für einen Sinn (muss begründet werden (Mutation, Cyborg, Nanotech etc.))">Gesteigerter Sinn</option>
-                                    <option value="High-Tech-Ausrüstung" data-description="4 High-Tech-Gegenstände (SL-Zustimmung)">High-Tech-Ausrüstung</option>
-                                    <option value="Kampfreflexe" data-description="+2 Bonus auf alle Ausweichen-Proben">Kampfreflexe</option>
-                                    <option value="Kaltblütig" data-description="+1 auf Verteidigungswürfe">Kaltblütig</option>
-                                    <option value="Kiemen" data-description="unbegrenzt unter Wasser atmen">Kiemen</option>
-                                    <option value="Kind zweier Welten" data-description="darf sowohl Bildung als auch Intuition lernen">Kind zweier Welten</option>
-                                    <option value="Nachtsicht" data-description="ohne Abzüge im Dunkeln sehen (muss begründet werden (Mutation, Cyborg, Nanotech etc.))">Nachtsicht</option>
-                                    <option value="Natürliche Waffen" data-description="+1 Schaden im Nahkampf (muss begründet werden (Mutation, Cyborg, Nanotech etc.))">Natürliche Waffen</option>
-                                    <option value="Panzerung" data-description="besitzt Schutzfaktor 1 (kumulativ) (muss begründet werden (Mutation, Cyborg, Nanotech etc.))">Panzerung</option>
-                                    <option value="Psychische Kraft" data-description="Zugriff auf psychische Kräfte (S. 37)">Psychische Kraft</option>
-                                    <option value="Psychisches Reservoir" data-description="höchster psychischer FW zählt doppelt bei PEP">Psychisches Reservoir</option>
-                                    <option value="Regeneration" data-description="heilt 10× schneller (stapelbar) (muss begründet werden (Mutation, Cyborg, Nanotech etc.))">Regeneration</option>
-                                    <option value="Scharfschütze" data-description="+1 auf Fernkampfangriffe, +1 Schaden auf kurze Distanz">Scharfschütze</option>
-                                    <option value="Schnell" data-description="+2 Grundbewegung, +1 Initiative (muss begründet werden (Mutation, Cyborg, Nanotech etc.))">Schnell</option>
-                                    <option value="Sprachbegabt" data-description="kann bis zu 3 Sprachen pro Fertigkeitspunkt lernen">Sprachbegabt</option>
-                                    <option value="Tiergefährte" data-description="treuer Tierbegleiter (SL-Zustimmung)">Tiergefährte</option>
-                                    <option value="Zäh" data-description="Schutzfaktor +1 durch Zähigkeit">Zäh</option>
+                                <select name="advantages[]" id="advantages" multiple class="select select-bordered w-full min-h-40" x-model="selectedAdvantages">
+                                    <option value="Anführer" :disabled="isAdvantageDisabled('Anführer')">Anführer</option>
+                                    <option value="Gestaltwandler" :disabled="isAdvantageDisabled('Gestaltwandler')">Gestaltwandler</option>
+                                    <option value="Gesteigertes Attribut" :disabled="isAdvantageDisabled('Gesteigertes Attribut')">Gesteigertes Attribut</option>
+                                    <option value="Gesteigerter Sinn" :disabled="isAdvantageDisabled('Gesteigerter Sinn')">Gesteigerter Sinn</option>
+                                    <option value="High-Tech-Ausrüstung" :disabled="isAdvantageDisabled('High-Tech-Ausrüstung')">High-Tech-Ausrüstung</option>
+                                    <option value="Kampfreflexe" :disabled="isAdvantageDisabled('Kampfreflexe')">Kampfreflexe</option>
+                                    <option value="Kaltblütig" :disabled="isAdvantageDisabled('Kaltblütig')">Kaltblütig</option>
+                                    <option value="Kiemen" :disabled="isAdvantageDisabled('Kiemen')">Kiemen</option>
+                                    <option value="Kind zweier Welten" :disabled="isAdvantageDisabled('Kind zweier Welten')">Kind zweier Welten</option>
+                                    <option value="Nachtsicht" :disabled="isAdvantageDisabled('Nachtsicht')">Nachtsicht</option>
+                                    <option value="Natürliche Waffen" :disabled="isAdvantageDisabled('Natürliche Waffen')">Natürliche Waffen</option>
+                                    <option value="Panzerung" :disabled="isAdvantageDisabled('Panzerung')">Panzerung</option>
+                                    <option value="Psychische Kraft" :disabled="isAdvantageDisabled('Psychische Kraft')">Psychische Kraft</option>
+                                    <option value="Psychisches Reservoir" :disabled="isAdvantageDisabled('Psychisches Reservoir')">Psychisches Reservoir</option>
+                                    <option value="Regeneration" :disabled="isAdvantageDisabled('Regeneration')">Regeneration</option>
+                                    <option value="Scharfschütze" :disabled="isAdvantageDisabled('Scharfschütze')">Scharfschütze</option>
+                                    <option value="Schnell" :disabled="isAdvantageDisabled('Schnell')">Schnell</option>
+                                    <option value="Sprachbegabt" :disabled="isAdvantageDisabled('Sprachbegabt')">Sprachbegabt</option>
+                                    <option value="Tiergefährte" :disabled="isAdvantageDisabled('Tiergefährte')">Tiergefährte</option>
+                                    <option value="Zäh" :disabled="isAdvantageDisabled('Zäh')" selected>Zäh</option>
                                 </select>
-                                <p id="advantage-description" class="mt-1 text-sm text-base-content/60" aria-live="polite"></p>
                             </div>
                             <div>
                                 <label for="disadvantages" class="block text-sm font-medium text-base-content mb-1">Nachteile</label>
-                                <select name="disadvantages[]" id="disadvantages" multiple aria-describedby="disadvantage-description" class="select select-bordered w-full min-h-40">
-                                    <option value="Abergläubisch" data-description="mind. 3 abergläubische Eigenarten wählen">Abergläubisch</option>
-                                    <option value="Abhängige" data-description="muss Angehörige/Familie beschützen">Abhängige</option>
-                                    <option value="Anfälligkeit gegen Wahnsinn" data-description="geht bei Triggern in Wahnsinn über (SL übernimmt Figur)">Anfälligkeit gegen Wahnsinn</option>
-                                    <option value="Auffällig" data-description="stark erkennbar, −4 auf Verkleiden">Auffällig</option>
-                                    <option value="Blutdurst" data-description="braucht alle 24h frisches Blut, sonst −1 kumulativ auf Proben">Blutdurst</option>
-                                    <option value="Ehrenkodex" data-description="strenger Moralkodex, schränkt Handlungen ein">Ehrenkodex</option>
-                                    <option value="Feind" data-description="mächtiger Feind (Volk oder Person) bedroht das Leben ständig">Feind</option>
-                                    <option value="Primitiv" data-description="kann keine komplexe Technologie nutzen">Primitiv</option>
-                                    <option value="Gejagt" data-description="wird von Feinden verfolgt">Gejagt</option>
+                                <select name="disadvantages[]" id="disadvantages" multiple class="select select-bordered w-full min-h-40" x-model="selectedDisadvantages">
+                                    <option value="Abergläubisch" :disabled="isDisadvantageDisabled('Abergläubisch')">Abergläubisch</option>
+                                    <option value="Abhängige" :disabled="isDisadvantageDisabled('Abhängige')">Abhängige</option>
+                                    <option value="Anfälligkeit gegen Wahnsinn" :disabled="isDisadvantageDisabled('Anfälligkeit gegen Wahnsinn')">Anfälligkeit gegen Wahnsinn</option>
+                                    <option value="Auffällig" :disabled="isDisadvantageDisabled('Auffällig')">Auffällig</option>
+                                    <option value="Blutdurst" :disabled="isDisadvantageDisabled('Blutdurst')">Blutdurst</option>
+                                    <option value="Ehrenkodex" :disabled="isDisadvantageDisabled('Ehrenkodex')">Ehrenkodex</option>
+                                    <option value="Feind" :disabled="isDisadvantageDisabled('Feind')">Feind</option>
+                                    <option value="Primitiv" :disabled="isDisadvantageDisabled('Primitiv')">Primitiv</option>
+                                    <option value="Gejagt" :disabled="isDisadvantageDisabled('Gejagt')">Gejagt</option>
                                 </select>
-                                <p id="disadvantage-description" class="mt-1 text-sm text-base-content/60" aria-live="polite"></p>
                             </div>
                         </div>
                     </div>
 
                     <div class="mb-6">
                         <h2 id="equipment-heading" class="text-xl font-semibold text-primary mb-2">Ausrüstung</h2>
-                        <x-textarea name="equipment" id="equipment" rows="4" aria-labelledby="equipment-heading" />
+                        <x-textarea name="equipment" id="equipment" rows="4" x-model="equipment" aria-labelledby="equipment-heading" />
                     </div>
 
                     <div class="flex justify-end space-x-2">
-                        <x-button id="pdf-button" type="submit" formaction="{{ route('rpg.char-editor.pdf') }}" formtarget="_blank" disabled label="PDF drucken" icon="o-document-text" class="btn-ghost" data-testid="pdf-button" />
-                        <x-button id="submit-button" type="submit" disabled label="Speichern" icon="o-check" class="btn-primary" data-testid="submit-button" />
+                        <x-button id="pdf-button" type="submit" formaction="{{ route('rpg.char-editor.pdf') }}" formtarget="_blank" x-bind:disabled="!formValid" label="PDF drucken" icon="o-document-text" class="btn-ghost" data-testid="pdf-button" />
+                        <x-button id="submit-button" type="submit" x-bind:disabled="!formValid" label="Speichern" icon="o-check" class="btn-primary" data-testid="submit-button" />
                     </div>
                 </fieldset>
             </form>

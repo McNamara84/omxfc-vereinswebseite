@@ -8,15 +8,53 @@
 
         <x-card shadow>
 
+        <div x-data="{
+            activeYear: '{{ $activeYear }}',
+            galleries: @js(collect($years)->mapWithKeys(fn ($y) => [$y => ['index' => 0, 'count' => count($photos[$y] ?? [])]])),
+            get currentGallery() { return this.galleries[this.activeYear] ?? { index: 0, count: 0 } },
+            prev() {
+                let g = this.currentGallery;
+                if (g.count < 2) return;
+                g.index = (g.index - 1 + g.count) % g.count;
+                this.updateMainImage();
+            },
+            next() {
+                let g = this.currentGallery;
+                if (g.count < 2) return;
+                g.index = (g.index + 1) % g.count;
+                this.updateMainImage();
+            },
+            goTo(i) {
+                this.currentGallery.index = i;
+                this.updateMainImage();
+            },
+            updateMainImage() {
+                const container = this.$refs['gallery-' + this.activeYear];
+                if (!container) return;
+                const thumbs = container.querySelectorAll('.thumbnail');
+                const main = container.querySelector('.main-image');
+                if (main && thumbs[this.currentGallery.index]) {
+                    main.src = thumbs[this.currentGallery.index].src;
+                }
+                thumbs.forEach((t, i) => {
+                    t.classList.toggle('ring-2', i === this.currentGallery.index);
+                    t.classList.toggle('ring-primary', i === this.currentGallery.index);
+                });
+                thumbs[this.currentGallery.index]?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+            }
+        }">
+
         <!-- Jahr-Tabs -->
         <div class="mb-8">
             <div class="border-b border-base-content/10">
                 <nav class="flex -mb-px space-x-8" aria-label="Tabs">
                     @foreach($years as $year)
                         <button
-                            class="jahr-tab py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap
-                            {{ $year === $activeYear ? 'border-primary text-primary' : 'border-transparent text-base-content hover:text-base-content hover:border-base-content/30' }}"
-                            data-year="{{ $year }}"
+                            class="py-4 px-1 border-b-2 font-medium text-sm whitespace-nowrap"
+                            :class="activeYear === '{{ $year }}'
+                                ? 'border-primary text-primary'
+                                : 'border-transparent text-base-content hover:text-base-content hover:border-base-content/30'"
+                            @click="activeYear = '{{ $year }}'"
                         >
                             Fotos {{ $year }}
                         </button>
@@ -27,10 +65,10 @@
 
         <!-- Fotogalerien - pro Jahr eine -->
         @foreach($years as $year)
-            <div id="gallery-{{ $year }}" class="gallery-container {{ $year === $activeYear ? 'block' : 'hidden' }}">
+            <div x-ref="gallery-{{ $year }}" x-show="activeYear === '{{ $year }}'" x-cloak class="gallery-container">
                 <div class="relative">
                     <!-- Navigation-Buttons -->
-                    <button class="prev-button absolute left-0 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-r-lg z-10 hover:bg-opacity-70">
+                    <button @click="prev()" class="absolute left-0 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-r-lg z-10 hover:bg-opacity-70" aria-label="Vorheriges Bild">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                         </svg>
@@ -45,7 +83,7 @@
                         @endif
                     </div>
                     
-                    <button class="next-button absolute right-0 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-l-lg z-10 hover:bg-opacity-70">
+                    <button @click="next()" class="absolute right-0 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-l-lg z-10 hover:bg-opacity-70" aria-label="Nächstes Bild">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                         </svg>
@@ -60,13 +98,14 @@
                                 src="{{ $photoUrl }}"
                                 alt="Thumbnail {{ $index + 1 }}"
                                 class="thumbnail h-20 w-auto object-cover cursor-pointer rounded {{ $index === 0 ? 'ring-2 ring-primary' : '' }}"
-                                data-index="{{ $index }}"
+                                @click="goTo({{ $index }})"
                             >
                         @endforeach
                     @endif
                 </div>
             </div>
         @endforeach
+        </div>
         </x-card>
     </x-member-page>
 </x-app-layout>

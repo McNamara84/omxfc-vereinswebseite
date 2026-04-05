@@ -263,8 +263,8 @@ class KompendiumControllerTest extends TestCase
         $response->assertOk();
         // Prüfe, dass der data-testid Selektor im Markup vorhanden ist
         $response->assertSee('data-testid="kompendium-search"', false);
-        // Prüfe, dass das Config-Element für das externe JS-Modul vorhanden ist
-        $response->assertSee('id="kompendium-config"', false);
+        // Prüfe, dass die Livewire-Suchkomponente gerendert wird
+        $response->assertSeeLivewire('kompendium-suche');
     }
 
     public function test_index_renders_script_when_search_allowed(): void
@@ -275,8 +275,8 @@ class KompendiumControllerTest extends TestCase
         $response = $this->get('/kompendium');
 
         $response->assertOk();
-        // Das Kompendium-Config-Element muss gerendert werden (JS-Modul liest Daten daraus)
-        $response->assertSee('id="kompendium-config"', false);
+        // Die Livewire-Suchkomponente muss gerendert werden
+        $response->assertSeeLivewire('kompendium-suche');
     }
 
     public function test_index_does_not_render_script_when_search_not_allowed(): void
@@ -286,8 +286,8 @@ class KompendiumControllerTest extends TestCase
         $response = $this->get('/kompendium');
 
         $response->assertOk();
-        // Kein Kompendium-Config-Element, da Suche nicht erlaubt
-        $response->assertDontSee('id="kompendium-config"', false);
+        // Keine Livewire-Suchkomponente, da Suche nicht erlaubt
+        $response->assertDontSeeLivewire('kompendium-suche');
     }
 
     public function test_ag_maddraxikon_member_with_low_points_gets_search_script(): void
@@ -299,8 +299,8 @@ class KompendiumControllerTest extends TestCase
 
         $response->assertOk();
         $response->assertViewHas('showSearch', true);
-        // Config-Element muss gerendert werden, da showSearch = true
-        $response->assertSee('id="kompendium-config"', false);
+        // Livewire-Suchkomponente muss gerendert werden, da showSearch = true
+        $response->assertSeeLivewire('kompendium-suche');
     }
 
     public function test_index_shows_no_romane_message_when_empty(): void

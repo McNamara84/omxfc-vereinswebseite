@@ -26,32 +26,8 @@
                 @endif
             </div>
 
-            {{-- Suchschlitz (ab 100 Baxx) -------------------------------- --}}
             @if($showSearch)
-                <div id="kompendium-config" data-search-url="{{ route('kompendium.search') }}" data-serien-url="{{ route('kompendium.serien') }}" class="hidden"></div>
-                <div class="mb-4">
-                    <x-input id="search" placeholder="Suchbegriff eingeben … (Enter)" icon="o-magnifying-glass" data-testid="kompendium-search" />
-                </div>
-
-                {{-- Serien-Filter (wird per JS befüllt) ----------------------- --}}
-                <div id="serien-filter" class="mb-4 hidden">
-                    <fieldset role="group" aria-labelledby="serien-filter-legend">
-                        <legend id="serien-filter-legend" class="text-sm font-medium text-base-content mb-2">
-                            Serien filtern:
-                        </legend>
-                        <div id="serien-checkboxes" class="flex flex-wrap gap-x-4 gap-y-2" role="group">
-                            {{-- Wird per JavaScript dynamisch befüllt --}}
-                        </div>
-                    </fieldset>
-                </div>
-
-                {{-- Phrasensuche-Hinweis (wird per JS ein-/ausgeblendet) --}}
-                <div id="phrase-hint" class="mb-4 hidden" data-testid="phrase-hint">
-                    <div class="flex items-center gap-2 p-3 text-sm bg-info/10 border border-info/30 rounded">
-                        <x-icon name="o-information-circle" class="w-5 h-5 text-info shrink-0" />
-                        <span id="phrase-hint-text" class="text-base-content"></span>
-                    </div>
-                </div>
+                @livewire('kompendium-suche')
             @else
                 @if($kompendiumReward && $kompendiumReward->is_active)
                     @livewire('kompendium-kauf-overlay', [
@@ -63,14 +39,6 @@
                     </x-alert>
                 @endif
             @endif
-
-            {{-- Trefferliste ---------------------------------------------- --}}
-            <div id="results" class="space-y-6"></div>
-
-            {{-- Loader ----------------------------------------------------- --}}
-            <div id="loading" class="hidden text-center py-4">
-                <x-loading class="loading-spinner loading-md" />
-            </div>
         </x-card>
     </x-member-page>
 </x-app-layout>

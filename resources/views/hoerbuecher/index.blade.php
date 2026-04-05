@@ -11,6 +11,52 @@
                 <x-button label="Neue Folge" link="{{ route('hoerbuecher.create') }}" icon="o-plus" class="btn-primary" />
             @endif
         </x-card>
+        <div
+            x-data="{
+                statusFilter: '',
+                typeFilter: '',
+                yearFilter: '',
+                roleNameFilter: '',
+                showFilled: false,
+                showUnfilled: false,
+                hideReleased: true,
+                onlyEpisodeId: null,
+                todayMs: new Date().setHours(0, 0, 0, 0),
+
+                isVisible(el) {
+                    const d = el.dataset;
+                    if (this.onlyEpisodeId && d.episodeId !== String(this.onlyEpisodeId)) return false;
+                    if (this.statusFilter && d.status !== this.statusFilter) return false;
+                    if (this.typeFilter && d.type !== this.typeFilter) return false;
+                    if (this.yearFilter && (d.year || '') !== this.yearFilter) return false;
+                    if (this.roleNameFilter) {
+                        try { if (!JSON.parse(d.roleNames || '[]').includes(this.roleNameFilter)) return false; }
+                        catch { return false; }
+                    }
+                    if (this.showFilled && d.rolesFilled !== '1') return false;
+                    if (this.showUnfilled && d.rolesFilled === '1') return false;
+                    if (this.hideReleased && d.plannedReleaseDate && new Date(d.plannedReleaseDate).getTime() < this.todayMs) return false;
+                    return true;
+                },
+
+                filterUnfilled(status = '') {
+                    this.onlyEpisodeId = null;
+                    this.statusFilter = status;
+                    this.roleNameFilter = '';
+                    this.showFilled = false;
+                    this.showUnfilled = true;
+                },
+
+                filterNextEvent(episodeId) {
+                    if (!episodeId) return;
+                    this.onlyEpisodeId = episodeId;
+                    this.showFilled = false;
+                    this.showUnfilled = false;
+                    this.statusFilter = '';
+                    this.roleNameFilter = '';
+                },
+            }"
+        >
         <x-card shadow class="mb-6">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <x-stat
@@ -20,8 +66,15 @@
                     :value="$totalUnfilledRoles"
                     icon="o-user-minus"
                     class="cursor-pointer hover:bg-base-200"
+                    @click="filterUnfilled()"
                 />
-                <div id="card-next-event" data-episode-id="{{ $nextEpisode?->id }}" data-days-left="{{ $daysUntilNextEvt }}" class="cursor-pointer">
+                <div
+                    id="card-next-event"
+                    data-episode-id="{{ $nextEpisode?->id }}"
+                    data-days-left="{{ $daysUntilNextEvt }}"
+                    class="cursor-pointer"
+                    @click="filterNextEvent('{{ $nextEpisode?->id }}')"
+                >
                     @if($nextEpisode)
                         <x-stat
                             title="Tage bis {{ $nextEpisode->title }} veröffentlicht wird ({{ $nextEpisode->planned_release_date_parsed->format('d.m.Y') }})"
@@ -45,6 +98,7 @@
                     :value="$episodesWithUnassignedRoles"
                     icon="o-microphone"
                     class="cursor-pointer hover:bg-base-200"
+                    @click="filterUnfilled('Rollenbesetzung')"
                 />
             </div>
         </x-card>
@@ -56,18 +110,18 @@
                     role="group"
                     aria-label="Auswahlfilter"
                 >
-                    <select id="status-filter" class="select select-bordered select-sm">
+                    <select id="status-filter" x-model="statusFilter" class="select select-bordered select-sm">
                         <option value="">Alle Status</option>
                         @foreach($statuses as $status)
                             <option value="{{ $status }}">{{ $status }}</option>
                         @endforeach
                     </select>
-                    <select id="type-filter" class="select select-bordered select-sm">
+                    <select id="type-filter" x-model="typeFilter" class="select select-bordered select-sm">
                         <option value="">Alle Typen</option>
                         <option value="regular">Reguläre Folge</option>
                         <option value="se">Sonderedition</option>
                     </select>
-                    <select id="year-filter" class="select select-bordered select-sm">
+                    <select id="year-filter" x-model="yearFilter" class="select select-bordered select-sm">
                         <option value="">Alle Jahre</option>
                         @foreach($years as $year)
                             <option value="{{ $year }}">{{ $year }}</option>
@@ -77,6 +131,7 @@
                         <label for="role-name-filter" class="sr-only">Nach Rolle filtern</label>
                         <select
                             id="role-name-filter"
+                            x-model="roleNameFilter"
                             class="select select-bordered select-sm"
                             aria-label="Hörbuchfolgen nach Rolle filtern"
                         >
@@ -96,16 +151,25 @@
                     <p id="checkbox-filter-hint" class="sr-only">
                         Aktiviere einen oder mehrere Checkbox-Filter, um unveröffentlichte Folgen oder Episoden mit vollständig besetzten Rollen einzublenden.
                     </p>
-                    <x-checkbox id="roles-filter" label="Besetzt" class="checkbox-sm" data-filter="roles" />
-                    <x-checkbox id="roles-unfilled-filter" label="Unbesetzt" class="checkbox-sm" data-filter="roles-unfilled" />
-                    <x-checkbox
-                        id="hide-released-filter"
-                        label="Unveröffentlicht"
-                        checked
-                        aria-describedby="hide-released-hint"
-                        class="checkbox-sm"
-                        data-filter="hide-released"
-                    />
+                    <label class="label cursor-pointer gap-2">
+                        <input type="checkbox" x-model="showFilled" x-bind:disabled="showUnfilled" data-filter="roles" class="checkbox checkbox-sm" />
+                        <span class="label-text">Besetzt</span>
+                    </label>
+                    <label class="label cursor-pointer gap-2">
+                        <input type="checkbox" x-model="showUnfilled" x-bind:disabled="showFilled" data-filter="roles-unfilled" class="checkbox checkbox-sm" />
+                        <span class="label-text">Unbesetzt</span>
+                    </label>
+                    <label class="label cursor-pointer gap-2">
+                        <input
+                            type="checkbox"
+                            x-model="hideReleased"
+                            checked
+                            data-filter="hide-released"
+                            aria-describedby="hide-released-hint"
+                            class="checkbox checkbox-sm"
+                        />
+                        <span class="label-text">Unveröffentlicht</span>
+                    </label>
                 </fieldset>
                 <p id="hide-released-hint" class="sr-only">
                     Unveröffentlichte Folgen werden angezeigt, solange der Filter aktiv ist. Deaktiviere den Filter, um bereits veröffentlichte Folgen einzublenden.
@@ -129,6 +193,8 @@
                                 class="cursor-pointer hover:bg-base-200"
                                 role="button"
                                 tabindex="0"
+                                @click="window.location.href = '{{ route('hoerbuecher.show', $episode) }}'"
+                                @keydown.enter="window.location.href = '{{ route('hoerbuecher.show', $episode) }}'"
                                 data-href="{{ route('hoerbuecher.show', $episode) }}"
                                 data-status="{{ $episode->status->value }}"
                                 data-type="{{ $episode->episode_type }}"
@@ -137,6 +203,7 @@
                                 data-episode-id="{{ $episode->id }}"
                                 data-planned-release-date="{{ optional($episode->planned_release_date_parsed)->toDateString() }}"
                                 data-role-names='@json($episode->roles->pluck('name')->filter()->values())'
+                                x-show="isVisible($el)"
                             >
                                 <td class="px-4 py-2">{{ $episode->episode_number }}</td>
                                 <td class="px-4 py-2">{{ $episode->title }}</td>
@@ -174,8 +241,6 @@
                 </table>
             </div>
         </x-card>
-        @assets
-            @vite(['resources/js/hoerbuecher.js'])
-        @endassets
+        </div>
     </x-member-page>
 </x-app-layout>

@@ -35,6 +35,6 @@ test('shows error message for invalid email address', async ({ page }) => {
   const email = page.locator('input[name="mail"]');
   await email.fill('not-an-email');
   await email.blur();
-  // JS-Validierung setzt customValidity – prüfe aria-invalid statt #mail-error
-  await expect(email).toHaveAttribute('aria-invalid', 'true');
+  // Livewire-Validierung zeigt serverseitige Fehlermeldung nach wire:model.blur
+  await expect(page.getByText('Bitte gültige Mailadresse eingeben.')).toBeVisible();
 });

@@ -130,15 +130,11 @@ class MitgliedschaftControllerTest extends TestCase
         }
     }
 
-    public function test_membership_form_has_ids_for_external_js_module(): void
+    public function test_membership_form_has_livewire_component(): void
     {
         $response = $this->get('/mitglied-werden');
 
         $response->assertOk();
-        $html = $response->getContent();
-
-        // Das externe JS-Modul (mitglied-werden.js) benötigt diese IDs zur Initialisierung
-        $this->assertStringContainsString('id="mitgliedschaft-form"', $html);
-        $this->assertStringContainsString('id="submit-button"', $html);
+        $response->assertSeeLivewire(\App\Livewire\MitgliedWerdenForm::class);
     }
 }

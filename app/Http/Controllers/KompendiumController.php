@@ -142,9 +142,10 @@ class KompendiumController extends Controller
         /*  Query parsen: Phrasen in Anführungszeichen vs. freie Begriffe */
         /* ------------------------------------------------------------------ */
         $parsed = $this->searchService->parseSearchQuery($query);
-        $tntQuery = $parsed['hadQuotes']
-            ? $this->searchService->buildTntSearchQuery($parsed)
-            : $query;
+        $tntQuery = $this->searchService->buildTntSearchQuery($parsed) ?: $query;
+
+        // Anführungszeichen aus dem Query entfernen, falls noch vorhanden
+        $tntQuery = str_replace('"', '', $tntQuery);
 
         // Fallback: Wenn Quotes vorhanden waren, aber keine gültigen Begriffe extrahiert
         // werden konnten (z.B. "A" oder ""), auf den bereinigten Original-Query zurückfallen.

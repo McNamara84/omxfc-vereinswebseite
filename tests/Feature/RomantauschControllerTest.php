@@ -89,15 +89,11 @@ class RomantauschControllerTest extends TestCase
         }
 
         $response->assertDontSee('data-gallery-id', false);
-        $response->assertSee('data-photo-dialog-trigger', false);
-        $response->assertSee('data-photo-index="0"', false);
+        $response->assertSee('@click="open(0)"', false);
         $response->assertSee('role="dialog"', false);
         $response->assertSee('aria-modal="true"', false);
-        $response->assertSee('data-photo-dialog', false);
-        $this->assertStringNotContainsString(
-            'data-photo-dialog aria-hidden="true"',
-            str_replace(["\n", "\r"], ' ', $response->getContent())
-        );
+        $response->assertSee('x-show="isOpen"', false);
+        $response->assertSee('style="display: none;"', false);
         $response->assertSee('Fotoansicht schließen', false);
         $response->assertSee('Zum Vergrößern ein Foto auswählen.', false);
     }
@@ -937,7 +933,7 @@ class RomantauschControllerTest extends TestCase
 
         $response->assertSee('src="'.asset('storage/'.$photoPath).'"', false);
         $response->assertSee('alt="Foto 1 von '.e($description).'"', false);
-        $response->assertSee('data-photo-dialog-trigger', false);
+        $response->assertSee('@click="open(0)"', false);
     }
 
     public function test_index_renders_placeholder_for_offer_without_photo(): void
@@ -989,10 +985,11 @@ class RomantauschControllerTest extends TestCase
 
         foreach ([$firstPath, $secondPath] as $index => $path) {
             $response->assertSee('src="'.asset('storage/'.$path).'"', false);
-            $response->assertSee('data-photo-index="'.$index.'"', false);
+            $response->assertSee('@click="open('.$index.')"', false);
         }
 
-        $response->assertSee('data-photo-dialog-counter', false);
+        // Alpine-gesteuerte Galerie enthält photos-Array
+        $response->assertSee('photos:', false);
     }
 
     public function test_create_request_loads_books_from_database(): void

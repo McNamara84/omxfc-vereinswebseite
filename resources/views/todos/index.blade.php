@@ -12,7 +12,14 @@
             @endif
             @php
                 $currentFilter = $activeFilter ?? 'all';
+                $filterMessages = [
+                    'all' => 'Zeigt alle verfügbaren Challenges.',
+                    'assigned' => 'Zeigt deine übernommenen Challenges.',
+                    'open' => 'Zeigt offene Challenges, die noch übernommen werden können.',
+                    'pending' => 'Zeigt Challenges, die auf eine Verifizierung warten.',
+                ];
             @endphp
+            <div x-data="{ filter: '{{ $currentFilter }}', messages: @js($filterMessages) }">
             <x-header title="Challenges & Baxx" subtitle="Behalte deine Fortschritte und die Ziele des Vereins im Blick." separator class="mb-6">
                 @if($canCreateTodos)
                     <x-slot:actions>
@@ -20,13 +27,13 @@
                     </x-slot:actions>
                 @endif
             </x-header>
-            <x-card shadow class="mb-6" data-todo-filter-wrapper>
+            <x-card shadow class="mb-6">
                 <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                     <div class="space-y-1">
                         <h2 class="text-xl font-semibold text-primary">Challenges filtern</h2>
-                        <p id="todo-filter-status" data-todo-filter-status role="status" aria-live="polite"
-                            class="text-sm text-base-content">
-                            {{ $currentFilter === 'pending' ? 'Zeigt Challenges, die auf eine Verifizierung warten.' : 'Zeigt alle verfügbaren Challenges.' }}
+                        <p role="status" aria-live="polite" class="text-sm text-base-content" data-todo-filter-status
+                            x-text="messages[filter]">
+                            {{ $filterMessages[$currentFilter] }}
                         </p>
                     </div>
                 </div>
@@ -37,65 +44,34 @@
                         <span class="group-open:hidden">Filter anzeigen</span>
                         <span class="hidden group-open:inline">Filter ausblenden</span>
                     </summary>
-                    <div id="todo-filter-panel" class="mt-6 border-t border-base-content/10 pt-6">
-                        <form method="GET" action="{{ route('todos.index') }}" data-todo-filter-form
-                            data-current-filter="{{ $currentFilter }}">
-                            <fieldset class="space-y-4">
-                                <legend class="sr-only">Challenges filtern</legend>
-                                <div class="flex flex-wrap gap-2" role="group" aria-label="Challenges filtern">
-                                    <x-button
-                                        type="submit"
-                                        name="filter"
-                                        value=""
-                                        label="Alle"
-                                        data-todo-filter
-                                        data-filter="all"
-                                        data-active="{{ $currentFilter === 'all' ? 'true' : 'false' }}"
-                                        class="font-semibold border border-primary data-[active=true]:bg-primary data-[active=true]:text-primary-content {{ $currentFilter === 'all' ? 'btn-primary' : 'btn-ghost text-primary' }}"
-                                    />
-                                    <x-button
-                                        type="button"
-                                        label="Eigene Challenges"
-                                        data-todo-filter
-                                        data-filter="assigned"
-                                        data-active="false"
-                                        class="font-semibold border border-base-content/20 btn-ghost data-[active=true]:bg-primary data-[active=true]:text-primary-content"
-                                    />
-                                    <x-button
-                                        type="button"
-                                        label="Offene Challenges"
-                                        data-todo-filter
-                                        data-filter="open"
-                                        data-active="false"
-                                        class="font-semibold border border-base-content/20 btn-ghost data-[active=true]:bg-primary data-[active=true]:text-primary-content"
-                                    />
-                                    @if($canVerifyTodos)
-                                        <x-button
-                                            type="submit"
-                                            name="filter"
-                                            value="pending"
-                                            label="Zu verifizieren"
-                                            data-todo-filter
-                                            data-filter="pending"
-                                            data-active="{{ $currentFilter === 'pending' ? 'true' : 'false' }}"
-                                            class="font-semibold border border-base-content/20 btn-ghost data-[active=true]:bg-primary data-[active=true]:text-primary-content"
-                                        />
-                                    @endif
-                                </div>
-                                <noscript>
-                                    <p class="text-xs text-base-content">
-                                        Für weitere Filteroptionen aktiviere JavaScript in deinem Browser.
-                                    </p>
-                                </noscript>
-                            </fieldset>
-                        </form>
+                    <div class="mt-6 border-t border-base-content/10 pt-6">
+                            <nav class="flex flex-wrap gap-2" aria-label="Challenges filtern">
+                                <a href="{{ route('todos.index') }}"
+                                    class="btn {{ $currentFilter === 'all' ? 'btn-primary font-semibold border border-primary' : 'btn-ghost font-semibold border border-primary text-primary' }}"
+                                    @if($currentFilter === 'all') aria-current="page" @endif
+                                >Alle</a>
+                                <a href="{{ route('todos.index', ['filter' => 'assigned']) }}"
+                                    class="btn {{ $currentFilter === 'assigned' ? 'btn-primary font-semibold border border-primary' : 'btn-ghost font-semibold border border-base-content/20' }}"
+                                    @if($currentFilter === 'assigned') aria-current="page" @endif
+                                >Eigene Challenges</a>
+                                <a href="{{ route('todos.index', ['filter' => 'open']) }}"
+                                    class="btn {{ $currentFilter === 'open' ? 'btn-primary font-semibold border border-primary' : 'btn-ghost font-semibold border border-base-content/20' }}"
+                                    @if($currentFilter === 'open') aria-current="page" @endif
+                                >Offene Challenges</a>
+                                @if($canVerifyTodos)
+                                    <a href="{{ route('todos.index', ['filter' => 'pending']) }}"
+                                        class="btn {{ $currentFilter === 'pending' ? 'btn-primary font-semibold border border-primary' : 'btn-ghost font-semibold border border-base-content/20' }}"
+                                        @if($currentFilter === 'pending') aria-current="page" @endif
+                                    >Zu verifizieren</a>
+                                @endif
+                            </nav>
                     </div>
                 </details>
             </x-card>
 
             <!-- Zu verifizierende Challenges (nur wenn Verifizierungsrechte vorhanden) -->
-            @if($canVerifyTodos && $completedTodos->where('status', 'completed')->isNotEmpty())
-                <x-card shadow class="mb-6" data-todo-section="pending" aria-labelledby="todo-pending-heading">
+            @if($canVerifyTodos && $completedTodos->where('status', 'completed')->isNotEmpty() && in_array($currentFilter, ['all', 'pending']))
+                <x-card shadow class="mb-6" x-show="filter === 'all' || filter === 'pending'" aria-labelledby="todo-pending-heading">
                     <h2 id="todo-pending-heading"
                         class="text-xl font-semibold text-primary mb-4">Zu verifizierende Challenges
                     </h2>
@@ -141,8 +117,8 @@
             @php
                 $inProgressTodos = $todos->where('status', 'assigned')->where('assigned_to', '!=', Auth::id());
             @endphp
-            @if($inProgressTodos->isNotEmpty())
-                <x-card shadow class="mb-6" data-todo-section="in-progress" aria-labelledby="todo-progress-heading">
+            @if($inProgressTodos->isNotEmpty() && $currentFilter === 'all')
+                <x-card shadow class="mb-6" x-show="filter === 'all'" aria-labelledby="todo-progress-heading">
                     <h2 id="todo-progress-heading"
                         class="text-xl font-semibold text-primary mb-4">In Bearbeitung befindliche Challenges</h2>
                     <div class="overflow-x-auto">
@@ -179,7 +155,8 @@
                 </x-card>
             @endif
             <!-- Deine Challenges -->
-            <x-card shadow class="mb-6" data-todo-section="assigned" aria-labelledby="todo-assigned-heading">
+            @if(in_array($currentFilter, ['all', 'assigned']))
+            <x-card shadow class="mb-6" x-show="filter === 'all' || filter === 'assigned'" aria-labelledby="todo-assigned-heading" data-todo-section="assigned">
                 <h2 id="todo-assigned-heading"
                     class="text-xl font-semibold text-primary mb-4">Deine Challenges</h2>
                 @if($assignedTodos->isEmpty())
@@ -234,8 +211,10 @@
                     </div>
                 @endif
             </x-card>
+            @endif
             <!-- Offene Challenges -->
-            <x-card shadow class="mb-6" data-todo-section="open" aria-labelledby="todo-open-heading">
+            @if(in_array($currentFilter, ['all', 'open']))
+            <x-card shadow class="mb-6" x-show="filter === 'all' || filter === 'open'" aria-labelledby="todo-open-heading" data-todo-section="open">
                 <h2 id="todo-open-heading"
                     class="text-xl font-semibold text-primary mb-4">Offene Challenges</h2>
                 @if($unassignedTodos->isEmpty())
@@ -278,6 +257,7 @@
                     </div>
                 @endif
             </x-card>
+            @endif
 
             @php
                 $dashboard = $dashboardMetrics ?? [
@@ -448,5 +428,6 @@
                     </x-card>
                 </div>
             </x-card>
+            </div>{{-- /x-data filter --}}
     </x-member-page>
 </x-app-layout>

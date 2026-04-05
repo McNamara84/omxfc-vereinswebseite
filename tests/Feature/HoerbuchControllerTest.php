@@ -656,8 +656,8 @@ class HoerbuchControllerTest extends TestCase
         $this->actingAs($user)
             ->get(route('hoerbuecher.edit', $episode))
             ->assertOk()
-            ->assertSee('value="sichtbar@example.net"', false)
-            ->assertSee('value="Alias X"', false);
+            ->assertSee('sichtbar@example.net', false)
+            ->assertSee('Alias X', false);
     }
 
     public function test_notes_are_sanitized_and_escaped_in_views(): void

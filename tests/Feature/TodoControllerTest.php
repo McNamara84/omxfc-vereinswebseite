@@ -670,4 +670,104 @@ class TodoControllerTest extends TestCase
         $response->assertRedirect(route('todos.index', [], false));
         $response->assertSessionHas('status', 'Challenge wurde erfolgreich gelöscht. Die gutgeschriebenen Baxx wurden abgezogen.');
     }
+
+    public function test_assigned_filter_only_renders_assigned_section(): void
+    {
+        $admin = $this->actingMember('Admin');
+        $other = $this->actingMember();
+
+        $this->createTodo($admin, ['status' => TodoStatus::Open->value]);
+        $this->createTodo($admin, [
+            'assigned_to' => $admin->id,
+            'status' => TodoStatus::Assigned->value,
+        ]);
+        $this->createTodo($admin, [
+            'assigned_to' => $other->id,
+            'status' => TodoStatus::Completed->value,
+            'completed_at' => now(),
+        ]);
+
+        $this->actingAs($admin);
+
+        $response = $this->get('/aufgaben?filter=assigned');
+
+        $response->assertOk();
+        $response->assertSee('id="todo-assigned-heading"', false);
+        $response->assertDontSee('id="todo-open-heading"', false);
+        $response->assertDontSee('id="todo-progress-heading"', false);
+        $response->assertDontSee('id="todo-pending-heading"', false);
+    }
+
+    public function test_open_filter_only_renders_open_section(): void
+    {
+        $admin = $this->actingMember('Admin');
+
+        $this->createTodo($admin, ['status' => TodoStatus::Open->value]);
+        $this->createTodo($admin, [
+            'assigned_to' => $admin->id,
+            'status' => TodoStatus::Assigned->value,
+        ]);
+
+        $this->actingAs($admin);
+
+        $response = $this->get('/aufgaben?filter=open');
+
+        $response->assertOk();
+        $response->assertSee('id="todo-open-heading"', false);
+        $response->assertDontSee('id="todo-assigned-heading"', false);
+        $response->assertDontSee('id="todo-progress-heading"', false);
+    }
+
+    public function test_pending_filter_only_renders_pending_section(): void
+    {
+        $admin = $this->actingMember('Admin');
+        $assignee = $this->actingMember();
+
+        $this->createTodo($admin, ['status' => TodoStatus::Open->value]);
+        $this->createTodo($admin, [
+            'assigned_to' => $assignee->id,
+            'status' => TodoStatus::Completed->value,
+            'completed_at' => now(),
+        ]);
+
+        $this->actingAs($admin);
+
+        $response = $this->get('/aufgaben?filter=pending');
+
+        $response->assertOk();
+        $response->assertSee('id="todo-pending-heading"', false);
+        $response->assertDontSee('id="todo-open-heading"', false);
+        $response->assertDontSee('id="todo-assigned-heading"', false);
+    }
+
+    public function test_all_filter_renders_all_sections(): void
+    {
+        $admin = $this->actingMember('Admin');
+        $other = $this->actingMember();
+
+        $this->createTodo($admin, ['status' => TodoStatus::Open->value]);
+        $this->createTodo($admin, [
+            'assigned_to' => $admin->id,
+            'status' => TodoStatus::Assigned->value,
+        ]);
+        $this->createTodo($admin, [
+            'assigned_to' => $other->id,
+            'status' => TodoStatus::Assigned->value,
+        ]);
+        $this->createTodo($admin, [
+            'assigned_to' => $other->id,
+            'status' => TodoStatus::Completed->value,
+            'completed_at' => now(),
+        ]);
+
+        $this->actingAs($admin);
+
+        $response = $this->get('/aufgaben');
+
+        $response->assertOk();
+        $response->assertSee('id="todo-assigned-heading"', false);
+        $response->assertSee('id="todo-open-heading"', false);
+        $response->assertSee('id="todo-progress-heading"', false);
+        $response->assertSee('id="todo-pending-heading"', false);
+    }
 }
