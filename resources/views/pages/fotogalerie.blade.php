@@ -14,11 +14,13 @@
             get currentGallery() { return this.galleries[this.activeYear] ?? { index: 0, count: 0 } },
             prev() {
                 let g = this.currentGallery;
+                if (g.count < 2) return;
                 g.index = (g.index - 1 + g.count) % g.count;
                 this.updateMainImage();
             },
             next() {
                 let g = this.currentGallery;
+                if (g.count < 2) return;
                 g.index = (g.index + 1) % g.count;
                 this.updateMainImage();
             },

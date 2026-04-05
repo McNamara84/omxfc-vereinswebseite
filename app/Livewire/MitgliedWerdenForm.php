@@ -76,7 +76,7 @@ class MitgliedWerdenForm extends Component
             'mail.unique' => 'Diese E-Mail-Adresse wird bereits verwendet.',
             'passwort.required' => 'Passwort mindestens 6 Zeichen.',
             'passwort.min' => 'Passwort mindestens 6 Zeichen.',
-            'passwort_confirmation.same' => 'Passwörter stimmen nicht überein.',
+            'passwort.confirmed' => 'Passwörter stimmen nicht überein.',
             'satzung_check.accepted' => 'Du musst die Satzung akzeptieren.',
         ];
     }
@@ -92,33 +92,39 @@ class MitgliedWerdenForm extends Component
 
         $this->submitting = true;
 
-        $user = User::create([
-            'name' => $this->vorname . ' ' . $this->nachname,
-            'email' => $this->mail,
-            'password' => Hash::make($this->passwort),
-            'current_team_id' => 1,
-            'vorname' => $this->vorname,
-            'nachname' => $this->nachname,
-            'strasse' => $this->strasse,
-            'hausnummer' => $this->hausnummer,
-            'plz' => $this->plz,
-            'stadt' => $this->stadt,
-            'land' => $this->land,
-            'telefon' => $this->telefon ?: null,
-            'verein_gefunden' => $this->verein_gefunden ?: null,
-            'mitgliedsbeitrag' => $this->mitgliedsbeitrag,
-        ]);
+        try {
+            $team = Jetstream::newTeamModel()->firstOrCreate(
+                ['name' => 'Mitglieder'],
+                ['user_id' => 1, 'personal_team' => false]
+            );
 
-        $team = Jetstream::newTeamModel()->firstOrCreate(
-            ['name' => 'Mitglieder'],
-            ['user_id' => $user->id, 'personal_team' => false]
-        );
+            $user = User::create([
+                'name' => $this->vorname . ' ' . $this->nachname,
+                'email' => $this->mail,
+                'password' => Hash::make($this->passwort),
+                'vorname' => $this->vorname,
+                'nachname' => $this->nachname,
+                'strasse' => $this->strasse,
+                'hausnummer' => $this->hausnummer,
+                'plz' => $this->plz,
+                'stadt' => $this->stadt,
+                'land' => $this->land,
+                'telefon' => $this->telefon ?: null,
+                'verein_gefunden' => $this->verein_gefunden ?: null,
+                'mitgliedsbeitrag' => $this->mitgliedsbeitrag,
+            ]);
 
-        $team->users()->attach($user, ['role' => Role::Anwaerter->value]);
+            $team->users()->attach($user, ['role' => Role::Anwaerter->value]);
+            $user->switchTeam($team);
 
-        Mail::to($user->email)->queue(new MitgliedAntragEingereicht($user));
+            Mail::to($user->email)->queue(new MitgliedAntragEingereicht($user));
 
-        $this->redirect(route('mitglied.werden.erfolgreich'));
+            $this->redirect(route('mitglied.werden.erfolgreich'));
+        } catch (\Throwable $e) {
+            $this->submitting = false;
+
+            throw $e;
+        }
     }
 
     public function render()

@@ -1,4 +1,4 @@
-import Alpine from 'alpinejs';
+const Alpine = window.Alpine ?? (await import('alpinejs')).default;
 
 const RACE_DESCRIPTIONS = {
     Barbar: 'Im 26. Jahrhundert besteht die Zivilisation zum größten Teil aus Barbaren. Sie leben in unterschiedlichen Kulturen, beispielsweise als Seefahrer (die Disuuslachter), Nomaden (die Wandernden Völker) oder Ruinenbewohner (die Loords von Landán). Die zeichnen sich durch Zähigkeit, Wildheit und Kampflust aus, sind zumeist primitiv und leben in Clans. Ehre und Mut werden hoch geschätzt. Technologisch bewegen sich die meisten Barbaren zwischen der späten Steinzeit und dem frühen Mittelalter.',
@@ -122,7 +122,7 @@ Alpine.data('charEditor', () => ({
             if (otherId === id) return sum;
             return sum + Math.max(this.attributes[otherId], 0);
         }, 0);
-        const maxForThis = Math.min(this.base.AP + this.raceAPBonus - othersUsed, this.attributeMax);
+        const maxForThis = Math.max(-1, Math.min(this.base.AP + this.raceAPBonus - othersUsed, this.attributeMax));
         val = Math.min(val, maxForThis);
 
         this.attributes[id] = val;
@@ -246,7 +246,7 @@ Alpine.data('charEditor', () => ({
                 const st = g ? g.value : 0;
                 return sum + Math.max(s.value - st, 0);
             }, 0);
-            const maxForThis = this.base.FP - othersUsed;
+            const maxForThis = Math.max(0, this.base.FP - othersUsed);
             if (diff > maxForThis) {
                 skill.value = start + maxForThis;
             }

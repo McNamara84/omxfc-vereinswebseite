@@ -92,7 +92,9 @@ class KompendiumSuche extends Component
 
     private function executeSearch(): void
     {
-        $searchService = app(KompendiumSearchService::class);
+        try {
+            $this->error = null;
+            $searchService = app(KompendiumSearchService::class);
         $query = mb_strtolower(trim($this->query));
         $perPage = 5;
         $snippetsPerFile = config('kompendium.snippets_per_novel', 10) ?: 10;
@@ -207,6 +209,11 @@ class KompendiumSuche extends Component
         $this->results = array_merge($this->results, $hits);
         $this->isPhraseSearch = $parsed['isPhraseSearch'];
         $this->searchInfo = ['phrases' => $parsed['phrases'], 'terms' => $parsed['terms']];
+        } catch (\Throwable $e) {
+            $this->error = 'Bei der Suche ist ein Fehler aufgetreten. Bitte versuche es erneut.';
+            $this->lastPage = $this->page;
+            report($e);
+        }
     }
 
     private function isValidPath(string $path): bool

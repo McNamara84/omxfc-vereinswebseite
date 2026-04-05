@@ -53,42 +53,29 @@
                         <fieldset class="space-y-4">
                             <legend class="sr-only">Challenges filtern</legend>
                             <div class="flex flex-wrap gap-2" role="group" aria-label="Challenges filtern">
-                                <x-button
-                                    type="button"
-                                    label="Alle"
-                                    @click="window.location.href = '{{ route('todos.index') }}'"
-                                    x-bind:aria-pressed="filter === 'all' ? 'true' : 'false'"
-                                    ::class="filter === 'all' ? 'btn-primary font-semibold border border-primary' : 'btn-ghost font-semibold border border-primary text-primary'"
-                                />
-                                <x-button
-                                    type="button"
-                                    label="Eigene Challenges"
-                                    @click="window.location.href = '{{ route('todos.index', ['filter' => 'assigned']) }}'"
-                                    x-bind:aria-pressed="filter === 'assigned' ? 'true' : 'false'"
-                                    ::class="filter === 'assigned' ? 'btn-primary font-semibold border border-primary' : 'btn-ghost font-semibold border border-base-content/20'"
-                                />
-                                <x-button
-                                    type="button"
-                                    label="Offene Challenges"
-                                    @click="window.location.href = '{{ route('todos.index', ['filter' => 'open']) }}'"
-                                    x-bind:aria-pressed="filter === 'open' ? 'true' : 'false'"
-                                    ::class="filter === 'open' ? 'btn-primary font-semibold border border-primary' : 'btn-ghost font-semibold border border-base-content/20'"
-                                />
+                                <a href="{{ route('todos.index') }}"
+                                    class="btn {{ $currentFilter === 'all' ? 'btn-primary font-semibold border border-primary' : 'btn-ghost font-semibold border border-primary text-primary' }}"
+                                    aria-pressed="{{ $currentFilter === 'all' ? 'true' : 'false' }}"
+                                    role="button"
+                                >Alle</a>
+                                <a href="{{ route('todos.index', ['filter' => 'assigned']) }}"
+                                    class="btn {{ $currentFilter === 'assigned' ? 'btn-primary font-semibold border border-primary' : 'btn-ghost font-semibold border border-base-content/20' }}"
+                                    aria-pressed="{{ $currentFilter === 'assigned' ? 'true' : 'false' }}"
+                                    role="button"
+                                >Eigene Challenges</a>
+                                <a href="{{ route('todos.index', ['filter' => 'open']) }}"
+                                    class="btn {{ $currentFilter === 'open' ? 'btn-primary font-semibold border border-primary' : 'btn-ghost font-semibold border border-base-content/20' }}"
+                                    aria-pressed="{{ $currentFilter === 'open' ? 'true' : 'false' }}"
+                                    role="button"
+                                >Offene Challenges</a>
                                 @if($canVerifyTodos)
-                                    <x-button
-                                        type="button"
-                                        label="Zu verifizieren"
-                                        @click="window.location.href = '{{ route('todos.index', ['filter' => 'pending']) }}'"
-                                        x-bind:aria-pressed="filter === 'pending' ? 'true' : 'false'"
-                                        ::class="filter === 'pending' ? 'btn-primary font-semibold border border-primary' : 'btn-ghost font-semibold border border-base-content/20'"
-                                    />
+                                    <a href="{{ route('todos.index', ['filter' => 'pending']) }}"
+                                        class="btn {{ $currentFilter === 'pending' ? 'btn-primary font-semibold border border-primary' : 'btn-ghost font-semibold border border-base-content/20' }}"
+                                        aria-pressed="{{ $currentFilter === 'pending' ? 'true' : 'false' }}"
+                                        role="button"
+                                    >Zu verifizieren</a>
                                 @endif
                             </div>
-                            <noscript>
-                                <p class="text-xs text-base-content">
-                                    Für weitere Filteroptionen aktiviere JavaScript in deinem Browser.
-                                </p>
-                            </noscript>
                         </fieldset>
                     </div>
                 </details>
