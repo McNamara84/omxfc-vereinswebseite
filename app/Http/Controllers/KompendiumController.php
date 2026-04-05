@@ -142,7 +142,7 @@ class KompendiumController extends Controller
         /*  Query parsen: Phrasen in Anführungszeichen vs. freie Begriffe */
         /* ------------------------------------------------------------------ */
         $parsed = $this->searchService->parseSearchQuery($query);
-        $tntQuery = $parsed['hadQuotes']
+        $tntQuery = $parsed['isPhraseSearch']
             ? $this->searchService->buildTntSearchQuery($parsed)
             : $query;
 

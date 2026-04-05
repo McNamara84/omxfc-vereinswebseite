@@ -19,7 +19,7 @@
                     'pending' => 'Zeigt Challenges, die auf eine Verifizierung warten.',
                 ];
             @endphp
-            <div x-data="{ filter: '{{ $currentFilter }}' }">
+            <div x-data="{ filter: '{{ $currentFilter }}', messages: @js($filterMessages) }">
             <x-header title="Challenges & Baxx" subtitle="Behalte deine Fortschritte und die Ziele des Vereins im Blick." separator class="mb-6">
                 @if($canCreateTodos)
                     <x-slot:actions>
@@ -32,12 +32,7 @@
                     <div class="space-y-1">
                         <h2 class="text-xl font-semibold text-primary">Challenges filtern</h2>
                         <p role="status" aria-live="polite" class="text-sm text-base-content" data-todo-filter-status
-                            x-text="{
-                                all: '{{ $filterMessages['all'] }}',
-                                assigned: '{{ $filterMessages['assigned'] }}',
-                                open: '{{ $filterMessages['open'] }}',
-                                pending: '{{ $filterMessages['pending'] }}'
-                            }[filter]">
+                            x-text="messages[filter]">
                             {{ $filterMessages[$currentFilter] }}
                         </p>
                     </div>

@@ -101,7 +101,7 @@ class KompendiumSuche extends Component
         $radius = 200;
 
         $parsed = $searchService->parseSearchQuery($query);
-        $tntQuery = $parsed['hadQuotes']
+        $tntQuery = $parsed['isPhraseSearch']
             ? $searchService->buildTntSearchQuery($parsed)
             : $query;
 

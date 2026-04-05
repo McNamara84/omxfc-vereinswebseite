@@ -11,7 +11,7 @@ class Changelog extends Component
     #[Computed(cache: true, seconds: 3600)]
     public function releases(): Collection
     {
-        $path = public_path('changelog.json');
+        $path = config('app.changelog_path', public_path('changelog.json'));
 
         if (! file_exists($path)) {
             return collect();

@@ -4,10 +4,10 @@ namespace App\Livewire;
 
 use App\Enums\Role;
 use App\Mail\MitgliedAntragEingereicht;
+use App\Models\Team;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
-use Laravel\Jetstream\Jetstream;
 use Livewire\Component;
 
 class MitgliedWerdenForm extends Component
@@ -93,10 +93,11 @@ class MitgliedWerdenForm extends Component
         $this->submitting = true;
 
         try {
-            $team = Jetstream::newTeamModel()->firstOrCreate(
-                ['name' => 'Mitglieder'],
-                ['user_id' => 1, 'personal_team' => false]
-            );
+            $team = Team::membersTeam();
+
+            if (! $team) {
+                throw new \RuntimeException('Das Mitglieder-Team existiert nicht. Bitte den Administrator kontaktieren.');
+            }
 
             $user = User::create([
                 'name' => $this->vorname . ' ' . $this->nachname,

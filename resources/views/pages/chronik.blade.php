@@ -112,8 +112,9 @@
             <div x-show="open" x-transition.opacity
                  class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50"
                  @click.self="open = false"
-                 role="dialog" aria-modal="true" style="display: none;">
+                 role="dialog" aria-modal="true" aria-labelledby="chronik-lightbox-title" style="display: none;">
                 <div class="relative">
+                    <h2 id="chronik-lightbox-title" class="sr-only" x-text="alt || 'Bildansicht'"></h2>
                     <button @click="open = false" class="absolute top-2 right-2 text-white text-2xl" aria-label="Bild schließen">&times;</button>
                     <picture>
                         <source type="image/avif" :srcset="avif" />

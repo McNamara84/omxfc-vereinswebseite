@@ -29,22 +29,10 @@ class ChangelogTest extends TestCase
 
     public function test_renders_without_error_when_changelog_missing(): void
     {
-        // Temporarily rename changelog.json to simulate missing file
-        $path = public_path('changelog.json');
-        $backupPath = public_path('changelog.json.bak');
-        $exists = file_exists($path);
+        // Point config to a non-existent temp path instead of renaming real file
+        config(['app.changelog_path' => sys_get_temp_dir() . '/non_existent_changelog.json']);
 
-        if ($exists) {
-            rename($path, $backupPath);
-        }
-
-        try {
-            Livewire::test(Changelog::class)
-                ->assertOk();
-        } finally {
-            if ($exists) {
-                rename($backupPath, $path);
-            }
-        }
+        Livewire::test(Changelog::class)
+            ->assertOk();
     }
 }

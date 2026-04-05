@@ -37,7 +37,6 @@ class KompendiumSucheTest extends TestCase
             'phrases' => [],
             'terms' => ['testbegriff'],
             'isPhraseSearch' => false,
-            'hadQuotes' => false,
         ]);
         $mock->shouldReceive('search')->andReturn([
             'hits' => ['total_hits' => 0],
@@ -99,7 +98,6 @@ class KompendiumSucheTest extends TestCase
             'phrases' => [],
             'terms' => ['drax'],
             'isPhraseSearch' => false,
-            'hadQuotes' => false,
         ]);
         $mock->shouldReceive('search')->andReturn([
             'hits' => ['total_hits' => 0],
