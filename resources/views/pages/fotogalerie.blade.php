@@ -65,7 +65,7 @@
 
         <!-- Fotogalerien - pro Jahr eine -->
         @foreach($years as $year)
-            <div x-ref="gallery-{{ $year }}" x-show="activeYear === '{{ $year }}'" class="gallery-container">
+            <div x-ref="gallery-{{ $year }}" x-show="activeYear === '{{ $year }}'" x-cloak class="gallery-container">
                 <div class="relative">
                     <!-- Navigation-Buttons -->
                     <button @click="prev()" class="absolute left-0 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-r-lg z-10 hover:bg-opacity-70" aria-label="Vorheriges Bild">

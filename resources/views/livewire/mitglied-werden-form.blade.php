@@ -103,6 +103,8 @@
         class="btn btn-primary mt-6"
         :class="{ 'opacity-50 cursor-not-allowed': !$wire.satzung_check || $wire.submitting }"
         :disabled="!$wire.satzung_check || $wire.submitting"
+        wire:loading.attr="disabled"
+        wire:target="submit"
         data-testid="mitglied-submit"
     >
         <span wire:loading.remove wire:target="submit">

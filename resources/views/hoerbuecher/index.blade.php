@@ -163,6 +163,7 @@
                         <input
                             type="checkbox"
                             x-model="hideReleased"
+                            checked
                             data-filter="hide-released"
                             aria-describedby="hide-released-hint"
                             class="checkbox checkbox-sm"
