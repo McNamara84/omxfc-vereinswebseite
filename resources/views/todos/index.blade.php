@@ -77,7 +77,7 @@
             </x-card>
 
             <!-- Zu verifizierende Challenges (nur wenn Verifizierungsrechte vorhanden) -->
-            @if($canVerifyTodos && $completedTodos->where('status', 'completed')->isNotEmpty())
+            @if($canVerifyTodos && $completedTodos->where('status', 'completed')->isNotEmpty() && in_array($currentFilter, ['all', 'pending']))
                 <x-card shadow class="mb-6" x-show="filter === 'all' || filter === 'pending'" aria-labelledby="todo-pending-heading">
                     <h2 id="todo-pending-heading"
                         class="text-xl font-semibold text-primary mb-4">Zu verifizierende Challenges
@@ -124,7 +124,7 @@
             @php
                 $inProgressTodos = $todos->where('status', 'assigned')->where('assigned_to', '!=', Auth::id());
             @endphp
-            @if($inProgressTodos->isNotEmpty())
+            @if($inProgressTodos->isNotEmpty() && $currentFilter === 'all')
                 <x-card shadow class="mb-6" x-show="filter === 'all'" aria-labelledby="todo-progress-heading">
                     <h2 id="todo-progress-heading"
                         class="text-xl font-semibold text-primary mb-4">In Bearbeitung befindliche Challenges</h2>
@@ -162,6 +162,7 @@
                 </x-card>
             @endif
             <!-- Deine Challenges -->
+            @if(in_array($currentFilter, ['all', 'assigned']))
             <x-card shadow class="mb-6" x-show="filter === 'all' || filter === 'assigned'" aria-labelledby="todo-assigned-heading" data-todo-section="assigned">
                 <h2 id="todo-assigned-heading"
                     class="text-xl font-semibold text-primary mb-4">Deine Challenges</h2>
@@ -217,7 +218,9 @@
                     </div>
                 @endif
             </x-card>
+            @endif
             <!-- Offene Challenges -->
+            @if(in_array($currentFilter, ['all', 'open']))
             <x-card shadow class="mb-6" x-show="filter === 'all' || filter === 'open'" aria-labelledby="todo-open-heading" data-todo-section="open">
                 <h2 id="todo-open-heading"
                     class="text-xl font-semibold text-primary mb-4">Offene Challenges</h2>
@@ -261,6 +264,7 @@
                     </div>
                 @endif
             </x-card>
+            @endif
 
             @php
                 $dashboard = $dashboardMetrics ?? [
