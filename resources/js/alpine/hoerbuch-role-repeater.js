@@ -1,4 +1,4 @@
-const Alpine = window.Alpine ?? (await import('alpinejs')).default;
+const Alpine = window.Alpine;
 
 Alpine.data('hoerbuchRoleRepeater', ({ initialRoles = [], members = [], previousSpeakerUrl = '' }) => ({
     roles: initialRoles,

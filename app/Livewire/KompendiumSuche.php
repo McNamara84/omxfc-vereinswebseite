@@ -95,120 +95,120 @@ class KompendiumSuche extends Component
         try {
             $this->error = null;
             $searchService = app(KompendiumSearchService::class);
-        $query = mb_strtolower(trim($this->query));
-        $perPage = 5;
-        $snippetsPerFile = config('kompendium.snippets_per_novel', 10) ?: 10;
-        $radius = 200;
+            $query = mb_strtolower(trim($this->query));
+            $perPage = 5;
+            $snippetsPerFile = config('kompendium.snippets_per_novel', 10) ?: 10;
+            $radius = 200;
 
-        $parsed = $searchService->parseSearchQuery($query);
-        $tntQuery = $parsed['isPhraseSearch']
-            ? $searchService->buildTntSearchQuery($parsed)
-            : $query;
-
-        if ($tntQuery === '') {
-            $stripped = preg_replace('/"[^"]*"/', '', $query);
-            $tntQuery = trim($stripped);
+            $parsed = $searchService->parseSearchQuery($query);
+            $tntQuery = $parsed['isPhraseSearch']
+                ? $searchService->buildTntSearchQuery($parsed)
+                : $query;
 
             if ($tntQuery === '') {
-                $this->lastPage = 1;
-                $this->isPhraseSearch = false;
-                $this->searchInfo = ['phrases' => [], 'terms' => []];
+                $stripped = preg_replace('/"[^"]*"/', '', $query);
+                $tntQuery = trim($stripped);
+
+                if ($tntQuery === '') {
+                    $this->lastPage = 1;
+                    $this->isPhraseSearch = false;
+                    $this->searchInfo = ['phrases' => [], 'terms' => []];
+
+                    return;
+                }
+            }
+
+            $raw = $searchService->search($tntQuery);
+            $ids = array_values($raw['ids'] ?? []);
+            $ids = array_values(array_filter($ids, fn ($path) => $this->isValidPath($path)));
+
+            $textCache = [];
+            $maxCandidates = 200;
+
+            if ($parsed['isPhraseSearch']) {
+                $candidates = array_slice($ids, 0, $maxCandidates);
+                $ids = array_values(array_filter($candidates, function ($path) use ($parsed, &$textCache) {
+                    if (! Storage::disk('private')->exists($path)) {
+                        return false;
+                    }
+
+                    $text = Storage::disk('private')->get($path);
+
+                    foreach ($parsed['phrases'] as $phrase) {
+                        if (mb_stripos($text, $phrase) === false) {
+                            return false;
+                        }
+                    }
+
+                    foreach ($parsed['terms'] as $term) {
+                        if (mb_stripos($text, $term) === false) {
+                            return false;
+                        }
+                    }
+
+                    $textCache[$path] = $text;
+
+                    return true;
+                }));
+            }
+
+            $serienCounts = [];
+            $pathToSerie = [];
+
+            foreach ($ids as $path) {
+                $serie = $this->extractSerie($path);
+                $pathToSerie[$path] = $serie;
+                $serienCounts[$serie] = ($serienCounts[$serie] ?? 0) + 1;
+            }
+
+            $this->serienCounts = $serienCounts;
+
+            if (! empty($this->selectedSerien)) {
+                $ids = array_values(array_filter(
+                    $ids,
+                    fn ($path) => in_array($pathToSerie[$path], $this->selectedSerien, true)
+                ));
+            }
+
+            $total = count($ids);
+            $slice = array_slice($ids, ($this->page - 1) * $perPage, $perPage);
+            $this->lastPage = max(1, (int) ceil($total / $perPage));
+
+            $snippetTerms = $this->buildSnippetTerms($parsed, $tntQuery);
+
+            if (empty($snippetTerms)) {
+                $this->isPhraseSearch = $parsed['isPhraseSearch'];
+                $this->searchInfo = ['phrases' => $parsed['phrases'], 'terms' => $parsed['terms']];
 
                 return;
             }
-        }
 
-        $raw = $searchService->search($tntQuery);
-        $ids = array_values($raw['ids'] ?? []);
-        $ids = array_values(array_filter($ids, fn ($path) => $this->isValidPath($path)));
+            $highlightPattern = '/(' . implode('|', array_map(fn ($t) => preg_quote($t, '/'), $snippetTerms)) . ')/iu';
 
-        $textCache = [];
-        $maxCandidates = 200;
+            $hits = [];
 
-        if ($parsed['isPhraseSearch']) {
-            $candidates = array_slice($ids, 0, $maxCandidates);
-            $ids = array_values(array_filter($candidates, function ($path) use ($parsed, &$textCache) {
+            foreach ($slice as $path) {
                 if (! Storage::disk('private')->exists($path)) {
-                    return false;
+                    continue;
                 }
 
-                $text = Storage::disk('private')->get($path);
+                [$serie, $romanNr, $title] = $this->extractMeta($path);
+                $text = $textCache[$path] ?? Storage::disk('private')->get($path);
+                $snippets = $this->extractSnippets($text, $snippetTerms, $highlightPattern, $snippetsPerFile, $radius);
+                $cycleName = KompendiumService::SERIEN[$serie] ?? Str::of($serie)->replace('-', ' ')->title();
 
-                foreach ($parsed['phrases'] as $phrase) {
-                    if (mb_stripos($text, $phrase) === false) {
-                        return false;
-                    }
-                }
-
-                foreach ($parsed['terms'] as $term) {
-                    if (mb_stripos($text, $term) === false) {
-                        return false;
-                    }
-                }
-
-                $textCache[$path] = $text;
-
-                return true;
-            }));
-        }
-
-        $serienCounts = [];
-        $pathToSerie = [];
-
-        foreach ($ids as $path) {
-            $serie = $this->extractSerie($path);
-            $pathToSerie[$path] = $serie;
-            $serienCounts[$serie] = ($serienCounts[$serie] ?? 0) + 1;
-        }
-
-        $this->serienCounts = $serienCounts;
-
-        if (! empty($this->selectedSerien)) {
-            $ids = array_values(array_filter(
-                $ids,
-                fn ($path) => in_array($pathToSerie[$path], $this->selectedSerien, true)
-            ));
-        }
-
-        $total = count($ids);
-        $slice = array_slice($ids, ($this->page - 1) * $perPage, $perPage);
-        $this->lastPage = max(1, (int) ceil($total / $perPage));
-
-        $snippetTerms = $this->buildSnippetTerms($parsed, $tntQuery);
-
-        if (empty($snippetTerms)) {
-            $this->isPhraseSearch = $parsed['isPhraseSearch'];
-            $this->searchInfo = ['phrases' => $parsed['phrases'], 'terms' => $parsed['terms']];
-
-            return;
-        }
-
-        $highlightPattern = '/('.implode('|', array_map(fn ($t) => preg_quote($t, '/'), $snippetTerms)).')/iu';
-
-        $hits = [];
-
-        foreach ($slice as $path) {
-            if (! Storage::disk('private')->exists($path)) {
-                continue;
+                $hits[] = [
+                    'cycle' => $cycleName,
+                    'romanNr' => $romanNr,
+                    'title' => $title,
+                    'serie' => $serie,
+                    'snippets' => $snippets,
+                ];
             }
 
-            [$serie, $romanNr, $title] = $this->extractMeta($path);
-            $text = $textCache[$path] ?? Storage::disk('private')->get($path);
-            $snippets = $this->extractSnippets($text, $snippetTerms, $highlightPattern, $snippetsPerFile, $radius);
-            $cycleName = KompendiumService::SERIEN[$serie] ?? Str::of($serie)->replace('-', ' ')->title();
-
-            $hits[] = [
-                'cycle' => $cycleName,
-                'romanNr' => $romanNr,
-                'title' => $title,
-                'serie' => $serie,
-                'snippets' => $snippets,
-            ];
-        }
-
-        $this->results = array_merge($this->results, $hits);
-        $this->isPhraseSearch = $parsed['isPhraseSearch'];
-        $this->searchInfo = ['phrases' => $parsed['phrases'], 'terms' => $parsed['terms']];
+            $this->results = array_merge($this->results, $hits);
+            $this->isPhraseSearch = $parsed['isPhraseSearch'];
+            $this->searchInfo = ['phrases' => $parsed['phrases'], 'terms' => $parsed['terms']];
         } catch (\Throwable $e) {
             $this->error = 'Bei der Suche ist ein Fehler aufgetreten. Bitte versuche es erneut.';
             $this->lastPage = $this->page;

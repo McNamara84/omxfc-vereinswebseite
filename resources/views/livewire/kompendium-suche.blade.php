@@ -1,4 +1,4 @@
-<div>
+﻿<div>
     <div class="mb-4">
         <x-input
             wire:model="query"
@@ -42,7 +42,7 @@
                 <span>
                     Phrasensuche aktiv: Nur exakte Treffer für
                     @foreach($searchInfo['phrases'] ?? [] as $phrase)
-                        „{{ $phrase }}"@if(!$loop->last) + @endif
+                        „{{ $phrase }}“@if(!$loop->last) + @endif
                     @endforeach
                     @if(!empty($searchInfo['terms']))
                         + {{ implode(' + ', $searchInfo['terms']) }}
