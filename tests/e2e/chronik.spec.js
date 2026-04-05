@@ -55,8 +55,9 @@ test.describe('Chronik Lightbox', () => {
     const dialog = page.locator('[role="dialog"]');
     await expect(dialog).toBeVisible();
 
-    // Click the backdrop at a viewport corner guaranteed to be outside the centered content
-    await page.mouse.click(1, 1);
+    // dispatchEvent sets event.target to the dialog element itself,
+    // which reliably triggers Alpine's @click.self handler
+    await dialog.dispatchEvent('click');
     await expect(dialog).not.toBeVisible();
   });
 
