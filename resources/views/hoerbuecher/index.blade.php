@@ -21,7 +21,7 @@
                 showUnfilled: false,
                 hideReleased: true,
                 onlyEpisodeId: null,
-                todayMs: new Date(new Date().toDateString()).getTime(),
+                todayMs: new Date().setHours(0, 0, 0, 0),
 
                 isVisible(el) {
                     const d = el.dataset;

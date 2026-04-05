@@ -1,7 +1,7 @@
 <x-app-layout title="Chronik – Offizieller MADDRAX Fanclub e. V." description="Die wichtigsten Meilensteine des Offiziellen MADDRAX Fanclub e. V. seit seiner Gründung.">
     <x-public-page>
         <x-header title="Chronik des Offiziellen MADDRAX Fanclub e. V." class="mb-8" useH1 />
-        <div class="relative border-l-4 border-primary pl-8 space-y-8">
+        <div class="relative border-l-4 border-primary pl-8 space-y-8" x-data>
             <div class="relative">
                 <div class="absolute -left-[25px] top-2 bg-primary rounded-full w-3 h-3"></div>
                 <time class="font-semibold text-lg">20. Mai 2023</time>

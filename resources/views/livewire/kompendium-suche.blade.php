@@ -55,7 +55,7 @@
     {{-- Trefferliste --}}
     <div id="results" class="space-y-6">
         @foreach($results as $hit)
-            <div class="border border-base-content/10 rounded p-4" wire:key="hit-{{ $loop->index }}">
+            <div class="border border-base-content/10 rounded p-4" wire:key="hit-{{ $hit['serie'] }}-{{ $hit['romanNr'] }}">
                 <h2 class="font-semibold text-primary mb-2">
                     {{ $hit['cycle'] }} – {{ $hit['romanNr'] }}: {{ $hit['title'] }}
                 </h2>

@@ -129,7 +129,8 @@ class MitgliedWerdenForm extends Component
         } catch (\Throwable $e) {
             $this->submitting = false;
 
-            throw $e;
+            report($e);
+            $this->addError('submit', 'Bei der Anmeldung ist ein Fehler aufgetreten. Bitte versuche es später erneut oder kontaktiere den Administrator.');
         }
     }
 

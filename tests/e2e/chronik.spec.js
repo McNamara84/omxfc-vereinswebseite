@@ -10,10 +10,10 @@ test('chronik page displays timeline images with alt text', async ({ page }) => 
 test.describe('Chronik Lightbox', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/chronik');
-    // Wait for Alpine.js to initialize and process x-data on the lightbox component
+    // Wait for Alpine.js to fully initialize ALL x-data components on the page
     await page.waitForFunction(() => {
-      const el = document.querySelector('[role="dialog"]')?.closest('[x-data]');
-      return el && el._x_dataStack && el._x_dataStack.length > 0;
+      const components = document.querySelectorAll('[x-data]');
+      return components.length > 0 && [...components].every(el => el._x_dataStack && el._x_dataStack.length > 0);
     });
   });
 

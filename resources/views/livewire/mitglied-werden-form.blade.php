@@ -1,5 +1,9 @@
 <form wire:submit="submit" class="w-full" data-testid="mitglied-werden-form">
-    @if($errors->any())
+    @if($errors->has('submit'))
+        <div class="mb-4 p-4 bg-red-100 border border-red-400 text-red-800 rounded" role="alert">
+            {{ $errors->first('submit') }}
+        </div>
+    @elseif($errors->any())
         <div class="mb-4 p-4 bg-red-100 border border-red-400 text-red-800 rounded" role="alert">
             Bitte korrigiere die markierten Felder.
         </div>
