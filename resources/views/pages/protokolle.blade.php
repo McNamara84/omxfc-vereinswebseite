@@ -6,6 +6,7 @@
             <div id="accordion">
                 @foreach($protokolle as $jahr => $dokumente)
                     <details class="mb-4 border border-base-content/10 rounded-lg"
+                             data-protokolle-accordion-item
                              x-data="{ open: {{ $loop->first ? 'true' : 'false' }} }"
                              x-on:toggle="open = $el.open"
                              @if($loop->first) open @endif>
