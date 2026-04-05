@@ -74,7 +74,7 @@ class TodoController extends Controller
             'memberTeam' => $memberTeam,
             'userRole' => $userRole,
             'filter' => $filter,
-            'activeFilter' => $filter === 'pending' ? 'pending' : 'all',
+            'activeFilter' => in_array($filter, ['all', 'assigned', 'open', 'pending'], true) ? $filter : 'all',
             'dashboardMetrics' => $dashboardMetrics,
         ]);
     }

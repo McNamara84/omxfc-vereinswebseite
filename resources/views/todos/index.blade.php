@@ -56,21 +56,21 @@
                                 <x-button
                                     type="button"
                                     label="Alle"
-                                    @click="filter = 'all'"
+                                    @click="window.location.href = '{{ route('todos.index') }}'"
                                     x-bind:aria-pressed="filter === 'all' ? 'true' : 'false'"
                                     ::class="filter === 'all' ? 'btn-primary font-semibold border border-primary' : 'btn-ghost font-semibold border border-primary text-primary'"
                                 />
                                 <x-button
                                     type="button"
                                     label="Eigene Challenges"
-                                    @click="filter = 'assigned'"
+                                    @click="window.location.href = '{{ route('todos.index', ['filter' => 'assigned']) }}'"
                                     x-bind:aria-pressed="filter === 'assigned' ? 'true' : 'false'"
                                     ::class="filter === 'assigned' ? 'btn-primary font-semibold border border-primary' : 'btn-ghost font-semibold border border-base-content/20'"
                                 />
                                 <x-button
                                     type="button"
                                     label="Offene Challenges"
-                                    @click="filter = 'open'"
+                                    @click="window.location.href = '{{ route('todos.index', ['filter' => 'open']) }}'"
                                     x-bind:aria-pressed="filter === 'open' ? 'true' : 'false'"
                                     ::class="filter === 'open' ? 'btn-primary font-semibold border border-primary' : 'btn-ghost font-semibold border border-base-content/20'"
                                 />
@@ -78,7 +78,7 @@
                                     <x-button
                                         type="button"
                                         label="Zu verifizieren"
-                                        @click="filter = 'pending'"
+                                        @click="window.location.href = '{{ route('todos.index', ['filter' => 'pending']) }}'"
                                         x-bind:aria-pressed="filter === 'pending' ? 'true' : 'false'"
                                         ::class="filter === 'pending' ? 'btn-primary font-semibold border border-primary' : 'btn-ghost font-semibold border border-base-content/20'"
                                     />
