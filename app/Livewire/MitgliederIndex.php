@@ -119,12 +119,12 @@ class MitgliederIndex extends Component
             $this->sortDir = $column === 'last_activity' ? 'desc' : 'asc';
         }
 
-        unset($this->members);
+        unset($this->members, $this->onlineUserIdSet);
     }
 
     public function updatedNurOnline(): void
     {
-        unset($this->members);
+        unset($this->members, $this->onlineUserIdSet);
     }
 
     public function render()
