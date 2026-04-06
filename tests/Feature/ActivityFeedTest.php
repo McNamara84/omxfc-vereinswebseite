@@ -138,8 +138,8 @@ class ActivityFeedTest extends TestCase
         $dashboard = $this->get('/dashboard');
         $dashboard->assertOk();
         $dashboard->assertSeeText('Kommentar zu Meine Rezension von '.$user->name);
-        $dashboard->assertSee('<a href="'.route('reviews.show', $review->book_id).'" class="text-info hover:underline">Meine Rezension</a>', false);
-        $dashboard->assertSee('<a href="'.route('profile.view', $user->id).'"', false);
+        $dashboard->assertSee('<a href="'.route('reviews.show', $review->book_id).'" wire:navigate class="text-info hover:underline">Meine Rezension</a>', false);
+        $dashboard->assertSee('<a href="'.route('profile.view', $user->id).'" wire:navigate', false);
         $dashboard->assertSeeText('Tolles Buch!');
     }
 

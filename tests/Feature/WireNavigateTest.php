@@ -112,7 +112,9 @@ class WireNavigateTest extends TestCase
 
     public function test_reviews_index_links_have_wire_navigate(): void
     {
-        $response = $this->get(route('reviews.index'));
+        $user = $this->actingMember();
+
+        $response = $this->actingAs($user)->get(route('reviews.index'));
 
         $html = $response->getContent();
         $this->assertStringContainsString('wire:navigate', $html);
@@ -120,7 +122,9 @@ class WireNavigateTest extends TestCase
 
     public function test_hoerbuecher_index_links_have_wire_navigate(): void
     {
-        $response = $this->get(route('hoerbuecher.index'));
+        $user = $this->actingMember();
+
+        $response = $this->actingAs($user)->get(route('hoerbuecher.index'));
 
         $html = $response->getContent();
         $this->assertStringContainsString('wire:navigate', $html);
