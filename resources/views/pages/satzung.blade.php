@@ -1,6 +1,7 @@
 <x-app-layout title="Satzung – Offizieller MADDRAX Fanclub e. V." description="Rechte, Pflichten und Ziele der Mitglieder des eingetragenen Vereins.">
     <x-public-page>
         <x-header title="Satzung des Offiziellen MADDRAX Fanclub e.V." class="mb-4 sm:mb-8" useH1 />
+        <p class="text-sm text-gray-500 dark:text-gray-400 mb-6 sm:mb-10">Fassung vom 14. März 2026</p>
         <section class="mb-6">
             <h2 class="text-xl font-semibold mb-2">§1 Name, Sitz des Vereins, Rechtsform und Geschäftsjahr</h2>
             <p>Der Verein führt den Namen „Offizieller MADDRAX-Fanclub“ und hat seinen Sitz in Potsdam, Brandenburg. Das Geschäftsjahr ist das Kalenderjahr.</p>
@@ -45,26 +46,21 @@
         </section>
         <section class="mb-6">
             <h2 class="text-xl font-semibold mb-2">§7 Vorstand</h2>
-            <p>Der Vorstand wird für vier Jahre gewählt. Alle Vorstandsmitglieder müssen auch gleichzeitig Mitglied im Sinne der Satzung sein. Alle Mitglieder sind stimmberechtigt. Mitglieder können zur Wahl vorgeschlagen werden oder sich selbst für ein Amt zur Verfügung stellen. Im Falle einer Nominierung muss das Mitglied diese vor der Wahl annehmen, um für die Wahl aufgestellt zu werden.</p>
-            <p>Zu besetzende Posten:
-                <ul class="list-disc ml-6">
-                    <li>1. Vorsitzende:r</li>
-                    <li>2. Vorsitzende:r</li>
-                    <li>Kassenwart:in</li>
-                </ul>
-            </p>
-            <p>Dem Vorstand des Vereins obliegen die Vertretung des Vereins nach § 26 BGB und die Führung seiner Geschäfte.
-                Bei Rechtsgeschäften, die der Vorstand im Namen des Vereins vornimmt, haften die Mitglieder nur mit dem Vereinsvermögen. Scheidet ein Mitglied vorzeitig aus dem Vorstand aus, so sind die verbleibenden Mitglieder des Vorstands berechtigt, ein Mitglied des Vereins bis zur Wahl des Nachfolgers durch die Mitgliederversammlung in den Vorstand zu wählen. Die Mitgliederversammlung kann ein Vorstandsmitglied mit der Ausübung zweier Vorstandsämter betrauen.</p>
+            <p>Der Vorstand wird für vier Jahre gewählt. Alle Vorstandsmitglieder müssen gleichzeitig Mitglieder im Sinne dieser Satzung sein. Alle Mitglieder sind stimmberechtigt. Mitglieder können zur Wahl vorgeschlagen werden oder sich selbst für ein Amt zur Verfügung stellen. Im Falle einer Nominierung muss das Mitglied diese vor der Wahl annehmen, um für die Wahl aufgestellt zu werden.</p>
+            <p class="mt-2">Der Vorstand besteht mindestens aus der oder dem 1. Vorsitzenden, der oder dem 2. Vorsitzenden sowie der Kassenwartin oder dem Kassenwart. Die Mitgliederversammlung kann weitere Beisitzerinnen und Beisitzer in den Vorstand wählen. Die Mitgliederversammlung kann ein Vorstandsmitglied mit der Ausübung zweier Vorstandsämter betrauen.</p>
+            <p class="mt-2">Der Vorstand im Sinne des § 26 BGB besteht aus der oder dem 1. Vorsitzenden, der oder dem 2. Vorsitzenden sowie der Kassenwartin oder dem Kassenwart. Der Verein wird gerichtlich und außergerichtlich durch zwei Mitglieder des Vorstands gemeinsam vertreten.</p>
+            <p class="mt-2">Dem Vorstand des Vereins obliegen die Vertretung des Vereins nach § 26 BGB und die Führung seiner Geschäfte. Bei Rechtsgeschäften, die der Vorstand im Namen des Vereins vornimmt, haften die Mitglieder nur mit dem Vereinsvermögen.</p>
+            <p class="mt-2">Scheidet ein Mitglied vorzeitig aus dem Vorstand aus, so sind die verbleibenden Mitglieder des Vorstands berechtigt, ein Mitglied des Vereins bis zur Wahl des Nachfolgers oder der Nachfolgerin durch die Mitgliederversammlung in den Vorstand zu wählen.</p>
         </section>
-        <section>
+        <section class="mb-6">
             <h2 class="text-xl font-semibold mb-2">§8 Mittel</h2>
-            <p>Die Mittel des Vereins sind bestimmt für
-                <ul class="list-disc ml-6">
-                    <li>die Deckung der Serverkosten des Maddraxikons sowie des MADDRAX-Fanblogs,</li>
-                    <li>zur Finanzierung eines jährlichen Fantreffens</li>
-                    <li>sowie zur finanziellen und materiellen Unterstützung anderer Fanprojekte innerhalb des MADDRAX-Fandoms.</li>
-            </p>
-            <p>Sollte sich der Verein durch Mehrheitsbeschluss auflösen, werden sämtliche Mittel aus der Vereinskasse dazu genutzt, das Hosting für das Wiki des Maddraxikons so lange wie möglich zu bezahlen.</p>
+            <p>Die Mittel des Vereins sind bestimmt für</p>
+            <ul class="list-disc ml-6">
+                <li>die Deckung der Serverkosten des Maddraxikons sowie des MADDRAX-Fanblogs,</li>
+                <li>zur Finanzierung eines jährlichen Fantreffens</li>
+                <li>sowie zur finanziellen und materiellen Unterstützung anderer Fanprojekte innerhalb des MADDRAX-Fandoms.</li>
+                <li>Sollte sich der Verein durch Mehrheitsbeschluss auflösen, werden sämtliche Mittel aus der Vereinskasse dazu genutzt, das Hosting für das Wiki des Maddraxikons so lange wie möglich zu bezahlen.</li>
+            </ul>
         </section>
         <section class="mb-6">
             <h2 class="text-xl font-semibold mb-2">§9 Kassenprüfung</h2>
