@@ -309,7 +309,7 @@ class KassenbuchControllerTest extends TestCase
         $team = Team::membersTeam();
 
         $this->mock(MembersTeamProvider::class, function ($mock) use ($team) {
-            $mock->shouldReceive('getMembersTeamOrAbort')->andReturn($team);
+            $mock->shouldReceive('getMembersTeamOrAbort')->atLeast()->once()->andReturn($team);
         });
 
         $user = $this->createUserWithRole(Role::Kassenwart);

@@ -53,7 +53,7 @@ class MitgliederIndex extends Component
             $this->sortBy = 'nachname';
         }
         if (! in_array($this->sortDir, ['asc', 'desc'])) {
-            $this->sortDir = 'asc';
+            $this->sortDir = $this->sortBy === 'last_activity' ? 'desc' : 'asc';
         }
     }
 
@@ -79,6 +79,7 @@ class MitgliederIndex extends Component
     {
         return array_flip(
             DB::table('sessions')
+                ->whereNotNull('user_id')
                 ->where('last_activity', '>=', now()->subMinutes(5)->timestamp)
                 ->pluck('user_id')
                 ->toArray()

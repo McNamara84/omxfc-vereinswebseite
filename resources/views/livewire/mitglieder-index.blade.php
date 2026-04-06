@@ -236,7 +236,7 @@
 
         {{-- Beitrag --}}
         <td class="text-sm text-base-content">
-            {{ $member->mitgliedsbeitrag }}
+            {{ !is_null($member->mitgliedsbeitrag) ? $member->mitgliedsbeitrag : '-' }}
         </td>
 
         {{-- Details --}}
@@ -320,7 +320,7 @@
 
                         {{-- Mitgliedschaft beenden --}}
                         <form action="{{ route('mitglieder.remove', $member->id) }}" method="POST"
-                              onsubmit="return confirm('Willst du die Mitgliedschaft von {{ $member->name }} wirklich beenden? Dies löscht den Benutzer aus der Datenbank!');">
+                              x-on:submit.prevent="if (confirm('Willst du die Mitgliedschaft von ' + @js($member->name) + ' wirklich beenden? Dies löscht den Benutzer aus der Datenbank!')) $el.submit()">
                             @csrf
                             @method('DELETE')
                             <x-button
@@ -409,7 +409,7 @@
 
                     <div>
                         <h4 class="text-xs uppercase tracking-wide text-base-content font-semibold mb-1">Beitrag</h4>
-                        <div class="text-sm text-base-content">{{ $member->mitgliedsbeitrag }}</div>
+                        <div class="text-sm text-base-content">{{ !is_null($member->mitgliedsbeitrag) ? $member->mitgliedsbeitrag : '-' }}</div>
                     </div>
                     @endif
                 </div>
@@ -483,7 +483,7 @@
 
                         <form action="{{ route('mitglieder.remove', $member->id) }}" method="POST"
                               class="flex-1"
-                              onsubmit="return confirm('Willst du die Mitgliedschaft von {{ $member->name }} wirklich beenden? Dies löscht den Benutzer aus der Datenbank!');">
+                              x-on:submit.prevent="if (confirm('Willst du die Mitgliedschaft von ' + @js($member->name) + ' wirklich beenden? Dies löscht den Benutzer aus der Datenbank!')) $el.submit()">
                             @csrf
                             @method('DELETE')
                             <x-button
