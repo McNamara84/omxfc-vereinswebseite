@@ -358,7 +358,7 @@
 
                     <p class="text-sm text-base-content mb-4" x-text="'Mitglied: ' + user_name"></p>
 
-                    <form :action="'/kassenbuch/zahlung-aktualisieren/' + user_id" method="POST">
+                    <form :action="'{{ route('kassenbuch.update-payment', '__ID__') }}'.replace('__ID__', user_id)" method="POST">
                         @csrf
                         @method('PUT')
 
@@ -526,7 +526,7 @@
                     <p class="text-sm text-base-content mb-2">Eintrag:</p>
                     <p class="text-sm font-medium mb-4" x-text="entry_desc"></p>
 
-                    <form :action="'/kassenbuch/eintrag/' + entry_id + '/bearbeitung-anfragen'" method="POST">
+                    <form :action="'{{ route('kassenbuch.request-edit', '__ID__') }}'.replace('__ID__', entry_id)" method="POST">
                         @csrf
 
                         <div class="space-y-4">
@@ -600,7 +600,7 @@
                         Die Bearbeitung dieses Eintrags wurde vom Vorstand freigegeben.
                     </x-alert>
 
-                    <form :action="'/kassenbuch/eintrag/' + entry.id" method="POST">
+                    <form :action="'{{ route('kassenbuch.update-entry', '__ID__') }}'.replace('__ID__', entry.id)" method="POST">
                         @csrf
                         @method('PUT')
 
@@ -690,7 +690,7 @@
                     <p class="text-sm text-base-content mb-2">Eintrag:</p>
                     <p class="text-sm font-medium mb-4" x-text="beschreibung"></p>
 
-                    <form :action="'/kassenbuch/anfrage/' + request_id + '/ablehnen'" method="POST">
+                    <form :action="'{{ route('kassenbuch.reject-edit', '__ID__') }}'.replace('__ID__', request_id)" method="POST">
                         @csrf
 
                         <div>
