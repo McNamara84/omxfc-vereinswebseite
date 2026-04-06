@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1775502786">
-  <project timestamp="1775502786" name="Clover Coverage">
+<coverage generated="1775504109">
+  <project timestamp="1775504109" name="Clover Coverage">
     <package name="App\Actions\Fortify">
       <file name="/home/runner/work/omxfc-vereinswebseite/omxfc-vereinswebseite/app/Actions/Fortify/CreateNewUser.php">
         <class name="App\Actions\Fortify\CreateNewUser" namespace="App\Actions\Fortify">
@@ -2092,9 +2092,9 @@
         <line num="279" type="stmt" count="5"/>
         <line num="280" type="stmt" count="5"/>
         <line num="283" type="stmt" count="5"/>
-        <line num="284" type="stmt" count="4"/>
-        <line num="285" type="stmt" count="4"/>
-        <line num="286" type="stmt" count="4"/>
+        <line num="284" type="stmt" count="3"/>
+        <line num="285" type="stmt" count="3"/>
+        <line num="286" type="stmt" count="3"/>
         <line num="294" type="method" name="invalidateFanfictionCountCache" visibility="private" complexity="1" crap="1" count="5"/>
         <line num="296" type="stmt" count="5"/>
         <line num="297" type="stmt" count="5"/>
@@ -3653,15 +3653,15 @@
         <line num="150" type="stmt" count="13"/>
         <line num="151" type="stmt" count="13"/>
         <line num="153" type="stmt" count="13"/>
-        <line num="154" type="stmt" count="3"/>
-        <line num="155" type="stmt" count="3"/>
-        <line num="156" type="stmt" count="3"/>
-        <line num="157" type="stmt" count="3"/>
-        <line num="158" type="stmt" count="3"/>
-        <line num="159" type="stmt" count="3"/>
-        <line num="160" type="stmt" count="3"/>
-        <line num="161" type="stmt" count="3"/>
-        <line num="163" type="stmt" count="3"/>
+        <line num="154" type="stmt" count="4"/>
+        <line num="155" type="stmt" count="4"/>
+        <line num="156" type="stmt" count="4"/>
+        <line num="157" type="stmt" count="4"/>
+        <line num="158" type="stmt" count="4"/>
+        <line num="159" type="stmt" count="4"/>
+        <line num="160" type="stmt" count="4"/>
+        <line num="161" type="stmt" count="4"/>
+        <line num="163" type="stmt" count="4"/>
         <line num="164" type="stmt" count="1"/>
         <line num="165" type="stmt" count="1"/>
         <line num="166" type="stmt" count="1"/>
@@ -3672,15 +3672,15 @@
         <line num="175" type="stmt" count="13"/>
         <line num="176" type="stmt" count="13"/>
         <line num="178" type="stmt" count="13"/>
-        <line num="179" type="stmt" count="5"/>
-        <line num="180" type="stmt" count="5"/>
-        <line num="181" type="stmt" count="5"/>
-        <line num="182" type="stmt" count="5"/>
-        <line num="183" type="stmt" count="5"/>
-        <line num="184" type="stmt" count="5"/>
-        <line num="185" type="stmt" count="5"/>
-        <line num="186" type="stmt" count="5"/>
-        <line num="188" type="stmt" count="5"/>
+        <line num="179" type="stmt" count="8"/>
+        <line num="180" type="stmt" count="8"/>
+        <line num="181" type="stmt" count="8"/>
+        <line num="182" type="stmt" count="8"/>
+        <line num="183" type="stmt" count="8"/>
+        <line num="184" type="stmt" count="8"/>
+        <line num="185" type="stmt" count="8"/>
+        <line num="186" type="stmt" count="8"/>
+        <line num="188" type="stmt" count="8"/>
         <line num="189" type="stmt" count="1"/>
         <line num="190" type="stmt" count="1"/>
         <line num="191" type="stmt" count="1"/>
@@ -8230,17 +8230,17 @@
         <line num="27" type="stmt" count="1049"/>
         <line num="33" type="method" name="scopeActive" visibility="public" complexity="1" crap="2" count="0"/>
         <line num="35" type="stmt" count="0"/>
-        <line num="43" type="method" name="getPointsFor" visibility="public" complexity="1" crap="1" count="7"/>
-        <line num="45" type="stmt" count="7"/>
-        <line num="46" type="stmt" count="7"/>
-        <line num="47" type="stmt" count="7"/>
-        <line num="48" type="stmt" count="7"/>
-        <line num="49" type="stmt" count="7"/>
-        <line num="50" type="stmt" count="7"/>
-        <line num="51" type="stmt" count="7"/>
-        <line num="53" type="stmt" count="7"/>
-        <line num="54" type="stmt" count="7"/>
-        <line num="55" type="stmt" count="7"/>
+        <line num="43" type="method" name="getPointsFor" visibility="public" complexity="1" crap="1" count="6"/>
+        <line num="45" type="stmt" count="6"/>
+        <line num="46" type="stmt" count="6"/>
+        <line num="47" type="stmt" count="6"/>
+        <line num="48" type="stmt" count="6"/>
+        <line num="49" type="stmt" count="6"/>
+        <line num="50" type="stmt" count="6"/>
+        <line num="51" type="stmt" count="6"/>
+        <line num="53" type="stmt" count="6"/>
+        <line num="54" type="stmt" count="6"/>
+        <line num="55" type="stmt" count="6"/>
         <line num="61" type="method" name="clearCache" visibility="public" complexity="3" crap="4.94" count="1049"/>
         <line num="63" type="stmt" count="1049"/>
         <line num="64" type="stmt" count="1049"/>
@@ -8370,26 +8370,26 @@
         <line num="98" type="stmt" count="15"/>
         <line num="99" type="stmt" count="0"/>
         <line num="102" type="stmt" count="15"/>
-        <line num="103" type="stmt" count="4"/>
-        <line num="106" type="stmt" count="11"/>
+        <line num="103" type="stmt" count="5"/>
+        <line num="106" type="stmt" count="10"/>
         <metrics loc="109" ncloc="94" classes="1" methods="7" coveredmethods="3" conditionals="0" coveredconditionals="0" statements="27" coveredstatements="22" elements="34" coveredelements="25"/>
       </file>
       <file name="/home/runner/work/omxfc-vereinswebseite/omxfc-vereinswebseite/app/Models/Fanfiction.php">
         <class name="App\Models\Fanfiction" namespace="App\Models">
-          <metrics complexity="86" methods="21" coveredmethods="8" conditionals="0" coveredconditionals="0" statements="184" coveredstatements="131" elements="205" coveredelements="139"/>
+          <metrics complexity="86" methods="21" coveredmethods="9" conditionals="0" coveredconditionals="0" statements="184" coveredstatements="132" elements="205" coveredelements="141"/>
         </class>
         <line num="69" type="method" name="team" visibility="public" complexity="1" crap="2" count="0"/>
         <line num="71" type="stmt" count="0"/>
         <line num="77" type="method" name="reward" visibility="public" complexity="1" crap="1" count="21"/>
         <line num="79" type="stmt" count="21"/>
-        <line num="85" type="method" name="author" visibility="public" complexity="1" crap="1" count="12"/>
-        <line num="87" type="stmt" count="12"/>
+        <line num="85" type="method" name="author" visibility="public" complexity="1" crap="1" count="11"/>
+        <line num="87" type="stmt" count="11"/>
         <line num="93" type="method" name="creator" visibility="public" complexity="1" crap="2" count="0"/>
         <line num="95" type="stmt" count="0"/>
-        <line num="102" type="method" name="getAuthorDisplayNameAttribute" visibility="public" complexity="2" crap="2.15" count="8"/>
+        <line num="102" type="method" name="getAuthorDisplayNameAttribute" visibility="public" complexity="2" crap="2" count="8"/>
         <line num="104" type="stmt" count="8"/>
-        <line num="105" type="stmt" count="8"/>
-        <line num="108" type="stmt" count="0"/>
+        <line num="105" type="stmt" count="6"/>
+        <line num="108" type="stmt" count="2"/>
         <line num="114" type="method" name="comments" visibility="public" complexity="1" crap="1" count="10"/>
         <line num="116" type="stmt" count="10"/>
         <line num="122" type="method" name="scopePublished" visibility="public" complexity="1" crap="1" count="48"/>
@@ -8583,7 +8583,7 @@
         <line num="549" type="stmt" count="13"/>
         <line num="550" type="stmt" count="13"/>
         <line num="552" type="stmt" count="13"/>
-        <metrics loc="555" ncloc="428" classes="1" methods="21" coveredmethods="8" conditionals="0" coveredconditionals="0" statements="184" coveredstatements="131" elements="205" coveredelements="139"/>
+        <metrics loc="555" ncloc="428" classes="1" methods="21" coveredmethods="9" conditionals="0" coveredconditionals="0" statements="184" coveredstatements="132" elements="205" coveredelements="141"/>
       </file>
       <file name="/home/runner/work/omxfc-vereinswebseite/omxfc-vereinswebseite/app/Models/FanfictionComment.php">
         <class name="App\Models\FanfictionComment" namespace="App\Models">
@@ -8929,8 +8929,8 @@
         <class name="App\Models\Review" namespace="App\Models">
           <metrics complexity="35" methods="8" coveredmethods="3" conditionals="0" coveredconditionals="0" statements="82" coveredstatements="44" elements="90" coveredelements="47"/>
         </class>
-        <line num="46" type="method" name="book" visibility="public" complexity="1" crap="1" count="27"/>
-        <line num="48" type="stmt" count="27"/>
+        <line num="46" type="method" name="book" visibility="public" complexity="1" crap="1" count="31"/>
+        <line num="48" type="stmt" count="31"/>
         <line num="54" type="method" name="user" visibility="public" complexity="1" crap="1" count="6"/>
         <line num="56" type="stmt" count="6"/>
         <line num="62" type="method" name="comments" visibility="public" complexity="1" crap="1" count="64"/>
@@ -9305,13 +9305,13 @@
         <line num="178" type="stmt" count="121"/>
         <line num="179" type="stmt" count="121"/>
         <line num="180" type="stmt" count="121"/>
-        <line num="186" type="method" name="incrementTeamPoints" visibility="public" complexity="2" crap="2" count="154"/>
-        <line num="188" type="stmt" count="154"/>
-        <line num="189" type="stmt" count="154"/>
-        <line num="190" type="stmt" count="154"/>
-        <line num="191" type="stmt" count="154"/>
-        <line num="192" type="stmt" count="154"/>
-        <line num="193" type="stmt" count="154"/>
+        <line num="186" type="method" name="incrementTeamPoints" visibility="public" complexity="2" crap="2" count="153"/>
+        <line num="188" type="stmt" count="153"/>
+        <line num="189" type="stmt" count="153"/>
+        <line num="190" type="stmt" count="153"/>
+        <line num="191" type="stmt" count="153"/>
+        <line num="192" type="stmt" count="153"/>
+        <line num="193" type="stmt" count="153"/>
         <line num="202" type="method" name="role" visibility="public" complexity="2" crap="2.02" count="474"/>
         <line num="204" type="stmt" count="474"/>
         <line num="205" type="stmt" count="0"/>
@@ -11486,6 +11486,6 @@
         <metrics loc="23" ncloc="17" classes="1" methods="2" coveredmethods="2" conditionals="0" coveredconditionals="0" statements="2" coveredstatements="2" elements="4" coveredelements="4"/>
       </file>
     </package>
-    <metrics files="205" loc="23738" ncloc="20378" classes="198" methods="958" coveredmethods="584" conditionals="0" coveredconditionals="0" statements="9253" coveredstatements="7453" elements="10211" coveredelements="8037"/>
+    <metrics files="205" loc="23738" ncloc="20378" classes="198" methods="958" coveredmethods="585" conditionals="0" coveredconditionals="0" statements="9253" coveredstatements="7454" elements="10211" coveredelements="8039"/>
   </project>
 </coverage>
