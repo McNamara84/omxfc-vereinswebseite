@@ -156,7 +156,7 @@
                                         {{ $member->email }}
                                     </td>
                                     <td class="text-base-content">
-                                        {{ $member->mitgliedsbeitrag ? number_format($member->mitgliedsbeitrag, 2, ',', '.') . ' €' : '-' }}
+                                        {{ !is_null($member->mitgliedsbeitrag) ? number_format($member->mitgliedsbeitrag, 2, ',', '.') . ' €' : '-' }}
                                     </td>
                                     <td>
                                         @if($member->bezahlt_bis)

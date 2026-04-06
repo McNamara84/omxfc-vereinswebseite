@@ -541,7 +541,8 @@ class KassenbuchEditRequestTest extends TestCase
         $response->assertOk();
         // Verify all edit reason types are present in the rendered page
         foreach (KassenbuchEditReasonType::cases() as $type) {
-            $response->assertSee($type->value);
+            $response->assertSee($type->label());
+            $response->assertSee($type->value, false);
         }
     }
 
