@@ -511,8 +511,7 @@ class KassenbuchEditRequestTest extends TestCase
         $response = $this->actingAs($vorstand)->get('/kassenbuch');
 
         $response->assertOk();
-        $response->assertViewHas('pendingEditRequests');
-        $this->assertCount(1, $response->viewData('pendingEditRequests'));
+        $response->assertSee('Offene Bearbeitungsanfragen (1)');
     }
 
     public function test_kassenwart_does_not_see_pending_requests_section(): void
@@ -530,7 +529,7 @@ class KassenbuchEditRequestTest extends TestCase
         $response = $this->actingAs($kassenwart)->get('/kassenbuch');
 
         $response->assertOk();
-        $this->assertNull($response->viewData('pendingEditRequests'));
+        $response->assertDontSee('Offene Bearbeitungsanfragen');
     }
 
     public function test_index_shows_edit_reason_types(): void
@@ -540,8 +539,11 @@ class KassenbuchEditRequestTest extends TestCase
         $response = $this->actingAs($kassenwart)->get('/kassenbuch');
 
         $response->assertOk();
-        $response->assertViewHas('editReasonTypes');
-        $this->assertCount(6, $response->viewData('editReasonTypes'));
+        // Verify all edit reason types are present in the rendered page
+        foreach (KassenbuchEditReasonType::cases() as $type) {
+            $response->assertSee($type->label());
+            $response->assertSee($type->value, false);
+        }
     }
 
     // ==================== Model Tests ====================

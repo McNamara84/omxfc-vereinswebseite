@@ -27,26 +27,27 @@ test.describe('Mitgliederliste', () => {
 
         const onlineCheckbox = page.getByRole('checkbox', { name: 'Nur online' });
         
-        // Check the checkbox and trigger form submit
+        // Check the checkbox - Livewire wire:model.live updates automatically
         await onlineCheckbox.check();
         
-        // The form auto-submits via Alpine.js - wait for navigation to complete
-        // Submit the form explicitly if Alpine.js doesn't trigger
-        await page.locator('form').filter({ has: onlineCheckbox }).evaluate(form => form.submit());
-        await page.waitForLoadState('networkidle', { timeout: 15000 });
+        // Wait for Livewire to update the DOM
+        await expect(page.locator('[data-members-filter-online="true"]')).toBeVisible({ timeout: 10000 });
         
         // Verify the filter is now active via URL or attribute
-        await expect(page).toHaveURL(/filters|online/, { timeout: 10000 });
-        await expect(page.locator('[data-members-table]')).toHaveAttribute('data-members-filter-online', 'true', { timeout: 10000 });
+        await expect(page).toHaveURL(/nurOnline=(true|1)/, { timeout: 10000 });
         await expect(page.locator('[data-members-summary]')).toContainText('nur Mitglieder angezeigt, die aktuell online sind');
 
         const roleHeader = page.getByRole('columnheader', { name: 'Rolle' });
-        await roleHeader.click();
-        await expect(page).toHaveURL(/sort=role&dir=asc/);
+        const roleSortButton = roleHeader.locator('button');
+        await roleSortButton.click();
+        // dir=asc is the default and excluded from URL by Livewire #[Url(except: 'asc')]
+        await expect(page).toHaveURL(/sort=role/, { timeout: 10000 });
+        await expect(page).not.toHaveURL(/dir=/);
         await expect(roleHeader).toHaveAttribute('aria-sort', 'ascending');
 
-        await roleHeader.click();
-        await expect(page).toHaveURL(/sort=role&dir=desc/);
+        await roleSortButton.click();
+        await expect(page).toHaveURL(/sort=role/, { timeout: 10000 });
+        await expect(page).toHaveURL(/dir=desc/);
         await expect(roleHeader).toHaveAttribute('aria-sort', 'descending');
 
         await expect(page.getByRole('button', { name: 'CSV Export' })).toBeVisible();
@@ -169,6 +170,7 @@ test.describe('Mitgliederliste', () => {
         await expect(page.getByRole('button', { name: 'CSV Export' })).toHaveCount(0);
         await expect(page.getByRole('button', { name: 'E-Mail-Adressen kopieren' })).toHaveCount(0);
         await expect(page.locator('[data-copy-email]')).toHaveCount(0);
-        await expect(page.getByRole('button', { name: 'Rolle' })).toHaveCount(0);
+        // Sort button 'Rolle' is visible for all users, but role-change actions must not be
+        await expect(page.locator('button[title="Rolle ändern"]')).toHaveCount(0);
     });
 });

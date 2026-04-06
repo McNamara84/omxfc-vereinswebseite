@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Enums\KassenbuchEntryType;
 use App\Enums\Role;
+use App\Livewire\KassenbuchIndex;
 use App\Models\KassenbuchEntry;
 use App\Models\Kassenstand;
 use App\Models\Team;
@@ -11,6 +12,7 @@ use App\Models\User;
 use App\Services\MembersTeamProvider;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
 use Tests\Concerns\CreatesUserWithRole;
 use Tests\TestCase;
 
@@ -65,7 +67,7 @@ class KassenbuchControllerTest extends TestCase
         $this->assertEquals(42.00, $member->mitgliedsbeitrag);
     }
 
-    public function test_index_returns_members_and_entries_for_kassenwart(): void
+    public function test_index_returns_page_for_kassenwart(): void
     {
         $kassenwart = $this->actingKassenwart();
 
@@ -85,12 +87,9 @@ class KassenbuchControllerTest extends TestCase
         $response = $this->get('/kassenbuch');
 
         $response->assertOk();
-        $response->assertViewHas('userRole', Role::Kassenwart);
-        $response->assertViewHas('canViewKassenbuch', true);
-        $response->assertViewHas('canManageKassenbuch', true);
-        $this->assertNotNull($response->viewData('members'));
-        $entries = $response->viewData('kassenbuchEntries');
-        $this->assertCount(1, $entries);
+        $response->assertSee('Kassenbuch');
+        $response->assertSee('Beitrag');
+        $response->assertSee($member->name);
     }
 
     public function test_member_cannot_update_payment_status(): void
@@ -310,13 +309,13 @@ class KassenbuchControllerTest extends TestCase
         $team = Team::membersTeam();
 
         $this->mock(MembersTeamProvider::class, function ($mock) use ($team) {
-            $mock->shouldReceive('getMembersTeamOrAbort')->once()->andReturn($team);
+            $mock->shouldReceive('getMembersTeamOrAbort')->atLeast()->once()->andReturn($team);
         });
 
         $user = $this->createUserWithRole(Role::Kassenwart);
         $this->actingAs($user);
 
-        $this->get('/kassenbuch')->assertOk();
+        Livewire::test(KassenbuchIndex::class)->assertOk();
     }
 
     public function test_member_cannot_access_kassenbuch(): void

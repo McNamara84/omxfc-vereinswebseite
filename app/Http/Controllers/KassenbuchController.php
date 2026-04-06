@@ -9,10 +9,9 @@ use App\Models\KassenbuchEditRequest;
 use App\Models\KassenbuchEntry;
 use App\Models\Kassenstand;
 use App\Models\User;
+use App\Services\KassenbuchService;
 use App\Services\MembersTeamProvider;
 use App\Services\UserRoleService;
-use Carbon\Carbon;
-use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -21,7 +20,8 @@ class KassenbuchController extends Controller
 {
     public function __construct(
         private UserRoleService $userRoleService,
-        private MembersTeamProvider $membersTeamProvider
+        private MembersTeamProvider $membersTeamProvider,
+        private KassenbuchService $kassenbuchService,
     ) {}
 
     public function kassenstand()
@@ -29,73 +29,12 @@ class KassenbuchController extends Controller
         $user = Auth::user();
         $team = $this->membersTeamProvider->getMembersTeamOrAbort();
 
-        $kassenstand = $this->getOrCreateKassenstand($team);
-        $renewalWarning = $this->checkRenewalWarning($user);
+        $kassenstand = $this->kassenbuchService->getOrCreateKassenstand($team);
+        $renewalWarning = $this->kassenbuchService->checkRenewalWarning($user);
 
         return view('kassenbuch.kassenstand', [
             'kassenstand' => $kassenstand,
             'memberData' => $user,
-            'renewalWarning' => $renewalWarning,
-        ]);
-    }
-
-    public function index()
-    {
-        $user = Auth::user();
-        $team = $this->membersTeamProvider->getMembersTeamOrAbort();
-
-        // Benutzerrolle ermitteln
-        $userRole = $this->userRoleService->getRole($user, $team);
-
-        $canViewKassenbuch = $user->can('viewAll', KassenbuchEntry::class);
-        $canManageKassenbuch = $user->can('manage', KassenbuchEntry::class);
-        $canProcessEditRequests = $user->can('processEditRequest', KassenbuchEntry::class);
-
-        // Aktuellen Kassenstand abrufen
-        $kassenstand = $this->getOrCreateKassenstand($team);
-
-        // Für Vorstand und Kassenwart: Alle Mitglieder mit ihren Zahlungsdaten abrufen
-        $members = null;
-        $kassenbuchEntries = null;
-        $pendingEditRequests = null;
-
-        if ($canViewKassenbuch) {
-            $members = $team->activeUsers()
-                ->orderBy('bezahlt_bis')
-                ->get();
-
-            $kassenbuchEntries = KassenbuchEntry::where('team_id', $team->id)
-                ->with(['pendingEditRequest', 'approvedEditRequest', 'creator', 'lastEditor'])
-                ->orderBy('buchungsdatum', 'desc')
-                ->get();
-        }
-
-        // Für Vorstand: Offene Bearbeitungsanfragen laden
-        if ($canProcessEditRequests) {
-            $pendingEditRequests = KassenbuchEditRequest::with(['entry', 'requester'])
-                ->where('status', KassenbuchEditRequest::STATUS_PENDING)
-                ->whereHas('entry', fn ($q) => $q->where('team_id', $team->id))
-                ->orderBy('created_at', 'desc')
-                ->get();
-        }
-
-        // Für das angemeldete Mitglied: Eigene Zahlungsdaten abrufen
-        $memberData = $user;
-
-        // Prüfen, ob Mitgliedschaft bald abläuft (innerhalb eines Monats)
-        $renewalWarning = $this->checkRenewalWarning($user);
-
-        return view('kassenbuch.index', [
-            'userRole' => $userRole,
-            'canViewKassenbuch' => $canViewKassenbuch,
-            'canManageKassenbuch' => $canManageKassenbuch,
-            'canProcessEditRequests' => $canProcessEditRequests,
-            'kassenstand' => $kassenstand,
-            'members' => $members,
-            'kassenbuchEntries' => $kassenbuchEntries,
-            'pendingEditRequests' => $pendingEditRequests,
-            'editReasonTypes' => KassenbuchEditReasonType::cases(),
-            'memberData' => $memberData,
             'renewalWarning' => $renewalWarning,
         ]);
     }
@@ -150,7 +89,7 @@ class KassenbuchController extends Controller
 
             // Kassenstand atomar aktualisieren
             $kassenstand = Kassenstand::where('team_id', $team->id)->lockForUpdate()->first()
-                ?? $this->getOrCreateKassenstand($team);
+                ?? $this->kassenbuchService->getOrCreateKassenstand($team);
             $kassenstand->increment('betrag', $amount);
             $kassenstand->update(['letzte_aktualisierung' => now()]);
         });
@@ -355,32 +294,5 @@ class KassenbuchController extends Controller
         });
 
         return back()->with('status', 'Kassenbucheintrag wurde aktualisiert.');
-    }
-
-    private function getOrCreateKassenstand($team): Kassenstand
-    {
-        try {
-            return Kassenstand::firstOrCreate(
-                ['team_id' => $team->id],
-                ['betrag' => 0.00, 'letzte_aktualisierung' => now()]
-            );
-        } catch (UniqueConstraintViolationException) {
-            return Kassenstand::where('team_id', $team->id)->firstOrFail();
-        }
-    }
-
-    private function checkRenewalWarning($user): bool
-    {
-        if (! $user->bezahlt_bis) {
-            return false;
-        }
-
-        $today = Carbon::now();
-        $expiryDate = $user->bezahlt_bis instanceof Carbon
-            ? $user->bezahlt_bis
-            : Carbon::parse((string) $user->bezahlt_bis);
-        $daysUntilExpiry = $today->diffInDays($expiryDate, false);
-
-        return $daysUntilExpiry > 0 && $daysUntilExpiry <= 30;
     }
 }

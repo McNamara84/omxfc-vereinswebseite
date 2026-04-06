@@ -39,7 +39,9 @@
 <body class="font-sans antialiased">
     <x-banner />
     <div class="min-h-screen bg-base-200">
-        @livewire('navigation-menu')
+        @persist('navigation')
+            @livewire('navigation-menu')
+        @endpersist
 
         {{-- Main Content --}}
         <main class="w-full pt-2">
@@ -48,12 +50,16 @@
     </div>
 
     <!-- Footer -->
-    <x-footer />
+    @persist('footer')
+        <x-footer />
+    @endpersist
 
     @stack('modals')
     @stack('scripts')
 
-    <x-toast />
+    @persist('toast')
+        <x-toast />
+    @endpersist
 
     @vite(['resources/js/app.js'])
 </body>

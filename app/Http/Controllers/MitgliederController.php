@@ -8,7 +8,6 @@ use App\Services\MembersTeamProvider;
 use App\Services\UserRoleService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -18,85 +17,6 @@ class MitgliederController extends Controller
         private UserRoleService $userRoleService,
         private MembersTeamProvider $membersTeamProvider
     ) {}
-
-    public function index(Request $request)
-    {
-        $user = Auth::user();
-        $team = $this->membersTeamProvider->getMembersTeamOrAbort();
-
-        // Sortierparameter auslesen
-        $sortBy = $request->input('sort', 'nachname'); // Standardsortierung: Nachname
-
-        // Nur erlaubte Sortierfelder akzeptieren
-        $allowedSortFields = ['nachname', 'role', 'mitgliedsbeitrag', 'mitglied_seit', 'last_activity'];
-        if (! in_array($sortBy, $allowedSortFields)) {
-            $sortBy = 'nachname';
-        }
-
-        // Standardrichtung nach Validierung bestimmen
-        $defaultSortDir = $sortBy === 'last_activity' ? 'desc' : 'asc';
-        $sortDir = $request->input('dir', $defaultSortDir);
-
-        // Sortierrichtung validieren
-        if (! in_array($sortDir, ['asc', 'desc'])) {
-            $sortDir = $defaultSortDir;
-        }
-
-        // Nur Nutzer mit Rollen außer "Anwärter" anzeigen
-        $membersQuery = $team->activeUsers();
-
-        $filters = (array) $request->input('filters', []);
-
-        // IDs aller aktuell aktiven Nutzer ermitteln
-        $onlineUserIds = DB::table('sessions')
-            ->where('last_activity', '>=', now()->subMinutes(5)->timestamp)
-            ->pluck('user_id')
-            ->toArray();
-
-        // Filter anwenden (z. B. nur online)
-        if (in_array('online', $filters)) {
-            $membersQuery->whereIn('users.id', $onlineUserIds);
-        }
-
-        // Sortierung anwenden
-        if ($sortBy === 'role') {
-            // Nach Rolle sortieren (Pivot-Tabelle)
-            $members = $membersQuery->orderByPivot('role', $sortDir)->get();
-        } else {
-            // Nach anderen Feldern sortieren
-            $members = $membersQuery->orderBy($sortBy, $sortDir)->get();
-        }
-
-        // Korrekte Ermittlung der Rolle des eingeloggten Nutzers
-        $userRole = $this->userRoleService->getRole($user, $team);
-
-        // Prüft, ob der aktuelle Benutzer erweiterte Rechte hat
-        $canViewDetails = $user->can('manage', User::class);
-
-        // Rollenrangfolge festlegen (höhere Zahl = höherer Rang)
-        $roleRanks = [
-            Role::Mitglied->value => 1,
-            Role::Ehrenmitglied->value => 2,
-            Role::Kassenwart->value => 3,
-            Role::Vorstand->value => 4,
-            Role::Admin->value => 5,
-        ];
-
-        // Aktuellen Rang des Users ermitteln
-        $currentUserRank = $roleRanks[$userRole->value] ?? 0;
-
-        return view('mitglieder.index', [
-            'members' => $members,
-            'canViewDetails' => $canViewDetails,
-            'currentUser' => $user,
-            'currentUserRank' => $currentUserRank,
-            'roleRanks' => $roleRanks,
-            'sortBy' => $sortBy,
-            'sortDir' => $sortDir,
-            'filters' => $filters,
-            'onlineUserIds' => $onlineUserIds,
-        ]);
-    }
 
     public function changeRole(Request $request, User $user)
     {

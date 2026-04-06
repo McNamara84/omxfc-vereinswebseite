@@ -1,0 +1,510 @@
+<div>
+<x-member-page>
+    @if(session('status'))
+    <x-alert class="alert-success mb-4">
+        {{ session('status') }}
+    </x-alert>
+    @endif
+
+    @if(session('error'))
+    <x-alert class="alert-error mb-4">
+        {{ session('error') }}
+    </x-alert>
+    @endif
+
+    <x-card shadow>
+        <x-header class="!mb-0">
+            <x-slot:title>
+                <h2 data-members-heading>Mitgliederliste</h2>
+            </x-slot:title>
+        </x-header>
+
+    @php
+        $sortLabels = [
+            'nachname' => 'Nachname',
+            'mitglied_seit' => 'Mitglied seit',
+            'role' => 'Rolle',
+            'last_activity' => 'Zuletzt online',
+            'mitgliedsbeitrag' => 'Beitrag',
+        ];
+        $sortLabel = $sortLabels[$sortBy] ?? $sortLabels['nachname'];
+        $directionLabel = $sortDir === 'desc' ? 'absteigender' : 'aufsteigender';
+        $filterOnlineActive = $nurOnline;
+        $filterSummary = $filterOnlineActive
+            ? 'Es werden nur Mitglieder angezeigt, die aktuell online sind.'
+            : 'Es werden alle aktiven Mitglieder angezeigt.';
+        $memberCount = $this->members->count();
+        $memberCountSummary = $memberCount === 1
+            ? '1 Mitglied'
+            : $memberCount . ' Mitglieder';
+        $fallbackSummary = sprintf(
+            'Mitgliederliste, sortiert nach %s in %s Reihenfolge. %s Insgesamt sind %s sichtbar.',
+            $sortLabel,
+            $directionLabel,
+            $filterSummary,
+            $memberCountSummary
+        );
+    @endphp
+    <p id="members-table-summary" data-members-summary class="sr-only" aria-live="polite">{{ $fallbackSummary }}</p>
+
+    <!-- Filter -->
+    <div class="mb-6">
+        <div class="flex flex-wrap gap-4 items-center">
+            <x-checkbox
+                label="Nur online"
+                wire:model.live="nurOnline"
+                data-testid="mitglieder-filter-online"
+            />
+        </div>
+    </div>
+
+    <!-- Export-Funktionen für berechtigte Benutzer -->
+    @if($this->canViewDetails)
+    <div class="mb-6">
+        <div x-data="{ showExportOptions: false, emailsCopied: false }" class="bg-base-200 rounded-lg p-4">
+            <div class="flex flex-wrap gap-4 items-center justify-between">
+                <h3 class="text-lg font-medium text-base-content">Datenexport & Funktionen</h3>
+
+                <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                    <!-- CSV Export Button -->
+                    <x-button icon="o-arrow-down-tray" label="CSV Export" @click="showExportOptions = !showExportOptions" class="btn-primary w-full sm:w-auto" data-testid="mitglieder-csv-export-btn" />
+
+                    <!-- E-Mail-Adressen kopieren -->
+                    <x-button
+                        icon="o-clipboard-document"
+                        label="E-Mail-Adressen kopieren"
+                        class="btn-info w-full sm:w-auto"
+                        @click="
+                            fetch('{{ route('mitglieder.all-emails') }}')
+                                .then(response => response.json())
+                                .then(data => {
+                                    if (data.emails) {
+                                        navigator.clipboard.writeText(data.emails)
+                                            .then(() => {
+                                                emailsCopied = true;
+                                                setTimeout(() => emailsCopied = false, 3000);
+                                            })
+                                            .catch(err => console.error('Fehler beim Kopieren: ', err));
+                                    }
+                                })
+                                .catch(error => console.error('Fehler beim Abrufen der E-Mails: ', error));
+                        "
+                    />
+                </div>
+            </div>
+
+            <!-- CSV Export Optionen -->
+            <div x-show="showExportOptions" class="mt-4">
+                <form action="{{ route('mitglieder.export-csv') }}" method="POST" class="bg-base-100 p-4 rounded-md shadow">
+                    @csrf
+                    <div class="mb-3">
+                        <h4 class="font-medium text-base-content mb-2">Zu exportierende Daten auswählen:</h4>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                            <x-checkbox label="Name (Vor-/Nachname)" name="export_fields[]" value="name" checked />
+                            <x-checkbox label="E-Mail-Adresse" name="export_fields[]" value="email" checked />
+                            <x-checkbox label="Postadresse" name="export_fields[]" value="adresse" />
+                            <x-checkbox label="Bezahlt bis" name="export_fields[]" value="bezahlt_bis" />
+                        </div>
+                    </div>
+                    <div class="flex justify-end">
+                        <x-button type="submit" icon="o-arrow-down-tray" label="CSV herunterladen" class="btn-primary" />
+                    </div>
+                </form>
+            </div>
+
+            <!-- Erfolgsmeldung für E-Mail-Kopieren -->
+            <div x-show="emailsCopied" x-transition class="mt-3 text-sm text-success">
+                <x-icon name="o-check-circle" class="h-5 w-5 inline-block mr-1" />
+                E-Mail-Adressen wurden in die Zwischenablage kopiert!
+            </div>
+        </div>
+    </div>
+    @endif
+
+    <!-- Desktop-Ansicht (versteckt auf Mobilgeräten) -->
+    <div class="hidden md:block">
+    @php
+        $nachnameSortState = $sortBy === 'nachname' ? ($sortDir === 'desc' ? 'descending' : 'ascending') : 'none';
+        $mitgliedSeitSortState = $sortBy === 'mitglied_seit' ? ($sortDir === 'desc' ? 'descending' : 'ascending') : 'none';
+        $roleSortState = $sortBy === 'role' ? ($sortDir === 'desc' ? 'descending' : 'ascending') : 'none';
+        $lastActivitySortState = $sortBy === 'last_activity' ? ($sortDir === 'desc' ? 'descending' : 'ascending') : 'none';
+        $beitragSortState = $sortBy === 'mitgliedsbeitrag' ? ($sortDir === 'desc' ? 'descending' : 'ascending') : 'none';
+    @endphp
+
+    <div class="overflow-x-auto">
+    <table class="table table-zebra"
+        data-members-table
+        data-members-sort="{{ $sortBy }}"
+        data-members-dir="{{ $sortDir }}"
+        data-members-filter-online="{{ $nurOnline ? 'true' : 'false' }}"
+        data-members-total="{{ $memberCount }}"
+        data-members-summary-id="members-table-summary"
+        aria-describedby="members-table-summary">
+    <thead class="text-base-content">
+    <tr>
+        <th scope="col" data-members-sort-column="nachname" aria-sort="{{ $nachnameSortState }}">
+            <button wire:click="sort('nachname')" type="button"
+               class="flex items-center group text-base-content hover:text-primary">
+                Name
+                @if($sortBy === 'nachname')
+                    <x-icon name="{{ $sortDir === 'asc' ? 'o-chevron-up' : 'o-chevron-down' }}" class="h-4 w-4 ml-1" />
+                @endif
+            </button>
+        </th>
+
+        <th scope="col" data-members-sort-column="mitglied_seit" aria-sort="{{ $mitgliedSeitSortState }}">
+            <button wire:click="sort('mitglied_seit')" type="button"
+               class="flex items-center group text-base-content hover:text-primary">
+                Mitglied seit
+                @if($sortBy === 'mitglied_seit')
+                    <x-icon name="{{ $sortDir === 'asc' ? 'o-chevron-up' : 'o-chevron-down' }}" class="h-4 w-4 ml-1" />
+                @endif
+            </button>
+        </th>
+
+        <th scope="col" data-members-sort-column="role" aria-sort="{{ $roleSortState }}">
+            <button wire:click="sort('role')" type="button"
+               class="flex items-center group text-base-content hover:text-primary">
+                Rolle
+                @if($sortBy === 'role')
+                    <x-icon name="{{ $sortDir === 'asc' ? 'o-chevron-up' : 'o-chevron-down' }}" class="h-4 w-4 ml-1" />
+                @endif
+            </button>
+        </th>
+
+        @if($this->canViewDetails)
+        <th scope="col" data-members-sort-column="last_activity" aria-sort="{{ $lastActivitySortState }}">
+            <button wire:click="sort('last_activity')" type="button"
+               class="flex items-center group text-base-content hover:text-primary">
+                Zuletzt online
+                @if($sortBy === 'last_activity')
+                    <x-icon name="{{ $sortDir === 'asc' ? 'o-chevron-up' : 'o-chevron-down' }}" class="h-4 w-4 ml-1" />
+                @endif
+            </button>
+        </th>
+
+        <th scope="col" data-members-sort-column="mitgliedsbeitrag" aria-sort="{{ $beitragSortState }}">
+            <button wire:click="sort('mitgliedsbeitrag')" type="button"
+               class="flex items-center group text-base-content hover:text-primary">
+                Beitrag
+                @if($sortBy === 'mitgliedsbeitrag')
+                    <x-icon name="{{ $sortDir === 'asc' ? 'o-chevron-up' : 'o-chevron-down' }}" class="h-4 w-4 ml-1" />
+                @endif
+            </button>
+        </th>
+
+        <th scope="col" class="hidden lg:table-cell">Details</th>
+        @endif
+
+        <th scope="col" class="text-center">Aktionen</th>
+    </tr>
+    </thead>
+    <tbody>
+    @forelse($this->members as $member)
+    <tr wire:key="member-{{ $member->id }}" class="hover:bg-base-200">
+        {{-- Name --}}
+        <td>
+            <a href="{{ route('profile.view', $member->id) }}" wire:navigate class="flex items-center">
+                <x-avatar :image="$member->profile_photo_url" :alt="$member->name" class="!w-10 !h-10" />
+                <div class="ml-4">
+                    <div class="font-medium text-base-content flex items-center">
+                        <span class="inline-block w-2 h-2 rounded-full mr-2 {{ isset($this->onlineUserIdSet[$member->id]) ? 'bg-success' : 'bg-base-content/40' }}" title="{{ isset($this->onlineUserIdSet[$member->id]) ? 'Online' : 'Offline' }}"></span>
+                        {{ $member->name }}
+                    </div>
+                    @if($this->canViewDetails)
+                    <div class="text-sm text-base-content">{{ $member->vorname }} {{ $member->nachname }}</div>
+                    @endif
+                </div>
+            </a>
+        </td>
+
+        {{-- Mitglied seit --}}
+        <td class="text-sm text-base-content">
+            {{ $member->mitglied_seit ? $member->mitglied_seit->format('d.m.Y') : '-' }}
+        </td>
+
+        {{-- Rolle --}}
+        <td class="text-sm text-base-content">
+            {{ $member->membership->role }}
+        </td>
+
+        @if($this->canViewDetails)
+        {{-- Zuletzt online --}}
+        <td class="text-sm text-base-content">
+            {{ $member->last_activity ? \Carbon\Carbon::createFromTimestamp($member->last_activity, config('app.timezone'))->format('d.m.Y H:i') : '-' }}
+        </td>
+
+        {{-- Beitrag --}}
+        <td class="text-sm text-base-content">
+            {{ !is_null($member->mitgliedsbeitrag) ? $member->mitgliedsbeitrag : '-' }}
+        </td>
+
+        {{-- Details --}}
+        <td class="text-sm text-base-content hidden lg:table-cell">
+            <div x-data="{ showDetails: false }" class="relative">
+                <x-button
+                    icon="o-information-circle"
+                    label="Info"
+                    @click="showDetails = !showDetails"
+                    class="btn-ghost btn-xs text-info"
+                />
+
+                <div x-show="showDetails" @click.away="showDetails = false"
+                     class="absolute left-0 mt-2 w-64 bg-base-100 rounded-md shadow-lg z-10 p-4">
+                    <h4 class="font-semibold text-base-content mb-2">Kontaktdaten</h4>
+                    <div class="mb-3">
+                        <div class="text-sm">{{ $member->email }}</div>
+                        <div class="text-sm">{{ $member->telefon }}</div>
+                    </div>
+
+                    <h4 class="font-semibold text-base-content mb-2">Adresse</h4>
+                    <div class="mb-3">
+                        <div class="text-sm">{{ $member->strasse }} {{ $member->hausnummer }}</div>
+                        <div class="text-sm">{{ $member->plz }} {{ $member->stadt }}</div>
+                        <div class="text-sm">{{ $member->land }}</div>
+                    </div>
+                </div>
+            </div>
+        </td>
+        @endif
+
+        {{-- Aktionen --}}
+        <td class="text-center">
+            <div class="flex justify-center items-center space-x-1">
+                <x-button
+                    icon="o-eye"
+                    link="{{ route('profile.view', $member->id) }}"
+                    class="btn-info btn-xs"
+                    title="Profil ansehen"
+                >
+                    <span class="hidden xl:inline">Profil</span>
+                </x-button>
+
+                @if($this->canViewDetails)
+                    <x-copy-email-button :email="$member->email" variant="desktop" />
+                @endif
+
+                @if($this->canViewDetails && $currentUser->id !== $member->id)
+                    @php
+                        $memberRole = $member->membership->role;
+                        $memberRank = $roleRanks[$memberRole] ?? 0;
+                    @endphp
+
+                    @if($this->currentUserRank > $memberRank)
+                        {{-- Rolle ändern (Dropdown) --}}
+                        <x-dropdown>
+                            <x-slot:trigger>
+                                <x-button
+                                    icon="o-pencil-square"
+                                    class="btn-warning btn-xs"
+                                    title="Rolle ändern"
+                                >
+                                    <span class="hidden xl:inline">Rolle</span>
+                                </x-button>
+                            </x-slot:trigger>
+                            @foreach($roleRanks as $role => $rank)
+                                @if($rank <= $this->currentUserRank && $role !== $memberRole)
+                                    <li>
+                                        <form action="{{ route('mitglieder.change-role', $member->id) }}" method="POST">
+                                            @csrf
+                                            @method('PUT')
+                                            <input type="hidden" name="role" value="{{ $role }}">
+                                            <button type="submit" class="w-full text-left">
+                                                Zu {{ $role }} ändern
+                                            </button>
+                                        </form>
+                                    </li>
+                                @endif
+                            @endforeach
+                        </x-dropdown>
+
+                        {{-- Mitgliedschaft beenden --}}
+                        <form action="{{ route('mitglieder.remove', $member->id) }}" method="POST"
+                              x-on:submit.prevent="if (confirm('Willst du die Mitgliedschaft von ' + @js($member->name) + ' wirklich beenden? Dies löscht den Benutzer aus der Datenbank!')) $el.submit()">
+                            @csrf
+                            @method('DELETE')
+                            <x-button
+                                type="submit"
+                                icon="o-trash"
+                                class="btn-error btn-xs"
+                                title="Mitgliedschaft beenden"
+                            >
+                                <span class="hidden xl:inline">Löschen</span>
+                            </x-button>
+                        </form>
+                    @endif
+                @endif
+            </div>
+        </td>
+    </tr>
+    @empty
+    <tr>
+        <td colspan="{{ $this->canViewDetails ? 7 : 4 }}" class="text-center py-8 text-base-content/50">
+            <x-icon name="o-users" class="w-12 h-12 opacity-30 mx-auto" />
+            <p class="mt-2">Keine Mitglieder gefunden.</p>
+        </td>
+    </tr>
+    @endforelse
+    </tbody>
+    </table>
+    </div>
+    </div>
+
+    <!-- Mobile-Ansicht (nur auf Mobilgeräten sichtbar) -->
+    <div class="md:hidden space-y-6">
+        <!-- Sortieroptionen für Mobile -->
+        <div class="mb-4 bg-base-200 rounded-lg p-3">
+            <h3 class="text-sm font-medium text-base-content mb-2">Sortieren nach:</h3>
+            <div class="flex flex-wrap gap-2">
+                <button wire:click="sort('nachname')" type="button"
+                   class="px-3 py-1 text-xs rounded-full {{ $sortBy === 'nachname' ? 'bg-primary text-white' : 'bg-base-200 text-base-content' }}">
+                    Name {{ $sortBy === 'nachname' ? ($sortDir === 'asc' ? '↑' : '↓') : '' }}
+                </button>
+                <button wire:click="sort('mitglied_seit')" type="button"
+                   class="px-3 py-1 text-xs rounded-full {{ $sortBy === 'mitglied_seit' ? 'bg-primary text-white' : 'bg-base-200 text-base-content' }}">
+                    Mitglied seit {{ $sortBy === 'mitglied_seit' ? ($sortDir === 'asc' ? '↑' : '↓') : '' }}
+                </button>
+                <button wire:click="sort('role')" type="button"
+                   class="px-3 py-1 text-xs rounded-full {{ $sortBy === 'role' ? 'bg-primary text-white' : 'bg-base-200 text-base-content' }}">
+                    Rolle {{ $sortBy === 'role' ? ($sortDir === 'asc' ? '↑' : '↓') : '' }}
+                </button>
+                @if($this->canViewDetails)
+                <button wire:click="sort('last_activity')" type="button"
+                   class="px-3 py-1 text-xs rounded-full {{ $sortBy === 'last_activity' ? 'bg-primary text-white' : 'bg-base-200 text-base-content' }}">
+                    Zuletzt online {{ $sortBy === 'last_activity' ? ($sortDir === 'asc' ? '↑' : '↓') : '' }}
+                </button>
+                <button wire:click="sort('mitgliedsbeitrag')" type="button"
+                   class="px-3 py-1 text-xs rounded-full {{ $sortBy === 'mitgliedsbeitrag' ? 'bg-primary text-white' : 'bg-base-200 text-base-content' }}">
+                    Beitrag {{ $sortBy === 'mitgliedsbeitrag' ? ($sortDir === 'asc' ? '↑' : '↓') : '' }}
+                </button>
+                @endif
+            </div>
+        </div>
+
+        @forelse($this->members as $member)
+        <x-card shadow class="!p-4" wire:key="member-mobile-{{ $member->id }}">
+            <a href="{{ route('profile.view', $member->id) }}" wire:navigate class="flex items-center mb-4">
+                <x-avatar :image="$member->profile_photo_url" :alt="$member->name" class="!w-12 !h-12" />
+                <div class="ml-4">
+                    <div class="font-medium text-base-content flex items-center">
+                        <span class="inline-block w-2 h-2 rounded-full mr-2 {{ isset($this->onlineUserIdSet[$member->id]) ? 'bg-success' : 'bg-base-content/40' }}" title="{{ isset($this->onlineUserIdSet[$member->id]) ? 'Online' : 'Offline' }}"></span>
+                        {{ $member->name }}
+                    </div>
+                    <div class="text-xs text-base-content">
+                        {{ $member->membership->role }} •
+                        Mitglied seit {{ $member->mitglied_seit ? $member->mitglied_seit->format('d.m.Y') : 'k.A.' }}
+                    </div>
+                </div>
+            </a>
+
+            <div class="mb-4">
+                <div class="grid grid-cols-2 gap-4">
+                    @if($this->canViewDetails)
+                    <div>
+                        <h4 class="text-xs uppercase tracking-wide text-base-content font-semibold mb-1">Zuletzt online</h4>
+                        <div class="text-sm text-base-content">
+                            {{ $member->last_activity ? \Carbon\Carbon::createFromTimestamp($member->last_activity, config('app.timezone'))->format('d.m.Y H:i') : '-' }}
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 class="text-xs uppercase tracking-wide text-base-content font-semibold mb-1">Beitrag</h4>
+                        <div class="text-sm text-base-content">{{ !is_null($member->mitgliedsbeitrag) ? $member->mitgliedsbeitrag : '-' }}</div>
+                    </div>
+                    @endif
+                </div>
+            </div>
+
+            @if($this->canViewDetails)
+            <div x-data="{ open: false }" class="border-t border-base-200 pt-2">
+                <button @click="open = !open" type="button" class="flex items-center justify-between w-full text-sm font-medium text-base-content hover:text-primary">
+                    <span>Weitere Details anzeigen</span>
+                    <x-icon name="o-chevron-down" class="h-4 w-4 transition-transform" x-bind:class="{ 'rotate-180': open }" />
+                </button>
+                <div x-show="open" x-transition class="mt-3 space-y-3">
+                    <div>
+                        <h4 class="text-xs uppercase tracking-wide text-base-content font-semibold mb-1">Kontaktdaten</h4>
+                        <div class="text-sm text-base-content">{{ $member->email }}</div>
+                        <div class="text-sm text-base-content">{{ $member->telefon }}</div>
+                    </div>
+
+                    <div>
+                        <h4 class="text-xs uppercase tracking-wide text-base-content font-semibold mb-1">Adresse</h4>
+                        <div class="text-sm text-base-content">{{ $member->strasse }} {{ $member->hausnummer }}</div>
+                        <div class="text-sm text-base-content">{{ $member->plz }} {{ $member->stadt }}</div>
+                        <div class="text-sm text-base-content">{{ $member->land }}</div>
+                    </div>
+                </div>
+            </div>
+            @endif
+
+            <div class="flex flex-row gap-2 mt-4">
+                <x-button
+                    icon="o-eye"
+                    link="{{ route('profile.view', $member->id) }}"
+                    class="btn-info btn-sm flex-1"
+                >
+                    <span class="hidden sm:inline">Profil</span>
+                </x-button>
+
+                @if($this->canViewDetails)
+                    <x-copy-email-button :email="$member->email" variant="mobile" />
+                @endif
+
+                @if($this->canViewDetails && $currentUser->id !== $member->id)
+                    @php
+                        $memberRole = $member->membership->role;
+                        $memberRank = $roleRanks[$memberRole] ?? 0;
+                    @endphp
+
+                    @if($this->currentUserRank > $memberRank)
+                        {{-- Rolle ändern (Mobile) --}}
+                        <x-dropdown class="flex-1">
+                            <x-slot:trigger>
+                                <x-button icon="o-pencil-square" class="btn-warning btn-sm w-full">
+                                    <span class="hidden sm:inline">Rolle</span>
+                                </x-button>
+                            </x-slot:trigger>
+                            @foreach($roleRanks as $role => $rank)
+                                @if($rank <= $this->currentUserRank && $role !== $memberRole)
+                                    <li>
+                                        <form action="{{ route('mitglieder.change-role', $member->id) }}" method="POST">
+                                            @csrf
+                                            @method('PUT')
+                                            <input type="hidden" name="role" value="{{ $role }}">
+                                            <button type="submit" class="w-full text-left">
+                                                Zu {{ $role }} ändern
+                                            </button>
+                                        </form>
+                                    </li>
+                                @endif
+                            @endforeach
+                        </x-dropdown>
+
+                        <form action="{{ route('mitglieder.remove', $member->id) }}" method="POST"
+                              class="flex-1"
+                              x-on:submit.prevent="if (confirm('Willst du die Mitgliedschaft von ' + @js($member->name) + ' wirklich beenden? Dies löscht den Benutzer aus der Datenbank!')) $el.submit()">
+                            @csrf
+                            @method('DELETE')
+                            <x-button
+                                type="submit"
+                                icon="o-trash"
+                                class="btn-error btn-sm w-full"
+                            >
+                                <span class="hidden sm:inline">Löschen</span>
+                            </x-button>
+                        </form>
+                    @endif
+                @endif
+            </div>
+        </x-card>
+        @empty
+        <div class="text-center py-8 text-base-content/50">
+            <x-icon name="o-users" class="w-12 h-12 opacity-30 mx-auto" />
+            <p class="mt-2">Keine Mitglieder gefunden.</p>
+        </div>
+        @endforelse
+    </div>
+    </x-card>
+</x-member-page>
+</div>
