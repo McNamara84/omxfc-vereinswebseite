@@ -57,7 +57,7 @@
             <p>Die Mittel des Vereins sind bestimmt für</p>
             <ul class="list-disc ml-6">
                 <li>die Deckung der Serverkosten des Maddraxikons sowie des MADDRAX-Fanblogs,</li>
-                <li>zur Finanzierung eines jährlichen Fantreffens</li>
+                <li>zur Finanzierung eines jährlichen Fantreffens,</li>
                 <li>sowie zur finanziellen und materiellen Unterstützung anderer Fanprojekte innerhalb des MADDRAX-Fandoms.</li>
                 <li>Sollte sich der Verein durch Mehrheitsbeschluss auflösen, werden sämtliche Mittel aus der Vereinskasse dazu genutzt, das Hosting für das Wiki des Maddraxikons so lange wie möglich zu bezahlen.</li>
             </ul>
