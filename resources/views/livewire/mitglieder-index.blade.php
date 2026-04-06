@@ -208,7 +208,7 @@
                 <x-avatar :image="$member->profile_photo_url" :alt="$member->name" class="!w-10 !h-10" />
                 <div class="ml-4">
                     <div class="font-medium text-base-content flex items-center">
-                        <span class="inline-block w-2 h-2 rounded-full mr-2 {{ in_array($member->id, $this->onlineUserIds) ? 'bg-success' : 'bg-base-content/40' }}" title="{{ in_array($member->id, $this->onlineUserIds) ? 'Online' : 'Offline' }}"></span>
+                        <span class="inline-block w-2 h-2 rounded-full mr-2 {{ isset($this->onlineUserIdSet[$member->id]) ? 'bg-success' : 'bg-base-content/40' }}" title="{{ isset($this->onlineUserIdSet[$member->id]) ? 'Online' : 'Offline' }}"></span>
                         {{ $member->name }}
                     </div>
                     @if($this->canViewDetails)
@@ -387,7 +387,7 @@
                 <x-avatar :image="$member->profile_photo_url" :alt="$member->name" class="!w-12 !h-12" />
                 <div class="ml-4">
                     <div class="font-medium text-base-content flex items-center">
-                        <span class="inline-block w-2 h-2 rounded-full mr-2 {{ in_array($member->id, $this->onlineUserIds) ? 'bg-success' : 'bg-base-content/40' }}" title="{{ in_array($member->id, $this->onlineUserIds) ? 'Online' : 'Offline' }}"></span>
+                        <span class="inline-block w-2 h-2 rounded-full mr-2 {{ isset($this->onlineUserIdSet[$member->id]) ? 'bg-success' : 'bg-base-content/40' }}" title="{{ isset($this->onlineUserIdSet[$member->id]) ? 'Online' : 'Offline' }}"></span>
                         {{ $member->name }}
                     </div>
                     <div class="text-xs text-base-content">

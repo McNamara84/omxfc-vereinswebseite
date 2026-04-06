@@ -31,11 +31,11 @@ class MitgliederIndex extends Component
     private const ALLOWED_SORT_FIELDS = ['nachname', 'role', 'mitgliedsbeitrag', 'mitglied_seit', 'last_activity'];
 
     private const ROLE_RANKS = [
-        'Mitglied' => 1,
-        'Ehrenmitglied' => 2,
-        'Kassenwart' => 3,
-        'Vorstand' => 4,
-        'Admin' => 5,
+        Role::Mitglied->value => 1,
+        Role::Ehrenmitglied->value => 2,
+        Role::Kassenwart->value => 3,
+        Role::Vorstand->value => 4,
+        Role::Admin->value => 5,
     ];
 
     public function boot(
@@ -64,7 +64,7 @@ class MitgliederIndex extends Component
         $query = $team->activeUsers();
 
         if ($this->nurOnline) {
-            $query->whereIn('users.id', $this->onlineUserIds);
+            $query->whereIn('users.id', array_keys($this->onlineUserIdSet));
         }
 
         if ($this->sortBy === 'role') {
@@ -75,12 +75,14 @@ class MitgliederIndex extends Component
     }
 
     #[Computed]
-    public function onlineUserIds(): array
+    public function onlineUserIdSet(): array
     {
-        return DB::table('sessions')
-            ->where('last_activity', '>=', now()->subMinutes(5)->timestamp)
-            ->pluck('user_id')
-            ->toArray();
+        return array_flip(
+            DB::table('sessions')
+                ->where('last_activity', '>=', now()->subMinutes(5)->timestamp)
+                ->pluck('user_id')
+                ->toArray()
+        );
     }
 
     #[Computed]

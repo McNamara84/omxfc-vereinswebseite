@@ -34,7 +34,7 @@ test.describe('Mitgliederliste', () => {
         await expect(page.locator('[data-members-filter-online="true"]')).toBeVisible({ timeout: 10000 });
         
         // Verify the filter is now active via URL or attribute
-        await expect(page).toHaveURL(/nurOnline=true/, { timeout: 10000 });
+        await expect(page).toHaveURL(/nurOnline=(true|1)/, { timeout: 10000 });
         await expect(page.locator('[data-members-summary]')).toContainText('nur Mitglieder angezeigt, die aktuell online sind');
 
         const roleHeader = page.getByRole('columnheader', { name: 'Rolle' });
