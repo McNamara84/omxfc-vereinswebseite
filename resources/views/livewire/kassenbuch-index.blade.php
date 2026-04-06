@@ -226,12 +226,11 @@
                     </div>
                 </x-slot:title>
 
-                <div class="overflow-x-auto">
-                    {{-- Skeleton Loading State --}}
-                    <div wire:loading.delay>
-                        <x-skeleton-table :columns="6" :rows="10" />
-                    </div>
-                    <div wire:loading.remove>
+                {{-- Skeleton Loading State --}}
+                <div wire:loading.delay>
+                    <x-skeleton-table :columns="6" :rows="10" />
+                </div>
+                <div class="overflow-x-auto" wire:loading.remove>
                     <table class="table">
                         <thead>
                             <tr>
@@ -318,8 +317,7 @@
                             @endforelse
                         </tbody>
                     </table>
-                    </div>{{-- wire:loading.remove --}}
-                </div>
+                    </div>{{-- wire:loading.remove + overflow-x-auto --}}
             </x-card>
         @endif
     </div>

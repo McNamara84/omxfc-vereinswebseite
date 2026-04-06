@@ -137,7 +137,7 @@ class WireNavigateTest extends TestCase
 
     public function test_hoerbuecher_index_has_wire_navigate_in_navigation(): void
     {
-        $user = $this->actingMember();
+        $user = $this->actingVorstand();
 
         $html = $this->actingAs($user)->get(route('hoerbuecher.index'))->getContent();
 
