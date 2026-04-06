@@ -580,7 +580,7 @@ class HoerbuchControllerTest extends TestCase
         $this->actingAs($user)
             ->get(route('hoerbuecher.show', $episode))
             ->assertOk()
-            ->assertSee('Bisheriger Sprecher: '.$actor->name);
+            ->assertSee('Bisheriger Sprecher: '.e($actor->name));
     }
 
     public function test_edit_form_displays_previous_speaker_hint(): void
@@ -626,7 +626,7 @@ class HoerbuchControllerTest extends TestCase
         $this->actingAs($user)
             ->get(route('hoerbuecher.edit', $episode))
             ->assertOk()
-            ->assertSee('Bisheriger Sprecher: '.$actor->name);
+            ->assertSee('Bisheriger Sprecher: '.e($actor->name));
     }
 
     public function test_edit_form_displays_contact_and_pseudonym_fields(): void
