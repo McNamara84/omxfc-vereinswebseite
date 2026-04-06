@@ -40,11 +40,14 @@ test.describe('Mitgliederliste', () => {
         const roleHeader = page.getByRole('columnheader', { name: 'Rolle' });
         const roleSortButton = roleHeader.locator('button');
         await roleSortButton.click();
-        await expect(page).toHaveURL(/sort=role&dir=asc/, { timeout: 10000 });
+        // dir=asc is the default and excluded from URL by Livewire #[Url(except: 'asc')]
+        await expect(page).toHaveURL(/sort=role/, { timeout: 10000 });
+        await expect(page).not.toHaveURL(/dir=/);
         await expect(roleHeader).toHaveAttribute('aria-sort', 'ascending');
 
         await roleSortButton.click();
-        await expect(page).toHaveURL(/sort=role&dir=desc/, { timeout: 10000 });
+        await expect(page).toHaveURL(/sort=role/, { timeout: 10000 });
+        await expect(page).toHaveURL(/dir=desc/);
         await expect(roleHeader).toHaveAttribute('aria-sort', 'descending');
 
         await expect(page.getByRole('button', { name: 'CSV Export' })).toBeVisible();
