@@ -195,7 +195,7 @@
                                 tabindex="0"
                                 @click="window.location.href = '{{ route('hoerbuecher.show', $episode) }}'"
                                 @keydown.enter="window.location.href = '{{ route('hoerbuecher.show', $episode) }}'"
-                                data-href="{{ route('hoerbuecher.show', $episode) }}" wire:navigate
+                                data-href="{{ route('hoerbuecher.show', $episode) }}"
                                 data-status="{{ $episode->status->value }}"
                                 data-type="{{ $episode->episode_type }}"
                                 data-roles-filled="{{ $episode->all_roles_filled ? '1' : '0' }}"

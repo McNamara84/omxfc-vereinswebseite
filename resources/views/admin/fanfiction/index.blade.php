@@ -7,7 +7,6 @@
                     icon="o-plus"
                     link="{{ route('admin.fanfiction.create') }}" wire:navigate
                     class="btn-primary"
-                    no-wire-navigate
                 />
             </x-slot:actions>
         </x-header>
@@ -100,7 +99,6 @@
                                                 link="{{ route('admin.fanfiction.edit', $fanfiction) }}" wire:navigate
                                                 class="btn-ghost btn-sm text-info"
                                                 tooltip="Bearbeiten"
-                                                no-wire-navigate
                                             />
                                             <x-button
                                                 icon="o-trash"

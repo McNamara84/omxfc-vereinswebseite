@@ -7,7 +7,7 @@
 
                 @if ($isUnlocked)
                     <x-button label="Herunterladen" icon="o-arrow-down-tray"
-                        link="{{ route('3d-modelle.download', $model) }}" wire:navigate
+                        link="{{ route('3d-modelle.download', $model) }}"
                         class="btn-primary" data-testid="download-button" />
                 @endif
 
