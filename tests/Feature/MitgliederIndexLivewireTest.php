@@ -36,18 +36,16 @@ class MitgliederIndexLivewireTest extends TestCase
         $acting->update(['name' => 'Aaron Actor']);
         $this->actingAs($acting);
 
-        $component = Livewire::test(MitgliederIndex::class, ['sort' => 'role', 'dir' => 'desc']);
-
-        $members = $component->viewData('members');
-        $roles = $members->pluck('membership.role')->all();
-
-        $this->assertSame([
-            'Vorstand',
-            'Mitglied',
-            'Kassenwart',
-            'Ehrenmitglied',
-            'Admin',
-        ], $roles);
+        Livewire::test(MitgliederIndex::class)
+            ->set('sortBy', 'role')
+            ->set('sortDir', 'desc')
+            ->assertSeeInOrder([
+                'Victor Vorstand',
+                'Aaron Actor',
+                'Karl Kass',
+                'Erika Ehren',
+                'Holger Ehrmann',
+            ]);
     }
 
     public function test_index_sorts_members_by_nachname_asc(): void
@@ -78,17 +76,15 @@ class MitgliederIndexLivewireTest extends TestCase
         ]);
         $this->actingAs($acting);
 
-        $component = Livewire::test(MitgliederIndex::class, ['sort' => 'nachname', 'dir' => 'asc']);
-
-        $members = $component->viewData('members');
-        $names = $members->pluck('name')->all();
-
-        $this->assertSame([
-            'Anna Alpha',
-            'Holger Ehrmann',
-            'Mike Member',
-            'Zara Zulu',
-        ], $names);
+        Livewire::test(MitgliederIndex::class)
+            ->set('sortBy', 'nachname')
+            ->set('sortDir', 'asc')
+            ->assertSeeInOrder([
+                'Anna Alpha',
+                'Holger Ehrmann',
+                'Mike Member',
+                'Zara Zulu',
+            ]);
     }
 
     public function test_index_sorts_members_by_last_activity_desc(): void
@@ -106,15 +102,9 @@ class MitgliederIndexLivewireTest extends TestCase
 
         $this->actingAs($this->actingMember('Mitglied'));
 
-        $component = Livewire::test(MitgliederIndex::class, ['sort' => 'last_activity']);
-
-        $members = $component->viewData('members');
-        $names = $members->pluck('name')
-            ->filter(fn ($name) => in_array($name, ['Ralf Recent', 'Olaf Old']))
-            ->values()
-            ->all();
-
-        $this->assertSame(['Ralf Recent', 'Olaf Old'], $names);
+        Livewire::test(MitgliederIndex::class)
+            ->set('sortBy', 'last_activity')
+            ->assertSeeInOrder(['Ralf Recent', 'Olaf Old']);
     }
 
     public function test_index_falls_back_to_nachname_on_invalid_sort(): void
@@ -145,20 +135,15 @@ class MitgliederIndexLivewireTest extends TestCase
         ]);
         $this->actingAs($acting);
 
-        $component = Livewire::test(MitgliederIndex::class, ['sort' => 'foo']);
-
-        $this->assertSame('nachname', $component->get('sortBy'));
-        $this->assertSame('asc', $component->get('sortDir'));
-
-        $members = $component->viewData('members');
-        $names = $members->pluck('name')->all();
-
-        $this->assertSame([
-            'Charlie Current',
-            'Holger Ehrmann',
-            'Alice First',
-            'Bob Second',
-        ], $names);
+        Livewire::test(MitgliederIndex::class, ['sortBy' => 'foo'])
+            ->assertSet('sortBy', 'nachname')
+            ->assertSet('sortDir', 'asc')
+            ->assertSeeInOrder([
+                'Charlie Current',
+                'Holger Ehrmann',
+                'Alice First',
+                'Bob Second',
+            ]);
     }
 
     public function test_filter_shows_only_online_members(): void
@@ -182,12 +167,10 @@ class MitgliederIndexLivewireTest extends TestCase
 
         $this->actingAs($online);
 
-        $component = Livewire::test(MitgliederIndex::class)
-            ->set('nurOnline', true);
-
-        $members = $component->viewData('members');
-        $this->assertCount(1, $members);
-        $this->assertTrue($members->contains('id', $online->id));
+        Livewire::test(MitgliederIndex::class)
+            ->set('nurOnline', true)
+            ->assertSee($online->name)
+            ->assertDontSee($offline->name);
     }
 
     public function test_index_uses_members_team_provider(): void

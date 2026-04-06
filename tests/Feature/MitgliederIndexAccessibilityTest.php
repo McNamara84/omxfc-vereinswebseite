@@ -49,7 +49,7 @@ class MitgliederIndexAccessibilityTest extends TestCase
 
         $this->actingAs($admin);
 
-        $response = $this->get('/mitglieder?sort=role&dir=desc&filters[]=online');
+        $response = $this->get('/mitglieder?sort=role&dir=desc&nurOnline=1');
         $response->assertOk();
 
         $html = $response->getContent();
