@@ -7,10 +7,9 @@ use App\Enums\Role;
 use App\Models\KassenbuchEditRequest;
 use App\Models\KassenbuchEntry;
 use App\Models\Kassenstand;
+use App\Services\KassenbuchService;
 use App\Services\MembersTeamProvider;
 use App\Services\UserRoleService;
-use Carbon\Carbon;
-use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
@@ -22,12 +21,16 @@ class KassenbuchIndex extends Component
 
     private MembersTeamProvider $membersTeamProvider;
 
+    private KassenbuchService $kassenbuchService;
+
     public function boot(
         UserRoleService $userRoleService,
         MembersTeamProvider $membersTeamProvider,
+        KassenbuchService $kassenbuchService,
     ): void {
         $this->userRoleService = $userRoleService;
         $this->membersTeamProvider = $membersTeamProvider;
+        $this->kassenbuchService = $kassenbuchService;
     }
 
     #[Computed]
@@ -61,7 +64,7 @@ class KassenbuchIndex extends Component
     {
         $team = $this->membersTeamProvider->getMembersTeamOrAbort();
 
-        return $this->getOrCreateKassenstand($team);
+        return $this->kassenbuchService->getOrCreateKassenstand($team);
     }
 
     #[Computed]
@@ -124,31 +127,7 @@ class KassenbuchIndex extends Component
     #[Computed]
     public function renewalWarning(): bool
     {
-        $user = Auth::user();
-
-        if (! $user->bezahlt_bis) {
-            return false;
-        }
-
-        $today = Carbon::now();
-        $expiryDate = $user->bezahlt_bis instanceof Carbon
-            ? $user->bezahlt_bis
-            : Carbon::parse((string) $user->bezahlt_bis);
-        $daysUntilExpiry = $today->diffInDays($expiryDate, false);
-
-        return $daysUntilExpiry > 0 && $daysUntilExpiry <= 30;
-    }
-
-    private function getOrCreateKassenstand($team): Kassenstand
-    {
-        try {
-            return Kassenstand::firstOrCreate(
-                ['team_id' => $team->id],
-                ['betrag' => 0.00, 'letzte_aktualisierung' => now()]
-            );
-        } catch (UniqueConstraintViolationException) {
-            return Kassenstand::where('team_id', $team->id)->firstOrFail();
-        }
+        return $this->kassenbuchService->checkRenewalWarning(Auth::user());
     }
 
     public function render()
