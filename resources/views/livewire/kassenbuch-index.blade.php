@@ -128,10 +128,10 @@
             {{-- Card 3: Mitgliederliste mit Zahlungsstatus (Für Vorstand und Kassenwart) --}}
             <x-card title="Zahlungsstatus der Mitglieder" class="md:col-span-2" shadow>
                 {{-- Skeleton Loading State --}}
-                <div wire:loading.delay wire:target="updatePayment">
+                <div wire:loading.delay>
                     <x-skeleton-table :columns="5" :rows="8" :hasAvatar="true" />
                 </div>
-                <div wire:loading.remove wire:target="updatePayment">
+                <div wire:loading.remove>
                 <div class="overflow-x-auto">
                     <table class="table">
                         <thead>
@@ -228,10 +228,10 @@
 
                 <div class="overflow-x-auto">
                     {{-- Skeleton Loading State --}}
-                    <div wire:loading.delay wire:target="storeEntry, updateEntry, deleteEntry">
+                    <div wire:loading.delay>
                         <x-skeleton-table :columns="6" :rows="10" />
                     </div>
-                    <div wire:loading.remove wire:target="storeEntry, updateEntry, deleteEntry">
+                    <div wire:loading.remove>
                     <table class="table">
                         <thead>
                             <tr>

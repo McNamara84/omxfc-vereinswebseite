@@ -66,7 +66,9 @@ class SkeletonLoadingStatesTest extends TestCase
 
         $html = Livewire::test(KassenbuchIndex::class)->html();
 
-        $this->assertMatchesRegularExpression('/wire:target="[^"]*\bupdatePayment\b[^"]*"/', $html);
+        // Skeleton ohne wire:target — greift bei jedem Livewire-Request
+        $this->assertStringContainsString('wire:loading.delay', $html);
+        $this->assertStringContainsString('wire:loading.remove', $html);
     }
 
     public function test_kassenbuch_index_has_skeleton_for_entries_table(): void
@@ -75,9 +77,9 @@ class SkeletonLoadingStatesTest extends TestCase
 
         $html = Livewire::test(KassenbuchIndex::class)->html();
 
-        $this->assertMatchesRegularExpression('/wire:target="[^"]*\bstoreEntry\b[^"]*"/', $html);
-        $this->assertMatchesRegularExpression('/wire:target="[^"]*\bupdateEntry\b[^"]*"/', $html);
-        $this->assertMatchesRegularExpression('/wire:target="[^"]*\bdeleteEntry\b[^"]*"/', $html);
+        // Beide Skeleton-Wrapper (Zahlungsstatus + Kassenbuch) ohne spezifisches Target
+        $this->assertGreaterThanOrEqual(2, substr_count($html, 'wire:loading.delay'));
+        $this->assertGreaterThanOrEqual(2, substr_count($html, 'wire:loading.remove'));
     }
 
     // ── FantreffenAdminDashboard ────────────────────────────────
