@@ -12,7 +12,7 @@
                             Kurzgeschichten aus dem MADDRAX-Universum
                         </p>
                     </div>
-                    <a href="{{ route('login') }}" wire:navigate
+                    <a href="{{ route('login') }}"
                         class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 focus:bg-indigo-700 active:bg-indigo-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
                         Anmelden für mehr
                     </a>
@@ -34,7 +34,7 @@
                     <div class="ml-3">
                         <p class="text-sm text-yellow-700 dark:text-yellow-200">
                             Als Gast siehst du nur einen kurzen Teaser jeder Geschichte.
-                            <a href="{{ route('register') }}" wire:navigate class="font-medium underline hover:text-yellow-600">
+                            <a href="{{ route('register') }}" class="font-medium underline hover:text-yellow-600">
                                 Werde Mitglied
                             </a>
                             um die vollständigen Geschichten zu lesen und zu kommentieren!
@@ -92,7 +92,7 @@
                                     >
                                         <span x-text="expanded ? 'Weniger anzeigen' : 'Teaser erweitern'"></span>
                                     </button>
-                                    <a href="{{ route('login') }}" wire:navigate
+                                    <a href="{{ route('login') }}"
                                         class="text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300">
                                         Vollständig lesen →
                                     </a>

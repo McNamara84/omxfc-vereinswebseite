@@ -25,8 +25,8 @@ test.describe('Accessibility checks', () => {
       .exclude('input.drawer-toggle')
       // maryUI ThemeToggle erzeugt ein verstecktes Checkbox-Element ohne zugängliches Label
       .exclude('input.theme-controller')
-      // Livewire wire:navigate Progress-Bar nutzt ungültiges role="bar"
-      .exclude('[role="bar"]')
+      // Livewire wire:navigate Progress-Bar (NProgress) nutzt ungültiges role="bar"
+      .exclude('#nprogress [role="bar"]')
       // Deaktiviere nested-interactive - bekanntes maryUI Dropdown Problem
       .disableRules(['nested-interactive'])
       .analyze();
