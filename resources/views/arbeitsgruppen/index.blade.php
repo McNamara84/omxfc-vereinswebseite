@@ -4,7 +4,7 @@
             <div class="flex justify-between items-center {{ request()->routeIs('ag.index') ? 'mb-4' : 'mb-6' }}">
                 <x-header title="Arbeitsgruppen" class="!mb-0" />
                 @if(Auth::user()->hasRole(\App\Enums\Role::Admin))
-                    <x-button label="AG erstellen" link="{{ route('arbeitsgruppen.create') }}" icon="o-plus" class="btn-primary" />
+                    <x-button label="AG erstellen" link="{{ route('arbeitsgruppen.create') }}" wire:navigate icon="o-plus" class="btn-primary" />
                 @endif
             </div>
             @if(request()->routeIs('ag.index') && Auth::user()->ownedTeams()->where('personal_team', false)->exists())
@@ -30,7 +30,7 @@
                         <td>{{ $ag->email ?? '-' }}</td>
                         <td>{{ $ag->meeting_schedule ?? '-' }}</td>
                         <td>
-                            <x-button label="Bearbeiten" link="{{ route('arbeitsgruppen.edit', $ag) }}" icon="o-pencil" class="btn-ghost btn-sm text-primary" />
+                            <x-button label="Bearbeiten" link="{{ route('arbeitsgruppen.edit', $ag) }}" wire:navigate icon="o-pencil" class="btn-ghost btn-sm text-primary" />
                         </td>
                     </tr>
                 @empty

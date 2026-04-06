@@ -10,7 +10,7 @@
         {{-- Dashboard Cards Grid --}}
         <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-8 grid-flow-row-dense" aria-label="Überblick wichtiger Community-Kennzahlen">
             {{-- Persönliche offene Challenges Card --}}
-            <x-bento-card href="{{ route('todos.index') }}" title="Offene Challenges" sr-text="Meine offenen Challenges: {{ $openTodos }}">
+            <x-bento-card href="{{ route('todos.index') }}" wire:navigate title="Offene Challenges" sr-text="Meine offenen Challenges: {{ $openTodos }}">
                 <p class="text-sm text-base-content mb-2">Angenommene, noch nicht abgeschlossene Challenges</p>
                 <div class="text-4xl font-bold mt-auto" aria-live="polite">
                     {{ $openTodos }}
@@ -26,7 +26,7 @@
             </x-bento-card>
 
             {{-- Matches in Tauschbörse Card --}}
-            <x-bento-card href="{{ route('romantausch.index') }}" title="Matches in Tauschbörse" sr-text="Meine Matches in der Tauschbörse: {{ $romantauschMatches }}">
+            <x-bento-card href="{{ route('romantausch.index') }}" wire:navigate title="Matches in Tauschbörse" sr-text="Meine Matches in der Tauschbörse: {{ $romantauschMatches }}">
                 <p class="text-sm text-base-content mb-2">Offene Treffer aus Angeboten und Gesuchen in der Romantauschbörse</p>
                 <div class="text-4xl font-bold mt-auto" aria-live="polite">
                     {{ $romantauschMatches }}
@@ -34,7 +34,7 @@
             </x-bento-card>
 
             {{-- Angebote in Tauschbörse Card --}}
-            <x-bento-card href="{{ route('romantausch.index') }}" title="Angebote in der Tauschbörse" sr-text="Meine Angebote in der Tauschbörse: {{ $romantauschOffers }}">
+            <x-bento-card href="{{ route('romantausch.index') }}" wire:navigate title="Angebote in der Tauschbörse" sr-text="Meine Angebote in der Tauschbörse: {{ $romantauschOffers }}">
                 <p class="text-sm text-base-content mb-2">Aktive Angebote, die du für die Community bereitgestellt hast</p>
                 <div class="text-4xl font-bold mt-auto" aria-live="polite">
                     {{ $romantauschOffers }}
@@ -42,7 +42,7 @@
             </x-bento-card>
 
             {{-- Meine Rezensionen Card --}}
-            <x-bento-card href="{{ route('reviews.index') }}" title="Meine Rezensionen" sr-text="Meine Rezensionen: {{ $myReviews }}">
+            <x-bento-card href="{{ route('reviews.index') }}" wire:navigate title="Meine Rezensionen" sr-text="Meine Rezensionen: {{ $myReviews }}">
                 <p class="text-sm text-base-content mb-2">Überblick deiner veröffentlichten Rezensionen</p>
                 <div class="text-4xl font-bold" aria-live="polite">
                     {{ $myReviews }}
@@ -50,7 +50,7 @@
             </x-bento-card>
 
             {{-- Fanfiction Card --}}
-            <x-bento-card href="{{ route('fanfiction.index') }}" title="Fanfiction" sr-text="Fanfiction: {{ $fanfictionCount ?? 0 }}">
+            <x-bento-card href="{{ route('fanfiction.index') }}" wire:navigate title="Fanfiction" sr-text="Fanfiction: {{ $fanfictionCount ?? 0 }}">
                 <p class="text-sm text-base-content mb-2">Kurzgeschichten aus dem MADDRAX-Universum</p>
                 <div class="text-4xl font-bold" aria-live="polite">
                     {{ $fanfictionCount ?? 0 }}
@@ -76,7 +76,7 @@
                                 @foreach($anwaerter as $person)
                                     <tr>
                                         <td>
-                                            <a href="{{ route('profile.view', $person->id) }}" class="text-primary hover:underline">{{ $person->name }}</a>
+                                            <a href="{{ route('profile.view', $person->id) }}" wire:navigate class="text-primary hover:underline">{{ $person->name }}</a>
                                         </td>
                                         <td>{{ $person->email }}</td>
                                         <td>{{ $person->mitgliedsbeitrag }}</td>
@@ -166,7 +166,7 @@
                                 <span class="inline-flex items-center gap-1 rounded-full bg-base-100 px-2 py-1 ring-1 ring-base-200">
                                     <span class="sr-only">von Nutzer</span>
                                     <x-icon name="o-user" class="w-3.5 h-3.5" />
-                                    <a href="{{ route('profile.view', $activityUser->id) }}" class="font-semibold text-primary hover:underline">{{ $activityUser->name }}</a>
+                                    <a href="{{ route('profile.view', $activityUser->id) }}" wire:navigate class="font-semibold text-primary hover:underline">{{ $activityUser->name }}</a>
                                 </span>
                             @elseif(!$isFantreffenRegistration)
                                 <span class="inline-flex items-center gap-1 rounded-full bg-base-100 px-2 py-1 ring-1 ring-base-200">
@@ -194,19 +194,19 @@
                                     $reviewPreview = \App\Support\PreviewText::make($subject->content ?? '', 160);
                                 @endphp
                                 <div class="space-y-1">
-                                    <a href="{{ route('reviews.show', $subject->book_id) }}" class="font-semibold text-info hover:underline">Neue Rezension: {{ $subject->title }}</a>
+                                    <a href="{{ route('reviews.show', $subject->book_id) }}" wire:navigate class="font-semibold text-info hover:underline">Neue Rezension: {{ $subject->title }}</a>
                                     @if($reviewPreview->isNotEmpty())
                                         <p class="text-sm text-base-content" aria-label="Auszug aus der Rezension">„{{ $reviewPreview }}"</p>
                                     @endif
                                 </div>
                             @elseif($activity->subject_type === \App\Models\BookOffer::class)
                                 <div class="space-y-1">
-                                    <a href="{{ route('romantausch.index') }}" class="font-semibold text-info hover:underline">Neues Angebot: {{ $subject->book_title }}</a>
+                                    <a href="{{ route('romantausch.index') }}" wire:navigate class="font-semibold text-info hover:underline">Neues Angebot: {{ $subject->book_title }}</a>
                                     <p class="text-sm text-base-content">Entdecke neue Tauschangebote aus der Community.</p>
                                 </div>
                             @elseif($activity->subject_type === \App\Models\BookRequest::class)
                                 <div class="space-y-1">
-                                    <a href="{{ route('romantausch.index') }}" class="font-semibold text-info hover:underline">Neues Gesuch: {{ $subject->book_title }}</a>
+                                    <a href="{{ route('romantausch.index') }}" wire:navigate class="font-semibold text-info hover:underline">Neues Gesuch: {{ $subject->book_title }}</a>
                                     <p class="text-sm text-base-content">Vielleicht hast du genau das passende Heft zum Teilen.</p>
                                 </div>
                             @elseif($activity->subject_type === \App\Models\ReviewComment::class)
@@ -216,7 +216,7 @@
                                 @endphp
                                 @if($review)
                                     <div class="space-y-1">
-                                        <span>Kommentar zu <a href="{{ route('reviews.show', $review->book_id) }}" class="text-info hover:underline">{{ $review->title }}</a> von <a href="{{ route('profile.view', $activity->user->id) }}" class="text-primary hover:underline">{{ $activity->user->name }}</a></span>
+                                        <span>Kommentar zu <a href="{{ route('reviews.show', $review->book_id) }}" wire:navigate class="text-info hover:underline">{{ $review->title }}</a> von <a href="{{ route('profile.view', $activity->user->id) }}" wire:navigate class="text-primary hover:underline">{{ $activity->user->name }}</a></span>
                                         @if($commentPreview->isNotEmpty())
                                             <p class="text-sm text-base-content" aria-label="Auszug aus dem Kommentar">„{{ $commentPreview }}"</p>
                                         @endif
@@ -238,11 +238,11 @@
                                     @endif
                                 </div>
                             @elseif($activity->subject_type === \App\Models\Todo::class && $activity->action === 'accepted')
-                                <span>hat die Challenge <a href="{{ route('todos.show', $subject->id) }}" class="text-info hover:underline">{{ $subject->title }}</a> angenommen</span>
+                                <span>hat die Challenge <a href="{{ route('todos.show', $subject->id) }}" wire:navigate class="text-info hover:underline">{{ $subject->title }}</a> angenommen</span>
                             @elseif($activity->subject_type === \App\Models\Todo::class && $activity->action === 'completed')
-                                <span>hat die Challenge <a href="{{ route('todos.show', $subject->id) }}" class="text-info hover:underline">{{ $subject->title }}</a> erfolgreich abgeschlossen</span>
+                                <span>hat die Challenge <a href="{{ route('todos.show', $subject->id) }}" wire:navigate class="text-info hover:underline">{{ $subject->title }}</a> erfolgreich abgeschlossen</span>
                             @elseif($activity->subject_type === \App\Models\User::class && $activity->action === 'member_approved')
-                                <span>Wir begrüßen unser neues Mitglied <a href="{{ route('profile.view', $subject->id) }}" class="text-primary hover:underline">{{ $subject->name }}</a></span>
+                                <span>Wir begrüßen unser neues Mitglied <a href="{{ route('profile.view', $subject->id) }}" wire:navigate class="text-primary hover:underline">{{ $subject->name }}</a></span>
                             @endif
                         </div>
                     </li>
@@ -285,7 +285,7 @@
                 >
                     <p class="sr-only" data-dashboard-top-summary="true" aria-live="polite">{{ $topUsersSummary }}</p>
                     @foreach($topUsersCollection as $index => $topUser)
-                        <a href="{{ route('profile.view', $topUser['id']) }}" class="flex flex-col items-center group" data-dashboard-top-user-item role="listitem">
+                        <a href="{{ route('profile.view', $topUser['id']) }}" wire:navigate class="flex flex-col items-center group" data-dashboard-top-user-item role="listitem">
                             @if($index === 0)
                                 {{-- Gold Medaille für Platz 1 --}}
                                 <div class="relative mb-2">
@@ -328,7 +328,7 @@
 
         {{-- Zu verifizierende Aufgaben Card (nur für Admin) --}}
         @if(in_array($userRole, $allowedRoles) && $pendingVerification > 0)
-            <a href="{{ route('todos.index') }}?filter=pending" class="block">
+            <a href="{{ route('todos.index') }}?filter=pending" wire:navigate class="block">
                 <x-card class="mb-8 hover:shadow-lg transition-shadow" shadow>
                     <div class="flex items-center justify-between">
                         <div>

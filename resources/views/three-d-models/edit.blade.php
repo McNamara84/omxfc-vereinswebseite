@@ -89,7 +89,7 @@
                 </div>
 
                 <div class="flex justify-end gap-2 mt-6">
-                    <x-button label="Abbrechen" link="{{ route('3d-modelle.index') }}" class="btn-ghost" />
+                    <x-button label="Abbrechen" link="{{ route('3d-modelle.index') }}" wire:navigate class="btn-ghost" />
                     <x-button label="Speichern" type="submit" icon="o-check" class="btn-primary"
                         data-testid="submit-button" />
                 </div>

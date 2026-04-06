@@ -306,8 +306,11 @@ test.describe('Fanfiction Einzelansicht', () => {
         await page.goto('/fanfiction');
         await page.getByRole('link', { name: 'Die Reise nach Doredo' }).first().click();
 
+        // wire:navigate navigiert per SPA – auf die Einzelansicht warten
+        await page.waitForURL(/\/fanfiction\//);
+
         // Der vollständige Inhalt sollte sichtbar sein - prüfe auf prose-Container mit Inhalt
-        const proseContainer = page.locator('.prose');
+        const proseContainer = page.locator('.fanfiction-content.prose').first();
         await expect(proseContainer).toBeVisible();
 
         // Prüfe dass der Container nicht leer ist (hat mindestens ein p-Element)

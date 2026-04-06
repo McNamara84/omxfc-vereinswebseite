@@ -125,7 +125,7 @@ class MitgliedWerdenForm extends Component
 
             Mail::to($user->email)->queue(new MitgliedAntragEingereicht($user));
 
-            $this->redirect(route('mitglied.werden.erfolgreich'));
+            $this->redirect(route('mitglied.werden.erfolgreich'), navigate: true);
         } catch (\Throwable $e) {
             $this->submitting = false;
 

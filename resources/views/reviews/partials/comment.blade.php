@@ -3,7 +3,7 @@
 @endphp
 <div class="mt-4 bg-base-200 p-4 rounded">
     <p class="text-sm text-base-content">
-        <a href="{{ route('profile.view', $comment->user->id) }}" class="text-primary hover:underline">{{ $comment->user->name }}</a> am {{ $comment->created_at->format('d.m.Y H:i') }}
+        <a href="{{ route('profile.view', $comment->user->id) }}" wire:navigate class="text-primary hover:underline">{{ $comment->user->name }}</a> am {{ $comment->created_at->format('d.m.Y H:i') }}
     </p>
     @isset($parentAuthor)
         <p class="text-xs text-base-content md:hidden">

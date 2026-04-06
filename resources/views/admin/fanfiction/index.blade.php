@@ -5,9 +5,8 @@
                 <x-button
                     label="Neue Fanfiction"
                     icon="o-plus"
-                    link="{{ route('admin.fanfiction.create') }}"
+                    link="{{ route('admin.fanfiction.create') }}" wire:navigate
                     class="btn-primary"
-                    no-wire-navigate
                 />
             </x-slot:actions>
         </x-header>
@@ -32,7 +31,7 @@
                     <x-button
                         label="Jetzt die erste Geschichte erstellen"
                         icon="o-plus"
-                        link="{{ route('admin.fanfiction.create') }}"
+                        link="{{ route('admin.fanfiction.create') }}" wire:navigate
                         class="btn-primary btn-sm"
                     />
                 </div>
@@ -62,7 +61,7 @@
                                     <td>
                                         <span>{{ $fanfiction->author_name }}</span>
                                         @if($fanfiction->author)
-                                            <a href="{{ route('profile.view', $fanfiction->author->id) }}"
+                                            <a href="{{ route('profile.view', $fanfiction->author->id) }}" wire:navigate
                                                class="text-xs text-primary hover:underline block">
                                                 Mitglied
                                             </a>
@@ -97,10 +96,9 @@
                                             @endif
                                             <x-button
                                                 icon="o-pencil-square"
-                                                link="{{ route('admin.fanfiction.edit', $fanfiction) }}"
+                                                link="{{ route('admin.fanfiction.edit', $fanfiction) }}" wire:navigate
                                                 class="btn-ghost btn-sm text-info"
                                                 tooltip="Bearbeiten"
-                                                no-wire-navigate
                                             />
                                             <x-button
                                                 icon="o-trash"

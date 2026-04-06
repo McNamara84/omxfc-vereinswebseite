@@ -13,7 +13,7 @@
                     <h2 class="text-lg font-semibold text-base-content">{{ $review->title }}</h2>
                     <p class="text-sm text-base-content">
                         von
-                        <a href="{{ route('profile.view', $review->user->id) }}" class="text-primary hover:underline">{{ $review->user->name }}</a>
+                        <a href="{{ route('profile.view', $review->user->id) }}" wire:navigate class="text-primary hover:underline">{{ $review->user->name }}</a>
                         am {{ $review->created_at->format('d.m.Y H:i') }} Uhr
                         @if(!$review->created_at->eq($review->updated_at))
                             , geändert am {{ $review->updated_at->format('d.m.Y') }} um {{ $review->updated_at->format('H:i') }} Uhr
@@ -25,7 +25,7 @@
 
                     @if(in_array($role ?? null, [\App\Enums\Role::Vorstand, \App\Enums\Role::Admin], true) || auth()->id() === $review->user_id)
                         <div class="mt-4 flex flex-col sm:flex-row gap-2">
-                            <x-button label="Rezension bearbeiten" link="{{ route('reviews.edit', $review) }}" icon="o-pencil" class="btn-info btn-sm" />
+                            <x-button label="Rezension bearbeiten" link="{{ route('reviews.edit', $review) }}" wire:navigate icon="o-pencil" class="btn-info btn-sm" />
                             <form action="{{ route('reviews.destroy', $review) }}" method="POST">
                                 @csrf
                                 @method('DELETE')
@@ -49,6 +49,6 @@
                 <p class="text-base-content">Noch keine Rezensionen vorhanden.</p>
             @endforelse
 
-            <x-button label="← Zurück zur Übersicht" link="{{ route('reviews.index') }}" class="btn-ghost btn-sm text-primary" />
+            <x-button label="← Zurück zur Übersicht" link="{{ route('reviews.index') }}" wire:navigate class="btn-ghost btn-sm text-primary" />
     </x-member-page>
 </x-app-layout>

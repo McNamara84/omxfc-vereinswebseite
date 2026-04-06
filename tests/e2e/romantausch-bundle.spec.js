@@ -264,6 +264,8 @@ test.describe('Romantauschbörse - Stapel-Angebote', () => {
                 .exclude('.leaflet-container')
                 // maryUI ThemeToggle erzeugt ein verstecktes Checkbox-Element ohne zugängliches Label
                 .exclude('input.theme-controller')
+                // Livewire wire:navigate Progress-Bar (NProgress) nutzt ungültiges role="bar"
+                .exclude('#nprogress [role="bar"]')
                 // Deaktiviere nested-interactive - bekanntes maryUI Dropdown Problem
                 .disableRules(['nested-interactive'])
                 .analyze();
@@ -296,12 +298,16 @@ test.describe('Romantauschbörse - Stapel-Angebote', () => {
             const editLink = page.locator('a[href*="/stapel/"][href*="/bearbeiten"]').first();
             await editLink.click();
 
+            // wire:navigate navigiert per SPA – auf die Bearbeiten-Seite warten
+            await page.waitForURL(/\/bearbeiten/);
+
             const accessibilityScanResults = await new AxeBuilder({ page })
                 .withTags(['wcag2a', 'wcag2aa'])
                 .exclude('.leaflet-container')
                 // maryUI ThemeToggle erzeugt ein verstecktes Checkbox-Element ohne zugängliches Label
                 .exclude('input.theme-controller')
-
+                // Livewire wire:navigate Progress-Bar (NProgress) nutzt ungültiges role="bar"
+                .exclude('#nprogress [role="bar"]')
                 .disableRules(['nested-interactive'])
                 .analyze();
 
@@ -334,6 +340,8 @@ test.describe('Romantauschbörse - Stapel-Angebote', () => {
                 .exclude('.leaflet-container')
                 // maryUI ThemeToggle erzeugt ein verstecktes Checkbox-Element ohne zugängliches Label
                 .exclude('input.theme-controller')
+                // Livewire wire:navigate Progress-Bar (NProgress) nutzt ungültiges role="bar"
+                .exclude('#nprogress [role="bar"]')
                 // Deaktiviere nested-interactive - bekanntes maryUI Dropdown Problem
                 .disableRules(['nested-interactive'])
                 .analyze();

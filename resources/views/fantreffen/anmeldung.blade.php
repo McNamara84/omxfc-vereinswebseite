@@ -323,7 +323,7 @@
 
                         @if(!Auth::check())
                             <x-alert icon="o-information-circle" class="alert-warning mb-4">
-                                <p class="text-sm">Bist du Vereinsmitglied? <a href="{{ route('login') }}" class="underline font-bold link">Jetzt einloggen</a> um kostenlos teilzunehmen!</p>
+                                <p class="text-sm">Bist du Vereinsmitglied? <a href="{{ route('login') }}" wire:navigate class="underline font-bold link">Jetzt einloggen</a> um kostenlos teilzunehmen!</p>
                             </x-alert>
                         @endif
 

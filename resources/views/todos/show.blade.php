@@ -58,7 +58,7 @@
                             </div>
                             <div class="mb-2">
                                 <span class="text-base-content text-sm">Erstellt von:</span>
-                                <span class="ml-2 text-base-content"><a href="{{ route('profile.view', $todo->creator->id) }}" class="text-primary hover:underline">{{ $todo->creator->name }}</a></span>
+                                <span class="ml-2 text-base-content"><a href="{{ route('profile.view', $todo->creator->id) }}" wire:navigate class="text-primary hover:underline">{{ $todo->creator->name }}</a></span>
                             </div>
                             <div class="mb-2">
                                 <span class="text-base-content text-sm">Erstellt am:</span>
@@ -74,7 +74,7 @@
                             @if($todo->assigned_to)
                                 <div class="mb-2">
                                     <span class="text-base-content text-sm">Zugewiesen an:</span>
-                                    <span class="ml-2 text-base-content"><a href="{{ route('profile.view', $todo->assignee->id) }}" class="text-primary hover:underline">{{ $todo->assignee->name }}</a></span>
+                                    <span class="ml-2 text-base-content"><a href="{{ route('profile.view', $todo->assignee->id) }}" wire:navigate class="text-primary hover:underline">{{ $todo->assignee->name }}</a></span>
                                 </div>
                             @endif
 
@@ -89,7 +89,7 @@
                             @if($todo->verified_by)
                                 <div class="mb-2">
                                     <span class="text-base-content text-sm">Verifiziert von:</span>
-                                    <span class="ml-2 text-base-content"><a href="{{ route('profile.view', $todo->verifier->id) }}" class="text-primary hover:underline">{{ $todo->verifier->name }}</a></span>
+                                    <span class="ml-2 text-base-content"><a href="{{ route('profile.view', $todo->verifier->id) }}" wire:navigate class="text-primary hover:underline">{{ $todo->verifier->name }}</a></span>
                                 </div>
                                 <div class="mb-2">
                                     <span class="text-base-content text-sm">Verifiziert am:</span>
@@ -104,11 +104,11 @@
                 <!-- Aktionen -->
                 <div class="mt-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                     <div class="flex flex-wrap items-center gap-2">
-                        <x-button link="{{ route('todos.index') }}" icon="o-arrow-left" class="btn-ghost">
+                        <x-button link="{{ route('todos.index') }}" wire:navigate icon="o-arrow-left" class="btn-ghost">
                             Zurück zur Übersicht
                         </x-button>
                         @if($canEdit)
-                            <x-button link="{{ route('todos.edit', $todo) }}" icon="o-pencil" class="btn-info">
+                            <x-button link="{{ route('todos.edit', $todo) }}" wire:navigate icon="o-pencil" class="btn-info">
                                 Bearbeiten
                             </x-button>
                         @endif

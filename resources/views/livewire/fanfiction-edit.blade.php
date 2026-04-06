@@ -4,7 +4,7 @@
             <x-button
                 label="Zurück"
                 icon="o-arrow-left"
-                link="{{ route('admin.fanfiction.index') }}"
+                link="{{ route('admin.fanfiction.index') }}" wire:navigate
                 class="btn-ghost"
             />
         </x-slot:actions>
@@ -152,7 +152,7 @@
             <x-slot:actions>
                 <x-button
                     label="Abbrechen"
-                    link="{{ route('admin.fanfiction.index') }}"
+                    link="{{ route('admin.fanfiction.index') }}" wire:navigate
                     class="btn-ghost"
                 />
                 <x-button

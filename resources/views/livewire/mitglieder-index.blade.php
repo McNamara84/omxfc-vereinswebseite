@@ -123,6 +123,14 @@
 
     <!-- Desktop-Ansicht (versteckt auf Mobilgeräten) -->
     <div class="hidden md:block">
+
+    {{-- Skeleton Loading State --}}
+    <div wire:loading.delay wire:target="sort, nurOnline">
+        <x-skeleton-table :columns="$this->canViewDetails ? 7 : 4" :rows="10" :hasAvatar="true" />
+    </div>
+
+    {{-- Echte Tabelle --}}
+    <div wire:loading.remove wire:target="sort, nurOnline">
     @php
         $nachnameSortState = $sortBy === 'nachname' ? ($sortDir === 'desc' ? 'descending' : 'ascending') : 'none';
         $mitgliedSeitSortState = $sortBy === 'mitglied_seit' ? ($sortDir === 'desc' ? 'descending' : 'ascending') : 'none';
@@ -273,7 +281,7 @@
             <div class="flex justify-center items-center space-x-1">
                 <x-button
                     icon="o-eye"
-                    link="{{ route('profile.view', $member->id) }}"
+                    link="{{ route('profile.view', $member->id) }}" wire:navigate
                     class="btn-info btn-xs"
                     title="Profil ansehen"
                 >
@@ -348,6 +356,7 @@
     </tbody>
     </table>
     </div>
+    </div>{{-- wire:loading.remove --}}
     </div>
 
     <!-- Mobile-Ansicht (nur auf Mobilgeräten sichtbar) -->
@@ -441,7 +450,7 @@
             <div class="flex flex-row gap-2 mt-4">
                 <x-button
                     icon="o-eye"
-                    link="{{ route('profile.view', $member->id) }}"
+                    link="{{ route('profile.view', $member->id) }}" wire:navigate
                     class="btn-info btn-sm flex-1"
                 >
                     <span class="hidden sm:inline">Profil</span>

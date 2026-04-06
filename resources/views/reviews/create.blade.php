@@ -28,7 +28,7 @@
                 </div>
 
                 <div class="flex justify-end gap-3 mt-6">
-                    <x-button label="Abbrechen" link="{{ route('reviews.index') }}" class="btn-ghost" />
+                    <x-button label="Abbrechen" link="{{ route('reviews.index') }}" wire:navigate class="btn-ghost" />
                     <x-button label="Rezension absenden" type="submit" class="btn-primary" icon="o-check" />
                 </div>
             </form>

@@ -2,7 +2,7 @@
     <x-member-page class="max-w-4xl">
         <x-header title="{{ $fanfiction->title }}" separator>
             <x-slot:actions>
-                <x-button label="Zurück" icon="o-arrow-left" link="{{ route('fanfiction.index') }}" class="btn-ghost" />
+                <x-button label="Zurück" icon="o-arrow-left" link="{{ route('fanfiction.index') }}" wire:navigate class="btn-ghost" />
             </x-slot:actions>
         </x-header>
 

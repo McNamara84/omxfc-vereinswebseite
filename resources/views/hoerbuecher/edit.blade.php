@@ -2,7 +2,7 @@
     <x-member-page class="max-w-3xl">
         <x-header title="Hörbuchfolge bearbeiten" separator>
             <x-slot:actions>
-                <x-button label="Zurück" icon="o-arrow-left" link="{{ route('hoerbuecher.index') }}" class="btn-ghost" />
+                <x-button label="Zurück" icon="o-arrow-left" link="{{ route('hoerbuecher.index') }}" wire:navigate class="btn-ghost" />
             </x-slot:actions>
         </x-header>
 
@@ -96,7 +96,7 @@
                 </div>
 
                 <div class="flex justify-end gap-3 mt-6">
-                    <x-button label="Abbrechen" link="{{ route('hoerbuecher.index') }}" class="btn-ghost" />
+                    <x-button label="Abbrechen" link="{{ route('hoerbuecher.index') }}" wire:navigate class="btn-ghost" />
                     <x-button label="Aktualisieren" type="submit" class="btn-primary" icon="o-check" />
                 </div>
             </form>

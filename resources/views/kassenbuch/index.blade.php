@@ -47,7 +47,7 @@
                                             </p>
                                             <p class="text-xs text-base-content mt-1">
                                                 Angefragt von 
-                                                <a href="{{ route('profile.view', $request->requester->id) }}" class="text-primary hover:underline">{{ $request->requester->name }}</a>
+                                                <a href="{{ route('profile.view', $request->requester->id) }}" wire:navigate class="text-primary hover:underline">{{ $request->requester->name }}</a>
                                                 am {{ $request->created_at->format('d.m.Y \u\m H:i') }} Uhr
                                             </p>
                                         </div>
@@ -93,7 +93,7 @@
                                 @foreach($members as $member)
                                     <tr class="hover">
                                         <td>
-                                            <a href="{{ route('profile.view', $member->id) }}" class="flex items-center gap-3">
+                                            <a href="{{ route('profile.view', $member->id) }}" wire:navigate class="flex items-center gap-3">
                                                 <x-avatar :image="$member->profile_photo_url" class="!w-8 !h-8" />
                                                 <div>
                                                     <div class="font-medium">{{ $member->name }}</div>
@@ -210,7 +210,7 @@
                                             @endif
                                         </td>
                                         <td>
-                                            <a href="{{ route('profile.view', $entry->creator->id) }}" class="text-primary hover:underline">{{ $entry->creator->name }}</a>
+                                            <a href="{{ route('profile.view', $entry->creator->id) }}" wire:navigate class="text-primary hover:underline">{{ $entry->creator->name }}</a>
                                         </td>
                                         @if($canManageKassenbuch)
                                             <td>

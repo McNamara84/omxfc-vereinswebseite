@@ -2,7 +2,7 @@
     <x-member-page class="max-w-3xl">
         <x-header title="AG bearbeiten" separator>
             <x-slot:actions>
-                <x-button label="Zurück" icon="o-arrow-left" link="{{ route('arbeitsgruppen.index') }}" class="btn-ghost" />
+                <x-button label="Zurück" icon="o-arrow-left" link="{{ route('arbeitsgruppen.index') }}" wire:navigate class="btn-ghost" />
             </x-slot:actions>
         </x-header>
 
@@ -78,7 +78,7 @@
                 </div>
 
                 <x-slot:actions>
-                    <x-button label="Abbrechen" link="{{ route('arbeitsgruppen.index') }}" class="btn-ghost" />
+                    <x-button label="Abbrechen" link="{{ route('arbeitsgruppen.index') }}" wire:navigate class="btn-ghost" />
                     <x-button label="Speichern" type="submit" class="btn-primary" icon="o-check" />
                 </x-slot:actions>
             </x-form>

@@ -172,7 +172,7 @@
                 <div class="mt-8 flex flex-wrap gap-3 justify-between">
                     <div class="flex flex-wrap gap-3">
                         <x-button label="Änderungen speichern" type="submit" class="btn-primary" icon="o-check" />
-                        <x-button label="Abbrechen" link="{{ route('romantausch.index') }}" class="btn-ghost" />
+                        <x-button label="Abbrechen" link="{{ route('romantausch.index') }}" wire:navigate class="btn-ghost" />
                     </div>
                 </div>
             </form>

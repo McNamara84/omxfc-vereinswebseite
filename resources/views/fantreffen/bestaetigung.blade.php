@@ -113,9 +113,9 @@
 
             {{-- Buttons --}}
             <div class="mt-8 flex flex-col sm:flex-row gap-3">
-                <x-button label="🏠 Zur Startseite" link="{{ route('home') }}" class="btn-ghost flex-1" data-testid="fantreffen-home-button" />
+                <x-button label="🏠 Zur Startseite" link="{{ route('home') }}" wire:navigate class="btn-ghost flex-1" data-testid="fantreffen-home-button" />
                 @auth
-                <x-button label="📊 Zum Dashboard" link="{{ route('dashboard') }}" class="btn-primary flex-1" data-testid="fantreffen-dashboard-button" />
+                <x-button label="📊 Zum Dashboard" link="{{ route('dashboard') }}" wire:navigate class="btn-primary flex-1" data-testid="fantreffen-dashboard-button" />
                 @endauth
             </div>
         </x-card>

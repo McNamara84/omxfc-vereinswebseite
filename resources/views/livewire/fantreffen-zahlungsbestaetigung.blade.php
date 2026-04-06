@@ -197,7 +197,7 @@
         {{-- Zurück-Button --}}
         <div class="text-center">
             <a 
-                href="{{ route('home') }}" 
+                href="{{ route('home') }}" wire:navigate 
                 class="inline-flex items-center gap-2 text-[#8B0116] dark:text-[#ff4b63] hover:underline font-medium"
             >
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

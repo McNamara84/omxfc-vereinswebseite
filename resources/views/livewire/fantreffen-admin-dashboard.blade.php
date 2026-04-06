@@ -53,7 +53,7 @@
                 <x-button 
                     label="VIP-Autoren verwalten" 
                     icon="o-star" 
-                    link="{{ route('admin.fantreffen.vip-authors') }}"
+                    link="{{ route('admin.fantreffen.vip-authors') }}" wire:navigate
                     class="btn-primary"
                 />
             </x-slot:actions>
@@ -156,6 +156,11 @@
 
         {{-- Anmeldungen Tabelle --}}
         <x-card>
+            {{-- Skeleton Loading State --}}
+            <div wire:loading.delay wire:target="filterMemberStatus, filterTshirt, filterPayment, filterZahlungseingang, filterTshirtFertig, search, toggleOrgaTeam, toggleTshirtFertig, toggleZahlungseingang, deleteAnmeldung">
+                <x-skeleton-table :columns="9" :rows="8" />
+            </div>
+            <div wire:loading.remove wire:target="filterMemberStatus, filterTshirt, filterPayment, filterZahlungseingang, filterTshirtFertig, search, toggleOrgaTeam, toggleTshirtFertig, toggleZahlungseingang, deleteAnmeldung">
             <x-table :headers="$headers" :rows="$this->anmeldungen" striped>
                 {{-- Name Spalte --}}
                 @scope('cell_full_name', $anmeldung)
@@ -260,9 +265,8 @@
                         @if ($anmeldung->user)
                             <x-button 
                                 label="Profil"
-                                link="{{ route('profile.view', $anmeldung->user) }}" 
+                                link="{{ route('profile.view', $anmeldung->user) }}" wire:navigate 
                                 class="btn-link btn-xs btn-primary"
-                                external
                             />
                         @else
                             <span class="opacity-40">-</span>
@@ -289,6 +293,7 @@
                     <p class="mt-2">Keine Anmeldungen gefunden.</p>
                 </x-slot:empty>
             </x-table>
+            </div>{{-- wire:loading.remove --}}
 
             {{-- Pagination --}}
             <x-slot:footer>

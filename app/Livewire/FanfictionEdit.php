@@ -179,7 +179,7 @@ class FanfictionEdit extends Component
         ]);
 
         session()->flash('success', 'Fanfiction erfolgreich aktualisiert.');
-        $this->redirect(route('admin.fanfiction.index'));
+        $this->redirect(route('admin.fanfiction.index'), navigate: true);
     }
 
     private function uploadPhotos(): array
