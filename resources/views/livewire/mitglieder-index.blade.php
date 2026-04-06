@@ -126,7 +126,7 @@
 
     {{-- Skeleton Loading State --}}
     <div wire:loading.delay wire:target="sort, nurOnline">
-        <x-skeleton-table :columns="$this->canViewDetails ? 8 : 4" :rows="10" :hasAvatar="true" />
+        <x-skeleton-table :columns="$this->canViewDetails ? 7 : 4" :rows="10" :hasAvatar="true" />
     </div>
 
     {{-- Echte Tabelle --}}

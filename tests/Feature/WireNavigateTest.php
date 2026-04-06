@@ -74,8 +74,10 @@ class WireNavigateTest extends TestCase
 
         $html = $this->actingAs($user)->get('/')->getContent();
 
-        // Logout ist ein Form-POST — darf kein wire:navigate haben
-        $this->assertStringNotContainsString('Ausloggen" wire:navigate', $html);
+        // Logout-Formular extrahieren und sicherstellen, dass kein wire:navigate darin vorkommt
+        preg_match('/<form[^>]*logout[^>]*>.*?<\/form>/si', $html, $logoutForm);
+        $this->assertNotEmpty($logoutForm, 'Logout-Formular sollte vorhanden sein');
+        $this->assertStringNotContainsString('wire:navigate', $logoutForm[0]);
     }
 
     // ── Public Pages ────────────────────────────────────────────

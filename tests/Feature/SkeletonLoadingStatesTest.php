@@ -36,7 +36,9 @@ class SkeletonLoadingStatesTest extends TestCase
 
         $html = Livewire::test(MitgliederIndex::class)->html();
 
-        $this->assertStringContainsString('wire:target="sort, nurOnline"', $html);
+        // Prüfe einzelne Targets statt exakten String (robust bei Formatierungsänderungen)
+        $this->assertMatchesRegularExpression('/wire:target="[^"]*\bsort\b[^"]*"/', $html);
+        $this->assertMatchesRegularExpression('/wire:target="[^"]*\bnurOnline\b[^"]*"/', $html);
     }
 
     public function test_mitglieder_index_table_has_loading_remove(): void
@@ -64,7 +66,7 @@ class SkeletonLoadingStatesTest extends TestCase
 
         $html = Livewire::test(KassenbuchIndex::class)->html();
 
-        $this->assertStringContainsString('wire:target="updatePayment"', $html);
+        $this->assertMatchesRegularExpression('/wire:target="[^"]*\bupdatePayment\b[^"]*"/', $html);
     }
 
     public function test_kassenbuch_index_has_skeleton_for_entries_table(): void
@@ -73,7 +75,9 @@ class SkeletonLoadingStatesTest extends TestCase
 
         $html = Livewire::test(KassenbuchIndex::class)->html();
 
-        $this->assertStringContainsString('wire:target="storeEntry, updateEntry, deleteEntry"', $html);
+        $this->assertMatchesRegularExpression('/wire:target="[^"]*\bstoreEntry\b[^"]*"/', $html);
+        $this->assertMatchesRegularExpression('/wire:target="[^"]*\bupdateEntry\b[^"]*"/', $html);
+        $this->assertMatchesRegularExpression('/wire:target="[^"]*\bdeleteEntry\b[^"]*"/', $html);
     }
 
     // ── FantreffenAdminDashboard ────────────────────────────────
