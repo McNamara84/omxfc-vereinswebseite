@@ -201,7 +201,7 @@
     </thead>
     <tbody>
     @forelse($this->members as $member)
-    <tr class="hover:bg-base-200">
+    <tr wire:key="member-{{ $member->id }}" class="hover:bg-base-200">
         {{-- Name --}}
         <td>
             <a href="{{ route('profile.view', $member->id) }}" wire:navigate class="flex items-center">
@@ -382,7 +382,7 @@
         </div>
 
         @forelse($this->members as $member)
-        <x-card shadow class="!p-4">
+        <x-card shadow class="!p-4" wire:key="member-mobile-{{ $member->id }}">
             <a href="{{ route('profile.view', $member->id) }}" wire:navigate class="flex items-center mb-4">
                 <x-avatar :image="$member->profile_photo_url" :alt="$member->name" class="!w-12 !h-12" />
                 <div class="ml-4">

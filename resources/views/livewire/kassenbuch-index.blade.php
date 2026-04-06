@@ -83,7 +83,7 @@
 
                     <div class="space-y-4">
                         @foreach($this->pendingEditRequests as $request)
-                            <div class="border border-warning/30 rounded-lg p-4 bg-warning/10">
+                            <div wire:key="edit-request-{{ $request->id }}" class="border border-warning/30 rounded-lg p-4 bg-warning/10">
                                 <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
                                     <div class="flex-1">
                                         <p class="font-medium">{{ $request->entry->beschreibung }}</p>
@@ -142,7 +142,7 @@
                         </thead>
                         <tbody>
                             @foreach($this->members as $member)
-                                <tr class="hover">
+                                <tr wire:key="kb-member-{{ $member->id }}" class="hover">
                                     <td>
                                         <a href="{{ route('profile.view', $member->id) }}" class="flex items-center gap-3">
                                             <x-avatar :image="$member->profile_photo_url" class="!w-8 !h-8" />
@@ -236,7 +236,7 @@
                         </thead>
                         <tbody>
                             @forelse($this->kassenbuchEntries as $entry)
-                                <tr class="hover">
+                                <tr wire:key="entry-{{ $entry->id }}" class="hover">
                                     <td class="text-base-content">
                                         {{ \Carbon\Carbon::parse($entry->buchungsdatum)->format('d.m.Y') }}
                                     </td>
