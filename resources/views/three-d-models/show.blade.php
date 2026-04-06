@@ -2,18 +2,18 @@
     <x-member-page class="max-w-5xl">
         <x-header :title="$model->name" separator data-testid="page-header">
             <x-slot:actions>
-                <x-button label="Zurück" icon="o-arrow-left" link="{{ route('3d-modelle.index') }}"
+                <x-button label="Zurück" icon="o-arrow-left" link="{{ route('3d-modelle.index') }}" wire:navigate
                     class="btn-ghost" />
 
                 @if ($isUnlocked)
                     <x-button label="Herunterladen" icon="o-arrow-down-tray"
-                        link="{{ route('3d-modelle.download', $model) }}"
+                        link="{{ route('3d-modelle.download', $model) }}" wire:navigate
                         class="btn-primary" data-testid="download-button" />
                 @endif
 
                 @can('update', $model)
                     <x-button label="Bearbeiten" icon="o-pencil"
-                        link="{{ route('3d-modelle.edit', $model) }}"
+                        link="{{ route('3d-modelle.edit', $model) }}" wire:navigate
                         class="btn-warning btn-sm" />
                 @endcan
             </x-slot:actions>

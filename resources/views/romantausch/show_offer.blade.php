@@ -13,7 +13,7 @@
                 </div>
             @endif
 
-            <x-button label="Zurück zur Übersicht" link="{{ route('romantausch.index') }}" icon="o-arrow-left" class="btn-ghost btn-sm" />
+            <x-button label="Zurück zur Übersicht" link="{{ route('romantausch.index') }}" wire:navigate icon="o-arrow-left" class="btn-ghost btn-sm" />
         </x-card>
     </x-member-page>
 </x-app-layout>

@@ -8,7 +8,7 @@
         <x-card shadow class="mb-6 flex justify-between items-center">
             <x-header title="Hörbuchfolgen" class="!mb-0" />
             @if(auth()->user()->hasVorstandRole() || auth()->user()->isOwnerOfTeam('AG Fanhörbücher'))
-                <x-button label="Neue Folge" link="{{ route('hoerbuecher.create') }}" icon="o-plus" class="btn-primary" />
+                <x-button label="Neue Folge" link="{{ route('hoerbuecher.create') }}" wire:navigate icon="o-plus" class="btn-primary" />
             @endif
         </x-card>
         <div
@@ -195,7 +195,7 @@
                                 tabindex="0"
                                 @click="window.location.href = '{{ route('hoerbuecher.show', $episode) }}'"
                                 @keydown.enter="window.location.href = '{{ route('hoerbuecher.show', $episode) }}'"
-                                data-href="{{ route('hoerbuecher.show', $episode) }}"
+                                data-href="{{ route('hoerbuecher.show', $episode) }}" wire:navigate
                                 data-status="{{ $episode->status->value }}"
                                 data-type="{{ $episode->episode_type }}"
                                 data-roles-filled="{{ $episode->all_roles_filled ? '1' : '0' }}"

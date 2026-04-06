@@ -41,7 +41,7 @@
                         </div>
                         <div class="mt-4 flex flex-col sm:flex-row sm:items-center gap-2">
                             <x-button label="Filtern" type="submit" class="btn-primary" />
-                            <x-button label="Zurücksetzen" link="{{ route('reviews.index') }}" class="btn-ghost" />
+                            <x-button label="Zurücksetzen" link="{{ route('reviews.index') }}" wire:navigate class="btn-ghost" />
                         </div>
                     </form>
                 </div>

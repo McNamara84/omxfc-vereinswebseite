@@ -3,7 +3,7 @@
         {{-- Header --}}
         <x-header title="Kompendium-Administration" subtitle="Verwalte die Romantexte für die Kompendium-Volltextsuche." separator data-testid="page-header">
             <x-slot:actions>
-                <x-button label="Zurück zum Kompendium" link="{{ route('kompendium.index') }}" icon="o-arrow-left" class="btn-ghost" />
+                <x-button label="Zurück zum Kompendium" link="{{ route('kompendium.index') }}" wire:navigate icon="o-arrow-left" class="btn-ghost" />
             </x-slot:actions>
         </x-header>
 
@@ -213,6 +213,11 @@
 
         {{-- Romanliste --}}
         <x-card shadow data-testid="novels-table-card" wire:poll.5s>
+            {{-- Skeleton Loading State --}}
+            <div wire:loading.delay wire:target="bearbeiten, indexieren, deIndexieren, retryFehler, loeschen, alleIndexieren, alleDeIndexieren, filterStatus, suchbegriff">
+                <x-skeleton-table :columns="6" :rows="10" />
+            </div>
+            <div wire:loading.remove wire:target="bearbeiten, indexieren, deIndexieren, retryFehler, loeschen, alleIndexieren, alleDeIndexieren, filterStatus, suchbegriff">
             <div class="overflow-x-auto">
                 <table class="table" data-testid="novels-table">
                     <thead>
@@ -318,6 +323,7 @@
                     </tbody>
                 </table>
             </div>
+            </div>{{-- wire:loading.remove --}}
 
             {{-- Pagination --}}
             @if($this->romane->hasPages())

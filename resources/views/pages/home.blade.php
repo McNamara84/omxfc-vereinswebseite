@@ -43,7 +43,7 @@
                             <strong>Samstag, 9. Mai 2026</strong> – Signierstunde mit Autoren, Verleihung der Goldenen Taratze & mehr!
                         </p>
                     </div>
-                    <a href="{{ route('fantreffen.2026') }}" 
+                    <a href="{{ route('fantreffen.2026') }}" wire:navigate 
                        class="btn btn-secondary whitespace-nowrap">
                         Jetzt anmelden →
                     </a>
@@ -88,11 +88,11 @@
                 <div class="flex items-start justify-between gap-3">
                     <h2 class="text-2xl font-semibold text-primary">Letzte Rezensionen</h2>
                     @auth
-                        <a class="text-sm font-semibold link link-primary" href="{{ route('reviews.index') }}">
+                        <a class="text-sm font-semibold link link-primary" href="{{ route('reviews.index') }}" wire:navigate>
                             Alle ansehen
                         </a>
                     @else
-                        <a class="text-sm font-semibold link link-primary" href="{{ route('mitglied.werden') }}">
+                        <a class="text-sm font-semibold link link-primary" href="{{ route('mitglied.werden') }}" wire:navigate>
                             Alle ansehen
                         </a>
                     @endauth

@@ -2,7 +2,7 @@
     {{-- Header --}}
     <x-header title="VIP-Autoren verwalten" subtitle="Verwalte die Autoren, die als VIP-Gäste beim Fantreffen 2026 angekündigt werden." separator>
         <x-slot:actions>
-            <x-button label="Zurück zu Anmeldungen" link="{{ route('admin.fantreffen.2026') }}" icon="o-arrow-left" class="btn-ghost" />
+            <x-button label="Zurück zu Anmeldungen" link="{{ route('admin.fantreffen.2026') }}" wire:navigate icon="o-arrow-left" class="btn-ghost" />
         </x-slot:actions>
     </x-header>
 

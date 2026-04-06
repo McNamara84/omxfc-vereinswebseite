@@ -217,7 +217,7 @@
     <tr class="hover:bg-base-200">
         {{-- Name --}}
         <td>
-            <a href="{{ route('profile.view', $member->id) }}" class="flex items-center">
+            <a href="{{ route('profile.view', $member->id) }}" wire:navigate class="flex items-center">
                 <x-avatar :image="$member->profile_photo_url" :alt="$member->name" class="!w-10 !h-10" />
                 <div class="ml-4">
                     <div class="font-medium text-base-content flex items-center">
@@ -286,7 +286,7 @@
             <div class="flex justify-center items-center space-x-1">
                 <x-button
                     icon="o-eye"
-                    link="{{ route('profile.view', $member->id) }}"
+                    link="{{ route('profile.view', $member->id) }}" wire:navigate
                     class="btn-info btn-xs"
                     title="Profil ansehen"
                 >
@@ -369,24 +369,24 @@
         <div class="mb-4 bg-base-200 rounded-lg p-3">
             <h3 class="text-sm font-medium text-base-content mb-2">Sortieren nach:</h3>
             <div class="flex flex-wrap gap-2">
-                <a href="{{ route('mitglieder.index', array_merge(request()->query(), ['sort' => 'nachname', 'dir' => ($sortBy === 'nachname' && $sortDir === 'asc') ? 'desc' : 'asc'])) }}"
+                <a href="{{ route('mitglieder.index', array_merge(request()->query(), ['sort' => 'nachname', 'dir' => ($sortBy === 'nachname' && $sortDir === 'asc') ? 'desc' : 'asc'])) }}" wire:navigate
                    class="px-3 py-1 text-xs rounded-full {{ $sortBy === 'nachname' ? 'bg-primary text-white' : 'bg-base-200 text-base-content' }}">
                     Name {{ $sortBy === 'nachname' ? ($sortDir === 'asc' ? '↑' : '↓') : '' }}
                 </a>
-                <a href="{{ route('mitglieder.index', array_merge(request()->query(), ['sort' => 'mitglied_seit', 'dir' => ($sortBy === 'mitglied_seit' && $sortDir === 'asc') ? 'desc' : 'asc'])) }}"
+                <a href="{{ route('mitglieder.index', array_merge(request()->query(), ['sort' => 'mitglied_seit', 'dir' => ($sortBy === 'mitglied_seit' && $sortDir === 'asc') ? 'desc' : 'asc'])) }}" wire:navigate
                    class="px-3 py-1 text-xs rounded-full {{ $sortBy === 'mitglied_seit' ? 'bg-primary text-white' : 'bg-base-200 text-base-content' }}">
                     Mitglied seit {{ $sortBy === 'mitglied_seit' ? ($sortDir === 'asc' ? '↑' : '↓') : '' }}
                 </a>
-                <a href="{{ route('mitglieder.index', array_merge(request()->query(), ['sort' => 'role', 'dir' => ($sortBy === 'role' && $sortDir === 'asc') ? 'desc' : 'asc'])) }}"
+                <a href="{{ route('mitglieder.index', array_merge(request()->query(), ['sort' => 'role', 'dir' => ($sortBy === 'role' && $sortDir === 'asc') ? 'desc' : 'asc'])) }}" wire:navigate
                    class="px-3 py-1 text-xs rounded-full {{ $sortBy === 'role' ? 'bg-primary text-white' : 'bg-base-200 text-base-content' }}">
                     Rolle {{ $sortBy === 'role' ? ($sortDir === 'asc' ? '↑' : '↓') : '' }}
                 </a>
                 @if($canViewDetails)
-                <a href="{{ route('mitglieder.index', array_merge(request()->query(), ['sort' => 'last_activity', 'dir' => ($sortBy === 'last_activity' && $sortDir === 'desc') ? 'asc' : 'desc'])) }}"
+                <a href="{{ route('mitglieder.index', array_merge(request()->query(), ['sort' => 'last_activity', 'dir' => ($sortBy === 'last_activity' && $sortDir === 'desc') ? 'asc' : 'desc'])) }}" wire:navigate
                    class="px-3 py-1 text-xs rounded-full {{ $sortBy === 'last_activity' ? 'bg-primary text-white' : 'bg-base-200 text-base-content' }}">
                     Zuletzt online {{ $sortBy === 'last_activity' ? ($sortDir === 'asc' ? '↑' : '↓') : '' }}
                 </a>
-                <a href="{{ route('mitglieder.index', array_merge(request()->query(), ['sort' => 'mitgliedsbeitrag', 'dir' => ($sortBy === 'mitgliedsbeitrag' && $sortDir === 'asc') ? 'desc' : 'asc'])) }}"
+                <a href="{{ route('mitglieder.index', array_merge(request()->query(), ['sort' => 'mitgliedsbeitrag', 'dir' => ($sortBy === 'mitgliedsbeitrag' && $sortDir === 'asc') ? 'desc' : 'asc'])) }}" wire:navigate
                    class="px-3 py-1 text-xs rounded-full {{ $sortBy === 'mitgliedsbeitrag' ? 'bg-primary text-white' : 'bg-base-200 text-base-content' }}">
                     Beitrag {{ $sortBy === 'mitgliedsbeitrag' ? ($sortDir === 'asc' ? '↑' : '↓') : '' }}
                 </a>
@@ -396,7 +396,7 @@
 
         @forelse($members as $member)
         <x-card shadow class="!p-4">
-            <a href="{{ route('profile.view', $member->id) }}" class="flex items-center mb-4">
+            <a href="{{ route('profile.view', $member->id) }}" wire:navigate class="flex items-center mb-4">
                 <x-avatar :image="$member->profile_photo_url" :alt="$member->name" class="!w-12 !h-12" />
                 <div class="ml-4">
                     <div class="font-medium text-base-content flex items-center">
@@ -454,7 +454,7 @@
             <div class="flex flex-row gap-2 mt-4">
                 <x-button
                     icon="o-eye"
-                    link="{{ route('profile.view', $member->id) }}"
+                    link="{{ route('profile.view', $member->id) }}" wire:navigate
                     class="btn-info btn-sm flex-1"
                 >
                     <span class="hidden sm:inline">Profil</span>

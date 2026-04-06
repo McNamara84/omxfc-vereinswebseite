@@ -38,7 +38,7 @@
                                 @foreach($dokumente as $protokoll)
                                     <li>
                                         <a
-                                            href="{{ route('protokolle.download', $protokoll['datei']) }}"
+                                            href="{{ route('protokolle.download', $protokoll['datei']) }}" wire:navigate
                                             target="_blank"
                                             rel="noopener"
                                             class="inline-flex items-center gap-2 text-primary hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"

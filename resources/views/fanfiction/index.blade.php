@@ -28,7 +28,7 @@
                         {{-- Header mit Titel und Autor --}}
                         <header class="mb-4">
                             <h3 class="text-xl font-semibold mb-1 flex items-center gap-2">
-                                <a href="{{ route('fanfiction.show', $fanfiction) }}" class="hover:text-primary transition-colors">
+                                <a href="{{ route('fanfiction.show', $fanfiction) }}" wire:navigate class="hover:text-primary transition-colors">
                                     {{ $fanfiction->title }}
                                 </a>
                                 @if ($fanfiction->reward)
@@ -66,7 +66,7 @@
                                 <div class="mt-4 p-4 bg-base-200 rounded-lg text-center">
                                     <x-icon name="o-lock-closed" class="w-8 h-8 mx-auto mb-2 text-warning" />
                                     <p class="text-sm font-medium mb-2">Diese Geschichte kostet {{ $fanfiction->reward->cost_baxx }} Baxx</p>
-                                    <x-button label="Zur Detailseite" icon="o-arrow-right" link="{{ route('fanfiction.show', $fanfiction) }}" class="btn-primary btn-sm" />
+                                    <x-button label="Zur Detailseite" icon="o-arrow-right" link="{{ route('fanfiction.show', $fanfiction) }}" wire:navigate class="btn-primary btn-sm" />
                                 </div>
                             @endif
                         </div>
@@ -134,7 +134,7 @@
                                 @if ($fanfiction->comments->isEmpty())
                                     <p class="text-sm text-base-content">
                                         Noch keine Kommentare.
-                                        <a href="{{ route('fanfiction.show', $fanfiction) }}" class="text-primary hover:underline">
+                                        <a href="{{ route('fanfiction.show', $fanfiction) }}" wire:navigate class="text-primary hover:underline">
                                             Sei der Erste!
                                         </a>
                                     </p>
@@ -156,7 +156,7 @@
                                         @endforeach
                                     </div>
                                     @if ($fanfiction->comments->count() > 3)
-                                        <x-button label="Alle {{ $fanfiction->comments->count() }} Kommentare anzeigen →" link="{{ route('fanfiction.show', $fanfiction) }}" class="btn-ghost btn-sm mt-3" />
+                                        <x-button label="Alle {{ $fanfiction->comments->count() }} Kommentare anzeigen →" link="{{ route('fanfiction.show', $fanfiction) }}" wire:navigate class="btn-ghost btn-sm mt-3" />
                                     @endif
                                 @endif
                             </div>

@@ -98,7 +98,7 @@
                                         </p>
                                         <p class="text-xs text-base-content mt-1">
                                             Angefragt von
-                                            <a href="{{ route('profile.view', $request->requester->id) }}" class="text-primary hover:underline">{{ $request->requester->name }}</a>
+                                            <a href="{{ route('profile.view', $request->requester->id) }}" wire:navigate class="text-primary hover:underline">{{ $request->requester->name }}</a>
                                             am {{ $request->created_at->format('d.m.Y \u\m H:i') }} Uhr
                                         </p>
                                     </div>
@@ -127,6 +127,11 @@
 
             {{-- Card 3: Mitgliederliste mit Zahlungsstatus (Für Vorstand und Kassenwart) --}}
             <x-card title="Zahlungsstatus der Mitglieder" class="md:col-span-2" shadow>
+                {{-- Skeleton Loading State --}}
+                <div wire:loading.delay wire:target="updatePayment">
+                    <x-skeleton-table :columns="5" :rows="8" :hasAvatar="true" />
+                </div>
+                <div wire:loading.remove wire:target="updatePayment">
                 <div class="overflow-x-auto">
                     <table class="table">
                         <thead>
@@ -144,7 +149,7 @@
                             @foreach($this->members as $member)
                                 <tr wire:key="kb-member-{{ $member->id }}" class="hover">
                                     <td>
-                                        <a href="{{ route('profile.view', $member->id) }}" class="flex items-center gap-3">
+                                        <a href="{{ route('profile.view', $member->id) }}" wire:navigate class="flex items-center gap-3">
                                             <x-avatar :image="$member->profile_photo_url" class="!w-8 !h-8" />
                                             <div>
                                                 <div class="font-medium">{{ $member->name }}</div>
@@ -200,6 +205,7 @@
                         </tbody>
                     </table>
                 </div>
+                </div>{{-- wire:loading.remove --}}
             </x-card>
 
             {{-- Card 4: Kassenbuch (Für Vorstand und Kassenwart) --}}
@@ -221,6 +227,11 @@
                 </x-slot:title>
 
                 <div class="overflow-x-auto">
+                    {{-- Skeleton Loading State --}}
+                    <div wire:loading.delay wire:target="storeEntry, updateEntry, deleteEntry">
+                        <x-skeleton-table :columns="6" :rows="10" />
+                    </div>
+                    <div wire:loading.remove wire:target="storeEntry, updateEntry, deleteEntry">
                     <table class="table">
                         <thead>
                             <tr>
@@ -261,7 +272,7 @@
                                         @endif
                                     </td>
                                     <td>
-                                        <a href="{{ route('profile.view', $entry->creator->id) }}" class="text-primary hover:underline">{{ $entry->creator->name }}</a>
+                                        <a href="{{ route('profile.view', $entry->creator->id) }}" wire:navigate class="text-primary hover:underline">{{ $entry->creator->name }}</a>
                                     </td>
                                     @if($this->canManageKassenbuch)
                                         <td>
@@ -307,6 +318,7 @@
                             @endforelse
                         </tbody>
                     </table>
+                    </div>{{-- wire:loading.remove --}}
                 </div>
             </x-card>
         @endif

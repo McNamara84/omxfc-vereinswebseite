@@ -77,12 +77,12 @@
 
             @if(auth()->user()->hasVorstandRole() || auth()->user()->isOwnerOfTeam('AG Fanhörbücher'))
             <div class="mt-6 flex justify-end space-x-3">
-                <x-button label="Bearbeiten" link="{{ route('hoerbuecher.edit', $episode) }}" icon="o-pencil" class="btn-info btn-sm" />
+                <x-button label="Bearbeiten" link="{{ route('hoerbuecher.edit', $episode) }}" wire:navigate icon="o-pencil" class="btn-info btn-sm" />
                 <x-confirm-delete :action="route('hoerbuecher.destroy', $episode)" />
             </div>
             @endif
             <div class="mt-6">
-                <x-button label="« Zurück zur Übersicht" link="{{ route('hoerbuecher.index') }}" icon="o-arrow-left" class="btn-ghost btn-sm" />
+                <x-button label="« Zurück zur Übersicht" link="{{ route('hoerbuecher.index') }}" wire:navigate icon="o-arrow-left" class="btn-ghost btn-sm" />
             </div>
         </x-card>
     </x-member-page>

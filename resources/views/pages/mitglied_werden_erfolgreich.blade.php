@@ -10,7 +10,7 @@
             Zahlung deines Mitgliedsbeitrags.
             Erst danach kannst du dich in den internen Mitgliederbereich einloggen.
         </p>
-        <a href="{{ route('home') }}"
+        <a href="{{ route('home') }}" wire:navigate
             class="inline-block mt-6 px-4 py-2 bg-[#8B0116] text-white rounded hover:bg-[#7a0113] transition">
             Zurück zur Startseite
         </a>

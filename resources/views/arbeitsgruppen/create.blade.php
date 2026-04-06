@@ -2,7 +2,7 @@
     <x-member-page class="max-w-3xl">
         <x-header title="Neue AG" separator>
             <x-slot:actions>
-                <x-button label="Zurück" icon="o-arrow-left" link="{{ route('dashboard') }}" class="btn-ghost" />
+                <x-button label="Zurück" icon="o-arrow-left" link="{{ route('dashboard') }}" wire:navigate class="btn-ghost" />
             </x-slot:actions>
         </x-header>
 
@@ -58,7 +58,7 @@
                 </div>
 
                 <x-slot:actions>
-                    <x-button label="Abbrechen" link="{{ route('dashboard') }}" class="btn-ghost" />
+                    <x-button label="Abbrechen" link="{{ route('dashboard') }}" wire:navigate class="btn-ghost" />
                     <x-button label="Speichern" type="submit" class="btn-primary" icon="o-check" />
                 </x-slot:actions>
             </x-form>

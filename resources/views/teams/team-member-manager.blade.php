@@ -91,7 +91,7 @@
             <div class="space-y-3">
                 @foreach ($team->users->sortBy('name') as $user)
                     <div class="flex items-center justify-between rounded-lg bg-base-200 px-4 py-3">
-                        <a href="{{ route('profile.view', $user->id) }}" class="flex items-center gap-3 hover:opacity-80 transition-opacity">
+                        <a href="{{ route('profile.view', $user->id) }}" wire:navigate class="flex items-center gap-3 hover:opacity-80 transition-opacity">
                             <x-avatar :image="$user->profile_photo_url" class="!w-8 !h-8" />
                             <span class="text-base-content font-medium">{{ $user->name }}</span>
                         </a>

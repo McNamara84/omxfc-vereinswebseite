@@ -26,7 +26,7 @@
             @foreach($books as $book)
                 <tr>
                     <td>
-                        <a href="{{ route('reviews.show', $book) }}" class="text-primary hover:underline">
+                        <a href="{{ route('reviews.show', $book) }}" wire:navigate class="text-primary hover:underline">
                             {{ $book->roman_number }}
                         </a>
                     </td>
@@ -40,7 +40,7 @@
                                 </x-slot:prepend>
                             </x-badge>
                         @else
-                            <a href="{{ route('reviews.create', $book) }}" title="Rezension schreiben">
+                            <a href="{{ route('reviews.create', $book) }}" wire:navigate title="Rezension schreiben">
                                 <x-badge value="" class="badge-info cursor-pointer hover:opacity-80">
                                     <x-slot:prepend>
                                         <x-icon name="o-pencil" class="w-4 h-4" />
@@ -50,7 +50,7 @@
                         @endif
                     </td>
                     <td>
-                        <a href="{{ route('reviews.show', $book) }}" class="text-primary hover:underline">
+                        <a href="{{ route('reviews.show', $book) }}" wire:navigate class="text-primary hover:underline">
                             {{ $book->reviews_count }} {{ $book->reviews_count === 1 ? 'Rezension' : 'Rezensionen' }}
                         </a>
                     </td>

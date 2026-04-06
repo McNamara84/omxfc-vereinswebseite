@@ -38,7 +38,7 @@
                         {{ $romantauschInfo['steps']['offer']['description'] }}
                     </p>
                     <div class="mt-auto">
-                        <a href="{{ route('romantausch.create-offer') }}"
+                        <a href="{{ route('romantausch.create-offer') }}" wire:navigate
                            class="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-content transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary hover:bg-primary/80 "
                            aria-label="{{ $romantauschInfo['steps']['offer']['cta_aria'] }}">
                             {{ $romantauschInfo['steps']['offer']['cta'] }}
@@ -56,7 +56,7 @@
                         {{ $romantauschInfo['steps']['request']['description'] }}
                     </p>
                     <div class="mt-auto">
-                        <a href="{{ route('romantausch.create-request') }}"
+                        <a href="{{ route('romantausch.create-request') }}" wire:navigate
                            class="inline-flex items-center justify-center rounded-md bg-neutral px-4 py-2 text-sm font-semibold text-neutral-content transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-neutral hover:bg-neutral/80"
                            aria-label="{{ $romantauschInfo['steps']['request']['cta_aria'] }}">
                             {{ $romantauschInfo['steps']['request']['cta'] }}
@@ -95,10 +95,10 @@
                     @foreach($activeSwaps as $swap)
                         <li class="bg-base-200 p-3 rounded">
                             <div class="font-semibold mb-1">
-                                <a href="{{ route('romantausch.show-offer', $swap->offer) }}" class="text-primary hover:underline">{{ $swap->offer->series }} {{ $swap->offer->book_number }} - {{ $swap->offer->book_title }}</a>
+                                <a href="{{ route('romantausch.show-offer', $swap->offer) }}" wire:navigate class="text-primary hover:underline">{{ $swap->offer->series }} {{ $swap->offer->book_number }} - {{ $swap->offer->book_title }}</a>
                             </div>
                             <div class="text-sm text-base-content mb-2">
-                                <a href="{{ route('profile.view', $swap->offer->user->id) }}" class="text-primary hover:underline">{{ $swap->offer->user->name }}</a> ({{ $swap->offer->user->email }}) ↔ <a href="{{ route('profile.view', $swap->request->user->id) }}" class="text-primary hover:underline">{{ $swap->request->user->name }}</a> ({{ $swap->request->user->email }})
+                                <a href="{{ route('profile.view', $swap->offer->user->id) }}" wire:navigate class="text-primary hover:underline">{{ $swap->offer->user->name }}</a> ({{ $swap->offer->user->email }}) ↔ <a href="{{ route('profile.view', $swap->request->user->id) }}" wire:navigate class="text-primary hover:underline">{{ $swap->request->user->name }}</a> ({{ $swap->request->user->email }})
                             </div>
                             @php $user = auth()->user(); @endphp
                             @if(($user->is($swap->offer->user) && !$swap->offer_confirmed) || ($user->is($swap->request->user) && !$swap->request_confirmed))
@@ -123,7 +123,7 @@
                         <h2 class="text-xl font-semibold text-primary">Stapel-Angebote</h2>
                         <p class="text-sm text-base-content mt-1">Sammlungen mit mehreren Romanen</p>
                     </div>
-                    <a href="{{ route('romantausch.create-bundle-offer') }}"
+                    <a href="{{ route('romantausch.create-bundle-offer') }}" wire:navigate
                        class="inline-flex items-center px-4 py-2 bg-neutral border border-transparent rounded-md font-semibold text-neutral-content hover:bg-neutral/80">
                         Stapel erstellen
                     </a>
@@ -167,7 +167,7 @@
                                             Nummern: {{ Str::limit($bundle->book_numbers_display, 50) }}
                                         </p>
                                         <div class="text-sm text-base-content mt-1">
-                                            von <a href="{{ route('profile.view', $bundle->user->id) }}" class="text-primary hover:underline">{{ $bundle->user->name }}</a>
+                                            von <a href="{{ route('profile.view', $bundle->user->id) }}" wire:navigate class="text-primary hover:underline">{{ $bundle->user->name }}</a>
                                             • Zustand: {{ $bundle->condition_range }}
                                         </div>
 
@@ -184,7 +184,7 @@
 
                                     <div class="flex items-center gap-2 flex-shrink-0">
                                         @if((int) $bundle->user_id === (int) auth()->id())
-                                            <a href="{{ route('romantausch.edit-bundle', $bundle->bundle_id) }}"
+                                            <a href="{{ route('romantausch.edit-bundle', $bundle->bundle_id) }}" wire:navigate
                                                 class="px-3 py-1.5 text-sm bg-neutral text-neutral-content rounded hover:bg-neutral/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-neutral">
                                                 Bearbeiten
                                             </a>
@@ -247,11 +247,11 @@
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
                 <h2 class="text-xl font-semibold text-primary">Einzelne Angebote</h2>
                 <div class="flex gap-2">
-                    <a href="{{ route('romantausch.create-bundle-offer') }}"
+                    <a href="{{ route('romantausch.create-bundle-offer') }}" wire:navigate
                        class="inline-flex items-center px-4 py-2 bg-neutral border border-transparent rounded-md font-semibold text-neutral-content hover:bg-neutral/80 text-sm">
                         Stapel erstellen
                     </a>
-                    <a href="{{ route('romantausch.create-offer') }}"
+                    <a href="{{ route('romantausch.create-offer') }}" wire:navigate
                        class="inline-flex items-center px-4 py-2 bg-primary border border-transparent rounded-md font-semibold text-primary-content hover:bg-primary/80 ">
                         Angebot erstellen
                     </a>
@@ -418,11 +418,11 @@
                                             @endif
                                         </div>
                                         <p class="text-sm text-base-content">Zustand: {{ $offer->condition }}</p>
-                                        <p class="text-sm text-base-content">von <a href="{{ route('profile.view', $offer->user->id) }}" class="text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary ">{{ $offer->user->name }}</a></p>
+                                        <p class="text-sm text-base-content">von <a href="{{ route('profile.view', $offer->user->id) }}" wire:navigate class="text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary ">{{ $offer->user->name }}</a></p>
                                     </div>
                                     @if(auth()->id() === $offer->user_id)
                                         <div class="flex flex-wrap items-center gap-2">
-                                            <a href="{{ route('romantausch.edit-offer', $offer) }}" class="inline-flex items-center gap-2 rounded px-3 py-1.5 text-sm font-semibold text-primary border border-transparent hover:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary " aria-label="Angebot bearbeiten: {{ $offer->series }} {{ $offer->book_number }}">
+                                            <a href="{{ route('romantausch.edit-offer', $offer) }}" wire:navigate class="inline-flex items-center gap-2 rounded px-3 py-1.5 text-sm font-semibold text-primary border border-transparent hover:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary " aria-label="Angebot bearbeiten: {{ $offer->series }} {{ $offer->book_number }}">
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.862 4.487z" />
                                                 </svg>
@@ -450,7 +450,7 @@
         <x-card shadow class="mb-6">
             <div class="flex justify-between items-center mb-4">
                 <h2 class="text-xl font-semibold text-primary">Aktuelle Gesuche</h2>
-                <a href="{{ route('romantausch.create-request') }}"
+                <a href="{{ route('romantausch.create-request') }}" wire:navigate
                    class="inline-flex items-center px-4 py-2 bg-neutral border border-transparent rounded-md font-semibold text-neutral-content hover:bg-neutral/80">
                     Gesuch erstellen
                 </a>
@@ -477,10 +477,10 @@
                                     @endif
                                 </div>
                                 <div class="flex flex-wrap items-center gap-3">
-                                    <span class="text-sm text-base-content">von <a href="{{ route('profile.view', $request->user->id) }}" class="text-primary hover:underline">{{ $request->user->name }}</a></span>
+                                    <span class="text-sm text-base-content">von <a href="{{ route('profile.view', $request->user->id) }}" wire:navigate class="text-primary hover:underline">{{ $request->user->name }}</a></span>
                                     @if(auth()->id() === $request->user_id)
                                         <div class="flex items-center gap-2">
-                                            <a href="{{ route('romantausch.edit-request', $request) }}" class="inline-flex items-center gap-2 rounded px-3 py-1.5 text-sm font-semibold text-primary border border-transparent hover:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary " aria-label="Gesuch bearbeiten: {{ $request->series }} {{ $request->book_number }}">
+                                            <a href="{{ route('romantausch.edit-request', $request) }}" wire:navigate class="inline-flex items-center gap-2 rounded px-3 py-1.5 text-sm font-semibold text-primary border border-transparent hover:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary " aria-label="Gesuch bearbeiten: {{ $request->series }} {{ $request->book_number }}">
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.862 4.487z" />
                                                 </svg>
@@ -514,7 +514,7 @@
                     @foreach($completedSwaps as $swap)
                         <li class="bg-base-200 p-3 rounded">
                             <span class="font-semibold">{{ $swap->offer->series }} {{ $swap->offer->book_number }} - {{ $swap->offer->book_title }}</span><br>
-                            Getauscht zwischen <a href="{{ route('profile.view', $swap->offer->user->id) }}" class="text-primary hover:underline">{{ $swap->offer->user->name }}</a> und <a href="{{ route('profile.view', $swap->request->user->id) }}" class="text-primary hover:underline">{{ $swap->request->user->name }}</a> am {{ $swap->completed_at->format('d.m.Y') }}
+                            Getauscht zwischen <a href="{{ route('profile.view', $swap->offer->user->id) }}" wire:navigate class="text-primary hover:underline">{{ $swap->offer->user->name }}</a> und <a href="{{ route('profile.view', $swap->request->user->id) }}" wire:navigate class="text-primary hover:underline">{{ $swap->request->user->name }}</a> am {{ $swap->completed_at->format('d.m.Y') }}
                         </li>
                     @endforeach
                 </ul>

@@ -6,7 +6,7 @@
             </x-slot:subtitle>
             @can('create', App\Models\ThreeDModel::class)
                 <x-slot:actions>
-                    <x-button label="Hochladen" icon="o-plus" link="{{ route('3d-modelle.create') }}"
+                    <x-button label="Hochladen" icon="o-plus" link="{{ route('3d-modelle.create') }}" wire:navigate
                         class="btn-primary" data-testid="upload-button" />
                 </x-slot:actions>
             @endcan
@@ -55,7 +55,7 @@
 
                         <x-slot:actions>
                             <x-button label="Ansehen" icon="o-eye"
-                                link="{{ route('3d-modelle.show', $model) }}"
+                                link="{{ route('3d-modelle.show', $model) }}" wire:navigate
                                 class="btn-sm btn-outline" />
                         </x-slot:actions>
                     </x-card>

@@ -22,7 +22,7 @@
                 @endif
 
                 @if($istAdmin ?? false)
-                    <x-button label="Kompendium verwalten" link="{{ route('kompendium.admin') }}" icon="o-cog-6-tooth" class="btn-ghost btn-sm text-primary mt-4" />
+                    <x-button label="Kompendium verwalten" link="{{ route('kompendium.admin') }}" wire:navigate icon="o-cog-6-tooth" class="btn-ghost btn-sm text-primary mt-4" />
                 @endif
             </div>
 

@@ -23,7 +23,7 @@
             <x-header title="Challenges & Baxx" subtitle="Behalte deine Fortschritte und die Ziele des Vereins im Blick." separator class="mb-6">
                 @if($canCreateTodos)
                     <x-slot:actions>
-                        <x-button link="{{ route('todos.create') }}" icon="o-plus" class="btn-primary" label="Neue Challenge erstellen" />
+                        <x-button link="{{ route('todos.create') }}" wire:navigate icon="o-plus" class="btn-primary" label="Neue Challenge erstellen" />
                     </x-slot:actions>
                 @endif
             </x-header>
@@ -46,20 +46,20 @@
                     </summary>
                     <div class="mt-6 border-t border-base-content/10 pt-6">
                             <nav class="flex flex-wrap gap-2" aria-label="Challenges filtern">
-                                <a href="{{ route('todos.index') }}"
+                                <a href="{{ route('todos.index') }}" wire:navigate
                                     class="btn {{ $currentFilter === 'all' ? 'btn-primary font-semibold border border-primary' : 'btn-ghost font-semibold border border-primary text-primary' }}"
                                     @if($currentFilter === 'all') aria-current="page" @endif
                                 >Alle</a>
-                                <a href="{{ route('todos.index', ['filter' => 'assigned']) }}"
+                                <a href="{{ route('todos.index', ['filter' => 'assigned']) }}" wire:navigate
                                     class="btn {{ $currentFilter === 'assigned' ? 'btn-primary font-semibold border border-primary' : 'btn-ghost font-semibold border border-base-content/20' }}"
                                     @if($currentFilter === 'assigned') aria-current="page" @endif
                                 >Eigene Challenges</a>
-                                <a href="{{ route('todos.index', ['filter' => 'open']) }}"
+                                <a href="{{ route('todos.index', ['filter' => 'open']) }}" wire:navigate
                                     class="btn {{ $currentFilter === 'open' ? 'btn-primary font-semibold border border-primary' : 'btn-ghost font-semibold border border-base-content/20' }}"
                                     @if($currentFilter === 'open') aria-current="page" @endif
                                 >Offene Challenges</a>
                                 @if($canVerifyTodos)
-                                    <a href="{{ route('todos.index', ['filter' => 'pending']) }}"
+                                    <a href="{{ route('todos.index', ['filter' => 'pending']) }}" wire:navigate
                                         class="btn {{ $currentFilter === 'pending' ? 'btn-primary font-semibold border border-primary' : 'btn-ghost font-semibold border border-base-content/20' }}"
                                         @if($currentFilter === 'pending') aria-current="page" @endif
                                     >Zu verifizieren</a>
@@ -90,14 +90,14 @@
                                 @foreach($completedTodos->where('status', 'completed') as $todo)
                                     <tr>
                                         <td>{{ $todo->title }}</td>
-                                        <td><a href="{{ route('profile.view', $todo->assignee->id) }}" class="text-primary hover:underline">{{ $todo->assignee->name }}</a></td>
+                                        <td><a href="{{ route('profile.view', $todo->assignee->id) }}" wire:navigate class="text-primary hover:underline">{{ $todo->assignee->name }}</a></td>
                                         <td>{{ $todo->completed_at->format('d.m.Y H:i') }}</td>
                                         <td>{{ $todo->points }}</td>
                                         <td class="text-center">
                                             <div class="flex flex-wrap justify-center gap-1">
-                                                <x-button label="Details" link="{{ route('todos.show', $todo) }}" class="btn-ghost btn-sm" />
+                                                <x-button label="Details" link="{{ route('todos.show', $todo) }}" wire:navigate class="btn-ghost btn-sm" />
                                                 @if($todo->created_by === Auth::id())
-                                                    <x-button label="Bearbeiten" link="{{ route('todos.edit', $todo) }}" class="btn-info btn-sm" />
+                                                    <x-button label="Bearbeiten" link="{{ route('todos.edit', $todo) }}" wire:navigate class="btn-info btn-sm" />
                                                 @endif
                                                 <form action="{{ route('todos.verify', $todo) }}" method="POST" class="inline-block">
                                                     @csrf
@@ -137,13 +137,13 @@
                                     <tr>
                                         <td>{{ $todo->title }}</td>
                                         <td>{{ $todo->category ? $todo->category->name : '-' }}</td>
-                                        <td><a href="{{ route('profile.view', $todo->assignee->id) }}" class="text-primary hover:underline">{{ $todo->assignee->name }}</a></td>
+                                        <td><a href="{{ route('profile.view', $todo->assignee->id) }}" wire:navigate class="text-primary hover:underline">{{ $todo->assignee->name }}</a></td>
                                         <td>{{ $todo->points }}</td>
                                         <td class="text-center">
                                             <div class="flex flex-wrap justify-center gap-1">
-                                                <x-button label="Details" link="{{ route('todos.show', $todo) }}" class="btn-ghost btn-sm" />
+                                                <x-button label="Details" link="{{ route('todos.show', $todo) }}" wire:navigate class="btn-ghost btn-sm" />
                                                 @if($todo->created_by === Auth::id())
-                                                    <x-button label="Bearbeiten" link="{{ route('todos.edit', $todo) }}" class="btn-info btn-sm" />
+                                                    <x-button label="Bearbeiten" link="{{ route('todos.edit', $todo) }}" wire:navigate class="btn-info btn-sm" />
                                                 @endif
                                             </div>
                                         </td>
@@ -188,9 +188,9 @@
                                         <td>{{ $todo->points }}</td>
                                         <td class="text-center">
                                             <div class="flex flex-wrap justify-center gap-1">
-                                                <x-button label="Details" link="{{ route('todos.show', $todo) }}" class="btn-ghost btn-sm" />
+                                                <x-button label="Details" link="{{ route('todos.show', $todo) }}" wire:navigate class="btn-ghost btn-sm" />
                                                 @if($todo->created_by === Auth::id())
-                                                    <x-button label="Bearbeiten" link="{{ route('todos.edit', $todo) }}" class="btn-info btn-sm" />
+                                                    <x-button label="Bearbeiten" link="{{ route('todos.edit', $todo) }}" wire:navigate class="btn-info btn-sm" />
                                                 @endif
                                                 @if($todo->status->value === 'assigned')
                                                     <form action="{{ route('todos.complete', $todo) }}" method="POST" class="inline-block">
@@ -236,13 +236,13 @@
                                     <tr>
                                         <td>{{ $todo->title }}</td>
                                         <td>{{ $todo->category ? $todo->category->name : '-' }}</td>
-                                        <td><a href="{{ route('profile.view', $todo->creator->id) }}" class="text-primary hover:underline">{{ $todo->creator->name }}</a></td>
+                                        <td><a href="{{ route('profile.view', $todo->creator->id) }}" wire:navigate class="text-primary hover:underline">{{ $todo->creator->name }}</a></td>
                                         <td>{{ $todo->points }}</td>
                                         <td class="text-center">
                                             <div class="flex flex-wrap justify-center gap-1">
-                                                <x-button label="Details" link="{{ route('todos.show', $todo) }}" class="btn-ghost btn-sm" />
+                                                <x-button label="Details" link="{{ route('todos.show', $todo) }}" wire:navigate class="btn-ghost btn-sm" />
                                                 @if($todo->created_by === Auth::id())
-                                                    <x-button label="Bearbeiten" link="{{ route('todos.edit', $todo) }}" class="btn-info btn-sm" />
+                                                    <x-button label="Bearbeiten" link="{{ route('todos.edit', $todo) }}" wire:navigate class="btn-info btn-sm" />
                                                 @endif
                                                 <form action="{{ route('todos.assign', $todo) }}" method="POST" class="inline-block">
                                                     @csrf
