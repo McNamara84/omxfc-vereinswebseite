@@ -1,5 +1,28 @@
 [ 
   {
+    "version": "1.10.0",
+    "pub_date": "2026-04-06",
+    "notes": [
+      "[New] 3D-Modelle mit integriertem Viewer und Verwaltung",
+      "[New] Baxx-Belohnungssystem: Downloads, 3D-Modelle und Fanfiction mit Baxx kaufen",
+      "[New] Kompendium und Statistik über Baxx freischaltbar",
+      "[New] Phrasensuche im Kompendium für präzisere Suchergebnisse",
+      "[New] Spam-Schutz, Duplikaterkennung und Throttling bei Fantreffen-Anmeldung",
+      "[New] Verbesserte Fanfiction-Einstellungen",
+      "[New] Aktualisierte Vereinssatzung auf neuester Fassung",
+      "[New] Protokolle 2025/2026 hinzugefügt",
+      "[Improved] Migration zu MaryUI-Komponenten (Toasts, Modals)",
+      "[Improved] Mitglieder- und Kassenbuch-Bereich auf Livewire migriert",
+      "[Improved] SPA-Navigation mit Skeleton-Views für schnellere Seitenübergänge",
+      "[Improved] Export-Buttons auf Mobilgeräten responsiv",
+      "[Fixed] Hörbücher können wieder bearbeitet werden",
+      "[Fixed] Kompendium-Index bleibt nach Re-Deployment erhalten",
+      "[Fixed] Kassenbuch und Kassenstand UI getrennt dargestellt",
+      "[Fixed] Fantreffen-Anmeldung funktioniert wieder korrekt",
+      "[Fixed] Modal-Backdrop-Overlay-Problem behoben"
+    ]
+  },
+  {
     "version": "1.9.1",
     "pub_date": "2026-02-21",
     "notes": [
