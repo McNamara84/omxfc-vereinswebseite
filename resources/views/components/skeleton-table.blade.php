@@ -4,6 +4,7 @@
     'hasAvatar' => false,
 ])
 
+@php $widths = ['w-16', 'w-20', 'w-24', 'w-28', 'w-32']; @endphp
 <div class="overflow-x-auto" aria-hidden="true">
     <table class="table">
         <thead>
@@ -27,7 +28,6 @@
                                     </div>
                                 </div>
                             @else
-                                @php $widths = ['w-16', 'w-20', 'w-24', 'w-28', 'w-32']; @endphp
                                 <div class="skeleton h-4 {{ $widths[($r + $c) % count($widths)] }}"></div>
                             @endif
                         </td>

@@ -2,8 +2,6 @@
 
 namespace Tests\Feature;
 
-use App\Enums\Role;
-use App\Models\Team;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Concerns\CreatesUserWithRole;
@@ -21,11 +19,11 @@ class WireNavigateTest extends TestCase
     {
         $escaped = preg_quote($url, '/');
         // Entweder href="URL" ... wire:navigate oder wire:navigate ... href="URL"
-        $pattern = '/<(a|button)[^>]*href="' . $escaped . '"[^>]*wire:navigate/s';
-        $patternReverse = '/<(a|button)[^>]*wire:navigate[^>]*href="' . $escaped . '"/s';
+        $pattern = '/<(a|button)[^>]*href="'.$escaped.'"[^>]*wire:navigate/s';
+        $patternReverse = '/<(a|button)[^>]*wire:navigate[^>]*href="'.$escaped.'"/s';
         $this->assertTrue(
             (bool) preg_match($pattern, $html) || (bool) preg_match($patternReverse, $html),
-            "Link zu {$url} sollte wire:navigate haben" . ($context ? " ({$context})" : ''),
+            "Link zu {$url} sollte wire:navigate haben".($context ? " ({$context})" : ''),
         );
     }
 
@@ -35,11 +33,11 @@ class WireNavigateTest extends TestCase
     private function assertLinkHasNoWireNavigate(string $html, string $url, string $context = ''): void
     {
         $escaped = preg_quote($url, '/');
-        $pattern = '/<(a|button)[^>]*href="' . $escaped . '"[^>]*wire:navigate/s';
-        $patternReverse = '/<(a|button)[^>]*wire:navigate[^>]*href="' . $escaped . '"/s';
+        $pattern = '/<(a|button)[^>]*href="'.$escaped.'"[^>]*wire:navigate/s';
+        $patternReverse = '/<(a|button)[^>]*wire:navigate[^>]*href="'.$escaped.'"/s';
         $this->assertFalse(
             (bool) preg_match($pattern, $html) || (bool) preg_match($patternReverse, $html),
-            "Link zu {$url} sollte KEIN wire:navigate haben" . ($context ? " ({$context})" : ''),
+            "Link zu {$url} sollte KEIN wire:navigate haben".($context ? " ({$context})" : ''),
         );
     }
 
