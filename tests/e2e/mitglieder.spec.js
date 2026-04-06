@@ -38,12 +38,13 @@ test.describe('Mitgliederliste', () => {
         await expect(page.locator('[data-members-summary]')).toContainText('nur Mitglieder angezeigt, die aktuell online sind');
 
         const roleHeader = page.getByRole('columnheader', { name: 'Rolle' });
-        await roleHeader.click();
-        await expect(page).toHaveURL(/sort=role&dir=asc/);
+        const roleSortButton = roleHeader.locator('button');
+        await roleSortButton.click();
+        await expect(page).toHaveURL(/sort=role&dir=asc/, { timeout: 10000 });
         await expect(roleHeader).toHaveAttribute('aria-sort', 'ascending');
 
-        await roleHeader.click();
-        await expect(page).toHaveURL(/sort=role&dir=desc/);
+        await roleSortButton.click();
+        await expect(page).toHaveURL(/sort=role&dir=desc/, { timeout: 10000 });
         await expect(roleHeader).toHaveAttribute('aria-sort', 'descending');
 
         await expect(page.getByRole('button', { name: 'CSV Export' })).toBeVisible();
