@@ -54,6 +54,8 @@ class MitgliederIndex extends Component
         }
         if (! in_array($this->sortDir, ['asc', 'desc'])) {
             $this->sortDir = $this->sortBy === 'last_activity' ? 'desc' : 'asc';
+        } elseif (! request()->has('dir') && $this->sortBy === 'last_activity') {
+            $this->sortDir = 'desc';
         }
     }
 

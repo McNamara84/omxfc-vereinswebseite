@@ -517,9 +517,10 @@
                      x-transition:leave-end="opacity-0 scale-95"
                      class="relative bg-base-100 rounded-box shadow-xl max-w-lg w-full p-6"
                      role="dialog"
-                     aria-modal="true">
+                     aria-modal="true"
+                     aria-labelledby="request-edit-title">
                     <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-lg font-medium">Bearbeitung anfragen</h3>
+                        <h3 id="request-edit-title" class="text-lg font-medium">Bearbeitung anfragen</h3>
                         <x-button icon="o-x-mark" class="btn-ghost btn-sm" @click="open = false" />
                     </div>
 
@@ -590,9 +591,10 @@
                      x-transition:leave-end="opacity-0 scale-95"
                      class="relative bg-base-100 rounded-box shadow-xl max-w-lg w-full p-6"
                      role="dialog"
-                     aria-modal="true">
+                     aria-modal="true"
+                     aria-labelledby="edit-entry-title">
                     <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-lg font-medium">Kassenbucheintrag bearbeiten</h3>
+                        <h3 id="edit-entry-title" class="text-lg font-medium">Kassenbucheintrag bearbeiten</h3>
                         <x-button icon="o-x-mark" class="btn-ghost btn-sm" @click="open = false" />
                     </div>
 
@@ -681,9 +683,10 @@
                      x-transition:leave-end="opacity-0 scale-95"
                      class="relative bg-base-100 rounded-box shadow-xl max-w-lg w-full p-6"
                      role="dialog"
-                     aria-modal="true">
+                     aria-modal="true"
+                     aria-labelledby="reject-request-title">
                     <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-lg font-medium">Bearbeitungsanfrage ablehnen</h3>
+                        <h3 id="reject-request-title" class="text-lg font-medium">Bearbeitungsanfrage ablehnen</h3>
                         <x-button icon="o-x-mark" class="btn-ghost btn-sm" @click="open = false" />
                     </div>
 
