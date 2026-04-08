@@ -59,12 +59,12 @@
                                     <td>{{ $role->takes }}</td>
                                     <td>
                                         {{ $role->user?->name ?? $role->speaker_name ?? '-' }}
-                                        @auth
+                                        @if(auth()->user()?->hasVorstandRole() || auth()->user()?->isMemberOfTeam('AG Fanhörbücher'))
                                             @php($prev = $previousSpeakers[$role->name] ?? null)
                                             @if($prev)
                                                 <div class="text-xs text-base-content">Bisheriger Sprecher: {{ $prev }}</div>
                                             @endif
-                                        @endauth
+                                        @endif
                                     </td>
                                 </tr>
                                 @endforeach

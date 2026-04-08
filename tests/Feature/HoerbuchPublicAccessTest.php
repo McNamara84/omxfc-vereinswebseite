@@ -169,6 +169,16 @@ class HoerbuchPublicAccessTest extends TestCase
             ->assertDontSee($speaker->name);
     }
 
+    public function test_regular_member_does_not_see_previous_speaker_hint(): void
+    {
+        [$episode, $speaker] = $this->createEpisodeWithPreviousSpeaker();
+        $this->actingMember('Mitglied');
+
+        $this->get(route('hoerbuecher.show', $episode))
+            ->assertOk()
+            ->assertDontSee('Bisheriger Sprecher');
+    }
+
     // ─── Eingeloggter Berechtigter sieht bisherige Sprecher ─────────
 
     public function test_authorized_user_sees_previous_speaker_hint(): void
@@ -434,6 +444,50 @@ class HoerbuchPublicAccessTest extends TestCase
             ->assertOk()
             ->assertDontSee('Interne Anmerkung')
             ->assertDontSee('Anmerkungen');
+    }
+
+    public function test_guest_does_not_see_notes_on_index(): void
+    {
+        $this->createEpisodeWithRoles();
+
+        $this->get(route('hoerbuecher.index'))
+            ->assertOk()
+            ->assertDontSee('Interne Anmerkung')
+            ->assertDontSee('Bemerkungen');
+    }
+
+    public function test_regular_member_does_not_see_notes_on_index(): void
+    {
+        $this->createEpisodeWithRoles();
+        $this->actingMember('Mitglied');
+
+        $this->get(route('hoerbuecher.index'))
+            ->assertOk()
+            ->assertDontSee('Interne Anmerkung')
+            ->assertDontSee('Bemerkungen');
+    }
+
+    public function test_vorstand_sees_notes_on_index(): void
+    {
+        $this->createEpisodeWithRoles();
+        $this->actingMember('Vorstand');
+
+        $this->get(route('hoerbuecher.index'))
+            ->assertOk()
+            ->assertSee('Bemerkungen')
+            ->assertSee('Interne Anmerkung');
+    }
+
+    public function test_ag_member_sees_notes_on_index(): void
+    {
+        $this->createEpisodeWithRoles();
+        $leader = $this->actingMember();
+        $this->createAgFanhoerbuchTeam($leader);
+
+        $this->get(route('hoerbuecher.index'))
+            ->assertOk()
+            ->assertSee('Bemerkungen')
+            ->assertSee('Interne Anmerkung');
     }
 
     public function test_guest_does_not_see_responsible_person_on_show(): void
