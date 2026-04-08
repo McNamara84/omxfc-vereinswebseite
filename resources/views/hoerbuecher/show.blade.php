@@ -73,13 +73,13 @@
                     </div>
                 </div>
                 @endif
-                @auth
+                @if(auth()->user()?->hasVorstandRole() || auth()->user()?->isMemberOfTeam('AG Fanhörbücher'))
                     <div class="md:col-span-2"><span class="font-medium">Verantwortlich:</span> {{ $episode->responsible?->name ?? '-' }}</div>
                     <div class="md:col-span-2">
                         <span class="font-medium">Anmerkungen:</span>
                         <p class="mt-1">{{ $episode->notes }}</p>
                     </div>
-                @endauth
+                @endif
             </div>
 
             @auth

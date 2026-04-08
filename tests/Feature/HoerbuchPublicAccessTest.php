@@ -175,10 +175,9 @@ class HoerbuchPublicAccessTest extends TestCase
     {
         [$episode, $speaker] = $this->createEpisodeWithPreviousSpeaker();
 
-        $admin = $this->actingMember('Admin');
+        $this->actingMember('Admin');
 
-        $this->actingAs($admin)
-            ->get(route('hoerbuecher.show', $episode))
+        $this->get(route('hoerbuecher.show', $episode))
             ->assertOk()
             ->assertSee('Bisheriger Sprecher: ' . $speaker->name);
     }
@@ -258,19 +257,17 @@ class HoerbuchPublicAccessTest extends TestCase
 
     public function test_regular_member_cannot_create_episode(): void
     {
-        $user = $this->actingMember('Mitglied');
+        $this->actingMember('Mitglied');
 
-        $this->actingAs($user)
-            ->get(route('hoerbuecher.create'))
+        $this->get(route('hoerbuecher.create'))
             ->assertForbidden();
     }
 
     public function test_regular_member_cannot_store_episode(): void
     {
-        $user = $this->actingMember('Mitglied');
+        $this->actingMember('Mitglied');
 
-        $this->actingAs($user)
-            ->post(route('hoerbuecher.store'), [
+        $this->post(route('hoerbuecher.store'), [
                 'episode_number' => 'F99',
                 'title' => 'Unberechtigt',
                 'author' => 'Autor',
@@ -285,20 +282,18 @@ class HoerbuchPublicAccessTest extends TestCase
     public function test_regular_member_cannot_edit_episode(): void
     {
         $episode = $this->createEpisodeWithRoles();
-        $user = $this->actingMember('Mitglied');
+        $this->actingMember('Mitglied');
 
-        $this->actingAs($user)
-            ->get(route('hoerbuecher.edit', $episode))
+        $this->get(route('hoerbuecher.edit', $episode))
             ->assertForbidden();
     }
 
     public function test_regular_member_cannot_delete_episode(): void
     {
         $episode = $this->createEpisodeWithRoles();
-        $user = $this->actingMember('Mitglied');
+        $this->actingMember('Mitglied');
 
-        $this->actingAs($user)
-            ->delete(route('hoerbuecher.destroy', $episode))
+        $this->delete(route('hoerbuecher.destroy', $episode))
             ->assertForbidden();
 
         $this->assertDatabaseHas('audiobook_episodes', ['id' => $episode->id]);
@@ -309,10 +304,9 @@ class HoerbuchPublicAccessTest extends TestCase
     public function test_admin_sees_create_button_on_index(): void
     {
         $this->createEpisodeWithRoles();
-        $admin = $this->actingMember('Admin');
+        $this->actingMember('Admin');
 
-        $this->actingAs($admin)
-            ->get(route('hoerbuecher.index'))
+        $this->get(route('hoerbuecher.index'))
             ->assertOk()
             ->assertSee(route('hoerbuecher.create'))
             ->assertSee('Neue Folge');
@@ -321,10 +315,9 @@ class HoerbuchPublicAccessTest extends TestCase
     public function test_vorstand_sees_create_button_on_index(): void
     {
         $this->createEpisodeWithRoles();
-        $vorstand = $this->actingMember('Vorstand');
+        $this->actingMember('Vorstand');
 
-        $this->actingAs($vorstand)
-            ->get(route('hoerbuecher.index'))
+        $this->get(route('hoerbuecher.index'))
             ->assertOk()
             ->assertSee('Neue Folge');
     }
@@ -335,8 +328,7 @@ class HoerbuchPublicAccessTest extends TestCase
         $leader = $this->actingMember();
         $this->createAgFanhoerbuchTeam($leader);
 
-        $this->actingAs($leader)
-            ->get(route('hoerbuecher.show', $episode))
+        $this->get(route('hoerbuecher.show', $episode))
             ->assertOk()
             ->assertSee('Bearbeiten');
     }
@@ -344,10 +336,9 @@ class HoerbuchPublicAccessTest extends TestCase
     public function test_admin_sees_edit_delete_on_show(): void
     {
         $episode = $this->createEpisodeWithRoles();
-        $admin = $this->actingMember('Admin');
+        $this->actingMember('Admin');
 
-        $this->actingAs($admin)
-            ->get(route('hoerbuecher.show', $episode))
+        $this->get(route('hoerbuecher.show', $episode))
             ->assertOk()
             ->assertSee('Bearbeiten');
     }
@@ -357,10 +348,9 @@ class HoerbuchPublicAccessTest extends TestCase
     public function test_regular_member_does_not_see_create_button_on_index(): void
     {
         $this->createEpisodeWithRoles();
-        $member = $this->actingMember('Mitglied');
+        $this->actingMember('Mitglied');
 
-        $this->actingAs($member)
-            ->get(route('hoerbuecher.index'))
+        $this->get(route('hoerbuecher.index'))
             ->assertOk()
             ->assertDontSee(route('hoerbuecher.create'))
             ->assertDontSee('Neue Folge');
@@ -369,10 +359,9 @@ class HoerbuchPublicAccessTest extends TestCase
     public function test_regular_member_does_not_see_edit_delete_on_show(): void
     {
         $episode = $this->createEpisodeWithRoles();
-        $member = $this->actingMember('Mitglied');
+        $this->actingMember('Mitglied');
 
-        $this->actingAs($member)
-            ->get(route('hoerbuecher.show', $episode))
+        $this->get(route('hoerbuecher.show', $episode))
             ->assertOk()
             ->assertDontSee('Bearbeiten');
     }
@@ -459,34 +448,65 @@ class HoerbuchPublicAccessTest extends TestCase
 
     // ─── Authentifizierter Nutzer sieht interne Daten ───────────────
 
-    public function test_authenticated_user_sees_notes_on_show(): void
+    public function test_vorstand_sees_notes_on_show(): void
     {
         $episode = $this->createEpisodeWithRoles();
-        $admin = $this->actingMember('Admin');
+        $this->actingMember('Vorstand');
 
-        $this->actingAs($admin)
-            ->get(route('hoerbuecher.show', $episode))
+        $this->get(route('hoerbuecher.show', $episode))
             ->assertOk()
             ->assertSee('Anmerkungen')
             ->assertSee('Interne Anmerkung');
     }
 
-    public function test_authenticated_user_sees_responsible_person_on_show(): void
+    public function test_ag_member_sees_notes_on_show(): void
+    {
+        $episode = $this->createEpisodeWithRoles();
+        $leader = $this->actingMember();
+        $this->createAgFanhoerbuchTeam($leader);
+
+        $this->get(route('hoerbuecher.show', $episode))
+            ->assertOk()
+            ->assertSee('Anmerkungen')
+            ->assertSee('Interne Anmerkung');
+    }
+
+    public function test_regular_member_does_not_see_notes_on_show(): void
+    {
+        $episode = $this->createEpisodeWithRoles();
+        $this->actingMember('Mitglied');
+
+        $this->get(route('hoerbuecher.show', $episode))
+            ->assertOk()
+            ->assertDontSee('Anmerkungen')
+            ->assertDontSee('Interne Anmerkung');
+    }
+
+    public function test_vorstand_sees_responsible_person_on_show(): void
     {
         $episode = $this->createEpisodeWithRoles();
         $episode->load('responsible');
-        $member = $this->actingMember('Mitglied');
+        $this->actingMember('Vorstand');
 
-        $this->actingAs($member)
-            ->get(route('hoerbuecher.show', $episode))
+        $this->get(route('hoerbuecher.show', $episode))
             ->assertOk()
             ->assertSee('Verantwortlich')
             ->assertSee($episode->responsible->name);
     }
 
+    public function test_regular_member_does_not_see_responsible_person_on_show(): void
+    {
+        $episode = $this->createEpisodeWithRoles();
+        $this->actingMember('Mitglied');
+
+        $this->get(route('hoerbuecher.show', $episode))
+            ->assertOk()
+            ->assertDontSee('Verantwortlich');
+    }
+
     // ─── Bisheriger-Sprecher: Aktuelle Episode wird ausgeschlossen ──
 
-    public function test_previous_speaker_not_shown_when_same_as_current(): void
+    public function test_previous_speaker_shown_from_earlier_episode(): void
     {
         $speaker = User::factory()->create(['name' => 'Doppelter Sprecher']);
 
@@ -524,14 +544,11 @@ class HoerbuchPublicAccessTest extends TestCase
             'user_id' => $speaker->id,
         ]);
 
-        $admin = $this->actingMember('Admin');
+        $this->actingMember('Admin');
 
-        // Da die aktuelle Episode ausgeschlossen wird, kommt der
-        // bisherige Sprecher nur aus der früheren Episode.
-        // Hier ist er identisch → wird trotzdem angezeigt (früherer Eintrag existiert).
-        // Wichtig: Das Query schließt nur die aktuelle Episode aus, nicht den Sprecher selbst.
-        $this->actingAs($admin)
-            ->get(route('hoerbuecher.show', $current))
+        // Bisheriger Sprecher stammt aus der früheren Episode (aktuelle wird ausgeschlossen).
+        // Da der gleiche Sprecher auch in einer früheren Episode besetzt war, wird der Hinweis angezeigt.
+        $this->get(route('hoerbuecher.show', $current))
             ->assertOk()
             ->assertSee('Bisheriger Sprecher: Doppelter Sprecher');
     }
@@ -557,11 +574,10 @@ class HoerbuchPublicAccessTest extends TestCase
             'user_id' => $speaker->id,
         ]);
 
-        $admin = $this->actingMember('Admin');
+        $this->actingMember('Admin');
 
         // Kein bisheriger Sprecher, da die Rolle nur in der aktuellen Episode existiert
-        $this->actingAs($admin)
-            ->get(route('hoerbuecher.show', $current))
+        $this->get(route('hoerbuecher.show', $current))
             ->assertOk()
             ->assertDontSee('Bisheriger Sprecher');
     }
