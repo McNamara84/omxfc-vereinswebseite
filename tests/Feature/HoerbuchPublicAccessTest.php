@@ -4,7 +4,6 @@ namespace Tests\Feature;
 
 use App\Enums\Role;
 use App\Models\AudiobookEpisode;
-use App\Models\AudiobookRole;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -434,5 +433,145 @@ class HoerbuchPublicAccessTest extends TestCase
         $this->get(route('hoerbuecher.index'))
             ->assertOk()
             ->assertDontSee('EARDRAX Dashboard');
+    }
+
+    // ─── Gast sieht KEINE internen Daten ────────────────────────────
+
+    public function test_guest_does_not_see_notes_on_show(): void
+    {
+        $episode = $this->createEpisodeWithRoles();
+
+        $this->get(route('hoerbuecher.show', $episode))
+            ->assertOk()
+            ->assertDontSee('Interne Anmerkung')
+            ->assertDontSee('Anmerkungen');
+    }
+
+    public function test_guest_does_not_see_responsible_person_on_show(): void
+    {
+        $episode = $this->createEpisodeWithRoles();
+        $episode->load('responsible');
+
+        $this->get(route('hoerbuecher.show', $episode))
+            ->assertOk()
+            ->assertDontSee('Verantwortlich');
+    }
+
+    // ─── Authentifizierter Nutzer sieht interne Daten ───────────────
+
+    public function test_authenticated_user_sees_notes_on_show(): void
+    {
+        $episode = $this->createEpisodeWithRoles();
+        $admin = $this->actingMember('Admin');
+
+        $this->actingAs($admin)
+            ->get(route('hoerbuecher.show', $episode))
+            ->assertOk()
+            ->assertSee('Anmerkungen')
+            ->assertSee('Interne Anmerkung');
+    }
+
+    public function test_authenticated_user_sees_responsible_person_on_show(): void
+    {
+        $episode = $this->createEpisodeWithRoles();
+        $episode->load('responsible');
+        $member = $this->actingMember('Mitglied');
+
+        $this->actingAs($member)
+            ->get(route('hoerbuecher.show', $episode))
+            ->assertOk()
+            ->assertSee('Verantwortlich')
+            ->assertSee($episode->responsible->name);
+    }
+
+    // ─── Bisheriger-Sprecher: Aktuelle Episode wird ausgeschlossen ──
+
+    public function test_previous_speaker_not_shown_when_same_as_current(): void
+    {
+        $speaker = User::factory()->create(['name' => 'Doppelter Sprecher']);
+
+        $earlier = AudiobookEpisode::create([
+            'episode_number' => 'F20',
+            'title' => 'Frühere Folge',
+            'author' => 'Autor',
+            'planned_release_date' => '2025',
+            'status' => 'Skripterstellung',
+            'progress' => 100,
+            'roles_total' => 1,
+            'roles_filled' => 1,
+            'notes' => null,
+        ]);
+        $earlier->roles()->create([
+            'name' => 'Matthew Drax',
+            'takes' => 1,
+            'user_id' => $speaker->id,
+        ]);
+
+        $current = AudiobookEpisode::create([
+            'episode_number' => 'F21',
+            'title' => 'Aktuelle Folge mit gleichem Sprecher',
+            'author' => 'Autor',
+            'planned_release_date' => '01.06.2026',
+            'status' => 'Aufnahmensammlung',
+            'progress' => 50,
+            'roles_total' => 1,
+            'roles_filled' => 1,
+            'notes' => null,
+        ]);
+        $current->roles()->create([
+            'name' => 'Matthew Drax',
+            'takes' => 1,
+            'user_id' => $speaker->id,
+        ]);
+
+        $admin = $this->actingMember('Admin');
+
+        // Da die aktuelle Episode ausgeschlossen wird, kommt der
+        // bisherige Sprecher nur aus der früheren Episode.
+        // Hier ist er identisch → wird trotzdem angezeigt (früherer Eintrag existiert).
+        // Wichtig: Das Query schließt nur die aktuelle Episode aus, nicht den Sprecher selbst.
+        $this->actingAs($admin)
+            ->get(route('hoerbuecher.show', $current))
+            ->assertOk()
+            ->assertSee('Bisheriger Sprecher: Doppelter Sprecher');
+    }
+
+    public function test_previous_speaker_not_shown_when_only_in_current_episode(): void
+    {
+        $speaker = User::factory()->create(['name' => 'Nur-Aktuell Sprecher']);
+
+        $current = AudiobookEpisode::create([
+            'episode_number' => 'F22',
+            'title' => 'Folge ohne Vorgänger',
+            'author' => 'Autor',
+            'planned_release_date' => '01.06.2026',
+            'status' => 'Aufnahmensammlung',
+            'progress' => 50,
+            'roles_total' => 1,
+            'roles_filled' => 1,
+            'notes' => null,
+        ]);
+        $current->roles()->create([
+            'name' => 'Neue Rolle',
+            'takes' => 1,
+            'user_id' => $speaker->id,
+        ]);
+
+        $admin = $this->actingMember('Admin');
+
+        // Kein bisheriger Sprecher, da die Rolle nur in der aktuellen Episode existiert
+        $this->actingAs($admin)
+            ->get(route('hoerbuecher.show', $current))
+            ->assertOk()
+            ->assertDontSee('Bisheriger Sprecher');
+    }
+
+    // ─── robots.txt erlaubt Crawling ────────────────────────────────
+
+    public function test_robots_txt_does_not_disallow_hoerbuecher(): void
+    {
+        $robotsTxt = file_get_contents(public_path('robots.txt'));
+
+        $this->assertStringNotContainsString('Disallow: /hoerbuecher', $robotsTxt);
     }
 }

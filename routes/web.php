@@ -71,8 +71,11 @@ Route::get('/maddrax-fantreffen-2026', [FantreffenController::class, 'create'])-
 Route::post('/maddrax-fantreffen-2026', [FantreffenController::class, 'store'])->middleware('throttle:fantreffen-registration')->name('fantreffen.2026.store');
 Route::get('/maddrax-fantreffen-2026/bestaetigung/{id}', [FantreffenController::class, 'bestaetigung'])->name('fantreffen.2026.bestaetigung');
 
-// Hörbücher – Übersicht öffentlich lesbar (kein Auth nötig), aber nicht im Menü / nicht indexiert
-Route::get('/hoerbuecher', [HoerbuchController::class, 'index'])->name('hoerbuecher.index');
+// Hörbücher – Übersicht + Einzelfolgen öffentlich lesbar (kein Auth nötig), aber nicht im Menü / nicht indexiert
+Route::prefix('hoerbuecher')->name('hoerbuecher.')->controller(HoerbuchController::class)->group(function () {
+    Route::get('/', 'index')->name('index');
+    Route::get('{episode}', 'show')->name('show')->whereNumber('episode');
+});
 
 // POST Route für Mitgliedschaftsantrag
 Route::post('/mitglied-werden', [MitgliedschaftController::class, 'store'])->name('mitglied.store');
@@ -181,9 +184,6 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
             Route::delete('{episode}', 'destroy')->name('destroy');
         });
     });
-
-    // Hörbücher – Einzelfolge öffentlich lesbar (nach Management-Routen, damit {episode}-Wildcard nicht 'erstellen' fängt)
-    Route::get('/hoerbuecher/{episode}', [HoerbuchController::class, 'show'])->name('hoerbuecher.show')->withoutMiddleware(['auth', 'verified', 'redirect.if.anwaerter']);
 
     Route::prefix('admin/arbeitsgruppen')->name('arbeitsgruppen.')->controller(ArbeitsgruppenController::class)->middleware('auth')->group(function () {
         Route::get('/', 'index')->name('index');

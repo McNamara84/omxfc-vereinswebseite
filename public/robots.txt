@@ -1,4 +1,4 @@
 User-agent: *
-Disallow: /hoerbuecher
+Disallow:
 
 Sitemap: https://maddrax-fanclub.de/sitemap.xml

@@ -73,11 +73,13 @@
                     </div>
                 </div>
                 @endif
-                <div class="md:col-span-2"><span class="font-medium">Verantwortlich:</span> {{ $episode->responsible?->name ?? '-' }}</div>
-                <div class="md:col-span-2">
-                    <span class="font-medium">Anmerkungen:</span>
-                    <p class="mt-1">{{ $episode->notes }}</p>
-                </div>
+                @auth
+                    <div class="md:col-span-2"><span class="font-medium">Verantwortlich:</span> {{ $episode->responsible?->name ?? '-' }}</div>
+                    <div class="md:col-span-2">
+                        <span class="font-medium">Anmerkungen:</span>
+                        <p class="mt-1">{{ $episode->notes }}</p>
+                    </div>
+                @endauth
             </div>
 
             @auth
