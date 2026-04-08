@@ -696,12 +696,12 @@ class HoerbuchControllerTest extends TestCase
             ->assertSee($sanitized);
     }
 
-    public function test_member_cannot_view_index(): void
+    public function test_member_can_view_index(): void
     {
         $user = $this->actingMember('Mitglied');
 
         $this->actingAs($user)->get(route('hoerbuecher.index'))
-            ->assertForbidden();
+            ->assertOk();
     }
 
     public function test_index_sorts_by_planned_release_date(): void

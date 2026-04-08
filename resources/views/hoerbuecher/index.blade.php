@@ -1,4 +1,7 @@
 <x-app-layout>
+    <x-slot:head>
+        <meta name="robots" content="noindex, nofollow">
+    </x-slot:head>
     <x-member-page>
         @if(session('status'))
             <x-alert icon="o-check-circle" class="alert-success mb-4">
@@ -7,9 +10,11 @@
         @endif
         <x-card shadow class="mb-6 flex justify-between items-center">
             <x-header title="Hörbuchfolgen" class="!mb-0" />
-            @if(auth()->user()->hasVorstandRole() || auth()->user()->isOwnerOfTeam('AG Fanhörbücher'))
-                <x-button label="Neue Folge" link="{{ route('hoerbuecher.create') }}" wire:navigate icon="o-plus" class="btn-primary" />
-            @endif
+            @auth
+                @if(auth()->user()->hasVorstandRole() || auth()->user()->isOwnerOfTeam('AG Fanhörbücher'))
+                    <x-button label="Neue Folge" link="{{ route('hoerbuecher.create') }}" wire:navigate icon="o-plus" class="btn-primary" />
+                @endif
+            @endauth
         </x-card>
         <div
             x-data="{
