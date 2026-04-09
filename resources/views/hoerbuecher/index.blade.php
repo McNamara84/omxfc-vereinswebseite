@@ -243,7 +243,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="{{ (auth()->user()?->hasVorstandRole() || auth()->user()?->isMemberOfTeam('AG Fanhörbücher')) ? 7 : 6 }}" class="px-4 py-2 text-center text-base-content">Keine Hörbuchfolgen vorhanden.</td>
+                                <td colspan="{{ (auth()->user()?->hasVorstandRole() || auth()->user()?->isMemberOfTeam('AG Fanhörbücher')) ? 6 : 5 }}" class="px-4 py-2 text-center text-base-content">Keine Hörbuchfolgen vorhanden.</td>
                             </tr>
                         @endforelse
                     </tbody>
