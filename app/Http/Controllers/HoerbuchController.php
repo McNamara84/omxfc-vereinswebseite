@@ -116,7 +116,7 @@ class HoerbuchController extends Controller
         return $data;
     }
 
-    private function latestSpeakersForNames($names): array
+    private function latestSpeakersForNames($names, ?int $excludeEpisodeId = null): array
     {
         $names = collect($names)->filter()->unique();
         if ($names->isEmpty()) {
@@ -126,6 +126,7 @@ class HoerbuchController extends Controller
         return AudiobookRole::useIndex('audiobook_roles_name_user_speaker_index')
             ->whereIn('name', $names)
             ->where(fn ($q) => $q->whereNotNull('user_id')->orWhereNotNull('speaker_name'))
+            ->when($excludeEpisodeId, fn ($q) => $q->where('episode_id', '!=', $excludeEpisodeId))
             ->with('user')
             ->orderByDesc('id')
             ->orderBy('name')
@@ -139,7 +140,7 @@ class HoerbuchController extends Controller
     {
         $episode->loadMissing('roles');
 
-        return $this->latestSpeakersForNames($episode->roles->pluck('name'));
+        return $this->latestSpeakersForNames($episode->roles->pluck('name'), $episode->id);
     }
 
     /**

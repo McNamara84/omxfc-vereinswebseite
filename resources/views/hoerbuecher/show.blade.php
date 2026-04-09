@@ -1,4 +1,7 @@
 <x-app-layout>
+    <x-slot:head>
+        <meta name="robots" content="noindex, nofollow">
+    </x-slot:head>
     <x-member-page class="max-w-3xl">
         <x-card shadow>
             <x-header title="{{ $episode->title }}" separator />
@@ -56,9 +59,11 @@
                                     <td>{{ $role->takes }}</td>
                                     <td>
                                         {{ $role->user?->name ?? $role->speaker_name ?? '-' }}
-                                        @php($prev = $previousSpeakers[$role->name] ?? null)
-                                        @if($prev)
-                                            <div class="text-xs text-base-content">Bisheriger Sprecher: {{ $prev }}</div>
+                                        @if(auth()->user()?->hasVorstandRole() || auth()->user()?->isMemberOfTeam('AG Fanhörbücher'))
+                                            @php($prev = $previousSpeakers[$role->name] ?? null)
+                                            @if($prev)
+                                                <div class="text-xs text-base-content">Bisheriger Sprecher: {{ $prev }}</div>
+                                            @endif
                                         @endif
                                     </td>
                                 </tr>
@@ -68,19 +73,23 @@
                     </div>
                 </div>
                 @endif
-                <div class="md:col-span-2"><span class="font-medium">Verantwortlich:</span> {{ $episode->responsible?->name ?? '-' }}</div>
-                <div class="md:col-span-2">
-                    <span class="font-medium">Anmerkungen:</span>
-                    <p class="mt-1">{{ $episode->notes }}</p>
-                </div>
+                @if(auth()->user()?->hasVorstandRole() || auth()->user()?->isMemberOfTeam('AG Fanhörbücher'))
+                    <div class="md:col-span-2"><span class="font-medium">Verantwortlich:</span> {{ $episode->responsible?->name ?? '-' }}</div>
+                    <div class="md:col-span-2">
+                        <span class="font-medium">Anmerkungen:</span>
+                        <p class="mt-1">{{ $episode->notes }}</p>
+                    </div>
+                @endif
             </div>
 
-            @if(auth()->user()->hasVorstandRole() || auth()->user()->isOwnerOfTeam('AG Fanhörbücher'))
-            <div class="mt-6 flex justify-end space-x-3">
-                <x-button label="Bearbeiten" link="{{ route('hoerbuecher.edit', $episode) }}" wire:navigate icon="o-pencil" class="btn-info btn-sm" />
-                <x-confirm-delete :action="route('hoerbuecher.destroy', $episode)" />
-            </div>
-            @endif
+            @auth
+                @if(auth()->user()->hasVorstandRole() || auth()->user()->isOwnerOfTeam('AG Fanhörbücher'))
+                <div class="mt-6 flex justify-end space-x-3">
+                    <x-button label="Bearbeiten" link="{{ route('hoerbuecher.edit', $episode) }}" wire:navigate icon="o-pencil" class="btn-info btn-sm" />
+                    <x-confirm-delete :action="route('hoerbuecher.destroy', $episode)" />
+                </div>
+                @endif
+            @endauth
             <div class="mt-6">
                 <x-button label="« Zurück zur Übersicht" link="{{ route('hoerbuecher.index') }}" wire:navigate icon="o-arrow-left" class="btn-ghost btn-sm" />
             </div>

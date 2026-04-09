@@ -1,3 +1,4 @@
 User-agent: *
 Disallow:
+
 Sitemap: https://maddrax-fanclub.de/sitemap.xml
