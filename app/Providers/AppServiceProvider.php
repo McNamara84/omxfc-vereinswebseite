@@ -37,10 +37,14 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Force HTTPS in production
+        // Force HTTPS in production – URL::forceScheme() erzwingt https:// bei der URL-Generierung.
+        // Zusätzlich muss X-Forwarded-Proto gesetzt werden, damit request()->isSecure()
+        // ebenfalls true liefert. Ohne diesen Header schlägt die Signaturprüfung bei
+        // Livewire File-Uploads fehl (401), weil die signierte URL https:// nutzt,
+        // aber request()->url() http:// zurückgibt.
         if ($this->app->environment('production')) {
             URL::forceScheme('https');
-            $this->app['request']->server->set('HTTPS', true);
+            $this->app['request']->headers->set('X-Forwarded-Proto', 'https');
         }
 
         // Rate Limiter für Fantreffen-Anmeldung (deaktivierbar via Config für Tests)
