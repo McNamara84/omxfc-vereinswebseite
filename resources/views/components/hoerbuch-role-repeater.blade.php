@@ -14,7 +14,7 @@
         'uploaded' => (bool) ($r['uploaded'] ?? false),
         'previousSpeaker' => isset($r['name']) && isset($previousSpeakers[$r['name']])
             ? 'Bisheriger Sprecher: ' . $previousSpeakers[$r['name']]
-            : '',
+            : ($r['previousSpeaker'] ?? ''),
     ])->values()->toArray();
 @endphp
 

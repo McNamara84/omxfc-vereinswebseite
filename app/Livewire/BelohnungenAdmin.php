@@ -516,6 +516,11 @@ class BelohnungenAdmin extends Component
         return $filename ?: 'download';
     }
 
+    public function placeholder()
+    {
+        return view('components.skeleton-table', ['columns' => 5, 'rows' => 8]);
+    }
+
     public function render()
     {
         return view('livewire.belohnungen-admin')

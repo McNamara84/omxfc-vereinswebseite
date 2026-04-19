@@ -129,6 +129,11 @@ class MitgliederIndex extends Component
         unset($this->members, $this->onlineUserIdSet);
     }
 
+    public function placeholder()
+    {
+        return view('components.skeleton-table', ['columns' => 4, 'rows' => 10, 'hasAvatar' => true]);
+    }
+
     public function render()
     {
         return view('livewire.mitglieder-index', [

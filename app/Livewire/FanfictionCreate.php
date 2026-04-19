@@ -205,6 +205,11 @@ class FanfictionCreate extends Component
         Cache::forget("fanfiction_count_{$team->id}");
     }
 
+    public function placeholder()
+    {
+        return view('components.skeleton-form', ['fields' => 5, 'hasTextarea' => true]);
+    }
+
     public function render()
     {
         return view('livewire.fanfiction-create')

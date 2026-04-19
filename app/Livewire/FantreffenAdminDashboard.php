@@ -245,6 +245,11 @@ class FantreffenAdminDashboard extends Component
         return $query->latest()->orderByDesc('id');
     }
 
+    public function placeholder()
+    {
+        return view('components.skeleton-card', ['cols' => 2, 'rows' => 3]);
+    }
+
     public function render()
     {
         return view('livewire.fantreffen-admin-dashboard')

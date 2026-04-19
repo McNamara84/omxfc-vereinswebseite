@@ -73,7 +73,7 @@
                     </fieldset>
 
                     <div class="mt-6 flex items-center gap-3">
-                        <x-button type="submit" label="Stimme abgeben" icon="o-check" class="btn-primary" :disabled="! $canVote" />
+                        <x-button type="submit" label="Stimme abgeben" icon="o-check" class="btn-primary" :disabled="! $canVote" spinner="submit" />
 
                         @if (! $canVote)
                             <span class="text-sm text-base-content">

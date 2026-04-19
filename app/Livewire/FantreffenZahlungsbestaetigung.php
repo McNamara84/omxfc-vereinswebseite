@@ -40,6 +40,11 @@ class FantreffenZahlungsbestaetigung extends Component
         }
     }
 
+    public function placeholder()
+    {
+        return view('components.skeleton-detail', ['sections' => 2]);
+    }
+
     public function render()
     {
         return view('livewire.fantreffen-zahlungsbestaetigung')

@@ -1,0 +1,51 @@
+<x-member-page class="max-w-3xl">
+    <x-header title="Rezensionen zu „{{ $this->book->title }}" (Nr. {{ $this->book->roman_number }})" size="text-3xl" separator class="mb-6" />
+
+    @forelse($this->reviews as $review)
+        <x-card shadow class="mb-6" wire:key="review-{{ $review->id }}">
+            <h2 class="text-lg font-semibold text-base-content">{{ $review->title }}</h2>
+            <p class="text-sm text-base-content">
+                von
+                <a href="{{ route('profile.view', $review->user->id) }}" wire:navigate class="text-primary hover:underline">{{ $review->user->name }}</a>
+                am {{ $review->created_at->format('d.m.Y H:i') }} Uhr
+                @if(!$review->created_at->eq($review->updated_at))
+                    , geändert am {{ $review->updated_at->format('d.m.Y') }} um {{ $review->updated_at->format('H:i') }} Uhr
+                @endif
+            </p>
+            <div class="mt-4 prose prose-slate dark:prose-invert max-w-none prose-a:text-primary prose-a:font-semibold prose-a:underline-offset-2">
+                {!! $review->formatted_content !!}
+            </div>
+
+            @if(in_array($role, [\App\Enums\Role::Vorstand, \App\Enums\Role::Admin], true) || auth()->id() === $review->user_id)
+                <div class="mt-4 flex flex-col sm:flex-row gap-2">
+                    <x-button label="Rezension bearbeiten" link="{{ route('reviews.edit', $review) }}" wire:navigate icon="o-pencil" class="btn-info btn-sm" />
+                    <x-button label="Rezension löschen" wire:click="$set('confirmingDeleteReview', {{ $review->id }})" icon="o-trash" class="btn-error btn-sm" />
+                </div>
+            @endif
+
+            <div class="mt-6">
+                @foreach($review->comments->whereNull('parent_id') as $comment)
+                    @include('reviews.partials.comment', ['comment' => $comment, 'role' => $role, 'depth' => 0])
+                @endforeach
+
+                <form method="POST" action="{{ route('reviews.comments.store', $review) }}" class="mt-4">
+                    @csrf
+                    <x-textarea label="Kommentar" name="content" rows="2" placeholder="Kommentieren..." required />
+                    <x-button label="Kommentar hinzufügen" type="submit" class="btn-info btn-sm mt-2" />
+                </form>
+            </div>
+        </x-card>
+    @empty
+        <p class="text-base-content">Noch keine Rezensionen vorhanden.</p>
+    @endforelse
+
+    <x-button label="← Zurück zur Übersicht" link="{{ route('reviews.index') }}" wire:navigate class="btn-ghost btn-sm text-primary" />
+
+    <x-modal wire:model="confirmingDeleteReview" title="Rezension löschen" separator>
+        <p>Möchtest du diese Rezension wirklich löschen?</p>
+        <x-slot:actions>
+            <x-button label="Abbrechen" wire:click="$set('confirmingDeleteReview', null)" class="btn-ghost" />
+            <x-button label="Löschen" wire:click="deleteReview(confirmingDeleteReview)" class="btn-error" spinner="deleteReview" />
+        </x-slot:actions>
+    </x-modal>
+</x-member-page>

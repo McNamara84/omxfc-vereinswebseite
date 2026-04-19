@@ -66,6 +66,7 @@
                         :icon="$showPreview ? 'o-pencil-square' : 'o-eye'"
                         class="btn-ghost btn-sm"
                         type="button"
+                        spinner="togglePreview"
                     />
                 </div>
 

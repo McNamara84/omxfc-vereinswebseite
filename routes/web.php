@@ -23,14 +23,22 @@ use App\Http\Controllers\PageController;
 use App\Http\Controllers\PhotoGalleryController;
 use App\Http\Controllers\ProfileViewController;
 use App\Http\Controllers\ReviewCommentController;
-use App\Http\Controllers\RezensionController;
-use App\Http\Controllers\RomantauschController;
+use App\Livewire\RezensionForm;
+use App\Livewire\RezensionIndex;
+use App\Livewire\RezensionShow;
+use App\Livewire\RomantauschBundleForm;
+use App\Livewire\RomantauschIndex;
+use App\Livewire\RomantauschOfferForm;
+use App\Livewire\RomantauschRequestForm;
+use App\Livewire\RomantauschShowOffer;
 use App\Http\Controllers\RpgCharEditorController;
 use App\Http\Controllers\StatistikController;
 use App\Http\Controllers\ThreeDModelController;
-use App\Http\Controllers\TodoController;
 use App\Http\Middleware\RedirectIfAnwaerter;
 use App\Livewire\BelohnungenAdmin;
+use App\Livewire\ThreeDModelForm;
+use App\Livewire\ThreeDModelIndex;
+use App\Livewire\ThreeDModelShow;
 use App\Livewire\BelohnungenIndex;
 use App\Livewire\FanfictionCreate;
 use App\Livewire\FanfictionEdit;
@@ -72,9 +80,9 @@ Route::post('/maddrax-fantreffen-2026', [FantreffenController::class, 'store'])-
 Route::get('/maddrax-fantreffen-2026/bestaetigung/{id}', [FantreffenController::class, 'bestaetigung'])->name('fantreffen.2026.bestaetigung');
 
 // Hörbücher – Übersicht + Einzelfolgen öffentlich lesbar (kein Auth nötig), aber nicht im Menü / nicht indexiert
-Route::prefix('hoerbuecher')->name('hoerbuecher.')->controller(HoerbuchController::class)->group(function () {
-    Route::get('/', 'index')->name('index');
-    Route::get('{episode}', 'show')->name('show')->whereNumber('episode');
+Route::prefix('hoerbuecher')->name('hoerbuecher.')->group(function () {
+    Route::livewire('/', \App\Livewire\HoerbuchIndex::class)->name('index');
+    Route::livewire('{episode}', \App\Livewire\HoerbuchShow::class)->name('show')->whereNumber('episode');
 });
 
 // POST Route für Mitgliedschaftsantrag
@@ -160,29 +168,17 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
         Route::get('/gesperrt', 'locked')->name('mitglieder.karte.locked');
     });
 
-    Route::prefix('aufgaben')->name('todos.')->controller(TodoController::class)->group(function () {
-        Route::get('/', 'index')->name('index');
-        Route::get('erstellen', 'create')->name('create');
-        Route::post('/', 'store')->name('store');
-        Route::get('{todo}', 'show')->name('show');
-        Route::get('{todo}/bearbeiten', 'edit')->name('edit');
-        Route::post('{todo}/zuweisen', 'assign')->name('assign');
-        Route::put('{todo}', 'update')->name('update');
-        Route::post('{todo}/abschliessen', 'complete')->name('complete');
-        Route::post('{todo}/pruefen', 'verify')->name('verify');
-        Route::post('{todo}/freigeben', 'release')->name('release');
-        Route::delete('{todo}', 'destroy')->name('destroy');
+    Route::prefix('aufgaben')->name('todos.')->group(function () {
+        Route::livewire('/', \App\Livewire\TodoIndex::class)->name('index');
+        Route::livewire('erstellen', \App\Livewire\TodoForm::class)->name('create');
+        Route::livewire('{todo}', \App\Livewire\TodoShow::class)->name('show');
+        Route::livewire('{todo}/bearbeiten', \App\Livewire\TodoForm::class)->name('edit');
     });
-    Route::prefix('hoerbuecher')->name('hoerbuecher.')->controller(HoerbuchController::class)->group(function () {
-        Route::get('previous-speaker', 'previousSpeaker')->name('previous-speaker')->middleware('hoerbuch-manage');
-        Route::middleware('hoerbuch-manage')->group(function () {
-            Route::get('erstellen', 'create')->name('create');
-            Route::post('/', 'store')->name('store');
-            Route::patch('rollen/{role}/hochgeladen', 'updateRoleUploaded')->name('roles.uploaded');
-            Route::get('{episode}/bearbeiten', 'edit')->name('edit');
-            Route::put('{episode}', 'update')->name('update');
-            Route::delete('{episode}', 'destroy')->name('destroy');
-        });
+    Route::prefix('hoerbuecher')->name('hoerbuecher.')->group(function () {
+        Route::get('previous-speaker', [HoerbuchController::class, 'previousSpeaker'])->name('previous-speaker')->middleware('hoerbuch-manage');
+        Route::patch('rollen/{role}/hochgeladen', [HoerbuchController::class, 'updateRoleUploaded'])->name('roles.uploaded')->middleware('hoerbuch-manage');
+        Route::livewire('erstellen', \App\Livewire\HoerbuchForm::class)->name('create')->middleware('hoerbuch-manage');
+        Route::livewire('{episode}/bearbeiten', \App\Livewire\HoerbuchForm::class)->name('edit')->middleware('hoerbuch-manage');
     });
 
     Route::prefix('admin/arbeitsgruppen')->name('arbeitsgruppen.')->controller(ArbeitsgruppenController::class)->middleware('auth')->group(function () {
@@ -240,28 +236,15 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
         ->name('rpg.char-editor.pdf')
         ->middleware('admin');
 
-    Route::prefix('romantauschboerse')->name('romantausch.')->controller(RomantauschController::class)->group(function () {
-        Route::get('/', 'index')->name('index');
-        Route::get('angebot-erstellen', 'createOffer')->name('create-offer');
-        Route::post('angebot-speichern', 'storeOffer')->name('store-offer');
-        Route::get('angebot/{offer}/bearbeiten', 'editOffer')->name('edit-offer');
-        Route::put('angebot/{offer}', 'updateOffer')->name('update-offer');
-        Route::get('angebot/{offer}', 'showOffer')->name('show-offer');
-        Route::get('anfrage-erstellen', 'createRequest')->name('create-request');
-        Route::post('anfrage-speichern', 'storeRequest')->name('store-request');
-        Route::get('anfrage/{bookRequest}/bearbeiten', 'editRequest')->name('edit-request');
-        Route::put('anfrage/{bookRequest}', 'updateRequest')->name('update-request');
-        Route::post('{offer}/angebot-loeschen', 'deleteOffer')->name('delete-offer');
-        Route::post('{request}/anfrage-loeschen', 'deleteRequest')->name('delete-request');
-        Route::post('{offer}/{request}/abschliessen', 'completeSwap')->name('complete-swap');
-        Route::post('tausche/{swap}/bestaetigen', 'confirmSwap')->name('confirm-swap');
-
-        // Stapel-Angebote
-        Route::get('stapel-angebot-erstellen', 'createBundleOffer')->name('create-bundle-offer');
-        Route::post('stapel-angebot-speichern', 'storeBundleOffer')->name('store-bundle-offer');
-        Route::get('stapel/{bundleId}/bearbeiten', 'editBundle')->name('edit-bundle');
-        Route::put('stapel/{bundleId}', 'updateBundle')->name('update-bundle');
-        Route::delete('stapel/{bundleId}', 'deleteBundle')->name('delete-bundle');
+    Route::prefix('romantauschboerse')->name('romantausch.')->group(function () {
+        Route::livewire('/', RomantauschIndex::class)->name('index');
+        Route::livewire('angebot-erstellen', RomantauschOfferForm::class)->name('create-offer');
+        Route::livewire('angebot/{offer}/bearbeiten', RomantauschOfferForm::class)->name('edit-offer');
+        Route::livewire('angebot/{offer}', RomantauschShowOffer::class)->name('show-offer');
+        Route::livewire('anfrage-erstellen', RomantauschRequestForm::class)->name('create-request');
+        Route::livewire('anfrage/{bookRequest}/bearbeiten', RomantauschRequestForm::class)->name('edit-request');
+        Route::livewire('stapel-angebot-erstellen', RomantauschBundleForm::class)->name('create-bundle-offer');
+        Route::livewire('stapel/{bundleId}/bearbeiten', RomantauschBundleForm::class)->name('edit-bundle');
     });
 
     Route::prefix('downloads')->controller(DownloadsController::class)->group(function () {
@@ -269,19 +252,17 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
         Route::get('herunterladen/{download:slug}', 'download')->name('downloads.download');
     });
 
-    Route::prefix('3d-modelle')->name('3d-modelle.')->controller(ThreeDModelController::class)->group(function () {
-        Route::get('/', 'index')->name('index');
+    Route::prefix('3d-modelle')->name('3d-modelle.')->group(function () {
+        Route::livewire('/', ThreeDModelIndex::class)->name('index');
         Route::middleware('admin-or-vorstand')->group(function () {
-            Route::get('erstellen', 'create')->name('create');
-            Route::post('/', 'store')->name('store');
-            Route::get('{threeDModel}/bearbeiten', 'edit')->name('edit');
-            Route::put('{threeDModel}', 'update')->name('update');
-            Route::delete('{threeDModel}', 'destroy')->name('destroy');
+            Route::livewire('erstellen', ThreeDModelForm::class)->name('create');
+            Route::livewire('{threeDModel}/bearbeiten', ThreeDModelForm::class)->name('edit');
         });
-        Route::get('{threeDModel}', 'show')->name('show');
-        Route::post('{threeDModel}/kaufen', 'purchase')->name('purchase');
-        Route::get('{threeDModel}/herunterladen', 'download')->name('download');
-        Route::get('{threeDModel}/vorschau', 'preview')->name('preview');
+        Route::controller(ThreeDModelController::class)->group(function () {
+            Route::get('{threeDModel}/herunterladen', 'download')->name('download');
+            Route::get('{threeDModel}/vorschau', 'preview')->name('preview');
+        });
+        Route::livewire('{threeDModel}', ThreeDModelShow::class)->name('show');
     });
 
     Route::prefix('kompendium')->name('kompendium.')->group(function () {
@@ -310,13 +291,10 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
     });
 
     Route::prefix('rezensionen')->name('reviews.')->group(function () {
-        Route::get('/', [RezensionController::class, 'index'])->name('index');
-        Route::get('/{book}', [RezensionController::class, 'show'])->name('show');
-        Route::get('/{book}/erstellen', [RezensionController::class, 'create'])->name('create');
-        Route::post('/{book}', [RezensionController::class, 'store'])->name('store');
-        Route::get('/{review}/bearbeiten', [RezensionController::class, 'edit'])->name('edit');
-        Route::put('/{review}', [RezensionController::class, 'update'])->name('update');
-        Route::delete('/{review}', [RezensionController::class, 'destroy'])->name('destroy');
+        Route::livewire('/', RezensionIndex::class)->name('index');
+        Route::livewire('/{book}', RezensionShow::class)->name('show');
+        Route::livewire('/{book}/erstellen', RezensionForm::class)->name('create');
+        Route::livewire('/{review}/bearbeiten', RezensionForm::class)->name('edit');
         Route::post('/{review}/kommentar', [ReviewCommentController::class, 'store'])->name('comments.store');
         Route::put('/kommentar/{comment}', [ReviewCommentController::class, 'update'])->name('comments.update');
         Route::delete('/kommentar/{comment}', [ReviewCommentController::class, 'destroy'])->name('comments.destroy');

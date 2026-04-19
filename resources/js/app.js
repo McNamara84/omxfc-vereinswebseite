@@ -99,6 +99,7 @@ async function loadAdminChartsIfNeeded() {
 }
 document.addEventListener('DOMContentLoaded', loadAdminChartsIfNeeded);
 document.addEventListener('livewire:navigated', loadAdminChartsIfNeeded);
+document.addEventListener('livewire:navigated', loadAdminChartsIfNeeded);
 
 // 3D-Viewer (inkl. Three.js) nur laden, wenn ein Viewer-Container auf der Seite ist (Code-Splitting)
 async function loadThreeDViewerIfNeeded() {
@@ -113,3 +114,28 @@ async function loadThreeDViewerIfNeeded() {
 }
 document.addEventListener('DOMContentLoaded', loadThreeDViewerIfNeeded);
 document.addEventListener('livewire:navigated', loadThreeDViewerIfNeeded);
+
+// Toast-Bridge: Livewire dispatch('toast') → maryUI window.toast()
+// Livewire-Komponenten nutzen $this->dispatch('toast', type: '...', title: '...'),
+// maryUI <x-toast /> hört aber auf 'mary-toast' Window-Events via window.toast().
+document.addEventListener('livewire:init', () => {
+    const cssMap = { success: 'alert-success', error: 'alert-error', warning: 'alert-warning', info: 'alert-info' };
+
+    Livewire.on('toast', (params) => {
+        const data = Array.isArray(params) ? params[0] : params;
+        const type = data.type || 'info';
+
+        if (typeof window.toast === 'function') {
+            window.toast({
+                toast: {
+                    title: data.title || '',
+                    description: data.description || '',
+                    css: cssMap[type] || 'alert-info',
+                    timeout: data.timeout || 3000,
+                    position: data.position || 'toast-top toast-end',
+                    noProgress: false,
+                },
+            });
+        }
+    });
+});

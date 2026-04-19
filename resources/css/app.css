@@ -36,6 +36,11 @@
     display: none !important;
 }
 
+/* View-Transition-Regeln siehe weiter unten (konsolidierter Block mit prefers-reduced-motion) */
+@view-transition {
+    navigation: auto;
+}
+
 /* Vereinslogo als Asset referenzieren */
 .logo {
     background-image: url('../images/omxfc-logo.png');

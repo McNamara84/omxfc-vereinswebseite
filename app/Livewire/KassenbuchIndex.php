@@ -130,6 +130,11 @@ class KassenbuchIndex extends Component
         return $this->kassenbuchService->checkRenewalWarning(Auth::user());
     }
 
+    public function placeholder()
+    {
+        return view('components.skeleton-table', ['columns' => 5, 'rows' => 10]);
+    }
+
     public function render()
     {
         return view('livewire.kassenbuch-index')
