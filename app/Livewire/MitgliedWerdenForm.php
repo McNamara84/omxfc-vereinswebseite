@@ -102,7 +102,7 @@ class MitgliedWerdenForm extends Component
 
             $user = DB::transaction(function () use ($team) {
                 $user = User::create([
-                    'name' => $this->vorname . ' ' . $this->nachname,
+                    'name' => $this->vorname.' '.$this->nachname,
                     'email' => $this->mail,
                     'password' => Hash::make($this->passwort),
                     'vorname' => $this->vorname,

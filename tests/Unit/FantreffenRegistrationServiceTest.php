@@ -14,7 +14,7 @@ use PHPUnit\Framework\TestCase;
  *
  * HINWEIS: Dieser Test erweitert absichtlich PHPUnit\Framework\TestCase statt Tests\TestCase,
  * da er ein echter Unit-Test ist, der keine Datenbank- oder HTTP-Infrastruktur benötigt.
- * Alle Abhängigkeiten werden per Mock bereitgestellt. Dies entspricht dem Unit-Test-Pattern
+ * Alle Abhängigkeiten werden per Stub/Test Double bereitgestellt. Dies entspricht dem Unit-Test-Pattern
  * und vermeidet unnötigen Overhead durch das Laravel-Test-Setup.
  */
 class FantreffenRegistrationServiceTest extends TestCase
@@ -25,7 +25,7 @@ class FantreffenRegistrationServiceTest extends TestCase
     {
         parent::setUp();
 
-        $deadlineService = $this->createMock(FantreffenDeadlineService::class);
+        $deadlineService = $this->createStub(FantreffenDeadlineService::class);
         $deadlineService->method('isPassed')->willReturn(false);
 
         $this->service = new FantreffenRegistrationService($deadlineService);
@@ -152,7 +152,7 @@ class FantreffenRegistrationServiceTest extends TestCase
 
     public function test_can_order_tshirt_before_deadline(): void
     {
-        $deadlineService = $this->createMock(FantreffenDeadlineService::class);
+        $deadlineService = $this->createStub(FantreffenDeadlineService::class);
         $deadlineService->method('isPassed')->willReturn(false);
 
         $service = new FantreffenRegistrationService($deadlineService);
@@ -162,7 +162,7 @@ class FantreffenRegistrationServiceTest extends TestCase
 
     public function test_cannot_order_tshirt_after_deadline(): void
     {
-        $deadlineService = $this->createMock(FantreffenDeadlineService::class);
+        $deadlineService = $this->createStub(FantreffenDeadlineService::class);
         $deadlineService->method('isPassed')->willReturn(true);
 
         $service = new FantreffenRegistrationService($deadlineService);

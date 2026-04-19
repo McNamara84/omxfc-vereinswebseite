@@ -189,7 +189,7 @@ class HoerbuchPublicAccessTest extends TestCase
 
         $this->get(route('hoerbuecher.show', $episode))
             ->assertOk()
-            ->assertSee('Bisheriger Sprecher: ' . $speaker->name);
+            ->assertSee('Bisheriger Sprecher: '.$speaker->name);
     }
 
     // ─── Gast hat keinen Zugriff auf Management-Routen ──────────────
@@ -278,13 +278,13 @@ class HoerbuchPublicAccessTest extends TestCase
         $this->actingMember('Mitglied');
 
         $this->post(route('hoerbuecher.store'), [
-                'episode_number' => 'F99',
-                'title' => 'Unberechtigt',
-                'author' => 'Autor',
-                'planned_release_date' => '2026',
-                'status' => 'Skripterstellung',
-                'progress' => 0,
-            ])->assertForbidden();
+            'episode_number' => 'F99',
+            'title' => 'Unberechtigt',
+            'author' => 'Autor',
+            'planned_release_date' => '2026',
+            'status' => 'Skripterstellung',
+            'progress' => 0,
+        ])->assertForbidden();
 
         $this->assertDatabaseMissing('audiobook_episodes', ['title' => 'Unberechtigt']);
     }

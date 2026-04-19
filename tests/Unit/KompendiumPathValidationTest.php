@@ -31,11 +31,11 @@ class KompendiumPathValidationTest extends TestCase
     {
         parent::setUp();
 
-        // Controller mit gemockten Dependencies erstellen
+        // Controller mit Stubs erstellen (keine Expectations nötig)
         $this->controller = new KompendiumController(
-            $this->createMock(KompendiumService::class),
-            $this->createMock(KompendiumSearchService::class),
-            $this->createMock(RewardService::class)
+            $this->createStub(KompendiumService::class),
+            $this->createStub(KompendiumSearchService::class),
+            $this->createStub(RewardService::class)
         );
     }
 

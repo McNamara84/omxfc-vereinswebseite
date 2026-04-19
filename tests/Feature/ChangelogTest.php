@@ -30,7 +30,7 @@ class ChangelogTest extends TestCase
     public function test_renders_without_error_when_changelog_missing(): void
     {
         // Point config to a non-existent temp path instead of renaming real file
-        config(['app.changelog_path' => sys_get_temp_dir() . '/non_existent_changelog.json']);
+        config(['app.changelog_path' => sys_get_temp_dir().'/non_existent_changelog.json']);
 
         Livewire::test(Changelog::class)
             ->assertOk();

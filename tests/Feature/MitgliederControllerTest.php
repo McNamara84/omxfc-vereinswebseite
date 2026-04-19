@@ -176,5 +176,4 @@ class MitgliederControllerTest extends TestCase
         $this->assertDatabaseMissing('users', ['id' => $member->id]);
         $this->assertDatabaseMissing('team_user', ['user_id' => $member->id]);
     }
-
 }
