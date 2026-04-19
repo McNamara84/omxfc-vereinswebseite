@@ -23,11 +23,11 @@
 
                     @scope('cell_linked_content', $reward)
                         @if($reward->threeDModel)
-                            <x-badge value="3D: {{ Str::limit($reward->threeDModel->name, 20) }}" class="badge-info badge-sm" />
+                            <x-badge value="3D: {{ Str::limit($reward->threeDModel->name, 20) }}" class="badge-info badge-sm" icon="o-cube" />
                         @elseif($reward->fanfiction)
-                            <x-badge value="FF: {{ Str::limit($reward->fanfiction->title, 20) }}" class="badge-accent badge-sm" />
+                            <x-badge value="FF: {{ Str::limit($reward->fanfiction->title, 20) }}" class="badge-accent badge-sm" icon="o-book-open" />
                         @elseif($reward->download)
-                            <x-badge value="DL: {{ Str::limit($reward->download->title, 20) }}" class="badge-warning badge-sm" />
+                            <x-badge value="DL: {{ Str::limit($reward->download->title, 20) }}" class="badge-warning badge-sm" icon="o-arrow-down-tray" />
                         @else
                             <span class="text-base-content/50 text-xs">—</span>
                         @endif
@@ -35,9 +35,9 @@
 
                     @scope('cell_is_active', $reward)
                         @if($reward->is_active)
-                            <x-badge value="Aktiv" class="badge-success" />
+                            <x-badge value="Aktiv" class="badge-success" icon="o-check" />
                         @else
-                            <x-badge value="Inaktiv" class="badge-ghost" />
+                            <x-badge value="Inaktiv" class="badge-ghost" icon="o-x-mark" />
                         @endif
                     @endscope
 
@@ -73,9 +73,9 @@
 
                     @scope('cell_is_active', $rule)
                         @if($rule->is_active)
-                            <x-badge value="Aktiv" class="badge-success" />
+                            <x-badge value="Aktiv" class="badge-success" icon="o-check" />
                         @else
-                            <x-badge value="Inaktiv" class="badge-ghost" />
+                            <x-badge value="Inaktiv" class="badge-ghost" icon="o-x-mark" />
                         @endif
                     @endscope
 
@@ -139,12 +139,12 @@
 
                     @scope('cell_status', $purchase)
                         @if($purchase->isRefunded())
-                            <x-badge value="Erstattet" class="badge-warning" />
+                            <x-badge value="Erstattet" class="badge-warning" icon="o-arrow-uturn-left" />
                             <span class="text-xs text-base-content/60 block mt-1">
                                 {{ $purchase->refunded_at->format('d.m.Y') }} von {{ $purchase->refundedByUser?->name ?? 'System' }}
                             </span>
                         @else
-                            <x-badge value="Aktiv" class="badge-success" />
+                            <x-badge value="Aktiv" class="badge-success" icon="o-check" />
                         @endif
                     @endscope
 
@@ -200,9 +200,9 @@
 
                     @scope('cell_purchase_count', $reward)
                         @if($reward->purchase_count > 0)
-                            <x-badge :value="$reward->purchase_count" class="badge-success" />
+                            <x-badge :value="$reward->purchase_count" class="badge-success" icon="o-shopping-cart" />
                         @else
-                            <x-badge value="0" class="badge-ghost" />
+                            <x-badge value="0" class="badge-ghost" icon="o-shopping-cart" />
                         @endif
                     @endscope
 
@@ -218,7 +218,7 @@
                             <x-card shadow class="opacity-75">
                                 <div class="flex items-center justify-between">
                                     <span>{{ $reward->title }}</span>
-                                    <x-badge :value="$reward->cost_baxx . ' Baxx'" class="badge-ghost" />
+                                    <x-badge :value="$reward->cost_baxx . ' Baxx'" class="badge-ghost" icon="o-currency-dollar" />
                                 </div>
                             </x-card>
                         @endforeach
@@ -246,15 +246,15 @@
 
                     @scope('cell_is_active', $download)
                         @if($download->is_active)
-                            <x-badge value="Aktiv" class="badge-success" />
+                            <x-badge value="Aktiv" class="badge-success" icon="o-check" />
                         @else
-                            <x-badge value="Inaktiv" class="badge-ghost" />
+                            <x-badge value="Inaktiv" class="badge-ghost" icon="o-x-mark" />
                         @endif
                     @endscope
 
                     @scope('cell_linked_reward', $download)
                         @if($download->reward)
-                            <x-badge :value="$download->reward->title" class="badge-info badge-sm" />
+                            <x-badge :value="$download->reward->title" class="badge-info badge-sm" icon="o-gift" />
                         @else
                             <span class="text-base-content/50 text-sm">Keine</span>
                         @endif

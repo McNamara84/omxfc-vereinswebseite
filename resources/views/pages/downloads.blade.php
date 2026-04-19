@@ -34,7 +34,7 @@
                                                     <span class="text-base-content/60 text-sm block">{{ $download->description }}</span>
                                                 @endif
                                                 @if($download->file_size !== null)
-                                                    <x-badge :value="$download->formatted_file_size" class="badge-ghost badge-sm ml-1" />
+                                                    <x-badge :value="$download->formatted_file_size" class="badge-ghost badge-sm ml-1" icon="o-document" />
                                                 @endif
                                             </span>
 

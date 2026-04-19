@@ -62,6 +62,7 @@
                     wire:model="menuLabel"
                     placeholder="z.B. Abstimmung"
                     data-testid="menu-label-input"
+                    popover="Wird als Menüpunkt in der Navigation angezeigt, wenn die Umfrage aktiv ist."
                 />
 
                 <div data-testid="visibility-section">
@@ -84,7 +85,7 @@
                     <div class="label">
                         <span class="label-text font-medium">Status</span>
                     </div>
-                    <x-badge class="mt-2" :value="$status" />
+                    <x-badge class="mt-2" :value="$status" icon="o-clipboard-document-list" />
                 </div>
             </div>
 

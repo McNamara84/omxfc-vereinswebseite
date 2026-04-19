@@ -62,12 +62,12 @@ class MaddraxDataServiceTest extends TestCase
     {
         $this->actingAs($this->actingMember());
 
-        $this->assertSame(['Author1', 'Author2'], MaddraxDataService::getAutoren());
-        $this->assertSame(['Z1', 'Z2'], MaddraxDataService::getZyklen());
-        $this->assertSame(['1 - Roman1', '2 - Roman2'], MaddraxDataService::getRomane());
-        $this->assertSame(['Figur1', 'Figur2'], MaddraxDataService::getFiguren());
-        $this->assertSame(['Ort1', 'Ort2'], MaddraxDataService::getSchauplaetze());
-        $this->assertSame(['Thema1', 'Thema2'], MaddraxDataService::getSchlagworte());
+        $this->assertArraysAreIdentical(['Author1', 'Author2'], MaddraxDataService::getAutoren());
+        $this->assertArraysAreIdentical(['Z1', 'Z2'], MaddraxDataService::getZyklen());
+        $this->assertArraysAreIdentical(['1 - Roman1', '2 - Roman2'], MaddraxDataService::getRomane());
+        $this->assertArraysAreIdentical(['Figur1', 'Figur2'], MaddraxDataService::getFiguren());
+        $this->assertArraysAreIdentical(['Ort1', 'Ort2'], MaddraxDataService::getSchauplaetze());
+        $this->assertArraysAreIdentical(['Thema1', 'Thema2'], MaddraxDataService::getSchlagworte());
     }
 
     public function test_load_data_returns_empty_when_file_is_missing(): void
@@ -75,7 +75,7 @@ class MaddraxDataServiceTest extends TestCase
         File::delete($this->testStoragePath.'/app/private/maddrax.json');
         $this->actingAs($this->actingMember());
 
-        $this->assertSame([], MaddraxDataService::loadData());
+        $this->assertArraysAreIdentical([], MaddraxDataService::loadData());
     }
 
     public function test_load_data_returns_empty_when_json_is_invalid(): void
@@ -83,6 +83,6 @@ class MaddraxDataServiceTest extends TestCase
         File::put($this->testStoragePath.'/app/private/maddrax.json', '{invalid');
         $this->actingAs($this->actingMember());
 
-        $this->assertSame([], MaddraxDataService::getAutoren());
+        $this->assertArraysAreIdentical([], MaddraxDataService::getAutoren());
     }
 }

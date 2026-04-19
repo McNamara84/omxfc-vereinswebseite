@@ -270,7 +270,7 @@ class PollsTest extends TestCase
             ->test(UmfrageVerwaltung::class)
             ->call('newPoll');
 
-        $this->assertSame([], $component->get('chartData'));
+        $this->assertArraysAreIdentical([], $component->get('chartData'));
     }
 
     public function test_poll_with_options_but_no_votes_shows_hint_text_and_no_charts(): void

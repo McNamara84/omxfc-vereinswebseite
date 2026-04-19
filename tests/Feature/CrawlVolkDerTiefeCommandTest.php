@@ -102,7 +102,7 @@ class CrawlVolkDerTiefeCommandTest extends TestCase
 
         $data = json_decode(Storage::disk('private')->get('volkdertiefe.json'), true);
         $this->assertCount(1, $data, 'Future releases should be skipped');
-        $this->assertSame([
+        $this->assertArraysAreIdentical([
             'nummer' => 1,
             'evt' => '2020-01-01',
             'zyklus' => 'Testzyklus',

@@ -534,7 +534,7 @@ class RomantauschControllerTest extends TestCase
             'photos' => [' /book-offers/foo.jpg ', '///', 'book-offers/bar.jpg', ' book-offers/baz.jpg ', '', null],
         ]);
 
-        $this->assertSame([
+        $this->assertArraysAreIdentical([
             'book-offers/foo.jpg',
             'book-offers/bar.jpg',
             'book-offers/baz.jpg',
@@ -542,7 +542,7 @@ class RomantauschControllerTest extends TestCase
 
         $offer->refresh();
 
-        $this->assertSame([
+        $this->assertArraysAreIdentical([
             'book-offers/foo.jpg',
             'book-offers/bar.jpg',
             'book-offers/baz.jpg',

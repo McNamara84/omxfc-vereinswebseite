@@ -2,9 +2,9 @@
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <x-header title="Belohnungen" separator>
             <x-slot:subtitle>
-                Verdient: <x-badge :value="$this->earnedBaxx . ' Baxx'" class="badge-primary" />
-                Ausgegeben: <x-badge :value="$this->spentBaxx . ' Baxx'" class="badge-ghost" />
-                Verfügbar: <x-badge :value="$this->availableBaxx . ' Baxx'" class="badge-success" />
+                Verdient: <x-badge :value="$this->earnedBaxx . ' Baxx'" class="badge-primary" icon="o-arrow-trending-up" />
+                Ausgegeben: <x-badge :value="$this->spentBaxx . ' Baxx'" class="badge-ghost" icon="o-arrow-trending-down" />
+                Verfügbar: <x-badge :value="$this->availableBaxx . ' Baxx'" class="badge-success" icon="o-banknotes" />
             </x-slot:subtitle>
         </x-header>
 
@@ -62,12 +62,13 @@
                                 <x-badge
                                     :value="$reward['cost_baxx'] . ' Baxx'"
                                     class="shrink-0 whitespace-nowrap {{ $reward['purchased'] ? 'badge-success' : ($reward['can_afford'] ? 'badge-primary' : 'badge-ghost') }}"
+                                    icon="o-currency-dollar"
                                 />
                             </div>
 
                             <div class="flex justify-end">
                                 @if($reward['purchased'])
-                                    <x-badge value="✓ Freigeschaltet" class="badge-success badge-lg" />
+                                    <x-badge value="Freigeschaltet" class="badge-success badge-lg" icon="o-lock-open" />
                                 @elseif($reward['can_afford'])
                                     <x-button
                                         label="Freischalten"
@@ -78,8 +79,9 @@
                                     />
                                 @else
                                     <x-badge
-                                        value="🔒 {{ $reward['missing_baxx'] }} Baxx fehlen"
+                                        :value="$reward['missing_baxx'] . ' Baxx fehlen'"
                                         class="badge-ghost badge-lg"
+                                        icon="o-lock-closed"
                                     />
                                 @endif
                             </div>

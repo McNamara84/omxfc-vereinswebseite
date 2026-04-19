@@ -45,32 +45,32 @@ This document provides comprehensive guidance for AI assistants working with the
 - **Framework:** Laravel 12 (latest version)
 - **PHP:** 8.5 (PHP 8.5 only)
 - **Key Packages:**
-  - Laravel Jetstream 5.3 (team management, authentication)
-  - Laravel Sanctum 4.0 (API authentication)
-  - Livewire 3.6 (reactive components)
+  - Laravel Jetstream 5.5 (team management, authentication)
+  - Laravel Sanctum 4.3 (API authentication)
+  - Livewire 4.x (reactive components)
   - Laravel Scout 10.14 with TNTSearch (full-text search)
   - Spatie Laravel PDF (PDF generation)
-  - Spatie Laravel Sitemap 7.3 (sitemap generation)
+  - Spatie Laravel Sitemap 8.0 (sitemap generation)
 
 ### Frontend
-- **CSS Framework:** Tailwind CSS 3.4 with plugins (@tailwindcss/forms, @tailwindcss/typography)
-- **Build Tool:** Vite 6.0
+- **CSS Framework:** Tailwind CSS 4.x
+- **UI Components:** maryUI 2.8 (Blade component library)
+- **Build Tool:** Vite 7.x
 - **JavaScript:**
   - Alpine.js (via Jetstream)
-  - Alpine.js Focus plugin 3.14
-  - Chart.js 4.4 (data visualization)
+  - Alpine.js Focus plugin 3.15
+  - Chart.js 4.5 (data visualization)
   - Leaflet 1.9 (maps)
   - Leaflet MarkerCluster 1.5 (map clustering)
-  - Simple Datatables 9.2 (table enhancement)
 
 ### Testing & Quality
-- **PHP Testing:** PHPUnit 11.5
+- **PHP Testing:** PHPUnit 13.x
 - **JavaScript Testing:**
-  - Jest 30.0 (legacy tests)
-  - Vitest 3.2 (modern tests)
-  - Playwright 1.47 (E2E tests)
-  - @axe-core/playwright 4.10 (accessibility testing)
-- **Code Style:** Laravel Pint 1.13
+  - Jest 30.2 (legacy tests)
+  - Vitest 4.0 (modern tests)
+  - Playwright 1.57 (E2E tests)
+  - @axe-core/playwright 4.11 (accessibility testing)
+- **Code Style:** Laravel Pint 1.29
 
 ### Development Tools
 - **Package Manager:** Composer 2.6+, npm 10

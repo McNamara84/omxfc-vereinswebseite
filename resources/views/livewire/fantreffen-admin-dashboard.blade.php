@@ -184,9 +184,9 @@
                 @scope('cell_status', $anmeldung)
                     <div class="text-center">
                         @if ($anmeldung->ist_mitglied)
-                            <x-badge value="Mitglied" class="badge-success" />
+                            <x-badge value="Mitglied" class="badge-success" icon="o-user" />
                         @else
-                            <x-badge value="Gast" class="badge-info" />
+                            <x-badge value="Gast" class="badge-info" icon="o-user-plus" />
                         @endif
                     </div>
                 @endscope
@@ -210,7 +210,7 @@
                                 @endif
                             </x-button>
                         @else
-                            <x-badge value="Nur Mitglieder" class="badge-ghost badge-sm" />
+                            <x-badge value="Nur Mitglieder" class="badge-ghost badge-sm" icon="o-lock-closed" />
                         @endif
                     </div>
                 @endscope
@@ -238,9 +238,9 @@
                         <div class="font-medium">{{ number_format($anmeldung->payment_amount, 2, ',', '.') }} €</div>
                         <div class="mt-1 flex flex-wrap justify-center gap-1">
                             @if ($anmeldung->payment_status === 'free')
-                                <x-badge value="Kostenlos" class="badge-ghost badge-sm" />
+                                <x-badge value="Kostenlos" class="badge-ghost badge-sm" icon="o-gift" />
                                 @if ($anmeldung->orga_team)
-                                    <x-badge value="Orga-Team" class="badge-primary badge-sm" />
+                                    <x-badge value="Orga-Team" class="badge-primary badge-sm" icon="o-user-group" />
                                 @endif
                             @else
                                 <x-button

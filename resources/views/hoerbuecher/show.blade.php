@@ -50,7 +50,7 @@
                                         <div class="flex flex-wrap items-center gap-2">
                                             <span>{{ $role->name }}</span>
                                             @if($role->uploaded)
-                                                <x-badge value="Upload vorhanden" class="badge-success badge-sm" role="status" aria-label="Aufnahme für diese Rolle wurde hochgeladen" />
+                                                <x-badge value="Upload vorhanden" class="badge-success badge-sm" role="status" aria-label="Aufnahme für diese Rolle wurde hochgeladen" icon="o-check-circle" />
                                                 <span class="sr-only">Für diese Rolle wurde bereits eine Aufnahme hochgeladen.</span>
                                             @endif
                                         </div>

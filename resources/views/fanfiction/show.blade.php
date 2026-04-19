@@ -13,12 +13,12 @@
                     {{ $fanfiction->title }}
                     @if ($fanfiction->reward)
                         @if ($hasUnlocked)
-                            <x-badge value="Freigeschaltet" class="badge-success" />
+                            <x-badge value="Freigeschaltet" class="badge-success" icon="o-lock-open" />
                         @else
-                            <x-badge value="{{ $fanfiction->reward->cost_baxx }} Baxx" class="badge-warning" />
+                            <x-badge value="{{ $fanfiction->reward->cost_baxx }} Baxx" class="badge-warning" icon="o-currency-dollar" />
                         @endif
                     @else
-                        <x-badge value="Kostenlos" class="badge-success" />
+                        <x-badge value="Kostenlos" class="badge-success" icon="o-gift" />
                     @endif
                 </h1>
                 <p class="text-base-content">

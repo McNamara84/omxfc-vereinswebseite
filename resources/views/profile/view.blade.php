@@ -25,7 +25,7 @@
                                 <p class="text-lg text-base-content">{{ $user->vorname }}
                                     {{ $user->nachname }}
                                 </p>
-                                <x-badge value="{{ $memberRole }}" class="badge-primary mt-1" />
+                                <x-badge value="{{ $memberRole }}" class="badge-primary mt-1" icon="o-identification" />
                                 <div class="mt-2 text-sm text-base-content flex items-center">
                                     @if ($isOnline)
                                         <span class="flex items-center">

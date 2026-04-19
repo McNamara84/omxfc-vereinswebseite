@@ -19,7 +19,7 @@
                         >
                             <span class="flex flex-col sm:flex-row sm:items-center sm:gap-2">
                                 <span>Protokolle {{ $jahr }}</span>
-                                <x-badge :value="count($dokumente) . ' ' . (count($dokumente) === 1 ? 'Dokument' : 'Dokumente')" class="badge-ghost badge-sm" />
+                                <x-badge :value="count($dokumente) . ' ' . (count($dokumente) === 1 ? 'Dokument' : 'Dokumente')" class="badge-ghost badge-sm" icon="o-document-text" />
                             </span>
                             <span class="flex items-center gap-2 text-xl" aria-hidden="true">
                                 <span class="select-none" x-text="open ? '−' : '+'">+</span>

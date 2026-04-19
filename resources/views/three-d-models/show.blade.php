@@ -83,9 +83,9 @@
                     <div class="mt-1">
                         @if ($model->reward)
                             <x-badge :value="$model->reward->cost_baxx . ' Baxx'"
-                                class="{{ $isUnlocked ? 'badge-success' : 'badge-ghost' }}" />
+                                class="{{ $isUnlocked ? 'badge-success' : 'badge-ghost' }}" icon="o-currency-dollar" />
                         @else
-                            <x-badge value="Kostenlos" class="badge-success" />
+                            <x-badge value="Kostenlos" class="badge-success" icon="o-gift" />
                         @endif
                     </div>
                 </div>

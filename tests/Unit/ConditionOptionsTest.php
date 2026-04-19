@@ -22,7 +22,7 @@ class ConditionOptionsTest extends TestCase
         $this->assertCount(7, $options);
 
         $ids = array_column($options, 'id');
-        $this->assertSame(['Z0', 'Z0-1', 'Z1', 'Z1-2', 'Z2', 'Z2-3', 'Z3'], $ids);
+        $this->assertArraysAreIdentical(['Z0', 'Z0-1', 'Z1', 'Z1-2', 'Z2', 'Z2-3', 'Z3'], $ids);
     }
 
     public function test_full_returns_nine_options(): void
@@ -32,7 +32,7 @@ class ConditionOptionsTest extends TestCase
         $this->assertCount(9, $options);
 
         $ids = array_column($options, 'id');
-        $this->assertSame(['Z0', 'Z0-1', 'Z1', 'Z1-2', 'Z2', 'Z2-3', 'Z3', 'Z3-4', 'Z4'], $ids);
+        $this->assertArraysAreIdentical(['Z0', 'Z0-1', 'Z1', 'Z1-2', 'Z2', 'Z2-3', 'Z3', 'Z3-4', 'Z4'], $ids);
     }
 
     public function test_with_same_option_prepends_empty_id_option(): void

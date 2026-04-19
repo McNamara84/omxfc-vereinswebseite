@@ -751,7 +751,7 @@ class HoerbuchControllerTest extends TestCase
 
         $episodes = $response->viewData('episodes');
 
-        $this->assertEquals([
+        $this->assertArraysAreEqual([
             'F3', 'F2', 'F1',
         ], $episodes->pluck('episode_number')->toArray());
     }

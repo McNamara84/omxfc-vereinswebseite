@@ -44,6 +44,7 @@
                             value="{{ old('planned_release_date') }}"
                             placeholder="JJJJ, MM.JJJJ oder TT.MM.JJJJ"
                             required
+                            popover="Erstveröffentlichungstermin. Flexibles Format: nur Jahr, Monat.Jahr oder exaktes Datum."
                         />
                     </div>
 
@@ -74,6 +75,7 @@
                             min="0"
                             max="100"
                             required
+                            popover="Geschätzter Gesamtfortschritt der Produktion in Prozent."
                         />
                     </div>
 

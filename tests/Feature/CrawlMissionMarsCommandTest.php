@@ -56,7 +56,7 @@ class CrawlMissionMarsCommandTest extends TestCase
 
         $urls = $method->invoke($command, 'file://'.$file1);
 
-        $this->assertSame([
+        $this->assertArraysAreIdentical([
             'https://de.maddraxikon.com/wiki/A1',
         ], $urls);
     }
@@ -86,7 +86,7 @@ class CrawlMissionMarsCommandTest extends TestCase
 
         $info = $method->invoke($command, 'file://'.$file);
 
-        $this->assertSame([
+        $this->assertArraysAreIdentical([
             '123',
             '2024-01',
             'Testzyklus',
@@ -120,7 +120,7 @@ class CrawlMissionMarsCommandTest extends TestCase
         $this->assertTrue($result);
         $json = json_decode(File::get($file), true);
         $numbers = array_column($json, 'nummer');
-        $this->assertSame([2, 3], $numbers); // future release skipped, sorted
+        $this->assertArraysAreIdentical([2, 3], $numbers); // future release skipped, sorted
         Carbon::setTestNow();
     }
 }

@@ -56,7 +56,7 @@ class CrawlHardcoversCommandTest extends TestCase
 
         $urls = $method->invoke($command, 'file://'.$file1);
 
-        $this->assertSame([
+        $this->assertArraysAreIdentical([
             'https://de.maddraxikon.com/wiki/A1',
         ], $urls);
     }
@@ -99,7 +99,7 @@ class CrawlHardcoversCommandTest extends TestCase
 
         $info = $method->invoke($command, 'file://'.$file);
 
-        $this->assertSame([
+        $this->assertArraysAreIdentical([
             123,
             'Der Roman',
             '2024-01',
@@ -132,7 +132,7 @@ class CrawlHardcoversCommandTest extends TestCase
         $file = storage_path('app/private/hardcovers.json');
         $json = json_decode(File::get($file), true);
         $numbers = array_column($json, 'nummer');
-        $this->assertSame([2, 3], $numbers); // future release skipped, sorted
+        $this->assertArraysAreIdentical([2, 3], $numbers); // future release skipped, sorted
         $today = collect($json)->firstWhere('nummer', 3);
         $this->assertNull($today['bewertung']);
         Carbon::setTestNow();
@@ -155,7 +155,7 @@ class CrawlHardcoversCommandTest extends TestCase
 
         $info = $method->invoke($command, 'file://'.$file);
 
-        $this->assertSame([
+        $this->assertArraysAreIdentical([
             5,
             'Unrated Title',
             '2024-01',

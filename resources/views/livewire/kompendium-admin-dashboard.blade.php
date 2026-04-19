@@ -158,7 +158,7 @@
                     data-testid="tab-{{ $key }}">
                     {{ $name }}
                     @if(isset($this->romanZahlenProSerie[$key]))
-                        <x-badge :value="$this->romanZahlenProSerie[$key]" class="badge-sm ml-1" />
+                        <x-badge :value="$this->romanZahlenProSerie[$key]" class="badge-sm ml-1" icon="o-book-open" />
                     @endif
                 </button>
             @endforeach
@@ -250,16 +250,16 @@
                                 <td>
                                     @switch($roman->status)
                                         @case('indexiert')
-                                            <x-badge value="✓ Indexiert" class="badge-success" />
+                                            <x-badge value="Indexiert" class="badge-success" icon="o-check-circle" />
                                             @break
                                         @case('hochgeladen')
-                                            <x-badge value="○ Hochgeladen" class="badge-info" />
+                                            <x-badge value="Hochgeladen" class="badge-info" icon="o-cloud-arrow-up" />
                                             @break
                                         @case('indexierung_laeuft')
-                                            <x-badge value="⟳ Läuft..." class="badge-warning animate-pulse" />
+                                            <x-badge value="Läuft..." class="badge-warning animate-pulse" icon="o-arrow-path" />
                                             @break
                                         @case('fehler')
-                                            <x-badge value="✗ Fehler" class="badge-error" />
+                                            <x-badge value="Fehler" class="badge-error" icon="o-x-circle" />
                                             @break
                                     @endswitch
                                 </td>
@@ -358,7 +358,8 @@
                     wire:model="editZyklus"
                     placeholder="z.B. Euree, Meeraka..."
                     hint="Leer lassen falls Miniserie ohne Zyklen"
-                    data-testid="edit-zyklus" />
+                    data-testid="edit-zyklus"
+                    popover="Der Handlungszyklus, dem dieser Roman zugeordnet ist. Bei Miniserien ohne Zyklen leer lassen." />
 
                 <x-input
                     label="Roman-Nummer"
