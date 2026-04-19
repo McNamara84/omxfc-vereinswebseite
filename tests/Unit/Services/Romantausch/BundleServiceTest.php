@@ -22,62 +22,62 @@ class BundleServiceTest extends TestCase
 
     public function test_parse_single_numbers(): void
     {
-        $this->assertEquals([1, 5, 10], $this->service->parseBookNumbers('1, 5, 10'));
+        $this->assertArraysAreEqual([1, 5, 10], $this->service->parseBookNumbers('1, 5, 10'));
     }
 
     public function test_parse_range(): void
     {
-        $this->assertEquals([1, 2, 3, 4, 5], $this->service->parseBookNumbers('1-5'));
+        $this->assertArraysAreEqual([1, 2, 3, 4, 5], $this->service->parseBookNumbers('1-5'));
     }
 
     public function test_parse_mixed_ranges_and_singles(): void
     {
         $result = $this->service->parseBookNumbers('1-3, 5, 7-9');
-        $this->assertEquals([1, 2, 3, 5, 7, 8, 9], $result);
+        $this->assertArraysAreEqual([1, 2, 3, 5, 7, 8, 9], $result);
     }
 
     public function test_parse_removes_duplicates(): void
     {
         $result = $this->service->parseBookNumbers('1, 2, 1-3');
-        $this->assertEquals([1, 2, 3], $result);
+        $this->assertArraysAreEqual([1, 2, 3], $result);
     }
 
     public function test_parse_handles_whitespace(): void
     {
         $result = $this->service->parseBookNumbers('  1 , 2 , 3  ');
-        $this->assertEquals([1, 2, 3], $result);
+        $this->assertArraysAreEqual([1, 2, 3], $result);
     }
 
     public function test_parse_handles_leading_zeros(): void
     {
         $result = $this->service->parseBookNumbers('001, 010, 100');
-        $this->assertEquals([1, 10, 100], $result);
+        $this->assertArraysAreEqual([1, 10, 100], $result);
     }
 
     public function test_parse_ignores_invalid_ranges(): void
     {
         // Umgekehrter Bereich wird ignoriert
         $result = $this->service->parseBookNumbers('5-1, 10');
-        $this->assertEquals([10], $result);
+        $this->assertArraysAreEqual([10], $result);
     }
 
     public function test_parse_ignores_too_large_ranges(): void
     {
         // Bereich > MAX_RANGE_SPAN wird ignoriert
         $result = $this->service->parseBookNumbers('1-600, 10');
-        $this->assertEquals([10], $result);
+        $this->assertArraysAreEqual([10], $result);
     }
 
     public function test_parse_ignores_non_numeric(): void
     {
         $result = $this->service->parseBookNumbers('1, abc, 3');
-        $this->assertEquals([1, 3], $result);
+        $this->assertArraysAreEqual([1, 3], $result);
     }
 
     public function test_parse_returns_empty_for_invalid_input(): void
     {
-        $this->assertEquals([], $this->service->parseBookNumbers(''));
-        $this->assertEquals([], $this->service->parseBookNumbers('abc'));
+        $this->assertArraysAreEqual([], $this->service->parseBookNumbers(''));
+        $this->assertArraysAreEqual([], $this->service->parseBookNumbers('abc'));
     }
 
     // ========== formatBookNumbersRange Tests ==========

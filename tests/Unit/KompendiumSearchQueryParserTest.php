@@ -35,7 +35,7 @@ class KompendiumSearchQueryParserTest extends TestCase
         $result = $this->service->parseSearchQuery('"Matthew Drax"');
 
         $this->assertTrue($result['isPhraseSearch']);
-        $this->assertEquals(['matthew drax'], $result['phrases']);
+        $this->assertArraysAreEqual(['matthew drax'], $result['phrases']);
         $this->assertEmpty($result['terms']);
     }
 
@@ -46,7 +46,7 @@ class KompendiumSearchQueryParserTest extends TestCase
 
         $this->assertFalse($result['isPhraseSearch']);
         $this->assertEmpty($result['phrases']);
-        $this->assertEquals(['abenteuer', 'mutation'], $result['terms']);
+        $this->assertArraysAreEqual(['abenteuer', 'mutation'], $result['terms']);
     }
 
     #[Test]
@@ -55,8 +55,8 @@ class KompendiumSearchQueryParserTest extends TestCase
         $result = $this->service->parseSearchQuery('"Matthew Drax" Abenteuer');
 
         $this->assertTrue($result['isPhraseSearch']);
-        $this->assertEquals(['matthew drax'], $result['phrases']);
-        $this->assertEquals(['abenteuer'], $result['terms']);
+        $this->assertArraysAreEqual(['matthew drax'], $result['phrases']);
+        $this->assertArraysAreEqual(['abenteuer'], $result['terms']);
     }
 
     #[Test]
@@ -65,7 +65,7 @@ class KompendiumSearchQueryParserTest extends TestCase
         $result = $this->service->parseSearchQuery('"Matthew Drax" "Volk der Tiefe"');
 
         $this->assertTrue($result['isPhraseSearch']);
-        $this->assertEquals(['matthew drax', 'volk der tiefe'], $result['phrases']);
+        $this->assertArraysAreEqual(['matthew drax', 'volk der tiefe'], $result['phrases']);
         $this->assertEmpty($result['terms']);
     }
 
@@ -76,7 +76,7 @@ class KompendiumSearchQueryParserTest extends TestCase
 
         $this->assertFalse($result['isPhraseSearch']);
         $this->assertEmpty($result['phrases']);
-        $this->assertEquals(['abenteuer'], $result['terms']);
+        $this->assertArraysAreEqual(['abenteuer'], $result['terms']);
     }
 
     #[Test]
@@ -86,7 +86,7 @@ class KompendiumSearchQueryParserTest extends TestCase
 
         $this->assertFalse($result['isPhraseSearch']);
         $this->assertEmpty($result['phrases']);
-        $this->assertEquals(['abenteuer'], $result['terms']);
+        $this->assertArraysAreEqual(['abenteuer'], $result['terms']);
     }
 
     #[Test]
@@ -95,7 +95,7 @@ class KompendiumSearchQueryParserTest extends TestCase
         $result = $this->service->parseSearchQuery('"Matthew Drax" x');
 
         $this->assertTrue($result['isPhraseSearch']);
-        $this->assertEquals(['matthew drax'], $result['phrases']);
+        $this->assertArraysAreEqual(['matthew drax'], $result['phrases']);
         $this->assertEmpty($result['terms']);
     }
 
@@ -106,7 +106,7 @@ class KompendiumSearchQueryParserTest extends TestCase
 
         $this->assertTrue($result['isPhraseSearch']);
         // Phrase wird getrimmt, interne Leerzeichen bleiben erhalten
-        $this->assertEquals(['matthew   drax'], $result['phrases']);
+        $this->assertArraysAreEqual(['matthew   drax'], $result['phrases']);
     }
 
     #[Test]
@@ -115,8 +115,8 @@ class KompendiumSearchQueryParserTest extends TestCase
         $result = $this->service->parseSearchQuery('"Matthew Drax" Abenteuer "Volk der Tiefe" Mutation');
 
         $this->assertTrue($result['isPhraseSearch']);
-        $this->assertEquals(['matthew drax', 'volk der tiefe'], $result['phrases']);
-        $this->assertEquals(['abenteuer', 'mutation'], $result['terms']);
+        $this->assertArraysAreEqual(['matthew drax', 'volk der tiefe'], $result['phrases']);
+        $this->assertArraysAreEqual(['abenteuer', 'mutation'], $result['terms']);
     }
 
     #[Test]
@@ -124,8 +124,8 @@ class KompendiumSearchQueryParserTest extends TestCase
     {
         $result = $this->service->parseSearchQuery('"MATTHEW DRAX" ABENTEUER');
 
-        $this->assertEquals(['matthew drax'], $result['phrases']);
-        $this->assertEquals(['abenteuer'], $result['terms']);
+        $this->assertArraysAreEqual(['matthew drax'], $result['phrases']);
+        $this->assertArraysAreEqual(['abenteuer'], $result['terms']);
     }
 
     #[Test]
@@ -135,19 +135,19 @@ class KompendiumSearchQueryParserTest extends TestCase
         $result = $this->service->parseSearchQuery("\u{201C}Matthew Drax\u{201D} Abenteuer");
 
         $this->assertTrue($result['isPhraseSearch']);
-        $this->assertEquals(['matthew drax'], $result['phrases']);
-        $this->assertEquals(['abenteuer'], $result['terms']);
+        $this->assertArraysAreEqual(['matthew drax'], $result['phrases']);
+        $this->assertArraysAreEqual(['abenteuer'], $result['terms']);
     }
 
     #[Test]
     public function parse_deutsche_anfuehrungszeichen_werden_normalisiert(): void
     {
-        // Deutsches „…" (U+201E / U+201C)
+        // Deutsches „…“ (U+201E / U+201C)
         $result = $this->service->parseSearchQuery("\u{201E}Matthew Drax\u{201C} Mutation");
 
         $this->assertTrue($result['isPhraseSearch']);
-        $this->assertEquals(['matthew drax'], $result['phrases']);
-        $this->assertEquals(['mutation'], $result['terms']);
+        $this->assertArraysAreEqual(['matthew drax'], $result['phrases']);
+        $this->assertArraysAreEqual(['mutation'], $result['terms']);
     }
 
     /* --------------------------------------------------------------------- */

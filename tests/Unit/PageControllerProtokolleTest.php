@@ -35,7 +35,7 @@ class PageControllerProtokolleTest extends TestCase
         $this->assertSame('Außerordentliche Mitgliederversammlung', $viewData[2026][0]['titel']);
 
         $years = array_keys($viewData);
-        $this->assertSame([2026, 2025, 2024, 2023], $years);
+        $this->assertArraysAreIdentical([2026, 2025, 2024, 2023], $years);
     }
 
     public function test_download_protokoll_streams_file_from_private_disk(): void

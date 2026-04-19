@@ -51,6 +51,6 @@ class IndexRomaneCommandTest extends TestCase
 
         $result = $method->invoke($command, 'romane/Z2/123 - Titel.txt');
 
-        $this->assertSame(['Z2', '123', 'Titel'], $result);
+        $this->assertArraysAreIdentical(['Z2', '123', 'Titel'], $result);
     }
 }

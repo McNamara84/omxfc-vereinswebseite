@@ -58,49 +58,49 @@ class BundleOfferTest extends TestCase
     {
         $service = app(BundleService::class);
         $result = $service->parseBookNumbers('5');
-        $this->assertEquals([5], $result);
+        $this->assertArraysAreEqual([5], $result);
     }
 
     public function test_parse_book_numbers_multiple_single_numbers(): void
     {
         $service = app(BundleService::class);
         $result = $service->parseBookNumbers('1, 3, 5, 7');
-        $this->assertEquals([1, 3, 5, 7], $result);
+        $this->assertArraysAreEqual([1, 3, 5, 7], $result);
     }
 
     public function test_parse_book_numbers_range(): void
     {
         $service = app(BundleService::class);
         $result = $service->parseBookNumbers('1-5');
-        $this->assertEquals([1, 2, 3, 4, 5], $result);
+        $this->assertArraysAreEqual([1, 2, 3, 4, 5], $result);
     }
 
     public function test_parse_book_numbers_mixed_ranges_and_singles(): void
     {
         $service = app(BundleService::class);
         $result = $service->parseBookNumbers('1-5, 10, 15-17');
-        $this->assertEquals([1, 2, 3, 4, 5, 10, 15, 16, 17], $result);
+        $this->assertArraysAreEqual([1, 2, 3, 4, 5, 10, 15, 16, 17], $result);
     }
 
     public function test_parse_book_numbers_removes_duplicates(): void
     {
         $service = app(BundleService::class);
         $result = $service->parseBookNumbers('1-5, 3, 4, 5');
-        $this->assertEquals([1, 2, 3, 4, 5], $result);
+        $this->assertArraysAreEqual([1, 2, 3, 4, 5], $result);
     }
 
     public function test_parse_book_numbers_ignores_invalid_input(): void
     {
         $service = app(BundleService::class);
         $result = $service->parseBookNumbers('1, abc, 5, xyz');
-        $this->assertEquals([1, 5], $result);
+        $this->assertArraysAreEqual([1, 5], $result);
     }
 
     public function test_parse_book_numbers_handles_whitespace(): void
     {
         $service = app(BundleService::class);
         $result = $service->parseBookNumbers('  1  ,  3  -  5  ,  10  ');
-        $this->assertEquals([1, 3, 4, 5, 10], $result);
+        $this->assertArraysAreEqual([1, 3, 4, 5, 10], $result);
     }
 
     public function test_parse_book_numbers_removes_duplicates_and_handles_unsorted(): void
