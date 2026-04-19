@@ -58,19 +58,18 @@ This document provides comprehensive guidance for AI assistants working with the
 - **Build Tool:** Vite 7.x
 - **JavaScript:**
   - Alpine.js (via Jetstream)
-  - Alpine.js Focus plugin 3.14
-  - Chart.js 4.4 (data visualization)
+  - Alpine.js Focus plugin 3.15
+  - Chart.js 4.5 (data visualization)
   - Leaflet 1.9 (maps)
   - Leaflet MarkerCluster 1.5 (map clustering)
-  - Simple Datatables 9.2 (table enhancement)
 
 ### Testing & Quality
 - **PHP Testing:** PHPUnit 13.x
 - **JavaScript Testing:**
-  - Jest 30.0 (legacy tests)
-  - Vitest 3.2 (modern tests)
-  - Playwright 1.47 (E2E tests)
-  - @axe-core/playwright 4.10 (accessibility testing)
+  - Jest 30.2 (legacy tests)
+  - Vitest 4.0 (modern tests)
+  - Playwright 1.57 (E2E tests)
+  - @axe-core/playwright 4.11 (accessibility testing)
 - **Code Style:** Laravel Pint 1.29
 
 ### Development Tools
