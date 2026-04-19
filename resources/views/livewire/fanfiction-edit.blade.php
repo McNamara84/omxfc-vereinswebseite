@@ -142,10 +142,10 @@
             <x-alert icon="o-information-circle">
                 <strong>Status:</strong>
                 @if($this->fanfiction->status === \App\Enums\FanfictionStatus::Published)
-                    <x-badge value="Veröffentlicht" class="badge-success ml-2" />
+                    <x-badge value="Veröffentlicht" class="badge-success ml-2" icon="o-check-circle" />
                     ({{ $this->fanfiction->published_at->format('d.m.Y H:i') }})
                 @else
-                    <x-badge value="Entwurf" class="badge-warning ml-2" />
+                    <x-badge value="Entwurf" class="badge-warning ml-2" icon="o-pencil-square" />
                 @endif
             </x-alert>
 

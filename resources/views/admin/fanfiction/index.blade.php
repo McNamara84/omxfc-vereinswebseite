@@ -71,9 +71,9 @@
                                     </td>
                                     <td>
                                         @if($fanfiction->status === \App\Enums\FanfictionStatus::Published)
-                                            <x-badge value="Veröffentlicht" class="badge-success" />
+                                            <x-badge value="Veröffentlicht" class="badge-success" icon="o-check-circle" />
                                         @else
-                                            <x-badge value="Entwurf" class="badge-warning" />
+                                            <x-badge value="Entwurf" class="badge-warning" icon="o-pencil-square" />
                                         @endif
                                     </td>
                                     <td>

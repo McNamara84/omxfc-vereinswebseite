@@ -116,14 +116,14 @@
                                                 @endphp
                                                 
                                                 @if($differenz < 0)
-                                                    <x-badge value="Überfällig: {{ $bezahlt_bis->format('d.m.Y') }}" class="badge-error" />
+                                                    <x-badge value="Überfällig: {{ $bezahlt_bis->format('d.m.Y') }}" class="badge-error" icon="o-exclamation-triangle" />
                                                 @elseif($differenz <= 30)
-                                                    <x-badge value="{{ $bezahlt_bis->format('d.m.Y') }}" class="badge-warning" />
+                                                    <x-badge value="{{ $bezahlt_bis->format('d.m.Y') }}" class="badge-warning" icon="o-clock" />
                                                 @else
-                                                    <x-badge value="{{ $bezahlt_bis->format('d.m.Y') }}" class="badge-success" />
+                                                    <x-badge value="{{ $bezahlt_bis->format('d.m.Y') }}" class="badge-success" icon="o-check-circle" />
                                                 @endif
                                             @else
-                                                <x-badge value="Nicht festgelegt" class="badge-ghost" />
+                                                <x-badge value="Nicht festgelegt" class="badge-ghost" icon="o-minus-circle" />
                                             @endif
                                         </td>
                                         @if($userRole === \App\Enums\Role::Kassenwart || $userRole === \App\Enums\Role::Admin)

@@ -19,13 +19,13 @@
                     <h2 class="text-xl font-semibold text-primary">{{ $todo->title }}</h2>
                     <div class="mt-2 md:mt-0">
                         @if($todo->status->value === 'open')
-                            <x-badge value="Offen" class="badge-ghost" />
+                            <x-badge value="Offen" class="badge-ghost" icon="o-clock" />
                         @elseif($todo->status->value === 'assigned')
-                            <x-badge value="In Bearbeitung" class="badge-info" />
+                            <x-badge value="In Bearbeitung" class="badge-info" icon="o-arrow-path" />
                         @elseif($todo->status->value === 'completed')
-                            <x-badge value="Wartet auf Verifizierung" class="badge-warning" />
+                            <x-badge value="Wartet auf Verifizierung" class="badge-warning" icon="o-eye" />
                         @elseif($todo->status->value === 'verified')
-                            <x-badge value="Verifiziert" class="badge-success" />
+                            <x-badge value="Verifiziert" class="badge-success" icon="o-check-circle" />
                         @endif
                     </div>
                 </div>

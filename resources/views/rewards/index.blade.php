@@ -2,7 +2,7 @@
     <x-member-page class="max-w-4xl">
         <x-header title="Belohnungen">
             <x-slot:subtitle>
-                Dein aktuelles Baxx-Guthaben: <x-badge :value="$userPoints" class="badge-primary" />
+                Dein aktuelles Baxx-Guthaben: <x-badge :value="$userPoints" class="badge-primary" icon="o-currency-dollar" />
             </x-slot:subtitle>
         </x-header>
 
@@ -20,7 +20,7 @@
                                 </p>
                             @endif
                         </div>
-                        <x-badge :value="$reward['points'] . ' Baxx'" class="shrink-0 whitespace-nowrap {{ $unlocked ? 'badge-success' : 'badge-ghost' }}" />
+                        <x-badge :value="$reward['points'] . ' Baxx'" class="shrink-0 whitespace-nowrap {{ $unlocked ? 'badge-success' : 'badge-ghost' }}" icon="o-currency-dollar" />
                     </div>
                 </x-card>
             @endforeach

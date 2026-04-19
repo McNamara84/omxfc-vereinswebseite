@@ -126,7 +126,7 @@
                         <h2 class="text-xl font-semibold text-primary">Aktivitäten</h2>
                         <p class="text-sm text-base-content">Neueste Rezensionen, Kommentare & Aktionen im Überblick.</p>
                     </div>
-                    <x-badge value="Live-Feed" class="badge-primary badge-outline hidden sm:inline-flex" />
+                    <x-badge value="Live-Feed" class="badge-primary badge-outline hidden sm:inline-flex" icon="o-signal" />
                 </div>
             </x-slot:title>
 
@@ -161,7 +161,7 @@
                                 <x-icon name="o-clock" class="w-3.5 h-3.5" />
                                 {{ $activity->created_at->format('d.m.Y H:i') }}
                             </span>
-                            <x-badge :value="$activityLabel" class="badge-primary badge-outline" />
+                            <x-badge :value="$activityLabel" class="badge-primary badge-outline" icon="o-tag" />
                             @if($showProfileLink)
                                 <span class="inline-flex items-center gap-1 rounded-full bg-base-100 px-2 py-1 ring-1 ring-base-200">
                                     <span class="sr-only">von Nutzer</span>

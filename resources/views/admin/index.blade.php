@@ -31,11 +31,11 @@
             >
                 <x-slot:actions>
                     @if($trendPositive)
-                        <x-badge value="+{{ abs($dailyActiveUsers['trend']) }}" class="badge-success badge-sm" />
+                        <x-badge value="+{{ abs($dailyActiveUsers['trend']) }}" class="badge-success badge-sm" icon="o-arrow-trending-up" />
                     @elseif($trendNegative)
-                        <x-badge value="-{{ abs($dailyActiveUsers['trend']) }}" class="badge-error badge-sm" />
+                        <x-badge value="-{{ abs($dailyActiveUsers['trend']) }}" class="badge-error badge-sm" icon="o-arrow-trending-down" />
                     @else
-                        <x-badge value="±0" class="badge-ghost badge-sm" />
+                        <x-badge value="±0" class="badge-ghost badge-sm" icon="o-minus" />
                     @endif
                 </x-slot:actions>
             </x-stat>

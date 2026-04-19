@@ -14,7 +14,7 @@
 
         <x-input wire:model.blur="nachname" name="nachname" label="Nachname" required class="w-full" autocomplete="family-name" />
 
-        <x-input wire:model.blur="strasse" name="strasse" label="Straße" required class="w-full" autocomplete="address-line1" />
+        <x-input wire:model.blur="strasse" name="strasse" label="Straße" required class="w-full" autocomplete="address-line1" popover="Deine Adresse wird für die interaktive Mitgliederkarte und den Postversand benötigt." />
 
         <x-input wire:model.blur="hausnummer" name="hausnummer" label="Hausnummer" required class="w-full" autocomplete="address-line2" />
 
@@ -40,7 +40,7 @@
             required
         />
 
-        <x-input wire:model.blur="mail" name="mail" label="Mailadresse" type="email" required class="w-full" autocomplete="username" />
+        <x-input wire:model.blur="mail" name="mail" label="Mailadresse" type="email" required class="w-full" autocomplete="username" popover="Wird als Anmeldename für den Mitgliederbereich verwendet." />
 
         <x-input wire:model.blur="passwort" name="passwort" label="Passwort" type="password" required class="w-full" autocomplete="new-password" hint="Mindestens 6 Zeichen." />
 

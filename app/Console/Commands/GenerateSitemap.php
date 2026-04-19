@@ -63,7 +63,7 @@ class GenerateSitemap extends Command
                 }
             }
 
-            $sitemap->writeToFile(public_path('sitemap.xml'));
+            $sitemap->sort()->writeToFile(public_path('sitemap.xml'));
         } catch (\Throwable $e) {
             $this->error('Failed to generate sitemap: '.$e->getMessage());
 

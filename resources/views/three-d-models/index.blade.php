@@ -2,7 +2,7 @@
     <x-member-page class="max-w-6xl">
         <x-header title="3D-Modelle" separator data-testid="page-header">
             <x-slot:subtitle>
-                Dein verfügbares Baxx-Guthaben: <x-badge :value="$availableBaxx" class="badge-primary" />
+                Dein verfügbares Baxx-Guthaben: <x-badge :value="$availableBaxx" class="badge-primary" icon="o-currency-dollar" />
             </x-slot:subtitle>
             @can('create', App\Models\ThreeDModel::class)
                 <x-slot:actions>
@@ -45,9 +45,9 @@
                             <div class="flex items-center justify-between mt-3">
                                 @if ($model->reward)
                                     <x-badge :value="$model->reward->cost_baxx . ' Baxx'"
-                                        class="{{ $unlocked ? 'badge-success' : 'badge-ghost' }}" />
+                                        class="{{ $unlocked ? 'badge-success' : 'badge-ghost' }}" icon="o-currency-dollar" />
                                 @else
-                                    <x-badge value="Kostenlos" class="badge-success" />
+                                    <x-badge value="Kostenlos" class="badge-success" icon="o-gift" />
                                 @endif
                                 <span class="text-xs text-base-content/40 uppercase font-mono">{{ strtoupper($model->file_format) }}</span>
                             </div>

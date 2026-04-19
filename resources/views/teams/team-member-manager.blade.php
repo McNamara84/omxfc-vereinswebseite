@@ -105,7 +105,7 @@
                                     wire:click="manageRole('{{ $user->id }}')"
                                 />
                             @elseif (Laravel\Jetstream\Jetstream::hasRoles())
-                                <x-badge :value="Laravel\Jetstream\Jetstream::findRole($user->membership->role)->name" class="badge-ghost" />
+                                <x-badge :value="Laravel\Jetstream\Jetstream::findRole($user->membership->role)->name" class="badge-ghost" icon="o-identification" />
                             @endif
 
                             {{-- Arbeitsgruppe verlassen --}}

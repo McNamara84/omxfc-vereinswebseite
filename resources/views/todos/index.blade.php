@@ -178,11 +178,11 @@
                                         <td>{{ $todo->title }}</td>
                                         <td>
                                             @if($todo->status->value === 'assigned')
-                                                <x-badge value="In Bearbeitung" class="badge-info" />
+                                                <x-badge value="In Bearbeitung" class="badge-info" icon="o-arrow-path" />
                                             @elseif($todo->status->value === 'completed')
-                                                <x-badge value="Wartet auf Verifizierung" class="badge-warning" />
+                                                <x-badge value="Wartet auf Verifizierung" class="badge-warning" icon="o-eye" />
                                             @elseif($todo->status->value === 'verified')
-                                                <x-badge value="Verifiziert" class="badge-success" />
+                                                <x-badge value="Verifiziert" class="badge-success" icon="o-check-circle" />
                                             @endif
                                         </td>
                                         <td>{{ $todo->points }}</td>

@@ -4,7 +4,7 @@
             <x-slot:subtitle>
                 Hier findest du Kurzgeschichten und Fanfiction aus dem MADDRAX-Universum, geschrieben von
                 unseren Mitgliedern und Gastautoren.
-                <span class="block mt-1 text-sm">Dein Guthaben: <x-badge value="{{ $availableBaxx }} Baxx" class="badge-primary" /></span>
+                <span class="block mt-1 text-sm">Dein Guthaben: <x-badge value="{{ $availableBaxx }} Baxx" class="badge-primary" icon="o-currency-dollar" /></span>
             </x-slot:subtitle>
         </x-header>
 
@@ -33,12 +33,12 @@
                                 </a>
                                 @if ($fanfiction->reward)
                                     @if ($isUnlocked)
-                                        <x-badge value="Freigeschaltet" class="badge-success badge-sm" />
+                                        <x-badge value="Freigeschaltet" class="badge-success badge-sm" icon="o-lock-open" />
                                     @else
-                                        <x-badge value="{{ $fanfiction->reward->cost_baxx }} Baxx" class="badge-warning badge-sm" />
+                                        <x-badge value="{{ $fanfiction->reward->cost_baxx }} Baxx" class="badge-warning badge-sm" icon="o-currency-dollar" />
                                     @endif
                                 @else
-                                    <x-badge value="Kostenlos" class="badge-success badge-sm" />
+                                    <x-badge value="Kostenlos" class="badge-success badge-sm" icon="o-gift" />
                                 @endif
                             </h3>
                             <p class="text-sm text-base-content">

@@ -94,7 +94,7 @@
                             <div>
                                 <p class="font-medium truncate">{{ $author->name }}</p>
                                 @if ($author->is_tentative)
-                                    <x-badge value="Unter Vorbehalt" class="badge-warning badge-sm" />
+                                    <x-badge value="Unter Vorbehalt" class="badge-warning badge-sm" icon="o-question-mark-circle" />
                                 @endif
                                 @if ($author->pseudonym)
                                     <p class="text-sm opacity-60">Pseudonym: {{ $author->pseudonym }}</p>
