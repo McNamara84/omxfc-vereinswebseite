@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 /**
@@ -256,8 +257,8 @@ class Fanfiction extends Model
      * injected *after* DOMDocument sanitization; its values are escaped individually
      * via e() in buildFigureHtml() and are therefore not covered by DOMDocument.
      *
-     * @param  string      $markdown  Raw Markdown content (may contain [bild:…] tags)
-     * @param  array|null  $photos    Optional photo paths for tag resolution; defaults to model photos
+     * @param  string  $markdown  Raw Markdown content (may contain [bild:…] tags)
+     * @param  array|null  $photos  Optional photo paths for tag resolution; defaults to model photos
      */
     public function renderFormattedContent(string $markdown, ?array $photos = null): string
     {
@@ -282,6 +283,7 @@ class Fanfiction extends Model
         $preparedMarkdown = $hasBildTags ? preg_replace_callback(self::BILD_TAG_PATTERN, function (array $matches) use (&$placeholders, $token) {
             $id = '%%BILD_'.$token.'_'.count($placeholders).'%%';
             $placeholders[$id] = $matches[0]; // Store original tag
+
             // Two newlines ensure Markdown puts this in its own <p>
             return "\n\n".$id."\n\n";
         }, $markdown) ?? $markdown : $markdown;
@@ -413,7 +415,7 @@ class Fanfiction extends Model
         $photoPath = $photos[$index];
         $url = ($allowExternalUrls && preg_match('#^https?://#i', $photoPath))
             ? $photoPath
-            : \Illuminate\Support\Facades\Storage::url($photoPath);
+            : Storage::url($photoPath);
         $escapedUrl = e($url);
         $escapedCaption = e($caption);
         $altText = $escapedCaption ?: e($this->title ?: 'Fanfiction-Bild');

@@ -184,7 +184,7 @@ class KompendiumSuche extends Component
                 return;
             }
 
-            $highlightPattern = '/(' . implode('|', array_map(fn ($t) => preg_quote($t, '/'), $snippetTerms)) . ')/iu';
+            $highlightPattern = '/('.implode('|', array_map(fn ($t) => preg_quote($t, '/'), $snippetTerms)).')/iu';
 
             $hits = [];
 

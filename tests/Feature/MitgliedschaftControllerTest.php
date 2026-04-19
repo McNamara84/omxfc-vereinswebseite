@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Enums\Role;
+use App\Livewire\MitgliedWerdenForm;
 use App\Mail\MitgliedAntragEingereicht;
 use App\Models\Team;
 use App\Models\User;
@@ -135,6 +136,6 @@ class MitgliedschaftControllerTest extends TestCase
         $response = $this->get('/mitglied-werden');
 
         $response->assertOk();
-        $response->assertSeeLivewire(\App\Livewire\MitgliedWerdenForm::class);
+        $response->assertSeeLivewire(MitgliedWerdenForm::class);
     }
 }

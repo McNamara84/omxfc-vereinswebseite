@@ -3,8 +3,6 @@
 namespace Tests\Feature;
 
 use App\Livewire\KompendiumSuche;
-use App\Models\Team;
-use App\Models\User;
 use App\Services\KompendiumSearchService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;

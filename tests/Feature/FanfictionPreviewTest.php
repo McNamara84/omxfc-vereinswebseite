@@ -9,6 +9,8 @@ use App\Models\Fanfiction;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -240,13 +242,13 @@ class FanfictionPreviewTest extends TestCase
 
     public function test_create_allows_up_to_10_photos(): void
     {
-        \Illuminate\Support\Facades\Storage::fake('public');
+        Storage::fake('public');
 
         $this->actingAs($this->vorstand);
 
         $photos = [];
         for ($i = 0; $i < 10; $i++) {
-            $photos[] = \Illuminate\Http\UploadedFile::fake()->image("test{$i}.jpg", 200, 200);
+            $photos[] = UploadedFile::fake()->image("test{$i}.jpg", 200, 200);
         }
 
         Livewire::test(FanfictionCreate::class)
@@ -266,13 +268,13 @@ class FanfictionPreviewTest extends TestCase
 
     public function test_create_rejects_more_than_10_photos(): void
     {
-        \Illuminate\Support\Facades\Storage::fake('public');
+        Storage::fake('public');
 
         $this->actingAs($this->vorstand);
 
         $photos = [];
         for ($i = 0; $i < 11; $i++) {
-            $photos[] = \Illuminate\Http\UploadedFile::fake()->image("test{$i}.jpg", 200, 200);
+            $photos[] = UploadedFile::fake()->image("test{$i}.jpg", 200, 200);
         }
 
         Livewire::test(FanfictionCreate::class)
