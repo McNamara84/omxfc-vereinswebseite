@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Enums\BookType;
 use App\Http\Controllers\RomantauschController;
+use App\Livewire\RomantauschIndex;
 use App\Models\Book;
 use App\Models\BookOffer;
 use App\Models\BookRequest;
@@ -14,6 +15,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Livewire\Livewire;
 use Tests\Concerns\CreatesUserWithRole;
 use Tests\TestCase;
 
@@ -685,16 +687,13 @@ class BundleOfferTest extends TestCase
             'condition' => 'Z2',
         ]);
 
-        $response = $this->get('/romantauschboerse');
+        Livewire::test(RomantauschIndex::class)
+            ->assertOk()
+            ->assertSet('bundles', function ($bundles) {
+                $bundle = $bundles->first();
 
-        $response->assertOk();
-
-        // Eigene Stapel sollten nicht als "Match" angezeigt werden
-        $response->assertViewHas('bundles', function ($bundles) {
-            $bundle = $bundles->first();
-
-            return $bundle->matching_count === 0;
-        });
+                return $bundle->matching_count === 0;
+            });
     }
 
     // ====== Model Tests ======
@@ -840,12 +839,11 @@ class BundleOfferTest extends TestCase
             ]);
         }
 
-        $response = $this->get('/romantauschboerse');
-
-        $response->assertOk();
-        $response->assertViewHas('bundles', function ($bundles) use ($bundleId) {
-            return $bundles->count() === 1 && $bundles->first()->bundle_id === $bundleId;
-        });
+        Livewire::test(RomantauschIndex::class)
+            ->assertOk()
+            ->assertSet('bundles', function ($bundles) use ($bundleId) {
+                return $bundles->count() === 1 && $bundles->first()->bundle_id === $bundleId;
+            });
     }
 
     public function test_index_separates_single_offers_from_bundles(): void
@@ -884,12 +882,10 @@ class BundleOfferTest extends TestCase
             'condition' => 'Z2',
         ]);
 
-        $response = $this->get('/romantauschboerse');
-
-        $response->assertOk();
-
-        $response->assertViewHas('bundles', fn ($b) => $b->count() === 1);
-        $response->assertViewHas('offers', fn ($o) => $o->count() === 1);
+        Livewire::test(RomantauschIndex::class)
+            ->assertOk()
+            ->assertSet('bundles', fn ($b) => $b->count() === 1)
+            ->assertSet('offers', fn ($o) => $o->count() === 1);
     }
 
     // ====== Photo Cleanup Tests ======
