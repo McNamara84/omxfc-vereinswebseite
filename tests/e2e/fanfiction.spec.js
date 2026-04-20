@@ -178,7 +178,7 @@ test.describe('Fanfiction Verwaltung für Vorstand (Issue #493)', () => {
                 await publishButton.click();
 
                 // Erfolgs-Meldung prüfen
-                await expect(page.getByText(/erfolgreich veröffentlicht/i)).toBeVisible();
+                await expect(page.getByText(/erfolgreich veröffentlicht/i).first()).toBeVisible();
             }
         }
     });

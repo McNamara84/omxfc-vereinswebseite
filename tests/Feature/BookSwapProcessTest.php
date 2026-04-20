@@ -4,6 +4,9 @@ namespace Tests\Feature;
 
 use App\Enums\BookType;
 use App\Enums\Role;
+use App\Livewire\RomantauschIndex;
+use App\Livewire\RomantauschOfferForm;
+use App\Livewire\RomantauschRequestForm;
 use App\Mail\BookSwapMatched;
 use App\Models\Book;
 use App\Models\BookOffer;
@@ -14,6 +17,7 @@ use App\Models\User;
 use App\Services\Romantausch\SwapMatchingService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class BookSwapProcessTest extends TestCase
@@ -52,13 +56,14 @@ class BookSwapProcessTest extends TestCase
         ]);
 
         $this->actingAs($offerUser);
-        $response = $this->post(route('romantausch.store-offer'), [
-            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
-            'book_number' => 1,
-            'condition' => 'neu',
-        ]);
 
-        $response->assertRedirect(route('romantausch.index'));
+        Livewire::test(RomantauschOfferForm::class)
+            ->set('series', BookType::MaddraxDieDunkleZukunftDerErde->value)
+            ->set('book_number', 1)
+            ->set('condition', 'neu')
+            ->call('save')
+            ->assertRedirect(route('romantausch.index'));
+
         $this->assertDatabaseCount('book_swaps', 0);
         Mail::assertNothingQueued();
     }
@@ -84,29 +89,37 @@ class BookSwapProcessTest extends TestCase
             'type' => BookType::MaddraxDieDunkleZukunftDerErde,
         ]);
 
-        $this->actingAs($userA)->post(route('romantausch.store-request'), [
-            'series' => $bookTwo->type->value,
-            'book_number' => $bookTwo->roman_number,
-            'condition' => 'gut',
-        ])->assertRedirect(route('romantausch.index'));
+        $this->actingAs($userA);
+        Livewire::test(RomantauschRequestForm::class)
+            ->set('series', $bookTwo->type->value)
+            ->set('book_number', $bookTwo->roman_number)
+            ->set('condition', 'gut')
+            ->call('save')
+            ->assertRedirect(route('romantausch.index'));
 
-        $this->actingAs($userB)->post(route('romantausch.store-request'), [
-            'series' => $bookOne->type->value,
-            'book_number' => $bookOne->roman_number,
-            'condition' => 'gut',
-        ])->assertRedirect(route('romantausch.index'));
+        $this->actingAs($userB);
+        Livewire::test(RomantauschRequestForm::class)
+            ->set('series', $bookOne->type->value)
+            ->set('book_number', $bookOne->roman_number)
+            ->set('condition', 'gut')
+            ->call('save')
+            ->assertRedirect(route('romantausch.index'));
 
-        $this->actingAs($userB)->post(route('romantausch.store-offer'), [
-            'series' => $bookTwo->type->value,
-            'book_number' => $bookTwo->roman_number,
-            'condition' => 'gut',
-        ])->assertRedirect(route('romantausch.index'));
+        $this->actingAs($userB);
+        Livewire::test(RomantauschOfferForm::class)
+            ->set('series', $bookTwo->type->value)
+            ->set('book_number', $bookTwo->roman_number)
+            ->set('condition', 'gut')
+            ->call('save')
+            ->assertRedirect(route('romantausch.index'));
 
-        $this->actingAs($userA)->post(route('romantausch.store-offer'), [
-            'series' => $bookOne->type->value,
-            'book_number' => $bookOne->roman_number,
-            'condition' => 'gut',
-        ])->assertRedirect(route('romantausch.index'));
+        $this->actingAs($userA);
+        Livewire::test(RomantauschOfferForm::class)
+            ->set('series', $bookOne->type->value)
+            ->set('book_number', $bookOne->roman_number)
+            ->set('condition', 'gut')
+            ->call('save')
+            ->assertRedirect(route('romantausch.index'));
 
         $this->assertDatabaseCount('book_swaps', 2);
 
@@ -179,17 +192,21 @@ class BookSwapProcessTest extends TestCase
             'condition' => 'gut',
         ]);
 
-        $this->actingAs($userB)->post(route('romantausch.store-request'), [
-            'series' => $bookOne->type->value,
-            'book_number' => $bookOne->roman_number,
-            'condition' => 'gut',
-        ])->assertRedirect(route('romantausch.index'));
+        $this->actingAs($userB);
+        Livewire::test(RomantauschRequestForm::class)
+            ->set('series', $bookOne->type->value)
+            ->set('book_number', $bookOne->roman_number)
+            ->set('condition', 'gut')
+            ->call('save')
+            ->assertRedirect(route('romantausch.index'));
 
-        $this->actingAs($userA)->post(route('romantausch.store-offer'), [
-            'series' => $bookOne->type->value,
-            'book_number' => $bookOne->roman_number,
-            'condition' => 'gut',
-        ])->assertRedirect(route('romantausch.index'));
+        $this->actingAs($userA);
+        Livewire::test(RomantauschOfferForm::class)
+            ->set('series', $bookOne->type->value)
+            ->set('book_number', $bookOne->roman_number)
+            ->set('condition', 'gut')
+            ->call('save')
+            ->assertRedirect(route('romantausch.index'));
 
         $this->assertDatabaseCount('book_swaps', 2);
 
@@ -293,8 +310,13 @@ class BookSwapProcessTest extends TestCase
             'request_id' => $request->id,
         ]);
 
-        $this->actingAs($offerUser)->post(route('romantausch.confirm-swap', $swap));
-        $this->actingAs($requestUser)->post(route('romantausch.confirm-swap', $swap));
+        $this->actingAs($offerUser);
+        Livewire::test(RomantauschIndex::class)
+            ->call('confirmSwap', $swap->id);
+
+        $this->actingAs($requestUser);
+        Livewire::test(RomantauschIndex::class)
+            ->call('confirmSwap', $swap->id);
 
         $swap->refresh();
         $this->assertNotNull($swap->completed_at);

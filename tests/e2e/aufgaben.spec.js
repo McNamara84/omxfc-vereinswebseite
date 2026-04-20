@@ -86,7 +86,7 @@ test.describe('Aufgaben (Mobile)', () => {
 
         await filterSummary.click();
         await expect(filterDetails).toHaveAttribute('open');
-        await expect(page.getByRole('link', { name: 'Zu verifizieren', exact: true })).toBeVisible();
+        await expect(page.getByRole('button', { name: 'Zu verifizieren', exact: true })).toBeVisible();
     });
 });
 
@@ -109,23 +109,21 @@ test('admin can filter and accept challenges', async ({ page }) => {
     await expect(page.getByRole('heading', { name: 'Deine Challenges' })).toBeVisible();
     await expect(page.locator('[data-todo-filter-status]')).toHaveText(/alle verfügbaren Challenges/i);
 
-    const verifyLink = page.getByRole('link', { name: 'Zu verifizieren', exact: true });
-    await expect(verifyLink).toBeVisible();
+    const verifyButton = page.getByRole('button', { name: 'Zu verifizieren', exact: true });
+    await expect(verifyButton).toBeVisible();
 
-    await verifyLink.click();
+    await verifyButton.click();
     await expect(page).toHaveURL(/filter=pending/);
     await expect(page.locator('[data-todo-filter-status]')).toHaveText(/Verifizierung warten/i);
     await expect(page.getByRole('heading', { name: 'Zu verifizierende Challenges' })).toBeVisible();
 
-    // Nach dem GET-Filter ist die Seite neu geladen; der Filter ist wieder zu.
+    // Livewire aktualisiert per SPA; der Filter bleibt offen.
     const filterDetails = page.locator('[data-todo-filter-details]');
     await expect(filterDetails).toBeVisible();
-    await expect(filterDetails).not.toHaveAttribute('open');
-    await filterSummary.click();
     await expect(filterDetails).toHaveAttribute('open');
 
-    const allLink = page.getByRole('link', { name: 'Alle', exact: true });
-    await allLink.click();
+    const allButton = page.getByRole('button', { name: 'Alle', exact: true });
+    await allButton.click();
     await expect(page).not.toHaveURL(/filter=pending/);
 
     const assignButton = page.getByRole('button', { name: 'Übernehmen', exact: true }).first();
@@ -152,8 +150,8 @@ test('member can focus on own challenges and release one', async ({ page }) => {
     await expect(filterSummary).toBeVisible();
     await filterSummary.click();
 
-    const ownLink = page.getByRole('link', { name: 'Eigene Challenges', exact: true });
-    await ownLink.click();
+    const ownButton = page.getByRole('button', { name: 'Eigene Challenges', exact: true });
+    await ownButton.click();
 
     const releaseButton = page.getByRole('button', { name: 'Freigeben', exact: true }).first();
 

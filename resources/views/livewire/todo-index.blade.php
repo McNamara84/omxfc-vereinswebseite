@@ -21,14 +21,14 @@
             <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <div class="space-y-1">
                     <h2 class="text-xl font-semibold text-primary">Challenges filtern</h2>
-                    <p role="status" aria-live="polite" class="text-sm text-base-content"
+                    <p role="status" aria-live="polite" class="text-sm text-base-content" data-todo-filter-status
                         x-text="messages[filter]">
                         {{ ['all' => 'Zeigt alle verfügbaren Challenges.', 'assigned' => 'Zeigt deine übernommenen Challenges.', 'open' => 'Zeigt offene Challenges, die noch übernommen werden können.', 'pending' => 'Zeigt Challenges, die auf eine Verifizierung warten.'][$filter] }}
                     </p>
                 </div>
             </div>
-            <details class="group mt-4">
-                <summary class="inline-flex cursor-pointer items-center gap-2 rounded-md border border-primary bg-white px-4 py-2 text-sm font-semibold text-primary shadow-sm transition hover:bg-primary hover:text-primary-content focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary dark:bg-base-200">
+            <details class="group mt-4" data-todo-filter-details>
+                <summary data-todo-filter-summary class="inline-flex cursor-pointer items-center gap-2 rounded-md border border-primary bg-white px-4 py-2 text-sm font-semibold text-primary shadow-sm transition hover:bg-primary hover:text-primary-content focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary dark:bg-base-200">
                     <x-icon name="o-funnel" class="h-4 w-4" />
                     <span class="group-open:hidden">Filter anzeigen</span>
                     <span class="hidden group-open:inline">Filter ausblenden</span>

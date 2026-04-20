@@ -225,7 +225,7 @@ class BundleOfferTest extends TestCase
             ->assertSet('bundleId', $bundleId)
             ->assertSet('series', BookType::MaddraxDieDunkleZukunftDerErde->value)
             ->assertSet('condition', 'Z2')
-            ->assertSee('Stapel bearbeiten');
+            ->assertSee('Stapel-Angebot bearbeiten');
     }
 
     public function test_edit_bundle_forbidden_for_non_owner(): void

@@ -267,6 +267,29 @@ class RomantauschBundleForm extends Component
         $this->redirect(route('romantausch.index'));
     }
 
+    public function delete(): void
+    {
+        if (! $this->bundleId) {
+            return;
+        }
+
+        $offers = BookOffer::where('bundle_id', $this->bundleId)
+            ->where('user_id', Auth::id())
+            ->get();
+
+        if ($offers->isEmpty()) {
+            abort(404);
+        }
+
+        $this->authorize('delete', $offers->first());
+
+        $bundleService = app(BundleService::class);
+        $bundleService->deleteBundle($this->bundleId, Auth::id());
+
+        session()->flash('success', 'Stapel-Angebot gelöscht.');
+        $this->redirect(route('romantausch.index'));
+    }
+
     public function placeholder()
     {
         return view('components.skeleton-form', ['fields' => 5]);

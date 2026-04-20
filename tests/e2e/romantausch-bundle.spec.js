@@ -240,10 +240,10 @@ test.describe('Romantauschbörse - Stapel-Angebote', () => {
             await editLink.click();
 
             // Lösch-Button sollte vorhanden sein
-            const deleteButton = page.locator('button:has-text("Stapel löschen")');
+            const deleteButton = page.getByRole('button', { name: 'Stapel löschen' });
             await expect(deleteButton).toBeVisible();
 
-            // Dialog akzeptieren
+            // wire:confirm erzeugt einen Browser-Dialog
             page.on('dialog', dialog => dialog.accept());
 
             // Löschen
@@ -387,7 +387,7 @@ test.describe('Romantauschbörse - Stapel-Angebote', () => {
             await loginAsMember(page);
             await page.goto('/romantauschboerse/stapel-angebot-erstellen');
 
-            const photoInput = page.locator('input[type="file"][name="photos[]"]');
+            const photoInput = page.locator('input[type="file"]#photos');
             await expect(photoInput).toBeVisible();
             await expect(photoInput).toHaveAttribute('multiple', '');
             await expect(photoInput).toHaveAttribute('accept', 'image/*');

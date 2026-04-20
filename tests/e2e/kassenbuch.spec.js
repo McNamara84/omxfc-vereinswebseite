@@ -108,7 +108,7 @@ test.describe('Kassenbuch Verwaltung', () => {
         await addBetragInput.fill('15');
 
         await addDialog.getByRole('button', { name: 'Hinzufügen' }).click();
-        await expect(page.getByText('Kassenbucheintrag wurde hinzugefügt.')).toBeVisible({ timeout: 10000 });
+        await expect(page.getByText('Kassenbucheintrag wurde hinzugefügt.').first()).toBeVisible({ timeout: 10000 });
         await expect(page.getByRole('cell', { name: 'Playwright Einnahme' })).toBeVisible();
     });
 
@@ -189,7 +189,7 @@ test.describe('Kassenbuch Verwaltung', () => {
         await editDialog.getByRole('button', { name: 'Speichern' }).click();
 
         const escapedName = escapeRegExp(editDetail.userName);
-        await expect(page.getByText(new RegExp(`Zahlungsdaten für\\s+${escapedName}\\s+wurden aktualisiert\\.`))).toBeVisible({
+        await expect(page.getByText(new RegExp(`Zahlungsdaten für\\s+${escapedName}\\s+wurden aktualisiert\\.`)).first()).toBeVisible({
             timeout: 10000,
         });
 

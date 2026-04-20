@@ -1,6 +1,6 @@
 <x-member-page class="max-w-4xl">
     <x-card>
-        <x-header :title="$this->isEditing ? 'Stapel bearbeiten' : 'Stapel-Angebot erstellen'" separator useH1 data-testid="page-title" />
+        <x-header :title="$this->isEditing ? 'Stapel-Angebot bearbeiten' : 'Stapel-Angebot erstellen'" separator useH1 data-testid="page-title" />
         <p class="text-base-content mb-6">
             Mit einem Stapel-Angebot kannst du viele Romane auf einmal einstellen. Gib einfach die Nummern als Bereiche (z.B. 1-50) oder einzeln (z.B. 52, 55) ein.
         </p>
@@ -160,6 +160,9 @@
             <div class="mt-8 flex flex-wrap gap-3">
                 <x-button :label="$this->isEditing ? 'Änderungen speichern' : 'Stapel-Angebot erstellen'" type="submit" class="btn-primary" icon="o-check" spinner="save" />
                 <x-button label="Abbrechen" link="{{ route('romantausch.index') }}" wire:navigate class="btn-ghost" />
+                @if($this->isEditing)
+                    <x-button label="Stapel löschen" wire:click="delete" wire:confirm="Möchtest du diesen Stapel wirklich löschen?" class="btn-error" icon="o-trash" spinner="delete" />
+                @endif
             </div>
         </form>
     </x-card>
