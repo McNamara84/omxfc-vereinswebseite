@@ -8,6 +8,8 @@ use App\Enums\TodoStatus;
 use App\Models\Activity;
 use App\Models\AdminMessage;
 use App\Models\Book;
+use App\Livewire\RomantauschOfferForm;
+use App\Livewire\RomantauschRequestForm;
 use App\Models\BookOffer;
 use App\Models\BookRequest;
 use App\Models\FantreffenAnmeldung;
@@ -74,13 +76,13 @@ class ActivityFeedTest extends TestCase
         $user = $this->actingMember();
         $this->actingAs($user);
 
-        $response = $this->post('/romantauschboerse/angebot-speichern', [
-            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
-            'book_number' => 1,
-            'condition' => 'neu',
-        ]);
+        Livewire::test(RomantauschOfferForm::class)
+            ->set('series', BookType::MaddraxDieDunkleZukunftDerErde->value)
+            ->set('book_number', 1)
+            ->set('condition', 'Z0')
+            ->call('save')
+            ->assertRedirect(route('romantausch.index'));
 
-        $response->assertRedirect(route('romantausch.index', [], false));
         $offer = BookOffer::first();
         $this->assertDatabaseHas('activities', [
             'user_id' => $user->id,
@@ -94,13 +96,13 @@ class ActivityFeedTest extends TestCase
         $user = $this->actingMember();
         $this->actingAs($user);
 
-        $response = $this->post('/romantauschboerse/anfrage-speichern', [
-            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
-            'book_number' => 1,
-            'condition' => 'neu',
-        ]);
+        Livewire::test(RomantauschRequestForm::class)
+            ->set('series', BookType::MaddraxDieDunkleZukunftDerErde->value)
+            ->set('book_number', 1)
+            ->set('condition', 'Z0')
+            ->call('save')
+            ->assertRedirect(route('romantausch.index'));
 
-        $response->assertRedirect(route('romantausch.index', [], false));
         $requestModel = BookRequest::first();
         $this->assertDatabaseHas('activities', [
             'user_id' => $user->id,

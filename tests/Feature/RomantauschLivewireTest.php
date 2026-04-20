@@ -17,6 +17,7 @@ use App\Services\RomantauschInfoProvider;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Livewire\Livewire;
 use Tests\Concerns\CreatesTestData;
 use Tests\Concerns\CreatesUserWithRole;
@@ -1100,5 +1101,122 @@ class RomantauschLivewireTest extends TestCase
             'book-offers/bar.jpg',
             'book-offers/baz.jpg',
         ], $offer->photos);
+    }
+
+    // ──────────────────────────────────────────────
+    // Photo Extensions & Sanitization (migriert aus RomantauschControllerTest)
+    // ──────────────────────────────────────────────
+
+    public function test_store_offer_accepts_all_allowed_photo_extensions(): void
+    {
+        $this->seedBooksForRomantausch();
+        $user = $this->actingMember();
+
+        Storage::fake('public');
+
+        foreach (BookPhotoService::ALLOWED_EXTENSIONS as $ext) {
+            Livewire::test(RomantauschOfferForm::class)
+                ->set('series', BookType::MaddraxDieDunkleZukunftDerErde->value)
+                ->set('book_number', 1)
+                ->set('condition', 'neu')
+                ->set('photos', [UploadedFile::fake()->image("a.$ext")])
+                ->call('save')
+                ->assertRedirect(route('romantausch.index'));
+        }
+    }
+
+    public function test_store_offer_sanitizes_photo_filenames(): void
+    {
+        Storage::fake('public');
+
+        $photoService = app(BookPhotoService::class);
+        $photo = UploadedFile::fake()->image('räum lich!.JPG');
+        $paths = $photoService->uploadPhotos([$photo]);
+
+        $this->assertCount(1, $paths);
+        $expectedSlug = Str::slug('räum lich!');
+        $this->assertMatchesRegularExpression("/^book-offers\/{$expectedSlug}-[0-9a-f\-]{36}\.jpg$/", $paths[0]);
+        Storage::disk('public')->assertExists($paths[0]);
+    }
+
+    public function test_store_offer_uses_fallback_name_when_slug_empty(): void
+    {
+        Storage::fake('public');
+
+        $photoService = app(BookPhotoService::class);
+        $photo = UploadedFile::fake()->image('!!!.png');
+        $paths = $photoService->uploadPhotos([$photo]);
+
+        $this->assertCount(1, $paths);
+        $this->assertMatchesRegularExpression('/^book-offers\/photo-\d+-[0-9a-f\-]{36}\.png$/', $paths[0]);
+        Storage::disk('public')->assertExists($paths[0]);
+    }
+
+    public function test_store_offer_handles_photo_upload_failure(): void
+    {
+        $this->seedBooksForRomantausch();
+        $this->actingMember();
+
+        Storage::fake('public');
+
+        $this->mock(BookPhotoService::class, function ($mock) {
+            $mock->shouldReceive('uploadPhotos')
+                ->once()
+                ->andThrow(new \RuntimeException('Foto-Upload fehlgeschlagen.'));
+        });
+
+        Livewire::test(RomantauschOfferForm::class)
+            ->set('series', BookType::MaddraxDieDunkleZukunftDerErde->value)
+            ->set('book_number', 1)
+            ->set('condition', 'neu')
+            ->set('photos', [UploadedFile::fake()->image('a.jpg')])
+            ->call('save')
+            ->assertHasErrors('photos')
+            ->assertNoRedirect();
+
+        $this->assertDatabaseCount('book_offers', 0);
+    }
+
+    public function test_update_offer_allows_replacing_removed_photos_until_limit(): void
+    {
+        $this->seedBooksForRomantausch();
+        Storage::fake('public');
+
+        $user = $this->actingMember();
+
+        $first = UploadedFile::fake()->image('first.jpg')->store('book-offers', 'public');
+        $second = UploadedFile::fake()->image('second.jpg')->store('book-offers', 'public');
+        $third = UploadedFile::fake()->image('third.jpg')->store('book-offers', 'public');
+
+        $offer = BookOffer::create([
+            'user_id' => $user->id,
+            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
+            'book_number' => 1,
+            'book_title' => 'Roman1',
+            'condition' => 'neu',
+            'photos' => [$first, $second, $third],
+        ]);
+
+        Livewire::test(RomantauschOfferForm::class, ['offer' => $offer])
+            ->set('series', BookType::MaddraxDieDunkleZukunftDerErde->value)
+            ->set('book_number', 1)
+            ->set('condition', 'neu')
+            ->set('remove_photos', [$second, $third])
+            ->set('photos', [
+                UploadedFile::fake()->image('replacement-one.jpg'),
+                UploadedFile::fake()->image('replacement-two.jpg'),
+            ])
+            ->call('save')
+            ->assertRedirect(route('romantausch.index'));
+
+        $offer->refresh();
+
+        $this->assertCount(3, $offer->photos);
+        $this->assertContains($first, $offer->photos);
+        foreach ($offer->photos as $path) {
+            Storage::disk('public')->assertExists($path);
+        }
+        Storage::disk('public')->assertMissing($second);
+        Storage::disk('public')->assertMissing($third);
     }
 }

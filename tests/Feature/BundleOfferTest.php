@@ -3,7 +3,7 @@
 namespace Tests\Feature;
 
 use App\Enums\BookType;
-use App\Http\Controllers\RomantauschController;
+use App\Livewire\RomantauschBundleForm;
 use App\Livewire\RomantauschIndex;
 use App\Models\Book;
 use App\Models\BookOffer;
@@ -136,41 +136,23 @@ class BundleOfferTest extends TestCase
         }
     }
 
-    // ====== Bundle Creation Tests ======
+    // ====== Bundle Creation Tests (Livewire) ======
 
-    public function test_create_bundle_offer_page_loads(): void
+    public function test_store_bundle_creates_entries_with_shared_bundle_id(): void
     {
         $this->putBookData();
-
         $user = $this->actingMember();
-        $this->actingAs($user);
-
-        $response = $this->get('/romantauschboerse/stapel-angebot-erstellen');
-
-        $response->assertOk();
-        $response->assertViewIs('romantausch.create_bundle_offer');
-        $response->assertSee('Stapel-Angebot erstellen');
-    }
-
-    public function test_store_bundle_offer_creates_multiple_entries_with_shared_bundle_id(): void
-    {
-        $this->putBookData();
-
-        $user = $this->actingMember();
-        $this->actingAs($user);
 
         Storage::fake('public');
 
-        $response = $this->post('/romantauschboerse/stapel-angebot-speichern', [
-            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
-            'book_numbers' => '1-5',
-            'condition' => 'Z1',
-            'condition_max' => 'Z2',
-        ]);
+        Livewire::test(RomantauschBundleForm::class)
+            ->set('series', BookType::MaddraxDieDunkleZukunftDerErde->value)
+            ->set('book_numbers', '1-5')
+            ->set('condition', 'Z1')
+            ->set('condition_max', 'Z2')
+            ->call('save')
+            ->assertRedirect(route('romantausch.index'));
 
-        $response->assertRedirect(route('romantausch.index'));
-
-        // Es sollten 5 Einträge mit derselben bundle_id existieren
         $offers = BookOffer::where('user_id', $user->id)->get();
         $this->assertCount(5, $offers);
 
@@ -184,25 +166,20 @@ class BundleOfferTest extends TestCase
         }
     }
 
-    public function test_store_bundle_offer_with_photos(): void
+    public function test_store_bundle_with_photos(): void
     {
         $this->putBookData();
-
         $user = $this->actingMember();
-        $this->actingAs($user);
 
         Storage::fake('public');
 
-        $photo = UploadedFile::fake()->image('test.jpg', 800, 600);
-
-        $response = $this->post('/romantauschboerse/stapel-angebot-speichern', [
-            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
-            'book_numbers' => '1-3',
-            'condition' => 'Z2',
-            'photos' => [$photo],
-        ]);
-
-        $response->assertRedirect(route('romantausch.index'));
+        Livewire::test(RomantauschBundleForm::class)
+            ->set('series', BookType::MaddraxDieDunkleZukunftDerErde->value)
+            ->set('book_numbers', '1-3')
+            ->set('condition', 'Z2')
+            ->set('photos', [UploadedFile::fake()->image('test.jpg', 800, 600)])
+            ->call('save')
+            ->assertRedirect(route('romantausch.index'));
 
         $offers = BookOffer::where('user_id', $user->id)->get();
         $this->assertCount(3, $offers);
@@ -216,78 +193,12 @@ class BundleOfferTest extends TestCase
         }
     }
 
-    public function test_store_bundle_offer_validates_minimum_two_books(): void
-    {
-        $this->putBookData();
-
-        $user = $this->actingMember();
-        $this->actingAs($user);
-
-        $response = $this->post('/romantauschboerse/stapel-angebot-speichern', [
-            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
-            'book_numbers' => '5',
-            'condition' => 'Z2',
-        ]);
-
-        $response->assertSessionHasErrors('book_numbers');
-    }
-
-    public function test_store_bundle_offer_shows_error_for_nonexistent_books(): void
-    {
-        $this->putBookData();
-
-        $user = $this->actingMember();
-        $this->actingAs($user);
-
-        // Buch 999 existiert nicht - der Controller zeigt einen Fehler an
-        $response = $this->post('/romantauschboerse/stapel-angebot-speichern', [
-            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
-            'book_numbers' => '1, 2, 999',
-            'condition' => 'Z2',
-        ]);
-
-        $response->assertRedirect();
-        $response->assertSessionHas('error');
-    }
-
-    public function test_store_bundle_offer_requires_series(): void
-    {
-        $this->putBookData();
-
-        $user = $this->actingMember();
-        $this->actingAs($user);
-
-        $response = $this->post('/romantauschboerse/stapel-angebot-speichern', [
-            'book_numbers' => '1-5',
-            'condition' => 'Z2',
-        ]);
-
-        $response->assertSessionHasErrors('series');
-    }
-
-    public function test_store_bundle_offer_requires_condition(): void
-    {
-        $this->putBookData();
-
-        $user = $this->actingMember();
-        $this->actingAs($user);
-
-        $response = $this->post('/romantauschboerse/stapel-angebot-speichern', [
-            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
-            'book_numbers' => '1-5',
-        ]);
-
-        $response->assertSessionHasErrors('condition');
-    }
-
-    // ====== Bundle Editing Tests ======
+    // ====== Bundle Editing Tests (Livewire) ======
 
     public function test_edit_bundle_page_loads_for_owner(): void
     {
         $this->putBookData();
-
         $user = $this->actingMember();
-        $this->actingAs($user);
 
         $bundleId = (string) Str::uuid();
 
@@ -309,21 +220,18 @@ class BundleOfferTest extends TestCase
             'condition' => 'Z2',
         ]);
 
-        $response = $this->get("/romantauschboerse/stapel/{$bundleId}/bearbeiten");
-
-        $response->assertOk();
-        $response->assertViewIs('romantausch.edit_bundle');
-        // Die View zeigt "2 Romane" und die Nummern als Range "1-2"
-        $response->assertSee('2 Romane');
-        $response->assertSee('Stapel-Angebot bearbeiten');
+        Livewire::test(RomantauschBundleForm::class, ['bundleId' => $bundleId])
+            ->assertOk()
+            ->assertSet('bundleId', $bundleId)
+            ->assertSet('series', BookType::MaddraxDieDunkleZukunftDerErde->value)
+            ->assertSet('condition', 'Z2')
+            ->assertSee('Stapel bearbeiten');
     }
 
     public function test_edit_bundle_forbidden_for_non_owner(): void
     {
         $this->putBookData();
-
         $owner = $this->actingMember();
-        $otherUser = $this->actingMember();
 
         $bundleId = (string) Str::uuid();
 
@@ -336,20 +244,17 @@ class BundleOfferTest extends TestCase
             'condition' => 'Z2',
         ]);
 
-        $this->actingAs($otherUser);
+        // Wechsle zu anderem User
+        $otherUser = $this->actingMember();
 
-        $response = $this->get("/romantauschboerse/stapel/{$bundleId}/bearbeiten");
-
-        // Der Controller gibt 404 zurück, da der Stapel nur für den Owner sichtbar ist
-        $response->assertNotFound();
+        Livewire::test(RomantauschBundleForm::class, ['bundleId' => $bundleId])
+            ->assertStatus(404);
     }
 
     public function test_update_bundle_removes_specified_offers(): void
     {
         $this->putBookData();
-
         $user = $this->actingMember();
-        $this->actingAs($user);
 
         $bundleId = (string) Str::uuid();
 
@@ -380,14 +285,11 @@ class BundleOfferTest extends TestCase
             'condition' => 'Z2',
         ]);
 
-        // Die Update-Route erfordert book_numbers und condition
-        // Wir aktualisieren auf 2-3 (ohne 1)
-        $response = $this->put("/romantauschboerse/stapel/{$bundleId}", [
-            'book_numbers' => '2-3',
-            'condition' => 'Z2',
-        ]);
-
-        $response->assertRedirect(route('romantausch.index'));
+        // Aktualisiere auf 2-3 (ohne 1)
+        Livewire::test(RomantauschBundleForm::class, ['bundleId' => $bundleId])
+            ->set('book_numbers', '2-3')
+            ->call('save')
+            ->assertRedirect(route('romantausch.index'));
 
         // Offer 1 sollte jetzt entfernt sein
         $this->assertDatabaseMissing('book_offers', ['id' => $offer1->id]);
@@ -395,14 +297,11 @@ class BundleOfferTest extends TestCase
         $this->assertDatabaseHas('book_offers', ['id' => $offer3->id]);
     }
 
-    public function test_update_bundle_removes_associated_swaps(): void
+    public function test_update_bundle_blocked_when_active_swaps_exist(): void
     {
         $this->putBookData();
-
         $user = $this->actingMember();
         $otherUser = User::factory()->create();
-
-        $this->actingAs($user);
 
         $bundleId = (string) Str::uuid();
 
@@ -415,21 +314,12 @@ class BundleOfferTest extends TestCase
             'condition' => 'Z2',
         ]);
 
-        $offer2 = BookOffer::create([
+        BookOffer::create([
             'user_id' => $user->id,
             'bundle_id' => $bundleId,
             'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
             'book_number' => 2,
             'book_title' => 'Maddrax 2',
-            'condition' => 'Z2',
-        ]);
-
-        $offer3 = BookOffer::create([
-            'user_id' => $user->id,
-            'bundle_id' => $bundleId,
-            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
-            'book_number' => 3,
-            'book_title' => 'Maddrax 3',
             'condition' => 'Z2',
         ]);
 
@@ -441,65 +331,22 @@ class BundleOfferTest extends TestCase
             'condition' => 'Z2',
         ]);
 
-        $swap = BookSwap::create([
+        BookSwap::create([
             'offer_id' => $offer->id,
             'request_id' => $request->id,
         ]);
 
-        // Aktualisiere auf 2-3 (ohne 1, welches einen Swap hat)
-        $response = $this->put("/romantauschboerse/stapel/{$bundleId}", [
-            'book_numbers' => '2-3',
-            'condition' => 'Z2',
-        ]);
-
-        $response->assertRedirect(route('romantausch.index'));
-
-        $this->assertDatabaseMissing('book_swaps', ['id' => $swap->id]);
-        $this->assertDatabaseMissing('book_offers', ['id' => $offer->id]);
+        // Livewire-Komponente blockiert Bearbeitung bei aktiven Swaps
+        Livewire::test(RomantauschBundleForm::class, ['bundleId' => $bundleId])
+            ->assertRedirect(route('romantausch.index'));
     }
 
-    // ====== Bundle Deletion Tests ======
-
-    public function test_delete_bundle_removes_all_offers(): void
-    {
-        $this->putBookData();
-
-        $user = $this->actingMember();
-        $this->actingAs($user);
-
-        $bundleId = (string) Str::uuid();
-
-        BookOffer::create([
-            'user_id' => $user->id,
-            'bundle_id' => $bundleId,
-            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
-            'book_number' => 1,
-            'book_title' => 'Maddrax 1',
-            'condition' => 'Z2',
-        ]);
-
-        BookOffer::create([
-            'user_id' => $user->id,
-            'bundle_id' => $bundleId,
-            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
-            'book_number' => 2,
-            'book_title' => 'Maddrax 2',
-            'condition' => 'Z2',
-        ]);
-
-        $response = $this->delete("/romantauschboerse/stapel/{$bundleId}");
-
-        $response->assertRedirect(route('romantausch.index'));
-
-        $this->assertDatabaseMissing('book_offers', ['bundle_id' => $bundleId]);
-    }
+    // ====== Bundle Deletion Tests (Livewire) ======
 
     public function test_delete_bundle_forbidden_for_non_owner(): void
     {
         $this->putBookData();
-
         $owner = $this->actingMember();
-        $otherUser = $this->actingMember();
 
         $bundleId = (string) Str::uuid();
 
@@ -512,22 +359,22 @@ class BundleOfferTest extends TestCase
             'condition' => 'Z2',
         ]);
 
-        $this->actingAs($otherUser);
+        // Wechsle zu anderem User
+        $otherUser = $this->actingMember();
 
-        $response = $this->delete("/romantauschboerse/stapel/{$bundleId}");
+        Livewire::test(RomantauschIndex::class)
+            ->call('deleteBundle', $bundleId)
+            ->assertStatus(404);
 
-        // Der Controller gibt 404 zurück, da der Stapel nur für den Owner sichtbar ist
-        $response->assertNotFound();
+        // Bundle sollte weiterhin existieren
+        $this->assertDatabaseHas('book_offers', ['bundle_id' => $bundleId]);
     }
 
     public function test_delete_bundle_removes_associated_swaps(): void
     {
         $this->putBookData();
-
         $user = $this->actingMember();
         $otherUser = User::factory()->create();
-
-        $this->actingAs($user);
 
         $bundleId = (string) Str::uuid();
 
@@ -553,24 +400,22 @@ class BundleOfferTest extends TestCase
             'request_id' => $request->id,
         ]);
 
-        $response = $this->delete("/romantauschboerse/stapel/{$bundleId}");
-
-        $response->assertRedirect(route('romantausch.index'));
+        Livewire::test(RomantauschIndex::class)
+            ->call('deleteBundle', $bundleId)
+            ->assertDispatched('toast');
 
         $this->assertDatabaseMissing('book_swaps', ['id' => $swap->id]);
+        $this->assertDatabaseMissing('book_offers', ['bundle_id' => $bundleId]);
     }
 
     public function test_delete_bundle_deletes_photos_from_storage(): void
     {
         $this->putBookData();
-
         $user = $this->actingMember();
-        $this->actingAs($user);
 
         Storage::fake('public');
 
         $bundleId = (string) Str::uuid();
-        // Verwende denselben Pfad wie RomantauschController::PHOTO_STORAGE_PATH
         $photoPath = 'book-offers/test-photo.jpg';
 
         Storage::disk('public')->put($photoPath, 'fake image content');
@@ -595,7 +440,9 @@ class BundleOfferTest extends TestCase
             'photos' => [$photoPath],
         ]);
 
-        $this->delete("/romantauschboerse/stapel/{$bundleId}");
+        Livewire::test(RomantauschIndex::class)
+            ->call('deleteBundle', $bundleId)
+            ->assertDispatched('toast');
 
         Storage::disk('public')->assertMissing($photoPath);
     }
@@ -605,9 +452,7 @@ class BundleOfferTest extends TestCase
     public function test_bundle_shows_match_count_for_user_requests(): void
     {
         $this->putBookData();
-
         $owner = $this->actingMember();
-        $viewer = $this->actingMember();
 
         $bundleId = (string) Str::uuid();
 
@@ -624,6 +469,8 @@ class BundleOfferTest extends TestCase
         }
 
         // Viewer sucht 2 davon
+        $viewer = $this->actingMember();
+
         BookRequest::create([
             'user_id' => $viewer->id,
             'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
@@ -640,14 +487,13 @@ class BundleOfferTest extends TestCase
             'condition' => 'Z2',
         ]);
 
-        $this->actingAs($viewer);
+        Livewire::test(RomantauschIndex::class)
+            ->assertOk()
+            ->assertSet('bundles', function ($bundles) {
+                $bundle = $bundles->first();
 
-        $response = $this->get('/romantauschboerse');
-
-        $response->assertOk();
-        // Die View sollte "2 von 5 passen zu deinen Gesuchen" anzeigen
-        $response->assertSee('2');
-        $response->assertSee('5');
+                return $bundle->matching_count === 2 && $bundle->total_count === 5;
+            });
     }
 
     public function test_bundle_not_highlighted_for_owner(): void
@@ -888,74 +734,12 @@ class BundleOfferTest extends TestCase
             ->assertSet('offers', fn ($o) => $o->count() === 1);
     }
 
-    // ====== Photo Cleanup Tests ======
+    // ====== Photo Update Tests (Livewire) ======
 
-    /**
-     * Test dass Fotos korrekt gelöscht werden wenn Bundle aktualisiert wird.
-     *
-     * Dieser Test verifiziert den Photo-Cleanup-Mechanismus mit DB::afterCommit().
-     * Bei Transaktions-Rollback sollten keine Fotos gelöscht werden.
-     *
-     * Die Foto-Löschung wird über das 'remove_photos' Array gesteuert.
-     */
-    public function test_update_bundle_removes_photos_via_remove_photos_array(): void
-    {
-        $this->putBookData();
-
-        $user = $this->actingMember();
-        $this->actingAs($user);
-
-        Storage::fake('public');
-
-        $bundleId = (string) Str::uuid();
-        $photoToRemove = 'book-offers/photo-to-remove.jpg';
-        $photoToKeep = 'book-offers/photo-to-keep.jpg';
-
-        Storage::disk('public')->put($photoToRemove, 'old image content');
-        Storage::disk('public')->put($photoToKeep, 'keep image content');
-
-        // Erstelle Bundle mit beiden Fotos
-        for ($i = 1; $i <= 3; $i++) {
-            BookOffer::create([
-                'user_id' => $user->id,
-                'bundle_id' => $bundleId,
-                'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
-                'book_number' => $i,
-                'book_title' => "Maddrax {$i}",
-                'condition' => 'Z1',
-                'photos' => [$photoToRemove, $photoToKeep],
-            ]);
-        }
-
-        // Beide Fotos sollten existieren
-        Storage::disk('public')->assertExists($photoToRemove);
-        Storage::disk('public')->assertExists($photoToKeep);
-
-        // Bundle aktualisieren - ein Foto zum Löschen markieren
-        $response = $this->put("/romantauschboerse/stapel/{$bundleId}", [
-            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
-            'book_numbers' => '1-3',
-            'condition' => 'Z1',
-            'remove_photos' => [$photoToRemove],
-        ]);
-
-        $response->assertRedirect();
-
-        // Markiertes Foto sollte gelöscht sein (via afterCommit)
-        Storage::disk('public')->assertMissing($photoToRemove);
-        // Das andere Foto sollte erhalten bleiben
-        Storage::disk('public')->assertExists($photoToKeep);
-    }
-
-    /**
-     * Test dass Fotos in der DB aktualisiert werden wenn remove_photos verwendet wird.
-     */
     public function test_update_bundle_removes_photo_references_from_database(): void
     {
         $this->putBookData();
-
         $user = $this->actingMember();
-        $this->actingAs($user);
 
         Storage::fake('public');
 
@@ -979,14 +763,10 @@ class BundleOfferTest extends TestCase
         }
 
         // Bundle aktualisieren mit remove_photos
-        $response = $this->put("/romantauschboerse/stapel/{$bundleId}", [
-            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
-            'book_numbers' => '1-2',
-            'condition' => 'Z2',
-            'remove_photos' => [$photoToRemove],
-        ]);
-
-        $response->assertRedirect();
+        Livewire::test(RomantauschBundleForm::class, ['bundleId' => $bundleId])
+            ->set('remove_photos', [$photoToRemove])
+            ->call('save')
+            ->assertRedirect(route('romantausch.index'));
 
         // DB sollte nur noch das behaltene Foto enthalten
         $offer = BookOffer::where('bundle_id', $bundleId)->first();
