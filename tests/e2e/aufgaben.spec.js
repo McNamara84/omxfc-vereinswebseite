@@ -167,6 +167,10 @@ test('member can focus on own challenges and release one', async ({ page }) => {
     // Filter auf "Alle" wechseln, damit die freigegebene Challenge in der
     // offenen Sektion sichtbar wird (bei Filter "assigned" wird die Sektion
     // serverseitig nicht gerendert).
+    const filterDetailsAfter = page.locator('[data-todo-filter-details]');
+    if (!(await filterDetailsAfter.evaluate((el) => el.hasAttribute('open')))) {
+        await page.locator('[data-todo-filter-summary]').click();
+    }
     await page.getByRole('button', { name: 'Alle', exact: true }).click();
     await expect(page.locator('[data-todo-section="open"]')).toContainText('Übernommene Playwright Challenge');
 });
