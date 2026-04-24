@@ -129,11 +129,11 @@ test('admin can filter and accept challenges', async ({ page }) => {
     const assignButton = page.getByRole('button', { name: 'Übernehmen', exact: true }).first();
     await expect(assignButton).toBeVisible();
 
-    await Promise.all([
-        page.waitForURL(/\/aufgaben\/\d+/),
-        assignButton.click(),
-    ]);
-    await expect(page.locator('div[role="status"]', { hasText: /erfolgreich übernommen/i })).toBeVisible();
+    await assignButton.click();
+
+    // Livewire aktualisiert die Seite inline (ohne Navigation) und zeigt einen maryUI-Toast.
+    await expect(page.getByText(/erfolgreich übernommen/i).first()).toBeVisible();
+    await expect(page.locator('[data-todo-section="assigned"]')).toContainText('Übernommene Playwright Challenge');
 });
 
 test('member can focus on own challenges and release one', async ({ page }) => {
@@ -156,7 +156,7 @@ test('member can focus on own challenges and release one', async ({ page }) => {
     const releaseButton = page.getByRole('button', { name: 'Freigeben', exact: true }).first();
 
     await releaseButton.click();
-    await expect(page.locator('div[role="status"]').first()).toContainText('erfolgreich freigegeben');
+    await expect(page.getByText(/erfolgreich freigegeben/i).first()).toBeVisible();
     await expect(page.locator('[data-todo-section="assigned"]')).not.toContainText('Übernommene Playwright Challenge');
     await expect(page.locator('[data-todo-section="open"]')).toContainText('Übernommene Playwright Challenge');
 });
