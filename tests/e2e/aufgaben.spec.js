@@ -129,11 +129,16 @@ test('admin can filter and accept challenges', async ({ page }) => {
     const assignButton = page.getByRole('button', { name: 'Übernehmen', exact: true }).first();
     await expect(assignButton).toBeVisible();
 
+    // Den Titel der zu übernehmenden Challenge auslesen (er steht in der ersten
+    // Zelle derselben Tabellen-Zeile wie der Button).
+    const assignRow = assignButton.locator('xpath=ancestor::tr[1]');
+    const todoTitle = (await assignRow.locator('td').first().innerText()).trim();
+
     await assignButton.click();
 
     // Livewire aktualisiert die Seite inline (ohne Navigation) und zeigt einen maryUI-Toast.
     await expect(page.getByText(/erfolgreich übernommen/i).first()).toBeVisible();
-    await expect(page.locator('[data-todo-section="assigned"]')).toContainText('Übernommene Playwright Challenge');
+    await expect(page.locator('[data-todo-section="assigned"]')).toContainText(todoTitle);
 });
 
 test('member can focus on own challenges and release one', async ({ page }) => {
@@ -158,5 +163,10 @@ test('member can focus on own challenges and release one', async ({ page }) => {
     await releaseButton.click();
     await expect(page.getByText(/erfolgreich freigegeben/i).first()).toBeVisible();
     await expect(page.locator('[data-todo-section="assigned"]')).not.toContainText('Übernommene Playwright Challenge');
+
+    // Filter auf "Alle" wechseln, damit die freigegebene Challenge in der
+    // offenen Sektion sichtbar wird (bei Filter "assigned" wird die Sektion
+    // serverseitig nicht gerendert).
+    await page.getByRole('button', { name: 'Alle', exact: true }).click();
     await expect(page.locator('[data-todo-section="open"]')).toContainText('Übernommene Playwright Challenge');
 });
