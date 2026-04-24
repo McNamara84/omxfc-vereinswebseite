@@ -148,7 +148,9 @@ class RomantauschBundleForm extends Component
             'book_numbers' => 'required|string',
             'condition' => 'required|string',
             'condition_max' => 'nullable|string',
-            'photos' => 'array|max:'.BookPhotoService::MAX_PHOTOS,
+            // Neue Uploads serverseitig auf maxNewPhotos begrenzen, damit Gesamtzahl
+            // (bereits behaltene + neue) nie BookPhotoService::MAX_PHOTOS überschreitet.
+            'photos' => 'array|max:'.$this->maxNewPhotos,
             'photos.*' => "nullable|file|mimes:{$allowedExtensions}|max:{$maxFileSize}",
         ]);
 

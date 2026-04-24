@@ -99,7 +99,6 @@ async function loadAdminChartsIfNeeded() {
 }
 document.addEventListener('DOMContentLoaded', loadAdminChartsIfNeeded);
 document.addEventListener('livewire:navigated', loadAdminChartsIfNeeded);
-document.addEventListener('livewire:navigated', loadAdminChartsIfNeeded);
 
 // 3D-Viewer (inkl. Three.js) nur laden, wenn ein Viewer-Container auf der Seite ist (Code-Splitting)
 async function loadThreeDViewerIfNeeded() {

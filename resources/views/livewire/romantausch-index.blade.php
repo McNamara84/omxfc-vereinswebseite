@@ -184,7 +184,7 @@
                             @if(count($bundle->photos ?? []) > 0)
                                 <div class="p-4 bg-base-200 flex gap-3 overflow-x-auto">
                                     @foreach($bundle->photos as $photo)
-                                        <img src="{{ asset('storage/' . $photo) }}"
+                                        <img src="{{ asset('storage/'.$photo) }}"
                                             alt="Foto des Stapel-Angebots"
                                             class="w-24 h-24 object-cover rounded flex-shrink-0">
                                     @endforeach
@@ -269,7 +269,7 @@
                                     <ul class="grid grid-cols-3 gap-2 sm:grid-cols-2">
                                         @foreach($photos as $photoIndex => $photoPath)
                                             @php
-                                                $thumbnailSrc = asset('storage/' . $photoPath);
+                                                $thumbnailSrc = asset('storage/'.$photoPath);
                                                 $photoNumber = $photoIndex + 1;
                                                 $thumbnailLabel = "Foto {$photoNumber} von {$bookDescription}";
                                             @endphp

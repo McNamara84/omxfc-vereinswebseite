@@ -7,7 +7,7 @@
         @if(!empty($this->offer->photos))
             <div class="flex flex-wrap gap-4 mb-4">
                 @foreach($this->offer->photos as $photo)
-                    <img src="{{ asset('storage/' . $photo) }}" alt="Angebotsfoto" class="w-32 h-auto rounded">
+                    <img src="{{ asset('storage/'.$photo) }}" alt="Angebotsfoto" class="w-32 h-auto rounded">
                 @endforeach
             </div>
         @endif

@@ -1,3 +1,4 @@
+@use('App\Enums\TodoStatus')
 <x-member-page>
     <div x-data="{
         filter: @entangle('filter'),
@@ -59,7 +60,7 @@
         </x-card>
 
         {{-- Zu verifizierende Challenges --}}
-        @if($this->canVerifyTodos && $this->completedTodos->where('status', 'completed')->isNotEmpty() && in_array($filter, ['all', 'pending']))
+        @if($this->canVerifyTodos && $this->completedTodos->where('status', TodoStatus::Completed)->isNotEmpty() && in_array($filter, ['all', 'pending']))
             <x-card shadow class="mb-6" x-show="filter === 'all' || filter === 'pending'" aria-labelledby="todo-pending-heading">
                 <h2 id="todo-pending-heading" class="text-xl font-semibold text-primary mb-4">Zu verifizierende Challenges</h2>
                 <div class="overflow-x-auto">
@@ -74,7 +75,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach($this->completedTodos->where('status', 'completed') as $todo)
+                            @foreach($this->completedTodos->where('status', TodoStatus::Completed) as $todo)
                                 <tr wire:key="pending-{{ $todo->id }}">
                                     <td>{{ $todo->title }}</td>
                                     <td><a href="{{ route('profile.view', $todo->assignee->id) }}" wire:navigate class="text-primary hover:underline">{{ $todo->assignee->name }}</a></td>

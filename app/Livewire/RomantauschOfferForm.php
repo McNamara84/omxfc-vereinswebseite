@@ -141,7 +141,9 @@ class RomantauschOfferForm extends Component
             'series' => ['required', 'in:'.implode(',', $allowedTypes)],
             'book_number' => 'required|integer|min:1',
             'condition' => 'required|string',
-            'photos' => 'array|max:'.BookPhotoService::MAX_PHOTOS,
+            // Neue Uploads serverseitig auf maxNewPhotos begrenzen, damit Gesamtzahl
+            // (bereits behaltene + neue) nie BookPhotoService::MAX_PHOTOS überschreitet.
+            'photos' => 'array|max:'.$this->maxNewPhotos,
             'photos.*' => "nullable|file|mimes:{$allowedExtensions}|max:{$maxFileSize}",
         ];
 
