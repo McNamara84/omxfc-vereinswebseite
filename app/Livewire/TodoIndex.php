@@ -11,6 +11,7 @@ use App\Services\TeamPointService;
 use App\Services\UserRoleService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Url;
 use Livewire\Component;
@@ -195,27 +196,51 @@ class TodoIndex extends Component
 
         $this->authorize('verify', Todo::class);
 
-        UserPoint::create([
-            'user_id' => $todo->assigned_to,
-            'team_id' => $todo->team_id,
-            'todo_id' => $todo->id,
-            'points' => $todo->points,
-        ]);
+        // Atomare Verifizierung: Status-Wechsel + Punkte-Gutschrift in einer
+        // Transaktion. Das bedingte UPDATE (WHERE status = completed) stellt
+        // sicher, dass nur genau ein paralleler Aufruf den Übergang vollzieht.
+        // updateOrCreate auf todo_id macht die Gutschrift zusätzlich idempotent
+        // und harmoniert mit dem Unique-Index auf user_points.todo_id.
+        $verified = DB::transaction(function () use ($todo, $user) {
+            $updated = Todo::where('id', $todo->id)
+                ->where('status', TodoStatus::Completed->value)
+                ->update([
+                    'status' => TodoStatus::Verified->value,
+                    'verified_by' => $user->id,
+                    'verified_at' => now(),
+                ]);
 
-        $todo->update([
-            'status' => TodoStatus::Verified->value,
-            'verified_by' => $user->id,
-            'verified_at' => now(),
-        ]);
+            if ($updated === 0) {
+                return false;
+            }
 
-        Activity::create([
-            'user_id' => $todo->assigned_to,
-            'subject_type' => Todo::class,
-            'subject_id' => $todo->id,
-            'action' => 'completed',
-        ]);
+            UserPoint::updateOrCreate(
+                ['todo_id' => $todo->id],
+                [
+                    'user_id' => $todo->assigned_to,
+                    'team_id' => $todo->team_id,
+                    'points' => $todo->points,
+                ],
+            );
 
-        $todo->load('assignee');
+            Activity::create([
+                'user_id' => $todo->assigned_to,
+                'subject_type' => Todo::class,
+                'subject_id' => $todo->id,
+                'action' => 'completed',
+            ]);
+
+            return true;
+        });
+
+        if (! $verified) {
+            $this->dispatch('toast', type: 'error', title: 'Diese Challenge wurde bereits verifiziert.');
+            unset($this->todos, $this->completedTodos);
+
+            return;
+        }
+
+        $todo->refresh()->load('assignee');
         unset($this->todos, $this->completedTodos, $this->dashboardMetrics, $this->userPoints);
         $this->dispatch('toast', type: 'success', title: "Challenge-Verifizierung erfolgreich! {$todo->points} Baxx wurden {$todo->assignee->name} gutgeschrieben.");
     }
