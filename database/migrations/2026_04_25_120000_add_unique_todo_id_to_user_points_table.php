@@ -12,27 +12,24 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Duplikate bereinigen: pro todo_id nur die älteste Gutschrift behalten,
+        // Duplikate bereinigen: pro todo_id nur den ältesten Eintrag (min(id)) behalten,
         // damit doppelte Verifizierungen rückwirkend keine Mehrfach-Baxx erzeugen.
-        $duplicates = DB::table('user_points')
-            ->select('todo_id')
-            ->whereNotNull('todo_id')
-            ->groupBy('todo_id')
-            ->havingRaw('COUNT(*) > 1')
-            ->pluck('todo_id');
-
-        foreach ($duplicates as $todoId) {
-            $keepId = DB::table('user_points')
-                ->where('todo_id', $todoId)
-                ->orderBy('created_at')
-                ->orderBy('id')
-                ->value('id');
-
-            DB::table('user_points')
-                ->where('todo_id', $todoId)
-                ->where('id', '!=', $keepId)
-                ->delete();
-        }
+        // Set-basiertes DELETE statt Loop pro todo_id (vermeidet N+1 auf großen Tabellen).
+        // Die zusätzliche Wrapping-Subquery ist nötig, damit MySQL/MariaDB den DELETE
+        // nicht mit dem Fehler "You can't specify target table ... for update in FROM clause"
+        // ablehnt; SQLite akzeptiert die Form ebenfalls.
+        DB::statement(
+            'DELETE FROM user_points
+             WHERE todo_id IS NOT NULL
+               AND id NOT IN (
+                   SELECT keep_id FROM (
+                       SELECT MIN(id) AS keep_id
+                       FROM user_points
+                       WHERE todo_id IS NOT NULL
+                       GROUP BY todo_id
+                   ) keep_ids
+               )'
+        );
 
         Schema::table('user_points', function (Blueprint $table) {
             // todo_id ist nullable; SQL-Standard erlaubt mehrere NULLs in einem

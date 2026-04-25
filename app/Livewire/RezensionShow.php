@@ -34,6 +34,10 @@ class RezensionShow extends Component
 
         if (! $hasOwn && ! in_array($role, [Role::Ehrenmitglied, Role::Vorstand, Role::Admin], true)) {
             $this->redirect(route('reviews.create', $book));
+
+            // Wichtig: ohne return läuft mount() weiter und render() würde
+            // die geschützte Seite vor dem Redirect noch ausliefern.
+            return;
         }
     }
 
