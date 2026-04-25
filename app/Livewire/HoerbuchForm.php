@@ -140,6 +140,18 @@ class HoerbuchForm extends Component
             'roles.*.uploaded' => 'nullable|boolean',
         ];
 
+        // Leere Strings aus Selects/Inputs in nullable-Feldern explizit auf null normalisieren,
+        // damit die exists-Validierung nicht gegen "" läuft (Livewire setzt anders als HTTP-Requests
+        // ConvertEmptyStringsToNull nicht automatisch).
+        if ($this->responsible_user_id === '') {
+            $this->responsible_user_id = null;
+        }
+        foreach ($this->roles as $i => $role) {
+            if (($role['member_id'] ?? null) === '') {
+                $this->roles[$i]['member_id'] = null;
+            }
+        }
+
         $validated = $this->validate($rules);
 
         $notes = $this->sanitizeNotes($validated['notes'] ?? null);

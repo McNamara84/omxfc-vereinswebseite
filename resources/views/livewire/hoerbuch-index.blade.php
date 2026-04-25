@@ -7,10 +7,7 @@
             {{ session('status') }}
         </x-alert>
     @endif
-    @if(session('toast'))
-        @php($t = session('toast'))
-        <script>document.addEventListener('livewire:navigated', () => Livewire.dispatch('toast', @json($t)), { once: true })</script>
-    @endif
+    {{-- session('toast') wird zentral via flash-toast-bridge im Layout in window.toast() umgewandelt --}}
     <x-card shadow class="mb-6 flex justify-between items-center">
         <x-header title="Hörbuchfolgen" class="!mb-0" />
         @auth

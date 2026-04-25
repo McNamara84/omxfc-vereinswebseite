@@ -36,7 +36,8 @@
     display: none !important;
 }
 
-/* View-Transition-Regeln siehe weiter unten (konsolidierter Block mit prefers-reduced-motion) */
+/* View Transitions: Aktivierung. Animations-Regeln und prefers-reduced-motion-Override
+   folgen weiter unten in einem konsolidierten Block. */
 @view-transition {
     navigation: auto;
 }

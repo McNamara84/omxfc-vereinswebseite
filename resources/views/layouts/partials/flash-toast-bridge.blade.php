@@ -34,7 +34,14 @@
 @if($__hasFlash)
 <script>
     (function () {
+        var fired = false;
         var fire = function () {
+            if (fired) return;
+            fired = true;
+            // Nach Ausführung die globale Referenz löschen, damit der
+            // livewire:navigated-Listener auf späteren Seiten ohne neue
+            // Flash-Daten nicht denselben Toast erneut auslöst.
+            window.__omxfcFlashToastFire = null;
             if (typeof window.toast !== 'function') return;
             @if(session('status') || session('success'))
             window.toast({toast: {title: @json(session('status') ?: session('success')), css: 'alert-success', timeout: 3000, position: 'toast-top toast-end', noProgress: false}});
