@@ -198,6 +198,7 @@
                             tabindex="0"
                             @click="window.location.href = '{{ route('hoerbuecher.show', $episode) }}'"
                             @keydown.enter="window.location.href = '{{ route('hoerbuecher.show', $episode) }}'"
+                            @keydown.space.prevent="window.location.href = '{{ route('hoerbuecher.show', $episode) }}'"
                             data-href="{{ route('hoerbuecher.show', $episode) }}"
                             data-status="{{ $episode->status->value }}"
                             data-type="{{ $episode->episode_type }}"

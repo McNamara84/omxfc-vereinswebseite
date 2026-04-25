@@ -86,7 +86,7 @@
                     @endif
 
                     @foreach($roles as $i => $role)
-                        <div wire:key="role-{{ $i }}" class="grid grid-cols-1 md:grid-cols-[1.5fr_2fr_auto_2fr_2fr_2fr_auto_auto] gap-2 mb-2 items-start md:items-center role-row"
+                        <div wire:key="role-{{ $role['uid'] ?? $i }}" class="grid grid-cols-1 md:grid-cols-[1.5fr_2fr_auto_2fr_2fr_2fr_auto_auto] gap-2 mb-2 items-start md:items-center role-row"
                             x-data="{
                                 previousSpeaker: @js($role['previousSpeaker'] ?? ''),
                                 async fetchPreviousSpeaker() {
@@ -114,7 +114,7 @@
                                 }
                             }">
                             <input wire:model.blur="roles.{{ $i }}.name"
-                                x-on:blur="fetchPreviousSpeaker()" x-on:input.debounce.300ms="fetchPreviousSpeaker()"
+                                x-on:blur="fetchPreviousSpeaker()"
                                 placeholder="Rolle" aria-label="Rollenname"
                                 class="input input-bordered input-sm w-full" />
 

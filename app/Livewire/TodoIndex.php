@@ -152,8 +152,14 @@ class TodoIndex extends Component
 
     public function complete(int $todoId): void
     {
-        $todo = Todo::findOrFail($todoId);
+        $todo = Todo::where('team_id', $this->memberTeam->id)->find($todoId);
         $user = Auth::user();
+
+        if (! $todo) {
+            $this->dispatch('toast', type: 'error', title: 'Challenge nicht gefunden.');
+
+            return;
+        }
 
         if ($todo->assigned_to !== $user->id || $todo->status !== TodoStatus::Assigned) {
             $this->dispatch('toast', type: 'error', title: 'Sie können diese Challenge nicht als erledigt markieren.');
@@ -216,8 +222,14 @@ class TodoIndex extends Component
 
     public function release(int $todoId): void
     {
-        $todo = Todo::findOrFail($todoId);
+        $todo = Todo::where('team_id', $this->memberTeam->id)->find($todoId);
         $user = Auth::user();
+
+        if (! $todo) {
+            $this->dispatch('toast', type: 'error', title: 'Challenge nicht gefunden.');
+
+            return;
+        }
 
         if ($todo->assigned_to !== $user->id || $todo->status !== TodoStatus::Assigned) {
             $this->dispatch('toast', type: 'error', title: 'Sie können diese Challenge nicht freigeben.');

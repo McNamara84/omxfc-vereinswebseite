@@ -8,6 +8,7 @@ use App\Models\AudiobookRole;
 use App\Models\User;
 use App\Rules\ValidReleaseTime;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;
@@ -59,6 +60,7 @@ class HoerbuchForm extends Component
             $previousSpeakers = $this->previousSpeakersForEpisode($episode);
 
             $this->roles = $episode->roles->map(fn ($r) => [
+                'uid' => (string) ($r->id ? 'db-'.$r->id : Str::uuid()),
                 'name' => $r->name ?? '',
                 'description' => $r->description ?? '',
                 'takes' => $r->takes ?? 0,
@@ -95,6 +97,7 @@ class HoerbuchForm extends Component
     public function addRole(): void
     {
         $this->roles[] = [
+            'uid' => (string) Str::uuid(),
             'name' => '',
             'description' => '',
             'takes' => 0,
@@ -110,7 +113,6 @@ class HoerbuchForm extends Component
     public function removeRole(int $index): void
     {
         unset($this->roles[$index]);
-        $this->roles = array_values($this->roles);
     }
 
     public function save(): void
