@@ -220,7 +220,7 @@
                                     aria-valuenow="{{ $episode->progress }}"
                                     aria-valuemin="0"
                                     aria-valuemax="100"
-                                    aria-label="Episode progress: {{ $episode->status->value }}, {{ $episode->progress }}% complete">
+                                    aria-label="Fortschritt der Folge: {{ $episode->status->value }}, {{ $episode->progress }}% abgeschlossen">
                                     <div class="h-4 rounded-full text-xs font-medium text-center leading-none text-white" style="width: {{ $episode->progress }}%; background-color: hsl({{ $episode->progressHue() }}, 100%, 40%);">
                                         {{ $episode->progress }}%
                                     </div>

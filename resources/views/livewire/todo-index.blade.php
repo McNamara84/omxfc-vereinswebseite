@@ -23,8 +23,16 @@
                 <div class="space-y-1">
                     <h2 class="text-xl font-semibold text-primary">Challenges filtern</h2>
                     <p role="status" aria-live="polite" class="text-sm text-base-content" data-todo-filter-status
-                        x-text="messages[filter]">
-                        {{ ['all' => 'Zeigt alle verfügbaren Challenges.', 'assigned' => 'Zeigt deine übernommenen Challenges.', 'open' => 'Zeigt offene Challenges, die noch übernommen werden können.', 'pending' => 'Zeigt Challenges, die auf eine Verifizierung warten.'][$filter] }}
+                        x-text="messages[filter] ?? messages.all">
+                        @php
+                            $todoFilterMessages = [
+                                'all' => 'Zeigt alle verfügbaren Challenges.',
+                                'assigned' => 'Zeigt deine übernommenen Challenges.',
+                                'open' => 'Zeigt offene Challenges, die noch übernommen werden können.',
+                                'pending' => 'Zeigt Challenges, die auf eine Verifizierung warten.',
+                            ];
+                        @endphp
+                        {{ $todoFilterMessages[$filter] ?? $todoFilterMessages['all'] }}
                     </p>
                 </div>
             </div>
