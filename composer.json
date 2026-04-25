@@ -31,7 +31,7 @@
         "laravel/jetstream": "^5.5",
         "laravel/sanctum": "^4.3",
         "laravel/scout": "^10.14",
-        "laravel/tinker": "^2.10.1",
+        "laravel/tinker": "^3.0",
         "livewire/livewire": "^4.0",
         "robsontenorio/mary": "^2.8",
         "spatie/browsershot": "^5.2",
