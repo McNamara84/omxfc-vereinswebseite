@@ -87,10 +87,13 @@ class UserPointModelTest extends TestCase
             'todo_id' => $todo->id,
             'points' => 2,
         ]);
+        // Zweiter Eintrag ohne Todo-Bezug, da user_points.todo_id seit der
+        // Unique-Constraint pro Todo nur eine Gutschrift erlaubt; Bonuspunkte
+        // ohne Todo werden im Code via incrementTeamPoints() vergeben.
         UserPoint::create([
             'user_id' => $user->id,
             'team_id' => $user->currentTeam->id,
-            'todo_id' => $todo->id,
+            'todo_id' => null,
             'points' => 3,
         ]);
 

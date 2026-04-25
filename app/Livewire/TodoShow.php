@@ -8,6 +8,7 @@ use App\Models\Todo;
 use App\Models\UserPoint;
 use App\Services\MembersTeamProvider;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
@@ -134,25 +135,49 @@ class TodoShow extends Component
             return;
         }
 
-        UserPoint::create([
-            'user_id' => $todo->assigned_to,
-            'team_id' => $todo->team_id,
-            'todo_id' => $todo->id,
-            'points' => $todo->points,
-        ]);
+        // Atomare Verifizierung analog zu TodoIndex::verify(): Status-Wechsel
+        // nur wenn das Todo aktuell noch 'completed' ist; Punkte- und
+        // Activity-Eintrag werden idempotent über updateOrCreate/firstOrCreate
+        // angelegt, damit Doppelklicks bzw. parallele Aufrufe weder doppelte
+        // Baxx noch UNIQUE-Verstöße auf user_points.todo_id erzeugen.
+        $verified = DB::transaction(function () use ($todo) {
+            $updated = Todo::where('id', $todo->id)
+                ->where('status', TodoStatus::Completed->value)
+                ->update([
+                    'status' => TodoStatus::Verified->value,
+                    'verified_by' => Auth::id(),
+                    'verified_at' => now(),
+                ]);
 
-        $todo->update([
-            'status' => TodoStatus::Verified->value,
-            'verified_by' => Auth::id(),
-            'verified_at' => now(),
-        ]);
+            if ($updated === 0) {
+                return false;
+            }
 
-        Activity::create([
-            'user_id' => $todo->assigned_to,
-            'subject_type' => Todo::class,
-            'subject_id' => $todo->id,
-            'action' => 'completed',
-        ]);
+            UserPoint::updateOrCreate(
+                ['todo_id' => $todo->id],
+                [
+                    'user_id' => $todo->assigned_to,
+                    'team_id' => $todo->team_id,
+                    'points' => $todo->points,
+                ],
+            );
+
+            Activity::firstOrCreate([
+                'user_id' => $todo->assigned_to,
+                'subject_type' => Todo::class,
+                'subject_id' => $todo->id,
+                'action' => 'completed',
+            ]);
+
+            return true;
+        });
+
+        if (! $verified) {
+            $this->dispatch('toast', type: 'error', title: 'Diese Challenge wurde bereits verifiziert.');
+            unset($this->todo, $this->canVerify);
+
+            return;
+        }
 
         unset($this->todo, $this->canVerify);
         $this->dispatch('toast', type: 'success', title: "Challenge wurde verifiziert und {$todo->points} Baxx wurden gutgeschrieben.");
