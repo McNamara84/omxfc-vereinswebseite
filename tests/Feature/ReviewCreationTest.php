@@ -3,11 +3,13 @@
 namespace Tests\Feature;
 
 use App\Enums\BookType;
+use App\Livewire\RezensionForm;
 use App\Models\Book;
 use App\Models\Review;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
+use Livewire\Livewire;
 use Tests\Concerns\CreatesUserWithRole;
 use Tests\TestCase;
 
@@ -29,12 +31,12 @@ class ReviewCreationTest extends TestCase
         $user = $this->actingMember();
         $this->actingAs($user);
 
-        $response = $this->post("/rezensionen/{$book->id}", [
-            'title' => 'Tolles Buch',
-            'content' => str_repeat('A', 150),
-        ]);
+        Livewire::test(RezensionForm::class, ['book' => $book])
+            ->set('title', 'Tolles Buch')
+            ->set('content', str_repeat('A', 150))
+            ->call('save')
+            ->assertRedirect(route('reviews.show', $book));
 
-        $response->assertRedirect(route('reviews.show', $book));
         $this->assertDatabaseHas('reviews', [
             'book_id' => $book->id,
             'user_id' => $user->id,
@@ -58,12 +60,12 @@ class ReviewCreationTest extends TestCase
         $user = $this->actingMember();
         $this->actingAs($user);
 
-        $response = $this->post("/rezensionen/{$book->id}", [
-            'title' => 'Tolles Hardcover',
-            'content' => str_repeat('A', 150),
-        ]);
+        Livewire::test(RezensionForm::class, ['book' => $book])
+            ->set('title', 'Tolles Hardcover')
+            ->set('content', str_repeat('A', 150))
+            ->call('save')
+            ->assertRedirect(route('reviews.show', $book));
 
-        $response->assertRedirect(route('reviews.show', $book));
         $this->assertDatabaseHas('reviews', [
             'book_id' => $book->id,
             'user_id' => $user->id,
@@ -103,10 +105,10 @@ class ReviewCreationTest extends TestCase
             'author' => 'Author',
         ]);
 
-        $this->post("/rezensionen/{$newBook->id}", [
-            'title' => 'Tolles Buch',
-            'content' => str_repeat('A', 150),
-        ]);
+        Livewire::test(RezensionForm::class, ['book' => $newBook])
+            ->set('title', 'Tolles Buch')
+            ->set('content', str_repeat('A', 150))
+            ->call('save');
 
         $this->assertDatabaseCount('user_points', 1);
         $this->assertDatabaseHas('user_points', [
@@ -126,10 +128,8 @@ class ReviewCreationTest extends TestCase
         $user = User::factory()->create();
         $this->actingAs($user);
 
-        $this->post("/rezensionen/{$book->id}", [
-            'title' => 'Test',
-            'content' => str_repeat('B', 150),
-        ])->assertForbidden();
+        Livewire::test(RezensionForm::class, ['book' => $book])
+            ->assertStatus(403);
     }
 
     public function test_create_review_form_has_accessible_labels_and_structure(): void
@@ -143,15 +143,12 @@ class ReviewCreationTest extends TestCase
         $user = $this->actingMember();
         $this->actingAs($user);
 
-        $response = $this->get("/rezensionen/{$book->id}/erstellen");
-
-        // maryUI <x-input> renders <fieldset> + <legend> as accessible label
-        $response->assertSee('<fieldset', false);
-        $response->assertSee('fieldset-legend', false);
-        $response->assertSee('Rezensionstitel', false);
-        $response->assertSee('Rezensionstext', false);
-        // content textarea has hint text
-        $response->assertSee('Mindestens 140 Zeichen.', false);
+        Livewire::test(RezensionForm::class, ['book' => $book])
+            ->assertSee('<fieldset', false)
+            ->assertSee('fieldset-legend', false)
+            ->assertSee('Rezensionstitel', false)
+            ->assertSee('Rezensionstext', false)
+            ->assertSee('Mindestens 140 Zeichen.', false);
     }
 
     public function test_review_creation_validation_errors(): void
@@ -165,9 +162,10 @@ class ReviewCreationTest extends TestCase
         $user = $this->actingMember();
         $this->actingAs($user);
 
-        $response = $this->from("/rezensionen/{$book->id}/erstellen")->post("/rezensionen/{$book->id}", []);
-
-        $response->assertRedirect("/rezensionen/{$book->id}/erstellen");
-        $response->assertSessionHasErrors(['title', 'content']);
+        Livewire::test(RezensionForm::class, ['book' => $book])
+            ->set('title', '')
+            ->set('content', '')
+            ->call('save')
+            ->assertHasErrors(['title', 'content']);
     }
 }

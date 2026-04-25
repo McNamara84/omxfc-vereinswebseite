@@ -76,6 +76,7 @@
                                         class="btn-primary btn-sm"
                                         wire:click="purchase({{ $reward['id'] }})"
                                         wire:confirm="Möchtest du '{{ $reward['title'] }}' für {{ $reward['cost_baxx'] }} Baxx freischalten? Dein verfügbares Guthaben: {{ $this->availableBaxx }} Baxx. Nach dem Kauf: {{ $this->availableBaxx - $reward['cost_baxx'] }} Baxx."
+                                        spinner="purchase"
                                     />
                                 @else
                                     <x-badge

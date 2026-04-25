@@ -3,10 +3,12 @@
 namespace Tests\Feature;
 
 use App\Enums\Role;
+use App\Livewire\TodoForm;
 use App\Models\Team;
 use App\Models\TodoCategory;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class TodoAuthorizationTest extends TestCase
@@ -18,11 +20,10 @@ class TodoAuthorizationTest extends TestCase
         $team = Team::membersTeam();
         $user = User::factory()->create(['current_team_id' => $team->id]);
         $team->users()->attach($user, ['role' => Role::Mitglied->value]);
-        $this->actingAs($user);
 
-        $response = $this->get('/aufgaben/erstellen');
-
-        $response->assertForbidden();
+        Livewire::actingAs($user)
+            ->test(TodoForm::class)
+            ->assertForbidden();
     }
 
     public function test_admin_can_access_create_page(): void
@@ -30,13 +31,12 @@ class TodoAuthorizationTest extends TestCase
         $team = Team::membersTeam();
         $user = User::factory()->create(['current_team_id' => $team->id]);
         $team->users()->attach($user, ['role' => Role::Admin->value]);
-        $this->actingAs($user);
 
         TodoCategory::create(['name' => 'Test', 'slug' => 'test']);
 
-        $response = $this->get('/aufgaben/erstellen');
-
-        $response->assertOk();
-        $response->assertViewIs('todos.create');
+        Livewire::actingAs($user)
+            ->test(TodoForm::class)
+            ->assertSeeText('Neue Challenge erstellen')
+            ->assertOk();
     }
 }

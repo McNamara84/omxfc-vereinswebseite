@@ -15,7 +15,7 @@
  *
  * WICHTIG - PHP/JavaScript Konstanten-Kopplung:
  * Die Konstante MAX_RANGE_SPAN ist in zwei Stellen definiert:
- * - PHP: App\Http\Controllers\RomantauschController::MAX_RANGE_SPAN
+ * - PHP: App\Services\Romantausch\BundleService::MAX_RANGE_SPAN
  * - JS: window.MAX_RANGE_SPAN (via Blade-Template injiziert)
  *
  * Bei Änderung des Wertes in PHP wird dieser automatisch übernommen, da die
@@ -23,15 +23,14 @@
  *
  * @example
  * <script>
- *     window.MAX_RANGE_SPAN = {{ App\Http\Controllers\RomantauschController::MAX_RANGE_SPAN }};
+ *     window.MAX_RANGE_SPAN = {{ App\Services\Romantausch\BundleService::MAX_RANGE_SPAN }};
  *     window.COMPACT_THRESHOLD = {{ config('romantausch.compact_threshold', 20) }};
  * </script>
  * <input x-model="input" x-init="input = $el.getAttribute('value') || input; parseNumbers()" value="{{ $bookNumbersInput }}">
  * @vite(['resources/js/romantausch-bundle-preview.js'])
  *
- * @see resources/views/romantausch/create_bundle_offer.blade.php
- * @see resources/views/romantausch/edit_bundle.blade.php
- * @see App\Http\Controllers\RomantauschController::MAX_RANGE_SPAN (PHP-Quelle)
+ * @see resources/views/livewire/romantausch-bundle-form.blade.php
+ * @see App\Services\Romantausch\BundleService::MAX_RANGE_SPAN (PHP-Quelle)
  */
 
 window.bundlePreview = function bundlePreview() {

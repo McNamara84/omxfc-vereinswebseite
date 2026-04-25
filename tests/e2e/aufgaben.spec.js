@@ -86,7 +86,7 @@ test.describe('Aufgaben (Mobile)', () => {
 
         await filterSummary.click();
         await expect(filterDetails).toHaveAttribute('open');
-        await expect(page.getByRole('link', { name: 'Zu verifizieren', exact: true })).toBeVisible();
+        await expect(page.getByRole('button', { name: 'Zu verifizieren', exact: true })).toBeVisible();
     });
 });
 
@@ -109,33 +109,36 @@ test('admin can filter and accept challenges', async ({ page }) => {
     await expect(page.getByRole('heading', { name: 'Deine Challenges' })).toBeVisible();
     await expect(page.locator('[data-todo-filter-status]')).toHaveText(/alle verfügbaren Challenges/i);
 
-    const verifyLink = page.getByRole('link', { name: 'Zu verifizieren', exact: true });
-    await expect(verifyLink).toBeVisible();
+    const verifyButton = page.getByRole('button', { name: 'Zu verifizieren', exact: true });
+    await expect(verifyButton).toBeVisible();
 
-    await verifyLink.click();
+    await verifyButton.click();
     await expect(page).toHaveURL(/filter=pending/);
     await expect(page.locator('[data-todo-filter-status]')).toHaveText(/Verifizierung warten/i);
     await expect(page.getByRole('heading', { name: 'Zu verifizierende Challenges' })).toBeVisible();
 
-    // Nach dem GET-Filter ist die Seite neu geladen; der Filter ist wieder zu.
+    // Livewire aktualisiert per SPA; der Filter bleibt offen.
     const filterDetails = page.locator('[data-todo-filter-details]');
     await expect(filterDetails).toBeVisible();
-    await expect(filterDetails).not.toHaveAttribute('open');
-    await filterSummary.click();
     await expect(filterDetails).toHaveAttribute('open');
 
-    const allLink = page.getByRole('link', { name: 'Alle', exact: true });
-    await allLink.click();
+    const allButton = page.getByRole('button', { name: 'Alle', exact: true });
+    await allButton.click();
     await expect(page).not.toHaveURL(/filter=pending/);
 
     const assignButton = page.getByRole('button', { name: 'Übernehmen', exact: true }).first();
     await expect(assignButton).toBeVisible();
 
-    await Promise.all([
-        page.waitForURL(/\/aufgaben\/\d+/),
-        assignButton.click(),
-    ]);
-    await expect(page.locator('div[role="status"]', { hasText: /erfolgreich übernommen/i })).toBeVisible();
+    // Den Titel der zu übernehmenden Challenge auslesen (er steht in der ersten
+    // Zelle derselben Tabellen-Zeile wie der Button).
+    const assignRow = assignButton.locator('xpath=ancestor::tr[1]');
+    const todoTitle = (await assignRow.locator('td').first().innerText()).trim();
+
+    await assignButton.click();
+
+    // Livewire aktualisiert die Seite inline (ohne Navigation) und zeigt einen maryUI-Toast.
+    await expect(page.getByText(/erfolgreich übernommen/i).first()).toBeVisible();
+    await expect(page.locator('[data-todo-section="assigned"]')).toContainText(todoTitle);
 });
 
 test('member can focus on own challenges and release one', async ({ page }) => {
@@ -152,13 +155,22 @@ test('member can focus on own challenges and release one', async ({ page }) => {
     await expect(filterSummary).toBeVisible();
     await filterSummary.click();
 
-    const ownLink = page.getByRole('link', { name: 'Eigene Challenges', exact: true });
-    await ownLink.click();
+    const ownButton = page.getByRole('button', { name: 'Eigene Challenges', exact: true });
+    await ownButton.click();
 
     const releaseButton = page.getByRole('button', { name: 'Freigeben', exact: true }).first();
 
     await releaseButton.click();
-    await expect(page.locator('div[role="status"]').first()).toContainText('erfolgreich freigegeben');
+    await expect(page.getByText(/erfolgreich freigegeben/i).first()).toBeVisible();
     await expect(page.locator('[data-todo-section="assigned"]')).not.toContainText('Übernommene Playwright Challenge');
+
+    // Filter auf "Alle" wechseln, damit die freigegebene Challenge in der
+    // offenen Sektion sichtbar wird (bei Filter "assigned" wird die Sektion
+    // serverseitig nicht gerendert).
+    const filterDetailsAfter = page.locator('[data-todo-filter-details]');
+    if (!(await filterDetailsAfter.evaluate((el) => el.hasAttribute('open')))) {
+        await page.locator('[data-todo-filter-summary]').click();
+    }
+    await page.getByRole('button', { name: 'Alle', exact: true }).click();
     await expect(page.locator('[data-todo-section="open"]')).toContainText('Übernommene Playwright Challenge');
 });

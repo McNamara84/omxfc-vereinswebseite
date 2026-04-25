@@ -123,6 +123,11 @@ class BelohnungenIndex extends Component
         unset($this->rewards);
     }
 
+    public function placeholder()
+    {
+        return view('components.skeleton-card', ['cols' => 3, 'rows' => 2]);
+    }
+
     public function render()
     {
         return view('livewire.belohnungen-index')

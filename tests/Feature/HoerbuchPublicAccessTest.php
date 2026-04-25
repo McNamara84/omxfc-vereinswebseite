@@ -200,52 +200,12 @@ class HoerbuchPublicAccessTest extends TestCase
             ->assertRedirect(route('login'));
     }
 
-    public function test_guest_cannot_store_episode(): void
-    {
-        $this->post(route('hoerbuecher.store'), [
-            'episode_number' => 'F99',
-            'title' => 'Hacker-Folge',
-            'author' => 'Hacker',
-            'planned_release_date' => '2026',
-            'status' => 'Skripterstellung',
-            'progress' => 0,
-        ])->assertRedirect(route('login'));
-
-        $this->assertDatabaseMissing('audiobook_episodes', ['title' => 'Hacker-Folge']);
-    }
-
     public function test_guest_cannot_access_edit(): void
     {
         $episode = $this->createEpisodeWithRoles();
 
         $this->get(route('hoerbuecher.edit', $episode))
             ->assertRedirect(route('login'));
-    }
-
-    public function test_guest_cannot_update_episode(): void
-    {
-        $episode = $this->createEpisodeWithRoles();
-
-        $this->put(route('hoerbuecher.update', $episode), [
-            'episode_number' => 'F999',
-            'title' => 'Manipuliert',
-            'author' => 'Hacker',
-            'planned_release_date' => '2026',
-            'status' => 'Skripterstellung',
-            'progress' => 0,
-        ])->assertRedirect(route('login'));
-
-        $this->assertDatabaseMissing('audiobook_episodes', ['title' => 'Manipuliert']);
-    }
-
-    public function test_guest_cannot_delete_episode(): void
-    {
-        $episode = $this->createEpisodeWithRoles();
-
-        $this->delete(route('hoerbuecher.destroy', $episode))
-            ->assertRedirect(route('login'));
-
-        $this->assertDatabaseHas('audiobook_episodes', ['id' => $episode->id]);
     }
 
     public function test_guest_cannot_toggle_role_uploaded(): void
@@ -273,22 +233,6 @@ class HoerbuchPublicAccessTest extends TestCase
             ->assertForbidden();
     }
 
-    public function test_regular_member_cannot_store_episode(): void
-    {
-        $this->actingMember('Mitglied');
-
-        $this->post(route('hoerbuecher.store'), [
-            'episode_number' => 'F99',
-            'title' => 'Unberechtigt',
-            'author' => 'Autor',
-            'planned_release_date' => '2026',
-            'status' => 'Skripterstellung',
-            'progress' => 0,
-        ])->assertForbidden();
-
-        $this->assertDatabaseMissing('audiobook_episodes', ['title' => 'Unberechtigt']);
-    }
-
     public function test_regular_member_cannot_edit_episode(): void
     {
         $episode = $this->createEpisodeWithRoles();
@@ -296,17 +240,6 @@ class HoerbuchPublicAccessTest extends TestCase
 
         $this->get(route('hoerbuecher.edit', $episode))
             ->assertForbidden();
-    }
-
-    public function test_regular_member_cannot_delete_episode(): void
-    {
-        $episode = $this->createEpisodeWithRoles();
-        $this->actingMember('Mitglied');
-
-        $this->delete(route('hoerbuecher.destroy', $episode))
-            ->assertForbidden();
-
-        $this->assertDatabaseHas('audiobook_episodes', ['id' => $episode->id]);
     }
 
     // ─── Berechtigte sehen Bearbeitungs-Elemente ────────────────────

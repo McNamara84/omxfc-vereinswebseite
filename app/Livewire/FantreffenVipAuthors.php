@@ -226,4 +226,9 @@ class FantreffenVipAuthors extends Component
             'title' => 'Fantreffen 2026 - VIP-Autoren verwalten',
         ]);
     }
+
+    public function placeholder()
+    {
+        return view('components.skeleton-table', ['columns' => 5, 'rows' => 6]);
+    }
 }

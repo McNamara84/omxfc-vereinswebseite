@@ -2,6 +2,8 @@
 
 namespace Tests\Feature;
 
+use App\Livewire\ThreeDModelForm;
+use App\Livewire\ThreeDModelShow;
 use App\Models\Reward;
 use App\Models\RewardPurchase;
 use App\Models\ThreeDModel;
@@ -10,10 +12,13 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Livewire\Livewire;
+use PHPUnit\Framework\Attributes\Large;
 use Tests\Concerns\CreatesUserWithRole;
 use Tests\TestCase;
 
-class ThreeDModelTest extends TestCase
+#[Large]
+class ThreeDModelLivewireTest extends TestCase
 {
     use CreatesUserWithRole;
     use RefreshDatabase;
@@ -22,7 +27,7 @@ class ThreeDModelTest extends TestCase
 
     public function test_mitglieder_sehen_3d_modelle_uebersicht(): void
     {
-        $user = $this->actingSimpleMember();
+        $this->actingSimpleMember();
 
         ThreeDModel::factory()->create(['name' => 'Euphoriewurm']);
 
@@ -44,7 +49,7 @@ class ThreeDModelTest extends TestCase
 
     public function test_detailseite_zeigt_modell_informationen(): void
     {
-        $user = $this->actingSimpleMember();
+        $this->actingSimpleMember();
 
         $model = ThreeDModel::factory()->create([
             'name' => 'Testmodell',
@@ -63,7 +68,7 @@ class ThreeDModelTest extends TestCase
 
     public function test_detailseite_ohne_maddraxikon_link(): void
     {
-        $user = $this->actingSimpleMember();
+        $this->actingSimpleMember();
 
         $model = ThreeDModel::factory()->create([
             'name' => 'Ohne Link',
@@ -78,7 +83,7 @@ class ThreeDModelTest extends TestCase
 
     public function test_gesperrtes_modell_zeigt_lock_hinweis(): void
     {
-        $user = $this->actingSimpleMember();
+        $this->actingSimpleMember();
 
         $model = $this->createModelWithReward(999);
 
@@ -103,7 +108,7 @@ class ThreeDModelTest extends TestCase
         $response->assertSee('Herunterladen');
     }
 
-    // ── Create / Store (Admin/Vorstand) ──────────────────────
+    // ── Create Form ──────────────────────────────────────────
 
     public function test_admin_kann_upload_formular_sehen(): void
     {
@@ -126,31 +131,32 @@ class ThreeDModelTest extends TestCase
 
     public function test_normales_mitglied_kann_nicht_hochladen(): void
     {
-        $this->actingSimpleMember();
+        $user = $this->actingSimpleMember();
 
-        $response = $this->get('/3d-modelle/erstellen');
-
-        $response->assertForbidden();
+        Livewire::actingAs($user)
+            ->test(ThreeDModelForm::class)
+            ->assertForbidden();
     }
+
+    // ── Store (Livewire) ─────────────────────────────────────
 
     public function test_admin_kann_3d_modell_hochladen(): void
     {
         Storage::fake('private');
         Storage::fake('public');
 
-        $this->actingAdmin();
+        $user = $this->actingAdmin();
 
         $file = UploadedFile::fake()->create('modell.stl', 1024);
 
-        $response = $this->post('/3d-modelle', [
-            'name' => 'Testmodell',
-            'description' => 'Ein tolles 3D-Modell',
-            'cost_baxx' => 15,
-            'model_file' => $file,
-        ]);
-
-        $response->assertRedirect('/3d-modelle');
-        $response->assertSessionHas('success');
+        Livewire::actingAs($user)
+            ->test(ThreeDModelForm::class)
+            ->set('name', 'Testmodell')
+            ->set('description', 'Ein tolles 3D-Modell')
+            ->set('cost_baxx', 15)
+            ->set('model_file', $file)
+            ->call('save')
+            ->assertRedirect(route('3d-modelle.index'));
 
         $this->assertDatabaseHas('three_d_models', [
             'name' => 'Testmodell',
@@ -158,7 +164,6 @@ class ThreeDModelTest extends TestCase
             'file_format' => 'stl',
         ]);
 
-        // Reward wurde automatisch erstellt
         $model = ThreeDModel::where('name', 'Testmodell')->first();
         $this->assertNotNull($model->reward);
         $this->assertEquals(15, $model->reward->cost_baxx);
@@ -169,21 +174,21 @@ class ThreeDModelTest extends TestCase
         Storage::fake('private');
         Storage::fake('public');
 
-        $this->actingAdmin();
+        $user = $this->actingAdmin();
 
         $file = UploadedFile::fake()->create('modell.obj', 2048);
         $thumbnail = UploadedFile::fake()->image('vorschau.jpg', 400, 300);
 
-        $response = $this->post('/3d-modelle', [
-            'name' => 'OBJ-Modell',
-            'description' => 'Ein OBJ-Modell mit Vorschaubild',
-            'cost_baxx' => 10,
-            'maddraxikon_url' => 'https://maddraxikon.de/Euphoriewurm',
-            'model_file' => $file,
-            'thumbnail' => $thumbnail,
-        ]);
-
-        $response->assertRedirect('/3d-modelle');
+        Livewire::actingAs($user)
+            ->test(ThreeDModelForm::class)
+            ->set('name', 'OBJ-Modell')
+            ->set('description', 'Ein OBJ-Modell mit Vorschaubild')
+            ->set('cost_baxx', 10)
+            ->set('maddraxikon_url', 'https://maddraxikon.de/Euphoriewurm')
+            ->set('model_file', $file)
+            ->set('thumbnail', $thumbnail)
+            ->call('save')
+            ->assertRedirect(route('3d-modelle.index'));
 
         $model = ThreeDModel::where('name', 'OBJ-Modell')->first();
         $this->assertNotNull($model);
@@ -194,69 +199,73 @@ class ThreeDModelTest extends TestCase
 
     public function test_upload_validierung_fehlende_pflichtfelder(): void
     {
-        $this->actingAdmin();
+        $user = $this->actingAdmin();
 
-        $response = $this->post('/3d-modelle', []);
-
-        $response->assertSessionHasErrors(['name', 'description', 'cost_baxx', 'model_file']);
+        Livewire::actingAs($user)
+            ->test(ThreeDModelForm::class)
+            ->set('name', '')
+            ->set('description', '')
+            ->set('cost_baxx', 0)
+            ->call('save')
+            ->assertHasErrors(['name', 'description', 'cost_baxx', 'model_file']);
     }
 
     public function test_upload_validierung_baxx_min_1(): void
     {
         Storage::fake('private');
 
-        $this->actingAdmin();
+        $user = $this->actingAdmin();
 
         $file = UploadedFile::fake()->create('modell.stl', 512);
 
-        $response = $this->post('/3d-modelle', [
-            'name' => 'Test',
-            'description' => 'Test',
-            'cost_baxx' => 0,
-            'model_file' => $file,
-        ]);
-
-        $response->assertSessionHasErrors(['cost_baxx']);
+        Livewire::actingAs($user)
+            ->test(ThreeDModelForm::class)
+            ->set('name', 'Test')
+            ->set('description', 'Test')
+            ->set('cost_baxx', 0)
+            ->set('model_file', $file)
+            ->call('save')
+            ->assertHasErrors(['cost_baxx']);
     }
 
     public function test_upload_validierung_ungueltige_maddraxikon_url(): void
     {
         Storage::fake('private');
 
-        $this->actingAdmin();
+        $user = $this->actingAdmin();
 
         $file = UploadedFile::fake()->create('modell.stl', 512);
 
-        $response = $this->post('/3d-modelle', [
-            'name' => 'Test',
-            'description' => 'Test',
-            'cost_baxx' => 10,
-            'model_file' => $file,
-            'maddraxikon_url' => 'keine-url',
-        ]);
-
-        $response->assertSessionHasErrors(['maddraxikon_url']);
+        Livewire::actingAs($user)
+            ->test(ThreeDModelForm::class)
+            ->set('name', 'Test')
+            ->set('description', 'Test')
+            ->set('cost_baxx', 10)
+            ->set('model_file', $file)
+            ->set('maddraxikon_url', 'keine-url')
+            ->call('save')
+            ->assertHasErrors(['maddraxikon_url']);
     }
 
     public function test_upload_validierung_ungueltiges_dateiformat(): void
     {
         Storage::fake('private');
 
-        $this->actingAdmin();
+        $user = $this->actingAdmin();
 
         $file = UploadedFile::fake()->create('modell.zip', 512);
 
-        $response = $this->post('/3d-modelle', [
-            'name' => 'Test',
-            'description' => 'Test',
-            'cost_baxx' => 10,
-            'model_file' => $file,
-        ]);
-
-        $response->assertSessionHasErrors(['model_file']);
+        Livewire::actingAs($user)
+            ->test(ThreeDModelForm::class)
+            ->set('name', 'Test')
+            ->set('description', 'Test')
+            ->set('cost_baxx', 10)
+            ->set('model_file', $file)
+            ->call('save')
+            ->assertHasErrors(['model_file']);
     }
 
-    // ── Edit / Update (Admin/Vorstand) ──────────────────────
+    // ── Edit / Update (Livewire) ─────────────────────────────
 
     public function test_admin_kann_modell_bearbeiten(): void
     {
@@ -274,18 +283,18 @@ class ThreeDModelTest extends TestCase
     {
         Storage::fake('private');
 
-        $this->actingAdmin();
+        $user = $this->actingAdmin();
 
         $model = ThreeDModel::factory()->create(['name' => 'Alt']);
 
-        $response = $this->put("/3d-modelle/{$model->id}", [
-            'name' => 'Neu',
-            'description' => 'Neue Beschreibung',
-            'cost_baxx' => 20,
-            'maddraxikon_url' => 'https://maddraxikon.de/Neu',
-        ]);
-
-        $response->assertRedirect('/3d-modelle');
+        Livewire::actingAs($user)
+            ->test(ThreeDModelForm::class, ['threeDModel' => $model])
+            ->set('name', 'Neu')
+            ->set('description', 'Neue Beschreibung')
+            ->set('cost_baxx', 20)
+            ->set('maddraxikon_url', 'https://maddraxikon.de/Neu')
+            ->call('save')
+            ->assertRedirect(route('3d-modelle.index'));
 
         $model->refresh();
         $this->assertEquals('Neu', $model->name);
@@ -298,7 +307,7 @@ class ThreeDModelTest extends TestCase
     {
         Storage::fake('private');
 
-        $this->actingAdmin();
+        $user = $this->actingAdmin();
 
         $model = ThreeDModel::factory()->create([
             'name' => 'Original',
@@ -306,75 +315,77 @@ class ThreeDModelTest extends TestCase
             'file_size' => 1024,
         ]);
 
-        // Alte Datei anlegen
         Storage::disk('private')->put($model->file_path, 'old-content');
         $oldFilePath = $model->file_path;
 
         $newFile = UploadedFile::fake()->create('neues-modell.obj', 2048);
 
-        $response = $this->put("/3d-modelle/{$model->id}", [
-            'name' => 'Aktualisiert',
-            'description' => 'Neue Beschreibung',
-            'cost_baxx' => 15,
-            'model_file' => $newFile,
-        ]);
-
-        $response->assertRedirect('/3d-modelle');
+        Livewire::actingAs($user)
+            ->test(ThreeDModelForm::class, ['threeDModel' => $model])
+            ->set('name', 'Aktualisiert')
+            ->set('description', 'Neue Beschreibung')
+            ->set('cost_baxx', 15)
+            ->set('model_file', $newFile)
+            ->call('save')
+            ->assertRedirect(route('3d-modelle.index'));
 
         $model->refresh();
         $this->assertEquals('Aktualisiert', $model->name);
         $this->assertEquals('obj', $model->file_format);
         $this->assertNotEquals($oldFilePath, $model->file_path);
 
-        // Alte Datei wurde gelöscht, neue existiert
         Storage::disk('private')->assertMissing($oldFilePath);
         Storage::disk('private')->assertExists($model->file_path);
     }
 
     public function test_normales_mitglied_kann_nicht_bearbeiten(): void
     {
-        $this->actingSimpleMember();
+        $user = $this->actingSimpleMember();
 
         $model = ThreeDModel::factory()->create();
 
-        $response = $this->get("/3d-modelle/{$model->id}/bearbeiten");
-
-        $response->assertForbidden();
+        Livewire::actingAs($user)
+            ->test(ThreeDModelForm::class, ['threeDModel' => $model])
+            ->assertForbidden();
     }
 
-    // ── Delete (Admin/Vorstand) ─────────────────────────────
+    // ── Delete (Livewire) ───────────────────────────────────
 
     public function test_admin_kann_modell_loeschen(): void
     {
         Storage::fake('private');
         Storage::fake('public');
 
-        $this->actingAdmin();
+        $user = $this->actingAdmin();
 
         $model = ThreeDModel::factory()->create();
 
-        // Dateien im Storage anlegen
         Storage::disk('private')->put($model->file_path, 'fake-content');
 
-        $response = $this->delete("/3d-modelle/{$model->id}");
+        Livewire::actingAs($user)
+            ->test(ThreeDModelShow::class, ['threeDModel' => $model])
+            ->call('deleteModel')
+            ->assertRedirect(route('3d-modelle.index'));
 
-        $response->assertRedirect('/3d-modelle');
         $this->assertDatabaseMissing('three_d_models', ['id' => $model->id]);
         Storage::disk('private')->assertMissing($model->file_path);
     }
 
     public function test_normales_mitglied_kann_nicht_loeschen(): void
     {
-        $this->actingSimpleMember();
+        $user = $this->actingSimpleMember();
 
         $model = ThreeDModel::factory()->create();
 
-        $response = $this->delete("/3d-modelle/{$model->id}");
+        Livewire::actingAs($user)
+            ->test(ThreeDModelShow::class, ['threeDModel' => $model])
+            ->call('deleteModel')
+            ->assertForbidden();
 
-        $response->assertForbidden();
+        $this->assertDatabaseHas('three_d_models', ['id' => $model->id]);
     }
 
-    // ── Download (Baxx-geschützt) ──────────────────────────
+    // ── Download (Controller routes, unchanged) ──────────────
 
     public function test_download_mit_genuegend_baxx(): void
     {
@@ -385,7 +396,6 @@ class ThreeDModelTest extends TestCase
         $model = $this->createModelWithReward(10);
         $this->purchaseModelForUser($model, $user);
 
-        // Datei im fake Storage erstellen
         Storage::disk('private')->put($model->file_path, 'fake-content');
 
         $response = $this->get("/3d-modelle/{$model->id}/herunterladen");
@@ -414,15 +424,13 @@ class ThreeDModelTest extends TestCase
         $model = $this->createModelWithReward(10);
         $this->purchaseModelForUser($model, $user);
 
-        // Datei wird bewusst NICHT erstellt
-
         $response = $this->get("/3d-modelle/{$model->id}/herunterladen");
 
         $response->assertRedirect();
         $response->assertSessionHasErrors();
     }
 
-    // ── Preview (Baxx-geschützt) ──────────────────────────
+    // ── Preview (Controller routes, unchanged) ───────────────
 
     public function test_vorschau_mit_genuegend_baxx(): void
     {
@@ -461,76 +469,12 @@ class ThreeDModelTest extends TestCase
         $model = $this->createModelWithReward(10);
         $this->purchaseModelForUser($model, $user);
 
-        // Datei wird bewusst NICHT erstellt
-
         $response = $this->get("/3d-modelle/{$model->id}/vorschau");
 
         $response->assertNotFound();
     }
 
-    // ── Belohnungen-Integration ─────────────────────────────
-    // 3D-Modelle nutzen seit der Umstellung auf das aktive Kaufsystem
-    // einen eigenen Reward pro Modell. Der Kauf erfolgt über
-    // RewardService::purchaseReward() statt über automatische Baxx-Level-Prüfung.
-
-    public function test_3d_modelle_nutzen_eigenes_zugriffssystem(): void
-    {
-        $user = $this->actingMemberWithPoints(25);
-
-        ThreeDModel::factory()->create([
-            'name' => 'Zugriffs-Modell',
-        ]);
-
-        // 3D-Modelle sind über ihre eigene Route erreichbar, nicht über /belohnungen
-        $response = $this->get('/3d-modelle');
-        $response->assertOk();
-        $response->assertSee('Zugriffs-Modell');
-    }
-
-    // ── Validierung: Dateigröße ──────────────────────────────
-
-    public function test_upload_validierung_datei_zu_gross(): void
-    {
-        Storage::fake('private');
-
-        $this->actingAdmin();
-
-        // 100 MB + 1 KB überschreitet das Limit
-        $file = UploadedFile::fake()->create('modell.stl', 102401);
-
-        $response = $this->post('/3d-modelle', [
-            'name' => 'Zu gro\u00df',
-            'description' => 'Test',
-            'cost_baxx' => 10,
-            'model_file' => $file,
-        ]);
-
-        $response->assertSessionHasErrors(['model_file']);
-    }
-
-    public function test_upload_validierung_thumbnail_zu_gross(): void
-    {
-        Storage::fake('private');
-        Storage::fake('public');
-
-        $this->actingAdmin();
-
-        $file = UploadedFile::fake()->create('modell.stl', 512);
-        // 2 MB + 1 KB überschreitet das Thumbnail-Limit
-        $thumbnail = UploadedFile::fake()->image('vorschau.jpg')->size(2049);
-
-        $response = $this->post('/3d-modelle', [
-            'name' => 'Thumbnail zu gro\u00df',
-            'description' => 'Test',
-            'cost_baxx' => 10,
-            'model_file' => $file,
-            'thumbnail' => $thumbnail,
-        ]);
-
-        $response->assertSessionHasErrors(['thumbnail']);
-    }
-
-    // ── Kauf (Purchase) ────────────────────────────────────────
+    // ── Purchase (Livewire) ──────────────────────────────────
 
     public function test_kauf_erfolgreich_mit_genuegend_baxx(): void
     {
@@ -538,12 +482,11 @@ class ThreeDModelTest extends TestCase
 
         $model = $this->createModelWithReward(10);
 
-        $response = $this->post("/3d-modelle/{$model->id}/kaufen");
+        Livewire::actingAs($user)
+            ->test(ThreeDModelShow::class, ['threeDModel' => $model])
+            ->call('purchase')
+            ->assertRedirect(route('3d-modelle.show', $model));
 
-        $response->assertRedirect("/3d-modelle/{$model->id}");
-        $response->assertSessionHas('success');
-
-        // RewardPurchase wurde angelegt
         $this->assertDatabaseHas('reward_purchases', [
             'user_id' => $user->id,
             'reward_id' => $model->reward_id,
@@ -553,16 +496,15 @@ class ThreeDModelTest extends TestCase
 
     public function test_kauf_mit_zu_wenig_baxx_schlaegt_fehl(): void
     {
-        $this->actingMemberWithPoints(5);
+        $user = $this->actingMemberWithPoints(5);
 
         $model = $this->createModelWithReward(50);
 
-        $response = $this->post("/3d-modelle/{$model->id}/kaufen");
+        Livewire::actingAs($user)
+            ->test(ThreeDModelShow::class, ['threeDModel' => $model])
+            ->call('purchase')
+            ->assertHasErrors(['reward']);
 
-        $response->assertRedirect("/3d-modelle/{$model->id}");
-        $response->assertSessionHasErrors(['reward']);
-
-        // Kein RewardPurchase erstellt
         $this->assertDatabaseMissing('reward_purchases', [
             'reward_id' => $model->reward_id,
         ]);
@@ -575,10 +517,10 @@ class ThreeDModelTest extends TestCase
         $model = $this->createModelWithReward(10);
         $this->purchaseModelForUser($model, $user);
 
-        $response = $this->post("/3d-modelle/{$model->id}/kaufen");
-
-        $response->assertRedirect("/3d-modelle/{$model->id}");
-        $response->assertSessionHasErrors(['reward']);
+        Livewire::actingAs($user)
+            ->test(ThreeDModelShow::class, ['threeDModel' => $model])
+            ->call('purchase')
+            ->assertHasErrors(['reward']);
     }
 
     public function test_kauf_reduziert_verfuegbare_baxx(): void
@@ -587,15 +529,15 @@ class ThreeDModelTest extends TestCase
 
         $model = $this->createModelWithReward(10);
 
-        // Vor dem Kauf: 30 Baxx verfügbar
-        $this->post("/3d-modelle/{$model->id}/kaufen");
+        Livewire::actingAs($user)
+            ->test(ThreeDModelShow::class, ['threeDModel' => $model])
+            ->call('purchase')
+            ->assertRedirect(route('3d-modelle.show', $model));
 
-        // Nach dem Kauf im Index werden 20 Baxx angezeigt
         $response = $this->withoutVite()->get('/3d-modelle');
         $response->assertOk();
         $response->assertSee('20');
 
-        // Prüfe dass der Kauf registriert wurde und Baxx abgezogen
         $this->assertDatabaseHas('reward_purchases', [
             'user_id' => $user->id,
             'reward_id' => $model->reward_id,
@@ -605,23 +547,72 @@ class ThreeDModelTest extends TestCase
 
     public function test_modell_ohne_reward_gilt_als_freigeschaltet(): void
     {
-        $user = $this->actingSimpleMember();
+        $this->actingSimpleMember();
 
-        // Modell ohne Reward (kostenlos)
         $model = ThreeDModel::factory()->create(['name' => 'Kostenloses Modell']);
 
         $response = $this->withoutVite()->get("/3d-modelle/{$model->id}");
 
         $response->assertOk();
-        // Kostenlose Modelle zeigen den Viewer
         $response->assertSee('data-three-d-viewer');
+    }
+
+    // ── Integration ──────────────────────────────────────────
+
+    public function test_3d_modelle_nutzen_eigenes_zugriffssystem(): void
+    {
+        $this->actingMemberWithPoints(25);
+
+        ThreeDModel::factory()->create(['name' => 'Zugriffs-Modell']);
+
+        $response = $this->get('/3d-modelle');
+        $response->assertOk();
+        $response->assertSee('Zugriffs-Modell');
+    }
+
+    // ── Dateigrößen-Validierung ──────────────────────────────
+
+    public function test_upload_validierung_datei_zu_gross(): void
+    {
+        Storage::fake('private');
+
+        $user = $this->actingAdmin();
+
+        $file = UploadedFile::fake()->create('modell.stl', 102401);
+
+        Livewire::actingAs($user)
+            ->test(ThreeDModelForm::class)
+            ->set('name', 'Zu groß')
+            ->set('description', 'Test')
+            ->set('cost_baxx', 10)
+            ->set('model_file', $file)
+            ->call('save')
+            ->assertHasErrors(['model_file']);
+    }
+
+    public function test_upload_validierung_thumbnail_zu_gross(): void
+    {
+        Storage::fake('private');
+        Storage::fake('public');
+
+        $user = $this->actingAdmin();
+
+        $file = UploadedFile::fake()->create('modell.stl', 512);
+        $thumbnail = UploadedFile::fake()->image('vorschau.jpg')->size(2049);
+
+        Livewire::actingAs($user)
+            ->test(ThreeDModelForm::class)
+            ->set('name', 'Thumbnail zu groß')
+            ->set('description', 'Test')
+            ->set('cost_baxx', 10)
+            ->set('model_file', $file)
+            ->set('thumbnail', $thumbnail)
+            ->call('save')
+            ->assertHasErrors(['thumbnail']);
     }
 
     // ── Hilfsmethoden ─────────────────────────────────────────
 
-    /**
-     * Erstellt ein 3D-Modell mit zugehörigem Reward.
-     */
     private function createModelWithReward(int $costBaxx = 10, array $attributes = []): ThreeDModel
     {
         $model = ThreeDModel::factory()->create($attributes);
@@ -641,9 +632,6 @@ class ThreeDModelTest extends TestCase
         return $model->refresh();
     }
 
-    /**
-     * Erstellt einen RewardPurchase für den User und das Modell.
-     */
     private function purchaseModelForUser(ThreeDModel $model, User $user): RewardPurchase
     {
         return RewardPurchase::create([

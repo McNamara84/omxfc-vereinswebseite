@@ -61,6 +61,8 @@
         <x-toast />
     @endpersist
 
+    @include('layouts.partials.flash-toast-bridge')
+
     @vite(['resources/js/app.js'])
 </body>
 </html>

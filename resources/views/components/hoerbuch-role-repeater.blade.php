@@ -14,7 +14,7 @@
         'uploaded' => (bool) ($r['uploaded'] ?? false),
         'previousSpeaker' => isset($r['name']) && isset($previousSpeakers[$r['name']])
             ? 'Bisheriger Sprecher: ' . $previousSpeakers[$r['name']]
-            : '',
+            : ($r['previousSpeaker'] ?? ''),
     ])->values()->toArray();
 @endphp
 
@@ -45,7 +45,7 @@
     <template x-for="(role, i) in roles" :key="role._key">
         <div class="grid grid-cols-1 md:grid-cols-[1.5fr_2fr_auto_2fr_2fr_2fr_auto_auto] gap-2 mb-2 items-start md:items-center role-row">
             <input type="text" :name="`roles[${i}][name]`" x-model="role.name"
-                @blur="fetchPreviousSpeaker(role)" @input.debounce.300ms="fetchPreviousSpeaker(role)"
+                @blur="fetchPreviousSpeaker(role)"
                 placeholder="Rolle" aria-label="Rollenname"
                 class="input input-bordered input-sm w-full" />
 

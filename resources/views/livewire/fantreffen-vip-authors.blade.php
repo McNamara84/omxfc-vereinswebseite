@@ -110,6 +110,7 @@
                                 :label="$author->is_active ? 'Aktiv' : 'Inaktiv'"
                                 class="{{ $author->is_active ? 'btn-success' : 'btn-ghost' }} btn-xs"
                                 tooltip="{{ $author->is_active ? 'Klicken zum Deaktivieren' : 'Klicken zum Aktivieren' }}"
+                                spinner="toggleActive"
                             />
 
                             {{-- Move Up --}}
@@ -119,6 +120,7 @@
                                 class="btn-ghost btn-xs" 
                                 :disabled="$author->sort_order <= 0"
                                 tooltip="Nach oben"
+                                spinner="moveUp"
                             />
 
                             {{-- Move Down --}}
@@ -128,6 +130,7 @@
                                 class="btn-ghost btn-xs" 
                                 :disabled="$loop->last"
                                 tooltip="Nach unten"
+                                spinner="moveDown"
                             />
 
                             {{-- Edit --}}
@@ -145,6 +148,7 @@
                                 icon="o-trash" 
                                 class="btn-ghost btn-xs text-error"
                                 tooltip="Löschen"
+                                spinner="delete"
                             />
                         </div>
                     </div>

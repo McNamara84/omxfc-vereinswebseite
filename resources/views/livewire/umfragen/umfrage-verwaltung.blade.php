@@ -38,7 +38,7 @@
                 />
             </div>
 
-            <x-button wire:click="newPoll" icon="o-plus">
+            <x-button wire:click="newPoll" icon="o-plus" spinner="newPoll">
                 Neue Umfrage
             </x-button>
         </div>
@@ -161,13 +161,13 @@
 
             {{-- Action Buttons --}}
             <div class="flex flex-wrap gap-2">
-                <x-button type="submit" icon="o-check" class="btn-primary">
+                <x-button type="submit" icon="o-check" class="btn-primary" spinner="save">
                     Speichern
                 </x-button>
-                <x-button wire:click="activate" icon="o-play">
+                <x-button wire:click="activate" icon="o-play" spinner="activate">
                     Aktivieren
                 </x-button>
-                <x-button wire:click="archive" icon="o-archive-box" class="btn-ghost">
+                <x-button wire:click="archive" icon="o-archive-box" class="btn-ghost" spinner="archive">
                     Archivieren
                 </x-button>
             </div>

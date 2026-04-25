@@ -8,6 +8,8 @@ use App\Enums\TodoStatus;
 use App\Models\Activity;
 use App\Models\AdminMessage;
 use App\Models\Book;
+use App\Livewire\RomantauschOfferForm;
+use App\Livewire\RomantauschRequestForm;
 use App\Models\BookOffer;
 use App\Models\BookRequest;
 use App\Models\FantreffenAnmeldung;
@@ -15,12 +17,14 @@ use App\Models\Review;
 use App\Models\ReviewComment;
 use App\Models\Team;
 use App\Models\Todo;
+use App\Livewire\TodoIndex;
 use App\Models\TodoCategory;
 use App\Models\User;
 use App\Support\PreviewText;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class ActivityFeedTest extends TestCase
@@ -52,14 +56,13 @@ class ActivityFeedTest extends TestCase
         $book = Book::first();
 
         $user = $this->actingMember();
-        $this->actingAs($user);
 
-        $response = $this->post(route('reviews.store', $book), [
-            'title' => 'Tolle Rezension',
-            'content' => str_repeat('A', 140),
-        ]);
+        Livewire::actingAs($user)
+            ->test(\App\Livewire\RezensionForm::class, ['book' => $book])
+            ->set('title', 'Tolle Rezension')
+            ->set('content', str_repeat('A', 140))
+            ->call('save');
 
-        $response->assertRedirect(route('reviews.show', $book, false));
         $review = Review::first();
         $this->assertDatabaseHas('activities', [
             'user_id' => $user->id,
@@ -73,13 +76,13 @@ class ActivityFeedTest extends TestCase
         $user = $this->actingMember();
         $this->actingAs($user);
 
-        $response = $this->post('/romantauschboerse/angebot-speichern', [
-            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
-            'book_number' => 1,
-            'condition' => 'neu',
-        ]);
+        Livewire::test(RomantauschOfferForm::class)
+            ->set('series', BookType::MaddraxDieDunkleZukunftDerErde->value)
+            ->set('book_number', 1)
+            ->set('condition', 'Z0')
+            ->call('save')
+            ->assertRedirect(route('romantausch.index'));
 
-        $response->assertRedirect(route('romantausch.index', [], false));
         $offer = BookOffer::first();
         $this->assertDatabaseHas('activities', [
             'user_id' => $user->id,
@@ -93,13 +96,13 @@ class ActivityFeedTest extends TestCase
         $user = $this->actingMember();
         $this->actingAs($user);
 
-        $response = $this->post('/romantauschboerse/anfrage-speichern', [
-            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
-            'book_number' => 1,
-            'condition' => 'neu',
-        ]);
+        Livewire::test(RomantauschRequestForm::class)
+            ->set('series', BookType::MaddraxDieDunkleZukunftDerErde->value)
+            ->set('book_number', 1)
+            ->set('condition', 'Z0')
+            ->call('save')
+            ->assertRedirect(route('romantausch.index'));
 
-        $response->assertRedirect(route('romantausch.index', [], false));
         $requestModel = BookRequest::first();
         $this->assertDatabaseHas('activities', [
             'user_id' => $user->id,
@@ -423,7 +426,6 @@ class ActivityFeedTest extends TestCase
     public function test_activity_created_when_challenge_is_accepted(): void
     {
         $user = $this->actingMember();
-        $this->actingAs($user);
 
         $category = TodoCategory::create(['name' => 'Test', 'slug' => 'test']);
         $todo = Todo::create([
@@ -435,7 +437,9 @@ class ActivityFeedTest extends TestCase
             'status' => TodoStatus::Open->value,
         ]);
 
-        $this->post(route('todos.assign', $todo));
+        Livewire::actingAs($user)
+            ->test(TodoIndex::class)
+            ->call('assign', $todo->id);
 
         $todo->refresh();
         $this->assertSame(TodoStatus::Assigned, $todo->status);
@@ -464,7 +468,9 @@ class ActivityFeedTest extends TestCase
             'completed_at' => now(),
         ]);
 
-        $this->actingAs($admin)->post(route('todos.verify', $todo));
+        Livewire::actingAs($admin)
+            ->test(TodoIndex::class)
+            ->call('verify', $todo->id);
 
         $todo->refresh();
         $this->assertSame(TodoStatus::Verified, $todo->status);
@@ -513,7 +519,9 @@ class ActivityFeedTest extends TestCase
             'status' => TodoStatus::Open->value,
         ]);
 
-        $this->post(route('todos.assign', $todo));
+        Livewire::actingAs($user)
+            ->test(TodoIndex::class)
+            ->call('assign', $todo->id);
 
         $this->assertDatabaseHas('activities', [
             'user_id' => $user->id,

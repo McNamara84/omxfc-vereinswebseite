@@ -211,6 +211,11 @@ class FanfictionEdit extends Component
         return $photoPaths;
     }
 
+    public function placeholder()
+    {
+        return view('components.skeleton-form', ['fields' => 5, 'hasTextarea' => true]);
+    }
+
     public function render()
     {
         return view('livewire.fanfiction-edit')

@@ -142,9 +142,12 @@ class DashboardControllerTest extends TestCase
             'category_id' => $category->id,
         ]);
 
-        UserPoint::create(['user_id' => $admin->id, 'team_id' => $team->id, 'todo_id' => $assignedTodo->id, 'points' => 5]);
-        UserPoint::create(['user_id' => $member1->id, 'team_id' => $team->id, 'todo_id' => $assignedTodo->id, 'points' => 10]);
-        UserPoint::create(['user_id' => $member2->id, 'team_id' => $team->id, 'todo_id' => $assignedTodo->id, 'points' => 7]);
+        // todo_id ist seit der Unique-Constraint auf user_points.todo_id
+        // pro Todo nur einmal vergebbar; mehrere unabhängige Gutschriften
+        // werden im Code via incrementTeamPoints() ohne Todo-Bezug erstellt.
+        UserPoint::create(['user_id' => $admin->id, 'team_id' => $team->id, 'todo_id' => null, 'points' => 5]);
+        UserPoint::create(['user_id' => $member1->id, 'team_id' => $team->id, 'todo_id' => null, 'points' => 10]);
+        UserPoint::create(['user_id' => $member2->id, 'team_id' => $team->id, 'todo_id' => null, 'points' => 7]);
 
         $book = Book::create(['roman_number' => 1, 'title' => 'B1', 'author' => 'A']);
         Review::create(['team_id' => $team->id, 'user_id' => $admin->id, 'book_id' => $book->id, 'title' => 'T', 'content' => 'X']);

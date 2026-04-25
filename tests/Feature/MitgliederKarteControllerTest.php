@@ -3,11 +3,13 @@
 namespace Tests\Feature;
 
 use App\Enums\TodoStatus;
+use App\Livewire\TodoIndex;
 use App\Models\Team;
 use App\Models\Todo;
 use App\Models\TodoCategory;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class MitgliederKarteControllerTest extends TestCase
@@ -43,11 +45,12 @@ class MitgliederKarteControllerTest extends TestCase
     {
         $user = $this->actingMember();
         $todo = $this->createTodo($user);
-        $this->actingAs($user);
 
-        $response = $this->post(route('todos.assign', $todo));
+        Livewire::actingAs($user)
+            ->test(TodoIndex::class)
+            ->call('assign', $todo->id)
+            ->assertHasNoErrors();
 
-        $response->assertRedirect(route('todos.show', $todo, false));
         $todo->refresh();
         $this->assertSame(TodoStatus::Assigned, $todo->status);
         $this->assertSame($user->id, $todo->assigned_to);
@@ -57,11 +60,12 @@ class MitgliederKarteControllerTest extends TestCase
     {
         $user = $this->actingMember();
         $todo = $this->createTodo($user, ['assigned_to' => $user->id, 'status' => TodoStatus::Assigned->value]);
-        $this->actingAs($user);
 
-        $response = $this->post(route('todos.complete', $todo));
+        Livewire::actingAs($user)
+            ->test(TodoIndex::class)
+            ->call('complete', $todo->id)
+            ->assertHasNoErrors();
 
-        $response->assertRedirect(route('todos.show', $todo, false));
         $todo->refresh();
         $this->assertSame(TodoStatus::Completed, $todo->status);
         $this->assertNotNull($todo->completed_at);
@@ -76,11 +80,12 @@ class MitgliederKarteControllerTest extends TestCase
             'status' => TodoStatus::Completed->value,
             'completed_at' => now(),
         ]);
-        $this->actingAs($admin);
 
-        $response = $this->post(route('todos.verify', $todo));
+        Livewire::actingAs($admin)
+            ->test(TodoIndex::class)
+            ->call('verify', $todo->id)
+            ->assertHasNoErrors();
 
-        $response->assertRedirect(route('todos.show', $todo, false));
         $todo->refresh();
         $this->assertSame(TodoStatus::Verified, $todo->status);
         $this->assertSame($admin->id, $todo->verified_by);
@@ -95,11 +100,12 @@ class MitgliederKarteControllerTest extends TestCase
     {
         $user = $this->actingMember();
         $todo = $this->createTodo($user, ['assigned_to' => $user->id, 'status' => TodoStatus::Assigned->value]);
-        $this->actingAs($user);
 
-        $response = $this->post(route('todos.release', $todo));
+        Livewire::actingAs($user)
+            ->test(TodoIndex::class)
+            ->call('release', $todo->id)
+            ->assertHasNoErrors();
 
-        $response->assertRedirect(route('todos.index', [], false));
         $todo->refresh();
         $this->assertNull($todo->assigned_to);
         $this->assertSame(TodoStatus::Open, $todo->status);
