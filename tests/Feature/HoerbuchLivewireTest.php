@@ -87,13 +87,14 @@ class HoerbuchLivewireTest extends TestCase
             ->assertSee('<fieldset', false)
             ->assertSee('id="episode-checkbox-filters"', false)
             ->assertSee('<legend class="text-sm font-semibold text-base-content w-full mb-2">Checkbox-Filter</legend>', false)
-            ->assertSee('data-href="'.route('hoerbuecher.show', $episode).'"', false)
-            ->assertSee('role="button"', false)
-            ->assertSee('tabindex="0"', false)
+            ->assertSee('href="'.route('hoerbuecher.show', $episode).'"', false)
+            ->assertSee('wire:navigate', false)
             ->assertSee('Unveröffentlicht')
             ->assertSee('Unveröffentlichte Folgen werden angezeigt, solange der Filter aktiv ist. Deaktiviere den Filter, um bereits veröffentlichte Folgen einzublenden.', false)
             ->assertDontSee('onclick="window.location', false)
-            ->assertDontSee('onkeydown', false);
+            ->assertDontSee('onkeydown', false)
+            ->assertDontSee('role="button"', false)
+            ->assertDontSee('tabindex="0"', false);
     }
 
     public function test_member_can_view_index(): void
@@ -475,6 +476,41 @@ class HoerbuchLivewireTest extends TestCase
         $this->assertDatabaseHas('audiobook_episodes', ['id' => $episode->id]);
     }
 
+    public function test_guest_cannot_delete_episode(): void
+    {
+        $episode = AudiobookEpisode::create([
+            'episode_number' => 'F4G', 'title' => 'Gast verboten', 'author' => 'Autor',
+            'planned_release_date' => '01.01.2025', 'status' => 'Skripterstellung',
+            'responsible_user_id' => null, 'progress' => 0,
+            'roles_total' => 0, 'roles_filled' => 0, 'notes' => null,
+        ]);
+
+        Livewire::test(HoerbuchShow::class, ['episode' => $episode])
+            ->call('deleteEpisode')
+            ->assertForbidden();
+
+        $this->assertDatabaseHas('audiobook_episodes', ['id' => $episode->id]);
+    }
+
+    public function test_ag_member_cannot_delete_episode(): void
+    {
+        $member = $this->actingAgMember();
+
+        $episode = AudiobookEpisode::create([
+            'episode_number' => 'F4M', 'title' => 'AG-Mitglied verboten', 'author' => 'Autor',
+            'planned_release_date' => '01.01.2025', 'status' => 'Skripterstellung',
+            'responsible_user_id' => null, 'progress' => 0,
+            'roles_total' => 0, 'roles_filled' => 0, 'notes' => null,
+        ]);
+
+        Livewire::actingAs($member)
+            ->test(HoerbuchShow::class, ['episode' => $episode])
+            ->call('deleteEpisode')
+            ->assertForbidden();
+
+        $this->assertDatabaseHas('audiobook_episodes', ['id' => $episode->id]);
+    }
+
     // ── Create / Store Tests ─────────────────────────────────────
 
     public function test_admin_can_view_create_form(): void
@@ -503,6 +539,57 @@ class HoerbuchLivewireTest extends TestCase
 
         Livewire::actingAs($user)
             ->test(HoerbuchForm::class)
+            ->assertForbidden();
+    }
+
+    public function test_guest_cannot_open_create_form(): void
+    {
+        Livewire::test(HoerbuchForm::class)
+            ->assertForbidden();
+    }
+
+    public function test_member_cannot_open_edit_form(): void
+    {
+        $user = $this->actingMember('Mitglied');
+
+        $episode = AudiobookEpisode::create([
+            'episode_number' => 'F4E', 'title' => 'Edit verboten', 'author' => 'Autor',
+            'planned_release_date' => '01.01.2025', 'status' => 'Skripterstellung',
+            'responsible_user_id' => null, 'progress' => 0,
+            'roles_total' => 0, 'roles_filled' => 0, 'notes' => null,
+        ]);
+
+        Livewire::actingAs($user)
+            ->test(HoerbuchForm::class, ['episode' => $episode])
+            ->assertForbidden();
+    }
+
+    public function test_guest_cannot_open_edit_form(): void
+    {
+        $episode = AudiobookEpisode::create([
+            'episode_number' => 'F4EG', 'title' => 'Edit Gast verboten', 'author' => 'Autor',
+            'planned_release_date' => '01.01.2025', 'status' => 'Skripterstellung',
+            'responsible_user_id' => null, 'progress' => 0,
+            'roles_total' => 0, 'roles_filled' => 0, 'notes' => null,
+        ]);
+
+        Livewire::test(HoerbuchForm::class, ['episode' => $episode])
+            ->assertForbidden();
+    }
+
+    public function test_ag_member_cannot_open_edit_form(): void
+    {
+        $member = $this->actingAgMember();
+
+        $episode = AudiobookEpisode::create([
+            'episode_number' => 'F4EAM', 'title' => 'Edit AG-Mitglied verboten', 'author' => 'Autor',
+            'planned_release_date' => '01.01.2025', 'status' => 'Skripterstellung',
+            'responsible_user_id' => null, 'progress' => 0,
+            'roles_total' => 0, 'roles_filled' => 0, 'notes' => null,
+        ]);
+
+        Livewire::actingAs($member)
+            ->test(HoerbuchForm::class, ['episode' => $episode])
             ->assertForbidden();
     }
 

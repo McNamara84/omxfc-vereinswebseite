@@ -197,13 +197,7 @@
                 <tbody>
                     @forelse($this->episodes as $episode)
                         <tr
-                            class="cursor-pointer hover:bg-base-200"
-                            role="button"
-                            tabindex="0"
-                            @click="window.location.href = '{{ route('hoerbuecher.show', $episode) }}'"
-                            @keydown.enter="window.location.href = '{{ route('hoerbuecher.show', $episode) }}'"
-                            @keydown.space.prevent="window.location.href = '{{ route('hoerbuecher.show', $episode) }}'"
-                            data-href="{{ route('hoerbuecher.show', $episode) }}"
+                            class="hover:bg-base-200"
                             data-status="{{ $episode->status->value }}"
                             data-type="{{ $episode->episode_type }}"
                             data-roles-filled="{{ $episode->all_roles_filled ? '1' : '0' }}"
@@ -213,7 +207,14 @@
                             data-role-names='@json($episode->roles->pluck('name')->filter()->values())'
                             x-show="isVisible($el)"
                         >
-                            <td class="px-4 py-2">{{ $episode->episode_number }}</td>
+                            <td class="px-4 py-2">
+                                <a href="{{ route('hoerbuecher.show', $episode) }}"
+                                   wire:navigate
+                                   class="link link-hover font-medium"
+                                   aria-label="Hörbuchfolge {{ $episode->episode_number }} – {{ $episode->title }} öffnen">
+                                    {{ $episode->episode_number }}
+                                </a>
+                            </td>
                             <td class="px-4 py-2">{{ $episode->title }}</td>
                             <td class="px-4 py-2">{{ $episode->planned_release_date }}</td>
                             <td class="px-4 py-2">
