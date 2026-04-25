@@ -1,10 +1,5 @@
 <x-member-page>
-    @if(session('success'))
-        <x-alert class="alert-success mb-4" icon="o-check-circle" dismissible
-                 role="alert" data-testid="flash-success">
-            {{ session('success') }}
-        </x-alert>
-    @endif
+    {{-- session('success') wird zentral via flash-toast-bridge im Layout als Toast angezeigt --}}
     <!-- Kopfzeile -->
     <x-card shadow class="mb-6">
         <x-header title="Romantauschbörse" useH1 data-testid="page-title" />

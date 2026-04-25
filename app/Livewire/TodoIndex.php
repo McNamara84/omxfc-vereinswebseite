@@ -26,6 +26,12 @@ class TodoIndex extends Component
         if (! in_array($this->filter, ['all', 'assigned', 'open', 'pending'], true)) {
             $this->filter = 'all';
         }
+
+        // Nutzer ohne Verify-Recht dürfen 'pending' nicht sehen, sonst zeigt die UI
+        // 'pending' an, während todos() den Filter ignoriert und alle Todos lädt.
+        if ($this->filter === 'pending' && ! $this->canVerifyTodos) {
+            $this->filter = 'all';
+        }
     }
 
     #[Computed]

@@ -364,7 +364,7 @@ class RomantauschLivewireTest extends TestCase
     public function test_complete_swap_marks_entries_completed(): void
     {
         $this->seedBooksForRomantausch();
-        $user = $this->actingMember();
+        $user = $this->actingVorstand();
         $other = User::factory()->create();
 
         $offer = BookOffer::create([

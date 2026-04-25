@@ -2,11 +2,7 @@
     <meta name="robots" content="noindex, nofollow">
 </x-slot:head>
 <x-member-page>
-    @if(session('status'))
-        <x-alert icon="o-check-circle" class="alert-success mb-4">
-            {{ session('status') }}
-        </x-alert>
-    @endif
+    {{-- session('status') wird zentral via flash-toast-bridge im Layout als Toast angezeigt --}}
     {{-- session('toast') wird zentral via flash-toast-bridge im Layout in window.toast() umgewandelt --}}
     <x-card shadow class="mb-6 flex justify-between items-center">
         <x-header title="Hörbuchfolgen" class="!mb-0" />

@@ -216,6 +216,12 @@ class RomantauschIndex extends Component
 
     public function completeSwap(int $offerId, int $requestId): void
     {
+        $user = Auth::user();
+        abort_unless(
+            $user && $user->hasAnyRole(\App\Enums\Role::Admin, \App\Enums\Role::Vorstand),
+            403
+        );
+
         $offer = BookOffer::findOrFail($offerId);
         $request = BookRequest::findOrFail($requestId);
 
