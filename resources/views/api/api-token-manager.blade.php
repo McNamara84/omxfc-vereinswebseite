@@ -1,7 +1,7 @@
 <div>
     <!-- Generate API Token -->
     <x-card title="{{ __('Create API Token') }}" subtitle="{{ __('API tokens allow third-party services to authenticate with our application on your behalf.') }}" shadow separator>
-        <form wire:submit="createApiToken">
+        <form id="create-api-token-form" wire:submit="createApiToken">
             <div class="space-y-4">
                 <x-input label="{{ __('Token Name') }}" wire:model="createApiTokenForm.name" autofocus />
 
@@ -16,14 +16,14 @@
                     </div>
                 @endif
             </div>
-
-            <x-slot:actions>
-                <x-action-message class="me-3" on="created">
-                    {{ __('Created.') }}
-                </x-action-message>
-                <x-button label="{{ __('Create') }}" type="submit" class="btn-primary" />
-            </x-slot:actions>
         </form>
+
+        <x-slot:actions>
+            <x-action-message class="me-3" on="created">
+                {{ __('Created.') }}
+            </x-action-message>
+            <x-button label="{{ __('Create') }}" type="submit" form="create-api-token-form" class="btn-primary" />
+        </x-slot:actions>
     </x-card>
 
     @if ($this->user->tokens->isNotEmpty())

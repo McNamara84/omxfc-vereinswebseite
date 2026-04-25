@@ -108,9 +108,9 @@
                                 },
                                 lookupMemberId() {
                                     const name = $wire.get('roles.{{ $i }}.member_name');
-                                    const members = @js($this->users->map(fn($u) => ['id' => $u->id, 'name' => $u->name])->values()->toArray());
-                                    const match = members.find(m => m.name === name);
-                                    $wire.set('roles.{{ $i }}.member_id', match ? String(match.id) : '', false);
+                                    const options = Array.from(document.querySelectorAll('#members option'));
+                                    const match = options.find(option => option.value === name);
+                                    $wire.set('roles.{{ $i }}.member_id', match?.dataset?.id ?? '', false);
                                 }
                             }">
                             <input wire:model.blur="roles.{{ $i }}.name"

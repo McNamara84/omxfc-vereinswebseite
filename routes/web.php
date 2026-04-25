@@ -22,7 +22,9 @@ use App\Http\Controllers\NewsletterController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\PhotoGalleryController;
 use App\Http\Controllers\ProfileViewController;
+use App\Http\Controllers\RezensionController;
 use App\Http\Controllers\ReviewCommentController;
+use App\Http\Controllers\RomantauschController;
 use App\Livewire\RezensionForm;
 use App\Livewire\RezensionIndex;
 use App\Livewire\RezensionShow;
@@ -245,6 +247,22 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
         Route::livewire('anfrage/{bookRequest}/bearbeiten', RomantauschRequestForm::class)->name('edit-request');
         Route::livewire('stapel-angebot-erstellen', RomantauschBundleForm::class)->name('create-bundle-offer');
         Route::livewire('stapel/{bundleId}/bearbeiten', RomantauschBundleForm::class)->name('edit-bundle');
+
+        // Legacy-Controller-Routen zur Abwärtskompatibilität alter Blade-Templates
+        Route::post('angebot', [RomantauschController::class, 'storeOffer'])->name('store-offer');
+        Route::put('angebot/{offer}', [RomantauschController::class, 'updateOffer'])->name('update-offer');
+        Route::delete('angebot/{offer}', [RomantauschController::class, 'deleteOffer'])->name('delete-offer');
+
+        Route::post('anfrage', [RomantauschController::class, 'storeRequest'])->name('store-request');
+        Route::put('anfrage/{bookRequest}', [RomantauschController::class, 'updateRequest'])->name('update-request');
+        Route::delete('anfrage/{request}', [RomantauschController::class, 'deleteRequest'])->name('delete-request');
+
+        Route::post('stapel', [RomantauschController::class, 'storeBundleOffer'])->name('store-bundle-offer');
+        Route::put('stapel/{bundleId}', [RomantauschController::class, 'updateBundle'])->name('update-bundle');
+        Route::delete('stapel/{bundleId}', [RomantauschController::class, 'deleteBundle'])->name('delete-bundle');
+
+        Route::post('tausch/{offer}/{request}/abschliessen', [RomantauschController::class, 'completeSwap'])->name('complete-swap');
+        Route::post('tausch/{swap}/bestaetigen', [RomantauschController::class, 'confirmSwap'])->name('confirm-swap');
     });
 
     Route::prefix('downloads')->controller(DownloadsController::class)->group(function () {
@@ -295,6 +313,12 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
         Route::livewire('/{book}', RezensionShow::class)->name('show');
         Route::livewire('/{book}/erstellen', RezensionForm::class)->name('create');
         Route::livewire('/{review}/bearbeiten', RezensionForm::class)->name('edit');
+
+        // Legacy-Controller-Routen zur Abwärtskompatibilität alter Blade-Templates
+        Route::post('/{book}', [RezensionController::class, 'store'])->name('store');
+        Route::put('/{review}', [RezensionController::class, 'update'])->name('update');
+        Route::delete('/{review}', [RezensionController::class, 'destroy'])->name('destroy');
+
         Route::post('/{review}/kommentar', [ReviewCommentController::class, 'store'])->name('comments.store');
         Route::put('/kommentar/{comment}', [ReviewCommentController::class, 'update'])->name('comments.update');
         Route::delete('/kommentar/{comment}', [ReviewCommentController::class, 'destroy'])->name('comments.destroy');
