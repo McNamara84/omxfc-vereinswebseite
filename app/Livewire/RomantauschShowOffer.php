@@ -3,7 +3,6 @@
 namespace App\Livewire;
 
 use App\Models\BookOffer;
-use App\Models\BookSwap;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;

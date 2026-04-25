@@ -31,8 +31,15 @@ class RezensionForm extends Component
     public function mount(?Book $book = null, ?Review $review = null): void
     {
         $user = Auth::user();
-        $role = app(UserRoleService::class)->getRole($user, app(MembersTeamProvider::class)->getMembersTeamOrAbort());
-        $teamId = app(MembersTeamProvider::class)->getMembersTeamOrAbort()->id;
+
+        try {
+            $membersTeam = app(MembersTeamProvider::class)->getMembersTeamOrAbort();
+            $role = app(UserRoleService::class)->getRole($user, $membersTeam);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
+            abort(403);
+        }
+
+        $teamId = $membersTeam->id;
 
         if ($review?->exists) {
             // Edit mode

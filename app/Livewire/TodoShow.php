@@ -7,8 +7,6 @@ use App\Models\Activity;
 use App\Models\Todo;
 use App\Models\UserPoint;
 use App\Services\MembersTeamProvider;
-use App\Services\UserRoleService;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;

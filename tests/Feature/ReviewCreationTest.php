@@ -128,9 +128,8 @@ class ReviewCreationTest extends TestCase
         $user = User::factory()->create();
         $this->actingAs($user);
 
-        $this->expectException(\Illuminate\Database\Eloquent\ModelNotFoundException::class);
-
-        Livewire::test(RezensionForm::class, ['book' => $book]);
+        Livewire::test(RezensionForm::class, ['book' => $book])
+            ->assertStatus(403);
     }
 
     public function test_create_review_form_has_accessible_labels_and_structure(): void

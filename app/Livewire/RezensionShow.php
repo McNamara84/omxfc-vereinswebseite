@@ -40,10 +40,14 @@ class RezensionShow extends Component
     #[Computed]
     public function userRole(): ?Role
     {
-        return app(UserRoleService::class)->getRole(
-            Auth::user(),
-            app(MembersTeamProvider::class)->getMembersTeamOrAbort()
-        );
+        try {
+            return app(UserRoleService::class)->getRole(
+                Auth::user(),
+                app(MembersTeamProvider::class)->getMembersTeamOrAbort()
+            );
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException) {
+            abort(403);
+        }
     }
 
     #[Computed]
