@@ -430,6 +430,7 @@
                                             </a>
                                             <form method="POST" action="{{ route('romantausch.delete-offer', $offer) }}" class="inline">
                                                 @csrf
+                                                @method('DELETE')
                                                 <button class="inline-flex items-center gap-2 rounded px-3 py-1.5 text-sm font-semibold text-error border border-transparent hover:border-error focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-error" onclick="return confirm('Möchtest du dieses Angebot wirklich löschen?')">
                                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
@@ -488,6 +489,7 @@
                                             </a>
                                             <form method="POST" action="{{ route('romantausch.delete-request', $request) }}" class="inline">
                                                 @csrf
+                                                @method('DELETE')
                                                 <button class="inline-flex items-center gap-2 rounded px-3 py-1.5 text-sm font-semibold text-error border border-transparent hover:border-error focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-error" onclick="return confirm('Möchtest du dieses Gesuch wirklich löschen?')">
                                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
