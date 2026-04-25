@@ -6,7 +6,6 @@
         </x-alert>
     @endif
 
-    {{-- session('success') wird zusätzlich zentral via flash-toast-bridge als Toast angezeigt --}}
     <!-- Kopfzeile -->
     <x-card shadow class="mb-6">
         <x-header title="Romantauschbörse" useH1 data-testid="page-title" />

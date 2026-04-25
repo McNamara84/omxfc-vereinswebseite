@@ -1,10 +1,10 @@
-{{-- Flash-zu-Toast-Bridge: Wandelt Controller- und Livewire-Flash-Messages in maryUI-Toasts um.
-     Unterstützt String-Flashes ('status'/'success'/'error'/'warning'/'info') sowie
-     strukturierte Toast-Flashes (session()->flash('toast', ['type' => ..., 'title' => ...])). --}}
+{{-- Flash-zu-Toast-Bridge: Wandelt strukturierte Toast-Flashes in maryUI-Toasts um.
+     Opt-in: Nur session()->flash('toast', ['type' => ..., 'title' => ...]) wird verarbeitet.
+     Klassische String-Flashes ('status'/'success'/'error'/'warning'/'info') bleiben den
+     Views überlassen, die sie als <x-alert> rendern – das verhindert doppelte Meldungen
+     (Alert + Toast) auf Seiten, die bereits eigenes Inline-Feedback ausgeben. --}}
 @php
     $__toastFlash = session('toast');
-    $__hasFlash = session('status') || session('success') || session('error')
-        || session('warning') || session('info') || is_array($__toastFlash);
     $__typeCssMap = [
         'success' => ['css' => 'alert-success', 'timeout' => 3000],
         'error'   => ['css' => 'alert-error',   'timeout' => 5000],
@@ -31,7 +31,7 @@
         }
     }
 @endphp
-@if($__hasFlash)
+@if(! empty($__toastFlashes))
 <script>
     (function () {
         var fired = false;
@@ -43,18 +43,6 @@
             // Flash-Daten nicht denselben Toast erneut auslöst.
             window.__omxfcFlashToastFire = null;
             if (typeof window.toast !== 'function') return;
-            @if(session('status') || session('success'))
-            window.toast({toast: {title: @json(session('status') ?: session('success')), css: 'alert-success', timeout: 3000, position: 'toast-top toast-end', noProgress: false}});
-            @endif
-            @if(session('error'))
-            window.toast({toast: {title: @json(session('error')), css: 'alert-error', timeout: 5000, position: 'toast-top toast-end', noProgress: false}});
-            @endif
-            @if(session('warning'))
-            window.toast({toast: {title: @json(session('warning')), css: 'alert-warning', timeout: 4000, position: 'toast-top toast-end', noProgress: false}});
-            @endif
-            @if(session('info'))
-            window.toast({toast: {title: @json(session('info')), css: 'alert-info', timeout: 3000, position: 'toast-top toast-end', noProgress: false}});
-            @endif
             @foreach($__toastFlashes as $__t)
             window.toast({toast: Object.assign({title: @json($__t['title']), css: @json($__t['css']), timeout: {{ (int) $__t['timeout'] }}, position: 'toast-top toast-end', noProgress: false}, @json($__t['description']) ? {description: @json($__t['description'])} : {})});
             @endforeach
