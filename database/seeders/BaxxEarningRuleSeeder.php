@@ -19,30 +19,35 @@ class BaxxEarningRuleSeeder extends Seeder
                 'label' => 'Rezension-Meilenstein',
                 'description' => '1 Baxx für jede 10. Rezension eines Mitglieds.',
                 'points' => 1,
+                'every_count' => 10,
             ],
             [
                 'action_key' => 'fanfiction_publish',
                 'label' => 'Fanfiction veröffentlichen',
                 'description' => 'Baxx für die Veröffentlichung einer Fanfiction.',
                 'points' => 5,
+                'every_count' => 1,
             ],
             [
                 'action_key' => 'romantausch_offer',
                 'label' => 'Romantausch-Meilenstein',
                 'description' => '1 Baxx für jedes 10. Romantausch-Angebot eines Mitglieds.',
                 'points' => 1,
+                'every_count' => 10,
             ],
             [
                 'action_key' => 'maddraxiversum_mission',
                 'label' => 'Maddraxiversum-Mission',
                 'description' => 'Standard-Baxx für eine abgeschlossene Maddraxiversum-Mission (kann pro Mission überschrieben werden).',
                 'points' => 5,
+                'every_count' => 1,
             ],
             [
                 'action_key' => 'todo_complete',
                 'label' => 'Aufgabe abschließen',
                 'description' => 'Standard-Baxx für das Abschließen einer Aufgabe (kann pro Aufgabe überschrieben werden).',
                 'points' => 1,
+                'every_count' => 1,
             ],
         ];
 

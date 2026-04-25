@@ -16,6 +16,7 @@ class BaxxEarningRule extends Model
         'label',
         'description',
         'points',
+        'every_count',
         'is_active',
     ];
 
@@ -23,8 +24,21 @@ class BaxxEarningRule extends Model
     {
         return [
             'points' => 'integer',
+            'every_count' => 'integer',
             'is_active' => 'boolean',
         ];
+    }
+
+    public static function getActiveRuleFor(string $actionKey): ?self
+    {
+        return Cache::remember(
+            "baxx_earning_rule_model_{$actionKey}",
+            3600,
+            fn () => static::query()
+                ->where('action_key', $actionKey)
+                ->where('is_active', true)
+                ->first()
+        );
     }
 
     /**
@@ -42,17 +56,12 @@ class BaxxEarningRule extends Model
      */
     public static function getPointsFor(string $actionKey): int
     {
-        return Cache::remember(
-            "baxx_earning_rule_{$actionKey}",
-            3600,
-            function () use ($actionKey) {
-                $rule = static::where('action_key', $actionKey)
-                    ->where('is_active', true)
-                    ->first();
+        return static::getActiveRuleFor($actionKey)?->points ?? 0;
+    }
 
-                return $rule?->points ?? 0;
-            }
-        );
+    public static function getEveryCountFor(string $actionKey): int
+    {
+        return static::getActiveRuleFor($actionKey)?->every_count ?? 1;
     }
 
     /**
@@ -62,10 +71,12 @@ class BaxxEarningRule extends Model
     {
         if ($actionKey) {
             Cache::forget("baxx_earning_rule_{$actionKey}");
+            Cache::forget("baxx_earning_rule_model_{$actionKey}");
         } else {
             $rules = static::all();
             foreach ($rules as $rule) {
                 Cache::forget("baxx_earning_rule_{$rule->action_key}");
+                Cache::forget("baxx_earning_rule_model_{$rule->action_key}");
             }
         }
     }
