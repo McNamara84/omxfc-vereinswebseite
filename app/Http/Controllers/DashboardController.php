@@ -15,6 +15,7 @@ use App\Models\Todo;
 use App\Models\User;
 use App\Models\UserPoint;
 use App\Services\MembersTeamProvider;
+use App\Services\ReviewBaxxService;
 use App\Services\UserRoleService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Auth;
@@ -26,7 +27,8 @@ class DashboardController extends Controller
 {
     public function __construct(
         private UserRoleService $userRoleService,
-        private MembersTeamProvider $membersTeamProvider
+        private MembersTeamProvider $membersTeamProvider,
+        private ReviewBaxxService $reviewBaxxService,
     ) {}
 
     public function index()
@@ -185,6 +187,8 @@ class DashboardController extends Controller
             ->limit(10)
             ->get();
 
+        $prominentReviewSpecialOffer = $this->reviewBaxxService->getProminentSpecialOffer();
+
         return view('dashboard', compact(
             'anwaerter',
             'openTodos',
@@ -198,7 +202,8 @@ class DashboardController extends Controller
             'romantauschMatches',
             'romantauschOffers',
             'fanfictionCount',
-            'activities'
+            'activities',
+            'prominentReviewSpecialOffer'
         ));
     }
 

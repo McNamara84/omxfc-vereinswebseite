@@ -8,6 +8,7 @@ use App\Models\BaxxEarningRule;
 use App\Models\Download;
 use App\Models\Reward;
 use App\Models\RewardPurchase;
+use App\Models\ReviewBaxxSpecialOffer;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -120,13 +121,55 @@ class BelohnungenAdminTest extends TestCase
             ->call('openEditRule', $rule->id)
             ->set('ruleLabel', 'Geänderter Name')
             ->set('rulePoints', 7)
+            ->set('ruleEveryCount', 3)
             ->call('saveRule');
 
         $this->assertDatabaseHas('baxx_earning_rules', [
             'id' => $rule->id,
             'label' => 'Geänderter Name',
             'points' => 7,
+            'every_count' => 3,
         ]);
+    }
+
+    public function test_create_review_special_offer(): void
+    {
+        $this->actingAdmin();
+
+        Livewire::test(BelohnungenAdmin::class)
+            ->set('reviewSpecialOfferPoints', 2)
+            ->set('reviewSpecialOfferEveryCount', 1)
+            ->set('reviewSpecialOfferEndsAt', now()->addDay()->format('Y-m-d\TH:i'))
+            ->set('reviewSpecialOfferIsActive', true)
+            ->call('saveReviewSpecialOffer');
+
+        $this->assertDatabaseHas('review_baxx_special_offers', [
+            'points' => 2,
+            'every_count' => 1,
+            'is_active' => true,
+        ]);
+    }
+
+    public function test_second_active_review_special_offer_is_rejected(): void
+    {
+        $this->actingAdmin();
+
+        ReviewBaxxSpecialOffer::create([
+            'points' => 2,
+            'every_count' => 1,
+            'ends_at' => now()->addDay(),
+            'is_active' => true,
+        ]);
+
+        Livewire::test(BelohnungenAdmin::class)
+            ->set('reviewSpecialOfferPoints', 3)
+            ->set('reviewSpecialOfferEveryCount', 1)
+            ->set('reviewSpecialOfferEndsAt', now()->addDays(2)->format('Y-m-d\TH:i'))
+            ->set('reviewSpecialOfferIsActive', true)
+            ->call('saveReviewSpecialOffer')
+            ->assertHasErrors(['reviewSpecialOfferIsActive']);
+
+        $this->assertSame(1, ReviewBaxxSpecialOffer::count());
     }
 
     // ── Freischaltungen / Refund ───────────────────────────

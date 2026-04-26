@@ -63,6 +63,34 @@ class ReviewBaxxService
      *     ends_at_formatted:?string,
      *     banner_text:?string,
      *     banner_end_text:?string
+     * }
+     */
+    public function getBaseRuleData(): array
+    {
+        $baseRule = $this->getBaseRule();
+
+        return $this->makeRuleData(
+            points: $baseRule->points,
+            everyCount: $baseRule->every_count,
+            isActive: $baseRule->is_active,
+            isSpecialOffer: false,
+            endsAt: null
+        );
+    }
+
+    /**
+     * @return array{
+     *     points:int,
+     *     every_count:int,
+     *     is_active:bool,
+     *     is_special_offer:bool,
+     *     points_per_review:float,
+     *     points_per_review_label:string,
+     *     rule_label:string,
+     *     ends_at:?CarbonInterface,
+     *     ends_at_formatted:?string,
+     *     banner_text:?string,
+     *     banner_end_text:?string
      * }|null
      */
     public function getProminentSpecialOffer(): ?array

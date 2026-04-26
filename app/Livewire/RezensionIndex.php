@@ -8,6 +8,7 @@ use App\Models\Book;
 use App\Models\User;
 use App\Services\MaddraxDataService;
 use App\Services\MembersTeamProvider;
+use App\Services\ReviewBaxxService;
 use App\Services\UserRoleService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
@@ -55,6 +56,18 @@ class RezensionIndex extends Component
     public function filtersApplied(): bool
     {
         return $this->roman_number || $this->title_filter !== '' || $this->author !== '' || $this->review_status !== '';
+    }
+
+    #[Computed]
+    public function reviewRewardConfiguration(): array
+    {
+        return app(ReviewBaxxService::class)->getEffectiveRule();
+    }
+
+    #[Computed]
+    public function prominentReviewSpecialOffer(): ?array
+    {
+        return app(ReviewBaxxService::class)->getProminentSpecialOffer();
     }
 
     protected function applyFilters(Builder $query): Builder

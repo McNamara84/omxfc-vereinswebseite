@@ -9,6 +9,7 @@ use App\Livewire\RezensionShow;
 use App\Mail\NewReviewNotification;
 use App\Models\Book;
 use App\Models\Review;
+use App\Models\ReviewBaxxSpecialOffer;
 use App\Models\Team;
 use App\Models\User;
 use Carbon\Carbon;
@@ -139,6 +140,32 @@ class RezensionLivewireTest extends TestCase
         Livewire::actingAs($user)
             ->test(RezensionIndex::class)
             ->assertSee('(2 Rezensionen)');
+    }
+
+    public function test_index_shows_dynamic_review_reward_text(): void
+    {
+        $user = $this->actingMember();
+
+        Livewire::actingAs($user)
+            ->test(RezensionIndex::class)
+            ->assertSee('1 Baxx pro 10 Rezensionen');
+    }
+
+    public function test_index_shows_prominent_special_offer_banner(): void
+    {
+        $user = $this->actingMember();
+
+        ReviewBaxxSpecialOffer::create([
+            'points' => 2,
+            'every_count' => 1,
+            'ends_at' => now()->addDay(),
+            'is_active' => true,
+        ]);
+
+        Livewire::actingAs($user)
+            ->test(RezensionIndex::class)
+            ->assertSee('Special Offer')
+            ->assertSee('2 Baxx pro Rezension');
     }
 
     public function test_index_shows_hardcover_books(): void

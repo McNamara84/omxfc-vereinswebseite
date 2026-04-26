@@ -2,10 +2,13 @@
 
 namespace App\Livewire;
 
+use Carbon\Carbon;
 use App\Models\BaxxEarningRule;
 use App\Models\Download;
 use App\Models\Reward;
 use App\Models\RewardPurchase;
+use App\Models\ReviewBaxxSpecialOffer;
+use App\Services\ReviewBaxxService;
 use App\Services\RewardService;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
@@ -58,7 +61,22 @@ class BelohnungenAdmin extends Component
 
     public int $rulePoints = 1;
 
+    public int $ruleEveryCount = 1;
+
     public bool $ruleIsActive = true;
+
+    // --- Review special offers ---
+    public bool $showReviewSpecialOfferModal = false;
+
+    public ?int $editingReviewSpecialOfferId = null;
+
+    public int $reviewSpecialOfferPoints = 1;
+
+    public int $reviewSpecialOfferEveryCount = 1;
+
+    public string $reviewSpecialOfferEndsAt = '';
+
+    public bool $reviewSpecialOfferIsActive = true;
 
     // --- Download management ---
     public bool $showDownloadModal = false;
@@ -94,6 +112,27 @@ class BelohnungenAdmin extends Component
     public function earningRules(): \Illuminate\Database\Eloquent\Collection
     {
         return BaxxEarningRule::orderBy('action_key')->get();
+    }
+
+    #[Computed]
+    public function reviewSpecialOffers(): \Illuminate\Database\Eloquent\Collection
+    {
+        return ReviewBaxxSpecialOffer::query()
+            ->orderByDesc('is_active')
+            ->orderByDesc('ends_at')
+            ->get();
+    }
+
+    #[Computed]
+    public function reviewRewardConfiguration(): array
+    {
+        $service = app(ReviewBaxxService::class);
+
+        return [
+            'base_rule' => $service->getBaseRuleData(),
+            'effective_rule' => $service->getEffectiveRule(),
+            'prominent_special_offer' => $service->getProminentSpecialOffer(),
+        ];
     }
 
     #[Computed]
@@ -267,6 +306,7 @@ class BelohnungenAdmin extends Component
         $this->ruleLabel = $rule->label;
         $this->ruleDescription = $rule->description ?? '';
         $this->rulePoints = $rule->points;
+        $this->ruleEveryCount = $rule->every_count;
         $this->ruleIsActive = $rule->is_active;
         $this->showRuleModal = true;
     }
@@ -276,6 +316,7 @@ class BelohnungenAdmin extends Component
         $this->validate([
             'ruleLabel' => 'required|string|max:255',
             'rulePoints' => 'required|integer|min:0',
+            'ruleEveryCount' => 'required|integer|min:1',
         ]);
 
         if ($this->editingRuleId) {
@@ -284,6 +325,7 @@ class BelohnungenAdmin extends Component
                 'label' => $this->ruleLabel,
                 'description' => $this->ruleDescription ?: null,
                 'points' => $this->rulePoints,
+                'every_count' => $this->ruleEveryCount,
                 'is_active' => $this->ruleIsActive,
             ]);
             $this->dispatch('toast', type: 'success', title: 'Vergaberegel aktualisiert');
@@ -291,7 +333,8 @@ class BelohnungenAdmin extends Component
 
         $this->showRuleModal = false;
         $this->editingRuleId = null;
-        unset($this->earningRules);
+        $this->ruleEveryCount = 1;
+        unset($this->earningRules, $this->reviewRewardConfiguration);
     }
 
     public function toggleRuleActive(int $ruleId): void
@@ -300,7 +343,103 @@ class BelohnungenAdmin extends Component
         $rule->update(['is_active' => ! $rule->is_active]);
         $status = $rule->is_active ? 'aktiviert' : 'deaktiviert';
         $this->dispatch('toast', type: 'success', title: "Vergaberegel {$status}");
-        unset($this->earningRules);
+        unset($this->earningRules, $this->reviewRewardConfiguration);
+    }
+
+    public function openCreateReviewSpecialOffer(): void
+    {
+        $this->resetReviewSpecialOfferForm();
+        $this->showReviewSpecialOfferModal = true;
+    }
+
+    public function openEditReviewSpecialOffer(int $offerId): void
+    {
+        $offer = ReviewBaxxSpecialOffer::findOrFail($offerId);
+        $this->editingReviewSpecialOfferId = $offer->id;
+        $this->reviewSpecialOfferPoints = $offer->points;
+        $this->reviewSpecialOfferEveryCount = $offer->every_count;
+        $this->reviewSpecialOfferEndsAt = $offer->ends_at->copy()->timezone(config('app.timezone'))->format('Y-m-d\TH:i');
+        $this->reviewSpecialOfferIsActive = $offer->is_active;
+        $this->showReviewSpecialOfferModal = true;
+    }
+
+    public function saveReviewSpecialOffer(): void
+    {
+        $this->validate([
+            'reviewSpecialOfferPoints' => 'required|integer|min:1',
+            'reviewSpecialOfferEveryCount' => 'required|integer|min:1',
+            'reviewSpecialOfferEndsAt' => 'required|date',
+        ]);
+
+        $endsAt = Carbon::parse($this->reviewSpecialOfferEndsAt, config('app.timezone'));
+
+        if ($this->reviewSpecialOfferIsActive && $endsAt->lte(now())) {
+            throw ValidationException::withMessages([
+                'reviewSpecialOfferEndsAt' => 'Das Enddatum einer aktiven Sonderaktion muss in der Zukunft liegen.',
+            ]);
+        }
+
+        $hasConflictingOffer = ReviewBaxxSpecialOffer::query()
+            ->currentlyActive()
+            ->when($this->editingReviewSpecialOfferId, fn ($query) => $query->whereKeyNot($this->editingReviewSpecialOfferId))
+            ->exists();
+
+        if ($this->reviewSpecialOfferIsActive && $hasConflictingOffer) {
+            throw ValidationException::withMessages([
+                'reviewSpecialOfferIsActive' => 'Es kann immer nur eine aktive Review-Sonderaktion gleichzeitig geben.',
+            ]);
+        }
+
+        $data = [
+            'points' => $this->reviewSpecialOfferPoints,
+            'every_count' => $this->reviewSpecialOfferEveryCount,
+            'ends_at' => $endsAt,
+            'is_active' => $this->reviewSpecialOfferIsActive,
+        ];
+
+        if ($this->editingReviewSpecialOfferId) {
+            ReviewBaxxSpecialOffer::findOrFail($this->editingReviewSpecialOfferId)->update($data);
+            $this->dispatch('toast', type: 'success', title: 'Review-Sonderaktion aktualisiert');
+        } else {
+            ReviewBaxxSpecialOffer::create($data);
+            $this->dispatch('toast', type: 'success', title: 'Review-Sonderaktion erstellt');
+        }
+
+        $this->showReviewSpecialOfferModal = false;
+        $this->resetReviewSpecialOfferForm();
+        unset($this->reviewSpecialOffers, $this->reviewRewardConfiguration);
+    }
+
+    public function toggleReviewSpecialOfferActive(int $offerId): void
+    {
+        $offer = ReviewBaxxSpecialOffer::findOrFail($offerId);
+        $nextActiveState = ! $offer->is_active;
+
+        if ($nextActiveState && $offer->ends_at->lte(now())) {
+            $this->dispatch('toast', type: 'error', title: 'Aktivierung nicht möglich', description: 'Abgelaufene Sonderaktionen können nicht erneut aktiviert werden.');
+
+            return;
+        }
+
+        if ($nextActiveState && ReviewBaxxSpecialOffer::query()->currentlyActive()->whereKeyNot($offer->id)->exists()) {
+            $this->dispatch('toast', type: 'error', title: 'Aktivierung nicht möglich', description: 'Es gibt bereits eine andere aktive Review-Sonderaktion.');
+
+            return;
+        }
+
+        $offer->update(['is_active' => $nextActiveState]);
+        $status = $offer->is_active ? 'aktiviert' : 'deaktiviert';
+        $this->dispatch('toast', type: 'success', title: "Review-Sonderaktion {$status}");
+        unset($this->reviewSpecialOffers, $this->reviewRewardConfiguration);
+    }
+
+    private function resetReviewSpecialOfferForm(): void
+    {
+        $this->editingReviewSpecialOfferId = null;
+        $this->reviewSpecialOfferPoints = 1;
+        $this->reviewSpecialOfferEveryCount = 1;
+        $this->reviewSpecialOfferEndsAt = now()->addDay()->format('Y-m-d\TH:i');
+        $this->reviewSpecialOfferIsActive = true;
     }
 
     // =====================================================

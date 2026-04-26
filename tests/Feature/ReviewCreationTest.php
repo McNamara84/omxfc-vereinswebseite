@@ -4,8 +4,10 @@ namespace Tests\Feature;
 
 use App\Enums\BookType;
 use App\Livewire\RezensionForm;
+use App\Models\BaxxEarningRule;
 use App\Models\Book;
 use App\Models\Review;
+use App\Models\ReviewBaxxSpecialOffer;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
@@ -114,6 +116,78 @@ class ReviewCreationTest extends TestCase
         $this->assertDatabaseHas('user_points', [
             'user_id' => $user->id,
             'points' => 1,
+        ]);
+    }
+
+    public function test_active_special_offer_awards_points_using_special_offer_rule(): void
+    {
+        Mail::fake();
+
+        ReviewBaxxSpecialOffer::create([
+            'points' => 2,
+            'every_count' => 1,
+            'ends_at' => now()->addDay(),
+            'is_active' => true,
+        ]);
+
+        $user = $this->actingMember();
+        $this->actingAs($user);
+
+        $book = Book::create([
+            'roman_number' => 11,
+            'title' => 'Roman11',
+            'author' => 'Author',
+        ]);
+
+        Livewire::test(RezensionForm::class, ['book' => $book])
+            ->set('title', 'Aktionsreview')
+            ->set('content', str_repeat('A', 150))
+            ->call('save');
+
+        $this->assertDatabaseHas('user_points', [
+            'user_id' => $user->id,
+            'points' => 2,
+        ]);
+    }
+
+    public function test_expired_special_offer_falls_back_to_updated_base_rule(): void
+    {
+        Mail::fake();
+
+        $rule = BaxxEarningRule::where('action_key', 'rezension')->firstOrFail();
+        $rule->update([
+            'points' => 3,
+            'every_count' => 1,
+        ]);
+
+        ReviewBaxxSpecialOffer::create([
+            'points' => 2,
+            'every_count' => 1,
+            'ends_at' => now()->subMinute(),
+            'is_active' => true,
+        ]);
+
+        $user = $this->actingMember();
+        $this->actingAs($user);
+
+        $book = Book::create([
+            'roman_number' => 12,
+            'title' => 'Roman12',
+            'author' => 'Author',
+        ]);
+
+        Livewire::test(RezensionForm::class, ['book' => $book])
+            ->set('title', 'Fallbackreview')
+            ->set('content', str_repeat('A', 150))
+            ->call('save');
+
+        $this->assertDatabaseHas('user_points', [
+            'user_id' => $user->id,
+            'points' => 3,
+        ]);
+        $this->assertDatabaseMissing('user_points', [
+            'user_id' => $user->id,
+            'points' => 2,
         ]);
     }
 
