@@ -1,7 +1,11 @@
+import { createRequire } from 'node:module';
 import { defineConfig } from 'vite';
 import laravel from 'laravel-vite-plugin';
 import tailwindcss from '@tailwindcss/vite';
 import path from 'path';
+
+const require = createRequire(import.meta.url);
+const daisyuiEntry = require.resolve('daisyui');
 
 export default defineConfig(({ command }) => ({
     plugins: [
@@ -20,7 +24,8 @@ export default defineConfig(({ command }) => ({
     resolve: {
         alias: {
             '@': path.resolve(__dirname, 'resources/js'),
-            daisyui: path.resolve(__dirname, 'node_modules/daisyui/index.js'),
+            // Fuer @plugin "daisyui" in resources/css/app.css den JS-Package-Entry erzwingen.
+            daisyui: daisyuiEntry,
             '~leaflet': 'leaflet',
         },
     },
