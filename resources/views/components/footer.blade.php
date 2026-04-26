@@ -11,9 +11,9 @@
         </div>
 
         <div class="flex flex-wrap items-center gap-3 text-sm">
-            <a href="{{ route('impressum') }}" wire:navigate class="link link-hover">Impressum</a>
-            <a href="{{ route('datenschutz') }}" wire:navigate class="link link-hover">Datenschutz</a>
-            <a href="{{ route('changelog') }}" wire:navigate class="link link-hover">Changelog</a>
+            <a href="{{ route('impressum') }}" class="link link-hover">Impressum</a>
+            <a href="{{ route('datenschutz') }}" class="link link-hover">Datenschutz</a>
+            <a href="{{ route('changelog') }}" class="link link-hover">Changelog</a>
         </div>
     </div>
 </footer>
