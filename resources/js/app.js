@@ -1,7 +1,9 @@
 import './bootstrap';
 
-// Blade-only Assets fuer Vite registrieren, damit Vite::asset sie ins Manifest aufnimmt.
-import.meta.glob(['../images/**']);
+// Blade-only Assets fuer Vite registrieren. In Jest existiert der Vite-Helper nicht.
+if (typeof import.meta.glob === 'function') {
+    import.meta.glob(['../images/**']);
+}
 
 // Alpine.js initialisieren (Logik in alpine-init.js für Testbarkeit extrahiert)
 import Alpine from 'alpinejs';
