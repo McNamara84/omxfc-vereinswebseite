@@ -221,10 +221,16 @@ class DashboardTest extends TestCase
         ]);
 
         $response = $this->actingAs($user)->get('/dashboard');
+        $quickActions = collect($response->viewData('quickActions'));
+        $challengeAction = $quickActions->firstWhere('title', 'Challenges öffnen');
+        $verificationAction = $quickActions->firstWhere('title', 'Verifizierungen prüfen');
 
         $response->assertOk();
         $response->assertSeeText('Mitgliedsanträge prüfen');
         $response->assertSeeText('Verifizierungen prüfen');
         $response->assertSeeText('Fantreffen verwalten');
+        $this->assertNotNull($challengeAction);
+        $this->assertArrayNotHasKey('badge', $challengeAction);
+        $this->assertSame('1', $verificationAction['badge'] ?? null);
     }
 }

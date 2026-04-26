@@ -10,8 +10,9 @@ class NavigationBuilder
     public function build(?User $user, array $context = []): array
     {
         $entries = $user ? config('navigation.auth', []) : config('navigation.guest', []);
+        $visibilityState = $this->buildVisibilityState($user);
 
-        $resolvedEntries = $this->resolveEntries($entries, $user, $context);
+        $resolvedEntries = $this->resolveEntries($entries, $user, $context, $visibilityState);
 
         return [
             'featured' => array_values(array_filter(
@@ -28,12 +29,13 @@ class NavigationBuilder
     /**
      * @param  array<int, array<string, mixed>>  $entries
      * @param  array<string, mixed>  $context
+     * @param  array<string, mixed>  $visibilityState
      * @return array<int, array<string, mixed>>
      */
-    private function resolveEntries(array $entries, ?User $user, array $context): array
+    private function resolveEntries(array $entries, ?User $user, array $context, array $visibilityState): array
     {
         return array_values(array_filter(array_map(
-            fn (array $entry): ?array => $this->resolveEntry($entry, $user, $context),
+            fn (array $entry): ?array => $this->resolveEntry($entry, $user, $context, $visibilityState),
             $entries,
         )));
     }
@@ -41,11 +43,12 @@ class NavigationBuilder
     /**
      * @param  array<string, mixed>  $entry
      * @param  array<string, mixed>  $context
+     * @param  array<string, mixed>  $visibilityState
      * @return array<string, mixed>|null
      */
-    private function resolveEntry(array $entry, ?User $user, array $context): ?array
+    private function resolveEntry(array $entry, ?User $user, array $context, array $visibilityState): ?array
     {
-        if (! $this->passesVisibility($entry, $user, $context)) {
+        if (! $this->passesVisibility($entry, $user, $context, $visibilityState)) {
             return null;
         }
 
@@ -60,7 +63,7 @@ class NavigationBuilder
         }
 
         if (isset($entry['items'])) {
-            $items = $this->resolveEntries($entry['items'], $user, $context);
+            $items = $this->resolveEntries($entry['items'], $user, $context, $visibilityState);
 
             if ($items === []) {
                 return null;
@@ -88,12 +91,13 @@ class NavigationBuilder
     /**
      * @param  array<string, mixed>  $definition
      * @param  array<string, mixed>  $context
+     * @param  array<string, mixed>  $visibilityState
      */
-    private function passesVisibility(array $definition, ?User $user, array $context): bool
+    private function passesVisibility(array $definition, ?User $user, array $context, array $visibilityState): bool
     {
         if (isset($definition['visible_any'])) {
             $matchesAny = collect($definition['visible_any'])
-                ->contains(fn (array $predicate): bool => $this->matchesPredicate($predicate, $user, $context));
+                ->contains(fn (array $predicate): bool => $this->matchesPredicate($predicate, $user, $context, $visibilityState));
 
             if (! $matchesAny) {
                 return false;
@@ -102,21 +106,22 @@ class NavigationBuilder
 
         if (isset($definition['visible_all'])) {
             $matchesAll = collect($definition['visible_all'])
-                ->every(fn (array $predicate): bool => $this->matchesPredicate($predicate, $user, $context));
+                ->every(fn (array $predicate): bool => $this->matchesPredicate($predicate, $user, $context, $visibilityState));
 
             if (! $matchesAll) {
                 return false;
             }
         }
 
-        return $this->matchesPredicate($definition, $user, $context);
+        return $this->matchesPredicate($definition, $user, $context, $visibilityState);
     }
 
     /**
      * @param  array<string, mixed>  $predicate
      * @param  array<string, mixed>  $context
+     * @param  array<string, mixed>  $visibilityState
      */
-    private function matchesPredicate(array $predicate, ?User $user, array $context): bool
+    private function matchesPredicate(array $predicate, ?User $user, array $context, array $visibilityState): bool
     {
         if (isset($predicate['visibility_flag']) && ! (bool) data_get($context, $predicate['visibility_flag'], false)) {
             return false;
@@ -130,7 +135,7 @@ class NavigationBuilder
             return false;
         }
 
-        if (($predicate['vorstand'] ?? false) && ! $user?->hasVorstandRole()) {
+        if (($predicate['vorstand'] ?? false) && ! ($visibilityState['has_vorstand_role'] ?? false)) {
             return false;
         }
 
@@ -139,25 +144,27 @@ class NavigationBuilder
                 $predicate['roles_any'],
                 fn (mixed $role): bool => $role instanceof Role,
             ));
+            $currentRole = $visibilityState['current_role'] ?? null;
 
-            if ($roles === [] || ! $user || ! $user->hasAnyRole(...$roles)) {
+            if ($roles === [] || ! $currentRole instanceof Role || ! in_array($currentRole, $roles, true)) {
                 return false;
             }
         }
 
         if (isset($predicate['team_any'])) {
             $teamNames = array_filter($predicate['team_any'], 'is_string');
+            $memberTeamNames = $visibilityState['team_names'] ?? [];
 
-            if (! $user || $teamNames === [] || ! collect($teamNames)->contains(fn (string $teamName): bool => $user->isMemberOfTeam($teamName))) {
+            if (! $user || $teamNames === [] || ! collect($teamNames)->contains(fn (string $teamName): bool => isset($memberTeamNames[$teamName]))) {
                 return false;
             }
         }
 
-        if (($predicate['has_non_personal_team'] ?? false) && ! $user?->teams()->where('personal_team', false)->exists()) {
+        if (($predicate['has_non_personal_team'] ?? false) && ! ($visibilityState['has_non_personal_team'] ?? false)) {
             return false;
         }
 
-        if (($predicate['has_non_personal_owned_team'] ?? false) && ! $user?->ownedTeams()->where('personal_team', false)->exists()) {
+        if (($predicate['has_non_personal_owned_team'] ?? false) && ! ($visibilityState['has_non_personal_owned_team'] ?? false)) {
             return false;
         }
 
@@ -170,6 +177,38 @@ class NavigationBuilder
         }
 
         return true;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function buildVisibilityState(?User $user): array
+    {
+        if (! $user) {
+            return [
+                'current_role' => null,
+                'has_vorstand_role' => false,
+                'team_names' => [],
+                'has_non_personal_team' => false,
+                'has_non_personal_owned_team' => false,
+            ];
+        }
+
+        $user->loadMissing(['teams', 'ownedTeams']);
+
+        $currentRole = Role::tryFrom(
+            $user->teams->firstWhere('id', $user->current_team_id)?->membership?->role ?? null,
+        );
+        $teamNames = array_values(array_filter($user->teams->pluck('name')->all(), 'is_string'));
+
+        return [
+            'current_role' => $currentRole,
+            'has_vorstand_role' => $currentRole instanceof Role
+                && in_array($currentRole, [Role::Admin, Role::Vorstand, Role::Kassenwart], true),
+            'team_names' => array_fill_keys($teamNames, true),
+            'has_non_personal_team' => $user->teams->contains(fn ($team): bool => ! $team->personal_team),
+            'has_non_personal_owned_team' => $user->ownedTeams->contains(fn ($team): bool => ! $team->personal_team),
+        ];
     }
 
     /**

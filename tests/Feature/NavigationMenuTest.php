@@ -5,7 +5,9 @@ namespace Tests\Feature;
 use App\Enums\Role;
 use App\Models\Team;
 use App\Models\User;
+use App\Support\Navigation\NavigationBuilder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\Concerns\CreatesUserWithRole;
 use Tests\TestCase;
 
@@ -59,6 +61,40 @@ class NavigationMenuTest extends TestCase
         $response->assertSeeText('Vorstand');
         $response->assertSeeText('Admin');
         $response->assertSeeText('Umfrage verwalten');
+    }
+
+    public function test_navigation_builder_loads_team_visibility_state_only_once_per_build(): void
+    {
+        $user = $this->createUserWithRole(Role::Mitglied);
+        $audioTeam = Team::factory()->create([
+            'user_id' => $user->id,
+            'name' => 'AG Fanhörbücher',
+            'personal_team' => false,
+        ]);
+        $audioTeam->users()->attach($user, ['role' => Role::Mitglied->value]);
+
+        $kompendiumTeam = Team::factory()->create([
+            'user_id' => $user->id,
+            'name' => 'AG Maddraxikon',
+            'personal_team' => false,
+        ]);
+        $kompendiumTeam->users()->attach($user, ['role' => Role::Mitglied->value]);
+
+        $user = $user->fresh();
+
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+
+        $navigation = app(NavigationBuilder::class)->build($user);
+
+        $queries = DB::getQueryLog();
+        DB::disableQueryLog();
+
+        $teamsSection = collect($navigation['sections'])->firstWhere('title', 'Teams & AG');
+
+        $this->assertNotNull($teamsSection);
+        $this->assertSame(['EARDRAX Dashboard', 'Kompendium', 'AG verwalten'], array_column($teamsSection['items'], 'title'));
+        $this->assertLessThanOrEqual(2, count($queries));
     }
 
     public function test_authenticated_users_see_termine_link_in_veranstaltungen_menu(): void

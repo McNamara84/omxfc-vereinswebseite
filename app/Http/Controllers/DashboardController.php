@@ -300,7 +300,6 @@ class DashboardController extends Controller
                 'description' => 'Finde offene Aufgaben, prüfe Zusagen und springe direkt in deinen Arbeitsmodus.',
                 'href' => route('todos.index'),
                 'icon' => 'o-bolt',
-                'badge' => $pendingVerification > 0 ? (string) $pendingVerification : null,
             ],
             [
                 'title' => 'Tauschbörse öffnen',
