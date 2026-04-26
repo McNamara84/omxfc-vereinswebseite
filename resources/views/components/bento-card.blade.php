@@ -1,6 +1,11 @@
 @props(['title', 'href' => null, 'srText' => null, 'icon' => null, 'descriptionId' => null])
 @php
     $titleId = \Illuminate\Support\Str::slug($title, '-') . '-' . uniqid();
+    $hasDescriptionSlot = isset($description);
+    $hasValueSlot = isset($value);
+    $hasDefaultSlot = trim((string) $slot) !== '';
+    $rendersSlotAsDescription = ! $hasDescriptionSlot && $hasValueSlot && $hasDefaultSlot;
+    $rendersSlotInBody = ! $hasValueSlot && $hasDefaultSlot;
 @endphp
 @if($href)
 <a href="{{ $href }}" {{ $attributes->class(['group relative overflow-hidden rounded-[1.75rem] border border-base-content/10 bg-base-100/95 p-6 shadow-xl shadow-base-content/5 transition duration-200 hover:-translate-y-0.5 hover:border-primary/20 hover:shadow-2xl']) }} role="region" aria-labelledby="{{ $titleId }}" @if($descriptionId) aria-describedby="{{ $descriptionId }}" @endif>
@@ -18,7 +23,7 @@
                     <div @if($descriptionId) id="{{ $descriptionId }}" @endif class="text-sm leading-relaxed text-base-content/70">
                         {{ $description }}
                     </div>
-                @elseif(trim((string) $slot) !== '')
+                @elseif($rendersSlotAsDescription)
                     <div @if($descriptionId) id="{{ $descriptionId }}" @endif class="text-sm leading-relaxed text-base-content/70">
                         {{ $slot }}
                     </div>
@@ -46,9 +51,11 @@
                 @endif
             </div>
         @else
-            <div class="mt-auto">
-                {{ $slot }}
-            </div>
+            @if($rendersSlotInBody)
+                <div class="mt-auto">
+                    {{ $slot }}
+                </div>
+            @endif
         @endisset
     </div>
 

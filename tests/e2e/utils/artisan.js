@@ -1,6 +1,6 @@
 import { execFile as execFileCallback } from 'child_process';
 import { promisify } from 'util';
-import { isBatchPhpBinary, resolvePhpBinary } from './php.js';
+import { createPhpProcess } from './php.js';
 
 const execFile = promisify(execFileCallback);
 
@@ -9,7 +9,6 @@ export async function runArtisan(args, options = {}) {
         ...process.env,
         APP_ENV: process.env.APP_ENV ?? 'testing',
     };
-    const phpBinary = resolvePhpBinary();
 
     if (!Array.isArray(args) || args.length === 0) {
         throw new Error(
@@ -17,12 +16,12 @@ export async function runArtisan(args, options = {}) {
         );
     }
 
-    const phpArgs = ['artisan', ...args];
+    const phpProcess = createPhpProcess(['artisan', ...args], { env });
 
     try {
-        const result = await execFile(phpBinary, phpArgs, {
+        const result = await execFile(phpProcess.command, phpProcess.args, {
             env,
-            shell: isBatchPhpBinary(phpBinary),
+            shell: phpProcess.shell,
             ...options,
         });
 

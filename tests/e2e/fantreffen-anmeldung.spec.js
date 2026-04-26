@@ -107,11 +107,10 @@ test.describe('Fantreffen 2026 Anmeldung', () => {
     });
 
     test('Mehrere Gäste können sich nacheinander ohne 429-Fehler registrieren', async ({ page }, testInfo) => {
-        const projectSuffix = testInfo.project.name.replace(/[^a-z0-9]+/gi, '-').toLowerCase();
         const gaeste = [
-            { vorname: 'Anna', nachname: 'Schmidt', email: `anna-schmidt-${projectSuffix}@example.com` },
-            { vorname: 'Ben', nachname: 'Weber', email: `ben-weber-${projectSuffix}@example.com` },
-            { vorname: 'Clara', nachname: 'Fischer', email: `clara-fischer-${projectSuffix}@example.com` },
+            { vorname: 'Anna', nachname: 'Schmidt', email: uniqueGuestEmail('anna-schmidt', testInfo.project.name) },
+            { vorname: 'Ben', nachname: 'Weber', email: uniqueGuestEmail('ben-weber', testInfo.project.name) },
+            { vorname: 'Clara', nachname: 'Fischer', email: uniqueGuestEmail('clara-fischer', testInfo.project.name) },
         ];
 
         for (const gast of gaeste) {

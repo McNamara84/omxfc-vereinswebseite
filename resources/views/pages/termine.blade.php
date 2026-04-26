@@ -62,7 +62,7 @@
                         <iframe src="{{ $calendarUrl }}" class="h-full w-full border-0" frameborder="0" scrolling="no"></iframe>
                     </div>
 
-                    <div class="h-150 overflow-hidden rounded-3xl border border-base-content/10 shadow-md md:hidden">
+                    <div class="h-[600px] overflow-hidden rounded-3xl border border-base-content/10 shadow-md md:hidden">
                         <iframe src="{{ $calendarUrlAgenda }}" class="h-full w-full border-0" frameborder="0" scrolling="no"></iframe>
                     </div>
 
