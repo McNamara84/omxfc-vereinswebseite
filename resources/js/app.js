@@ -1,5 +1,8 @@
 import './bootstrap';
 
+// Blade-only Assets fuer Vite registrieren, damit Vite::asset sie ins Manifest aufnimmt.
+import.meta.glob(['../images/**']);
+
 // Alpine.js initialisieren (Logik in alpine-init.js für Testbarkeit extrahiert)
 import Alpine from 'alpinejs';
 import anchor from '@alpinejs/anchor';
