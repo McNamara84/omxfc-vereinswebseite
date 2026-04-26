@@ -2,10 +2,12 @@ import fs from 'fs';
 import path from 'path';
 import { spawnSync } from 'child_process';
 import { runArtisan } from './utils/artisan.js';
+import { isBatchPhpBinary, resolvePhpBinary } from './utils/php.js';
 
 export default async function globalSetup() {
     const databasePath = path.resolve('database/playwright.sqlite');
     const sqliteSchemaPath = path.resolve('database/schema/sqlite-schema.sql');
+    const phpBinary = resolvePhpBinary();
 
     process.env.APP_ENV = 'testing';
     process.env.APP_DEBUG = 'false';
@@ -39,10 +41,11 @@ export default async function globalSetup() {
     }
 
     const schemaResult = spawnSync(
-        'php',
+        phpBinary,
         ['tests/e2e/load-sqlite-schema.php', databasePath, sqliteSchemaPath],
         {
             env: process.env,
+            shell: isBatchPhpBinary(phpBinary),
             stdio: 'inherit',
         },
     );

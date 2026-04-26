@@ -8,6 +8,7 @@ use App\Livewire\Profile\UpdatePasswordForm;
 use App\Livewire\Teams\TeamMemberManager;
 use App\Livewire\Teams\UpdateTeamNameForm;
 use App\Services\Polls\ActivePollResolver;
+use App\Support\Navigation\NavigationBuilder;
 use App\View\Components\Alert;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\QueryException;
@@ -114,11 +115,18 @@ class AppServiceProvider extends ServiceProvider
 
             $isWithinWindow = $poll ? $poll->isWithinVotingWindow() : false;
 
-            $view->with([
-                'activePollForMenu' => $poll,
+            $navigationContext = [
                 'activePollMenuLabel' => $poll?->menu_label,
                 'showActivePollForAuth' => (bool) ($poll && $isWithinWindow),
                 'showActivePollForGuest' => (bool) ($poll && $isWithinWindow && $poll->visibility === PollVisibility::Public),
+            ];
+
+            $view->with([
+                'activePollForMenu' => $poll,
+                'activePollMenuLabel' => $navigationContext['activePollMenuLabel'],
+                'showActivePollForAuth' => $navigationContext['showActivePollForAuth'],
+                'showActivePollForGuest' => $navigationContext['showActivePollForGuest'],
+                'navigation' => app(NavigationBuilder::class)->build(auth()->user(), $navigationContext),
             ]);
         });
 

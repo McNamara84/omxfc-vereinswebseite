@@ -188,6 +188,27 @@ class DashboardController extends Controller
             ->get();
 
         $prominentReviewSpecialOffer = $this->reviewBaxxService->getProminentSpecialOffer();
+        $focusCards = $this->buildFocusCards(
+            openTodos: $openTodos,
+            userPoints: $userPoints,
+            romantauschMatches: $romantauschMatches,
+            romantauschOffers: $romantauschOffers,
+            myReviews: $myReviews,
+            fanfictionCount: $fanfictionCount,
+        );
+        $dashboardGreeting = $this->resolveDashboardGreeting($user);
+        $dashboardDescription = $this->resolveDashboardDescription(
+            userRole: $userRole,
+            allowedRoles: $allowedRoles,
+            applicantCount: $anwaerter->count(),
+            pendingVerification: $pendingVerification,
+        );
+        $quickActions = $this->buildQuickActions(
+            userRole: $userRole,
+            allowedRoles: $allowedRoles,
+            applicantCount: $anwaerter->count(),
+            pendingVerification: $pendingVerification,
+        );
 
         return view('dashboard', compact(
             'anwaerter',
@@ -203,8 +224,164 @@ class DashboardController extends Controller
             'romantauschOffers',
             'fanfictionCount',
             'activities',
-            'prominentReviewSpecialOffer'
+            'prominentReviewSpecialOffer',
+            'focusCards',
+            'dashboardGreeting',
+            'dashboardDescription',
+            'quickActions',
         ));
+    }
+
+    private function buildFocusCards(
+        int $openTodos,
+        int $userPoints,
+        int $romantauschMatches,
+        int $romantauschOffers,
+        int $myReviews,
+        int $fanfictionCount,
+    ): array {
+        return [
+            [
+                'title' => 'Offene Challenges',
+                'description' => 'Angenommene, noch nicht abgeschlossene Challenges.',
+                'value' => $openTodos,
+                'href' => route('todos.index'),
+                'icon' => 'o-bolt',
+                'sr_text' => "Meine offenen Challenges: {$openTodos}",
+            ],
+            [
+                'title' => 'Meine Baxx',
+                'description' => 'Aktueller Punktestand für deine Aktivitäten im Verein.',
+                'value' => $userPoints,
+                'href' => null,
+                'icon' => 'o-sparkles',
+                'sr_text' => "Meine Baxx: {$userPoints}",
+            ],
+            [
+                'title' => 'Matches in Tauschbörse',
+                'description' => 'Offene Treffer aus Angeboten und Gesuchen in der Community.',
+                'value' => $romantauschMatches,
+                'href' => route('romantausch.index'),
+                'icon' => 'o-arrows-right-left',
+                'sr_text' => "Meine Matches in der Tauschbörse: {$romantauschMatches}",
+            ],
+            [
+                'title' => 'Angebote in der Tauschbörse',
+                'description' => 'Aktive Angebote, die du aktuell mit anderen teilst.',
+                'value' => $romantauschOffers,
+                'href' => route('romantausch.index'),
+                'icon' => 'o-archive-box',
+                'sr_text' => "Meine Angebote in der Tauschbörse: {$romantauschOffers}",
+            ],
+            [
+                'title' => 'Meine Rezensionen',
+                'description' => 'Dein veröffentlichter Beitragsstand im Rezensionsbereich.',
+                'value' => $myReviews,
+                'href' => route('reviews.index'),
+                'icon' => 'o-book-open',
+                'sr_text' => "Meine Rezensionen: {$myReviews}",
+            ],
+            [
+                'title' => 'Fanfiction',
+                'description' => 'Veröffentlichte Geschichten aus dem MADDRAX-Universum.',
+                'value' => $fanfictionCount,
+                'href' => route('fanfiction.index'),
+                'icon' => 'o-pencil-square',
+                'sr_text' => "Fanfiction: {$fanfictionCount}",
+            ],
+        ];
+    }
+
+    private function buildQuickActions(Role $userRole, array $allowedRoles, int $applicantCount, int $pendingVerification): array
+    {
+        $actions = [
+            [
+                'title' => 'Challenges öffnen',
+                'description' => 'Finde offene Aufgaben, prüfe Zusagen und springe direkt in deinen Arbeitsmodus.',
+                'href' => route('todos.index'),
+                'icon' => 'o-bolt',
+                'badge' => $pendingVerification > 0 ? (string) $pendingVerification : null,
+            ],
+            [
+                'title' => 'Tauschbörse öffnen',
+                'description' => 'Neue Matches prüfen oder schnell selbst Angebote und Gesuche nachziehen.',
+                'href' => route('romantausch.index'),
+                'icon' => 'o-arrows-right-left',
+            ],
+            [
+                'title' => 'Rezensionen entdecken',
+                'description' => 'Neue Rezensionen lesen, kommentieren oder eigene Beiträge weiterentwickeln.',
+                'href' => route('reviews.index'),
+                'icon' => 'o-book-open',
+            ],
+            [
+                'title' => 'Fantreffen 2026 ansehen',
+                'description' => 'Programm, Anmeldung und aktuelle Informationen rund um das Event im Blick behalten.',
+                'href' => route('fantreffen.2026'),
+                'icon' => 'o-calendar-days',
+            ],
+        ];
+
+        if (in_array($userRole, $allowedRoles, true)) {
+            array_unshift($actions, [
+                'title' => 'Verifizierungen prüfen',
+                'description' => 'Abgeschlossene Challenges freigeben und nächste Schritte für Teams anstoßen.',
+                'href' => route('todos.index').'?filter=pending',
+                'icon' => 'o-shield-check',
+                'badge' => $pendingVerification > 0 ? (string) $pendingVerification : null,
+            ]);
+
+            $actions[] = [
+                'title' => 'Fantreffen verwalten',
+                'description' => 'Anmeldungen, Zahlungen und operative Eventpunkte in der Admin-Ansicht pflegen.',
+                'href' => route('admin.fantreffen.2026'),
+                'icon' => 'o-users',
+            ];
+
+            if ($applicantCount > 0) {
+                array_unshift($actions, [
+                    'title' => 'Mitgliedsanträge prüfen',
+                    'description' => 'Neue Anwärter sichten, Rückfragen beantworten und Freigaben zügig erledigen.',
+                    'href' => route('dashboard'),
+                    'icon' => 'o-user-plus',
+                    'badge' => (string) $applicantCount,
+                ]);
+            }
+        }
+
+        return $actions;
+    }
+
+    private function resolveDashboardGreeting(User $user): string
+    {
+        $preferredName = trim((string) ($user->vorname ?: str($user->name)->before(' ')));
+
+        return $preferredName !== ''
+            ? "Willkommen zurück, {$preferredName}"
+            : 'Willkommen zurück';
+    }
+
+    private function resolveDashboardDescription(Role $userRole, array $allowedRoles, int $applicantCount, int $pendingVerification): string
+    {
+        if (! in_array($userRole, $allowedRoles, true)) {
+            return 'Dein Einstieg in Challenges, Community-Aktivität, Tauschbörse und aktuelle Vereinsinhalte.';
+        }
+
+        $segments = ['Behalte Community-Aktivität, Anträge und laufende Freigaben zentral im Blick.'];
+
+        if ($applicantCount > 0) {
+            $segments[] = $applicantCount === 1
+                ? 'Gerade wartet ein neuer Mitgliedsantrag auf deine Rückmeldung.'
+                : "Gerade warten {$applicantCount} neue Mitgliedsanträge auf deine Rückmeldung.";
+        }
+
+        if ($pendingVerification > 0) {
+            $segments[] = $pendingVerification === 1
+                ? 'Zusätzlich ist eine Challenge zur Verifizierung offen.'
+                : "Zusätzlich sind {$pendingVerification} Challenges zur Verifizierung offen.";
+        }
+
+        return implode(' ', $segments);
     }
 
     public function approveAnwaerter(User $user)

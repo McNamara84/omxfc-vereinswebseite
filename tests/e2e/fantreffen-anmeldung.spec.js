@@ -1,5 +1,11 @@
 import { expect, test } from '@playwright/test';
 
+function uniqueGuestEmail(prefix, projectName) {
+    const normalizedProject = projectName.replace(/[^a-z0-9]+/gi, '-').toLowerCase();
+
+    return `${prefix}-${normalizedProject}@example.com`;
+}
+
 test.describe('Fantreffen 2026 Anmeldung', () => {
     test('Seite ist erreichbar und zeigt das Anmeldeformular', async ({ page }) => {
         await page.goto('/maddrax-fantreffen-2026');
@@ -31,14 +37,14 @@ test.describe('Fantreffen 2026 Anmeldung', () => {
         await expect(submitButton).toHaveAttribute('type', 'submit');
     });
 
-    test('Gast kann sich erfolgreich ohne T-Shirt registrieren', async ({ page }) => {
+    test('Gast kann sich erfolgreich ohne T-Shirt registrieren', async ({ page }, testInfo) => {
         await page.goto('/maddrax-fantreffen-2026');
         await page.waitForLoadState('networkidle');
 
         // Formularfelder ausfüllen
         await page.fill('input[name="vorname"]', 'Max');
         await page.fill('input[name="nachname"]', 'Mustermann');
-        await page.fill('input[name="email"]', 'max.mustermann@example.com');
+        await page.fill('input[name="email"]', uniqueGuestEmail('max-mustermann', testInfo.project.name));
 
         // Submit
         await page.getByTestId('fantreffen-submit').click();
@@ -100,11 +106,12 @@ test.describe('Fantreffen 2026 Anmeldung', () => {
         expect(selectRequired).toBe(false);
     });
 
-    test('Mehrere Gäste können sich nacheinander ohne 429-Fehler registrieren', async ({ page }) => {
+    test('Mehrere Gäste können sich nacheinander ohne 429-Fehler registrieren', async ({ page }, testInfo) => {
+        const projectSuffix = testInfo.project.name.replace(/[^a-z0-9]+/gi, '-').toLowerCase();
         const gaeste = [
-            { vorname: 'Anna', nachname: 'Schmidt', email: 'anna.schmidt@example.com' },
-            { vorname: 'Ben', nachname: 'Weber', email: 'ben.weber@example.com' },
-            { vorname: 'Clara', nachname: 'Fischer', email: 'clara.fischer@example.com' },
+            { vorname: 'Anna', nachname: 'Schmidt', email: `anna-schmidt-${projectSuffix}@example.com` },
+            { vorname: 'Ben', nachname: 'Weber', email: `ben-weber-${projectSuffix}@example.com` },
+            { vorname: 'Clara', nachname: 'Fischer', email: `clara-fischer-${projectSuffix}@example.com` },
         ];
 
         for (const gast of gaeste) {

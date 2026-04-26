@@ -1,7 +1,10 @@
 import { defineConfig, devices } from '@playwright/test';
 import path from 'path';
+import { formatPhpCommand } from './tests/e2e/utils/php.js';
 
 const databasePath = path.resolve('database/playwright.sqlite');
+const phpCommand = formatPhpCommand();
+const playwrightPort = Number(process.env.PLAYWRIGHT_PORT ?? 8001);
 
 // WebKit auf Linux CI ist notorisch instabil (Timeout-Probleme)
 // Daher nur Chromium und Firefox auf CI verwenden
@@ -25,9 +28,9 @@ export default defineConfig({
       ],
   
   webServer: {
-    command: 'php -S 127.0.0.1:8000 server.php',
-    port: 8000,
-    reuseExistingServer: !process.env.CI,
+    command: `${phpCommand} -S 127.0.0.1:${playwrightPort} server.php`,
+    port: playwrightPort,
+    reuseExistingServer: process.env.PLAYWRIGHT_REUSE_EXISTING_SERVER === '1',
     timeout: 180000,
     stdout: 'pipe',
     stderr: 'pipe',
@@ -48,6 +51,6 @@ export default defineConfig({
     },
   },
   use: {
-    baseURL: 'http://127.0.0.1:8000',
+    baseURL: `http://127.0.0.1:${playwrightPort}`,
   },
 });

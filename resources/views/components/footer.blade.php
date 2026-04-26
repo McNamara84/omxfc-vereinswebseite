@@ -1,12 +1,19 @@
-<footer class="bg-neutral text-neutral-content py-4">
-    <div class="container mx-auto px-4 text-center">
-        <div class="mb-2">
-            <a href="{{ route('fantreffen.2026') }}" wire:navigate class="btn btn-warning btn-xs font-semibold">
-                🎉 Fantreffen 2026 – Jetzt anmelden!
+<footer class="border-t border-base-content/10 bg-neutral text-neutral-content">
+    <div class="mx-auto flex max-w-[88rem] flex-col gap-4 px-4 py-6 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
+        <div class="space-y-3">
+            <a href="{{ route('fantreffen.2026') }}" wire:navigate class="btn btn-warning btn-sm rounded-full font-semibold">
+                Fantreffen 2026 entdecken
             </a>
+
+            <p class="text-sm text-neutral-content/75">
+                OMXFC e.V. {{ date('Y') }} · Version {{ $appVersion }} · Die Community-Plattform für Projekte, Vereinsleben und MADDRAX-Fandom.
+            </p>
         </div>
-        <a href="{{ route('impressum') }}" wire:navigate class="link link-neutral-content">Impressum</a> |
-        <a href="{{ route('datenschutz') }}" wire:navigate class="link link-neutral-content">Datenschutz</a>
-        <p class="mt-2">© OMXFC e.V. {{ date('Y') }} | Version {{ $appVersion }} | <a href="{{ route('changelog') }}" wire:navigate class="link link-neutral-content">Changelog</a></p>
+
+        <div class="flex flex-wrap items-center gap-3 text-sm">
+            <a href="{{ route('impressum') }}" wire:navigate class="link link-hover">Impressum</a>
+            <a href="{{ route('datenschutz') }}" wire:navigate class="link link-hover">Datenschutz</a>
+            <a href="{{ route('changelog') }}" wire:navigate class="link link-hover">Changelog</a>
+        </div>
     </div>
 </footer>

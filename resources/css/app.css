@@ -5,6 +5,40 @@
     themes: caramellatte --default, coffee --prefersdark;
 }
 
+:root {
+    --omxfc-font-display: "Space Grotesk", "Figtree", sans-serif;
+}
+
+.font-display {
+    font-family: var(--omxfc-font-display);
+}
+
+.omxfc-app-shell {
+    position: relative;
+    isolation: isolate;
+    background:
+        radial-gradient(circle at top left, oklch(70% 0.09 36 / 0.22), transparent 28rem),
+        radial-gradient(circle at top right, oklch(88% 0.04 95 / 0.18), transparent 24rem);
+}
+
+.omxfc-app-shell::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+        linear-gradient(to right, oklch(0% 0 0 / 0.035) 1px, transparent 1px),
+        linear-gradient(to bottom, oklch(0% 0 0 / 0.035) 1px, transparent 1px);
+    background-size: 24px 24px;
+    mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.22), transparent 38%);
+    opacity: 0.45;
+    pointer-events: none;
+    z-index: -1;
+}
+
+[data-theme="coffee"] .omxfc-app-shell::after {
+    opacity: 0.14;
+}
+
 /* 
  * Swap primary and accent colors ONLY for caramellatte theme
  * Native caramellatte values:

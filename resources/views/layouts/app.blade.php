@@ -29,6 +29,7 @@
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
+    <link href="https://fonts.bunny.net/css?family=space-grotesk:500,600,700&display=swap" rel="stylesheet" />
     <!-- Styles -->
     @include('layouts.partials.theme-bootstrap')
     @vite(['resources/css/app.css'])
@@ -38,21 +39,21 @@
 
 <body class="font-sans antialiased">
     <x-banner />
-    <div class="min-h-screen bg-base-200">
+    <div class="omxfc-app-shell min-h-screen bg-base-200">
         @persist('navigation')
             @livewire('navigation-menu')
         @endpersist
 
         {{-- Main Content --}}
-        <main class="w-full pt-2">
+        <main class="relative w-full pb-12 pt-3 sm:pt-5 lg:pb-16">
             {{ $slot }}
         </main>
-    </div>
 
-    <!-- Footer -->
-    @persist('footer')
-        <x-footer />
-    @endpersist
+        <!-- Footer -->
+        @persist('footer')
+            <x-footer />
+        @endpersist
+    </div>
 
     @stack('modals')
     @stack('scripts')

@@ -6,11 +6,60 @@ use App\Enums\Role;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\CreatesUserWithRole;
 use Tests\TestCase;
 
 class NavigationMenuTest extends TestCase
 {
+    use CreatesUserWithRole;
     use RefreshDatabase;
+
+    public function test_guest_navigation_uses_public_sections_and_featured_actions(): void
+    {
+        $response = $this->get(route('home'));
+
+        $response->assertOk();
+        $response->assertSeeText('Fantreffen 2026');
+        $response->assertSeeText('Mitglied werden');
+        $response->assertSeeText('Verein');
+        $response->assertSeeText('Veranstaltungen');
+        $response->assertSeeText('Mitmachen');
+        $response->assertSeeText('Login');
+        $response->assertDontSeeText('Dashboard');
+        $response->assertDontSeeText('Vorstand');
+        $response->assertDontSeeText('Admin');
+    }
+
+    public function test_member_navigation_shows_reorganized_sections_without_governance_links(): void
+    {
+        $member = $this->createUserWithRole(Role::Mitglied);
+
+        $response = $this->actingAs($member)->get(route('dashboard'));
+
+        $response->assertOk();
+        $response->assertSeeText('Dashboard');
+        $response->assertSeeText('Community');
+        $response->assertSeeText('Inhalte');
+        $response->assertSeeText('Veranstaltungen');
+        $response->assertSeeText('Verein');
+        $response->assertSeeText('Baxx');
+        $response->assertDontSeeText('Vorstand');
+        $response->assertDontSeeText('Admin');
+    }
+
+    public function test_admin_navigation_shows_governance_sections(): void
+    {
+        $admin = $this->createUserWithRole(Role::Admin);
+
+        $response = $this->actingAs($admin)->get(route('dashboard'));
+
+        $response->assertOk();
+        $response->assertSeeText('Community');
+        $response->assertSeeText('Teams & AG');
+        $response->assertSeeText('Vorstand');
+        $response->assertSeeText('Admin');
+        $response->assertSeeText('Umfrage verwalten');
+    }
 
     public function test_authenticated_users_see_termine_link_in_veranstaltungen_menu(): void
     {
