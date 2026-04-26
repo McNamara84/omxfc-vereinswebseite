@@ -19,6 +19,8 @@ class TerminePageTest extends TestCase
         $response->assertSeeText('Was im Kalender landet');
         $response->assertSeeText('Vereinskalender');
         $response->assertSeeText('Kalender abonnieren');
+        $response->assertSee('href="'.route('arbeitsgruppen').'"', false);
+        $response->assertDontSee('href="'.route('arbeitsgruppen.index').'"', false);
 
         $crawler = new Crawler($response->getContent());
         $this->assertCount(1, $crawler->filter('h1'));
