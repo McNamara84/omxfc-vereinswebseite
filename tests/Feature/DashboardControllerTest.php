@@ -264,7 +264,7 @@ class DashboardControllerTest extends TestCase
         $this->actingAs($member)
             ->get('/dashboard')
             ->assertOk()
-            ->assertSee('Special Offer')
+            ->assertSee('Sonderaktion')
             ->assertSee('2 Baxx pro Rezension');
     }
 

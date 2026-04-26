@@ -123,7 +123,7 @@ class RezensionForm extends Component
             $reviewCount = Review::where('team_id', $teamId)
                 ->where('user_id', $user->id)
                 ->count();
-            app(ReviewBaxxService::class)->awardPointsForReview($user, $reviewCount);
+            app(ReviewBaxxService::class)->awardPointsForReview($user, $reviewCount, $teamId);
 
             $authorNames = array_map('trim', explode(',', $book->author));
             $authors = User::whereIn('name', $authorNames)->get();

@@ -164,7 +164,7 @@ class RezensionLivewireTest extends TestCase
 
         Livewire::actingAs($user)
             ->test(RezensionIndex::class)
-            ->assertSee('Special Offer')
+            ->assertSee('Sonderaktion')
             ->assertSee('2 Baxx pro Rezension');
     }
 

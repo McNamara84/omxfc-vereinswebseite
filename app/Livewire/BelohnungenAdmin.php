@@ -379,17 +379,6 @@ class BelohnungenAdmin extends Component
             ]);
         }
 
-        $hasConflictingOffer = ReviewBaxxSpecialOffer::query()
-            ->currentlyActive()
-            ->when($this->editingReviewSpecialOfferId, fn ($query) => $query->whereKeyNot($this->editingReviewSpecialOfferId))
-            ->exists();
-
-        if ($this->reviewSpecialOfferIsActive && $hasConflictingOffer) {
-            throw ValidationException::withMessages([
-                'reviewSpecialOfferIsActive' => 'Es kann immer nur eine aktive Review-Sonderaktion gleichzeitig geben.',
-            ]);
-        }
-
         $data = [
             'points' => $this->reviewSpecialOfferPoints,
             'every_count' => $this->reviewSpecialOfferEveryCount,
@@ -397,13 +386,36 @@ class BelohnungenAdmin extends Component
             'is_active' => $this->reviewSpecialOfferIsActive,
         ];
 
-        if ($this->editingReviewSpecialOfferId) {
-            ReviewBaxxSpecialOffer::findOrFail($this->editingReviewSpecialOfferId)->update($data);
-            $this->dispatch('toast', type: 'success', title: 'Review-Sonderaktion aktualisiert');
-        } else {
+        DB::transaction(function () use ($data) {
+            BaxxEarningRule::query()
+                ->where('action_key', 'rezension')
+                ->lockForUpdate()
+                ->first();
+
+            $hasConflictingOffer = ReviewBaxxSpecialOffer::query()
+                ->currentlyActive()
+                ->when($this->editingReviewSpecialOfferId, fn ($query) => $query->whereKeyNot($this->editingReviewSpecialOfferId))
+                ->exists();
+
+            if ($this->reviewSpecialOfferIsActive && $hasConflictingOffer) {
+                throw ValidationException::withMessages([
+                    'reviewSpecialOfferIsActive' => 'Es kann immer nur eine aktive Review-Sonderaktion gleichzeitig geben.',
+                ]);
+            }
+
+            if ($this->editingReviewSpecialOfferId) {
+                ReviewBaxxSpecialOffer::findOrFail($this->editingReviewSpecialOfferId)->update($data);
+
+                return;
+            }
+
             ReviewBaxxSpecialOffer::create($data);
-            $this->dispatch('toast', type: 'success', title: 'Review-Sonderaktion erstellt');
-        }
+        });
+
+        $title = $this->editingReviewSpecialOfferId
+            ? 'Review-Sonderaktion aktualisiert'
+            : 'Review-Sonderaktion erstellt';
+        $this->dispatch('toast', type: 'success', title: $title);
 
         $this->showReviewSpecialOfferModal = false;
         $this->resetReviewSpecialOfferForm();
@@ -412,23 +424,32 @@ class BelohnungenAdmin extends Component
 
     public function toggleReviewSpecialOfferActive(int $offerId): void
     {
-        $offer = ReviewBaxxSpecialOffer::findOrFail($offerId);
-        $nextActiveState = ! $offer->is_active;
+        $status = DB::transaction(function () use ($offerId) {
+            BaxxEarningRule::query()
+                ->where('action_key', 'rezension')
+                ->lockForUpdate()
+                ->first();
 
-        if ($nextActiveState && $offer->ends_at->lte(now())) {
-            $this->dispatch('toast', type: 'error', title: 'Aktivierung nicht möglich', description: 'Abgelaufene Sonderaktionen können nicht erneut aktiviert werden.');
+            $offer = ReviewBaxxSpecialOffer::findOrFail($offerId);
+            $nextActiveState = ! $offer->is_active;
 
-            return;
-        }
+            if ($nextActiveState && $offer->ends_at->lte(now())) {
+                throw ValidationException::withMessages([
+                    'reviewSpecialOfferIsActive' => 'Abgelaufene Sonderaktionen können nicht erneut aktiviert werden.',
+                ]);
+            }
 
-        if ($nextActiveState && ReviewBaxxSpecialOffer::query()->currentlyActive()->whereKeyNot($offer->id)->exists()) {
-            $this->dispatch('toast', type: 'error', title: 'Aktivierung nicht möglich', description: 'Es gibt bereits eine andere aktive Review-Sonderaktion.');
+            if ($nextActiveState && ReviewBaxxSpecialOffer::query()->currentlyActive()->whereKeyNot($offer->id)->exists()) {
+                throw ValidationException::withMessages([
+                    'reviewSpecialOfferIsActive' => 'Es gibt bereits eine andere aktive Review-Sonderaktion.',
+                ]);
+            }
 
-            return;
-        }
+            $offer->update(['is_active' => $nextActiveState]);
 
-        $offer->update(['is_active' => $nextActiveState]);
-        $status = $offer->is_active ? 'aktiviert' : 'deaktiviert';
+            return $offer->is_active ? 'aktiviert' : 'deaktiviert';
+        });
+
         $this->dispatch('toast', type: 'success', title: "Review-Sonderaktion {$status}");
         unset($this->reviewSpecialOffers, $this->reviewRewardConfiguration);
     }

@@ -112,7 +112,7 @@ class ReviewBaxxService
         return $rule['points_per_review'] >= 1 ? $rule : null;
     }
 
-    public function awardPointsForReview(User $user, int $reviewCount, ?CarbonInterface $awardedAt = null): int
+    public function awardPointsForReview(User $user, int $reviewCount, ?int $teamId = null, ?CarbonInterface $awardedAt = null): int
     {
         $effectiveRule = $this->getEffectiveRule();
 
@@ -124,13 +124,15 @@ class ReviewBaxxService
             return 0;
         }
 
-        if (! $user->currentTeam) {
+        $resolvedTeamId = $teamId ?? $user->currentTeam?->id;
+
+        if (! $resolvedTeamId) {
             return 0;
         }
 
         $userPoint = new UserPoint([
             'user_id' => $user->id,
-            'team_id' => $user->currentTeam->id,
+            'team_id' => $resolvedTeamId,
             'points' => $effectiveRule['points'],
         ]);
 
@@ -188,7 +190,7 @@ class ReviewBaxxService
             'ends_at' => $endsAt,
             'ends_at_formatted' => $endsAt?->copy()->timezone(config('app.timezone'))->format('d.m.Y, H:i'),
             'banner_text' => $isSpecialOffer
-                ? 'Special Offer: Jetzt für einen begrenzten Zeitraum '.$pointsPerReviewLabel.' Baxx pro Rezension!'
+                ? 'Sonderaktion: Jetzt für einen begrenzten Zeitraum '.$pointsPerReviewLabel.' Baxx pro Rezension!'
                 : null,
             'banner_end_text' => $endsAt
                 ? 'Die Aktion endet am '.$endsAt->copy()->timezone(config('app.timezone'))->format('d.m.Y').' um '.$endsAt->copy()->timezone(config('app.timezone'))->format('H:i').' Uhr.'

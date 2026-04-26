@@ -155,7 +155,7 @@ class BelohnungenIndexTest extends TestCase
 
         $this->get('/belohnungen')
             ->assertOk()
-            ->assertSee('Special Offer')
+            ->assertSee('Sonderaktion')
             ->assertSee('2 Baxx pro Rezension');
     }
 }

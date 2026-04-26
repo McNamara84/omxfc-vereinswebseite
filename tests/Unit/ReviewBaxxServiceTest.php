@@ -3,6 +3,7 @@
 namespace Tests\Unit;
 
 use App\Models\ReviewBaxxSpecialOffer;
+use App\Models\Team;
 use App\Models\UserPoint;
 use App\Services\ReviewBaxxService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -81,7 +82,7 @@ class ReviewBaxxServiceTest extends TestCase
 
         $this->assertNotNull($banner);
         $this->assertSame('2,5', $banner['points_per_review_label']);
-        $this->assertStringContainsString('Special Offer', $banner['banner_text']);
+        $this->assertStringContainsString('Sonderaktion', $banner['banner_text']);
     }
 
     public function test_award_points_for_review_uses_effective_rule_interval(): void
@@ -104,5 +105,24 @@ class ReviewBaxxServiceTest extends TestCase
             'points' => 2,
         ]);
         $this->assertSame(1, UserPoint::count());
+    }
+
+    public function test_award_points_for_review_uses_explicit_team_id_override(): void
+    {
+        $user = $this->createUserWithRole('Mitglied');
+        $teamId = $user->currentTeam->id;
+        $otherTeam = Team::factory()->create();
+
+        $user->forceFill(['current_team_id' => $otherTeam->id])->save();
+        $user->unsetRelation('currentTeam');
+
+        $awardedPoints = app(ReviewBaxxService::class)->awardPointsForReview($user, 10, $teamId);
+
+        $this->assertSame(1, $awardedPoints);
+        $this->assertDatabaseHas('user_points', [
+            'user_id' => $user->id,
+            'team_id' => $teamId,
+            'points' => 1,
+        ]);
     }
 }

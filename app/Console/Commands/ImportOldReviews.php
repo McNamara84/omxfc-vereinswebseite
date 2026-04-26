@@ -143,7 +143,12 @@ class ImportOldReviews extends Command
             $reviewCount = Review::where('team_id', $teamId)
                 ->where('user_id', $user->id)
                 ->count();
-            app(ReviewBaxxService::class)->awardPointsForReview($user, $reviewCount, Carbon::parse($dt, config('app.timezone')));
+            app(ReviewBaxxService::class)->awardPointsForReview(
+                $user,
+                $reviewCount,
+                $teamId,
+                Carbon::parse($dt, config('app.timezone'))
+            );
 
             $bar->advance();
         }

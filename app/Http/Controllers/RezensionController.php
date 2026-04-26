@@ -275,11 +275,11 @@ class RezensionController extends Controller
             'content' => $data['content'],
         ]);
 
-        // Award Baxx for every tenth review of the member
+        // Award Baxx using the currently effective review rule.
         $reviewCount = Review::where('team_id', $teamId)
             ->where('user_id', $user->id)
             ->count();
-        $this->reviewBaxxService->awardPointsForReview($user, $reviewCount);
+        $this->reviewBaxxService->awardPointsForReview($user, $reviewCount, $teamId);
 
         // Autoren des Romans über neue Rezension informieren
         $authorNames = array_map('trim', explode(',', $book->author));
