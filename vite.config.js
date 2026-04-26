@@ -26,6 +26,8 @@ export default defineConfig(({ command }) => ({
     },
     server: command === 'serve'
         ? {
+            // Native Vite-8-Serveroption, kein zusaetzliches Plugin:
+            // https://vite.dev/config/server-options#server-forwardconsole
             forwardConsole: {
                 unhandledErrors: true,
                 logLevels: ['warn', 'error'],
