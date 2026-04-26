@@ -8,8 +8,8 @@
             </x-slot:subtitle>
         </x-header>
 
-        @if($this->prominentReviewSpecialOffer)
-            <x-review-baxx-special-offer :offer="$this->prominentReviewSpecialOffer" />
+        @if($this->reviewRewardConfiguration['prominent_special_offer'])
+            <x-review-baxx-special-offer :offer="$this->reviewRewardConfiguration['prominent_special_offer']" />
         @endif
 
         {{-- Hilfetext --}}
@@ -19,8 +19,8 @@
                 Mit deinen verdienten Baxx kannst du hier Features freischalten. Wähle aus, welche Features du
                 nutzen möchtest, und kaufe sie mit deinen Baxx. Einmal freigeschaltete Features bleiben dauerhaft aktiv.
                 Baxx verdienst du z.&nbsp;B. durch das Erledigen von Aufgaben, Rezensionen oder Romantausch-Angebote.
-                @if($this->reviewRewardConfiguration['is_active'])
-                    Aktuell gilt für Rezensionen: <strong>{{ $this->reviewRewardConfiguration['rule_label'] }}</strong>.
+                @if($this->reviewRewardConfiguration['effective_rule']['is_active'])
+                    Aktuell gilt für Rezensionen: <strong>{{ $this->reviewRewardConfiguration['effective_rule']['rule_label'] }}</strong>.
                 @else
                     Aktuell gibt es keine Baxx für neue Rezensionen.
                 @endif

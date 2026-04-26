@@ -10,6 +10,12 @@ use Carbon\CarbonInterface;
 
 class ReviewBaxxService
 {
+    private ?BaxxEarningRule $baseRule = null;
+
+    private bool $activeSpecialOfferLoaded = false;
+
+    private ?ReviewBaxxSpecialOffer $activeSpecialOffer = null;
+
     /**
      * @return array{
      *     points:int,
@@ -95,21 +101,47 @@ class ReviewBaxxService
      */
     public function getProminentSpecialOffer(): ?array
     {
-        $specialOffer = $this->getActiveSpecialOffer();
+        return $this->extractProminentSpecialOffer($this->getEffectiveRule());
+    }
 
-        if (! $specialOffer) {
-            return null;
-        }
+    /**
+     * @return array{
+     *     effective_rule: array{
+     *         points:int,
+     *         every_count:int,
+     *         is_active:bool,
+     *         is_special_offer:bool,
+     *         points_per_review:float,
+     *         points_per_review_label:string,
+     *         rule_label:string,
+     *         ends_at:?CarbonInterface,
+     *         ends_at_formatted:?string,
+     *         banner_text:?string,
+     *         banner_end_text:?string
+     *     },
+     *     prominent_special_offer: array{
+     *         points:int,
+     *         every_count:int,
+     *         is_active:bool,
+     *         is_special_offer:bool,
+     *         points_per_review:float,
+     *         points_per_review_label:string,
+     *         rule_label:string,
+     *         ends_at:?CarbonInterface,
+     *         ends_at_formatted:?string,
+     *         banner_text:?string,
+     *         banner_end_text:?string
+     *     }|null
+     * }
+     */
+    public function getMemberConfiguration(): array
+    {
+        $effectiveRule = $this->getEffectiveRule();
 
-        $rule = $this->makeRuleData(
-            points: $specialOffer->points,
-            everyCount: $specialOffer->every_count,
-            isActive: true,
-            isSpecialOffer: true,
-            endsAt: $specialOffer->ends_at
-        );
-
-        return $rule['points_per_review'] >= 1 ? $rule : null;
+        return [
+            'effective_rule' => $effectiveRule,
+            'prominent_special_offer' => $this->extractProminentSpecialOffer($effectiveRule),
+        ];
     }
 
     public function awardPointsForReview(User $user, int $reviewCount, ?int $teamId = null, ?CarbonInterface $awardedAt = null): int
@@ -148,7 +180,11 @@ class ReviewBaxxService
 
     public function getBaseRule(): BaxxEarningRule
     {
-        return BaxxEarningRule::query()->firstOrCreate(
+        if ($this->baseRule) {
+            return $this->baseRule;
+        }
+
+        return $this->baseRule = BaxxEarningRule::query()->firstOrCreate(
             ['action_key' => 'rezension'],
             [
                 'label' => 'Rezension-Meilenstein',
@@ -162,10 +198,53 @@ class ReviewBaxxService
 
     public function getActiveSpecialOffer(): ?ReviewBaxxSpecialOffer
     {
-        return ReviewBaxxSpecialOffer::query()
+        if ($this->activeSpecialOfferLoaded) {
+            return $this->activeSpecialOffer;
+        }
+
+        $this->activeSpecialOfferLoaded = true;
+
+        return $this->activeSpecialOffer = ReviewBaxxSpecialOffer::query()
             ->currentlyActive()
             ->orderByDesc('ends_at')
             ->first();
+    }
+
+    /**
+     * @param  array{
+     *     points:int,
+     *     every_count:int,
+     *     is_active:bool,
+     *     is_special_offer:bool,
+     *     points_per_review:float,
+     *     points_per_review_label:string,
+     *     rule_label:string,
+     *     ends_at:?CarbonInterface,
+     *     ends_at_formatted:?string,
+     *     banner_text:?string,
+     *     banner_end_text:?string
+     * }  $effectiveRule
+     * @return array{
+     *     points:int,
+     *     every_count:int,
+     *     is_active:bool,
+     *     is_special_offer:bool,
+     *     points_per_review:float,
+     *     points_per_review_label:string,
+     *     rule_label:string,
+     *     ends_at:?CarbonInterface,
+     *     ends_at_formatted:?string,
+     *     banner_text:?string,
+     *     banner_end_text:?string
+     * }|null
+     */
+    private function extractProminentSpecialOffer(array $effectiveRule): ?array
+    {
+        if (! $effectiveRule['is_special_offer']) {
+            return null;
+        }
+
+        return $effectiveRule['points_per_review'] >= 1 ? $effectiveRule : null;
     }
 
     private function makeRuleData(

@@ -70,12 +70,10 @@ class BaxxEarningRule extends Model
     public static function clearCache(?string $actionKey = null): void
     {
         if ($actionKey) {
-            Cache::forget("baxx_earning_rule_{$actionKey}");
             Cache::forget("baxx_earning_rule_model_{$actionKey}");
         } else {
             $rules = static::all();
             foreach ($rules as $rule) {
-                Cache::forget("baxx_earning_rule_{$rule->action_key}");
                 Cache::forget("baxx_earning_rule_model_{$rule->action_key}");
             }
         }

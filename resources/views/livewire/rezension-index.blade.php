@@ -1,13 +1,13 @@
 <x-member-page>
-    @if($this->prominentReviewSpecialOffer)
-        <x-review-baxx-special-offer :offer="$this->prominentReviewSpecialOffer" />
+    @if($this->reviewRewardConfiguration['prominent_special_offer'])
+        <x-review-baxx-special-offer :offer="$this->reviewRewardConfiguration['prominent_special_offer']" />
     @endif
 
     <x-card shadow class="mb-6">
         <x-header title="Rezensionen" class="!mb-2" />
-        @if($this->reviewRewardConfiguration['is_active'])
+        @if($this->reviewRewardConfiguration['effective_rule']['is_active'])
             <p class="text-base text-base-content">
-                Aktuell erhältst du automatisch <strong>{{ $this->reviewRewardConfiguration['rule_label'] }}</strong>.
+                Aktuell erhältst du automatisch <strong>{{ $this->reviewRewardConfiguration['effective_rule']['rule_label'] }}</strong>.
             </p>
         @else
             <p class="text-base text-base-content">

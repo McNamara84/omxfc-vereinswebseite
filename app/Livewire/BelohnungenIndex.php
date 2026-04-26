@@ -100,13 +100,7 @@ class BelohnungenIndex extends Component
     #[Computed]
     public function reviewRewardConfiguration(): array
     {
-        return app(ReviewBaxxService::class)->getEffectiveRule();
-    }
-
-    #[Computed]
-    public function prominentReviewSpecialOffer(): ?array
-    {
-        return app(ReviewBaxxService::class)->getProminentSpecialOffer();
+        return app(ReviewBaxxService::class)->getMemberConfiguration();
     }
 
     public function purchase(int $rewardId): void
