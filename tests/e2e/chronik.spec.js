@@ -74,7 +74,12 @@ test.describe('Chronik Lightbox', () => {
     await page.keyboard.press('Escape');
     await expect(dialog).not.toBeVisible();
 
-    await page.getByAltText('Jahreshauptversammlung in Köln 2024').click();
+    const secondEntry = page.locator('article').filter({ hasText: '11. Mai 2024' });
+    const secondImage = secondEntry.getByAltText('Jahreshauptversammlung in Köln 2024');
+
+    await secondEntry.scrollIntoViewIfNeeded();
+    await expect(secondImage).toBeVisible();
+    await secondImage.click();
     await expect(dialog).toBeVisible();
     await expect(title).toHaveText('Jahreshauptversammlung in Köln 2024');
   });

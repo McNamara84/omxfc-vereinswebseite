@@ -16,20 +16,25 @@ class MeetingsPageTest extends TestCase
     public function test_meetings_page_shows_context_and_correct_meeting_keys(): void
     {
         Carbon::setTestNow('2025-03-15');
-        $this->actingAs($this->actingMember());
 
-        $response = $this->withoutVite()->get('/treffen');
+        try {
+            $this->actingAs($this->actingMember());
 
-        $response->assertOk();
-        $response->assertSeeText('Meetings');
-        $response->assertSeeText('Regelmäßige Termine');
-        $response->assertSeeText('Wie die Termine laufen');
+            $response = $this->withoutVite()->get('/treffen');
 
-        $crawler = new Crawler($response->getContent());
-        $meetingKeys = $crawler->filter('input[name="meeting"]')->each(
-            fn (Crawler $node) => $node->attr('value')
-        );
+            $response->assertOk();
+            $response->assertSeeText('Meetings');
+            $response->assertSeeText('Regelmäßige Termine');
+            $response->assertSeeText('Wie die Termine laufen');
 
-        $this->assertSame(['maddraxikon', 'fanhoerbuch', 'mapdrax', 'stammtisch'], $meetingKeys);
+            $crawler = new Crawler($response->getContent());
+            $meetingKeys = $crawler->filter('input[name="meeting"]')->each(
+                fn (Crawler $node) => $node->attr('value')
+            );
+
+            $this->assertSame(['maddraxikon', 'fanhoerbuch', 'mapdrax', 'stammtisch'], $meetingKeys);
+        } finally {
+            Carbon::setTestNow();
+        }
     }
 }
