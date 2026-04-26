@@ -1,4 +1,8 @@
 import './bootstrap';
+import omxfcLogoUrl from '../images/omxfc-logo.png';
+
+// Blade-only Logo fuer Vite::asset im Manifest halten.
+void omxfcLogoUrl;
 
 // Alpine.js initialisieren (Logik in alpine-init.js für Testbarkeit extrahiert)
 import Alpine from 'alpinejs';

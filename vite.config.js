@@ -1,9 +1,15 @@
+import { createRequire } from 'node:module';
+import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vite';
 import laravel from 'laravel-vite-plugin';
 import tailwindcss from '@tailwindcss/vite';
 import path from 'path';
 
-export default defineConfig({
+const require = createRequire(import.meta.url);
+const currentDir = path.dirname(fileURLToPath(import.meta.url));
+const daisyuiEntry = require.resolve('daisyui');
+
+export default defineConfig(({ command }) => ({
     plugins: [
         tailwindcss(),
         laravel({
@@ -15,16 +21,26 @@ export default defineConfig({
                 'resources/js/romantausch-bundle-preview.js',
             ],
             refresh: true,
-            // Explizit den public-Pfad setzen
-            publicDirectory: 'public',
         }),
     ],
     resolve: {
         alias: {
-            '@': path.resolve(__dirname, 'resources/js'),
+            '@': path.resolve(currentDir, 'resources/js'),
+            // Fuer @plugin "daisyui" in resources/css/app.css den JS-Package-Entry erzwingen.
+            daisyui: daisyuiEntry,
             '~leaflet': 'leaflet',
         },
     },
+    server: command === 'serve'
+        ? {
+            // Native Vite-8-Serveroption, kein zusaetzliches Plugin:
+            // https://vite.dev/config/server-options#server-forwardconsole
+            forwardConsole: {
+                unhandledErrors: true,
+                logLevels: ['warn', 'error'],
+            },
+        }
+        : undefined,
     // Force-Clear-Cache bei jedem Build
     cacheDir: '.vite/cache',
     // Bessere Fehlerbehandlung
@@ -35,4 +51,4 @@ export default defineConfig({
         environment: 'jsdom',
         include: ['tests/Vitest/**/*.test.js'],
     },
-});
+}));
