@@ -5,11 +5,11 @@ namespace App\Livewire;
 use App\Enums\Role;
 use App\Mail\NewReviewNotification;
 use App\Models\Activity;
-use App\Models\BaxxEarningRule;
 use App\Models\Book;
 use App\Models\Review;
 use App\Models\User;
 use App\Services\MembersTeamProvider;
+use App\Services\ReviewBaxxService;
 use App\Services\UserRoleService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
@@ -123,12 +123,7 @@ class RezensionForm extends Component
             $reviewCount = Review::where('team_id', $teamId)
                 ->where('user_id', $user->id)
                 ->count();
-            if ($reviewCount % 10 === 0) {
-                $points = BaxxEarningRule::getPointsFor('rezension');
-                if ($points > 0) {
-                    $user->incrementTeamPoints($points);
-                }
-            }
+            app(ReviewBaxxService::class)->awardPointsForReview($user, $reviewCount, $teamId);
 
             $authorNames = array_map('trim', explode(',', $book->author));
             $authors = User::whereIn('name', $authorNames)->get();

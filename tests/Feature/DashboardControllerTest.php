@@ -13,6 +13,7 @@ use App\Models\BookRequest;
 use App\Models\BookSwap;
 use App\Models\Fanfiction;
 use App\Models\Review;
+use App\Models\ReviewBaxxSpecialOffer;
 use App\Models\ReviewComment;
 use App\Models\Team;
 use App\Models\Todo;
@@ -245,6 +246,26 @@ class DashboardControllerTest extends TestCase
         $this->actingAs($admin)
             ->get('/dashboard')
             ->assertViewHas('romantauschOffers', 7);
+    }
+
+    public function test_dashboard_shows_prominent_review_special_offer(): void
+    {
+        $team = Team::membersTeam();
+        $member = User::factory()->create(['current_team_id' => $team->id]);
+        $team->users()->attach($member, ['role' => Role::Mitglied->value]);
+
+        ReviewBaxxSpecialOffer::create([
+            'points' => 2,
+            'every_count' => 1,
+            'ends_at' => now()->addDay(),
+            'is_active' => true,
+        ]);
+
+        $this->actingAs($member)
+            ->get('/dashboard')
+            ->assertOk()
+            ->assertSee('Sonderaktion')
+            ->assertSee('2 Baxx pro Rezension');
     }
 
     public function test_dashboard_counts_only_open_offers_of_current_user(): void

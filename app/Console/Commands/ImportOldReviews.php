@@ -7,6 +7,7 @@ use App\Models\Review;
 use App\Models\Team;
 use App\Models\User;
 use App\Models\UserPoint;
+use App\Services\ReviewBaxxService;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 
@@ -138,19 +139,16 @@ class ImportOldReviews extends Command
                 'updated_at' => $dt,
             ]);
 
-            // Award one Baxx for every tenth imported review of the member
+            // Award Baxx using the same rule resolution as the live review flow
             $reviewCount = Review::where('team_id', $teamId)
                 ->where('user_id', $user->id)
                 ->count();
-            if ($reviewCount % 10 === 0) {
-                UserPoint::create([
-                    'user_id' => $user->id,
-                    'team_id' => $teamId,
-                    'points' => 1,
-                    'created_at' => $dt,
-                    'updated_at' => $dt,
-                ]);
-            }
+            app(ReviewBaxxService::class)->awardPointsForReview(
+                $user,
+                $reviewCount,
+                $teamId,
+                Carbon::parse($dt, config('app.timezone'))
+            );
 
             $bar->advance();
         }

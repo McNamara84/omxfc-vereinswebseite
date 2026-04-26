@@ -8,11 +8,11 @@ use App\Http\Controllers\Concerns\MembersTeamAware;
 use App\Http\Requests\ReviewRequest;
 use App\Mail\NewReviewNotification;
 use App\Models\Activity;
-use App\Models\BaxxEarningRule;
 use App\Models\Book;
 use App\Models\Review;
 use App\Models\User;
 use App\Services\MaddraxDataService;
+use App\Services\ReviewBaxxService;
 use App\Services\UserRoleService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
@@ -27,6 +27,7 @@ class RezensionController extends Controller
     public function __construct(
         private UserRoleService $userRoleService,
         private MaddraxDataService $maddraxDataService,
+        private ReviewBaxxService $reviewBaxxService,
     ) {}
 
     protected function getUserRoleService(): UserRoleService
@@ -274,16 +275,11 @@ class RezensionController extends Controller
             'content' => $data['content'],
         ]);
 
-        // Award Baxx for every tenth review of the member
+        // Award Baxx using the currently effective review rule.
         $reviewCount = Review::where('team_id', $teamId)
             ->where('user_id', $user->id)
             ->count();
-        if ($reviewCount % 10 === 0) {
-            $points = BaxxEarningRule::getPointsFor('rezension');
-            if ($points > 0) {
-                $user->incrementTeamPoints($points);
-            }
-        }
+        $this->reviewBaxxService->awardPointsForReview($user, $reviewCount, $teamId);
 
         // Autoren des Romans über neue Rezension informieren
         $authorNames = array_map('trim', explode(',', $book->author));

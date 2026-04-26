@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Livewire\BelohnungenIndex;
 use App\Models\Reward;
 use App\Models\RewardPurchase;
+use App\Models\ReviewBaxxSpecialOffer;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\Concerns\CreatesUserWithRole;
@@ -139,5 +140,22 @@ class BelohnungenIndexTest extends TestCase
             ->assertOk()
             ->assertSee('Freigeschaltetes Feature')
             ->assertSee('Freigeschaltet');
+    }
+
+    public function test_belohnungen_shows_prominent_review_special_offer(): void
+    {
+        $this->actingMember();
+
+        ReviewBaxxSpecialOffer::create([
+            'points' => 2,
+            'every_count' => 1,
+            'ends_at' => now()->addDay(),
+            'is_active' => true,
+        ]);
+
+        $this->get('/belohnungen')
+            ->assertOk()
+            ->assertSee('Sonderaktion')
+            ->assertSee('2 Baxx pro Rezension');
     }
 }

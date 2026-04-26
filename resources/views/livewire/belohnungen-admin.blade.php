@@ -62,14 +62,43 @@
                     Hier kannst du festlegen, wie viele Baxx Mitglieder für bestimmte Aktionen erhalten.
                 </x-alert>
 
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <x-stat
+                        title="Basisregel Rezensionen"
+                        :value="$this->reviewRewardConfiguration['base_rule']['rule_label']"
+                        icon="o-book-open"
+                        class="shadow"
+                    />
+                    <x-stat
+                        title="Aktuell wirksam"
+                        :value="$this->reviewRewardConfiguration['effective_rule']['rule_label']"
+                        icon="o-bolt"
+                        class="shadow"
+                    />
+                    <x-stat
+                        title="Sonderaktion"
+                        :value="$this->reviewRewardConfiguration['prominent_special_offer'] ? 'Prominent sichtbar' : 'Keine prominente Aktion'"
+                        icon="o-megaphone"
+                        class="shadow"
+                    />
+                </div>
+
                 <x-table :headers="[
                     ['key' => 'action_key', 'label' => 'Aktion'],
                     ['key' => 'label', 'label' => 'Bezeichnung'],
                     ['key' => 'description', 'label' => 'Beschreibung'],
-                    ['key' => 'points', 'label' => 'Baxx'],
+                    ['key' => 'rule_pattern', 'label' => 'Regel'],
                     ['key' => 'is_active', 'label' => 'Status'],
                     ['key' => 'actions', 'label' => 'Aktionen'],
                 ]" :rows="$this->earningRules" striped>
+
+                    @scope('cell_rule_pattern', $rule)
+                        @if($rule->every_count === 1)
+                            {{ $rule->points }} Baxx pro Auslöser
+                        @else
+                            {{ $rule->points }} Baxx pro {{ $rule->every_count }} Auslöser
+                        @endif
+                    @endscope
 
                     @scope('cell_is_active', $rule)
                         @if($rule->is_active)
@@ -87,6 +116,56 @@
                                 class="btn-ghost btn-xs"
                                 wire:click="toggleRuleActive({{ $rule->id }})"
                                 tooltip="{{ $rule->is_active ? 'Deaktivieren' : 'Aktivieren' }}"
+                            />
+                        </div>
+                    @endscope
+                </x-table>
+
+                <div class="flex items-center justify-between mt-8 mb-4 gap-4">
+                    <div>
+                        <h3 class="text-lg font-bold text-primary">Rezensions-Sonderaktionen</h3>
+                        <p class="text-sm text-base-content">Zeitlich begrenzte Aktionen überschreiben die Basisregel automatisch bis zum Endzeitpunkt.</p>
+                    </div>
+                    <x-button label="Neue Sonderaktion" icon="o-plus" class="btn-primary" wire:click="openCreateReviewSpecialOffer" />
+                </div>
+
+                <x-table :headers="[
+                    ['key' => 'rule_pattern', 'label' => 'Aktionsregel'],
+                    ['key' => 'ends_at', 'label' => 'Endet'],
+                    ['key' => 'status', 'label' => 'Status'],
+                    ['key' => 'actions', 'label' => 'Aktionen'],
+                ]" :rows="$this->reviewSpecialOffers" striped>
+
+                    @scope('cell_rule_pattern', $offer)
+                        @if($offer->every_count === 1)
+                            {{ $offer->points }} Baxx pro Rezension
+                        @else
+                            {{ $offer->points }} Baxx pro {{ $offer->every_count }} Rezensionen
+                        @endif
+                    @endscope
+
+                    @scope('cell_ends_at', $offer)
+                        {{ $offer->ends_at->format('d.m.Y H:i') }}
+                    @endscope
+
+                    @scope('cell_status', $offer)
+                        @if($offer->is_active && $offer->ends_at->isFuture())
+                            <x-badge value="Aktiv" class="badge-success" icon="o-bolt" />
+                        @elseif($offer->ends_at->isPast())
+                            <x-badge value="Abgelaufen" class="badge-warning" icon="o-clock" />
+                        @else
+                            <x-badge value="Inaktiv" class="badge-ghost" icon="o-pause" />
+                        @endif
+                    @endscope
+
+                    @scope('cell_actions', $offer)
+                        <div class="flex gap-2">
+                            <x-button icon="o-pencil" class="btn-ghost btn-xs" wire:click="openEditReviewSpecialOffer({{ $offer->id }})" tooltip="Bearbeiten" />
+                            <x-button
+                                icon="{{ $offer->is_active && $offer->ends_at->isFuture() ? 'o-eye-slash' : 'o-eye' }}"
+                                class="btn-ghost btn-xs"
+                                wire:click="toggleReviewSpecialOfferActive({{ $offer->id }})"
+                                tooltip="{{ $offer->is_active && $offer->ends_at->isFuture() ? 'Deaktivieren' : 'Aktivieren' }}"
                             />
                         </div>
                     @endscope
@@ -316,12 +395,27 @@
                 <x-input wire:model="ruleLabel" label="Bezeichnung" />
                 <x-textarea wire:model="ruleDescription" label="Beschreibung" />
                 <x-input wire:model="rulePoints" label="Baxx-Betrag" type="number" min="0" />
+                <x-input wire:model="ruleEveryCount" label="Pro Anzahl Auslöser" type="number" min="1" />
                 <x-toggle wire:model="ruleIsActive" label="Aktiv" />
             </div>
 
             <x-slot:actions>
                 <x-button label="Abbrechen" wire:click="$set('showRuleModal', false)" />
                 <x-button label="Speichern" class="btn-primary" wire:click="saveRule" />
+            </x-slot:actions>
+        </x-modal>
+
+        <x-modal wire:model="showReviewSpecialOfferModal" title="{{ $editingReviewSpecialOfferId ? 'Review-Sonderaktion bearbeiten' : 'Neue Review-Sonderaktion' }}">
+            <div class="space-y-4">
+                <x-input wire:model="reviewSpecialOfferPoints" label="Baxx" type="number" min="1" />
+                <x-input wire:model="reviewSpecialOfferEveryCount" label="Pro Anzahl Rezensionen" type="number" min="1" />
+                <x-input wire:model="reviewSpecialOfferEndsAt" label="Endet am" type="datetime-local" />
+                <x-toggle wire:model="reviewSpecialOfferIsActive" label="Aktiv" />
+            </div>
+
+            <x-slot:actions>
+                <x-button label="Abbrechen" wire:click="$set('showReviewSpecialOfferModal', false)" />
+                <x-button label="Speichern" class="btn-primary" wire:click="saveReviewSpecialOffer" />
             </x-slot:actions>
         </x-modal>
 

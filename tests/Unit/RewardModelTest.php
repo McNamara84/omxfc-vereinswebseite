@@ -102,6 +102,13 @@ class RewardModelTest extends TestCase
         $this->assertEquals(1, $points);
     }
 
+    public function test_baxx_earning_rule_get_every_count_for_returns_seeded_interval(): void
+    {
+        $everyCount = BaxxEarningRule::getEveryCountFor('rezension');
+
+        $this->assertEquals(10, $everyCount);
+    }
+
     public function test_baxx_earning_rule_get_points_for_unknown_action_returns_zero(): void
     {
         $points = BaxxEarningRule::getPointsFor('nonexistent_action');
@@ -115,6 +122,7 @@ class RewardModelTest extends TestCase
 
         $points = BaxxEarningRule::getPointsFor('rezension');
         $this->assertEquals(0, $points);
+        $this->assertEquals(1, BaxxEarningRule::getEveryCountFor('rezension'));
     }
 
     public function test_baxx_earning_rule_active_scope(): void

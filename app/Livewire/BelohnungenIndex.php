@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Models\Reward;
 use App\Models\RewardPurchase;
+use App\Services\ReviewBaxxService;
 use App\Services\RewardService;
 use App\Services\TeamPointService;
 use Illuminate\Support\Facades\Auth;
@@ -94,6 +95,12 @@ class BelohnungenIndex extends Component
             ->orderBy('category')
             ->pluck('category')
             ->toArray();
+    }
+
+    #[Computed]
+    public function reviewRewardConfiguration(): array
+    {
+        return app(ReviewBaxxService::class)->getMemberConfiguration();
     }
 
     public function purchase(int $rewardId): void

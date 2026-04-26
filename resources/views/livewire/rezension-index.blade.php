@@ -1,10 +1,19 @@
 <x-member-page>
+    @if($this->reviewRewardConfiguration['prominent_special_offer'])
+        <x-review-baxx-special-offer :offer="$this->reviewRewardConfiguration['prominent_special_offer']" />
+    @endif
+
     <x-card shadow class="mb-6">
         <x-header title="Rezensionen" class="!mb-2" />
-        <p class="text-base text-base-content">
-            Für jede <strong>zehnte</strong> verfasste Rezension erhältst du automatisch
-            <strong>1 Baxx</strong>.
-        </p>
+        @if($this->reviewRewardConfiguration['effective_rule']['is_active'])
+            <p class="text-base text-base-content">
+                Aktuell erhältst du automatisch <strong>{{ $this->reviewRewardConfiguration['effective_rule']['rule_label'] }}</strong>.
+            </p>
+        @else
+            <p class="text-base text-base-content">
+                Aktuell gibt es keine Baxx für neue Rezensionen.
+            </p>
+        @endif
     </x-card>
 
     <div x-data="{ open: @js($this->filtersApplied) }" class="mb-6">
