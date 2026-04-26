@@ -12,7 +12,9 @@
                 </div>
 
                 <div class="flex flex-wrap gap-2">
-                    <a href="{{ route('mitglied.werden') }}" wire:navigate class="btn btn-primary btn-sm rounded-full">Mitglied werden</a>
+                    @guest
+                        <a href="{{ route('mitglied.werden') }}" wire:navigate class="btn btn-primary btn-sm rounded-full">Mitglied werden</a>
+                    @endguest
                     <a href="{{ route('fantreffen.2026') }}" wire:navigate class="btn btn-ghost btn-sm rounded-full bg-base-100/70">Fantreffen 2026</a>
                 </div>
             </x-slot:actions>
@@ -127,12 +129,12 @@
         </section>
 
         <section class="grid gap-4 sm:grid-cols-2">
-            <x-bento-card title="Aktive Mitglieder" sr-text="{{ $memberCount }} aktive Mitglieder" icon="o-user-group">
+            <x-bento-card title="Aktive Mitglieder" sr-text="{{ $memberCount }} aktive Mitglieder" icon="o-user-group" description-id="stat-members-description">
                 <x-slot:description>Gemeinschaft, die sich regelmäßig austauscht und Projekte voranbringt.</x-slot:description>
                 <x-slot:value>{{ $memberCount }}</x-slot:value>
             </x-bento-card>
 
-            <x-bento-card title="Rezensionen" sr-text="{{ $reviewCount }} Rezensionen" icon="o-book-open">
+            <x-bento-card title="Rezensionen" sr-text="{{ $reviewCount }} Rezensionen" icon="o-book-open" description-id="stat-reviews-description">
                 <x-slot:description>Lesetipps und Eindrücke zu den Romanen unserer Lieblingsserie.</x-slot:description>
                 <x-slot:value>{{ $reviewCount }}</x-slot:value>
             </x-bento-card>

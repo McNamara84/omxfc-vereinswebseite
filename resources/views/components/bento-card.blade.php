@@ -1,11 +1,11 @@
-@props(['title', 'href' => null, 'srText' => null, 'icon' => null])
+@props(['title', 'href' => null, 'srText' => null, 'icon' => null, 'descriptionId' => null])
 @php
     $titleId = \Illuminate\Support\Str::slug($title, '-') . '-' . uniqid();
 @endphp
 @if($href)
-<a href="{{ $href }}" {{ $attributes->merge(['class' => 'group relative overflow-hidden rounded-[1.75rem] border border-base-content/10 bg-base-100/95 p-6 shadow-xl shadow-base-content/5 transition duration-200 hover:-translate-y-0.5 hover:border-primary/20 hover:shadow-2xl']) }} role="region" aria-labelledby="{{ $titleId }}">
+<a href="{{ $href }}" {{ $attributes->class(['group relative overflow-hidden rounded-[1.75rem] border border-base-content/10 bg-base-100/95 p-6 shadow-xl shadow-base-content/5 transition duration-200 hover:-translate-y-0.5 hover:border-primary/20 hover:shadow-2xl']) }} role="region" aria-labelledby="{{ $titleId }}" @if($descriptionId) aria-describedby="{{ $descriptionId }}" @endif>
 @else
-<div {{ $attributes->merge(['class' => 'group relative overflow-hidden rounded-[1.75rem] border border-base-content/10 bg-base-100/95 p-6 shadow-xl shadow-base-content/5']) }} role="region" aria-labelledby="{{ $titleId }}">
+<div {{ $attributes->class(['group relative overflow-hidden rounded-[1.75rem] border border-base-content/10 bg-base-100/95 p-6 shadow-xl shadow-base-content/5']) }} role="region" aria-labelledby="{{ $titleId }}" @if($descriptionId) aria-describedby="{{ $descriptionId }}" @endif>
 @endif
     <div class="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-primary/35 via-accent/25 to-transparent"></div>
 
@@ -15,11 +15,11 @@
                 <h2 id="{{ $titleId }}" class="font-display text-xl font-semibold tracking-tight text-base-content transition-colors group-hover:text-primary">{{ $title }}</h2>
 
                 @isset($description)
-                    <div class="text-sm leading-relaxed text-base-content/70">
+                    <div @if($descriptionId) id="{{ $descriptionId }}" @endif class="text-sm leading-relaxed text-base-content/70">
                         {{ $description }}
                     </div>
                 @elseif(trim((string) $slot) !== '')
-                    <div class="text-sm leading-relaxed text-base-content/70">
+                    <div @if($descriptionId) id="{{ $descriptionId }}" @endif class="text-sm leading-relaxed text-base-content/70">
                         {{ $slot }}
                     </div>
                 @endif
