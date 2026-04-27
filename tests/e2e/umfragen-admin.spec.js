@@ -10,9 +10,18 @@ const login = async (page, email, password = 'password') => {
 
 const answerOptionCards = (page) => page.locator('[data-testid^="answer-option-"]');
 
+const pollManagementComponent = (page) => page
+    .locator('main [wire\\:id]')
+    .filter({ has: page.getByTestId('page-header') })
+    .first();
+
 const startNewPoll = async (page) => {
-    await page.getByRole('button', { name: 'Neue Umfrage' }).click();
+    const newPollButton = page.getByRole('button', { name: 'Neue Umfrage' });
+
+    await newPollButton.click();
     await expect(answerOptionCards(page)).toHaveCount(2);
+    await expect(newPollButton).toBeEnabled();
+    await expect(page.getByTestId('option-0-label')).toBeEditable();
     await expect(page.getByTestId('question-textarea')).toHaveValue('');
 };
 
@@ -23,8 +32,35 @@ const addAnswerOption = async (page, expectedCount) => {
 
 const fillOptionLabel = async (page, index, value) => {
     const input = page.getByTestId(`option-${index}-label`);
-    await input.fill(value);
-    await input.press('Tab');
+
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+        await input.evaluate((element, nextValue) => {
+            element.focus();
+            element.value = nextValue;
+            element.dispatchEvent(new Event('input', { bubbles: true }));
+            element.dispatchEvent(new Event('change', { bubbles: true }));
+            element.blur();
+        }, value);
+
+        try {
+            await expect.poll(
+                () => pollManagementComponent(page).evaluate(
+                    (el, optionIndex) => el.__livewire?.canonical?.options?.[optionIndex]?.label ?? null,
+                    index,
+                ),
+                { timeout: 5000 },
+            ).toBe(value);
+
+            await expect(input).toHaveValue(value);
+
+            return input;
+        } catch (error) {
+            if (attempt === 1) {
+                throw error;
+            }
+        }
+    }
+
     await expect(input).toHaveValue(value);
 
     return input;

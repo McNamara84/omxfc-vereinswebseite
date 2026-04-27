@@ -9,6 +9,7 @@ use App\Models\PollOption;
 use App\Models\PollVote;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Computed;
@@ -40,7 +41,7 @@ class UmfrageVerwaltung extends Component
     public ?string $endsAt = null;
 
     /**
-     * @var array<int, array{id?:int,label:string,image_url:?string,link_url:?string}>
+    * @var array<int, array{id?:int,temp_key?:string,label:string,image_url:?string,link_url:?string}>
      */
     public array $options = [];
 
@@ -105,8 +106,8 @@ class UmfrageVerwaltung extends Component
         $this->startsAt = now()->addHour()->format('Y-m-d\TH:i');
         $this->endsAt = now()->addDays(7)->format('Y-m-d\TH:i');
         $this->options = [
-            ['label' => '', 'image_url' => null, 'link_url' => null],
-            ['label' => '', 'image_url' => null, 'link_url' => null],
+            $this->newOptionData(),
+            $this->newOptionData(),
         ];
         unset($this->chartData, $this->polls);
     }
@@ -120,7 +121,7 @@ class UmfrageVerwaltung extends Component
         }
 
         $this->resetErrorBag('options');
-        $this->options[] = ['label' => '', 'image_url' => null, 'link_url' => null];
+        $this->options[] = $this->newOptionData();
     }
 
     public function removeOption(int $index): void
@@ -161,7 +162,7 @@ class UmfrageVerwaltung extends Component
             ->all();
 
         if (count($this->options) === 0) {
-            $this->options = [['label' => '', 'image_url' => null, 'link_url' => null]];
+            $this->options = [$this->newOptionData()];
         }
 
         $this->dispatchChartUpdate();
@@ -312,6 +313,19 @@ class UmfrageVerwaltung extends Component
         if (! empty($chartData['options']['labels'] ?? [])) {
             $this->dispatch('poll-results-updated', data: $chartData);
         }
+    }
+
+    /**
+     * @return array{temp_key:string,label:string,image_url:?string,link_url:?string}
+     */
+    private function newOptionData(): array
+    {
+        return [
+            'temp_key' => (string) Str::uuid(),
+            'label' => '',
+            'image_url' => null,
+            'link_url' => null,
+        ];
     }
 
     protected function rules(): array
