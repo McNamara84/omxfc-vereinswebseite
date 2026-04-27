@@ -6,10 +6,14 @@ function uniqueGuestEmail(prefix, projectName) {
     return `${prefix}-${normalizedProject}@example.com`;
 }
 
+async function gotoFantreffenAnmeldung(page) {
+    await page.goto('/maddrax-fantreffen-2026');
+    await expect(page.locator('form#fantreffen-form')).toBeVisible();
+}
+
 test.describe('Fantreffen 2026 Anmeldung', () => {
     test('Seite ist erreichbar und zeigt das Anmeldeformular', async ({ page }) => {
-        await page.goto('/maddrax-fantreffen-2026');
-        await page.waitForLoadState('networkidle');
+        await gotoFantreffenAnmeldung(page);
 
         // Hauptüberschrift sichtbar
         await expect(page.locator('h1')).toContainText('Maddrax-Fantreffen 2026');
@@ -19,8 +23,7 @@ test.describe('Fantreffen 2026 Anmeldung', () => {
     });
 
     test('Formularfelder haben korrekte name-Attribute', async ({ page }) => {
-        await page.goto('/maddrax-fantreffen-2026');
-        await page.waitForLoadState('networkidle');
+        await gotoFantreffenAnmeldung(page);
 
         // Input-Felder mit korrekten name-Attributen vorhanden
         await expect(page.locator('input[name="vorname"]')).toBeVisible();
@@ -29,8 +32,7 @@ test.describe('Fantreffen 2026 Anmeldung', () => {
     });
 
     test('Submit-Button hat type=submit', async ({ page }) => {
-        await page.goto('/maddrax-fantreffen-2026');
-        await page.waitForLoadState('networkidle');
+        await gotoFantreffenAnmeldung(page);
 
         const submitButton = page.getByTestId('fantreffen-submit');
         await expect(submitButton).toBeVisible();
@@ -38,8 +40,7 @@ test.describe('Fantreffen 2026 Anmeldung', () => {
     });
 
     test('Gast kann sich erfolgreich ohne T-Shirt registrieren', async ({ page }, testInfo) => {
-        await page.goto('/maddrax-fantreffen-2026');
-        await page.waitForLoadState('networkidle');
+        await gotoFantreffenAnmeldung(page);
 
         // Formularfelder ausfüllen
         await page.fill('input[name="vorname"]', 'Max');
@@ -54,8 +55,7 @@ test.describe('Fantreffen 2026 Anmeldung', () => {
     });
 
     test('T-Shirt Checkbox schaltet Größen-Dropdown korrekt um', async ({ page }) => {
-        await page.goto('/maddrax-fantreffen-2026');
-        await page.waitForLoadState('networkidle');
+        await gotoFantreffenAnmeldung(page);
 
         const tshirtContainer = page.getByTestId('fantreffen-tshirt-container');
         const checkbox = page.getByTestId('fantreffen-tshirt-checkbox');
@@ -77,8 +77,7 @@ test.describe('Fantreffen 2026 Anmeldung', () => {
     });
 
     test('Formular ist valide und wird korrekt an den Server gesendet', async ({ page }) => {
-        await page.goto('/maddrax-fantreffen-2026');
-        await page.waitForLoadState('networkidle');
+        await gotoFantreffenAnmeldung(page);
 
         // Form vorhanden mit POST-Methode
         const form = page.locator('form#fantreffen-form');
@@ -94,8 +93,7 @@ test.describe('Fantreffen 2026 Anmeldung', () => {
     });
 
     test('T-Shirt-Größe blockiert das Formular nicht wenn Checkbox nicht gesetzt', async ({ page }) => {
-        await page.goto('/maddrax-fantreffen-2026');
-        await page.waitForLoadState('networkidle');
+        await gotoFantreffenAnmeldung(page);
 
         // tshirt_groesse darf nicht required sein wenn Checkbox nicht gesetzt
         const selectRequired = await page.evaluate(() => {
@@ -114,8 +112,7 @@ test.describe('Fantreffen 2026 Anmeldung', () => {
         ];
 
         for (const gast of gaeste) {
-            await page.goto('/maddrax-fantreffen-2026');
-            await page.waitForLoadState('networkidle');
+            await gotoFantreffenAnmeldung(page);
 
             await page.fill('input[name="vorname"]', gast.vorname);
             await page.fill('input[name="nachname"]', gast.nachname);
