@@ -1,5 +1,19 @@
 [ 
   {
+    "version": "1.11.0",
+    "pub_date": "2026-04-27",
+    "notes": [
+      "[New] Öffentliche Hörbuch-Übersicht und Einzelfolgen zeigen jetzt Status, offene Rollen und geplante Veröffentlichungstermine",
+      "[New] Regelbasiertes Baxx-System für Rezensionen mit zeitlich begrenzten Spezialaktionen eingeführt",
+      "[Improved] Dashboard zeigt Baxx-Aktionen und wichtige Community-Kennzahlen klarer und handlungsorientierter",
+      "[Improved] Navigation für Gäste und Mitglieder neu strukturiert für schnellere Orientierung in Community, Inhalten, Veranstaltungen und Vereinsbereichen",
+      "[Improved] Startseite und zentrale öffentliche Seiten erhielten ein modernes Layout mit einheitlichen Seitenköpfen und Panels",
+      "[Improved] Changelog, Chronik, Arbeitsgruppen, Downloads, Meetings, Protokolle, Satzung, Spenden und Termine wurden gestalterisch und strukturell überarbeitet",
+      "[Improved] Interaktive Bereiche reagieren mit stabileren Skeleton-Ladezuständen und konsistenteren Seitenübergängen",
+      "[Fixed] HTTPS wird hinter Proxy- und Load-Balancer-Setups zuverlässiger erkannt, sodass sichere Links und Weiterleitungen stabiler funktionieren"
+    ]
+  },
+  {
     "version": "1.10.0",
     "pub_date": "2026-04-06",
     "notes": [
