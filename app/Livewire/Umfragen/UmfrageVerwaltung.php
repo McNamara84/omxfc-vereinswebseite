@@ -86,11 +86,21 @@ class UmfrageVerwaltung extends Component
         }
     }
 
+    public function hydrate(): void
+    {
+        $this->ensureOptionsHaveStableKeys();
+    }
+
     public function updatedSelectedPollId($value): void
     {
         if ($value) {
             $this->selectPoll((int) $value);
         }
+    }
+
+    public function updatedOptions(): void
+    {
+        $this->ensureOptionsHaveStableKeys();
     }
 
     public function newPoll(): void
@@ -312,6 +322,20 @@ class UmfrageVerwaltung extends Component
         // Verhindert Browser-Freeze durch leere/ungültige Daten im Frontend
         if (! empty($chartData['options']['labels'] ?? [])) {
             $this->dispatch('poll-results-updated', data: $chartData);
+        }
+    }
+
+    private function ensureOptionsHaveStableKeys(): void
+    {
+        foreach ($this->options as $index => $option) {
+            $hasPersistentId = ($option['id'] ?? null) !== null;
+            $hasTempKey = is_string($option['temp_key'] ?? null) && $option['temp_key'] !== '';
+
+            if ($hasPersistentId || $hasTempKey) {
+                continue;
+            }
+
+            $this->options[$index]['temp_key'] = (string) Str::uuid();
         }
     }
 

@@ -112,7 +112,7 @@
 
                 <div class="space-y-3">
                     @foreach ($options as $index => $option)
-                        <div wire:key="poll-option-{{ $option['id'] ?? $option['temp_key'] }}">
+                        <div wire:key="poll-option-{{ $option['id'] ?? ($option['temp_key'] ?? 'poll-option-fallback-' . $index) }}">
                         <x-card class="bg-base-200" data-testid="answer-option-{{ $index }}">
                             <div class="grid grid-cols-1 gap-3 md:grid-cols-12 md:items-end">
                                 <div class="md:col-span-5">
