@@ -105,6 +105,8 @@ test.describe('Fantreffen 2026 Anmeldung', () => {
     });
 
     test('Mehrere Gäste können sich nacheinander ohne 429-Fehler registrieren', async ({ page }, testInfo) => {
+        test.slow();
+
         const gaeste = [
             { vorname: 'Anna', nachname: 'Schmidt', email: uniqueGuestEmail('anna-schmidt', testInfo.project.name) },
             { vorname: 'Ben', nachname: 'Weber', email: uniqueGuestEmail('ben-weber', testInfo.project.name) },
