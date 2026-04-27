@@ -2,16 +2,19 @@ import fs from 'fs';
 import path from 'path';
 import { spawnSync } from 'child_process';
 import { runArtisan } from './utils/artisan.js';
+import { createPhpProcess, toPhpRuntimePath } from './utils/php.js';
 
 export default async function globalSetup() {
     const databasePath = path.resolve('database/playwright.sqlite');
+    const runtimeDatabasePath = toPhpRuntimePath(databasePath);
     const sqliteSchemaPath = path.resolve('database/schema/sqlite-schema.sql');
+    const runtimeSqliteSchemaPath = toPhpRuntimePath(sqliteSchemaPath);
 
     process.env.APP_ENV = 'testing';
     process.env.APP_DEBUG = 'false';
     process.env.APP_KEY = process.env.APP_KEY ?? 'base64:oK0ZsJlI+o7C++h527lMcrrO4jzZrXqhouB/p0l+gFw=';
     process.env.DB_CONNECTION = 'sqlite';
-    process.env.DB_DATABASE = databasePath;
+    process.env.DB_DATABASE = runtimeDatabasePath;
     process.env.SESSION_DRIVER = 'file';
     process.env.CACHE_DRIVER = 'array';
     process.env.QUEUE_CONNECTION = 'database';
@@ -38,14 +41,15 @@ export default async function globalSetup() {
         throw new Error(`Missing schema dump: ${sqliteSchemaPath}`);
     }
 
-    const schemaResult = spawnSync(
-        'php',
-        ['tests/e2e/load-sqlite-schema.php', databasePath, sqliteSchemaPath],
-        {
-            env: process.env,
-            stdio: 'inherit',
-        },
+    const schemaLoader = createPhpProcess(
+        ['tests/e2e/load-sqlite-schema.php', runtimeDatabasePath, runtimeSqliteSchemaPath],
+        { env: process.env },
     );
+    const schemaResult = spawnSync(schemaLoader.command, schemaLoader.args, {
+        env: process.env,
+        shell: schemaLoader.shell,
+        stdio: 'inherit',
+    });
 
     if (schemaResult.status !== 0) {
         throw new Error('Failed to load SQLite schema dump for Playwright.');

@@ -27,4 +27,11 @@ class PageComponentCustomizationTest extends TestCase
     {
         $this->assertAllowsExtraClasses('x-member-page', 'p-2', 'max-w-7xl');
     }
+
+    public function test_bento_card_renders_default_slot_only_once_without_value_or_description_slot(): void
+    {
+        $html = Blade::render('<x-bento-card title="Testkarte">Nur einmal</x-bento-card>');
+
+        $this->assertSame(1, substr_count($html, 'Nur einmal'));
+    }
 }

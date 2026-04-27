@@ -159,9 +159,11 @@ Das Admin-Dashboard ist nur für Benutzer mit den Rollen `Admin`, `Vorstand` ode
 | JavaScript-Tests (Jest)      | `npm run test` |
 | Komponenten-Tests (Vitest)   | `npm run test:vitest` |
 | End-to-End- & Accessibility-Checks | `npm run test:e2e` |
+| End-to-End-Checks mit Docker-PHP 8.5 | `npm run test:e2e:docker` |
 | Code-Style (Laravel Pint)    | `./vendor/bin/pint` |
 
 Die Playwright-Suite setzt eine laufende Anwendung (lokal oder in CI) voraus und führt zusätzlich axe-core-Prüfungen für Barrierefreiheit durch.
+Für Windows- oder Docker-Setups ohne passendes lokales PHP kann die Suite mit `npm run test:e2e:docker` in einem kleinen PHP-8.5-Container mit SQLite-Support gestartet werden.
 
 ## Deployment
 

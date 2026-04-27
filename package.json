@@ -9,6 +9,7 @@
         "dev": "vite",
         "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
         "test:e2e": "playwright test",
+        "test:e2e:docker": "node tests/e2e/run-playwright-docker.mjs",
         "test:vitest": "vitest run"
     },
     "devDependencies": {

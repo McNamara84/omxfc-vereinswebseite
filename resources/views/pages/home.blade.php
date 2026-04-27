@@ -1,92 +1,118 @@
 <x-app-layout title="Startseite – Offizieller MADDRAX Fanclub e. V." :description="$homeDescription">
-    <x-public-page>
-        <x-header title="Willkommen beim Offiziellen MADDRAX Fanclub e. V.!" class="mb-8 text-center" useH1 />
+    <x-public-page class="space-y-8">
+        <x-ui.page-header
+            eyebrow="Offizieller MADDRAX Fanclub e. V."
+            title="Willkommen beim Offiziellen MADDRAX Fanclub e. V.!"
+            :description="$homeDescription"
+        >
+            <x-slot:actions>
+                <div class="flex flex-wrap items-center gap-2">
+                    <span class="badge badge-primary badge-outline rounded-full px-3 py-3">{{ $memberCount }} aktive Mitglieder</span>
+                    <span class="badge badge-outline rounded-full px-3 py-3">{{ $reviewCount }} Rezensionen</span>
+                </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {{-- Fotogalerie --}}
-            <div class="md:col-span-2 bg-base-100 rounded-lg shadow-md overflow-hidden">
-                <div id="gallery" class="relative w-full h-48 sm:h-64 md:h-72"
-                     x-data="{
-                         current: 0,
-                         images: {{ count($galleryImages) }},
-                         _interval: null,
-                         init() {
-                             this.$el.querySelectorAll('img')[0]?.classList.remove('opacity-0');
-                             if (this.images <= 1) return;
-                             this._interval = setInterval(() => {
-                                 this.$el.querySelectorAll('img')[this.current]?.classList.add('opacity-0');
-                                 this.current = (this.current + 1) % this.images;
-                                 this.$el.querySelectorAll('img')[this.current]?.classList.remove('opacity-0');
-                             }, 4000);
-                         },
-                         destroy() {
-                             if (this._interval) clearInterval(this._interval);
-                         }
-                     }">
+                <div class="flex flex-wrap gap-2">
+                    @guest
+                        <a href="{{ route('mitglied.werden') }}" wire:navigate class="btn btn-primary btn-sm rounded-full">Mitglied werden</a>
+                    @endguest
+                    <a href="{{ route('fantreffen.2026') }}" wire:navigate class="btn btn-ghost btn-sm rounded-full bg-base-100/70">Fantreffen 2026</a>
+                </div>
+            </x-slot:actions>
+        </x-ui.page-header>
+
+        <section class="grid gap-8 xl:grid-cols-[minmax(0,1.55fr)_minmax(20rem,0.9fr)] xl:items-stretch">
+            <div class="relative overflow-hidden rounded-[2rem] border border-base-content/10 bg-neutral text-neutral-content shadow-2xl shadow-base-content/10">
+                <div id="gallery" class="relative h-full min-h-[22rem] w-full"
+                    x-data="{
+                        current: 0,
+                        images: {{ count($galleryImages) }},
+                        _interval: null,
+                        init() {
+                            this.$el.querySelectorAll('img')[0]?.classList.remove('opacity-0');
+                            if (this.images <= 1) return;
+                            this._interval = setInterval(() => {
+                                this.$el.querySelectorAll('img')[this.current]?.classList.add('opacity-0');
+                                this.current = (this.current + 1) % this.images;
+                                this.$el.querySelectorAll('img')[this.current]?.classList.remove('opacity-0');
+                            }, 4000);
+                        },
+                        destroy() {
+                            if (this._interval) clearInterval(this._interval);
+                        }
+                    }">
                     @foreach($galleryImages as $image)
                         <picture>
                             <source type="image/avif" srcset="{{ asset($image . '.avif') }}" />
                             <source type="image/webp" srcset="{{ asset($image . '.webp') }}" />
                             <img loading="lazy" src="{{ asset($image . '.webp') }}" alt="Foto von einem Treffen des Vereins mit einem Teil der Mitglieder"
-                                class="absolute inset-0 w-full h-full object-cover opacity-0 transition-opacity duration-1000">
+                                class="absolute inset-0 h-full w-full object-cover opacity-0 transition-opacity duration-1000">
                         </picture>
                     @endforeach
-                </div>
-            </div>
 
-            {{-- Fantreffen 2026 Banner --}}
-            <div class="md:col-span-2 bg-primary text-primary-content rounded-lg shadow-lg p-6">
-                <div class="flex flex-col md:flex-row items-center justify-between gap-4">
-                    <div>
-                        <h2 class="text-2xl font-bold mb-2">🎉 Maddrax-Fantreffen 2026 in Köln</h2>
-                        <p class="text-primary-content/90">
-                            <strong>Samstag, 9. Mai 2026</strong> – Signierstunde mit Autoren, Verleihung der Goldenen Taratze & mehr!
+                    <div class="absolute inset-0 bg-linear-to-t from-neutral via-neutral/30 to-transparent"></div>
+                    <div class="absolute inset-x-0 bottom-0 space-y-4 p-6 sm:p-8">
+                        <p class="text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-neutral-content/60">Community im echten Leben</p>
+                        <h2 class="font-display text-3xl font-semibold tracking-tight text-white sm:text-4xl">Fantreffen, Arbeitsgruppen und echte Begegnungen</h2>
+                        <p class="max-w-2xl text-sm leading-relaxed text-neutral-content/80 sm:text-base">
+                            Von der Chronik bis zum Fantreffen: Wir bauen keine lose Kommentarspalte, sondern eine aktive Fan-Community mit Projekten, Austausch und greifbaren Ergebnissen.
                         </p>
                     </div>
-                    <a href="{{ route('fantreffen.2026') }}" wire:navigate 
-                       class="btn btn-secondary whitespace-nowrap">
-                        Jetzt anmelden →
-                    </a>
                 </div>
             </div>
 
-            {{-- Wer wir sind --}}
-            <div class="bg-base-100 rounded-lg shadow-md p-6">
-                <h2 class="text-2xl font-semibold text-primary mb-4">Wer wir sind</h2>
-                <p class="text-base-content/80">{{ $whoWeAre }}</p>
-            </div>
+            <x-ui.panel title="Was dich hier erwartet" description="Die wichtigsten Einstiege für neue und langjährige Fans auf einen Blick.">
+                <div class="grid gap-3">
+                    <div class="rounded-[1.5rem] border border-base-content/10 bg-base-100/72 p-4">
+                        <h3 class="font-semibold text-base-content">Community statt Karteileiche</h3>
+                        <p class="mt-1 text-sm leading-relaxed text-base-content/72">Regelmäßiger Austausch, gemeinsame Events und Aufgaben mit echtem Vereinsleben.</p>
+                    </div>
+                    <div class="rounded-[1.5rem] border border-base-content/10 bg-base-100/72 p-4">
+                        <h3 class="font-semibold text-base-content">Fanprojekte mit Substanz</h3>
+                        <p class="mt-1 text-sm leading-relaxed text-base-content/72">Maddraxikon, EARDRAX, MAPDRAX und weitere Projekte werden gemeinsam weiterentwickelt.</p>
+                    </div>
+                    <div class="rounded-[1.5rem] border border-base-content/10 bg-base-100/72 p-4">
+                        <h3 class="font-semibold text-base-content">Direkter Einstieg</h3>
+                        <p class="mt-1 text-sm leading-relaxed text-base-content/72">Du kannst direkt Mitglied werden, Rezensionen entdecken oder dich fürs nächste Fantreffen anmelden.</p>
+                    </div>
+                </div>
+            </x-ui.panel>
+        </section>
 
-            {{-- Was wir machen --}}
-            <div class="bg-base-100 rounded-lg shadow-md p-6">
-                <h2 class="text-2xl font-semibold text-primary mb-4">Was wir machen</h2>
-                <p class="text-base-content/80">{{ $whatWeDo }}</p>
-            </div>
+        <section class="grid gap-8 lg:grid-cols-2">
+            <x-ui.panel title="Wer wir sind" description="Eine vielfältige Fan-Community mit gemeinsamer Leidenschaft für das Maddraxiversum.">
+                <p class="text-base leading-relaxed text-base-content/78">{{ $whoWeAre }}</p>
+            </x-ui.panel>
 
-            {{-- Aktuelle Projekte --}}
-            <div class="md:col-span-2 bg-base-100 rounded-lg shadow-md p-6">
-                <h2 class="text-2xl font-semibold text-primary mb-4">Aktuelle Projekte</h2>
-                <ul class="list-disc ml-5 text-base-content/80 space-y-2">
-                    @foreach($currentProjects as $project)
-                    <li><strong>{{ $project['title'] }}</strong>: {{ $project['description'] }}</li>
-                    @endForeach
-                </ul>
-            </div>
+            <x-ui.panel title="Was wir machen" description="Vom lockeren Austausch bis zu langfristigen Gemeinschaftsprojekten.">
+                <p class="text-base leading-relaxed text-base-content/78">{{ $whatWeDo }}</p>
+            </x-ui.panel>
+        </section>
 
-            {{-- Vorteile einer Mitgliedschaft --}}
-            <div class="bg-base-100 rounded-lg shadow-md p-6">
-                <h2 class="text-2xl font-semibold text-primary mb-4">Vorteile einer Mitgliedschaft
-                </h2>
-                <ul class="list-disc ml-5 text-base-content/80">
+        <x-ui.panel title="Aktuelle Projekte" description="Diese Vorhaben prägen gerade den größten Teil unseres Vereinslebens.">
+            <div class="grid gap-4 lg:grid-cols-2">
+                @foreach($currentProjects as $project)
+                    <article class="rounded-[1.5rem] border border-base-content/10 bg-base-100/72 p-5">
+                        <h3 class="font-display text-xl font-semibold tracking-tight text-base-content">{{ $project['title'] }}</h3>
+                        <p class="mt-2 text-sm leading-relaxed text-base-content/72">{{ $project['description'] }}</p>
+                    </article>
+                @endforeach
+            </div>
+        </x-ui.panel>
+
+        <section class="grid gap-8 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
+            <x-ui.panel title="Vorteile einer Mitgliedschaft" description="Warum sich der Schritt vom stillen Mitlesen zur aktiven Mitgliedschaft lohnt.">
+                <ul class="grid gap-3">
                     @foreach($membershipBenefits as $benefit)
-                        <li>{{ $benefit }}</li>
+                        <li class="flex items-start gap-3 rounded-[1.25rem] border border-base-content/10 bg-base-100/72 px-4 py-3 text-sm leading-relaxed text-base-content/78">
+                            <span class="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/12 text-primary">✓</span>
+                            <span>{{ $benefit }}</span>
+                        </li>
                     @endforeach
                 </ul>
-            </div>
+            </x-ui.panel>
 
-            {{-- Letzte Rezensionen --}}
-            <div class="bg-base-100 rounded-lg shadow-md p-6" id="latest-reviews-card">
-                <div class="flex items-start justify-between gap-3">
-                    <h2 class="text-2xl font-semibold text-primary">Letzte Rezensionen</h2>
+            <x-ui.panel id="latest-reviews-card" title="Letzte Rezensionen" description="Die neuesten Eindrücke, Lesetipps und Diskussionen aus unserer Community.">
+                <x-slot:actions>
                     @auth
                         <a class="text-sm font-semibold link link-primary" href="{{ route('reviews.index') }}" wire:navigate>
                             Alle ansehen
@@ -96,32 +122,23 @@
                             Alle ansehen
                         </a>
                     @endauth
-                </div>
-                <p class="mt-1 text-sm text-base-content/80">Die neuesten Eindrücke aus unserer Community.</p>
+                </x-slot:actions>
 
                 <livewire:home-reviews />
-            </div>
+            </x-ui.panel>
+        </section>
 
-            {{-- Kennzahlen --}}
-            <div class="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div class="bg-base-100 rounded-lg shadow-md p-6 flex flex-col items-center" aria-labelledby="stat-members-heading" aria-describedby="stat-members-description">
-                    <h3 id="stat-members-heading" class="text-lg font-semibold text-primary">Aktive Mitglieder</h3>
-                    <div class="mt-2 flex items-baseline gap-2">
-                        <span class="text-4xl font-bold text-primary">{{ $memberCount }}</span>
-                        <span class="text-base-content/80">aktive Mitglieder</span>
-                    </div>
-                    <p id="stat-members-description" class="mt-3 text-sm text-base-content/80 text-center">Gemeinschaft, die sich regelmäßig austauscht und Projekte voranbringt.</p>
-                </div>
-                <div class="bg-base-100 rounded-lg shadow-md p-6 flex flex-col items-center" aria-labelledby="stat-reviews-heading" aria-describedby="stat-reviews-description">
-                    <h3 id="stat-reviews-heading" class="text-lg font-semibold text-primary">Rezensionen</h3>
-                    <div class="mt-2 flex items-baseline gap-2">
-                        <span class="text-4xl font-bold text-primary">{{ $reviewCount }}</span>
-                        <span class="text-base-content/80">Rezensionen</span>
-                    </div>
-                    <p id="stat-reviews-description" class="mt-3 text-sm text-base-content/80 text-center">Lesetipps und Eindrücke zu den Romanen unserer Lieblingsserie.</p>
-                </div>
-            </div>
-        </div>
+        <section class="grid gap-4 sm:grid-cols-2">
+            <x-bento-card title="Aktive Mitglieder" sr-text="{{ $memberCount }} aktive Mitglieder" icon="o-user-group" description-id="stat-members-description">
+                <x-slot:description>Gemeinschaft, die sich regelmäßig austauscht und Projekte voranbringt.</x-slot:description>
+                <x-slot:value>{{ $memberCount }}</x-slot:value>
+            </x-bento-card>
+
+            <x-bento-card title="Rezensionen" sr-text="{{ $reviewCount }} Rezensionen" icon="o-book-open" description-id="stat-reviews-description">
+                <x-slot:description>Lesetipps und Eindrücke zu den Romanen unserer Lieblingsserie.</x-slot:description>
+                <x-slot:value>{{ $reviewCount }}</x-slot:value>
+            </x-bento-card>
+        </section>
     </x-public-page>
 
     <script type="application/ld+json">

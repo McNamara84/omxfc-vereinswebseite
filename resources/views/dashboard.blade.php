@@ -1,140 +1,158 @@
 <x-app-layout>
     <x-member-page>
-        {{-- Flash Messages --}}
-        @if(session('status'))
-            <x-alert icon="o-check-circle" class="alert-success mb-4" dismissible>
-                {{ session('status') }}
-            </x-alert>
-        @endif
+        @php
+            $showGovernanceTools = in_array($userRole, $allowedRoles, true);
+            $topUsersCollection = collect($topUsers)->values();
+            $topUsersSummary = $topUsersCollection->isNotEmpty()
+                ? 'Top ' . $topUsersCollection->count() . ' Baxx-Sammler: '
+                    . $topUsersCollection->map(function ($user, $index) {
+                        $position = $index + 1;
+                        $points = number_format((int) $user['points'], 0, ',', '.');
 
-        @if($prominentReviewSpecialOffer)
-            <x-review-baxx-special-offer :offer="$prominentReviewSpecialOffer" />
-        @endif
+                        return $position . '. ' . $user['name'] . ' (' . $points . ' Baxx)';
+                    })->implode(', ')
+                : null;
+            $topUsersPayload = $topUsersCollection->map(function ($user) {
+                return [
+                    'id' => $user['id'],
+                    'name' => $user['name'],
+                    'points' => (int) $user['points'],
+                ];
+            })->toArray();
+        @endphp
 
-        {{-- Dashboard Cards Grid --}}
-        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-8 grid-flow-row-dense" aria-label="Überblick wichtiger Community-Kennzahlen">
-            {{-- Persönliche offene Challenges Card --}}
-            <x-bento-card href="{{ route('todos.index') }}" wire:navigate title="Offene Challenges" sr-text="Meine offenen Challenges: {{ $openTodos }}">
-                <p class="text-sm text-base-content mb-2">Angenommene, noch nicht abgeschlossene Challenges</p>
-                <div class="text-4xl font-bold mt-auto" aria-live="polite">
-                    {{ $openTodos }}
-                </div>
-            </x-bento-card>
-
-            {{-- Baxx Card --}}
-            <x-bento-card title="Meine Baxx" sr-text="Meine Baxx: {{ $userPoints }}">
-                <p class="text-sm text-base-content mb-2">Aktueller Punktestand für deine Aktivitäten</p>
-                <div class="text-4xl font-bold mt-auto" aria-live="polite">
-                    {{ $userPoints }}
-                </div>
-            </x-bento-card>
-
-            {{-- Matches in Tauschbörse Card --}}
-            <x-bento-card href="{{ route('romantausch.index') }}" wire:navigate title="Matches in Tauschbörse" sr-text="Meine Matches in der Tauschbörse: {{ $romantauschMatches }}">
-                <p class="text-sm text-base-content mb-2">Offene Treffer aus Angeboten und Gesuchen in der Romantauschbörse</p>
-                <div class="text-4xl font-bold mt-auto" aria-live="polite">
-                    {{ $romantauschMatches }}
-                </div>
-            </x-bento-card>
-
-            {{-- Angebote in Tauschbörse Card --}}
-            <x-bento-card href="{{ route('romantausch.index') }}" wire:navigate title="Angebote in der Tauschbörse" sr-text="Meine Angebote in der Tauschbörse: {{ $romantauschOffers }}">
-                <p class="text-sm text-base-content mb-2">Aktive Angebote, die du für die Community bereitgestellt hast</p>
-                <div class="text-4xl font-bold mt-auto" aria-live="polite">
-                    {{ $romantauschOffers }}
-                </div>
-            </x-bento-card>
-
-            {{-- Meine Rezensionen Card --}}
-            <x-bento-card href="{{ route('reviews.index') }}" wire:navigate title="Meine Rezensionen" sr-text="Meine Rezensionen: {{ $myReviews }}">
-                <p class="text-sm text-base-content mb-2">Überblick deiner veröffentlichten Rezensionen</p>
-                <div class="text-4xl font-bold" aria-live="polite">
-                    {{ $myReviews }}
-                </div>
-            </x-bento-card>
-
-            {{-- Fanfiction Card --}}
-            <x-bento-card href="{{ route('fanfiction.index') }}" wire:navigate title="Fanfiction" sr-text="Fanfiction: {{ $fanfictionCount ?? 0 }}">
-                <p class="text-sm text-base-content mb-2">Kurzgeschichten aus dem MADDRAX-Universum</p>
-                <div class="text-4xl font-bold" aria-live="polite">
-                    {{ $fanfictionCount ?? 0 }}
-                </div>
-            </x-bento-card>
-        </div>
-
-        {{-- Anwärter-Liste für Kassenwart, Vorstand und Admin --}}
-        @if($anwaerter->isNotEmpty())
-            <x-card title="Mitgliedsanträge" class="mb-8" shadow>
-                <div x-data="{ rejectUrl: '' }">
-                    <div class="overflow-x-auto">
-                        <table class="table table-zebra">
-                            <thead>
-                                <tr>
-                                    <th>Name</th>
-                                    <th>E-Mail</th>
-                                    <th>Beitrag</th>
-                                    <th class="text-center">Aktion</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach($anwaerter as $person)
-                                    <tr>
-                                        <td>
-                                            <a href="{{ route('profile.view', $person->id) }}" wire:navigate class="text-primary hover:underline">{{ $person->name }}</a>
-                                        </td>
-                                        <td>{{ $person->email }}</td>
-                                        <td>{{ $person->mitgliedsbeitrag }}</td>
-                                        <td>
-                                            <div class="flex justify-center gap-2">
-                                                <form action="{{ route('anwaerter.approve', $person->id) }}" method="POST">
-                                                    @csrf
-                                                    <x-button type="submit" label="Genehmigen" class="btn-success btn-sm" icon="o-check" />
-                                                </form>
-                                                <x-button
-                                                    label="Ablehnen"
-                                                    class="btn-error btn-sm"
-                                                    icon="o-x-mark"
-                                                    @click="rejectUrl = '{{ route('anwaerter.reject', $person->id) }}'; document.getElementById('reject-anwaerter-modal').showModal()"
-                                                />
-                                            </div>
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
+        <div class="space-y-8">
+            <x-ui.page-header eyebrow="Community Hub" :title="$dashboardGreeting" :description="$dashboardDescription">
+                <x-slot:actions>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <span class="badge badge-primary badge-outline rounded-full px-3 py-3">{{ $userPoints }} Baxx</span>
+                        <span class="badge badge-outline rounded-full px-3 py-3">{{ $openTodos }} offene Challenges</span>
+                        @if($showGovernanceTools && $pendingVerification > 0)
+                            <span class="badge badge-secondary badge-outline rounded-full px-3 py-3">{{ $pendingVerification }} warten auf Verifizierung</span>
+                        @endif
                     </div>
 
-                    {{-- Ablehnungs-Bestätigungsdialog --}}
-                    <x-mary-modal id="reject-anwaerter-modal" title="Antrag ablehnen" separator without-trap-focus>
-                        <p class="text-base-content">
-                            Möchtest du diesen Mitgliedsantrag wirklich ablehnen? Der Nutzer wird dadurch gelöscht.
-                        </p>
-
-                        <x-slot:actions>
-                            <x-button label="Abbrechen" @click="document.getElementById('reject-anwaerter-modal').close()" />
-                            <form :action="rejectUrl" method="POST" class="inline">
-                                @csrf
-                                <x-button type="submit" label="Ablehnen" class="btn-error" icon="o-x-mark" />
-                            </form>
-                        </x-slot:actions>
-                    </x-mary-modal>
-                </div>
-            </x-card>
-        @endif
-
-        {{-- Aktivitäten Card --}}
-        <x-card class="mb-8" shadow>
-            <x-slot:title>
-                <div class="flex items-start justify-between gap-3 w-full">
-                    <div>
-                        <h2 class="text-xl font-semibold text-primary">Aktivitäten</h2>
-                        <p class="text-sm text-base-content">Neueste Rezensionen, Kommentare & Aktionen im Überblick.</p>
+                    <div class="flex flex-wrap gap-2">
+                        <a href="{{ route('todos.index') }}" wire:navigate class="btn btn-primary btn-sm rounded-full">Challenges öffnen</a>
+                        <a href="{{ route('fantreffen.2026') }}" wire:navigate class="btn btn-ghost btn-sm rounded-full bg-base-100/70">Fantreffen 2026</a>
                     </div>
-                    <x-badge value="Live-Feed" class="badge-primary badge-outline hidden sm:inline-flex" icon="o-signal" />
-                </div>
-            </x-slot:title>
+                </x-slot:actions>
+            </x-ui.page-header>
 
-            <ul class="space-y-3" role="list">
+            @if(session('status'))
+                <x-alert icon="o-check-circle" class="alert-success" dismissible>
+                    {{ session('status') }}
+                </x-alert>
+            @endif
+
+            @if($prominentReviewSpecialOffer)
+                <x-review-baxx-special-offer :offer="$prominentReviewSpecialOffer" />
+            @endif
+
+            <div class="grid gap-8 xl:grid-cols-[minmax(0,1.7fr)_minmax(22rem,0.95fr)] xl:items-start">
+                <div class="space-y-8">
+                    <x-ui.panel title="Dein Fokus heute" description="Die wichtigsten Kennzahlen und Einstiege für deinen nächsten Schritt in der Community.">
+                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3 grid-flow-row-dense" aria-label="Überblick wichtiger Community-Kennzahlen">
+                            @foreach($focusCards as $card)
+                                <x-bento-card :href="$card['href']" :title="$card['title']" :sr-text="$card['sr_text']" :icon="$card['icon']" wire:navigate>
+                                    <x-slot:description>{{ $card['description'] }}</x-slot:description>
+                                    <x-slot:value>{{ $card['value'] }}</x-slot:value>
+                                </x-bento-card>
+                            @endforeach
+                        </div>
+                    </x-ui.panel>
+
+                    @if($anwaerter->isNotEmpty())
+                        <x-ui.panel title="Mitgliedsanträge" description="Neue Vereinsanträge können hier direkt geprüft, genehmigt oder abgelehnt werden." data-testid="dashboard-applicants-panel">
+                            <div x-data="{ rejectUrl: '' }">
+                                <div class="overflow-x-auto">
+                                    <table class="table table-zebra">
+                                        <thead>
+                                            <tr>
+                                                <th>Name</th>
+                                                <th>E-Mail</th>
+                                                <th>Beitrag</th>
+                                                <th class="text-center">Aktion</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach($anwaerter as $person)
+                                                <tr>
+                                                    <td>
+                                                        <a href="{{ route('profile.view', $person->id) }}" wire:navigate class="text-primary hover:underline">{{ $person->name }}</a>
+                                                    </td>
+                                                    <td>{{ $person->email }}</td>
+                                                    <td>{{ $person->mitgliedsbeitrag }}</td>
+                                                    <td>
+                                                        <div class="flex justify-center gap-2">
+                                                            <form action="{{ route('anwaerter.approve', $person->id) }}" method="POST">
+                                                                @csrf
+                                                                <x-button type="submit" label="Genehmigen" class="btn-success btn-sm" icon="o-check" />
+                                                            </form>
+                                                            <x-button
+                                                                label="Ablehnen"
+                                                                class="btn-error btn-sm"
+                                                                icon="o-x-mark"
+                                                                @click="rejectUrl = '{{ route('anwaerter.reject', $person->id) }}'; document.getElementById('reject-anwaerter-modal').showModal()"
+                                                            />
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <x-mary-modal id="reject-anwaerter-modal" title="Antrag ablehnen" separator without-trap-focus>
+                                    <p class="text-base-content">
+                                        Möchtest du diesen Mitgliedsantrag wirklich ablehnen? Der Nutzer wird dadurch gelöscht.
+                                    </p>
+
+                                    <x-slot:actions>
+                                        <x-button label="Abbrechen" @click="document.getElementById('reject-anwaerter-modal').close()" />
+                                        <form :action="rejectUrl" method="POST" class="inline">
+                                            @csrf
+                                            <x-button type="submit" label="Ablehnen" class="btn-error" icon="o-x-mark" />
+                                        </form>
+                                    </x-slot:actions>
+                                </x-mary-modal>
+                            </div>
+                        </x-ui.panel>
+                    @endif
+
+                    @if($showGovernanceTools && $pendingVerification > 0)
+                        <a href="{{ route('todos.index') }}?filter=pending" wire:navigate class="block" data-testid="dashboard-pending-panel">
+                            <x-ui.panel>
+                                <div class="flex items-center justify-between gap-4">
+                                    <div class="space-y-1">
+                                        <p class="text-[0.7rem] font-semibold uppercase tracking-[0.24em] text-base-content/45">Moderation</p>
+                                        <h2 class="font-display text-2xl font-semibold tracking-tight text-base-content">Auf Verifizierung wartende Challenges</h2>
+                                        <p class="text-sm text-base-content/72">Es gibt {{ $pendingVerification }} Challenge(s), die auf Bestätigung warten.</p>
+                                    </div>
+
+                                    <div class="flex items-center gap-4">
+                                        <div class="font-display text-4xl font-bold tracking-tight text-primary">{{ $pendingVerification }}</div>
+                                        <span class="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary ring-1 ring-primary/15">
+                                            <x-icon name="o-chevron-right" class="h-6 w-6" />
+                                        </span>
+                                    </div>
+                                </div>
+                            </x-ui.panel>
+                        </a>
+                    @endif
+
+                    <x-ui.panel class="overflow-hidden">
+                        <x-slot:header>
+                            <div class="flex items-start justify-between gap-3">
+                                <div>
+                                    <h2 class="font-display text-2xl font-semibold tracking-tight text-base-content">Aktivitäten</h2>
+                                    <p class="text-sm text-base-content/72">Neueste Rezensionen, Kommentare und Community-Aktionen im Überblick.</p>
+                                </div>
+                                <x-badge value="Live-Feed" class="badge-primary badge-outline hidden rounded-full sm:inline-flex" icon="o-signal" />
+                            </div>
+                        </x-slot:header>
+
+                        <ul class="space-y-3" role="list">
                 @forelse($activities as $activity)
                     @php
                         $subject = $activity->subject;
@@ -256,96 +274,85 @@
                         Keine Aktivitäten vorhanden.
                     </li>
                 @endforelse
-            </ul>
-        </x-card>
-
-        {{-- TOP 3 Mitglieder --}}
-        <x-card title="TOP 3 Baxx-Sammler" class="mb-8" shadow>
-            @php
-                $topUsersCollection = collect($topUsers)->values();
-                $topUsersSummary = $topUsersCollection->isNotEmpty()
-                    ? 'Top ' . $topUsersCollection->count() . ' Baxx-Sammler: '
-                        . $topUsersCollection->map(function ($user, $index) {
-                            $position = $index + 1;
-                            $points = number_format((int) $user['points'], 0, ',', '.');
-                            return $position . '. ' . $user['name'] . ' (' . $points . ' Baxx)';
-                        })->implode(', ')
-                    : null;
-                $topUsersPayload = $topUsersCollection->map(function ($user) {
-                    return [
-                        'id' => $user['id'],
-                        'name' => $user['name'],
-                        'points' => (int) $user['points'],
-                    ];
-                })->toArray();
-            @endphp
-
-            @if($topUsersCollection->isNotEmpty())
-                <div
-                    class="flex flex-col md:flex-row items-center md:items-start justify-center gap-6 md:gap-10"
-                    data-dashboard-top-users='{{ json_encode($topUsersPayload, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE) }}'
-                    role="list"
-                    aria-label="{{ $topUsersSummary }}"
-                >
-                    <p class="sr-only" data-dashboard-top-summary="true" aria-live="polite">{{ $topUsersSummary }}</p>
-                    @foreach($topUsersCollection as $index => $topUser)
-                        <a href="{{ route('profile.view', $topUser['id']) }}" wire:navigate class="flex flex-col items-center group" data-dashboard-top-user-item role="listitem">
-                            @if($index === 0)
-                                {{-- Gold Medaille für Platz 1 --}}
-                                <div class="relative mb-2">
-                                    <div class="absolute -top-3 -right-2 w-8 h-8 bg-warning rounded-full flex items-center justify-center text-warning-content font-bold shadow-md transform group-hover:scale-110 transition-transform">1</div>
-                                    <div class="h-20 w-20 rounded-full overflow-hidden border-4 border-warning shadow-lg group-hover:shadow-xl transition-shadow">
-                                        <img loading="lazy" src="{{ $topUser['profile_photo_url'] }}" alt="{{ $topUser['name'] }}" class="h-full w-full object-cover">
-                                    </div>
-                                </div>
-                            @elseif($index === 1)
-                                {{-- Silber Medaille für Platz 2 --}}
-                                <div class="relative mb-2">
-                                    <div class="absolute -top-3 -right-2 w-8 h-8 bg-base-300 rounded-full flex items-center justify-center text-base-content font-bold shadow-md transform group-hover:scale-110 transition-transform">2</div>
-                                    <div class="h-20 w-20 rounded-full overflow-hidden border-4 border-base-300 shadow-lg group-hover:shadow-xl transition-shadow">
-                                        <img loading="lazy" src="{{ $topUser['profile_photo_url'] }}" alt="{{ $topUser['name'] }}" class="h-full w-full object-cover">
-                                    </div>
-                                </div>
-                            @else
-                                {{-- Bronze Medaille für Platz 3 --}}
-                                <div class="relative mb-2">
-                                    <div class="absolute -top-3 -right-2 w-8 h-8 bg-accent rounded-full flex items-center justify-center text-accent-content font-bold shadow-md transform group-hover:scale-110 transition-transform">3</div>
-                                    <div class="h-20 w-20 rounded-full overflow-hidden border-4 border-accent shadow-lg group-hover:shadow-xl transition-shadow">
-                                        <img loading="lazy" src="{{ $topUser['profile_photo_url'] }}" alt="{{ $topUser['name'] }}" class="h-full w-full object-cover">
-                                    </div>
-                                </div>
-                            @endif
-                            
-                            <h3 class="text-lg font-semibold mt-2 group-hover:text-primary transition-colors">{{ $topUser['name'] }}</h3>
-                            <p class="font-bold text-xl text-primary">{{ $topUser['points'] }}</p>
-                            <p class="text-xs text-base-content">Baxx</p>
-                        </a>
-                    @endforeach
+                        </ul>
+                    </x-ui.panel>
                 </div>
-            @else
-                <div class="text-center py-8 text-base-content">
-                    <x-icon name="o-trophy" class="w-12 h-12 mx-auto mb-2 opacity-30" />
-                    Noch keine Baxx vergeben.
-                </div>
-            @endif
-        </x-card>
 
-        {{-- Zu verifizierende Aufgaben Card (nur für Admin) --}}
-        @if(in_array($userRole, $allowedRoles) && $pendingVerification > 0)
-            <a href="{{ route('todos.index') }}?filter=pending" wire:navigate class="block">
-                <x-card class="mb-8 hover:shadow-lg transition-shadow" shadow>
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <h2 class="text-lg font-semibold text-primary mb-1">Auf Verifizierung wartende Challenges</h2>
-                            <p class="text-base-content text-sm">Es gibt {{ $pendingVerification }} Challenge(s), die auf Bestätigung warten</p>
+                <aside class="space-y-8">
+                    <x-ui.panel title="Schnellstart" description="Beliebte Wege zurück in laufende Aktionen und Inhalte." data-testid="dashboard-quick-actions">
+                        <div class="grid gap-3">
+                            @foreach($quickActions as $action)
+                                <a href="{{ $action['href'] }}" wire:navigate class="group flex items-start gap-4 rounded-[1.5rem] border border-base-content/10 bg-base-100/70 px-4 py-4 transition hover:-translate-y-0.5 hover:border-primary/20 hover:shadow-lg">
+                                    <span class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary ring-1 ring-primary/15">
+                                        <x-icon :name="$action['icon']" class="h-5 w-5" />
+                                    </span>
+
+                                    <span class="min-w-0 flex-1 space-y-1">
+                                        <span class="flex flex-wrap items-center gap-2 font-semibold text-base-content transition-colors group-hover:text-primary">
+                                            <span>{{ $action['title'] }}</span>
+                                            @if($action['badge'] ?? null)
+                                                <span class="badge badge-primary badge-sm rounded-full">{{ $action['badge'] }}</span>
+                                            @endif
+                                        </span>
+                                        <span class="block text-sm leading-relaxed text-base-content/70">{{ $action['description'] }}</span>
+                                    </span>
+
+                                    <x-icon name="o-chevron-right" class="mt-1 h-5 w-5 shrink-0 text-base-content/35 transition-colors group-hover:text-primary" />
+                                </a>
+                            @endforeach
                         </div>
-                        <div class="flex items-center">
-                            <div class="text-3xl font-bold text-primary mr-4">{{ $pendingVerification }}</div>
-                            <x-icon name="o-chevron-right" class="w-6 h-6 text-base-content" />
-                        </div>
-                    </div>
-                </x-card>
-            </a>
-        @endif
+                    </x-ui.panel>
+
+                    <x-ui.panel title="TOP 3 Baxx-Sammler" description="Wer aktuell das Community-Ranking anführt.">
+                        @if($topUsersCollection->isNotEmpty())
+                            <div
+                                class="grid gap-4"
+                                data-dashboard-top-users='{{ json_encode($topUsersPayload, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE) }}'
+                                role="list"
+                                aria-label="{{ $topUsersSummary }}"
+                            >
+                                <p class="sr-only" data-dashboard-top-summary="true" aria-live="polite">{{ $topUsersSummary }}</p>
+
+                                @foreach($topUsersCollection as $index => $topUser)
+                                    @php
+                                        $medalClasses = [
+                                            'bg-warning text-warning-content border-warning/40' => $index === 0,
+                                            'bg-base-300 text-base-content border-base-content/20' => $index === 1,
+                                            'bg-accent text-accent-content border-accent/40' => $index > 1,
+                                        ];
+                                    @endphp
+
+                                    <a href="{{ route('profile.view', $topUser['id']) }}" wire:navigate class="group flex items-center gap-4 rounded-[1.5rem] border border-base-content/10 bg-base-100/72 px-4 py-4 transition hover:-translate-y-0.5 hover:border-primary/20 hover:shadow-lg" data-dashboard-top-user-item role="listitem">
+                                        <div class="relative">
+                                            <div class="h-16 w-16 overflow-hidden rounded-2xl border-2 border-base-content/10 shadow-md">
+                                                <img loading="lazy" src="{{ $topUser['profile_photo_url'] }}" alt="{{ $topUser['name'] }}" class="h-full w-full object-cover">
+                                            </div>
+                                            <div @class(['absolute -bottom-2 -right-2 flex h-8 w-8 items-center justify-center rounded-full border text-sm font-bold shadow-md', ...$medalClasses])>
+                                                {{ $index + 1 }}
+                                            </div>
+                                        </div>
+
+                                        <div class="min-w-0 flex-1">
+                                            <h3 class="truncate text-lg font-semibold text-base-content transition-colors group-hover:text-primary">{{ $topUser['name'] }}</h3>
+                                            <p class="text-sm text-base-content/60">Community-Ranking</p>
+                                        </div>
+
+                                        <div class="text-right">
+                                            <p class="font-display text-2xl font-bold tracking-tight text-primary">{{ $topUser['points'] }}</p>
+                                            <p class="text-xs uppercase tracking-[0.22em] text-base-content/45">Baxx</p>
+                                        </div>
+                                    </a>
+                                @endforeach
+                            </div>
+                        @else
+                            <div class="py-8 text-center text-base-content">
+                                <x-icon name="o-trophy" class="mx-auto mb-2 h-12 w-12 opacity-30" />
+                                Noch keine Baxx vergeben.
+                            </div>
+                        @endif
+                    </x-ui.panel>
+                </aside>
+            </div>
+        </div>
     </x-member-page>
 </x-app-layout>

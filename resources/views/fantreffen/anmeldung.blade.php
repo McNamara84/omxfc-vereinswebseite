@@ -142,68 +142,85 @@
 </script>
 </x-slot>
 
-<div class="bg-base-200 -mt-8">
-    {{-- Hero-Banner --}}
-    <div class="relative bg-gradient-to-br from-[#8B0116] to-[#6b000e] text-white py-12 sm:py-16">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h1 class="text-5xl font-bold mb-6">Maddrax-Fantreffen 2026 in Köln</h1>
-            <div class="flex flex-col sm:flex-row justify-center gap-6 text-lg mb-6">
-                <span>📅 Samstag, 9. Mai 2026</span>
-                <span>🕖 ab 19:00 Uhr</span>
-                <span>📍 L´Osteria Köln Mülheim</span>
-            </div>
-            <x-button label="📍 Route in Google Maps" link="https://maps.app.goo.gl/dzLHUqVHqJrkWDkr5" external class="btn-outline border-white text-white hover:bg-white hover:text-[#8B0116]" />
-        </div>
-    </div>
+<div class="mx-auto w-full max-w-[88rem] space-y-8 px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
+    <section class="relative overflow-hidden rounded-[2rem] bg-linear-to-br from-[#8B0116] via-[#7a0214] to-[#4f0912] px-6 py-8 text-white shadow-2xl shadow-[#8B0116]/20 sm:px-8 sm:py-10">
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.18),transparent_28rem)]"></div>
+        <div class="relative grid gap-8 xl:grid-cols-[minmax(0,1.35fr)_minmax(20rem,0.85fr)] xl:items-end">
+            <div class="space-y-6">
+                <div class="space-y-3">
+                    <p class="text-[0.72rem] font-semibold uppercase tracking-[0.28em] text-white/60">Community Event 2026</p>
+                    <h1 class="font-display text-4xl font-semibold tracking-tight sm:text-5xl">Maddrax-Fantreffen 2026 in Köln</h1>
+                    <p class="max-w-3xl text-sm leading-relaxed text-white/82 sm:text-base">
+                        Ein Abend für die Community mit Signierstunde, Goldener Taratze, Gesprächen über die Serie und einem direkten Draht zu den Menschen hinter MADDRAX.
+                    </p>
+                </div>
 
-    {{-- VIP Authors Banner - Prominent Placement --}}
-    @if ($vipAuthors->isNotEmpty())
-        <div class="bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-400 dark:from-amber-600 dark:via-yellow-500 dark:to-amber-600 py-6 shadow-lg" role="region" aria-labelledby="vip-authors-heading">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="flex flex-col md:flex-row items-center justify-center gap-4 text-center">
-                    <div class="flex items-center gap-3">
-                        <x-icon name="o-star" class="w-10 h-10 text-amber-800 dark:text-amber-900 flex-shrink-0" />
-                        <div>
-                            <h2 id="vip-authors-heading" class="text-xl md:text-2xl font-bold text-amber-900 dark:text-amber-950">
-                                VIP-Autoren bestätigt!
-                            </h2>
-                            <p class="text-amber-800 dark:text-amber-900 font-medium mt-1">
-                                Triff die Autoren der MADDRAX-Serie persönlich:
-                            </p>
-                        </div>
-                    </div>
-                    <div class="flex flex-wrap justify-center gap-2 md:gap-3">
-                        @foreach ($vipAuthors as $author)
-                            <x-badge :value="$author->display_name . ($author->is_tentative ? ' (unter Vorbehalt)' : '')" class="badge-lg bg-white/90 dark:bg-gray-900/80 text-amber-900 dark:text-amber-300 font-semibold shadow-md" icon="o-star" />
-                        @endforeach
-                    </div>
+                <div class="flex flex-wrap gap-2 text-sm">
+                    <span class="badge badge-lg rounded-full border-white/20 bg-white/10 px-4 py-4 text-white">Samstag, 9. Mai 2026</span>
+                    <span class="badge badge-lg rounded-full border-white/20 bg-white/10 px-4 py-4 text-white">ab 19:00 Uhr</span>
+                    <span class="badge badge-lg rounded-full border-white/20 bg-white/10 px-4 py-4 text-white">L'Osteria Köln Mülheim</span>
+                </div>
+
+                <div class="flex flex-wrap gap-3">
+                    <a href="#fantreffen-form-panel" class="btn btn-secondary btn-sm rounded-full">Direkt zur Anmeldung</a>
+                    <x-button label="Route in Google Maps" link="https://maps.app.goo.gl/dzLHUqVHqJrkWDkr5" external class="btn-outline btn-sm rounded-full border-white text-white hover:bg-white hover:text-[#8B0116]" />
+                </div>
+            </div>
+
+            <div class="grid gap-3 rounded-[1.5rem] border border-white/15 bg-white/8 p-4 backdrop-blur">
+                <div class="rounded-[1.25rem] bg-black/15 px-4 py-4">
+                    <p class="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-white/60">Highlight</p>
+                    <p class="mt-1 text-lg font-semibold text-white">Signierstunde mit Autor:innen</p>
+                </div>
+                <div class="rounded-[1.25rem] bg-black/15 px-4 py-4">
+                    <p class="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-white/60">Community-Moment</p>
+                    <p class="mt-1 text-lg font-semibold text-white">Verleihung der Goldenen Taratze</p>
+                </div>
+                <div class="rounded-[1.25rem] bg-black/15 px-4 py-4">
+                    <p class="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-white/60">Für Mitglieder</p>
+                    <p class="mt-1 text-lg font-semibold text-white">Teilnahme kostenlos</p>
                 </div>
             </div>
         </div>
+    </section>
+
+    @if ($vipAuthors->isNotEmpty())
+        <x-ui.panel title="VIP-Autoren bestätigt!" description="Diese Autor:innen der MADDRAX-Serie sind aktuell für das Fantreffen vorgesehen." role="region" aria-labelledby="vip-authors-heading">
+            <div class="space-y-4">
+                <h2 id="vip-authors-heading" class="sr-only">VIP-Autoren bestätigt</h2>
+                <div class="flex flex-wrap gap-2 md:gap-3">
+                    @foreach ($vipAuthors as $author)
+                        <x-badge :value="$author->display_name . ($author->is_tentative ? ' (unter Vorbehalt)' : '')" class="badge-lg border-amber-500/20 bg-amber-400/15 text-amber-900 dark:text-amber-200 font-semibold shadow-sm" icon="o-star" />
+                    @endforeach
+                </div>
+
+                @if ($vipAuthors->contains('is_tentative', true))
+                    <p class="text-sm leading-relaxed text-base-content/72">
+                        Einige Autor:innen haben bereits zugesagt, andere sind noch angefragt oder nur vorläufig bestätigt. Die Gästeliste kann sich kurzfristig noch ändern.
+                    </p>
+                @endif
+            </div>
+        </x-ui.panel>
     @endif
 
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+    <div class="space-y-6">
         @if(session('success'))
             <x-alert icon="o-check-circle" class="alert-success mb-4" dismissible>
                 {{ session('success') }}
             </x-alert>
         @endif
 
-        <x-alert icon="o-information-circle" class="alert-warning mb-4">
-            <h3 class="font-bold mb-2">ColoniaCon am selben Wochenende!</h3>
+        <x-ui.panel title="ColoniaCon am selben Wochenende!" description="Das Fantreffen lässt sich direkt mit dem Convention-Wochenende verbinden.">
             <p class="mb-2">Am selben Wochenende findet auch die <a href="https://www.coloniacon-tng.de/2026" target="_blank" rel="noopener noreferrer" class="underline font-semibold hover:opacity-80">ColoniaCon</a> statt. Auf der ColoniaCon erwartet euch am Samstag um 14:00 Uhr ein großes Maddrax-Panel mit zahlreichen Autor*innen:</p>
             <p class="mb-2 font-semibold">Michael Schönenbröcher, Christin Schwarz, Michael Edelbrock, Tanja Guth, Thomas Ziebula, Ansgar Back (unter Vorbehalt), Claudia Kern (unter Vorbehalt), Michael Markus Turner (unter Vorbehalt), Wolfgang Hohlbein (unter Vorbehalt), Susan Schwarz (unter Vorbehalt).</p>
             <p class="mb-2">Außerdem gibt es am Sonntag um 10:40 Uhr eine spannende Vorstellung des OMXFC und des Maddraxikons – also unbedingt vorbeischauen!</p>
             <p>Und das Beste: Vom Veranstaltungsort der ColoniaCon sind es nur fünf Minuten zu Fuß bis zum Fantreffen – ideal, um das ganze Wochenende in Maddrax-Stimmung zu verbringen!</p>
-        </x-alert>
+        </x-ui.panel>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div class="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1.35fr)_minmax(22rem,0.95fr)]">
             <div class="lg:col-span-2 space-y-8">
                 {{-- Programm --}}
-                <x-card shadow>
-                    <x-slot:title>
-                        <span class="text-2xl text-primary">Programm</span>
-                    </x-slot:title>
+                <x-ui.panel title="Programm" description="Die wichtigsten Programmpunkte des Abends auf einen Blick.">
                     <div class="space-y-4">
                         <div class="flex gap-4">
                             <span class="font-bold text-primary">19:00</span>
@@ -236,23 +253,20 @@
                             </div>
                         </div>
                     </div>
-                </x-card>
+                </x-ui.panel>
 
                 {{-- Kosten --}}
-                <x-card shadow>
-                    <x-slot:title>
-                        <span class="text-2xl text-primary">Kosten</span>
-                    </x-slot:title>
-                    <div class="space-y-3">
-                        <div class="p-3 bg-success/10 rounded-box">
+                <x-ui.panel title="Kosten" description="Transparent, knapp und direkt mit den wichtigsten Optionen.">
+                    <div class="grid gap-3">
+                        <div class="rounded-[1.5rem] bg-success/10 p-4">
                             <div class="font-semibold text-base-content mb-1">Vereinsmitglieder</div>
                             <p class="text-sm text-base-content/70">Teilnahme am Event: <strong class="text-success">kostenlos</strong></p>
                         </div>
-                        <div class="p-3 bg-info/10 rounded-box">
+                        <div class="rounded-[1.5rem] bg-info/10 p-4">
                             <div class="font-semibold text-base-content mb-1">Gäste</div>
                             <p class="text-sm text-base-content/70">Teilnahme am Event: <strong class="text-info">5,00 €</strong> Spende erbeten</p>
                         </div>
-                        <div class="p-3 bg-secondary/10 rounded-box">
+                        <div class="rounded-[1.5rem] bg-secondary/10 p-4">
                             <div class="font-semibold text-base-content mb-1">Event-T-Shirt (optional)</div>
                             <p class="text-sm text-base-content/70">
                                 <strong class="text-secondary">25,00 €</strong> Spende
@@ -268,13 +282,10 @@
                             />
                         </div>
                     </div>
-                </x-card>
+                </x-ui.panel>
 
                 {{-- FAQ-Sektion --}}
-                <x-card shadow>
-                    <x-slot:title>
-                        <span class="text-2xl text-primary">Häufige Fragen</span>
-                    </x-slot:title>
+                <x-ui.panel title="Häufige Fragen" description="Die wichtigsten organisatorischen Punkte vor der Anmeldung.">
                     <div class="space-y-1">
                         <x-collapse name="faq-group" class="collapse-arrow border border-base-content/10 rounded-box">
                             <x-slot:heading>Muss ich Vereinsmitglied sein?</x-slot:heading>
@@ -301,16 +312,13 @@
                             </x-slot:content>
                         </x-collapse>
                     </div>
-                </x-card>
+                </x-ui.panel>
             </div>
 
             {{-- Anmeldeformular (rechte Spalte) --}}
             <div class="lg:col-span-1">
-                <div class="bg-base-100 rounded-xl shadow-lg overflow-hidden sticky top-4">
-                    <div class="bg-gradient-to-r from-[#8B0116] to-[#a01526] px-6 py-4">
-                        <h2 class="text-2xl font-bold text-white">Anmeldung</h2>
-                    </div>
-                    <div class="p-6">
+                <div class="sticky top-6" id="fantreffen-form-panel">
+                    <x-ui.panel title="Anmeldung" description="Reserviere deinen Platz direkt hier. Für Mitglieder ist die Teilnahme kostenlos." class="overflow-hidden bg-base-100/95">
                         @if(isset($errors) && $errors->any())
                             <x-alert icon="o-exclamation-triangle" class="alert-error mb-4">
                                 <ul class="text-sm space-y-1">
@@ -389,11 +397,10 @@
                                 data-testid="fantreffen-submit"
                             />
                         </form>
-                    </div>
+                    </x-ui.panel>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
 </x-app-layout>

@@ -1,0 +1,10 @@
+services:
+  playwright-php:
+    build:
+      context: .
+      dockerfile: docker/playwright-php.Dockerfile
+    ports:
+      - '${PLAYWRIGHT_PORT:-8001}:${PLAYWRIGHT_PORT:-8001}'
+    working_dir: /workspace
+    volumes:
+      - .:/workspace

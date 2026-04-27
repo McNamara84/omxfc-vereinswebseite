@@ -183,4 +183,54 @@ class DashboardTest extends TestCase
         $this->assertSame(1, $srSummary->count());
         $this->assertStringContainsString('Top 3 Baxx-Sammler', trim($srSummary->text()));
     }
+
+    public function test_dashboard_shows_personalized_header_and_quick_actions_for_members(): void
+    {
+        $team = Team::membersTeam();
+        $user = User::factory()->create([
+            'current_team_id' => $team->id,
+            'vorname' => 'Alex',
+        ]);
+        $team->users()->attach($user, ['role' => Role::Mitglied->value]);
+
+        $response = $this->actingAs($user)->get('/dashboard');
+
+        $response->assertOk();
+        $response->assertSeeText('Willkommen zurück, Alex');
+        $response->assertSeeText('Schnellstart');
+        $response->assertSeeText('Challenges öffnen');
+        $response->assertSeeText('Fantreffen 2026 ansehen');
+        $response->assertDontSeeText('Fantreffen verwalten');
+    }
+
+    public function test_dashboard_shows_governance_quick_actions_for_privileged_users(): void
+    {
+        $user = $this->createUserWithRole(Role::Admin);
+        $team = Team::membersTeam();
+        $applicant = User::factory()->create();
+        $team->users()->attach($applicant, ['role' => Role::Anwaerter->value]);
+
+        Todo::create([
+            'team_id' => $team->id,
+            'created_by' => $user->id,
+            'assigned_to' => $user->id,
+            'title' => 'Dashboard Quick Action',
+            'description' => 'Soll als Schnellaktion auftauchen',
+            'points' => 5,
+            'status' => TodoStatus::Completed,
+        ]);
+
+        $response = $this->actingAs($user)->get('/dashboard');
+        $quickActions = collect($response->viewData('quickActions'));
+        $challengeAction = $quickActions->firstWhere('title', 'Challenges öffnen');
+        $verificationAction = $quickActions->firstWhere('title', 'Verifizierungen prüfen');
+
+        $response->assertOk();
+        $response->assertSeeText('Mitgliedsanträge prüfen');
+        $response->assertSeeText('Verifizierungen prüfen');
+        $response->assertSeeText('Fantreffen verwalten');
+        $this->assertNotNull($challengeAction);
+        $this->assertArrayNotHasKey('badge', $challengeAction);
+        $this->assertSame('1', $verificationAction['badge'] ?? null);
+    }
 }

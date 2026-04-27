@@ -18,9 +18,10 @@ test.describe('Dashboard overview', () => {
         const cards = page.locator('div[aria-label="Überblick wichtiger Community-Kennzahlen"] [role="region"]');
         await expect(cards).toHaveCount(6);
 
-        await expect(page.getByText('Mitgliedsanträge')).toBeVisible();
+        await expect(page.getByTestId('dashboard-applicants-panel')).toBeVisible();
         await expect(page.getByRole('row', { name: /Playwright Anwärter/i })).toBeVisible();
-        await expect(page.getByRole('link', { name: /Auf Verifizierung wartende Challenges/i })).toBeVisible();
+        await expect(page.getByTestId('dashboard-pending-panel')).toBeVisible();
+        await expect(page.getByTestId('dashboard-quick-actions')).toContainText(/Schnellstart/i);
 
         const topUsers = page.locator('[data-dashboard-top-users]');
         await expect(topUsers).toBeVisible();
@@ -33,8 +34,9 @@ test.describe('Dashboard overview', () => {
 
         await page.goto('/dashboard');
 
-        await expect(page.locator('.card:has-text("Mitgliedsanträge")')).toHaveCount(0);
-        await expect(page.getByRole('link', { name: /Auf Verifizierung wartende Challenges/i })).toHaveCount(0);
+        await expect(page.getByTestId('dashboard-applicants-panel')).toHaveCount(0);
+        await expect(page.getByTestId('dashboard-pending-panel')).toHaveCount(0);
+        await expect(page.getByTestId('dashboard-quick-actions')).not.toContainText(/Fantreffen verwalten/i);
 
         const cards = page.locator('div[aria-label="Überblick wichtiger Community-Kennzahlen"] [role="region"]');
         await expect(cards).toHaveCount(6);

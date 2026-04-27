@@ -1,5 +1,6 @@
 import { execFile as execFileCallback } from 'child_process';
 import { promisify } from 'util';
+import { createPhpProcess } from './php.js';
 
 const execFile = promisify(execFileCallback);
 
@@ -15,11 +16,12 @@ export async function runArtisan(args, options = {}) {
         );
     }
 
-    const phpArgs = ['artisan', ...args];
+    const phpProcess = createPhpProcess(['artisan', ...args], { env });
 
     try {
-        const result = await execFile('php', phpArgs, {
+        const result = await execFile(phpProcess.command, phpProcess.args, {
             env,
+            shell: phpProcess.shell,
             ...options,
         });
 

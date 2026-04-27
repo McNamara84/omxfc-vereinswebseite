@@ -45,11 +45,20 @@ import AxeBuilder from '@axe-core/playwright';
  * - Der BookPlaywrightSeeder sollte NUR in Test-Datenbanken ausgeführt werden
  */
 const loginAsMember = async (page, email = 'playwright-member@example.com', password = 'password') => {
-    await page.goto('/login');
-    await page.fill('input[name="email"]', email);
-    await page.fill('input[name="password"]', password);
-    await page.click('button[type="submit"]');
-    await page.waitForURL((url) => !url.pathname.endsWith('/login'));
+    await page.goto('/login', { waitUntil: 'domcontentloaded' });
+
+    const emailInput = page.locator('input[name="email"]');
+    const passwordInput = page.locator('input[name="password"]');
+
+    await expect(emailInput).toBeVisible();
+    await expect(passwordInput).toBeVisible();
+    await emailInput.fill(email);
+    await passwordInput.fill(password);
+
+    await Promise.all([
+        page.waitForURL(/\/dashboard$/, { waitUntil: 'domcontentloaded', timeout: 30000 }),
+        passwordInput.press('Enter'),
+    ]);
 };
 
 // Die Enum-Werte aus BookType.php
@@ -378,9 +387,10 @@ test.describe('Romantauschbörse - Stapel-Angebote', () => {
 
             const cancelLink = page.locator('a:has-text("Abbrechen")');
             await expect(cancelLink).toBeVisible();
-            await cancelLink.click();
-
-            await expect(page).toHaveURL(/romantauschboerse$/);
+            await Promise.all([
+                page.waitForURL(/romantauschboerse$/, { waitUntil: 'domcontentloaded' }),
+                cancelLink.click({ noWaitAfter: true }),
+            ]);
         });
 
         test('Foto-Upload-Feld ist vorhanden', async ({ page }) => {
