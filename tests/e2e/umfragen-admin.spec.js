@@ -8,6 +8,28 @@ const login = async (page, email, password = 'password') => {
     await page.waitForURL((url) => !url.pathname.endsWith('/login'));
 };
 
+const answerOptionCards = (page) => page.locator('[data-testid^="answer-option-"]');
+
+const startNewPoll = async (page) => {
+    await page.getByRole('button', { name: 'Neue Umfrage' }).click();
+    await expect(answerOptionCards(page)).toHaveCount(2);
+    await expect(page.getByTestId('question-textarea')).toHaveValue('');
+};
+
+const addAnswerOption = async (page, expectedCount) => {
+    await page.getByTestId('add-option-button').click();
+    await expect(answerOptionCards(page)).toHaveCount(expectedCount);
+};
+
+const fillOptionLabel = async (page, index, value) => {
+    const input = page.getByTestId(`option-${index}-label`);
+    await input.fill(value);
+    await input.press('Tab');
+    await expect(input).toHaveValue(value);
+
+    return input;
+};
+
 test.describe('Umfragen Admin Dashboard', () => {
     test.beforeEach(async ({ page }) => {
         // Admin-Login
@@ -84,18 +106,16 @@ test.describe('Umfragen Admin Dashboard', () => {
 
     test('can add answer option', async ({ page }) => {
         await page.goto('/admin/umfragen');
+        await startNewPoll(page);
 
         // Zähle initiale Antwort-Felder
-        const initialCount = await page.locator('[data-testid^="answer-option-"]').count();
+        const initialCount = await answerOptionCards(page).count();
 
         // Klicke auf "Antwort hinzufügen"
-        await page.getByTestId('add-option-button').click();
-
-        // Warten auf Livewire-Update
-        await page.waitForTimeout(500);
+        await addAnswerOption(page, initialCount + 1);
 
         // Prüfe ob neue Antwort hinzugefügt wurde
-        const newCount = await page.locator('[data-testid^="answer-option-"]').count();
+        const newCount = await answerOptionCards(page).count();
         expect(newCount).toBeGreaterThan(initialCount);
     });
 
@@ -118,8 +138,7 @@ test.describe('Umfragen Admin Dashboard', () => {
         await page.goto('/admin/umfragen');
 
         // Klicke auf "Neue Umfrage" um sicherzustellen dass wir im richtigen Zustand sind
-        await page.getByRole('button', { name: 'Neue Umfrage' }).click();
-        await page.waitForTimeout(500);
+        await startNewPoll(page);
 
         // Fülle Frage aus - verwende data-testid
         await page.getByTestId('question-textarea').fill('Was ist dein Lieblings-MADDRAX-Roman?');
@@ -140,22 +159,17 @@ test.describe('Umfragen Admin Dashboard', () => {
 
         // Füge Antwortmöglichkeiten hinzu
         // Erste Antwort sollte bereits vorhanden sein
-        const firstAnswerInput = page.getByTestId('option-0-label');
-        await firstAnswerInput.fill('Der Gott aus dem Eis');
+        const firstAnswerInput = await fillOptionLabel(page, 0, 'Der Gott aus dem Eis');
 
         // Zweite Antwort hinzufügen
-        await page.getByTestId('add-option-button').click();
-        await page.waitForTimeout(300);
+        await addAnswerOption(page, 3);
 
-        const secondAnswerInput = page.getByTestId('option-1-label');
-        await secondAnswerInput.fill('Dämonen der Vergangenheit');
+        const secondAnswerInput = await fillOptionLabel(page, 1, 'Dämonen der Vergangenheit');
 
         // Dritte Antwort hinzufügen
-        await page.getByTestId('add-option-button').click();
-        await page.waitForTimeout(300);
+        await addAnswerOption(page, 4);
 
-        const thirdAnswerInput = page.getByTestId('option-2-label');
-        await thirdAnswerInput.fill('Stadt ohne Hoffnung');
+        const thirdAnswerInput = await fillOptionLabel(page, 2, 'Stadt ohne Hoffnung');
 
         // Prüfe dass alle Felder ausgefüllt sind
         await expect(page.getByTestId('question-textarea')).toHaveValue('Was ist dein Lieblings-MADDRAX-Roman?');
@@ -169,25 +183,22 @@ test.describe('Umfragen Admin Dashboard', () => {
         await page.goto('/admin/umfragen');
 
         // Neue Umfrage starten
-        await page.getByRole('button', { name: 'Neue Umfrage' }).click();
-        await page.waitForTimeout(500);
+        await startNewPoll(page);
 
         // Füge zwei Antworten hinzu
-        await page.getByTestId('add-option-button').click();
-        await page.waitForTimeout(300);
-        await page.getByTestId('add-option-button').click();
-        await page.waitForTimeout(300);
+        await addAnswerOption(page, 3);
+        await addAnswerOption(page, 4);
 
         // Zähle Antwort-Cards
-        const initialCards = await page.locator('[data-testid^="answer-option-"]').count();
+        const initialCards = await answerOptionCards(page).count();
 
         // Klicke auf Löschen-Button der ersten Antwort
         const deleteButton = page.locator('button[wire\\:click="removeOption(0)"]');
         await deleteButton.click();
-        await page.waitForTimeout(300);
+        await expect(answerOptionCards(page)).toHaveCount(initialCards - 1);
 
         // Prüfe ob weniger Cards vorhanden sind
-        const newCards = await page.locator('[data-testid^="answer-option-"]').count();
+        const newCards = await answerOptionCards(page).count();
         expect(newCards).toBeLessThan(initialCards);
     });
 
@@ -195,12 +206,10 @@ test.describe('Umfragen Admin Dashboard', () => {
         await page.goto('/admin/umfragen');
 
         // Neue Umfrage starten
-        await page.getByRole('button', { name: 'Neue Umfrage' }).click();
-        await page.waitForTimeout(500);
+        await startNewPoll(page);
 
         // Füge eine Antwort hinzu
-        await page.getByTestId('add-option-button').click();
-        await page.waitForTimeout(300);
+        await addAnswerOption(page, 3);
 
         // Hover über den Info-Button (mit tooltip) - suche nach tooltip-Elementen
         const tooltipElement = page.locator('[data-tip]').first();
