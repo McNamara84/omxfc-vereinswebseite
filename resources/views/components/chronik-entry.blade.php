@@ -6,7 +6,7 @@
 ])
 
 <article x-data class="relative rounded-[2rem] border border-base-content/10 bg-base-100/72 p-5 shadow-sm shadow-base-content/5 sm:p-6">
-    <span class="absolute -left-7 top-6 inline-flex h-4 w-4 rounded-full border-4 border-base-100 bg-primary shadow-sm"></span>
+    <span class="absolute -left-9 top-6 inline-flex h-4 w-4 rounded-full border-4 border-base-100 bg-primary shadow-sm"></span>
 
     <div class="space-y-3">
         <time class="text-sm font-semibold uppercase tracking-[0.18em] text-primary/80 sm:text-base">{{ $date }}</time>
