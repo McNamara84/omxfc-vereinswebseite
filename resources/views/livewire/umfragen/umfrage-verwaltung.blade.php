@@ -112,12 +112,13 @@
 
                 <div class="space-y-3">
                     @foreach ($options as $index => $option)
+                        <div wire:key="poll-option-{{ $option['id'] ?? 'new-' . $index }}">
                         <x-card class="bg-base-200" data-testid="answer-option-{{ $index }}">
                             <div class="grid grid-cols-1 gap-3 md:grid-cols-12 md:items-end">
                                 <div class="md:col-span-5">
                                     <x-input
                                         label="Antwort"
-                                        wire:model="options.{{ $index }}.label"
+                                        wire:model.live="options.{{ $index }}.label"
                                         placeholder="Antworttext"
                                         data-testid="option-{{ $index }}-label"
                                     />
@@ -127,7 +128,7 @@
                                         <div class="flex-1">
                                             <x-input
                                                 label="Bild-URL (optional)"
-                                                wire:model="options.{{ $index }}.image_url"
+                                                wire:model.live="options.{{ $index }}.image_url"
                                                 placeholder="https://..."
                                             />
                                         </div>
@@ -141,7 +142,7 @@
                                 <div class="md:col-span-3">
                                     <x-input
                                         label="Link-URL (optional)"
-                                        wire:model="options.{{ $index }}.link_url"
+                                        wire:model.live="options.{{ $index }}.link_url"
                                         placeholder="https://..."
                                     />
                                 </div>
@@ -155,6 +156,7 @@
                                 </div>
                             </div>
                         </x-card>
+                        </div>
                     @endforeach
                 </div>
             </div>
