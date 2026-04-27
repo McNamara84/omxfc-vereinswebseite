@@ -41,7 +41,7 @@ class UmfrageVerwaltung extends Component
     public ?string $endsAt = null;
 
     /**
-    * @var array<int, array{id?:int,temp_key?:string,label:string,image_url:?string,link_url:?string}>
+     * @var array<int, array{id?:int,temp_key?:string,label:string,image_url:?string,link_url:?string}>
      */
     public array $options = [];
 
