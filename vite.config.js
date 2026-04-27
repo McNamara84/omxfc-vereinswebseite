@@ -47,8 +47,4 @@ export default defineConfig(({ command }) => ({
     build: {
         sourcemap: true,
     },
-    test: {
-        environment: 'jsdom',
-        include: ['tests/Vitest/**/*.test.js'],
-    },
 }));

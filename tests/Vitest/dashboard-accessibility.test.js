@@ -1,4 +1,3 @@
-import { describe, it, expect, beforeEach } from 'vitest';
 import { buildTopUserSummary, enhanceTopUserList, setupDashboardAccessibility } from '@/dashboard/accessibility';
 
 describe('dashboard accessibility utilities', () => {
