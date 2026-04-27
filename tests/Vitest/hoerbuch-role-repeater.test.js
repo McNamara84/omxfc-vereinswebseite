@@ -1,5 +1,3 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-
 /**
  * Tests für die hoerbuch-role-repeater Alpine-Komponente.
  *

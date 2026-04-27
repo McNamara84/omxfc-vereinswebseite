@@ -1,4 +1,3 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { initAlpine, scheduleInitAlpine } from '@/alpine-init.js';
 
 /**

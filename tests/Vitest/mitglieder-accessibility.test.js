@@ -1,4 +1,3 @@
-import { describe, expect, it, beforeEach } from 'vitest';
 import { buildMembersTableSummary, enhanceMembersTable, setupMitgliederAccessibility } from '@/mitglieder/accessibility';
 
 describe('buildMembersTableSummary', () => {

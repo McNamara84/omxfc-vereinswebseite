@@ -1,5 +1,3 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
-
 async function importPhpUtils() {
     vi.resetModules();
 

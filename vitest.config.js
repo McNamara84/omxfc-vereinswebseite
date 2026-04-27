@@ -1,12 +1,19 @@
-import { defineConfig, mergeConfig } from 'vitest/config';
-import viteConfig from './vite.config.js';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { defineConfig } from 'vitest/config';
 
-export default defineConfig((configEnv) => mergeConfig(
-    typeof viteConfig === 'function' ? viteConfig(configEnv) : viteConfig,
-    defineConfig({
-        test: {
-            environment: 'jsdom',
-            include: ['tests/Vitest/**/*.test.js'],
+const currentDir = path.dirname(fileURLToPath(import.meta.url));
+
+export default defineConfig({
+    resolve: {
+        alias: {
+            '@': path.resolve(currentDir, 'resources/js'),
         },
-    })
-));
+    },
+    test: {
+        environment: 'jsdom',
+        globals: true,
+        dir: 'tests/Vitest',
+        include: ['**/*.test.js'],
+    },
+});

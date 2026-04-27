@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { vi } from 'vitest';
 
 vi.mock('chart.js/auto', () => {
   const MockChart = vi.fn();

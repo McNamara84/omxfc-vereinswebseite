@@ -10,7 +10,7 @@
         "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
         "test:e2e": "playwright test",
         "test:e2e:docker": "node tests/e2e/run-playwright-docker.mjs",
-        "test:vitest": "vitest run"
+        "test:vitest": "vitest run --config vitest.config.js --maxWorkers=1"
     },
     "devDependencies": {
         "@axe-core/playwright": "^4.11.0",

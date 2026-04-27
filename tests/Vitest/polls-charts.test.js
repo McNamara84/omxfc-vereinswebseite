@@ -2,7 +2,7 @@
  * Tests für resources/js/polls/charts.js
  * Issue #494: Browser-Crash-Prevention durch Guards für leere Daten
  */
-import { describe, it, expect, vi, beforeEach, beforeAll } from 'vitest';
+import { vi } from 'vitest';
 
 vi.mock('chart.js', () => {
     // Klasse wird hier innerhalb der Factory definiert
