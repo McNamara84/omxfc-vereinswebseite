@@ -1,127 +1,134 @@
-<x-member-page class="max-w-3xl">
-    <x-card shadow>
-        {{-- Titel und Status --}}
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
-            <h2 class="text-xl font-semibold text-primary">{{ $this->todo->title }}</h2>
-            <div class="mt-2 md:mt-0">
-                @if($this->todo->status->value === 'open')
-                    <x-badge value="Offen" class="badge-ghost" icon="o-clock" />
-                @elseif($this->todo->status->value === 'assigned')
-                    <x-badge value="In Bearbeitung" class="badge-info" icon="o-arrow-path" />
-                @elseif($this->todo->status->value === 'completed')
-                    <x-badge value="Wartet auf Verifizierung" class="badge-warning" icon="o-eye" />
-                @elseif($this->todo->status->value === 'verified')
-                    <x-badge value="Verifiziert" class="badge-success" icon="o-check-circle" />
-                @endif
-            </div>
-        </div>
+<x-member-page class="max-w-6xl space-y-8">
+    @php
+        $statusBadge = match ($this->todo->status->value) {
+            'open' => ['label' => 'Offen', 'class' => 'badge-ghost', 'icon' => 'o-clock'],
+            'assigned' => ['label' => 'In Bearbeitung', 'class' => 'badge-info', 'icon' => 'o-arrow-path'],
+            'completed' => ['label' => 'Wartet auf Verifizierung', 'class' => 'badge-warning', 'icon' => 'o-eye'],
+            'verified' => ['label' => 'Verifiziert', 'class' => 'badge-success', 'icon' => 'o-check-circle'],
+        };
+    @endphp
 
-        {{-- Beschreibung --}}
-        <div class="mb-6">
-            <h3 class="text-sm font-medium text-base-content mb-2">Beschreibung</h3>
-            <div class="bg-base-200 p-4 rounded-md text-base-content">
-                @if($this->todo->description)
-                    {!! nl2br(e($this->todo->description)) !!}
-                @else
-                    <span class="text-base-content italic">Keine Beschreibung vorhanden</span>
-                @endif
+    <x-ui.page-header
+        eyebrow="{{ $this->todo->category?->name ?? 'Challenge-Details' }}"
+        title="{{ $this->todo->title }}"
+        description="Alle relevanten Infos zur Challenge, ihr aktueller Status und die verfügbaren nächsten Schritte auf einer Seite."
+    >
+        <x-slot:actions>
+            <div class="flex flex-wrap gap-2">
+                <x-badge :value="$statusBadge['label']" :class="$statusBadge['class']" :icon="$statusBadge['icon']" />
+                <span class="badge badge-outline rounded-full px-3 py-3">{{ $this->todo->points }} Baxx</span>
             </div>
-        </div>
+        </x-slot:actions>
+    </x-ui.page-header>
 
-        {{-- Details --}}
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-            <div>
-                <h3 class="text-sm font-medium text-base-content mb-2">Details</h3>
-                <div class="bg-base-200 p-4 rounded-md">
-                    <div class="mb-2">
-                        <span class="text-base-content text-sm">Baxx:</span>
-                        <span class="ml-2 text-base-content font-semibold">{{ $this->todo->points }}</span>
+    <section class="grid gap-8 xl:grid-cols-[minmax(0,1.2fr)_minmax(18rem,0.8fr)] xl:items-start">
+        <div class="space-y-6">
+            <x-ui.panel title="Beschreibung" description="Worum es bei dieser Challenge geht und was für die Umsetzung relevant ist.">
+                <div class="rounded-[1.5rem] border border-base-content/10 bg-base-100/78 px-5 py-5 text-sm leading-relaxed text-base-content/78 sm:text-base">
+                    @if($this->todo->description)
+                        {!! nl2br(e($this->todo->description)) !!}
+                    @else
+                        <span class="italic text-base-content/58">Keine Beschreibung vorhanden</span>
+                    @endif
+                </div>
+            </x-ui.panel>
+
+            <x-ui.panel title="Aktionen" description="Je nach Rolle und Status stehen dir hier die passenden nächsten Schritte direkt zur Verfügung.">
+                <div class="flex flex-col gap-4">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <x-button link="{{ route('todos.index') }}" wire:navigate icon="o-arrow-left" class="btn-ghost">
+                            Zurück zur Übersicht
+                        </x-button>
+                        @if($this->canEdit)
+                            <x-button link="{{ route('todos.edit', $this->todo) }}" wire:navigate icon="o-pencil" class="btn-info">
+                                Bearbeiten
+                            </x-button>
+                        @endif
                     </div>
-                    <div class="mb-2">
-                        <span class="text-base-content text-sm">Kategorie:</span>
-                        <span class="ml-2 text-base-content">{{ $this->todo->category ? $this->todo->category->name : 'Keine Kategorie' }}</span>
-                    </div>
-                    <div class="mb-2">
-                        <span class="text-base-content text-sm">Erstellt von:</span>
-                        <span class="ml-2 text-base-content"><a href="{{ route('profile.view', $this->todo->creator->id) }}" wire:navigate class="text-primary hover:underline">{{ $this->todo->creator->name }}</a></span>
-                    </div>
-                    <div class="mb-2">
-                        <span class="text-base-content text-sm">Erstellt am:</span>
-                        <span class="ml-2 text-base-content">{{ $this->todo->created_at->format('d.m.Y H:i') }}</span>
+
+                    <div class="flex flex-wrap items-center gap-2">
+                        @if($this->canAssign)
+                            <x-button label="Challenge übernehmen" wire:click="assign" class="btn-info" wire:loading.attr="disabled" wire:target="assign" />
+                        @endif
+
+                        @if($this->canComplete)
+                            <x-button label="Als erledigt markieren" wire:click="complete" class="btn-warning" wire:loading.attr="disabled" wire:target="complete" />
+                        @endif
+
+                        @if($this->canVerify)
+                            <x-button label="Verifizieren und Baxx vergeben" wire:click="verify" class="btn-success" wire:loading.attr="disabled" wire:target="verify" />
+                        @endif
+
+                        @if($this->canRelease)
+                            <x-button label="Challenge freigeben" wire:click="release" class="btn-ghost" wire:loading.attr="disabled" wire:target="release" />
+                        @endif
+
+                        @if($this->canDelete)
+                            <x-button label="Challenge löschen" wire:click="$set('confirmingDelete', true)" icon="o-trash" class="btn-error" />
+                        @endif
                     </div>
                 </div>
-            </div>
+            </x-ui.panel>
+        </div>
 
-            <div>
-                <h3 class="text-sm font-medium text-base-content mb-2">Status</h3>
-                <div class="bg-base-200 p-4 rounded-md">
+        <div class="space-y-6 xl:sticky xl:top-6">
+            <x-ui.panel title="Details" description="Stammdaten, Punkte und Ursprung der Challenge im Überblick.">
+                <dl class="space-y-3">
+                    <div class="rounded-[1.25rem] border border-base-content/10 bg-base-100/78 px-4 py-3">
+                        <dt class="text-xs font-semibold uppercase tracking-[0.18em] text-base-content/45">Baxx</dt>
+                        <dd class="mt-1 text-sm font-semibold text-base-content sm:text-base">{{ $this->todo->points }}</dd>
+                    </div>
+                    <div class="rounded-[1.25rem] border border-base-content/10 bg-base-100/78 px-4 py-3">
+                        <dt class="text-xs font-semibold uppercase tracking-[0.18em] text-base-content/45">Kategorie</dt>
+                        <dd class="mt-1 text-sm text-base-content sm:text-base">{{ $this->todo->category ? $this->todo->category->name : 'Keine Kategorie' }}</dd>
+                    </div>
+                    <div class="rounded-[1.25rem] border border-base-content/10 bg-base-100/78 px-4 py-3">
+                        <dt class="text-xs font-semibold uppercase tracking-[0.18em] text-base-content/45">Erstellt von</dt>
+                        <dd class="mt-1 text-sm sm:text-base"><a href="{{ route('profile.view', $this->todo->creator->id) }}" wire:navigate class="text-primary hover:underline">{{ $this->todo->creator->name }}</a></dd>
+                    </div>
+                    <div class="rounded-[1.25rem] border border-base-content/10 bg-base-100/78 px-4 py-3">
+                        <dt class="text-xs font-semibold uppercase tracking-[0.18em] text-base-content/45">Erstellt am</dt>
+                        <dd class="mt-1 text-sm text-base-content sm:text-base">{{ $this->todo->created_at->format('d.m.Y H:i') }}</dd>
+                    </div>
+                </dl>
+            </x-ui.panel>
+
+            <x-ui.panel title="Status" description="Zeigt, wer aktuell zuständig ist und welche Meilensteine bereits erreicht wurden.">
+                <dl class="space-y-3">
                     @if($this->todo->assigned_to)
-                        <div class="mb-2">
-                            <span class="text-base-content text-sm">Zugewiesen an:</span>
-                            <span class="ml-2 text-base-content"><a href="{{ route('profile.view', $this->todo->assignee->id) }}" wire:navigate class="text-primary hover:underline">{{ $this->todo->assignee->name }}</a></span>
+                        <div class="rounded-[1.25rem] border border-base-content/10 bg-base-100/78 px-4 py-3">
+                            <dt class="text-xs font-semibold uppercase tracking-[0.18em] text-base-content/45">Zugewiesen an</dt>
+                            <dd class="mt-1 text-sm sm:text-base"><a href="{{ route('profile.view', $this->todo->assignee->id) }}" wire:navigate class="text-primary hover:underline">{{ $this->todo->assignee->name }}</a></dd>
                         </div>
                     @endif
 
                     @if($this->todo->completed_at)
-                        <div class="mb-2">
-                            <span class="text-base-content text-sm">Erledigt am:</span>
-                            <span class="ml-2 text-base-content">{{ $this->todo->completed_at->format('d.m.Y H:i') }}</span>
+                        <div class="rounded-[1.25rem] border border-base-content/10 bg-base-100/78 px-4 py-3">
+                            <dt class="text-xs font-semibold uppercase tracking-[0.18em] text-base-content/45">Erledigt am</dt>
+                            <dd class="mt-1 text-sm text-base-content sm:text-base">{{ $this->todo->completed_at->format('d.m.Y H:i') }}</dd>
                         </div>
                     @endif
 
                     @if($this->todo->verified_by)
-                        <div class="mb-2">
-                            <span class="text-base-content text-sm">Verifiziert von:</span>
-                            <span class="ml-2 text-base-content"><a href="{{ route('profile.view', $this->todo->verifier->id) }}" wire:navigate class="text-primary hover:underline">{{ $this->todo->verifier->name }}</a></span>
+                        <div class="rounded-[1.25rem] border border-base-content/10 bg-base-100/78 px-4 py-3">
+                            <dt class="text-xs font-semibold uppercase tracking-[0.18em] text-base-content/45">Verifiziert von</dt>
+                            <dd class="mt-1 text-sm sm:text-base"><a href="{{ route('profile.view', $this->todo->verifier->id) }}" wire:navigate class="text-primary hover:underline">{{ $this->todo->verifier->name }}</a></dd>
                         </div>
-                        <div class="mb-2">
-                            <span class="text-base-content text-sm">Verifiziert am:</span>
-                            <span class="ml-2 text-base-content">{{ $this->todo->verified_at->format('d.m.Y H:i') }}</span>
+                        <div class="rounded-[1.25rem] border border-base-content/10 bg-base-100/78 px-4 py-3">
+                            <dt class="text-xs font-semibold uppercase tracking-[0.18em] text-base-content/45">Verifiziert am</dt>
+                            <dd class="mt-1 text-sm text-base-content sm:text-base">{{ $this->todo->verified_at->format('d.m.Y H:i') }}</dd>
                         </div>
                     @endif
-                </div>
-            </div>
+
+                    @if(! $this->todo->assigned_to && ! $this->todo->completed_at && ! $this->todo->verified_by)
+                        <div class="rounded-[1.25rem] border border-dashed border-base-content/15 bg-base-100/65 px-4 py-4 text-sm leading-relaxed text-base-content/68">
+                            Diese Challenge ist noch offen und wartet auf eine Übernahme.
+                        </div>
+                    @endif
+                </dl>
+            </x-ui.panel>
         </div>
-
-        {{-- Aktionen --}}
-        <div class="mt-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div class="flex flex-wrap items-center gap-2">
-                <x-button link="{{ route('todos.index') }}" wire:navigate icon="o-arrow-left" class="btn-ghost">
-                    Zurück zur Übersicht
-                </x-button>
-                @if($this->canEdit)
-                    <x-button link="{{ route('todos.edit', $this->todo) }}" wire:navigate icon="o-pencil" class="btn-info">
-                        Bearbeiten
-                    </x-button>
-                @endif
-            </div>
-            <div class="flex flex-wrap items-center gap-2 md:justify-end">
-                @if($this->canAssign)
-                    <x-button label="Challenge übernehmen" wire:click="assign" class="btn-info"
-                        wire:loading.attr="disabled" wire:target="assign" />
-                @endif
-
-                @if($this->canComplete)
-                    <x-button label="Als erledigt markieren" wire:click="complete" class="btn-warning"
-                        wire:loading.attr="disabled" wire:target="complete" />
-                @endif
-
-                @if($this->canVerify)
-                    <x-button label="Verifizieren und Baxx vergeben" wire:click="verify" class="btn-success"
-                        wire:loading.attr="disabled" wire:target="verify" />
-                @endif
-
-                @if($this->canRelease)
-                    <x-button label="Challenge freigeben" wire:click="release" class="btn-ghost"
-                        wire:loading.attr="disabled" wire:target="release" />
-                @endif
-
-                @if($this->canDelete)
-                    <x-button label="Challenge löschen" wire:click="$set('confirmingDelete', true)" icon="o-trash" class="btn-error" />
-                @endif
-            </div>
-        </div>
-    </x-card>
+    </section>
 
     {{-- Lösch-Bestätigung --}}
     <x-modal wire:model="confirmingDelete" title="Challenge löschen" separator>
