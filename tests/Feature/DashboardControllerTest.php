@@ -12,6 +12,7 @@ use App\Models\BookOffer;
 use App\Models\BookRequest;
 use App\Models\BookSwap;
 use App\Models\Fanfiction;
+use App\Models\Reward;
 use App\Models\Review;
 use App\Models\ReviewBaxxSpecialOffer;
 use App\Models\ReviewComment;
@@ -21,6 +22,7 @@ use App\Models\TodoCategory;
 use App\Models\User;
 use App\Models\UserPoint;
 use App\Services\MembersTeamProvider;
+use App\Services\RewardService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Mail;
@@ -182,7 +184,7 @@ class DashboardControllerTest extends TestCase
 
         $response->assertOk();
         $response->assertViewHas('openTodos', 1);
-        $response->assertViewHas('userPoints', 5);
+        $response->assertViewHas('availableBaxx', 5);
         $response->assertViewHas('pendingVerification', 1);
         $response->assertViewHas('myReviews', 1);
         $response->assertViewHas('myReviewComments', 1);
@@ -192,6 +194,38 @@ class DashboardControllerTest extends TestCase
         $this->assertEquals($member1->id, $topUsers[0]['id']);
         $anwaerter = $response->viewData('anwaerter');
         $this->assertTrue($anwaerter->contains($applicant));
+    }
+
+    public function test_dashboard_shows_available_baxx_after_reward_purchase_even_after_previous_page_load(): void
+    {
+        $team = Team::membersTeam();
+        $member = User::factory()->create(['current_team_id' => $team->id]);
+        $team->users()->attach($member, ['role' => Role::Mitglied->value]);
+
+        UserPoint::create([
+            'user_id' => $member->id,
+            'team_id' => $team->id,
+            'todo_id' => null,
+            'points' => 12,
+        ]);
+
+        $reward = Reward::factory()->create([
+            'cost_baxx' => 5,
+            'slug' => 'dashboard-baxx-test',
+        ]);
+
+        $this->actingAs($member);
+
+        $this->get('/dashboard')
+            ->assertOk();
+
+        app(RewardService::class)->purchaseReward($member, $reward);
+
+        $this->get('/dashboard')
+            ->assertOk()
+            ->assertViewHas('availableBaxx', 7)
+            ->assertSeeText('7 Baxx verfügbar')
+            ->assertSeeText('Verfügbare Baxx');
     }
 
     public function test_dashboard_counts_book_swap_matches_for_request_owner(): void

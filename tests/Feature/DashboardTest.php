@@ -45,7 +45,7 @@ class DashboardTest extends TestCase
 
         $expectedTitles = [
             'Offene Challenges',
-            'Meine Baxx',
+            'Verfügbare Baxx',
             'Matches in Tauschbörse',
             'Angebote in der Tauschbörse',
             'Meine Rezensionen',
