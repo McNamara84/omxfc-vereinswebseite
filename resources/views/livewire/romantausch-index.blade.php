@@ -41,9 +41,11 @@
                     {{ $romantauschInfo['intro'] }}
                 </p>
                 <p class="mt-3 text-sm leading-relaxed text-base-content/72">
-                    Für jedes <strong>zehnte</strong> eingestellte Angebot erhältst du automatisch
-                    <strong>1 Bakk</strong>. Bestätigen beide Parteien einen Tausch, bekommt ihr
-                    jeweils <strong>2 Baxx</strong> zusätzlich gutgeschrieben.
+                    {{ $romantauschInfo['reward_rule']['milestone_description'] }}
+                    <strong>{{ $romantauschInfo['reward_rule']['milestone_amount'] }}</strong>.
+                    {{ $romantauschInfo['reward_rule']['swap_description'] }}
+                    <strong>{{ $romantauschInfo['reward_rule']['swap_amount'] }}</strong>
+                    {{ $romantauschInfo['reward_rule']['swap_suffix'] }}
                 </p>
             </div>
         </x-slot:header>

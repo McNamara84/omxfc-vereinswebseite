@@ -133,7 +133,11 @@
 
             <x-ui.panel title="Baxx-Regel" description="Die Börse vergibt zusätzliche Motivation über kleine, nachvollziehbare Belohnungen.">
                 <div class="rounded-[1.25rem] border border-base-content/10 bg-base-100/72 px-4 py-4 text-sm leading-relaxed text-base-content/76 sm:text-base">
-                    Für jedes zehnte eingestellte Angebot gibt es automatisch einen Bakk. Bei bestätigten Tauschaktionen erhalten beide Parteien zusätzlich Baxx.
+                    {{ __('romantausch.info.reward_rule.milestone_description') }}
+                    <strong>{{ __('romantausch.info.reward_rule.milestone_amount') }}</strong>.
+                    {{ __('romantausch.info.reward_rule.swap_description') }}
+                    <strong>{{ __('romantausch.info.reward_rule.swap_amount') }}</strong>
+                    {{ __('romantausch.info.reward_rule.swap_suffix') }}
                 </div>
             </x-ui.panel>
         </div>
