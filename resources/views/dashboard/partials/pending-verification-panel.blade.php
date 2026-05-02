@@ -1,5 +1,5 @@
 @if($showGovernanceTools && $pendingVerification > 0)
-    <a href="{{ route('todos.index') }}?filter=pending" wire:navigate class="block" data-testid="dashboard-pending-panel">
+    <a href="{{ route('todos.index', ['filter' => 'pending']) }}" wire:navigate class="block" data-testid="dashboard-pending-panel">
         <x-ui.panel>
             <div class="flex items-center justify-between gap-4">
                 <div class="space-y-1">

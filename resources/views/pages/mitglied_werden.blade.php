@@ -17,7 +17,10 @@
             <x-slot:actions>
                 <x-ui.action-cluster>
                     @foreach(data_get($hero, 'badges', []) as $badge)
-                        <span class="{{ $loop->first ? 'badge badge-primary badge-outline rounded-full px-3 py-3' : 'badge badge-outline rounded-full px-3 py-3' }}">{{ $badge }}</span>
+                        <span @class([
+                            'badge badge-outline rounded-full px-3 py-3',
+                            'badge-primary' => $loop->first,
+                        ])>{{ $badge }}</span>
                     @endforeach
                 </x-ui.action-cluster>
 

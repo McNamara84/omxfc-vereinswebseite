@@ -131,6 +131,11 @@ class DashboardTest extends TestCase
         $response->assertOk();
         $response->assertSeeText('Auf Verifizierung wartende Challenges');
         $response->assertSeeText('Es gibt 1 Challenge, die auf Bestätigung wartet.');
+
+        $crawler = new Crawler($response->getContent());
+        $pendingPanel = $crawler->filter('[data-testid="dashboard-pending-panel"]');
+        $this->assertCount(1, $pendingPanel);
+        $this->assertSame(route('todos.index', ['filter' => 'pending']), $pendingPanel->attr('href'));
     }
 
     public function test_dashboard_hides_pending_verification_card_for_members(): void
