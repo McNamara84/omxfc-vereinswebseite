@@ -140,7 +140,7 @@ class ActivityFeedTest extends TestCase
 
         $dashboard = $this->get('/dashboard');
         $dashboard->assertOk();
-        $dashboard->assertSeeText('Kommentar zu Meine Rezension von '.$user->name);
+        $dashboard->assertSeeTextInOrder(['Kommentar zu', 'Meine Rezension', 'von', $user->name]);
         $dashboard->assertSee('<a href="'.route('reviews.show', $review->book_id).'" wire:navigate class="text-info hover:underline">Meine Rezension</a>', false);
         $dashboard->assertSee('<a href="'.route('profile.view', $user->id).'" wire:navigate', false);
         $dashboard->assertSeeText('Tolles Buch!');
@@ -201,7 +201,7 @@ class ActivityFeedTest extends TestCase
         $response = $this->get('/dashboard');
         $response->assertOk();
         $expectedPreview = PreviewText::make($longComment, 140);
-        $response->assertSeeText('Kommentar zu '.$review->title.' von '.$user->name);
+        $response->assertSeeTextInOrder(['Kommentar zu', $review->title, 'von', $user->name]);
         $response->assertSeeText($expectedPreview);
     }
 
@@ -299,7 +299,7 @@ class ActivityFeedTest extends TestCase
 
         $response = $this->get('/dashboard');
         $response->assertOk();
-        $response->assertSeeText('Kommentar zu '.$review->title.' von '.$user->name);
+        $response->assertSeeTextInOrder(['Kommentar zu', $review->title, 'von', $user->name]);
         $response->assertDontSeeText('Auszug aus dem Kommentar');
         $response->assertDontSee('„');
     }

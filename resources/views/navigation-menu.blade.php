@@ -90,7 +90,7 @@
                         type="button"
                         @click="open = !open; $dispatch('toggle-mobile-menu', { open })"
                         :aria-expanded="open"
-                        aria-label="Menü öffnen"
+                        :aria-label="open ? 'Menü schließen' : 'Menü öffnen'"
                         aria-controls="mobile-navigation"
                         class="btn btn-ghost btn-sm"
                     >
@@ -116,7 +116,9 @@
                     <x-menu-item :title="$item['title']" :link="$item['href']" wire:navigate :icon="$item['icon'] ?? null" />
                 @endforeach
 
-                <x-menu-separator />
+                <li role="separator" aria-hidden="true">
+                    <hr class="my-3 border-t-[length:var(--border)] border-base-content/10" />
+                </li>
                 <li class="menu-title px-4 pt-2 text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-base-content/45" data-testid="mobile-nav-sections-heading">Bereiche</li>
                 @foreach($sectionNavigation as $section)
                     <x-menu-sub :title="$section['title']" :icon="$section['icon'] ?? 'o-ellipsis-horizontal-circle'">
@@ -126,7 +128,9 @@
                     </x-menu-sub>
                 @endforeach
 
-                <x-menu-separator />
+                <li role="separator" aria-hidden="true">
+                    <hr class="my-3 border-t-[length:var(--border)] border-base-content/10" />
+                </li>
 
                 @auth
                     <x-menu-item title="Profil" :link="route('profile.show')" wire:navigate icon="o-user" />

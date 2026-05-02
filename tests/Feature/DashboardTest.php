@@ -130,7 +130,7 @@ class DashboardTest extends TestCase
 
         $response->assertOk();
         $response->assertSeeText('Auf Verifizierung wartende Challenges');
-        $response->assertSeeText('Challenge(s)');
+        $response->assertSeeText('Es gibt 1 Challenge, die auf Bestätigung wartet.');
     }
 
     public function test_dashboard_hides_pending_verification_card_for_members(): void

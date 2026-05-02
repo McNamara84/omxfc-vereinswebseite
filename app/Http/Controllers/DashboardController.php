@@ -253,14 +253,14 @@ class DashboardController extends Controller
                 'class' => 'badge badge-primary badge-outline rounded-full px-3 py-3',
             ],
             [
-                'label' => "{$openTodos} offene Challenges",
+                'label' => trans_choice(':count offene Challenge|:count offene Challenges', $openTodos, ['count' => $openTodos]),
                 'class' => 'badge badge-outline rounded-full px-3 py-3',
             ],
         ];
 
         if ($showGovernanceTools && $pendingVerification > 0) {
             $badges[] = [
-                'label' => "{$pendingVerification} warten auf Verifizierung",
+                'label' => trans_choice(':count wartet auf Verifizierung|:count warten auf Verifizierung', $pendingVerification, ['count' => $pendingVerification]),
                 'class' => 'badge badge-secondary badge-outline rounded-full px-3 py-3',
             ];
         }
@@ -310,7 +310,7 @@ class DashboardController extends Controller
                 'value' => $openTodos,
                 'href' => route('todos.index'),
                 'icon' => 'o-bolt',
-                'sr_text' => "Meine offenen Challenges: {$openTodos}",
+                'sr_text' => trans_choice('Meine offene Challenge: :count|Meine offenen Challenges: :count', $openTodos, ['count' => $openTodos]),
             ],
             [
                 'title' => 'Meine Baxx',

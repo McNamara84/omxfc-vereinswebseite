@@ -42,7 +42,7 @@ return [
             [
                 'title' => 'Was wir machen',
                 'description' => 'Vom lockeren Austausch bis zu langfristigen Gemeinschaftsprojekten.',
-                'content' => 'Wir treffen uns in unterschiedlichen Konstellationen mal online, um sich über dies und das auszutauschen, oder bei Fantreffen, um den Autor:innen Details aus der Schreibwerkstatt und dem Lektor Pläne für Künftiges zu entlocken – und einfach eine gute Zeit mit Gleichgesinnten zu haben. In mehreren Arbeitsgruppen werkeln wir gemeinsam an den unterschiedlichsten Fanprojekten, je nach Interessen der einzelnen Mitglieder.',
+                'content' => 'Wir treffen uns in unterschiedlichen Konstellationen mal online, um uns über dies und das auszutauschen, oder bei Fantreffen, um den Autor:innen Details aus der Schreibwerkstatt und dem Lektor Pläne für Künftiges zu entlocken – und einfach eine gute Zeit mit Gleichgesinnten zu haben. In mehreren Arbeitsgruppen werkeln wir gemeinsam an den unterschiedlichsten Fanprojekten, je nach Interessen der einzelnen Mitglieder.',
             ],
         ],
         'projects' => [
@@ -55,7 +55,7 @@ return [
                 ],
                 [
                     'title' => 'EARDRAX',
-                    'description' => 'Die AG EARDRAX hat sich das ehrgeizige Ziel gesetzt, die ersten 249 Romane als Inszenierte Lesungen auf YouTube zugänglich zu machen. Wenn du wissen willst warum, auch mal was einsprechen willst und weitere Veröffentlichungen mit planen möchtest, komm gerne vorbei.',
+                    'description' => 'Die AG EARDRAX hat sich das ehrgeizige Ziel gesetzt, die ersten 249 Romane als Inszenierte Lesungen auf YouTube zugänglich zu machen. Wenn du wissen willst, warum, auch mal was einsprechen willst und weitere Veröffentlichungen mit planen möchtest, komm gerne vorbei.',
                 ],
                 [
                     'title' => 'MAPDRAX',
@@ -71,13 +71,13 @@ return [
             'title' => 'Vorteile einer Mitgliedschaft',
             'description' => 'Warum sich der Schritt vom stillen Mitlesen zur aktiven Mitgliedschaft lohnt.',
             'items' => [
-                'Austausch über die aktuellen Romanen mit anderen Fans',
+                'Austausch über die aktuellen Romane mit anderen Fans',
                 'Kostenlose Teilnahme an den jährlichen Fantreffen',
                 'Kontakt zu Maddrax-Autor:innen',
                 'Aktive Mitgestaltung des Vereinslebens',
                 'Zugriff auf die neuesten Hörbücher noch vor der Veröffentlichung',
                 'Zugriff auf die MAPDRAX-Beta noch vor der Veröffentlichung',
-                'Zugang zu exklusiven  Sprecherrollen in den Fanhörbüchern',
+                'Zugang zu exklusiven Sprecherrollen in den Fanhörbüchern',
             ],
         ],
         'reviews' => [

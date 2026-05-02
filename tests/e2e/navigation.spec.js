@@ -11,8 +11,10 @@ test('mobile navigation groups quick links and sections', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/');
 
-  const menuToggle = page.getByRole('button', { name: /Menü öffnen/i });
+  const menuToggle = page.locator('button[aria-controls="mobile-navigation"]');
+  await expect(menuToggle).toHaveAccessibleName(/Menü öffnen/i);
   await menuToggle.click();
+  await expect(menuToggle).toHaveAccessibleName(/Menü schließen/i);
 
   await expect(page.getByTestId('mobile-navigation-menu')).toBeVisible();
   await expect(page.getByTestId('mobile-nav-featured-heading')).toContainText('Schnellzugriff');
