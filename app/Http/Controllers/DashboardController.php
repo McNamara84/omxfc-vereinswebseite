@@ -209,6 +209,14 @@ class DashboardController extends Controller
             applicantCount: $anwaerter->count(),
             pendingVerification: $pendingVerification,
         );
+        $showGovernanceTools = in_array($userRole, $allowedRoles, true);
+        $dashboardHeaderBadges = $this->buildDashboardHeaderBadges(
+            userPoints: $userPoints,
+            openTodos: $openTodos,
+            showGovernanceTools: $showGovernanceTools,
+            pendingVerification: $pendingVerification,
+        );
+        ['entries' => $topUsersEntries, 'summary' => $topUsersSummary, 'payload' => $topUsersPayload] = $this->buildTopUsersViewData($topUsers);
 
         return view('dashboard', compact(
             'anwaerter',
@@ -229,7 +237,62 @@ class DashboardController extends Controller
             'dashboardGreeting',
             'dashboardDescription',
             'quickActions',
+            'showGovernanceTools',
+            'dashboardHeaderBadges',
+            'topUsersEntries',
+            'topUsersSummary',
+            'topUsersPayload',
         ));
+    }
+
+    private function buildDashboardHeaderBadges(int $userPoints, int $openTodos, bool $showGovernanceTools, int $pendingVerification): array
+    {
+        $badges = [
+            [
+                'label' => "{$userPoints} Baxx",
+                'class' => 'badge badge-primary badge-outline rounded-full px-3 py-3',
+            ],
+            [
+                'label' => "{$openTodos} offene Challenges",
+                'class' => 'badge badge-outline rounded-full px-3 py-3',
+            ],
+        ];
+
+        if ($showGovernanceTools && $pendingVerification > 0) {
+            $badges[] = [
+                'label' => "{$pendingVerification} warten auf Verifizierung",
+                'class' => 'badge badge-secondary badge-outline rounded-full px-3 py-3',
+            ];
+        }
+
+        return $badges;
+    }
+
+    private function buildTopUsersViewData(iterable $topUsers): array
+    {
+        $entries = collect($topUsers)->values();
+        $summary = $entries->isNotEmpty()
+            ? 'Top '.$entries->count().' Baxx-Sammler: '
+                .$entries->map(function ($user, $index) {
+                    $position = $index + 1;
+                    $points = number_format((int) $user['points'], 0, ',', '.');
+
+                    return $position.'. '.$user['name'].' ('.$points.' Baxx)';
+                })->implode(', ')
+            : null;
+        $payload = $entries->map(function ($user) {
+            return [
+                'id' => $user['id'],
+                'name' => $user['name'],
+                'points' => (int) $user['points'],
+            ];
+        })->toArray();
+
+        return [
+            'entries' => $entries,
+            'summary' => $summary,
+            'payload' => $payload,
+        ];
     }
 
     private function buildFocusCards(

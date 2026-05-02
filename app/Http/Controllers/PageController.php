@@ -10,47 +10,7 @@ class PageController extends Controller
 {
     public function home()
     {
-        $whoWeAre = 'Wir Maddrax-Fans sind eine muntere Gruppe unterschiedlicher Typen und Charaktere, die alle eine große Leidenschaft eint: Mit archetypischen Helden in einer dystopen Welt der Zukunft auf eine außergewöhnliche Abenteuerreise zu gehen. Manchmal gruselig, phantastisch, unglaublich – und manchmal einfach nur schräg und sonderbar. All das macht das Maddraxiversum aus, in dem alles anders ist, als gedacht.';
-
-        $whatWeDo = 'Wir treffen uns in unterschiedlichen Konstellationen mal online, um sich über dies und das auszutauschen, oder bei Fantreffen, um den Autor:innen Details aus der Schreibwerkstatt und dem Lektor Pläne für Künftiges zu entlocken – und einfach eine gute Zeit mit Gleichgesinnten zu haben. In mehreren Arbeitsgruppen werkeln wir gemeinsam an den unterschiedlichsten Fanprojekten, je nach Interessen der einzelnen Mitglieder.';
-
-        $currentProjects = [
-            [
-                'title' => 'Maddraxikon',
-                'description' => 'Gemeinsam erfassen wir Informationen aus den Romanen im größten Fan-Wiki zur Serie und tauschen uns bei unseren AG-Treffen über die neuesten Artikel und Funktionen im Maddraxikon aus. Auch Neueinsteigern wird geholfen.',
-            ],
-            [
-                'title' => 'EARDRAX',
-                'description' => 'Die AG EARDRAX hat sich das ehrgeizige Ziel gesetzt, die ersten 249 Romane als Inszenierte Lesungen auf YouTube zugänglich zu machen. Wenn du wissen willst warum, auch mal was einsprechen willst und weitere Veröffentlichungen mit planen möchtest, komm gerne vorbei.',
-            ],
-            [
-                'title' => 'MAPDRAX',
-                'description' => 'Die AG MAPDRAX kartografiert das Maddraxiversum mit dem Tool Inkarnate. Das Ergebnis ist ein dystopisches Google Maps schön und nützlich, für Herumtreiber wie Autoren. In regelmäßigen AG Treffen gibt es immer die Gelegenheit Fragen zu stellen und Unterstützung zu bekommen.',
-            ],
-            [
-                'title' => 'Fantreffen 2026',
-                'description' => 'Ein Orga-Team kümmert sich um die Organisation des nächsten Fantreffens, geplant für Mai 2026. Location steht schon, alles andere wird noch geplant.',
-            ],
-        ];
-
-        $membershipBenefits = [
-            'Austausch über die aktuellen Romanen mit anderen Fans',
-            'Kostenlose Teilnahme an den jährlichen Fantreffen',
-            'Kontakt zu Maddrax-Autor:innen',
-            'Aktive Mitgestaltung des Vereinslebens',
-            'Zugriff auf die neuesten Hörbücher noch vor der Veröffentlichung',
-            'Zugriff auf die MAPDRAX-Beta noch vor der Veröffentlichung',
-            'Zugang zu exklusiven  Sprecherrollen in den Fanhörbüchern',
-        ];
-
-        $galleryImages = [
-            'images/chronik/gruendungsversammlung',
-            'images/chronik/jahreshauptversammlung2024',
-            'images/chronik/jahreshauptversammlung2025',
-            'images/chronik/maddraxcon2025-1',
-            'images/chronik/maddraxcon2025-2',
-            // Weitere Bilder hier einfügen
-        ];
+        $homeContent = config('content.home');
 
         $team = Team::membersTeam();
 
@@ -66,7 +26,7 @@ class PageController extends Controller
         }
 
         $homeDescription = sprintf(
-            'Aktuelle Projekte, Chronik und Vorteile einer Mitgliedschaft im offiziellen MADDRAX Fanclub e. V. sowie %d Community-Rezensionen zu MADDRAX-Romanen.',
+            data_get($homeContent, 'hero.meta_description_template', 'Aktuelle Projekte, Chronik und Vorteile einer Mitgliedschaft im offiziellen MADDRAX Fanclub e. V. sowie %d Community-Rezensionen zu MADDRAX-Romanen.'),
             $reviewCount
         );
 
@@ -114,11 +74,7 @@ class PageController extends Controller
         ];
 
         return view('pages.home', compact(
-            'whoWeAre',
-            'whatWeDo',
-            'currentProjects',
-            'membershipBenefits',
-            'galleryImages',
+            'homeContent',
             'memberCount',
             'reviewCount',
             'homeDescription',
@@ -156,7 +112,9 @@ class PageController extends Controller
 
     public function mitgliedWerden()
     {
-        return view('pages.mitglied_werden');
+        return view('pages.mitglied_werden', [
+            'membershipPage' => config('content.mitglied_werden'),
+        ]);
     }
 
     public function impressum()
@@ -171,7 +129,9 @@ class PageController extends Controller
 
     public function spenden()
     {
-        return view('pages.spenden');
+        return view('pages.spenden', [
+            'donationPage' => config('content.spenden'),
+        ]);
     }
 
     public function changelog()

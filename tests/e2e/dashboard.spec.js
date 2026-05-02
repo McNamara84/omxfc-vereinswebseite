@@ -5,21 +5,19 @@ const login = async (page, email, password = 'password') => {
     await page.fill('input[name="email"]', email);
     await page.fill('input[name="password"]', password);
     await page.click('button[type="submit"]');
-    await page.waitForURL((url) => !url.pathname.endsWith('/login'));
+    await page.waitForURL((url) => !url.pathname.endsWith('/login'), { waitUntil: 'domcontentloaded' });
 };
 
 test.describe('Dashboard overview', () => {
     test('admin sees dashboard insights, applicants and verification card', async ({ page }) => {
         await login(page, 'info@maddraxikon.com');
 
-        await page.goto('/dashboard');
-
         await expect(page).toHaveURL(/\/dashboard$/);
         const cards = page.locator('div[aria-label="Überblick wichtiger Community-Kennzahlen"] [role="region"]');
         await expect(cards).toHaveCount(6);
 
         await expect(page.getByTestId('dashboard-applicants-panel')).toBeVisible();
-        await expect(page.getByRole('row', { name: /Playwright Anwärter/i })).toBeVisible();
+        await expect(page.getByTestId('dashboard-applicant-row').filter({ hasText: 'Playwright Anwärter' })).toBeVisible();
         await expect(page.getByTestId('dashboard-pending-panel')).toBeVisible();
         await expect(page.getByTestId('dashboard-quick-actions')).toContainText(/Schnellstart/i);
 
@@ -31,8 +29,6 @@ test.describe('Dashboard overview', () => {
 
     test('member sees dashboard without applicant management', async ({ page }) => {
         await login(page, 'playwright-member@example.com');
-
-        await page.goto('/dashboard');
 
         await expect(page.getByTestId('dashboard-applicants-panel')).toHaveCount(0);
         await expect(page.getByTestId('dashboard-pending-panel')).toHaveCount(0);
