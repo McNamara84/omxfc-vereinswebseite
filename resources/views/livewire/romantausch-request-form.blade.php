@@ -1,7 +1,18 @@
-<x-member-page class="max-w-4xl">
-    <x-card>
-        <x-header :title="$this->isEditing ? 'Gesuch bearbeiten' : 'Neues Gesuch erstellen'" separator useH1 data-testid="page-title" />
-        <form wire:submit="save" id="request-form">
+<x-member-page class="max-w-6xl space-y-8">
+    <x-ui.page-header
+        :title="$this->isEditing ? 'Gesuch bearbeiten' : 'Neues Gesuch erstellen'"
+        eyebrow="Romantauschbörse"
+        :description="$this->isEditing ? 'Aktualisiere dein bestehendes Gesuch, wenn sich Serie, Roman oder Wunschzustand geändert haben.' : 'Lege ein präzises Gesuch an, damit passende Angebote schneller sichtbar werden.'"
+        data-testid="page-title"
+    >
+        <x-slot:actions>
+            <x-button label="Zurück zur Übersicht" link="{{ route('romantausch.index') }}" wire:navigate icon="o-arrow-left" class="btn-ghost" />
+        </x-slot:actions>
+    </x-ui.page-header>
+
+    <section class="grid gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(18rem,0.72fr)] xl:items-start">
+        <x-ui.panel title="Gesuch" description="Serie, Roman und Mindestzustand bilden die Grundlage für das automatische Matching mit offenen Angeboten.">
+            <form wire:submit="save" id="request-form">
             @php
                 $seriesOptions = $this->seriesOptions;
                 $bookOptions = $this->bookOptions;
@@ -56,6 +67,17 @@
             </div>
 
             <div data-romantausch-books-by-series="{{ json_encode($booksBySeries) }}" class="hidden"></div>
-        </form>
-    </x-card>
+            </form>
+        </x-ui.panel>
+
+        <div class="space-y-6 xl:sticky xl:top-6">
+            <x-ui.panel title="Treffsichere Gesuche" description="Gute Gesuche machen anderen sofort klar, wonach du suchst und welcher Zustand noch passt.">
+                <ul class="grid gap-3 text-sm leading-relaxed text-base-content/76 sm:text-base">
+                    <li class="rounded-[1.25rem] border border-base-content/10 bg-base-100/72 px-4 py-3">Wähle den exakten Band statt eines ungefähren Bereichs. Das verbessert die Match-Hinweise auf der Übersicht deutlich.</li>
+                    <li class="rounded-[1.25rem] border border-base-content/10 bg-base-100/72 px-4 py-3">Der gewünschte Zustand sollte ehrlich widerspiegeln, wie kompromissbereit du bist.</li>
+                    <li class="rounded-[1.25rem] border border-base-content/10 bg-base-100/72 px-4 py-3">Sobald eines deiner eigenen Angebote zu einem fremden Gesuch passt, hebt die Übersicht das direkt hervor.</li>
+                </ul>
+            </x-ui.panel>
+        </div>
+    </section>
 </x-member-page>

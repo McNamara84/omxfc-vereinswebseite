@@ -1,10 +1,13 @@
 <x-app-layout>
-    <x-member-page>
-        {{-- Header --}}
-        <x-header title="Seitenaufrufe" subtitle="Statistiken und Analysen der Website-Nutzung" separator class="mb-6" />
+    <x-member-page class="space-y-8">
+        <x-ui.page-header
+            title="Seitenaufrufe"
+            eyebrow="Admin-Statistiken"
+            description="Zentrale Kennzahlen, Aktivitätstrends und Browserdaten der Website-Nutzung in einer gemeinsamen Admin-Ansicht."
+        />
 
-        {{-- Obere Stats-Reihe --}}
-        <div class="grid gap-6 lg:grid-cols-4 mb-6">
+        <x-ui.panel title="Sofortbild" description="Die wichtigsten Kennzahlen für Startseite, aktuelle Aktivität und Trendvergleich auf einen Blick.">
+        <div class="grid gap-6 lg:grid-cols-4">
             {{-- Startseiten-Aufrufe --}}
             <section aria-labelledby="homepage-visits-heading">
                 <x-stat
@@ -56,12 +59,13 @@
                 icon="o-calendar"
             />
         </div>
+        </x-ui.panel>
 
         {{-- DAU Sparkline --}}
         @php($dailyActiveSeries = collect($dailyActiveUsers['series']))
         @php($recentDailyActiveSeries = $dailyActiveSeries->slice(-7)->values())
         @php($recentDailyActiveMax = max($recentDailyActiveSeries->max('total') ?? 0, 1))
-        <x-card title="Aktive Mitglieder (letzte 7 Tage)" class="mb-6">
+        <x-ui.panel title="Aktive Mitglieder (letzte 7 Tage)" description="Kompakter Verlauf der letzten sieben Tage, um Ausschläge und schwächere Tage sofort zu erkennen.">
             @if($recentDailyActiveSeries->isEmpty())
                 <x-slot:empty>
                     <x-icon name="o-chart-bar" class="w-12 h-12 opacity-30 mx-auto" />
@@ -84,7 +88,7 @@
                     @endforeach
                 </div>
             @endif
-        </x-card>
+        </x-ui.panel>
 
         {{-- Seitenaufrufe nach Route --}}
         @php($hasRouteData = $visitData->isNotEmpty())

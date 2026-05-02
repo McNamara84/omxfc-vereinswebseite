@@ -1,5 +1,5 @@
 <div>
-<x-member-page>
+<x-member-page class="space-y-8">
     {{-- Flash Messages --}}
     @if(session('status'))
         <x-alert icon="o-check-circle" class="alert-success mb-4" dismissible>
@@ -13,21 +13,25 @@
         </x-alert>
     @endif
 
-    {{-- Header --}}
-    <x-header title="Kassenbuch" separator data-testid="page-header" />
+    <x-ui.page-header
+        title="Kassenbuch"
+        eyebrow="Finanzen & Mitgliedschaft"
+        description="Behalte Mitgliedsstatus, aktuellen Kassenstand und die wichtigsten Verwaltungsaktionen in einer gemeinsamen Übersicht im Blick."
+        data-testid="page-header"
+    />
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:gap-8">
         {{-- Card 1: Mitgliedsbeitrag Status --}}
-        <x-card title="Dein Mitgliedsbeitrag" shadow>
-            <div class="mb-4">
-                <p class="text-sm text-base-content">Dein aktueller Mitgliedsbeitrag:</p>
-                <p class="text-xl font-semibold">
+        <x-ui.panel title="Dein Mitgliedsbeitrag" description="Dein persönlicher Status mit Beitragshöhe und Zahlungszeitraum auf einen Blick.">
+            <div class="mb-4 rounded-[1.25rem] border border-base-content/10 bg-base-100/78 px-4 py-4">
+                <p class="text-sm text-base-content/70">Dein aktueller Mitgliedsbeitrag:</p>
+                <p class="mt-1 text-xl font-semibold text-base-content">
                     {{ !is_null($this->memberData->mitgliedsbeitrag) ? number_format($this->memberData->mitgliedsbeitrag, 2, ',', '.') . ' €' : 'Nicht festgelegt' }}
                 </p>
             </div>
 
-            <div>
-                <p class="text-sm text-base-content">Bezahlt bis:</p>
+            <div class="rounded-[1.25rem] border border-base-content/10 bg-base-100/78 px-4 py-4">
+                <p class="text-sm text-base-content/70">Bezahlt bis:</p>
                 @if($this->memberData->bezahlt_bis)
                     @php
                         $bezahlt_bis = \Carbon\Carbon::parse($this->memberData->bezahlt_bis);
@@ -60,15 +64,17 @@
                     </p>
                 @endif
             </div>
-        </x-card>
+        </x-ui.panel>
 
         {{-- Card 2: Aktueller Kassenstand --}}
-        <x-card title="Aktueller Kassenstand" shadow data-testid="kassenstand-card">
-            <p class="text-sm text-base-content">Kassenstand zum {{ \Carbon\Carbon::parse($this->kassenstand->letzte_aktualisierung)->format('d.m.Y') }}</p>
-            <p class="mt-1 text-2xl font-bold {{ $this->kassenstand->betrag >= 0 ? 'text-success' : 'text-error' }}">
+        <x-ui.panel title="Aktueller Kassenstand" description="Der laufende Kontostand der Vereinskasse inklusive letztem Aktualisierungsdatum." data-testid="kassenstand-card">
+            <div class="rounded-[1.25rem] border border-base-content/10 bg-base-100/78 px-4 py-4">
+                <p class="text-sm text-base-content/70">Kassenstand zum {{ \Carbon\Carbon::parse($this->kassenstand->letzte_aktualisierung)->format('d.m.Y') }}</p>
+                <p class="mt-1 text-2xl font-bold {{ $this->kassenstand->betrag >= 0 ? 'text-success' : 'text-error' }}">
                 {{ number_format($this->kassenstand->betrag, 2, ',', '.') }} €
-            </p>
-        </x-card>
+                </p>
+            </div>
+        </x-ui.panel>
 
         @if($this->canViewKassenbuch)
             {{-- Card: Offene Bearbeitungsanfragen (für Vorstand und Admin sichtbar) --}}

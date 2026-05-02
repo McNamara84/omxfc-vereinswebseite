@@ -1,4 +1,4 @@
-<x-member-page>
+<x-member-page class="space-y-8">
     @if(session('success'))
         <x-alert class="alert-success mb-4" icon="o-check-circle" dismissible
                  role="alert" data-testid="flash-success">
@@ -6,26 +6,47 @@
         </x-alert>
     @endif
 
-    <!-- Kopfzeile -->
-    <x-card shadow class="mb-6">
-        <x-header title="Romantauschbörse" useH1 data-testid="page-title" />
-        <p class="mt-4 text-sm text-base-content">
-            Für jedes <strong>zehnte</strong> eingestellte Angebot erhältst du automatisch
-            <strong>1 Bakk</strong>. Bestätigen beide Parteien einen Tausch, bekommt ihr
-            jeweils <strong>2 Baxx</strong> zusätzlich gutgeschrieben.
-        </p>
-    </x-card>
-    <x-card shadow class="mb-6" aria-labelledby="swap-process-heading">
-        <div class="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+    <x-ui.page-header
+        eyebrow="Tauschbörse & Sammler-Tools"
+        title="Romantauschbörse"
+        description="Biete einzelne Romane oder ganze Stapel an, gleiche offene Gesuche direkt ab und sammle Baxx über bestätigte Tauschaktionen."
+        data-testid="page-title"
+    >
+        <x-slot:actions>
+            <div class="flex flex-wrap gap-2 lg:justify-end">
+                <a href="{{ route('romantausch.create-offer') }}" wire:navigate
+                   class="inline-flex items-center justify-center rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-content transition hover:bg-primary/85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary">
+                    Angebot erstellen
+                </a>
+                <a href="{{ route('romantausch.create-request') }}" wire:navigate
+                   class="inline-flex items-center justify-center rounded-full bg-neutral px-4 py-2 text-sm font-semibold text-neutral-content transition hover:bg-neutral/85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-neutral">
+                    Gesuch erstellen
+                </a>
+                <a href="{{ route('romantausch.create-bundle-offer') }}" wire:navigate
+                   class="inline-flex items-center justify-center rounded-full border border-base-content/15 bg-base-100 px-4 py-2 text-sm font-semibold text-base-content transition hover:bg-base-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-base-content/30">
+                    Stapel erstellen
+                </a>
+            </div>
+        </x-slot:actions>
+    </x-ui.page-header>
+
+    <x-ui.panel aria-labelledby="swap-process-heading">
+        <x-slot:header>
             <div>
-                <h2 id="swap-process-heading" class="text-xl font-semibold text-primary">
+                <p class="text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-base-content/45">So funktioniert der Tausch</p>
+                <h2 id="swap-process-heading" class="mt-2 text-xl font-semibold text-primary">
                     {{ $romantauschInfo['title'] }}
                 </h2>
-                <p class="mt-2 text-sm text-base-content max-w-3xl">
+                <p class="mt-2 max-w-3xl text-sm text-base-content">
                     {{ $romantauschInfo['intro'] }}
                 </p>
+                <p class="mt-3 text-sm leading-relaxed text-base-content/72">
+                    Für jedes <strong>zehnte</strong> eingestellte Angebot erhältst du automatisch
+                    <strong>1 Bakk</strong>. Bestätigen beide Parteien einen Tausch, bekommt ihr
+                    jeweils <strong>2 Baxx</strong> zusätzlich gutgeschrieben.
+                </p>
             </div>
-        </div>
+        </x-slot:header>
         <ol class="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4" aria-label="{{ $romantauschInfo['steps_aria_label'] }}">
             <li class="flex h-full flex-col gap-3 rounded-lg border border-base-content/10 bg-base-100/60 p-4 ">
                 <div class="flex items-center gap-3">
@@ -86,10 +107,9 @@
                 </p>
             </li>
         </ol>
-    </x-card>
+    </x-ui.panel>
     @if($activeSwaps->isNotEmpty())
-        <x-card shadow class="mb-6">
-            <h2 class="text-xl font-semibold text-primary mb-2">Deine Matches</h2>
+        <x-ui.panel title="Deine Matches" description="Hier siehst du laufende Tauschaktionen mit direktem Kontakt und Abschlussbestätigung.">
             <p class="mb-4 text-base-content">Kontaktiert euch gegenseitig über die angezeigten Mailadressen und klickt anschließend auf „Tausch abgeschlossen". Für jeden abgeschlossenen Tausch gibt es <strong>2 Baxx</strong>!</p>
             <ul class="space-y-4">
                 @foreach($activeSwaps as $swap)
@@ -115,22 +135,18 @@
                     </li>
                 @endforeach
             </ul>
-        </x-card>
+        </x-ui.panel>
     @endif
 
     {{-- Stapel-Angebote --}}
     @if(isset($bundles) && $bundles->isNotEmpty())
-        <x-card shadow class="mb-6">
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
-                <div>
-                    <h2 class="text-xl font-semibold text-primary">Stapel-Angebote</h2>
-                    <p class="text-sm text-base-content mt-1">Sammlungen mit mehreren Romanen</p>
-                </div>
+        <x-ui.panel title="Stapel-Angebote" description="Sammlungen mit mehreren Romanen, inklusive Bereichsangaben, Match-Hinweisen und ausklappbaren Detailansichten.">
+            <x-slot:actions>
                 <a href="{{ route('romantausch.create-bundle-offer') }}" wire:navigate
                    class="inline-flex items-center px-4 py-2 bg-neutral border border-transparent rounded-md font-semibold text-neutral-content hover:bg-neutral/80">
                     Stapel erstellen
                 </a>
-            </div>
+            </x-slot:actions>
 
             <ul class="space-y-4">
                 @foreach($bundles as $bundle)
@@ -219,13 +235,12 @@
                     </li>
                 @endforeach
             </ul>
-        </x-card>
+        </x-ui.panel>
     @endif
 
     <!-- Angebote -->
-    <x-card shadow class="mb-6">
-        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
-            <h2 class="text-xl font-semibold text-primary">Einzelne Angebote</h2>
+    <x-ui.panel title="Einzelne Angebote" description="Alle offenen Einzelangebote mit Fotos, Zustandsangaben, Match-Hinweisen und Schnellzugriff auf Bearbeiten oder Löschen.">
+        <x-slot:actions>
             <div class="flex gap-2">
                 <a href="{{ route('romantausch.create-bundle-offer') }}" wire:navigate
                    class="inline-flex items-center px-4 py-2 bg-neutral border border-transparent rounded-md font-semibold text-neutral-content hover:bg-neutral/80 text-sm">
@@ -236,7 +251,7 @@
                     Angebot erstellen
                 </a>
             </div>
-        </div>
+        </x-slot:actions>
         @if($offers->isEmpty())
             <p class="text-base-content">Keine Einzelangebote vorhanden.</p>
         @else
@@ -424,16 +439,15 @@
                 @endforeach
             </ul>
         @endif
-    </x-card>
+    </x-ui.panel>
     <!-- Gesuche -->
-    <x-card shadow class="mb-6">
-        <div class="flex justify-between items-center mb-4">
-            <h2 class="text-xl font-semibold text-primary">Aktuelle Gesuche</h2>
+    <x-ui.panel title="Aktuelle Gesuche" description="Gesuchte Romane mit Mindestzustand und Live-Hinweisen, sobald eines deiner Angebote dazu passt.">
+        <x-slot:actions>
             <a href="{{ route('romantausch.create-request') }}" wire:navigate
                class="inline-flex items-center px-4 py-2 bg-neutral border border-transparent rounded-md font-semibold text-neutral-content hover:bg-neutral/80">
                 Gesuch erstellen
             </a>
-        </div>
+        </x-slot:actions>
         @if($requests->isEmpty())
             <p class="text-base-content">Keine Gesuche vorhanden.</p>
         @else
@@ -481,10 +495,9 @@
                 @endforeach
             </ul>
         @endif
-    </x-card>
+    </x-ui.panel>
     <!-- Abgeschlossene Tauschaktionen -->
-    <x-card shadow>
-        <h2 class="text-xl font-semibold text-primary mb-4">Erfolgreiche Tauschaktionen</h2>
+    <x-ui.panel title="Erfolgreiche Tauschaktionen" description="Abgeschlossene Tausche bleiben als Verlauf sichtbar und dokumentieren, welche Mitglieder wann erfolgreich getauscht haben.">
         @if($completedSwaps->isEmpty())
             <p class="text-base-content">Bisher wurden noch keine Tauschaktionen abgeschlossen.</p>
         @else
@@ -497,5 +510,5 @@
                 @endforeach
             </ul>
         @endif
-    </x-card>
+    </x-ui.panel>
 </x-member-page>
