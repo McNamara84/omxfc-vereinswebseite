@@ -1,5 +1,9 @@
 <x-member-page class="max-w-4xl">
-    <x-header title="Fanfiction bearbeiten" separator class="mb-6">
+    <x-ui.page-header
+        eyebrow="Vorstand"
+        title="Fanfiction bearbeiten"
+        description="Aktualisiere Inhalt, Autorenschaft, Bilder und den Veröffentlichungsstatus bestehender Geschichten."
+    >
         <x-slot:actions>
             <x-button
                 label="Zurück"
@@ -8,9 +12,9 @@
                 class="btn-ghost"
             />
         </x-slot:actions>
-    </x-header>
+    </x-ui.page-header>
 
-    <x-card>
+    <x-ui.panel title="Storydaten" description="Bearbeite Text, Bilder und Status der ausgewählten Fanfiction, ohne Vorschau- oder Löschlogik zu verlieren.">
         <x-form wire:submit="save">
             <x-input
                 wire:model="title"
@@ -165,5 +169,5 @@
                 />
             </x-slot:actions>
         </x-form>
-    </x-card>
+    </x-ui.panel>
 </x-member-page>

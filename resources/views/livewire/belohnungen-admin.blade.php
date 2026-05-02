@@ -1,6 +1,10 @@
 <div class="py-12">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <x-header title="Belohnungen - Admin" subtitle="Verwalte Belohnungen, Vergaberegeln und Freischaltungen" separator />
+    <div class="mx-auto max-w-7xl space-y-6 px-4 sm:px-6 lg:px-8">
+        <x-ui.page-header
+            eyebrow="Adminbereich"
+            title="Belohnungen - Admin"
+            description="Verwalte Belohnungen, Vergaberegeln, Downloads und Freischaltungen in einer zentralen Administrationsansicht."
+        />
 
         {{-- Tabs --}}
         <x-tabs wire:model="activeTab">
@@ -294,12 +298,12 @@
                     <h3 class="text-lg font-bold text-warning mt-8 mb-4">Noch nie freigeschaltete Belohnungen</h3>
                     <div class="space-y-2">
                         @foreach($this->statistics['never_purchased_rewards'] as $reward)
-                            <x-card shadow class="opacity-75">
+                            <x-ui.panel class="opacity-75">
                                 <div class="flex items-center justify-between">
                                     <span>{{ $reward->title }}</span>
                                     <x-badge :value="$reward->cost_baxx . ' Baxx'" class="badge-ghost" icon="o-currency-dollar" />
                                 </div>
-                            </x-card>
+                            </x-ui.panel>
                         @endforeach
                     </div>
                 @endif

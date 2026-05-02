@@ -3,8 +3,13 @@
         <x-review-baxx-special-offer :offer="$this->reviewRewardConfiguration['prominent_special_offer']" />
     @endif
 
-    <x-card shadow class="mb-6">
-        <x-header title="Rezensionen" class="!mb-2" />
+    <x-ui.page-header
+        eyebrow="Mitgliederbereich"
+        title="Rezensionen"
+        description="Entdecke Besprechungen zu Maddrax-Romanen, filtere nach Heft, Titel oder Autor und sieh sofort, wo bereits neue Stimmen zum Zyklus vorliegen."
+    />
+
+    <x-ui.panel title="Baxx für Rezensionen" class="mb-6">
         @if($this->reviewRewardConfiguration['effective_rule']['is_active'])
             <p class="text-base text-base-content">
                 Aktuell erhältst du automatisch <strong>{{ $this->reviewRewardConfiguration['effective_rule']['rule_label'] }}</strong>.
@@ -14,18 +19,24 @@
                 Aktuell gibt es keine Baxx für neue Rezensionen.
             </p>
         @endif
-    </x-card>
+    </x-ui.panel>
 
     <div x-data="{ open: @js($this->filtersApplied) }" class="mb-6">
-        <x-button
-            @click="open = !open"
-            class="w-full flex justify-between items-center btn-ghost bg-base-100 shadow-xs rounded-lg p-4"
-        >
-            <span class="font-semibold text-base-content" x-text="open ? 'Filter ausblenden' : 'Filter anzeigen'"></span>
-            <x-icon name="o-chevron-down" class="w-5 h-5 transform transition-transform" x-bind:class="{ 'rotate-180': open }" />
-        </x-button>
-        <div x-show="open" x-transition class="mt-4">
-            <div class="bg-base-100 shadow-xs rounded-lg p-6">
+        <x-ui.panel title="Suche und Filter" description="Grenze die Übersicht gezielt nach Heftnummer, Titel, Autor oder Rezensionsstatus ein.">
+            <x-slot:actions>
+                <x-button
+                    @click="open = !open"
+                    class="btn-ghost"
+                    x-bind:label="open ? 'Filter ausblenden' : 'Filter anzeigen'"
+                >
+                    <span class="flex items-center gap-2">
+                        <span x-text="open ? 'Filter ausblenden' : 'Filter anzeigen'"></span>
+                        <x-icon name="o-chevron-down" class="w-5 h-5 transform transition-transform" x-bind:class="{ 'rotate-180': open }" />
+                    </span>
+                </x-button>
+            </x-slot:actions>
+
+            <div x-show="open" x-transition>
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <x-input wire:model.live.debounce.400ms="roman_number" label="Nr." type="number" />
                     <x-input wire:model.live.debounce.400ms="title_filter" label="Titel" />
@@ -48,7 +59,7 @@
                     <x-button label="Zurücksetzen" wire:click="resetFilters" class="btn-ghost" />
                 </div>
             </div>
-        </div>
+        </x-ui.panel>
     </div>
 
     <div id="accordion" wire:loading.class="opacity-50" wire:target="roman_number, title_filter, author, review_status">

@@ -1,16 +1,16 @@
 <x-app-layout>
     <x-member-page class="max-w-4xl">
-        <x-header title="{{ $fanfiction->title }}" separator>
-            <x-slot:actions>
-                <x-button label="Zurück" icon="o-arrow-left" link="{{ route('fanfiction.index') }}" wire:navigate class="btn-ghost" />
-            </x-slot:actions>
-        </x-header>
+        @php
+            $pageDescription = 'von '.$fanfiction->author_display_name;
 
-        <x-card shadow>
-            {{-- Header mit Autor und Datum --}}
-            <div class="mb-6 pb-6 border-b border-base-content/10">
-                <h1 class="text-2xl md:text-3xl font-bold mb-2 flex items-center gap-3">
-                    {{ $fanfiction->title }}
+            if ($fanfiction->published_at) {
+                $pageDescription .= ' • Veröffentlicht am '.$fanfiction->published_at->format('d.m.Y');
+            }
+        @endphp
+
+        <x-ui.page-header title="{{ $fanfiction->title }}" description="{{ $pageDescription }}">
+            <x-slot:actions>
+                <div class="flex flex-wrap items-center gap-2">
                     @if ($fanfiction->reward)
                         @if ($hasUnlocked)
                             <x-badge value="Freigeschaltet" class="badge-success" icon="o-lock-open" />
@@ -20,15 +20,13 @@
                     @else
                         <x-badge value="Kostenlos" class="badge-success" icon="o-gift" />
                     @endif
-                </h1>
-                <p class="text-base-content">
-                    von <span class="font-medium">{{ $fanfiction->author_display_name }}</span>
-                    @if ($fanfiction->published_at)
-                        • Veröffentlicht am {{ $fanfiction->published_at->format('d.m.Y') }}
-                    @endif
-                </p>
-            </div>
 
+                    <x-button label="Zurück" icon="o-arrow-left" link="{{ route('fanfiction.index') }}" wire:navigate class="btn-ghost" />
+                </div>
+            </x-slot:actions>
+        </x-ui.page-header>
+
+        <x-ui.panel>
             @if ($hasUnlocked)
                 {{-- Galerie nur für Bilder, die NICHT per [bild:N] im Text referenziert werden --}}
                 @php $unreferencedPhotos = $fanfiction->getUnreferencedPhotos(); @endphp
@@ -97,12 +95,11 @@
                     @enderror
                 </div>
             @endif
-        </x-card>
+        </x-ui.panel>
 
         {{-- Kommentare (nur für freigeschaltete Fanfiction) --}}
         @if ($hasUnlocked)
-            <x-card shadow class="mt-8">
-                <x-header title="Kommentare ({{ $fanfiction->comments->count() }})" size="text-lg" class="!mb-4" />
+            <x-ui.panel title="Kommentare ({{ $fanfiction->comments->count() }})" class="mt-8">
 
                 {{-- Kommentar-Formular --}}
                 <form action="{{ route('fanfiction.comments.store', $fanfiction) }}" method="POST" class="mb-8">
@@ -136,7 +133,7 @@
                         @endforeach
                     </div>
                 @endif
-            </x-card>
+            </x-ui.panel>
         @endif
     </x-member-page>
 </x-app-layout>

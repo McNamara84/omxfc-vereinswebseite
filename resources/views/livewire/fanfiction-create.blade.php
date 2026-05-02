@@ -1,5 +1,9 @@
 <x-member-page class="max-w-4xl">
-    <x-header title="Neue Fanfiction erstellen" separator class="mb-6">
+    <x-ui.page-header
+        eyebrow="Vorstand"
+        title="Neue Fanfiction erstellen"
+        description="Lege neue Geschichten mit Mitglieds- oder Gastautorenschaft an, bereite Bilder vor und prüfe den Markdown-Inhalt vor dem Speichern."
+    >
         <x-slot:actions>
             <x-button
                 label="Zurück"
@@ -8,9 +12,9 @@
                 class="btn-ghost"
             />
         </x-slot:actions>
-    </x-header>
+    </x-ui.page-header>
 
-    <x-card>
+    <x-ui.panel title="Storydaten" description="Erfasse Metadaten, Inhalt, Bilder und Veröffentlichungsstatus der neuen Fanfiction.">
         <x-form wire:submit="save">
             <x-input
                 wire:model="title"
@@ -143,5 +147,5 @@
                 />
             </x-slot:actions>
         </x-form>
-    </x-card>
+    </x-ui.panel>
 </x-member-page>
