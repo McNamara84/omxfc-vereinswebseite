@@ -1,4 +1,10 @@
-<x-ui.panel title="TOP 3 Baxx-Sammler" description="Wer aktuell das Community-Ranking anführt.">
+@php
+    $topUsersPanelTitle = $topUsersEntries->isNotEmpty()
+        ? 'Top '.$topUsersEntries->count().' Baxx-Sammler'
+        : 'Top Baxx-Sammler';
+@endphp
+
+<x-ui.panel :title="$topUsersPanelTitle" description="Wer aktuell das Community-Ranking anführt.">
     @if($topUsersEntries->isNotEmpty())
         <div
             class="grid gap-4"

@@ -29,6 +29,7 @@ test.describe('Dashboard overview', () => {
 
     test('member sees dashboard without applicant management', async ({ page }) => {
         await login(page, 'playwright-member@example.com');
+        await expect(page).toHaveURL(/\/dashboard$/);
 
         await expect(page.getByTestId('dashboard-applicants-panel')).toHaveCount(0);
         await expect(page.getByTestId('dashboard-pending-panel')).toHaveCount(0);

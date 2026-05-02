@@ -403,7 +403,7 @@ class DashboardController extends Controller
             array_unshift($actions, [
                 'title' => 'Verifizierungen prüfen',
                 'description' => 'Abgeschlossene Challenges freigeben und nächste Schritte für Teams anstoßen.',
-                'href' => route('todos.index').'?filter=pending',
+                'href' => route('todos.index', ['filter' => 'pending']),
                 'icon' => 'o-shield-check',
                 'badge' => $pendingVerification > 0 ? (string) $pendingVerification : null,
             ]);

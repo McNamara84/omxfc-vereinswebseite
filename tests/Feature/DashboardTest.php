@@ -175,6 +175,9 @@ class DashboardTest extends TestCase
         $response->assertOk();
 
         $crawler = new Crawler($response->getContent());
+        $this->assertSame('Top 3 Baxx-Sammler', trim($crawler->filter('h2')->reduce(function (Crawler $node) {
+            return trim($node->text()) === 'Top 3 Baxx-Sammler';
+        })->text()));
         $topList = $crawler->filter('[data-dashboard-top-users]');
         $this->assertSame(1, $topList->count());
         $this->assertStringContainsString('Top 3 Baxx-Sammler', $topList->attr('aria-label'));
@@ -186,6 +189,29 @@ class DashboardTest extends TestCase
         $payload = json_decode($topList->attr('data-dashboard-top-users'), true, flags: JSON_THROW_ON_ERROR);
         $this->assertSame('1.234', $payload[0]['formatted_points']);
         $this->assertSame(1234, $payload[0]['points']);
+    }
+
+    public function test_dashboard_uses_dynamic_top_users_panel_title_for_shorter_rankings(): void
+    {
+        $user = $this->createUserWithRole(Role::Admin);
+        $team = Team::membersTeam();
+
+        $topUsers = User::factory()->count(2)->create(['current_team_id' => $team->id]);
+
+        foreach ($topUsers as $index => $topUser) {
+            $team->users()->attach($topUser, ['role' => Role::Mitglied->value]);
+            UserPoint::create([
+                'user_id' => $topUser->id,
+                'team_id' => $team->id,
+                'points' => [300, 220][$index],
+            ]);
+        }
+
+        $response = $this->actingAs($user)->get('/dashboard');
+
+        $response->assertOk();
+        $response->assertSeeText('Top 2 Baxx-Sammler');
+        $response->assertDontSeeText('TOP 3 Baxx-Sammler');
     }
 
     public function test_dashboard_shows_personalized_header_and_quick_actions_for_members(): void
@@ -235,6 +261,7 @@ class DashboardTest extends TestCase
         $response->assertSeeText('Fantreffen verwalten');
         $this->assertNotNull($challengeAction);
         $this->assertArrayNotHasKey('badge', $challengeAction);
+        $this->assertSame(route('todos.index', ['filter' => 'pending']), $verificationAction['href'] ?? null);
         $this->assertSame('1', $verificationAction['badge'] ?? null);
     }
 }
