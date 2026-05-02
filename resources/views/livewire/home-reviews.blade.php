@@ -4,7 +4,7 @@
             class="mt-4"
             icon="o-book-open"
             title="Noch keine Rezensionen"
-            description="Derzeit liegen keine Rezensionen vor. Schau spaeter noch einmal vorbei."
+            description="Derzeit liegen keine Rezensionen vor. Schau später noch einmal vorbei."
         />
     @else
         <ul class="mt-4 divide-y divide-base-content/10" aria-label="Neueste Rezensionen">

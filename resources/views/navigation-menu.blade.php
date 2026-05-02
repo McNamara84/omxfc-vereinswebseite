@@ -26,6 +26,7 @@
                             @foreach($featuredNavigation as $item)
                                 <a
                                     href="{{ $item['href'] }}"
+                                    wire:navigate
                                     @class([
                                         'btn btn-sm rounded-full whitespace-nowrap border transition',
                                         'btn-primary border-primary text-primary-content shadow-sm' => $item['accent'] || $item['active'],

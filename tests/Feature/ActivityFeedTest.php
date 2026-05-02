@@ -205,6 +205,46 @@ class ActivityFeedTest extends TestCase
         $response->assertSeeText($expectedPreview);
     }
 
+    public function test_dashboard_handles_review_comment_with_missing_user(): void
+    {
+        $viewer = $this->actingMember();
+        $this->actingAs($viewer);
+
+        $commentAuthor = User::factory()->create([
+            'current_team_id' => $viewer->currentTeam->id,
+            'name' => 'Verwaister Kommentarautor',
+        ]);
+
+        $review = Review::create([
+            'team_id' => $viewer->currentTeam->id,
+            'user_id' => $viewer->id,
+            'book_id' => Book::first()->id,
+            'title' => 'Kommentar ohne Autorprofil',
+            'content' => 'Die Rezension bleibt bestehen.',
+        ]);
+
+        $comment = ReviewComment::create([
+            'review_id' => $review->id,
+            'user_id' => $commentAuthor->id,
+            'content' => 'Der Autor des Kommentars wurde entfernt.',
+        ]);
+
+        Activity::create([
+            'user_id' => null,
+            'subject_type' => ReviewComment::class,
+            'subject_id' => $comment->id,
+        ]);
+
+        $response = $this->get('/dashboard');
+
+        $response->assertOk();
+        $response->assertSeeText('Kommentar zu');
+        $response->assertSeeText($review->title);
+        $response->assertSeeText('Unbekannter Nutzer');
+        $response->assertSeeText('Der Autor des Kommentars wurde entfernt.');
+        $response->assertDontSeeText($commentAuthor->name);
+    }
+
     public function test_dashboard_hides_empty_review_preview_excerpt(): void
     {
         $user = $this->actingMember();

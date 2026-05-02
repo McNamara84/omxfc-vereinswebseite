@@ -92,10 +92,18 @@
                         @php
                             $review = $subject?->review;
                             $commentPreview = \App\Support\PreviewText::make($subject?->content ?? '', 140);
+                            $commentAuthorName = $activityUser?->name ?? 'Unbekannter Nutzer';
                         @endphp
                         @if($review)
                             <div class="space-y-1">
-                                <span>Kommentar zu <a href="{{ route('reviews.show', $review->book_id) }}" wire:navigate class="text-info hover:underline">{{ $review->title }}</a> von <a href="{{ route('profile.view', $activity->user->id) }}" wire:navigate class="text-primary hover:underline">{{ $activity->user->name }}</a></span>
+                                <span>
+                                    Kommentar zu <a href="{{ route('reviews.show', $review->book_id) }}" wire:navigate class="text-info hover:underline">{{ $review->title }}</a> von
+                                    @if($activityUser)
+                                        <a href="{{ route('profile.view', $activityUser->id) }}" wire:navigate class="text-primary hover:underline">{{ $commentAuthorName }}</a>
+                                    @else
+                                        <span class="text-base-content">{{ $commentAuthorName }}</span>
+                                    @endif
+                                </span>
                                 @if($commentPreview->isNotEmpty())
                                     <p class="text-sm text-base-content" aria-label="Auszug aus dem Kommentar">„{{ $commentPreview }}"</p>
                                 @endif

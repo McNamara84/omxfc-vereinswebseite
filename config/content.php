@@ -47,7 +47,7 @@ return [
         ],
         'projects' => [
             'title' => 'Aktuelle Projekte',
-            'description' => 'Diese Vorhaben praegen gerade den groessten Teil unseres Vereinslebens.',
+            'description' => 'Diese Vorhaben prägen gerade den größten Teil unseres Vereinslebens.',
             'items' => [
                 [
                     'title' => 'Maddraxikon',
