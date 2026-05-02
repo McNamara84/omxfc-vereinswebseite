@@ -89,7 +89,7 @@ class UpdateSeriendatenFormTest extends TestCase
         $this->actingAs($user);
 
         $component = Livewire::test(UpdateSeriendatenForm::class)
-            ->assertSee('Serienspezifische Daten');
+            ->assertSee('Einstiegsroman (optional)');
 
         $component
             ->assertSet('state.einstiegsroman', '1 - Roman1')

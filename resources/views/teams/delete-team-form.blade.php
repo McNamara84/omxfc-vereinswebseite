@@ -1,6 +1,4 @@
-<x-card>
-    <x-header title="Arbeitsgruppe löschen" subtitle="Die Arbeitsgruppe wird dauerhaft gelöscht." size="text-lg" class="!mb-4" />
-
+<div>
     <div class="max-w-xl text-sm text-base-content">
         Wenn eine Arbeitsgruppe gelöscht wird, werden alle zugehörigen Daten dauerhaft entfernt. Bitte sichere vorher alle Informationen, die du behalten möchtest.
     </div>
@@ -20,4 +18,4 @@
             <x-button label="Arbeitsgruppe löschen" class="btn-error" wire:click="deleteTeam" wire:loading.attr="disabled" icon="o-trash" />
         </x-slot:actions>
     </x-mary-modal>
-</x-card>
+</div>

@@ -1,236 +1,214 @@
 <x-app-layout>
     <x-member-page>
-        <x-card shadow class="overflow-hidden !p-0">
-            <!-- Hintergrund-Banner -->
-            <div class="h-40 bg-gradient-to-r from-primary to-primary/50 relative">
-                <!-- Profilbild -->
-                <div class="absolute left-8 bottom-0 transform translate-y-1/2">
-                    <div
-                        class="h-36 w-36 border-4 border-base-100 rounded-full overflow-hidden shadow-xl cursor-pointer"
-                        onclick="openProfilePhotoModal('{{ $user->profile_photo_url }}', '{{ $user->name }}')">
-                            <img loading="lazy" class="h-full w-full object-cover" src="{{ $user->profile_photo_url }}"
-                                alt="{{ $user->name }}">
-                        </div>
-                    </div>
-                </div>
+        @php
+            $activityLabel = $isOnline
+                ? 'Online'
+                : ($lastSeen ? 'Zuletzt gesehen ' . $lastSeen->diffForHumans() : 'Aktuell keine Aktivität erfasst');
 
-                <!-- Hauptinhalt -->
-                <div class="pt-24 px-8 pb-8 md:grid md:grid-cols-3 md:gap-8">
-                    <!-- Linke Spalte: Persönliche Informationen -->
-                    <div class="col-span-1">
-                        <div class="space-y-6">
-                            <!-- Name und Rolle -->
-                            <div>
-                                <h1 class="text-2xl font-bold text-base-content">{{ $user->name }}</h1>
-                                <p class="text-lg text-base-content">{{ $user->vorname }}
-                                    {{ $user->nachname }}
-                                </p>
-                                <x-badge value="{{ $memberRole }}" class="badge-primary mt-1" icon="o-identification" />
-                                <div class="mt-2 text-sm text-base-content flex items-center">
-                                    @if ($isOnline)
-                                        <span class="flex items-center">
-                                            <span class="relative flex h-3 w-3 mr-2">
-                                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75"></span>
-                                                <span class="relative inline-flex rounded-full h-3 w-3 bg-success"></span>
+            $profileDescription = $isOwnProfile
+                ? 'Dein persönlicher Überblick über Vereinsaktivität, Errungenschaften und deine Maddrax-Leidenschaft.'
+                : 'Öffentliche und freigegebene Vereinsinformationen dieses Mitglieds auf einen Blick.';
+
+            $maddraxLeidenschaft = collect([
+                ['label' => 'Einstiegsroman', 'value' => $user->einstiegsroman],
+                ['label' => 'Aktueller Lesestand', 'value' => $user->lesestand],
+                ['label' => 'Lieblingsroman', 'value' => $user->lieblingsroman],
+                ['label' => 'Lieblingshardcover', 'value' => $user->lieblingshardcover],
+                ['label' => 'Lieblingscover', 'value' => $user->lieblingscover],
+                ['label' => 'Lieblingsfigur', 'value' => $user->lieblingsfigur],
+                ['label' => 'Lieblingsmutation', 'value' => $user->lieblingsmutation],
+                ['label' => 'Lieblingsschauplatz', 'value' => $user->lieblingsschauplatz],
+                ['label' => 'Lieblingsautor', 'value' => $user->lieblingsautor],
+                ['label' => 'Lieblingszyklus', 'value' => $user->lieblingszyklus ? $user->lieblingszyklus . '-Zyklus' : null],
+                ['label' => 'Lieblingsthema', 'value' => $user->lieblingsthema],
+            ])->filter(fn (array $entry) => filled($entry['value']))->values();
+        @endphp
+
+        <div class="space-y-8">
+            <x-ui.page-header
+                eyebrow="Mitgliederbereich"
+                title="{{ $user->name }}"
+                description="{{ $profileDescription }}"
+            >
+                <x-slot:actions>
+                    <x-button
+                        label="Zur Mitgliederliste"
+                        icon="o-users"
+                        link="{{ route('mitglieder.index') }}"
+                        wire:navigate
+                        class="btn-outline"
+                    />
+                </x-slot:actions>
+            </x-ui.page-header>
+
+            <div class="grid gap-8 xl:grid-cols-[minmax(0,0.95fr)_minmax(0,1.4fr)]">
+                <div class="space-y-6">
+                    <x-ui.panel class="overflow-hidden !p-0">
+                        <div class="relative h-36 bg-linear-to-r from-primary via-primary/85 to-accent/60 sm:h-40">
+                            <button
+                                type="button"
+                                class="group absolute left-6 bottom-0 flex h-28 w-28 translate-y-1/2 items-center justify-center overflow-hidden rounded-full border-4 border-base-100 bg-base-100 shadow-xl transition-transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-primary/40 sm:left-8 sm:h-36 sm:w-36"
+                                onclick="openProfilePhotoModal(@js($user->profile_photo_url), @js($user->name))"
+                                aria-label="Profilbild von {{ $user->name }} vergrößern"
+                            >
+                                <img
+                                    loading="lazy"
+                                    class="h-full w-full object-cover"
+                                    src="{{ $user->profile_photo_url }}"
+                                    alt="{{ $user->name }}"
+                                >
+                            </button>
+                        </div>
+
+                        <div class="space-y-6 px-6 pb-6 pt-18 sm:px-8 sm:pb-8 sm:pt-24">
+                            <div class="space-y-3">
+                                <div class="space-y-1">
+                                    <h1 class="font-display text-3xl font-semibold tracking-tight text-base-content">{{ $user->name }}</h1>
+                                    <p class="text-base text-base-content/72">{{ $user->vorname }} {{ $user->nachname }}</p>
+                                </div>
+
+                                <div class="flex flex-wrap items-center gap-3 text-sm text-base-content/78">
+                                    <x-badge value="{{ $memberRole }}" class="badge-primary" icon="o-identification" />
+
+                                    <span class="inline-flex items-center gap-2 rounded-full bg-base-200/80 px-3 py-1">
+                                        @if ($isOnline)
+                                            <span class="relative flex h-3 w-3">
+                                                <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-success opacity-75"></span>
+                                                <span class="relative inline-flex h-3 w-3 rounded-full bg-success"></span>
                                             </span>
-                                            Online
-                                        </span>
-                                    @elseif ($lastSeen)
-                                        Zuletzt gesehen {{ $lastSeen->diffForHumans() }}
-                                    @endif
+                                        @else
+                                            <span class="inline-flex h-3 w-3 rounded-full bg-base-content/35"></span>
+                                        @endif
+                                        {{ $activityLabel }}
+                                    </span>
                                 </div>
                             </div>
 
-                            <!-- Badges -->
-                            @if(count($badges) > 0)
-                                <div class="bg-base-200 rounded-lg p-5">
-                                    <h2 class="text-lg font-semibold text-base-content mb-4">Errungenschaften
-                                    </h2>
-                                    <div class="grid grid-cols-2 gap-4">
-                                        @foreach($badges as $index => $badge)
-                                            <div class="flex flex-col items-center">
-                                                <div class="h-20 w-20 mb-2 cursor-pointer hover:opacity-90 transition-opacity"
-                                                    onclick="openBadgeModal('{{ $badge['name'] }}', '{{ $badge['description'] }}', '{{ $badge['image'] }}')">
-                                                    <img loading="lazy" src="{{ $badge['image'] }}" alt="{{ $badge['name'] }}" class="w-full">
-                                                </div>
-                                                <h3 class="text-sm font-medium text-base-content text-center">
-                                                    {{ $badge['name'] }}
-                                                </h3>
-                                                <p class="text-xs text-base-content text-center mt-1">
-                                                    {{ $badge['description'] }}
-                                                </p>
-                                            </div>
-                                        @endforeach
-                                    </div>
-                                </div>
-                            @endif
+                            <p class="text-sm leading-relaxed text-base-content/72">
+                                {{ $isOwnProfile ? 'Hier siehst du deinen aktuellen Vereinsstand inklusive Baxx, Badges und hinterlegter Lieblingsdaten.' : 'Dieses Profil bündelt freigegebene Angaben, Vereinsaktivität und gesammelte Errungenschaften des Mitglieds.' }}
+                            </p>
+                        </div>
+                    </x-ui.panel>
 
-                            <!-- Kontaktdaten (nur für berechtigte Benutzer) -->
-                            @if($canViewDetails)
-                                <div class="bg-base-200 rounded-lg p-5">
-                                    <h2 class="text-lg font-semibold text-base-content mb-3">Kontaktdaten</h2>
-                                    <div class="space-y-2">
-                                        <div class="flex items-center">
-                                            <x-icon name="o-envelope" class="w-5 h-5 text-base-content mr-2" />
-                                            <span class="text-base-content">{{ $user->email }}</span>
+                    @if(count($badges) > 0)
+                        <x-ui.panel title="Errungenschaften" description="Freigeschaltete Badges und besondere Vereinsmeilensteine dieses Profils.">
+                            <div class="grid grid-cols-2 gap-4 sm:grid-cols-3">
+                                @foreach($badges as $badge)
+                                    <div class="flex flex-col items-center rounded-3xl bg-base-200/70 p-4 text-center">
+                                        <button
+                                            type="button"
+                                            class="mb-3 h-20 w-20 transition-opacity hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-primary/40"
+                                            onclick="openBadgeModal(@js($badge['name']), @js($badge['description']), @js($badge['image']))"
+                                            aria-label="Badge {{ $badge['name'] }} anzeigen"
+                                        >
+                                            <img loading="lazy" src="{{ $badge['image'] }}" alt="{{ $badge['name'] }}" class="w-full">
+                                        </button>
+                                        <h3 class="text-sm font-semibold text-base-content">{{ $badge['name'] }}</h3>
+                                        <p class="mt-1 text-xs leading-relaxed text-base-content/72">{{ $badge['description'] }}</p>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </x-ui.panel>
+                    @endif
+
+                    @if($canViewDetails)
+                        <x-ui.panel title="Kontaktdetails" description="Sichtbare Kontakt- und Mitgliedsdaten für berechtigte Rollen.">
+                            <div class="space-y-5">
+                                <div class="space-y-3">
+                                    <h3 class="text-sm font-semibold uppercase tracking-[0.24em] text-base-content/45">Kontakt</h3>
+                                    <div class="space-y-2 text-sm text-base-content">
+                                        <div class="flex items-center gap-2">
+                                            <x-icon name="o-envelope" class="h-5 w-5 text-base-content/60" />
+                                            <span>{{ $user->email }}</span>
                                         </div>
                                         @if($user->telefon)
-                                            <div class="flex items-center">
-                                                <x-icon name="o-phone" class="w-5 h-5 text-base-content mr-2" />
-                                                <span class="text-base-content">{{ $user->telefon }}</span>
+                                            <div class="flex items-center gap-2">
+                                                <x-icon name="o-phone" class="h-5 w-5 text-base-content/60" />
+                                                <span>{{ $user->telefon }}</span>
                                             </div>
                                         @endif
                                     </div>
                                 </div>
 
-                                <div class="bg-base-200 rounded-lg p-5">
-                                    <h2 class="text-lg font-semibold text-base-content mb-3">Adresse</h2>
-                                    <address class="not-italic text-base-content">
-                                        @if($user->strasse && $user->hausnummer)
-                                            {{ $user->strasse }} {{ $user->hausnummer }}<br>
-                                        @endif
-                                        @if($user->plz && $user->stadt)
-                                            {{ $user->plz }} {{ $user->stadt }}<br>
-                                        @endif
-                                        @if($user->land)
-                                            {{ $user->land }}
-                                        @endif
-                                    </address>
-                                </div>
+                                <div class="grid gap-5 md:grid-cols-2">
+                                    <div class="rounded-3xl bg-base-200/70 p-4">
+                                        <h3 class="mb-2 text-sm font-semibold uppercase tracking-[0.24em] text-base-content/45">Adresse</h3>
+                                        <address class="not-italic text-sm leading-relaxed text-base-content">
+                                            @if($user->strasse && $user->hausnummer)
+                                                {{ $user->strasse }} {{ $user->hausnummer }}<br>
+                                            @endif
+                                            @if($user->plz && $user->stadt)
+                                                {{ $user->plz }} {{ $user->stadt }}<br>
+                                            @endif
+                                            @if($user->land)
+                                                {{ $user->land }}
+                                            @else
+                                                Keine Adresse hinterlegt
+                                            @endif
+                                        </address>
+                                    </div>
 
-                                <div class="bg-base-200 rounded-lg p-5">
-                                    <h2 class="text-lg font-semibold text-base-content mb-3">Mitgliedsbeitrag
-                                    </h2>
-                                    <p class="text-base-content">{{ $user->mitgliedsbeitrag }}</p>
+                                    <div class="rounded-3xl bg-base-200/70 p-4">
+                                        <h3 class="mb-2 text-sm font-semibold uppercase tracking-[0.24em] text-base-content/45">Mitgliedsbeitrag</h3>
+                                        <p class="text-sm text-base-content">{{ $user->mitgliedsbeitrag ?? 'Nicht hinterlegt' }}</p>
+                                    </div>
                                 </div>
+                            </div>
+                        </x-ui.panel>
+                    @endif
+                </div>
+
+                <div class="space-y-6">
+                    <x-ui.panel title="Vereinsaktivität" description="Baxx, erledigte Challenges und die bisher gesammelten Punkte nach Bereich.">
+                        <div class="grid gap-4 sm:grid-cols-2">
+                            <div class="rounded-3xl bg-base-200/70 p-5 shadow-sm">
+                                <h3 class="text-sm font-medium text-base-content/72">Baxx</h3>
+                                <p class="mt-3 text-4xl font-semibold tracking-tight text-primary">{{ $userPoints }}</p>
+                                <p class="mt-1 text-sm text-base-content/60">Gesammelte Vereinspunkte</p>
+                            </div>
+
+                            <div class="rounded-3xl bg-base-200/70 p-5 shadow-sm">
+                                <h3 class="text-sm font-medium text-base-content/72">Erledigte Challenges</h3>
+                                <p class="mt-3 text-4xl font-semibold tracking-tight text-base-content">{{ $completedTasks }}</p>
+                                <p class="mt-1 text-sm text-base-content/60">Abgeschlossene Aufgaben</p>
+                            </div>
+                        </div>
+
+                        <div class="mt-6 space-y-3">
+                            <h3 class="text-sm font-semibold uppercase tracking-[0.24em] text-base-content/45">Punkte nach Bereich</h3>
+
+                            @if(! empty($categoryPoints))
+                                <dl class="grid gap-3 sm:grid-cols-2">
+                                    @foreach($categoryPoints as $category => $points)
+                                        <div class="rounded-3xl bg-base-200/70 px-4 py-3">
+                                            <dt class="text-sm text-base-content/72">{{ $category }}</dt>
+                                            <dd class="mt-1 text-lg font-semibold text-base-content">{{ $points }} Baxx</dd>
+                                        </div>
+                                    @endforeach
+                                </dl>
+                            @else
+                                <p class="rounded-3xl bg-base-200/70 px-4 py-3 text-sm text-base-content/72">Für dieses Profil sind noch keine bereichsspezifischen Punkte erfasst.</p>
                             @endif
                         </div>
-                    </div>
+                    </x-ui.panel>
 
-                    <!-- Rechte Spalte: Statistiken und Maddrax-Leidenschaft -->
-                    <div class="col-span-2 mt-8 md:mt-0">
-                        <!-- Vereinsaktivität -->
-                        <div class="mb-8">
-                            <h2 class="text-xl font-semibold text-primary mb-4 flex items-center">
-                                <x-icon name="o-chart-bar" class="w-6 h-6 mr-2" />
-                                Vereinsaktivität
-                            </h2>
-
-                            <div class="bg-base-200 p-6 rounded-lg shadow">
-                                <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-8">
-                                    <div
-                                        class="text-center sm:text-left mb-6 sm:mb-0 bg-base-100 p-4 rounded-lg shadow-sm flex-1 mr-0 sm:mr-4">
-                                        <h3 class="text-sm font-medium text-base-content mb-1">
-                                            Baxx</h3>
-                                        <p class="text-4xl font-bold text-primary">
-                                            {{ $userPoints }}
-                                        </p>
-                                        <p class="text-sm text-base-content mt-1">Baxx</p>
+                    <x-ui.panel title="Maddrax-Leidenschaft" description="Persönliche Lieblingsdaten, Einstiege und Sammelschwerpunkte rund um das Maddraxiversum.">
+                        @if($maddraxLeidenschaft->isNotEmpty())
+                            <div class="grid gap-4 sm:grid-cols-2">
+                                @foreach($maddraxLeidenschaft as $entry)
+                                    <div class="rounded-3xl bg-base-200/70 p-4 shadow-sm">
+                                        <h3 class="text-sm font-semibold uppercase tracking-[0.24em] text-base-content/45">{{ $entry['label'] }}</h3>
+                                        <p class="mt-3 text-base leading-relaxed text-base-content">{{ $entry['value'] }}</p>
                                     </div>
-                                    <div
-                                        class="text-center sm:text-left bg-base-100 p-4 rounded-lg shadow-sm flex-1">
-                                        <h3 class="text-sm font-medium text-base-content mb-1">Erledigte
-                                            Challenges</h3>
-                                        <p class="text-4xl font-bold text-base-content">
-                                            {{ $completedTasks }}
-                                        </p>
-                                        <p class="text-sm text-base-content mt-1">Challenges</p>
-                                    </div>
-                                </div>
+                                @endforeach
                             </div>
-                        </div>
-
-                        <!-- Maddrax-Leidenschaft -->
-                        <div>
-                            <h2 class="text-xl font-semibold text-primary mb-4 flex items-center">
-                                <x-icon name="o-heart" class="w-6 h-6 mr-2" />
-                                Meine Maddrax-Leidenschaft
-                            </h2>
-
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                @if($user->einstiegsroman)
-                                    <div class="bg-base-200 p-4 rounded-lg shadow">
-                                        <h3 class="font-semibold text-base-content mb-2">Einstiegsroman</h3>
-                                        <p class="text-base-content">{{ $user->einstiegsroman }}</p>
-                                    </div>
-                                @endif
-
-                                @if($user->lesestand)
-                                    <div class="bg-base-200 p-4 rounded-lg shadow">
-                                        <h3 class="font-semibold text-base-content mb-2">Aktueller Lesestand
-                                        </h3>
-                                        <p class="text-base-content">{{ $user->lesestand }}</p>
-                                    </div>
-                                @endif
-
-                                @if($user->lieblingsroman)
-                                    <div class="bg-base-200 p-4 rounded-lg shadow">
-                                        <h3 class="font-semibold text-base-content mb-2">Lieblingsroman</h3>
-                                        <p class="text-base-content">{{ $user->lieblingsroman }}</p>
-                                    </div>
-                                @endif
-
-                                @if($user->lieblingshardcover)
-                                    <div class="bg-base-200 p-4 rounded-lg shadow">
-                                        <h3 class="font-semibold text-base-content mb-2">Lieblingshardcover</h3>
-                                        <p class="text-base-content">{{ $user->lieblingshardcover }}</p>
-                                    </div>
-                                @endif
-
-                                @if($user->lieblingscover)
-                                    <div class="bg-base-200 p-4 rounded-lg shadow">
-                                        <h3 class="font-semibold text-base-content mb-2">Lieblingscover</h3>
-                                        <p class="text-base-content">{{ $user->lieblingscover }}</p>
-                                    </div>
-                                @endif
-
-                                @if($user->lieblingsfigur)
-                                    <div class="bg-base-200 p-4 rounded-lg shadow">
-                                        <h3 class="font-semibold text-base-content mb-2">Lieblingsfigur</h3>
-                                        <p class="text-base-content">{{ $user->lieblingsfigur }}</p>
-                                    </div>
-                                @endif
-
-                                @if($user->lieblingsmutation)
-                                    <div class="bg-base-200 p-4 rounded-lg shadow">
-                                        <h3 class="font-semibold text-base-content mb-2">Lieblingsmutation</h3>
-                                        <p class="text-base-content">{{ $user->lieblingsmutation }}</p>
-                                    </div>
-                                @endif
-
-                                @if($user->lieblingsschauplatz)
-                                    <div class="bg-base-200 p-4 rounded-lg shadow">
-                                        <h3 class="font-semibold text-base-content mb-2">Lieblingsschauplatz
-                                        </h3>
-                                        <p class="text-base-content">{{ $user->lieblingsschauplatz }}</p>
-                                    </div>
-                                @endif
-
-                                @if($user->lieblingsautor)
-                                    <div class="bg-base-200 p-4 rounded-lg shadow">
-                                        <h3 class="font-semibold text-base-content mb-2">Lieblingsautor</h3>
-                                        <p class="text-base-content">{{ $user->lieblingsautor }}</p>
-                                    </div>
-                                @endif
-
-                                @if($user->lieblingszyklus)
-                                    <div class="bg-base-200 p-4 rounded-lg shadow">
-                                        <h3 class="font-semibold text-base-content mb-2">Lieblingszyklus</h3>
-                                        <p class="text-base-content">{{ $user->lieblingszyklus }}-Zyklus</p>
-                                    </div>
-                                @endif
-                                @if($user->lieblingsthema)
-                                    <div class="bg-base-200 p-4 rounded-lg shadow">
-                                        <h3 class="font-semibold text-base-content mb-2">Lieblingsthema</h3>
-                                        <p class="text-base-content">{{ $user->lieblingsthema }}</p>
-                                    </div>
-                                @endif
-                            </div>
-                        </div>
-                    </div>
+                        @else
+                            <p class="rounded-3xl bg-base-200/70 px-4 py-3 text-sm text-base-content/72">Für dieses Profil wurden noch keine persönlichen Maddrax-Favoriten hinterlegt.</p>
+                        @endif
+                    </x-ui.panel>
                 </div>
             </div>
-        </x-card>
+        </div>
 
         <!-- Profile Photo Modal -->
         <x-mary-modal id="profilePhotoModal" box-class="max-w-lg" without-trap-focus>

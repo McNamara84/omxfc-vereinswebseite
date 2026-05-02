@@ -1,7 +1,5 @@
 <!-- resources/views/profile/update-seriendaten-form.blade.php -->
 <div>
-    <x-header title="{{ __('Serienspezifische Daten') }}" subtitle="{{ __('Hier kannst du deine Lieblingsdetails zur Serie Maddrax hinterlegen. Alle Felder sind optional. Alle Angaben, die du hier machst, können von anderen Mitgliedern eingesehen werden. Die Auswahlmöglichkeiten werden freundlicherweise durch das Maddraxikon zur Verfügung gestellt. Sollte eine Auswahl fehlen, liegt das daran, dass die entsprechenden Informationen im Maddraxikon noch fehlen.') }}" size="text-lg" class="!mb-4" />
-
     <x-form wire:submit="updateSeriendaten" class="max-w-xl">
         @php
             $romanOptions = collect($romane)->map(fn($r) => ['id' => $r, 'name' => $r])->toArray();

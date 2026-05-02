@@ -1,6 +1,4 @@
-<x-card>
-    <x-header title="Details der Arbeitsgruppe" subtitle="Erstelle eine neue Arbeitsgruppe, um mit anderen an Projekten zusammenzuarbeiten." size="text-lg" class="!mb-4" />
-
+<div>
     <div class="flex items-center mb-6">
         <x-avatar :image="$this->user->profile_photo_url" class="!w-12 !h-12" />
         <div class="ms-4 leading-tight">
@@ -16,4 +14,4 @@
             <x-button type="submit" label="Erstellen" class="btn-primary" />
         </div>
     </form>
-</x-card>
+</div>

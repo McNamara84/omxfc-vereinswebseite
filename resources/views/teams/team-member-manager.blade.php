@@ -3,8 +3,7 @@
     @if (Gate::check('addTeamMember', $team))
         <x-hr class="my-8" />
 
-        <x-card>
-            <x-header title="Mitglied hinzufügen" subtitle="Füge ein neues Mitglied zu dieser Arbeitsgruppe hinzu." size="text-lg" class="!mb-4" />
+        <x-ui.panel title="Mitglied hinzufügen" description="Füge per E-Mail ein neues Mitglied zu dieser Arbeitsgruppe hinzu und vergebe direkt eine passende Rolle.">
 
             <p class="text-sm text-base-content mb-4">
                 Gib die E-Mail-Adresse der Person ein, die du zu dieser Arbeitsgruppe hinzufügen möchtest.
@@ -52,15 +51,14 @@
                     <x-button type="submit" label="Hinzufügen" class="btn-primary" icon="o-plus" />
                 </div>
             </form>
-        </x-card>
+        </x-ui.panel>
     @endif
 
     {{-- Ausstehende Einladungen --}}
     @if ($team->teamInvitations->isNotEmpty() && Gate::check('addTeamMember', $team))
         <x-hr class="my-8" />
 
-        <x-card>
-            <x-header title="Ausstehende Einladungen" subtitle="Diese Personen wurden eingeladen und haben eine E-Mail erhalten. Sie können der Arbeitsgruppe beitreten, indem sie die Einladung annehmen." size="text-lg" class="!mb-4" />
+        <x-ui.panel title="Ausstehende Einladungen" description="Diese Personen wurden eingeladen und können der Arbeitsgruppe beitreten, sobald sie die Einladung annehmen.">
 
             <div class="space-y-4">
                 @foreach ($team->teamInvitations as $invitation)
@@ -78,15 +76,14 @@
                     </div>
                 @endforeach
             </div>
-        </x-card>
+        </x-ui.panel>
     @endif
 
     {{-- Mitgliederliste --}}
     @if ($team->users->isNotEmpty())
         <x-hr class="my-8" />
 
-        <x-card>
-            <x-header title="Mitglieder" subtitle="Alle Personen, die dieser Arbeitsgruppe angehören." size="text-lg" class="!mb-4" />
+        <x-ui.panel title="Mitglieder" description="Alle Personen, die dieser Arbeitsgruppe angehören, inklusive Rollenverwaltung und Direktaktionen.">
 
             <div class="space-y-3">
                 @foreach ($team->users->sortBy('name') as $user)
@@ -129,7 +126,7 @@
                     </div>
                 @endforeach
             </div>
-        </x-card>
+        </x-ui.panel>
     @endif
 
     {{-- Rollenverwaltungs-Modal --}}

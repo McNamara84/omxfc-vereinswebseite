@@ -1,6 +1,4 @@
 <div>
-    <x-header title="{{ __('Persönliche Daten') }}" subtitle="{{ __('Hier kannst du ganz einfach deine persönlichen Angaben aktualisieren. Bitte halte diese Informationen möglichst aktuell, damit wir dich erreichen können. Während Namen und Foto für andere sichtbar sind, bleiben deine Adressdaten und dein eingestellter Mitgliedsbeitrag für andere Mitglieder unsichtbar.') }}" size="text-lg" class="!mb-4" />
-
     <x-form wire:submit="updateProfileInformation" class="max-w-xl">
         <!-- Profilfoto -->
         @if (Laravel\Jetstream\Jetstream::managesProfilePhotos())
