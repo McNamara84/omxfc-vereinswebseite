@@ -65,6 +65,21 @@ class TeamPointServiceTest extends TestCase
         $this->assertSame(7, $this->service->getUserPoints($user));
     }
 
+    public function test_get_user_points_for_team_ignores_current_team_selection(): void
+    {
+        $user = $this->memberWithPoints();
+        $this->addPoints($user, 9, Carbon::now());
+
+        $otherTeam = Team::factory()->create(['personal_team' => false]);
+        $otherTeam->users()->attach($user, ['role' => Role::Mitglied->value]);
+
+        $userWithOtherCurrentTeam = $user->fresh();
+        $userWithOtherCurrentTeam->current_team_id = $otherTeam->id;
+        $userWithOtherCurrentTeam->unsetRelation('currentTeam');
+
+        $this->assertSame(9, $this->service->getUserPointsForTeam($userWithOtherCurrentTeam, $this->team));
+    }
+
     public function test_get_user_point_trend_returns_last_seven_days(): void
     {
         Carbon::setTestNow(Carbon::create(2024, 1, 10, 12));
@@ -101,6 +116,30 @@ class TeamPointServiceTest extends TestCase
         $this->assertSame(12, $metrics['weekly']['total']);
         $this->assertSame(9, $metrics['weekly']['target']);
         $this->assertSame(100, $metrics['weekly']['progress']);
+    }
+
+    public function test_dashboard_metrics_uses_provided_team_instead_of_current_team(): void
+    {
+        Carbon::setTestNow(Carbon::create(2024, 1, 10, 12));
+
+        $user = $this->memberWithPoints();
+        $this->addPoints($user, 12, Carbon::now());
+
+        $otherTeam = Team::factory()->create(['personal_team' => false]);
+        $otherTeam->users()->attach($user, ['role' => Role::Mitglied->value]);
+
+        User::findOrFail($user->id)->points()->create([
+            'team_id' => $otherTeam->id,
+            'points' => 99,
+        ]);
+
+        $userWithOtherCurrentTeam = $user->fresh();
+        $userWithOtherCurrentTeam->current_team_id = $otherTeam->id;
+        $userWithOtherCurrentTeam->unsetRelation('currentTeam');
+
+        $metrics = $this->service->getDashboardMetrics($userWithOtherCurrentTeam, $this->team);
+
+        $this->assertSame(12, $metrics['user_points']);
     }
 
     public function test_dashboard_metrics_exposes_leaderboard_and_rank_gap(): void

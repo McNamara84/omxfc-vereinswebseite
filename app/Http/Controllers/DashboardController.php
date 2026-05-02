@@ -91,7 +91,7 @@ class DashboardController extends Controller
 
         // Verfügbares Baxx-Guthaben bewusst nicht cachen, damit Käufe und Erstattungen
         // auf dem Dashboard sofort sichtbar werden.
-        $availableBaxx = $this->rewardService->getAvailableBaxx($user);
+        $availableBaxx = $this->rewardService->getAvailableBaxxForTeam($user, $team);
 
         // Aufgaben, die auf Verifizierung warten (nur für Admins sichtbar)
         if (in_array($userRole, $allowedRoles, true)) {

@@ -228,6 +228,38 @@ class DashboardControllerTest extends TestCase
             ->assertSeeText('Verfügbare Baxx');
     }
 
+    public function test_dashboard_uses_members_team_baxx_when_current_team_differs(): void
+    {
+        $team = Team::membersTeam();
+        $member = User::factory()->create(['current_team_id' => $team->id]);
+        $team->users()->attach($member, ['role' => Role::Mitglied->value]);
+
+        UserPoint::create([
+            'user_id' => $member->id,
+            'team_id' => $team->id,
+            'todo_id' => null,
+            'points' => 12,
+        ]);
+
+        $reward = Reward::factory()->create([
+            'cost_baxx' => 5,
+            'slug' => 'dashboard-members-team-balance',
+        ]);
+
+        app(RewardService::class)->purchaseReward($member, $reward);
+
+        $otherTeam = Team::factory()->create(['personal_team' => false, 'name' => 'Nebenverein']);
+        $otherTeam->users()->attach($member, ['role' => Role::Mitglied->value]);
+
+        $member->forceFill(['current_team_id' => $otherTeam->id])->save();
+
+        $this->actingAs($member->fresh())
+            ->get('/dashboard')
+            ->assertOk()
+            ->assertViewHas('availableBaxx', 7)
+            ->assertSeeText('7 Baxx verfügbar');
+    }
+
     public function test_dashboard_counts_book_swap_matches_for_request_owner(): void
     {
         $team = Team::membersTeam();

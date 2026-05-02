@@ -18,7 +18,15 @@ class TeamPointService
     {
         $team = $user->currentTeam;
 
-        return $team ? $user->totalPointsForTeam($team) : 0;
+        return $team ? $this->getUserPointsForTeam($user, $team) : 0;
+    }
+
+    /**
+     * Get the total points of a user in a specific team.
+     */
+    public function getUserPointsForTeam(User $user, Team $team): int
+    {
+        return $user->totalPointsForTeam($team);
     }
 
     /**
@@ -40,7 +48,7 @@ class TeamPointService
      */
     public function getDashboardMetrics(User $user, Team $team): array
     {
-        $userPoints = $this->getUserPoints($user);
+        $userPoints = $this->getUserPointsForTeam($user, $team);
         $trend = $this->getUserPointTrend($user, $team);
         $trendMax = collect($trend)->max(fn (array $entry) => $entry['points']) ?? 0;
         $weeklyTotal = array_sum(array_column($trend, 'points'));

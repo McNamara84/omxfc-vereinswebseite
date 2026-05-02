@@ -52,6 +52,23 @@ class TodoLivewireTest extends TestCase
             ->assertOk();
     }
 
+    public function test_index_uses_members_team_points_when_current_team_differs(): void
+    {
+        $user = $this->actingMember();
+        $user->incrementTeamPoints(37);
+
+        $otherTeam = Team::factory()->create(['personal_team' => false, 'name' => 'Nebenverein']);
+        $otherTeam->users()->attach($user, ['role' => Role::Mitglied->value]);
+
+        $user->forceFill(['current_team_id' => $otherTeam->id])->save();
+
+        Livewire::actingAs($user->fresh())
+            ->test(TodoIndex::class)
+            ->assertSet('userPoints', 37)
+            ->assertSeeText('37')
+            ->assertOk();
+    }
+
     public function test_dashboard_copy_uses_club_language(): void
     {
         $user = $this->actingMember();

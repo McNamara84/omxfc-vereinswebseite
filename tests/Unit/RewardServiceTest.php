@@ -4,6 +4,7 @@ namespace Tests\Unit;
 
 use App\Enums\Role;
 use App\Models\Reward;
+use App\Models\Team;
 use App\Services\RewardService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Validation\ValidationException;
@@ -129,6 +130,39 @@ class RewardServiceTest extends TestCase
 
         $this->service->refundPurchase($purchase, $admin);
         $this->assertEquals(20, $this->service->getAvailableBaxx($user));
+    }
+
+    public function test_get_available_baxx_for_team_ignores_different_current_team(): void
+    {
+        $membersTeam = Team::membersTeam();
+        $this->assertInstanceOf(Team::class, $membersTeam);
+        $user = $this->actingMemberWithPoints(20);
+        $reward = Reward::factory()->create(['cost_baxx' => 7]);
+        $this->service->purchaseReward($user, $reward);
+
+        $otherTeam = Team::factory()->create(['personal_team' => false]);
+        $otherTeam->users()->attach($user, ['role' => Role::Mitglied->value]);
+
+        $userWithOtherCurrentTeam = $user->fresh();
+        $userWithOtherCurrentTeam->current_team_id = $otherTeam->id;
+        $userWithOtherCurrentTeam->unsetRelation('currentTeam');
+
+        $this->assertEquals(13, $this->service->getAvailableBaxxForTeam($userWithOtherCurrentTeam, $membersTeam));
+    }
+
+    public function test_get_available_baxx_for_team_works_without_current_team(): void
+    {
+        $membersTeam = Team::membersTeam();
+        $this->assertInstanceOf(Team::class, $membersTeam);
+        $user = $this->actingMemberWithPoints(20);
+        $reward = Reward::factory()->create(['cost_baxx' => 7]);
+        $this->service->purchaseReward($user, $reward);
+
+        $userWithoutCurrentTeam = $user->fresh();
+        $userWithoutCurrentTeam->current_team_id = null;
+        $userWithoutCurrentTeam->unsetRelation('currentTeam');
+
+        $this->assertEquals(13, $this->service->getAvailableBaxxForTeam($userWithoutCurrentTeam, $membersTeam));
     }
 
     public function test_get_spent_baxx_excludes_refunded(): void

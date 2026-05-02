@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Reward;
 use App\Models\RewardPurchase;
+use App\Models\Team;
 use App\Models\User;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Collection;
@@ -90,6 +91,18 @@ class RewardService
     public function getAvailableBaxx(User $user): int
     {
         $earnedBaxx = $this->teamPointService->getUserPoints($user);
+        $spentBaxx = $this->getSpentBaxx($user);
+
+        return max(0, $earnedBaxx - $spentBaxx);
+    }
+
+    /**
+     * Get the available (spendable) Baxx for a user in a specific team.
+     * Available = Earned in the given team - Spent (on active, non-refunded purchases).
+     */
+    public function getAvailableBaxxForTeam(User $user, Team $team): int
+    {
+        $earnedBaxx = $this->teamPointService->getUserPointsForTeam($user, $team);
         $spentBaxx = $this->getSpentBaxx($user);
 
         return max(0, $earnedBaxx - $spentBaxx);
