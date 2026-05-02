@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Support\Navigation\NavigationBuilder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Symfony\Component\DomCrawler\Crawler;
 use Tests\Concerns\CreatesUserWithRole;
 use Tests\TestCase;
 
@@ -125,6 +126,21 @@ class NavigationMenuTest extends TestCase
         $response = $this->get('/');
 
         $response->assertSee(route('termine'));
+    }
+
+    public function test_mobile_menu_button_has_static_accessibility_defaults_before_alpine_initialization(): void
+    {
+        $response = $this->get('/');
+
+        $response->assertOk();
+
+        $crawler = new Crawler($response->getContent());
+        $menuToggle = $crawler->filter('button[aria-controls="mobile-navigation"]');
+
+        $this->assertCount(1, $menuToggle, 'Mobile menu toggle missing');
+        $this->assertSame('false', $menuToggle->attr('aria-expanded'));
+        $this->assertSame('Menü öffnen', $menuToggle->attr('aria-label'));
+        $this->assertSame('mobile-navigation', $menuToggle->attr('aria-controls'));
     }
 
     public function test_admin_users_see_admin_menu_with_statistik_link(): void

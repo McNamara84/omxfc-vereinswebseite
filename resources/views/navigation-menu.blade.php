@@ -89,7 +89,9 @@
                     <button
                         type="button"
                         @click="open = !open; $dispatch('toggle-mobile-menu', { open })"
+                        aria-expanded="false"
                         :aria-expanded="open"
+                        aria-label="Menü öffnen"
                         :aria-label="open ? 'Menü schließen' : 'Menü öffnen'"
                         aria-controls="mobile-navigation"
                         class="btn btn-ghost btn-sm"
