@@ -17,6 +17,15 @@ describe('dashboard accessibility utilities', () => {
     expect(summary).toBe('Top 3 Baxx-Sammler: 1. Alex Beispiel (180 Baxx), 2. Bianca Beispiel (140 Baxx), 3. Chris Beispiel (95 Baxx)');
   });
 
+  it('keeps formatted point strings stable when hydrating from payload data', () => {
+    const summary = buildTopUserSummary([
+      { name: 'Alex Beispiel', points: 1234, formatted_points: '1.234' },
+      { name: 'Bianca Beispiel', points: 1040, formatted_points: '1.040' },
+    ]);
+
+    expect(summary).toBe('Top 2 Baxx-Sammler: 1. Alex Beispiel (1.234 Baxx), 2. Bianca Beispiel (1.040 Baxx)');
+  });
+
   it('enhances the top user list with aria attributes and summary text', () => {
     const container = document.createElement('div');
     container.dataset.dashboardTopUsers = JSON.stringify(sampleUsers);

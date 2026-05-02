@@ -209,6 +209,14 @@ class DashboardController extends Controller
             applicantCount: $anwaerter->count(),
             pendingVerification: $pendingVerification,
         );
+        $showGovernanceTools = in_array($userRole, $allowedRoles, true);
+        $dashboardHeaderBadges = $this->buildDashboardHeaderBadges(
+            userPoints: $userPoints,
+            openTodos: $openTodos,
+            showGovernanceTools: $showGovernanceTools,
+            pendingVerification: $pendingVerification,
+        );
+        ['entries' => $topUsersEntries, 'summary' => $topUsersSummary, 'payload' => $topUsersPayload] = $this->buildTopUsersViewData($topUsers);
 
         return view('dashboard', compact(
             'anwaerter',
@@ -229,7 +237,77 @@ class DashboardController extends Controller
             'dashboardGreeting',
             'dashboardDescription',
             'quickActions',
+            'showGovernanceTools',
+            'dashboardHeaderBadges',
+            'topUsersEntries',
+            'topUsersSummary',
+            'topUsersPayload',
         ));
+    }
+
+    private function buildDashboardHeaderBadges(int $userPoints, int $openTodos, bool $showGovernanceTools, int $pendingVerification): array
+    {
+        $badges = [
+            [
+                'label' => "{$userPoints} Baxx",
+                'class' => 'badge badge-primary badge-outline rounded-full px-3 py-3',
+            ],
+            [
+                'label' => trans_choice(':count offene Challenge|:count offene Challenges', $openTodos, ['count' => $openTodos]),
+                'class' => 'badge badge-outline rounded-full px-3 py-3',
+            ],
+        ];
+
+        if ($showGovernanceTools && $pendingVerification > 0) {
+            $badges[] = [
+                'label' => trans_choice(':count wartet auf Verifizierung|:count warten auf Verifizierung', $pendingVerification, ['count' => $pendingVerification]),
+                'class' => 'badge badge-secondary badge-outline rounded-full px-3 py-3',
+            ];
+        }
+
+        return $badges;
+    }
+
+    private function buildTopUsersViewData(iterable $topUsers): array
+    {
+        $entries = collect($topUsers)
+            ->values()
+            ->map(function ($user) {
+                $points = (int) $user['points'];
+
+                return [
+                    ...$user,
+                    'points' => $points,
+                    'formatted_points' => $this->formatDashboardPoints($points),
+                ];
+            });
+        $summary = $entries->isNotEmpty()
+            ? 'Top '.$entries->count().' Baxx-Sammler: '
+                .$entries->map(function ($user, $index) {
+                    $position = $index + 1;
+
+                    return $position.'. '.$user['name'].' ('.$user['formatted_points'].' Baxx)';
+                })->implode(', ')
+            : null;
+        $payload = $entries->map(function ($user) {
+            return [
+                'id' => $user['id'],
+                'name' => $user['name'],
+                'points' => (int) $user['points'],
+                'formatted_points' => $user['formatted_points'],
+            ];
+        })->toArray();
+
+        return [
+            'entries' => $entries,
+            'summary' => $summary,
+            'payload' => $payload,
+        ];
+    }
+
+    private function formatDashboardPoints(int $points): string
+    {
+        return number_format($points, 0, ',', '.');
     }
 
     private function buildFocusCards(
@@ -247,7 +325,7 @@ class DashboardController extends Controller
                 'value' => $openTodos,
                 'href' => route('todos.index'),
                 'icon' => 'o-bolt',
-                'sr_text' => "Meine offenen Challenges: {$openTodos}",
+                'sr_text' => trans_choice('Meine offene Challenge: :count|Meine offenen Challenges: :count', $openTodos, ['count' => $openTodos]),
             ],
             [
                 'title' => 'Meine Baxx',
@@ -325,7 +403,7 @@ class DashboardController extends Controller
             array_unshift($actions, [
                 'title' => 'Verifizierungen prüfen',
                 'description' => 'Abgeschlossene Challenges freigeben und nächste Schritte für Teams anstoßen.',
-                'href' => route('todos.index').'?filter=pending',
+                'href' => route('todos.index', ['filter' => 'pending']),
                 'icon' => 'o-shield-check',
                 'badge' => $pendingVerification > 0 ? (string) $pendingVerification : null,
             ]);

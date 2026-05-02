@@ -16,8 +16,12 @@ test.describe('Accessibility checks', () => {
     await expect(menuToggle).toHaveAccessibleName('Menü öffnen');
     await expect(menuToggle).toHaveAttribute('aria-expanded', 'false');
 
+    await menuToggle.click();
+    await expect(menuToggle).toHaveAccessibleName('Menü schließen');
+    await expect(menuToggle).toHaveAttribute('aria-expanded', 'true');
+
     await expect(menuToggle).toHaveAttribute('@click', /open\s*=\s*!open/);
-    await expect(menuToggle).toContainText('Menü');
+    await expect(menuToggle).toContainText(/Menü|Schließen/);
 
     const accessibilityScanResults = await new AxeBuilder({ page })
       .withTags(['wcag2a', 'wcag2aa'])

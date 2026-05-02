@@ -130,7 +130,12 @@ class DashboardTest extends TestCase
 
         $response->assertOk();
         $response->assertSeeText('Auf Verifizierung wartende Challenges');
-        $response->assertSeeText('Challenge(s)');
+        $response->assertSeeText('Es gibt 1 Challenge, die auf Bestätigung wartet.');
+
+        $crawler = new Crawler($response->getContent());
+        $pendingPanel = $crawler->filter('[data-testid="dashboard-pending-panel"]');
+        $this->assertCount(1, $pendingPanel);
+        $this->assertSame(route('todos.index', ['filter' => 'pending']), $pendingPanel->attr('href'));
     }
 
     public function test_dashboard_hides_pending_verification_card_for_members(): void
@@ -166,7 +171,7 @@ class DashboardTest extends TestCase
             UserPoint::create([
                 'user_id' => $topUser->id,
                 'team_id' => $team->id,
-                'points' => 100 - ($index * 10),
+                'points' => [1234, 1040, 980][$index],
             ]);
         }
 
@@ -175,13 +180,43 @@ class DashboardTest extends TestCase
         $response->assertOk();
 
         $crawler = new Crawler($response->getContent());
+        $this->assertSame('Top 3 Baxx-Sammler', trim($crawler->filter('h2')->reduce(function (Crawler $node) {
+            return trim($node->text()) === 'Top 3 Baxx-Sammler';
+        })->text()));
         $topList = $crawler->filter('[data-dashboard-top-users]');
         $this->assertSame(1, $topList->count());
         $this->assertStringContainsString('Top 3 Baxx-Sammler', $topList->attr('aria-label'));
+        $this->assertStringContainsString('1.234 Baxx', $topList->attr('aria-label'));
         $this->assertSame(3, $topList->filter('[data-dashboard-top-user-item]')->count());
         $srSummary = $topList->filter('[data-dashboard-top-summary]');
         $this->assertSame(1, $srSummary->count());
         $this->assertStringContainsString('Top 3 Baxx-Sammler', trim($srSummary->text()));
+        $payload = json_decode($topList->attr('data-dashboard-top-users'), true, flags: JSON_THROW_ON_ERROR);
+        $this->assertSame('1.234', $payload[0]['formatted_points']);
+        $this->assertSame(1234, $payload[0]['points']);
+    }
+
+    public function test_dashboard_uses_dynamic_top_users_panel_title_for_shorter_rankings(): void
+    {
+        $user = $this->createUserWithRole(Role::Admin);
+        $team = Team::membersTeam();
+
+        $topUsers = User::factory()->count(2)->create(['current_team_id' => $team->id]);
+
+        foreach ($topUsers as $index => $topUser) {
+            $team->users()->attach($topUser, ['role' => Role::Mitglied->value]);
+            UserPoint::create([
+                'user_id' => $topUser->id,
+                'team_id' => $team->id,
+                'points' => [300, 220][$index],
+            ]);
+        }
+
+        $response = $this->actingAs($user)->get('/dashboard');
+
+        $response->assertOk();
+        $response->assertSeeText('Top 2 Baxx-Sammler');
+        $response->assertDontSeeText('TOP 3 Baxx-Sammler');
     }
 
     public function test_dashboard_shows_personalized_header_and_quick_actions_for_members(): void
@@ -231,6 +266,7 @@ class DashboardTest extends TestCase
         $response->assertSeeText('Fantreffen verwalten');
         $this->assertNotNull($challengeAction);
         $this->assertArrayNotHasKey('badge', $challengeAction);
+        $this->assertSame(route('todos.index', ['filter' => 'pending']), $verificationAction['href'] ?? null);
         $this->assertSame('1', $verificationAction['badge'] ?? null);
     }
 }
