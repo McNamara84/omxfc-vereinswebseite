@@ -7,8 +7,13 @@
             </x-alert>
         @endif
 
-        <x-card shadow>
-            <x-header title="Newsletter versenden" separator />
+        <x-ui.page-header
+            eyebrow="Adminbereich"
+            title="Newsletter versenden"
+            description="Plane Versand, wähle Zielgruppen nach Rollen aus und strukturiere Inhalte in mehrere Themenblöcke."
+        />
+
+        <x-ui.panel title="Newsletter-Inhalt" description="Betreff, Rollen und Themenblöcke werden gemeinsam vorbereitet, bevor der Versand bestätigt wird.">
 
             <form x-data="newsletterForm()" x-ref="form" method="POST" action="{{ route('newsletter.send') }}">
                 @csrf
@@ -32,7 +37,7 @@
 
                 {{-- Dynamische Themen --}}
                 <template x-for="(topic, index) in topics" :key="index">
-                    <x-card class="mb-4 bg-base-200">
+                    <x-ui.panel class="mb-4 bg-base-200/70 shadow-none">
                         <div class="space-y-3">
                             <div>
                                 <label class="label" x-bind:for="'topic-title-' + index">
@@ -47,7 +52,7 @@
                                 <textarea x-bind:id="'topic-content-' + index" class="textarea textarea-bordered w-full" rows="3" x-bind:name="'topics[' + index + '][content]'" required></textarea>
                             </div>
                         </div>
-                    </x-card>
+                    </x-ui.panel>
                 </template>
 
                 {{-- Aktions-Buttons --}}
@@ -61,17 +66,16 @@
 
                 {{-- Confirm-Modal --}}
                 <div x-show="showConfirm" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-base-300/75">
-                    <x-card class="max-w-md w-full mx-4 shadow-xl">
-                        <x-header title="Bestätigung" class="!mb-2" />
+                    <x-ui.panel title="Bestätigung" class="mx-4 w-full max-w-md">
                         <p class="mb-6 text-base-content" x-text="pendingTest ? 'Testnewsletter wirklich versenden?' : 'Wirklich Newsletter versenden?'"></p>
                         <div class="flex justify-end gap-2">
                             <x-button label="Abbrechen" class="btn-ghost" @click="showConfirm = false" />
                             <x-button label="Ja, versenden" class="btn-primary" @click="submit" />
                         </div>
-                    </x-card>
+                    </x-ui.panel>
                 </div>
             </form>
-        </x-card>
+        </x-ui.panel>
     </x-member-page>
 </x-app-layout>
 

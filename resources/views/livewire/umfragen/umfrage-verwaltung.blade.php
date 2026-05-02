@@ -1,6 +1,11 @@
 <div>
     {{-- Header --}}
-    <x-header title="Umfrage verwalten" subtitle="Erstellen, bearbeiten und auswerten (nur Admin/Vorstand)." separator data-testid="page-header" />
+    <x-ui.page-header
+        eyebrow="Adminbereich"
+        title="Umfrage verwalten"
+        description="Erstellen, bearbeiten, aktivieren und auswerten von Umfragen für Mitglieder oder öffentliche Abstimmungen."
+        data-testid="page-header"
+    />
 
     {{-- Success/Error Messages --}}
     @if (session()->has('success'))
@@ -21,7 +26,7 @@
     @endif
 
     {{-- Umfrage-Auswahl Card --}}
-    <x-card class="mb-8" data-testid="poll-selection-card">
+    <x-ui.panel title="Umfrage auswählen und konfigurieren" description="Wähle eine bestehende Umfrage aus oder starte eine neue Konfiguration inklusive Optionen, Zeitraum und Sichtbarkeit." class="mb-8" data-testid="poll-selection-card">
         <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div class="w-full sm:max-w-md">
                 <x-select
@@ -113,7 +118,7 @@
                 <div class="space-y-3">
                     @foreach ($options as $index => $option)
                         <div wire:key="poll-option-{{ $option['id'] ?? ($option['temp_key'] ?? 'poll-option-fallback-' . $index) }}">
-                        <x-card class="bg-base-200" data-testid="answer-option-{{ $index }}">
+                        <x-ui.panel class="bg-base-200" data-testid="answer-option-{{ $index }}">
                             <div class="grid grid-cols-1 gap-3 md:grid-cols-12 md:items-end">
                                 <div class="md:col-span-5">
                                     <x-input
@@ -155,7 +160,7 @@
                                     />
                                 </div>
                             </div>
-                        </x-card>
+                        </x-ui.panel>
                         </div>
                     @endforeach
                 </div>
@@ -174,10 +179,10 @@
                 </x-button>
             </div>
         </form>
-    </x-card>
+    </x-ui.panel>
 
     {{-- Auswertung Card --}}
-    <x-card title="Auswertung" subtitle="Diagramme dienen der Übersicht; die Tabelle bleibt die barrierearme Detailansicht." data-testid="evaluation-card">
+    <x-ui.panel title="Auswertung" description="Diagramme dienen der Übersicht; die Tabelle bleibt die barrierearme Detailansicht." data-testid="evaluation-card">
         {{-- Hidden data for Chart.js --}}
         <div class="hidden" aria-hidden="true">
             <span data-omxfc-poll-color="members" class="text-indigo-600">.</span>
@@ -195,18 +200,18 @@
             @if ($totalVotes > 0)
                 {{-- Charts Grid --}}
                 <div class="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
-                    <x-card class="bg-base-200" wire:ignore>
+                    <x-ui.panel class="bg-base-200" wire:ignore>
                         <h3 class="font-semibold mb-3">Stimmen je Antwort</h3>
                         <canvas id="poll-options-chart" class="h-64 w-full" aria-label="Balkendiagramm: Stimmen je Antwort" role="img"></canvas>
-                    </x-card>
-                    <x-card class="bg-base-200" wire:ignore>
+                    </x-ui.panel>
+                    <x-ui.panel class="bg-base-200" wire:ignore>
                         <h3 class="font-semibold mb-3">Zeitverlauf</h3>
                         <canvas id="poll-timeline-chart" class="h-64 w-full" aria-label="Liniendiagramm: Stimmen im Zeitverlauf" role="img"></canvas>
-                    </x-card>
-                    <x-card class="bg-base-200" wire:ignore>
+                    </x-ui.panel>
+                    <x-ui.panel class="bg-base-200" wire:ignore>
                         <h3 class="font-semibold mb-3">Segmentierung</h3>
                         <canvas id="poll-segment-chart" class="h-64 w-full" aria-label="Diagramm: Mitglieder vs Gäste" role="img"></canvas>
-                    </x-card>
+                    </x-ui.panel>
                 </div>
             @else
                 <x-alert icon="o-chart-bar" class="alert-warning mt-6">
@@ -263,5 +268,5 @@
                 Hinweis: Die Auswertung ist nur für Admin/Vorstand sichtbar.
             </p>
         @endif
-    </x-card>
+    </x-ui.panel>
 </div>

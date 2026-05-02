@@ -1,11 +1,16 @@
 <div class="pb-8">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="mx-auto max-w-7xl space-y-6 px-4 sm:px-6 lg:px-8">
         {{-- Header --}}
-        <x-header title="Kompendium-Administration" subtitle="Verwalte die Romantexte für die Kompendium-Volltextsuche." separator data-testid="page-header">
+        <x-ui.page-header
+            eyebrow="Adminbereich"
+            title="Kompendium-Administration"
+            description="Verwalte Romantexte, Uploads und den Indexierungsstatus der Kompendium-Volltextsuche zentral an einem Ort."
+            data-testid="page-header"
+        >
             <x-slot:actions>
                 <x-button label="Zurück zum Kompendium" link="{{ route('kompendium.index') }}" wire:navigate icon="o-arrow-left" class="btn-ghost" />
             </x-slot:actions>
-        </x-header>
+        </x-ui.page-header>
 
         {{-- Flash Messages --}}
         @if (session('success'))
@@ -39,7 +44,7 @@
         </div>
 
         {{-- Fortschritts-Dashboard --}}
-        <x-card title="Indexierungs-Fortschritt" class="mb-6" shadow data-testid="progress-section">
+        <x-ui.panel title="Indexierungs-Fortschritt" description="Der Fortschritt je Zyklus zeigt, wie viele Romane bereits indexiert sind und wo noch Lücken bestehen." class="mb-6" data-testid="progress-section">
             <div class="space-y-2">
                 @forelse($this->zyklenFortschritt as $eintrag)
                     <div class="flex items-center gap-3">
@@ -75,10 +80,10 @@
                     </p>
                 @endforelse
             </div>
-        </x-card>
+        </x-ui.panel>
 
         {{-- Upload-Bereich --}}
-        <x-card title="Romane hochladen" class="mb-6" shadow data-testid="upload-card">
+        <x-ui.panel title="Romane hochladen" description="Lade TXT-Dateien hoch, ordne sie einer Serie zu und prüfe die erkannte Vorschau direkt vor dem Import." class="mb-6" data-testid="upload-card">
             <form wire:submit="hochladen">
                 <div class="grid md:grid-cols-2 gap-4 mb-4">
                     {{-- Serien-Auswahl --}}
@@ -141,7 +146,7 @@
                     spinner="hochladen"
                     :disabled="count($uploads) === 0" />
             </form>
-        </x-card>
+                </x-ui.panel>
 
         {{-- Serien-Tabs --}}
         <div class="flex flex-wrap gap-1 mb-4" role="tablist" data-testid="series-tabs">
@@ -165,7 +170,7 @@
         </div>
 
         {{-- Filter & Aktionen --}}
-        <x-card class="mb-6" shadow data-testid="filter-section">
+        <x-ui.panel title="Filter & Aktionen" description="Suche nach Romanen, filtere den Indexstatus und starte Massenaktionen für die aktuelle Serienauswahl." class="mb-6" data-testid="filter-section">
             <div class="flex flex-wrap items-end gap-4">
                 {{-- Suche --}}
                 <div class="flex-1 min-w-[200px]">
@@ -209,10 +214,10 @@
                         class="btn-warning btn-sm" />
                 </div>
             </div>
-        </x-card>
+        </x-ui.panel>
 
         {{-- Romanliste --}}
-        <x-card shadow data-testid="novels-table-card" wire:poll.5s>
+        <x-ui.panel title="Romanliste" description="Bearbeite Metadaten, starte Indexierung oder bereinige Einträge direkt aus der tabellarischen Übersicht." data-testid="novels-table-card" wire:poll.5s>
             {{-- Skeleton Loading State --}}
             <div wire:loading.delay wire:target="bearbeiten, indexieren, deIndexieren, retryFehler, loeschen, alleIndexieren, alleDeIndexieren, filterStatus, suchbegriff">
                 <x-skeleton-table :columns="6" :rows="10" />
@@ -331,7 +336,7 @@
                     {{ $this->romane->links() }}
                 </div>
             @endif
-        </x-card>
+        </x-ui.panel>
 
         {{-- Hinweis zur Verarbeitung --}}
         @if($this->statistiken['in_bearbeitung'] > 0)
