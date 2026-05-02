@@ -1,6 +1,6 @@
 <div>
     <!-- Generate API Token -->
-    <x-card title="{{ __('Create API Token') }}" subtitle="{{ __('API tokens allow third-party services to authenticate with our application on your behalf.') }}" shadow separator>
+    <x-ui.panel title="{{ __('Create API Token') }}" description="{{ __('API tokens allow third-party services to authenticate with our application on your behalf.') }}">
         <form id="create-api-token-form" wire:submit="createApiToken">
             <div class="space-y-4">
                 <x-input label="{{ __('Token Name') }}" wire:model="createApiTokenForm.name" autofocus />
@@ -24,13 +24,13 @@
             </x-action-message>
             <x-button label="{{ __('Create') }}" type="submit" form="create-api-token-form" class="btn-primary" />
         </x-slot:actions>
-    </x-card>
+    </x-ui.panel>
 
     @if ($this->user->tokens->isNotEmpty())
         <x-hr class="my-8" />
 
         <!-- Manage API Tokens -->
-        <x-card title="{{ __('Manage API Tokens') }}" subtitle="{{ __('You may delete any of your existing tokens if they are no longer needed.') }}" shadow separator>
+        <x-ui.panel title="{{ __('Manage API Tokens') }}" description="{{ __('You may delete any of your existing tokens if they are no longer needed.') }}">
             <div class="space-y-6">
                 @foreach ($this->user->tokens->sortBy('name') as $token)
                     <div class="flex items-center justify-between">
@@ -58,7 +58,7 @@
                     </div>
                 @endforeach
             </div>
-        </x-card>
+        </x-ui.panel>
     @endif
 
     <!-- Token Value Modal -->

@@ -4,13 +4,19 @@
     :socialImage="asset('build/assets/omxfc-logo-Df-1StAj.png')">
 <div class="bg-base-200 -mt-8 min-h-screen py-12">
     <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+        <x-ui.page-header
+            eyebrow="Fantreffen 2026"
+            title="Anmeldung erfolgreich!"
+            description="Deine Anmeldung wurde gespeichert. Hier findest du alle wichtigen Angaben und, falls nötig, direkt die nächsten Zahlungsschritte."
+            class="mb-6"
+        />
+
         {{-- Erfolgsbox --}}
-        <x-card shadow class="mb-6">
-            <div class="text-center mb-6">
+        <x-ui.panel class="mb-6">
+            <div class="mb-6 text-center">
                 <div class="mx-auto w-16 h-16 bg-success/20 rounded-full flex items-center justify-center mb-4">
                     <x-icon name="o-check" class="w-8 h-8 text-success" />
                 </div>
-                <h1 class="text-3xl font-bold text-base-content mb-2">Anmeldung erfolgreich!</h1>
                 <p class="text-base-content/60">Wir freuen uns auf dich beim Maddrax-Fantreffen 2026!</p>
             </div>
 
@@ -118,7 +124,7 @@
                 <x-button label="📊 Zum Dashboard" link="{{ route('dashboard') }}" wire:navigate class="btn-primary flex-1" data-testid="fantreffen-dashboard-button" />
                 @endauth
             </div>
-        </x-card>
+        </x-ui.panel>
     </div>
 </div>
 </x-app-layout>

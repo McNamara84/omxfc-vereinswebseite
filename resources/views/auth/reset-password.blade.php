@@ -1,7 +1,8 @@
 <x-app-layout title="Passwort zurücksetzen – Offizieller MADDRAX Fanclub e. V." description="Setze dein Passwort zurück.">
     <div class="max-w-md mx-auto px-6 py-12">
-        <x-card shadow data-testid="reset-password-card">
-            <x-header title="Passwort zurücksetzen" class="mb-4" useH1 />
+        <x-ui.page-header title="Passwort zurücksetzen" description="Vergib ein neues Passwort und schließe die Wiederherstellung deines Kontos sicher ab." class="mb-6" />
+
+        <x-ui.panel data-testid="reset-password-card">
 
             @if ($errors->any())
                 <x-alert icon="o-exclamation-triangle" class="alert-error mb-4">
@@ -57,6 +58,6 @@
                     <x-button label="Passwort zurücksetzen" type="submit" class="btn-primary" data-testid="reset-password-submit" />
                 </div>
             </form>
-        </x-card>
+        </x-ui.panel>
     </div>
 </x-app-layout>

@@ -1,6 +1,10 @@
 <x-app-layout>
     <x-member-page class="max-w-5xl">
-        <x-header :title="$model->name" separator data-testid="page-header">
+        <x-ui.page-header
+            :title="$model->name"
+            description="Prüfe Freischaltung, Viewer, Download und alle Metadaten dieses 3D-Modells auf einer gemeinsamen Detailseite."
+            data-testid="page-header"
+        >
             <x-slot:actions>
                 <x-button label="Zurück" icon="o-arrow-left" link="{{ route('3d-modelle.index') }}" wire:navigate
                     class="btn-ghost" />
@@ -17,7 +21,7 @@
                         class="btn-warning btn-sm" />
                 @endcan
             </x-slot:actions>
-        </x-header>
+        </x-ui.page-header>
 
         {{-- Fehlermeldungen (z.B. Kauf fehlgeschlagen, Download/Preview abgelehnt) --}}
         @error('reward')
@@ -35,7 +39,7 @@
                 data-testid="three-d-viewer">
             </div>
         @else
-            <x-card class="mb-6">
+            <x-ui.panel class="mb-6">
                 <div class="text-center py-12">
                     <x-icon name="o-lock-closed" class="w-16 h-16 mx-auto text-base-content/30 mb-4" />
                     @if ($model->reward)
@@ -64,11 +68,11 @@
                         <p class="text-lg font-semibold">Dieses Modell ist nicht verfügbar</p>
                     @endif
                 </div>
-            </x-card>
+            </x-ui.panel>
         @endif
 
         {{-- Metadaten --}}
-        <x-card title="Details" data-testid="model-details">
+        <x-ui.panel title="Details" description="Format, Preis, Dateigröße und Herkunft bleiben hier auch dann sichtbar, wenn das Modell noch gesperrt ist." data-testid="model-details">
             <div class="grid grid-cols-2 gap-4">
                 <div>
                     <span class="text-sm text-base-content/60">Format</span>
@@ -124,6 +128,6 @@
                     </form>
                 </div>
             @endcan
-        </x-card>
+        </x-ui.panel>
     </x-member-page>
 </x-app-layout>

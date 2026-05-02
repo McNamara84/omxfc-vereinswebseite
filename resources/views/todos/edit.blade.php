@@ -1,12 +1,16 @@
 <x-app-layout>
     <x-member-page class="max-w-3xl">
-        <x-header title="Challenge bearbeiten" separator>
+        <x-ui.page-header
+            eyebrow="Mitgliederbereich"
+            title="Challenge bearbeiten"
+            description="Passe Titel, Kategorie, Beschreibung und Baxx-Wert einer bestehenden Challenge an, ohne den Arbeitsfluss zu ändern."
+        >
             <x-slot:actions>
                 <x-button label="Zurück" icon="o-arrow-left" link="{{ route('todos.show', $todo) }}" wire:navigate class="btn-ghost" />
             </x-slot:actions>
-        </x-header>
+        </x-ui.page-header>
 
-        <x-card>
+        <x-ui.panel title="Challenge-Daten" description="Hier werden bestehende Angaben gepflegt und für den nächsten Bearbeitungsschritt aktualisiert.">
             <form action="{{ route('todos.update', $todo) }}" method="POST">
                 @csrf
                 @method('PUT')
@@ -54,6 +58,6 @@
                     <x-button label="Challenge aktualisieren" type="submit" class="btn-primary" icon="o-check" />
                 </div>
             </form>
-        </x-card>
+        </x-ui.panel>
     </x-member-page>
 </x-app-layout>
