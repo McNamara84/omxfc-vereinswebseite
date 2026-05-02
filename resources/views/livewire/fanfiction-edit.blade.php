@@ -161,8 +161,7 @@
                     class="btn-ghost"
                 />
                 <x-button
-                    type="button"
-                    wire:click="save"
+                    type="submit"
                     label="Änderungen speichern"
                     icon="o-check"
                     class="btn-primary"

@@ -71,7 +71,7 @@
 
             <!-- Zu verifizierende Challenges (nur wenn Verifizierungsrechte vorhanden) -->
             @if($canVerifyTodos && $completedTodos->where('status', 'completed')->isNotEmpty() && in_array($currentFilter, ['all', 'pending']))
-                <x-ui.panel title="Zu verifizierende Challenges" class="mb-6" x-show="filter === 'all' || filter === 'pending'" aria-labelledby="todo-pending-heading">
+                <x-ui.panel title="Zu verifizierende Challenges" class="mb-6" x-show="filter === 'all' || filter === 'pending'">
                     <div class="overflow-x-auto">
                         <table class="table">
                             <thead>
@@ -115,7 +115,7 @@
                 $inProgressTodos = $todos->where('status', 'assigned')->where('assigned_to', '!=', Auth::id());
             @endphp
             @if($inProgressTodos->isNotEmpty() && $currentFilter === 'all')
-                <x-ui.panel title="In Bearbeitung befindliche Challenges" class="mb-6" x-show="filter === 'all'" aria-labelledby="todo-progress-heading">
+                <x-ui.panel title="In Bearbeitung befindliche Challenges" class="mb-6" x-show="filter === 'all'">
                     <div class="overflow-x-auto">
                         <table class="table">
                             <thead>
@@ -151,7 +151,7 @@
             @endif
             <!-- Deine Challenges -->
             @if(in_array($currentFilter, ['all', 'assigned']))
-            <x-ui.panel title="Deine Challenges" class="mb-6" x-show="filter === 'all' || filter === 'assigned'" aria-labelledby="todo-assigned-heading" data-todo-section="assigned">
+            <x-ui.panel title="Deine Challenges" class="mb-6" x-show="filter === 'all' || filter === 'assigned'" data-todo-section="assigned">
                 @if($assignedTodos->isEmpty())
                     <p class="text-base-content">Du hast aktuell keine übernommenen Challenges.</p>
                 @else
@@ -207,7 +207,7 @@
             @endif
             <!-- Offene Challenges -->
             @if(in_array($currentFilter, ['all', 'open']))
-            <x-ui.panel title="Offene Challenges" class="mb-6" x-show="filter === 'all' || filter === 'open'" aria-labelledby="todo-open-heading" data-todo-section="open">
+            <x-ui.panel title="Offene Challenges" class="mb-6" x-show="filter === 'all' || filter === 'open'" data-todo-section="open">
                 @if($unassignedTodos->isEmpty())
                     <p class="text-base-content">Es sind aktuell keine offenen Challenges verfügbar.</p>
                 @else
@@ -275,7 +275,7 @@
                 $pointsToNext = $dashboard['points_to_next_rank'] ?? null;
                 $userTotalPoints = $dashboard['user_points'] ?? $userPoints;
             @endphp
-            <x-ui.panel title="Vereins-Dashboard" description="Fortschritt, Vergleich und Ranking deines Vereins auf einen Blick." class="mb-6" aria-labelledby="todo-dashboard-heading">
+            <x-ui.panel title="Vereins-Dashboard" description="Fortschritt, Vergleich und Ranking deines Vereins auf einen Blick." class="mb-6">
                 <div class="mt-6 grid gap-6 md:grid-cols-2 xl:grid-cols-4" data-todo-dashboard>
                     <x-ui.panel class="bg-base-200/70 shadow-none md:col-span-2 xl:col-span-1"
                         aria-labelledby="weekly-goal-heading">

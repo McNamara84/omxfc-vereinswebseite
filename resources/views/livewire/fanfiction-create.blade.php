@@ -139,8 +139,7 @@
                     class="btn-ghost"
                 />
                 <x-button
-                    type="button"
-                    wire:click="save"
+                    type="submit"
                     label="Fanfiction speichern"
                     icon="o-document-plus"
                     class="btn-primary"
