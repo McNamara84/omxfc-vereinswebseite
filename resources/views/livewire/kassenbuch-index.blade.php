@@ -79,13 +79,16 @@
         @if($this->canViewKassenbuch)
             {{-- Card: Offene Bearbeitungsanfragen (für Vorstand und Admin sichtbar) --}}
             @if($this->canProcessEditRequests && $this->pendingEditRequests && $this->pendingEditRequests->count() > 0)
-                <x-card class="md:col-span-2" shadow>
-                    <x-slot:title>
-                        <div class="flex items-center">
-                            <x-icon name="o-bell" class="w-5 h-5 mr-2 text-warning" />
-                            Offene Bearbeitungsanfragen ({{ $this->pendingEditRequests->count() }})
+                <x-ui.panel class="md:col-span-2">
+                    <x-slot:header>
+                        <div class="space-y-2">
+                            <div class="flex items-center gap-2">
+                                <x-icon name="o-bell" class="h-5 w-5 text-warning" />
+                                <h2 class="font-display text-2xl font-semibold tracking-tight text-base-content">Offene Bearbeitungsanfragen ({{ $this->pendingEditRequests->count() }})</h2>
+                            </div>
+                            <p class="max-w-3xl text-sm leading-relaxed text-base-content/72">Freigaben und Ablehnungen für angefragte Änderungen an bestehenden Kassenbucheinträgen.</p>
                         </div>
-                    </x-slot:title>
+                    </x-slot:header>
 
                     <div class="space-y-4">
                         @foreach($this->pendingEditRequests as $request)
@@ -128,11 +131,11 @@
                             </div>
                         @endforeach
                     </div>
-                </x-card>
+                </x-ui.panel>
             @endif
 
             {{-- Card 3: Mitgliederliste mit Zahlungsstatus (Für Vorstand und Kassenwart) --}}
-            <x-card title="Zahlungsstatus der Mitglieder" class="md:col-span-2" shadow>
+            <x-ui.panel title="Zahlungsstatus der Mitglieder" description="Mitglieder, Beiträge und Fälligkeiten in einer kompakten Übersicht mit direkter Pflege der Zahlungsdaten." class="md:col-span-2">
                 {{-- Skeleton Loading State --}}
                 <div wire:loading.delay>
                     <x-skeleton-table :columns="5" :rows="8" :hasAvatar="true" />
@@ -212,13 +215,16 @@
                     </table>
                 </div>
                 </div>{{-- wire:loading.remove --}}
-            </x-card>
+            </x-ui.panel>
 
             {{-- Card 4: Kassenbuch (Für Vorstand und Kassenwart) --}}
-            <x-card class="md:col-span-2" shadow>
-                <x-slot:title>
-                    <div class="flex justify-between items-center w-full">
-                        <span>Kassenbuch</span>
+            <x-ui.panel class="md:col-span-2">
+                <x-slot:header>
+                    <div class="flex w-full flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                        <div class="space-y-2">
+                            <h2 class="font-display text-2xl font-semibold tracking-tight text-base-content">Kassenbuch</h2>
+                            <p class="max-w-3xl text-sm leading-relaxed text-base-content/72">Chronologische Übersicht aller Einnahmen, Ausgaben und angefragten Änderungen mit direktem Zugriff auf Pflegeaktionen.</p>
+                        </div>
                         @if($this->canManageKassenbuch)
                             <x-button
                                 label="Eintrag hinzufügen"
@@ -230,7 +236,7 @@
                                 data-testid="add-entry-button" />
                         @endif
                     </div>
-                </x-slot:title>
+                </x-slot:header>
 
                 {{-- Skeleton Loading State --}}
                 <div wire:loading.delay>
@@ -324,7 +330,7 @@
                         </tbody>
                     </table>
                     </div>{{-- wire:loading.remove + overflow-x-auto --}}
-            </x-card>
+            </x-ui.panel>
         @endif
     </div>
 
