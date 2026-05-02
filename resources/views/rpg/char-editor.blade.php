@@ -1,8 +1,13 @@
 <x-app-layout>
     <x-member-page class="max-w-4xl">
-        <x-header title="Charakter-Editor" separator data-testid="page-header" />
+        <x-ui.page-header
+            eyebrow="Adminbereich"
+            title="Charakter-Editor"
+            description="Erstelle und exportiere Charakterbögen mit Basisdaten, Attributen, Fertigkeiten und Ausrüstung in einer zusammenhängenden Editoransicht."
+            data-testid="page-header"
+        />
 
-        <x-card shadow>
+        <x-ui.panel title="Charakterdaten" description="Alle Pflichtfelder, Freischaltungen und Exportaktionen bleiben in einem einzigen Editorfluss gebündelt.">
             <form action="#" method="POST" enctype="multipart/form-data" x-data="charEditor" data-testid="char-editor-form">
                 @csrf
 
@@ -193,6 +198,6 @@
                     </div>
                 </fieldset>
             </form>
-        </x-card>
+        </x-ui.panel>
     </x-member-page>
 </x-app-layout>

@@ -1,18 +1,27 @@
 <x-app-layout>
     <x-member-page class="max-w-3xl">
-        <x-header title="AG bearbeiten" separator>
-            <x-slot:actions>
-                <x-button label="Zurück" icon="o-arrow-left" link="{{ route('arbeitsgruppen.index') }}" wire:navigate class="btn-ghost" />
-            </x-slot:actions>
-        </x-header>
+        @php
+            $isAdmin = Auth::user()->hasRole(\App\Enums\Role::Admin);
+            $editDescription = $isAdmin
+                ? 'Passe Leitung, Name und öffentliche Angaben dieser Arbeitsgruppe an.'
+                : 'Pflege die öffentlichen Angaben deiner Arbeitsgruppe und halte Kontaktinformationen aktuell.';
+        @endphp
 
-        <x-card>
-            <x-form method="POST" action="{{ route('arbeitsgruppen.update', $team) }}" no-separator enctype="multipart/form-data">
+        <div class="space-y-6">
+            <x-ui.page-header
+                eyebrow="Mitgliederbereich"
+                title="Arbeitsgruppe bearbeiten"
+                description="{{ $editDescription }}"
+            >
+                <x-slot:actions>
+                    <x-button label="Zurück" icon="o-arrow-left" link="{{ route('arbeitsgruppen.index') }}" wire:navigate class="btn-ghost" />
+                </x-slot:actions>
+            </x-ui.page-header>
+
+            <x-ui.panel title="Stammdaten" description="Bearbeite Name, Leitung, Beschreibung, Mailadresse und den wiederkehrenden Termin der AG.">
+                <x-form method="POST" action="{{ route('arbeitsgruppen.update', $team) }}" no-separator enctype="multipart/form-data">
                 @csrf
                 @method('PUT')
-                @php
-                    $isAdmin = Auth::user()->hasRole(\App\Enums\Role::Admin);
-                @endphp
 
                 <div class="space-y-4">
                     <x-input
@@ -81,12 +90,11 @@
                     <x-button label="Abbrechen" link="{{ route('arbeitsgruppen.index') }}" wire:navigate class="btn-ghost" />
                     <x-button label="Speichern" type="submit" class="btn-primary" icon="o-check" />
                 </x-slot:actions>
-            </x-form>
+                </x-form>
+            </x-ui.panel>
 
             {{-- Mitglieder-Tabelle --}}
-            <div class="mt-8">
-                <x-header title="Mitglieder" size="text-lg" separator />
-
+            <x-ui.panel title="Mitglieder" description="Aktuelle Besetzung der Arbeitsgruppe inklusive Rollen sowie direkter Möglichkeit zum Hinzufügen weiterer Mitwirkender.">
                 <div class="overflow-x-auto">
                 <table class="table table-zebra">
                     <thead class="text-base-content">
@@ -135,7 +143,7 @@
                         @enderror
                     </x-form>
                 @endcan
-            </div>
-        </x-card>
+            </x-ui.panel>
+        </div>
     </x-member-page>
 </x-app-layout>

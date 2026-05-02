@@ -5,11 +5,12 @@
                 <x-application-logo class="w-16 h-16" />
             </a>
         </div>
-        <x-card shadow>
-            <x-header title="Nutzungsbedingungen" class="mb-4" />
+        <x-ui.page-header title="Nutzungsbedingungen" description="Rechtliche Hinweise zur Nutzung der Webseiten und Angebote des Offiziellen MADDRAX Fanclub e. V." class="mb-6" />
+
+        <x-ui.panel>
             <div class="prose dark:prose-invert max-w-none">
                 {!! $terms !!}
             </div>
-        </x-card>
+        </x-ui.panel>
     </div>
 </x-guest-layout>

@@ -1,6 +1,4 @@
 <div>
-    <x-header title="{{ __('Zwei-Faktor-Authentisierung') }}" subtitle="{{ __('Für eine höhere Sicherheit empfiehlt der Vorstand eine Zwei-Faktor-Authentisierung einzurichten') }}" size="text-lg" class="!mb-4" />
-
         <h3 class="text-lg font-medium text-base-content">
             @if ($this->enabled)
                 @if ($showingConfirmation)

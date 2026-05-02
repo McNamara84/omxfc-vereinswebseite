@@ -2,8 +2,21 @@
     <meta name="robots" content="noindex, nofollow">
 </x-slot:head>
 <x-member-page class="max-w-3xl">
-    <x-card shadow>
-        <x-header title="{{ $this->episode->title }}" separator />
+    <x-ui.page-header
+        :title="$this->episode->title"
+        :description="'Folge '.$this->episode->episode_number.' von '.$this->episode->author.' mit geplantem EVT '.$this->episode->planned_release_date"
+    >
+        <x-slot:actions>
+            <div class="flex flex-wrap gap-2">
+                @if($this->canManage)
+                    <x-button label="Bearbeiten" link="{{ route('hoerbuecher.edit', $this->episode) }}" wire:navigate icon="o-pencil" class="btn-info btn-sm" />
+                @endif
+                <x-button label="Zurück zur Übersicht" link="{{ route('hoerbuecher.index') }}" wire:navigate icon="o-arrow-left" class="btn-ghost btn-sm" />
+            </div>
+        </x-slot:actions>
+    </x-ui.page-header>
+
+    <x-ui.panel title="Folgendetails" description="Status, Fortschritt, Besetzung und interne Hinweise bleiben auf einer gemeinsamen Detailfläche gebündelt.">
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div><span class="font-medium">Folge:</span> {{ $this->episode->episode_number }}</div>
@@ -83,7 +96,6 @@
 
         @if($this->canManage)
         <div class="mt-6 flex justify-end space-x-3">
-            <x-button label="Bearbeiten" link="{{ route('hoerbuecher.edit', $this->episode) }}" wire:navigate icon="o-pencil" class="btn-info btn-sm" />
             <x-button label="Löschen" wire:click="$set('confirmingDelete', true)" icon="o-trash" class="btn-error btn-sm" />
         </div>
 
@@ -95,9 +107,5 @@
             </x-slot:actions>
         </x-modal>
         @endif
-
-        <div class="mt-6">
-            <x-button label="« Zurück zur Übersicht" link="{{ route('hoerbuecher.index') }}" wire:navigate icon="o-arrow-left" class="btn-ghost btn-sm" />
-        </div>
-    </x-card>
+    </x-ui.panel>
 </x-member-page>

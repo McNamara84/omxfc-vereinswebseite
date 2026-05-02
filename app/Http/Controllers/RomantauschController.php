@@ -16,7 +16,6 @@ use App\Models\BookSwap;
 use App\Services\Romantausch\BookPhotoService;
 use App\Services\Romantausch\BundleService;
 use App\Services\Romantausch\SwapMatchingService;
-use App\Services\RomantauschInfoProvider;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -31,146 +30,12 @@ use Illuminate\Validation\Rule;
 class RomantauschController extends Controller
 {
     public function __construct(
-        private readonly RomantauschInfoProvider $romantauschInfoProvider,
         private readonly BookPhotoService $photoService,
         private readonly SwapMatchingService $matchingService,
         private readonly BundleService $bundleService,
     ) {}
 
-    /**
-     * Übersicht der Romantauschbörse.
-     */
-    public function index()
-    {
-        $userId = Auth::id();
-
-        $allOffers = BookOffer::with('user')
-            ->where('completed', false)
-            ->doesntHave('swap')
-            ->get();
-
-        $bundledOffers = $allOffers->filter(fn ($offer) => $offer->bundle_id !== null)->groupBy('bundle_id');
-        $singleOffers = $allOffers->filter(fn ($offer) => $offer->bundle_id === null);
-
-        $requests = BookRequest::with('user')->where('completed', false)->doesntHave('swap')->get();
-
-        $ownOffers = collect();
-        $ownRequests = collect();
-
-        if ($userId) {
-            $ownOffers = $allOffers
-                ->filter(fn (BookOffer $offer) => (int) $offer->user_id === (int) $userId)
-                ->keyBy(fn (BookOffer $offer) => $this->matchingService->buildBookKey($offer->series, (int) $offer->book_number));
-
-            $ownRequests = $requests
-                ->filter(fn (BookRequest $request) => (int) $request->user_id === (int) $userId)
-                ->keyBy(fn (BookRequest $request) => $this->matchingService->buildBookKey($request->series, (int) $request->book_number));
-        }
-
-        $bundles = $this->buildBundlesWithMatchInfo($bundledOffers, $userId, $ownRequests);
-        $this->enrichOffersWithMatchInfo($singleOffers, $userId, $ownRequests);
-        $this->enrichRequestsWithMatchInfo($requests, $userId, $ownOffers);
-
-        $activeSwaps = BookSwap::with(['offer.user', 'request.user'])
-            ->whereNull('completed_at')
-            ->where(function ($query) use ($userId) {
-                $query->whereHas('offer', fn ($q) => $q->where('user_id', $userId))
-                    ->orWhereHas('request', fn ($q) => $q->where('user_id', $userId));
-            })->get();
-
-        $completedSwaps = BookSwap::with(['offer.user', 'request.user'])->whereNotNull('completed_at')->latest()->get();
-        $romantauschInfo = $this->romantauschInfoProvider->getInfo();
-        $offers = $singleOffers;
-
-        return view('romantausch.index', compact('offers', 'bundles', 'requests', 'activeSwaps', 'completedSwaps', 'romantauschInfo'));
-    }
-
-    /**
-     * Baut Bundle-Daten mit Match-Informationen auf.
-     */
-    private function buildBundlesWithMatchInfo($bundledOffers, $userId, $ownRequests)
-    {
-        return $bundledOffers->map(function ($offers, $bundleId) use ($userId, $ownRequests) {
-            $firstOffer = $offers->first();
-            $matchingCount = 0;
-            $matchingOffers = collect();
-
-            if ($userId && (int) $firstOffer->user_id !== (int) $userId) {
-                foreach ($offers as $offer) {
-                    $bookKey = $this->matchingService->buildBookKey($offer->series, (int) $offer->book_number);
-                    if ($ownRequests->has($bookKey)) {
-                        $matchingCount++;
-                        $matchingOffers->push($offer);
-                    }
-                }
-            }
-
-            return (object) [
-                'bundle_id' => $bundleId,
-                'series' => $firstOffer->series,
-                'user' => $firstOffer->user,
-                'user_id' => $firstOffer->user_id,
-                'condition' => $firstOffer->condition,
-                'condition_max' => $firstOffer->condition_max,
-                'condition_range' => $firstOffer->condition_range,
-                'photos' => $firstOffer->photos,
-                'offers' => $offers->sortBy('book_number'),
-                'total_count' => $offers->count(),
-                'matching_count' => $matchingCount,
-                'matching_offers' => $matchingOffers,
-                'book_numbers_display' => $this->bundleService->formatBookNumbersRange($offers),
-                'created_at' => $firstOffer->created_at,
-            ];
-        })->values();
-    }
-
-    /**
-     * Reichert Einzelangebote mit Match-Info an.
-     */
-    private function enrichOffersWithMatchInfo($offers, $userId, $ownRequests): void
-    {
-        $offers->each(function (BookOffer $offer) use ($userId, $ownRequests) {
-            $offer->matches_user_request = false;
-
-            if (! $userId || (int) $offer->user_id === (int) $userId) {
-                return;
-            }
-
-            $bookKey = $this->matchingService->buildBookKey($offer->series, (int) $offer->book_number);
-            $offer->matches_user_request = $ownRequests->has($bookKey);
-        });
-    }
-
-    /**
-     * Reichert Gesuche mit Match-Info an.
-     */
-    private function enrichRequestsWithMatchInfo($requests, $userId, $ownOffers): void
-    {
-        $requests->each(function (BookRequest $request) use ($userId, $ownOffers) {
-            $request->matches_user_offer = false;
-
-            if (! $userId || (int) $request->user_id === (int) $userId) {
-                return;
-            }
-
-            $bookKey = $this->matchingService->buildBookKey($request->series, (int) $request->book_number);
-            $request->matches_user_offer = $ownOffers->has($bookKey);
-        });
-    }
-
     // ========== Einzelangebote ==========
-
-    /**
-     * Formular für Angebot erstellen.
-     */
-    public function createOffer()
-    {
-        $typeValues = array_map(fn ($type) => $type->value, StoreBookOfferRequest::ALLOWED_TYPES);
-        $books = Book::whereIn('type', $typeValues)->orderBy('roman_number')->get();
-        $types = StoreBookOfferRequest::ALLOWED_TYPES;
-
-        return view('romantausch.create_offer', compact('books', 'types'));
-    }
 
     /**
      * Speichert ein neues Einzelangebot.
@@ -207,25 +72,6 @@ class RomantauschController extends Controller
         $this->createOfferActivity($offer);
 
         return redirect()->route('romantausch.index')->with('success', 'Angebot erstellt.');
-    }
-
-    /**
-     * Bearbeiten eines Einzelangebots.
-     */
-    public function editOffer(BookOffer $offer)
-    {
-        $this->authorize('update', $offer);
-
-        if ($offer->completed || $offer->swap) {
-            return redirect()->route('romantausch.index')
-                ->with('error', 'Angebote in laufenden oder abgeschlossenen Tauschaktionen können nicht bearbeitet werden.');
-        }
-
-        $typeValues = array_map(fn ($type) => $type->value, StoreBookOfferRequest::ALLOWED_TYPES);
-        $books = Book::whereIn('type', $typeValues)->orderBy('roman_number')->get();
-        $types = StoreBookOfferRequest::ALLOWED_TYPES;
-
-        return view('romantausch.edit_offer', compact('books', 'types', 'offer'));
     }
 
     /**
@@ -284,18 +130,6 @@ class RomantauschController extends Controller
     // ========== Gesuche ==========
 
     /**
-     * Formular für Gesuch erstellen.
-     */
-    public function createRequest()
-    {
-        $typeValues = array_map(fn ($type) => $type->value, StoreBookOfferRequest::ALLOWED_TYPES);
-        $books = Book::whereIn('type', $typeValues)->orderBy('roman_number')->get();
-        $types = StoreBookOfferRequest::ALLOWED_TYPES;
-
-        return view('romantausch.create_request', compact('books', 'types'));
-    }
-
-    /**
      * Speichert ein neues Gesuch.
      */
     public function storeRequest(StoreBookRequestRequest $request): RedirectResponse
@@ -322,26 +156,6 @@ class RomantauschController extends Controller
         $this->matchingService->matchSwap($bookRequest, 'request');
 
         return redirect()->route('romantausch.index')->with('success', 'Gesuch erstellt.');
-    }
-
-    /**
-     * Bearbeiten eines Gesuchs.
-     */
-    public function editRequest(BookRequest $bookRequest)
-    {
-        $this->authorize('update', $bookRequest);
-
-        if ($bookRequest->completed || $bookRequest->swap) {
-            return redirect()->route('romantausch.index')
-                ->with('error', 'Gesuche in laufenden oder abgeschlossenen Tauschaktionen können nicht bearbeitet werden.');
-        }
-
-        $typeValues = array_map(fn ($type) => $type->value, StoreBookOfferRequest::ALLOWED_TYPES);
-        $books = Book::whereIn('type', $typeValues)->orderBy('roman_number')->get();
-        $types = StoreBookOfferRequest::ALLOWED_TYPES;
-        $requestModel = $bookRequest;
-
-        return view('romantausch.edit_request', compact('books', 'types', 'requestModel'));
     }
 
     /**
@@ -395,18 +209,6 @@ class RomantauschController extends Controller
     }
 
     // ========== Stapel-Angebote (Bundles) ==========
-
-    /**
-     * Formular für Stapel-Angebot erstellen.
-     */
-    public function createBundleOffer()
-    {
-        $typeValues = array_map(fn ($type) => $type->value, StoreBookOfferRequest::ALLOWED_TYPES);
-        $books = Book::whereIn('type', $typeValues)->orderBy('roman_number')->get();
-        $types = StoreBookOfferRequest::ALLOWED_TYPES;
-
-        return view('romantausch.create_bundle_offer', compact('books', 'types'));
-    }
 
     /**
      * Speichert ein Stapel-Angebot.
@@ -465,35 +267,6 @@ class RomantauschController extends Controller
 
         return redirect()->route('romantausch.index')
             ->with('success', 'Stapel-Angebot mit '.count($result['offers']).' Romanen erstellt.');
-    }
-
-    /**
-     * Zeigt das Bearbeitungsformular für einen Stapel.
-     */
-    public function editBundle(string $bundleId)
-    {
-        $offers = BookOffer::where('bundle_id', $bundleId)
-            ->where('user_id', Auth::id())
-            ->orderBy('book_number')
-            ->get();
-
-        if ($offers->isEmpty()) {
-            abort(404);
-        }
-
-        $this->authorize('update', $offers->first());
-
-        if ($this->bundleService->bundleHasActiveSwaps($bundleId, Auth::id())) {
-            return redirect()->route('romantausch.index')
-                ->with('error', 'Stapel mit laufenden Tauschaktionen können nicht bearbeitet werden.');
-        }
-
-        $typeValues = array_map(fn ($type) => $type->value, StoreBookOfferRequest::ALLOWED_TYPES);
-        $books = Book::whereIn('type', $typeValues)->orderBy('roman_number')->get();
-        $types = StoreBookOfferRequest::ALLOWED_TYPES;
-        $bookNumbersString = $this->bundleService->formatBookNumbersRange($offers);
-
-        return view('romantausch.edit_bundle', compact('offers', 'books', 'types', 'bundleId', 'bookNumbersString'));
     }
 
     /**
@@ -604,22 +377,6 @@ class RomantauschController extends Controller
         $this->matchingService->confirmSwap($swap, Auth::user());
 
         return redirect()->route('romantausch.index');
-    }
-
-    /**
-     * Detailansicht eines Angebots.
-     */
-    public function showOffer(BookOffer $offer)
-    {
-        $swap = $offer->swap;
-        $user = Auth::user();
-
-        $isOwner = $user->id === $offer->user_id;
-        $isSwapPartner = $swap && $swap->request !== null && $user->id === $swap->request->user_id;
-
-        abort_unless($isOwner || $isSwapPartner, 403);
-
-        return view('romantausch.show_offer', compact('offer'));
     }
 
     // ========== Hilfsmethoden ==========

@@ -1,6 +1,10 @@
 <x-app-layout>
     <x-member-page>
-        <x-header title="Fanfiction verwalten" separator class="mb-6">
+        <x-ui.page-header
+            eyebrow="Vorstand"
+            title="Fanfiction verwalten"
+            description="Erstelle, bearbeite, veröffentliche und organisiere alle Fanfiction-Beiträge des Vereins an einer Stelle."
+        >
             <x-slot:actions>
                 <x-button
                     label="Neue Fanfiction"
@@ -9,7 +13,7 @@
                     class="btn-primary"
                 />
             </x-slot:actions>
-        </x-header>
+        </x-ui.page-header>
 
         @if(session('success'))
             <x-alert icon="o-check-circle" class="alert-success mb-4" dismissible>
@@ -23,7 +27,7 @@
             </x-alert>
         @endif
 
-        <x-card>
+        <x-ui.panel title="Vorhandene Geschichten" description="Hier siehst du Status, Autorenschaft und verfügbare Aktionen für alle Fanfiction-Einträge.">
             @if($fanfictions->isEmpty())
                 <div class="text-center py-12 text-base-content">
                     <x-icon name="o-document-text" class="w-16 h-16 mx-auto mb-4" />
@@ -130,6 +134,6 @@
                     </x-mary-modal>
                 </div>
             @endif
-        </x-card>
+        </x-ui.panel>
     </x-member-page>
 </x-app-layout>

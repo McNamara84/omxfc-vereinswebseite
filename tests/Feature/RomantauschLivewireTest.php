@@ -50,6 +50,8 @@ class RomantauschLivewireTest extends TestCase
 
         Livewire::test(RomantauschIndex::class)
             ->assertSeeText($info['title'])
+            ->assertSeeText($info['reward_rule']['milestone_amount'])
+            ->assertSeeText($info['reward_rule']['swap_amount'])
             ->assertSeeText($info['steps']['offer']['title'])
             ->assertSeeText($info['steps']['request']['title'])
             ->assertSeeText($info['steps']['match']['title'])
@@ -405,6 +407,19 @@ class RomantauschLivewireTest extends TestCase
         $this->actingMember();
 
         $this->get('/romantauschboerse/angebot-erstellen')->assertOk();
+    }
+
+    public function test_create_offer_page_displays_consistent_reward_rule_copy(): void
+    {
+        $this->seedBooksForRomantausch();
+        $this->actingMember();
+
+        $response = $this->get('/romantauschboerse/angebot-erstellen');
+
+        $response
+            ->assertOk()
+            ->assertSeeText(__('romantausch.info.reward_rule.milestone_amount'))
+            ->assertSeeText(__('romantausch.info.reward_rule.swap_amount'));
     }
 
     public function test_store_offer_creates_entry(): void

@@ -1,13 +1,16 @@
 <x-member-page class="max-w-3xl">
-    <x-header separator>
-        <x-slot:title>{{ $formTitle }}</x-slot:title>
-    </x-header>
+    <x-ui.page-header
+        :title="$formTitle"
+        :description="$isEdit
+            ? 'Überarbeite deine bestehende Rezension und veröffentliche Änderungen direkt im Kontext des Romans.'
+            : 'Verfasse deine erste Rezension zu diesem Roman und schalte danach die bestehenden Stimmen der anderen Mitglieder frei.'"
+    />
 
     @unless($isEdit)
         <x-alert title="Hinweis" description="Du kannst die Rezensionen zu diesem Roman erst lesen, nachdem du selbst eine verfasst und gespeichert hast." icon="o-exclamation-triangle" class="alert-warning mb-6" />
     @endunless
 
-    <x-card>
+    <x-ui.panel title="Deine Rezension" description="Titel und Text werden direkt validiert. Der Rezensionstext benötigt mindestens 140 Zeichen.">
         <form wire:submit="save">
             <div class="space-y-4">
                 <x-input
@@ -43,5 +46,5 @@
                 />
             </div>
         </form>
-    </x-card>
+    </x-ui.panel>
 </x-member-page>

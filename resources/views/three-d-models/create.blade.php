@@ -1,8 +1,13 @@
 <x-app-layout>
     <x-member-page class="max-w-2xl">
-        <x-header title="3D-Modell hochladen" separator data-testid="page-header" />
+        <x-ui.page-header
+            eyebrow="Sammlerbereich"
+            title="3D-Modell hochladen"
+            description="Lege Name, Beschreibung, Baxx-Preis und Dateien in einem Schritt an und verlinke bei Bedarf direkt ins Maddraxikon."
+            data-testid="page-header"
+        />
 
-        <x-card>
+        <x-ui.panel title="Modelldaten" description="Alle Pflichtfelder und Dateiangaben für den ersten Upload befinden sich in diesem Formular.">
             <form method="POST" action="{{ route('3d-modelle.store') }}" enctype="multipart/form-data">
                 @csrf
 
@@ -83,6 +88,6 @@
                         data-testid="submit-button" />
                 </div>
             </form>
-        </x-card>
+        </x-ui.panel>
     </x-member-page>
 </x-app-layout>

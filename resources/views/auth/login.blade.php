@@ -1,7 +1,8 @@
 <x-app-layout title="Login – Offizieller MADDRAX Fanclub e. V." description="Melde dich mit deinem Konto beim Offiziellen MADDRAX Fanclub an.">
     <div class="max-w-md mx-auto px-6 py-12">
-        <x-card shadow data-testid="login-card">
-            <x-header title="Login" class="mb-4" useH1 />
+        <x-ui.page-header title="Login" description="Melde dich mit deinem Vereinskonto an, um auf Dashboard, Community-Funktionen und interne Bereiche zuzugreifen." class="mb-6" />
+
+        <x-ui.panel data-testid="login-card">
 
             @if ($errors->any())
                 <x-alert icon="o-exclamation-triangle" class="alert-error mb-4">
@@ -57,6 +58,6 @@
                     <x-button label="Login" type="submit" class="btn-primary" data-testid="login-submit" />
                 </div>
             </form>
-        </x-card>
+        </x-ui.panel>
     </div>
 </x-app-layout>

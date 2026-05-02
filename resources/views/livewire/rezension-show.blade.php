@@ -1,8 +1,12 @@
 <x-member-page class="max-w-3xl">
-    <x-header title="Rezensionen zu „{{ $this->book->title }}" (Nr. {{ $this->book->roman_number }})" size="text-3xl" separator class="mb-6" />
+    <x-ui.page-header :title="'Rezensionen zu „'.$this->book->title.'” (Nr. '.$this->book->roman_number.')'" description="Hier findest du alle veröffentlichten Stimmen zu diesem Roman und kannst direkt an der Diskussion teilnehmen.">
+        <x-slot:actions>
+            <x-button label="Zurück" link="{{ route('reviews.index') }}" wire:navigate icon="o-arrow-left" class="btn-ghost" />
+        </x-slot:actions>
+    </x-ui.page-header>
 
     @forelse($this->reviews as $review)
-        <x-card shadow class="mb-6" wire:key="review-{{ $review->id }}">
+        <x-ui.panel class="mb-6" wire:key="review-{{ $review->id }}">
             <h2 class="text-lg font-semibold text-base-content">{{ $review->title }}</h2>
             <p class="text-sm text-base-content">
                 von
@@ -34,12 +38,12 @@
                     <x-button label="Kommentar hinzufügen" type="submit" class="btn-info btn-sm mt-2" />
                 </form>
             </div>
-        </x-card>
+        </x-ui.panel>
     @empty
-        <p class="text-base-content">Noch keine Rezensionen vorhanden.</p>
+        <x-ui.panel>
+            <p class="text-base-content">Noch keine Rezensionen vorhanden.</p>
+        </x-ui.panel>
     @endforelse
-
-    <x-button label="← Zurück zur Übersicht" link="{{ route('reviews.index') }}" wire:navigate class="btn-ghost btn-sm text-primary" />
 
     <x-modal wire:model="confirmingDeleteReview" title="Rezension löschen" separator>
         <p>Möchtest du diese Rezension wirklich löschen?</p>

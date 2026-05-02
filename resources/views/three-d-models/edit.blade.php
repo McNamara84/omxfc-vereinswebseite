@@ -1,8 +1,13 @@
 <x-app-layout>
     <x-member-page class="max-w-2xl">
-        <x-header title="3D-Modell bearbeiten" separator data-testid="page-header" />
+        <x-ui.page-header
+            eyebrow="Sammlerbereich"
+            title="3D-Modell bearbeiten"
+            description="Aktualisiere Inhalte, Dateien und Verknüpfungen eines bestehenden 3D-Modells, ohne den Freischalt-Flow zu ändern."
+            data-testid="page-header"
+        />
 
-        <x-card>
+        <x-ui.panel title="Modelldaten" description="Hier können bestehende Angaben angepasst und Dateien bei Bedarf ersetzt werden.">
             <form method="POST" action="{{ route('3d-modelle.update', $model) }}" enctype="multipart/form-data">
                 @csrf
                 @method('PUT')
@@ -94,6 +99,6 @@
                         data-testid="submit-button" />
                 </div>
             </form>
-        </x-card>
+        </x-ui.panel>
     </x-member-page>
 </x-app-layout>

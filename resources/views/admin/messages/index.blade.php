@@ -1,9 +1,19 @@
 <x-app-layout>
     <x-member-page>
-        <x-header title="Kurznachrichten" separator />
+        <x-ui.page-header
+            eyebrow="Adminbereich"
+            title="Kurznachrichten"
+            description="Veröffentliche kurze Hinweise für Mitglieder und behalte bestehende Meldungen direkt auf einer kompakten Verwaltungsseite im Blick."
+        />
 
         {{-- Neue Nachricht erstellen --}}
-        <x-card class="mb-6">
+        <x-ui.panel title="Neue Nachricht" description="Kurze Hinweise bis 140 Zeichen lassen sich hier schnell verfassen und sofort veröffentlichen." class="mb-6">
+            <x-slot:actions>
+                <x-button type="submit" form="admin-message-form" icon="o-paper-airplane" class="btn-primary">
+                    Speichern
+                </x-button>
+            </x-slot:actions>
+
             <form id="admin-message-form" method="POST" action="{{ route('admin.messages.store') }}">
                 @csrf
                 <x-input
@@ -15,16 +25,11 @@
                     maxlength="140"
                     required
                 />
-                <x-slot:actions>
-                    <x-button type="submit" form="admin-message-form" icon="o-paper-airplane" class="btn-primary">
-                        Speichern
-                    </x-button>
-                </x-slot:actions>
             </form>
-        </x-card>
+        </x-ui.panel>
 
         {{-- Bestehende Nachrichten --}}
-        <x-card title="Bestehende Nachrichten">
+        <x-ui.panel title="Bestehende Nachrichten" description="Die neuesten Einträge stehen oben und können bei Bedarf direkt wieder entfernt werden.">
             @forelse($messages as $message)
                 <div class="flex items-center justify-between py-3 {{ !$loop->last ? 'border-b border-base-200' : '' }}">
                     <div class="flex-1">
@@ -53,6 +58,6 @@
                     <p>Keine Nachrichten vorhanden.</p>
                 </div>
             @endforelse
-        </x-card>
+        </x-ui.panel>
     </x-member-page>
 </x-app-layout>

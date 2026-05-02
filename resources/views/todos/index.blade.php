@@ -20,23 +20,23 @@
                 ];
             @endphp
             <div x-data="{ filter: '{{ $currentFilter }}', messages: @js($filterMessages) }">
-            <x-header title="Challenges & Baxx" subtitle="Behalte deine Fortschritte und die Ziele des Vereins im Blick." separator class="mb-6">
-                @if($canCreateTodos)
-                    <x-slot:actions>
+            <x-ui.page-header
+                eyebrow="Mitgliederbereich"
+                title="Challenges & Baxx"
+                description="Behalte Fortschritte, offene Aufgaben und das Vereinsranking in einer gemeinsamen Arbeitsoberfläche im Blick."
+                class="mb-6"
+            >
+                <x-slot:actions>
+                    @if($canCreateTodos)
                         <x-button link="{{ route('todos.create') }}" wire:navigate icon="o-plus" class="btn-primary" label="Neue Challenge erstellen" />
-                    </x-slot:actions>
-                @endif
-            </x-header>
-            <x-card shadow class="mb-6">
-                <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                    <div class="space-y-1">
-                        <h2 class="text-xl font-semibold text-primary">Challenges filtern</h2>
-                        <p role="status" aria-live="polite" class="text-sm text-base-content" data-todo-filter-status
-                            x-text="messages[filter]">
-                            {{ $filterMessages[$currentFilter] }}
-                        </p>
-                    </div>
-                </div>
+                    @endif
+                </x-slot:actions>
+            </x-ui.page-header>
+            <x-ui.panel title="Challenges filtern" description="Wechsle zwischen allen, eigenen, offenen und verifizierungsbereiten Challenges, ohne die Orientierung zu verlieren." class="mb-6">
+                <p role="status" aria-live="polite" class="text-sm text-base-content" data-todo-filter-status
+                    x-text="messages[filter]">
+                    {{ $filterMessages[$currentFilter] }}
+                </p>
                 <details class="group mt-4" data-todo-filter-details>
                     <summary data-todo-filter-summary
                         class="inline-flex cursor-pointer items-center gap-2 rounded-md border border-primary bg-white px-4 py-2 text-sm font-semibold text-primary shadow-sm transition hover:bg-primary hover:text-primary-content focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary  dark:bg-base-200    ">
@@ -67,14 +67,11 @@
                             </nav>
                     </div>
                 </details>
-            </x-card>
+            </x-ui.panel>
 
             <!-- Zu verifizierende Challenges (nur wenn Verifizierungsrechte vorhanden) -->
             @if($canVerifyTodos && $completedTodos->where('status', 'completed')->isNotEmpty() && in_array($currentFilter, ['all', 'pending']))
-                <x-card shadow class="mb-6" x-show="filter === 'all' || filter === 'pending'" aria-labelledby="todo-pending-heading">
-                    <h2 id="todo-pending-heading"
-                        class="text-xl font-semibold text-primary mb-4">Zu verifizierende Challenges
-                    </h2>
+                <x-ui.panel title="Zu verifizierende Challenges" class="mb-6" x-show="filter === 'all' || filter === 'pending'">
                     <div class="overflow-x-auto">
                         <table class="table">
                             <thead>
@@ -110,7 +107,7 @@
                             </tbody>
                         </table>
                     </div>
-                </x-card>
+                </x-ui.panel>
             @endif
 
             <!-- In Bearbeitung befindliche Challenges (andere Nutzer) - nur anzeigen, wenn es welche gibt -->
@@ -118,9 +115,7 @@
                 $inProgressTodos = $todos->where('status', 'assigned')->where('assigned_to', '!=', Auth::id());
             @endphp
             @if($inProgressTodos->isNotEmpty() && $currentFilter === 'all')
-                <x-card shadow class="mb-6" x-show="filter === 'all'" aria-labelledby="todo-progress-heading">
-                    <h2 id="todo-progress-heading"
-                        class="text-xl font-semibold text-primary mb-4">In Bearbeitung befindliche Challenges</h2>
+                <x-ui.panel title="In Bearbeitung befindliche Challenges" class="mb-6" x-show="filter === 'all'">
                     <div class="overflow-x-auto">
                         <table class="table">
                             <thead>
@@ -152,13 +147,11 @@
                             </tbody>
                         </table>
                     </div>
-                </x-card>
+                </x-ui.panel>
             @endif
             <!-- Deine Challenges -->
             @if(in_array($currentFilter, ['all', 'assigned']))
-            <x-card shadow class="mb-6" x-show="filter === 'all' || filter === 'assigned'" aria-labelledby="todo-assigned-heading" data-todo-section="assigned">
-                <h2 id="todo-assigned-heading"
-                    class="text-xl font-semibold text-primary mb-4">Deine Challenges</h2>
+            <x-ui.panel title="Deine Challenges" class="mb-6" x-show="filter === 'all' || filter === 'assigned'" data-todo-section="assigned">
                 @if($assignedTodos->isEmpty())
                     <p class="text-base-content">Du hast aktuell keine übernommenen Challenges.</p>
                 @else
@@ -210,13 +203,11 @@
                         </table>
                     </div>
                 @endif
-            </x-card>
+            </x-ui.panel>
             @endif
             <!-- Offene Challenges -->
             @if(in_array($currentFilter, ['all', 'open']))
-            <x-card shadow class="mb-6" x-show="filter === 'all' || filter === 'open'" aria-labelledby="todo-open-heading" data-todo-section="open">
-                <h2 id="todo-open-heading"
-                    class="text-xl font-semibold text-primary mb-4">Offene Challenges</h2>
+            <x-ui.panel title="Offene Challenges" class="mb-6" x-show="filter === 'all' || filter === 'open'" data-todo-section="open">
                 @if($unassignedTodos->isEmpty())
                     <p class="text-base-content">Es sind aktuell keine offenen Challenges verfügbar.</p>
                 @else
@@ -256,7 +247,7 @@
                         </table>
                     </div>
                 @endif
-            </x-card>
+            </x-ui.panel>
             @endif
 
             @php
@@ -284,18 +275,9 @@
                 $pointsToNext = $dashboard['points_to_next_rank'] ?? null;
                 $userTotalPoints = $dashboard['user_points'] ?? $userPoints;
             @endphp
-            <x-card shadow class="mb-6" aria-labelledby="todo-dashboard-heading">
-                <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                    <div>
-                        <h2 id="todo-dashboard-heading"
-                            class="text-xl font-semibold text-base-content">Vereins-Dashboard</h2>
-                        <p class="text-sm text-base-content">
-                            Fortschritt, Vergleich und Ziele deines Vereins auf einen Blick.
-                        </p>
-                    </div>
-                </div>
+            <x-ui.panel title="Vereins-Dashboard" description="Fortschritt, Vergleich und Ranking deines Vereins auf einen Blick." class="mb-6">
                 <div class="mt-6 grid gap-6 md:grid-cols-2 xl:grid-cols-4" data-todo-dashboard>
-                    <x-card class="bg-base-200 md:col-span-2 xl:col-span-1"
+                    <x-ui.panel class="bg-base-200/70 shadow-none md:col-span-2 xl:col-span-1"
                         aria-labelledby="weekly-goal-heading">
                         <div class="flex flex-wrap items-start justify-between gap-4">
                             <div>
@@ -329,8 +311,8 @@
                                 {{ number_format($weeklyTotal, 0, ',', '.') }} von {{ number_format($weeklyTarget, 0, ',', '.') }} Baxx gesammelt.
                             </p>
                         </div>
-                    </x-card>
-                    <article class="rounded-lg border border-base-content/10 p-5 bg-base-200"
+                    </x-ui.panel>
+                    <x-ui.panel class="bg-base-200/70 shadow-none"
                         aria-labelledby="team-average-heading">
                         <div class="flex flex-wrap items-start justify-between gap-4">
                             <div>
@@ -367,8 +349,8 @@
                                 @endif
                             </p>
                         </div>
-                    </article>
-                    <x-card class="bg-base-200"
+                    </x-ui.panel>
+                    <x-ui.panel class="bg-base-200/70 shadow-none"
                         aria-labelledby="personal-points-heading">
                         <div class="flex flex-wrap items-start justify-between gap-4">
                             <div>
@@ -397,8 +379,8 @@
                                 Sobald Baxx gesammelt wurden, erscheint hier dein Vergleich zum Verein.
                             </p>
                         @endif
-                    </x-card>
-                    <x-card class="bg-base-200 md:col-span-2 xl:col-span-1"
+                    </x-ui.panel>
+                    <x-ui.panel class="bg-base-200/70 shadow-none md:col-span-2 xl:col-span-1"
                         aria-labelledby="leaderboard-heading">
                         <h3 id="leaderboard-heading"
                             class="text-lg font-semibold text-primary">
@@ -425,9 +407,9 @@
                                 </li>
                             @endforelse
                         </ol>
-                    </x-card>
+                    </x-ui.panel>
                 </div>
-            </x-card>
+            </x-ui.panel>
             </div>{{-- /x-data filter --}}
     </x-member-page>
 </x-app-layout>

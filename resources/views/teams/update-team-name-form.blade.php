@@ -1,6 +1,4 @@
-<x-card>
-    <x-header title="Name der Arbeitsgruppe" subtitle="Name und Ersteller der Arbeitsgruppe." size="text-lg" class="!mb-4" />
-
+<div>
     <div class="flex items-center mb-6">
         <x-avatar :image="$team->owner->profile_photo_url" class="!w-12 !h-12" />
         <div class="ms-4 leading-tight">
@@ -23,4 +21,4 @@
             </div>
         @endif
     </form>
-</x-card>
+</div>

@@ -12,12 +12,29 @@
     </x-alert>
     @endif
 
-    <x-card shadow>
-        <x-header class="!mb-0">
-            <x-slot:title>
-                <h2 data-members-heading>Mitgliederliste</h2>
-            </x-slot:title>
-        </x-header>
+    <x-ui.page-header
+        eyebrow="Mitgliederbereich"
+        title="Mitglieder"
+        description="Aktive Vereinsmitglieder, Rollen und Kontaktwege in einer einheitlichen Verwaltungsoberfläche."
+    >
+        <x-slot:actions>
+            <x-button
+                label="Mitgliederkarte"
+                icon="o-map"
+                link="{{ route('mitglieder.karte') }}"
+                wire:navigate
+                class="btn-outline"
+            />
+        </x-slot:actions>
+    </x-ui.page-header>
+
+    <x-ui.panel>
+        <x-slot:header>
+            <div class="space-y-2">
+                <h2 data-members-heading class="font-display text-2xl font-semibold tracking-tight text-base-content">Mitgliederliste</h2>
+                <p class="max-w-3xl text-sm leading-relaxed text-base-content/72">Sortiere die Übersicht nach Rolle, Eintritt oder Aktivität und filtere bei Bedarf auf aktuell online sichtbare Mitglieder.</p>
+            </div>
+        </x-slot:header>
 
     @php
         $sortLabels = [
@@ -391,7 +408,7 @@
         </div>
 
         @forelse($this->members as $member)
-        <x-card shadow class="!p-4" wire:key="member-mobile-{{ $member->id }}">
+        <x-ui.panel class="!p-4" wire:key="member-mobile-{{ $member->id }}">
             <a href="{{ route('profile.view', $member->id) }}" wire:navigate class="flex items-center mb-4">
                 <x-avatar :image="$member->profile_photo_url" :alt="$member->name" class="!w-12 !h-12" />
                 <div class="ml-4">
@@ -506,7 +523,7 @@
                     @endif
                 @endif
             </div>
-        </x-card>
+        </x-ui.panel>
         @empty
         <div class="text-center py-8 text-base-content/50">
             <x-icon name="o-users" class="w-12 h-12 opacity-30 mx-auto" />
@@ -514,6 +531,6 @@
         </div>
         @endforelse
     </div>
-    </x-card>
+    </x-ui.panel>
 </x-member-page>
 </div>

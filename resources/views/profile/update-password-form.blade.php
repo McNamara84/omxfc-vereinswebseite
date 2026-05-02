@@ -1,6 +1,4 @@
 <div>
-    <x-header title="{{ __('Passwort ändern') }}" subtitle="{{ __('Bitte verwende nur möglichst komplexe Passwörter. Der Vorstand empfiehlt die Verwendung eines Passwortmanagers.') }}" size="text-lg" class="!mb-4" />
-
     <x-form wire:submit="updatePassword" class="max-w-xl">
         <!-- Hidden username field for accessibility -->
         <input type="text" class="hidden" autocomplete="username" value="{{ old('email', auth()->user()->email) }}" />

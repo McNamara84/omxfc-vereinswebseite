@@ -1,8 +1,23 @@
 <x-app-layout>
     <x-member-page>
-        <x-card shadow>
-                <x-header title="Mitgliederkarte" useH1 data-testid="page-title" />
+        <x-ui.page-header
+            eyebrow="Mitgliederbereich"
+            title="Mitgliederkarte"
+            description="Die Vereinskarte zeigt Wohnorte bewusst nur angenähert und bündelt Mitglieder sowie Regionalstammtische in einer gemeinsamen Kartenansicht."
+            data-testid="page-title"
+        >
+            <x-slot:actions>
+                <x-button
+                    label="Zur Mitgliederliste"
+                    icon="o-users"
+                    link="{{ route('mitglieder.index') }}"
+                    wire:navigate
+                    class="btn-outline"
+                />
+            </x-slot:actions>
+        </x-ui.page-header>
 
+        <x-ui.panel>
                 <div id="member-map-note">
                     <x-alert class="alert-warning mb-4" icon="o-exclamation-triangle" role="note">
                         Aus Datenschutzgründen werden die Wohnorte der Mitglieder nicht exakt angezeigt.
@@ -18,7 +33,7 @@
                     aria-describedby="member-map-note"
                     tabindex="0"
                 ></div>
-        </x-card>
+                </x-ui.panel>
 
     <!-- Daten für die Karte als data-Attribute -->
     <div id="member-map-config" class="hidden"

@@ -4,6 +4,13 @@ return [
     'info' => [
         'title' => 'So funktioniert die Romantauschbörse',
         'intro' => 'Mit wenigen Schritten findest du passende Tauschpartner*innen und behältst jederzeit die Kontrolle über deinen Ablauf.',
+        'reward_rule' => [
+            'milestone_description' => 'Für jedes zehnte eingestellte Angebot erhältst du automatisch',
+            'milestone_amount' => '1 Bakk',
+            'swap_description' => 'Bestätigen beide Parteien einen Tausch, bekommt ihr jeweils',
+            'swap_amount' => '2 Baxx',
+            'swap_suffix' => 'zusätzlich gutgeschrieben.',
+        ],
         'steps_aria_label' => 'Schritte für den Tauschprozess',
         'steps' => [
             'offer' => [

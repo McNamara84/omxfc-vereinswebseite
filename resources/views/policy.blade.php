@@ -5,11 +5,12 @@
                 <x-application-logo class="w-16 h-16" />
             </a>
         </div>
-        <x-card shadow>
-            <x-header title="Datenschutzrichtlinie" class="mb-4" />
+        <x-ui.page-header title="Datenschutzrichtlinie" description="Informationen zur Verarbeitung personenbezogener Daten und zu deinen Rechten im Offiziellen MADDRAX Fanclub." class="mb-6" />
+
+        <x-ui.panel>
             <div class="prose dark:prose-invert max-w-none">
                 {!! $policy !!}
             </div>
-        </x-card>
+        </x-ui.panel>
     </div>
 </x-guest-layout>

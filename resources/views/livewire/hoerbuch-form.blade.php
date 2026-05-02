@@ -1,11 +1,16 @@
 <x-member-page class="max-w-3xl">
-    <x-header title="{{ $this->isEditing ? 'Hörbuchfolge bearbeiten' : 'Neue Hörbuchfolge' }}" separator>
+    <x-ui.page-header
+        :title="$this->isEditing ? 'Hörbuchfolge bearbeiten' : 'Neue Hörbuchfolge'"
+        :description="$this->isEditing
+            ? 'Aktualisiere Folgenstatus, Rollenbesetzung und Produktionsdaten einer bestehenden Hörbuchfolge.'
+            : 'Lege neue Hörbuchfolgen mit Status, Ziel-EVT, Verantwortlichen und Rollen an.'"
+    >
         <x-slot:actions>
             <x-button label="Zurück" icon="o-arrow-left" link="{{ $this->isEditing ? route('hoerbuecher.index') : route('dashboard') }}" wire:navigate class="btn-ghost" />
         </x-slot:actions>
-    </x-header>
+    </x-ui.page-header>
 
-    <x-card>
+    <x-ui.panel title="Produktionsdaten" description="Verwalte Stammdaten, Rollen und interne Notizen der Folge in einem Formular.">
         <form wire:submit="save">
             <div class="space-y-4">
                 <x-input
@@ -179,5 +184,5 @@
                 <x-button label="{{ $this->isEditing ? 'Aktualisieren' : 'Speichern' }}" type="submit" class="btn-primary" icon="o-check" wire:loading.attr="disabled" />
             </div>
         </form>
-    </x-card>
+    </x-ui.panel>
 </x-member-page>

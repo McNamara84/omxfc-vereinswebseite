@@ -46,9 +46,13 @@
 @endphp
 
 <div class="py-12">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="mx-auto max-w-7xl space-y-6 px-4 sm:px-6 lg:px-8">
         {{-- Header --}}
-        <x-header title="Maddrax-Fantreffen 2026 – Anmeldungen" subtitle="Verwaltung aller Anmeldungen zum Fantreffen am 9. Mai 2026" separator>
+        <x-ui.page-header
+            eyebrow="Adminbereich"
+            title="Maddrax-Fantreffen 2026 – Anmeldungen"
+            description="Verwalte alle Registrierungen, Zahlungen, T-Shirts und Orga-Team-Flags für das Fantreffen zentral an einem Ort."
+        >
             <x-slot:actions>
                 <x-button 
                     label="VIP-Autoren verwalten" 
@@ -57,7 +61,7 @@
                     class="btn-primary"
                 />
             </x-slot:actions>
-        </x-header>
+        </x-ui.page-header>
 
         {{-- Flash Messages --}}
         @if (session()->has('success'))
@@ -73,41 +77,43 @@
         @endif
 
         {{-- Statistik-Cards --}}
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <x-stat 
-                title="Gesamt" 
-                value="{{ $this->stats['total'] }}"
-                description="{{ $this->stats['mitglieder'] }} Mitglieder, {{ $this->stats['gaeste'] }} Gäste"
-                icon="o-users"
-            />
-
-            <x-stat 
-                title="T-Shirts bestellt" 
-                value="{{ $this->stats['tshirts'] }}"
-                description="{{ $this->stats['tshirts_offen'] }} noch offen"
-                icon="o-shopping-bag"
-            />
-
-            <x-stat 
-                title="Zahlungen ausstehend" 
-                value="{{ $this->stats['zahlungen_ausstehend'] }}"
-                description="{{ number_format($this->stats['zahlungen_offen_betrag'], 2, ',', '.') }} € offen"
-                icon="o-currency-euro"
-                color="text-error"
-            />
-
-            <x-card class="flex items-center justify-center">
-                <x-button 
-                    wire:click="exportCsv" 
-                    icon="o-document-arrow-down"
-                    label="CSV Export"
-                    class="btn-ghost btn-lg"
+        <x-ui.panel title="Überblick" description="Die Kennzahlen zeigen aktuelle Anmeldungen, T-Shirt-Bedarf und offene Zahlungen. Der Export steht direkt daneben bereit.">
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+                <x-stat 
+                    title="Gesamt" 
+                    value="{{ $this->stats['total'] }}"
+                    description="{{ $this->stats['mitglieder'] }} Mitglieder, {{ $this->stats['gaeste'] }} Gäste"
+                    icon="o-users"
                 />
-            </x-card>
-        </div>
+
+                <x-stat 
+                    title="T-Shirts bestellt" 
+                    value="{{ $this->stats['tshirts'] }}"
+                    description="{{ $this->stats['tshirts_offen'] }} noch offen"
+                    icon="o-shopping-bag"
+                />
+
+                <x-stat 
+                    title="Zahlungen ausstehend" 
+                    value="{{ $this->stats['zahlungen_ausstehend'] }}"
+                    description="{{ number_format($this->stats['zahlungen_offen_betrag'], 2, ',', '.') }} € offen"
+                    icon="o-currency-euro"
+                    color="text-error"
+                />
+
+                <x-ui.panel class="flex items-center justify-center">
+                    <x-button 
+                        wire:click="exportCsv" 
+                        icon="o-document-arrow-down"
+                        label="CSV Export"
+                        class="btn-ghost btn-lg"
+                    />
+                </x-ui.panel>
+            </div>
+        </x-ui.panel>
 
         {{-- Filter & Suche --}}
-        <x-card title="Filter & Suche" class="mb-6">
+        <x-ui.panel title="Filter & Suche" description="Kombiniere Status-, T-Shirt- und Zahlungsfilter mit einer Schnellsuche nach Name oder E-Mail.">
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <x-select 
                     label="Mitgliedsstatus" 
@@ -152,10 +158,10 @@
                     clearable
                 />
             </div>
-        </x-card>
+        </x-ui.panel>
 
         {{-- Anmeldungen Tabelle --}}
-        <x-card>
+        <x-ui.panel title="Anmeldungen" description="Die Tabelle bleibt die zentrale Arbeitsfläche für Profilzugriffe, Status-Toggles und das Entfernen einzelner Registrierungen.">
             {{-- Skeleton Loading State --}}
             <div wire:loading.delay wire:target="filterMemberStatus, filterTshirt, filterPayment, filterZahlungseingang, filterTshirtFertig, search, toggleOrgaTeam, toggleTshirtFertig, toggleZahlungseingang, deleteAnmeldung">
                 <x-skeleton-table :columns="9" :rows="8" />
@@ -296,11 +302,9 @@
             </div>{{-- wire:loading.remove --}}
 
             {{-- Pagination --}}
-            <x-slot:footer>
-                <div class="p-4">
-                    {{ $this->anmeldungen->links() }}
-                </div>
-            </x-slot:footer>
-        </x-card>
+            <div class="pt-4">
+                {{ $this->anmeldungen->links() }}
+            </div>
+        </x-ui.panel>
     </div>
 </div>

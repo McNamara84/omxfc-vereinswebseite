@@ -6,22 +6,23 @@
             </x-alert>
         @endif
 
-        @if (! $this->poll)
-            <x-card shadow>
-                <x-header title="Umfrage" size="text-2xl" useH1 data-testid="page-title" />
-                <p class="text-base-content">Aktuell ist keine Umfrage aktiv.</p>
-            </x-card>
-        @else
-            <x-card shadow>
-                <x-header title="{{ $this->poll->question }}" size="text-2xl" useH1 data-testid="page-title" />
-                <p class="text-base-content">
-                    @if ($this->poll->visibility->value === 'internal')
-                        Diese Umfrage richtet sich an Vereinsmitglieder.
-                    @else
-                        Diese Umfrage ist öffentlich. Pro IP ist eine Stimme möglich.
-                    @endif
-                </p>
+        <x-ui.page-header
+            :eyebrow="$this->poll ? 'Aktive Abstimmung' : 'Umfrage'"
+            :title="$this->poll?->question ?? 'Umfrage'"
+            :description="$this->poll
+                ? ($this->poll->visibility->value === 'internal'
+                    ? 'Diese Umfrage richtet sich an Vereinsmitglieder.'
+                    : 'Diese Umfrage ist öffentlich. Pro IP ist eine Stimme möglich.')
+                : 'Aktuell ist keine Umfrage aktiv.'"
+            data-testid="page-title"
+        />
 
+        @if (! $this->poll)
+            <x-ui.panel>
+                <p class="text-base-content">Aktuell ist keine Umfrage aktiv.</p>
+            </x-ui.panel>
+        @else
+            <x-ui.panel title="Antwort auswählen" description="Wähle genau eine Option aus und gib deine Stimme ab, solange die Abstimmung für dich offen ist.">
                 @if ($errors->any())
                     <x-alert icon="o-exclamation-triangle" class="alert-error mt-6" role="alert" aria-live="assertive">
                         <p class="font-semibold">Bitte korrigiere Folgendes:</p>
@@ -86,7 +87,7 @@
                         @endif
                     </div>
                 </form>
-            </x-card>
+            </x-ui.panel>
         @endif
     </x-member-page>
 </div>

@@ -1,6 +1,4 @@
 <div>
-    <x-header title="{{ __('Browser-Sitzungen') }}" subtitle="{{ __('Verwalte und beende Browser-Sitzungen auf deinen unterschiedlichen Endgeräten.') }}" size="text-lg" class="!mb-4" />
-
     <div class="max-w-xl text-sm text-base-content">
         {{ __('Falls erforderlich, kannst du dich von allen anderen Browser-Sitzungen auf allen deinen Geräten abmelden. Einige deiner letzten Sitzungen sind unten aufgeführt; diese Liste ist jedoch möglicherweise nicht vollständig. Wenn du glauben solltest, dass dein Konto kompromittiert wurde, solltest du auch dein Passwort aktualisieren.') }}
     </div>

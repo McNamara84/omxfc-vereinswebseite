@@ -12,12 +12,15 @@
     </x-alert>
     @endif
 
-    <x-card shadow>
-        <x-header class="!mb-0">
-            <x-slot:title>
-                <h2 data-members-heading>Mitgliederliste</h2>
-            </x-slot:title>
-        </x-header>
+    <x-ui.page-header
+        eyebrow="Mitgliederbereich"
+        title="Mitgliederliste"
+        description="Filtere aktive Mitglieder, exportiere Vereinsdaten und verwalte Rollen in einer einheitlichen Mitgliederübersicht."
+    />
+
+    <h2 data-members-heading class="sr-only">Mitgliederliste</h2>
+
+    <x-ui.panel>
 
     @php
         $sortLabels = [
@@ -395,7 +398,7 @@
         </div>
 
         @forelse($members as $member)
-        <x-card shadow class="!p-4">
+        <x-ui.panel class="!p-4 shadow-none">
             <a href="{{ route('profile.view', $member->id) }}" wire:navigate class="flex items-center mb-4">
                 <x-avatar :image="$member->profile_photo_url" :alt="$member->name" class="!w-12 !h-12" />
                 <div class="ml-4">
@@ -510,7 +513,7 @@
                     @endif
                 @endif
             </div>
-        </x-card>
+        </x-ui.panel>
         @empty
         <div class="text-center py-8 text-base-content/50">
             <x-icon name="o-users" class="w-12 h-12 opacity-30 mx-auto" />
@@ -518,6 +521,6 @@
         </div>
         @endforelse
     </div>
-    </x-card>
+    </x-ui.panel>
     </x-member-page>
 </x-app-layout>

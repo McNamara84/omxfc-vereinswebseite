@@ -1,15 +1,18 @@
 <x-app-layout>
     <x-member-page>
-        <x-header title="Fanfiction" separator useH1 data-testid="page-title">
-            <x-slot:subtitle>
-                Hier findest du Kurzgeschichten und Fanfiction aus dem MADDRAX-Universum, geschrieben von
-                unseren Mitgliedern und Gastautoren.
-                <span class="block mt-1 text-sm">Dein Guthaben: <x-badge value="{{ $availableBaxx }} Baxx" class="badge-primary" icon="o-currency-dollar" /></span>
-            </x-slot:subtitle>
-        </x-header>
+        <x-ui.page-header
+            eyebrow="Community"
+            title="Fanfiction"
+            description="Hier findest du Kurzgeschichten und Fanfiction aus dem MADDRAX-Universum, geschrieben von unseren Mitgliedern und Gastautoren."
+            data-testid="page-title"
+        >
+            <x-slot:actions>
+                <x-badge value="{{ $availableBaxx }} Baxx verfügbar" class="badge-primary" icon="o-currency-dollar" />
+            </x-slot:actions>
+        </x-ui.page-header>
 
         @if ($fanfictions->isEmpty())
-            <x-card shadow>
+            <x-ui.panel>
                 <div class="text-center py-12">
                     <x-icon name="o-book-open" class="mx-auto h-12 w-12 text-base-content" />
                     <h3 class="mt-2 text-sm font-medium">Noch keine Fanfiction</h3>
@@ -17,14 +20,14 @@
                         Es wurden noch keine Geschichten veröffentlicht.
                     </p>
                 </div>
-            </x-card>
+            </x-ui.panel>
         @else
             <div class="space-y-8" data-fanfiction-list>
                 @foreach ($fanfictions as $fanfiction)
                     @php
                         $isUnlocked = !$fanfiction->reward || in_array($fanfiction->id, $unlockedFanfictionIds);
                     @endphp
-                    <x-card shadow x-data="{ expanded: false }" data-fanfiction-item>
+                    <x-ui.panel x-data="{ expanded: false }" data-fanfiction-item>
                         {{-- Header mit Titel und Autor --}}
                         <header class="mb-4">
                             <h3 class="text-xl font-semibold mb-1 flex items-center gap-2">
@@ -161,7 +164,7 @@
                                 @endif
                             </div>
                         @endif
-                    </x-card>
+                    </x-ui.panel>
                 @endforeach
             </div>
 

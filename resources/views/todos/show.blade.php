@@ -13,10 +13,12 @@
                 </x-alert>
             @endif
 
-            <x-card shadow>
-                <!-- Titel und Status -->
-                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
-                    <h2 class="text-xl font-semibold text-primary">{{ $todo->title }}</h2>
+            <x-ui.page-header
+                :title="$todo->title"
+                description="Sieh Beschreibung, Status und alle verfügbaren Aktionen für diese Challenge gebündelt an einem Ort."
+                class="mb-6"
+            >
+                <x-slot:actions>
                     <div class="mt-2 md:mt-0">
                         @if($todo->status->value === 'open')
                             <x-badge value="Offen" class="badge-ghost" icon="o-clock" />
@@ -28,7 +30,10 @@
                             <x-badge value="Verifiziert" class="badge-success" icon="o-check-circle" />
                         @endif
                     </div>
-                </div>
+                </x-slot:actions>
+            </x-ui.page-header>
+
+            <x-ui.panel>
 
                 <!-- Beschreibung -->
                 <div class="mb-6">
@@ -150,6 +155,6 @@
                         @endif
                     </div>
                 </div>
-            </x-card>
+            </x-ui.panel>
     </x-member-page>
 </x-app-layout>

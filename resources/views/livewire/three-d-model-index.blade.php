@@ -1,15 +1,23 @@
-<x-member-page class="max-w-6xl">
-    <x-header title="3D-Modelle" separator data-testid="page-header">
-        <x-slot:subtitle>
-            Dein verfügbares Baxx-Guthaben: <x-badge :value="$this->availableBaxx" class="badge-primary" icon="o-currency-dollar" />
-        </x-slot:subtitle>
-        @can('create', App\Models\ThreeDModel::class)
-            <x-slot:actions>
-                <x-button label="Hochladen" icon="o-plus" link="{{ route('3d-modelle.create') }}" wire:navigate
-                    class="btn-primary" data-testid="upload-button" />
-            </x-slot:actions>
-        @endcan
-    </x-header>
+<x-member-page class="max-w-7xl space-y-8">
+    <x-ui.page-header
+        eyebrow="Sammler-Tools"
+        title="3D-Modelle"
+        description="Durchsuche freigeschaltete Modelle, behalte dein Baxx-Guthaben im Blick und springe direkt in Vorschau, Download oder Upload."
+        data-testid="page-header"
+    >
+        <x-slot:actions>
+            <div class="flex flex-col gap-3 lg:items-end">
+                <div class="flex flex-wrap gap-2">
+                    <span class="badge badge-outline rounded-full px-3 py-3">{{ $this->models->count() }} Modelle</span>
+                    <span class="badge badge-primary badge-outline rounded-full px-3 py-3">{{ $this->availableBaxx }} Baxx verfügbar</span>
+                </div>
+
+                @can('create', App\Models\ThreeDModel::class)
+                    <x-button label="Hochladen" icon="o-plus" link="{{ route('3d-modelle.create') }}" wire:navigate class="btn-primary" data-testid="upload-button" />
+                @endcan
+            </div>
+        </x-slot:actions>
+    </x-ui.page-header>
 
     @if (session('success'))
         <x-alert icon="o-check-circle" class="alert-success mb-4" dismissible>
@@ -18,47 +26,50 @@
     @endif
 
     @if ($this->models->isEmpty())
-        <x-card>
-            <p class="text-center text-base-content/60">Noch keine 3D-Modelle vorhanden.</p>
-        </x-card>
+        <x-ui.panel title="Noch keine 3D-Modelle vorhanden" description="Sobald erste Modelle hochgeladen wurden, erscheinen sie hier als eigenständige Karten mit Preis, Format und Vorschau.">
+            <div class="rounded-[1.5rem] border border-dashed border-base-content/15 bg-base-100/70 px-6 py-8 text-center text-sm leading-relaxed text-base-content/62 sm:text-base">
+                Noch keine 3D-Modelle vorhanden.
+            </div>
+        </x-ui.panel>
     @else
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            @foreach ($this->models as $model)
-                @php $unlocked = in_array($model->id, $this->unlockedModelIds); @endphp
-                <x-card class="{{ $unlocked ? '' : 'opacity-50' }}" data-testid="model-card">
-                    {{-- Thumbnail oder Platzhalter --}}
-                    <div class="aspect-video bg-base-200 rounded-lg overflow-hidden flex items-center justify-center">
-                        @if ($model->thumbnail_url)
-                            <img src="{{ $model->thumbnail_url }}" alt="{{ $model->name }}"
-                                class="w-full h-full object-cover" loading="lazy" />
-                        @else
-                            <div class="text-4xl text-base-content/30">
-                                <x-icon name="o-cube" class="w-16 h-16" />
-                            </div>
-                        @endif
-                    </div>
+        <x-ui.panel title="Modell-Bibliothek" description="Alle 3D-Modelle sind als Karten mit Vorschau, Dateiformat und Baxx-Status organisiert.">
+            <div class="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+                @foreach ($this->models as $model)
+                    @php $unlocked = in_array($model->id, $this->unlockedModelIds); @endphp
 
-                    <div class="mt-3">
-                        <h3 class="font-bold text-lg">{{ $model->name }}</h3>
-                        <p class="text-sm text-base-content/60 mt-1 line-clamp-2">{{ $model->description }}</p>
-                        <div class="flex items-center justify-between mt-3">
-                            @if ($model->reward)
-                                <x-badge :value="$model->reward->cost_baxx . ' Baxx'"
-                                    class="{{ $unlocked ? 'badge-success' : 'badge-ghost' }}" icon="o-currency-dollar" />
+                    <article class="relative overflow-hidden rounded-[1.75rem] border border-base-content/10 bg-base-100/80 shadow-sm shadow-base-content/5 transition hover:-translate-y-1 hover:shadow-lg {{ $unlocked ? '' : 'opacity-55' }}" data-testid="model-card">
+                        <div class="aspect-video overflow-hidden bg-base-200">
+                            @if ($model->thumbnail_url)
+                                <img src="{{ $model->thumbnail_url }}" alt="{{ $model->name }}" class="h-full w-full object-cover" loading="lazy" />
                             @else
-                                <x-badge value="Kostenlos" class="badge-success" icon="o-gift" />
+                                <div class="flex h-full items-center justify-center text-base-content/28">
+                                    <x-icon name="o-cube" class="h-16 w-16" />
+                                </div>
                             @endif
-                            <span class="text-xs text-base-content/40 uppercase font-mono">{{ strtoupper($model->file_format) }}</span>
                         </div>
-                    </div>
 
-                    <x-slot:actions>
-                        <x-button label="Ansehen" icon="o-eye"
-                            link="{{ route('3d-modelle.show', $model) }}" wire:navigate
-                            class="btn-sm btn-outline" />
-                    </x-slot:actions>
-                </x-card>
-            @endforeach
-        </div>
+                        <div class="space-y-4 px-5 py-5">
+                            <div class="space-y-2">
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <h3 class="font-display text-xl font-semibold tracking-tight text-base-content">{{ $model->name }}</h3>
+                                    <span class="badge badge-outline rounded-full uppercase">{{ strtoupper($model->file_format) }}</span>
+                                </div>
+                                <p class="line-clamp-3 text-sm leading-relaxed text-base-content/68">{{ $model->description }}</p>
+                            </div>
+
+                            <div class="flex flex-wrap items-center justify-between gap-3">
+                                @if ($model->reward)
+                                    <x-badge :value="$model->reward->cost_baxx . ' Baxx'" class="{{ $unlocked ? 'badge-success' : 'badge-ghost' }}" icon="o-currency-dollar" />
+                                @else
+                                    <x-badge value="Kostenlos" class="badge-success" icon="o-gift" />
+                                @endif
+
+                                <x-button label="Ansehen" icon="o-eye" link="{{ route('3d-modelle.show', $model) }}" wire:navigate class="btn-sm btn-outline" />
+                            </div>
+                        </div>
+                    </article>
+                @endforeach
+            </div>
+        </x-ui.panel>
     @endif
 </x-member-page>

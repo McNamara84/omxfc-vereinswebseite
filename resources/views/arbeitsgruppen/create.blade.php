@@ -1,13 +1,18 @@
 <x-app-layout>
     <x-member-page class="max-w-3xl">
-        <x-header title="Neue AG" separator>
-            <x-slot:actions>
-                <x-button label="Zurück" icon="o-arrow-left" link="{{ route('dashboard') }}" wire:navigate class="btn-ghost" />
-            </x-slot:actions>
-        </x-header>
+        <div class="space-y-6">
+            <x-ui.page-header
+                eyebrow="Mitgliederbereich"
+                title="Neue Arbeitsgruppe"
+                description="Lege eine neue AG an, bestimme die Leitung und hinterlege die öffentlichen Stammdaten für Mitglieder und Interessierte."
+            >
+                <x-slot:actions>
+                    <x-button label="Zurück" icon="o-arrow-left" link="{{ route('dashboard') }}" wire:navigate class="btn-ghost" />
+                </x-slot:actions>
+            </x-ui.page-header>
 
-        <x-card>
-            <x-form method="POST" action="{{ route('arbeitsgruppen.store') }}" no-separator enctype="multipart/form-data">
+            <x-ui.panel title="Stammdaten" description="Name, Leitung, Beschreibung und optionale Kontaktangaben der neuen Arbeitsgruppe.">
+                <x-form method="POST" action="{{ route('arbeitsgruppen.store') }}" no-separator enctype="multipart/form-data">
                 @csrf
                 <div class="space-y-4">
                     <x-input
@@ -61,7 +66,8 @@
                     <x-button label="Abbrechen" link="{{ route('dashboard') }}" wire:navigate class="btn-ghost" />
                     <x-button label="Speichern" type="submit" class="btn-primary" icon="o-check" />
                 </x-slot:actions>
-            </x-form>
-        </x-card>
+                </x-form>
+            </x-ui.panel>
+        </div>
     </x-member-page>
 </x-app-layout>

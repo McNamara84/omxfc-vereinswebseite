@@ -1,28 +1,43 @@
 {{-- resources/views/statistik/index.blade.php --}}
 <x-app-layout>
-    <x-member-page>
-        {{-- Kopfzeile --}}
-        <x-header title="Statistik" separator data-testid="page-header" />
+    <x-member-page class="space-y-8">
 
         @php
             $statisticSections = collect($statisticSections ?? []);
             $statisticSectionLookup = $statisticSections->keyBy('id');
+            $unlockedStatisticsCount = $statisticSections
+                ->filter(fn (array $section) => in_array('statistik-' . $section['id'], $unlockedSlugs, true))
+                ->count();
         @endphp
 
-        <div class="flex flex-col lg:flex-row lg:items-start gap-6">
+        <x-ui.page-header
+            title="Statistik"
+            eyebrow="Maddraxiversum in Zahlen"
+            description="Alle freischaltbaren Auswertungen zu Romanen, Autor:innen, Zyklen und Rezensionen an einem Ort, inklusive Schnellnavigation über alle Statistikabschnitte."
+            data-testid="page-header"
+        >
+            <x-slot:actions>
+                <div class="flex flex-wrap gap-2 lg:justify-end">
+                    <span class="badge badge-outline rounded-full px-3 py-3">{{ $statisticSections->count() }} Statistiken</span>
+                    <span class="badge badge-primary badge-outline rounded-full px-3 py-3">{{ $unlockedStatisticsCount }} freigeschaltet</span>
+                </div>
+            </x-slot:actions>
+        </x-ui.page-header>
+
+        <div class="flex flex-col gap-8 lg:flex-row lg:items-start">
             <div class="w-full lg:w-72 lg:flex-shrink-0">
                 @include('statistik.partials.quicknav', ['sections' => $statisticSections])
             </div>
 
-            <div class="flex-1 space-y-6" data-statistik-sections-wrapper>
+            <div class="flex-1 space-y-8" data-statistik-sections-wrapper>
                 {{-- Card 1 – Balkendiagramm (≥ 2 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('author-chart'))
                 @php($sectionUnlocked = in_array('statistik-' . $section['id'], $unlockedSlugs, true))
-                <x-card
+                <x-ui.panel
                     id="{{ $section['id'] }}"
                     data-statistik-section
                     tabindex="-1"
-                    shadow class="relative">
+                    class="relative">
                     <h2 id="authorChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Maddrax-Romane je Autor:in
                     </h2>
@@ -32,7 +47,7 @@
                     </div>
                     @endif
                     @include('statistik.lock-message', ['sectionId' => $section['id']])
-                </x-card>
+                </x-ui.panel>
 
                 @if($sectionUnlocked)
                 <script>
@@ -44,11 +59,11 @@
                 {{-- Card 2 – Teamplayer-Tabelle (≥ 4 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('teamplayer'))
                 @php($sectionUnlocked = in_array('statistik-' . $section['id'], $unlockedSlugs, true))
-                <x-card
+                <x-ui.panel
                     id="{{ $section['id'] }}"
                     data-statistik-section
                     tabindex="-1"
-                    shadow class="relative">
+                    class="relative">
                     <h2 class="text-xl font-semibold text-primary mb-4 text-center">
                         Top Teamplayer
                     </h2>
@@ -76,16 +91,16 @@
                     </div>
                     @endif
                     @include('statistik.lock-message', ['sectionId' => $section['id']])
-                </x-card>
+                </x-ui.panel>
 
                 {{-- Card 3 – Top 10 Maddrax-Romane (≥ 5 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('top-romane'))
                 @php($sectionUnlocked = in_array('statistik-' . $section['id'], $unlockedSlugs, true))
-                <x-card
+                <x-ui.panel
                     id="{{ $section['id'] }}"
                     data-statistik-section
                     tabindex="-1"
-                    shadow class="relative">
+                    class="relative">
                     <h2 class="text-xl font-semibold text-primary mb-4 text-center">
                         Top 10 Maddrax-Romane
                     </h2>
@@ -117,15 +132,15 @@
                     </div>
                     @endif
                     @include('statistik.lock-message', ['sectionId' => $section['id']])
-                </x-card>
+                </x-ui.panel>
                 {{-- Card 4 – Top-Autor:innen nach Ø‑Bewertung (≥ 7 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('top-autoren'))
                 @php($sectionUnlocked = in_array('statistik-' . $section['id'], $unlockedSlugs, true))
-                <x-card
+                <x-ui.panel
                     id="{{ $section['id'] }}"
                     data-statistik-section
                     tabindex="-1"
-                    shadow class="relative">
+                    class="relative">
                     <h2 class="text-xl font-semibold text-primary mb-4 text-center">
                         Top 10 Autor:innen nach Ø-Bewertung
                     </h2>
@@ -153,16 +168,16 @@
                     </div>
                     @endif
                     @include('statistik.lock-message', ['sectionId' => $section['id']])
-                </x-card>
+                </x-ui.panel>
 
                 {{-- Card 5 – Top-Charaktere nach Auftritten (≥ 10 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('top-charaktere'))
                 @php($sectionUnlocked = in_array('statistik-' . $section['id'], $unlockedSlugs, true))
-                <x-card
+                <x-ui.panel
                     id="{{ $section['id'] }}"
                     data-statistik-section
                     tabindex="-1"
-                    shadow class="relative">
+                    class="relative">
                     <h2 class="text-xl font-semibold text-primary mb-4 text-center">
                         Top 10 Charaktere nach Auftritten
                     </h2>
@@ -190,16 +205,16 @@
                     </div>
                     @endif
                     @include('statistik.lock-message', ['sectionId' => $section['id']])
-                </x-card>
+                </x-ui.panel>
 
                 {{-- Card 6 – Bewertungen im Maddraxikon (≥ 11 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('maddraxikon-bewertungen'))
                 @php($sectionUnlocked = in_array('statistik-' . $section['id'], $unlockedSlugs, true))
-                <x-card
+                <x-ui.panel
                     id="{{ $section['id'] }}"
                     data-statistik-section
                     tabindex="-1"
-                    shadow class="relative">
+                    class="relative">
                     <h2 class="text-xl font-semibold text-primary mb-4 text-center">
                         Bewertungen im Maddraxikon
                     </h2>
@@ -211,15 +226,15 @@
                     </div>
                     @endif
                     @include('statistik.lock-message', ['sectionId' => $section['id']])
-                </x-card>
+                </x-ui.panel>
             {{-- Card 7 – Rezensionen unserer Mitglieder (≥ 12 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('mitglieds-rezensionen'))
                 @php($sectionUnlocked = in_array('statistik-' . $section['id'], $unlockedSlugs, true))
-                <x-card
+                <x-ui.panel
                     id="{{ $section['id'] }}"
                     data-statistik-section
                     tabindex="-1"
-                    shadow class="relative">
+                    class="relative">
                     <h2 class="text-xl font-semibold text-primary mb-4 text-center">
                         Rezensionen unserer Mitglieder
                     </h2>
@@ -266,15 +281,15 @@
                     </div>
                     @endif
                     @include('statistik.lock-message', ['sectionId' => $section['id']])
-                </x-card>
+                </x-ui.panel>
             {{-- Card 8 – Bewertungen des Euree-Zyklus (≥ 13 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('zyklus-euree'))
                 @php($sectionUnlocked = in_array('statistik-' . $section['id'], $unlockedSlugs, true))
-                <x-card
+                <x-ui.panel
                     id="{{ $section['id'] }}"
                     data-statistik-section
                     tabindex="-1"
-                    shadow class="relative">
+                    class="relative">
                     <h2 id="eureeChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Bewertungen des Euree-Zyklus
                     </h2>
@@ -284,7 +299,7 @@
                     </div>
                     @endif
                     @include('statistik.lock-message', ['sectionId' => $section['id']])
-                </x-card>
+                </x-ui.panel>
 
 
                 @if($sectionUnlocked)
@@ -297,11 +312,11 @@
             {{-- Card 9 – Bewertungen des Meeraka-Zyklus (≥ 14 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('zyklus-meeraka'))
                 @php($sectionUnlocked = in_array('statistik-' . $section['id'], $unlockedSlugs, true))
-                <x-card
+                <x-ui.panel
                     id="{{ $section['id'] }}"
                     data-statistik-section
                     tabindex="-1"
-                    shadow class="relative">
+                    class="relative">
                     <h2 id="meerakaChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Bewertungen des Meeraka-Zyklus
                     </h2>
@@ -311,7 +326,7 @@
                     </div>
                     @endif
                     @include('statistik.lock-message', ['sectionId' => $section['id']])
-                </x-card>
+                </x-ui.panel>
 
 
                 @if($sectionUnlocked)
@@ -324,11 +339,11 @@
             {{-- Card 10 – Bewertungen des Expeditions-Zyklus (≥ 15 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('zyklus-expedition'))
                 @php($sectionUnlocked = in_array('statistik-' . $section['id'], $unlockedSlugs, true))
-                <x-card
+                <x-ui.panel
                     id="{{ $section['id'] }}"
                     data-statistik-section
                     tabindex="-1"
-                    shadow class="relative">
+                    class="relative">
                     <h2 id="expeditionChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Bewertungen des Expeditions-Zyklus
                     </h2>
@@ -338,7 +353,7 @@
                     </div>
                     @endif
                     @include('statistik.lock-message', ['sectionId' => $section['id']])
-                </x-card>
+                </x-ui.panel>
 
 
                 @if($sectionUnlocked)
@@ -351,11 +366,11 @@
             {{-- Card 11 – Bewertungen des Kratersee-Zyklus (≥ 16 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('zyklus-kratersee'))
                 @php($sectionUnlocked = in_array('statistik-' . $section['id'], $unlockedSlugs, true))
-                <x-card
+                <x-ui.panel
                     id="{{ $section['id'] }}"
                     data-statistik-section
                     tabindex="-1"
-                    shadow class="relative">
+                    class="relative">
                     <h2 id="kraterseeChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Bewertungen des Kratersee-Zyklus
                     </h2>
@@ -365,7 +380,7 @@
                     </div>
                     @endif
                     @include('statistik.lock-message', ['sectionId' => $section['id']])
-                </x-card>
+                </x-ui.panel>
 
 
                 @if($sectionUnlocked)
@@ -378,11 +393,11 @@
             {{-- Card 12 – Bewertungen des Daa'muren-Zyklus (≥ 17 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('zyklus-daamuren'))
                 @php($sectionUnlocked = in_array('statistik-' . $section['id'], $unlockedSlugs, true))
-                <x-card
+                <x-ui.panel
                     id="{{ $section['id'] }}"
                     data-statistik-section
                     tabindex="-1"
-                    shadow class="relative">
+                    class="relative">
                     <h2 id="daaMurenChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Bewertungen des Daa'muren-Zyklus
                     </h2>
@@ -392,7 +407,7 @@
                     </div>
                     @endif
                     @include('statistik.lock-message', ['sectionId' => $section['id']])
-                </x-card>
+                </x-ui.panel>
 
 
                 @if($sectionUnlocked)
@@ -405,11 +420,11 @@
             {{-- Card 13 – Bewertungen des Wandler-Zyklus (≥ 18 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('zyklus-wandler'))
                 @php($sectionUnlocked = in_array('statistik-' . $section['id'], $unlockedSlugs, true))
-                <x-card
+                <x-ui.panel
                     id="{{ $section['id'] }}"
                     data-statistik-section
                     tabindex="-1"
-                    shadow class="relative">
+                    class="relative">
                     <h2 id="wandlerChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Bewertungen des Wandler-Zyklus
                     </h2>
@@ -419,7 +434,7 @@
                     </div>
                     @endif
                     @include('statistik.lock-message', ['sectionId' => $section['id']])
-                </x-card>
+                </x-ui.panel>
 
 
                 @if($sectionUnlocked)
@@ -432,11 +447,11 @@
             {{-- Card 14 – Bewertungen des Mars-Zyklus (≥ 19 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('zyklus-mars'))
                 @php($sectionUnlocked = in_array('statistik-' . $section['id'], $unlockedSlugs, true))
-                <x-card
+                <x-ui.panel
                     id="{{ $section['id'] }}"
                     data-statistik-section
                     tabindex="-1"
-                    shadow class="relative">
+                    class="relative">
                     <h2 id="marsChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Bewertungen des Mars-Zyklus
                     </h2>
@@ -446,7 +461,7 @@
                     </div>
                     @endif
                     @include('statistik.lock-message', ['sectionId' => $section['id']])
-                </x-card>
+                </x-ui.panel>
 
 
                 @if($sectionUnlocked)
@@ -459,11 +474,11 @@
             {{-- Card 15 – Bewertungen des Ausala-Zyklus (≥ 20 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('zyklus-ausala'))
                 @php($sectionUnlocked = in_array('statistik-' . $section['id'], $unlockedSlugs, true))
-                <x-card
+                <x-ui.panel
                     id="{{ $section['id'] }}"
                     data-statistik-section
                     tabindex="-1"
-                    shadow class="relative">
+                    class="relative">
                     <h2 id="ausalaChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Bewertungen des Ausala-Zyklus
                     </h2>
@@ -473,7 +488,7 @@
                     </div>
                     @endif
                     @include('statistik.lock-message', ['sectionId' => $section['id']])
-                </x-card>
+                </x-ui.panel>
 
 
                 @if($sectionUnlocked)
@@ -486,11 +501,11 @@
             {{-- Card 16 – Bewertungen des Afra-Zyklus (≥ 21 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('zyklus-afra'))
                 @php($sectionUnlocked = in_array('statistik-' . $section['id'], $unlockedSlugs, true))
-                <x-card
+                <x-ui.panel
                     id="{{ $section['id'] }}"
                     data-statistik-section
                     tabindex="-1"
-                    shadow class="relative">
+                    class="relative">
                     <h2 id="afraChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Bewertungen des Afra-Zyklus
                     </h2>
@@ -500,7 +515,7 @@
                     </div>
                     @endif
                     @include('statistik.lock-message', ['sectionId' => $section['id']])
-                </x-card>
+                </x-ui.panel>
 
 
                 @if($sectionUnlocked)
@@ -513,11 +528,11 @@
             {{-- Card 17 – Bewertungen des Antarktis-Zyklus (≥ 22 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('zyklus-antarktis'))
                 @php($sectionUnlocked = in_array('statistik-' . $section['id'], $unlockedSlugs, true))
-                <x-card
+                <x-ui.panel
                     id="{{ $section['id'] }}"
                     data-statistik-section
                     tabindex="-1"
-                    shadow class="relative">
+                    class="relative">
                     <h2 id="antarktisChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Bewertungen des Antarktis-Zyklus
                     </h2>
@@ -527,7 +542,7 @@
                     </div>
                     @endif
                     @include('statistik.lock-message', ['sectionId' => $section['id']])
-                </x-card>
+                </x-ui.panel>
 
 
                 @if($sectionUnlocked)
@@ -540,11 +555,11 @@
             {{-- Card 18 – Bewertungen des Schatten-Zyklus (≥ 23 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('zyklus-schatten'))
                 @php($sectionUnlocked = in_array('statistik-' . $section['id'], $unlockedSlugs, true))
-                <x-card
+                <x-ui.panel
                     id="{{ $section['id'] }}"
                     data-statistik-section
                     tabindex="-1"
-                    shadow class="relative">
+                    class="relative">
                     <h2 id="schattenChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Bewertungen des Schatten-Zyklus
                     </h2>
@@ -554,7 +569,7 @@
                     </div>
                     @endif
                     @include('statistik.lock-message', ['sectionId' => $section['id']])
-                </x-card>
+                </x-ui.panel>
 
 
                 @if($sectionUnlocked)
@@ -567,11 +582,11 @@
             {{-- Card 19 – Bewertungen des Ursprung-Zyklus (≥ 24 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('zyklus-ursprung'))
                 @php($sectionUnlocked = in_array('statistik-' . $section['id'], $unlockedSlugs, true))
-                <x-card
+                <x-ui.panel
                     id="{{ $section['id'] }}"
                     data-statistik-section
                     tabindex="-1"
-                    shadow class="relative">
+                    class="relative">
                     <h2 id="ursprungChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Bewertungen des Ursprung-Zyklus
                     </h2>
@@ -581,7 +596,7 @@
                     </div>
                     @endif
                     @include('statistik.lock-message', ['sectionId' => $section['id']])
-                </x-card>
+                </x-ui.panel>
 
 
                 @if($sectionUnlocked)
@@ -594,11 +609,11 @@
             {{-- Card 20 – Bewertungen des Streiter-Zyklus (≥ 25 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('zyklus-streiter'))
                 @php($sectionUnlocked = in_array('statistik-' . $section['id'], $unlockedSlugs, true))
-                <x-card
+                <x-ui.panel
                     id="{{ $section['id'] }}"
                     data-statistik-section
                     tabindex="-1"
-                    shadow class="relative">
+                    class="relative">
                     <h2 id="streiterChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Bewertungen des Streiter-Zyklus
                     </h2>
@@ -608,7 +623,7 @@
                     </div>
                     @endif
                     @include('statistik.lock-message', ['sectionId' => $section['id']])
-                </x-card>
+                </x-ui.panel>
 
 
                 @if($sectionUnlocked)
@@ -621,11 +636,11 @@
             {{-- Card 21 – Bewertungen des Archivar-Zyklus (≥ 26 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('zyklus-archivar'))
                 @php($sectionUnlocked = in_array('statistik-' . $section['id'], $unlockedSlugs, true))
-                <x-card
+                <x-ui.panel
                     id="{{ $section['id'] }}"
                     data-statistik-section
                     tabindex="-1"
-                    shadow class="relative">
+                    class="relative">
                     <h2 id="archivarChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Bewertungen des Archivar-Zyklus
                     </h2>
@@ -635,7 +650,7 @@
                     </div>
                     @endif
                     @include('statistik.lock-message', ['sectionId' => $section['id']])
-                </x-card>
+                </x-ui.panel>
 
 
                 @if($sectionUnlocked)
@@ -648,11 +663,11 @@
             {{-- Card 22 – Bewertungen des Zeitsprung-Zyklus (≥ 27 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('zyklus-zeitsprung'))
                 @php($sectionUnlocked = in_array('statistik-' . $section['id'], $unlockedSlugs, true))
-                <x-card
+                <x-ui.panel
                     id="{{ $section['id'] }}"
                     data-statistik-section
                     tabindex="-1"
-                    shadow class="relative">
+                    class="relative">
                     <h2 id="zeitsprungChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Bewertungen des Zeitsprung-Zyklus
                     </h2>
@@ -662,7 +677,7 @@
                     </div>
                     @endif
                     @include('statistik.lock-message', ['sectionId' => $section['id']])
-                </x-card>
+                </x-ui.panel>
 
 
                 @if($sectionUnlocked)
@@ -675,11 +690,11 @@
             {{-- Card 23 – Bewertungen des Fremdwelt-Zyklus (≥ 28 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('zyklus-fremdwelt'))
                 @php($sectionUnlocked = in_array('statistik-' . $section['id'], $unlockedSlugs, true))
-                <x-card
+                <x-ui.panel
                     id="{{ $section['id'] }}"
                     data-statistik-section
                     tabindex="-1"
-                    shadow class="relative">
+                    class="relative">
                     <h2 id="fremdweltChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Bewertungen des Fremdwelt-Zyklus
                     </h2>
@@ -689,7 +704,7 @@
                     </div>
                     @endif
                     @include('statistik.lock-message', ['sectionId' => $section['id']])
-                </x-card>
+                </x-ui.panel>
 
 
                 @if($sectionUnlocked)
@@ -702,11 +717,11 @@
             {{-- Card 24 – Bewertungen des Parallelwelt-Zyklus (≥ 29 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('zyklus-parallelwelt'))
                 @php($sectionUnlocked = in_array('statistik-' . $section['id'], $unlockedSlugs, true))
-                <x-card
+                <x-ui.panel
                     id="{{ $section['id'] }}"
                     data-statistik-section
                     tabindex="-1"
-                    shadow class="relative">
+                    class="relative">
                     <h2 id="parallelweltChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Bewertungen des Parallelwelt-Zyklus
                     </h2>
@@ -716,7 +731,7 @@
                     </div>
                     @endif
                     @include('statistik.lock-message', ['sectionId' => $section['id']])
-                </x-card>
+                </x-ui.panel>
 
 
                 @if($sectionUnlocked)
@@ -729,11 +744,11 @@
             {{-- Card 25 – Bewertungen des Weltenriss-Zyklus (≥ 30 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('zyklus-weltenriss'))
                 @php($sectionUnlocked = in_array('statistik-' . $section['id'], $unlockedSlugs, true))
-                <x-card
+                <x-ui.panel
                     id="{{ $section['id'] }}"
                     data-statistik-section
                     tabindex="-1"
-                    shadow class="relative">
+                    class="relative">
                     <h2 id="weltenrissChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Bewertungen des Weltenriss-Zyklus
                     </h2>
@@ -743,7 +758,7 @@
                     </div>
                     @endif
                     @include('statistik.lock-message', ['sectionId' => $section['id']])
-                </x-card>
+                </x-ui.panel>
 
 
                 @if($sectionUnlocked)
@@ -756,11 +771,11 @@
             {{-- Card 26 – Bewertungen des Amraka-Zyklus (≥ 31 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('zyklus-amraka'))
                 @php($sectionUnlocked = in_array('statistik-' . $section['id'], $unlockedSlugs, true))
-                <x-card
+                <x-ui.panel
                     id="{{ $section['id'] }}"
                     data-statistik-section
                     tabindex="-1"
-                    shadow class="relative">
+                    class="relative">
                     <h2 id="amrakaChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Bewertungen des Amraka-Zyklus
                     </h2>
@@ -770,7 +785,7 @@
                     </div>
                     @endif
                     @include('statistik.lock-message', ['sectionId' => $section['id']])
-                </x-card>
+                </x-ui.panel>
 
 
                 @if($sectionUnlocked)
@@ -783,11 +798,11 @@
             {{-- Card 27 – Bewertungen des Weltrat-Zyklus (≥ 32 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('zyklus-weltrat'))
                 @php($sectionUnlocked = in_array('statistik-' . $section['id'], $unlockedSlugs, true))
-                <x-card
+                <x-ui.panel
                     id="{{ $section['id'] }}"
                     data-statistik-section
                     tabindex="-1"
-                    shadow class="relative">
+                    class="relative">
                     <h2 id="weltratChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Bewertungen des Weltrat-Zyklus
                     </h2>
@@ -797,7 +812,7 @@
                     </div>
                     @endif
                     @include('statistik.lock-message', ['sectionId' => $section['id']])
-                </x-card>
+                </x-ui.panel>
 
 
                 @if($sectionUnlocked)
@@ -810,11 +825,11 @@
             {{-- Card 28 – Bewertungen der Hardcover (≥ 40 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('hardcover-bewertungen'))
                 @php($sectionUnlocked = in_array('statistik-' . $section['id'], $unlockedSlugs, true))
-                <x-card
+                <x-ui.panel
                     id="{{ $section['id'] }}"
                     data-statistik-section
                     tabindex="-1"
-                    shadow class="relative">
+                    class="relative">
                     <h2 id="hardcoverChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Bewertungen der Hardcover
                     </h2>
@@ -824,7 +839,7 @@
                     </div>
                     @endif
                     @include('statistik.lock-message', ['sectionId' => $section['id']])
-                </x-card>
+                </x-ui.panel>
 
 
                 @if($sectionUnlocked)
@@ -837,11 +852,11 @@
             {{-- Card 29 – Hardcover je Autor:in (≥ 41 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('hardcover-autoren'))
                 @php($sectionUnlocked = in_array('statistik-' . $section['id'], $unlockedSlugs, true))
-                <x-card
+                <x-ui.panel
                     id="{{ $section['id'] }}"
                     data-statistik-section
                     tabindex="-1"
-                    shadow class="relative">
+                    class="relative">
                     <h2 id="hardcoverAuthorChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Maddrax-Hardcover je Autor:in
                     </h2>
@@ -851,7 +866,7 @@
                     </div>
                     @endif
                     @include('statistik.lock-message', ['sectionId' => $section['id']])
-                </x-card>
+                </x-ui.panel>
 
 
                 @if($sectionUnlocked)
@@ -863,11 +878,11 @@
             {{-- Card 30 – TOP20 Maddrax-Themen (≥ 42 Baxx, nur Romane mit ≥ 8 Bewertungen, Themen in ≥ 5 Romanen) --}}
                 @php($section = $statisticSectionLookup->get('top-themen'))
                 @php($sectionUnlocked = in_array('statistik-' . $section['id'], $unlockedSlugs, true))
-                <x-card
+                <x-ui.panel
                     id="{{ $section['id'] }}"
                     data-statistik-section
                     tabindex="-1"
-                    shadow class="relative">
+                    class="relative">
                     <h2 class="text-xl font-semibold text-primary mb-4 text-center">
                         TOP20 Maddrax-Themen
                     </h2>
@@ -895,16 +910,16 @@
                     </div>
                 @endif
                 @include('statistik.lock-message', ['sectionId' => $section['id']])
-            </x-card>
+            </x-ui.panel>
 
             {{-- Card 31 – Bewertungen der Mission Mars-Heftromane (≥ 43 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('mission-mars-bewertungen'))
                 @php($sectionUnlocked = in_array('statistik-' . $section['id'], $unlockedSlugs, true))
-                <x-card
+                <x-ui.panel
                     id="{{ $section['id'] }}"
                     data-statistik-section
                     tabindex="-1"
-                    shadow class="relative">
+                    class="relative">
                     <h2 id="missionMarsChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Bewertungen der Mission Mars-Heftromane
                     </h2>
@@ -914,7 +929,7 @@
                     </div>
                     @endif
                     @include('statistik.lock-message', ['sectionId' => $section['id']])
-                </x-card>
+                </x-ui.panel>
 
 
                 @if($sectionUnlocked)
@@ -927,11 +942,11 @@
             {{-- Card 31b – Mission Mars-Heftromane je Autor:in (≥ 44 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('mission-mars-autoren'))
                 @php($sectionUnlocked = in_array('statistik-' . $section['id'], $unlockedSlugs, true))
-                <x-card
+                <x-ui.panel
                     id="{{ $section['id'] }}"
                     data-statistik-section
                     tabindex="-1"
-                    shadow class="relative">
+                    class="relative">
                     <h2 id="missionMarsAuthorChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Mission Mars-Heftromane je Autor:in
                     </h2>
@@ -941,7 +956,7 @@
                     </div>
                     @endif
                     @include('statistik.lock-message', ['sectionId' => $section['id']])
-                </x-card>
+                </x-ui.panel>
 
 
                 @if($sectionUnlocked)
@@ -954,11 +969,11 @@
             {{-- Card 32 – Bewertungen der Das Volk der Tiefe-Heftromane (≥ 45 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('volk-der-tiefe-bewertungen'))
                 @php($sectionUnlocked = in_array('statistik-' . $section['id'], $unlockedSlugs, true))
-                <x-card
+                <x-ui.panel
                     id="{{ $section['id'] }}"
                     data-statistik-section
                     tabindex="-1"
-                    shadow class="relative">
+                    class="relative">
                     <h2 id="volkDerTiefeChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Bewertungen der Das Volk der Tiefe-Heftromane
                     </h2>
@@ -968,7 +983,7 @@
                     </div>
                     @endif
                     @include('statistik.lock-message', ['sectionId' => $section['id']])
-                </x-card>
+                </x-ui.panel>
 
 
                 @if($sectionUnlocked)
@@ -981,11 +996,11 @@
             {{-- Card 32b – Das Volk der Tiefe-Heftromane je Autor:in (≥ 46 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('volk-der-tiefe-autoren'))
                 @php($sectionUnlocked = in_array('statistik-' . $section['id'], $unlockedSlugs, true))
-                <x-card
+                <x-ui.panel
                     id="{{ $section['id'] }}"
                     data-statistik-section
                     tabindex="-1"
-                    shadow class="relative">
+                    class="relative">
                     <h2 id="volkDerTiefeAuthorChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Das Volk der Tiefe-Heftromane je Autor:in
                     </h2>
@@ -995,7 +1010,7 @@
                     </div>
                     @endif
                     @include('statistik.lock-message', ['sectionId' => $section['id']])
-                </x-card>
+                </x-ui.panel>
 
 
                 @if($sectionUnlocked)
@@ -1008,11 +1023,11 @@
             {{-- Card 33 – Bewertungen der 2012-Heftromane (≥ 47 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('zweitausendzwoelf-bewertungen'))
                 @php($sectionUnlocked = in_array('statistik-' . $section['id'], $unlockedSlugs, true))
-                <x-card
+                <x-ui.panel
                     id="{{ $section['id'] }}"
                     data-statistik-section
                     tabindex="-1"
-                    shadow class="relative">
+                    class="relative">
                     <h2 id="zweitausendzwoelfChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Bewertungen der 2012-Heftromane
                     </h2>
@@ -1022,7 +1037,7 @@
                     </div>
                     @endif
                     @include('statistik.lock-message', ['sectionId' => $section['id']])
-                </x-card>
+                </x-ui.panel>
 
 
                 @if($sectionUnlocked)
@@ -1035,11 +1050,11 @@
             {{-- Card 33b – 2012-Heftromane je Autor:in (≥ 48 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('zweitausendzwoelf-autoren'))
                 @php($sectionUnlocked = in_array('statistik-' . $section['id'], $unlockedSlugs, true))
-                <x-card
+                <x-ui.panel
                     id="{{ $section['id'] }}"
                     data-statistik-section
                     tabindex="-1"
-                    shadow class="relative">
+                    class="relative">
                     <h2 id="zweitausendzwoelfAuthorChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         2012-Heftromane je Autor:in
                     </h2>
@@ -1049,7 +1064,7 @@
                     </div>
                     @endif
                     @include('statistik.lock-message', ['sectionId' => $section['id']])
-                </x-card>
+                </x-ui.panel>
 
 
                 @if($sectionUnlocked)
@@ -1062,11 +1077,11 @@
             {{-- Card 34 – Bewertungen der Die Abenteurer-Heftromane (≥ 33 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('abenteurer-bewertungen'))
                 @php($sectionUnlocked = in_array('statistik-' . $section['id'], $unlockedSlugs, true))
-                <x-card
+                <x-ui.panel
                     id="{{ $section['id'] }}"
                     data-statistik-section
                     tabindex="-1"
-                    shadow class="relative">
+                    class="relative">
                     <h2 id="abenteurerChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Bewertungen der Die Abenteurer-Heftromane
                     </h2>
@@ -1076,7 +1091,7 @@
                     </div>
                     @endif
                     @include('statistik.lock-message', ['sectionId' => $section['id']])
-                </x-card>
+                </x-ui.panel>
 
 
                 @if($sectionUnlocked)
@@ -1089,11 +1104,11 @@
             {{-- Card 34b – Die Abenteurer-Heftromane je Autor:in (≥ 34 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('abenteurer-autoren'))
                 @php($sectionUnlocked = in_array('statistik-' . $section['id'], $unlockedSlugs, true))
-                <x-card
+                <x-ui.panel
                     id="{{ $section['id'] }}"
                     data-statistik-section
                     tabindex="-1"
-                    shadow class="relative">
+                    class="relative">
                     <h2 id="abenteurerAuthorChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Die Abenteurer-Heftromane je Autor:in
                     </h2>
@@ -1103,7 +1118,7 @@
                     </div>
                     @endif
                     @include('statistik.lock-message', ['sectionId' => $section['id']])
-                </x-card>
+                </x-ui.panel>
 
 
                 @if($sectionUnlocked)
@@ -1116,11 +1131,11 @@
             {{-- Card 35 – TOP10 Lieblingsthemen (≥ 50 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('lieblingsthemen'))
                 @php($sectionUnlocked = in_array('statistik-' . $section['id'], $unlockedSlugs, true))
-                <x-card
+                <x-ui.panel
                     id="{{ $section['id'] }}"
                     data-statistik-section
                     tabindex="-1"
-                    shadow class="relative">
+                    class="relative">
                     <h2 class="text-xl font-semibold text-primary mb-4 text-center">
                         TOP10 Lieblingsthemen
                     </h2>
@@ -1148,7 +1163,7 @@
                     </div>
                     @endif
                     @include('statistik.lock-message', ['sectionId' => $section['id']])
-                </x-card>
+                </x-ui.panel>
             </div>
         </div>
 

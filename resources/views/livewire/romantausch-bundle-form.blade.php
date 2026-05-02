@@ -1,10 +1,18 @@
-<x-member-page class="max-w-4xl">
-    <x-card>
-        <x-header :title="$this->isEditing ? 'Stapel-Angebot bearbeiten' : 'Stapel-Angebot erstellen'" separator useH1 data-testid="page-title" />
-        <p class="text-base-content mb-6">
-            Mit einem Stapel-Angebot kannst du viele Romane auf einmal einstellen. Gib einfach die Nummern als Bereiche (z.B. 1-50) oder einzeln (z.B. 52, 55) ein.
-        </p>
-        <form wire:submit="save" id="bundle-offer-form">
+<x-member-page class="max-w-6xl space-y-8">
+    <x-ui.page-header
+        :title="$this->isEditing ? 'Stapel-Angebot bearbeiten' : 'Stapel-Angebot erstellen'"
+        eyebrow="Romantauschbörse"
+        description="Bündle mehrere Romane in einem gemeinsamen Angebot, inklusive Bereichslogik, Zustandsrahmen und optionalen Fotos."
+        data-testid="page-title"
+    >
+        <x-slot:actions>
+            <x-button label="Zurück zur Übersicht" link="{{ route('romantausch.index') }}" wire:navigate icon="o-arrow-left" class="btn-ghost" />
+        </x-slot:actions>
+    </x-ui.page-header>
+
+    <section class="grid gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(18rem,0.72fr)] xl:items-start">
+        <x-ui.panel title="Stapel-Angebot" description="Mit einem Stapel-Angebot kannst du viele Romane auf einmal einstellen. Gib die Nummern als Bereiche wie 1-50 oder einzeln wie 52, 55 ein.">
+            <form wire:submit="save" id="bundle-offer-form">
             @php
                 $seriesOptions = $this->seriesOptions;
                 $conditionOptions = $this->conditionOptions;
@@ -164,8 +172,19 @@
                     <x-button label="Stapel löschen" wire:click="delete" wire:confirm="Möchtest du diesen Stapel wirklich löschen?" class="btn-error" icon="o-trash" spinner="delete" />
                 @endif
             </div>
-        </form>
-    </x-card>
+            </form>
+        </x-ui.panel>
+
+        <div class="space-y-6 xl:sticky xl:top-6">
+            <x-ui.panel title="Hinweise zu Nummernbereichen" description="Der Parser unterstützt einzelne Nummern und kompakte Intervalle, damit große Stapel schnell angelegt werden können.">
+                <ul class="grid gap-3 text-sm leading-relaxed text-base-content/76 sm:text-base">
+                    <li class="rounded-[1.25rem] border border-base-content/10 bg-base-100/72 px-4 py-3">Du kannst Einzelnummern und Bereiche kombinieren, etwa 1-20, 24, 27-30.</li>
+                    <li class="rounded-[1.25rem] border border-base-content/10 bg-base-100/72 px-4 py-3">Die Live-Vorschau zeigt sofort, wie viele Romane erkannt wurden und in welcher Reihenfolge sie interpretiert werden.</li>
+                    <li class="rounded-[1.25rem] border border-base-content/10 bg-base-100/72 px-4 py-3">Andere Mitglieder sehen in der Übersicht sofort, wie viele Bände ihres Gesuchs in deinem Stapel enthalten sind.</li>
+                </ul>
+            </x-ui.panel>
+        </div>
+    </section>
 </x-member-page>
 
 @assets

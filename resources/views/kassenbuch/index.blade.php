@@ -14,7 +14,12 @@
         @endif
         
         {{-- Header --}}
-        <x-header title="Kassenbuch" separator data-testid="page-header" />
+        <x-ui.page-header
+            eyebrow="Finanzen"
+            title="Kassenbuch"
+            description="Verwalte Zahlungsstatus, offene Bearbeitungsanfragen und die laufenden Einträge der Vereinskasse in einer gemeinsamen Übersicht."
+            data-testid="page-header"
+        />
         
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             @include('kassenbuch.partials.mitgliedsbeitrag-kassenstand')
@@ -22,13 +27,13 @@
             @if($canViewKassenbuch)
                 {{-- Card: Offene Bearbeitungsanfragen (für Vorstand und Admin sichtbar) --}}
                 @if($canProcessEditRequests && $pendingEditRequests && $pendingEditRequests->count() > 0)
-                    <x-card class="md:col-span-2" shadow>
-                        <x-slot:title>
+                    <x-ui.panel class="md:col-span-2">
+                        <x-slot:header>
                             <div class="flex items-center">
                                 <x-icon name="o-bell" class="w-5 h-5 mr-2 text-warning" />
                                 Offene Bearbeitungsanfragen ({{ $pendingEditRequests->count() }})
                             </div>
-                        </x-slot:title>
+                        </x-slot:header>
                         
                         <div class="space-y-4">
                             @foreach($pendingEditRequests as $request)
@@ -71,11 +76,11 @@
                                 </div>
                             @endforeach
                         </div>
-                    </x-card>
+                    </x-ui.panel>
                 @endif
 
                 {{-- Card 3: Mitgliederliste mit Zahlungsstatus (Für Vorstand und Kassenwart) --}}
-                <x-card title="Zahlungsstatus der Mitglieder" class="md:col-span-2" shadow>
+                <x-ui.panel title="Zahlungsstatus der Mitglieder" description="Behalte Beiträge, Fälligkeiten und mögliche Bearbeitungsschritte für alle Mitglieder zentral im Blick." class="md:col-span-2">
                     <div class="overflow-x-auto">
                         <table class="table">
                             <thead>
@@ -149,25 +154,22 @@
                             </tbody>
                         </table>
                     </div>
-                </x-card>
+                </x-ui.panel>
                 
                 {{-- Card 4: Kassenbuch (Für Vorstand und Kassenwart) --}}
-                <x-card class="md:col-span-2" shadow>
-                    <x-slot:title>
-                        <div class="flex justify-between items-center w-full">
-                            <span>Kassenbuch</span>
-                            @if($canManageKassenbuch)
-                                <x-button 
-                                    label="Eintrag hinzufügen" 
-                                    icon="o-plus" 
-                                    class="btn-primary btn-sm"
-                                    x-data 
-                                    @click="$dispatch('kassenbuch-modal')" 
-                                    data-kassenbuch-modal-trigger="true"
-                                    data-testid="add-entry-button" />
-                            @endif
-                        </div>
-                    </x-slot:title>
+                <x-ui.panel title="Kassenbuch" description="Alle Einnahmen und Ausgaben inklusive Bearbeitungsstatus und Eintragsaktionen in tabellarischer Form." class="md:col-span-2">
+                    <x-slot:actions>
+                        @if($canManageKassenbuch)
+                            <x-button 
+                                label="Eintrag hinzufügen" 
+                                icon="o-plus" 
+                                class="btn-primary btn-sm"
+                                x-data 
+                                @click="$dispatch('kassenbuch-modal')" 
+                                data-kassenbuch-modal-trigger="true"
+                                data-testid="add-entry-button" />
+                        @endif
+                    </x-slot:actions>
                     
                     <div class="overflow-x-auto">
                         <table class="table">
@@ -257,7 +259,7 @@
                             </tbody>
                         </table>
                     </div>
-                </x-card>
+                </x-ui.panel>
             @endif
         </div>
 

@@ -1,10 +1,13 @@
 <x-app-layout>
-    <x-member-page>
-        {{-- Header --}}
-        <x-header title="Seitenaufrufe" subtitle="Statistiken und Analysen der Website-Nutzung" separator class="mb-6" />
+    <x-member-page class="space-y-8">
+        <x-ui.page-header
+            title="Seitenaufrufe"
+            eyebrow="Admin-Statistiken"
+            description="Zentrale Kennzahlen, Aktivitätstrends und Browserdaten der Website-Nutzung in einer gemeinsamen Admin-Ansicht."
+        />
 
-        {{-- Obere Stats-Reihe --}}
-        <div class="grid gap-6 lg:grid-cols-4 mb-6">
+        <x-ui.panel title="Sofortbild" description="Die wichtigsten Kennzahlen für Startseite, aktuelle Aktivität und Trendvergleich auf einen Blick.">
+        <div class="grid gap-6 lg:grid-cols-4">
             {{-- Startseiten-Aufrufe --}}
             <section aria-labelledby="homepage-visits-heading">
                 <x-stat
@@ -56,12 +59,13 @@
                 icon="o-calendar"
             />
         </div>
+        </x-ui.panel>
 
         {{-- DAU Sparkline --}}
         @php($dailyActiveSeries = collect($dailyActiveUsers['series']))
         @php($recentDailyActiveSeries = $dailyActiveSeries->slice(-7)->values())
         @php($recentDailyActiveMax = max($recentDailyActiveSeries->max('total') ?? 0, 1))
-        <x-card title="Aktive Mitglieder (letzte 7 Tage)" class="mb-6">
+        <x-ui.panel title="Aktive Mitglieder (letzte 7 Tage)" description="Kompakter Verlauf der letzten sieben Tage, um Ausschläge und schwächere Tage sofort zu erkennen.">
             @if($recentDailyActiveSeries->isEmpty())
                 <x-slot:empty>
                     <x-icon name="o-chart-bar" class="w-12 h-12 opacity-30 mx-auto" />
@@ -84,16 +88,18 @@
                     @endforeach
                 </div>
             @endif
-        </x-card>
+        </x-ui.panel>
 
         {{-- Seitenaufrufe nach Route --}}
         @php($hasRouteData = $visitData->isNotEmpty())
         <section aria-labelledby="route-visits-heading">
-        <x-card class="mb-8">
-            <x-slot:title>
-                <span id="route-visits-heading">Seitenaufrufe nach Route</span>
-            </x-slot:title>
-            <x-slot:subtitle>Die Startseite wird separat angezeigt.</x-slot:subtitle>
+        <x-ui.panel class="mb-8">
+            <x-slot:header>
+                <div class="space-y-2">
+                    <h2 id="route-visits-heading" class="font-display text-2xl font-semibold tracking-tight text-base-content">Seitenaufrufe nach Route</h2>
+                    <p class="max-w-3xl text-sm leading-relaxed text-base-content/72">Die Startseite wird separat angezeigt.</p>
+                </div>
+            </x-slot:header>
             @if(! $hasRouteData)
                 <x-alert icon="o-information-circle" class="alert-info mb-4">
                     Noch keine Seitenaufrufe außerhalb der Startseite erfasst.
@@ -108,14 +114,14 @@
                     aria-hidden="{{ $hasRouteData ? 'false' : 'true' }}"
                 ></canvas>
             </div>
-        </x-card>
+        </x-ui.panel>
         </section>
 
         {{-- Browser-Nutzung --}}
         @php($hasBrowserUsageByBrowser = $browserUsageByBrowser->isNotEmpty())
         @php($hasBrowserUsageByFamily = $browserUsageByFamily->isNotEmpty())
         @php($hasDeviceUsage = $deviceUsage->isNotEmpty())
-        <x-card title="Browsernutzung unserer Mitglieder" subtitle="Basierend auf den letzten 30 Tagen aktiver Mitglieder." class="mb-8">
+        <x-ui.panel title="Browsernutzung unserer Mitglieder" description="Basierend auf den letzten 30 Tagen aktiver Mitglieder." class="mb-8">
             <div class="grid grid-cols-1 gap-10 xl:grid-cols-3">
                 {{-- Beliebteste Browser --}}
                 <div class="flex flex-col items-center">
@@ -208,11 +214,11 @@
                     @endif
                 </div>
             </div>
-        </x-card>
+        </x-ui.panel>
 
         {{-- Seitenaufrufe nach Nutzer:in --}}
         @php($hasUserVisitData = $userVisitData->isNotEmpty())
-        <x-card title="Seitenaufrufe nach Nutzer:in" subtitle="Aggregiert nach der jeweiligen Hauptroute." class="mb-8">
+        <x-ui.panel title="Seitenaufrufe nach Nutzer:in" description="Aggregiert nach der jeweiligen Hauptroute." class="mb-8">
             <div class="mb-4">
                 <label for="userSelect" class="sr-only">Nutzer:in auswählen</label>
                 <select
@@ -236,10 +242,10 @@
                     aria-hidden="{{ $hasUserVisitData ? 'false' : 'true' }}"
                 ></canvas>
             </div>
-        </x-card>
+        </x-ui.panel>
 
         {{-- Aktive Mitglieder nach Uhrzeit --}}
-        <x-card title="Aktive Mitglieder nach Uhrzeit" subtitle="Durchschnittliche Anzahl aktiver Mitglieder pro Stunde." class="mb-8">
+        <x-ui.panel title="Aktive Mitglieder nach Uhrzeit" description="Durchschnittliche Anzahl aktiver Mitglieder pro Stunde." class="mb-8">
             <div class="mb-4">
                 <label for="weekdaySelect" class="sr-only">Wochentag auswählen</label>
                 <select
@@ -256,10 +262,10 @@
                     aria-label="Liniendiagramm der aktiven Mitglieder nach Uhrzeit"
                 ></canvas>
             </div>
-        </x-card>
+        </x-ui.panel>
 
         {{-- Aktive Mitglieder nach Wochentag --}}
-        <x-card title="Aktive Mitglieder nach Wochentag" subtitle="Verlauf aktiver Mitglieder je Stunde, gruppiert nach Wochentag.">
+        <x-ui.panel title="Aktive Mitglieder nach Wochentag" description="Verlauf aktiver Mitglieder je Stunde, gruppiert nach Wochentag.">
             <div data-chart-wrapper aria-describedby="active-users-weekday-description">
                 <p id="active-users-weekday-description" class="sr-only">
                     Zeigt den Verlauf aktiver Mitglieder je Stunde, gruppiert nach Wochentag.
@@ -271,7 +277,7 @@
                     aria-label="Liniendiagramm der aktiven Mitglieder nach Wochentag und Uhrzeit"
                 ></canvas>
             </div>
-        </x-card>
+        </x-ui.panel>
     </x-member-page>
 
     {{-- Daten für Chart.js als data-Attribute --}}
