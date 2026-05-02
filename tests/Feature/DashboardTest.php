@@ -166,7 +166,7 @@ class DashboardTest extends TestCase
             UserPoint::create([
                 'user_id' => $topUser->id,
                 'team_id' => $team->id,
-                'points' => 100 - ($index * 10),
+                'points' => [1234, 1040, 980][$index],
             ]);
         }
 
@@ -178,10 +178,14 @@ class DashboardTest extends TestCase
         $topList = $crawler->filter('[data-dashboard-top-users]');
         $this->assertSame(1, $topList->count());
         $this->assertStringContainsString('Top 3 Baxx-Sammler', $topList->attr('aria-label'));
+        $this->assertStringContainsString('1.234 Baxx', $topList->attr('aria-label'));
         $this->assertSame(3, $topList->filter('[data-dashboard-top-user-item]')->count());
         $srSummary = $topList->filter('[data-dashboard-top-summary]');
         $this->assertSame(1, $srSummary->count());
         $this->assertStringContainsString('Top 3 Baxx-Sammler', trim($srSummary->text()));
+        $payload = json_decode($topList->attr('data-dashboard-top-users'), true, flags: JSON_THROW_ON_ERROR);
+        $this->assertSame('1.234', $payload[0]['formatted_points']);
+        $this->assertSame(1234, $payload[0]['points']);
     }
 
     public function test_dashboard_shows_personalized_header_and_quick_actions_for_members(): void

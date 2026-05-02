@@ -16,6 +16,8 @@ const sanitizeTopUsers = (raw) => {
     }
 };
 
+const formatBaxxPoints = (points) => new Intl.NumberFormat('de-DE').format(points);
+
 export const buildTopUserSummary = (users) => {
     const normalized = sanitizeTopUsers(users)
         .filter((user) => user && typeof user.name === 'string')
@@ -23,6 +25,10 @@ export const buildTopUserSummary = (users) => {
             position: index + 1,
             name: user.name.trim(),
             points: Number.parseInt(user.points ?? 0, 10) || 0,
+            formattedPoints:
+                (typeof user.formatted_points === 'string' && user.formatted_points.trim())
+                || (typeof user.formattedPoints === 'string' && user.formattedPoints.trim())
+                || formatBaxxPoints(Number.parseInt(user.points ?? 0, 10) || 0),
         }));
 
     if (normalized.length === 0) {
@@ -31,7 +37,7 @@ export const buildTopUserSummary = (users) => {
 
     const header = `Top ${normalized.length} Baxx-Sammler: `;
     const items = normalized
-        .map((user) => `${user.position}. ${user.name} (${user.points} Baxx)`)
+        .map((user) => `${user.position}. ${user.name} (${user.formattedPoints} Baxx)`)
         .join(', ');
 
     return `${header}${items}`;

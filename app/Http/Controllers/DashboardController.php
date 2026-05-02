@@ -270,14 +270,23 @@ class DashboardController extends Controller
 
     private function buildTopUsersViewData(iterable $topUsers): array
     {
-        $entries = collect($topUsers)->values();
+        $entries = collect($topUsers)
+            ->values()
+            ->map(function ($user) {
+                $points = (int) $user['points'];
+
+                return [
+                    ...$user,
+                    'points' => $points,
+                    'formatted_points' => $this->formatDashboardPoints($points),
+                ];
+            });
         $summary = $entries->isNotEmpty()
             ? 'Top '.$entries->count().' Baxx-Sammler: '
                 .$entries->map(function ($user, $index) {
                     $position = $index + 1;
-                    $points = number_format((int) $user['points'], 0, ',', '.');
 
-                    return $position.'. '.$user['name'].' ('.$points.' Baxx)';
+                    return $position.'. '.$user['name'].' ('.$user['formatted_points'].' Baxx)';
                 })->implode(', ')
             : null;
         $payload = $entries->map(function ($user) {
@@ -285,6 +294,7 @@ class DashboardController extends Controller
                 'id' => $user['id'],
                 'name' => $user['name'],
                 'points' => (int) $user['points'],
+                'formatted_points' => $user['formatted_points'],
             ];
         })->toArray();
 
@@ -293,6 +303,11 @@ class DashboardController extends Controller
             'summary' => $summary,
             'payload' => $payload,
         ];
+    }
+
+    private function formatDashboardPoints(int $points): string
+    {
+        return number_format($points, 0, ',', '.');
     }
 
     private function buildFocusCards(

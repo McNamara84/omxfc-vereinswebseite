@@ -33,7 +33,7 @@
                     </div>
 
                     <div class="text-right">
-                        <p class="font-display text-2xl font-bold tracking-tight text-primary">{{ $topUser['points'] }}</p>
+                        <p class="font-display text-2xl font-bold tracking-tight text-primary">{{ $topUser['formatted_points'] ?? $topUser['points'] }}</p>
                         <p class="text-xs uppercase tracking-[0.22em] text-base-content/45">Baxx</p>
                     </div>
                 </a>
