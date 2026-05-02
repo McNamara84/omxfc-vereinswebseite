@@ -145,23 +145,27 @@ test.describe('Fanfiction Verwaltung für Vorstand (Issue #493)', () => {
     test('Vorstand kann Fanfiction mit externem Autor erstellen', async ({ page }) => {
         await page.goto('/vorstand/fanfiction/erstellen');
 
-        // Wähle externen Autor (Radio-Button)
-        await page.getByText('Externer Autor').click();
+        // Wähle externen Autor robust über das eigentliche Radio-Input.
+        // Ein reiner Text-Klick kann auf CI den Livewire-State zu spät umschalten,
+        // wodurch die Validierung weiter einen Vereinsautor erwartet.
+        await page.getByLabel('Externer Autor').check();
+        await expect(page.locator('[wire\\:model\\.live="userId"]')).toHaveCount(0);
 
         // Fülle Formular aus - maryUI verwendet fieldset/legend, nutze wire:model Selektoren
         await page.locator('[wire\\:model="title"]').fill('E2E Test Geschichte');
         await page.locator('[wire\\:model="authorName"]').fill('E2E Testautor');
         await page.locator('[wire\\:model="content"]').fill('Dies ist eine Testgeschichte für den E2E-Test. Sie enthält genug Text um die Validierung zu bestehen.');
 
-        // Wähle Status "Entwurf" (Radio-Button, nicht Select)
-        await page.getByText('Als Entwurf speichern').click();
+        // Wähle Status "Entwurf" explizit über das Radio-Input.
+        await page.getByLabel('Als Entwurf speichern').check();
 
         // Speichern
-        await page.click('button[type="submit"]');
+        await page.getByRole('button', { name: 'Fanfiction speichern' }).click();
 
-        // Sollte zurück zur Übersicht leiten
-        await expect(page).toHaveURL(/vorstand\/fanfiction/);
-        await expect(page.getByRole('table').getByText('E2E Test Geschichte')).toBeVisible();
+        // Sollte exakt zurück zur Übersicht leiten und dort den neuen Eintrag zeigen.
+        await expect(page).toHaveURL(/\/vorstand\/fanfiction$/);
+        await expect(page.getByText(/Fanfiction erfolgreich erstellt/i)).toBeVisible();
+        await expect(page.getByRole('row', { name: /E2E Test Geschichte/ })).toBeVisible();
     });
 
     test('Vorstand kann Entwurf veröffentlichen', async ({ page }) => {
