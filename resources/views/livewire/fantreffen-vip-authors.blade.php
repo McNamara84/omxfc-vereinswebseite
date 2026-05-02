@@ -1,10 +1,14 @@
-<div class="max-w-4xl mx-auto">
+<div class="mx-auto max-w-4xl space-y-6">
     {{-- Header --}}
-    <x-header title="VIP-Autoren verwalten" subtitle="Verwalte die Autoren, die als VIP-Gäste beim Fantreffen 2026 angekündigt werden." separator>
+    <x-ui.page-header
+        eyebrow="Adminbereich"
+        title="VIP-Autoren verwalten"
+        description="Pflege die angekündigten Gastautor:innen für das Fantreffen 2026 inklusive Reihenfolge, Aktivstatus und Hinweisen auf Vorbehalte."
+    >
         <x-slot:actions>
             <x-button label="Zurück zu Anmeldungen" link="{{ route('admin.fantreffen.2026') }}" wire:navigate icon="o-arrow-left" class="btn-ghost" />
         </x-slot:actions>
-    </x-header>
+    </x-ui.page-header>
 
     {{-- Success/Error Messages --}}
     @if (session()->has('success'))
@@ -28,7 +32,7 @@
 
     {{-- Add/Edit Form --}}
     @if ($showForm)
-        <x-card title="{{ $editingId ? 'Autor bearbeiten' : 'Neuen Autor hinzufügen' }}" class="mb-6" shadow>
+        <x-ui.panel :title="$editingId ? 'Autor bearbeiten' : 'Neuen Autor hinzufügen'" description="Erfasse Namen, optionales Pseudonym und die Sichtbarkeit für die öffentliche Fantreffen-Seite.">
             <form wire:submit="save" class="space-y-4">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <x-input 
@@ -73,11 +77,11 @@
                     />
                 </div>
             </form>
-        </x-card>
+        </x-ui.panel>
     @endif
 
     {{-- Authors List --}}
-    <x-card title="VIP-Autoren ({{ $authors->count() }})" shadow>
+    <x-ui.panel title="VIP-Autoren ({{ $authors->count() }})" description="Aktive Einträge erscheinen auf der Anmeldeseite. Die Reihenfolge steuert die Darstellung im öffentlichen Bereich.">
         @if ($authors->isEmpty())
             <div class="text-center py-12">
                 <x-icon name="o-users" class="w-12 h-12 mx-auto mb-4 opacity-30" />
@@ -155,7 +159,7 @@
                 @endforeach
             </div>
         @endif
-    </x-card>
+    </x-ui.panel>
 
     {{-- Preview Info --}}
     @if ($activeAuthors->isNotEmpty())

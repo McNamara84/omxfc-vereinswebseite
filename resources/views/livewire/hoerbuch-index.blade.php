@@ -8,14 +8,19 @@
         </x-alert>
     @endif
     {{-- session('toast') wird zentral via flash-toast-bridge im Layout in window.toast() umgewandelt --}}
-    <x-card shadow class="mb-6 flex justify-between items-center">
-        <x-header title="Hörbuchfolgen" class="!mb-0" />
-        @auth
-            @if(auth()->user()->hasVorstandRole() || auth()->user()->isOwnerOfTeam('AG Fanhörbücher'))
-                <x-button label="Neue Folge" link="{{ route('hoerbuecher.create') }}" wire:navigate icon="o-plus" class="btn-primary" />
-            @endif
-        @endauth
-    </x-card>
+    <x-ui.page-header
+        eyebrow="Community-Projekt"
+        title="Hörbuchfolgen"
+        description="Behalte Produktionsstand, Zieltermine und Rollenbesetzung der Fanhörbücher im Blick und springe direkt in offene Episoden oder Verwaltungsaufgaben."
+    >
+        <x-slot:actions>
+            @auth
+                @if(auth()->user()->hasVorstandRole() || auth()->user()->isOwnerOfTeam('AG Fanhörbücher'))
+                    <x-button label="Neue Folge" link="{{ route('hoerbuecher.create') }}" wire:navigate icon="o-plus" class="btn-primary" />
+                @endif
+            @endauth
+        </x-slot:actions>
+    </x-ui.page-header>
     <div
         x-data="{
             statusFilter: '',
@@ -62,7 +67,7 @@
             },
         }"
     >
-    <x-card shadow class="mb-6">
+    <x-ui.panel title="Produktionslage" description="Die Kennzahlen reagieren direkt auf die aktuelle Folgenliste und dienen zugleich als Schnellfilter für offene Arbeit.">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <x-stat
                 id="card-unfilled-roles"
@@ -106,8 +111,8 @@
                 @click="filterUnfilled('Rollenbesetzung')"
             />
         </div>
-    </x-card>
-    <x-card shadow>
+    </x-ui.panel>
+    <x-ui.panel title="Folgenübersicht" description="Filtere nach Status, Typ, Jahr oder Rollen und behalte Fortschritt sowie Besetzung in einer Tabelle im Blick.">
         <div class="mb-4 space-y-4" aria-label="Filter für die Hörbuchfolgen">
             <div
                 id="episode-select-filters"
@@ -250,6 +255,6 @@
                 </tbody>
             </table>
         </div>
-    </x-card>
+    </x-ui.panel>
     </div>
 </x-member-page>
