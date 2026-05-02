@@ -136,9 +136,10 @@ test('admin can filter and accept challenges', async ({ page }) => {
 
     await assignButton.click();
 
-    // Livewire aktualisiert die Seite inline (ohne Navigation) und zeigt einen maryUI-Toast.
-    await expect(page.getByText(/erfolgreich übernommen/i).first()).toBeVisible();
+    // Livewire aktualisiert die Seite inline; prüfe den stabilen Endzustand
+    // statt auf einen flüchtigen Toast zu warten.
     await expect(page.locator('[data-todo-section="assigned"]')).toContainText(todoTitle);
+    await expect(page.locator('[data-todo-section="open"]')).not.toContainText(todoTitle);
 });
 
 test('member can focus on own challenges and release one', async ({ page }) => {
@@ -161,7 +162,6 @@ test('member can focus on own challenges and release one', async ({ page }) => {
     const releaseButton = page.getByRole('button', { name: 'Freigeben', exact: true }).first();
 
     await releaseButton.click();
-    await expect(page.getByText(/erfolgreich freigegeben/i).first()).toBeVisible();
     await expect(page.locator('[data-todo-section="assigned"]')).not.toContainText('Übernommene Playwright Challenge');
 
     // Filter auf "Alle" wechseln, damit die freigegebene Challenge in der

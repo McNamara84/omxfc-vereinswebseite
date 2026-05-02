@@ -21,7 +21,7 @@
         $userTotalPoints = $this->userPoints;
     @endphp
 
-    <div x-data="{ filter: @entangle('filter'), messages: @js($todoFilterMessages) }" class="space-y-8">
+    <div x-data="{ filter: @entangle('filter'), messages: @js($todoFilterMessages), filterPanelOpen: false }" class="space-y-8">
         <x-ui.page-header
             eyebrow="Mitgliederbereich"
             title="Challenges & Baxx"
@@ -54,8 +54,8 @@
                     {{ $todoFilterMessages[$filter] ?? $todoFilterMessages['all'] }}
                 </p>
 
-                <details class="group" data-todo-filter-details>
-                    <summary data-todo-filter-summary class="inline-flex cursor-pointer items-center gap-2 rounded-full border border-primary/25 bg-base-100 px-4 py-2 text-sm font-semibold text-primary shadow-sm transition hover:border-primary/45 hover:bg-primary hover:text-primary-content focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
+                <details class="group" data-todo-filter-details x-bind:open="filterPanelOpen">
+                    <summary data-todo-filter-summary x-on:click.prevent="filterPanelOpen = !filterPanelOpen" x-bind:aria-expanded="filterPanelOpen.toString()" class="inline-flex cursor-pointer items-center gap-2 rounded-full border border-primary/25 bg-base-100 px-4 py-2 text-sm font-semibold text-primary shadow-sm transition hover:border-primary/45 hover:bg-primary hover:text-primary-content focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
                         <x-icon name="o-funnel" class="h-4 w-4" />
                         <span class="group-open:hidden">Filter anzeigen</span>
                         <span class="hidden group-open:inline">Filter ausblenden</span>
