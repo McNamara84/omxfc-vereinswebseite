@@ -154,7 +154,7 @@ class FanfictionCreate extends Component
         }
 
         session()->flash('success', 'Fanfiction erfolgreich erstellt.');
-        $this->redirect(route('admin.fanfiction.index'), navigate: true);
+        $this->redirect(route('admin.fanfiction.index'));
     }
 
     private function uploadPhotos(): array
