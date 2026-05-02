@@ -1,28 +1,43 @@
 {{-- resources/views/statistik/index.blade.php --}}
 <x-app-layout>
-    <x-member-page>
-        {{-- Kopfzeile --}}
-        <x-header title="Statistik" separator data-testid="page-header" />
+    <x-member-page class="space-y-8">
 
         @php
             $statisticSections = collect($statisticSections ?? []);
             $statisticSectionLookup = $statisticSections->keyBy('id');
+            $unlockedStatisticsCount = $statisticSections
+                ->filter(fn (array $section) => in_array('statistik-' . $section['id'], $unlockedSlugs, true))
+                ->count();
         @endphp
 
-        <div class="flex flex-col lg:flex-row lg:items-start gap-6">
+        <x-ui.page-header
+            title="Statistik"
+            eyebrow="Maddraxiversum in Zahlen"
+            description="Alle freischaltbaren Auswertungen zu Romanen, Autor:innen, Zyklen und Rezensionen an einem Ort, inklusive Schnellnavigation über alle Statistikabschnitte."
+            data-testid="page-header"
+        >
+            <x-slot:actions>
+                <div class="flex flex-wrap gap-2 lg:justify-end">
+                    <span class="badge badge-outline rounded-full px-3 py-3">{{ $statisticSections->count() }} Statistiken</span>
+                    <span class="badge badge-primary badge-outline rounded-full px-3 py-3">{{ $unlockedStatisticsCount }} freigeschaltet</span>
+                </div>
+            </x-slot:actions>
+        </x-ui.page-header>
+
+        <div class="flex flex-col gap-8 lg:flex-row lg:items-start">
             <div class="w-full lg:w-72 lg:flex-shrink-0">
                 @include('statistik.partials.quicknav', ['sections' => $statisticSections])
             </div>
 
-            <div class="flex-1 space-y-6" data-statistik-sections-wrapper>
+            <div class="flex-1 space-y-8" data-statistik-sections-wrapper>
                 {{-- Card 1 – Balkendiagramm (≥ 2 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('author-chart'))
                 @php($sectionUnlocked = in_array('statistik-' . $section['id'], $unlockedSlugs, true))
-                <x-card
+                <x-ui.panel
                     id="{{ $section['id'] }}"
                     data-statistik-section
                     tabindex="-1"
-                    shadow class="relative">
+                    class="relative">
                     <h2 id="authorChartTitle" class="text-xl font-semibold text-primary mb-4 text-center">
                         Maddrax-Romane je Autor:in
                     </h2>
@@ -32,7 +47,7 @@
                     </div>
                     @endif
                     @include('statistik.lock-message', ['sectionId' => $section['id']])
-                </x-card>
+                </x-ui.panel>
 
                 @if($sectionUnlocked)
                 <script>
@@ -44,11 +59,11 @@
                 {{-- Card 2 – Teamplayer-Tabelle (≥ 4 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('teamplayer'))
                 @php($sectionUnlocked = in_array('statistik-' . $section['id'], $unlockedSlugs, true))
-                <x-card
+                <x-ui.panel
                     id="{{ $section['id'] }}"
                     data-statistik-section
                     tabindex="-1"
-                    shadow class="relative">
+                    class="relative">
                     <h2 class="text-xl font-semibold text-primary mb-4 text-center">
                         Top Teamplayer
                     </h2>
@@ -76,16 +91,16 @@
                     </div>
                     @endif
                     @include('statistik.lock-message', ['sectionId' => $section['id']])
-                </x-card>
+                </x-ui.panel>
 
                 {{-- Card 3 – Top 10 Maddrax-Romane (≥ 5 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('top-romane'))
                 @php($sectionUnlocked = in_array('statistik-' . $section['id'], $unlockedSlugs, true))
-                <x-card
+                <x-ui.panel
                     id="{{ $section['id'] }}"
                     data-statistik-section
                     tabindex="-1"
-                    shadow class="relative">
+                    class="relative">
                     <h2 class="text-xl font-semibold text-primary mb-4 text-center">
                         Top 10 Maddrax-Romane
                     </h2>
@@ -117,15 +132,15 @@
                     </div>
                     @endif
                     @include('statistik.lock-message', ['sectionId' => $section['id']])
-                </x-card>
+                </x-ui.panel>
                 {{-- Card 4 – Top-Autor:innen nach Ø‑Bewertung (≥ 7 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('top-autoren'))
                 @php($sectionUnlocked = in_array('statistik-' . $section['id'], $unlockedSlugs, true))
-                <x-card
+                <x-ui.panel
                     id="{{ $section['id'] }}"
                     data-statistik-section
                     tabindex="-1"
-                    shadow class="relative">
+                    class="relative">
                     <h2 class="text-xl font-semibold text-primary mb-4 text-center">
                         Top 10 Autor:innen nach Ø-Bewertung
                     </h2>
@@ -153,16 +168,16 @@
                     </div>
                     @endif
                     @include('statistik.lock-message', ['sectionId' => $section['id']])
-                </x-card>
+                </x-ui.panel>
 
                 {{-- Card 5 – Top-Charaktere nach Auftritten (≥ 10 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('top-charaktere'))
                 @php($sectionUnlocked = in_array('statistik-' . $section['id'], $unlockedSlugs, true))
-                <x-card
+                <x-ui.panel
                     id="{{ $section['id'] }}"
                     data-statistik-section
                     tabindex="-1"
-                    shadow class="relative">
+                    class="relative">
                     <h2 class="text-xl font-semibold text-primary mb-4 text-center">
                         Top 10 Charaktere nach Auftritten
                     </h2>
@@ -190,16 +205,16 @@
                     </div>
                     @endif
                     @include('statistik.lock-message', ['sectionId' => $section['id']])
-                </x-card>
+                </x-ui.panel>
 
                 {{-- Card 6 – Bewertungen im Maddraxikon (≥ 11 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('maddraxikon-bewertungen'))
                 @php($sectionUnlocked = in_array('statistik-' . $section['id'], $unlockedSlugs, true))
-                <x-card
+                <x-ui.panel
                     id="{{ $section['id'] }}"
                     data-statistik-section
                     tabindex="-1"
-                    shadow class="relative">
+                    class="relative">
                     <h2 class="text-xl font-semibold text-primary mb-4 text-center">
                         Bewertungen im Maddraxikon
                     </h2>
@@ -211,7 +226,7 @@
                     </div>
                     @endif
                     @include('statistik.lock-message', ['sectionId' => $section['id']])
-                </x-card>
+                </x-ui.panel>
             {{-- Card 7 – Rezensionen unserer Mitglieder (≥ 12 Baxx) --}}
                 @php($section = $statisticSectionLookup->get('mitglieds-rezensionen'))
                 @php($sectionUnlocked = in_array('statistik-' . $section['id'], $unlockedSlugs, true))
