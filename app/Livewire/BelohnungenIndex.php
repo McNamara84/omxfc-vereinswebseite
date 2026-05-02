@@ -6,7 +6,6 @@ use App\Models\Reward;
 use App\Models\RewardPurchase;
 use App\Services\ReviewBaxxService;
 use App\Services\RewardService;
-use App\Services\TeamPointService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Computed;
@@ -35,7 +34,7 @@ class BelohnungenIndex extends Component
     #[Computed]
     public function earnedBaxx(): int
     {
-        return app(TeamPointService::class)->getUserPoints(Auth::user());
+        return app(RewardService::class)->getEarnedBaxx(Auth::user());
     }
 
     #[Computed]

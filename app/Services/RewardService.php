@@ -85,24 +85,28 @@ class RewardService
     }
 
     /**
-     * Get the available (spendable) Baxx for a user.
+     * Get the earned Baxx for the reward wallet.
+     *
+     * Reward unlocks belong to the Mitgliederbereich and therefore use the
+     * Mitglieder team as the canonical Baxx wallet, independent of the
+     * currently selected Jetstream team.
+     */
+    public function getEarnedBaxx(User $user): int
+    {
+        $walletTeam = $this->resolveRewardWalletTeam($user);
+
+        return $walletTeam
+            ? $this->teamPointService->getUserPointsForTeam($user, $walletTeam)
+            : 0;
+    }
+
+    /**
+     * Get the available (spendable) Baxx for the reward wallet.
      * Available = Earned - Spent (on active, non-refunded purchases).
      */
     public function getAvailableBaxx(User $user): int
     {
-        $earnedBaxx = $this->teamPointService->getUserPoints($user);
-        $spentBaxx = $this->getSpentBaxx($user);
-
-        return max(0, $earnedBaxx - $spentBaxx);
-    }
-
-    /**
-     * Get the available (spendable) Baxx for a user in a specific team.
-     * Available = Earned in the given team - Spent (on active, non-refunded purchases).
-     */
-    public function getAvailableBaxxForTeam(User $user, Team $team): int
-    {
-        $earnedBaxx = $this->teamPointService->getUserPointsForTeam($user, $team);
+        $earnedBaxx = $this->getEarnedBaxx($user);
         $spentBaxx = $this->getSpentBaxx($user);
 
         return max(0, $earnedBaxx - $spentBaxx);
@@ -110,12 +114,19 @@ class RewardService
 
     /**
      * Get the total Baxx spent by a user on active purchases.
+     * Reward purchases unlock account-wide members-area features, so spending
+     * is tracked globally per user rather than per team.
      */
     public function getSpentBaxx(User $user): int
     {
         return (int) RewardPurchase::where('user_id', $user->id)
             ->active()
             ->sum('cost_baxx');
+    }
+
+    private function resolveRewardWalletTeam(User $user): ?Team
+    {
+        return Team::membersTeam() ?? $user->currentTeam;
     }
 
     /**

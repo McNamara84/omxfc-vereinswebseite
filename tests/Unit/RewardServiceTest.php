@@ -5,6 +5,7 @@ namespace Tests\Unit;
 use App\Enums\Role;
 use App\Models\Reward;
 use App\Models\Team;
+use App\Models\UserPoint;
 use App\Services\RewardService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Validation\ValidationException;
@@ -132,37 +133,74 @@ class RewardServiceTest extends TestCase
         $this->assertEquals(20, $this->service->getAvailableBaxx($user));
     }
 
-    public function test_get_available_baxx_for_team_ignores_different_current_team(): void
+    public function test_get_available_baxx_uses_members_team_when_current_team_differs(): void
     {
-        $membersTeam = Team::membersTeam();
-        $this->assertInstanceOf(Team::class, $membersTeam);
+        $this->assertInstanceOf(Team::class, Team::membersTeam());
         $user = $this->actingMemberWithPoints(20);
-        $reward = Reward::factory()->create(['cost_baxx' => 7]);
-        $this->service->purchaseReward($user, $reward);
 
         $otherTeam = Team::factory()->create(['personal_team' => false]);
         $otherTeam->users()->attach($user, ['role' => Role::Mitglied->value]);
+
+        UserPoint::create([
+            'user_id' => $user->id,
+            'team_id' => $otherTeam->id,
+            'todo_id' => null,
+            'points' => 50,
+        ]);
 
         $userWithOtherCurrentTeam = $user->fresh();
         $userWithOtherCurrentTeam->current_team_id = $otherTeam->id;
         $userWithOtherCurrentTeam->unsetRelation('currentTeam');
 
-        $this->assertEquals(13, $this->service->getAvailableBaxxForTeam($userWithOtherCurrentTeam, $membersTeam));
+        $this->assertEquals(20, $this->service->getAvailableBaxx($userWithOtherCurrentTeam));
     }
 
-    public function test_get_available_baxx_for_team_works_without_current_team(): void
+    public function test_purchase_reward_uses_members_team_balance_even_with_multi_team_points(): void
     {
-        $membersTeam = Team::membersTeam();
-        $this->assertInstanceOf(Team::class, $membersTeam);
         $user = $this->actingMemberWithPoints(20);
+
+        $otherTeam = Team::factory()->create(['personal_team' => false]);
+        $otherTeam->users()->attach($user, ['role' => Role::Mitglied->value]);
+
+        UserPoint::create([
+            'user_id' => $user->id,
+            'team_id' => $otherTeam->id,
+            'todo_id' => null,
+            'points' => 50,
+        ]);
+
+        $userWithOtherCurrentTeam = $user->fresh();
+        $userWithOtherCurrentTeam->current_team_id = $otherTeam->id;
+        $userWithOtherCurrentTeam->unsetRelation('currentTeam');
+
         $reward = Reward::factory()->create(['cost_baxx' => 7]);
-        $this->service->purchaseReward($user, $reward);
+        $this->service->purchaseReward($userWithOtherCurrentTeam, $reward);
 
-        $userWithoutCurrentTeam = $user->fresh();
-        $userWithoutCurrentTeam->current_team_id = null;
-        $userWithoutCurrentTeam->unsetRelation('currentTeam');
+        $this->assertEquals(13, $this->service->getAvailableBaxx($userWithOtherCurrentTeam->fresh()));
+    }
 
-        $this->assertEquals(13, $this->service->getAvailableBaxxForTeam($userWithoutCurrentTeam, $membersTeam));
+    public function test_purchase_reward_fails_when_only_other_team_has_points(): void
+    {
+        $user = $this->actingMember();
+
+        $otherTeam = Team::factory()->create(['personal_team' => false]);
+        $otherTeam->users()->attach($user, ['role' => Role::Mitglied->value]);
+
+        UserPoint::create([
+            'user_id' => $user->id,
+            'team_id' => $otherTeam->id,
+            'todo_id' => null,
+            'points' => 20,
+        ]);
+
+        $userWithOtherCurrentTeam = $user->fresh();
+        $userWithOtherCurrentTeam->current_team_id = $otherTeam->id;
+        $userWithOtherCurrentTeam->unsetRelation('currentTeam');
+
+        $reward = Reward::factory()->create(['cost_baxx' => 7]);
+
+        $this->expectException(ValidationException::class);
+        $this->service->purchaseReward($userWithOtherCurrentTeam, $reward);
     }
 
     public function test_get_spent_baxx_excludes_refunded(): void
