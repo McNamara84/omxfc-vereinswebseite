@@ -3,8 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Reward;
-use App\Models\Team;
 use App\Services\MemberMapCacheService;
+use App\Services\MembersTeamProvider;
 use App\Services\RewardService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
@@ -14,20 +14,21 @@ class MitgliederKarteController extends Controller
 {
     public function __construct(
         protected MemberMapCacheService $memberMapCacheService,
+        protected MembersTeamProvider $membersTeamProvider,
         protected RewardService $rewardService,
     ) {}
 
     public function index()
     {
         $user = Auth::user();
-        $team = $user->currentTeam;
+        $membersTeam = $this->membersTeamProvider->getMembersTeamOrAbort();
 
         $reward = $this->mitgliederkarteReward();
         $walletState = $this->rewardService->getWalletState($user);
         $hasAccess = $this->rewardService->hasUnlockedRewardId($user, $reward->id);
 
-        $mapData = $hasAccess && $team
-            ? $this->memberMapCacheService->getMemberMapData($team)
+        $mapData = $hasAccess
+            ? $this->memberMapCacheService->getMemberMapData($membersTeam)
             : $this->defaultMapData();
         $memberData = $mapData['memberData'];
         $centerLat = $mapData['centerLat'];
@@ -82,17 +83,9 @@ class MitgliederKarteController extends Controller
 
     private function mitgliederkarteReward(): Reward
     {
-        return Reward::query()->firstOrCreate(
-            ['slug' => 'mitgliederkarte'],
-            [
-                'title' => 'Mitgliederkarte',
-                'description' => 'Zeigt die Wohnorte der Vereinsmitglieder auf einer Karte.',
-                'category' => 'Allgemein',
-                'cost_baxx' => (int) config('rewards.legacy.0.points', 1),
-                'is_active' => true,
-                'sort_order' => 0,
-            ]
-        );
+        return Reward::query()
+            ->where('slug', 'mitgliederkarte')
+            ->firstOrFail();
     }
 
     /**

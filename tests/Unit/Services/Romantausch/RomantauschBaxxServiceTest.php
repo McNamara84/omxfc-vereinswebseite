@@ -2,6 +2,7 @@
 
 namespace Tests\Unit\Services\Romantausch;
 
+use App\Enums\Role;
 use App\Models\BaxxEarningRule;
 use App\Models\BookOffer;
 use App\Models\BookRequest;
@@ -31,7 +32,7 @@ class RomantauschBaxxServiceTest extends TestCase
         $otherTeam = Team::factory()->create();
         $user = $this->createMemberWithOtherCurrentTeam($membersTeam, $otherTeam);
 
-        BaxxEarningRule::where('action_key', 'romantausch_offer')->update([
+        $this->configureRule('romantausch_offer', [
             'points' => 4,
             'every_count' => 2,
             'is_active' => true,
@@ -61,7 +62,7 @@ class RomantauschBaxxServiceTest extends TestCase
         $otherTeam = Team::factory()->create();
         $user = $this->createMemberWithOtherCurrentTeam($membersTeam, $otherTeam);
 
-        BaxxEarningRule::where('action_key', 'romantausch_offer')->update([
+        $this->configureRule('romantausch_offer', [
             'points' => 5,
             'every_count' => 3,
             'is_active' => true,
@@ -83,7 +84,7 @@ class RomantauschBaxxServiceTest extends TestCase
         $otherTeam = Team::factory()->create();
         $user = $this->createMemberWithOtherCurrentTeam($membersTeam, $otherTeam);
 
-        BaxxEarningRule::where('action_key', 'romantausch_request')->update([
+        $this->configureRule('romantausch_request', [
             'points' => 3,
             'every_count' => 1,
             'is_active' => true,
@@ -108,7 +109,7 @@ class RomantauschBaxxServiceTest extends TestCase
         $offerUser = $this->createMemberWithOtherCurrentTeam($membersTeam, $otherTeam);
         $requestUser = $this->createMemberWithOtherCurrentTeam($membersTeam, $otherTeam);
 
-        BaxxEarningRule::where('action_key', 'romantausch_swap_complete')->update([
+        $this->configureRule('romantausch_swap_complete', [
             'points' => 2,
             'every_count' => 1,
             'is_active' => true,
@@ -147,10 +148,18 @@ class RomantauschBaxxServiceTest extends TestCase
             'current_team_id' => $otherTeam->id,
         ]);
 
-        $membersTeam->users()->attach($user, ['role' => 'Mitglied']);
-        $otherTeam->users()->attach($user, ['role' => 'Mitglied']);
+        $membersTeam->users()->attach($user, ['role' => Role::Mitglied->value]);
+        $otherTeam->users()->attach($user, ['role' => Role::Mitglied->value]);
 
         return $user;
+    }
+
+    private function configureRule(string $actionKey, array $attributes): void
+    {
+        BaxxEarningRule::query()
+            ->where('action_key', $actionKey)
+            ->firstOrFail()
+            ->update($attributes);
     }
 
     private function createOffer(User $user, int $bookNumber): BookOffer

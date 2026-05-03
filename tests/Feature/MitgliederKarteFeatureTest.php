@@ -2,7 +2,10 @@
 
 namespace Tests\Feature;
 
+use App\Enums\Role;
 use App\Models\Reward;
+use App\Models\Team;
+use App\Models\UserPoint;
 use App\Models\User;
 use App\Services\RewardService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -20,8 +23,13 @@ class MitgliederKarteFeatureTest extends TestCase
     private function purchaseMemberMapReward(User $user): void
     {
         $reward = Reward::query()->where('slug', 'mitgliederkarte')->firstOrFail();
+        $membersTeam = Team::membersTeam();
 
-        $user->incrementTeamPoints($reward->cost_baxx);
+        UserPoint::query()->create([
+            'user_id' => $user->id,
+            'team_id' => $membersTeam->id,
+            'points' => $reward->cost_baxx,
+        ]);
         app(RewardService::class)->purchaseReward($user, $reward);
     }
 
@@ -53,7 +61,7 @@ class MitgliederKarteFeatureTest extends TestCase
             },
         ]);
 
-        $user = $this->actingMember('Mitglied', ['plz' => '12345', 'land' => 'Deutschland']);
+        $user = $this->actingMember(Role::Mitglied, ['plz' => '12345', 'land' => 'Deutschland']);
         $this->purchaseMemberMapReward($user);
         $this->actingAs($user);
 
@@ -80,9 +88,9 @@ class MitgliederKarteFeatureTest extends TestCase
             },
         ]);
 
-        $user = $this->actingMember('Mitglied', ['plz' => '11111', 'land' => 'Deutschland']);
+        $user = $this->actingMember(Role::Mitglied, ['plz' => '11111', 'land' => 'Deutschland']);
         $this->purchaseMemberMapReward($user);
-        $this->actingMember('Mitglied', ['plz' => '22222', 'land' => 'Deutschland']);
+        $this->actingMember(Role::Mitglied, ['plz' => '22222', 'land' => 'Deutschland']);
 
         $this->actingAs($user);
         $response = $this->get('/mitglieder/karte');
@@ -108,15 +116,47 @@ class MitgliederKarteFeatureTest extends TestCase
             'nominatim.openstreetmap.org/*' => Http::response([['lat' => self::DEFAULT_LAT, 'lon' => self::DEFAULT_LON]], 200),
         ]);
 
-        $user = $this->actingMember('Mitglied', ['plz' => '12345', 'land' => 'Deutschland']);
+        $user = $this->actingMember(Role::Mitglied, ['plz' => '12345', 'land' => 'Deutschland']);
         $this->purchaseMemberMapReward($user);
         $this->actingAs($user);
 
         $this->get('/mitglieder/karte');
 
-        $team = $user->currentTeam;
+        $team = Team::membersTeam();
         $cacheKey = "member_map_data_team_{$team->id}";
         $this->assertTrue(Cache::has($cacheKey));
+    }
+
+    public function test_unlocked_map_uses_members_team_even_when_current_team_differs(): void
+    {
+        Cache::flush();
+        Http::swap(new Factory);
+        Http::fake([
+            'nominatim.openstreetmap.org/*' => Http::response([['lat' => self::DEFAULT_LAT, 'lon' => self::DEFAULT_LON]], 200),
+        ]);
+
+        $membersTeam = Team::membersTeam();
+        $otherTeam = Team::factory()->create(['name' => 'Andere AG']);
+        $user = User::factory()->create([
+            'current_team_id' => $otherTeam->id,
+            'plz' => '12345',
+            'land' => 'Deutschland',
+            'stadt' => 'Musterstadt',
+        ]);
+        $membersTeam->users()->attach($user, ['role' => Role::Mitglied->value]);
+        $otherTeam->users()->attach($user, ['role' => Role::Mitglied->value]);
+
+        $this->purchaseMemberMapReward($user);
+        $this->actingAs($user);
+
+        $response = $this->get('/mitglieder/karte');
+
+        $response->assertOk();
+        $memberData = json_decode($response->viewData('memberData'), true);
+
+        $this->assertContains('Musterstadt', array_column($memberData, 'city'));
+        $this->assertTrue(Cache::has("member_map_data_team_{$membersTeam->id}"));
+        $this->assertFalse(Cache::has("member_map_data_team_{$otherTeam->id}"));
     }
 
     public function test_map_view_contains_accessibility_attributes_and_data(): void
@@ -127,7 +167,7 @@ class MitgliederKarteFeatureTest extends TestCase
             'nominatim.openstreetmap.org/*' => Http::response([['lat' => self::DEFAULT_LAT, 'lon' => self::DEFAULT_LON]], 200),
         ]);
 
-        $user = $this->actingMember('Mitglied', [
+        $user = $this->actingMember(Role::Mitglied, [
             'plz' => '12345',
             'land' => 'Deutschland',
             'stadt' => 'Musterstadt',

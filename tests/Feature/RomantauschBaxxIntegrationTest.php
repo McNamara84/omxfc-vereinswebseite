@@ -30,7 +30,7 @@ class RomantauschBaxxIntegrationTest extends TestCase
         $otherTeam = Team::factory()->create();
         $user = $this->createMemberWithOtherCurrentTeam($membersTeam, $otherTeam);
 
-        BaxxEarningRule::where('action_key', 'romantausch_offer')->update([
+        $this->configureRule('romantausch_offer', [
             'points' => 4,
             'every_count' => 1,
             'is_active' => true,
@@ -64,7 +64,7 @@ class RomantauschBaxxIntegrationTest extends TestCase
         $otherTeam = Team::factory()->create();
         $user = $this->createMemberWithOtherCurrentTeam($membersTeam, $otherTeam);
 
-        BaxxEarningRule::where('action_key', 'romantausch_request')->update([
+        $this->configureRule('romantausch_request', [
             'points' => 3,
             'every_count' => 1,
             'is_active' => true,
@@ -94,7 +94,7 @@ class RomantauschBaxxIntegrationTest extends TestCase
         $otherTeam = Team::factory()->create();
         $user = $this->createMemberWithOtherCurrentTeam($membersTeam, $otherTeam);
 
-        BaxxEarningRule::where('action_key', 'romantausch_offer')->update([
+        $this->configureRule('romantausch_offer', [
             'points' => 2,
             'every_count' => 2,
             'is_active' => true,
@@ -123,7 +123,7 @@ class RomantauschBaxxIntegrationTest extends TestCase
         $offerUser = $this->createMemberWithOtherCurrentTeam($membersTeam, $otherTeam);
         $requestUser = $this->createMemberWithOtherCurrentTeam($membersTeam, $otherTeam);
 
-        BaxxEarningRule::where('action_key', 'romantausch_swap_complete')->update([
+        $this->configureRule('romantausch_swap_complete', [
             'points' => 6,
             'every_count' => 1,
             'is_active' => true,
@@ -188,5 +188,13 @@ class RomantauschBaxxIntegrationTest extends TestCase
             'author' => 'Autor '.$romanNumber,
             'type' => BookType::MaddraxDieDunkleZukunftDerErde,
         ]);
+    }
+
+    private function configureRule(string $actionKey, array $attributes): void
+    {
+        BaxxEarningRule::query()
+            ->where('action_key', $actionKey)
+            ->firstOrFail()
+            ->update($attributes);
     }
 }
