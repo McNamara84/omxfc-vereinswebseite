@@ -72,7 +72,7 @@ class DownloadsController extends Controller
                 ->exists();
 
             if (! $hasAccess) {
-                return back()->withErrors('Du musst diese Belohnung erst unter Belohnungen freischalten.');
+                return back()->withErrors('Diesen Download kannst du erst öffnen, nachdem du ihn im Bereich Belohnungen einlösen freigeschaltet hast.');
             }
         }
 

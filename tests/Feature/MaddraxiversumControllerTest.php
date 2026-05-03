@@ -81,6 +81,7 @@ class MaddraxiversumControllerTest extends TestCase
 
         $response->assertOk();
         $response->assertViewHas('showMap', false);
+        $response->assertSee('Belohnungen einlösen');
     }
 
     public function test_get_cities_returns_api_response(): void

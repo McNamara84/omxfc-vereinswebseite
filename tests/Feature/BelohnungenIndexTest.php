@@ -4,9 +4,9 @@ namespace Tests\Feature;
 
 use App\Enums\Role;
 use App\Livewire\BelohnungenIndex;
+use App\Models\ReviewBaxxSpecialOffer;
 use App\Models\Reward;
 use App\Models\RewardPurchase;
-use App\Models\ReviewBaxxSpecialOffer;
 use App\Models\Team;
 use App\Models\UserPoint;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -144,10 +144,14 @@ class BelohnungenIndexTest extends TestCase
     {
         $user = $this->actingMemberWithPoints(20);
         $reward = Reward::factory()->create(['cost_baxx' => 5, 'slug' => 'owned']);
+        $membersTeam = Team::membersTeam();
+
+        $this->assertNotNull($membersTeam);
 
         RewardPurchase::factory()->create([
             'user_id' => $user->id,
             'reward_id' => $reward->id,
+            'wallet_team_id' => $membersTeam->id,
             'cost_baxx' => 5,
         ]);
 
@@ -182,16 +186,66 @@ class BelohnungenIndexTest extends TestCase
             'slug' => 'unlocked-test',
             'title' => 'Freigeschaltetes Feature',
         ]);
+        $membersTeam = Team::membersTeam();
+
+        $this->assertNotNull($membersTeam);
 
         RewardPurchase::factory()->create([
             'user_id' => $user->id,
             'reward_id' => $reward->id,
+            'wallet_team_id' => $membersTeam->id,
             'cost_baxx' => 5,
         ]);
 
         $this->get('/belohnungen')
             ->assertOk()
             ->assertSee('Freigeschaltetes Feature')
+            ->assertSee('Freigeschaltet');
+    }
+
+    public function test_legacy_kompendium_purchase_marks_current_reward_as_unlocked(): void
+    {
+        $user = $this->actingMemberWithPoints(120);
+        $membersTeam = Team::membersTeam();
+
+        $this->assertNotNull($membersTeam);
+
+        Reward::updateOrCreate(
+            ['slug' => 'kompendium'],
+            [
+                'title' => 'Maddrax-Kompendium',
+                'description' => 'Aktueller Zugang zum Maddrax-Kompendium.',
+                'category' => 'Kompendium',
+                'cost_baxx' => 100,
+                'is_active' => true,
+                'sort_order' => 0,
+            ]
+        );
+
+        $legacyReward = Reward::updateOrCreate(
+            ['slug' => 'kompendium-suche'],
+            [
+                'title' => 'Kompendium-Suche',
+                'description' => 'Legacy-Zugang zur Kompendium-Suche.',
+                'category' => 'Kompendium',
+                'cost_baxx' => 100,
+                'is_active' => false,
+                'sort_order' => 1,
+            ]
+        );
+
+        RewardPurchase::create([
+            'user_id' => $user->id,
+            'reward_id' => $legacyReward->id,
+            'wallet_team_id' => $membersTeam->id,
+            'cost_baxx' => 100,
+            'purchased_at' => now(),
+        ]);
+
+        Livewire::actingAs($user)
+            ->test(BelohnungenIndex::class)
+            ->set('filter', 'freigeschaltet')
+            ->assertSee('Maddrax-Kompendium')
             ->assertSee('Freigeschaltet');
     }
 

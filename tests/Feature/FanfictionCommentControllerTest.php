@@ -214,6 +214,7 @@ class FanfictionCommentControllerTest extends TestCase
         RewardPurchase::create([
             'user_id' => $this->member->id,
             'reward_id' => $reward->id,
+            'wallet_team_id' => $this->memberTeam->id,
             'cost_baxx' => $reward->cost_baxx,
             'purchased_at' => now(),
         ]);
@@ -230,6 +231,66 @@ class FanfictionCommentControllerTest extends TestCase
             'fanfiction_id' => $this->fanfiction->id,
             'user_id' => $this->member->id,
             'content' => 'Kommentar nach Freischaltung',
+        ]);
+    }
+
+    public function test_author_can_comment_on_own_locked_fanfiction_without_purchase(): void
+    {
+        $this->fanfiction->update(['user_id' => $this->member->id]);
+        $this->createRewardForFanfiction($this->fanfiction);
+
+        $response = $this->actingAs($this->member)
+            ->post(route('fanfiction.comments.store', $this->fanfiction), [
+                'content' => 'Kommentar zur eigenen Geschichte',
+            ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('fanfiction_comments', [
+            'fanfiction_id' => $this->fanfiction->id,
+            'user_id' => $this->member->id,
+            'content' => 'Kommentar zur eigenen Geschichte',
+        ]);
+    }
+
+    public function test_commenting_on_foreign_fanfiction_does_not_refund_unrelated_own_purchases(): void
+    {
+        $ownFanfiction = Fanfiction::factory()->published()->create([
+            'team_id' => $this->memberTeam->id,
+            'user_id' => $this->member->id,
+            'created_by' => $this->member->id,
+            'title' => 'Eigene Geschichte mit Alt-Kauf',
+        ]);
+        $ownReward = $this->createRewardForFanfiction($ownFanfiction);
+        $ownPurchase = RewardPurchase::create([
+            'user_id' => $this->member->id,
+            'reward_id' => $ownReward->id,
+            'wallet_team_id' => $this->memberTeam->id,
+            'cost_baxx' => $ownReward->cost_baxx,
+            'purchased_at' => now(),
+        ]);
+
+        $foreignFanfiction = Fanfiction::factory()->published()->create([
+            'team_id' => $this->memberTeam->id,
+            'user_id' => $this->otherMember->id,
+            'created_by' => $this->otherMember->id,
+        ]);
+
+        $response = $this->actingAs($this->member)
+            ->post(route('fanfiction.comments.store', $foreignFanfiction), [
+                'content' => 'Kommentar ohne Nebenwirkung',
+            ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHasNoErrors();
+
+        $ownPurchase->refresh();
+        $this->assertNull($ownPurchase->refunded_at);
+        $this->assertDatabaseHas('fanfiction_comments', [
+            'fanfiction_id' => $foreignFanfiction->id,
+            'user_id' => $this->member->id,
+            'content' => 'Kommentar ohne Nebenwirkung',
         ]);
     }
 

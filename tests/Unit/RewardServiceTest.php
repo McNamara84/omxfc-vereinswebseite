@@ -31,13 +31,16 @@ class RewardServiceTest extends TestCase
     {
         $user = $this->actingMemberWithPoints(10);
         $reward = Reward::factory()->create(['cost_baxx' => 5]);
+        $membersTeam = Team::membersTeam();
+
+        $this->assertNotNull($membersTeam);
 
         $purchase = $this->service->purchaseReward($user, $reward);
 
         $this->assertNotNull($purchase);
         $this->assertEquals($user->id, $purchase->user_id);
         $this->assertEquals($reward->id, $purchase->reward_id);
-        $this->assertEquals(Team::membersTeam()?->id, $purchase->wallet_team_id);
+        $this->assertEquals($membersTeam->id, $purchase->wallet_team_id);
         $this->assertEquals(5, $purchase->cost_baxx);
         $this->assertNotNull($purchase->purchased_at);
         $this->assertNull($purchase->refunded_at);
@@ -291,6 +294,26 @@ class RewardServiceTest extends TestCase
         $this->service->purchaseReward($user, $reward);
 
         $this->assertTrue($this->service->hasUnlockedReward($user, 'test-feature'));
+    }
+
+    public function test_has_unlocked_reward_accepts_legacy_kompendium_slug(): void
+    {
+        $user = $this->actingMemberWithPoints(120);
+        $legacyReward = Reward::updateOrCreate(
+            ['slug' => 'kompendium-suche'],
+            [
+                'title' => 'Kompendium-Suche',
+                'description' => 'Legacy-Zugang zur Kompendium-Suche.',
+                'category' => 'Kompendium',
+                'cost_baxx' => 100,
+                'is_active' => true,
+                'sort_order' => 0,
+            ]
+        );
+
+        $this->service->purchaseReward($user, $legacyReward);
+
+        $this->assertTrue($this->service->hasUnlockedReward($user, 'kompendium'));
     }
 
     public function test_has_unlocked_reward_returns_false_for_not_purchased(): void

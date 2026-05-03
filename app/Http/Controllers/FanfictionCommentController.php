@@ -8,7 +8,7 @@ use App\Http\Controllers\Concerns\MembersTeamAware;
 use App\Models\Activity;
 use App\Models\Fanfiction;
 use App\Models\FanfictionComment;
-use App\Services\RewardService;
+use App\Services\FanfictionAccessService;
 use App\Services\UserRoleService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -20,7 +20,7 @@ class FanfictionCommentController extends Controller
 
     public function __construct(
         private readonly UserRoleService $userRoleService,
-        private readonly RewardService $rewardService,
+        private readonly FanfictionAccessService $fanfictionAccessService,
     ) {}
 
     protected function getUserRoleService(): UserRoleService
@@ -47,10 +47,14 @@ class FanfictionCommentController extends Controller
             abort(404);
         }
 
+        if ($this->fanfictionAccessService->isOwnContribution($user, $fanfiction)) {
+            $this->fanfictionAccessService->refundOwnPurchases($user);
+        }
+
         // Prüfe ob die Fanfiction freigeschaltet wurde (Vorstand/Admin dürfen immer kommentieren)
         if ($fanfiction->reward
             && ! in_array($role, [Role::Vorstand, Role::Admin], true)
-            && ! $this->rewardService->hasUnlockedRewardId($user, $fanfiction->reward->id)) {
+            && ! $this->fanfictionAccessService->hasUnlocked($user, $fanfiction)) {
             return redirect()->route('fanfiction.show', $fanfiction)
                 ->withErrors(['reward' => 'Du musst diese Fanfiction zuerst freischalten, um kommentieren zu können.']);
         }

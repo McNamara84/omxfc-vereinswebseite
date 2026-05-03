@@ -381,7 +381,7 @@ class DashboardController extends Controller
     {
         $actions = [
             [
-                'title' => 'Challenges öffnen',
+                'title' => 'Baxx verdienen',
                 'description' => 'Finde offene Aufgaben, prüfe Zusagen und springe direkt in deinen Arbeitsmodus.',
                 'href' => route('todos.index'),
                 'icon' => 'o-bolt',

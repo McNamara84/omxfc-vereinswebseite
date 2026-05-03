@@ -31,6 +31,6 @@ test.describe('Mitgliederkarte', () => {
 
         await expect(page.locator('[data-testid="page-title"]')).toContainText('Mitgliederkarte');
         await expect(page.getByText('Karte noch nicht verfügbar')).toBeVisible();
-        await expect(page.getByRole('link', { name: 'Zu den verfügbaren Challenges' })).toBeVisible();
+        await expect(page.getByRole('link', { name: 'Zu Baxx verdienen' })).toBeVisible();
     });
 });

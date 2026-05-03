@@ -25,6 +25,7 @@ class MitgliederKarteFeatureTest extends TestCase
         $response->assertOk();
         $response->assertViewIs('mitglieder.karte-locked');
         $response->assertSee('Karte noch nicht verfügbar');
+        $response->assertSee('Zu Baxx verdienen');
     }
 
     public function test_coordinates_are_cached(): void

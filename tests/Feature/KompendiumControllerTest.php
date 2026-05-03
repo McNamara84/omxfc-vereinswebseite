@@ -50,6 +50,28 @@ class KompendiumControllerTest extends TestCase
         ]);
     }
 
+    private function purchaseLegacyKompendiumForUser(User $user): void
+    {
+        $reward = Reward::updateOrCreate(
+            ['slug' => 'kompendium-suche'],
+            [
+                'title' => 'Kompendium-Suche',
+                'description' => 'Legacy-Zugang zur Kompendium-Suche.',
+                'category' => 'Kompendium',
+                'cost_baxx' => 100,
+                'is_active' => true,
+                'sort_order' => 0,
+            ]
+        );
+
+        RewardPurchase::create([
+            'user_id' => $user->id,
+            'reward_id' => $reward->id,
+            'cost_baxx' => $reward->cost_baxx,
+            'purchased_at' => now(),
+        ]);
+    }
+
     public function test_index_hides_search_when_reward_not_purchased(): void
     {
         $user = $this->actingMemberWithPoints(50);
@@ -64,6 +86,17 @@ class KompendiumControllerTest extends TestCase
     {
         $user = $this->actingMemberWithPoints(120);
         $this->purchaseKompendiumForUser($user);
+
+        $response = $this->get('/kompendium');
+
+        $response->assertOk();
+        $response->assertViewHas('showSearch', true);
+    }
+
+    public function test_index_shows_search_for_legacy_kompendium_purchase(): void
+    {
+        $user = $this->actingMemberWithPoints(120);
+        $this->purchaseLegacyKompendiumForUser($user);
 
         $response = $this->get('/kompendium');
 
@@ -181,6 +214,7 @@ class KompendiumControllerTest extends TestCase
 
         $response->assertOk();
         $response->assertViewHas('showSearch', false);
+        $response->assertSee('Belohnungen einlösen');
     }
 
     public function test_user_with_purchased_reward_but_no_ag_can_still_search(): void

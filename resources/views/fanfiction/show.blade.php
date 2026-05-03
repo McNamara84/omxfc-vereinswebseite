@@ -12,7 +12,9 @@
             <x-slot:actions>
                 <div class="flex flex-wrap items-center gap-2">
                     @if ($fanfiction->reward)
-                        @if ($hasUnlocked)
+                        @if ($isOwnFanfiction)
+                            <x-badge value="Eigener Beitrag" class="badge-info" icon="o-pencil-square" />
+                        @elseif ($hasUnlocked)
                             <x-badge value="Freigeschaltet" class="badge-success" icon="o-lock-open" />
                         @else
                             <x-badge value="{{ $fanfiction->reward->cost_baxx }} Baxx" class="badge-warning" icon="o-currency-dollar" />
@@ -29,6 +31,16 @@
         @if ($walletWarning)
             <x-alert icon="o-exclamation-triangle" class="alert-warning mb-6" dismissible>
                 {{ $walletWarning }}
+            </x-alert>
+        @endif
+
+        @if (($autoRefundedPurchases ?? 0) > 0)
+            <x-alert icon="o-arrow-uturn-left" class="alert-info mb-6" dismissible>
+                @if ($autoRefundedPurchases === 1)
+                    Ein früherer Eigenkauf deiner Fanfiction wurde automatisch erstattet.
+                @else
+                    {{ $autoRefundedPurchases }} frühere Eigenkäufe deiner Fanfiction wurden automatisch erstattet.
+                @endif
             </x-alert>
         @endif
 

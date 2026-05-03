@@ -11,7 +11,7 @@
         <x-ui.page-header
             eyebrow="Exklusive Inhalte für Mitglieder"
             title="Downloads"
-            description="Hier findest du Bauanleitungen, Fanstories und weitere Dateien aus dem Vereinsbereich. Gesperrte Inhalte lassen sich direkt über Belohnungen freischalten."
+            description="Hier findest du Bauanleitungen, Fanstories und weitere Dateien aus dem Vereinsbereich. Gesperrte Inhalte lassen sich direkt im Bereich Belohnungen einlösen freischalten."
         >
             <x-slot:actions>
                 <div class="flex flex-wrap gap-2">
@@ -85,7 +85,7 @@
                                                     @if(isset($unlockedDownloadIds[$download->id]) || $download->reward === null)
                                                         <x-button label="Herunterladen" link="{{ route('downloads.download', $download) }}" icon="o-arrow-down-tray" class="btn-primary btn-sm" />
                                                     @elseif($download->reward->is_active)
-                                                        <a href="{{ route('rewards.index') }}" wire:navigate class="inline-flex items-center gap-2 rounded-full border border-base-content/10 bg-base-100 px-4 py-2 text-sm font-medium text-base-content transition hover:border-primary/30 hover:text-primary" title="Unter Belohnungen freischalten">
+                                                        <a href="{{ route('rewards.index') }}" wire:navigate class="inline-flex items-center gap-2 rounded-full border border-base-content/10 bg-base-100 px-4 py-2 text-sm font-medium text-base-content transition hover:border-primary/30 hover:text-primary" title="Im Bereich Belohnungen einlösen öffnen">
                                                             <x-icon name="o-lock-closed" class="h-4 w-4" />
                                                             <span>Freischalten</span>
                                                         </a>
