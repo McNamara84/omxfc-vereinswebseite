@@ -228,6 +228,42 @@ class DashboardControllerTest extends TestCase
             ->assertSeeText('Verfügbare Baxx');
     }
 
+    public function test_dashboard_shows_restored_baxx_after_reward_refund_even_after_previous_page_load(): void
+    {
+        $team = Team::membersTeam();
+        $member = User::factory()->create(['current_team_id' => $team->id]);
+        $team->users()->attach($member, ['role' => Role::Mitglied->value]);
+
+        UserPoint::create([
+            'user_id' => $member->id,
+            'team_id' => $team->id,
+            'todo_id' => null,
+            'points' => 12,
+        ]);
+
+        $reward = Reward::factory()->create([
+            'cost_baxx' => 5,
+            'slug' => 'dashboard-baxx-refund-test',
+        ]);
+
+        $purchase = app(RewardService::class)->purchaseReward($member, $reward);
+        $admin = $this->actingAdmin();
+
+        $this->actingAs($member)
+            ->get('/dashboard')
+            ->assertOk()
+            ->assertViewHas('availableBaxx', 7);
+
+        app(RewardService::class)->refundPurchase($purchase, $admin);
+
+        $this->actingAs($member)
+            ->get('/dashboard')
+            ->assertOk()
+            ->assertViewHas('availableBaxx', 12)
+            ->assertSeeText('12 Baxx verfügbar')
+            ->assertSeeText('Verfügbare Baxx');
+    }
+
     public function test_dashboard_uses_members_team_baxx_when_current_team_differs(): void
     {
         $team = Team::membersTeam();

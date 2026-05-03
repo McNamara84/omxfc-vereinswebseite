@@ -11,6 +11,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use LogicException;
 
 class RewardService
 {
@@ -31,7 +32,9 @@ class RewardService
             ]);
         }
 
-        return DB::transaction(function () use ($user, $reward) {
+        $walletTeam = $this->resolveRewardWalletTeam();
+
+        return DB::transaction(function () use ($user, $reward, $walletTeam) {
             // Lock ALL purchases of this user to prevent concurrent double-spending.
             // This ensures getSpentBaxx sees a consistent snapshot and no two
             // concurrent requests can both pass the balance check.
@@ -60,6 +63,7 @@ class RewardService
             return RewardPurchase::create([
                 'user_id' => $user->id,
                 'reward_id' => $reward->id,
+                'wallet_team_id' => $walletTeam->id,
                 'cost_baxx' => $reward->cost_baxx,
                 'purchased_at' => now(),
             ]);
@@ -93,11 +97,7 @@ class RewardService
      */
     public function getEarnedBaxx(User $user): int
     {
-        $walletTeam = $this->resolveRewardWalletTeam($user);
-
-        return $walletTeam
-            ? $this->teamPointService->getUserPointsForTeam($user, $walletTeam)
-            : 0;
+        return $this->teamPointService->getUserPointsForTeam($user, $this->resolveRewardWalletTeam());
     }
 
     /**
@@ -119,14 +119,58 @@ class RewardService
      */
     public function getSpentBaxx(User $user): int
     {
+        $walletTeam = $this->resolveRewardWalletTeam();
+
+        if ($this->hasAmbiguousLegacyPurchases($user, $walletTeam)) {
+            throw new LogicException(
+                'Für diesen Benutzer existieren ältere Belohnungskäufe ohne eindeutige Wallet-Zuordnung. '
+                .'Bitte diese Käufe vor der weiteren Verwendung des Baxx-Guthabens prüfen.'
+            );
+        }
+
+        $canCountLegacyPurchases = ! $this->userHasAdditionalNonPersonalTeams($user, $walletTeam);
+
         return (int) RewardPurchase::where('user_id', $user->id)
             ->active()
+            ->where(function ($query) use ($walletTeam, $canCountLegacyPurchases) {
+                $query->where('wallet_team_id', $walletTeam->id);
+
+                if ($canCountLegacyPurchases) {
+                    $query->orWhereNull('wallet_team_id');
+                }
+            })
             ->sum('cost_baxx');
     }
 
-    private function resolveRewardWalletTeam(User $user): ?Team
+    private function resolveRewardWalletTeam(): Team
     {
-        return Team::membersTeam() ?? $user->currentTeam;
+        $walletTeam = Team::membersTeam();
+
+        if (! $walletTeam) {
+            throw new LogicException('Das Mitglieder-Team existiert nicht. Das Baxx-Guthaben kann nicht berechnet werden.');
+        }
+
+        return $walletTeam;
+    }
+
+    private function hasAmbiguousLegacyPurchases(User $user, Team $walletTeam): bool
+    {
+        if (! $this->userHasAdditionalNonPersonalTeams($user, $walletTeam)) {
+            return false;
+        }
+
+        return RewardPurchase::where('user_id', $user->id)
+            ->active()
+            ->whereNull('wallet_team_id')
+            ->exists();
+    }
+
+    private function userHasAdditionalNonPersonalTeams(User $user, Team $walletTeam): bool
+    {
+        return $user->teams()
+            ->where('teams.personal_team', false)
+            ->where('teams.id', '!=', $walletTeam->id)
+            ->exists();
     }
 
     /**

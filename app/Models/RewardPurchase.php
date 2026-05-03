@@ -14,6 +14,7 @@ class RewardPurchase extends Model
     protected $fillable = [
         'user_id',
         'reward_id',
+        'wallet_team_id',
         'cost_baxx',
         'purchased_at',
         'refunded_at',
@@ -43,6 +44,14 @@ class RewardPurchase extends Model
     public function reward(): BelongsTo
     {
         return $this->belongsTo(Reward::class);
+    }
+
+    /**
+     * The team wallet this purchase belongs to.
+     */
+    public function walletTeam(): BelongsTo
+    {
+        return $this->belongsTo(Team::class, 'wallet_team_id');
     }
 
     /**
