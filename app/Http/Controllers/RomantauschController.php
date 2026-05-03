@@ -177,7 +177,11 @@ class RomantauschController extends Controller
 
                 return $bookRequest;
             });
-        } catch (LogicException) {
+        } catch (\Throwable $exception) {
+            if (! $exception instanceof LogicException) {
+                report($exception);
+            }
+
             return redirect()->back()->withInput()->with('error', 'Gesuch konnte aktuell nicht erstellt werden. Bitte versuche es später erneut.');
         }
 

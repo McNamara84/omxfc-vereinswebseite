@@ -154,7 +154,11 @@ class RomantauschRequestForm extends Component
 
                     return $bookRequest;
                 });
-            } catch (LogicException) {
+            } catch (\Throwable $exception) {
+                if (! $exception instanceof LogicException) {
+                    report($exception);
+                }
+
                 $this->addError('book_number', 'Gesuch konnte aktuell nicht erstellt werden. Bitte versuche es später erneut.');
 
                 return;

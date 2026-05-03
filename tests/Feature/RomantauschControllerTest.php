@@ -46,4 +46,28 @@ class RomantauschControllerTest extends TestCase
         $this->assertDatabaseCount('book_offers', 0);
         $this->assertSame([], Storage::disk('public')->allFiles(BookPhotoService::STORAGE_PATH));
     }
+
+    public function test_store_request_returns_friendly_error_when_transaction_fails(): void
+    {
+        $this->seedBooksForRomantausch();
+        $user = $this->actingMember();
+
+        $this->mock(RomantauschBaxxService::class, function ($mock) {
+            $mock->shouldReceive('awardForNewRequests')
+                ->once()
+                ->andThrow(new RuntimeException('Boom'));
+        });
+
+        $response = $this->actingAs($user)
+            ->from('/romantauschboerse/anfrage-erstellen')
+            ->post(route('romantausch.store-request'), [
+                'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
+                'book_number' => 1,
+                'condition' => 'neu',
+            ]);
+
+        $response->assertRedirect('/romantauschboerse/anfrage-erstellen');
+        $response->assertSessionHas('error', 'Gesuch konnte aktuell nicht erstellt werden. Bitte versuche es später erneut.');
+        $this->assertDatabaseCount('book_requests', 0);
+    }
 }

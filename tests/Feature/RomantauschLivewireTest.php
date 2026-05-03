@@ -919,6 +919,28 @@ class RomantauschLivewireTest extends TestCase
         $this->assertDatabaseCount('book_requests', 0);
     }
 
+    public function test_store_request_returns_ui_error_when_transaction_fails(): void
+    {
+        $this->seedBooksForRomantausch();
+        $this->actingMember();
+
+        $this->mock(RomantauschBaxxService::class, function ($mock) {
+            $mock->shouldReceive('awardForNewRequests')
+                ->once()
+                ->andThrow(new RuntimeException('Boom'));
+        });
+
+        Livewire::test(RomantauschRequestForm::class)
+            ->set('series', BookType::MaddraxDieDunkleZukunftDerErde->value)
+            ->set('book_number', 1)
+            ->set('condition', 'neu')
+            ->call('save')
+            ->assertHasErrors('book_number')
+            ->assertNoRedirect();
+
+        $this->assertDatabaseCount('book_requests', 0);
+    }
+
     // ──────────────────────────────────────────────
     // Request Form: Edit
     // ──────────────────────────────────────────────
