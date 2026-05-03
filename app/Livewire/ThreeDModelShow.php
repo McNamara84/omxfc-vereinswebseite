@@ -29,6 +29,12 @@ class ThreeDModelShow extends Component
     }
 
     #[Computed]
+    public function walletState(): array
+    {
+        return app(RewardService::class)->getWalletState(Auth::user());
+    }
+
+    #[Computed]
     public function isUnlocked(): bool
     {
         return ! $this->model->reward
@@ -38,7 +44,19 @@ class ThreeDModelShow extends Component
     #[Computed]
     public function availableBaxx(): int
     {
-        return app(RewardService::class)->getAvailableBaxx(Auth::user());
+        return $this->walletState['availableBaxx'] ?? 0;
+    }
+
+    #[Computed]
+    public function walletWarning(): ?string
+    {
+        return $this->walletState['warning'];
+    }
+
+    #[Computed]
+    public function hasAvailableWallet(): bool
+    {
+        return is_int($this->walletState['availableBaxx']);
     }
 
     #[Computed]
@@ -62,8 +80,7 @@ class ThreeDModelShow extends Component
         try {
             app(RewardService::class)->purchaseReward(Auth::user(), $model->reward);
 
-            unset($this->isUnlocked);
-            unset($this->availableBaxx);
+            unset($this->isUnlocked, $this->walletState, $this->availableBaxx, $this->walletWarning, $this->hasAvailableWallet);
 
             session()->flash('success', '3D-Modell erfolgreich für '.$model->reward->cost_baxx.' Baxx freigeschaltet!');
             $this->redirect(route('3d-modelle.show', $model), navigate: true);

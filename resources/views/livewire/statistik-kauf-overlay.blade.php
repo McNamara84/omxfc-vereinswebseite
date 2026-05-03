@@ -12,9 +12,17 @@
         <div class="absolute inset-0 flex flex-col items-center justify-center bg-base-100/70 backdrop-blur-sm text-sm text-base-content text-center space-y-2 z-10">
             <x-icon name="o-lock-closed" class="w-6 h-6 text-base-content/50" />
             <p>Diese Statistik kostet <strong>{{ $costBaxx }} Baxx</strong>.</p>
-            <p>Dein Guthaben: <span class="font-semibold">{{ $availableBaxx }} Baxx</span></p>
+            @if($walletWarning)
+                <p class="text-warning">{{ $walletWarning }}</p>
+            @else
+                <p>Dein Guthaben: <span class="font-semibold">{{ $availableBaxx }} Baxx</span></p>
+            @endif
 
-            @if($availableBaxx >= $costBaxx)
+            @if($walletWarning)
+                <p class="text-xs text-base-content/60">
+                    Neue Freischaltungen sind aktuell nicht möglich.
+                </p>
+            @elseif($availableBaxx !== null && $availableBaxx >= $costBaxx)
                 <x-button
                     label="Jetzt freischalten"
                     icon="o-lock-open"
@@ -23,7 +31,7 @@
                     class="btn-primary btn-sm mt-1"
                     data-testid="statistik-purchase-{{ $sectionId }}"
                 />
-            @else
+            @elseif($availableBaxx !== null)
                 <p class="text-xs text-base-content/60">
                     Du benötigst noch {{ $costBaxx - $availableBaxx }} Baxx.
                 </p>

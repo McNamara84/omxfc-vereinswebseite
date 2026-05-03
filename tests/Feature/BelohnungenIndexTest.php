@@ -109,6 +109,24 @@ class BelohnungenIndexTest extends TestCase
         ]);
     }
 
+    public function test_belohnungen_shows_wallet_warning_for_ambiguous_legacy_purchase(): void
+    {
+        $user = $this->actingMemberWithPoints(15);
+        $reward = Reward::factory()->create(['cost_baxx' => 10, 'slug' => 'legacy-baxx-warning']);
+
+        RewardPurchase::factory()->create([
+            'user_id' => $user->id,
+            'reward_id' => $reward->id,
+            'wallet_team_id' => null,
+            'cost_baxx' => 5,
+        ]);
+
+        $this->get('/belohnungen')
+            ->assertOk()
+            ->assertSee('Guthaben wird geprüft')
+            ->assertSee('ältere Käufe ohne eindeutige Wallet-Zuordnung');
+    }
+
     public function test_purchase_with_insufficient_baxx_fails(): void
     {
         $this->actingMemberWithPoints(2);

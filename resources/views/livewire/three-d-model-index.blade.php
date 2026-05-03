@@ -9,7 +9,11 @@
             <div class="flex flex-col gap-3 lg:items-end">
                 <div class="flex flex-wrap gap-2">
                     <span class="badge badge-outline rounded-full px-3 py-3">{{ $this->models->count() }} Modelle</span>
-                    <span class="badge badge-primary badge-outline rounded-full px-3 py-3">{{ $this->availableBaxx }} Baxx verfügbar</span>
+                    @if ($this->walletWarning)
+                        <span class="badge badge-warning badge-outline rounded-full px-3 py-3">Baxx-Guthaben wird geprüft</span>
+                    @else
+                        <span class="badge badge-primary badge-outline rounded-full px-3 py-3">{{ $this->availableBaxx }} Baxx verfügbar</span>
+                    @endif
                 </div>
 
                 @can('create', App\Models\ThreeDModel::class)
@@ -22,6 +26,12 @@
     @if (session('success'))
         <x-alert icon="o-check-circle" class="alert-success mb-4" dismissible>
             {{ session('success') }}
+        </x-alert>
+    @endif
+
+    @if ($this->walletWarning)
+        <x-alert icon="o-exclamation-triangle" class="alert-warning mb-4" dismissible>
+            {{ $this->walletWarning }}
         </x-alert>
     @endif
 

@@ -22,6 +22,12 @@
                 </x-alert>
             @endif
 
+            @if($walletWarning)
+                <x-alert icon="o-exclamation-triangle" class="alert-warning" dismissible>
+                    {{ $walletWarning }}
+                </x-alert>
+            @endif
+
             @if($prominentReviewSpecialOffer)
                 <x-review-baxx-special-offer :offer="$prominentReviewSpecialOffer" />
             @endif

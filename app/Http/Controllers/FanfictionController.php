@@ -65,7 +65,7 @@ class FanfictionController extends Controller
 
         /** @var User $user */
         $user = Auth::user();
-        $availableBaxx = $this->rewardService->getAvailableBaxx($user);
+        $walletState = $this->rewardService->getWalletState($user);
 
         // Einmalig alle freigeschalteten Reward-IDs laden (statt N+1 Queries)
         $unlockedRewardIds = $this->rewardService->getUnlockedRewardIds($user);
@@ -79,7 +79,8 @@ class FanfictionController extends Controller
         return view('fanfiction.index', [
             'fanfictions' => $fanfictions,
             'role' => $role,
-            'availableBaxx' => $availableBaxx,
+            'availableBaxx' => $walletState['availableBaxx'],
+            'walletWarning' => $walletState['warning'],
             'unlockedFanfictionIds' => $unlockedFanfictionIds,
         ]);
     }
@@ -105,15 +106,16 @@ class FanfictionController extends Controller
 
         /** @var User $user */
         $user = Auth::user();
+        $walletState = $this->rewardService->getWalletState($user);
         $hasUnlocked = ! $fanfiction->reward
             || $this->rewardService->hasUnlockedRewardId($user, $fanfiction->reward->id);
-        $availableBaxx = $this->rewardService->getAvailableBaxx($user);
 
         return view('fanfiction.show', [
             'fanfiction' => $fanfiction,
             'role' => $role,
             'hasUnlocked' => $hasUnlocked,
-            'availableBaxx' => $availableBaxx,
+            'availableBaxx' => $walletState['availableBaxx'],
+            'walletWarning' => $walletState['warning'],
         ]);
     }
 

@@ -13,6 +13,7 @@ use App\Models\BookRequest;
 use App\Models\BookSwap;
 use App\Models\Fanfiction;
 use App\Models\Reward;
+use App\Models\RewardPurchase;
 use App\Models\Review;
 use App\Models\ReviewBaxxSpecialOffer;
 use App\Models\ReviewComment;
@@ -262,6 +263,39 @@ class DashboardControllerTest extends TestCase
             ->assertViewHas('availableBaxx', 12)
             ->assertSeeText('12 Baxx verfügbar')
             ->assertSeeText('Verfügbare Baxx');
+    }
+
+    public function test_dashboard_shows_wallet_warning_for_ambiguous_legacy_purchase_without_500(): void
+    {
+        $team = Team::membersTeam();
+        $member = User::factory()->create(['current_team_id' => $team->id]);
+        $team->users()->attach($member, ['role' => Role::Mitglied->value]);
+
+        UserPoint::create([
+            'user_id' => $member->id,
+            'team_id' => $team->id,
+            'todo_id' => null,
+            'points' => 12,
+        ]);
+
+        $reward = Reward::factory()->create([
+            'cost_baxx' => 5,
+            'slug' => 'dashboard-legacy-warning-test',
+        ]);
+
+        RewardPurchase::factory()->create([
+            'user_id' => $member->id,
+            'reward_id' => $reward->id,
+            'wallet_team_id' => null,
+            'cost_baxx' => 5,
+        ]);
+
+        $this->actingAs($member)
+            ->get('/dashboard')
+            ->assertOk()
+            ->assertViewHas('walletWarning')
+            ->assertSeeText('Baxx-Guthaben wird geprüft')
+            ->assertSeeText('Prüfung nötig');
     }
 
     public function test_dashboard_uses_members_team_baxx_when_current_team_differs(): void

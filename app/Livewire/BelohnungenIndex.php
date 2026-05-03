@@ -26,21 +26,39 @@ class BelohnungenIndex extends Component
     }
 
     #[Computed]
+    public function walletState(): array
+    {
+        return app(RewardService::class)->getWalletState(Auth::user());
+    }
+
+    #[Computed]
     public function availableBaxx(): int
     {
-        return app(RewardService::class)->getAvailableBaxx(Auth::user());
+        return $this->walletState['availableBaxx'] ?? 0;
     }
 
     #[Computed]
     public function earnedBaxx(): int
     {
-        return app(RewardService::class)->getEarnedBaxx(Auth::user());
+        return $this->walletState['earnedBaxx'];
     }
 
     #[Computed]
     public function spentBaxx(): int
     {
-        return app(RewardService::class)->getSpentBaxx(Auth::user());
+        return $this->walletState['spentBaxx'] ?? 0;
+    }
+
+    #[Computed]
+    public function walletWarning(): ?string
+    {
+        return $this->walletState['warning'];
+    }
+
+    #[Computed]
+    public function hasAvailableWallet(): bool
+    {
+        return is_int($this->walletState['availableBaxx']);
     }
 
     #[Computed]
@@ -51,6 +69,7 @@ class BelohnungenIndex extends Component
             ->active()
             ->pluck('reward_id')
             ->toArray();
+        $walletAvailableBaxx = $this->hasAvailableWallet ? $this->availableBaxx : null;
 
         $query = Reward::active()->orderBy('sort_order')->orderBy('cost_baxx');
 
@@ -58,10 +77,12 @@ class BelohnungenIndex extends Component
             $query->byCategory($this->categoryFilter);
         }
 
-        $rewards = $query->get()->map(function (Reward $reward) use ($purchasedRewardIds) {
+        $rewards = $query->get()->map(function (Reward $reward) use ($purchasedRewardIds, $walletAvailableBaxx) {
             $purchased = in_array($reward->id, $purchasedRewardIds);
-            $canAfford = $this->availableBaxx >= $reward->cost_baxx;
-            $missingBaxx = $canAfford ? 0 : $reward->cost_baxx - $this->availableBaxx;
+            $canAfford = $walletAvailableBaxx !== null && $walletAvailableBaxx >= $reward->cost_baxx;
+            $missingBaxx = $walletAvailableBaxx !== null && ! $canAfford
+                ? $reward->cost_baxx - $walletAvailableBaxx
+                : null;
 
             return [
                 'id' => $reward->id,
@@ -71,6 +92,7 @@ class BelohnungenIndex extends Component
                 'cost_baxx' => $reward->cost_baxx,
                 'purchased' => $purchased,
                 'can_afford' => $canAfford,
+                'wallet_unavailable' => $walletAvailableBaxx === null,
                 'missing_baxx' => $missingBaxx,
             ];
         });
@@ -116,7 +138,7 @@ class BelohnungenIndex extends Component
         }
 
         // Invalidate computed caches (earnedBaxx bleibt – ein Kauf ändert nicht die verdienten Baxx)
-        unset($this->availableBaxx, $this->spentBaxx, $this->rewards);
+        unset($this->walletState, $this->availableBaxx, $this->spentBaxx, $this->walletWarning, $this->hasAvailableWallet, $this->rewards);
     }
 
     public function updatedFilter(): void

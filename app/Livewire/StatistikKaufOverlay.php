@@ -21,11 +21,13 @@ class StatistikKaufOverlay extends Component
     public int $costBaxx;
 
     #[Locked]
-    public int $availableBaxx;
+    public ?int $availableBaxx = null;
 
     public bool $purchased = false;
 
     public string $errorMessage = '';
+
+    public string $walletWarning = '';
 
     public function mount(int $rewardId, string $sectionId): void
     {
@@ -34,7 +36,9 @@ class StatistikKaufOverlay extends Component
         $this->costBaxx = Reward::find($rewardId)?->cost_baxx ?? 0;
 
         $user = Auth::user();
-        $this->availableBaxx = $user ? app(RewardService::class)->getAvailableBaxx($user) : 0;
+        $walletState = $user ? app(RewardService::class)->getWalletState($user) : null;
+        $this->availableBaxx = $walletState['availableBaxx'] ?? null;
+        $this->walletWarning = $walletState['warning'] ?? '';
     }
 
     public function purchase(RewardService $rewardService): void

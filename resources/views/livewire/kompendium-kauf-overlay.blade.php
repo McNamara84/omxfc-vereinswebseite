@@ -12,10 +12,18 @@
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div>
                     <p>Die Suche kostet <strong>{{ $costBaxx }} Baxx</strong>.</p>
-                    <p class="text-sm">Dein Guthaben: <strong>{{ $availableBaxx }} Baxx</strong></p>
+                    @if($walletWarning)
+                        <p class="text-sm text-warning">{{ $walletWarning }}</p>
+                    @else
+                        <p class="text-sm">Dein Guthaben: <strong>{{ $availableBaxx }} Baxx</strong></p>
+                    @endif
                 </div>
 
-                @if($availableBaxx >= $costBaxx)
+                @if($walletWarning)
+                    <p class="text-sm text-base-content/60">
+                        Neue Freischaltungen sind aktuell nicht möglich.
+                    </p>
+                @elseif($availableBaxx !== null && $availableBaxx >= $costBaxx)
                     <x-button
                         label="Jetzt freischalten"
                         icon="o-lock-open"
@@ -24,7 +32,7 @@
                         class="btn-primary btn-sm"
                         data-testid="kompendium-purchase-button"
                     />
-                @else
+                @elseif($availableBaxx !== null)
                     <p class="text-sm text-base-content/60">
                         Du benötigst noch {{ $costBaxx - $availableBaxx }} Baxx.
                     </p>

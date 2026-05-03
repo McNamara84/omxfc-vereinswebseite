@@ -91,7 +91,9 @@ class DashboardController extends Controller
 
         // Verfügbares Baxx-Guthaben bewusst nicht cachen, damit Käufe und Erstattungen
         // auf dem Dashboard sofort sichtbar werden.
-        $availableBaxx = $this->rewardService->getAvailableBaxx($user);
+        $walletState = $this->rewardService->getWalletState($user);
+        $availableBaxx = $walletState['availableBaxx'] ?? 0;
+        $walletWarning = $walletState['warning'];
 
         // Aufgaben, die auf Verifizierung warten (nur für Admins sichtbar)
         if (in_array($userRole, $allowedRoles, true)) {
@@ -188,6 +190,7 @@ class DashboardController extends Controller
         $focusCards = $this->buildFocusCards(
             openTodos: $openTodos,
             availableBaxx: $availableBaxx,
+            walletWarning: $walletWarning,
             romantauschMatches: $romantauschMatches,
             romantauschOffers: $romantauschOffers,
             myReviews: $myReviews,
@@ -209,6 +212,7 @@ class DashboardController extends Controller
         $showGovernanceTools = in_array($userRole, $allowedRoles, true);
         $dashboardHeaderBadges = $this->buildDashboardHeaderBadges(
             availableBaxx: $availableBaxx,
+            walletWarning: $walletWarning,
             openTodos: $openTodos,
             showGovernanceTools: $showGovernanceTools,
             pendingVerification: $pendingVerification,
@@ -219,6 +223,7 @@ class DashboardController extends Controller
             'anwaerter',
             'openTodos',
             'availableBaxx',
+            'walletWarning',
             'pendingVerification',
             'userRole',
             'allowedRoles',
@@ -242,12 +247,14 @@ class DashboardController extends Controller
         ));
     }
 
-    private function buildDashboardHeaderBadges(int $availableBaxx, int $openTodos, bool $showGovernanceTools, int $pendingVerification): array
+    private function buildDashboardHeaderBadges(int $availableBaxx, ?string $walletWarning, int $openTodos, bool $showGovernanceTools, int $pendingVerification): array
     {
         $badges = [
             [
-                'label' => "{$availableBaxx} Baxx verfügbar",
-                'class' => 'badge badge-primary badge-outline rounded-full px-3 py-3',
+                'label' => $walletWarning ? 'Baxx-Guthaben wird geprüft' : "{$availableBaxx} Baxx verfügbar",
+                'class' => $walletWarning
+                    ? 'badge badge-warning badge-outline rounded-full px-3 py-3'
+                    : 'badge badge-primary badge-outline rounded-full px-3 py-3',
             ],
             [
                 'label' => trans_choice(':count offene Challenge|:count offene Challenges', $openTodos, ['count' => $openTodos]),
@@ -310,6 +317,7 @@ class DashboardController extends Controller
     private function buildFocusCards(
         int $openTodos,
         int $availableBaxx,
+        ?string $walletWarning,
         int $romantauschMatches,
         int $romantauschOffers,
         int $myReviews,
@@ -326,11 +334,13 @@ class DashboardController extends Controller
             ],
             [
                 'title' => 'Verfügbare Baxx',
-                'description' => 'Aktuelles Guthaben für Freischaltungen im Mitgliederbereich.',
-                'value' => $availableBaxx,
+                'description' => $walletWarning
+                    ? 'Das Baxx-Guthaben wird geprüft, weil ältere Käufe noch keiner Wallet eindeutig zugeordnet sind.'
+                    : 'Aktuelles Guthaben für Freischaltungen im Mitgliederbereich.',
+                'value' => $walletWarning ? 'Prüfung nötig' : $availableBaxx,
                 'href' => null,
                 'icon' => 'o-sparkles',
-                'sr_text' => "Verfügbare Baxx: {$availableBaxx}",
+                'sr_text' => $walletWarning ?? "Verfügbare Baxx: {$availableBaxx}",
             ],
             [
                 'title' => 'Matches in Tauschbörse',

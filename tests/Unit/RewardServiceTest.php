@@ -158,7 +158,7 @@ class RewardServiceTest extends TestCase
         $this->assertEquals(20, $this->service->getAvailableBaxx($userWithOtherCurrentTeam));
     }
 
-    public function test_get_available_baxx_counts_legacy_purchase_for_single_team_member(): void
+    public function test_get_wallet_state_marks_legacy_purchase_as_ambiguous(): void
     {
         $user = $this->actingMemberWithPoints(20);
         $reward = Reward::factory()->create(['cost_baxx' => 7]);
@@ -170,7 +170,13 @@ class RewardServiceTest extends TestCase
             'cost_baxx' => 7,
         ]);
 
-        $this->assertSame(13, $this->service->getAvailableBaxx($user));
+        $walletState = $this->service->getWalletState($user);
+
+        $this->assertSame('ambiguous-legacy', $walletState['status']);
+        $this->assertSame(20, $walletState['earnedBaxx']);
+        $this->assertNull($walletState['spentBaxx']);
+        $this->assertNull($walletState['availableBaxx']);
+        $this->assertNotNull($walletState['warning']);
     }
 
     public function test_purchase_reward_uses_members_team_balance_even_with_multi_team_points(): void
@@ -221,12 +227,9 @@ class RewardServiceTest extends TestCase
         $this->service->purchaseReward($userWithOtherCurrentTeam, $reward);
     }
 
-    public function test_get_available_baxx_throws_for_ambiguous_legacy_multi_team_purchase(): void
+    public function test_purchase_reward_fails_when_legacy_purchase_is_ambiguous(): void
     {
         $user = $this->actingMemberWithPoints(20);
-
-        $otherTeam = Team::factory()->create(['personal_team' => false]);
-        $otherTeam->users()->attach($user, ['role' => Role::Mitglied->value]);
 
         $reward = Reward::factory()->create(['cost_baxx' => 7]);
 
@@ -237,10 +240,22 @@ class RewardServiceTest extends TestCase
             'cost_baxx' => 7,
         ]);
 
-        $user->forceFill(['current_team_id' => $otherTeam->id])->save();
+        $this->expectException(ValidationException::class);
+        $this->service->purchaseReward($user, $reward);
+    }
 
-        $this->expectException(LogicException::class);
-        $this->service->getAvailableBaxx($user->fresh());
+    public function test_get_wallet_state_reports_missing_members_team_without_throwing(): void
+    {
+        $user = $this->actingMemberWithPoints(20);
+
+        Team::membersTeam()?->delete();
+
+        $walletState = $this->service->getWalletState($user->fresh());
+
+        $this->assertSame('missing-members-team', $walletState['status']);
+        $this->assertNull($walletState['availableBaxx']);
+        $this->assertNull($walletState['spentBaxx']);
+        $this->assertNotNull($walletState['warning']);
     }
 
     public function test_get_available_baxx_throws_when_members_team_is_missing(): void
