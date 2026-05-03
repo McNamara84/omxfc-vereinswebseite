@@ -214,6 +214,7 @@ class FanfictionCommentControllerTest extends TestCase
         RewardPurchase::create([
             'user_id' => $this->member->id,
             'reward_id' => $reward->id,
+            'wallet_team_id' => $this->memberTeam->id,
             'cost_baxx' => $reward->cost_baxx,
             'purchased_at' => now(),
         ]);
@@ -265,6 +266,7 @@ class FanfictionCommentControllerTest extends TestCase
         $ownPurchase = RewardPurchase::create([
             'user_id' => $this->member->id,
             'reward_id' => $ownReward->id,
+            'wallet_team_id' => $this->memberTeam->id,
             'cost_baxx' => $ownReward->cost_baxx,
             'purchased_at' => now(),
         ]);

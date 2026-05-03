@@ -31,13 +31,16 @@ class RewardServiceTest extends TestCase
     {
         $user = $this->actingMemberWithPoints(10);
         $reward = Reward::factory()->create(['cost_baxx' => 5]);
+        $membersTeam = Team::membersTeam();
+
+        $this->assertNotNull($membersTeam);
 
         $purchase = $this->service->purchaseReward($user, $reward);
 
         $this->assertNotNull($purchase);
         $this->assertEquals($user->id, $purchase->user_id);
         $this->assertEquals($reward->id, $purchase->reward_id);
-        $this->assertEquals(Team::membersTeam()?->id, $purchase->wallet_team_id);
+        $this->assertEquals($membersTeam->id, $purchase->wallet_team_id);
         $this->assertEquals(5, $purchase->cost_baxx);
         $this->assertNotNull($purchase->purchased_at);
         $this->assertNull($purchase->refunded_at);

@@ -4,9 +4,9 @@ namespace Tests\Feature;
 
 use App\Enums\Role;
 use App\Livewire\BelohnungenIndex;
+use App\Models\ReviewBaxxSpecialOffer;
 use App\Models\Reward;
 use App\Models\RewardPurchase;
-use App\Models\ReviewBaxxSpecialOffer;
 use App\Models\Team;
 use App\Models\UserPoint;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -144,10 +144,14 @@ class BelohnungenIndexTest extends TestCase
     {
         $user = $this->actingMemberWithPoints(20);
         $reward = Reward::factory()->create(['cost_baxx' => 5, 'slug' => 'owned']);
+        $membersTeam = Team::membersTeam();
+
+        $this->assertNotNull($membersTeam);
 
         RewardPurchase::factory()->create([
             'user_id' => $user->id,
             'reward_id' => $reward->id,
+            'wallet_team_id' => $membersTeam->id,
             'cost_baxx' => 5,
         ]);
 
@@ -182,10 +186,14 @@ class BelohnungenIndexTest extends TestCase
             'slug' => 'unlocked-test',
             'title' => 'Freigeschaltetes Feature',
         ]);
+        $membersTeam = Team::membersTeam();
+
+        $this->assertNotNull($membersTeam);
 
         RewardPurchase::factory()->create([
             'user_id' => $user->id,
             'reward_id' => $reward->id,
+            'wallet_team_id' => $membersTeam->id,
             'cost_baxx' => 5,
         ]);
 
@@ -198,6 +206,9 @@ class BelohnungenIndexTest extends TestCase
     public function test_legacy_kompendium_purchase_marks_current_reward_as_unlocked(): void
     {
         $user = $this->actingMemberWithPoints(120);
+        $membersTeam = Team::membersTeam();
+
+        $this->assertNotNull($membersTeam);
 
         Reward::updateOrCreate(
             ['slug' => 'kompendium'],
@@ -226,7 +237,7 @@ class BelohnungenIndexTest extends TestCase
         RewardPurchase::create([
             'user_id' => $user->id,
             'reward_id' => $legacyReward->id,
-            'wallet_team_id' => Team::membersTeam()?->id,
+            'wallet_team_id' => $membersTeam->id,
             'cost_baxx' => 100,
             'purchased_at' => now(),
         ]);

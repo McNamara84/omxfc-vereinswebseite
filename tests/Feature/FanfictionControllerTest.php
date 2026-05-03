@@ -328,6 +328,8 @@ class FanfictionControllerTest extends TestCase
 
         $this->assertNotNull($firstPurchase->fresh()->refunded_at);
         $this->assertNotNull($secondPurchase->fresh()->refunded_at);
+        $this->assertTrue($firstPurchase->fresh()->updated_at?->equalTo($firstPurchase->fresh()->refunded_at));
+        $this->assertTrue($secondPurchase->fresh()->updated_at?->equalTo($secondPurchase->fresh()->refunded_at));
         $this->assertNull($firstPurchase->fresh()->refunded_by);
         $this->assertNull($secondPurchase->fresh()->refunded_by);
     }

@@ -53,12 +53,15 @@ class FanfictionAccessService
 
     public function refundOwnPurchases(User $user): int
     {
+        $refundedAt = now();
+
         return RewardPurchase::query()
             ->where('user_id', $user->id)
             ->active()
             ->whereHas('reward.fanfiction', fn ($query) => $query->withTrashed()->where('user_id', $user->id))
             ->update([
-                'refunded_at' => now(),
+                'refunded_at' => $refundedAt,
+                'updated_at' => $refundedAt,
                 'refunded_by' => null,
             ]);
     }
