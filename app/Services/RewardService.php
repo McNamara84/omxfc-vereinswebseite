@@ -203,7 +203,7 @@ class RewardService
      */
     public function getUnlockedRewardSlugs(User $user): array
     {
-        $rewardSlugs = Reward::query()
+        return Reward::query()
             ->whereIn(
                 'id',
                 RewardPurchase::query()
@@ -211,15 +211,11 @@ class RewardService
                     ->active()
                     ->pluck('reward_id')
             )
-            ->pluck('slug');
-
-        $unlockedSlugs = [];
-
-        foreach ($rewardSlugs as $rewardSlug) {
-            $unlockedSlugs = [...$unlockedSlugs, ...$this->resolveRewardSlugs($rewardSlug)];
-        }
-
-        return array_values(array_unique($unlockedSlugs));
+            ->pluck('slug')
+            ->flatMap(fn (string $rewardSlug): array => $this->resolveRewardSlugs($rewardSlug))
+            ->unique()
+            ->values()
+            ->all();
     }
 
     /**

@@ -53,18 +53,10 @@ class FanfictionAccessService
 
     public function refundOwnPurchases(User $user): int
     {
-        $purchaseIds = RewardPurchase::query()
+        return RewardPurchase::query()
             ->where('user_id', $user->id)
             ->active()
             ->whereHas('reward.fanfiction', fn ($query) => $query->where('user_id', $user->id))
-            ->pluck('id');
-
-        if ($purchaseIds->isEmpty()) {
-            return 0;
-        }
-
-        return RewardPurchase::query()
-            ->whereIn('id', $purchaseIds)
             ->update([
                 'refunded_at' => now(),
                 'refunded_by' => null,

@@ -3,7 +3,6 @@
 namespace App\Livewire;
 
 use App\Models\Reward;
-use App\Models\RewardPurchase;
 use App\Services\ReviewBaxxService;
 use App\Services\RewardService;
 use Illuminate\Support\Facades\Auth;
