@@ -88,7 +88,7 @@ class RomantauschBaxxService
             $initialProcessedCount = max(0, $resolvedCount - $newActionCount);
             $progress = $this->lockProgress($userId, $actionKey, $initialProcessedCount);
             $processedCount = max($initialProcessedCount, max(0, $progress->processed_count));
-            $currentCount = max($processedCount + $newActionCount, $resolvedCount);
+            $currentCount = max($resolvedCount, $processedCount);
             $rule = BaxxEarningRule::query()
                 ->where('action_key', $actionKey)
                 ->first();

@@ -50,6 +50,23 @@ class MitgliederKarteFeatureTest extends TestCase
         $response->assertSee('data-member-map', false);
     }
 
+    public function test_locked_preview_remains_reachable_when_members_team_is_missing(): void
+    {
+        $user = $this->actingMember();
+
+        Team::membersTeam()?->delete();
+
+        $this->actingAs($user->fresh());
+
+        $response = $this->get('/mitglieder/karte');
+
+        $response->assertOk();
+        $response->assertViewIs('mitglieder.karte');
+        $response->assertSee('Mitgliederkarte freischalten');
+        $response->assertViewHas('walletWarning', fn ($warning) => is_string($warning) && $warning !== '');
+        $this->assertSame('[]', $response->viewData('memberData'));
+    }
+
     public function test_purchase_member_map_reward_recreates_missing_members_team(): void
     {
         $user = User::factory()->create();

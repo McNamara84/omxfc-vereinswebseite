@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Team;
 use App\Models\Reward;
 use App\Services\MemberMapCacheService;
-use App\Services\MembersTeamProvider;
 use App\Services\RewardService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
@@ -14,14 +14,12 @@ class MitgliederKarteController extends Controller
 {
     public function __construct(
         protected MemberMapCacheService $memberMapCacheService,
-        protected MembersTeamProvider $membersTeamProvider,
         protected RewardService $rewardService,
     ) {}
 
     public function index()
     {
         $user = Auth::user();
-        $membersTeam = $this->membersTeamProvider->getMembersTeamOrAbort();
 
         $reward = $this->mitgliederkarteReward();
         $hasAccess = $this->rewardService->hasUnlockedRewardId($user, $reward->id);
@@ -29,9 +27,16 @@ class MitgliederKarteController extends Controller
             ? ['warning' => null, 'availableBaxx' => null]
             : $this->rewardService->getWalletState($user);
 
-        $mapData = $hasAccess
-            ? $this->memberMapCacheService->getMemberMapData($membersTeam)
-            : $this->defaultMapData();
+        $mapData = $this->defaultMapData();
+
+        if ($hasAccess) {
+            $membersTeam = Team::membersTeam();
+
+            if ($membersTeam) {
+                $mapData = $this->memberMapCacheService->getMemberMapData($membersTeam);
+            }
+        }
+
         $memberData = $mapData['memberData'];
         $centerLat = $mapData['centerLat'];
         $centerLon = $mapData['centerLon'];

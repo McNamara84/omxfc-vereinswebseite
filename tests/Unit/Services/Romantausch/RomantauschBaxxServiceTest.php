@@ -134,6 +134,33 @@ class RomantauschBaxxServiceTest extends TestCase
         ]);
     }
 
+    public function test_stale_total_count_after_progress_advance_does_not_double_award(): void
+    {
+        $user = $this->createMemberWithOtherCurrentTeam(Team::membersTeam(), Team::factory()->create());
+
+        $this->configureRule('romantausch_offer', [
+            'points' => 5,
+            'every_count' => 3,
+            'is_active' => true,
+        ]);
+
+        $this->createOffer($user, 51);
+        $this->createOffer($user, 52);
+        $this->createOffer($user, 53);
+
+        $firstAward = $this->service->awardForNewOffers($user->id, 1);
+        $secondAward = $this->service->awardForNewOffers($user->id, 1);
+
+        $this->assertSame(5, $firstAward);
+        $this->assertSame(0, $secondAward);
+        $this->assertDatabaseCount('user_points', 1);
+        $this->assertDatabaseHas('baxx_earning_progress', [
+            'user_id' => $user->id,
+            'action_key' => 'romantausch_offer',
+            'processed_count' => 3,
+        ]);
+    }
+
     public function test_existing_history_does_not_trigger_retroactive_threshold_awards_on_first_progress_entry(): void
     {
         $membersTeam = Team::membersTeam();
