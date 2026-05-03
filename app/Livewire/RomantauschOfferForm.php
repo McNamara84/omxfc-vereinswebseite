@@ -236,8 +236,13 @@ class RomantauschOfferForm extends Component
 
                     return $offer;
                 });
-            } catch (LogicException) {
+            } catch (\Throwable $exception) {
                 $photoService->deletePhotos($photoPaths);
+
+                if (! $exception instanceof LogicException) {
+                    report($exception);
+                }
+
                 $this->addError('book_number', 'Angebot konnte aktuell nicht erstellt werden. Bitte versuche es später erneut.');
 
                 return;

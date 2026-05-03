@@ -20,6 +20,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use LogicException;
+use RuntimeException;
 use Livewire\Livewire;
 use Tests\Concerns\CreatesTestData;
 use Tests\Concerns\CreatesUserWithRole;
@@ -610,7 +611,7 @@ class RomantauschLivewireTest extends TestCase
         Storage::disk('public')->assertExists($offer->photos[0]);
     }
 
-    public function test_store_offer_rolls_back_and_cleans_up_uploaded_photos_when_baxx_award_fails(): void
+    public function test_store_offer_rolls_back_and_cleans_up_uploaded_photos_when_transaction_fails(): void
     {
         $this->seedBooksForRomantausch();
         $this->actingMember();
@@ -620,7 +621,7 @@ class RomantauschLivewireTest extends TestCase
         $this->mock(RomantauschBaxxService::class, function ($mock) {
             $mock->shouldReceive('awardForNewOffers')
                 ->once()
-                ->andThrow(new LogicException('Boom'));
+                ->andThrow(new RuntimeException('Boom'));
         });
 
         Livewire::test(RomantauschOfferForm::class)

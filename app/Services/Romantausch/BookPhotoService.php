@@ -228,7 +228,7 @@ class BookPhotoService
      * @param  array<string>  $photosToRemove  Pfade der zu löschenden Fotos
      * @param  Request  $request  Request mit neuen Fotos
      * @param  int|null  $userId  User-ID für Logging
-        * @return array{photos: array<string>, deleted: array<string>, uploaded: array<string>} Neue Foto-Liste, gelöschte und neu hochgeladene Pfade
+      * @return array{photos: array<string>, deleted: array<string>, uploaded: array<string>} Neue Foto-Liste, gelöschte und neu hochgeladene Pfade
      *
      * @throws \RuntimeException Wenn der Upload neuer Fotos fehlschlägt
      */

@@ -12,6 +12,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Factory;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use LogicException;
 use Tests\Concerns\CreatesUserWithRole;
 use Tests\TestCase;
 
@@ -67,6 +68,23 @@ class MitgliederKarteFeatureTest extends TestCase
         $response->assertSee('Mitgliederkarte freischalten');
         $response->assertViewHas('walletWarning', fn ($warning) => is_string($warning) && $warning !== '');
         $this->assertSame('[]', $response->viewData('memberData'));
+    }
+
+    public function test_purchase_returns_friendly_error_when_reward_purchase_throws_logic_exception(): void
+    {
+        $user = $this->actingMember();
+
+        $this->mock(RewardService::class, function ($mock) {
+            $mock->shouldReceive('purchaseReward')
+                ->once()
+                ->andThrow(new LogicException('Boom'));
+        });
+
+        $response = $this->actingAs($user)
+            ->post(route('mitglieder.karte.purchase'));
+
+        $response->assertRedirect(route('mitglieder.karte'));
+        $response->assertSessionHasErrors('reward');
     }
 
     public function test_coordinates_are_cached(): void

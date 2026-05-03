@@ -76,6 +76,16 @@ class MitgliederKarteController extends Controller
             return redirect()
                 ->route('mitglieder.karte')
                 ->withErrors($exception->errors());
+        } catch (\Throwable $exception) {
+            if (! $exception instanceof \LogicException) {
+                report($exception);
+            }
+
+            return redirect()
+                ->route('mitglieder.karte')
+                ->withErrors([
+                    'reward' => 'Die Mitgliederkarte konnte aktuell nicht freigeschaltet werden. Bitte versuche es später erneut.',
+                ]);
         }
 
         return redirect()
