@@ -9,6 +9,8 @@ use App\Models\BookSwap;
 use App\Models\Team;
 use App\Models\UserPoint;
 use Closure;
+use Illuminate\Support\Facades\Log;
+use LogicException;
 
 class RomantauschBaxxService
 {
@@ -85,11 +87,7 @@ class RomantauschBaxxService
             return 0;
         }
 
-        $walletTeam = Team::membersTeam();
-
-        if (! $walletTeam) {
-            return 0;
-        }
+        $walletTeam = $this->resolveMembersWalletTeam();
 
         $totalCount = max(0, (int) $resolveTotalCount());
         $previousCount = max(0, $totalCount - $newActionCount);
@@ -108,5 +106,18 @@ class RomantauschBaxxService
         ]);
 
         return $awardedPoints;
+    }
+
+    private function resolveMembersWalletTeam(): Team
+    {
+        $walletTeam = Team::membersTeam();
+
+        if ($walletTeam) {
+            return $walletTeam;
+        }
+
+        Log::critical('Romantausch-Baxx konnten nicht vergeben werden, weil das Mitglieder-Team fehlt.');
+
+        throw new LogicException('Das Mitglieder-Team fehlt. Romantausch-Baxx können nicht vergeben werden.');
     }
 }

@@ -24,8 +24,10 @@ class MitgliederKarteController extends Controller
         $membersTeam = $this->membersTeamProvider->getMembersTeamOrAbort();
 
         $reward = $this->mitgliederkarteReward();
-        $walletState = $this->rewardService->getWalletState($user);
         $hasAccess = $this->rewardService->hasUnlockedRewardId($user, $reward->id);
+        $walletState = $hasAccess
+            ? ['warning' => null, 'availableBaxx' => null]
+            : $this->rewardService->getWalletState($user);
 
         $mapData = $hasAccess
             ? $this->memberMapCacheService->getMemberMapData($membersTeam)
@@ -35,7 +37,7 @@ class MitgliederKarteController extends Controller
         $centerLon = $mapData['centerLon'];
 
         $availableBaxx = $walletState['availableBaxx'];
-        $missingBaxx = is_int($availableBaxx)
+        $missingBaxx = ! $hasAccess && is_int($availableBaxx)
             ? max(0, $reward->cost_baxx - $availableBaxx)
             : null;
 
