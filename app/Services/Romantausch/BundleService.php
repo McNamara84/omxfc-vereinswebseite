@@ -5,7 +5,6 @@ namespace App\Services\Romantausch;
 use App\Models\Activity;
 use App\Models\Book;
 use App\Models\BookOffer;
-use App\Models\User;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -47,6 +46,7 @@ class BundleService
     public function __construct(
         private readonly BookPhotoService $photoService,
         private readonly SwapMatchingService $matchingService,
+        private readonly RomantauschBaxxService $baxxService,
     ) {}
 
     /**
@@ -104,8 +104,7 @@ class BundleService
             throw new \RuntimeException('Beim Erstellen des Stapel-Angebots ist ein Fehler aufgetreten.', 0, $e);
         }
 
-        // Punkte vergeben
-        $this->awardPointsForOffers($userId, count($offers));
+        $this->baxxService->awardForNewOffers($userId, count($offers));
 
         // Matching für alle Angebote durchführen
         foreach ($offers as $offer) {
@@ -205,6 +204,10 @@ class BundleService
                 }
             }
         });
+
+        if ($stats['added'] > 0) {
+            $this->baxxService->awardForNewOffers($userId, $stats['added']);
+        }
 
         return $stats;
     }
@@ -437,21 +440,6 @@ class BundleService
             ->where('user_id', $userId)
             ->whereHas('swap')
             ->exists();
-    }
-
-    /**
-     * Vergibt Punkte basierend auf der Gesamtanzahl der Angebote.
-     */
-    private function awardPointsForOffers(int $userId, int $newOfferCount): void
-    {
-        $totalOfferCount = BookOffer::where('user_id', $userId)->count();
-        $previousCount = $totalOfferCount - $newOfferCount;
-        $newBaxx = intdiv($totalOfferCount, 10) - intdiv($previousCount, 10);
-
-        if ($newBaxx > 0) {
-            $user = User::find($userId);
-            $user?->incrementTeamPoints($newBaxx);
-        }
     }
 
     /**

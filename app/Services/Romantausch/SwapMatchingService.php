@@ -258,12 +258,10 @@ class SwapMatchingService
             $swap->offer->update(['completed' => true]);
             $swap->request->update(['completed' => true]);
 
-            // Punkte vergeben
-            $swap->offer->user->incrementTeamPoints(2);
-            $swap->request->user->incrementTeamPoints(2);
+            $awardedPoints = $this->baxxService()->awardForCompletedSwap($swap->loadMissing(['offer', 'request']));
 
             $result['completed'] = true;
-            $result['points_awarded'] = true;
+            $result['points_awarded'] = array_sum($awardedPoints) > 0;
         }
 
         return $result;
@@ -283,6 +281,13 @@ class SwapMatchingService
         $offer->update(['completed' => true]);
         $request->update(['completed' => true]);
 
+        $this->baxxService()->awardForCompletedSwap($swap->loadMissing(['offer', 'request']));
+
         return $swap;
+    }
+
+    private function baxxService(): RomantauschBaxxService
+    {
+        return app(RomantauschBaxxService::class);
     }
 }

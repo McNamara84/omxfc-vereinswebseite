@@ -24,13 +24,14 @@ test.describe('Mitgliederkarte', () => {
 
     });
 
-    test('member without points sees locked message', async ({ page }) => {
+    test('member without unlock sees preview overlay with unlock message', async ({ page }) => {
         await login(page, 'playwright-member@example.com');
 
         await page.goto('/mitglieder/karte');
 
         await expect(page.locator('[data-testid="page-title"]')).toContainText('Mitgliederkarte');
-        await expect(page.getByText('Karte noch nicht verfügbar')).toBeVisible();
+        await expect(page.getByText('Mitgliederkarte freischalten')).toBeVisible();
+        await expect(page.locator('[data-member-map]')).toBeVisible();
         await expect(page.getByRole('link', { name: 'Zu Baxx verdienen' })).toBeVisible();
     });
 });

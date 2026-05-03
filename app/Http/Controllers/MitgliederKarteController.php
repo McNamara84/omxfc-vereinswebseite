@@ -2,45 +2,117 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Reward;
 use App\Models\Team;
-use App\Models\UserPoint;
 use App\Services\MemberMapCacheService;
+use App\Services\RewardService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
 
 class MitgliederKarteController extends Controller
 {
-    public function __construct(protected MemberMapCacheService $memberMapCacheService) {}
+    public function __construct(
+        protected MemberMapCacheService $memberMapCacheService,
+        protected RewardService $rewardService,
+    ) {}
 
     public function index()
     {
         $user = Auth::user();
         $team = $user->currentTeam;
 
-        // Prüfen, ob der Nutzer mindestens einen Punkt oder eine erledigte Challenge hat
-        $memberTeam = Team::membersTeam();
+        $reward = $this->mitgliederkarteReward();
+        $walletState = $this->rewardService->getWalletState($user);
+        $hasAccess = $this->rewardService->hasUnlockedRewardId($user, $reward->id);
 
-        if ($memberTeam) {
-            $userPoints = UserPoint::where('user_id', $user->id)
-                ->where('team_id', $memberTeam->id)
-                ->count();
-
-            $hasAccess = $userPoints > 0;
-        } else {
-            $hasAccess = false;
-        }
-
-        // Wenn der Nutzer keine Punkte hat, zeigen wir eine Meldung an
-        if (! $hasAccess) {
-            return view('mitglieder.karte-locked');
-        }
-
-        $mapData = $this->memberMapCacheService->getMemberMapData($team);
+        $mapData = $hasAccess && $team
+            ? $this->memberMapCacheService->getMemberMapData($team)
+            : $this->defaultMapData();
         $memberData = $mapData['memberData'];
         $centerLat = $mapData['centerLat'];
         $centerLon = $mapData['centerLon'];
 
-        // Regionalstammtische definieren
-        $stammtischData = [
+        $availableBaxx = $walletState['availableBaxx'];
+        $missingBaxx = is_int($availableBaxx)
+            ? max(0, $reward->cost_baxx - $availableBaxx)
+            : null;
+
+        return view('mitglieder.karte', [
+            'memberData' => json_encode($memberData),
+            'stammtischData' => json_encode($hasAccess ? $this->stammtischData() : []),
+            'centerLat' => 51.1657, // Mitte von Deutschland
+            'centerLon' => 10.4515,
+            'membersCenterLat' => $centerLat,
+            'membersCenterLon' => $centerLon,
+            'isUnlocked' => $hasAccess,
+            'reward' => $reward,
+            'walletWarning' => $walletState['warning'],
+            'availableBaxx' => $availableBaxx,
+            'missingBaxx' => $missingBaxx,
+            'canPurchase' => ! $hasAccess
+                && $reward->is_active
+                && is_int($availableBaxx)
+                && $availableBaxx >= $reward->cost_baxx,
+        ]);
+    }
+
+    public function purchase(): RedirectResponse
+    {
+        $user = Auth::user();
+        $reward = $this->mitgliederkarteReward();
+
+        try {
+            $this->rewardService->purchaseReward($user, $reward);
+        } catch (ValidationException $exception) {
+            return redirect()
+                ->route('mitglieder.karte')
+                ->withErrors($exception->errors());
+        }
+
+        return redirect()
+            ->route('mitglieder.karte')
+            ->with('success', 'Die Mitgliederkarte wurde freigeschaltet.');
+    }
+
+    public function locked(): RedirectResponse
+    {
+        return redirect()->route('mitglieder.karte');
+    }
+
+    private function mitgliederkarteReward(): Reward
+    {
+        return Reward::query()->firstOrCreate(
+            ['slug' => 'mitgliederkarte'],
+            [
+                'title' => 'Mitgliederkarte',
+                'description' => 'Zeigt die Wohnorte der Vereinsmitglieder auf einer Karte.',
+                'category' => 'Allgemein',
+                'cost_baxx' => (int) config('rewards.legacy.0.points', 1),
+                'is_active' => true,
+                'sort_order' => 0,
+            ]
+        );
+    }
+
+    /**
+     * @return array{memberData: array<int, array<string, mixed>>, centerLat: float, centerLon: float}
+     */
+    private function defaultMapData(): array
+    {
+        return [
+            'memberData' => [],
+            'centerLat' => 51.1657,
+            'centerLon' => 10.4515,
+        ];
+    }
+
+    /**
+     * @return array<int, array{name: string, lat: float, lon: float, address: string, info: string}>
+     */
+    private function stammtischData(): array
+    {
+        return [
             [
                 'name' => 'Regionalstammtisch München',
                 'lat' => 48.12896638040895,
@@ -63,14 +135,5 @@ class MitgliederKarteController extends Controller
                 'info' => 'Jeden siebten Tag in ungeraden Monaten',
             ],
         ];
-
-        return view('mitglieder.karte', [
-            'memberData' => json_encode($memberData),
-            'stammtischData' => json_encode($stammtischData),
-            'centerLat' => 51.1657, // Mitte von Deutschland
-            'centerLon' => 10.4515,
-            'membersCenterLat' => $centerLat,
-            'membersCenterLon' => $centerLon,
-        ]);
     }
 }

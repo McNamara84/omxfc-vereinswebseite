@@ -2,7 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Models\Reward;
 use App\Models\User;
+use App\Services\RewardService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Factory;
 use Illuminate\Support\Facades\Cache;
@@ -15,7 +17,15 @@ class MitgliederKarteFeatureTest extends TestCase
     use CreatesUserWithRole;
     use RefreshDatabase;
 
-    public function test_locked_view_when_user_has_no_points(): void
+    private function purchaseMemberMapReward(User $user): void
+    {
+        $reward = Reward::query()->where('slug', 'mitgliederkarte')->firstOrFail();
+
+        $user->incrementTeamPoints($reward->cost_baxx);
+        app(RewardService::class)->purchaseReward($user, $reward);
+    }
+
+    public function test_locked_members_see_preview_with_unlock_cta(): void
     {
         $user = $this->actingMember();
         $this->actingAs($user);
@@ -23,9 +33,9 @@ class MitgliederKarteFeatureTest extends TestCase
         $response = $this->get('/mitglieder/karte');
 
         $response->assertOk();
-        $response->assertViewIs('mitglieder.karte-locked');
-        $response->assertSee('Karte noch nicht verfügbar');
-        $response->assertSee('Zu Baxx verdienen');
+        $response->assertViewIs('mitglieder.karte');
+        $response->assertSee('Mitgliederkarte freischalten');
+        $response->assertSee('data-member-map', false);
     }
 
     public function test_coordinates_are_cached(): void
@@ -44,7 +54,7 @@ class MitgliederKarteFeatureTest extends TestCase
         ]);
 
         $user = $this->actingMember('Mitglied', ['plz' => '12345', 'land' => 'Deutschland']);
-        $user->incrementTeamPoints();
+        $this->purchaseMemberMapReward($user);
         $this->actingAs($user);
 
         $this->get('/mitglieder/karte');
@@ -71,7 +81,7 @@ class MitgliederKarteFeatureTest extends TestCase
         ]);
 
         $user = $this->actingMember('Mitglied', ['plz' => '11111', 'land' => 'Deutschland']);
-        $user->incrementTeamPoints();
+        $this->purchaseMemberMapReward($user);
         $this->actingMember('Mitglied', ['plz' => '22222', 'land' => 'Deutschland']);
 
         $this->actingAs($user);
@@ -99,7 +109,7 @@ class MitgliederKarteFeatureTest extends TestCase
         ]);
 
         $user = $this->actingMember('Mitglied', ['plz' => '12345', 'land' => 'Deutschland']);
-        $user->incrementTeamPoints();
+        $this->purchaseMemberMapReward($user);
         $this->actingAs($user);
 
         $this->get('/mitglieder/karte');
@@ -122,7 +132,7 @@ class MitgliederKarteFeatureTest extends TestCase
             'land' => 'Deutschland',
             'stadt' => 'Musterstadt',
         ]);
-        $user->incrementTeamPoints();
+        $this->purchaseMemberMapReward($user);
         $this->actingAs($user);
 
         $response = $this->get('/mitglieder/karte');

@@ -30,10 +30,24 @@ class BaxxEarningRuleSeeder extends Seeder
             ],
             [
                 'action_key' => 'romantausch_offer',
-                'label' => 'Romantausch-Meilenstein',
-                'description' => '1 Baxx für jedes 10. Romantausch-Angebot eines Mitglieds.',
+                'label' => 'Romantausch-Angebot',
+                'description' => 'Standard-Baxx für neue Angebote in der Romantauschbörse.',
                 'points' => 1,
                 'every_count' => 10,
+            ],
+            [
+                'action_key' => 'romantausch_request',
+                'label' => 'Romantausch-Gesuch',
+                'description' => 'Standard-Baxx für neue Gesuche in der Romantauschbörse.',
+                'points' => 0,
+                'every_count' => 1,
+            ],
+            [
+                'action_key' => 'romantausch_swap_complete',
+                'label' => 'Romantausch abschließen',
+                'description' => 'Standard-Baxx für vollständig abgeschlossene Tauschaktionen in der Romantauschbörse.',
+                'points' => 2,
+                'every_count' => 1,
             ],
             [
                 'action_key' => 'maddraxiversum_mission',

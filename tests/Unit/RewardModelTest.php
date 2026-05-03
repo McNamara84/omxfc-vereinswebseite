@@ -115,6 +115,21 @@ class RewardModelTest extends TestCase
         $this->assertEquals(0, $points);
     }
 
+    public function test_romantausch_rules_are_seeded_for_offer_request_and_completed_swap(): void
+    {
+        $this->assertDatabaseHas('baxx_earning_rules', [
+            'action_key' => 'romantausch_offer',
+        ]);
+
+        $this->assertDatabaseHas('baxx_earning_rules', [
+            'action_key' => 'romantausch_request',
+        ]);
+
+        $this->assertDatabaseHas('baxx_earning_rules', [
+            'action_key' => 'romantausch_swap_complete',
+        ]);
+    }
+
     public function test_baxx_earning_rule_get_points_for_inactive_rule_returns_zero(): void
     {
         $rule = BaxxEarningRule::where('action_key', 'rezension')->first();

@@ -8,13 +8,13 @@ use App\Http\Requests\StoreBundleOfferRequest;
 use App\Http\Requests\UpdateBookOfferRequest;
 use App\Http\Requests\UpdateBundleOfferRequest;
 use App\Models\Activity;
-use App\Models\BaxxEarningRule;
 use App\Models\Book;
 use App\Models\BookOffer;
 use App\Models\BookRequest;
 use App\Models\BookSwap;
 use App\Services\Romantausch\BookPhotoService;
 use App\Services\Romantausch\BundleService;
+use App\Services\Romantausch\RomantauschBaxxService;
 use App\Services\Romantausch\SwapMatchingService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -33,6 +33,7 @@ class RomantauschController extends Controller
         private readonly BookPhotoService $photoService,
         private readonly SwapMatchingService $matchingService,
         private readonly BundleService $bundleService,
+        private readonly RomantauschBaxxService $baxxService,
     ) {}
 
     // ========== Einzelangebote ==========
@@ -67,7 +68,7 @@ class RomantauschController extends Controller
             'photos' => $photoPaths,
         ]);
 
-        $this->awardPointsIfMilestone();
+        $this->baxxService->awardForNewOffers(Auth::id(), 1);
         $this->matchingService->matchSwap($offer, 'offer');
         $this->createOfferActivity($offer);
 
@@ -152,6 +153,7 @@ class RomantauschController extends Controller
             'condition' => $validated['condition'],
         ]);
 
+        $this->baxxService->awardForNewRequests(Auth::id());
         $this->createRequestActivity($bookRequest);
         $this->matchingService->matchSwap($bookRequest, 'request');
 
@@ -380,20 +382,6 @@ class RomantauschController extends Controller
     }
 
     // ========== Hilfsmethoden ==========
-
-    /**
-     * Vergibt Punkte wenn ein Meilenstein erreicht wird (alle 10 Angebote).
-     */
-    private function awardPointsIfMilestone(): void
-    {
-        $offerCount = BookOffer::where('user_id', Auth::id())->count();
-        if ($offerCount % 10 === 0) {
-            $points = BaxxEarningRule::getPointsFor('romantausch_offer');
-            if ($points > 0) {
-                Auth::user()->incrementTeamPoints($points);
-            }
-        }
-    }
 
     /**
      * Erstellt einen Activity-Log-Eintrag für ein neues Angebot.

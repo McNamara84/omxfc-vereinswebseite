@@ -4,10 +4,10 @@ namespace App\Livewire;
 
 use App\Http\Requests\StoreBookOfferRequest;
 use App\Models\Activity;
-use App\Models\BaxxEarningRule;
 use App\Models\Book;
 use App\Models\BookOffer;
 use App\Services\Romantausch\BookPhotoService;
+use App\Services\Romantausch\RomantauschBaxxService;
 use App\Services\Romantausch\SwapMatchingService;
 use App\Support\ConditionOptions;
 use Illuminate\Support\Facades\Auth;
@@ -222,7 +222,7 @@ class RomantauschOfferForm extends Component
                 'photos' => $photoPaths,
             ]);
 
-            $this->awardPointsIfMilestone();
+            app(RomantauschBaxxService::class)->awardForNewOffers(Auth::id(), 1);
             $matchingService->matchSwap($offer, 'offer');
 
             Activity::create([
@@ -234,17 +234,6 @@ class RomantauschOfferForm extends Component
 
         session()->flash('success', $this->isEditing ? 'Angebot aktualisiert.' : 'Angebot erstellt.');
         $this->redirect(route('romantausch.index'));
-    }
-
-    private function awardPointsIfMilestone(): void
-    {
-        $offerCount = BookOffer::where('user_id', Auth::id())->count();
-        if ($offerCount % 10 === 0) {
-            $points = BaxxEarningRule::getPointsFor('romantausch_offer');
-            if ($points > 0) {
-                Auth::user()->incrementTeamPoints($points);
-            }
-        }
     }
 
     public function placeholder()

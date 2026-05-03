@@ -6,6 +6,7 @@ use App\Http\Requests\StoreBookOfferRequest;
 use App\Models\Activity;
 use App\Models\Book;
 use App\Models\BookRequest;
+use App\Services\Romantausch\RomantauschBaxxService;
 use App\Services\Romantausch\SwapMatchingService;
 use App\Support\ConditionOptions;
 use Illuminate\Support\Facades\Auth;
@@ -145,6 +146,7 @@ class RomantauschRequestForm extends Component
                 'subject_id' => $bookRequest->id,
             ]);
 
+            app(RomantauschBaxxService::class)->awardForNewRequests(Auth::id());
             $matchingService->matchSwap($bookRequest, 'request');
         }
 
