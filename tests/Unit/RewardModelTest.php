@@ -115,6 +115,22 @@ class RewardModelTest extends TestCase
         $this->assertEquals(0, $points);
     }
 
+    public function test_romantausch_rules_are_seeded_for_offer_request_and_completed_swap(): void
+    {
+        $this->assertDatabaseHas('baxx_earning_rules', [
+            'action_key' => 'romantausch_offer',
+        ]);
+
+        $this->assertDatabaseHas('baxx_earning_rules', [
+            'action_key' => 'romantausch_request',
+            'is_active' => false,
+        ]);
+
+        $this->assertDatabaseHas('baxx_earning_rules', [
+            'action_key' => 'romantausch_swap_complete',
+        ]);
+    }
+
     public function test_baxx_earning_rule_get_points_for_inactive_rule_returns_zero(): void
     {
         $rule = BaxxEarningRule::where('action_key', 'rezension')->first();
@@ -127,12 +143,14 @@ class RewardModelTest extends TestCase
 
     public function test_baxx_earning_rule_active_scope(): void
     {
-        $total = BaxxEarningRule::count();
         $active = BaxxEarningRule::active()->count();
 
-        $this->assertEquals($total, $active);
+        $this->assertEquals(
+            BaxxEarningRule::where('is_active', true)->count(),
+            $active
+        );
 
-        BaxxEarningRule::first()->update(['is_active' => false]);
-        $this->assertEquals($total - 1, BaxxEarningRule::active()->count());
+        BaxxEarningRule::active()->firstOrFail()->update(['is_active' => false]);
+        $this->assertEquals($active - 1, BaxxEarningRule::active()->count());
     }
 }

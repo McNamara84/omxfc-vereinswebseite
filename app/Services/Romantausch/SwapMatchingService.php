@@ -25,6 +25,10 @@ use Illuminate\Support\Facades\Mail;
  */
 class SwapMatchingService
 {
+    public function __construct(
+        private readonly RomantauschBaxxService $baxxService,
+    ) {}
+
     /**
      * Versucht einen Match für ein neues Angebot oder Gesuch zu finden.
      *
@@ -235,38 +239,42 @@ class SwapMatchingService
      */
     public function confirmSwap(BookSwap $swap, User $user): array
     {
-        $result = [
-            'completed' => false,
-            'points_awarded' => false,
-        ];
+        return DB::transaction(function () use ($swap, $user): array {
+            $lockedSwap = BookSwap::query()
+                ->with(['offer.user', 'request.user'])
+                ->lockForUpdate()
+                ->findOrFail($swap->id);
 
-        if ($user->is($swap->offer->user)) {
-            $swap->offer_confirmed = true;
-        }
+            $result = [
+                'completed' => false,
+                'points_awarded' => false,
+            ];
 
-        if ($user->is($swap->request->user)) {
-            $swap->request_confirmed = true;
-        }
+            if ($user->is($lockedSwap->offer->user)) {
+                $lockedSwap->offer_confirmed = true;
+            }
 
-        $swap->save();
+            if ($user->is($lockedSwap->request->user)) {
+                $lockedSwap->request_confirmed = true;
+            }
 
-        // Prüfen ob beide Seiten bestätigt haben
-        if ($swap->offer_confirmed && $swap->request_confirmed && ! $swap->completed_at) {
-            $swap->completed_at = now();
-            $swap->save();
+            $lockedSwap->save();
 
-            $swap->offer->update(['completed' => true]);
-            $swap->request->update(['completed' => true]);
+            if ($lockedSwap->offer_confirmed && $lockedSwap->request_confirmed && ! $lockedSwap->completed_at) {
+                $lockedSwap->completed_at = now();
+                $lockedSwap->save();
 
-            // Punkte vergeben
-            $swap->offer->user->incrementTeamPoints(2);
-            $swap->request->user->incrementTeamPoints(2);
+                $lockedSwap->offer->update(['completed' => true]);
+                $lockedSwap->request->update(['completed' => true]);
 
-            $result['completed'] = true;
-            $result['points_awarded'] = true;
-        }
+                $awardedPoints = $this->baxxService->awardForCompletedSwap($lockedSwap->loadMissing(['offer', 'request']));
 
-        return $result;
+                $result['completed'] = true;
+                $result['points_awarded'] = array_sum($awardedPoints) > 0;
+            }
+
+            return $result;
+        });
     }
 
     /**
@@ -274,15 +282,22 @@ class SwapMatchingService
      */
     public function completeSwap(BookOffer $offer, BookRequest $request): BookSwap
     {
-        $swap = BookSwap::create([
-            'offer_id' => $offer->id,
-            'request_id' => $request->id,
-            'completed_at' => now(),
-        ]);
+        return DB::transaction(function () use ($offer, $request): BookSwap {
+            $lockedOffer = BookOffer::query()->lockForUpdate()->findOrFail($offer->id);
+            $lockedRequest = BookRequest::query()->lockForUpdate()->findOrFail($request->id);
 
-        $offer->update(['completed' => true]);
-        $request->update(['completed' => true]);
+            $swap = BookSwap::create([
+                'offer_id' => $lockedOffer->id,
+                'request_id' => $lockedRequest->id,
+                'completed_at' => now(),
+            ]);
 
-        return $swap;
+            $lockedOffer->update(['completed' => true]);
+            $lockedRequest->update(['completed' => true]);
+
+            $this->baxxService->awardForCompletedSwap($swap->loadMissing(['offer', 'request']));
+
+            return $swap;
+        });
     }
 }

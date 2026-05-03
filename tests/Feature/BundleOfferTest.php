@@ -10,11 +10,14 @@ use App\Models\BookOffer;
 use App\Models\BookRequest;
 use App\Models\BookSwap;
 use App\Models\User;
+use App\Services\Romantausch\BookPhotoService;
 use App\Services\Romantausch\BundleService;
+use App\Services\Romantausch\RomantauschBaxxService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use LogicException;
 use Livewire\Livewire;
 use Tests\Concerns\CreatesUserWithRole;
 use Tests\TestCase;
@@ -193,6 +196,32 @@ class BundleOfferTest extends TestCase
         }
     }
 
+    public function test_store_bundle_rolls_back_and_cleans_up_uploaded_photos_when_baxx_award_fails(): void
+    {
+        $this->putBookData();
+        $this->actingMember();
+
+        Storage::fake('public');
+
+        $this->mock(RomantauschBaxxService::class, function ($mock) {
+            $mock->shouldReceive('awardForNewOffers')
+                ->once()
+                ->andThrow(new LogicException('Boom'));
+        });
+
+        Livewire::test(RomantauschBundleForm::class)
+            ->set('series', BookType::MaddraxDieDunkleZukunftDerErde->value)
+            ->set('book_numbers', '1-3')
+            ->set('condition', 'Z2')
+            ->set('photos', [UploadedFile::fake()->image('bundle.jpg')])
+            ->call('save')
+            ->assertHasErrors('book_numbers')
+            ->assertNoRedirect();
+
+        $this->assertDatabaseCount('book_offers', 0);
+        $this->assertSame([], Storage::disk('public')->allFiles(BookPhotoService::STORAGE_PATH));
+    }
+
     // ====== Bundle Editing Tests (Livewire) ======
 
     public function test_edit_bundle_page_loads_for_owner(): void
@@ -295,6 +324,62 @@ class BundleOfferTest extends TestCase
         $this->assertDatabaseMissing('book_offers', ['id' => $offer1->id]);
         $this->assertDatabaseHas('book_offers', ['id' => $offer2->id]);
         $this->assertDatabaseHas('book_offers', ['id' => $offer3->id]);
+    }
+
+    public function test_update_bundle_rolls_back_and_cleans_up_new_photos_when_baxx_award_fails(): void
+    {
+        $this->putBookData();
+        $user = $this->actingMember();
+
+        Storage::fake('public');
+
+        $bundleId = (string) Str::uuid();
+
+        $offer1 = BookOffer::create([
+            'user_id' => $user->id,
+            'bundle_id' => $bundleId,
+            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
+            'book_number' => 1,
+            'book_title' => 'Maddrax 1',
+            'condition' => 'Z2',
+        ]);
+
+        $offer2 = BookOffer::create([
+            'user_id' => $user->id,
+            'bundle_id' => $bundleId,
+            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
+            'book_number' => 2,
+            'book_title' => 'Maddrax 2',
+            'condition' => 'Z2',
+        ]);
+
+        $this->mock(RomantauschBaxxService::class, function ($mock) {
+            $mock->shouldReceive('awardForNewOffers')
+                ->once()
+                ->andThrow(new LogicException('Boom'));
+        });
+
+        Livewire::test(RomantauschBundleForm::class, ['bundleId' => $bundleId])
+            ->set('book_numbers', '1-3')
+            ->set('condition', 'Z1')
+            ->set('photos', [UploadedFile::fake()->image('new-bundle.jpg')])
+            ->call('save')
+            ->assertHasErrors('book_numbers')
+            ->assertNoRedirect();
+
+        $this->assertDatabaseHas('book_offers', [
+            'id' => $offer1->id,
+            'condition' => 'Z2',
+        ]);
+        $this->assertDatabaseHas('book_offers', [
+            'id' => $offer2->id,
+            'condition' => 'Z2',
+        ]);
+        $this->assertDatabaseMissing('book_offers', [
+            'bundle_id' => $bundleId,
+            'book_number' => 3,
+        ]);
+        $this->assertSame([], Storage::disk('public')->allFiles(BookPhotoService::STORAGE_PATH));
     }
 
     public function test_update_bundle_blocked_when_active_swaps_exist(): void

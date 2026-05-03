@@ -14,10 +14,12 @@ use App\Models\BookRequest;
 use App\Models\BookSwap;
 use App\Models\Team;
 use App\Models\User;
+use App\Services\Romantausch\RomantauschBaxxService;
 use App\Services\Romantausch\SwapMatchingService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
 use Livewire\Livewire;
+use LogicException;
 use Tests\TestCase;
 
 class BookSwapProcessTest extends TestCase
@@ -323,5 +325,115 @@ class BookSwapProcessTest extends TestCase
         $this->assertTrue((bool) $offer->fresh()->completed);
         $this->assertTrue((bool) $request->fresh()->completed);
         $this->assertDatabaseCount('user_points', 2);
+    }
+
+    public function test_confirm_swap_rolls_back_completion_when_baxx_award_fails(): void
+    {
+        $offerUser = $this->createMember();
+        $requestUser = $this->createMember();
+
+        $offer = BookOffer::create([
+            'user_id' => $offerUser->id,
+            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
+            'book_number' => 11,
+            'book_title' => 'Title',
+            'condition' => 'neu',
+            'completed' => false,
+        ]);
+
+        $request = BookRequest::create([
+            'user_id' => $requestUser->id,
+            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
+            'book_number' => 11,
+            'book_title' => 'Title',
+            'condition' => 'neu',
+            'completed' => false,
+        ]);
+
+        $swap = BookSwap::create([
+            'offer_id' => $offer->id,
+            'request_id' => $request->id,
+            'offer_confirmed' => true,
+            'request_confirmed' => false,
+        ]);
+
+        $this->mock(RomantauschBaxxService::class, function ($mock) {
+            $mock->shouldReceive('awardForCompletedSwap')
+                ->once()
+                ->andThrow(new LogicException('Boom'));
+        });
+
+        $service = app(SwapMatchingService::class);
+
+        $this->expectException(LogicException::class);
+        $this->expectExceptionMessage('Boom');
+
+        try {
+            $service->confirmSwap($swap->fresh(['offer.user', 'request.user']), $requestUser);
+        } finally {
+            $this->assertDatabaseHas('book_swaps', [
+                'id' => $swap->id,
+                'offer_confirmed' => true,
+                'request_confirmed' => false,
+                'completed_at' => null,
+            ]);
+            $this->assertDatabaseHas('book_offers', [
+                'id' => $offer->id,
+                'completed' => false,
+            ]);
+            $this->assertDatabaseHas('book_requests', [
+                'id' => $request->id,
+                'completed' => false,
+            ]);
+        }
+    }
+
+    public function test_complete_swap_rolls_back_when_baxx_award_fails(): void
+    {
+        $offerUser = $this->createMember();
+        $requestUser = $this->createMember();
+
+        $offer = BookOffer::create([
+            'user_id' => $offerUser->id,
+            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
+            'book_number' => 12,
+            'book_title' => 'Title',
+            'condition' => 'neu',
+            'completed' => false,
+        ]);
+
+        $request = BookRequest::create([
+            'user_id' => $requestUser->id,
+            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
+            'book_number' => 12,
+            'book_title' => 'Title',
+            'condition' => 'neu',
+            'completed' => false,
+        ]);
+
+        $this->mock(RomantauschBaxxService::class, function ($mock) {
+            $mock->shouldReceive('awardForCompletedSwap')
+                ->once()
+                ->andThrow(new LogicException('Boom'));
+        });
+
+        $service = app(SwapMatchingService::class);
+
+        $this->expectException(LogicException::class);
+        $this->expectExceptionMessage('Boom');
+
+        try {
+            $service->completeSwap($offer, $request);
+        } finally {
+            $this->assertDatabaseCount('book_swaps', 0);
+            $this->assertDatabaseHas('book_offers', [
+                'id' => $offer->id,
+                'completed' => false,
+            ]);
+            $this->assertDatabaseHas('book_requests', [
+                'id' => $request->id,
+                'completed' => false,
+            ]);
+        }
     }
 }

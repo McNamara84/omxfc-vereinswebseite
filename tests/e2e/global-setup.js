@@ -57,6 +57,8 @@ export default async function globalSetup() {
 
     await runArtisan(['migrate']);
 
+    await runArtisan(['db:seed', '--class=Database\\Seeders\\RewardSeeder']);
+    await runArtisan(['db:seed', '--class=Database\\Seeders\\BaxxEarningRuleSeeder']);
     await runArtisan(['db:seed', '--class=Database\\Seeders\\TodoCategorySeeder']);
     await runArtisan(['db:seed', '--class=Database\\Seeders\\TodoPlaywrightSeeder']);
     await runArtisan(['db:seed', '--class=Database\\Seeders\\DashboardSampleSeeder']);

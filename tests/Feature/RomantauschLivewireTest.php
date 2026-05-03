@@ -13,11 +13,14 @@ use App\Models\BookRequest;
 use App\Models\BookSwap;
 use App\Models\User;
 use App\Services\Romantausch\BookPhotoService;
+use App\Services\Romantausch\RomantauschBaxxService;
 use App\Services\RomantauschInfoProvider;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use LogicException;
+use RuntimeException;
 use Livewire\Livewire;
 use Tests\Concerns\CreatesTestData;
 use Tests\Concerns\CreatesUserWithRole;
@@ -608,6 +611,32 @@ class RomantauschLivewireTest extends TestCase
         Storage::disk('public')->assertExists($offer->photos[0]);
     }
 
+    public function test_store_offer_rolls_back_and_cleans_up_uploaded_photos_when_transaction_fails(): void
+    {
+        $this->seedBooksForRomantausch();
+        $this->actingMember();
+
+        Storage::fake('public');
+
+        $this->mock(RomantauschBaxxService::class, function ($mock) {
+            $mock->shouldReceive('awardForNewOffers')
+                ->once()
+                ->andThrow(new RuntimeException('Boom'));
+        });
+
+        Livewire::test(RomantauschOfferForm::class)
+            ->set('series', BookType::MaddraxDieDunkleZukunftDerErde->value)
+            ->set('book_number', 1)
+            ->set('condition', 'neu')
+            ->set('photos', [UploadedFile::fake()->image('cover.jpg')])
+            ->call('save')
+            ->assertHasErrors('book_number')
+            ->assertNoRedirect();
+
+        $this->assertDatabaseCount('book_offers', 0);
+        $this->assertSame([], Storage::disk('public')->allFiles(BookPhotoService::STORAGE_PATH));
+    }
+
     public function test_store_offer_rejects_more_than_three_photos(): void
     {
         $this->seedBooksForRomantausch();
@@ -864,6 +893,50 @@ class RomantauschLivewireTest extends TestCase
             ->set('condition', '')
             ->call('save')
             ->assertHasErrors(['series', 'book_number', 'condition']);
+
+        $this->assertDatabaseCount('book_requests', 0);
+    }
+
+    public function test_store_request_rolls_back_when_baxx_award_fails(): void
+    {
+        $this->seedBooksForRomantausch();
+        $this->actingMember();
+
+        $this->mock(RomantauschBaxxService::class, function ($mock) {
+            $mock->shouldReceive('awardForNewRequests')
+                ->once()
+                ->andThrow(new LogicException('Boom'));
+        });
+
+        Livewire::test(RomantauschRequestForm::class)
+            ->set('series', BookType::MaddraxDieDunkleZukunftDerErde->value)
+            ->set('book_number', 1)
+            ->set('condition', 'neu')
+            ->call('save')
+            ->assertHasErrors('book_number')
+            ->assertNoRedirect();
+
+        $this->assertDatabaseCount('book_requests', 0);
+    }
+
+    public function test_store_request_returns_ui_error_when_transaction_fails(): void
+    {
+        $this->seedBooksForRomantausch();
+        $this->actingMember();
+
+        $this->mock(RomantauschBaxxService::class, function ($mock) {
+            $mock->shouldReceive('awardForNewRequests')
+                ->once()
+                ->andThrow(new RuntimeException('Boom'));
+        });
+
+        Livewire::test(RomantauschRequestForm::class)
+            ->set('series', BookType::MaddraxDieDunkleZukunftDerErde->value)
+            ->set('book_number', 1)
+            ->set('condition', 'neu')
+            ->call('save')
+            ->assertHasErrors('book_number')
+            ->assertNoRedirect();
 
         $this->assertDatabaseCount('book_requests', 0);
     }

@@ -8,18 +8,20 @@ use App\Http\Requests\StoreBundleOfferRequest;
 use App\Http\Requests\UpdateBookOfferRequest;
 use App\Http\Requests\UpdateBundleOfferRequest;
 use App\Models\Activity;
-use App\Models\BaxxEarningRule;
 use App\Models\Book;
 use App\Models\BookOffer;
 use App\Models\BookRequest;
 use App\Models\BookSwap;
 use App\Services\Romantausch\BookPhotoService;
 use App\Services\Romantausch\BundleService;
+use App\Services\Romantausch\RomantauschBaxxService;
 use App\Services\Romantausch\SwapMatchingService;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
+use LogicException;
 
 /**
  * Controller für die Romantauschbörse.
@@ -33,6 +35,7 @@ class RomantauschController extends Controller
         private readonly BookPhotoService $photoService,
         private readonly SwapMatchingService $matchingService,
         private readonly BundleService $bundleService,
+        private readonly RomantauschBaxxService $baxxService,
     ) {}
 
     // ========== Einzelangebote ==========
@@ -58,18 +61,33 @@ class RomantauschController extends Controller
             return redirect()->back()->withInput()->with('error', 'Foto-Upload fehlgeschlagen. Bitte versuche es erneut.');
         }
 
-        $offer = BookOffer::create([
-            'user_id' => Auth::id(),
-            'series' => $validated['series'],
-            'book_number' => $validated['book_number'],
-            'book_title' => $book->title,
-            'condition' => $validated['condition'],
-            'photos' => $photoPaths,
-        ]);
+        try {
+            $offer = DB::transaction(function () use ($validated, $book, $photoPaths) {
+                $offer = BookOffer::create([
+                    'user_id' => Auth::id(),
+                    'series' => $validated['series'],
+                    'book_number' => $validated['book_number'],
+                    'book_title' => $book->title,
+                    'condition' => $validated['condition'],
+                    'photos' => $photoPaths,
+                ]);
 
-        $this->awardPointsIfMilestone();
+                $this->baxxService->awardForNewOffers(Auth::id(), 1);
+                $this->createOfferActivity($offer);
+
+                return $offer;
+            });
+        } catch (\Throwable $exception) {
+            $this->photoService->deletePhotos($photoPaths);
+
+            if (! $exception instanceof LogicException) {
+                report($exception);
+            }
+
+            return redirect()->back()->withInput()->with('error', 'Angebot konnte aktuell nicht erstellt werden. Bitte versuche es später erneut.');
+        }
+
         $this->matchingService->matchSwap($offer, 'offer');
-        $this->createOfferActivity($offer);
 
         return redirect()->route('romantausch.index')->with('success', 'Angebot erstellt.');
     }
@@ -144,15 +162,29 @@ class RomantauschController extends Controller
             return redirect()->back()->with('error', 'Ausgewählter Roman nicht gefunden.');
         }
 
-        $bookRequest = BookRequest::create([
-            'user_id' => Auth::id(),
-            'series' => $validated['series'],
-            'book_number' => $validated['book_number'],
-            'book_title' => $book->title,
-            'condition' => $validated['condition'],
-        ]);
+        try {
+            $bookRequest = DB::transaction(function () use ($validated, $book) {
+                $bookRequest = BookRequest::create([
+                    'user_id' => Auth::id(),
+                    'series' => $validated['series'],
+                    'book_number' => $validated['book_number'],
+                    'book_title' => $book->title,
+                    'condition' => $validated['condition'],
+                ]);
 
-        $this->createRequestActivity($bookRequest);
+                $this->baxxService->awardForNewRequests(Auth::id());
+                $this->createRequestActivity($bookRequest);
+
+                return $bookRequest;
+            });
+        } catch (\Throwable $exception) {
+            if (! $exception instanceof LogicException) {
+                report($exception);
+            }
+
+            return redirect()->back()->withInput()->with('error', 'Gesuch konnte aktuell nicht erstellt werden. Bitte versuche es später erneut.');
+        }
+
         $this->matchingService->matchSwap($bookRequest, 'request');
 
         return redirect()->route('romantausch.index')->with('success', 'Gesuch erstellt.');
@@ -324,15 +356,21 @@ class RomantauschController extends Controller
             return redirect()->back()->withInput()->with('error', 'Foto-Upload fehlgeschlagen.');
         }
 
-        $this->bundleService->updateBundle(
-            $bundleId,
-            $newBookNumbers,
-            $validated['condition'],
-            $validated['condition_max'] ?? null,
-            $photoResult['photos'],
-            $photoResult['deleted'],
-            Auth::id()
-        );
+        try {
+            $this->bundleService->updateBundle(
+                $bundleId,
+                $newBookNumbers,
+                $validated['condition'],
+                $validated['condition_max'] ?? null,
+                $photoResult['photos'],
+                $photoResult['deleted'],
+                Auth::id()
+            );
+        } catch (\RuntimeException $e) {
+            $this->photoService->deletePhotos($photoResult['uploaded']);
+
+            return redirect()->back()->withInput()->with('error', $e->getMessage());
+        }
 
         return redirect()->route('romantausch.index')->with('success', 'Stapel-Angebot aktualisiert.');
     }
@@ -380,20 +418,6 @@ class RomantauschController extends Controller
     }
 
     // ========== Hilfsmethoden ==========
-
-    /**
-     * Vergibt Punkte wenn ein Meilenstein erreicht wird (alle 10 Angebote).
-     */
-    private function awardPointsIfMilestone(): void
-    {
-        $offerCount = BookOffer::where('user_id', Auth::id())->count();
-        if ($offerCount % 10 === 0) {
-            $points = BaxxEarningRule::getPointsFor('romantausch_offer');
-            if ($points > 0) {
-                Auth::user()->incrementTeamPoints($points);
-            }
-        }
-    }
 
     /**
      * Erstellt einen Activity-Log-Eintrag für ein neues Angebot.

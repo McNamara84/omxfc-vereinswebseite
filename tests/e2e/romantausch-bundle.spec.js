@@ -61,6 +61,13 @@ const loginAsMember = async (page, email = 'playwright-member@example.com', pass
     ]);
 };
 
+const gotoBundleCreateForm = async (page) => {
+    await page.goto('/romantauschboerse/stapel-angebot-erstellen', { waitUntil: 'domcontentloaded' });
+    await expect(page).toHaveURL(/stapel-angebot-erstellen$/, { timeout: 15000 });
+    await expect(page.locator('#bundle-offer-form')).toBeVisible({ timeout: 15000 });
+    await expect(page.locator('select[name="series"]')).toBeVisible({ timeout: 15000 });
+};
+
 // Die Enum-Werte aus BookType.php
 const SERIES_MADDRAX = 'Maddrax - Die dunkle Zukunft der Erde';
 const CONDITION_Z1 = 'Z1';
@@ -71,7 +78,7 @@ test.describe('Romantauschbörse - Stapel-Angebote', () => {
     test.describe('Formular zum Stapel-Angebot erstellen', () => {
         test('Stapel-Angebot Formular ist erreichbar', async ({ page }) => {
             await loginAsMember(page);
-            await page.goto('/romantauschboerse/stapel-angebot-erstellen');
+            await gotoBundleCreateForm(page);
 
             await expect(page).toHaveURL(/stapel-angebot-erstellen$/);
             await expect(page.locator('[data-testid="page-title"]')).toContainText(/Stapel-Angebot erstellen/i);
@@ -79,7 +86,7 @@ test.describe('Romantauschbörse - Stapel-Angebote', () => {
 
         test('Formular zeigt Serien-Dropdown und Nummern-Eingabe', async ({ page }) => {
             await loginAsMember(page);
-            await page.goto('/romantauschboerse/stapel-angebot-erstellen');
+            await gotoBundleCreateForm(page);
 
             // Serien-Dropdown vorhanden
             const seriesSelect = page.locator('select[name="series"]');
@@ -99,7 +106,7 @@ test.describe('Romantauschbörse - Stapel-Angebote', () => {
 
         test('Formular validiert Mindestanzahl von 2 Büchern', async ({ page }) => {
             await loginAsMember(page);
-            await page.goto('/romantauschboerse/stapel-angebot-erstellen');
+            await gotoBundleCreateForm(page);
 
             // Formular ausfüllen mit nur einem Buch
             await page.selectOption('select[name="series"]', SERIES_MADDRAX);
@@ -120,7 +127,7 @@ test.describe('Romantauschbörse - Stapel-Angebote', () => {
 
         test('Erfolgreiches Erstellen eines Stapel-Angebots', async ({ page }) => {
             await loginAsMember(page);
-            await page.goto('/romantauschboerse/stapel-angebot-erstellen');
+            await gotoBundleCreateForm(page);
 
             // Formular ausfüllen
             await page.selectOption('select[name="series"]', SERIES_MADDRAX);
@@ -146,7 +153,7 @@ test.describe('Romantauschbörse - Stapel-Angebote', () => {
             await loginAsMember(page);
             
             // Erstelle zuerst ein Stapel-Angebot
-            await page.goto('/romantauschboerse/stapel-angebot-erstellen');
+            await gotoBundleCreateForm(page);
             await page.selectOption('select[name="series"]', SERIES_MADDRAX);
             await page.fill('input[name="book_numbers"]', '10-15');
             await page.selectOption('select[name="condition"]', CONDITION_Z1);
@@ -163,7 +170,7 @@ test.describe('Romantauschbörse - Stapel-Angebote', () => {
             await loginAsMember(page);
             
             // Erstelle ein Stapel-Angebot
-            await page.goto('/romantauschboerse/stapel-angebot-erstellen');
+            await gotoBundleCreateForm(page);
             await page.selectOption('select[name="series"]', SERIES_MADDRAX);
             await page.fill('input[name="book_numbers"]', '20-25');
             await page.selectOption('select[name="condition"]', CONDITION_Z2);
@@ -182,7 +189,7 @@ test.describe('Romantauschbörse - Stapel-Angebote', () => {
             await loginAsMember(page);
             
             // Erstelle ein Stapel-Angebot
-            await page.goto('/romantauschboerse/stapel-angebot-erstellen');
+            await gotoBundleCreateForm(page);
             await page.selectOption('select[name="series"]', SERIES_MADDRAX);
             await page.fill('input[name="book_numbers"]', '30-35');
             await page.selectOption('select[name="condition"]', CONDITION_Z1);
@@ -208,7 +215,7 @@ test.describe('Romantauschbörse - Stapel-Angebote', () => {
             // Browser-Kontext mit frischer DB pro Workflow-Run. Bei paralleler Ausführung
             // oder persistenten Testdaten könnten Kollisionen auftreten. In diesem Fall
             // sollten eindeutige Nummern pro Test verwendet werden (z.B. 90-92, 93-95, 96-98).
-            await page.goto('/romantauschboerse/stapel-angebot-erstellen');
+            await gotoBundleCreateForm(page);
             await page.selectOption('select[name="series"]', SERIES_MADDRAX);
             await page.fill('input[name="book_numbers"]', '90-92');
             await page.selectOption('select[name="condition"]', CONDITION_Z2);
@@ -236,7 +243,7 @@ test.describe('Romantauschbörse - Stapel-Angebote', () => {
             await loginAsMember(page);
             
             // Erstelle ein Stapel-Angebot
-            await page.goto('/romantauschboerse/stapel-angebot-erstellen');
+            await gotoBundleCreateForm(page);
             await page.selectOption('select[name="series"]', SERIES_MADDRAX);
             await page.fill('input[name="book_numbers"]', '50-52');
             await page.selectOption('select[name="condition"]', CONDITION_Z3);
@@ -266,7 +273,7 @@ test.describe('Romantauschbörse - Stapel-Angebote', () => {
     test.describe('Accessibility', () => {
         test('Stapel-Angebot Formular erfüllt WCAG AA Richtlinien', async ({ page }) => {
             await loginAsMember(page);
-            await page.goto('/romantauschboerse/stapel-angebot-erstellen');
+            await gotoBundleCreateForm(page);
 
             const accessibilityScanResults = await new AxeBuilder({ page })
                 .withTags(['wcag2a', 'wcag2aa'])
@@ -295,7 +302,7 @@ test.describe('Romantauschbörse - Stapel-Angebote', () => {
             await loginAsMember(page);
             
             // Erstelle erst ein Stapel-Angebot
-            await page.goto('/romantauschboerse/stapel-angebot-erstellen');
+            await gotoBundleCreateForm(page);
             await page.selectOption('select[name="series"]', SERIES_MADDRAX);
             await page.fill('input[name="book_numbers"]', '60-65');
             await page.selectOption('select[name="condition"]', CONDITION_Z1);
@@ -336,7 +343,7 @@ test.describe('Romantauschbörse - Stapel-Angebote', () => {
             await loginAsMember(page);
             
             // Erstelle ein Stapel-Angebot damit die Übersicht Stapel enthält
-            await page.goto('/romantauschboerse/stapel-angebot-erstellen');
+            await gotoBundleCreateForm(page);
             await page.selectOption('select[name="series"]', SERIES_MADDRAX);
             await page.fill('input[name="book_numbers"]', '70-75');
             await page.selectOption('select[name="condition"]', CONDITION_Z2);
@@ -371,7 +378,7 @@ test.describe('Romantauschbörse - Stapel-Angebote', () => {
     test.describe('Formular-Interaktionen', () => {
         test('Zustandsbereich zeigt beide Dropdowns', async ({ page }) => {
             await loginAsMember(page);
-            await page.goto('/romantauschboerse/stapel-angebot-erstellen');
+            await gotoBundleCreateForm(page);
 
             // maryUI rendert Labels als <legend> innerhalb von <fieldset>,
             // daher prüfen wir den Labeltext über die fieldset-legend Klasse
@@ -383,7 +390,7 @@ test.describe('Romantauschbörse - Stapel-Angebote', () => {
 
         test('Abbrechen-Button führt zurück zur Übersicht', async ({ page }) => {
             await loginAsMember(page);
-            await page.goto('/romantauschboerse/stapel-angebot-erstellen');
+            await gotoBundleCreateForm(page);
 
             const cancelLink = page.locator('a:has-text("Abbrechen")');
             await expect(cancelLink).toBeVisible();
@@ -395,7 +402,7 @@ test.describe('Romantauschbörse - Stapel-Angebote', () => {
 
         test('Foto-Upload-Feld ist vorhanden', async ({ page }) => {
             await loginAsMember(page);
-            await page.goto('/romantauschboerse/stapel-angebot-erstellen');
+            await gotoBundleCreateForm(page);
 
             const photoInput = page.locator('input[type="file"]#photos');
             await expect(photoInput).toBeVisible();

@@ -16,7 +16,7 @@ test.describe('Mitgliederkarte', () => {
 
         await page.goto('/mitglieder/karte');
 
-        await expect(page.locator('[data-testid="page-title"]')).toContainText('Mitgliederkarte');
+        await expect(page.getByRole('heading', { level: 1, name: 'Mitgliederkarte' })).toBeVisible();
         const mapRegion = page.locator('[data-member-map]');
         await expect(mapRegion).toHaveAttribute('role', 'region');
         await expect(mapRegion).toHaveAttribute('aria-label', 'Mitgliederkarte');
@@ -24,13 +24,14 @@ test.describe('Mitgliederkarte', () => {
 
     });
 
-    test('member without points sees locked message', async ({ page }) => {
+    test('member without enough baxx sees preview overlay and earn-cta', async ({ page }) => {
         await login(page, 'playwright-member@example.com');
 
         await page.goto('/mitglieder/karte');
 
-        await expect(page.locator('[data-testid="page-title"]')).toContainText('Mitgliederkarte');
-        await expect(page.getByText('Karte noch nicht verfügbar')).toBeVisible();
+        await expect(page.getByRole('heading', { level: 1, name: 'Mitgliederkarte' })).toBeVisible();
+        await expect(page.getByText('Mitgliederkarte freischalten')).toBeVisible();
+        await expect(page.locator('[data-member-map]')).toBeVisible();
         await expect(page.getByRole('link', { name: 'Zu Baxx verdienen' })).toBeVisible();
     });
 });

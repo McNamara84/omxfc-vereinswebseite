@@ -167,6 +167,7 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
 
     Route::prefix('mitglieder/karte')->controller(MitgliederKarteController::class)->group(function () {
         Route::get('/', 'index')->name('mitglieder.karte');
+        Route::post('/freischalten', 'purchase')->name('mitglieder.karte.purchase');
         Route::get('/gesperrt', 'locked')->name('mitglieder.karte.locked');
     });
 
