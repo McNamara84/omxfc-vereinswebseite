@@ -113,9 +113,11 @@ class FanfictionController extends Controller
 
         /** @var User $user */
         $user = Auth::user();
-        $autoRefundedPurchases = $this->fanfictionAccessService->refundOwnPurchases($user);
         $walletState = $this->rewardService->getWalletState($user);
         $isOwnFanfiction = $this->fanfictionAccessService->isOwnContribution($user, $fanfiction);
+        $autoRefundedPurchases = $isOwnFanfiction
+            ? $this->fanfictionAccessService->refundOwnPurchases($user)
+            : 0;
         $hasUnlocked = $this->fanfictionAccessService->hasUnlocked($user, $fanfiction);
 
         return view('fanfiction.show', [
@@ -155,9 +157,8 @@ class FanfictionController extends Controller
 
         /** @var User $user */
         $user = Auth::user();
-        $autoRefundedPurchases = $this->fanfictionAccessService->refundOwnPurchases($user);
-
         if ($this->fanfictionAccessService->isOwnContribution($user, $fanfiction)) {
+            $autoRefundedPurchases = $this->fanfictionAccessService->refundOwnPurchases($user);
             $message = $autoRefundedPurchases > 0
                 ? 'Deine eigene Fanfiction ist bereits freigeschaltet. Frühere Eigenkäufe wurden automatisch erstattet.'
                 : 'Deine eigene Fanfiction ist bereits freigeschaltet.';

@@ -47,7 +47,9 @@ class FanfictionCommentController extends Controller
             abort(404);
         }
 
-        $this->fanfictionAccessService->refundOwnPurchases($user);
+        if ($this->fanfictionAccessService->isOwnContribution($user, $fanfiction)) {
+            $this->fanfictionAccessService->refundOwnPurchases($user);
+        }
 
         // Prüfe ob die Fanfiction freigeschaltet wurde (Vorstand/Admin dürfen immer kommentieren)
         if ($fanfiction->reward
