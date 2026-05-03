@@ -11,6 +11,8 @@ use App\Models\Team;
 use App\Models\User;
 use App\Services\Romantausch\RomantauschBaxxService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Log;
+use LogicException;
 use Tests\TestCase;
 
 class RomantauschBaxxServiceTest extends TestCase
@@ -191,6 +193,41 @@ class RomantauschBaxxServiceTest extends TestCase
 
         $this->assertSame(3, $awardAfterActivation);
         $this->assertDatabaseCount('user_points', 1);
+    }
+
+    public function test_missing_members_team_logs_contextual_failure_details(): void
+    {
+        $membersTeam = Team::membersTeam();
+        $user = $this->createMemberWithOtherCurrentTeam($membersTeam, Team::factory()->create());
+
+        $this->configureRule('romantausch_offer', [
+            'points' => 2,
+            'every_count' => 1,
+            'is_active' => true,
+        ]);
+
+        $this->createOffer($user, 41);
+        $membersTeam?->delete();
+
+        Log::shouldReceive('critical')
+            ->once()
+            ->with(
+                'Romantausch-Baxx konnten nicht vergeben werden, weil das Mitglieder-Team fehlt.',
+                [
+                    'user_id' => $user->id,
+                    'action_key' => 'romantausch_offer',
+                    'members_team_id' => null,
+                ]
+            );
+
+        $this->expectException(LogicException::class);
+        $this->expectExceptionMessage(sprintf(
+            'Das Mitglieder-Team fehlt. Romantausch-Baxx können nicht vergeben werden (user_id: %d, action_key: %s).',
+            $user->id,
+            'romantausch_offer',
+        ));
+
+        $this->service->awardForNewOffers($user->id, 1);
     }
 
     public function test_completed_swap_rewards_both_participants(): void

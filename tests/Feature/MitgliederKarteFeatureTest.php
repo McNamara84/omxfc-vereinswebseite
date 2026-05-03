@@ -23,7 +23,11 @@ class MitgliederKarteFeatureTest extends TestCase
     private function purchaseMemberMapReward(User $user): void
     {
         $reward = Reward::query()->where('slug', 'mitgliederkarte')->firstOrFail();
-        $membersTeam = Team::membersTeam();
+        $membersTeam = Team::membersTeam() ?? Team::factory()->create(['name' => 'Mitglieder']);
+
+        if (! $membersTeam->users()->whereKey($user->id)->exists()) {
+            $membersTeam->users()->attach($user, ['role' => Role::Mitglied->value]);
+        }
 
         UserPoint::query()->create([
             'user_id' => $user->id,
@@ -44,6 +48,24 @@ class MitgliederKarteFeatureTest extends TestCase
         $response->assertViewIs('mitglieder.karte');
         $response->assertSee('Mitgliederkarte freischalten');
         $response->assertSee('data-member-map', false);
+    }
+
+    public function test_purchase_member_map_reward_recreates_missing_members_team(): void
+    {
+        $user = User::factory()->create();
+
+        Team::membersTeam()?->delete();
+
+        $this->purchaseMemberMapReward($user);
+
+        $membersTeam = Team::membersTeam();
+
+        $this->assertInstanceOf(Team::class, $membersTeam);
+        $this->assertDatabaseHas('user_points', [
+            'user_id' => $user->id,
+            'team_id' => $membersTeam->id,
+        ]);
+        $this->assertTrue(app(RewardService::class)->hasUnlockedReward($user->fresh(), 'mitgliederkarte'));
     }
 
     public function test_coordinates_are_cached(): void

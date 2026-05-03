@@ -108,7 +108,7 @@ class RomantauschBaxxService
                 return 0;
             }
 
-            $walletTeam = $this->resolveMembersWalletTeam();
+            $walletTeam = $this->resolveMembersWalletTeam($userId, $actionKey);
             $awardedPoints = $thresholdCrossings * $rule->points;
 
             UserPoint::query()->create([
@@ -157,7 +157,7 @@ class RomantauschBaxxService
         ]);
     }
 
-    private function resolveMembersWalletTeam(): Team
+    private function resolveMembersWalletTeam(int $userId, string $actionKey): Team
     {
         $walletTeam = Team::membersTeam();
 
@@ -165,8 +165,20 @@ class RomantauschBaxxService
             return $walletTeam;
         }
 
-        Log::critical('Romantausch-Baxx konnten nicht vergeben werden, weil das Mitglieder-Team fehlt.');
+        $context = [
+            'user_id' => $userId,
+            'action_key' => $actionKey,
+            'members_team_id' => $walletTeam?->id,
+        ];
 
-        throw new LogicException('Das Mitglieder-Team fehlt. Romantausch-Baxx können nicht vergeben werden.');
+        Log::critical('Romantausch-Baxx konnten nicht vergeben werden, weil das Mitglieder-Team fehlt.', $context);
+
+        throw new LogicException(
+            sprintf(
+                'Das Mitglieder-Team fehlt. Romantausch-Baxx können nicht vergeben werden (user_id: %d, action_key: %s).',
+                $userId,
+                $actionKey,
+            )
+        );
     }
 }
