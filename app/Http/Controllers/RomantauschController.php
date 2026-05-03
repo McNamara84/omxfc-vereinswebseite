@@ -16,10 +16,12 @@ use App\Services\Romantausch\BookPhotoService;
 use App\Services\Romantausch\BundleService;
 use App\Services\Romantausch\RomantauschBaxxService;
 use App\Services\Romantausch\SwapMatchingService;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
+use LogicException;
 
 /**
  * Controller für die Romantauschbörse.
@@ -59,18 +61,29 @@ class RomantauschController extends Controller
             return redirect()->back()->withInput()->with('error', 'Foto-Upload fehlgeschlagen. Bitte versuche es erneut.');
         }
 
-        $offer = BookOffer::create([
-            'user_id' => Auth::id(),
-            'series' => $validated['series'],
-            'book_number' => $validated['book_number'],
-            'book_title' => $book->title,
-            'condition' => $validated['condition'],
-            'photos' => $photoPaths,
-        ]);
+        try {
+            $offer = DB::transaction(function () use ($validated, $book, $photoPaths) {
+                $offer = BookOffer::create([
+                    'user_id' => Auth::id(),
+                    'series' => $validated['series'],
+                    'book_number' => $validated['book_number'],
+                    'book_title' => $book->title,
+                    'condition' => $validated['condition'],
+                    'photos' => $photoPaths,
+                ]);
 
-        $this->baxxService->awardForNewOffers(Auth::id(), 1);
+                $this->baxxService->awardForNewOffers(Auth::id(), 1);
+                $this->createOfferActivity($offer);
+
+                return $offer;
+            });
+        } catch (LogicException) {
+            $this->photoService->deletePhotos($photoPaths);
+
+            return redirect()->back()->withInput()->with('error', 'Angebot konnte aktuell nicht erstellt werden. Bitte versuche es später erneut.');
+        }
+
         $this->matchingService->matchSwap($offer, 'offer');
-        $this->createOfferActivity($offer);
 
         return redirect()->route('romantausch.index')->with('success', 'Angebot erstellt.');
     }
@@ -145,16 +158,25 @@ class RomantauschController extends Controller
             return redirect()->back()->with('error', 'Ausgewählter Roman nicht gefunden.');
         }
 
-        $bookRequest = BookRequest::create([
-            'user_id' => Auth::id(),
-            'series' => $validated['series'],
-            'book_number' => $validated['book_number'],
-            'book_title' => $book->title,
-            'condition' => $validated['condition'],
-        ]);
+        try {
+            $bookRequest = DB::transaction(function () use ($validated, $book) {
+                $bookRequest = BookRequest::create([
+                    'user_id' => Auth::id(),
+                    'series' => $validated['series'],
+                    'book_number' => $validated['book_number'],
+                    'book_title' => $book->title,
+                    'condition' => $validated['condition'],
+                ]);
 
-        $this->baxxService->awardForNewRequests(Auth::id());
-        $this->createRequestActivity($bookRequest);
+                $this->baxxService->awardForNewRequests(Auth::id());
+                $this->createRequestActivity($bookRequest);
+
+                return $bookRequest;
+            });
+        } catch (LogicException) {
+            return redirect()->back()->withInput()->with('error', 'Gesuch konnte aktuell nicht erstellt werden. Bitte versuche es später erneut.');
+        }
+
         $this->matchingService->matchSwap($bookRequest, 'request');
 
         return redirect()->route('romantausch.index')->with('success', 'Gesuch erstellt.');
@@ -326,15 +348,21 @@ class RomantauschController extends Controller
             return redirect()->back()->withInput()->with('error', 'Foto-Upload fehlgeschlagen.');
         }
 
-        $this->bundleService->updateBundle(
-            $bundleId,
-            $newBookNumbers,
-            $validated['condition'],
-            $validated['condition_max'] ?? null,
-            $photoResult['photos'],
-            $photoResult['deleted'],
-            Auth::id()
-        );
+        try {
+            $this->bundleService->updateBundle(
+                $bundleId,
+                $newBookNumbers,
+                $validated['condition'],
+                $validated['condition_max'] ?? null,
+                $photoResult['photos'],
+                $photoResult['deleted'],
+                Auth::id()
+            );
+        } catch (\RuntimeException $e) {
+            $this->photoService->deletePhotos($photoResult['uploaded']);
+
+            return redirect()->back()->withInput()->with('error', $e->getMessage());
+        }
 
         return redirect()->route('romantausch.index')->with('success', 'Stapel-Angebot aktualisiert.');
     }

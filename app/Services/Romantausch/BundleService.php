@@ -72,6 +72,7 @@ class BundleService
     ): array {
         $existingBooks = $this->getExistingBooks($series, $bookNumbers);
         $bundleId = Str::uuid()->toString();
+        $offers = [];
 
         try {
             $offers = DB::transaction(function () use ($existingBooks, $series, $condition, $conditionMax, $bundleId, $photoPaths, $userId) {
@@ -90,6 +91,8 @@ class BundleService
                     ]);
                 }
 
+                $this->baxxService->awardForNewOffers($userId, count($offers));
+
                 return $offers;
             });
         } catch (\Throwable $e) {
@@ -103,8 +106,6 @@ class BundleService
 
             throw new \RuntimeException('Beim Erstellen des Stapel-Angebots ist ein Fehler aufgetreten.', 0, $e);
         }
-
-        $this->baxxService->awardForNewOffers($userId, count($offers));
 
         // Matching für alle Angebote durchführen
         foreach ($offers as $offer) {
@@ -158,43 +159,59 @@ class BundleService
         $toUpdate = array_intersect($currentNumbers, $newBookNumbers);
 
         $stats = ['added' => 0, 'removed' => 0, 'updated' => 0];
+        try {
+            DB::transaction(function () use ($existingOffers, $existingBooks, $toRemove, $toAdd, $toUpdate, $condition, $conditionMax, $bundleId, $allPhotos, $userId, &$stats) {
+                $newOffers = [];
 
-        DB::transaction(function () use ($existingOffers, $existingBooks, $toRemove, $toAdd, $toUpdate, $condition, $conditionMax, $bundleId, $allPhotos, $userId, &$stats) {
-            // Angebote entfernen
-            foreach ($existingOffers as $offer) {
-                if (in_array($offer->book_number, $toRemove)) {
-                    $this->deleteOfferWithSwap($offer);
-                    $stats['removed']++;
-                } elseif (in_array($offer->book_number, $toUpdate)) {
-                    $offer->update([
-                        'condition' => $condition,
-                        'condition_max' => $conditionMax,
-                        'photos' => $allPhotos,
-                    ]);
-                    $stats['updated']++;
+                // Angebote entfernen
+                foreach ($existingOffers as $offer) {
+                    if (in_array($offer->book_number, $toRemove)) {
+                        $this->deleteOfferWithSwap($offer);
+                        $stats['removed']++;
+                    } elseif (in_array($offer->book_number, $toUpdate)) {
+                        $offer->update([
+                            'condition' => $condition,
+                            'condition_max' => $conditionMax,
+                            'photos' => $allPhotos,
+                        ]);
+                        $stats['updated']++;
+                    }
                 }
-            }
 
-            // Neue Angebote hinzufügen
-            foreach ($toAdd as $bookNumber) {
-                $book = $existingBooks->get($bookNumber);
-                if ($book) {
-                    $newOffer = BookOffer::create([
-                        'user_id' => $userId,
-                        'bundle_id' => $bundleId,
-                        'series' => $book->type->value,
-                        'book_number' => $book->roman_number,
-                        'book_title' => $book->title,
-                        'condition' => $condition,
-                        'condition_max' => $conditionMax,
-                        'photos' => $allPhotos,
-                    ]);
-
-                    $this->matchingService->matchSwap($newOffer, 'offer');
-                    $stats['added']++;
+                foreach ($toAdd as $bookNumber) {
+                    $book = $existingBooks->get($bookNumber);
+                    if ($book) {
+                        $newOffers[] = BookOffer::create([
+                            'user_id' => $userId,
+                            'bundle_id' => $bundleId,
+                            'series' => $book->type->value,
+                            'book_number' => $book->roman_number,
+                            'book_title' => $book->title,
+                            'condition' => $condition,
+                            'condition_max' => $conditionMax,
+                            'photos' => $allPhotos,
+                        ]);
+                        $stats['added']++;
+                    }
                 }
-            }
-        });
+
+                if ($stats['added'] > 0) {
+                    $this->baxxService->awardForNewOffers($userId, $stats['added']);
+
+                    foreach ($newOffers as $newOffer) {
+                        $this->matchingService->matchSwap($newOffer, 'offer');
+                    }
+                }
+            });
+        } catch (\Throwable $e) {
+            Log::error('Bundle-Aktualisierung fehlgeschlagen', [
+                'bundle_id' => $bundleId,
+                'user_id' => $userId,
+                'error' => $e->getMessage(),
+            ]);
+
+            throw new \RuntimeException('Beim Aktualisieren des Stapel-Angebots ist ein Fehler aufgetreten.', 0, $e);
+        }
 
         // Fotos erst nach erfolgreicher Transaktion löschen
         DB::afterCommit(function () use ($photosToDelete, $allPhotos) {
@@ -204,10 +221,6 @@ class BundleService
                 }
             }
         });
-
-        if ($stats['added'] > 0) {
-            $this->baxxService->awardForNewOffers($userId, $stats['added']);
-        }
 
         return $stats;
     }

@@ -10,7 +10,9 @@ use App\Services\Romantausch\RomantauschBaxxService;
 use App\Services\Romantausch\SwapMatchingService;
 use App\Support\ConditionOptions;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use LogicException;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
@@ -132,21 +134,32 @@ class RomantauschRequestForm extends Component
 
             $matchingService->matchSwap($bookRequest, 'request');
         } else {
-            $bookRequest = BookRequest::create([
-                'user_id' => Auth::id(),
-                'series' => $this->series,
-                'book_number' => $this->book_number,
-                'book_title' => $book->title,
-                'condition' => $this->condition,
-            ]);
+            try {
+                $bookRequest = DB::transaction(function () use ($book) {
+                    $bookRequest = BookRequest::create([
+                        'user_id' => Auth::id(),
+                        'series' => $this->series,
+                        'book_number' => $this->book_number,
+                        'book_title' => $book->title,
+                        'condition' => $this->condition,
+                    ]);
 
-            Activity::create([
-                'user_id' => Auth::id(),
-                'subject_type' => BookRequest::class,
-                'subject_id' => $bookRequest->id,
-            ]);
+                    Activity::create([
+                        'user_id' => Auth::id(),
+                        'subject_type' => BookRequest::class,
+                        'subject_id' => $bookRequest->id,
+                    ]);
 
-            app(RomantauschBaxxService::class)->awardForNewRequests(Auth::id());
+                    app(RomantauschBaxxService::class)->awardForNewRequests(Auth::id());
+
+                    return $bookRequest;
+                });
+            } catch (LogicException) {
+                $this->addError('book_number', 'Gesuch konnte aktuell nicht erstellt werden. Bitte versuche es später erneut.');
+
+                return;
+            }
+
             $matchingService->matchSwap($bookRequest, 'request');
         }
 

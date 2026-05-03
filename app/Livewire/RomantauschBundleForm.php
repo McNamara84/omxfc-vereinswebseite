@@ -223,15 +223,22 @@ class RomantauschBundleForm extends Component
                 }
             }
 
-            $bundleService->updateBundle(
-                $this->bundleId,
-                $bookNumbers,
-                $this->condition,
-                $this->condition_max,
-                array_merge($photosToKeep, $newPhotoPaths),
-                $photosToDelete,
-                Auth::id()
-            );
+            try {
+                $bundleService->updateBundle(
+                    $this->bundleId,
+                    $bookNumbers,
+                    $this->condition,
+                    $this->condition_max,
+                    array_merge($photosToKeep, $newPhotoPaths),
+                    $photosToDelete,
+                    Auth::id()
+                );
+            } catch (\RuntimeException $e) {
+                $photoService->deletePhotos($newPhotoPaths);
+                $this->addError('book_numbers', $e->getMessage());
+
+                return;
+            }
 
             session()->flash('success', 'Stapel-Angebot aktualisiert.');
         } else {

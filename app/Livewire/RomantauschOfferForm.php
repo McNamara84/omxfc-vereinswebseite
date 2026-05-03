@@ -11,6 +11,8 @@ use App\Services\Romantausch\RomantauschBaxxService;
 use App\Services\Romantausch\SwapMatchingService;
 use App\Support\ConditionOptions;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use LogicException;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
@@ -213,23 +215,35 @@ class RomantauschOfferForm extends Component
                 }
             }
 
-            $offer = BookOffer::create([
-                'user_id' => Auth::id(),
-                'series' => $this->series,
-                'book_number' => $this->book_number,
-                'book_title' => $book->title,
-                'condition' => $this->condition,
-                'photos' => $photoPaths,
-            ]);
+            try {
+                $offer = DB::transaction(function () use ($book, $photoPaths) {
+                    $offer = BookOffer::create([
+                        'user_id' => Auth::id(),
+                        'series' => $this->series,
+                        'book_number' => $this->book_number,
+                        'book_title' => $book->title,
+                        'condition' => $this->condition,
+                        'photos' => $photoPaths,
+                    ]);
 
-            app(RomantauschBaxxService::class)->awardForNewOffers(Auth::id(), 1);
+                    app(RomantauschBaxxService::class)->awardForNewOffers(Auth::id(), 1);
+
+                    Activity::create([
+                        'user_id' => Auth::id(),
+                        'subject_type' => BookOffer::class,
+                        'subject_id' => $offer->id,
+                    ]);
+
+                    return $offer;
+                });
+            } catch (LogicException) {
+                $photoService->deletePhotos($photoPaths);
+                $this->addError('book_number', 'Angebot konnte aktuell nicht erstellt werden. Bitte versuche es später erneut.');
+
+                return;
+            }
+
             $matchingService->matchSwap($offer, 'offer');
-
-            Activity::create([
-                'user_id' => Auth::id(),
-                'subject_type' => BookOffer::class,
-                'subject_id' => $offer->id,
-            ]);
         }
 
         session()->flash('success', $this->isEditing ? 'Angebot aktualisiert.' : 'Angebot erstellt.');
