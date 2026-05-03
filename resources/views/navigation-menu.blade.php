@@ -46,10 +46,23 @@
                         <p class="hidden px-2 pb-2 text-[0.62rem] font-semibold uppercase tracking-[0.24em] text-base-content/45 2xl:block">Bereiche</p>
                         <x-ui.action-cluster>
                             @foreach($sectionNavigation as $section)
-                                <x-dropdown :label="$section['title']" class="btn-sm rounded-full whitespace-nowrap {{ $section['active'] ? 'btn-primary btn-outline' : 'btn-ghost bg-base-100/60' }}">
-                                    @foreach($section['items'] as $item)
-                                        <x-menu-item :title="$item['title']" :link="$item['href']" wire:navigate :icon="$item['icon'] ?? null" />
-                                    @endforeach
+                                <x-dropdown :label="$section['title']" :right="$loop->last" class="btn-sm rounded-full whitespace-nowrap {{ $section['active'] ? 'btn-primary btn-outline' : 'btn-ghost bg-base-100/60' }}">
+                                    <div class="w-fit min-w-[14rem] max-w-[min(24rem,calc(100vw-2rem))]" data-testid="desktop-nav-dropdown-panel">
+                                        @foreach($section['items'] as $item)
+                                            <li>
+                                                <a
+                                                    href="{{ $item['href'] }}"
+                                                    wire:navigate
+                                                    class="my-0.5 flex items-center gap-3 rounded-xl px-4 py-2 text-sm leading-5 text-base-content transition hover:bg-base-200/80 whitespace-nowrap"
+                                                >
+                                                    @if($item['icon'] ?? null)
+                                                        <x-icon :name="$item['icon']" class="h-4 w-4 shrink-0" />
+                                                    @endif
+                                                    <span class="whitespace-nowrap">{{ $item['title'] }}</span>
+                                                </a>
+                                            </li>
+                                        @endforeach
+                                    </div>
                                 </x-dropdown>
                             @endforeach
                         </x-ui.action-cluster>

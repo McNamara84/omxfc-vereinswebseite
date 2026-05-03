@@ -21,6 +21,16 @@
             </x-alert>
         @endif
 
+        @if (($autoRefundedPurchases ?? 0) > 0)
+            <x-alert icon="o-arrow-uturn-left" class="alert-info mb-6" dismissible>
+                @if ($autoRefundedPurchases === 1)
+                    Ein früherer Eigenkauf deiner Fanfiction wurde automatisch erstattet.
+                @else
+                    {{ $autoRefundedPurchases }} frühere Eigenkäufe deiner Fanfiction wurden automatisch erstattet.
+                @endif
+            </x-alert>
+        @endif
+
         @if ($fanfictions->isEmpty())
             <x-ui.panel>
                 <div class="text-center py-12">
@@ -36,6 +46,7 @@
                 @foreach ($fanfictions as $fanfiction)
                     @php
                         $isUnlocked = !$fanfiction->reward || in_array($fanfiction->id, $unlockedFanfictionIds);
+                        $isOwnFanfiction = in_array($fanfiction->id, $ownFanfictionIds ?? [], true);
                     @endphp
                     <x-ui.panel x-data="{ expanded: false }" data-fanfiction-item>
                         {{-- Header mit Titel und Autor --}}
@@ -45,7 +56,9 @@
                                     {{ $fanfiction->title }}
                                 </a>
                                 @if ($fanfiction->reward)
-                                    @if ($isUnlocked)
+                                    @if ($isOwnFanfiction)
+                                        <x-badge value="Eigener Beitrag" class="badge-info badge-sm" icon="o-pencil-square" />
+                                    @elseif ($isUnlocked)
                                         <x-badge value="Freigeschaltet" class="badge-success badge-sm" icon="o-lock-open" />
                                     @else
                                         <x-badge value="{{ $fanfiction->reward->cost_baxx }} Baxx" class="badge-warning badge-sm" icon="o-currency-dollar" />

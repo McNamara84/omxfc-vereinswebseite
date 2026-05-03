@@ -34,18 +34,20 @@
                     <td class="text-base-content">{{ $book->author }}</td>
                     <td>
                         @if($book->has_review)
-                            <x-badge value="" class="badge-success">
+                            <x-badge value="Vorhanden" class="badge-success badge-sm">
                                 <x-slot:prepend>
                                     <x-icon name="o-check" class="w-4 h-4" />
                                 </x-slot:prepend>
                             </x-badge>
                         @else
-                            <a href="{{ route('reviews.create', $book) }}" wire:navigate title="Rezension schreiben">
-                                <x-badge value="" class="badge-info cursor-pointer hover:opacity-80">
-                                    <x-slot:prepend>
-                                        <x-icon name="o-pencil" class="w-4 h-4" />
-                                    </x-slot:prepend>
-                                </x-badge>
+                            <a href="{{ route('reviews.create', $book) }}" wire:navigate title="Rezension schreiben" aria-label="Rezension schreiben" class="inline-flex items-center">
+                                <span class="hidden sm:inline-flex items-center gap-2 rounded-full border border-info/20 bg-info/10 px-3 py-1.5 text-xs font-medium text-info transition hover:bg-info/15">
+                                    <x-icon name="o-pencil-square" class="w-4 h-4" />
+                                    <span>Rezension schreiben</span>
+                                </span>
+                                <span class="inline-flex sm:hidden items-center justify-center rounded-full border border-info/20 bg-info/10 p-2 text-info transition hover:bg-info/15" aria-hidden="true">
+                                    <x-icon name="o-pencil-square" class="w-4 h-4" />
+                                </span>
                             </a>
                         @endif
                     </td>

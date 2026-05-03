@@ -195,6 +195,49 @@ class BelohnungenIndexTest extends TestCase
             ->assertSee('Freigeschaltet');
     }
 
+    public function test_legacy_kompendium_purchase_marks_current_reward_as_unlocked(): void
+    {
+        $user = $this->actingMemberWithPoints(120);
+
+        Reward::updateOrCreate(
+            ['slug' => 'kompendium'],
+            [
+                'title' => 'Maddrax-Kompendium',
+                'description' => 'Aktueller Zugang zum Maddrax-Kompendium.',
+                'category' => 'Kompendium',
+                'cost_baxx' => 100,
+                'is_active' => true,
+                'sort_order' => 0,
+            ]
+        );
+
+        $legacyReward = Reward::updateOrCreate(
+            ['slug' => 'kompendium-suche'],
+            [
+                'title' => 'Kompendium-Suche',
+                'description' => 'Legacy-Zugang zur Kompendium-Suche.',
+                'category' => 'Kompendium',
+                'cost_baxx' => 100,
+                'is_active' => false,
+                'sort_order' => 1,
+            ]
+        );
+
+        RewardPurchase::create([
+            'user_id' => $user->id,
+            'reward_id' => $legacyReward->id,
+            'wallet_team_id' => Team::membersTeam()?->id,
+            'cost_baxx' => 100,
+            'purchased_at' => now(),
+        ]);
+
+        Livewire::actingAs($user)
+            ->test(BelohnungenIndex::class)
+            ->set('filter', 'freigeschaltet')
+            ->assertSee('Maddrax-Kompendium')
+            ->assertSee('Freigeschaltet');
+    }
+
     public function test_belohnungen_shows_prominent_review_special_offer(): void
     {
         $this->actingMember();

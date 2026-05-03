@@ -180,6 +180,119 @@ class FanfictionControllerTest extends TestCase
         ]);
     }
 
+    public function test_author_can_view_own_rewarded_fanfiction_without_purchase(): void
+    {
+        $fanfiction = Fanfiction::factory()->published()->create([
+            'team_id' => $this->memberTeam->id,
+            'user_id' => $this->member->id,
+            'created_by' => $this->member->id,
+            'title' => 'Eigene verriegelte Geschichte',
+        ]);
+        $this->createRewardForFanfiction($fanfiction, 25);
+
+        $response = $this->actingAs($this->member)
+            ->get(route('fanfiction.show', $fanfiction));
+
+        $response->assertOk();
+        $response->assertSee('Eigener Beitrag');
+        $response->assertDontSee('Diese Geschichte ist gesperrt');
+    }
+
+    public function test_creator_without_linked_author_must_still_unlock_rewarded_fanfiction(): void
+    {
+        $fanfiction = Fanfiction::factory()->published()->externalAuthor()->create([
+            'team_id' => $this->memberTeam->id,
+            'created_by' => $this->member->id,
+            'title' => 'Nicht technisch verknüpfte Geschichte',
+        ]);
+        $this->createRewardForFanfiction($fanfiction, 25);
+
+        $response = $this->actingAs($this->member)
+            ->get(route('fanfiction.show', $fanfiction));
+
+        $response->assertOk();
+        $response->assertSee('Diese Geschichte ist gesperrt');
+        $response->assertDontSee('Eigener Beitrag');
+    }
+
+    public function test_fanfiction_index_refunds_existing_self_purchases_automatically(): void
+    {
+        $this->member->incrementTeamPoints(40);
+
+        $firstFanfiction = Fanfiction::factory()->published()->create([
+            'team_id' => $this->memberTeam->id,
+            'user_id' => $this->member->id,
+            'created_by' => $this->member->id,
+            'title' => 'Erste eigene Geschichte',
+        ]);
+        $secondFanfiction = Fanfiction::factory()->published()->create([
+            'team_id' => $this->memberTeam->id,
+            'user_id' => $this->member->id,
+            'created_by' => $this->member->id,
+            'title' => 'Zweite eigene Geschichte',
+        ]);
+
+        $firstReward = $this->createRewardForFanfiction($firstFanfiction, 5);
+        $secondReward = $this->createRewardForFanfiction($secondFanfiction, 7);
+
+        $firstPurchase = RewardPurchase::create([
+            'user_id' => $this->member->id,
+            'reward_id' => $firstReward->id,
+            'wallet_team_id' => $this->memberTeam->id,
+            'cost_baxx' => 5,
+            'purchased_at' => now(),
+        ]);
+        $secondPurchase = RewardPurchase::create([
+            'user_id' => $this->member->id,
+            'reward_id' => $secondReward->id,
+            'wallet_team_id' => $this->memberTeam->id,
+            'cost_baxx' => 7,
+            'purchased_at' => now(),
+        ]);
+
+        $response = $this->actingAs($this->member)
+            ->get(route('fanfiction.index'));
+
+        $response->assertOk();
+        $response->assertSee('2 frühere Eigenkäufe deiner Fanfiction wurden automatisch erstattet.');
+        $response->assertSee('40 Baxx verfügbar');
+        $response->assertSee('Eigener Beitrag');
+
+        $this->assertNotNull($firstPurchase->fresh()->refunded_at);
+        $this->assertNotNull($secondPurchase->fresh()->refunded_at);
+        $this->assertNull($firstPurchase->fresh()->refunded_by);
+        $this->assertNull($secondPurchase->fresh()->refunded_by);
+    }
+
+    public function test_purchase_route_does_not_charge_for_own_fanfiction(): void
+    {
+        $fanfiction = Fanfiction::factory()->published()->create([
+            'team_id' => $this->memberTeam->id,
+            'user_id' => $this->member->id,
+            'created_by' => $this->member->id,
+        ]);
+        $reward = $this->createRewardForFanfiction($fanfiction, 9);
+
+        $purchase = RewardPurchase::create([
+            'user_id' => $this->member->id,
+            'reward_id' => $reward->id,
+            'wallet_team_id' => $this->memberTeam->id,
+            'cost_baxx' => 9,
+            'purchased_at' => now(),
+        ]);
+
+        $response = $this->actingAs($this->member)
+            ->post(route('fanfiction.purchase', $fanfiction));
+
+        $response->assertRedirect(route('fanfiction.show', $fanfiction));
+        $response->assertSessionHas('info', 'Deine eigene Fanfiction ist bereits freigeschaltet. Frühere Eigenkäufe wurden automatisch erstattet.');
+
+        $purchase->refresh();
+        $this->assertNotNull($purchase->refunded_at);
+        $this->assertNull($purchase->refunded_by);
+        $this->assertSame(1, RewardPurchase::where('user_id', $this->member->id)->count());
+    }
+
     public function test_fanfiction_index_shows_wallet_warning_for_ambiguous_legacy_purchase(): void
     {
         $reward = Reward::factory()->create(['cost_baxx' => 5, 'slug' => 'fanfiction-legacy-warning']);

@@ -293,6 +293,26 @@ class RewardServiceTest extends TestCase
         $this->assertTrue($this->service->hasUnlockedReward($user, 'test-feature'));
     }
 
+    public function test_has_unlocked_reward_accepts_legacy_kompendium_slug(): void
+    {
+        $user = $this->actingMemberWithPoints(120);
+        $legacyReward = Reward::updateOrCreate(
+            ['slug' => 'kompendium-suche'],
+            [
+                'title' => 'Kompendium-Suche',
+                'description' => 'Legacy-Zugang zur Kompendium-Suche.',
+                'category' => 'Kompendium',
+                'cost_baxx' => 100,
+                'is_active' => true,
+                'sort_order' => 0,
+            ]
+        );
+
+        $this->service->purchaseReward($user, $legacyReward);
+
+        $this->assertTrue($this->service->hasUnlockedReward($user, 'kompendium'));
+    }
+
     public function test_has_unlocked_reward_returns_false_for_not_purchased(): void
     {
         $user = $this->actingMemberWithPoints(10);

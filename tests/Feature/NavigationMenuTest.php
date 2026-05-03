@@ -38,6 +38,8 @@ class NavigationMenuTest extends TestCase
         $member = $this->createUserWithRole(Role::Mitglied);
 
         $response = $this->actingAs($member)->get(route('dashboard'));
+        $crawler = new Crawler($response->getContent());
+        $navigationText = preg_replace('/\s+/u', ' ', $crawler->filter('nav[aria-label="Hauptnavigation"]')->text());
 
         $response->assertOk();
         $response->assertSeeText('Dashboard');
@@ -46,6 +48,10 @@ class NavigationMenuTest extends TestCase
         $response->assertSeeText('Veranstaltungen');
         $response->assertSeeText('Verein');
         $response->assertSeeText('Baxx');
+        $this->assertIsString($navigationText);
+        $this->assertStringContainsString('Baxx verdienen', $navigationText);
+        $this->assertStringContainsString('Belohnungen einlösen', $navigationText);
+        $this->assertStringNotContainsString('Challenges', $navigationText);
         $response->assertDontSeeText('Vorstand');
         $response->assertDontSeeText('Admin');
     }
@@ -105,6 +111,19 @@ class NavigationMenuTest extends TestCase
         $response = $this->actingAs($user)->get('/');
 
         $response->assertSee(route('termine'));
+    }
+
+    public function test_authenticated_navigation_uses_adaptive_desktop_dropdown_widths(): void
+    {
+        $user = User::factory()->withPersonalTeam()->create();
+
+        $response = $this->actingAs($user)->get('/');
+
+        $response->assertOk();
+        $response->assertSee('data-testid="desktop-nav-dropdown-panel"', false);
+        $response->assertSee('min-w-[14rem]', false);
+        $response->assertSee('max-w-[min(24rem,calc(100vw-2rem))]', false);
+        $response->assertSee('whitespace-nowrap', false);
     }
 
     public function test_authenticated_users_see_satzung_between_protokolle_and_kassenstand(): void

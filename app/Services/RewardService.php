@@ -15,6 +15,15 @@ use LogicException;
 
 class RewardService
 {
+    /**
+     * Legacy-Reward-Slugs, die weiterhin als gueltige Freischaltungen gelten.
+     *
+     * @var array<string, array<int, string>>
+     */
+    private const REWARD_SLUG_ALIASES = [
+        'kompendium' => ['kompendium-suche'],
+    ];
+
     public function __construct(
         private readonly TeamPointService $teamPointService
     ) {}
@@ -167,14 +176,16 @@ class RewardService
 
     public function hasUnlockedReward(User $user, string $slug): bool
     {
-        $reward = Reward::where('slug', $slug)->first();
+        $rewardIds = Reward::query()
+            ->whereIn('slug', $this->resolveRewardSlugs($slug))
+            ->pluck('id');
 
-        if (! $reward) {
+        if ($rewardIds->isEmpty()) {
             return false;
         }
 
         return RewardPurchase::where('user_id', $user->id)
-            ->where('reward_id', $reward->id)
+            ->whereIn('reward_id', $rewardIds)
             ->active()
             ->exists();
     }
@@ -185,6 +196,30 @@ class RewardService
             ->where('reward_id', $rewardId)
             ->active()
             ->exists();
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    public function getUnlockedRewardSlugs(User $user): array
+    {
+        $rewardSlugs = Reward::query()
+            ->whereIn(
+                'id',
+                RewardPurchase::query()
+                    ->where('user_id', $user->id)
+                    ->active()
+                    ->pluck('reward_id')
+            )
+            ->pluck('slug');
+
+        $unlockedSlugs = [];
+
+        foreach ($rewardSlugs as $rewardSlug) {
+            $unlockedSlugs = [...$unlockedSlugs, ...$this->resolveRewardSlugs($rewardSlug)];
+        }
+
+        return array_values(array_unique($unlockedSlugs));
     }
 
     /**
@@ -212,7 +247,7 @@ class RewardService
         }
 
         if (! $this->hasUnlockedReward($user, $rewardSlug)) {
-            throw new AuthorizationException('Du musst diese Belohnung zuerst unter /belohnungen freischalten.');
+            throw new AuthorizationException('Du musst diese Belohnung zuerst im Bereich Belohnungen einlösen freischalten.');
         }
     }
 
@@ -300,5 +335,21 @@ class RewardService
     private function missingMembersTeamWarning(): string
     {
         return 'Das Mitglieder-Team ist derzeit nicht verfügbar. Baxx-Guthaben und neue Freischaltungen können aktuell nicht geladen werden.';
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function resolveRewardSlugs(string $slug): array
+    {
+        foreach (self::REWARD_SLUG_ALIASES as $canonicalSlug => $legacySlugs) {
+            $knownSlugs = [$canonicalSlug, ...$legacySlugs];
+
+            if (in_array($slug, $knownSlugs, true)) {
+                return $knownSlugs;
+            }
+        }
+
+        return [$slug];
     }
 }

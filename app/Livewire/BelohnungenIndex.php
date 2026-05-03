@@ -65,10 +65,8 @@ class BelohnungenIndex extends Component
     public function rewards(): array
     {
         $user = Auth::user();
-        $purchasedRewardIds = RewardPurchase::where('user_id', $user->id)
-            ->active()
-            ->pluck('reward_id')
-            ->toArray();
+        $rewardService = app(RewardService::class);
+        $unlockedRewardSlugs = $rewardService->getUnlockedRewardSlugs($user);
         $walletAvailableBaxx = $this->hasAvailableWallet ? $this->availableBaxx : null;
 
         $query = Reward::active()->orderBy('sort_order')->orderBy('cost_baxx');
@@ -77,8 +75,8 @@ class BelohnungenIndex extends Component
             $query->byCategory($this->categoryFilter);
         }
 
-        $rewards = $query->get()->map(function (Reward $reward) use ($purchasedRewardIds, $walletAvailableBaxx) {
-            $purchased = in_array($reward->id, $purchasedRewardIds);
+        $rewards = $query->get()->map(function (Reward $reward) use ($unlockedRewardSlugs, $walletAvailableBaxx) {
+            $purchased = in_array($reward->slug, $unlockedRewardSlugs, true);
             $canAfford = $walletAvailableBaxx !== null && $walletAvailableBaxx >= $reward->cost_baxx;
             $missingBaxx = $walletAvailableBaxx !== null && ! $canAfford
                 ? $reward->cost_baxx - $walletAvailableBaxx

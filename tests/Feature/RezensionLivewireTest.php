@@ -945,4 +945,45 @@ class RezensionLivewireTest extends TestCase
             file_put_contents($path, $original);
         }
     }
+
+    public function test_reviews_index_shows_explicit_review_write_action_for_books_without_review(): void
+    {
+        Book::create([
+            'roman_number' => 1,
+            'title' => 'Roman ohne Rezension',
+            'author' => 'Autor A',
+        ]);
+
+        $user = $this->actingMember();
+
+        $response = $this->actingAs($user)->get('/rezensionen');
+
+        $response->assertOk();
+        $response->assertSee('Rezension schreiben');
+        $response->assertSee('aria-label="Rezension schreiben"', false);
+    }
+
+    public function test_reviews_index_marks_reviewed_books_as_vorhanden(): void
+    {
+        $book = Book::create([
+            'roman_number' => 1,
+            'title' => 'Roman mit Rezension',
+            'author' => 'Autor B',
+        ]);
+        $user = $this->actingMember();
+
+        Review::create([
+            'team_id' => Team::membersTeam()->id,
+            'book_id' => $book->id,
+            'user_id' => $user->id,
+            'title' => 'Schon bewertet',
+            'content' => str_repeat('A', 140),
+        ]);
+
+        $response = $this->actingAs($user)->get('/rezensionen');
+
+        $response->assertOk();
+        $response->assertSee('Roman mit Rezension');
+        $response->assertSee('Vorhanden');
+    }
 }

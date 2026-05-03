@@ -74,6 +74,30 @@ class DownloadsTest extends TestCase
 
         $response->assertRedirect('/downloads');
         $response->assertSessionHasErrors();
+        $this->assertStringContainsString(
+            'im Bereich Belohnungen einlösen',
+            $response->getSession()->get('errors')->first()
+        );
+    }
+
+    public function test_downloads_page_points_locked_files_to_rewards_redeem_flow(): void
+    {
+        $this->actingMember();
+
+        $download = Download::factory()->create([
+            'title' => 'Belohnter Download',
+            'category' => 'Spezialinhalte',
+        ]);
+        Reward::factory()->create([
+            'download_id' => $download->id,
+            'is_active' => true,
+        ]);
+
+        $response = $this->get('/downloads');
+
+        $response->assertOk();
+        $response->assertSee('Belohnungen einlösen');
+        $response->assertSee('Belohnung nötig');
     }
 
     public function test_download_with_inactive_reward_shows_nicht_verfuegbar_message(): void

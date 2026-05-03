@@ -233,6 +233,26 @@ class FanfictionCommentControllerTest extends TestCase
         ]);
     }
 
+    public function test_author_can_comment_on_own_locked_fanfiction_without_purchase(): void
+    {
+        $this->fanfiction->update(['user_id' => $this->member->id]);
+        $this->createRewardForFanfiction($this->fanfiction);
+
+        $response = $this->actingAs($this->member)
+            ->post(route('fanfiction.comments.store', $this->fanfiction), [
+                'content' => 'Kommentar zur eigenen Geschichte',
+            ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('fanfiction_comments', [
+            'fanfiction_id' => $this->fanfiction->id,
+            'user_id' => $this->member->id,
+            'content' => 'Kommentar zur eigenen Geschichte',
+        ]);
+    }
+
     public function test_vorstand_can_comment_on_locked_fanfiction_without_purchase(): void
     {
         $vorstand = User::factory()->create();

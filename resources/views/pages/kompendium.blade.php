@@ -7,7 +7,7 @@
         <x-ui.page-header
             eyebrow="Volltextsuche für Mitglieder"
             title="Maddrax-Kompendium"
-            description="Die Kompendium-Suche bündelt indexierte Maddrax-Reihen an einer Stelle. Zugriff erhältst du über das Kompendium-Reward oder über deine Mitgliedschaft in der AG Maddraxikon."
+            description="Die Kompendium-Suche bündelt indexierte Maddrax-Reihen an einer Stelle. Zugriff erhältst du über das Kompendium-Reward im Bereich Belohnungen einlösen oder über deine Mitgliedschaft in der AG Maddraxikon."
         >
             <x-slot:actions>
                 <div class="flex flex-wrap gap-2">
@@ -50,14 +50,14 @@
                     @endif
                 </x-ui.panel>
 
-                <x-ui.panel title="{{ $showSearch ? 'Volltextsuche' : 'Zugang zum Kompendium' }}" description="{{ $showSearch ? 'Suche direkt in den indexierten Inhalten nach Begriffen, Phrasen und Treffern in verschiedenen Reihen.' : 'Wenn die Suche noch gesperrt ist, kannst du den Zugang direkt über das Reward freischalten oder ihn über die AG Maddraxikon erhalten.' }}">
+                <x-ui.panel title="{{ $showSearch ? 'Volltextsuche' : 'Zugang zum Kompendium' }}" description="{{ $showSearch ? 'Suche direkt in den indexierten Inhalten nach Begriffen, Phrasen und Treffern in verschiedenen Reihen.' : 'Wenn die Suche noch gesperrt ist, kannst du den Zugang direkt im Bereich Belohnungen einlösen freischalten oder ihn über die AG Maddraxikon erhalten.' }}">
                     @if($showSearch)
                         @livewire('kompendium-suche')
                     @else
                         @if($kompendiumReward && $kompendiumReward->is_active)
                             <div class="mb-4 rounded-[1.25rem] border border-base-content/10 bg-base-100/72 px-4 py-4 text-sm leading-relaxed text-base-content/76 sm:text-base">
                                 <p>Die Kompendium-Suche ist aktuell noch nicht freigeschaltet.</p>
-                                <p class="mt-2">Mit dem Reward schaltest du den Suchzugang für dein Konto frei. Mitglieder der AG Maddraxikon erhalten den Zugriff automatisch.</p>
+                                <p class="mt-2">Im Bereich Belohnungen einlösen schaltest du den Suchzugang für dein Konto frei. Mitglieder der AG Maddraxikon erhalten den Zugriff automatisch.</p>
                             </div>
 
                             @livewire('kompendium-kauf-overlay', [

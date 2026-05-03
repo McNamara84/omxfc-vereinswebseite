@@ -7,6 +7,7 @@ use App\Enums\Role;
 use App\Http\Controllers\Concerns\MembersTeamAware;
 use App\Models\Fanfiction;
 use App\Models\User;
+use App\Services\FanfictionAccessService;
 use App\Services\RewardService;
 use App\Services\UserRoleService;
 use Illuminate\Http\RedirectResponse;
@@ -22,6 +23,7 @@ class FanfictionController extends Controller
     public function __construct(
         private readonly UserRoleService $userRoleService,
         private readonly RewardService $rewardService,
+        private readonly FanfictionAccessService $fanfictionAccessService,
     ) {}
 
     protected function getUserRoleService(): UserRoleService
@@ -65,16 +67,19 @@ class FanfictionController extends Controller
 
         /** @var User $user */
         $user = Auth::user();
+        $autoRefundedPurchases = $this->fanfictionAccessService->refundOwnPurchases($user);
         $walletState = $this->rewardService->getWalletState($user);
-
-        // Einmalig alle freigeschalteten Reward-IDs laden (statt N+1 Queries)
         $unlockedRewardIds = $this->rewardService->getUnlockedRewardIds($user);
-
-        // Fanfictions ohne Reward gelten als kostenlos/freigeschaltet
-        $unlockedFanfictionIds = $fanfictions->getCollection()->filter(function ($fanfiction) use ($unlockedRewardIds) {
-            return ! $fanfiction->reward
-                || in_array($fanfiction->reward_id, $unlockedRewardIds, true);
-        })->pluck('id')->toArray();
+        $unlockedFanfictionIds = $this->fanfictionAccessService->getUnlockedFanfictionIds(
+            $user,
+            $fanfictions->getCollection(),
+            $unlockedRewardIds,
+        );
+        $ownFanfictionIds = $fanfictions->getCollection()
+            ->filter(fn (Fanfiction $fanfiction) => $this->fanfictionAccessService->isOwnContribution($user, $fanfiction))
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->all();
 
         return view('fanfiction.index', [
             'fanfictions' => $fanfictions,
@@ -82,6 +87,8 @@ class FanfictionController extends Controller
             'availableBaxx' => $walletState['availableBaxx'],
             'walletWarning' => $walletState['warning'],
             'unlockedFanfictionIds' => $unlockedFanfictionIds,
+            'ownFanfictionIds' => $ownFanfictionIds,
+            'autoRefundedPurchases' => $autoRefundedPurchases,
         ]);
     }
 
@@ -106,16 +113,19 @@ class FanfictionController extends Controller
 
         /** @var User $user */
         $user = Auth::user();
+        $autoRefundedPurchases = $this->fanfictionAccessService->refundOwnPurchases($user);
         $walletState = $this->rewardService->getWalletState($user);
-        $hasUnlocked = ! $fanfiction->reward
-            || $this->rewardService->hasUnlockedRewardId($user, $fanfiction->reward->id);
+        $isOwnFanfiction = $this->fanfictionAccessService->isOwnContribution($user, $fanfiction);
+        $hasUnlocked = $this->fanfictionAccessService->hasUnlocked($user, $fanfiction);
 
         return view('fanfiction.show', [
             'fanfiction' => $fanfiction,
             'role' => $role,
             'hasUnlocked' => $hasUnlocked,
+            'isOwnFanfiction' => $isOwnFanfiction,
             'availableBaxx' => $walletState['availableBaxx'],
             'walletWarning' => $walletState['warning'],
+            'autoRefundedPurchases' => $autoRefundedPurchases,
         ]);
     }
 
@@ -145,6 +155,16 @@ class FanfictionController extends Controller
 
         /** @var User $user */
         $user = Auth::user();
+        $autoRefundedPurchases = $this->fanfictionAccessService->refundOwnPurchases($user);
+
+        if ($this->fanfictionAccessService->isOwnContribution($user, $fanfiction)) {
+            $message = $autoRefundedPurchases > 0
+                ? 'Deine eigene Fanfiction ist bereits freigeschaltet. Frühere Eigenkäufe wurden automatisch erstattet.'
+                : 'Deine eigene Fanfiction ist bereits freigeschaltet.';
+
+            return redirect()->route('fanfiction.show', $fanfiction)
+                ->with('info', $message);
+        }
 
         try {
             $this->rewardService->purchaseReward($user, $fanfiction->reward);

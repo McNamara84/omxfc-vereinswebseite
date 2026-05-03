@@ -78,8 +78,8 @@ return [
             'title' => 'Baxx',
             'icon' => 'o-bolt',
             'items' => [
-                ['title' => 'Challenges', 'route' => 'todos.index'],
-                ['title' => 'Belohnungen', 'route' => 'rewards.index'],
+                ['title' => 'Baxx verdienen', 'route' => 'todos.index'],
+                ['title' => 'Belohnungen einlösen', 'route' => 'rewards.index'],
             ],
         ],
         [
