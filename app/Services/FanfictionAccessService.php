@@ -56,7 +56,7 @@ class FanfictionAccessService
         return RewardPurchase::query()
             ->where('user_id', $user->id)
             ->active()
-            ->whereHas('reward.fanfiction', fn ($query) => $query->where('user_id', $user->id))
+            ->whereHas('reward.fanfiction', fn ($query) => $query->withTrashed()->where('user_id', $user->id))
             ->update([
                 'refunded_at' => now(),
                 'refunded_by' => null,

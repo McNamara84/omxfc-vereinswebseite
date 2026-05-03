@@ -120,7 +120,8 @@ class NavigationMenuTest extends TestCase
         $response = $this->actingAs($user)->get('/');
 
         $response->assertOk();
-        $response->assertSee('data-testid="desktop-nav-dropdown-panel"', false);
+        $response->assertSee('data-testid="desktop-nav-dropdown-item"', false);
+        $response->assertDontSee('data-testid="desktop-nav-dropdown-panel"', false);
         $response->assertSee('min-w-[14rem]', false);
         $response->assertSee('max-w-[min(24rem,calc(100vw-2rem))]', false);
         $response->assertSee('whitespace-nowrap', false);

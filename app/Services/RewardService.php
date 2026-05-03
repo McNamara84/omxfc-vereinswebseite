@@ -16,7 +16,7 @@ use LogicException;
 class RewardService
 {
     /**
-     * Legacy-Reward-Slugs, die weiterhin als gueltige Freischaltungen gelten.
+    * Legacy-Reward-Slugs, die weiterhin als gültige Freischaltungen gelten.
      *
      * @var array<string, array<int, string>>
      */

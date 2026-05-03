@@ -264,6 +264,40 @@ class FanfictionControllerTest extends TestCase
         $this->assertNull($secondPurchase->fresh()->refunded_by);
     }
 
+    public function test_fanfiction_index_refunds_self_purchase_for_soft_deleted_own_fanfiction(): void
+    {
+        $this->member->incrementTeamPoints(10);
+
+        $fanfiction = Fanfiction::factory()->published()->create([
+            'team_id' => $this->memberTeam->id,
+            'user_id' => $this->member->id,
+            'created_by' => $this->member->id,
+            'title' => 'Gelöschte eigene Geschichte',
+        ]);
+        $reward = $this->createRewardForFanfiction($fanfiction, 5);
+
+        $purchase = RewardPurchase::create([
+            'user_id' => $this->member->id,
+            'reward_id' => $reward->id,
+            'wallet_team_id' => $this->memberTeam->id,
+            'cost_baxx' => 5,
+            'purchased_at' => now(),
+        ]);
+
+        $fanfiction->delete();
+
+        $response = $this->actingAs($this->member)
+            ->get(route('fanfiction.index'));
+
+        $response->assertOk();
+        $response->assertSee('Ein früherer Eigenkauf deiner Fanfiction wurde automatisch erstattet.');
+        $response->assertSee('10 Baxx verfügbar');
+
+        $purchase->refresh();
+        $this->assertNotNull($purchase->refunded_at);
+        $this->assertNull($purchase->refunded_by);
+    }
+
     public function test_purchase_route_does_not_charge_for_own_fanfiction(): void
     {
         $fanfiction = Fanfiction::factory()->published()->create([

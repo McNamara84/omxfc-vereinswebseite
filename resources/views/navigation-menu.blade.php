@@ -47,22 +47,20 @@
                         <x-ui.action-cluster>
                             @foreach($sectionNavigation as $section)
                                 <x-dropdown :label="$section['title']" :right="$loop->last" class="btn-sm rounded-full whitespace-nowrap {{ $section['active'] ? 'btn-primary btn-outline' : 'btn-ghost bg-base-100/60' }}">
-                                    <div class="w-fit min-w-[14rem] max-w-[min(24rem,calc(100vw-2rem))]" data-testid="desktop-nav-dropdown-panel">
-                                        @foreach($section['items'] as $item)
-                                            <li>
-                                                <a
-                                                    href="{{ $item['href'] }}"
-                                                    wire:navigate
-                                                    class="my-0.5 flex items-center gap-3 rounded-xl px-4 py-2 text-sm leading-5 text-base-content transition hover:bg-base-200/80 whitespace-nowrap"
-                                                >
-                                                    @if($item['icon'] ?? null)
-                                                        <x-icon :name="$item['icon']" class="h-4 w-4 shrink-0" />
-                                                    @endif
-                                                    <span class="whitespace-nowrap">{{ $item['title'] }}</span>
-                                                </a>
-                                            </li>
-                                        @endforeach
-                                    </div>
+                                    @foreach($section['items'] as $item)
+                                        <li class="w-fit min-w-[14rem] max-w-[min(24rem,calc(100vw-2rem))]" data-testid="desktop-nav-dropdown-item">
+                                            <a
+                                                href="{{ $item['href'] }}"
+                                                wire:navigate
+                                                class="my-0.5 flex w-full items-center gap-3 rounded-xl px-4 py-2 text-sm leading-5 text-base-content transition hover:bg-base-200/80 whitespace-nowrap"
+                                            >
+                                                @if($item['icon'] ?? null)
+                                                    <x-icon :name="$item['icon']" class="h-4 w-4 shrink-0" />
+                                                @endif
+                                                <span class="whitespace-nowrap">{{ $item['title'] }}</span>
+                                            </a>
+                                        </li>
+                                    @endforeach
                                 </x-dropdown>
                             @endforeach
                         </x-ui.action-cluster>
