@@ -11,6 +11,12 @@ use Livewire\Component;
 class ThreeDModelIndex extends Component
 {
     #[Computed]
+    public function walletState(): array
+    {
+        return app(RewardService::class)->getWalletState(Auth::user());
+    }
+
+    #[Computed]
     public function models()
     {
         return ThreeDModel::with('reward')->orderByDesc('created_at')->get();
@@ -19,7 +25,13 @@ class ThreeDModelIndex extends Component
     #[Computed]
     public function availableBaxx(): int
     {
-        return app(RewardService::class)->getAvailableBaxx(Auth::user());
+        return $this->walletState['availableBaxx'] ?? 0;
+    }
+
+    #[Computed]
+    public function walletWarning(): ?string
+    {
+        return $this->walletState['warning'];
     }
 
     #[Computed]

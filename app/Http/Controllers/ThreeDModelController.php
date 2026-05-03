@@ -28,7 +28,7 @@ class ThreeDModelController extends Controller
     {
         $user = Auth::user();
         $models = ThreeDModel::with('reward')->orderByDesc('created_at')->get();
-        $availableBaxx = $this->rewardService->getAvailableBaxx($user);
+        $walletState = $this->rewardService->getWalletState($user);
 
         // Einmalig alle freigeschalteten Reward-IDs laden (statt N+1 Queries)
         $unlockedRewardIds = $this->rewardService->getUnlockedRewardIds($user);
@@ -41,7 +41,8 @@ class ThreeDModelController extends Controller
 
         return view('three-d-models.index', [
             'models' => $models,
-            'availableBaxx' => $availableBaxx,
+            'availableBaxx' => $walletState['availableBaxx'],
+            'walletWarning' => $walletState['warning'],
             'unlockedModelIds' => $unlockedModelIds,
         ]);
     }
@@ -53,14 +54,15 @@ class ThreeDModelController extends Controller
     {
         $threeDModel->loadMissing(['uploader', 'reward']);
         $user = Auth::user();
+        $walletState = $this->rewardService->getWalletState($user);
         // Kein Reward = kostenlos/freigeschaltet
         $isUnlocked = ! $threeDModel->reward
             || $this->rewardService->hasUnlockedRewardId($user, $threeDModel->reward->id);
-        $availableBaxx = $this->rewardService->getAvailableBaxx($user);
 
         return view('three-d-models.show', [
             'model' => $threeDModel,
-            'availableBaxx' => $availableBaxx,
+            'availableBaxx' => $walletState['availableBaxx'],
+            'walletWarning' => $walletState['warning'],
             'isUnlocked' => $isUnlocked,
         ]);
     }

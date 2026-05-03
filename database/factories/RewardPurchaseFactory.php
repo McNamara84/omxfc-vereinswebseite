@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use App\Models\Reward;
 use App\Models\RewardPurchase;
+use App\Models\Team;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -24,6 +25,7 @@ class RewardPurchaseFactory extends Factory
         return [
             'user_id' => User::factory(),
             'reward_id' => Reward::factory(),
+            'wallet_team_id' => Team::membersTeam()?->id,
             'cost_baxx' => $this->faker->numberBetween(1, 100),
             'purchased_at' => now(),
             'refunded_at' => null,

@@ -6,6 +6,7 @@ use App\Livewire\ThreeDModelForm;
 use App\Livewire\ThreeDModelShow;
 use App\Models\Reward;
 use App\Models\RewardPurchase;
+use App\Models\Team;
 use App\Models\ThreeDModel;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -92,6 +93,24 @@ class ThreeDModelLivewireTest extends TestCase
         $response->assertOk();
         $response->assertSee('999 Baxx');
         $response->assertDontSee('data-three-d-viewer');
+    }
+
+    public function test_3d_modelle_zeigen_wallet_warning_for_ambiguous_legacy_purchase(): void
+    {
+        $user = $this->actingMemberWithPoints(20);
+        $reward = Reward::factory()->create(['cost_baxx' => 5, 'slug' => 'three-d-legacy-warning']);
+
+        RewardPurchase::factory()->create([
+            'user_id' => $user->id,
+            'reward_id' => $reward->id,
+            'wallet_team_id' => null,
+            'cost_baxx' => 5,
+        ]);
+
+        $response = $this->get('/3d-modelle');
+
+        $response->assertOk();
+        $response->assertSee('Baxx-Guthaben wird geprüft');
     }
 
     public function test_freigeschaltetes_modell_zeigt_viewer(): void
@@ -637,6 +656,7 @@ class ThreeDModelLivewireTest extends TestCase
         return RewardPurchase::create([
             'user_id' => $user->id,
             'reward_id' => $model->reward_id,
+            'wallet_team_id' => Team::membersTeam()?->id,
             'cost_baxx' => $model->reward->cost_baxx,
             'purchased_at' => now(),
         ]);

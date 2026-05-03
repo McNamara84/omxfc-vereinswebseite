@@ -23,6 +23,12 @@
             </x-slot:actions>
         </x-ui.page-header>
 
+        @if ($walletWarning)
+            <x-alert icon="o-exclamation-triangle" class="alert-warning mb-4" dismissible>
+                {{ $walletWarning }}
+            </x-alert>
+        @endif
+
         {{-- Fehlermeldungen (z.B. Kauf fehlgeschlagen, Download/Preview abgelehnt) --}}
         @error('reward')
             <x-alert icon="o-exclamation-triangle" class="alert-warning mb-4" data-testid="reward-error">
@@ -44,12 +50,18 @@
                     <x-icon name="o-lock-closed" class="w-16 h-16 mx-auto text-base-content/30 mb-4" />
                     @if ($model->reward)
                         <p class="text-lg font-semibold">Dieses Modell kostet {{ $model->reward->cost_baxx }} Baxx</p>
-                        <p class="text-base-content/60 mt-1">
-                            Du hast aktuell {{ $availableBaxx }} verfügbare Baxx.
-                        </p>
+                        @if (! $walletWarning)
+                            <p class="text-base-content/60 mt-1">
+                                Du hast aktuell {{ $availableBaxx }} verfügbare Baxx.
+                            </p>
+                        @endif
                         @if (! $model->reward->is_active)
                             <p class="text-sm text-base-content/40 mt-2">
                                 Dieses Modell ist derzeit nicht verfügbar.
+                            </p>
+                        @elseif ($walletWarning)
+                            <p class="text-sm text-base-content/60 mt-2">
+                                Neue Freischaltungen sind erst wieder möglich, wenn die ältere Baxx-Historie geprüft wurde.
                             </p>
                         @elseif ($availableBaxx >= $model->reward->cost_baxx)
                             <form method="POST" action="{{ route('3d-modelle.purchase', $model) }}" class="mt-4"

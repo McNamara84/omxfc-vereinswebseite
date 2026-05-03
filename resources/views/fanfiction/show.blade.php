@@ -26,6 +26,12 @@
             </x-slot:actions>
         </x-ui.page-header>
 
+        @if ($walletWarning)
+            <x-alert icon="o-exclamation-triangle" class="alert-warning mb-6" dismissible>
+                {{ $walletWarning }}
+            </x-alert>
+        @endif
+
         <x-ui.panel>
             @if ($hasUnlocked)
                 {{-- Galerie nur für Bilder, die NICHT per [bild:N] im Text referenziert werden --}}
@@ -69,13 +75,19 @@
                     <p class="text-sm text-base-content mb-1">
                         Preis: <strong>{{ $fanfiction->reward->cost_baxx }} Baxx</strong>
                     </p>
-                    <p class="text-sm text-base-content mb-4">
-                        Dein Guthaben: <strong>{{ $availableBaxx }} Baxx</strong>
-                    </p>
+                    @if (! $walletWarning)
+                        <p class="text-sm text-base-content mb-4">
+                            Dein Guthaben: <strong>{{ $availableBaxx }} Baxx</strong>
+                        </p>
+                    @endif
 
                     @if (! $fanfiction->reward->is_active)
                         <p class="text-sm text-base-content/60 font-medium">
                             Diese Fanfiction ist derzeit nicht verfügbar.
+                        </p>
+                    @elseif ($walletWarning)
+                        <p class="text-sm text-base-content/70 font-medium">
+                            Neue Freischaltungen sind erst wieder möglich, wenn die ältere Baxx-Historie geprüft wurde.
                         </p>
                     @elseif ($availableBaxx >= $fanfiction->reward->cost_baxx)
                         <form action="{{ route('fanfiction.purchase', $fanfiction) }}" method="POST"

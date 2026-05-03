@@ -2,10 +2,13 @@
 
 namespace Tests\Feature;
 
+use App\Enums\Role;
 use App\Livewire\BelohnungenIndex;
 use App\Models\Reward;
 use App\Models\RewardPurchase;
 use App\Models\ReviewBaxxSpecialOffer;
+use App\Models\Team;
+use App\Models\UserPoint;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\Concerns\CreatesUserWithRole;
@@ -72,6 +75,56 @@ class BelohnungenIndexTest extends TestCase
             'reward_id' => $reward->id,
             'cost_baxx' => 5,
         ]);
+    }
+
+    public function test_belohnungen_uses_members_team_wallet_when_current_team_differs(): void
+    {
+        $user = $this->actingMemberWithPoints(15);
+
+        $otherTeam = Team::factory()->create(['personal_team' => false, 'name' => 'Nebenverein']);
+        $otherTeam->users()->attach($user, ['role' => Role::Mitglied->value]);
+
+        UserPoint::create([
+            'user_id' => $user->id,
+            'team_id' => $otherTeam->id,
+            'todo_id' => null,
+            'points' => 40,
+        ]);
+
+        $user->forceFill(['current_team_id' => $otherTeam->id])->save();
+
+        $reward = Reward::factory()->create(['cost_baxx' => 10, 'slug' => 'members-wallet-livewire']);
+
+        Livewire::actingAs($user->fresh())
+            ->test(BelohnungenIndex::class)
+            ->assertSee('15 Baxx verdient')
+            ->assertSee('15 Baxx verfügbar')
+            ->call('purchase', $reward->id)
+            ->assertSee('5 Baxx verfügbar');
+
+        $this->assertDatabaseHas('reward_purchases', [
+            'user_id' => $user->id,
+            'reward_id' => $reward->id,
+            'cost_baxx' => 10,
+        ]);
+    }
+
+    public function test_belohnungen_shows_wallet_warning_for_ambiguous_legacy_purchase(): void
+    {
+        $user = $this->actingMemberWithPoints(15);
+        $reward = Reward::factory()->create(['cost_baxx' => 10, 'slug' => 'legacy-baxx-warning']);
+
+        RewardPurchase::factory()->create([
+            'user_id' => $user->id,
+            'reward_id' => $reward->id,
+            'wallet_team_id' => null,
+            'cost_baxx' => 5,
+        ]);
+
+        $this->get('/belohnungen')
+            ->assertOk()
+            ->assertSee('Guthaben wird geprüft')
+            ->assertSee('ältere Käufe ohne eindeutige Wallet-Zuordnung');
     }
 
     public function test_purchase_with_insufficient_baxx_fails(): void

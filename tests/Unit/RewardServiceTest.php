@@ -4,9 +4,13 @@ namespace Tests\Unit;
 
 use App\Enums\Role;
 use App\Models\Reward;
+use App\Models\RewardPurchase;
+use App\Models\Team;
+use App\Models\UserPoint;
 use App\Services\RewardService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Validation\ValidationException;
+use LogicException;
 use Tests\Concerns\CreatesUserWithRole;
 use Tests\TestCase;
 
@@ -33,6 +37,7 @@ class RewardServiceTest extends TestCase
         $this->assertNotNull($purchase);
         $this->assertEquals($user->id, $purchase->user_id);
         $this->assertEquals($reward->id, $purchase->reward_id);
+        $this->assertEquals(Team::membersTeam()?->id, $purchase->wallet_team_id);
         $this->assertEquals(5, $purchase->cost_baxx);
         $this->assertNotNull($purchase->purchased_at);
         $this->assertNull($purchase->refunded_at);
@@ -129,6 +134,138 @@ class RewardServiceTest extends TestCase
 
         $this->service->refundPurchase($purchase, $admin);
         $this->assertEquals(20, $this->service->getAvailableBaxx($user));
+    }
+
+    public function test_get_available_baxx_uses_members_team_when_current_team_differs(): void
+    {
+        $this->assertInstanceOf(Team::class, Team::membersTeam());
+        $user = $this->actingMemberWithPoints(20);
+
+        $otherTeam = Team::factory()->create(['personal_team' => false]);
+        $otherTeam->users()->attach($user, ['role' => Role::Mitglied->value]);
+
+        UserPoint::create([
+            'user_id' => $user->id,
+            'team_id' => $otherTeam->id,
+            'todo_id' => null,
+            'points' => 50,
+        ]);
+
+        $userWithOtherCurrentTeam = $user->fresh();
+        $userWithOtherCurrentTeam->current_team_id = $otherTeam->id;
+        $userWithOtherCurrentTeam->unsetRelation('currentTeam');
+
+        $this->assertEquals(20, $this->service->getAvailableBaxx($userWithOtherCurrentTeam));
+    }
+
+    public function test_get_wallet_state_marks_legacy_purchase_as_ambiguous(): void
+    {
+        $user = $this->actingMemberWithPoints(20);
+        $reward = Reward::factory()->create(['cost_baxx' => 7]);
+
+        RewardPurchase::factory()->create([
+            'user_id' => $user->id,
+            'reward_id' => $reward->id,
+            'wallet_team_id' => null,
+            'cost_baxx' => 7,
+        ]);
+
+        $walletState = $this->service->getWalletState($user);
+
+        $this->assertSame('ambiguous-legacy', $walletState['status']);
+        $this->assertSame(20, $walletState['earnedBaxx']);
+        $this->assertNull($walletState['spentBaxx']);
+        $this->assertNull($walletState['availableBaxx']);
+        $this->assertNotNull($walletState['warning']);
+    }
+
+    public function test_purchase_reward_uses_members_team_balance_even_with_multi_team_points(): void
+    {
+        $user = $this->actingMemberWithPoints(20);
+
+        $otherTeam = Team::factory()->create(['personal_team' => false]);
+        $otherTeam->users()->attach($user, ['role' => Role::Mitglied->value]);
+
+        UserPoint::create([
+            'user_id' => $user->id,
+            'team_id' => $otherTeam->id,
+            'todo_id' => null,
+            'points' => 50,
+        ]);
+
+        $userWithOtherCurrentTeam = $user->fresh();
+        $userWithOtherCurrentTeam->current_team_id = $otherTeam->id;
+        $userWithOtherCurrentTeam->unsetRelation('currentTeam');
+
+        $reward = Reward::factory()->create(['cost_baxx' => 7]);
+        $this->service->purchaseReward($userWithOtherCurrentTeam, $reward);
+
+        $this->assertEquals(13, $this->service->getAvailableBaxx($userWithOtherCurrentTeam->fresh()));
+    }
+
+    public function test_purchase_reward_fails_when_only_other_team_has_points(): void
+    {
+        $user = $this->actingMember();
+
+        $otherTeam = Team::factory()->create(['personal_team' => false]);
+        $otherTeam->users()->attach($user, ['role' => Role::Mitglied->value]);
+
+        UserPoint::create([
+            'user_id' => $user->id,
+            'team_id' => $otherTeam->id,
+            'todo_id' => null,
+            'points' => 20,
+        ]);
+
+        $userWithOtherCurrentTeam = $user->fresh();
+        $userWithOtherCurrentTeam->current_team_id = $otherTeam->id;
+        $userWithOtherCurrentTeam->unsetRelation('currentTeam');
+
+        $reward = Reward::factory()->create(['cost_baxx' => 7]);
+
+        $this->expectException(ValidationException::class);
+        $this->service->purchaseReward($userWithOtherCurrentTeam, $reward);
+    }
+
+    public function test_purchase_reward_fails_when_legacy_purchase_is_ambiguous(): void
+    {
+        $user = $this->actingMemberWithPoints(20);
+
+        $reward = Reward::factory()->create(['cost_baxx' => 7]);
+
+        RewardPurchase::factory()->create([
+            'user_id' => $user->id,
+            'reward_id' => $reward->id,
+            'wallet_team_id' => null,
+            'cost_baxx' => 7,
+        ]);
+
+        $this->expectException(ValidationException::class);
+        $this->service->purchaseReward($user, $reward);
+    }
+
+    public function test_get_wallet_state_reports_missing_members_team_without_throwing(): void
+    {
+        $user = $this->actingMemberWithPoints(20);
+
+        Team::membersTeam()?->delete();
+
+        $walletState = $this->service->getWalletState($user->fresh());
+
+        $this->assertSame('missing-members-team', $walletState['status']);
+        $this->assertNull($walletState['availableBaxx']);
+        $this->assertNull($walletState['spentBaxx']);
+        $this->assertNotNull($walletState['warning']);
+    }
+
+    public function test_get_available_baxx_throws_when_members_team_is_missing(): void
+    {
+        $user = $this->actingMemberWithPoints(20);
+
+        Team::membersTeam()?->delete();
+
+        $this->expectException(LogicException::class);
+        $this->service->getAvailableBaxx($user->fresh());
     }
 
     public function test_get_spent_baxx_excludes_refunded(): void

@@ -8,14 +8,24 @@
             <x-slot:actions>
                 <div class="flex flex-wrap gap-2">
                     <x-badge :value="$this->earnedBaxx . ' Baxx verdient'" class="badge-primary" icon="o-arrow-trending-up" />
-                    <x-badge :value="$this->spentBaxx . ' Baxx ausgegeben'" class="badge-ghost" icon="o-arrow-trending-down" />
-                    <x-badge :value="$this->availableBaxx . ' Baxx verfügbar'" class="badge-success" icon="o-banknotes" />
+                    @if ($this->walletWarning)
+                        <x-badge value="Guthaben wird geprüft" class="badge-warning" icon="o-exclamation-triangle" />
+                    @else
+                        <x-badge :value="$this->spentBaxx . ' Baxx ausgegeben'" class="badge-ghost" icon="o-arrow-trending-down" />
+                        <x-badge :value="$this->availableBaxx . ' Baxx verfügbar'" class="badge-success" icon="o-banknotes" />
+                    @endif
                 </div>
             </x-slot:actions>
         </x-ui.page-header>
 
         @if($this->reviewRewardConfiguration['prominent_special_offer'])
             <x-review-baxx-special-offer :offer="$this->reviewRewardConfiguration['prominent_special_offer']" />
+        @endif
+
+        @if($this->walletWarning)
+            <x-alert icon="o-exclamation-triangle" class="alert-warning" dismissible>
+                {{ $this->walletWarning }}
+            </x-alert>
         @endif
 
         <x-ui.panel title="So funktioniert das Belohnungssystem" description="Wähle aus, welche Features du mit deinen Baxx freischalten möchtest, und filtere die Übersicht nach Status oder Kategorie.">
@@ -88,6 +98,8 @@
                                 <div class="flex justify-end">
                                     @if($reward['purchased'])
                                         <x-badge value="Freigeschaltet" class="badge-success badge-lg" icon="o-lock-open" />
+                                    @elseif($reward['wallet_unavailable'])
+                                        <x-badge value="Guthaben wird geprüft" class="badge-warning badge-lg" icon="o-exclamation-triangle" />
                                     @elseif($reward['can_afford'])
                                         <x-button
                                             label="Freischalten"

@@ -175,8 +175,27 @@ class FanfictionControllerTest extends TestCase
         $this->assertDatabaseHas('reward_purchases', [
             'user_id' => $this->member->id,
             'reward_id' => $reward->id,
+            'wallet_team_id' => $this->memberTeam->id,
             'cost_baxx' => 5,
         ]);
+    }
+
+    public function test_fanfiction_index_shows_wallet_warning_for_ambiguous_legacy_purchase(): void
+    {
+        $reward = Reward::factory()->create(['cost_baxx' => 5, 'slug' => 'fanfiction-legacy-warning']);
+
+        RewardPurchase::factory()->create([
+            'user_id' => $this->member->id,
+            'reward_id' => $reward->id,
+            'wallet_team_id' => null,
+            'cost_baxx' => 5,
+        ]);
+
+        $response = $this->actingAs($this->member)
+            ->get(route('fanfiction.index'));
+
+        $response->assertOk();
+        $response->assertSee('Baxx-Guthaben wird geprüft');
     }
 
     public function test_purchase_with_insufficient_baxx_fails(): void
@@ -213,6 +232,7 @@ class FanfictionControllerTest extends TestCase
         RewardPurchase::create([
             'user_id' => $this->member->id,
             'reward_id' => $reward->id,
+            'wallet_team_id' => $this->memberTeam->id,
             'cost_baxx' => $reward->cost_baxx,
             'purchased_at' => now(),
         ]);

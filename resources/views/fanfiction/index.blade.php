@@ -7,9 +7,19 @@
             data-testid="page-title"
         >
             <x-slot:actions>
-                <x-badge value="{{ $availableBaxx }} Baxx verfügbar" class="badge-primary" icon="o-currency-dollar" />
+                @if ($walletWarning)
+                    <x-badge value="Baxx-Guthaben wird geprüft" class="badge-warning" icon="o-exclamation-triangle" />
+                @else
+                    <x-badge value="{{ $availableBaxx }} Baxx verfügbar" class="badge-primary" icon="o-currency-dollar" />
+                @endif
             </x-slot:actions>
         </x-ui.page-header>
+
+        @if ($walletWarning)
+            <x-alert icon="o-exclamation-triangle" class="alert-warning mb-6" dismissible>
+                {{ $walletWarning }}
+            </x-alert>
+        @endif
 
         @if ($fanfictions->isEmpty())
             <x-ui.panel>

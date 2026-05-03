@@ -8,8 +8,12 @@
         >
             <x-slot:actions>
                 <div class="flex items-center gap-2 text-sm text-base-content/70">
-                    <span>Verfügbares Baxx-Guthaben</span>
-                    <x-badge :value="$availableBaxx" class="badge-primary" icon="o-currency-dollar" />
+                    @if ($walletWarning)
+                        <x-badge value="Baxx-Guthaben wird geprüft" class="badge-warning" icon="o-exclamation-triangle" />
+                    @else
+                        <span>Verfügbares Baxx-Guthaben</span>
+                        <x-badge :value="$availableBaxx" class="badge-primary" icon="o-currency-dollar" />
+                    @endif
                 </div>
 
                 @can('create', App\Models\ThreeDModel::class)
@@ -18,6 +22,12 @@
                 @endcan
             </x-slot:actions>
         </x-ui.page-header>
+
+        @if ($walletWarning)
+            <x-alert icon="o-exclamation-triangle" class="alert-warning mb-4" dismissible>
+                {{ $walletWarning }}
+            </x-alert>
+        @endif
 
         @if (session('success'))
             <x-alert icon="o-check-circle" class="alert-success mb-4" dismissible>
