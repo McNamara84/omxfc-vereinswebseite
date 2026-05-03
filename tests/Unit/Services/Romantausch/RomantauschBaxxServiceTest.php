@@ -102,6 +102,68 @@ class RomantauschBaxxServiceTest extends TestCase
         ]);
     }
 
+    public function test_same_threshold_is_only_awarded_once_when_service_is_called_twice(): void
+    {
+        $user = $this->createMemberWithOtherCurrentTeam(Team::membersTeam(), Team::factory()->create());
+
+        $this->configureRule('romantausch_offer', [
+            'points' => 5,
+            'every_count' => 3,
+            'is_active' => true,
+        ]);
+
+        $this->createOffer($user, 11);
+        $this->createOffer($user, 12);
+        $this->createOffer($user, 13);
+
+        $firstAward = $this->service->awardForNewOffers($user->id, 1);
+        $secondAward = $this->service->awardForNewOffers($user->id, 1);
+
+        $this->assertSame(5, $firstAward);
+        $this->assertSame(0, $secondAward);
+        $this->assertDatabaseCount('user_points', 1);
+        $this->assertDatabaseHas('baxx_earning_progress', [
+            'user_id' => $user->id,
+            'action_key' => 'romantausch_offer',
+            'processed_count' => 3,
+        ]);
+    }
+
+    public function test_inactive_rules_advance_progress_without_retroactive_awards_after_activation(): void
+    {
+        $user = $this->createMemberWithOtherCurrentTeam(Team::membersTeam(), Team::factory()->create());
+
+        $this->configureRule('romantausch_request', [
+            'points' => 3,
+            'every_count' => 1,
+            'is_active' => false,
+        ]);
+
+        $this->createRequest($user, 31);
+
+        $initialAward = $this->service->awardForNewRequests($user->id, 1);
+
+        $this->assertSame(0, $initialAward);
+        $this->assertDatabaseHas('baxx_earning_progress', [
+            'user_id' => $user->id,
+            'action_key' => 'romantausch_request',
+            'processed_count' => 1,
+        ]);
+
+        $this->configureRule('romantausch_request', [
+            'points' => 3,
+            'every_count' => 1,
+            'is_active' => true,
+        ]);
+
+        $this->createRequest($user, 32);
+
+        $awardAfterActivation = $this->service->awardForNewRequests($user->id, 1);
+
+        $this->assertSame(3, $awardAfterActivation);
+        $this->assertDatabaseCount('user_points', 1);
+    }
+
     public function test_completed_swap_rewards_both_participants(): void
     {
         $membersTeam = Team::membersTeam();

@@ -41,6 +41,7 @@ class BaxxEarningRuleSeeder extends Seeder
                 'description' => 'Aktuell keine Baxx für neue Gesuche; kann im Adminbereich aktiviert werden.',
                 'points' => 0,
                 'every_count' => 1,
+                'is_active' => false,
             ],
             [
                 'action_key' => 'romantausch_swap_complete',

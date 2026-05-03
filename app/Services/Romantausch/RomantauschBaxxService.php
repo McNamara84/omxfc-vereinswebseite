@@ -2,6 +2,7 @@
 
 namespace App\Services\Romantausch;
 
+use App\Models\BaxxEarningProgress;
 use App\Models\BaxxEarningRule;
 use App\Models\BookOffer;
 use App\Models\BookRequest;
@@ -9,6 +10,7 @@ use App\Models\BookSwap;
 use App\Models\Team;
 use App\Models\UserPoint;
 use Closure;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use LogicException;
 
@@ -81,31 +83,76 @@ class RomantauschBaxxService
             return 0;
         }
 
-        $rule = BaxxEarningRule::getActiveRuleFor($actionKey);
+        return DB::transaction(function () use ($userId, $actionKey, $resolveTotalCount): int {
+            $progress = $this->lockProgress($userId, $actionKey);
+            $processedCount = max(0, $progress->processed_count);
+            $currentCount = max($processedCount, max(0, (int) $resolveTotalCount()));
+            $rule = BaxxEarningRule::query()
+                ->where('action_key', $actionKey)
+                ->first();
 
-        if (! $rule || $rule->points <= 0) {
-            return 0;
+            if (! $rule || ! $rule->is_active || $rule->points <= 0) {
+                $this->markProcessedCount($progress, $currentCount);
+
+                return 0;
+            }
+
+            $everyCount = max(1, $rule->every_count);
+            $thresholdCrossings = intdiv($currentCount, $everyCount) - intdiv($processedCount, $everyCount);
+
+            if ($thresholdCrossings <= 0) {
+                $this->markProcessedCount($progress, $currentCount);
+
+                return 0;
+            }
+
+            $walletTeam = $this->resolveMembersWalletTeam();
+            $awardedPoints = $thresholdCrossings * $rule->points;
+
+            UserPoint::query()->create([
+                'user_id' => $userId,
+                'team_id' => $walletTeam->id,
+                'points' => $awardedPoints,
+            ]);
+
+            $this->markProcessedCount($progress, $currentCount);
+
+            return $awardedPoints;
+        });
+    }
+
+    private function lockProgress(int $userId, string $actionKey): BaxxEarningProgress
+    {
+        $timestamp = now();
+
+        BaxxEarningProgress::query()->upsert(
+            [[
+                'user_id' => $userId,
+                'action_key' => $actionKey,
+                'processed_count' => 0,
+                'created_at' => $timestamp,
+                'updated_at' => $timestamp,
+            ]],
+            ['user_id', 'action_key'],
+            ['updated_at']
+        );
+
+        return BaxxEarningProgress::query()
+            ->where('user_id', $userId)
+            ->where('action_key', $actionKey)
+            ->lockForUpdate()
+            ->firstOrFail();
+    }
+
+    private function markProcessedCount(BaxxEarningProgress $progress, int $processedCount): void
+    {
+        if ($processedCount <= $progress->processed_count) {
+            return;
         }
 
-        $walletTeam = $this->resolveMembersWalletTeam();
-
-        $totalCount = max(0, (int) $resolveTotalCount());
-        $previousCount = max(0, $totalCount - $newActionCount);
-        $everyCount = max(1, $rule->every_count);
-        $thresholdCrossings = intdiv($totalCount, $everyCount) - intdiv($previousCount, $everyCount);
-        $awardedPoints = $thresholdCrossings * $rule->points;
-
-        if ($awardedPoints <= 0) {
-            return 0;
-        }
-
-        UserPoint::query()->create([
-            'user_id' => $userId,
-            'team_id' => $walletTeam->id,
-            'points' => $awardedPoints,
+        $progress->update([
+            'processed_count' => $processedCount,
         ]);
-
-        return $awardedPoints;
     }
 
     private function resolveMembersWalletTeam(): Team
