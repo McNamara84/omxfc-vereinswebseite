@@ -198,6 +198,38 @@ class FanfictionControllerTest extends TestCase
         $response->assertDontSee('Diese Geschichte ist gesperrt');
     }
 
+    public function test_show_reloads_wallet_state_after_auto_refund_for_own_fanfiction(): void
+    {
+        $this->member->incrementTeamPoints(10);
+
+        $fanfiction = Fanfiction::factory()->published()->create([
+            'team_id' => $this->memberTeam->id,
+            'user_id' => $this->member->id,
+            'created_by' => $this->member->id,
+            'title' => 'Eigene Geschichte mit Erstattung in Detailansicht',
+        ]);
+        $reward = $this->createRewardForFanfiction($fanfiction, 5);
+        $purchase = RewardPurchase::create([
+            'user_id' => $this->member->id,
+            'reward_id' => $reward->id,
+            'wallet_team_id' => $this->memberTeam->id,
+            'cost_baxx' => 5,
+            'purchased_at' => now(),
+        ]);
+
+        $response = $this->actingAs($this->member)
+            ->get(route('fanfiction.show', $fanfiction));
+
+        $response->assertOk();
+        $response->assertSee('Ein früherer Eigenkauf deiner Fanfiction wurde automatisch erstattet.');
+        $response->assertViewHas('autoRefundedPurchases', 1);
+        $response->assertViewHas('availableBaxx', 10);
+
+        $purchase->refresh();
+        $this->assertNotNull($purchase->refunded_at);
+        $this->assertNull($purchase->refunded_by);
+    }
+
     public function test_creator_without_linked_author_must_still_unlock_rewarded_fanfiction(): void
     {
         $fanfiction = Fanfiction::factory()->published()->externalAuthor()->create([

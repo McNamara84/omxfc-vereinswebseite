@@ -113,11 +113,11 @@ class FanfictionController extends Controller
 
         /** @var User $user */
         $user = Auth::user();
-        $walletState = $this->rewardService->getWalletState($user);
         $isOwnFanfiction = $this->fanfictionAccessService->isOwnContribution($user, $fanfiction);
         $autoRefundedPurchases = $isOwnFanfiction
             ? $this->fanfictionAccessService->refundOwnPurchases($user)
             : 0;
+        $walletState = $this->rewardService->getWalletState($user);
         $hasUnlocked = $this->fanfictionAccessService->hasUnlocked($user, $fanfiction);
 
         return view('fanfiction.show', [
