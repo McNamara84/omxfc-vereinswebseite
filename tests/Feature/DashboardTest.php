@@ -257,15 +257,15 @@ class DashboardTest extends TestCase
 
         $response = $this->actingAs($user)->get('/dashboard');
         $quickActions = collect($response->viewData('quickActions'));
-        $challengeAction = $quickActions->firstWhere('title', 'Baxx verdienen');
+        $earnBaxxAction = $quickActions->firstWhere('title', 'Baxx verdienen');
         $verificationAction = $quickActions->firstWhere('title', 'Verifizierungen prüfen');
 
         $response->assertOk();
         $response->assertSeeText('Mitgliedsanträge prüfen');
         $response->assertSeeText('Verifizierungen prüfen');
         $response->assertSeeText('Fantreffen verwalten');
-        $this->assertNotNull($challengeAction);
-        $this->assertArrayNotHasKey('badge', $challengeAction);
+        $this->assertNotNull($earnBaxxAction);
+        $this->assertArrayNotHasKey('badge', $earnBaxxAction);
         $this->assertSame(route('todos.index', ['filter' => 'pending']), $verificationAction['href'] ?? null);
         $this->assertSame('1', $verificationAction['badge'] ?? null);
     }
