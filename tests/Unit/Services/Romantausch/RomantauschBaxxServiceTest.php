@@ -102,7 +102,7 @@ class RomantauschBaxxServiceTest extends TestCase
         ]);
     }
 
-    public function test_same_threshold_is_only_awarded_once_when_service_is_called_twice(): void
+    public function test_follow_up_actions_below_the_next_threshold_do_not_award_again(): void
     {
         $user = $this->createMemberWithOtherCurrentTeam(Team::membersTeam(), Team::factory()->create());
 
@@ -117,6 +117,9 @@ class RomantauschBaxxServiceTest extends TestCase
         $this->createOffer($user, 13);
 
         $firstAward = $this->service->awardForNewOffers($user->id, 1);
+
+        $this->createOffer($user, 14);
+
         $secondAward = $this->service->awardForNewOffers($user->id, 1);
 
         $this->assertSame(5, $firstAward);
@@ -125,7 +128,33 @@ class RomantauschBaxxServiceTest extends TestCase
         $this->assertDatabaseHas('baxx_earning_progress', [
             'user_id' => $user->id,
             'action_key' => 'romantausch_offer',
-            'processed_count' => 3,
+            'processed_count' => 4,
+        ]);
+    }
+
+    public function test_existing_history_does_not_trigger_retroactive_threshold_awards_on_first_progress_entry(): void
+    {
+        $membersTeam = Team::membersTeam();
+        $user = $this->createMemberWithOtherCurrentTeam($membersTeam, Team::factory()->create());
+
+        $this->configureRule('romantausch_offer', [
+            'points' => 5,
+            'every_count' => 10,
+            'is_active' => true,
+        ]);
+
+        foreach (range(1, 21) as $bookNumber) {
+            $this->createOffer($user, $bookNumber);
+        }
+
+        $awardedPoints = $this->service->awardForNewOffers($user->id, 1);
+
+        $this->assertSame(0, $awardedPoints);
+        $this->assertDatabaseCount('user_points', 0);
+        $this->assertDatabaseHas('baxx_earning_progress', [
+            'user_id' => $user->id,
+            'action_key' => 'romantausch_offer',
+            'processed_count' => 21,
         ]);
     }
 

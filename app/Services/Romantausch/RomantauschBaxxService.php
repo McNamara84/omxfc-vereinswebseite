@@ -83,10 +83,12 @@ class RomantauschBaxxService
             return 0;
         }
 
-        return DB::transaction(function () use ($userId, $actionKey, $resolveTotalCount): int {
-            $progress = $this->lockProgress($userId, $actionKey);
-            $processedCount = max(0, $progress->processed_count);
-            $currentCount = max($processedCount, max(0, (int) $resolveTotalCount()));
+        return DB::transaction(function () use ($userId, $actionKey, $newActionCount, $resolveTotalCount): int {
+            $resolvedCount = max(0, (int) $resolveTotalCount());
+            $initialProcessedCount = max(0, $resolvedCount - $newActionCount);
+            $progress = $this->lockProgress($userId, $actionKey, $initialProcessedCount);
+            $processedCount = max($initialProcessedCount, max(0, $progress->processed_count));
+            $currentCount = max($processedCount + $newActionCount, $resolvedCount);
             $rule = BaxxEarningRule::query()
                 ->where('action_key', $actionKey)
                 ->first();
@@ -121,7 +123,7 @@ class RomantauschBaxxService
         });
     }
 
-    private function lockProgress(int $userId, string $actionKey): BaxxEarningProgress
+    private function lockProgress(int $userId, string $actionKey, int $initialProcessedCount): BaxxEarningProgress
     {
         $timestamp = now();
 
@@ -129,7 +131,7 @@ class RomantauschBaxxService
             [[
                 'user_id' => $userId,
                 'action_key' => $actionKey,
-                'processed_count' => 0,
+                'processed_count' => $initialProcessedCount,
                 'created_at' => $timestamp,
                 'updated_at' => $timestamp,
             ]],

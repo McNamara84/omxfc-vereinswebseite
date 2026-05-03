@@ -25,6 +25,10 @@ use Illuminate\Support\Facades\Mail;
  */
 class SwapMatchingService
 {
+    public function __construct(
+        private readonly RomantauschBaxxService $baxxService,
+    ) {}
+
     /**
      * Versucht einen Match für ein neues Angebot oder Gesuch zu finden.
      *
@@ -258,7 +262,7 @@ class SwapMatchingService
             $swap->offer->update(['completed' => true]);
             $swap->request->update(['completed' => true]);
 
-            $awardedPoints = $this->baxxService()->awardForCompletedSwap($swap->loadMissing(['offer', 'request']));
+            $awardedPoints = $this->baxxService->awardForCompletedSwap($swap->loadMissing(['offer', 'request']));
 
             $result['completed'] = true;
             $result['points_awarded'] = array_sum($awardedPoints) > 0;
@@ -281,13 +285,8 @@ class SwapMatchingService
         $offer->update(['completed' => true]);
         $request->update(['completed' => true]);
 
-        $this->baxxService()->awardForCompletedSwap($swap->loadMissing(['offer', 'request']));
+        $this->baxxService->awardForCompletedSwap($swap->loadMissing(['offer', 'request']));
 
         return $swap;
-    }
-
-    private function baxxService(): RomantauschBaxxService
-    {
-        return app(RomantauschBaxxService::class);
     }
 }
