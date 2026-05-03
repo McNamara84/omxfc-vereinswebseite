@@ -10,6 +10,8 @@ class BaxxEarningProgress extends Model
 {
     use HasFactory;
 
+    protected $table = 'baxx_earning_progress';
+
     protected $fillable = [
         'user_id',
         'action_key',
