@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Models\UserPoint;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Config;
 use PHPUnit\Framework\Attributes\TestWith;
 use Symfony\Component\DomCrawler\Crawler;
 use Tests\TestCase;
@@ -22,6 +23,7 @@ class DashboardTest extends TestCase
     {
         parent::setUp();
         Cache::flush();
+        Config::set('app.testing_minimal_layout', true);
     }
 
     private function createUserWithRole(Role $role): User

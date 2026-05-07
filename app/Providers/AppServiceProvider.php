@@ -140,6 +140,8 @@ class AppServiceProvider extends ServiceProvider
         if ($this->app->runningUnitTests()) {
             Blade::component('testing.components.button', 'button');
             Blade::component('testing.components.badge', 'badge');
+            Blade::component('testing.components.icon', 'icon');
+            Blade::component('testing.components.mary-modal', 'mary-modal');
             Blade::component('testing.components.toast', 'toast');
         }
 
