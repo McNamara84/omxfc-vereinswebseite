@@ -504,6 +504,17 @@ class BelohnungenAdmin extends Component
         unset($this->reviewSpecialOffers, $this->reviewRewardConfiguration);
     }
 
+    /**
+     * @return array{icon: string, tooltip: string}
+     */
+    public function specialOfferToggleAction(bool $isActive): array
+    {
+        return [
+            'icon' => $isActive ? 'o-eye-slash' : 'o-eye',
+            'tooltip' => $isActive ? 'Deaktivieren' : 'Aktivieren',
+        ];
+    }
+
     private function resetReviewSpecialOfferForm(): void
     {
         $this->editingReviewSpecialOfferId = null;

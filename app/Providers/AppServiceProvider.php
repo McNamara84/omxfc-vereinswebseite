@@ -97,6 +97,10 @@ class AppServiceProvider extends ServiceProvider
                 $defaultImagePath = 'resources/images/omxfc-logo.png';
             }
 
+            if ($defaultImagePath === '') {
+                $defaultImagePath = 'resources/images/omxfc-logo.png';
+            }
+
             $data = $view->getData();
             $socialImagePath = $data['image'] ?? $defaultImagePath;
             $socialImage = filter_var($socialImagePath, FILTER_VALIDATE_URL)

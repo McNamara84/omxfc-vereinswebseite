@@ -31,10 +31,12 @@
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
     <link href="https://fonts.bunny.net/css?family=space-grotesk:500,600,700&display=swap" rel="stylesheet" />
     <!-- Styles -->
+    @php($isMinimalTestLayout = app()->runningUnitTests() && config('app.testing_minimal_layout', false))
+    @php($shouldSkipViteAssets = app()->runningUnitTests())
     @include('layouts.partials.theme-bootstrap')
-    @if (file_exists(public_path('hot')) || file_exists(public_path('build/manifest.json')))
+    @unless ($shouldSkipViteAssets)
         @vite(['resources/css/app.css'])
-    @endif
+    @endunless
     {{-- Zusätzliche Head-Inhalte (z.B. JSON-LD für SEO) --}}
     {{ $head ?? '' }}
 </head>
@@ -42,7 +44,7 @@
 <body class="font-sans antialiased">
     <x-banner />
     <div class="omxfc-app-shell min-h-screen bg-base-200">
-        @unless(config('app.testing_minimal_layout', false) && app()->runningUnitTests())
+        @unless($isMinimalTestLayout)
             @persist('navigation')
                 @livewire('navigation-menu')
             @endpersist
@@ -62,18 +64,18 @@
     @stack('modals')
     @stack('scripts')
 
-    @unless(config('app.testing_minimal_layout', false) && app()->runningUnitTests())
+    @unless($isMinimalTestLayout)
         @persist('toast')
             <x-toast />
         @endpersist
     @endunless
 
-    @unless(config('app.testing_minimal_layout', false) && app()->runningUnitTests())
+    @unless($isMinimalTestLayout)
         @include('layouts.partials.flash-toast-bridge')
     @endunless
 
-    @if (file_exists(public_path('hot')) || file_exists(public_path('build/manifest.json')))
+    @unless ($shouldSkipViteAssets)
         @vite(['resources/js/app.js'])
-    @endif
+    @endunless
 </body>
 </html>

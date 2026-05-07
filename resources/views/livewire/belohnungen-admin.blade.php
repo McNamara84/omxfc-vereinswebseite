@@ -223,13 +223,14 @@
                     @endscope
 
                     @scope('cell_actions', $offer)
+                        @php($toggleAction = $this->specialOfferToggleAction($offer->is_active))
                         <div class="flex gap-2">
                             <x-button icon="o-pencil" class="btn-ghost btn-xs" wire:click="openEditRomantauschSpecialOffer({{ $offer->id }})" tooltip="Bearbeiten" />
                             <x-button
-                                icon="{{ $offer->is_active && $offer->ends_at->isFuture() ? 'o-eye-slash' : 'o-eye' }}"
+                                icon="{{ $toggleAction['icon'] }}"
                                 class="btn-ghost btn-xs"
                                 wire:click="toggleRomantauschSpecialOfferActive({{ $offer->id }})"
-                                tooltip="{{ $offer->is_active && $offer->ends_at->isFuture() ? 'Deaktivieren' : 'Aktivieren' }}"
+                                tooltip="{{ $toggleAction['tooltip'] }}"
                             />
                         </div>
                     @endscope
@@ -273,13 +274,14 @@
                     @endscope
 
                     @scope('cell_actions', $offer)
+                        @php($toggleAction = $this->specialOfferToggleAction($offer->is_active))
                         <div class="flex gap-2">
                             <x-button icon="o-pencil" class="btn-ghost btn-xs" wire:click="openEditReviewSpecialOffer({{ $offer->id }})" tooltip="Bearbeiten" />
                             <x-button
-                                icon="{{ $offer->is_active && $offer->ends_at->isFuture() ? 'o-eye-slash' : 'o-eye' }}"
+                                icon="{{ $toggleAction['icon'] }}"
                                 class="btn-ghost btn-xs"
                                 wire:click="toggleReviewSpecialOfferActive({{ $offer->id }})"
-                                tooltip="{{ $offer->is_active && $offer->ends_at->isFuture() ? 'Deaktivieren' : 'Aktivieren' }}"
+                                tooltip="{{ $toggleAction['tooltip'] }}"
                             />
                         </div>
                     @endscope

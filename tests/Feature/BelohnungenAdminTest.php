@@ -295,6 +295,34 @@ class BelohnungenAdminTest extends TestCase
         ]);
     }
 
+    public function test_expired_active_romantausch_special_offer_uses_deactivate_toggle_ui_and_can_be_deactivated(): void
+    {
+        $this->actingAdmin();
+
+        $offer = RomantauschBaxxSpecialOffer::create([
+            'action_key' => 'romantausch_swap_complete',
+            'points' => 5,
+            'every_count' => 1,
+            'ends_at' => now()->subDay(),
+            'is_active' => true,
+        ]);
+
+        $component = app(BelohnungenAdmin::class);
+
+        $this->assertSame([
+            'icon' => 'o-eye-slash',
+            'tooltip' => 'Deaktivieren',
+        ], $component->specialOfferToggleAction($offer->is_active));
+
+        Livewire::test(BelohnungenAdmin::class)
+            ->call('toggleRomantauschSpecialOfferActive', $offer->id);
+
+        $this->assertDatabaseHas('romantausch_baxx_special_offers', [
+            'id' => $offer->id,
+            'is_active' => false,
+        ]);
+    }
+
     // ── Freischaltungen / Refund ───────────────────────────
 
     public function test_refund_purchase(): void
