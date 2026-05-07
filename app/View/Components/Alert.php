@@ -7,7 +7,7 @@ use Illuminate\Contracts\View\View;
 use Illuminate\View\Component;
 
 /**
- * Schlanke Alert-Komponente ohne harte Abhängigkeit auf MaryUI.
+ * Eigene schlanke Alert-Komponente fuer konsistentes Alert-Rendering ohne MaryUI-Alert-Abhaengigkeit.
  */
 class Alert extends Component
 {
@@ -22,24 +22,31 @@ class Alert extends Component
     public function render(): View|Closure|string
     {
         return <<<'BLADE'
+                @php($hasBody = trim((string) $slot) !== '')
+
                 <div
                     {{ $attributes->whereDoesntStartWith('class') }}
                     {{ $attributes->class(['alert rounded-md', 'shadow-md' => $shadow]) }}
                     x-data="{ show: true }" x-show="show"
                 >
                     @if($icon)
-                        <span aria-hidden="true" class="self-center text-sm">•</span>
+                        <x-icon :name="$icon" class="mt-0.5 h-5 w-5 shrink-0 self-start" />
                     @endif
 
-                    @if($title || $description)
+                    @if($title || $description || $hasBody)
                         <div>
-                            <div @class(["font-bold" => $description])>{{ $title }}</div>
+                            @if($title)
+                                <div class="font-bold">{{ $title }}</div>
+                            @endif
+
                             @if($description)
                                 <div class="text-xs">{{ $description }}</div>
                             @endif
+
+                            @if($hasBody)
+                                <div @class(['mt-1 text-xs' => $description, 'text-sm' => ! $description])>{{ $slot }}</div>
+                            @endif
                         </div>
-                    @else
-                        <span>{{ $slot }}</span>
                     @endif
 
                     @isset($actions)

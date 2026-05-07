@@ -265,7 +265,7 @@
                                             </span>
                                             @break
                                         @case('indexierung_laeuft')
-                                            <span data-testid="roman-status-indexierung-lauft">
+                                            <span data-testid="roman-status-indexierung-laeuft">
                                                 <x-badge value="Läuft..." class="badge-warning animate-pulse" icon="o-arrow-path" />
                                             </span>
                                             @break
