@@ -7,7 +7,7 @@ use Illuminate\Contracts\View\View;
 use Illuminate\View\Component;
 
 /**
- * Standalone-Alert-Komponente fuer Titel-, Text-, Actions- und Dismiss-Rendering ohne MaryUI-Alert-Override.
+ * Eigenständige Alert-Komponente für Titel-, Text-, Actions- und Dismiss-Rendering ohne MaryUI-Abhängigkeit.
  */
 class Alert extends Component
 {
