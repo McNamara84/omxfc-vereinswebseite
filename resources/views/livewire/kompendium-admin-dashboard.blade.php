@@ -255,16 +255,24 @@
                                 <td>
                                     @switch($roman->status)
                                         @case('indexiert')
-                                            <x-badge value="Indexiert" class="badge-success" icon="o-check-circle" />
+                                            <span data-testid="roman-status-indexiert">
+                                                <x-badge value="Indexiert" class="badge-success" icon="o-check-circle" />
+                                            </span>
                                             @break
                                         @case('hochgeladen')
-                                            <x-badge value="Hochgeladen" class="badge-info" icon="o-cloud-arrow-up" />
+                                            <span data-testid="roman-status-hochgeladen">
+                                                <x-badge value="Hochgeladen" class="badge-info" icon="o-cloud-arrow-up" />
+                                            </span>
                                             @break
                                         @case('indexierung_laeuft')
-                                            <x-badge value="Läuft..." class="badge-warning animate-pulse" icon="o-arrow-path" />
+                                            <span data-testid="roman-status-indexierung-lauft">
+                                                <x-badge value="Läuft..." class="badge-warning animate-pulse" icon="o-arrow-path" />
+                                            </span>
                                             @break
                                         @case('fehler')
-                                            <x-badge value="Fehler" class="badge-error" icon="o-x-circle" />
+                                            <span data-testid="roman-status-fehler">
+                                                <x-badge value="Fehler" class="badge-error" icon="o-x-circle" />
+                                            </span>
                                             @break
                                     @endswitch
                                 </td>

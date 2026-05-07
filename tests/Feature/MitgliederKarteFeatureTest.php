@@ -103,8 +103,23 @@ class MitgliederKarteFeatureTest extends TestCase
     public function test_purchase_returns_friendly_error_when_reward_purchase_throws_logic_exception(): void
     {
         $user = $this->actingMember();
+        $reward = Reward::query()->firstOrCreate(
+            ['slug' => 'mitgliederkarte'],
+            [
+                'title' => 'Mitgliederkarte',
+                'description' => 'Interaktive Karte aller freigeschalteten Mitglieder.',
+                'cost_baxx' => 250,
+                'is_active' => true,
+                'category' => 'Allgemein',
+                'sort_order' => 0,
+            ],
+        );
 
-        $this->mock(RewardService::class, function ($mock) {
+        $this->mock(RewardService::class, function ($mock) use ($reward) {
+            $mock->shouldReceive('resolveMitgliederkarteReward')
+                ->once()
+                ->andReturn($reward);
+
             $mock->shouldReceive('purchaseReward')
                 ->once()
                 ->andThrow(new LogicException('Boom'));

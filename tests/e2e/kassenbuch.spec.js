@@ -212,7 +212,7 @@ test.describe('Kassenbuch Verwaltung', () => {
         await expect(editButtons.first()).toBeVisible();
         await expect(editButtons.first()).toHaveAttribute('data-user-name', /\S+/);
 
-        const statusBadges = page.locator('tbody tr td .badge');
+        const statusBadges = page.getByTestId('kassenbuch-status-badge');
         await expect(statusBadges.first()).toBeVisible();
 
         const dialogs = page.locator('[role="dialog"]');

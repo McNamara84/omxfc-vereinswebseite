@@ -181,14 +181,22 @@
                                             @endphp
 
                                             @if($differenz < 0)
-                                                <x-badge value="Überfällig: {{ $bezahlt_bis->format('d.m.Y') }}" class="badge-error" icon="o-exclamation-triangle" />
+                                                <span data-testid="kassenbuch-status-badge">
+                                                    <x-badge value="Überfällig: {{ $bezahlt_bis->format('d.m.Y') }}" class="badge-error" icon="o-exclamation-triangle" />
+                                                </span>
                                             @elseif($differenz <= 30)
-                                                <x-badge value="{{ $bezahlt_bis->format('d.m.Y') }}" class="badge-warning" icon="o-clock" />
+                                                <span data-testid="kassenbuch-status-badge">
+                                                    <x-badge value="{{ $bezahlt_bis->format('d.m.Y') }}" class="badge-warning" icon="o-clock" />
+                                                </span>
                                             @else
-                                                <x-badge value="{{ $bezahlt_bis->format('d.m.Y') }}" class="badge-success" icon="o-check-circle" />
+                                                <span data-testid="kassenbuch-status-badge">
+                                                    <x-badge value="{{ $bezahlt_bis->format('d.m.Y') }}" class="badge-success" icon="o-check-circle" />
+                                                </span>
                                             @endif
                                         @else
-                                            <x-badge value="Nicht festgelegt" class="badge-ghost" icon="o-minus-circle" />
+                                            <span data-testid="kassenbuch-status-badge">
+                                                <x-badge value="Nicht festgelegt" class="badge-ghost" icon="o-minus-circle" />
+                                            </span>
                                         @endif
                                     </td>
                                     @if($this->userRole === \App\Enums\Role::Kassenwart || $this->userRole === \App\Enums\Role::Admin)
@@ -303,7 +311,9 @@
                                                     })" />
                                             @elseif($entry->hasPendingEditRequest())
                                                 {{-- Anfrage läuft --}}
-                                                <x-badge value="Anfrage läuft" class="badge-warning animate-pulse" icon="o-clock" />
+                                                <span data-testid="kassenbuch-status-badge">
+                                                    <x-badge value="Anfrage läuft" class="badge-warning animate-pulse" icon="o-clock" />
+                                                </span>
                                             @else
                                                 {{-- Bearbeitung anfragen --}}
                                                 <x-button
