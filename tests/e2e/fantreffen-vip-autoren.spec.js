@@ -16,18 +16,20 @@ test.describe('Fantreffen VIP-Autoren Verwaltung', () => {
     test('Seite ist erreichbar und zeigt bestehende VIP-Autoren', async ({ page }) => {
         await page.goto('/admin/fantreffen-2026/vip-autoren');
         await page.waitForLoadState('networkidle');
+        const authorsList = page.getByTestId('vip-authors-list');
 
         // Überschrift sichtbar (maryUI <x-header> rendert als <div>, nicht als heading)
         await expect(page.getByText('VIP-Autoren verwalten').first()).toBeVisible();
 
         // Bestehende Autoren aus dem Seeder sichtbar
-        await expect(page.getByText('Oliver Fröhlich')).toBeVisible();
-        await expect(page.getByText('Jo Zybell')).toBeVisible();
+        await expect(authorsList.getByText('Oliver Fröhlich', { exact: true })).toBeVisible();
+        await expect(authorsList.getByText('Jo Zybell', { exact: true })).toBeVisible();
     });
 
     test('Neuer VIP-Autor kann angelegt werden', async ({ page }) => {
         await page.goto('/admin/fantreffen-2026/vip-autoren');
         await page.waitForLoadState('networkidle');
+        const authorsList = page.getByTestId('vip-authors-list');
 
         // "Neuen Autor hinzufügen"-Button klicken
         await page.getByRole('button', { name: /Neuen Autor hinzufügen/i }).click();
@@ -52,8 +54,8 @@ test.describe('Fantreffen VIP-Autoren Verwaltung', () => {
         await page.waitForLoadState('networkidle');
 
         // Erfolg prüfen: neuer Autor in der Liste sichtbar
-        await expect(page.getByText('Testautor Playwright')).toBeVisible();
-        await expect(page.getByText('Pseudo Test')).toBeVisible();
+        await expect(authorsList.getByText('Testautor Playwright', { exact: true })).toBeVisible();
+        await expect(authorsList.getByText('Pseudo Test')).toBeVisible();
 
         // Formular sollte geschlossen sein
         await expect(page.locator('input[wire\\:model="name"]')).not.toBeVisible();
