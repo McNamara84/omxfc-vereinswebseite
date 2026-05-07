@@ -2,13 +2,27 @@
 
 namespace Tests\Feature;
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Contracts\Console\Kernel;
+use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 use Illuminate\Support\Facades\Blade;
-use Tests\TestCase;
 
-class AlertComponentTest extends TestCase
+class AlertComponentTest extends BaseTestCase
 {
-    use RefreshDatabase;
+    public function createApplication()
+    {
+        $app = require __DIR__.'/../../bootstrap/app.php';
+
+        $app->make(Kernel::class)->bootstrap();
+
+        return $app;
+    }
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        config(['app.key' => 'base64:'.base64_encode(random_bytes(32))]);
+    }
 
     public function test_alert_renders_title_slot_and_icon_without_description(): void
     {
@@ -28,5 +42,13 @@ class AlertComponentTest extends TestCase
         $this->assertStringContainsString('Hinweis', $html);
         $this->assertStringContainsString('Kurzbeschreibung', $html);
         $this->assertStringContainsString('Zusätzlicher Hinweistext.', $html);
+    }
+
+    public function test_alert_does_not_duplicate_passed_attributes(): void
+    {
+        $html = Blade::render('<x-alert id="warnung" data-testid="alert-komponente">Testinhalt</x-alert>');
+
+        $this->assertSame(1, substr_count($html, 'id="warnung"'));
+        $this->assertSame(1, substr_count($html, 'data-testid="alert-komponente"'));
     }
 }
