@@ -7,6 +7,7 @@ use App\Models\BaxxEarningRule;
 use App\Models\BookOffer;
 use App\Models\BookRequest;
 use App\Models\BookSwap;
+use App\Models\RomantauschBaxxSpecialOffer;
 use App\Models\Team;
 use App\Models\User;
 use App\Services\Romantausch\RomantauschBaxxService;
@@ -101,6 +102,75 @@ class RomantauschBaxxServiceTest extends TestCase
             'user_id' => $user->id,
             'team_id' => $membersTeam->id,
             'points' => 3,
+        ]);
+    }
+
+    public function test_active_special_offer_overrides_request_base_rule(): void
+    {
+        $membersTeam = Team::membersTeam();
+        $user = $this->createMemberWithOtherCurrentTeam($membersTeam, Team::factory()->create());
+
+        $this->configureRule('romantausch_request', [
+            'points' => 1,
+            'every_count' => 5,
+            'is_active' => true,
+        ]);
+
+        RomantauschBaxxSpecialOffer::create([
+            'action_key' => 'romantausch_request',
+            'points' => 4,
+            'every_count' => 1,
+            'ends_at' => now()->addDay(),
+            'is_active' => true,
+        ]);
+
+        $this->createRequest($user, 8);
+
+        $effectiveRule = $this->service->getEffectiveRule('romantausch_request');
+        $awardedPoints = $this->service->awardForNewRequests($user->id, 1);
+
+        $this->assertTrue($effectiveRule['is_special_offer']);
+        $this->assertSame(4, $effectiveRule['points']);
+        $this->assertSame(1, $effectiveRule['every_count']);
+        $this->assertSame(4, $awardedPoints);
+        $this->assertDatabaseHas('user_points', [
+            'user_id' => $user->id,
+            'team_id' => $membersTeam->id,
+            'points' => 4,
+        ]);
+    }
+
+    public function test_expired_special_offer_falls_back_to_offer_base_rule(): void
+    {
+        $membersTeam = Team::membersTeam();
+        $user = $this->createMemberWithOtherCurrentTeam($membersTeam, Team::factory()->create());
+
+        $this->configureRule('romantausch_offer', [
+            'points' => 6,
+            'every_count' => 1,
+            'is_active' => true,
+        ]);
+
+        RomantauschBaxxSpecialOffer::create([
+            'action_key' => 'romantausch_offer',
+            'points' => 9,
+            'every_count' => 1,
+            'ends_at' => now()->subMinute(),
+            'is_active' => true,
+        ]);
+
+        $this->createOffer($user, 15);
+
+        $effectiveRule = $this->service->getEffectiveRule('romantausch_offer');
+        $awardedPoints = $this->service->awardForNewOffers($user->id, 1);
+
+        $this->assertFalse($effectiveRule['is_special_offer']);
+        $this->assertSame(6, $effectiveRule['points']);
+        $this->assertSame(6, $awardedPoints);
+        $this->assertDatabaseHas('user_points', [
+            'user_id' => $user->id,
+            'team_id' => $membersTeam->id,
+            'points' => 6,
         ]);
     }
 
@@ -294,6 +364,54 @@ class RomantauschBaxxServiceTest extends TestCase
             'user_id' => $requestUser->id,
             'team_id' => $membersTeam->id,
             'points' => 2,
+        ]);
+    }
+
+    public function test_completed_swap_special_offer_overrides_base_rule_for_both_participants(): void
+    {
+        $membersTeam = Team::membersTeam();
+        $otherTeam = Team::factory()->create();
+        $offerUser = $this->createMemberWithOtherCurrentTeam($membersTeam, $otherTeam);
+        $requestUser = $this->createMemberWithOtherCurrentTeam($membersTeam, $otherTeam);
+
+        $this->configureRule('romantausch_swap_complete', [
+            'points' => 2,
+            'every_count' => 1,
+            'is_active' => true,
+        ]);
+
+        RomantauschBaxxSpecialOffer::create([
+            'action_key' => 'romantausch_swap_complete',
+            'points' => 5,
+            'every_count' => 1,
+            'ends_at' => now()->addDay(),
+            'is_active' => true,
+        ]);
+
+        $offer = $this->createOffer($offerUser, 22);
+        $request = $this->createRequest($requestUser, 22);
+        $swap = BookSwap::create([
+            'offer_id' => $offer->id,
+            'request_id' => $request->id,
+            'completed_at' => now(),
+        ]);
+
+        $awardedPoints = $this->service->awardForCompletedSwap($swap);
+
+        $this->assertSame([
+            'offer_user_points' => 5,
+            'request_user_points' => 5,
+        ], $awardedPoints);
+
+        $this->assertDatabaseHas('user_points', [
+            'user_id' => $offerUser->id,
+            'team_id' => $membersTeam->id,
+            'points' => 5,
+        ]);
+        $this->assertDatabaseHas('user_points', [
+            'user_id' => $requestUser->id,
+            'team_id' => $membersTeam->id,
+            'points' => 5,
         ]);
     }
 

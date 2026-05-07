@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Vite;
@@ -30,7 +31,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        if (! Route::hasMacro('livewire')) {
+            Route::macro('livewire', function (string $uri, string $component) {
+                return Route::get($uri, $component);
+            });
+        }
     }
 
     /**
@@ -131,6 +136,12 @@ class AppServiceProvider extends ServiceProvider
         });
 
         Blade::if('vorstand', fn () => auth()->check() && auth()->user()->hasVorstandRole());
+
+        if ($this->app->runningUnitTests()) {
+            Blade::component('testing.components.button', 'button');
+            Blade::component('testing.components.badge', 'badge');
+            Blade::component('testing.components.toast', 'toast');
+        }
 
         // Override maryUI Alert: adds aria-label="Schließen" to dismiss button (WCAG AA)
         Blade::component('alert', Alert::class);

@@ -11,6 +11,7 @@ use App\Services\RewardService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Factory;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Http;
 use LogicException;
 use Tests\Concerns\CreatesUserWithRole;
@@ -20,6 +21,13 @@ class MitgliederKarteFeatureTest extends TestCase
 {
     use CreatesUserWithRole;
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        Config::set('app.testing_minimal_layout', true);
+    }
 
     private function purchaseMemberMapReward(User $user): void
     {
@@ -68,6 +76,28 @@ class MitgliederKarteFeatureTest extends TestCase
         $response->assertSee('Mitgliederkarte freischalten');
         $response->assertViewHas('walletWarning', fn ($warning) => is_string($warning) && $warning !== '');
         $this->assertSame('[]', $response->viewData('memberData'));
+    }
+
+    public function test_missing_member_map_reward_is_restored_instead_of_returning_404(): void
+    {
+        $user = $this->actingMember();
+
+        Reward::query()->where('slug', 'mitgliederkarte')->delete();
+
+        $response = $this->actingAs($user)
+            ->get('/mitglieder/karte');
+
+        $response->assertOk();
+        $response->assertViewIs('mitglieder.karte');
+        $response->assertSee('Mitgliederkarte freischalten');
+
+        $reward = Reward::query()->where('slug', 'mitgliederkarte')->first();
+
+        $this->assertNotNull($reward);
+        $this->assertSame('Mitgliederkarte', $reward->title);
+        $this->assertSame('Allgemein', $reward->category);
+        $this->assertTrue($reward->is_active);
+        $this->assertGreaterThan(0, $reward->cost_baxx);
     }
 
     public function test_purchase_returns_friendly_error_when_reward_purchase_throws_logic_exception(): void

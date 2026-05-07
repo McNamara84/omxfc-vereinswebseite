@@ -11,6 +11,7 @@ use App\Livewire\RomantauschShowOffer;
 use App\Models\BookOffer;
 use App\Models\BookRequest;
 use App\Models\BookSwap;
+use App\Models\RomantauschBaxxSpecialOffer;
 use App\Models\User;
 use App\Services\Romantausch\BookPhotoService;
 use App\Services\Romantausch\RomantauschBaxxService;
@@ -584,6 +585,33 @@ class RomantauschLivewireTest extends TestCase
         ]);
     }
 
+    public function test_active_special_offer_awards_offer_points_immediately(): void
+    {
+        $this->seedBooksForRomantausch();
+        $user = $this->actingMember();
+
+        RomantauschBaxxSpecialOffer::create([
+            'action_key' => 'romantausch_offer',
+            'points' => 4,
+            'every_count' => 1,
+            'ends_at' => now()->addDay(),
+            'is_active' => true,
+        ]);
+
+        Livewire::test(RomantauschOfferForm::class)
+            ->set('series', BookType::MaddraxDieDunkleZukunftDerErde->value)
+            ->set('book_number', 1)
+            ->set('condition', 'neu')
+            ->call('save')
+            ->assertRedirect(route('romantausch.index'));
+
+        $this->assertDatabaseCount('user_points', 1);
+        $this->assertDatabaseHas('user_points', [
+            'user_id' => $user->id,
+            'points' => 4,
+        ]);
+    }
+
     // ──────────────────────────────────────────────
     // Offer Form: Photos
     // ──────────────────────────────────────────────
@@ -880,6 +908,33 @@ class RomantauschLivewireTest extends TestCase
             ->assertHasErrors('book_number');
 
         $this->assertDatabaseCount('book_requests', 0);
+    }
+
+    public function test_active_special_offer_awards_request_points_immediately(): void
+    {
+        $this->seedBooksForRomantausch();
+        $user = $this->actingMember();
+
+        RomantauschBaxxSpecialOffer::create([
+            'action_key' => 'romantausch_request',
+            'points' => 3,
+            'every_count' => 1,
+            'ends_at' => now()->addDay(),
+            'is_active' => true,
+        ]);
+
+        Livewire::test(RomantauschRequestForm::class)
+            ->set('series', BookType::MaddraxDieDunkleZukunftDerErde->value)
+            ->set('book_number', 1)
+            ->set('condition', 'neu')
+            ->call('save')
+            ->assertRedirect(route('romantausch.index'));
+
+        $this->assertDatabaseCount('user_points', 1);
+        $this->assertDatabaseHas('user_points', [
+            'user_id' => $user->id,
+            'points' => 3,
+        ]);
     }
 
     public function test_store_request_validates_required_fields(): void

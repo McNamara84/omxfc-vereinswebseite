@@ -5,9 +5,11 @@ namespace App\Livewire;
 use Carbon\Carbon;
 use App\Models\BaxxEarningRule;
 use App\Models\Download;
+use App\Models\RomantauschBaxxSpecialOffer;
 use App\Models\Reward;
 use App\Models\RewardPurchase;
 use App\Models\ReviewBaxxSpecialOffer;
+use App\Services\Romantausch\RomantauschBaxxService;
 use App\Services\ReviewBaxxService;
 use App\Services\RewardService;
 use Illuminate\Support\Collection;
@@ -78,6 +80,21 @@ class BelohnungenAdmin extends Component
 
     public bool $reviewSpecialOfferIsActive = true;
 
+    // --- Romantausch special offers ---
+    public bool $showRomantauschSpecialOfferModal = false;
+
+    public ?int $editingRomantauschSpecialOfferId = null;
+
+    public string $romantauschSpecialOfferActionKey = 'romantausch_offer';
+
+    public int $romantauschSpecialOfferPoints = 1;
+
+    public int $romantauschSpecialOfferEveryCount = 1;
+
+    public string $romantauschSpecialOfferEndsAt = '';
+
+    public bool $romantauschSpecialOfferIsActive = true;
+
     // --- Download management ---
     public bool $showDownloadModal = false;
 
@@ -109,6 +126,12 @@ class BelohnungenAdmin extends Component
     }
 
     #[Computed]
+    public function mitgliederkarteReward(): Reward
+    {
+        return app(RewardService::class)->resolveMitgliederkarteReward();
+    }
+
+    #[Computed]
     public function earningRules(): \Illuminate\Database\Eloquent\Collection
     {
         return BaxxEarningRule::orderBy('action_key')->get();
@@ -133,6 +156,28 @@ class BelohnungenAdmin extends Component
             'effective_rule' => $service->getEffectiveRule(),
             'prominent_special_offer' => $service->getProminentSpecialOffer(),
         ];
+    }
+
+    #[Computed]
+    public function romantauschSpecialOffers(): \Illuminate\Database\Eloquent\Collection
+    {
+        return RomantauschBaxxSpecialOffer::query()
+            ->orderBy('action_key')
+            ->orderByDesc('is_active')
+            ->orderByDesc('ends_at')
+            ->get();
+    }
+
+    #[Computed]
+    public function romantauschRewardConfiguration(): array
+    {
+        return app(RomantauschBaxxService::class)->getActionConfigurations();
+    }
+
+    #[Computed]
+    public function romantauschSpecialOfferActionOptions(): array
+    {
+        return RomantauschBaxxSpecialOffer::actionOptions();
     }
 
     #[Computed]
@@ -234,6 +279,11 @@ class BelohnungenAdmin extends Component
         $this->showRewardModal = true;
     }
 
+    public function openEditMitgliederkarteReward(): void
+    {
+        $this->openEditReward(app(RewardService::class)->resolveMitgliederkarteReward()->id);
+    }
+
     public function saveReward(): void
     {
         $this->validate([
@@ -271,7 +321,7 @@ class BelohnungenAdmin extends Component
 
         $this->showRewardModal = false;
         $this->resetRewardForm();
-        unset($this->rewards, $this->statistics);
+        unset($this->rewards, $this->mitgliederkarteReward, $this->statistics);
     }
 
     public function toggleRewardActive(int $rewardId): void
@@ -280,7 +330,7 @@ class BelohnungenAdmin extends Component
         $reward->update(['is_active' => ! $reward->is_active]);
         $status = $reward->is_active ? 'aktiviert' : 'deaktiviert';
         $this->dispatch('toast', type: 'success', title: "Belohnung {$status}");
-        unset($this->rewards, $this->statistics);
+        unset($this->rewards, $this->mitgliederkarteReward, $this->statistics);
     }
 
     private function resetRewardForm(): void
@@ -461,6 +511,134 @@ class BelohnungenAdmin extends Component
         $this->reviewSpecialOfferEveryCount = 1;
         $this->reviewSpecialOfferEndsAt = now()->addDay()->format('Y-m-d\TH:i');
         $this->reviewSpecialOfferIsActive = true;
+    }
+
+    public function openCreateRomantauschSpecialOffer(): void
+    {
+        $this->resetRomantauschSpecialOfferForm();
+        $this->showRomantauschSpecialOfferModal = true;
+    }
+
+    public function openEditRomantauschSpecialOffer(int $offerId): void
+    {
+        $offer = RomantauschBaxxSpecialOffer::findOrFail($offerId);
+        $this->editingRomantauschSpecialOfferId = $offer->id;
+        $this->romantauschSpecialOfferActionKey = $offer->action_key;
+        $this->romantauschSpecialOfferPoints = $offer->points;
+        $this->romantauschSpecialOfferEveryCount = $offer->every_count;
+        $this->romantauschSpecialOfferEndsAt = $offer->ends_at->copy()->timezone(config('app.timezone'))->format('Y-m-d\TH:i');
+        $this->romantauschSpecialOfferIsActive = $offer->is_active;
+        $this->showRomantauschSpecialOfferModal = true;
+    }
+
+    public function saveRomantauschSpecialOffer(): void
+    {
+        $this->validate([
+            'romantauschSpecialOfferActionKey' => ['required', Rule::in(RomantauschBaxxSpecialOffer::allowedActionKeys())],
+            'romantauschSpecialOfferPoints' => 'required|integer|min:1',
+            'romantauschSpecialOfferEveryCount' => 'required|integer|min:1',
+            'romantauschSpecialOfferEndsAt' => 'required|date',
+        ]);
+
+        $endsAt = Carbon::parse($this->romantauschSpecialOfferEndsAt, config('app.timezone'));
+
+        if ($this->romantauschSpecialOfferIsActive && $endsAt->lte(now())) {
+            throw ValidationException::withMessages([
+                'romantauschSpecialOfferEndsAt' => 'Das Enddatum einer aktiven Sonderaktion muss in der Zukunft liegen.',
+            ]);
+        }
+
+        $actionKey = $this->romantauschSpecialOfferActionKey;
+        $data = [
+            'action_key' => $actionKey,
+            'points' => $this->romantauschSpecialOfferPoints,
+            'every_count' => $this->romantauschSpecialOfferEveryCount,
+            'ends_at' => $endsAt,
+            'is_active' => $this->romantauschSpecialOfferIsActive,
+        ];
+
+        DB::transaction(function () use ($actionKey, $data) {
+            BaxxEarningRule::query()
+                ->where('action_key', $actionKey)
+                ->lockForUpdate()
+                ->first();
+
+            $hasConflictingOffer = RomantauschBaxxSpecialOffer::query()
+                ->forActionKey($actionKey)
+                ->currentlyActive()
+                ->when($this->editingRomantauschSpecialOfferId, fn ($query) => $query->whereKeyNot($this->editingRomantauschSpecialOfferId))
+                ->exists();
+
+            if ($this->romantauschSpecialOfferIsActive && $hasConflictingOffer) {
+                throw ValidationException::withMessages([
+                    'romantauschSpecialOfferIsActive' => 'Es kann pro Romantausch-Aktion immer nur eine aktive Sonderaktion gleichzeitig geben.',
+                ]);
+            }
+
+            if ($this->editingRomantauschSpecialOfferId) {
+                RomantauschBaxxSpecialOffer::findOrFail($this->editingRomantauschSpecialOfferId)->update($data);
+
+                return;
+            }
+
+            RomantauschBaxxSpecialOffer::create($data);
+        });
+
+        $title = $this->editingRomantauschSpecialOfferId
+            ? 'Romantausch-Sonderaktion aktualisiert'
+            : 'Romantausch-Sonderaktion erstellt';
+        $this->dispatch('toast', type: 'success', title: $title);
+
+        $this->showRomantauschSpecialOfferModal = false;
+        $this->resetRomantauschSpecialOfferForm();
+        unset($this->romantauschSpecialOffers, $this->romantauschRewardConfiguration);
+    }
+
+    public function toggleRomantauschSpecialOfferActive(int $offerId): void
+    {
+        $status = DB::transaction(function () use ($offerId) {
+            $offer = RomantauschBaxxSpecialOffer::findOrFail($offerId);
+
+            BaxxEarningRule::query()
+                ->where('action_key', $offer->action_key)
+                ->lockForUpdate()
+                ->first();
+
+            $nextActiveState = ! $offer->is_active;
+
+            if ($nextActiveState && $offer->ends_at->lte(now())) {
+                throw ValidationException::withMessages([
+                    'romantauschSpecialOfferIsActive' => 'Abgelaufene Sonderaktionen können nicht erneut aktiviert werden.',
+                ]);
+            }
+
+            if ($nextActiveState && RomantauschBaxxSpecialOffer::query()
+                ->forActionKey($offer->action_key)
+                ->currentlyActive()
+                ->whereKeyNot($offer->id)
+                ->exists()) {
+                throw ValidationException::withMessages([
+                    'romantauschSpecialOfferIsActive' => 'Es gibt bereits eine andere aktive Sonderaktion für diese Romantausch-Aktion.',
+                ]);
+            }
+
+            $offer->update(['is_active' => $nextActiveState]);
+
+            return $offer->is_active ? 'aktiviert' : 'deaktiviert';
+        });
+
+        $this->dispatch('toast', type: 'success', title: "Romantausch-Sonderaktion {$status}");
+        unset($this->romantauschSpecialOffers, $this->romantauschRewardConfiguration);
+    }
+
+    private function resetRomantauschSpecialOfferForm(): void
+    {
+        $this->editingRomantauschSpecialOfferId = null;
+        $this->romantauschSpecialOfferActionKey = RomantauschBaxxSpecialOffer::allowedActionKeys()[0];
+        $this->romantauschSpecialOfferPoints = 1;
+        $this->romantauschSpecialOfferEveryCount = 1;
+        $this->romantauschSpecialOfferEndsAt = now()->addDay()->format('Y-m-d\TH:i');
+        $this->romantauschSpecialOfferIsActive = true;
     }
 
     // =====================================================
@@ -683,7 +861,11 @@ class BelohnungenAdmin extends Component
 
     public function render()
     {
-        return view('livewire.belohnungen-admin')
+        $view = app()->runningUnitTests() && config('app.testing_minimal_belohnungen_admin', false)
+            ? 'testing.livewire.belohnungen-admin'
+            : 'livewire.belohnungen-admin';
+
+        return view($view)
             ->layout('layouts.app', ['title' => 'Belohnungen - Admin']);
     }
 }

@@ -12,6 +12,7 @@ use App\Models\Book;
 use App\Models\BookOffer;
 use App\Models\BookRequest;
 use App\Models\BookSwap;
+use App\Models\RomantauschBaxxSpecialOffer;
 use App\Models\Team;
 use App\Models\User;
 use App\Services\Romantausch\RomantauschBaxxService;
@@ -325,6 +326,58 @@ class BookSwapProcessTest extends TestCase
         $this->assertTrue((bool) $offer->fresh()->completed);
         $this->assertTrue((bool) $request->fresh()->completed);
         $this->assertDatabaseCount('user_points', 2);
+    }
+
+    public function test_confirmations_use_active_swap_special_offer_for_both_participants(): void
+    {
+        $offerUser = $this->createMember();
+        $requestUser = $this->createMember();
+
+        RomantauschBaxxSpecialOffer::create([
+            'action_key' => 'romantausch_swap_complete',
+            'points' => 5,
+            'every_count' => 1,
+            'ends_at' => now()->addDay(),
+            'is_active' => true,
+        ]);
+
+        $offer = BookOffer::create([
+            'user_id' => $offerUser->id,
+            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
+            'book_number' => 2,
+            'book_title' => 'Title 2',
+            'condition' => 'neu',
+        ]);
+
+        $request = BookRequest::create([
+            'user_id' => $requestUser->id,
+            'series' => BookType::MaddraxDieDunkleZukunftDerErde->value,
+            'book_number' => 2,
+            'book_title' => 'Title 2',
+            'condition' => 'neu',
+        ]);
+
+        $swap = BookSwap::create([
+            'offer_id' => $offer->id,
+            'request_id' => $request->id,
+        ]);
+
+        $this->actingAs($offerUser);
+        Livewire::test(RomantauschIndex::class)
+            ->call('confirmSwap', $swap->id);
+
+        $this->actingAs($requestUser);
+        Livewire::test(RomantauschIndex::class)
+            ->call('confirmSwap', $swap->id);
+
+        $this->assertDatabaseHas('user_points', [
+            'user_id' => $offerUser->id,
+            'points' => 5,
+        ]);
+        $this->assertDatabaseHas('user_points', [
+            'user_id' => $requestUser->id,
+            'points' => 5,
+        ]);
     }
 
     public function test_confirm_swap_rolls_back_completion_when_baxx_award_fails(): void

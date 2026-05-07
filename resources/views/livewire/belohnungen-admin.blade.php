@@ -10,6 +10,33 @@
         <x-tabs wire:model="activeTab">
             <x-tab name="rewards" label="Belohnungen" icon="o-gift">
 
+                <x-ui.panel class="mb-6 border border-primary/15 bg-base-100">
+                    <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                        <div class="space-y-2">
+                            <p class="text-xs font-semibold uppercase tracking-[0.24em] text-primary/70">Schnellzugriff</p>
+                            <div>
+                                <h3 class="text-lg font-bold text-primary">Mitgliederkarte</h3>
+                                <p class="text-sm text-base-content/70">
+                                    Aktuell kostet die Freischaltung
+                                    <span class="font-semibold text-base-content">{{ $this->mitgliederkarteReward->cost_baxx }} Baxx</span>.
+                                    Der Reward wird bei Bedarf automatisch wiederhergestellt.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-wrap items-center gap-3">
+                            @if($this->mitgliederkarteReward->is_active)
+                                <x-badge value="Aktiv" class="badge-success" icon="o-check" />
+                            @else
+                                <x-badge value="Inaktiv" class="badge-ghost" icon="o-x-mark" />
+                            @endif
+
+                            <x-badge :value="$this->mitgliederkarteReward->category" class="badge-outline" icon="o-map" />
+                            <x-button label="Mitgliederkarte bearbeiten" icon="o-map" class="btn-primary" wire:click="openEditMitgliederkarteReward" />
+                        </div>
+                    </div>
+                </x-ui.panel>
+
                 <div class="flex justify-end mb-4">
                     <x-button label="Neue Belohnung" icon="o-plus" class="btn-primary" wire:click="openCreateReward" />
                 </div>
@@ -120,6 +147,89 @@
                                 class="btn-ghost btn-xs"
                                 wire:click="toggleRuleActive({{ $rule->id }})"
                                 tooltip="{{ $rule->is_active ? 'Deaktivieren' : 'Aktivieren' }}"
+                            />
+                        </div>
+                    @endscope
+                </x-table>
+
+                <div class="flex items-center justify-between mt-8 mb-4 gap-4">
+                    <div>
+                        <h3 class="text-lg font-bold text-primary">Romantausch-Sonderaktionen</h3>
+                        <p class="text-sm text-base-content">Sonderaktionen überschreiben die jeweilige Basisregel nur für Angebot, Gesuch oder abgeschlossenen Tausch.</p>
+                    </div>
+                    <x-button label="Neue Romantausch-Sonderaktion" icon="o-plus" class="btn-primary" wire:click="openCreateRomantauschSpecialOffer" />
+                </div>
+
+                <div class="grid grid-cols-1 xl:grid-cols-3 gap-4 mb-6">
+                    @foreach($this->romantauschRewardConfiguration as $configuration)
+                        <x-ui.panel class="space-y-3">
+                            <div class="flex items-start justify-between gap-4">
+                                <div>
+                                    <h4 class="font-semibold text-base-content">{{ $configuration['action_label'] }}</h4>
+                                    <p class="text-sm text-base-content/70">Basisregel: {{ $configuration['base_rule']['rule_label'] }}</p>
+                                </div>
+
+                                @if($configuration['effective_rule']['is_special_offer'])
+                                    <x-badge value="Sonderaktion aktiv" class="badge-warning" icon="o-bolt" />
+                                @elseif($configuration['effective_rule']['is_active'])
+                                    <x-badge value="Basisregel aktiv" class="badge-success" icon="o-check" />
+                                @else
+                                    <x-badge value="Inaktiv" class="badge-ghost" icon="o-x-mark" />
+                                @endif
+                            </div>
+
+                            <div class="space-y-1 text-sm">
+                                <p><span class="font-medium">Wirksam:</span> {{ $configuration['effective_rule']['rule_label'] }}</p>
+                                @if($configuration['effective_rule']['is_special_offer'] && $configuration['effective_rule']['ends_at_formatted'])
+                                    <p class="text-base-content/70">Läuft bis {{ $configuration['effective_rule']['ends_at_formatted'] }}</p>
+                                @endif
+                            </div>
+                        </x-ui.panel>
+                    @endforeach
+                </div>
+
+                <x-table :headers="[
+                    ['key' => 'action_label', 'label' => 'Aktion'],
+                    ['key' => 'rule_pattern', 'label' => 'Aktionsregel'],
+                    ['key' => 'ends_at', 'label' => 'Endet'],
+                    ['key' => 'status', 'label' => 'Status'],
+                    ['key' => 'actions', 'label' => 'Aktionen'],
+                ]" :rows="$this->romantauschSpecialOffers" striped>
+
+                    @scope('cell_action_label', $offer)
+                        {{ \App\Models\RomantauschBaxxSpecialOffer::actionLabel($offer->action_key) }}
+                    @endscope
+
+                    @scope('cell_rule_pattern', $offer)
+                        @if($offer->every_count === 1)
+                            {{ $offer->points }} Baxx pro Auslöser
+                        @else
+                            {{ $offer->points }} Baxx pro {{ $offer->every_count }} Auslöser
+                        @endif
+                    @endscope
+
+                    @scope('cell_ends_at', $offer)
+                        {{ $offer->ends_at->format('d.m.Y H:i') }}
+                    @endscope
+
+                    @scope('cell_status', $offer)
+                        @if($offer->is_active && $offer->ends_at->isFuture())
+                            <x-badge value="Aktiv" class="badge-success" icon="o-bolt" />
+                        @elseif($offer->ends_at->isPast())
+                            <x-badge value="Abgelaufen" class="badge-warning" icon="o-clock" />
+                        @else
+                            <x-badge value="Inaktiv" class="badge-ghost" icon="o-pause" />
+                        @endif
+                    @endscope
+
+                    @scope('cell_actions', $offer)
+                        <div class="flex gap-2">
+                            <x-button icon="o-pencil" class="btn-ghost btn-xs" wire:click="openEditRomantauschSpecialOffer({{ $offer->id }})" tooltip="Bearbeiten" />
+                            <x-button
+                                icon="{{ $offer->is_active && $offer->ends_at->isFuture() ? 'o-eye-slash' : 'o-eye' }}"
+                                class="btn-ghost btn-xs"
+                                wire:click="toggleRomantauschSpecialOfferActive({{ $offer->id }})"
+                                tooltip="{{ $offer->is_active && $offer->ends_at->isFuture() ? 'Deaktivieren' : 'Aktivieren' }}"
                             />
                         </div>
                     @endscope
@@ -420,6 +530,27 @@
             <x-slot:actions>
                 <x-button label="Abbrechen" wire:click="$set('showReviewSpecialOfferModal', false)" />
                 <x-button label="Speichern" class="btn-primary" wire:click="saveReviewSpecialOffer" />
+            </x-slot:actions>
+        </x-modal>
+
+        <x-modal wire:model="showRomantauschSpecialOfferModal" title="{{ $editingRomantauschSpecialOfferId ? 'Romantausch-Sonderaktion bearbeiten' : 'Neue Romantausch-Sonderaktion' }}">
+            <div class="space-y-4">
+                <x-select
+                    wire:model="romantauschSpecialOfferActionKey"
+                    label="Aktion"
+                    :options="$this->romantauschSpecialOfferActionOptions"
+                    option-value="id"
+                    option-label="name"
+                />
+                <x-input wire:model="romantauschSpecialOfferPoints" label="Baxx" type="number" min="1" />
+                <x-input wire:model="romantauschSpecialOfferEveryCount" label="Pro Anzahl Auslöser" type="number" min="1" />
+                <x-input wire:model="romantauschSpecialOfferEndsAt" label="Endet am" type="datetime-local" />
+                <x-toggle wire:model="romantauschSpecialOfferIsActive" label="Aktiv" />
+            </div>
+
+            <x-slot:actions>
+                <x-button label="Abbrechen" wire:click="$set('showRomantauschSpecialOfferModal', false)" />
+                <x-button label="Speichern" class="btn-primary" wire:click="saveRomantauschSpecialOffer" />
             </x-slot:actions>
         </x-modal>
 

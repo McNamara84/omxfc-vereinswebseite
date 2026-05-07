@@ -100,9 +100,7 @@ class MitgliederKarteController extends Controller
 
     private function mitgliederkarteReward(): Reward
     {
-        return Reward::query()
-            ->where('slug', 'mitgliederkarte')
-            ->firstOrFail();
+        return $this->rewardService->resolveMitgliederkarteReward();
     }
 
     /**

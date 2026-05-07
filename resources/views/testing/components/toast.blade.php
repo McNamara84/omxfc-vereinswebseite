@@ -1,0 +1,1 @@
+<div {{ $attributes->merge(['class' => 'hidden']) }} aria-hidden="true"></div>

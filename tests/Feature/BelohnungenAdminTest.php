@@ -6,11 +6,13 @@ use App\Enums\Role;
 use App\Livewire\BelohnungenAdmin;
 use App\Models\BaxxEarningRule;
 use App\Models\Download;
+use App\Models\RomantauschBaxxSpecialOffer;
 use App\Models\Reward;
 use App\Models\RewardPurchase;
 use App\Models\ReviewBaxxSpecialOffer;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 use Tests\Concerns\CreatesUserWithRole;
@@ -20,6 +22,14 @@ class BelohnungenAdminTest extends TestCase
 {
     use CreatesUserWithRole;
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        Config::set('app.testing_minimal_layout', true);
+        Config::set('app.testing_minimal_belohnungen_admin', true);
+    }
 
     // ── Zugriffskontrolle ──────────────────────────────────
 
@@ -89,6 +99,26 @@ class BelohnungenAdminTest extends TestCase
             'title' => 'Aktualisiert',
             'cost_baxx' => 15,
         ]);
+    }
+
+    public function test_direct_member_map_admin_entry_restores_missing_reward_and_updates_price(): void
+    {
+        $this->actingAdmin();
+
+        Reward::query()->where('slug', 'mitgliederkarte')->delete();
+
+        Livewire::test(BelohnungenAdmin::class)
+            ->call('openEditMitgliederkarteReward')
+            ->assertSet('rewardTitle', 'Mitgliederkarte')
+            ->assertSet('rewardCostBaxx', 1)
+            ->set('rewardCostBaxx', 7)
+            ->call('saveReward');
+
+        $reward = Reward::query()->where('slug', 'mitgliederkarte')->first();
+
+        $this->assertNotNull($reward);
+        $this->assertSame('Mitgliederkarte', $reward->title);
+        $this->assertSame(7, $reward->cost_baxx);
     }
 
     public function test_toggle_reward_active_status(): void
@@ -170,6 +200,99 @@ class BelohnungenAdminTest extends TestCase
             ->assertHasErrors(['reviewSpecialOfferIsActive']);
 
         $this->assertSame(1, ReviewBaxxSpecialOffer::count());
+    }
+
+    public function test_create_romantausch_special_offer(): void
+    {
+        $this->actingAdmin();
+
+        Livewire::test(BelohnungenAdmin::class)
+            ->set('romantauschSpecialOfferActionKey', 'romantausch_request')
+            ->set('romantauschSpecialOfferPoints', 4)
+            ->set('romantauschSpecialOfferEveryCount', 1)
+            ->set('romantauschSpecialOfferEndsAt', now()->addDay()->format('Y-m-d\TH:i'))
+            ->set('romantauschSpecialOfferIsActive', true)
+            ->call('saveRomantauschSpecialOffer');
+
+        $this->assertDatabaseHas('romantausch_baxx_special_offers', [
+            'action_key' => 'romantausch_request',
+            'points' => 4,
+            'every_count' => 1,
+            'is_active' => true,
+        ]);
+    }
+
+    public function test_second_active_romantausch_special_offer_is_rejected_for_same_action(): void
+    {
+        $this->actingAdmin();
+
+        RomantauschBaxxSpecialOffer::create([
+            'action_key' => 'romantausch_offer',
+            'points' => 2,
+            'every_count' => 1,
+            'ends_at' => now()->addDay(),
+            'is_active' => true,
+        ]);
+
+        Livewire::test(BelohnungenAdmin::class)
+            ->set('romantauschSpecialOfferActionKey', 'romantausch_offer')
+            ->set('romantauschSpecialOfferPoints', 5)
+            ->set('romantauschSpecialOfferEveryCount', 1)
+            ->set('romantauschSpecialOfferEndsAt', now()->addDays(2)->format('Y-m-d\TH:i'))
+            ->set('romantauschSpecialOfferIsActive', true)
+            ->call('saveRomantauschSpecialOffer')
+            ->assertHasErrors(['romantauschSpecialOfferIsActive']);
+
+        $this->assertSame(1, RomantauschBaxxSpecialOffer::count());
+    }
+
+    public function test_active_romantausch_special_offers_are_allowed_for_different_actions(): void
+    {
+        $this->actingAdmin();
+
+        RomantauschBaxxSpecialOffer::create([
+            'action_key' => 'romantausch_offer',
+            'points' => 2,
+            'every_count' => 1,
+            'ends_at' => now()->addDay(),
+            'is_active' => true,
+        ]);
+
+        Livewire::test(BelohnungenAdmin::class)
+            ->set('romantauschSpecialOfferActionKey', 'romantausch_request')
+            ->set('romantauschSpecialOfferPoints', 3)
+            ->set('romantauschSpecialOfferEveryCount', 1)
+            ->set('romantauschSpecialOfferEndsAt', now()->addDays(2)->format('Y-m-d\TH:i'))
+            ->set('romantauschSpecialOfferIsActive', true)
+            ->call('saveRomantauschSpecialOffer');
+
+        $this->assertDatabaseCount('romantausch_baxx_special_offers', 2);
+        $this->assertDatabaseHas('romantausch_baxx_special_offers', [
+            'action_key' => 'romantausch_request',
+            'points' => 3,
+            'is_active' => true,
+        ]);
+    }
+
+    public function test_toggle_romantausch_special_offer_active_status(): void
+    {
+        $this->actingAdmin();
+
+        $offer = RomantauschBaxxSpecialOffer::create([
+            'action_key' => 'romantausch_swap_complete',
+            'points' => 5,
+            'every_count' => 1,
+            'ends_at' => now()->addDay(),
+            'is_active' => false,
+        ]);
+
+        Livewire::test(BelohnungenAdmin::class)
+            ->call('toggleRomantauschSpecialOfferActive', $offer->id);
+
+        $this->assertDatabaseHas('romantausch_baxx_special_offers', [
+            'id' => $offer->id,
+            'is_active' => true,
+        ]);
     }
 
     // ── Freischaltungen / Refund ───────────────────────────

@@ -24,6 +24,10 @@ class RewardService
         'kompendium' => ['kompendium-suche'],
     ];
 
+    private const MITGLIEDERKARTE_SLUG = 'mitgliederkarte';
+
+    private const MITGLIEDERKARTE_TITLE = 'Mitgliederkarte';
+
     public function __construct(
         private readonly TeamPointService $teamPointService
     ) {}
@@ -198,6 +202,65 @@ class RewardService
             ->exists();
     }
 
+    public function resolveMitgliederkarteReward(): Reward
+    {
+        $reward = Reward::query()
+            ->where('slug', self::MITGLIEDERKARTE_SLUG)
+            ->first();
+
+        if (! $reward) {
+            $reward = Reward::query()
+                ->where('title', self::MITGLIEDERKARTE_TITLE)
+                ->oldest('id')
+                ->first();
+        }
+
+        $defaults = $this->mitgliederkarteDefaults();
+
+        if (! $reward) {
+            return Reward::query()->create($defaults);
+        }
+
+        $updates = [];
+
+        if ($reward->slug !== self::MITGLIEDERKARTE_SLUG && ! Reward::query()
+            ->where('slug', self::MITGLIEDERKARTE_SLUG)
+            ->whereKeyNot($reward->id)
+            ->exists()) {
+            $updates['slug'] = self::MITGLIEDERKARTE_SLUG;
+        }
+
+        if (blank($reward->title)) {
+            $updates['title'] = $defaults['title'];
+        }
+
+        if (blank($reward->description)) {
+            $updates['description'] = $defaults['description'];
+        }
+
+        if (blank($reward->category)) {
+            $updates['category'] = $defaults['category'];
+        }
+
+        if (! is_int($reward->cost_baxx) || $reward->cost_baxx < 1) {
+            $updates['cost_baxx'] = $defaults['cost_baxx'];
+        }
+
+        if (! is_int($reward->sort_order)) {
+            $updates['sort_order'] = $defaults['sort_order'];
+        }
+
+        if ($reward->is_active === null) {
+            $updates['is_active'] = $defaults['is_active'];
+        }
+
+        if ($updates !== []) {
+            $reward->update($updates);
+        }
+
+        return $reward->fresh();
+    }
+
     /**
      * @return array<int, string>
      */
@@ -245,6 +308,33 @@ class RewardService
         if (! $this->hasUnlockedReward($user, $rewardSlug)) {
             throw new AuthorizationException('Du musst diese Belohnung zuerst im Bereich Belohnungen einlösen freischalten.');
         }
+    }
+
+    /**
+     * @return array{title: string, description: string, category: string, slug: string, cost_baxx: int, is_active: bool, sort_order: int}
+     */
+    private function mitgliederkarteDefaults(): array
+    {
+        $legacyReward = collect(config('rewards.legacy', []))
+            ->firstWhere('title', self::MITGLIEDERKARTE_TITLE);
+
+        $description = is_array($legacyReward)
+            ? (string) ($legacyReward['description'] ?? 'Zeigt die Wohnorte der Vereinsmitglieder auf einer Karte.')
+            : 'Zeigt die Wohnorte der Vereinsmitglieder auf einer Karte.';
+
+        $costBaxx = is_array($legacyReward)
+            ? max(1, (int) ($legacyReward['points'] ?? 1))
+            : 1;
+
+        return [
+            'title' => self::MITGLIEDERKARTE_TITLE,
+            'description' => $description,
+            'category' => 'Allgemein',
+            'slug' => self::MITGLIEDERKARTE_SLUG,
+            'cost_baxx' => $costBaxx,
+            'is_active' => true,
+            'sort_order' => 0,
+        ];
     }
 
     /**

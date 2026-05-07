@@ -7,8 +7,10 @@ use App\Models\BaxxEarningRule;
 use App\Models\BookOffer;
 use App\Models\BookRequest;
 use App\Models\BookSwap;
+use App\Models\RomantauschBaxxSpecialOffer;
 use App\Models\Team;
 use App\Models\UserPoint;
+use Carbon\CarbonInterface;
 use Closure;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -16,6 +18,130 @@ use LogicException;
 
 class RomantauschBaxxService
 {
+    /**
+     * @return array{
+     *     action_key: string,
+     *     action_label: string,
+     *     points:int,
+     *     every_count:int,
+     *     is_active:bool,
+     *     is_special_offer:bool,
+     *     rule_label:string,
+     *     ends_at:?CarbonInterface,
+     *     ends_at_formatted:?string,
+     *     description:?string
+     * }
+     */
+    public function getEffectiveRule(string $actionKey): array
+    {
+        $specialOffer = $this->getActiveSpecialOffer($actionKey);
+
+        if ($specialOffer) {
+            return $this->makeRuleData(
+                actionKey: $actionKey,
+                points: $specialOffer->points,
+                everyCount: $specialOffer->every_count,
+                isActive: true,
+                isSpecialOffer: true,
+                endsAt: $specialOffer->ends_at,
+                description: 'Aktive Sonderaktion überschreibt die Basisregel für diese Romantausch-Aktion.',
+            );
+        }
+
+        $baseRule = $this->getBaseRule($actionKey);
+
+        return $this->makeRuleData(
+            actionKey: $actionKey,
+            points: $baseRule->points,
+            everyCount: $baseRule->every_count,
+            isActive: $baseRule->is_active,
+            isSpecialOffer: false,
+            endsAt: null,
+            description: $baseRule->description,
+        );
+    }
+
+    /**
+     * @return array{
+     *     action_key: string,
+     *     action_label: string,
+     *     points:int,
+     *     every_count:int,
+     *     is_active:bool,
+     *     is_special_offer:bool,
+     *     rule_label:string,
+     *     ends_at:?CarbonInterface,
+     *     ends_at_formatted:?string,
+     *     description:?string
+     * }
+     */
+    public function getBaseRuleData(string $actionKey): array
+    {
+        $baseRule = $this->getBaseRule($actionKey);
+
+        return $this->makeRuleData(
+            actionKey: $actionKey,
+            points: $baseRule->points,
+            everyCount: $baseRule->every_count,
+            isActive: $baseRule->is_active,
+            isSpecialOffer: false,
+            endsAt: null,
+            description: $baseRule->description,
+        );
+    }
+
+    /**
+     * @return array<int, array{
+     *     action_key: string,
+     *     action_label: string,
+     *     base_rule: array{
+     *         action_key: string,
+     *         action_label: string,
+     *         points:int,
+     *         every_count:int,
+     *         is_active:bool,
+     *         is_special_offer:bool,
+     *         rule_label:string,
+     *         ends_at:?CarbonInterface,
+     *         ends_at_formatted:?string,
+     *         description:?string
+     *     },
+     *     effective_rule: array{
+     *         action_key: string,
+     *         action_label: string,
+     *         points:int,
+     *         every_count:int,
+     *         is_active:bool,
+     *         is_special_offer:bool,
+     *         rule_label:string,
+     *         ends_at:?CarbonInterface,
+     *         ends_at_formatted:?string,
+     *         description:?string
+     *     }
+     * }>
+     */
+    public function getActionConfigurations(): array
+    {
+        return collect(RomantauschBaxxSpecialOffer::allowedActionKeys())
+            ->map(fn (string $actionKey): array => [
+                'action_key' => $actionKey,
+                'action_label' => RomantauschBaxxSpecialOffer::actionLabel($actionKey),
+                'base_rule' => $this->getBaseRuleData($actionKey),
+                'effective_rule' => $this->getEffectiveRule($actionKey),
+            ])
+            ->values()
+            ->all();
+    }
+
+    public function getActiveSpecialOffer(string $actionKey): ?RomantauschBaxxSpecialOffer
+    {
+        return RomantauschBaxxSpecialOffer::query()
+            ->forActionKey($actionKey)
+            ->currentlyActive()
+            ->orderByDesc('ends_at')
+            ->first();
+    }
+
     public function awardForNewOffers(int $userId, int $newOfferCount): int
     {
         return $this->awardByRule(
@@ -89,17 +215,15 @@ class RomantauschBaxxService
             $progress = $this->lockProgress($userId, $actionKey, $initialProcessedCount);
             $processedCount = max($initialProcessedCount, max(0, $progress->processed_count));
             $currentCount = max($resolvedCount, $processedCount);
-            $rule = BaxxEarningRule::query()
-                ->where('action_key', $actionKey)
-                ->first();
+            $rule = $this->getEffectiveRule($actionKey);
 
-            if (! $rule || ! $rule->is_active || $rule->points <= 0) {
+            if (! $rule['is_active'] || $rule['points'] <= 0) {
                 $this->markProcessedCount($progress, $currentCount);
 
                 return 0;
             }
 
-            $everyCount = max(1, $rule->every_count);
+            $everyCount = max(1, $rule['every_count']);
             $thresholdCrossings = intdiv($currentCount, $everyCount) - intdiv($processedCount, $everyCount);
 
             if ($thresholdCrossings <= 0) {
@@ -109,7 +233,7 @@ class RomantauschBaxxService
             }
 
             $walletTeam = $this->resolveMembersWalletTeam($userId, $actionKey);
-            $awardedPoints = $thresholdCrossings * $rule->points;
+            $awardedPoints = $thresholdCrossings * $rule['points'];
 
             UserPoint::query()->create([
                 'user_id' => $userId,
@@ -121,6 +245,14 @@ class RomantauschBaxxService
 
             return $awardedPoints;
         });
+    }
+
+    private function getBaseRule(string $actionKey): BaxxEarningRule
+    {
+        return BaxxEarningRule::query()->firstOrCreate(
+            ['action_key' => $actionKey],
+            RomantauschBaxxSpecialOffer::defaultRuleDefinition($actionKey),
+        );
     }
 
     private function lockProgress(int $userId, string $actionKey, int $initialProcessedCount): BaxxEarningProgress
@@ -180,5 +312,53 @@ class RomantauschBaxxService
                 $actionKey,
             )
         );
+    }
+
+    /**
+     * @return array{
+     *     action_key: string,
+     *     action_label: string,
+     *     points:int,
+     *     every_count:int,
+     *     is_active:bool,
+     *     is_special_offer:bool,
+     *     rule_label:string,
+     *     ends_at:?CarbonInterface,
+     *     ends_at_formatted:?string,
+     *     description:?string
+     * }
+     */
+    private function makeRuleData(
+        string $actionKey,
+        int $points,
+        int $everyCount,
+        bool $isActive,
+        bool $isSpecialOffer,
+        ?CarbonInterface $endsAt,
+        ?string $description,
+    ): array {
+        $everyCount = max(1, $everyCount);
+
+        return [
+            'action_key' => $actionKey,
+            'action_label' => RomantauschBaxxSpecialOffer::actionLabel($actionKey),
+            'points' => $points,
+            'every_count' => $everyCount,
+            'is_active' => $isActive,
+            'is_special_offer' => $isSpecialOffer,
+            'rule_label' => $this->formatRuleLabel($points, $everyCount),
+            'ends_at' => $endsAt,
+            'ends_at_formatted' => $endsAt?->copy()->timezone(config('app.timezone'))->format('d.m.Y, H:i'),
+            'description' => $description,
+        ];
+    }
+
+    private function formatRuleLabel(int $points, int $everyCount): string
+    {
+        if ($everyCount === 1) {
+            return $points.' Baxx pro Auslöser';
+        }
+
+        return $points.' Baxx pro '.$everyCount.' Auslöser';
     }
 }

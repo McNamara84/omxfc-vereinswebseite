@@ -32,7 +32,9 @@
     <link href="https://fonts.bunny.net/css?family=space-grotesk:500,600,700&display=swap" rel="stylesheet" />
     <!-- Styles -->
     @include('layouts.partials.theme-bootstrap')
-    @vite(['resources/css/app.css'])
+    @if (file_exists(public_path('hot')) || file_exists(public_path('build/manifest.json')))
+        @vite(['resources/css/app.css'])
+    @endif
     {{-- Zusätzliche Head-Inhalte (z.B. JSON-LD für SEO) --}}
     {{ $head ?? '' }}
 </head>
@@ -40,9 +42,11 @@
 <body class="font-sans antialiased">
     <x-banner />
     <div class="omxfc-app-shell min-h-screen bg-base-200">
-        @persist('navigation')
-            @livewire('navigation-menu')
-        @endpersist
+        @unless(config('app.testing_minimal_layout', false) && app()->runningUnitTests())
+            @persist('navigation')
+                @livewire('navigation-menu')
+            @endpersist
+        @endunless
 
         {{-- Main Content --}}
         <main class="relative w-full pb-12 pt-3 sm:pt-5 lg:pb-16">
@@ -58,12 +62,18 @@
     @stack('modals')
     @stack('scripts')
 
-    @persist('toast')
-        <x-toast />
-    @endpersist
+    @unless(config('app.testing_minimal_layout', false) && app()->runningUnitTests())
+        @persist('toast')
+            <x-toast />
+        @endpersist
+    @endunless
 
-    @include('layouts.partials.flash-toast-bridge')
+    @unless(config('app.testing_minimal_layout', false) && app()->runningUnitTests())
+        @include('layouts.partials.flash-toast-bridge')
+    @endunless
 
-    @vite(['resources/js/app.js'])
+    @if (file_exists(public_path('hot')) || file_exists(public_path('build/manifest.json')))
+        @vite(['resources/js/app.js'])
+    @endif
 </body>
 </html>
