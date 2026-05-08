@@ -91,6 +91,8 @@
                                 loading="lazy"
                                 src="{{ $mitglied['image'] }}"
                                 alt="{{ $mitglied['name'] }}"
+                                width="1200"
+                                height="1600"
                                 class="h-full w-full object-cover transition duration-300 group-hover:scale-[1.02]"
                             >
                         </div>

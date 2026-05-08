@@ -146,6 +146,7 @@ class AppServiceProvider extends ServiceProvider
             Blade::component('testing.components.badge', 'badge');
             Blade::component('testing.components.icon', 'icon');
             Blade::component('testing.components.mary-modal', 'mary-modal');
+            Blade::component('testing.components.theme-toggle', 'theme-toggle');
             Blade::component('testing.components.toast', 'toast');
         }
 

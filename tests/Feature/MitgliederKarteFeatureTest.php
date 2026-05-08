@@ -267,6 +267,7 @@ class MitgliederKarteFeatureTest extends TestCase
         $response->assertViewIs('mitglieder.karte');
         $response->assertSee('data-member-map', false);
         $response->assertSee('aria-label="Mitgliederkarte"', false);
+        $response->assertSee('style="min-height: 600px;"', false);
 
         $memberData = json_decode($response->viewData('memberData'), true);
 

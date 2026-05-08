@@ -44,6 +44,7 @@
                         <div
                             id="map"
                             class="w-full h-[600px] rounded-lg border border-base-content/10"
+                            style="min-height: 600px;"
                             data-member-map
                             role="region"
                             aria-label="Mitgliederkarte"

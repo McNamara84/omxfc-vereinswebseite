@@ -15,7 +15,7 @@ scheduleInitAlpine(Alpine, [anchor, focus]);
 const DARK_THEME = 'coffee';
 const LIGHT_THEME = 'caramellatte';
 
-const prefersDark = window.__omxfcPrefersDark ?? window.matchMedia('(prefers-color-scheme: dark)');
+const prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
 window.__omxfcPrefersDark = prefersDark;
 
 const applyDark = (isDark) => {
@@ -53,13 +53,19 @@ const applyStoredOrSystemTheme = () => {
 
 window.__omxfcApplyStoredTheme = applyStoredOrSystemTheme;
 
-prefersDark.addEventListener('change', (event) => {
+const applySystemPreferenceChange = (event) => {
     // Nur reagieren wenn kein explizites Theme gespeichert ist
     const storedTheme = getStoredTheme();
     if (!storedTheme || (storedTheme !== DARK_THEME && storedTheme !== LIGHT_THEME)) {
         applyDark(event.matches);
     }
-});
+};
+
+if (typeof prefersDark.addEventListener === 'function') {
+    prefersDark.addEventListener('change', applySystemPreferenceChange);
+} else if (typeof prefersDark.addListener === 'function') {
+    prefersDark.addListener(applySystemPreferenceChange);
+}
 
 window.addEventListener('storage', (event) => {
     if (event.key !== 'mary-theme') {
