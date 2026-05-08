@@ -223,7 +223,7 @@
                     @endscope
 
                     @scope('cell_actions', $offer)
-                        @php($toggleAction = $this->specialOfferToggleAction($offer->is_active))
+                        @php($toggleAction = $this->specialOfferToggleAction($offer->is_active, $offer->ends_at))
                         <div class="flex gap-2">
                             <x-button icon="o-pencil" class="btn-ghost btn-xs" wire:click="openEditRomantauschSpecialOffer({{ $offer->id }})" tooltip="Bearbeiten" />
                             <x-button
@@ -231,6 +231,7 @@
                                 class="btn-ghost btn-xs"
                                 wire:click="toggleRomantauschSpecialOfferActive({{ $offer->id }})"
                                 tooltip="{{ $toggleAction['tooltip'] }}"
+                                :disabled="$toggleAction['disabled']"
                             />
                         </div>
                     @endscope
@@ -274,7 +275,7 @@
                     @endscope
 
                     @scope('cell_actions', $offer)
-                        @php($toggleAction = $this->specialOfferToggleAction($offer->is_active))
+                        @php($toggleAction = $this->specialOfferToggleAction($offer->is_active, $offer->ends_at))
                         <div class="flex gap-2">
                             <x-button icon="o-pencil" class="btn-ghost btn-xs" wire:click="openEditReviewSpecialOffer({{ $offer->id }})" tooltip="Bearbeiten" />
                             <x-button
@@ -282,6 +283,7 @@
                                 class="btn-ghost btn-xs"
                                 wire:click="toggleReviewSpecialOfferActive({{ $offer->id }})"
                                 tooltip="{{ $toggleAction['tooltip'] }}"
+                                :disabled="$toggleAction['disabled']"
                             />
                         </div>
                     @endscope

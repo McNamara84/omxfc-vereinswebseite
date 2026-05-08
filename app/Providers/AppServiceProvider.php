@@ -150,7 +150,8 @@ class AppServiceProvider extends ServiceProvider
             Blade::component('testing.components.toast', 'toast');
         }
 
-        // Override maryUI Alert: adds aria-label="Schließen" to dismiss button (WCAG AA)
+        // Registriert die projektweite Alert-Komponente mit Titel-, Description-, Actions-
+        // und Dismiss-Support anstelle der externen Alert-Implementierung.
         Blade::component('alert', Alert::class);
 
         // Override Jetstream Livewire components with maryUI Toast support

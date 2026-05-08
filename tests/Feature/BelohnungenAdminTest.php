@@ -312,7 +312,8 @@ class BelohnungenAdminTest extends TestCase
         $this->assertSame([
             'icon' => 'o-eye-slash',
             'tooltip' => 'Deaktivieren',
-        ], $component->specialOfferToggleAction($offer->is_active));
+            'disabled' => false,
+        ], $component->specialOfferToggleAction($offer->is_active, $offer->ends_at));
 
         Livewire::test(BelohnungenAdmin::class)
             ->call('toggleRomantauschSpecialOfferActive', $offer->id);
@@ -321,6 +322,27 @@ class BelohnungenAdminTest extends TestCase
             'id' => $offer->id,
             'is_active' => false,
         ]);
+    }
+
+    public function test_expired_inactive_special_offer_uses_disabled_toggle_ui(): void
+    {
+        $this->actingAdmin();
+
+        $offer = RomantauschBaxxSpecialOffer::create([
+            'action_key' => 'romantausch_swap_complete',
+            'points' => 5,
+            'every_count' => 1,
+            'ends_at' => now()->subDay(),
+            'is_active' => false,
+        ]);
+
+        $component = app(BelohnungenAdmin::class);
+
+        $this->assertSame([
+            'icon' => 'o-clock',
+            'tooltip' => 'Abgelaufen und nicht erneut aktivierbar',
+            'disabled' => true,
+        ], $component->specialOfferToggleAction($offer->is_active, $offer->ends_at));
     }
 
     // ── Freischaltungen / Refund ───────────────────────────

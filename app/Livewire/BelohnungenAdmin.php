@@ -505,13 +505,30 @@ class BelohnungenAdmin extends Component
     }
 
     /**
-     * @return array{icon: string, tooltip: string}
+     * @return array{icon: string, tooltip: string, disabled: bool}
      */
-    public function specialOfferToggleAction(bool $isActive): array
+    public function specialOfferToggleAction(bool $isActive, Carbon $endsAt): array
     {
+        if ($isActive) {
+            return [
+                'icon' => 'o-eye-slash',
+                'tooltip' => 'Deaktivieren',
+                'disabled' => false,
+            ];
+        }
+
+        if ($endsAt->isFuture()) {
+            return [
+                'icon' => 'o-eye',
+                'tooltip' => 'Aktivieren',
+                'disabled' => false,
+            ];
+        }
+
         return [
-            'icon' => $isActive ? 'o-eye-slash' : 'o-eye',
-            'tooltip' => $isActive ? 'Deaktivieren' : 'Aktivieren',
+            'icon' => 'o-clock',
+            'tooltip' => 'Abgelaufen und nicht erneut aktivierbar',
+            'disabled' => true,
         ];
     }
 
