@@ -5,6 +5,8 @@
     const DARK_THEME = 'coffee';
     const LIGHT_THEME = 'caramellatte';
 
+    const getSystemPrefersDark = () => window.matchMedia('(prefers-color-scheme: dark)').matches;
+
     const applyTheme = (isDark) => {
         const nextIsDark = Boolean(isDark);
         root.classList.toggle('dark', nextIsDark);
@@ -33,7 +35,7 @@
         }
 
         // Kein gespeichertes Theme → Systempräferenz verwenden
-        return applyTheme(prefersDark.matches);
+        return applyTheme(getSystemPrefersDark());
     };
 
     // Einmalige Migration vom alten 'theme'-Key

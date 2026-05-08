@@ -18,6 +18,8 @@ const LIGHT_THEME = 'caramellatte';
 const prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
 window.__omxfcPrefersDark = prefersDark;
 
+const getSystemPrefersDark = () => window.matchMedia('(prefers-color-scheme: dark)').matches;
+
 const applyDark = (isDark) => {
     const root = document.documentElement;
     const nextIsDark = Boolean(isDark);
@@ -48,16 +50,16 @@ const applyStoredOrSystemTheme = () => {
         return applyDark(false);
     }
 
-    return applyDark(prefersDark.matches);
+    return applyDark(getSystemPrefersDark());
 };
 
 window.__omxfcApplyStoredTheme = applyStoredOrSystemTheme;
 
-const applySystemPreferenceChange = (event) => {
+const applySystemPreferenceChange = () => {
     // Nur reagieren wenn kein explizites Theme gespeichert ist
     const storedTheme = getStoredTheme();
     if (!storedTheme || (storedTheme !== DARK_THEME && storedTheme !== LIGHT_THEME)) {
-        applyDark(event.matches);
+        applyDark(getSystemPrefersDark());
     }
 };
 
