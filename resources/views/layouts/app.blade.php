@@ -31,8 +31,12 @@
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
     <link href="https://fonts.bunny.net/css?family=space-grotesk:500,600,700&display=swap" rel="stylesheet" />
     <!-- Styles -->
+    @php($isMinimalTestLayout = app()->runningUnitTests() && config('app.testing_minimal_layout', false))
+    @php($shouldSkipViteAssets = app()->runningUnitTests())
     @include('layouts.partials.theme-bootstrap')
-    @vite(['resources/css/app.css'])
+    @unless ($shouldSkipViteAssets)
+        @vite(['resources/css/app.css'])
+    @endunless
     {{-- Zusätzliche Head-Inhalte (z.B. JSON-LD für SEO) --}}
     {{ $head ?? '' }}
 </head>
@@ -40,9 +44,11 @@
 <body class="font-sans antialiased">
     <x-banner />
     <div class="omxfc-app-shell min-h-screen bg-base-200">
-        @persist('navigation')
-            @livewire('navigation-menu')
-        @endpersist
+        @unless($isMinimalTestLayout)
+            @persist('navigation')
+                @livewire('navigation-menu')
+            @endpersist
+        @endunless
 
         {{-- Main Content --}}
         <main class="relative w-full pb-12 pt-3 sm:pt-5 lg:pb-16">
@@ -58,12 +64,18 @@
     @stack('modals')
     @stack('scripts')
 
-    @persist('toast')
-        <x-toast />
-    @endpersist
+    @unless($isMinimalTestLayout)
+        @persist('toast')
+            <x-toast />
+        @endpersist
+    @endunless
 
-    @include('layouts.partials.flash-toast-bridge')
+    @unless($isMinimalTestLayout)
+        @include('layouts.partials.flash-toast-bridge')
+    @endunless
 
-    @vite(['resources/js/app.js'])
+    @unless ($shouldSkipViteAssets)
+        @vite(['resources/js/app.js'])
+    @endunless
 </body>
 </html>

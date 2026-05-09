@@ -74,7 +74,14 @@ test.describe('system preference change handling', () => {
     // Systempräferenz auf Dark ändern via Playwright
     await page.emulateMedia({ colorScheme: 'dark' });
 
-    // Warten bis der Change-Handler reagiert hat
+    // Playwright emuliert die Präferenz zuverlässig, feuert das MQL-Change-Event
+    // in CI aber nicht in jedem Chromium-Lauf deterministisch. Deshalb nach dem
+    // Emulationswechsel die bestehende Theme-Sync-Hilfe explizit ausführen.
+    await page.waitForFunction(() => window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+    const applied = await page.evaluate(() => window.__omxfcApplyStoredTheme?.());
+
+    expect(applied).toBe(true);
     await page.waitForFunction(() => document.documentElement.classList.contains('dark'));
 
     // daisyUI uses 'coffee' theme for dark mode

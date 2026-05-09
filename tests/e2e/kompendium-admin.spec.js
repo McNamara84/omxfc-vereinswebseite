@@ -97,7 +97,7 @@ test.describe('Kompendium Admin Dashboard', () => {
         const table = page.getByTestId('novels-table');
 
         // Es sollten verschiedene Status-Badges existieren
-        await expect(table.locator('.badge:has-text("Hochgeladen")').first()).toBeVisible();
+        await expect(table.getByTestId('roman-status-hochgeladen').first()).toBeVisible();
     });
 
     test('shows action buttons for novels', async ({ page }) => {

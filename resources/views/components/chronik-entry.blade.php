@@ -28,7 +28,14 @@
                         <source type="image/avif" srcset="{{ $avif }}">
                     @endif
                     <source type="image/webp" srcset="{{ $webp }}">
-                    <img loading="lazy" src="{{ $webp }}" class="w-full object-cover transition duration-300 group-hover:scale-[1.02]" alt="{{ $alt }}">
+                    <img
+                        loading="lazy"
+                        src="{{ $webp }}"
+                        width="1600"
+                        height="900"
+                        class="w-full object-cover transition duration-300 group-hover:scale-[1.02]"
+                        alt="{{ $alt }}"
+                    >
                 </picture>
             </a>
         @endif

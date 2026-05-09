@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Vite;
@@ -30,7 +31,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        if (! Route::hasMacro('livewire')) {
+            Route::macro('livewire', function (string $uri, string $component) {
+                return Route::get($uri, $component);
+            });
+        }
     }
 
     /**
@@ -92,6 +97,10 @@ class AppServiceProvider extends ServiceProvider
                 $defaultImagePath = 'resources/images/omxfc-logo.png';
             }
 
+            if ($defaultImagePath === '') {
+                $defaultImagePath = 'resources/images/omxfc-logo.png';
+            }
+
             $data = $view->getData();
             $socialImagePath = $data['image'] ?? $defaultImagePath;
             $socialImage = filter_var($socialImagePath, FILTER_VALIDATE_URL)
@@ -132,7 +141,17 @@ class AppServiceProvider extends ServiceProvider
 
         Blade::if('vorstand', fn () => auth()->check() && auth()->user()->hasVorstandRole());
 
-        // Override maryUI Alert: adds aria-label="Schließen" to dismiss button (WCAG AA)
+        if ($this->app->runningUnitTests()) {
+            Blade::component('testing.components.button', 'button');
+            Blade::component('testing.components.badge', 'badge');
+            Blade::component('testing.components.icon', 'icon');
+            Blade::component('testing.components.mary-modal', 'mary-modal');
+            Blade::component('testing.components.theme-toggle', 'theme-toggle');
+            Blade::component('testing.components.toast', 'toast');
+        }
+
+        // Registriert die projektweite Alert-Komponente mit Titel-, Description-, Actions-
+        // und Dismiss-Support anstelle der externen Alert-Implementierung.
         Blade::component('alert', Alert::class);
 
         // Override Jetstream Livewire components with maryUI Toast support

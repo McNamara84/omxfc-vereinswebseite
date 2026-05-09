@@ -81,7 +81,11 @@
     @endif
 
     {{-- Authors List --}}
-    <x-ui.panel title="VIP-Autoren ({{ $authors->count() }})" description="Aktive Einträge erscheinen auf der Anmeldeseite. Die Reihenfolge steuert die Darstellung im öffentlichen Bereich.">
+    <x-ui.panel
+        title="VIP-Autoren ({{ $authors->count() }})"
+        description="Aktive Einträge erscheinen auf der Anmeldeseite. Die Reihenfolge steuert die Darstellung im öffentlichen Bereich."
+        data-testid="vip-authors-list"
+    >
         @if ($authors->isEmpty())
             <div class="text-center py-12">
                 <x-icon name="o-users" class="w-12 h-12 mx-auto mb-4 opacity-30" />
