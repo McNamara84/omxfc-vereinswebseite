@@ -3,12 +3,15 @@
 namespace App\Livewire;
 
 use App\Models\FantreffenVipAuthor;
+use App\Models\Veranstaltung;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 
 class FantreffenVipAuthors extends Component
 {
+    public Veranstaltung $veranstaltung;
+
     // Form fields
     public $name = '';
 
@@ -41,6 +44,26 @@ class FantreffenVipAuthors extends Component
         'sort_order.min' => 'Die Sortierung darf nicht negativ sein.',
     ];
 
+    public function mount(Veranstaltung $veranstaltung): void
+    {
+        $this->veranstaltung = $veranstaltung;
+    }
+
+    protected function cacheKey(): string
+    {
+        return 'fantreffen_vip_authors_'.$this->veranstaltung->id;
+    }
+
+    protected function query()
+    {
+        return FantreffenVipAuthor::query()->where('veranstaltung_id', $this->veranstaltung->id);
+    }
+
+    protected function findAuthor(int $id): FantreffenVipAuthor
+    {
+        return $this->query()->findOrFail($id);
+    }
+
     public function openForm()
     {
         $this->resetForm();
@@ -55,7 +78,7 @@ class FantreffenVipAuthors extends Component
 
     public function edit($id)
     {
-        $author = FantreffenVipAuthor::findOrFail($id);
+        $author = $this->findAuthor($id);
 
         $this->editingId = $author->id;
         $this->name = $author->name;
@@ -71,7 +94,7 @@ class FantreffenVipAuthors extends Component
         $this->validate();
 
         if ($this->editingId) {
-            $author = FantreffenVipAuthor::findOrFail($this->editingId);
+            $author = $this->findAuthor($this->editingId);
             $author->update([
                 'name' => $this->name,
                 'pseudonym' => $this->pseudonym ?: null,
@@ -82,6 +105,7 @@ class FantreffenVipAuthors extends Component
             session()->flash('success', 'Autor erfolgreich aktualisiert.');
         } else {
             FantreffenVipAuthor::create([
+                'veranstaltung_id' => $this->veranstaltung->id,
                 'name' => $this->name,
                 'pseudonym' => $this->pseudonym ?: null,
                 'is_active' => $this->is_active,
@@ -91,17 +115,17 @@ class FantreffenVipAuthors extends Component
             session()->flash('success', 'Autor erfolgreich hinzugefügt.');
         }
 
-        Cache::forget('fantreffen_vip_authors');
+        Cache::forget($this->cacheKey());
         $this->closeForm();
     }
 
     public function toggleActive($id)
     {
-        $author = FantreffenVipAuthor::findOrFail($id);
+        $author = $this->findAuthor($id);
         $author->is_active = ! $author->is_active;
         $author->save();
 
-        Cache::forget('fantreffen_vip_authors');
+        Cache::forget($this->cacheKey());
 
         $status = $author->is_active ? 'aktiviert' : 'deaktiviert';
         session()->flash('success', "Autor \"{$author->name}\" wurde {$status}.");
@@ -109,7 +133,7 @@ class FantreffenVipAuthors extends Component
 
     public function delete($id)
     {
-        $author = FantreffenVipAuthor::findOrFail($id);
+        $author = $this->findAuthor($id);
         $name = $author->name;
 
         DB::transaction(function () use ($author) {
@@ -117,21 +141,21 @@ class FantreffenVipAuthors extends Component
             $this->recompactSortOrder();
         });
 
-        Cache::forget('fantreffen_vip_authors');
+        Cache::forget($this->cacheKey());
 
         session()->flash('success', "Autor \"{$name}\" wurde gelöscht.");
     }
 
     public function moveUp($id)
     {
-        $author = FantreffenVipAuthor::findOrFail($id);
+        $author = $this->findAuthor($id);
         $currentOrder = $author->sort_order;
 
         if ($currentOrder <= 0) {
             return;
         }
 
-        $authorAbove = FantreffenVipAuthor::where('sort_order', $currentOrder - 1)->first();
+        $authorAbove = $this->query()->where('sort_order', $currentOrder - 1)->first();
 
         if (! $authorAbove) {
             return;
@@ -145,15 +169,15 @@ class FantreffenVipAuthors extends Component
             $author->save();
         });
 
-        Cache::forget('fantreffen_vip_authors');
+        Cache::forget($this->cacheKey());
     }
 
     public function moveDown($id)
     {
-        $author = FantreffenVipAuthor::findOrFail($id);
+        $author = $this->findAuthor($id);
         $currentOrder = $author->sort_order;
 
-        $authorBelow = FantreffenVipAuthor::where('sort_order', $currentOrder + 1)->first();
+        $authorBelow = $this->query()->where('sort_order', $currentOrder + 1)->first();
 
         if (! $authorBelow) {
             return;
@@ -167,7 +191,7 @@ class FantreffenVipAuthors extends Component
             $author->save();
         });
 
-        Cache::forget('fantreffen_vip_authors');
+        Cache::forget($this->cacheKey());
     }
 
     protected function resetForm()
@@ -183,14 +207,14 @@ class FantreffenVipAuthors extends Component
 
     protected function getNextSortOrder(): int
     {
-        $maxOrder = FantreffenVipAuthor::max('sort_order');
+        $maxOrder = $this->query()->max('sort_order');
 
         return ($maxOrder ?? -1) + 1;
     }
 
     protected function recompactSortOrder(): void
     {
-        $authors = FantreffenVipAuthor::orderBy('sort_order')->get(['id']);
+        $authors = $this->query()->orderBy('sort_order')->get(['id']);
 
         if ($authors->isEmpty()) {
             return;
@@ -216,14 +240,14 @@ class FantreffenVipAuthors extends Component
 
     public function render()
     {
-        $authors = FantreffenVipAuthor::ordered()->get();
+        $authors = $this->query()->ordered()->get();
         $activeAuthors = $authors->where('is_active', true);
 
         return view('livewire.fantreffen-vip-authors', [
             'authors' => $authors,
             'activeAuthors' => $activeAuthors,
         ])->layout('layouts.admin', [
-            'title' => 'Fantreffen 2026 - VIP-Autoren verwalten',
+            'title' => $this->veranstaltung->titel.' - VIP-Autoren',
         ]);
     }
 

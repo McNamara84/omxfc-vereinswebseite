@@ -38,8 +38,8 @@
                     <a href="{{ route('home') }}" wire:navigate class="btn btn-primary rounded-full">
                         Zurück zur Startseite
                     </a>
-                    <a href="{{ route('fantreffen.2026') }}" wire:navigate class="btn btn-ghost rounded-full bg-base-100/75">
-                        Fantreffen 2026 ansehen
+                    <a href="{{ route('veranstaltungen.aktuell') }}" wire:navigate class="btn btn-ghost rounded-full bg-base-100/75">
+                        Aktuelle Veranstaltung ansehen
                     </a>
                     <a href="{{ route('satzung') }}" wire:navigate class="btn btn-ghost rounded-full bg-base-100/75">
                         Satzung noch einmal lesen

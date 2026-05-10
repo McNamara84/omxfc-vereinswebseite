@@ -50,14 +50,20 @@
         {{-- Header --}}
         <x-ui.page-header
             eyebrow="Adminbereich"
-            title="Maddrax-Fantreffen 2026 – Anmeldungen"
-            description="Verwalte alle Registrierungen, Zahlungen, T-Shirts und Orga-Team-Flags für das Fantreffen zentral an einem Ort."
+            :title="$veranstaltung->titel.' – Anmeldungen'"
+            description="Verwalte alle Registrierungen, Zahlungen, T-Shirts und Orga-Team-Flags zentral pro Veranstaltung."
         >
             <x-slot:actions>
                 <x-button 
+                    label="Veranstaltung bearbeiten" 
+                    icon="o-pencil-square" 
+                    link="{{ route('admin.veranstaltungen.edit', $veranstaltung) }}" wire:navigate
+                    class="btn-ghost"
+                />
+                <x-button 
                     label="VIP-Autoren verwalten" 
                     icon="o-star" 
-                    link="{{ route('admin.fantreffen.vip-authors') }}" wire:navigate
+                    link="{{ route('admin.veranstaltungen.vip-authors', $veranstaltung) }}" wire:navigate
                     class="btn-primary"
                 />
             </x-slot:actions>

@@ -25,6 +25,8 @@ use App\Http\Controllers\ProfileViewController;
 use App\Http\Controllers\RezensionController;
 use App\Http\Controllers\ReviewCommentController;
 use App\Http\Controllers\RomantauschController;
+use App\Http\Controllers\VeranstaltungController;
+use App\Http\Controllers\VeranstaltungVerwaltungController;
 use App\Livewire\RezensionForm;
 use App\Livewire\RezensionIndex;
 use App\Livewire\RezensionShow;
@@ -52,6 +54,7 @@ use App\Livewire\MitgliederIndex;
 use App\Livewire\Umfragen\UmfrageVerwaltung;
 use App\Livewire\Umfragen\UmfrageVote;
 use App\Models\Poll;
+use App\Models\Veranstaltung;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -76,10 +79,15 @@ Route::get('/mitglied-werden/bestaetigt', [PageController::class, 'mitgliedWerde
 // Fanfiction - Öffentliche Teaser-Ansicht für Gäste
 Route::get('/fanfiction-teaser', [FanfictionController::class, 'publicIndex'])->name('fanfiction.public');
 
-// Maddrax-Fantreffen 2026
-Route::get('/maddrax-fantreffen-2026', [FantreffenController::class, 'create'])->name('fantreffen.2026');
-Route::post('/maddrax-fantreffen-2026', [FantreffenController::class, 'store'])->middleware('throttle:fantreffen-registration')->name('fantreffen.2026.store');
-Route::get('/maddrax-fantreffen-2026/bestaetigung/{id}', [FantreffenController::class, 'bestaetigung'])->name('fantreffen.2026.bestaetigung');
+Route::get('/veranstaltungen/aktuell', [VeranstaltungController::class, 'aktuell'])->name('veranstaltungen.aktuell');
+Route::get('/veranstaltungen/{veranstaltung:slug}', [VeranstaltungController::class, 'show'])->name('veranstaltungen.show');
+Route::post('/veranstaltungen/{veranstaltung:slug}', [VeranstaltungController::class, 'store'])->middleware('throttle:fantreffen-registration')->name('veranstaltungen.anmeldung.store');
+Route::get('/veranstaltungen/{veranstaltung:slug}/bestaetigung/{id}', [VeranstaltungController::class, 'bestaetigung'])->name('veranstaltungen.bestaetigung');
+
+// Legacy-Pfade fuer das bisherige Fantreffen-Feature
+Route::get('/maddrax-fantreffen-2026', [VeranstaltungController::class, 'legacyShow'])->name('fantreffen.2026');
+Route::post('/maddrax-fantreffen-2026', [VeranstaltungController::class, 'legacyStore'])->middleware('throttle:fantreffen-registration')->name('fantreffen.2026.store');
+Route::get('/maddrax-fantreffen-2026/bestaetigung/{id}', [VeranstaltungController::class, 'legacyBestaetigung'])->name('fantreffen.2026.bestaetigung');
 
 // Hörbücher – Übersicht + Einzelfolgen öffentlich lesbar (kein Auth nötig), aber nicht im Menü / nicht indexiert
 Route::prefix('hoerbuecher')->name('hoerbuecher.')->group(function () {
@@ -105,15 +113,32 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
         ->name('admin.umfragen.index')
         ->middleware('can:manage,'.Poll::class);
 
-    // Fantreffen 2026 Admin Dashboard
-    Route::livewire('/admin/fantreffen-2026', FantreffenAdminDashboard::class)
-        ->name('admin.fantreffen.2026')
-        ->middleware('vorstand-or-kassenwart');
+    Route::prefix('admin/veranstaltungen')->name('admin.veranstaltungen.')->middleware('vorstand-or-kassenwart')->group(function () {
+        Route::get('/', [VeranstaltungVerwaltungController::class, 'index'])->name('index');
+        Route::get('/neu', [VeranstaltungVerwaltungController::class, 'create'])->name('create');
+        Route::post('/', [VeranstaltungVerwaltungController::class, 'store'])->name('store');
+        Route::get('/{veranstaltung}/bearbeiten', [VeranstaltungVerwaltungController::class, 'edit'])->name('edit');
+        Route::put('/{veranstaltung}', [VeranstaltungVerwaltungController::class, 'update'])->name('update');
+        Route::post('/{veranstaltung}/abschnitte', [VeranstaltungVerwaltungController::class, 'storeAbschnitt'])->name('abschnitte.store');
+        Route::put('/{veranstaltung}/abschnitte/{abschnitt}', [VeranstaltungVerwaltungController::class, 'updateAbschnitt'])->name('abschnitte.update');
+        Route::delete('/{veranstaltung}/abschnitte/{abschnitt}', [VeranstaltungVerwaltungController::class, 'destroyAbschnitt'])->name('abschnitte.destroy');
+        Route::livewire('/{veranstaltung}/anmeldungen', FantreffenAdminDashboard::class)->name('anmeldungen');
+        Route::livewire('/{veranstaltung}/vip-autoren', FantreffenVipAuthors::class)->name('vip-authors');
+    });
 
-    // Fantreffen 2026 VIP-Autoren verwalten
-    Route::livewire('/admin/fantreffen-2026/vip-autoren', FantreffenVipAuthors::class)
-        ->name('admin.fantreffen.vip-authors')
-        ->middleware('vorstand-or-kassenwart');
+    Route::get('/admin/fantreffen-2026', function () {
+        $veranstaltung = Veranstaltung::featuredPublic();
+        abort_if($veranstaltung === null, 404);
+
+        return redirect()->route('admin.veranstaltungen.anmeldungen', $veranstaltung);
+    })->name('admin.fantreffen.2026')->middleware('vorstand-or-kassenwart');
+
+    Route::get('/admin/fantreffen-2026/vip-autoren', function () {
+        $veranstaltung = Veranstaltung::featuredPublic();
+        abort_if($veranstaltung === null, 404);
+
+        return redirect()->route('admin.veranstaltungen.vip-authors', $veranstaltung);
+    })->name('admin.fantreffen.vip-authors')->middleware('vorstand-or-kassenwart');
 
     // Fanfiction Admin (Vorstand)
     Route::prefix('vorstand/fanfiction')->name('admin.fanfiction.')->middleware('vorstand-or-kassenwart')->group(function () {

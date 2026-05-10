@@ -28,7 +28,7 @@
                     @guest
                         <a href="{{ route('mitglied.werden') }}" wire:navigate class="btn btn-primary btn-sm rounded-full">Mitglied werden</a>
                     @endguest
-                    <a href="{{ route('fantreffen.2026') }}" wire:navigate class="btn btn-ghost btn-sm rounded-full bg-base-100/70">Fantreffen 2026</a>
+                    <a href="{{ route('veranstaltungen.aktuell') }}" wire:navigate class="btn btn-ghost btn-sm rounded-full bg-base-100/70">Aktuelle Veranstaltung</a>
                 </x-ui.action-cluster>
             </x-slot:actions>
         </x-ui.page-header>

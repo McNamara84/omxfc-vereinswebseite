@@ -30,8 +30,10 @@ class FantreffenNeueAnmeldung extends Mailable implements ShouldQueue
      */
     public function envelope(): Envelope
     {
+        $titel = $this->anmeldung->veranstaltung?->titel ?? 'einer Veranstaltung';
+
         return new Envelope(
-            subject: 'Neue Anmeldung zum Maddrax-Fantreffen 2026',
+            subject: 'Neue Anmeldung zu '.$titel,
         );
     }
 
@@ -44,6 +46,7 @@ class FantreffenNeueAnmeldung extends Mailable implements ShouldQueue
             markdown: 'emails.fantreffen.neue-anmeldung',
             with: [
                 'anmeldung' => $this->anmeldung,
+                'veranstaltung' => $this->anmeldung->veranstaltung,
                 'fullName' => $this->anmeldung->full_name,
                 'email' => $this->anmeldung->registrant_email,
             ],

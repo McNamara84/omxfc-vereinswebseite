@@ -1,19 +1,22 @@
 <x-mail::message>
 # Wundan zum Gruße, {{ $fullName }}!
 
-Deine Anmeldung zum **Maddrax-Fantreffen 2026** ist bei uns eingegangen!
+Deine Anmeldung zu **{{ $veranstaltung?->titel ?? 'unserer Veranstaltung' }}** ist bei uns eingegangen!
 
 ## Event-Details
 
-**Datum:** Freitag, 9. Mai 2026  
-**Beginn:** 19:00 Uhr  
-**Ort:** L´Osteria Köln Mülheim  
-[Zur Google Maps](https://maps.app.goo.gl/dzLHUqVHqJrkWDkr5)
-
-## Programm
-
-- **19:00 Uhr** – Signierstunde mit Maddrax-Autoren
-- **20:00 Uhr** – Verleihung der Goldenen Taratze
+@if($veranstaltung?->datum_von)
+**Datum:** {{ $veranstaltung->datum_von->locale('de')->isoFormat('D. MMMM YYYY, HH:mm') }} Uhr  
+@endif
+@if($veranstaltung?->ort_name)
+**Ort:** {{ $veranstaltung->ort_name }}  
+@endif
+@if($veranstaltung?->ort_adresse)
+**Adresse:** {{ $veranstaltung->ort_adresse }}  
+@endif
+@if($veranstaltung?->maps_url)
+[Zur Google Maps]({{ $veranstaltung->maps_url }})
+@endif
 
 ## Deine Anmeldedaten
 
@@ -51,15 +54,13 @@ Jetzt mit PayPal zahlen
 </x-mail::button>
 
 Bitte wähle bei PayPal die Option **"Freunde & Familie"**, um Gebühren zu vermeiden.  
-Empfänger: vorstand@maddrax-fanclub.de
+Empfänger: {{ $veranstaltung?->kontaktEmail() ?? 'vorstand@maddrax-fanclub.de' }}
 @endif
 @endif
 
 ---
 
-Wir freuen uns auf dich beim Maddrax-Fantreffen 2026!
-
-**Hinweis:** Am selben Wochenende findet auch die [ColoniaCon](https://www.coloniacon-tng.de/2026) statt – mit einem großen Maddrax-Panel am Samstag (14:00 Uhr) und einer OMXFC/Maddraxikon-Vorstellung am Sonntag (10:40 Uhr).
+Wir freuen uns auf dich bei {{ $veranstaltung?->titel ?? 'der Veranstaltung' }}!
 
 Tuma sa feesa,
 
@@ -69,6 +70,6 @@ Tanja, Arndt und Markus
 ---
 
 <x-mail::subcopy>
-Bei Fragen zur Anmeldung wende dich bitte an: [vorstand@maddrax-fanclub.de](mailto:vorstand@maddrax-fanclub.de)
+Bei Fragen zur Anmeldung wende dich bitte an: [{{ $veranstaltung?->kontaktEmail() ?? 'vorstand@maddrax-fanclub.de' }}](mailto:{{ $veranstaltung?->kontaktEmail() ?? 'vorstand@maddrax-fanclub.de' }})
 </x-mail::subcopy>
 </x-mail::message>

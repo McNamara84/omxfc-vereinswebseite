@@ -30,6 +30,7 @@ class FantreffenAnmeldung extends Model
      * @var array<int, string>
      */
     protected $fillable = [
+        'veranstaltung_id',
         'user_id',
         'vorname',
         'nachname',
@@ -60,12 +61,29 @@ class FantreffenAnmeldung extends Model
         'payment_amount' => 'decimal:2',
     ];
 
+    protected static function booted(): void
+    {
+        static::creating(function (self $anmeldung) {
+            if ($anmeldung->veranstaltung_id !== null) {
+                return;
+            }
+
+            $anmeldung->veranstaltung_id = Veranstaltung::featuredPublic()?->id
+                ?? Veranstaltung::query()->orderByDesc('ist_highlight')->value('id');
+        });
+    }
+
     /**
      * Get the user that owns the registration.
      */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function veranstaltung(): BelongsTo
+    {
+        return $this->belongsTo(Veranstaltung::class);
     }
 
     /**
@@ -160,6 +178,10 @@ class FantreffenAnmeldung extends Model
      */
     public function getTshirtPrice(): float
     {
+        if ($this->veranstaltung && $this->veranstaltung->tshirt_aktiv) {
+            return (float) $this->veranstaltung->tshirt_preis;
+        }
+
         return self::TSHIRT_PRICE;
     }
 
@@ -176,14 +198,20 @@ class FantreffenAnmeldung extends Model
             return 0;
         }
 
+        if ($this->veranstaltung && ! $this->veranstaltung->zahlung_aktiv) {
+            return 0;
+        }
+
         $amount = 0;
+        $guestFee = (float) ($this->veranstaltung?->gastgebuehr ?? self::GUEST_FEE);
+        $tshirtPrice = (float) ($this->veranstaltung?->tshirt_preis ?? self::TSHIRT_PRICE);
 
         if (! $this->ist_mitglied) {
-            $amount += self::GUEST_FEE;
+            $amount += $guestFee;
         }
 
         if ($this->tshirt_bestellt) {
-            $amount += self::TSHIRT_PRICE;
+            $amount += $tshirtPrice;
         }
 
         return $amount;
@@ -201,7 +229,9 @@ class FantreffenAnmeldung extends Model
             return '0,00 €';
         }
 
-        $price = $this->ist_mitglied ? self::TSHIRT_PRICE : (self::GUEST_FEE + self::TSHIRT_PRICE);
+        $guestFee = (float) ($this->veranstaltung?->gastgebuehr ?? self::GUEST_FEE);
+        $tshirtPrice = (float) ($this->veranstaltung?->tshirt_preis ?? self::TSHIRT_PRICE);
+        $price = $this->ist_mitglied ? $tshirtPrice : ($guestFee + $tshirtPrice);
 
         return number_format($price, 2, ',', '.').' €';
     }

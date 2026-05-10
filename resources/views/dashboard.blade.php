@@ -11,7 +11,7 @@
 
                     <x-ui.action-cluster align="end">
                         <a href="{{ route('todos.index') }}" wire:navigate class="btn btn-primary btn-sm rounded-full">Baxx verdienen</a>
-                        <a href="{{ route('fantreffen.2026') }}" wire:navigate class="btn btn-ghost btn-sm rounded-full bg-base-100/70">Fantreffen 2026</a>
+                        <a href="{{ route('veranstaltungen.aktuell') }}" wire:navigate class="btn btn-ghost btn-sm rounded-full bg-base-100/70">Aktuelle Veranstaltung</a>
                     </x-ui.action-cluster>
                 </x-slot:actions>
             </x-ui.page-header>

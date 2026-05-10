@@ -19,6 +19,7 @@ abstract class TestCase extends BaseTestCase
     {
         parent::setUp();
         config(['app.key' => 'base64:'.base64_encode(random_bytes(32))]);
+        config(['logging.default' => 'null']);
 
         // Cache leeren, um sicherzustellen, dass Tests isoliert laufen
         Cache::flush();

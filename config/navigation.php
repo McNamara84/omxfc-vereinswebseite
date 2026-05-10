@@ -14,10 +14,10 @@ return [
         ],
         [
             'layout' => 'featured',
-            'title' => 'Fantreffen 2026',
-            'route' => 'fantreffen.2026',
+            'title' => 'Aktuelle Veranstaltung',
+            'route' => 'veranstaltungen.aktuell',
             'icon' => 'o-calendar-days',
-            'active_patterns' => ['fantreffen.2026*'],
+            'active_patterns' => ['veranstaltungen.*', 'fantreffen.2026*'],
             'accent' => true,
         ],
         [
@@ -119,7 +119,7 @@ return [
             'items' => [
                 ['title' => 'Kassenbuch', 'route' => 'kassenbuch.index'],
                 ['title' => 'Statistik', 'route' => 'admin.statistiken.index'],
-                ['title' => 'Anmeldungen FT', 'route' => 'admin.fantreffen.2026'],
+                ['title' => 'Veranstaltungen', 'route' => 'admin.veranstaltungen.index'],
                 ['title' => 'Fanfiction', 'route' => 'admin.fanfiction.index'],
                 ['title' => 'Umfrage verwalten', 'route' => 'admin.umfragen.index', 'can' => ['manage', Poll::class]],
             ],
@@ -141,10 +141,10 @@ return [
     'guest' => [
         [
             'layout' => 'featured',
-            'title' => 'Fantreffen 2026',
-            'route' => 'fantreffen.2026',
+            'title' => 'Aktuelle Veranstaltung',
+            'route' => 'veranstaltungen.aktuell',
             'icon' => 'o-calendar-days',
-            'active_patterns' => ['fantreffen.2026*'],
+            'active_patterns' => ['veranstaltungen.*', 'fantreffen.2026*'],
             'accent' => true,
         ],
         [

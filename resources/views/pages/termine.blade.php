@@ -80,7 +80,7 @@
                 <x-ui.panel title="Kalender abonnieren" description="Die schnellsten Wege zurück in den Kalender oder direkt zu den wichtigsten Event-Seiten.">
                     <div class="flex flex-col gap-3">
                         <a href="{{ $calendarLink }}" target="_blank" rel="noopener noreferrer" class="btn btn-primary rounded-full">Google Kalender</a>
-                        <a href="{{ route('fantreffen.2026') }}" wire:navigate class="btn btn-ghost rounded-full bg-base-100/75">Fantreffen 2026</a>
+                        <a href="{{ route('veranstaltungen.aktuell') }}" wire:navigate class="btn btn-ghost rounded-full bg-base-100/75">Aktuelle Veranstaltung</a>
                         <a href="{{ route('arbeitsgruppen') }}" wire:navigate class="btn btn-ghost rounded-full bg-base-100/75">Arbeitsgruppen ansehen</a>
                     </div>
                 </x-ui.panel>

@@ -30,8 +30,10 @@ class FantreffenAnmeldungBestaetigung extends Mailable implements ShouldQueue
      */
     public function envelope(): Envelope
     {
+        $titel = $this->anmeldung->veranstaltung?->titel ?? 'deiner Veranstaltung';
+
         return new Envelope(
-            subject: 'Deine Anmeldung zum Maddrax-Fantreffen 2026',
+            subject: 'Deine Anmeldung zu '.$titel,
         );
     }
 
@@ -40,14 +42,19 @@ class FantreffenAnmeldungBestaetigung extends Mailable implements ShouldQueue
      */
     public function content(): Content
     {
+        $veranstaltung = $this->anmeldung->veranstaltung;
+
         return new Content(
             markdown: 'emails.fantreffen.anmeldung-bestaetigung',
             with: [
                 'anmeldung' => $this->anmeldung,
+                'veranstaltung' => $veranstaltung,
                 'fullName' => $this->anmeldung->full_name,
                 'paymentRequired' => $this->anmeldung->requiresPayment(),
                 'paymentAmount' => $this->anmeldung->payment_amount,
-                'zahlungsUrl' => route('fantreffen.2026.bestaetigung', ['id' => $this->anmeldung->id]),
+                'zahlungsUrl' => $veranstaltung
+                    ? route('veranstaltungen.bestaetigung', [$veranstaltung, 'id' => $this->anmeldung->id])
+                    : route('fantreffen.2026.bestaetigung', ['id' => $this->anmeldung->id]),
             ],
         );
     }
