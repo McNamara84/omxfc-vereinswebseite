@@ -9,15 +9,15 @@
     <table class="table">
         <thead>
             <tr>
-                @for ($i = 0; $i < $columns; $i++)
+                @foreach (array_fill(0, max(0, $columns), null) as $unusedColumn)
                     <th><div class="skeleton h-4 w-20"></div></th>
-                @endfor
+                @endforeach
             </tr>
         </thead>
         <tbody>
-            @for ($r = 0; $r < $rows; $r++)
+            @foreach (array_keys(array_fill(0, max(0, $rows), null)) as $r)
                 <tr>
-                    @for ($c = 0; $c < $columns; $c++)
+                    @foreach (array_keys(array_fill(0, max(0, $columns), null)) as $c)
                         <td>
                             @if ($hasAvatar && $c === 0)
                                 <div class="flex items-center gap-3">
@@ -31,9 +31,9 @@
                                 <div class="skeleton h-4 {{ $widths[($r + $c) % count($widths)] }}"></div>
                             @endif
                         </td>
-                    @endfor
+                    @endforeach
                 </tr>
-            @endfor
+            @endforeach
         </tbody>
     </table>
 </div>

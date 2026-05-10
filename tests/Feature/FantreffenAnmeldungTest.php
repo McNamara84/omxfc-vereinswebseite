@@ -5,9 +5,11 @@ namespace Tests\Feature;
 use App\Models\FantreffenAnmeldung;
 use App\Models\Team;
 use App\Models\User;
+use App\Models\Veranstaltung;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Mail;
 use Tests\Concerns\CreatesFantreffenFormToken;
 use Tests\TestCase;
@@ -17,17 +19,62 @@ class FantreffenAnmeldungTest extends TestCase
     use CreatesFantreffenFormToken;
     use RefreshDatabase;
 
+    protected Veranstaltung $veranstaltung;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        Config::set('app.testing_minimal_layout', true);
+
+        $this->veranstaltung = Veranstaltung::create([
+            'titel' => 'Test-Fantreffen 2026',
+            'slug' => 'test-fantreffen-2026',
+            'status' => 'veroeffentlicht',
+            'veranstaltungsart' => 'Fantreffen',
+            'untertitel' => 'Dynamische Event-Testseite',
+            'teaser' => 'Programm, Anmeldung und aktuelle Informationen zum Testevent.',
+            'beschreibung' => "## ColoniaCon am selben Wochenende!\n\nMaddrax-Panel um 14:00 Uhr mit Michael Schönenbröcher und Wolfgang Hohlbein (unter Vorbehalt).\n\nVorstellung des OMXFC und des Maddraxikons um 10:40 Uhr.\n\nDie Location liegt nur fünf Minuten zu Fuß entfernt. Weitere Infos: coloniacon-tng.de/2026",
+            'datum_von' => '2026-05-09 19:00:00',
+            'ort_name' => "L'Osteria Köln Mülheim",
+            'ort_adresse' => 'Düsseldorfer Str. 1-3, 51063 Köln',
+            'maps_url' => 'https://maps.app.goo.gl/dzLHUqVHqJrkWDkr5',
+            'anmeldung_aktiv' => true,
+            'zahlung_aktiv' => true,
+            'tshirt_aktiv' => true,
+            'tshirt_deadline' => '2026-02-28 23:59:59',
+            'gastgebuehr' => 5,
+            'tshirt_preis' => 25,
+            'ist_highlight' => true,
+        ]);
+    }
+
+    protected function showUrl(): string
+    {
+        return route('veranstaltungen.show', ['veranstaltung' => $this->veranstaltung]);
+    }
+
+    protected function storeUrl(): string
+    {
+        return route('veranstaltungen.anmeldung.store', ['veranstaltung' => $this->veranstaltung]);
+    }
+
+    protected function confirmationUrl(FantreffenAnmeldung $anmeldung): string
+    {
+        return route('veranstaltungen.bestaetigung', ['veranstaltung' => $this->veranstaltung, 'id' => $anmeldung->id]);
+    }
+
     public function test_fantreffen_page_is_accessible_without_authentication()
     {
-        $response = $this->get('/maddrax-fantreffen-2026');
+        $response = $this->get($this->showUrl());
         $response->assertStatus(200);
-        $response->assertSee('Maddrax-Fantreffen 2026');
+        $response->assertSee('Test-Fantreffen 2026');
     }
 
     public function test_guest_can_register_without_tshirt()
     {
         Mail::fake();
-        $response = $this->post('/maddrax-fantreffen-2026', [
+        $response = $this->post($this->storeUrl(), [
             'vorname' => 'Max',
             'nachname' => 'Mustermann',
             'email' => 'max@example.com',
@@ -50,7 +97,7 @@ class FantreffenAnmeldungTest extends TestCase
         Carbon::setTestNow(Carbon::create(2026, 2, 15, 12));
         try {
             Mail::fake();
-            $response = $this->post('/maddrax-fantreffen-2026', [
+            $response = $this->post($this->storeUrl(), [
                 'vorname' => 'Max',
                 'nachname' => 'Mustermann',
                 'email' => 'max@example.com',
@@ -75,7 +122,7 @@ class FantreffenAnmeldungTest extends TestCase
         $user = User::factory()->create();
         $user->teams()->attach($team);
         $this->actingAs($user);
-        $response = $this->post('/maddrax-fantreffen-2026', [
+        $response = $this->post($this->storeUrl(), [
             'tshirt_bestellt' => false,
             'website' => '',
             '_form_token' => $this->validFormToken(),
@@ -97,7 +144,7 @@ class FantreffenAnmeldungTest extends TestCase
         $user->teams()->attach($team);
         $this->actingAs($user);
 
-        $response = $this->post('/maddrax-fantreffen-2026', [
+        $response = $this->post($this->storeUrl(), [
             'tshirt_bestellt' => false,
             'website' => '',
             '_form_token' => $this->validFormToken(),
@@ -119,7 +166,7 @@ class FantreffenAnmeldungTest extends TestCase
     {
         Mail::fake();
 
-        $response = $this->post('/maddrax-fantreffen-2026', [
+        $response = $this->post($this->storeUrl(), [
             'vorname' => 'Sam',
             'nachname' => 'Guest',
             'email' => 'sam@example.com',
@@ -143,6 +190,7 @@ class FantreffenAnmeldungTest extends TestCase
     public function test_payment_confirmation_page_shows_paypal_button()
     {
         $anmeldung = FantreffenAnmeldung::create([
+            'veranstaltung_id' => $this->veranstaltung->id,
             'vorname' => 'Max',
             'nachname' => 'Mustermann',
             'email' => 'max@example.com',
@@ -152,14 +200,15 @@ class FantreffenAnmeldungTest extends TestCase
             'tshirt_bestellt' => false,
             'zahlungseingang' => false,
         ]);
-        $response = $this->get("/maddrax-fantreffen-2026/bestaetigung/{$anmeldung->id}");
+        $response = $this->get($this->confirmationUrl($anmeldung));
         $response->assertStatus(200);
-        $response->assertSee('PayPal');
+        $response->assertSee('Zu zahlender Betrag');
+        $response->assertSee('5,00 €');
     }
 
     public function test_coloniacon_banner_shows_panel_info()
     {
-        $response = $this->withoutVite()->get('/maddrax-fantreffen-2026');
+        $response = $this->withoutVite()->get($this->showUrl());
 
         $response->assertStatus(200);
         $response->assertSee('ColoniaCon am selben Wochenende!');
@@ -169,7 +218,7 @@ class FantreffenAnmeldungTest extends TestCase
 
     public function test_coloniacon_banner_shows_author_names()
     {
-        $response = $this->withoutVite()->get('/maddrax-fantreffen-2026');
+        $response = $this->withoutVite()->get($this->showUrl());
 
         $response->assertStatus(200);
         $response->assertSee('Michael Schönenbröcher');
@@ -178,7 +227,7 @@ class FantreffenAnmeldungTest extends TestCase
 
     public function test_coloniacon_banner_shows_omxfc_presentation()
     {
-        $response = $this->withoutVite()->get('/maddrax-fantreffen-2026');
+        $response = $this->withoutVite()->get($this->showUrl());
 
         $response->assertStatus(200);
         $response->assertSee('Vorstellung des OMXFC und des Maddraxikons');
@@ -187,7 +236,7 @@ class FantreffenAnmeldungTest extends TestCase
 
     public function test_coloniacon_banner_shows_walking_distance()
     {
-        $response = $this->withoutVite()->get('/maddrax-fantreffen-2026');
+        $response = $this->withoutVite()->get($this->showUrl());
 
         $response->assertStatus(200);
         $response->assertSee('fünf Minuten zu Fuß');
@@ -195,7 +244,7 @@ class FantreffenAnmeldungTest extends TestCase
 
     public function test_coloniacon_banner_links_to_coloniacon_website()
     {
-        $response = $this->withoutVite()->get('/maddrax-fantreffen-2026');
+        $response = $this->withoutVite()->get($this->showUrl());
 
         $response->assertStatus(200);
         $response->assertSee('coloniacon-tng.de/2026');
@@ -207,7 +256,7 @@ class FantreffenAnmeldungTest extends TestCase
     {
         Mail::fake();
 
-        $response = $this->post('/maddrax-fantreffen-2026', [
+        $response = $this->post($this->storeUrl(), [
             'vorname' => 'Bot',
             'nachname' => 'Spammer',
             'email' => 'bot@spam.com',
@@ -215,7 +264,7 @@ class FantreffenAnmeldungTest extends TestCase
             '_form_token' => $this->validFormToken(),
         ]);
 
-        $response->assertRedirect(route('fantreffen.2026'));
+        $response->assertRedirect($this->showUrl());
         $response->assertSessionHasErrors('error');
         $this->assertDatabaseMissing('fantreffen_anmeldungen', ['email' => 'bot@spam.com']);
     }
@@ -224,7 +273,7 @@ class FantreffenAnmeldungTest extends TestCase
     {
         Mail::fake();
 
-        $response = $this->post('/maddrax-fantreffen-2026', [
+        $response = $this->post($this->storeUrl(), [
             'vorname' => 'Max',
             'nachname' => 'Mustermann',
             'email' => 'legit@example.com',
@@ -247,7 +296,7 @@ class FantreffenAnmeldungTest extends TestCase
         try {
             $token = Crypt::encryptString((string) time());
 
-            $response = $this->post('/maddrax-fantreffen-2026', [
+            $response = $this->post($this->storeUrl(), [
                 'vorname' => 'Bot',
                 'nachname' => 'Fast',
                 'email' => 'fast@bot.com',
@@ -255,7 +304,7 @@ class FantreffenAnmeldungTest extends TestCase
                 '_form_token' => $token,
             ]);
 
-            $response->assertRedirect(route('fantreffen.2026'));
+            $response->assertRedirect($this->showUrl());
             $response->assertSessionHasErrors('error');
             $this->assertDatabaseMissing('fantreffen_anmeldungen', ['email' => 'fast@bot.com']);
         } finally {
@@ -267,14 +316,14 @@ class FantreffenAnmeldungTest extends TestCase
     {
         Mail::fake();
 
-        $response = $this->post('/maddrax-fantreffen-2026', [
+        $response = $this->post($this->storeUrl(), [
             'vorname' => 'Bot',
             'nachname' => 'NoToken',
             'email' => 'notoken@bot.com',
             'website' => '',
         ]);
 
-        $response->assertRedirect(route('fantreffen.2026'));
+        $response->assertRedirect($this->showUrl());
         $response->assertSessionHasErrors('error');
         $this->assertDatabaseMissing('fantreffen_anmeldungen', ['email' => 'notoken@bot.com']);
     }
@@ -283,7 +332,7 @@ class FantreffenAnmeldungTest extends TestCase
     {
         Mail::fake();
 
-        $response = $this->post('/maddrax-fantreffen-2026', [
+        $response = $this->post($this->storeUrl(), [
             'vorname' => 'Hacker',
             'nachname' => 'Bob',
             'email' => 'hacker@evil.com',
@@ -291,7 +340,7 @@ class FantreffenAnmeldungTest extends TestCase
             '_form_token' => 'manipulated-garbage-value',
         ]);
 
-        $response->assertRedirect(route('fantreffen.2026'));
+        $response->assertRedirect($this->showUrl());
         $response->assertSessionHasErrors('error');
         $this->assertDatabaseMissing('fantreffen_anmeldungen', ['email' => 'hacker@evil.com']);
     }
@@ -301,6 +350,7 @@ class FantreffenAnmeldungTest extends TestCase
         Mail::fake();
 
         FantreffenAnmeldung::create([
+            'veranstaltung_id' => $this->veranstaltung->id,
             'vorname' => 'Erster',
             'nachname' => 'Anmelder',
             'email' => 'doppelt@example.com',
@@ -311,7 +361,7 @@ class FantreffenAnmeldungTest extends TestCase
             'payment_status' => 'pending',
         ]);
 
-        $response = $this->post('/maddrax-fantreffen-2026', [
+        $response = $this->post($this->storeUrl(), [
             'vorname' => 'Zweiter',
             'nachname' => 'Anmelder',
             'email' => 'doppelt@example.com',
@@ -332,6 +382,7 @@ class FantreffenAnmeldungTest extends TestCase
         $user->teams()->attach($team);
 
         FantreffenAnmeldung::create([
+            'veranstaltung_id' => $this->veranstaltung->id,
             'user_id' => $user->id,
             'vorname' => $user->vorname,
             'nachname' => $user->nachname,
@@ -343,7 +394,7 @@ class FantreffenAnmeldungTest extends TestCase
             'payment_status' => 'free',
         ]);
 
-        $response = $this->actingAs($user)->post('/maddrax-fantreffen-2026', [
+        $response = $this->actingAs($user)->post($this->storeUrl(), [
             'tshirt_bestellt' => false,
             'website' => '',
             '_form_token' => $this->validFormToken(),
@@ -355,7 +406,7 @@ class FantreffenAnmeldungTest extends TestCase
 
     public function test_form_page_includes_honeypot_field(): void
     {
-        $response = $this->withoutVite()->get('/maddrax-fantreffen-2026');
+        $response = $this->withoutVite()->get($this->showUrl());
 
         $response->assertStatus(200);
         $response->assertSee('name="website"', false);
@@ -372,7 +423,7 @@ class FantreffenAnmeldungTest extends TestCase
 
         try {
             for ($i = 1; $i <= 15; $i++) {
-                $response = $this->post('/maddrax-fantreffen-2026', [
+                $response = $this->post($this->storeUrl(), [
                     'vorname' => "User{$i}",
                     'nachname' => 'Test',
                     'email' => "user{$i}@example.com",
@@ -384,7 +435,7 @@ class FantreffenAnmeldungTest extends TestCase
             }
 
             // 16. Request sollte gedrosselt werden
-            $response = $this->post('/maddrax-fantreffen-2026', [
+            $response = $this->post($this->storeUrl(), [
                 'vorname' => 'Blocked',
                 'nachname' => 'User',
                 'email' => 'blocked@example.com',
@@ -408,7 +459,7 @@ class FantreffenAnmeldungTest extends TestCase
         try {
             // 20 Requests sollten alle durchgehen wenn Rate-Limit deaktiviert ist
             for ($i = 1; $i <= 20; $i++) {
-                $response = $this->post('/maddrax-fantreffen-2026', [
+                $response = $this->post($this->storeUrl(), [
                     'vorname' => "User{$i}",
                     'nachname' => 'Test',
                     'email' => "user{$i}@example.com",

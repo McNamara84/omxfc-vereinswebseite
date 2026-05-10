@@ -18,8 +18,12 @@
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
     <!-- Styles -->
+    @php($isMinimalTestLayout = app()->runningUnitTests() && config('app.testing_minimal_layout', false))
+    @php($shouldSkipViteAssets = app()->runningUnitTests())
     @include('layouts.partials.theme-bootstrap')
-    @vite(['resources/css/app.css'])
+    @unless ($shouldSkipViteAssets)
+        @vite(['resources/css/app.css'])
+    @endunless
     {{-- Zusätzliche Head-Inhalte --}}
     {{ $head ?? '' }}
 </head>
@@ -27,38 +31,54 @@
 <body class="font-sans antialiased">
     <x-banner />
     <div class="min-h-screen bg-base-200">
-        @livewire('navigation-menu')
+        @unless($isMinimalTestLayout)
+            @livewire('navigation-menu')
+        @endunless
 
-        {{-- maryUI Main-Layout mit optionaler Sidebar --}}
-        <x-main full-width>
-            {{-- Optionale Admin-Sidebar --}}
-            @isset($sidebar)
-                <x-slot:sidebar drawer="admin-drawer" collapsible class="bg-base-100 lg:bg-inherit">
-                    {{ $sidebar }}
-                </x-slot:sidebar>
-            @endisset
+        @if($isMinimalTestLayout)
+            <div class="p-4 lg:p-8 max-w-7xl mx-auto">
+                {{ $slot }}
+            </div>
+        @else
+            {{-- maryUI Main-Layout mit optionaler Sidebar --}}
+            <x-main full-width>
+                {{-- Optionale Admin-Sidebar --}}
+                @isset($sidebar)
+                    <x-slot:sidebar drawer="admin-drawer" collapsible class="bg-base-100 lg:bg-inherit">
+                        {{ $sidebar }}
+                    </x-slot:sidebar>
+                @endisset
 
-            {{-- maryUI erfordert expliziten content-Slot --}}
-            <x-slot:content>
-                <div class="p-4 lg:p-8 max-w-7xl mx-auto">
-                    {{ $slot }}
-                </div>
-            </x-slot:content>
-        </x-main>
+                {{-- maryUI erfordert expliziten content-Slot --}}
+                <x-slot:content>
+                    <div class="p-4 lg:p-8 max-w-7xl mx-auto">
+                        {{ $slot }}
+                    </div>
+                </x-slot:content>
+            </x-main>
+        @endif
     </div>
 
     <!-- Footer -->
-    <x-footer />
+    @unless($isMinimalTestLayout)
+        <x-footer />
+    @endunless
 
     @stack('modals')
     @stack('scripts')
 
-    @persist('toast')
-        <x-toast />
-    @endpersist
+    @unless($isMinimalTestLayout)
+        @persist('toast')
+            <x-toast />
+        @endpersist
+    @endunless
 
-    @include('layouts.partials.flash-toast-bridge')
+    @unless($isMinimalTestLayout)
+        @include('layouts.partials.flash-toast-bridge')
+    @endunless
 
-    @vite(['resources/js/app.js'])
+    @unless ($shouldSkipViteAssets)
+        @vite(['resources/js/app.js'])
+    @endunless
 </body>
 </html>

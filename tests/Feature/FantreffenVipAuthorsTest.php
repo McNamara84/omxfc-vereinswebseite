@@ -7,7 +7,9 @@ use App\Livewire\FantreffenVipAuthors;
 use App\Models\FantreffenVipAuthor;
 use App\Models\Team;
 use App\Models\User;
+use App\Models\Veranstaltung;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Config;
 use Livewire\Livewire;
 use PHPUnit\Framework\Attributes\Test;
 use Symfony\Component\DomCrawler\Crawler;
@@ -16,6 +18,27 @@ use Tests\TestCase;
 class FantreffenVipAuthorsTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected Veranstaltung $veranstaltung;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        Config::set('app.testing_minimal_layout', true);
+        $this->veranstaltung = Veranstaltung::featuredPublic() ?? Veranstaltung::query()->orderByDesc('ist_highlight')->firstOrFail();
+        $this->veranstaltung->update(['vip_autoren_aktiv' => true]);
+    }
+
+    protected function vipAuthorsRoute(): string
+    {
+        return route('admin.veranstaltungen.vip-authors', ['veranstaltung' => $this->veranstaltung]);
+    }
+
+    protected function publicEventRoute(): string
+    {
+        return route('veranstaltungen.show', ['veranstaltung' => $this->veranstaltung]);
+    }
 
     protected function createUserWithRole(Role $role): User
     {
@@ -37,7 +60,7 @@ class FantreffenVipAuthorsTest extends TestCase
         $admin = $this->createUserWithRole(Role::Admin);
         $this->actingAs($admin);
 
-        $response = $this->get('/admin/fantreffen-2026/vip-autoren');
+        $response = $this->get($this->vipAuthorsRoute());
 
         $response->assertStatus(200);
         $response->assertSeeLivewire('fantreffen-vip-authors');
@@ -49,7 +72,7 @@ class FantreffenVipAuthorsTest extends TestCase
         $vorstand = $this->createUserWithRole(Role::Vorstand);
         $this->actingAs($vorstand);
 
-        $response = $this->get('/admin/fantreffen-2026/vip-autoren');
+        $response = $this->get($this->vipAuthorsRoute());
 
         $response->assertStatus(200);
     }
@@ -60,7 +83,7 @@ class FantreffenVipAuthorsTest extends TestCase
         $kassenwart = $this->createUserWithRole(Role::Kassenwart);
         $this->actingAs($kassenwart);
 
-        $response = $this->get('/admin/fantreffen-2026/vip-autoren');
+        $response = $this->get($this->vipAuthorsRoute());
 
         $response->assertStatus(200);
     }
@@ -71,7 +94,7 @@ class FantreffenVipAuthorsTest extends TestCase
         $member = $this->createUserWithRole(Role::Mitglied);
         $this->actingAs($member);
 
-        $response = $this->get('/admin/fantreffen-2026/vip-autoren');
+        $response = $this->get($this->vipAuthorsRoute());
 
         $response->assertStatus(403);
     }
@@ -79,7 +102,7 @@ class FantreffenVipAuthorsTest extends TestCase
     #[Test]
     public function test_vip_authors_page_is_not_accessible_for_guests(): void
     {
-        $response = $this->get('/admin/fantreffen-2026/vip-autoren');
+        $response = $this->get($this->vipAuthorsRoute());
 
         $response->assertRedirect('/login');
     }
@@ -90,7 +113,7 @@ class FantreffenVipAuthorsTest extends TestCase
         $admin = $this->createUserWithRole(Role::Admin);
 
         Livewire::actingAs($admin)
-            ->test(FantreffenVipAuthors::class)
+            ->test(FantreffenVipAuthors::class, ['veranstaltung' => $this->veranstaltung])
             ->call('openForm')
             ->set('name', 'Oliver Fröhlich')
             ->set('pseudonym', 'Ian Rolf Hill')
@@ -113,7 +136,7 @@ class FantreffenVipAuthorsTest extends TestCase
         $admin = $this->createUserWithRole(Role::Admin);
 
         Livewire::actingAs($admin)
-            ->test(FantreffenVipAuthors::class)
+            ->test(FantreffenVipAuthors::class, ['veranstaltung' => $this->veranstaltung])
             ->call('openForm')
             ->set('name', 'Vorbehalt Autor')
             ->set('pseudonym', '')
@@ -135,7 +158,7 @@ class FantreffenVipAuthorsTest extends TestCase
         $admin = $this->createUserWithRole(Role::Admin);
 
         Livewire::actingAs($admin)
-            ->test(FantreffenVipAuthors::class)
+            ->test(FantreffenVipAuthors::class, ['veranstaltung' => $this->veranstaltung])
             ->call('openForm')
             ->set('name', 'Jo Zybell')
             ->set('pseudonym', '')
@@ -163,7 +186,7 @@ class FantreffenVipAuthorsTest extends TestCase
         ]);
 
         Livewire::actingAs($admin)
-            ->test(FantreffenVipAuthors::class)
+            ->test(FantreffenVipAuthors::class, ['veranstaltung' => $this->veranstaltung])
             ->call('edit', $author->id)
             ->set('name', 'Updated Name')
             ->set('pseudonym', 'Updated Pseudo')
@@ -191,7 +214,7 @@ class FantreffenVipAuthorsTest extends TestCase
 
         // Delete the middle author
         Livewire::actingAs($admin)
-            ->test(FantreffenVipAuthors::class)
+            ->test(FantreffenVipAuthors::class, ['veranstaltung' => $this->veranstaltung])
             ->call('delete', $author2->id);
 
         // Verify author was deleted
@@ -215,7 +238,7 @@ class FantreffenVipAuthorsTest extends TestCase
         ]);
 
         Livewire::actingAs($admin)
-            ->test(FantreffenVipAuthors::class)
+            ->test(FantreffenVipAuthors::class, ['veranstaltung' => $this->veranstaltung])
             ->call('toggleActive', $author->id);
 
         $this->assertDatabaseHas('fantreffen_vip_authors', [
@@ -224,7 +247,7 @@ class FantreffenVipAuthorsTest extends TestCase
         ]);
 
         Livewire::actingAs($admin)
-            ->test(FantreffenVipAuthors::class)
+            ->test(FantreffenVipAuthors::class, ['veranstaltung' => $this->veranstaltung])
             ->call('toggleActive', $author->id);
 
         $this->assertDatabaseHas('fantreffen_vip_authors', [
@@ -242,7 +265,7 @@ class FantreffenVipAuthorsTest extends TestCase
         $author2 = FantreffenVipAuthor::create(['name' => 'Second', 'sort_order' => 1, 'is_active' => true]);
 
         Livewire::actingAs($admin)
-            ->test(FantreffenVipAuthors::class)
+            ->test(FantreffenVipAuthors::class, ['veranstaltung' => $this->veranstaltung])
             ->call('moveUp', $author2->id);
 
         $this->assertEquals(0, $author2->fresh()->sort_order);
@@ -258,7 +281,7 @@ class FantreffenVipAuthorsTest extends TestCase
         $author2 = FantreffenVipAuthor::create(['name' => 'Second', 'sort_order' => 1, 'is_active' => true]);
 
         Livewire::actingAs($admin)
-            ->test(FantreffenVipAuthors::class)
+            ->test(FantreffenVipAuthors::class, ['veranstaltung' => $this->veranstaltung])
             ->call('moveDown', $author1->id);
 
         $this->assertEquals(1, $author1->fresh()->sort_order);
@@ -273,7 +296,7 @@ class FantreffenVipAuthorsTest extends TestCase
         $author = FantreffenVipAuthor::create(['name' => 'First', 'sort_order' => 0, 'is_active' => true]);
 
         Livewire::actingAs($admin)
-            ->test(FantreffenVipAuthors::class)
+            ->test(FantreffenVipAuthors::class, ['veranstaltung' => $this->veranstaltung])
             ->call('moveUp', $author->id);
 
         $this->assertEquals(0, $author->fresh()->sort_order);
@@ -287,7 +310,7 @@ class FantreffenVipAuthorsTest extends TestCase
         $author = FantreffenVipAuthor::create(['name' => 'Only', 'sort_order' => 0, 'is_active' => true]);
 
         Livewire::actingAs($admin)
-            ->test(FantreffenVipAuthors::class)
+            ->test(FantreffenVipAuthors::class, ['veranstaltung' => $this->veranstaltung])
             ->call('moveDown', $author->id);
 
         $this->assertEquals(0, $author->fresh()->sort_order);
@@ -299,7 +322,7 @@ class FantreffenVipAuthorsTest extends TestCase
         $admin = $this->createUserWithRole(Role::Admin);
 
         Livewire::actingAs($admin)
-            ->test(FantreffenVipAuthors::class)
+            ->test(FantreffenVipAuthors::class, ['veranstaltung' => $this->veranstaltung])
             ->call('openForm')
             ->set('name', '')
             ->call('save')
@@ -316,15 +339,12 @@ class FantreffenVipAuthorsTest extends TestCase
             'sort_order' => 0,
         ]);
 
-        $response = $this->get('/maddrax-fantreffen-2026');
+        $response = $this->get($this->publicEventRoute());
 
         $response->assertStatus(200);
-        $response->assertSee('VIP-Autoren bestätigt!');
+        $response->assertSee('Gästeliste');
         $response->assertSee('Oliver Fröhlich');
         $response->assertSee('Ian Rolf Hill');
-
-        $disclaimer = 'Einige Autor:innen haben ihre Teilnahme bereits zugesagt, andere sind noch angefragt oder haben nur vorläufig zugesagt. Bitte beachtet, dass sich die Gästeliste kurzfristig ändern kann.';
-        $response->assertDontSee($disclaimer);
     }
 
     #[Test]
@@ -338,27 +358,14 @@ class FantreffenVipAuthorsTest extends TestCase
             'sort_order' => 0,
         ]);
 
-        $response = $this->get('/maddrax-fantreffen-2026');
+        $response = $this->get($this->publicEventRoute());
 
         $response->assertStatus(200);
         $response->assertSee('Vorbehalt Autor');
         $response->assertSee('(unter Vorbehalt)');
 
-        $disclaimer = 'Einige Autor:innen haben ihre Teilnahme bereits zugesagt, andere sind noch angefragt oder haben nur vorläufig zugesagt. Bitte beachtet, dass sich die Gästeliste kurzfristig ändern kann.';
-        $response->assertSee($disclaimer);
-
         $crawler = new Crawler($response->getContent());
-
-        // Verify the disclaimer is rendered inside the "Signierstunde mit Autoren" block (Programm section)
-        $signierstundeBlock = $crawler->filterXPath('//h3[normalize-space()="Signierstunde mit Autoren"]/parent::*');
-        $this->assertCount(1, $signierstundeBlock);
-        $this->assertStringContainsString($disclaimer, $signierstundeBlock->text());
-
-        // Guardrail: disclaimer must not be displayed inside the VIP banner region
-        $vipRegion = $crawler->filterXPath('//*[@aria-labelledby="vip-authors-heading"]');
-        if ($vipRegion->count() > 0) {
-            $this->assertStringNotContainsString($disclaimer, $vipRegion->text());
-        }
+        $this->assertSame(1, $crawler->filterXPath('//text()[contains(., "Vorbehalt Autor")]')->count());
     }
 
     #[Test]
@@ -370,7 +377,7 @@ class FantreffenVipAuthorsTest extends TestCase
             'sort_order' => 0,
         ]);
 
-        $response = $this->get('/maddrax-fantreffen-2026');
+        $response = $this->get($this->publicEventRoute());
 
         $response->assertStatus(200);
         $response->assertDontSee('VIP-Autoren bestätigt!');

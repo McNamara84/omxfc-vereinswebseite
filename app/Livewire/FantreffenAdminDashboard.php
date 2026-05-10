@@ -15,7 +15,7 @@ class FantreffenAdminDashboard extends Component
 {
     use WithPagination;
 
-    public Veranstaltung $veranstaltung;
+    public ?Veranstaltung $veranstaltung = null;
 
     // URL-Query-Parameter automatisch synchronisieren
     #[Url(except: 'alle')]
@@ -64,15 +64,24 @@ class FantreffenAdminDashboard extends Component
         return $this->getFilteredQuery()->paginate(20);
     }
 
-    public function mount(Veranstaltung $veranstaltung): void
+    public function mount(?Veranstaltung $veranstaltung = null): void
     {
-        $this->veranstaltung = $veranstaltung;
+        $this->veranstaltung = $veranstaltung ?? Veranstaltung::featuredPublic() ?? Veranstaltung::query()->orderByDesc('ist_highlight')->firstOrFail();
+    }
+
+    protected function currentVeranstaltung(): Veranstaltung
+    {
+        if ($this->veranstaltung instanceof Veranstaltung) {
+            return $this->veranstaltung;
+        }
+
+        return $this->veranstaltung = Veranstaltung::featuredPublic() ?? Veranstaltung::query()->orderByDesc('ist_highlight')->firstOrFail();
     }
 
     protected function findAnmeldung(int $anmeldungId): FantreffenAnmeldung
     {
         return FantreffenAnmeldung::query()
-            ->where('veranstaltung_id', $this->veranstaltung->id)
+            ->where('veranstaltung_id', $this->currentVeranstaltung()->id)
             ->findOrFail($anmeldungId);
     }
 
@@ -197,7 +206,7 @@ class FantreffenAdminDashboard extends Component
         return Response::streamDownload(function () use ($csv) {
             echo "\xEF\xBB\xBF"; // UTF-8 BOM für Excel
             echo $csv;
-        }, $this->veranstaltung->slug.'-anmeldungen-'.now()->format('Y-m-d').'.csv', [
+        }, $this->currentVeranstaltung()->slug.'-anmeldungen-'.now()->format('Y-m-d').'.csv', [
             'Content-Type' => 'text/csv; charset=UTF-8',
         ]);
     }
@@ -206,7 +215,7 @@ class FantreffenAdminDashboard extends Component
     {
         $query = FantreffenAnmeldung::query()
             ->with('user')
-            ->where('veranstaltung_id', $this->veranstaltung->id);
+            ->where('veranstaltung_id', $this->currentVeranstaltung()->id);
 
         // Mitgliedsstatus-Filter
         if ($this->filterMemberStatus === 'mitglieder') {
@@ -269,9 +278,15 @@ class FantreffenAdminDashboard extends Component
 
     public function render()
     {
-        return view('livewire.fantreffen-admin-dashboard')
+        $veranstaltung = $this->currentVeranstaltung();
+
+        return view('livewire.fantreffen-admin-dashboard', [
+            'veranstaltung' => $veranstaltung,
+            'bearbeitenUrl' => route('admin.veranstaltungen.edit', ['veranstaltung' => $veranstaltung]),
+            'vipAutorenUrl' => route('admin.veranstaltungen.vip-authors', ['veranstaltung' => $veranstaltung]),
+        ])
             ->layout('layouts.app', [
-                'title' => $this->veranstaltung->titel.' - Anmeldungen',
+                'title' => $veranstaltung->titel.' - Anmeldungen',
             ]);
     }
 }

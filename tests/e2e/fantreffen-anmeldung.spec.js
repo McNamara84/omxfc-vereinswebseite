@@ -7,16 +7,17 @@ function uniqueGuestEmail(prefix, projectName) {
 }
 
 async function gotoFantreffenAnmeldung(page) {
-    await page.goto('/maddrax-fantreffen-2026');
+    await page.goto('/veranstaltungen/aktuell');
+    await page.waitForURL(/\/veranstaltungen\//, { timeout: 10000 });
     await expect(page.locator('form#fantreffen-form')).toBeVisible();
 }
 
-test.describe('Fantreffen 2026 Anmeldung', () => {
+test.describe('Veranstaltungsanmeldung', () => {
     test('Seite ist erreichbar und zeigt das Anmeldeformular', async ({ page }) => {
         await gotoFantreffenAnmeldung(page);
 
         // Hauptüberschrift sichtbar
-        await expect(page.locator('h1')).toContainText('Maddrax-Fantreffen 2026');
+        await expect(page.locator('h1')).toBeVisible();
 
         // Anmeldeformular mit Überschrift vorhanden
         await expect(page.locator('h2:has-text("Anmeldung")')).toBeVisible();

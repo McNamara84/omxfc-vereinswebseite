@@ -7,7 +7,9 @@ use App\Livewire\FantreffenAdminDashboard;
 use App\Models\FantreffenAnmeldung;
 use App\Models\Team;
 use App\Models\User;
+use App\Models\Veranstaltung;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Config;
 use Livewire\Livewire;
 use PHPUnit\Framework\Attributes\Test;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -16,6 +18,21 @@ use Tests\TestCase;
 class FantreffenAdminDashboardTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected Veranstaltung $veranstaltung;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        Config::set('app.testing_minimal_layout', true);
+        $this->veranstaltung = Veranstaltung::featuredPublic() ?? Veranstaltung::query()->orderByDesc('ist_highlight')->firstOrFail();
+    }
+
+    protected function dashboardRoute(): string
+    {
+        return route('admin.veranstaltungen.anmeldungen', ['veranstaltung' => $this->veranstaltung]);
+    }
 
     protected function createUserWithRole(Role $role): User
     {
@@ -38,7 +55,7 @@ class FantreffenAdminDashboardTest extends TestCase
         $admin = $this->createUserWithRole(Role::Admin);
         $this->actingAs($admin);
 
-        $response = $this->get('/admin/fantreffen-2026');
+        $response = $this->get($this->dashboardRoute());
 
         $response->assertStatus(200);
         $response->assertSeeLivewire('fantreffen-admin-dashboard');
@@ -50,7 +67,7 @@ class FantreffenAdminDashboardTest extends TestCase
         $vorstand = $this->createUserWithRole(Role::Vorstand);
         $this->actingAs($vorstand);
 
-        $response = $this->get('/admin/fantreffen-2026');
+        $response = $this->get($this->dashboardRoute());
 
         $response->assertStatus(200);
     }
@@ -61,7 +78,7 @@ class FantreffenAdminDashboardTest extends TestCase
         $kassenwart = $this->createUserWithRole(Role::Kassenwart);
         $this->actingAs($kassenwart);
 
-        $response = $this->get('/admin/fantreffen-2026');
+        $response = $this->get($this->dashboardRoute());
 
         $response->assertStatus(200);
     }
@@ -72,7 +89,7 @@ class FantreffenAdminDashboardTest extends TestCase
         $member = $this->createUserWithRole(Role::Mitglied);
         $this->actingAs($member);
 
-        $response = $this->get('/admin/fantreffen-2026');
+        $response = $this->get($this->dashboardRoute());
 
         $response->assertStatus(403);
     }
@@ -80,7 +97,7 @@ class FantreffenAdminDashboardTest extends TestCase
     #[Test]
     public function test_admin_dashboard_is_not_accessible_for_guests()
     {
-        $response = $this->get('/admin/fantreffen-2026');
+        $response = $this->get($this->dashboardRoute());
 
         $response->assertRedirect('/login');
     }
@@ -112,7 +129,7 @@ class FantreffenAdminDashboardTest extends TestCase
             'tshirt_groesse' => 'M',
         ]);
 
-        $response = $this->get('/admin/fantreffen-2026');
+        $response = $this->get($this->dashboardRoute());
 
         $response->assertSee('Max Mustermann');
         $response->assertSee('max@example.com');
@@ -165,7 +182,7 @@ class FantreffenAdminDashboardTest extends TestCase
         ]);
 
         Livewire::actingAs($admin)
-            ->test('fantreffen-admin-dashboard')
+            ->test(FantreffenAdminDashboard::class, ['veranstaltung' => $this->veranstaltung])
             ->assertSet('stats.total', 3)
             ->assertSet('stats.mitglieder', 1)
             ->assertSet('stats.gaeste', 2)
@@ -193,7 +210,7 @@ class FantreffenAdminDashboardTest extends TestCase
         ]);
 
         Livewire::actingAs($admin)
-            ->test('fantreffen-admin-dashboard')
+            ->test(FantreffenAdminDashboard::class, ['veranstaltung' => $this->veranstaltung])
             ->call('toggleOrgaTeam', $registration->id);
 
         $updatedRegistration = $registration->fresh();
@@ -210,7 +227,18 @@ class FantreffenAdminDashboardTest extends TestCase
         $admin = $this->createUserWithRole(Role::Admin);
         $this->actingAs($admin);
 
+        $zahlungsEvent = Veranstaltung::create([
+            'titel' => 'Orga-Testevent',
+            'slug' => 'orga-testevent',
+            'status' => 'veroeffentlicht',
+            'anmeldung_aktiv' => true,
+            'zahlung_aktiv' => true,
+            'tshirt_aktiv' => true,
+            'tshirt_preis' => 25,
+        ]);
+
         $registration = FantreffenAnmeldung::create([
+            'veranstaltung_id' => $zahlungsEvent->id,
             'vorname' => 'Kai',
             'nachname' => 'Kraft',
             'email' => 'kai@example.com',
@@ -224,7 +252,7 @@ class FantreffenAdminDashboardTest extends TestCase
         ]);
 
         Livewire::actingAs($admin)
-            ->test('fantreffen-admin-dashboard')
+            ->test(FantreffenAdminDashboard::class, ['veranstaltung' => $zahlungsEvent])
             ->call('toggleOrgaTeam', $registration->id);
 
         $updated = $registration->fresh();
@@ -252,7 +280,7 @@ class FantreffenAdminDashboardTest extends TestCase
         ]);
 
         Livewire::actingAs($admin)
-            ->test('fantreffen-admin-dashboard')
+            ->test(FantreffenAdminDashboard::class, ['veranstaltung' => $this->veranstaltung])
             ->call('toggleOrgaTeam', $registration->id);
 
         $unchanged = $registration->fresh();
@@ -292,7 +320,7 @@ class FantreffenAdminDashboardTest extends TestCase
         ]);
 
         Livewire::actingAs($admin)
-            ->test('fantreffen-admin-dashboard')
+            ->test(FantreffenAdminDashboard::class, ['veranstaltung' => $this->veranstaltung])
             ->set('filterMemberStatus', 'mitglieder')
             ->assertSee($member->vorname)
             ->assertDontSee('Max Mustermann');
@@ -325,7 +353,7 @@ class FantreffenAdminDashboardTest extends TestCase
         ]);
 
         Livewire::actingAs($admin)
-            ->test('fantreffen-admin-dashboard')
+            ->test(FantreffenAdminDashboard::class, ['veranstaltung' => $this->veranstaltung])
             ->set('filterTshirt', 'mit_tshirt')
             ->assertSee('Anna Schmidt')
             ->assertDontSee('Max Mustermann');
@@ -357,7 +385,7 @@ class FantreffenAdminDashboardTest extends TestCase
         ]);
 
         Livewire::actingAs($admin)
-            ->test('fantreffen-admin-dashboard')
+            ->test(FantreffenAdminDashboard::class, ['veranstaltung' => $this->veranstaltung])
             ->set('search', 'Anna')
             ->assertSee('Anna Schmidt')
             ->assertDontSee('Max Mustermann');
@@ -380,7 +408,7 @@ class FantreffenAdminDashboardTest extends TestCase
         ]);
 
         Livewire::actingAs($admin)
-            ->test('fantreffen-admin-dashboard')
+            ->test(FantreffenAdminDashboard::class, ['veranstaltung' => $this->veranstaltung])
             ->call('toggleZahlungseingang', $anmeldung->id);
 
         $anmeldung->refresh();
@@ -388,7 +416,7 @@ class FantreffenAdminDashboardTest extends TestCase
 
         // Toggle wieder zurück
         Livewire::actingAs($admin)
-            ->test('fantreffen-admin-dashboard')
+            ->test(FantreffenAdminDashboard::class, ['veranstaltung' => $this->veranstaltung])
             ->call('toggleZahlungseingang', $anmeldung->id);
 
         $anmeldung->refresh();
@@ -413,7 +441,7 @@ class FantreffenAdminDashboardTest extends TestCase
         ]);
 
         Livewire::actingAs($admin)
-            ->test('fantreffen-admin-dashboard')
+            ->test(FantreffenAdminDashboard::class, ['veranstaltung' => $this->veranstaltung])
             ->call('toggleTshirtFertig', $anmeldung->id);
 
         $anmeldung->refresh();
@@ -440,6 +468,7 @@ class FantreffenAdminDashboardTest extends TestCase
         $this->actingAs($admin);
 
         $livewireComponent = new FantreffenAdminDashboard;
+        $livewireComponent->mount($this->veranstaltung);
         $response = $livewireComponent->exportCsv();
 
         // Check that we got a StreamedResponse
@@ -447,7 +476,7 @@ class FantreffenAdminDashboardTest extends TestCase
 
         // Check headers
         $this->assertEquals('text/csv; charset=UTF-8', $response->headers->get('Content-Type'));
-        $this->assertStringContainsString('fantreffen-anmeldungen-', $response->headers->get('Content-Disposition'));
+        $this->assertStringContainsString($this->veranstaltung->slug.'-anmeldungen-', $response->headers->get('Content-Disposition'));
     }
 
     #[Test]
@@ -468,7 +497,7 @@ class FantreffenAdminDashboardTest extends TestCase
             ]);
         }
 
-        $response = $this->actingAs($admin)->get('/admin/fantreffen-2026');
+        $response = $this->actingAs($admin)->get($this->dashboardRoute());
 
         // Should see latest 20 items first (descending order by creation)
         $response->assertSee('Person25');
@@ -497,7 +526,7 @@ class FantreffenAdminDashboardTest extends TestCase
         $this->assertEquals(1, FantreffenAnmeldung::count());
 
         Livewire::actingAs($admin)
-            ->test('fantreffen-admin-dashboard')
+            ->test(FantreffenAdminDashboard::class, ['veranstaltung' => $this->veranstaltung])
             ->call('deleteAnmeldung', $anmeldung->id);
 
         $this->assertEquals(0, FantreffenAnmeldung::count());
@@ -519,7 +548,7 @@ class FantreffenAdminDashboardTest extends TestCase
         ]);
 
         Livewire::actingAs($vorstand)
-            ->test('fantreffen-admin-dashboard')
+            ->test(FantreffenAdminDashboard::class, ['veranstaltung' => $this->veranstaltung])
             ->call('deleteAnmeldung', $anmeldung->id);
 
         $this->assertEquals(0, FantreffenAnmeldung::count());
@@ -541,7 +570,7 @@ class FantreffenAdminDashboardTest extends TestCase
         ]);
 
         Livewire::actingAs($kassenwart)
-            ->test('fantreffen-admin-dashboard')
+            ->test(FantreffenAdminDashboard::class, ['veranstaltung' => $this->veranstaltung])
             ->call('deleteAnmeldung', $anmeldung->id);
 
         $this->assertEquals(0, FantreffenAnmeldung::count());

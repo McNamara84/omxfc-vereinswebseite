@@ -10,7 +10,7 @@ use Livewire\Component;
 
 class FantreffenVipAuthors extends Component
 {
-    public Veranstaltung $veranstaltung;
+    public ?Veranstaltung $veranstaltung = null;
 
     // Form fields
     public $name = '';
@@ -44,19 +44,28 @@ class FantreffenVipAuthors extends Component
         'sort_order.min' => 'Die Sortierung darf nicht negativ sein.',
     ];
 
-    public function mount(Veranstaltung $veranstaltung): void
+    public function mount(?Veranstaltung $veranstaltung = null): void
     {
-        $this->veranstaltung = $veranstaltung;
+        $this->veranstaltung = $veranstaltung ?? Veranstaltung::featuredPublic() ?? Veranstaltung::query()->orderByDesc('ist_highlight')->firstOrFail();
+    }
+
+    protected function currentVeranstaltung(): Veranstaltung
+    {
+        if ($this->veranstaltung instanceof Veranstaltung) {
+            return $this->veranstaltung;
+        }
+
+        return $this->veranstaltung = Veranstaltung::featuredPublic() ?? Veranstaltung::query()->orderByDesc('ist_highlight')->firstOrFail();
     }
 
     protected function cacheKey(): string
     {
-        return 'fantreffen_vip_authors_'.$this->veranstaltung->id;
+        return 'fantreffen_vip_authors_'.$this->currentVeranstaltung()->id;
     }
 
     protected function query()
     {
-        return FantreffenVipAuthor::query()->where('veranstaltung_id', $this->veranstaltung->id);
+        return FantreffenVipAuthor::query()->where('veranstaltung_id', $this->currentVeranstaltung()->id);
     }
 
     protected function findAuthor(int $id): FantreffenVipAuthor
@@ -105,7 +114,7 @@ class FantreffenVipAuthors extends Component
             session()->flash('success', 'Autor erfolgreich aktualisiert.');
         } else {
             FantreffenVipAuthor::create([
-                'veranstaltung_id' => $this->veranstaltung->id,
+                'veranstaltung_id' => $this->currentVeranstaltung()->id,
                 'name' => $this->name,
                 'pseudonym' => $this->pseudonym ?: null,
                 'is_active' => $this->is_active,
@@ -240,14 +249,17 @@ class FantreffenVipAuthors extends Component
 
     public function render()
     {
+        $veranstaltung = $this->currentVeranstaltung();
         $authors = $this->query()->ordered()->get();
         $activeAuthors = $authors->where('is_active', true);
 
         return view('livewire.fantreffen-vip-authors', [
+            'veranstaltung' => $veranstaltung,
+            'anmeldungenUrl' => route('admin.veranstaltungen.anmeldungen', ['veranstaltung' => $veranstaltung]),
             'authors' => $authors,
             'activeAuthors' => $activeAuthors,
         ])->layout('layouts.admin', [
-            'title' => $this->veranstaltung->titel.' - VIP-Autoren',
+            'title' => $veranstaltung->titel.' - VIP-Autoren',
         ]);
     }
 

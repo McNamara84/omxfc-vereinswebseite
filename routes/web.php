@@ -126,19 +126,13 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
         Route::livewire('/{veranstaltung}/vip-autoren', FantreffenVipAuthors::class)->name('vip-authors');
     });
 
-    Route::get('/admin/fantreffen-2026', function () {
-        $veranstaltung = Veranstaltung::featuredPublic();
-        abort_if($veranstaltung === null, 404);
+    Route::livewire('/admin/fantreffen-2026', FantreffenAdminDashboard::class)
+        ->name('admin.fantreffen.2026')
+        ->middleware('vorstand-or-kassenwart');
 
-        return redirect()->route('admin.veranstaltungen.anmeldungen', $veranstaltung);
-    })->name('admin.fantreffen.2026')->middleware('vorstand-or-kassenwart');
-
-    Route::get('/admin/fantreffen-2026/vip-autoren', function () {
-        $veranstaltung = Veranstaltung::featuredPublic();
-        abort_if($veranstaltung === null, 404);
-
-        return redirect()->route('admin.veranstaltungen.vip-authors', $veranstaltung);
-    })->name('admin.fantreffen.vip-authors')->middleware('vorstand-or-kassenwart');
+    Route::livewire('/admin/fantreffen-2026/vip-autoren', FantreffenVipAuthors::class)
+        ->name('admin.fantreffen.vip-authors')
+        ->middleware('vorstand-or-kassenwart');
 
     // Fanfiction Admin (Vorstand)
     Route::prefix('vorstand/fanfiction')->name('admin.fanfiction.')->middleware('vorstand-or-kassenwart')->group(function () {

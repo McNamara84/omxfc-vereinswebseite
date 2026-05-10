@@ -6,7 +6,7 @@
         description="Pflege die angekündigten Gastautor:innen inklusive Reihenfolge, Aktivstatus und Vorbehaltskennzeichnung pro Veranstaltung."
     >
         <x-slot:actions>
-            <x-button label="Zurück zu Anmeldungen" link="{{ route('admin.veranstaltungen.anmeldungen', $veranstaltung) }}" wire:navigate icon="o-arrow-left" class="btn-ghost" />
+            <x-button label="Zurück zu Anmeldungen" :link="$anmeldungenUrl" wire:navigate icon="o-arrow-left" class="btn-ghost" />
         </x-slot:actions>
     </x-ui.page-header>
 

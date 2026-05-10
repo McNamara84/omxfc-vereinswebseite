@@ -29,9 +29,13 @@ class VeranstaltungController extends Controller
         return redirect()->route('veranstaltungen.show', $veranstaltung);
     }
 
-    public function legacyShow(): RedirectResponse
+    public function legacyShow(): View
     {
-        return redirect()->route('veranstaltungen.aktuell');
+        $veranstaltung = Veranstaltung::featuredPublic();
+
+        abort_if($veranstaltung === null, 404);
+
+        return $this->show($veranstaltung);
     }
 
     public function legacyStore(Request $request)
