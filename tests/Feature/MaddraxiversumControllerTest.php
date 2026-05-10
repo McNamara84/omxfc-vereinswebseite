@@ -4,7 +4,6 @@ namespace Tests\Feature;
 
 use App\Models\BaxxEarningRule;
 use App\Models\MaddraxiversumBaxxSpecialOffer;
-use App\Models\Mission;
 use App\Models\Reward;
 use App\Models\RewardPurchase;
 use App\Models\Team;

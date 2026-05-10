@@ -4,7 +4,6 @@ namespace Tests\Unit;
 
 use App\Models\MaddraxiversumBaxxSpecialOffer;
 use App\Models\Mission;
-use App\Models\Team;
 use App\Models\UserPoint;
 use App\Services\MaddraxiversumBaxxService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
