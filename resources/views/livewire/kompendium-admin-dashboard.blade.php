@@ -372,7 +372,7 @@
                     placeholder="z.B. Euree, Meeraka..."
                     hint="Leer lassen falls Miniserie ohne Zyklen"
                     data-testid="edit-zyklus"
-                    popover="Der Handlungszyklus, dem dieser Roman zugeordnet ist. Bei Miniserien ohne Zyklen leer lassen." />
+                    title="Der Handlungszyklus, dem dieser Roman zugeordnet ist. Bei Miniserien ohne Zyklen leer lassen." />
 
                 <x-input
                     label="Roman-Nummer"

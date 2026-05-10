@@ -68,6 +68,10 @@ const gotoBundleCreateForm = async (page) => {
     await expect(page.locator('select[name="series"]')).toBeVisible({ timeout: 15000 });
 };
 
+const submitBundleForm = async (page) => {
+    await page.locator('#bundle-offer-form button[type="submit"]').click();
+};
+
 // Die Enum-Werte aus BookType.php
 const SERIES_MADDRAX = 'Maddrax - Die dunkle Zukunft der Erde';
 const CONDITION_Z1 = 'Z1';
@@ -114,15 +118,10 @@ test.describe('Romantauschbörse - Stapel-Angebote', () => {
             await page.selectOption('select[name="condition"]', CONDITION_Z2);
 
             // Absenden
-            await page.click('button[type="submit"]');
+            await submitBundleForm(page);
 
-            // Fehler sollte im Formular-Kontext angezeigt werden
-            // maryUI zeigt Validierungsfehler als .text-error Elemente an,
-            // manuelle @error-Blöcke verwenden role="alert"
             const form = page.locator('#bundle-offer-form');
-            await expect(
-                form.locator('[role="alert"], .text-error')
-            ).toBeVisible();
+            await expect(form.getByText('Ein Stapel-Angebot muss mindestens 2 Romane enthalten.')).toBeVisible();
         });
 
         test('Erfolgreiches Erstellen eines Stapel-Angebots', async ({ page }) => {
@@ -135,7 +134,7 @@ test.describe('Romantauschbörse - Stapel-Angebote', () => {
             await page.selectOption('select[name="condition"]', CONDITION_Z2);
 
             // Absenden
-            await page.click('button[type="submit"]');
+            await submitBundleForm(page);
 
             // Sollte zur Übersicht weiterleiten
             await expect(page).toHaveURL(/romantauschboerse$/);
@@ -157,7 +156,7 @@ test.describe('Romantauschbörse - Stapel-Angebote', () => {
             await page.selectOption('select[name="series"]', SERIES_MADDRAX);
             await page.fill('input[name="book_numbers"]', '10-15');
             await page.selectOption('select[name="condition"]', CONDITION_Z1);
-            await page.click('button[type="submit"]');
+            await submitBundleForm(page);
 
             await expect(page).toHaveURL(/romantauschboerse$/);
 
@@ -174,7 +173,7 @@ test.describe('Romantauschbörse - Stapel-Angebote', () => {
             await page.selectOption('select[name="series"]', SERIES_MADDRAX);
             await page.fill('input[name="book_numbers"]', '20-25');
             await page.selectOption('select[name="condition"]', CONDITION_Z2);
-            await page.click('button[type="submit"]');
+            await submitBundleForm(page);
 
             await expect(page).toHaveURL(/romantauschboerse$/);
 
@@ -193,7 +192,7 @@ test.describe('Romantauschbörse - Stapel-Angebote', () => {
             await page.selectOption('select[name="series"]', SERIES_MADDRAX);
             await page.fill('input[name="book_numbers"]', '30-35');
             await page.selectOption('select[name="condition"]', CONDITION_Z1);
-            await page.click('button[type="submit"]');
+            await submitBundleForm(page);
 
             await expect(page).toHaveURL(/romantauschboerse$/);
 
@@ -219,7 +218,7 @@ test.describe('Romantauschbörse - Stapel-Angebote', () => {
             await page.selectOption('select[name="series"]', SERIES_MADDRAX);
             await page.fill('input[name="book_numbers"]', '90-92');
             await page.selectOption('select[name="condition"]', CONDITION_Z2);
-            await page.click('button[type="submit"]');
+            await submitBundleForm(page);
 
             await expect(page).toHaveURL(/romantauschboerse$/);
 
@@ -247,7 +246,7 @@ test.describe('Romantauschbörse - Stapel-Angebote', () => {
             await page.selectOption('select[name="series"]', SERIES_MADDRAX);
             await page.fill('input[name="book_numbers"]', '50-52');
             await page.selectOption('select[name="condition"]', CONDITION_Z3);
-            await page.click('button[type="submit"]');
+            await submitBundleForm(page);
 
             await expect(page).toHaveURL(/romantauschboerse$/);
 
@@ -306,7 +305,7 @@ test.describe('Romantauschbörse - Stapel-Angebote', () => {
             await page.selectOption('select[name="series"]', SERIES_MADDRAX);
             await page.fill('input[name="book_numbers"]', '60-65');
             await page.selectOption('select[name="condition"]', CONDITION_Z1);
-            await page.click('button[type="submit"]');
+            await submitBundleForm(page);
 
             await expect(page).toHaveURL(/romantauschboerse$/);
 
@@ -347,7 +346,7 @@ test.describe('Romantauschbörse - Stapel-Angebote', () => {
             await page.selectOption('select[name="series"]', SERIES_MADDRAX);
             await page.fill('input[name="book_numbers"]', '70-75');
             await page.selectOption('select[name="condition"]', CONDITION_Z2);
-            await page.click('button[type="submit"]');
+            await submitBundleForm(page);
 
             await expect(page).toHaveURL(/romantauschboerse$/);
 

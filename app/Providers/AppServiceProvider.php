@@ -150,6 +150,7 @@ class AppServiceProvider extends ServiceProvider
             Blade::component('testing.components.main', 'main');
             Blade::component('testing.components.mary-modal', 'mary-modal');
             Blade::component('testing.components.mary-modal', 'modal');
+            Blade::component('testing.components.password', 'password');
             Blade::component('testing.components.select', 'select');
             Blade::component('testing.components.stat', 'stat');
             Blade::component('testing.components.table', 'table');

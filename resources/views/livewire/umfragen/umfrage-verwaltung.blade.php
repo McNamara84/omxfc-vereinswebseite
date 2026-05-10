@@ -67,7 +67,7 @@
                     wire:model="menuLabel"
                     placeholder="z.B. Abstimmung"
                     data-testid="menu-label-input"
-                    popover="Wird als Menüpunkt in der Navigation angezeigt, wenn die Umfrage aktiv ist."
+                    title="Wird als Menüpunkt in der Navigation angezeigt, wenn die Umfrage aktiv ist."
                 />
 
                 <div data-testid="visibility-section">
