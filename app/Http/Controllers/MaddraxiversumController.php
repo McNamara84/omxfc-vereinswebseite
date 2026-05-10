@@ -3,9 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Enums\Role;
-use App\Models\BaxxEarningRule;
 use App\Models\Mission;
 use App\Models\User;
+use App\Services\MaddraxiversumBaxxService;
 use App\Services\TeamPointService;
 use Carbon\Carbon;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -16,7 +16,10 @@ use Illuminate\View\View;
 
 class MaddraxiversumController extends Controller
 {
-    public function __construct(private TeamPointService $teamPointService) {}
+    public function __construct(
+        private TeamPointService $teamPointService,
+        private MaddraxiversumBaxxService $maddraxiversumBaxxService,
+    ) {}
 
     /**
      * Zeigt die Maddraxiversum-Seite mit der Karte an,
@@ -41,6 +44,7 @@ class MaddraxiversumController extends Controller
         return view('maddraxiversum.index', [
             'showMap' => $showMap,
             'userPoints' => $userPoints,
+            'rewardConfiguration' => $this->maddraxiversumBaxxService->getMemberConfiguration(),
             'tileUrl' => 'https://mapdraxv2.maddraxikon.com/v2/{z}/{x}/{y}.png', // URL-Muster für die Tiles
         ]);
     }
@@ -97,72 +101,42 @@ class MaddraxiversumController extends Controller
     public function checkMissionStatus(Request $request)
     {
         try {
+            /** @var User $user */
             $user = Auth::user();
-            \Log::info('Status-Check für Benutzer: '.$user->id);
 
             $mission = Mission::where('user_id', $user->id)
                 ->where('completed', false)
                 ->first();
 
             if (! $mission) {
-                \Log::info('Keine aktive Mission gefunden für Benutzer: '.$user->id);
-
                 return response()->json(['status' => 'none']);
             }
 
-            \Log::info('Aktive Mission gefunden:', [
-                'mission_id' => $mission->id,
-                'started_at' => $mission->started_at,
-                'arrival_at' => $mission->arrival_at,
-                'mission_ends_at' => $mission->mission_ends_at,
-                'completed' => $mission->completed,
-                'travel_duration' => $mission->travel_duration,
-                'mission_duration' => $mission->mission_duration,
-            ]);
-
             $now = Carbon::now();
-            \Log::info('Aktuelle Zeit: '.$now);
 
             // Berechne die Gesamtdauer der Mission
             $totalDuration = $mission->travel_duration + $mission->mission_duration + $mission->travel_duration;
             $expectedEndTime = $mission->started_at->copy()->addSeconds($totalDuration);
 
-            \Log::info('Berechnete Zeiten:', [
-                'total_duration' => $totalDuration,
-                'expected_end_time' => $expectedEndTime,
-                'time_diff' => $now->diffInSeconds($expectedEndTime),
-            ]);
-
             if ($now->greaterThanOrEqualTo($expectedEndTime)) {
-                \Log::info('Mission ist beendet, markiere als abgeschlossen');
-                // Mission erfolgreich abgeschlossen
                 $mission->completed = true;
                 $mission->save();
 
-                // Punkte vergeben
-                if ($user->currentTeam) {
-                    $defaultPoints = BaxxEarningRule::getPointsFor('maddraxiversum_mission');
-                    $earnedPoints = $mission->reward ?: $defaultPoints;
-                    if ($earnedPoints > 0) {
-                        $user->incrementTeamPoints($earnedPoints);
-                    }
-                    \Log::info('Punkte vergeben:', [
-                        'user_id' => $user->id,
-                        'team_id' => $user->currentTeam->id,
-                        'points' => $earnedPoints,
-                    ]);
-                } else {
-                    \Log::warning('Kein Team gefunden für Benutzer: '.$user->id);
-                }
+                $completedMissionCount = Mission::query()
+                    ->where('user_id', $user->id)
+                    ->where('completed', true)
+                    ->count();
+
+                $this->maddraxiversumBaxxService->awardPointsForMission(
+                    $user,
+                    $mission,
+                    $completedMissionCount,
+                );
 
                 return response()->json(['status' => 'completed']);
             } elseif ($now->greaterThanOrEqualTo($mission->arrival_at)) {
-                \Log::info('Mission läuft noch');
-
                 return response()->json(['status' => 'in_mission']);
             } else {
-                \Log::info('Mission ist noch unterwegs');
-
                 return response()->json(['status' => 'traveling']);
             }
         } catch (\Exception $e) {
@@ -178,30 +152,16 @@ class MaddraxiversumController extends Controller
     public function getMissionStatus(Request $request)
     {
         try {
+            /** @var User $user */
             $user = Auth::user();
-            \Log::info('Status-Abfrage für Benutzer: '.$user->id);
 
             $mission = Mission::where('user_id', $user->id)
                 ->where('completed', false)
                 ->first();
 
             if (! $mission) {
-                \Log::info('Keine aktive Mission gefunden für Benutzer: '.$user->id);
-
                 return response()->json(['status' => 'none']);
             }
-
-            \Log::info('Aktive Mission gefunden:', [
-                'mission_id' => $mission->id,
-                'started_at' => $mission->started_at,
-                'arrival_at' => $mission->arrival_at,
-                'mission_ends_at' => $mission->mission_ends_at,
-                'completed' => $mission->completed,
-                'travel_duration' => $mission->travel_duration,
-                'mission_duration' => $mission->mission_duration,
-                'origin' => $mission->origin,
-                'destination' => $mission->destination,
-            ]);
 
             $now = Carbon::now();
             $totalDuration = $mission->travel_duration + $mission->mission_duration + $mission->travel_duration;

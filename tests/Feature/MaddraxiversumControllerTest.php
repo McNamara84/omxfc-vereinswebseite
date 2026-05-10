@@ -2,18 +2,30 @@
 
 namespace Tests\Feature;
 
+use App\Models\BaxxEarningRule;
+use App\Models\MaddraxiversumBaxxSpecialOffer;
+use App\Models\Mission;
 use App\Models\Reward;
 use App\Models\RewardPurchase;
 use App\Models\Team;
+use App\Models\UserPoint;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
 class MaddraxiversumControllerTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        Config::set('app.testing_minimal_layout', true);
+    }
 
     private function actingMember(string $role = 'Mitglied', int $points = 0): User
     {
@@ -84,6 +96,26 @@ class MaddraxiversumControllerTest extends TestCase
         $response->assertSee('Belohnungen einlösen');
     }
 
+    public function test_index_shows_effective_maddraxiversum_rule_when_reward_is_locked(): void
+    {
+        $user = $this->actingMember('Mitglied', 2);
+        $this->actingAs($user);
+
+        MaddraxiversumBaxxSpecialOffer::create([
+            'points' => 4,
+            'every_count' => 2,
+            'ends_at' => now()->addDay(),
+            'is_active' => true,
+        ]);
+
+        $response = $this->get('/maddraxiversum');
+
+        $response->assertOk();
+        $response->assertSee('Aktuelle Vergaberegel für Missionen');
+        $response->assertSee('4 Baxx pro 2 Missionen');
+        $response->assertSee('Sonderaktion: Jetzt für einen begrenzten Zeitraum 2 Baxx pro Mission!');
+    }
+
     public function test_get_cities_returns_api_response(): void
     {
         Http::fake(['de.maddraxikon.com/*' => Http::response(['test' => 'data'], 200)]);
@@ -147,5 +179,72 @@ class MaddraxiversumControllerTest extends TestCase
                 'status' => 'traveling',
                 'current_location' => 'A',
             ]);
+    }
+
+    public function test_check_mission_status_marks_completed_and_awards_points_from_effective_rule(): void
+    {
+        Carbon::setTestNow('2025-01-01 12:00:00');
+
+        $user = $this->actingMember();
+        $this->actingAs($user);
+
+        BaxxEarningRule::updateOrCreate(
+            ['action_key' => 'maddraxiversum_mission'],
+            [
+                'label' => 'Maddraxiversum-Mission',
+                'description' => 'Testregel',
+                'points' => 7,
+                'every_count' => 1,
+                'is_active' => true,
+            ]
+        );
+
+        $this->startMission($user);
+
+        Carbon::setTestNow('2025-01-01 12:00:45');
+
+        $this->postJson('/mission/status-pruefen')
+            ->assertOk()
+            ->assertJson(['status' => 'completed']);
+
+        $this->assertDatabaseHas('missions', [
+            'user_id' => $user->id,
+            'completed' => true,
+        ]);
+        $this->assertDatabaseHas('user_points', [
+            'user_id' => $user->id,
+            'team_id' => $user->currentTeam->id,
+            'points' => 7,
+        ]);
+    }
+
+    public function test_check_mission_status_uses_active_special_offer_rule(): void
+    {
+        Carbon::setTestNow('2025-01-01 12:00:00');
+
+        $user = $this->actingMember();
+        $this->actingAs($user);
+
+        MaddraxiversumBaxxSpecialOffer::create([
+            'points' => 11,
+            'every_count' => 1,
+            'ends_at' => now()->addDay(),
+            'is_active' => true,
+        ]);
+
+        $this->startMission($user);
+
+        Carbon::setTestNow('2025-01-01 12:00:45');
+
+        $this->postJson('/mission/status-pruefen')
+            ->assertOk()
+            ->assertJson(['status' => 'completed']);
+
+        $this->assertDatabaseHas('user_points', [
+            'user_id' => $user->id,
+            'team_id' => $user->currentTeam->id,
+            'points' => 11,
+        ]);
+        $this->assertSame(1, UserPoint::count());
     }
 }

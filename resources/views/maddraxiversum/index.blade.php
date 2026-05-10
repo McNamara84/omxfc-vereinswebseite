@@ -5,20 +5,37 @@
                 <div class="p-4 flex-grow flex flex-col">
                     @if ($showMap)
 
+                        @php($skipAssetsInMinimalTests = app()->runningUnitTests() && config('app.testing_minimal_layout', false))
+
                         <div id="map" class="w-full flex-grow border border-base-content/10 rounded"></div>
 
-                        <script>
-                            const csrfToken = '{{ csrf_token() }}';
-                            const tileUrl = '{{ $tileUrl }}';
-                        </script>
-                        @assets
-                            @vite(['resources/js/maddraxiversum.js'])
-                        @endassets
+                        @unless($skipAssetsInMinimalTests)
+                            <script>
+                                const csrfToken = '{{ csrf_token() }}';
+                                const tileUrl = '{{ $tileUrl }}';
+                            </script>
+                            @assets
+                                @vite(['resources/js/maddraxiversum.js'])
+                            @endassets
+                        @endunless
                     @else
                         <div class="bg-warning/10 border-l-4 border-warning text-warning-content p-4">
                             <p class="font-bold">Zugriff eingeschränkt</p>
                             <p>Du musst diese Belohnung zuerst im Bereich <a href="/belohnungen" class="underline font-semibold">Belohnungen einlösen</a> freischalten.</p>
                             <p>Du hast aktuell {{ $userPoints }} Baxx gesammelt.</p>
+
+                            @if(($rewardConfiguration['effective_rule']['is_active'] ?? false) && ($rewardConfiguration['effective_rule']['points'] ?? 0) > 0)
+                                <p class="mt-3 text-sm">
+                                    Aktuelle Vergaberegel für Missionen: <span class="font-semibold">{{ $rewardConfiguration['effective_rule']['rule_label'] }}</span>
+                                </p>
+                            @endif
+
+                            @if($rewardConfiguration['prominent_special_offer'] ?? null)
+                                <p class="mt-2 text-sm font-semibold">{{ $rewardConfiguration['prominent_special_offer']['banner_text'] }}</p>
+                                @if($rewardConfiguration['prominent_special_offer']['banner_end_text'])
+                                    <p class="text-sm">{{ $rewardConfiguration['prominent_special_offer']['banner_end_text'] }}</p>
+                                @endif
+                            @endif
                         </div>
                     @endif
                 </div>

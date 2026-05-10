@@ -5,10 +5,12 @@ namespace App\Livewire;
 use Carbon\Carbon;
 use App\Models\BaxxEarningRule;
 use App\Models\Download;
+use App\Models\MaddraxiversumBaxxSpecialOffer;
 use App\Models\RomantauschBaxxSpecialOffer;
 use App\Models\Reward;
 use App\Models\RewardPurchase;
 use App\Models\ReviewBaxxSpecialOffer;
+use App\Services\MaddraxiversumBaxxService;
 use App\Services\Romantausch\RomantauschBaxxService;
 use App\Services\ReviewBaxxService;
 use App\Services\RewardService;
@@ -80,6 +82,19 @@ class BelohnungenAdmin extends Component
 
     public bool $reviewSpecialOfferIsActive = true;
 
+    // --- Maddraxiversum special offers ---
+    public bool $showMaddraxiversumSpecialOfferModal = false;
+
+    public ?int $editingMaddraxiversumSpecialOfferId = null;
+
+    public int $maddraxiversumSpecialOfferPoints = 1;
+
+    public int $maddraxiversumSpecialOfferEveryCount = 1;
+
+    public string $maddraxiversumSpecialOfferEndsAt = '';
+
+    public bool $maddraxiversumSpecialOfferIsActive = true;
+
     // --- Romantausch special offers ---
     public bool $showRomantauschSpecialOfferModal = false;
 
@@ -150,6 +165,27 @@ class BelohnungenAdmin extends Component
     public function reviewRewardConfiguration(): array
     {
         $service = app(ReviewBaxxService::class);
+
+        return [
+            'base_rule' => $service->getBaseRuleData(),
+            'effective_rule' => $service->getEffectiveRule(),
+            'prominent_special_offer' => $service->getProminentSpecialOffer(),
+        ];
+    }
+
+    #[Computed]
+    public function maddraxiversumSpecialOffers(): \Illuminate\Database\Eloquent\Collection
+    {
+        return MaddraxiversumBaxxSpecialOffer::query()
+            ->orderByDesc('is_active')
+            ->orderByDesc('ends_at')
+            ->get();
+    }
+
+    #[Computed]
+    public function maddraxiversumRewardConfiguration(): array
+    {
+        $service = app(MaddraxiversumBaxxService::class);
 
         return [
             'base_rule' => $service->getBaseRuleData(),
@@ -384,7 +420,12 @@ class BelohnungenAdmin extends Component
         $this->showRuleModal = false;
         $this->editingRuleId = null;
         $this->ruleEveryCount = 1;
-        unset($this->earningRules, $this->reviewRewardConfiguration);
+        unset(
+            $this->earningRules,
+            $this->reviewRewardConfiguration,
+            $this->maddraxiversumRewardConfiguration,
+            $this->romantauschRewardConfiguration,
+        );
     }
 
     public function toggleRuleActive(int $ruleId): void
@@ -393,7 +434,12 @@ class BelohnungenAdmin extends Component
         $rule->update(['is_active' => ! $rule->is_active]);
         $status = $rule->is_active ? 'aktiviert' : 'deaktiviert';
         $this->dispatch('toast', type: 'success', title: "Vergaberegel {$status}");
-        unset($this->earningRules, $this->reviewRewardConfiguration);
+        unset(
+            $this->earningRules,
+            $this->reviewRewardConfiguration,
+            $this->maddraxiversumRewardConfiguration,
+            $this->romantauschRewardConfiguration,
+        );
     }
 
     public function openCreateReviewSpecialOffer(): void
@@ -539,6 +585,127 @@ class BelohnungenAdmin extends Component
         $this->reviewSpecialOfferEveryCount = 1;
         $this->reviewSpecialOfferEndsAt = now()->addDay()->format('Y-m-d\TH:i');
         $this->reviewSpecialOfferIsActive = true;
+    }
+
+    public function openCreateMaddraxiversumSpecialOffer(): void
+    {
+        $this->resetMaddraxiversumSpecialOfferForm();
+        $this->showMaddraxiversumSpecialOfferModal = true;
+    }
+
+    public function openEditMaddraxiversumSpecialOffer(int $offerId): void
+    {
+        $offer = MaddraxiversumBaxxSpecialOffer::findOrFail($offerId);
+        $this->editingMaddraxiversumSpecialOfferId = $offer->id;
+        $this->maddraxiversumSpecialOfferPoints = $offer->points;
+        $this->maddraxiversumSpecialOfferEveryCount = $offer->every_count;
+        $this->maddraxiversumSpecialOfferEndsAt = $offer->ends_at->copy()->timezone(config('app.timezone'))->format('Y-m-d\TH:i');
+        $this->maddraxiversumSpecialOfferIsActive = $offer->is_active;
+        $this->showMaddraxiversumSpecialOfferModal = true;
+    }
+
+    public function saveMaddraxiversumSpecialOffer(): void
+    {
+        $this->validate([
+            'maddraxiversumSpecialOfferPoints' => 'required|integer|min:1',
+            'maddraxiversumSpecialOfferEveryCount' => 'required|integer|min:1',
+            'maddraxiversumSpecialOfferEndsAt' => 'required|date',
+        ]);
+
+        $endsAt = Carbon::parse($this->maddraxiversumSpecialOfferEndsAt, config('app.timezone'));
+
+        if ($this->maddraxiversumSpecialOfferIsActive && $endsAt->lte(now())) {
+            throw ValidationException::withMessages([
+                'maddraxiversumSpecialOfferEndsAt' => 'Das Enddatum einer aktiven Sonderaktion muss in der Zukunft liegen.',
+            ]);
+        }
+
+        $data = [
+            'points' => $this->maddraxiversumSpecialOfferPoints,
+            'every_count' => $this->maddraxiversumSpecialOfferEveryCount,
+            'ends_at' => $endsAt,
+            'is_active' => $this->maddraxiversumSpecialOfferIsActive,
+        ];
+
+        DB::transaction(function () use ($data) {
+            app(MaddraxiversumBaxxService::class)->getBaseRule();
+
+            BaxxEarningRule::query()
+                ->where('action_key', 'maddraxiversum_mission')
+                ->lockForUpdate()
+                ->first();
+
+            $hasConflictingOffer = MaddraxiversumBaxxSpecialOffer::query()
+                ->currentlyActive()
+                ->when($this->editingMaddraxiversumSpecialOfferId, fn ($query) => $query->whereKeyNot($this->editingMaddraxiversumSpecialOfferId))
+                ->exists();
+
+            if ($this->maddraxiversumSpecialOfferIsActive && $hasConflictingOffer) {
+                throw ValidationException::withMessages([
+                    'maddraxiversumSpecialOfferIsActive' => 'Es kann immer nur eine aktive Maddraxiversum-Sonderaktion gleichzeitig geben.',
+                ]);
+            }
+
+            if ($this->editingMaddraxiversumSpecialOfferId) {
+                MaddraxiversumBaxxSpecialOffer::findOrFail($this->editingMaddraxiversumSpecialOfferId)->update($data);
+
+                return;
+            }
+
+            MaddraxiversumBaxxSpecialOffer::create($data);
+        });
+
+        $title = $this->editingMaddraxiversumSpecialOfferId
+            ? 'Maddraxiversum-Sonderaktion aktualisiert'
+            : 'Maddraxiversum-Sonderaktion erstellt';
+        $this->dispatch('toast', type: 'success', title: $title);
+
+        $this->showMaddraxiversumSpecialOfferModal = false;
+        $this->resetMaddraxiversumSpecialOfferForm();
+        unset($this->maddraxiversumSpecialOffers, $this->maddraxiversumRewardConfiguration);
+    }
+
+    public function toggleMaddraxiversumSpecialOfferActive(int $offerId): void
+    {
+        $status = DB::transaction(function () use ($offerId) {
+            app(MaddraxiversumBaxxService::class)->getBaseRule();
+
+            BaxxEarningRule::query()
+                ->where('action_key', 'maddraxiversum_mission')
+                ->lockForUpdate()
+                ->first();
+
+            $offer = MaddraxiversumBaxxSpecialOffer::findOrFail($offerId);
+            $nextActiveState = ! $offer->is_active;
+
+            if ($nextActiveState && $offer->ends_at->lte(now())) {
+                throw ValidationException::withMessages([
+                    'maddraxiversumSpecialOfferIsActive' => 'Abgelaufene Sonderaktionen können nicht erneut aktiviert werden.',
+                ]);
+            }
+
+            if ($nextActiveState && MaddraxiversumBaxxSpecialOffer::query()->currentlyActive()->whereKeyNot($offer->id)->exists()) {
+                throw ValidationException::withMessages([
+                    'maddraxiversumSpecialOfferIsActive' => 'Es gibt bereits eine andere aktive Maddraxiversum-Sonderaktion.',
+                ]);
+            }
+
+            $offer->update(['is_active' => $nextActiveState]);
+
+            return $offer->is_active ? 'aktiviert' : 'deaktiviert';
+        });
+
+        $this->dispatch('toast', type: 'success', title: "Maddraxiversum-Sonderaktion {$status}");
+        unset($this->maddraxiversumSpecialOffers, $this->maddraxiversumRewardConfiguration);
+    }
+
+    private function resetMaddraxiversumSpecialOfferForm(): void
+    {
+        $this->editingMaddraxiversumSpecialOfferId = null;
+        $this->maddraxiversumSpecialOfferPoints = 1;
+        $this->maddraxiversumSpecialOfferEveryCount = 1;
+        $this->maddraxiversumSpecialOfferEndsAt = now()->addDay()->format('Y-m-d\TH:i');
+        $this->maddraxiversumSpecialOfferIsActive = true;
     }
 
     public function openCreateRomantauschSpecialOffer(): void
