@@ -114,6 +114,27 @@
                     />
                 </div>
 
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <x-stat
+                        title="Basisregel Maddraxiversum"
+                        :value="$this->maddraxiversumRewardConfiguration['base_rule']['rule_label']"
+                        icon="o-globe-alt"
+                        class="shadow"
+                    />
+                    <x-stat
+                        title="Aktuell wirksam"
+                        :value="$this->maddraxiversumRewardConfiguration['effective_rule']['rule_label']"
+                        icon="o-rocket-launch"
+                        class="shadow"
+                    />
+                    <x-stat
+                        title="Sonderaktion"
+                        :value="$this->maddraxiversumRewardConfiguration['prominent_special_offer'] ? 'Prominent sichtbar' : 'Keine prominente Aktion'"
+                        icon="o-megaphone"
+                        class="shadow"
+                    />
+                </div>
+
                 <x-table :headers="[
                     ['key' => 'action_key', 'label' => 'Aktion'],
                     ['key' => 'label', 'label' => 'Bezeichnung'],
@@ -147,6 +168,58 @@
                                 class="btn-ghost btn-xs"
                                 wire:click="toggleRuleActive({{ $rule->id }})"
                                 tooltip="{{ $rule->is_active ? 'Deaktivieren' : 'Aktivieren' }}"
+                            />
+                        </div>
+                    @endscope
+                </x-table>
+
+                <div class="flex items-center justify-between mt-8 mb-4 gap-4">
+                    <div>
+                        <h3 class="text-lg font-bold text-primary">Maddraxiversum-Sonderaktionen</h3>
+                        <p class="text-sm text-base-content">Zeitlich begrenzte Mission-Boni überschreiben die Basisregel für abgeschlossene Missionen automatisch bis zum Endzeitpunkt.</p>
+                    </div>
+                    <x-button label="Neue Maddraxiversum-Sonderaktion" icon="o-plus" class="btn-primary" wire:click="openCreateMaddraxiversumSpecialOffer" />
+                </div>
+
+                <x-table :headers="[
+                    ['key' => 'rule_pattern', 'label' => 'Aktionsregel'],
+                    ['key' => 'ends_at', 'label' => 'Endet'],
+                    ['key' => 'status', 'label' => 'Status'],
+                    ['key' => 'actions', 'label' => 'Aktionen'],
+                ]" :rows="$this->maddraxiversumSpecialOffers" striped>
+
+                    @scope('cell_rule_pattern', $offer)
+                        @if($offer->every_count === 1)
+                            {{ $offer->points }} Baxx pro Mission
+                        @else
+                            {{ $offer->points }} Baxx pro {{ $offer->every_count }} Missionen
+                        @endif
+                    @endscope
+
+                    @scope('cell_ends_at', $offer)
+                        {{ $offer->ends_at->format('d.m.Y H:i') }}
+                    @endscope
+
+                    @scope('cell_status', $offer)
+                        @if($offer->is_active && $offer->ends_at->isFuture())
+                            <x-badge value="Aktiv" class="badge-success" icon="o-bolt" />
+                        @elseif($offer->ends_at->isPast())
+                            <x-badge value="Abgelaufen" class="badge-warning" icon="o-clock" />
+                        @else
+                            <x-badge value="Inaktiv" class="badge-ghost" icon="o-pause" />
+                        @endif
+                    @endscope
+
+                    @scope('cell_actions', $offer)
+                        @php($toggleAction = $this->specialOfferToggleAction($offer->is_active, $offer->ends_at))
+                        <div class="flex gap-2">
+                            <x-button icon="o-pencil" class="btn-ghost btn-xs" wire:click="openEditMaddraxiversumSpecialOffer({{ $offer->id }})" tooltip="Bearbeiten" />
+                            <x-button
+                                icon="{{ $toggleAction['icon'] }}"
+                                class="btn-ghost btn-xs"
+                                wire:click="toggleMaddraxiversumSpecialOfferActive({{ $offer->id }})"
+                                tooltip="{{ $toggleAction['tooltip'] }}"
+                                :disabled="$toggleAction['disabled']"
                             />
                         </div>
                     @endscope
@@ -534,6 +607,20 @@
             <x-slot:actions>
                 <x-button label="Abbrechen" wire:click="$set('showReviewSpecialOfferModal', false)" />
                 <x-button label="Speichern" class="btn-primary" wire:click="saveReviewSpecialOffer" />
+            </x-slot:actions>
+        </x-modal>
+
+        <x-modal wire:model="showMaddraxiversumSpecialOfferModal" title="{{ $editingMaddraxiversumSpecialOfferId ? 'Maddraxiversum-Sonderaktion bearbeiten' : 'Neue Maddraxiversum-Sonderaktion' }}">
+            <div class="space-y-4">
+                <x-input wire:model="maddraxiversumSpecialOfferPoints" label="Baxx" type="number" min="1" />
+                <x-input wire:model="maddraxiversumSpecialOfferEveryCount" label="Pro Anzahl Missionen" type="number" min="1" />
+                <x-input wire:model="maddraxiversumSpecialOfferEndsAt" label="Endet am" type="datetime-local" />
+                <x-toggle wire:model="maddraxiversumSpecialOfferIsActive" label="Aktiv" />
+            </div>
+
+            <x-slot:actions>
+                <x-button label="Abbrechen" wire:click="$set('showMaddraxiversumSpecialOfferModal', false)" />
+                <x-button label="Speichern" class="btn-primary" wire:click="saveMaddraxiversumSpecialOffer" />
             </x-slot:actions>
         </x-modal>
 

@@ -6,6 +6,7 @@ use App\Enums\Role;
 use App\Livewire\BelohnungenAdmin;
 use App\Models\BaxxEarningRule;
 use App\Models\Download;
+use App\Models\MaddraxiversumBaxxSpecialOffer;
 use App\Models\RomantauschBaxxSpecialOffer;
 use App\Models\Reward;
 use App\Models\RewardPurchase;
@@ -200,6 +201,83 @@ class BelohnungenAdminTest extends TestCase
             ->assertHasErrors(['reviewSpecialOfferIsActive']);
 
         $this->assertSame(1, ReviewBaxxSpecialOffer::count());
+    }
+
+    public function test_create_maddraxiversum_special_offer(): void
+    {
+        $this->actingAdmin();
+
+        Livewire::test(BelohnungenAdmin::class)
+            ->set('maddraxiversumSpecialOfferPoints', 3)
+            ->set('maddraxiversumSpecialOfferEveryCount', 1)
+            ->set('maddraxiversumSpecialOfferEndsAt', now()->addDay()->format('Y-m-d\TH:i'))
+            ->set('maddraxiversumSpecialOfferIsActive', true)
+            ->call('saveMaddraxiversumSpecialOffer');
+
+        $this->assertDatabaseHas('maddraxiversum_baxx_special_offers', [
+            'points' => 3,
+            'every_count' => 1,
+            'is_active' => true,
+        ]);
+    }
+
+    public function test_second_active_maddraxiversum_special_offer_is_rejected(): void
+    {
+        $this->actingAdmin();
+
+        MaddraxiversumBaxxSpecialOffer::create([
+            'points' => 2,
+            'every_count' => 1,
+            'ends_at' => now()->addDay(),
+            'is_active' => true,
+        ]);
+
+        Livewire::test(BelohnungenAdmin::class)
+            ->set('maddraxiversumSpecialOfferPoints', 4)
+            ->set('maddraxiversumSpecialOfferEveryCount', 1)
+            ->set('maddraxiversumSpecialOfferEndsAt', now()->addDays(2)->format('Y-m-d\TH:i'))
+            ->set('maddraxiversumSpecialOfferIsActive', true)
+            ->call('saveMaddraxiversumSpecialOffer')
+            ->assertHasErrors(['maddraxiversumSpecialOfferIsActive']);
+
+        $this->assertSame(1, MaddraxiversumBaxxSpecialOffer::count());
+    }
+
+    public function test_toggle_maddraxiversum_special_offer_active_status(): void
+    {
+        $this->actingAdmin();
+
+        $offer = MaddraxiversumBaxxSpecialOffer::create([
+            'points' => 5,
+            'every_count' => 1,
+            'ends_at' => now()->addDay(),
+            'is_active' => false,
+        ]);
+
+        Livewire::test(BelohnungenAdmin::class)
+            ->call('toggleMaddraxiversumSpecialOfferActive', $offer->id);
+
+        $this->assertDatabaseHas('maddraxiversum_baxx_special_offers', [
+            'id' => $offer->id,
+            'is_active' => true,
+        ]);
+    }
+
+    public function test_rules_tab_shows_maddraxiversum_configuration(): void
+    {
+        $this->actingAdmin();
+
+        MaddraxiversumBaxxSpecialOffer::create([
+            'points' => 2,
+            'every_count' => 1,
+            'ends_at' => now()->addDay(),
+            'is_active' => true,
+        ]);
+
+        Livewire::test(BelohnungenAdmin::class)
+            ->set('activeTab', 'rules')
+            ->assertSee('Maddraxiversum')
+            ->assertSee('2 Baxx pro Mission');
     }
 
     public function test_create_romantausch_special_offer(): void

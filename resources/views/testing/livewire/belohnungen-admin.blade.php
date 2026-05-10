@@ -46,8 +46,16 @@
         <section>
             <h2>Vergaberegeln</h2>
 
+            <div>Maddraxiversum</div>
+            <div>{{ $this->maddraxiversumRewardConfiguration['base_rule']['rule_label'] }}</div>
+            <div>{{ $this->maddraxiversumRewardConfiguration['effective_rule']['rule_label'] }}</div>
+
             @foreach($this->earningRules as $rule)
                 <div>{{ $rule->label }}</div>
+            @endforeach
+
+            @foreach($this->maddraxiversumSpecialOffers as $offer)
+                <div>{{ $offer->points }}</div>
             @endforeach
 
             @foreach($this->romantauschRewardConfiguration as $configuration)
