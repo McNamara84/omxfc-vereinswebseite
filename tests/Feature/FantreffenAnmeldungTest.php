@@ -216,6 +216,43 @@ class FantreffenAnmeldungTest extends TestCase
         $response->assertSee('14:00 Uhr');
     }
 
+    public function test_event_description_strips_raw_html_from_markdown(): void
+    {
+        $this->veranstaltung->update([
+            'beschreibung' => "**Sicherer Inhalt**\n\n<img src=x onerror=alert('xss')>",
+        ]);
+
+        $renderedBeschreibung = $this->veranstaltung->fresh()->html_beschreibung;
+
+        $response = $this->withoutVite()->get($this->showUrl());
+
+        $response->assertOk();
+        $response->assertSeeText('Sicherer Inhalt');
+        $this->assertStringContainsString('<strong>Sicherer Inhalt</strong>', $renderedBeschreibung);
+        $this->assertStringNotContainsString('<img', $renderedBeschreibung);
+    }
+
+    public function test_event_sections_strip_raw_html_from_markdown(): void
+    {
+        $abschnitt = $this->veranstaltung->abschnitte()->create([
+            'titel' => 'FAQ',
+            'schluessel' => 'faq',
+            'markdown_inhalt' => "## Frage\n\n<img src=x onerror=alert('xss')>\n\nAntwort",
+            'sort_order' => 1,
+            'is_visible' => true,
+        ]);
+
+        $renderedAbschnitt = $abschnitt->fresh()->html_inhalt;
+
+        $response = $this->withoutVite()->get($this->showUrl());
+
+        $response->assertOk();
+        $response->assertSeeText('Frage');
+        $response->assertSeeText('Antwort');
+        $this->assertStringContainsString('<h2>Frage</h2>', $renderedAbschnitt);
+        $this->assertStringNotContainsString('<img', $renderedAbschnitt);
+    }
+
     public function test_coloniacon_banner_shows_author_names()
     {
         $response = $this->withoutVite()->get($this->showUrl());

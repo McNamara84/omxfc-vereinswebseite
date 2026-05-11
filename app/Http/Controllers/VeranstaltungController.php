@@ -29,32 +29,32 @@ class VeranstaltungController extends Controller
         return redirect()->route('veranstaltungen.show', $veranstaltung);
     }
 
-    public function legacyShow(): View
+    public function legacyShow(): RedirectResponse
     {
-        $veranstaltung = Veranstaltung::featuredPublic();
-
-        abort_if($veranstaltung === null, 404);
-
-        return $this->show($veranstaltung);
+        return redirect()->route('veranstaltungen.show', $this->legacyVeranstaltung(), 301);
     }
 
     public function legacyStore(Request $request)
     {
-        $veranstaltung = Veranstaltung::featuredPublic();
-
-        abort_if($veranstaltung === null, 404);
-
-        return $this->store($request, $veranstaltung);
+        return $this->store($request, $this->legacyVeranstaltung());
     }
 
     public function legacyBestaetigung(int $id): RedirectResponse
     {
         $anmeldung = FantreffenAnmeldung::with('veranstaltung')->findOrFail($id);
-        $veranstaltung = $anmeldung->veranstaltung ?? Veranstaltung::featuredPublic();
+        $veranstaltung = $anmeldung->veranstaltung ?? $this->legacyVeranstaltung();
 
         abort_if($veranstaltung === null, 404);
 
         return redirect()->route('veranstaltungen.bestaetigung', [$veranstaltung, 'id' => $anmeldung->id]);
+    }
+
+    private function legacyVeranstaltung(): Veranstaltung
+    {
+        return Veranstaltung::query()
+            ->oeffentlichSichtbar()
+            ->where('slug', 'maddrax-fantreffen-2026')
+            ->firstOrFail();
     }
 
     public function show(Veranstaltung $veranstaltung): View

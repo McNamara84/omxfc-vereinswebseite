@@ -127,6 +127,19 @@ class NavigationMenuTest extends TestCase
         $response->assertSee('whitespace-nowrap', false);
     }
 
+    public function test_navigation_menus_do_not_render_forms_as_direct_menu_children(): void
+    {
+        $user = $this->createUserWithRole(Role::Mitglied);
+
+        $response = $this->actingAs($user)->get('/');
+
+        $response->assertOk();
+
+        $crawler = new Crawler($response->getContent());
+
+        $this->assertCount(0, $crawler->filter('ul.menu > form'));
+    }
+
     public function test_authenticated_users_see_satzung_between_protokolle_and_kassenstand(): void
     {
         $user = User::factory()->withPersonalTeam()->create();

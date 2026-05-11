@@ -39,6 +39,9 @@ class VeranstaltungsAbschnitt extends Model
 
     public function getHtmlInhaltAttribute(): string
     {
-        return (string) Str::markdown($this->markdown_inhalt ?? '');
+        return (string) Str::markdown((string) ($this->markdown_inhalt ?? ''), [
+            'html_input' => 'strip',
+            'allow_unsafe_links' => false,
+        ]);
     }
 }

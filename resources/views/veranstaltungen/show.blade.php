@@ -62,9 +62,11 @@
 
         <div class="grid gap-8 lg:grid-cols-[minmax(0,1.45fr)_minmax(22rem,0.95fr)]">
             <div class="space-y-6">
-                @if ($veranstaltung->beschreibung)
+                @php($htmlBeschreibung = $veranstaltung->html_beschreibung)
+
+                @if ($htmlBeschreibung !== '')
                     <x-ui.panel title="Über die Veranstaltung" description="Der aktuelle Überblick.">
-                        <div class="prose max-w-none dark:prose-invert">{!! Illuminate\Support\Str::markdown($veranstaltung->beschreibung) !!}</div>
+                        <div class="prose max-w-none dark:prose-invert">{!! $htmlBeschreibung !!}</div>
                     </x-ui.panel>
                 @endif
 

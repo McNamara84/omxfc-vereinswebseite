@@ -37,6 +37,15 @@ class VeranstaltungAnmeldungTest extends TestCase
         $response->assertSee('Feiere mit uns Band 700.');
     }
 
+    public function test_legacy_fantreffen_route_redirects_permanently_to_canonical_archiv_event(): void
+    {
+        $archivEvent = Veranstaltung::query()->where('slug', 'maddrax-fantreffen-2026')->firstOrFail();
+
+        $this->get(route('fantreffen.2026'))
+            ->assertStatus(301)
+            ->assertRedirect(route('veranstaltungen.show', $archivEvent));
+    }
+
     public function test_guest_can_register_for_multiple_different_events_with_same_email(): void
     {
         Mail::fake();

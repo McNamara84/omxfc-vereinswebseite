@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Str;
 
 class Veranstaltung extends Model
 {
@@ -114,6 +115,14 @@ class Veranstaltung extends Model
     {
         return $this->benachrichtigungs_email
             ?: config('services.paypal.fantreffen_email', 'vorstand@maddrax-fanclub.de');
+    }
+
+    public function getHtmlBeschreibungAttribute(): string
+    {
+        return (string) Str::markdown((string) ($this->beschreibung ?? ''), [
+            'html_input' => 'strip',
+            'allow_unsafe_links' => false,
+        ]);
     }
 
     public static function featuredPublic(): ?self

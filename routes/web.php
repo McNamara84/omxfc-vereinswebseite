@@ -54,7 +54,6 @@ use App\Livewire\MitgliederIndex;
 use App\Livewire\Umfragen\UmfrageVerwaltung;
 use App\Livewire\Umfragen\UmfrageVote;
 use App\Models\Poll;
-use App\Models\Veranstaltung;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 

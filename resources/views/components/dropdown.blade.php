@@ -5,6 +5,7 @@
     'dropdownClasses' => '',
     'label' => null,
     'right' => false,
+    'as' => 'panel',
 ])
 
 @php
@@ -27,6 +28,7 @@ $hasTriggerSlot = isset($trigger) && trim((string) $trigger) !== '';
 $dropdownContent = isset($content) && trim((string) $content) !== '' ? $content : $slot;
 $rootClasses = $hasTriggerSlot ? trim('relative '.$attributes->get('class')) : 'relative';
 $buttonClasses = trim('btn '.$attributes->get('class'));
+$renderAsMenu = $as === 'menu';
 @endphp
 
 <div {{ $hasTriggerSlot ? $attributes->except('class')->merge(['class' => $rootClasses]) : $attributes->except('class')->merge(['class' => $rootClasses]) }} x-data="{ open: false }" @click.away="open = false" @close.stop="open = false">
@@ -54,9 +56,13 @@ $buttonClasses = trim('btn '.$attributes->get('class'));
             class="absolute z-50 mt-2 {{ $width }} rounded-md shadow-lg {{ $alignmentClasses }} {{ $dropdownClasses }}"
             @click="open = false">
         <div class="rounded-md {{ $contentClasses }}">
-            <ul class="menu p-2">
+            @if($renderAsMenu)
+                <ul class="menu p-2">
+                    {{ $dropdownContent }}
+                </ul>
+            @else
                 {{ $dropdownContent }}
-            </ul>
+            @endif
         </div>
     </div>
 </div>
