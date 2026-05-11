@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\FantreffenVipAuthor;
+use App\Models\Veranstaltung;
 use Illuminate\Database\Seeder;
 
 class FantreffenPlaywrightSeeder extends Seeder
@@ -12,7 +13,12 @@ class FantreffenPlaywrightSeeder extends Seeder
      */
     public function run(): void
     {
+        $veranstaltungId = Veranstaltung::query()
+            ->where('slug', 'maddrax-fantreffen-2026')
+            ->value('id');
+
         FantreffenVipAuthor::create([
+            'veranstaltung_id' => $veranstaltungId,
             'name' => 'Oliver Fröhlich',
             'pseudonym' => 'Ian Rolf Hill',
             'is_active' => true,
@@ -21,6 +27,7 @@ class FantreffenPlaywrightSeeder extends Seeder
         ]);
 
         FantreffenVipAuthor::create([
+            'veranstaltung_id' => $veranstaltungId,
             'name' => 'Jo Zybell',
             'pseudonym' => null,
             'is_active' => true,

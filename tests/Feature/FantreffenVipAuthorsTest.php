@@ -8,6 +8,7 @@ use App\Models\FantreffenVipAuthor;
 use App\Models\Team;
 use App\Models\User;
 use App\Models\Veranstaltung;
+use Database\Seeders\FantreffenPlaywrightSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Config;
 use Livewire\Livewire;
@@ -74,6 +75,40 @@ class FantreffenVipAuthorsTest extends TestCase
 
         $this->get(route('admin.fantreffen.vip-authors'))
             ->assertRedirect(route('admin.veranstaltungen.vip-authors', ['veranstaltung' => 'maddrax-fantreffen-2026']));
+    }
+
+    #[Test]
+    public function test_playwright_seeder_assigns_vip_authors_to_legacy_event_slug(): void
+    {
+        $this->veranstaltung->update([
+            'slug' => 'future-featured-event',
+            'status' => 'veroeffentlicht',
+            'ist_highlight' => true,
+        ]);
+
+        $legacyVeranstaltung = Veranstaltung::query()->firstWhere('slug', 'maddrax-fantreffen-2026');
+
+        if (! $legacyVeranstaltung) {
+            $legacyVeranstaltung = Veranstaltung::create([
+                'titel' => 'Maddrax-Fantreffen 2026',
+                'slug' => 'maddrax-fantreffen-2026',
+                'status' => 'archiviert',
+                'vip_autoren_aktiv' => true,
+                'ist_highlight' => false,
+            ]);
+        }
+
+        $this->seed(FantreffenPlaywrightSeeder::class);
+
+        $this->assertDatabaseHas('fantreffen_vip_authors', [
+            'name' => 'Oliver Fröhlich',
+            'veranstaltung_id' => $legacyVeranstaltung->id,
+        ]);
+
+        $this->assertDatabaseHas('fantreffen_vip_authors', [
+            'name' => 'Jo Zybell',
+            'veranstaltung_id' => $legacyVeranstaltung->id,
+        ]);
     }
 
     #[Test]
