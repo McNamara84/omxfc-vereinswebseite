@@ -26,6 +26,7 @@ class EuroTest extends TestCase
     public function test_to_cents_rejects_invalid_money_formats(string $amount): void
     {
         $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Der Betrag muss eine gültige Euro-Zahl sein.');
 
         Euro::toCents($amount);
     }

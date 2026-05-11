@@ -57,7 +57,7 @@ class StoreAuktionRequest extends FormRequest
         try {
             $amountInCents = Euro::toCents((string) $this->input($field));
         } catch (InvalidArgumentException) {
-            $validator->errors()->add($field, 'Bitte gib einen gueltigen Euro-Betrag ein.');
+            $validator->errors()->add($field, 'Bitte gib einen gültigen Euro-Betrag ein.');
 
             return;
         }
@@ -65,7 +65,7 @@ class StoreAuktionRequest extends FormRequest
         if ($amountInCents < $minimumInCents || (! $allowZero && $amountInCents === 0)) {
             $validator->errors()->add($field, $field === 'startbetrag'
                 ? 'Der Startbetrag darf nicht negativ sein.'
-                : 'Der Mindestschritt muss groesser als 0,00 € sein.');
+                : 'Der Mindestschritt muss größer als 0,00 € sein.');
         }
     }
 }

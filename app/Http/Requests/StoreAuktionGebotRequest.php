@@ -43,7 +43,7 @@ class StoreAuktionGebotRequest extends FormRequest
             try {
                 $betragInCent = Euro::toCents((string) $this->input('betrag'));
             } catch (InvalidArgumentException) {
-                $validator->errors()->add('betrag', 'Bitte gib ein gueltiges Gebot in Euro ein.');
+                $validator->errors()->add('betrag', 'Bitte gib ein gültiges Gebot in Euro ein.');
 
                 return;
             }

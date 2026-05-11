@@ -102,9 +102,33 @@ class AuktionVerwaltungTest extends TestCase
 
         $response->assertRedirect(route('admin.auktionen.create'));
         $response->assertSessionHasErrors(['startbetrag', 'mindestschritt']);
+
+        $errors = $response->getSession()->get('errors');
+
+        $this->assertSame('Bitte gib einen gültigen Euro-Betrag mit maximal zwei Nachkommastellen ein.', $errors->get('startbetrag')[0]);
+        $this->assertSame('Bitte gib einen gültigen Euro-Betrag mit maximal zwei Nachkommastellen ein.', $errors->get('mindestschritt')[0]);
+
         $this->assertDatabaseMissing('auktionen', [
             'titel' => 'Ungültige Werte',
         ]);
+    }
+
+    public function test_admin_cannot_create_auction_with_zero_minimum_step_uses_umlaut_message(): void
+    {
+        $admin = $this->createUserWithRole(Role::Admin);
+
+        $response = $this->from(route('admin.auktionen.create'))
+            ->actingAs($admin)
+            ->post(route('admin.auktionen.store'), [
+                'titel' => 'Kein Mindestschritt',
+                'beschreibung_markdown' => 'Test',
+                'startbetrag' => '0.00',
+                'mindestschritt' => '0.00',
+            ]);
+
+        $response->assertRedirect(route('admin.auktionen.create'));
+        $response->assertSessionHasErrors('mindestschritt');
+        $this->assertSame('Der Mindestschritt muss größer als 0,00 € sein.', $response->getSession()->get('errors')->get('mindestschritt')[0]);
     }
 
     public function test_admin_can_update_auction_before_first_bid(): void
@@ -157,6 +181,11 @@ class AuktionVerwaltungTest extends TestCase
         $response->assertRedirect(route('admin.auktionen.edit', $auktion));
         $response->assertSessionHasErrors(['startbetrag', 'mindestschritt']);
 
+        $errors = $response->getSession()->get('errors');
+
+        $this->assertSame('Der Startbetrag kann nach dem ersten Gebot nicht mehr geändert werden.', $errors->get('startbetrag')[0]);
+        $this->assertSame('Der Mindestschritt kann nach dem ersten Gebot nicht mehr geändert werden.', $errors->get('mindestschritt')[0]);
+
         $auktion->refresh();
         $this->assertSame(1000, $auktion->startbetrag_cent);
         $this->assertSame(100, $auktion->mindestschritt_cent);
@@ -197,7 +226,8 @@ class AuktionVerwaltungTest extends TestCase
         $auktion = Auktion::factory()->create();
 
         $this->actingAs($admin)->delete(route('admin.auktionen.destroy', $auktion))
-            ->assertRedirect(route('admin.auktionen.index'));
+            ->assertRedirect(route('admin.auktionen.index'))
+            ->assertSessionHas('success', 'Auktion gelöscht.');
 
         $this->assertDatabaseMissing('auktionen', [
             'id' => $auktion->id,
@@ -242,13 +272,28 @@ class AuktionVerwaltungTest extends TestCase
         $this->assertSame(AuktionsStatus::ZumZweiten, $auktion->fresh()->status);
 
         $this->actingAs($vorstand)->post(route('admin.auktionen.verkaufen', $auktion))
-            ->assertRedirect();
+            ->assertRedirect()
+            ->assertSessionHas('success', 'Auktion wurde an das aktuelle Höchstgebot verkauft.');
 
         $auktion->refresh();
         $this->assertSame(AuktionsStatus::Verkauft, $auktion->status);
         $this->assertSame($bieter->id, $auktion->verkauft_an_user_id);
         $this->assertSame($gebot->id, $auktion->verkauft_gebot_id);
         $this->assertNotNull($auktion->verkauft_at);
+    }
+
+    public function test_vorstand_cannot_sell_before_zum_zweiten_and_receives_umlaut_message(): void
+    {
+        $vorstand = $this->createUserWithRole(Role::Vorstand);
+        $auktion = Auktion::factory()->create();
+
+        $response = $this->from(route('admin.auktionen.edit', $auktion))
+            ->actingAs($vorstand)
+            ->post(route('admin.auktionen.verkaufen', $auktion));
+
+        $response->assertRedirect(route('admin.auktionen.edit', $auktion));
+        $response->assertSessionHasErrors('status');
+        $this->assertSame('Verkaufen ist erst nach "Zum zweiten" möglich.', $response->getSession()->get('errors')->get('status')[0]);
     }
 
     #[TestWith([Role::Admin])]

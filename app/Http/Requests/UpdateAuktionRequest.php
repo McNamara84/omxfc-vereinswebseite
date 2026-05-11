@@ -50,8 +50,8 @@ class UpdateAuktionRequest extends FormRequest
             }
 
             if ($auktion->hasGebote()) {
-                $this->validateLockedMoneyField($validator, $auktion, 'startbetrag', $auktion->startbetrag_cent, 'Der Startbetrag kann nach dem ersten Gebot nicht mehr geaendert werden.');
-                $this->validateLockedMoneyField($validator, $auktion, 'mindestschritt', $auktion->mindestschritt_cent, 'Der Mindestschritt kann nach dem ersten Gebot nicht mehr geaendert werden.');
+                $this->validateLockedMoneyField($validator, $auktion, 'startbetrag', $auktion->startbetrag_cent, 'Der Startbetrag kann nach dem ersten Gebot nicht mehr geändert werden.');
+                $this->validateLockedMoneyField($validator, $auktion, 'mindestschritt', $auktion->mindestschritt_cent, 'Der Mindestschritt kann nach dem ersten Gebot nicht mehr geändert werden.');
 
                 return;
             }
@@ -87,7 +87,7 @@ class UpdateAuktionRequest extends FormRequest
         try {
             $incomingValue = Euro::toCents((string) $this->input($field));
         } catch (InvalidArgumentException) {
-            $validator->errors()->add($field, 'Bitte gib einen gueltigen Euro-Betrag ein.');
+            $validator->errors()->add($field, 'Bitte gib einen gültigen Euro-Betrag ein.');
 
             return;
         }
@@ -102,7 +102,7 @@ class UpdateAuktionRequest extends FormRequest
         try {
             $amountInCents = Euro::toCents((string) $this->input($field));
         } catch (InvalidArgumentException) {
-            $validator->errors()->add($field, 'Bitte gib einen gueltigen Euro-Betrag ein.');
+            $validator->errors()->add($field, 'Bitte gib einen gültigen Euro-Betrag ein.');
 
             return;
         }
@@ -110,7 +110,7 @@ class UpdateAuktionRequest extends FormRequest
         if ($amountInCents < $minimumInCents || (! $allowZero && $amountInCents === 0)) {
             $validator->errors()->add($field, $field === 'startbetrag'
                 ? 'Der Startbetrag darf nicht negativ sein.'
-                : 'Der Mindestschritt muss groesser als 0,00 € sein.');
+                : 'Der Mindestschritt muss größer als 0,00 € sein.');
         }
     }
 }

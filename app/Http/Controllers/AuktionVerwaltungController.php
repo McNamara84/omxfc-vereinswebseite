@@ -82,7 +82,7 @@ class AuktionVerwaltungController extends Controller
 
         return redirect()
             ->route('admin.auktionen.index')
-            ->with('success', 'Auktion geloescht.');
+            ->with('success', 'Auktion gelöscht.');
     }
 
     public function zumErsten(Auktion $auktion): RedirectResponse
@@ -119,7 +119,7 @@ class AuktionVerwaltungController extends Controller
 
         DB::transaction(function () use ($auktion): void {
             $lockedAuktion = Auktion::query()->with('gebote')->lockForUpdate()->findOrFail($auktion->id);
-            $this->ensureTransition($lockedAuktion->status === AuktionsStatus::ZumZweiten, 'Verkaufen ist erst nach "Zum zweiten" moeglich.');
+            $this->ensureTransition($lockedAuktion->status === AuktionsStatus::ZumZweiten, 'Verkaufen ist erst nach "Zum zweiten" möglich.');
 
             $hoechstgebot = $lockedAuktion->hoechstgebot();
 
@@ -137,7 +137,7 @@ class AuktionVerwaltungController extends Controller
             ]);
         });
 
-        return back()->with('success', 'Auktion wurde an das aktuelle Hoechstgebot verkauft.');
+        return back()->with('success', 'Auktion wurde an das aktuelle Höchstgebot verkauft.');
     }
 
     public function nichtVerkauft(Auktion $auktion): RedirectResponse

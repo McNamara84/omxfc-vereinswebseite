@@ -17,7 +17,7 @@ class Euro
         }
 
         if (! preg_match(self::validationPattern(), $normalized)) {
-            throw new InvalidArgumentException('Der Betrag muss eine gueltige Euro-Zahl sein.');
+            throw new InvalidArgumentException('Der Betrag muss eine gültige Euro-Zahl sein.');
         }
 
         $normalized = str_replace(',', '.', $normalized);
