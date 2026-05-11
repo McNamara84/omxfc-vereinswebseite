@@ -1,4 +1,4 @@
-<form wire:submit="submit" class="w-full" data-testid="mitglied-werden-form">
+<form wire:submit="submit" x-data="{ satzungCheck: @js($satzung_check) }" class="w-full" data-testid="mitglied-werden-form">
     @if($errors->has('submit'))
         <div class="mb-4 p-4 bg-red-100 border border-red-400 text-red-800 rounded" role="alert">
             {{ $errors->first('submit') }}
@@ -89,11 +89,20 @@
 
         <!-- Checkbox über volle Breite -->
         <div class="col-span-1 md:col-span-2 mt-2">
-            <x-checkbox wire:model.live="satzung_check" id="satzung_check" name="satzung_check" data-testid="mitglied-satzung-check">
-                <x-slot:label>
+            <label class="inline-flex items-center gap-3">
+                <input
+                    type="checkbox"
+                    wire:model.live="satzung_check"
+                    x-model="satzungCheck"
+                    id="satzung_check"
+                    name="satzung_check"
+                    data-testid="mitglied-satzung-check"
+                    class="checkbox"
+                />
+                <span>
                     Ich habe die <a href="{{ route('satzung') }}" target="_blank" rel="noopener noreferrer" class="link link-primary" onclick="event.stopPropagation()">Satzung</a> gelesen und bin mit ihr einverstanden.
-                </x-slot:label>
-            </x-checkbox>
+                </span>
+            </label>
             @error('satzung_check') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
         </div>
     </div>
@@ -104,6 +113,8 @@
             'btn btn-primary mt-6',
             'opacity-50 cursor-not-allowed' => ! $satzung_check || $submitting,
         ])
+        x-bind:class="{ 'opacity-50 cursor-not-allowed': !satzungCheck }"
+        x-bind:disabled="!satzungCheck"
         @disabled(! $satzung_check || $submitting)
         wire:loading.attr="disabled"
         wire:target="submit"
