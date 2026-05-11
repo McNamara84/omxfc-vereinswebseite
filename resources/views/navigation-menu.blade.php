@@ -86,7 +86,7 @@
                             <li>
                                 <form method="POST" action="{{ route('logout') }}">
                                     @csrf
-                                    <button type="submit" class="my-0.5 flex w-full items-center gap-3 rounded-xl px-4 py-2 text-sm leading-5 text-base-content transition hover:bg-base-200/80">
+                                    <button type="button" onclick="this.closest('form').submit()" class="my-0.5 flex w-full items-center gap-3 rounded-xl px-4 py-2 text-sm leading-5 text-base-content transition hover:bg-base-200/80">
                                         <x-icon name="o-arrow-right-on-rectangle" class="h-4 w-4 shrink-0" />
                                         <span>Ausloggen</span>
                                     </button>
@@ -155,7 +155,7 @@
                     <li>
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
-                            <button type="submit" class="my-0.5 flex w-full items-center gap-3 rounded-xl px-4 py-2 text-sm leading-5 text-base-content transition hover:bg-base-200/80 whitespace-nowrap">
+                            <button type="button" onclick="this.closest('form').submit()" class="my-0.5 flex w-full items-center gap-3 rounded-xl px-4 py-2 text-sm leading-5 text-base-content transition hover:bg-base-200/80 whitespace-nowrap">
                                 <x-icon name="o-arrow-right-on-rectangle" class="h-5 w-5 shrink-0" />
                                 <span>Ausloggen</span>
                             </button>
