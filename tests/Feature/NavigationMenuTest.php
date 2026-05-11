@@ -54,9 +54,11 @@ class NavigationMenuTest extends TestCase
         $this->assertIsString($navigationText);
         $this->assertStringContainsString('Baxx verdienen', $navigationText);
         $this->assertStringContainsString('Belohnungen einlösen', $navigationText);
+        $this->assertStringContainsString('Auktionen', $navigationText);
         $this->assertStringNotContainsString('Challenges', $navigationText);
         $response->assertDontSeeText('Vorstand');
         $response->assertDontSeeText('Admin');
+        $response->assertSee(route('auktionen.index'));
     }
 
     public function test_admin_navigation_shows_governance_sections(): void
@@ -70,6 +72,7 @@ class NavigationMenuTest extends TestCase
         $response->assertSeeText('Teams & AG');
         $response->assertSeeText('Vorstand');
         $response->assertSeeText('Admin');
+        $response->assertSee(route('admin.auktionen.index'));
         $response->assertSeeText('Umfrage verwalten');
     }
 

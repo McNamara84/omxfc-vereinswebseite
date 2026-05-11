@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Models\Auktion;
 use App\Models\BookOffer;
 use App\Models\BookRequest;
 use App\Models\KassenbuchEntry;
@@ -11,6 +12,7 @@ use App\Models\ThreeDModel;
 use App\Models\Todo;
 use App\Models\User;
 use App\Models\Veranstaltung;
+use App\Policies\AuktionPolicy;
 use App\Policies\BookOfferPolicy;
 use App\Policies\BookRequestPolicy;
 use App\Policies\KassenbuchEntryPolicy;
@@ -34,6 +36,7 @@ class AuthServiceProvider extends ServiceProvider
         Team::class => TeamPolicy::class,
         BookOffer::class => BookOfferPolicy::class,
         BookRequest::class => BookRequestPolicy::class,
+        Auktion::class => AuktionPolicy::class,
         Todo::class => TodoPolicy::class,
         KassenbuchEntry::class => KassenbuchEntryPolicy::class,
         User::class => UserPolicy::class,
