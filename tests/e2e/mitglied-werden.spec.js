@@ -1,7 +1,13 @@
 import { test, expect } from '@playwright/test';
 
-test('mitglied-werden form enables submit button after validation and terms acceptance', async ({ page }) => {
+async function gotoMitgliedWerden(page) {
   await page.goto('/mitglied-werden');
+  await page.waitForLoadState('networkidle');
+  await page.waitForFunction(() => typeof window.Livewire !== 'undefined');
+}
+
+test('mitglied-werden form enables submit button after validation and terms acceptance', async ({ page }) => {
+  await gotoMitgliedWerden(page);
   await expect(page).toHaveURL(/\/mitglied-werden$/);
   await page.locator('input[name="vorname"]').fill('Max');
   await page.locator('input[name="nachname"]').fill('Mustermann');
