@@ -1,4 +1,4 @@
-<x-app-layout title="Auktionen verwalten" description="Verwalte Vereinsauktionen, Gebotsstatus und Zuschlaege zentral im Vorstandsbereich.">
+<x-app-layout title="Auktionen verwalten" description="Verwalte Vereinsauktionen, Gebotsstatus und Zuschläge zentral im Vorstandsbereich.">
     <div class="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-8 sm:px-6 lg:px-8">
         <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div class="space-y-2">
@@ -58,14 +58,14 @@
                                 <dd>{{ $auktion->aktuellerPreis() }}</dd>
                             </div>
                             <div>
-                                <dt class="font-semibold text-base-content">Hoechstbietend</dt>
+                                <dt class="font-semibold text-base-content">Höchstbietend</dt>
                                 <dd>{{ $auktion->hoechstgebot()?->bieter_name ?? 'Noch kein Gebot' }}</dd>
                             </div>
                         </dl>
 
                         <div class="mt-5 flex flex-wrap gap-2">
                             <a href="{{ route('admin.auktionen.edit', $auktion) }}" class="btn btn-primary btn-sm">Bearbeiten</a>
-                            <a href="{{ route('auktionen.show', $auktion) }}" class="btn btn-ghost btn-sm">Oeffentliche Ansicht</a>
+                            <a href="{{ route('auktionen.show', $auktion) }}" class="btn btn-ghost btn-sm">Öffentliche Ansicht</a>
 
                             @can('call', $auktion)
                                 @if ($auktion->kannZumErstenAufgerufenWerden())
@@ -98,10 +98,10 @@
                             @endcan
 
                             @can('delete', $auktion)
-                                <form action="{{ route('admin.auktionen.destroy', $auktion) }}" method="POST" onsubmit="return confirm('Auktion wirklich loeschen?');">
+                                <form action="{{ route('admin.auktionen.destroy', $auktion) }}" method="POST" onsubmit="return confirm('Auktion wirklich löschen?');">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="btn btn-error btn-outline btn-sm">Loeschen</button>
+                                    <button type="submit" class="btn btn-error btn-outline btn-sm">Löschen</button>
                                 </form>
                             @endcan
                         </div>

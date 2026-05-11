@@ -6,30 +6,29 @@ use InvalidArgumentException;
 
 class Euro
 {
+    public const VALIDATION_RULE = 'regex:/^\d+(?:[.,]\d{1,2})?$/';
+
     public static function toCents(string|int|float $amount): int
     {
-        if (is_int($amount) || is_float($amount)) {
-            return (int) round($amount * 100);
-        }
-
-        $normalized = trim(str_replace(['€', ' '], '', $amount));
+        $normalized = self::normalize($amount);
 
         if ($normalized === '') {
             throw new InvalidArgumentException('Der Betrag darf nicht leer sein.');
         }
 
-        if (str_contains($normalized, ',') && str_contains($normalized, '.')) {
-            $normalized = str_replace('.', '', $normalized);
-            $normalized = str_replace(',', '.', $normalized);
-        } elseif (str_contains($normalized, ',')) {
-            $normalized = str_replace(',', '.', $normalized);
-        }
-
-        if (! is_numeric($normalized)) {
+        if (! preg_match(self::validationPattern(), $normalized)) {
             throw new InvalidArgumentException('Der Betrag muss eine gueltige Euro-Zahl sein.');
         }
 
-        return (int) round(((float) $normalized) * 100);
+        $normalized = str_replace(',', '.', $normalized);
+        [$euros, $cents] = array_pad(explode('.', $normalized, 2), 2, '0');
+
+        return ((int) $euros * 100) + (int) str_pad($cents, 2, '0');
+    }
+
+    public static function validationPattern(): string
+    {
+        return '/^\d+(?:[.,]\d{1,2})?$/';
     }
 
     public static function format(int $amountInCents): string
@@ -40,5 +39,20 @@ class Euro
     public static function decimal(int $amountInCents): string
     {
         return number_format($amountInCents / 100, 2, '.', '');
+    }
+
+    private static function normalize(string|int|float $amount): string
+    {
+        if (is_int($amount)) {
+            return (string) $amount;
+        }
+
+        if (is_float($amount)) {
+            $amount = rtrim(rtrim(sprintf('%.14F', $amount), '0'), '.');
+
+            return $amount === '-0' ? '0' : $amount;
+        }
+
+        return trim($amount);
     }
 }

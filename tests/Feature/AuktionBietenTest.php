@@ -84,6 +84,27 @@ class AuktionBietenTest extends TestCase
         $this->assertDatabaseCount('auktion_gebote', 0);
     }
 
+    #[TestWith(['1e3'])]
+    #[TestWith(['10.999'])]
+    public function test_bid_rejects_invalid_money_format(string $betrag): void
+    {
+        $member = $this->createUserWithRole(Role::Mitglied);
+        $auktion = Auktion::factory()->create([
+            'startbetrag_cent' => 1000,
+            'mindestschritt_cent' => 100,
+        ]);
+
+        $response = $this->from(route('auktionen.show', $auktion))
+            ->actingAs($member)
+            ->post(route('auktionen.gebote.store', $auktion), [
+                'betrag' => $betrag,
+            ]);
+
+        $response->assertRedirect(route('auktionen.show', $auktion));
+        $response->assertSessionHasErrors('betrag');
+        $this->assertDatabaseCount('auktion_gebote', 0);
+    }
+
     public function test_follow_up_bid_must_reach_current_highest_plus_minimum_step(): void
     {
         $firstBidder = $this->createUserWithRole(Role::Mitglied);

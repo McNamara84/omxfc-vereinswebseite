@@ -8,7 +8,7 @@
             </div>
 
             <div class="flex flex-wrap gap-3">
-                <a href="{{ route('auktionen.index') }}" class="btn btn-ghost">Zur Uebersicht</a>
+                <a href="{{ route('auktionen.index') }}" class="btn btn-ghost">Zur Übersicht</a>
                 @can('manage', App\Models\Auktion::class)
                     <a href="{{ route('admin.auktionen.edit', $auktion) }}" class="btn btn-outline">Verwalten</a>
                 @endcan
@@ -59,7 +59,7 @@
                             <dd>{{ $auktion->aktuellerPreis() }}</dd>
                         </div>
                         <div>
-                            <dt class="font-semibold text-base-content">Naechstes Mindestgebot</dt>
+                            <dt class="font-semibold text-base-content">Nächstes Mindestgebot</dt>
                             <dd>{{ $auktion->naechstesMindestgebot() }}</dd>
                         </div>
                         @if ($auktion->status === App\Enums\AuktionsStatus::Verkauft)
@@ -67,7 +67,7 @@
                                 <dt class="font-semibold text-base-content">Zuschlag</dt>
                                 <dd>
                                     {{ $auktion->verkauftesGebot?->bieter_name ?? 'unbekannt' }}
-                                    fuer {{ $auktion->verkauftesGebot?->formatierter_betrag ?? 'offen' }}
+                                    für {{ $auktion->verkauftesGebot?->formatierter_betrag ?? 'offen' }}
                                 </dd>
                             </div>
                         @elseif ($auktion->status === App\Enums\AuktionsStatus::NichtVerkauft)
@@ -113,9 +113,9 @@
             <div class="flex items-center justify-between gap-3">
                 <div>
                     <h2 class="text-2xl font-semibold text-base-content">Gebotsverlauf</h2>
-                    <p class="mt-2 text-sm text-base-content/70">Wer wann wie viel geboten hat, bleibt fuer alle berechtigten Mitglieder sichtbar.</p>
+                    <p class="mt-2 text-sm text-base-content/70">Wer wann wie viel geboten hat, bleibt für alle berechtigten Mitglieder sichtbar.</p>
                 </div>
-                <span class="badge badge-outline">{{ $auktion->gebotsverlauf()->count() }} Eintraege</span>
+                <span class="badge badge-outline">{{ $auktion->gebotsverlauf()->count() }} Einträge</span>
             </div>
 
             @if ($auktion->gebotsverlauf()->isEmpty())

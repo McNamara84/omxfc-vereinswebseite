@@ -87,6 +87,26 @@ class AuktionVerwaltungTest extends TestCase
         $this->assertSame(AuktionsStatus::Laufend, $auktion->status);
     }
 
+    public function test_admin_cannot_create_auction_with_invalid_money_format(): void
+    {
+        $admin = $this->createUserWithRole(Role::Admin);
+
+        $response = $this->from(route('admin.auktionen.create'))
+            ->actingAs($admin)
+            ->post(route('admin.auktionen.store'), [
+                'titel' => 'Ungültige Werte',
+                'beschreibung_markdown' => 'Test',
+                'startbetrag' => '1e3',
+                'mindestschritt' => '1.999',
+            ]);
+
+        $response->assertRedirect(route('admin.auktionen.create'));
+        $response->assertSessionHasErrors(['startbetrag', 'mindestschritt']);
+        $this->assertDatabaseMissing('auktionen', [
+            'titel' => 'Ungültige Werte',
+        ]);
+    }
+
     public function test_admin_can_update_auction_before_first_bid(): void
     {
         $admin = $this->createUserWithRole(Role::Admin);

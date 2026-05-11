@@ -20,8 +20,16 @@ class StoreAuktionRequest extends FormRequest
         return [
             'titel' => ['required', 'string', 'max:255'],
             'beschreibung_markdown' => ['nullable', 'string'],
-            'startbetrag' => ['required'],
-            'mindestschritt' => ['required'],
+            'startbetrag' => ['required', 'string', Euro::VALIDATION_RULE],
+            'mindestschritt' => ['required', 'string', Euro::VALIDATION_RULE],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'startbetrag.regex' => 'Bitte gib einen gültigen Euro-Betrag mit maximal zwei Nachkommastellen ein.',
+            'mindestschritt.regex' => 'Bitte gib einen gültigen Euro-Betrag mit maximal zwei Nachkommastellen ein.',
         ];
     }
 

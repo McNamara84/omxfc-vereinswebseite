@@ -19,13 +19,23 @@ class UpdateAuktionRequest extends FormRequest
     public function rules(): array
     {
         $auktion = $this->route('auktion');
-        $baseRule = $auktion && $auktion->hasGebote() ? ['nullable'] : ['required'];
+        $baseRule = $auktion && $auktion->hasGebote()
+            ? ['nullable', 'string', Euro::VALIDATION_RULE]
+            : ['required', 'string', Euro::VALIDATION_RULE];
 
         return [
             'titel' => ['required', 'string', 'max:255'],
             'beschreibung_markdown' => ['nullable', 'string'],
             'startbetrag' => $baseRule,
             'mindestschritt' => $baseRule,
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'startbetrag.regex' => 'Bitte gib einen gültigen Euro-Betrag mit maximal zwei Nachkommastellen ein.',
+            'mindestschritt.regex' => 'Bitte gib einen gültigen Euro-Betrag mit maximal zwei Nachkommastellen ein.',
         ];
     }
 

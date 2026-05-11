@@ -53,8 +53,9 @@ class AuktionAnzeigeTest extends TestCase
         $response->assertSee('Signiertes Romanpaket');
         $response->assertSee('Original-Cover-Art');
         $response->assertSee('Archiv');
-        $response->assertSee('Verkauft an Archiv Bieter fuer 42,00 €');
+        $response->assertSee('Verkauft an Archiv Bieter für 42,00 €');
         $response->assertSee(route('auktionen.show', $aktuelleAuktion));
+        $response->assertSee('Nächstes Mindestgebot');
 
         $geladeneAuktion = $response->viewData('aktiveAuktionen')->firstWhere('id', $aktuelleAuktion->id);
 
@@ -90,6 +91,8 @@ class AuktionAnzeigeTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('Gebotsverlauf');
+        $response->assertSee('Zur Übersicht');
+        $response->assertSee('Nächstes Mindestgebot');
         $response->assertSee('Erster Bieter');
         $response->assertSee('11,00 €');
         $response->assertSee('Zweiter Bieter');
@@ -122,6 +125,7 @@ class AuktionAnzeigeTest extends TestCase
         $response->assertSee('Zuschlag');
         $response->assertSee('Gewinner Name');
         $response->assertSee('53,00 €');
+        $response->assertSee('für 53,00 €');
         $response->assertDontSee('Gebot speichern');
     }
 }

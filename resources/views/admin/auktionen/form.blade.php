@@ -146,9 +146,9 @@
                 <div class="flex items-center justify-between gap-3">
                     <div>
                         <h2 class="text-2xl font-semibold text-base-content">Gebotsverlauf</h2>
-                        <p class="mt-2 text-sm text-base-content/70">Der Verlauf bleibt sichtbar und kann nicht nachtraeglich manipuliert werden.</p>
+                        <p class="mt-2 text-sm text-base-content/70">Der Verlauf bleibt sichtbar und kann nicht nachträglich manipuliert werden.</p>
                     </div>
-                    <span class="badge badge-outline">{{ $auktion->gebotsverlauf()->count() }} Eintraege</span>
+                    <span class="badge badge-outline">{{ $auktion->gebotsverlauf()->count() }} Einträge</span>
                 </div>
 
                 @if ($auktion->gebotsverlauf()->isEmpty())

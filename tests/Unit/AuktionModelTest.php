@@ -44,6 +44,56 @@ class AuktionModelTest extends TestCase
         $this->assertSame('28,00 €', $auktion->fresh('gebote')->naechstesMindestgebot());
     }
 
+    public function test_gebotsverlauf_is_stably_sorted_by_created_at_and_id(): void
+    {
+        $bieter = $this->createUserWithRole(Role::Mitglied);
+        $auktion = Auktion::factory()->create();
+        $timestamp = now()->startOfSecond();
+
+        $erstesGebot = AuktionGebot::factory()->for($auktion)->for($bieter)->create([
+            'bieter_name' => $bieter->name,
+            'betrag_cent' => 1200,
+            'created_at' => $timestamp,
+            'updated_at' => $timestamp,
+        ]);
+        $zweitesGebot = AuktionGebot::factory()->for($auktion)->for($bieter)->create([
+            'bieter_name' => $bieter->name,
+            'betrag_cent' => 1400,
+            'created_at' => $timestamp,
+            'updated_at' => $timestamp,
+        ]);
+
+        $this->assertSame([
+            $erstesGebot->id,
+            $zweitesGebot->id,
+        ], $auktion->fresh()->gebotsverlauf()->pluck('id')->all());
+    }
+
+    public function test_hoechstgebot_relation_uses_same_tie_breakers_as_hoechstgebot_method(): void
+    {
+        $bieter = $this->createUserWithRole(Role::Mitglied);
+        $auktion = Auktion::factory()->create();
+
+        $spaeteresGebotMitNiedrigererId = AuktionGebot::factory()->for($auktion)->for($bieter)->create([
+            'bieter_name' => $bieter->name,
+            'betrag_cent' => 2500,
+            'created_at' => now()->addMinute(),
+            'updated_at' => now()->addMinute(),
+        ]);
+        AuktionGebot::factory()->for($auktion)->for($bieter)->create([
+            'bieter_name' => $bieter->name,
+            'betrag_cent' => 2500,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $frischeAuktion = $auktion->fresh('hoechstgebotRelation');
+
+        $this->assertNotNull($frischeAuktion->hoechstgebotRelation);
+        $this->assertSame($spaeteresGebotMitNiedrigererId->id, $frischeAuktion->hoechstgebotRelation->id);
+        $this->assertSame($spaeteresGebotMitNiedrigererId->id, $frischeAuktion->hoechstgebot()?->id);
+    }
+
     public function test_markdown_description_is_sanitized(): void
     {
         $auktion = Auktion::factory()->create([

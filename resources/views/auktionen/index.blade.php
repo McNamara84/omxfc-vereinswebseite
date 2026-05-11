@@ -1,4 +1,4 @@
-<x-app-layout title="Auktionen" description="Laufende Vereinsauktionen mit transparentem Gebotsverlauf und Archiv abgeschlossener Verkaeufe.">
+<x-app-layout title="Auktionen" description="Laufende Vereinsauktionen mit transparentem Gebotsverlauf und Archiv abgeschlossener Verkäufe.">
     <div class="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-8 sm:px-6 lg:px-8">
         <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div class="space-y-2">
@@ -74,7 +74,7 @@
                                     <dd>{{ $auktion->aktuellerPreis() }}</dd>
                                 </div>
                                 <div>
-                                    <dt class="font-semibold text-base-content">Naechstes Mindestgebot</dt>
+                                    <dt class="font-semibold text-base-content">Nächstes Mindestgebot</dt>
                                     <dd>{{ $auktion->naechstesMindestgebot() }}</dd>
                                 </div>
                             </dl>
@@ -115,7 +115,7 @@
 
                             <p class="mt-4 text-sm text-base-content/75">
                                 @if ($auktion->status === App\Enums\AuktionsStatus::Verkauft)
-                                    Verkauft an {{ $auktion->verkauftesGebot?->bieter_name ?? 'unbekannt' }} fuer {{ $auktion->verkauftesGebot?->formatierter_betrag ?? 'offen' }}.
+                                    Verkauft an {{ $auktion->verkauftesGebot?->bieter_name ?? 'unbekannt' }} für {{ $auktion->verkauftesGebot?->formatierter_betrag ?? 'offen' }}.
                                 @else
                                     Diese Auktion endete ohne Zuschlag.
                                 @endif

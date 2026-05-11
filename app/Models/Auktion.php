@@ -38,7 +38,9 @@ class Auktion extends Model
 
     public function gebote(): HasMany
     {
-        return $this->hasMany(AuktionGebot::class)->orderBy('created_at');
+        return $this->hasMany(AuktionGebot::class)
+            ->orderBy('created_at')
+            ->orderBy('id');
     }
 
     public function verkauftAnUser(): BelongsTo
@@ -55,6 +57,7 @@ class Auktion extends Model
     {
         return $this->hasOne(AuktionGebot::class)->ofMany([
             'betrag_cent' => 'max',
+            'created_at' => 'max',
             'id' => 'max',
         ]);
     }

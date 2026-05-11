@@ -19,7 +19,14 @@ class StoreAuktionGebotRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'betrag' => ['required'],
+            'betrag' => ['required', 'string', Euro::VALIDATION_RULE],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'betrag.regex' => 'Bitte gib einen gültigen Euro-Betrag mit maximal zwei Nachkommastellen ein.',
         ];
     }
 
