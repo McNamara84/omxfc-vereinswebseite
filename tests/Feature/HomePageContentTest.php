@@ -32,6 +32,7 @@ class HomePageContentTest extends TestCase
             ->assertSee('EARDRAX')
             ->assertSee('MAPDRAX')
             ->assertSee('Fantreffen 2026')
+            ->assertSee('Aktuelle Veranstaltung')
             ->assertSee('Vorteile einer Mitgliedschaft')
             ->assertSee('Kostenlose Teilnahme an den jährlichen Fantreffen')
             ->assertSee('Letzte Rezensionen')

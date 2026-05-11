@@ -20,7 +20,7 @@ class HomePageTest extends TestCase
         $response->assertSeeText('Vorteile einer Mitgliedschaft');
         $response->assertSeeText('Letzte Rezensionen');
         $response->assertSeeText('Mitglied werden');
-        $response->assertSeeText('Fantreffen 2026');
+        $response->assertSeeText('Aktuelle Veranstaltung');
 
         $crawler = new Crawler($response->getContent());
         $this->assertCount(1, $crawler->filter('h1'));

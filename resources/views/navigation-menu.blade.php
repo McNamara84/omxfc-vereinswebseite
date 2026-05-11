@@ -46,7 +46,7 @@
                         <p class="hidden px-2 pb-2 text-[0.62rem] font-semibold uppercase tracking-[0.24em] text-base-content/45 2xl:block">Bereiche</p>
                         <x-ui.action-cluster>
                             @foreach($sectionNavigation as $section)
-                                <x-dropdown :label="$section['title']" :right="$loop->last" class="btn-sm rounded-full whitespace-nowrap {{ $section['active'] ? 'btn-primary btn-outline' : 'btn-ghost bg-base-100/60' }}">
+                                <x-dropdown as="menu" :label="$section['title']" :right="$loop->last" class="btn-sm rounded-full whitespace-nowrap {{ $section['active'] ? 'btn-primary btn-outline' : 'btn-ghost bg-base-100/60' }}">
                                     @foreach($section['items'] as $item)
                                         <li class="w-fit min-w-[14rem] max-w-[min(24rem,calc(100vw-2rem))]" data-testid="desktop-nav-dropdown-item">
                                             <a
@@ -75,7 +75,7 @@
                 {{-- Profil-Dropdown / Login (Desktop) --}}
                 <div class="hidden xl:flex xl:items-center">
                     @auth
-                        <x-dropdown right>
+                        <x-dropdown as="menu" right>
                             <x-slot:trigger>
                                 <button class="flex items-center">
                                     <img class="h-8 w-8 rounded-full object-cover" src="{{ Auth::user()->profile_photo_url }}" alt="{{ Auth::user()->name }}" />
@@ -83,10 +83,15 @@
                             </x-slot:trigger>
                             <x-menu-item title="Profil" link="{{ route('profile.show') }}" wire:navigate icon="o-user" />
                             <x-menu-separator />
-                            <form method="POST" action="{{ route('logout') }}">
-                                @csrf
-                                <x-menu-item title="Ausloggen" icon="o-arrow-right-on-rectangle" onclick="event.preventDefault(); this.closest('form').submit();" />
-                            </form>
+                            <li>
+                                <form method="POST" action="{{ route('logout') }}">
+                                    @csrf
+                                    <button type="submit" class="my-0.5 flex w-full items-center gap-3 rounded-xl px-4 py-2 text-sm leading-5 text-base-content transition hover:bg-base-200/80">
+                                        <x-icon name="o-arrow-right-on-rectangle" class="h-4 w-4 shrink-0" />
+                                        <span>Ausloggen</span>
+                                    </button>
+                                </form>
+                            </li>
                         </x-dropdown>
                     @endauth
 
@@ -147,10 +152,15 @@
 
                 @auth
                     <x-menu-item title="Profil" :link="route('profile.show')" wire:navigate icon="o-user" />
-                    <form method="POST" action="{{ route('logout') }}">
-                        @csrf
-                        <x-menu-item title="Ausloggen" icon="o-arrow-right-on-rectangle" onclick="event.preventDefault(); this.closest('form').submit();" />
-                    </form>
+                    <li>
+                        <form method="POST" action="{{ route('logout') }}">
+                            @csrf
+                            <button type="submit" class="my-0.5 flex w-full items-center gap-3 rounded-xl px-4 py-2 text-sm leading-5 text-base-content transition hover:bg-base-200/80 whitespace-nowrap">
+                                <x-icon name="o-arrow-right-on-rectangle" class="h-5 w-5 shrink-0" />
+                                <span>Ausloggen</span>
+                            </button>
+                        </form>
+                    </li>
                 @endauth
 
                 @guest

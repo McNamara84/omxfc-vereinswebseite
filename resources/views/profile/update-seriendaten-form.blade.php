@@ -19,7 +19,7 @@
             wire:model="state.einstiegsroman"
             :options="$romanOptions"
             placeholder="Roman auswählen"
-            popover="Der Roman, mit dem du in die MADDRAX-Serie eingestiegen bist." />
+            title="Der Roman, mit dem du in die MADDRAX-Serie eingestiegen bist." />
 
         <!-- Lesestand Dropdown -->
         <x-select
@@ -28,7 +28,7 @@
             wire:model="state.lesestand"
             :options="$romanOptions"
             placeholder="Roman auswählen"
-            popover="Der letzte Roman, den du gelesen hast. Wird auf deinem Profil angezeigt." />
+            title="Der letzte Roman, den du gelesen hast. Wird auf deinem Profil angezeigt." />
 
         <!-- Lieblingsautor Dropdown -->
         <x-select

@@ -236,7 +236,7 @@ class DashboardTest extends TestCase
         $response->assertSeeText('Willkommen zurück, Alex');
         $response->assertSeeText('Schnellstart');
         $response->assertSeeText('Baxx verdienen');
-        $response->assertSeeText('Fantreffen 2026 ansehen');
+        $response->assertSeeText('Aktuelle Veranstaltung ansehen');
         $response->assertDontSeeText('Fantreffen verwalten');
     }
 
@@ -265,7 +265,7 @@ class DashboardTest extends TestCase
         $response->assertOk();
         $response->assertSeeText('Mitgliedsanträge prüfen');
         $response->assertSeeText('Verifizierungen prüfen');
-        $response->assertSeeText('Fantreffen verwalten');
+        $response->assertSeeText('Veranstaltungen verwalten');
         $this->assertNotNull($earnBaxxAction);
         $this->assertArrayNotHasKey('badge', $earnBaxxAction);
         $this->assertSame(route('todos.index', ['filter' => 'pending']), $verificationAction['href'] ?? null);

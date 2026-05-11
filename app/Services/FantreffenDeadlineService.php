@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Veranstaltung;
 use Carbon\Carbon;
 
 /**
@@ -12,73 +13,89 @@ use Carbon\Carbon;
  */
 class FantreffenDeadlineService
 {
-    private Carbon $deadline;
-
-    private bool $isPassed;
-
-    private int $daysRemaining;
-
-    private string $formattedDate;
-
-    public function __construct()
+    private function resolveDeadline(?Veranstaltung $veranstaltung = null): ?Carbon
     {
-        $now = Carbon::now();
-        $this->deadline = Carbon::parse(config('services.fantreffen.tshirt_deadline'));
-        $this->isPassed = $now->isAfter($this->deadline);
-        $this->daysRemaining = $this->isPassed ? 0 : (int) $now->diffInDays($this->deadline, false);
-        $this->formattedDate = $this->deadline->locale('de')->isoFormat('D. MMMM YYYY');
+        if ($veranstaltung && ! $veranstaltung->tshirt_aktiv) {
+            return null;
+        }
+
+        $value = $veranstaltung?->tshirt_deadline ?: config('services.fantreffen.tshirt_deadline');
+
+        if (! $value) {
+            return null;
+        }
+
+        return Carbon::parse($value);
     }
 
     /**
      * Prüft, ob die Deadline abgelaufen ist.
      */
-    public function isPassed(): bool
+    public function isPassed(?Veranstaltung $veranstaltung = null): bool
     {
-        return $this->isPassed;
+        $deadline = $this->resolveDeadline($veranstaltung);
+
+        return $deadline ? Carbon::now()->isAfter($deadline) : false;
     }
 
     /**
      * Gibt die verbleibenden Tage bis zur Deadline zurück.
      * Gibt 0 zurück, wenn die Deadline abgelaufen ist.
      */
-    public function getDaysRemaining(): int
+    public function getDaysRemaining(?Veranstaltung $veranstaltung = null): int
     {
-        return $this->daysRemaining;
+        $deadline = $this->resolveDeadline($veranstaltung);
+
+        if (! $deadline) {
+            return 0;
+        }
+
+        $now = Carbon::now();
+
+        return $now->isAfter($deadline) ? 0 : (int) $now->diffInDays($deadline, false);
     }
 
     /**
      * Gibt das formatierte Datum der Deadline zurück (z.B. "28. Februar 2026").
      */
-    public function getFormattedDate(): string
+    public function getFormattedDate(?Veranstaltung $veranstaltung = null): ?string
     {
-        return $this->formattedDate;
+        $deadline = $this->resolveDeadline($veranstaltung);
+
+        return $deadline?->locale('de')->isoFormat('D. MMMM YYYY');
     }
 
     /**
      * Gibt das Carbon-Objekt der Deadline zurück.
      */
-    public function getDeadline(): Carbon
+    public function getDeadline(?Veranstaltung $veranstaltung = null): ?Carbon
     {
-        return $this->deadline;
+        return $this->resolveDeadline($veranstaltung);
     }
 
     /**
      * Prüft, ob ein ARIA-Alert angezeigt werden soll (wenn <= 7 Tage verbleiben).
      */
-    public function shouldShowAlert(): bool
+    public function shouldShowAlert(?Veranstaltung $veranstaltung = null): bool
     {
-        return ! $this->isPassed && $this->daysRemaining <= 7;
+        if ($this->resolveDeadline($veranstaltung) === null) {
+            return false;
+        }
+
+        return ! $this->isPassed($veranstaltung) && $this->getDaysRemaining($veranstaltung) <= 7;
     }
 
     /**
      * Gibt alle Deadline-Daten als Array zurück (nützlich für Views).
      */
-    public function toArray(): array
+    public function toArray(?Veranstaltung $veranstaltung = null): array
     {
+        $formattedDate = $this->getFormattedDate($veranstaltung);
+
         return [
-            'tshirtDeadlinePassed' => $this->isPassed,
-            'daysUntilDeadline' => $this->daysRemaining,
-            'tshirtDeadlineFormatted' => $this->formattedDate,
+            'tshirtDeadlinePassed' => $this->isPassed($veranstaltung),
+            'daysUntilDeadline' => $this->getDaysRemaining($veranstaltung),
+            'tshirtDeadlineFormatted' => $formattedDate,
         ];
     }
 }

@@ -399,9 +399,9 @@ class DashboardController extends Controller
                 'icon' => 'o-book-open',
             ],
             [
-                'title' => 'Fantreffen 2026 ansehen',
-                'description' => 'Programm, Anmeldung und aktuelle Informationen rund um das Event im Blick behalten.',
-                'href' => route('fantreffen.2026'),
+                'title' => 'Aktuelle Veranstaltung ansehen',
+                'description' => 'Programm, Anmeldung und aktuelle Informationen zur nächsten Veranstaltung im Blick behalten.',
+                'href' => route('veranstaltungen.aktuell'),
                 'icon' => 'o-calendar-days',
             ],
         ];
@@ -416,9 +416,9 @@ class DashboardController extends Controller
             ]);
 
             $actions[] = [
-                'title' => 'Fantreffen verwalten',
-                'description' => 'Anmeldungen, Zahlungen und operative Eventpunkte in der Admin-Ansicht pflegen.',
-                'href' => route('admin.fantreffen.2026'),
+                'title' => 'Veranstaltungen verwalten',
+                'description' => 'Inhalte, Anmeldungen und operative Eventpunkte zentral pflegen.',
+                'href' => route('admin.veranstaltungen.index'),
                 'icon' => 'o-users',
             ];
 

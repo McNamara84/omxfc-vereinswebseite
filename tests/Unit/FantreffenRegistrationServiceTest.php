@@ -114,7 +114,7 @@ class FantreffenRegistrationServiceTest extends TestCase
         // Prüfe dass diese required sind
         $this->assertStringContainsString('required', $rules['vorname']);
         $this->assertStringContainsString('required', $rules['nachname']);
-        $this->assertStringContainsString('required', $rules['email']);
+        $this->assertContains('required', $rules['email']);
     }
 
     public function test_tshirt_size_required_when_tshirt_ordered(): void

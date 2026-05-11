@@ -119,7 +119,7 @@
                 <x-ui.panel title="Heute" description="Die Chronik endet nicht in der Vergangenheit, sondern führt direkt zu den nächsten Community-Momenten.">
                     <div class="flex flex-col gap-3">
                         <a href="{{ route('termine') }}" wire:navigate class="btn btn-primary rounded-full">Aktuelle Termine ansehen</a>
-                        <a href="{{ route('fantreffen.2026') }}" wire:navigate class="btn btn-ghost rounded-full bg-base-100/75">Fantreffen 2026 entdecken</a>
+                        <a href="{{ route('veranstaltungen.aktuell') }}" wire:navigate class="btn btn-ghost rounded-full bg-base-100/75">Aktuelle Veranstaltung entdecken</a>
                     </div>
                 </x-ui.panel>
             </div>

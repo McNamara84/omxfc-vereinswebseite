@@ -10,6 +10,7 @@ use App\Models\Team;
 use App\Models\ThreeDModel;
 use App\Models\Todo;
 use App\Models\User;
+use App\Models\Veranstaltung;
 use App\Policies\BookOfferPolicy;
 use App\Policies\BookRequestPolicy;
 use App\Policies\KassenbuchEntryPolicy;
@@ -18,6 +19,7 @@ use App\Policies\TeamPolicy;
 use App\Policies\ThreeDModelPolicy;
 use App\Policies\TodoPolicy;
 use App\Policies\UserPolicy;
+use App\Policies\VeranstaltungPolicy;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\Gate;
 
@@ -37,6 +39,7 @@ class AuthServiceProvider extends ServiceProvider
         User::class => UserPolicy::class,
         Poll::class => PollPolicy::class,
         ThreeDModel::class => ThreeDModelPolicy::class,
+        Veranstaltung::class => VeranstaltungPolicy::class,
     ];
 
     /**

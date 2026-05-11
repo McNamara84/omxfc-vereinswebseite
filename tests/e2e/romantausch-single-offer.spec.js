@@ -86,7 +86,7 @@ test.describe('Romantauschbörse - Einzelangebote', () => {
             await page.selectOption('select[name="condition"]', CONDITION_Z1);
 
             // Absenden
-            await page.click('button[type="submit"]');
+            await page.locator('#offer-form button[type="submit"]').click();
 
             // Sollte zur Übersicht weiterleiten
             await expect(page).toHaveURL(/romantauschboerse$/);
@@ -115,7 +115,7 @@ test.describe('Romantauschbörse - Einzelangebote', () => {
             await page.selectOption('select[name="condition"]', CONDITION_Z2);
 
             // Absenden
-            await page.click('button[type="submit"]');
+            await page.locator('#offer-form button[type="submit"]').click();
 
             // Warte auf Weiterleitung
             await expect(page).toHaveURL(/romantauschboerse$/);
@@ -163,7 +163,7 @@ test.describe('Romantauschbörse - Einzelangebote', () => {
             await page.selectOption('select[name="condition"]', CONDITION_Z2);
 
             // Absenden
-            await page.click('button[type="submit"]');
+            await page.locator('#request-form button[type="submit"]').click();
 
             // Sollte zur Übersicht weiterleiten
             await expect(page).toHaveURL(/romantauschboerse$/);
@@ -190,7 +190,7 @@ test.describe('Romantauschbörse - Einzelangebote', () => {
             );
             await page.selectOption('select[name="book_number"]', '55');
             await page.selectOption('select[name="condition"]', CONDITION_Z1);
-            await page.click('button[type="submit"]');
+            await page.locator('#offer-form button[type="submit"]').click();
             
             await expect(page).toHaveURL(/romantauschboerse$/);
 
@@ -214,7 +214,7 @@ test.describe('Romantauschbörse - Einzelangebote', () => {
             );
             await page.selectOption('select[name="book_number"]', '66');
             await page.selectOption('select[name="condition"]', CONDITION_Z1);
-            await page.click('button[type="submit"]');
+            await page.locator('#offer-form button[type="submit"]').click();
             
             await expect(page).toHaveURL(/romantauschboerse$/);
 
@@ -245,7 +245,7 @@ test.describe('Romantauschbörse - Einzelangebote', () => {
             );
             await page.selectOption('select[name="book_number"]', '33');
             await page.selectOption('select[name="condition"]', CONDITION_Z1);
-            await page.click('button[type="submit"]');
+            await page.locator('#offer-form button[type="submit"]').click();
             
             await expect(page).toHaveURL(/romantauschboerse$/);
 

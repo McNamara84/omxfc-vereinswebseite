@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Enums\Role;
 use App\Models\FantreffenAnmeldung;
+use App\Models\Veranstaltung;
 use Illuminate\Support\Facades\Response;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Url;
@@ -13,6 +14,8 @@ use Livewire\WithPagination;
 class FantreffenAdminDashboard extends Component
 {
     use WithPagination;
+
+    public ?Veranstaltung $veranstaltung = null;
 
     // URL-Query-Parameter automatisch synchronisieren
     #[Url(except: 'alle')]
@@ -61,6 +64,27 @@ class FantreffenAdminDashboard extends Component
         return $this->getFilteredQuery()->paginate(20);
     }
 
+    public function mount(?Veranstaltung $veranstaltung = null): void
+    {
+        $this->veranstaltung = $veranstaltung ?? Veranstaltung::featuredPublic() ?? Veranstaltung::query()->orderByDesc('ist_highlight')->firstOrFail();
+    }
+
+    protected function currentVeranstaltung(): Veranstaltung
+    {
+        if ($this->veranstaltung instanceof Veranstaltung && $this->veranstaltung->exists) {
+            return $this->veranstaltung;
+        }
+
+        return $this->veranstaltung = Veranstaltung::featuredPublic() ?? Veranstaltung::query()->orderByDesc('ist_highlight')->firstOrFail();
+    }
+
+    protected function findAnmeldung(int $anmeldungId): FantreffenAnmeldung
+    {
+        return FantreffenAnmeldung::query()
+            ->where('veranstaltung_id', $this->currentVeranstaltung()->id)
+            ->findOrFail($anmeldungId);
+    }
+
     public function updatedFilterMemberStatus(): void
     {
         $this->resetPage();
@@ -99,7 +123,7 @@ class FantreffenAdminDashboard extends Component
 
     public function toggleZahlungseingang(int $anmeldungId): void
     {
-        $anmeldung = FantreffenAnmeldung::findOrFail($anmeldungId);
+        $anmeldung = $this->findAnmeldung($anmeldungId);
         $anmeldung->zahlungseingang = ! $anmeldung->zahlungseingang;
         $anmeldung->save();
 
@@ -109,7 +133,7 @@ class FantreffenAdminDashboard extends Component
 
     public function toggleTshirtFertig(int $anmeldungId): void
     {
-        $anmeldung = FantreffenAnmeldung::findOrFail($anmeldungId);
+        $anmeldung = $this->findAnmeldung($anmeldungId);
         $anmeldung->tshirt_fertig = ! $anmeldung->tshirt_fertig;
         $anmeldung->save();
 
@@ -119,7 +143,7 @@ class FantreffenAdminDashboard extends Component
 
     public function deleteAnmeldung(int $anmeldungId): void
     {
-        $anmeldung = FantreffenAnmeldung::findOrFail($anmeldungId);
+        $anmeldung = $this->findAnmeldung($anmeldungId);
         $name = $anmeldung->full_name;
         $anmeldung->delete();
 
@@ -135,7 +159,7 @@ class FantreffenAdminDashboard extends Component
             abort(403);
         }
 
-        $anmeldung = FantreffenAnmeldung::findOrFail($anmeldungId);
+        $anmeldung = $this->findAnmeldung($anmeldungId);
 
         if (! $anmeldung->ist_mitglied) {
             session()->flash('error', 'Nur Mitglieder können dem Orga-Team hinzugefügt werden.');
@@ -182,14 +206,16 @@ class FantreffenAdminDashboard extends Component
         return Response::streamDownload(function () use ($csv) {
             echo "\xEF\xBB\xBF"; // UTF-8 BOM für Excel
             echo $csv;
-        }, 'fantreffen-anmeldungen-'.now()->format('Y-m-d').'.csv', [
+        }, $this->currentVeranstaltung()->slug.'-anmeldungen-'.now()->format('Y-m-d').'.csv', [
             'Content-Type' => 'text/csv; charset=UTF-8',
         ]);
     }
 
     protected function getFilteredQuery()
     {
-        $query = FantreffenAnmeldung::query()->with('user');
+        $query = FantreffenAnmeldung::query()
+            ->with('user')
+            ->where('veranstaltung_id', $this->currentVeranstaltung()->id);
 
         // Mitgliedsstatus-Filter
         if ($this->filterMemberStatus === 'mitglieder') {
@@ -252,9 +278,15 @@ class FantreffenAdminDashboard extends Component
 
     public function render()
     {
-        return view('livewire.fantreffen-admin-dashboard')
+        $veranstaltung = $this->currentVeranstaltung();
+
+        return view('livewire.fantreffen-admin-dashboard', [
+            'veranstaltung' => $veranstaltung,
+            'bearbeitenUrl' => route('admin.veranstaltungen.edit', ['veranstaltung' => $veranstaltung]),
+            'vipAutorenUrl' => route('admin.veranstaltungen.vip-authors', ['veranstaltung' => $veranstaltung]),
+        ])
             ->layout('layouts.app', [
-                'title' => 'Fantreffen 2026 - Admin Dashboard',
+                'title' => $veranstaltung->titel.' - Anmeldungen',
             ]);
     }
 }

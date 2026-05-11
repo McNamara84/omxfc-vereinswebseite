@@ -7,19 +7,24 @@ function uniqueGuestEmail(prefix, projectName) {
 }
 
 async function gotoFantreffenAnmeldung(page) {
-    await page.goto('/maddrax-fantreffen-2026');
+    await page.goto('/veranstaltungen/aktuell');
+    await page.waitForURL(/\/veranstaltungen\//, { timeout: 10000 });
     await expect(page.locator('form#fantreffen-form')).toBeVisible();
 }
 
-test.describe('Fantreffen 2026 Anmeldung', () => {
+function anmeldungsPanel(page) {
+    return page.locator('section').filter({ has: page.locator('form#fantreffen-form') }).first();
+}
+
+test.describe('Veranstaltungsanmeldung', () => {
     test('Seite ist erreichbar und zeigt das Anmeldeformular', async ({ page }) => {
         await gotoFantreffenAnmeldung(page);
 
         // Hauptüberschrift sichtbar
-        await expect(page.locator('h1')).toContainText('Maddrax-Fantreffen 2026');
+        await expect(page.locator('h1')).toBeVisible();
 
         // Anmeldeformular mit Überschrift vorhanden
-        await expect(page.locator('h2:has-text("Anmeldung")')).toBeVisible();
+        await expect(anmeldungsPanel(page).getByRole('heading', { name: 'Anmeldung', exact: true })).toBeVisible();
     });
 
     test('Formularfelder haben korrekte name-Attribute', async ({ page }) => {
@@ -54,26 +59,12 @@ test.describe('Fantreffen 2026 Anmeldung', () => {
         await page.waitForURL(/bestaetigung/, { timeout: 10000 });
     });
 
-    test('T-Shirt Checkbox schaltet Größen-Dropdown korrekt um', async ({ page }) => {
+    test('T-Shirt-Bereich wird nicht angezeigt, wenn das Modul deaktiviert ist', async ({ page }) => {
         await gotoFantreffenAnmeldung(page);
 
-        const tshirtContainer = page.getByTestId('fantreffen-tshirt-container');
-        const checkbox = page.getByTestId('fantreffen-tshirt-checkbox');
-
-        // Container ist initial versteckt (Alpine.js x-show setzt display:none)
-        await expect(tshirtContainer).toBeHidden();
-
-        // Checkbox anklicken → Container sichtbar
-        await checkbox.check();
-        await expect(tshirtContainer).toBeVisible();
-
-        // Größen-Select ist jetzt required
-        const select = page.getByTestId('fantreffen-tshirt-groesse');
-        await expect(select).toHaveAttribute('required');
-
-        // Checkbox abwählen → Container wird wieder versteckt
-        await checkbox.uncheck();
-        await expect(tshirtContainer).toBeHidden();
+        await expect(page.getByTestId('fantreffen-tshirt-checkbox')).toHaveCount(0);
+        await expect(page.getByTestId('fantreffen-tshirt-container')).toHaveCount(0);
+        await expect(page.getByTestId('fantreffen-tshirt-groesse')).toHaveCount(0);
     });
 
     test('Formular ist valide und wird korrekt an den Server gesendet', async ({ page }) => {
@@ -92,16 +83,10 @@ test.describe('Fantreffen 2026 Anmeldung', () => {
         await expect(buttonInForm).toHaveCount(1);
     });
 
-    test('T-Shirt-Größe blockiert das Formular nicht wenn Checkbox nicht gesetzt', async ({ page }) => {
+    test('T-Shirt-Größe ist ohne aktives Modul nicht Teil des Formulars', async ({ page }) => {
         await gotoFantreffenAnmeldung(page);
 
-        // tshirt_groesse darf nicht required sein wenn Checkbox nicht gesetzt
-        const selectRequired = await page.evaluate(() => {
-            const select = document.querySelector('select[name="tshirt_groesse"]');
-            return select?.required ?? null;
-        });
-
-        expect(selectRequired).toBe(false);
+        await expect(page.locator('select[name="tshirt_groesse"]')).toHaveCount(0);
     });
 
     test('Mehrere Gäste können sich nacheinander ohne 429-Fehler registrieren', async ({ page }, testInfo) => {

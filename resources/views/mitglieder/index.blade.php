@@ -308,7 +308,7 @@
 
                     @if($currentUserRank > $memberRank)
                         {{-- Rolle ändern (Dropdown) --}}
-                        <x-dropdown>
+                        <x-dropdown as="menu">
                             <x-slot:trigger>
                                 <x-button
                                     icon="o-pencil-square"
@@ -475,7 +475,7 @@
 
                     @if($currentUserRank > $memberRank)
                         {{-- Rolle ändern (Mobile) --}}
-                        <x-dropdown class="flex-1">
+                        <x-dropdown as="menu" class="flex-1">
                             <x-slot:trigger>
                                 <x-button icon="o-pencil-square" class="btn-warning btn-sm w-full">
                                     <span class="hidden sm:inline">Rolle</span>

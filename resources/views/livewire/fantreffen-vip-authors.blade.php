@@ -2,11 +2,11 @@
     {{-- Header --}}
     <x-ui.page-header
         eyebrow="Adminbereich"
-        title="VIP-Autoren verwalten"
-        description="Pflege die angekündigten Gastautor:innen für das Fantreffen 2026 inklusive Reihenfolge, Aktivstatus und Hinweisen auf Vorbehalte."
+        :title="'VIP-Autoren verwalten – '.$veranstaltung->titel"
+        description="Pflege die angekündigten Gastautor:innen inklusive Reihenfolge, Aktivstatus und Vorbehaltskennzeichnung pro Veranstaltung."
     >
         <x-slot:actions>
-            <x-button label="Zurück zu Anmeldungen" link="{{ route('admin.fantreffen.2026') }}" wire:navigate icon="o-arrow-left" class="btn-ghost" />
+            <x-button label="Zurück zu Anmeldungen" :link="$anmeldungenUrl" wire:navigate icon="o-arrow-left" class="btn-ghost" />
         </x-slot:actions>
     </x-ui.page-header>
 

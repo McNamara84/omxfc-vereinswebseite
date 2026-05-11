@@ -1,7 +1,19 @@
 <x-mail::message>
-# Neue Anmeldung zum Maddrax-Fantreffen 2026
+# Neue Anmeldung zu {{ $veranstaltung?->titel ?? 'einer Veranstaltung' }}
 
-Es liegt eine neue Anmeldung für das Maddrax-Fantreffen am 9. Mai 2026 vor.
+Es liegt eine neue Anmeldung vor.
+
+@if($veranstaltung)
+## Veranstaltung
+
+**Titel:** {{ $veranstaltung->titel }}  
+@if($veranstaltung->datum_von)
+**Datum:** {{ $veranstaltung->datum_von->locale('de')->isoFormat('D. MMMM YYYY, HH:mm') }} Uhr  
+@endif
+@if($veranstaltung->ort_name)
+**Ort:** {{ $veranstaltung->ort_name }}
+@endif
+@endif
 
 ## Teilnehmerdaten
 
@@ -42,8 +54,8 @@ Es liegt eine neue Anmeldung für das Maddrax-Fantreffen am 9. Mai 2026 vor.
 
 ---
 
-<x-mail::button :url="route('admin.fantreffen.2026')">
-Zur Admin-Übersicht
+<x-mail::button :url="$veranstaltung ? route('admin.veranstaltungen.anmeldungen', $veranstaltung) : route('admin.veranstaltungen.index')">
+Zur Veranstaltungsverwaltung
 </x-mail::button>
 
 ---

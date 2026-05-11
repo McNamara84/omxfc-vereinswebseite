@@ -20,10 +20,13 @@ class NavigationMenuTest extends TestCase
     public function test_guest_navigation_uses_public_sections_and_featured_actions(): void
     {
         $response = $this->get(route('home'));
+        $crawler = new Crawler($response->getContent());
+        $featuredText = preg_replace('/\s+/u', ' ', $crawler->filter('[data-testid="nav-featured-links"]')->text());
 
         $response->assertOk();
-        $response->assertSeeText('Fantreffen 2026');
-        $response->assertSeeText('Mitglied werden');
+        $this->assertIsString($featuredText);
+        $this->assertStringContainsString('Aktuelle Veranstaltung', $featuredText);
+        $this->assertStringContainsString('Mitglied werden', $featuredText);
         $response->assertSeeText('Verein');
         $response->assertSeeText('Veranstaltungen');
         $response->assertSeeText('Mitmachen');
@@ -108,7 +111,7 @@ class NavigationMenuTest extends TestCase
     {
         $user = User::factory()->withPersonalTeam()->create();
 
-        $response = $this->actingAs($user)->get('/');
+        $response = $this->withoutVite()->actingAs($user)->get('/');
 
         $response->assertSee(route('termine'));
     }
@@ -117,7 +120,7 @@ class NavigationMenuTest extends TestCase
     {
         $user = User::factory()->withPersonalTeam()->create();
 
-        $response = $this->actingAs($user)->get('/');
+        $response = $this->withoutVite()->actingAs($user)->get('/');
 
         $response->assertOk();
         $response->assertSee('data-testid="desktop-nav-dropdown-item"', false);
@@ -125,6 +128,19 @@ class NavigationMenuTest extends TestCase
         $response->assertSee('min-w-[14rem]', false);
         $response->assertSee('max-w-[min(24rem,calc(100vw-2rem))]', false);
         $response->assertSee('whitespace-nowrap', false);
+    }
+
+    public function test_navigation_menus_do_not_render_forms_as_direct_menu_children(): void
+    {
+        $user = $this->createUserWithRole(Role::Mitglied);
+
+        $response = $this->actingAs($user)->get('/');
+
+        $response->assertOk();
+
+        $crawler = new Crawler($response->getContent());
+
+        $this->assertCount(0, $crawler->filter('ul.menu > form'));
     }
 
     public function test_authenticated_users_see_satzung_between_protokolle_and_kassenstand(): void
@@ -143,14 +159,14 @@ class NavigationMenuTest extends TestCase
 
     public function test_guests_see_termine_link_in_navigation(): void
     {
-        $response = $this->get('/');
+        $response = $this->withoutVite()->get('/');
 
         $response->assertSee(route('termine'));
     }
 
     public function test_mobile_menu_button_has_static_accessibility_defaults_before_alpine_initialization(): void
     {
-        $response = $this->get('/');
+        $response = $this->withoutVite()->get('/');
 
         $response->assertOk();
 
@@ -210,21 +226,21 @@ class NavigationMenuTest extends TestCase
         $response->assertDontSee(route('hoerbuecher.create'));
     }
 
-    public function test_authenticated_users_see_fantreffen_2026_link_in_navigation(): void
+    public function test_authenticated_users_see_current_event_link_in_navigation(): void
     {
         $user = User::factory()->withPersonalTeam()->create();
 
         $response = $this->actingAs($user)->get('/');
 
-        $response->assertSee(route('fantreffen.2026'));
-        $response->assertSee('Fantreffen 2026');
+        $response->assertSee('/veranstaltungen/aktuell', false);
+        $response->assertSee('Aktuelle Veranstaltung');
     }
 
-    public function test_guests_see_fantreffen_2026_link_in_navigation(): void
+    public function test_guests_see_current_event_link_in_navigation(): void
     {
-        $response = $this->get('/');
+        $response = $this->withoutVite()->get('/');
 
-        $response->assertSee(route('fantreffen.2026'));
-        $response->assertSee('Fantreffen 2026');
+        $response->assertSee('/veranstaltungen/aktuell', false);
+        $response->assertSee('Aktuelle Veranstaltung');
     }
 }

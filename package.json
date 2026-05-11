@@ -13,7 +13,7 @@
         "test:vitest": "vitest run --config vitest.config.js --maxWorkers=1"
     },
     "devDependencies": {
-        "@axe-core/playwright": "^4.11.0",
+        "@axe-core/playwright": "^4.11.3",
         "@playwright/test": "^1.57.0",
         "@tailwindcss/postcss": "^4.1.18",
         "@tailwindcss/typography": "^0.5.19",

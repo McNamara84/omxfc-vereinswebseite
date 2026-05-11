@@ -40,7 +40,7 @@
 
                 <div class="mt-4 flex flex-col gap-3">
                     <a href="{{ route('home') }}" wire:navigate class="btn btn-primary rounded-full">Zurück zur Startseite</a>
-                    <a href="{{ route('fantreffen.2026') }}" wire:navigate class="btn btn-ghost rounded-full bg-base-100/75">Fantreffen entdecken</a>
+                    <a href="{{ route('veranstaltungen.aktuell') }}" wire:navigate class="btn btn-ghost rounded-full bg-base-100/75">Aktuelle Veranstaltung entdecken</a>
                 </div>
             </x-ui.panel>
         </section>

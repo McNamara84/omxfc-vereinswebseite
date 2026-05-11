@@ -26,40 +26,30 @@ const startNewPoll = async (page) => {
 };
 
 const addAnswerOption = async (page, expectedCount) => {
-    await page.getByTestId('add-option-button').click();
-    await expect(answerOptionCards(page)).toHaveCount(expectedCount);
-};
-
-const fillOptionLabel = async (page, index, value) => {
-    const input = page.getByTestId(`option-${index}-label`);
+    const addOptionButton = page.getByTestId('add-option-button');
 
     for (let attempt = 0; attempt < 2; attempt += 1) {
-        await input.evaluate((element, nextValue) => {
-            element.focus();
-            element.value = nextValue;
-            element.dispatchEvent(new Event('input', { bubbles: true }));
-            element.dispatchEvent(new Event('change', { bubbles: true }));
-            element.blur();
-        }, value);
+        await expect(addOptionButton).toBeEnabled();
+        await addOptionButton.click();
 
         try {
-            await expect.poll(
-                () => pollManagementComponent(page).evaluate(
-                    (el, optionIndex) => el.__livewire?.canonical?.options?.[optionIndex]?.label ?? null,
-                    index,
-                ),
-                { timeout: 5000 },
-            ).toBe(value);
+            await expect(answerOptionCards(page)).toHaveCount(expectedCount);
 
-            await expect(input).toHaveValue(value);
-
-            return input;
+            return;
         } catch (error) {
             if (attempt === 1) {
                 throw error;
             }
         }
     }
+};
+
+const fillOptionLabel = async (page, index, value) => {
+    const input = page.getByTestId(`option-${index}-label`);
+
+    await expect(input).toBeEditable();
+    await input.fill(value);
+    await input.blur();
 
     await expect(input).toHaveValue(value);
 
@@ -193,18 +183,13 @@ test.describe('Umfragen Admin Dashboard', () => {
         const nextWeek = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16);
         await page.getByTestId('ends-at-input').fill(nextWeek);
 
-        // Füge Antwortmöglichkeiten hinzu
-        // Erste Antwort sollte bereits vorhanden sein
-        const firstAnswerInput = await fillOptionLabel(page, 0, 'Der Gott aus dem Eis');
-
-        // Zweite Antwort hinzufügen
+        // Zusätzliche Antwortmöglichkeiten zuerst anlegen, dann befüllen.
+        // Das vermeidet Blur/Add-Option-Races während paralleler Livewire-Requests.
         await addAnswerOption(page, 3);
-
-        const secondAnswerInput = await fillOptionLabel(page, 1, 'Dämonen der Vergangenheit');
-
-        // Dritte Antwort hinzufügen
         await addAnswerOption(page, 4);
 
+        const firstAnswerInput = await fillOptionLabel(page, 0, 'Der Gott aus dem Eis');
+        const secondAnswerInput = await fillOptionLabel(page, 1, 'Dämonen der Vergangenheit');
         const thirdAnswerInput = await fillOptionLabel(page, 2, 'Stadt ohne Hoffnung');
 
         // Prüfe dass alle Felder ausgefüllt sind

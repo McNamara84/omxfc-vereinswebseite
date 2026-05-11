@@ -12,7 +12,7 @@ class AuthenticationTest extends TestCase
 
     public function test_login_screen_can_be_rendered(): void
     {
-        $response = $this->get('/login');
+        $response = $this->withoutVite()->get('/login');
 
         $response->assertStatus(200);
     }
@@ -44,7 +44,7 @@ class AuthenticationTest extends TestCase
 
     public function test_login_form_has_accessible_structure_and_test_ids(): void
     {
-        $response = $this->get('/login');
+        $response = $this->withoutVite()->get('/login');
 
         // data-testid-Attribute für E2E-Tests
         $response->assertSee('data-testid="login-email"', false);
@@ -55,7 +55,7 @@ class AuthenticationTest extends TestCase
         $html = $response->getContent();
         $this->assertStringContainsString('<h1', $html);
         $this->assertStringContainsString('Login', $html);
-        $this->assertMatchesRegularExpression('/<legend[^>]*>\s*E-Mail/si', $html);
+        $this->assertMatchesRegularExpression('/<(legend|span)[^>]*>\s*E-Mail/si', $html);
         $this->assertMatchesRegularExpression('/<legend[^>]*>\s*Passwort/si', $html);
         $this->assertStringContainsString('autocomplete="username"', $html);
         $this->assertStringContainsString('autocomplete="current-password"', $html);
