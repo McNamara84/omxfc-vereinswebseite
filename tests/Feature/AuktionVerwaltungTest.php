@@ -27,11 +27,25 @@ class AuktionVerwaltungTest extends TestCase
     public function test_admin_can_open_auction_management_index(): void
     {
         $admin = $this->createUserWithRole(Role::Admin);
+        $bieter = $this->createUserWithRole(Role::Mitglied);
+        $auktion = Auktion::factory()->create();
+
+        AuktionGebot::factory()->for($auktion)->for($bieter)->create([
+            'bieter_name' => 'Index Bieter',
+            'betrag_cent' => 2700,
+        ]);
 
         $response = $this->withoutVite()->actingAs($admin)->get(route('admin.auktionen.index'));
 
         $response->assertOk();
         $response->assertSee('Auktionen verwalten');
+
+        $geladeneAuktion = $response->viewData('auktionen')->firstWhere('id', $auktion->id);
+
+        $this->assertNotNull($geladeneAuktion);
+        $this->assertTrue($geladeneAuktion->relationLoaded('hoechstgebotRelation'));
+        $this->assertFalse($geladeneAuktion->relationLoaded('gebote'));
+        $this->assertSame('Index Bieter', $geladeneAuktion->hoechstgebot()?->bieter_name);
     }
 
     public function test_member_cannot_open_auction_management_index(): void

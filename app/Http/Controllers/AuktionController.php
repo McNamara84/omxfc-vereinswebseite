@@ -19,13 +19,13 @@ class AuktionController extends Controller
         return view('auktionen.index', [
             'aktiveAuktionen' => Auktion::query()
                 ->aktiv()
-                ->with(['gebote.user', 'verkauftesGebot'])
+                ->with(['hoechstgebotRelation', 'verkauftesGebot'])
                 ->withCount('gebote')
                 ->orderByDesc('created_at')
                 ->get(),
             'archivierteAuktionen' => Auktion::query()
                 ->archiviert()
-                ->with(['gebote.user', 'verkauftesGebot'])
+                ->with(['hoechstgebotRelation', 'verkauftesGebot'])
                 ->withCount('gebote')
                 ->orderByDesc('verkauft_at')
                 ->orderByDesc('updated_at')

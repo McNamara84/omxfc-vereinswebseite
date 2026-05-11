@@ -19,7 +19,7 @@ class AuktionVerwaltungController extends Controller
 
         return view('admin.auktionen.index', [
             'auktionen' => Auktion::query()
-                ->with(['gebote.user', 'verkauftesGebot', 'verkauftAnUser'])
+                ->with(['hoechstgebotRelation', 'verkauftesGebot'])
                 ->withCount('gebote')
                 ->orderByDesc('created_at')
                 ->get(),

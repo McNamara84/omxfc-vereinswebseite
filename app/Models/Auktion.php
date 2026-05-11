@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
@@ -50,6 +51,14 @@ class Auktion extends Model
         return $this->belongsTo(AuktionGebot::class, 'verkauft_gebot_id');
     }
 
+    public function hoechstgebotRelation(): HasOne
+    {
+        return $this->hasOne(AuktionGebot::class)->ofMany([
+            'betrag_cent' => 'max',
+            'id' => 'max',
+        ]);
+    }
+
     public function scopeAktiv($query)
     {
         return $query->whereIn('status', [
@@ -87,6 +96,10 @@ class Auktion extends Model
 
     public function hasGebote(): bool
     {
+        if (array_key_exists('gebote_count', $this->attributes)) {
+            return (int) $this->attributes['gebote_count'] > 0;
+        }
+
         if ($this->relationLoaded('gebote')) {
             return $this->gebote->isNotEmpty();
         }
@@ -96,6 +109,10 @@ class Auktion extends Model
 
     public function hoechstgebot(): ?AuktionGebot
     {
+        if ($this->relationLoaded('hoechstgebotRelation')) {
+            return $this->getRelation('hoechstgebotRelation');
+        }
+
         if ($this->relationLoaded('gebote')) {
             return $this->sortierteGebote($this->gebote)->first();
         }

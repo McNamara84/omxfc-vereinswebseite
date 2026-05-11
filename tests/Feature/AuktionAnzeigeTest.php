@@ -55,6 +55,12 @@ class AuktionAnzeigeTest extends TestCase
         $response->assertSee('Archiv');
         $response->assertSee('Verkauft an Archiv Bieter fuer 42,00 €');
         $response->assertSee(route('auktionen.show', $aktuelleAuktion));
+
+        $geladeneAuktion = $response->viewData('aktiveAuktionen')->firstWhere('id', $aktuelleAuktion->id);
+
+        $this->assertNotNull($geladeneAuktion);
+        $this->assertTrue($geladeneAuktion->relationLoaded('hoechstgebotRelation'));
+        $this->assertFalse($geladeneAuktion->relationLoaded('gebote'));
     }
 
     public function test_auction_detail_page_shows_complete_bid_history(): void
