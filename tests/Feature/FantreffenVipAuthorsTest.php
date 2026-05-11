@@ -67,6 +67,16 @@ class FantreffenVipAuthorsTest extends TestCase
     }
 
     #[Test]
+    public function test_legacy_vip_authors_route_redirects_to_canonical_event_route(): void
+    {
+        $admin = $this->createUserWithRole(Role::Admin);
+        $this->actingAs($admin);
+
+        $this->get(route('admin.fantreffen.vip-authors'))
+            ->assertRedirect(route('admin.veranstaltungen.vip-authors', ['veranstaltung' => 'maddrax-fantreffen-2026']));
+    }
+
+    #[Test]
     public function test_vip_authors_page_is_accessible_for_vorstand(): void
     {
         $vorstand = $this->createUserWithRole(Role::Vorstand);

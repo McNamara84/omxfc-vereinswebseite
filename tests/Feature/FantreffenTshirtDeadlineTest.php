@@ -237,4 +237,15 @@ class FantreffenTshirtDeadlineTest extends TestCase
         $service = new FantreffenDeadlineService;
         $this->assertFalse($service->shouldShowAlert($this->veranstaltung));
     }
+
+    #[Test]
+    public function test_deadline_service_hides_alert_without_deadline(): void
+    {
+        Config::set('services.fantreffen.tshirt_deadline', null);
+        $this->veranstaltung->update(['tshirt_deadline' => null]);
+
+        $service = new FantreffenDeadlineService;
+
+        $this->assertFalse($service->shouldShowAlert($this->veranstaltung));
+    }
 }

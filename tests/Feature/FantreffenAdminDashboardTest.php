@@ -62,6 +62,16 @@ class FantreffenAdminDashboardTest extends TestCase
     }
 
     #[Test]
+    public function test_legacy_admin_dashboard_route_redirects_to_canonical_event_route(): void
+    {
+        $admin = $this->createUserWithRole(Role::Admin);
+        $this->actingAs($admin);
+
+        $this->get(route('admin.fantreffen.2026'))
+            ->assertRedirect(route('admin.veranstaltungen.anmeldungen', ['veranstaltung' => 'maddrax-fantreffen-2026']));
+    }
+
+    #[Test]
     public function test_admin_dashboard_is_accessible_for_vorstand()
     {
         $vorstand = $this->createUserWithRole(Role::Vorstand);

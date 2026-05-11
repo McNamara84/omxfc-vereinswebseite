@@ -78,6 +78,10 @@ class FantreffenDeadlineService
      */
     public function shouldShowAlert(?Veranstaltung $veranstaltung = null): bool
     {
+        if ($this->resolveDeadline($veranstaltung) === null) {
+            return false;
+        }
+
         return ! $this->isPassed($veranstaltung) && $this->getDaysRemaining($veranstaltung) <= 7;
     }
 

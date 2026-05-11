@@ -20,10 +20,13 @@ class NavigationMenuTest extends TestCase
     public function test_guest_navigation_uses_public_sections_and_featured_actions(): void
     {
         $response = $this->get(route('home'));
+        $crawler = new Crawler($response->getContent());
+        $featuredText = preg_replace('/\s+/u', ' ', $crawler->filter('[data-testid="nav-featured-links"]')->text());
 
         $response->assertOk();
-        $response->assertSeeText('Fantreffen 2026');
-        $response->assertSeeText('Mitglied werden');
+        $this->assertIsString($featuredText);
+        $this->assertStringContainsString('Aktuelle Veranstaltung', $featuredText);
+        $this->assertStringContainsString('Mitglied werden', $featuredText);
         $response->assertSeeText('Verein');
         $response->assertSeeText('Veranstaltungen');
         $response->assertSeeText('Mitmachen');

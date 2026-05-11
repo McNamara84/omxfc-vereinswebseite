@@ -51,7 +51,7 @@ class FantreffenVipAuthors extends Component
 
     protected function currentVeranstaltung(): Veranstaltung
     {
-        if ($this->veranstaltung instanceof Veranstaltung) {
+        if ($this->veranstaltung instanceof Veranstaltung && $this->veranstaltung->exists) {
             return $this->veranstaltung;
         }
 

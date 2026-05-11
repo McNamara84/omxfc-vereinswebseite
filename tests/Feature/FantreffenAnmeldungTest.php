@@ -11,6 +11,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\URL;
 use Tests\Concerns\CreatesFantreffenFormToken;
 use Tests\TestCase;
 
@@ -61,7 +62,7 @@ class FantreffenAnmeldungTest extends TestCase
 
     protected function confirmationUrl(FantreffenAnmeldung $anmeldung): string
     {
-        return route('veranstaltungen.bestaetigung', ['veranstaltung' => $this->veranstaltung, 'id' => $anmeldung->id]);
+        return URL::signedRoute('veranstaltungen.bestaetigung', ['veranstaltung' => $this->veranstaltung, 'id' => $anmeldung->id]);
     }
 
     public function test_fantreffen_page_is_accessible_without_authentication()
@@ -204,6 +205,27 @@ class FantreffenAnmeldungTest extends TestCase
         $response->assertStatus(200);
         $response->assertSee('Zu zahlender Betrag');
         $response->assertSee('5,00 €');
+    }
+
+    public function test_guest_confirmation_page_requires_valid_signature(): void
+    {
+        $anmeldung = FantreffenAnmeldung::create([
+            'veranstaltung_id' => $this->veranstaltung->id,
+            'vorname' => 'Max',
+            'nachname' => 'Mustermann',
+            'email' => 'max@example.com',
+            'ist_mitglied' => false,
+            'payment_status' => 'pending',
+            'payment_amount' => 5.00,
+            'tshirt_bestellt' => false,
+            'zahlungseingang' => false,
+        ]);
+
+        $this->get(route('veranstaltungen.bestaetigung', ['veranstaltung' => $this->veranstaltung, 'id' => $anmeldung->id]))
+            ->assertForbidden();
+
+        $this->get(route('fantreffen.2026.bestaetigung', ['id' => $anmeldung->id]))
+            ->assertForbidden();
     }
 
     public function test_coloniacon_banner_shows_panel_info()

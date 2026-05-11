@@ -10,6 +10,7 @@ use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\URL;
 
 class FantreffenAnmeldungBestaetigung extends Mailable implements ShouldQueue
 {
@@ -53,8 +54,8 @@ class FantreffenAnmeldungBestaetigung extends Mailable implements ShouldQueue
                 'paymentRequired' => $this->anmeldung->requiresPayment(),
                 'paymentAmount' => $this->anmeldung->payment_amount,
                 'zahlungsUrl' => $veranstaltung
-                    ? route('veranstaltungen.bestaetigung', [$veranstaltung, 'id' => $this->anmeldung->id])
-                    : route('fantreffen.2026.bestaetigung', ['id' => $this->anmeldung->id]),
+                    ? URL::signedRoute('veranstaltungen.bestaetigung', [$veranstaltung, 'id' => $this->anmeldung->id])
+                    : URL::signedRoute('fantreffen.2026.bestaetigung', ['id' => $this->anmeldung->id]),
             ],
         );
     }

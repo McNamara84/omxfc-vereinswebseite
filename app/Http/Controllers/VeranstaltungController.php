@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
@@ -39,14 +40,18 @@ class VeranstaltungController extends Controller
         return $this->store($request, $this->legacyVeranstaltung());
     }
 
-    public function legacyBestaetigung(int $id): RedirectResponse
+    public function legacyBestaetigung(Request $request, int $id): RedirectResponse
     {
+        if (! Auth::check()) {
+            abort_unless($request->hasValidSignature(), 403, 'Der Bestätigungslink ist ungültig.');
+        }
+
         $anmeldung = FantreffenAnmeldung::with('veranstaltung')->findOrFail($id);
         $veranstaltung = $anmeldung->veranstaltung ?? $this->legacyVeranstaltung();
 
         abort_if($veranstaltung === null, 404);
 
-        return redirect()->route('veranstaltungen.bestaetigung', [$veranstaltung, 'id' => $anmeldung->id]);
+        return redirect()->to($this->confirmationUrl($veranstaltung, $anmeldung));
     }
 
     private function legacyVeranstaltung(): Veranstaltung
@@ -161,7 +166,7 @@ class VeranstaltungController extends Controller
         try {
             $anmeldung = $this->registrationService->register($validated, Auth::user(), $veranstaltung);
 
-            return redirect()->route('veranstaltungen.bestaetigung', [$veranstaltung, 'id' => $anmeldung->id])
+            return redirect()->to($this->confirmationUrl($veranstaltung, $anmeldung))
                 ->with('success', 'Deine Anmeldung wurde erfolgreich gespeichert!');
         } catch (\InvalidArgumentException $e) {
             return back()
@@ -174,11 +179,15 @@ class VeranstaltungController extends Controller
         }
     }
 
-    public function bestaetigung(Veranstaltung $veranstaltung, int $id): View
+    public function bestaetigung(Request $request, Veranstaltung $veranstaltung, int $id): View
     {
         $anmeldung = FantreffenAnmeldung::query()
             ->where('veranstaltung_id', $veranstaltung->id)
             ->findOrFail($id);
+
+        if (! Auth::check()) {
+            abort_unless($request->hasValidSignature(), 403, 'Der Bestätigungslink ist ungültig.');
+        }
 
         if (Auth::check() && $anmeldung->user_id && Auth::id() !== $anmeldung->user_id) {
             abort(403, 'Du bist nicht berechtigt, diese Anmeldung anzusehen.');
@@ -187,6 +196,14 @@ class VeranstaltungController extends Controller
         return view('veranstaltungen.bestaetigung', [
             'veranstaltung' => $veranstaltung,
             'anmeldung' => $anmeldung,
+        ]);
+    }
+
+    private function confirmationUrl(Veranstaltung $veranstaltung, FantreffenAnmeldung $anmeldung): string
+    {
+        return URL::signedRoute('veranstaltungen.bestaetigung', [
+            'veranstaltung' => $veranstaltung,
+            'id' => $anmeldung->id,
         ]);
     }
 }

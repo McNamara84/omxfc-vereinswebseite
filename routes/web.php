@@ -125,11 +125,11 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
         Route::livewire('/{veranstaltung}/vip-autoren', FantreffenVipAuthors::class)->name('vip-authors');
     });
 
-    Route::livewire('/admin/fantreffen-2026', FantreffenAdminDashboard::class)
+    Route::get('/admin/fantreffen-2026', fn () => redirect()->route('admin.veranstaltungen.anmeldungen', ['veranstaltung' => 'maddrax-fantreffen-2026']))
         ->name('admin.fantreffen.2026')
         ->middleware('vorstand-or-kassenwart');
 
-    Route::livewire('/admin/fantreffen-2026/vip-autoren', FantreffenVipAuthors::class)
+    Route::get('/admin/fantreffen-2026/vip-autoren', fn () => redirect()->route('admin.veranstaltungen.vip-authors', ['veranstaltung' => 'maddrax-fantreffen-2026']))
         ->name('admin.fantreffen.vip-authors')
         ->middleware('vorstand-or-kassenwart');
 
