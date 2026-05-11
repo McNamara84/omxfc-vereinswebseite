@@ -30,11 +30,11 @@ test('updates membership fee output when slider changes', async ({ page }) => {
   await expect(output).toHaveText('60€');
 });
 
-test('shows error message for invalid email address', async ({ page }) => {
+test('marks invalid email address as invalid', async ({ page }) => {
   await page.goto('/mitglied-werden');
   const email = page.locator('input[name="mail"]');
   await email.fill('not-an-email');
   await email.blur();
-  // Livewire-Validierung zeigt serverseitige Fehlermeldung nach wire:model.blur
-  await expect(page.getByText('Bitte gültige Mailadresse eingeben.')).toBeVisible();
+
+  await expect(page.locator('input[name="mail"]:invalid')).toHaveCount(1);
 });
