@@ -10,6 +10,8 @@ use InvalidArgumentException;
 
 class StoreAuktionRequest extends FormRequest
 {
+    private const EURO_FORMAT_MESSAGE = 'Bitte gib einen gültigen Euro-Betrag mit maximal zwei Nachkommastellen ein.';
+
     public function authorize(): bool
     {
         return $this->user()?->can('manage', Auktion::class) ?? false;
@@ -28,8 +30,8 @@ class StoreAuktionRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'startbetrag.regex' => 'Bitte gib einen gültigen Euro-Betrag mit maximal zwei Nachkommastellen ein.',
-            'mindestschritt.regex' => 'Bitte gib einen gültigen Euro-Betrag mit maximal zwei Nachkommastellen ein.',
+            'startbetrag.regex' => self::EURO_FORMAT_MESSAGE,
+            'mindestschritt.regex' => self::EURO_FORMAT_MESSAGE,
         ];
     }
 
@@ -54,17 +56,21 @@ class StoreAuktionRequest extends FormRequest
 
     private function validateEuroAmount($validator, string $field, int $minimumInCents, bool $allowZero): void
     {
+        if ($validator->errors()->has($field)) {
+            return;
+        }
+
         try {
             $amountInCents = Euro::toCents((string) $this->input($field));
         } catch (InvalidArgumentException) {
-            $validator->errors()->add($field, 'Bitte gib einen gültigen Euro-Betrag ein.');
+            $validator->errors()->add($field, self::EURO_FORMAT_MESSAGE);
 
             return;
         }
 
         if ($amountInCents < $minimumInCents || (! $allowZero && $amountInCents === 0)) {
             $validator->errors()->add($field, $field === 'startbetrag'
-                ? 'Der Startbetrag darf nicht negativ sein.'
+                ? 'Der Startbetrag muss mindestens 0,00 € sein.'
                 : 'Der Mindestschritt muss größer als 0,00 € sein.');
         }
     }

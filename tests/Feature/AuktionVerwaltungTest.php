@@ -105,6 +105,8 @@ class AuktionVerwaltungTest extends TestCase
 
         $errors = $response->getSession()->get('errors');
 
+        $this->assertCount(1, $errors->get('startbetrag'));
+        $this->assertCount(1, $errors->get('mindestschritt'));
         $this->assertSame('Bitte gib einen gültigen Euro-Betrag mit maximal zwei Nachkommastellen ein.', $errors->get('startbetrag')[0]);
         $this->assertSame('Bitte gib einen gültigen Euro-Betrag mit maximal zwei Nachkommastellen ein.', $errors->get('mindestschritt')[0]);
 
@@ -129,6 +131,28 @@ class AuktionVerwaltungTest extends TestCase
         $response->assertRedirect(route('admin.auktionen.create'));
         $response->assertSessionHasErrors('mindestschritt');
         $this->assertSame('Der Mindestschritt muss größer als 0,00 € sein.', $response->getSession()->get('errors')->get('mindestschritt')[0]);
+    }
+
+    public function test_admin_cannot_create_auction_with_negative_startbetrag_and_receives_single_format_message(): void
+    {
+        $admin = $this->createUserWithRole(Role::Admin);
+
+        $response = $this->from(route('admin.auktionen.create'))
+            ->actingAs($admin)
+            ->post(route('admin.auktionen.store'), [
+                'titel' => 'Negativer Start',
+                'beschreibung_markdown' => 'Test',
+                'startbetrag' => '-1.00',
+                'mindestschritt' => '1.00',
+            ]);
+
+        $response->assertRedirect(route('admin.auktionen.create'));
+        $response->assertSessionHasErrors('startbetrag');
+
+        $errors = $response->getSession()->get('errors');
+
+        $this->assertCount(1, $errors->get('startbetrag'));
+        $this->assertSame('Bitte gib einen gültigen Euro-Betrag mit maximal zwei Nachkommastellen ein.', $errors->get('startbetrag')[0]);
     }
 
     public function test_admin_can_update_auction_before_first_bid(): void
@@ -189,6 +213,40 @@ class AuktionVerwaltungTest extends TestCase
         $auktion->refresh();
         $this->assertSame(1000, $auktion->startbetrag_cent);
         $this->assertSame(100, $auktion->mindestschritt_cent);
+    }
+
+    public function test_auction_with_bids_invalid_money_format_does_not_add_duplicate_locked_field_errors(): void
+    {
+        $admin = $this->createUserWithRole(Role::Admin);
+        $bieter = $this->createUserWithRole(Role::Mitglied);
+        $auktion = Auktion::factory()->create([
+            'startbetrag_cent' => 1000,
+            'mindestschritt_cent' => 100,
+        ]);
+
+        AuktionGebot::factory()->for($auktion)->for($bieter)->create([
+            'bieter_name' => $bieter->name,
+            'betrag_cent' => 1200,
+        ]);
+
+        $response = $this->from(route('admin.auktionen.edit', $auktion))
+            ->actingAs($admin)
+            ->put(route('admin.auktionen.update', $auktion), [
+                'titel' => 'Geänderter Titel',
+                'beschreibung_markdown' => 'Neue Beschreibung',
+                'startbetrag' => '1e3',
+                'mindestschritt' => '1.999',
+            ]);
+
+        $response->assertRedirect(route('admin.auktionen.edit', $auktion));
+        $response->assertSessionHasErrors(['startbetrag', 'mindestschritt']);
+
+        $errors = $response->getSession()->get('errors');
+
+        $this->assertCount(1, $errors->get('startbetrag'));
+        $this->assertCount(1, $errors->get('mindestschritt'));
+        $this->assertSame('Bitte gib einen gültigen Euro-Betrag mit maximal zwei Nachkommastellen ein.', $errors->get('startbetrag')[0]);
+        $this->assertSame('Bitte gib einen gültigen Euro-Betrag mit maximal zwei Nachkommastellen ein.', $errors->get('mindestschritt')[0]);
     }
 
     public function test_auction_with_bids_still_allows_title_and_description_updates(): void

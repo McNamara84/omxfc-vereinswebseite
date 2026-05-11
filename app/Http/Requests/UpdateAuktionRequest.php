@@ -9,6 +9,8 @@ use InvalidArgumentException;
 
 class UpdateAuktionRequest extends FormRequest
 {
+    private const EURO_FORMAT_MESSAGE = 'Bitte gib einen gültigen Euro-Betrag mit maximal zwei Nachkommastellen ein.';
+
     public function authorize(): bool
     {
         $auktion = $this->route('auktion');
@@ -34,8 +36,8 @@ class UpdateAuktionRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'startbetrag.regex' => 'Bitte gib einen gültigen Euro-Betrag mit maximal zwei Nachkommastellen ein.',
-            'mindestschritt.regex' => 'Bitte gib einen gültigen Euro-Betrag mit maximal zwei Nachkommastellen ein.',
+            'startbetrag.regex' => self::EURO_FORMAT_MESSAGE,
+            'mindestschritt.regex' => self::EURO_FORMAT_MESSAGE,
         ];
     }
 
@@ -80,14 +82,14 @@ class UpdateAuktionRequest extends FormRequest
 
     private function validateLockedMoneyField($validator, Auktion $auktion, string $field, int $storedValue, string $message): void
     {
-        if (! $this->filled($field)) {
+        if (! $this->filled($field) || $validator->errors()->has($field)) {
             return;
         }
 
         try {
             $incomingValue = Euro::toCents((string) $this->input($field));
         } catch (InvalidArgumentException) {
-            $validator->errors()->add($field, 'Bitte gib einen gültigen Euro-Betrag ein.');
+            $validator->errors()->add($field, self::EURO_FORMAT_MESSAGE);
 
             return;
         }
@@ -99,17 +101,21 @@ class UpdateAuktionRequest extends FormRequest
 
     private function validateEditableMoneyField($validator, string $field, int $minimumInCents, bool $allowZero): void
     {
+        if ($validator->errors()->has($field)) {
+            return;
+        }
+
         try {
             $amountInCents = Euro::toCents((string) $this->input($field));
         } catch (InvalidArgumentException) {
-            $validator->errors()->add($field, 'Bitte gib einen gültigen Euro-Betrag ein.');
+            $validator->errors()->add($field, self::EURO_FORMAT_MESSAGE);
 
             return;
         }
 
         if ($amountInCents < $minimumInCents || (! $allowZero && $amountInCents === 0)) {
             $validator->errors()->add($field, $field === 'startbetrag'
-                ? 'Der Startbetrag darf nicht negativ sein.'
+                ? 'Der Startbetrag muss mindestens 0,00 € sein.'
                 : 'Der Mindestschritt muss größer als 0,00 € sein.');
         }
     }

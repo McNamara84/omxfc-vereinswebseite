@@ -102,6 +102,7 @@ class AuktionBietenTest extends TestCase
 
         $response->assertRedirect(route('auktionen.show', $auktion));
         $response->assertSessionHasErrors('betrag');
+        $this->assertCount(1, $response->getSession()->get('errors')->get('betrag'));
         $this->assertSame('Bitte gib einen gültigen Euro-Betrag mit maximal zwei Nachkommastellen ein.', $response->getSession()->get('errors')->get('betrag')[0]);
         $this->assertDatabaseCount('auktion_gebote', 0);
     }

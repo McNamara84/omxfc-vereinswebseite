@@ -9,6 +9,8 @@ use InvalidArgumentException;
 
 class StoreAuktionGebotRequest extends FormRequest
 {
+    private const EURO_FORMAT_MESSAGE = 'Bitte gib einen gültigen Euro-Betrag mit maximal zwei Nachkommastellen ein.';
+
     public function authorize(): bool
     {
         $auktion = $this->route('auktion');
@@ -26,7 +28,7 @@ class StoreAuktionGebotRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'betrag.regex' => 'Bitte gib einen gültigen Euro-Betrag mit maximal zwei Nachkommastellen ein.',
+            'betrag.regex' => self::EURO_FORMAT_MESSAGE,
         ];
     }
 
@@ -40,10 +42,14 @@ class StoreAuktionGebotRequest extends FormRequest
                 return;
             }
 
+            if ($validator->errors()->has('betrag')) {
+                return;
+            }
+
             try {
                 $betragInCent = Euro::toCents((string) $this->input('betrag'));
             } catch (InvalidArgumentException) {
-                $validator->errors()->add('betrag', 'Bitte gib ein gültiges Gebot in Euro ein.');
+                $validator->errors()->add('betrag', self::EURO_FORMAT_MESSAGE);
 
                 return;
             }
