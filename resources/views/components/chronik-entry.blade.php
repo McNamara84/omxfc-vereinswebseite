@@ -17,11 +17,11 @@
         </div>
 
         @if($webp && $alt)
-            <a
-                href="#"
-                class="group mt-2 block max-w-xl overflow-hidden rounded-[1.5rem] border border-base-content/10 bg-base-100 shadow-md transition hover:-translate-y-0.5 hover:shadow-lg"
+            <button
+                type="button"
+                class="group mt-2 block max-w-xl overflow-hidden rounded-[1.5rem] border border-base-content/10 bg-base-100 text-left shadow-md transition hover:-translate-y-0.5 hover:shadow-lg"
                 data-lightbox-payload='@json(["avif" => $avif, "webp" => $webp, "alt" => $alt])'
-                @click.prevent='$dispatch("chronik-lightbox", JSON.parse($el.dataset.lightboxPayload))'
+                @click='$dispatch("chronik-lightbox", JSON.parse($el.dataset.lightboxPayload))'
             >
                 <picture>
                     @if($avif)
@@ -37,7 +37,7 @@
                         alt="{{ $alt }}"
                     >
                 </picture>
-            </a>
+            </button>
         @endif
     </div>
 </article>

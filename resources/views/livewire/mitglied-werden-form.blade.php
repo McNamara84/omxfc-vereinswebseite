@@ -100,9 +100,11 @@
 
     <button
         type="submit"
-        class="btn btn-primary mt-6"
-        :class="{ 'opacity-50 cursor-not-allowed': !$wire.satzung_check || $wire.submitting }"
-        :disabled="!$wire.satzung_check || $wire.submitting"
+        @class([
+            'btn btn-primary mt-6',
+            'opacity-50 cursor-not-allowed' => ! $satzung_check || $submitting,
+        ])
+        @disabled(! $satzung_check || $submitting)
         wire:loading.attr="disabled"
         wire:target="submit"
         data-testid="mitglied-submit"
