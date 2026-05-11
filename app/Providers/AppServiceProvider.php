@@ -145,6 +145,8 @@ class AppServiceProvider extends ServiceProvider
             Blade::component('testing.components.button', 'button');
             Blade::component('testing.components.badge', 'badge');
             Blade::component('testing.components.checkbox', 'checkbox');
+            Blade::component('testing.components.avatar', 'avatar');
+            Blade::component('testing.components.file', 'file');
             Blade::component('testing.components.icon', 'icon');
             Blade::component('testing.components.input', 'input');
             Blade::component('testing.components.main', 'main');
