@@ -236,7 +236,7 @@ class DashboardTest extends TestCase
         $response->assertSeeText('Willkommen zurück, Alex');
         $response->assertSeeText('Schnellstart');
         $response->assertSeeText('Baxx verdienen');
-        $response->assertSeeText('Fantreffen 2026 ansehen');
+        $response->assertSeeText('Aktuelle Veranstaltung ansehen');
         $response->assertDontSeeText('Fantreffen verwalten');
     }
 
