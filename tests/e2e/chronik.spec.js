@@ -8,6 +8,9 @@ test('chronik page displays timeline images with alt text', async ({ page }) => 
 });
 
 test.describe('Chronik Lightbox', () => {
+  const firstTriggerName = 'Bild Gründungsversammlung in Berlin 2023 öffnen';
+  const secondTriggerName = 'Bild Jahreshauptversammlung in Köln 2024 öffnen';
+
   test.beforeEach(async ({ page }) => {
     await page.goto('/chronik');
     // Wait for Alpine.js to fully initialize ALL x-data components on the page
@@ -18,7 +21,7 @@ test.describe('Chronik Lightbox', () => {
   });
 
   test('opens lightbox on image click and shows correct alt text', async ({ page }) => {
-    await page.getByAltText('Gründungsversammlung in Berlin 2023').click();
+    await page.getByRole('button', { name: firstTriggerName }).click();
 
     const dialog = page.locator('[role="dialog"]');
     await expect(dialog).toBeVisible();
@@ -30,7 +33,7 @@ test.describe('Chronik Lightbox', () => {
   });
 
   test('closes lightbox via close button', async ({ page }) => {
-    await page.getByAltText('Gründungsversammlung in Berlin 2023').click();
+    await page.getByRole('button', { name: firstTriggerName }).click();
 
     const dialog = page.locator('[role="dialog"]');
     await expect(dialog).toBeVisible();
@@ -40,7 +43,7 @@ test.describe('Chronik Lightbox', () => {
   });
 
   test('closes lightbox via Escape key', async ({ page }) => {
-    await page.getByAltText('Gründungsversammlung in Berlin 2023').click();
+    await page.getByRole('button', { name: firstTriggerName }).click();
 
     const dialog = page.locator('[role="dialog"]');
     await expect(dialog).toBeVisible();
@@ -50,7 +53,7 @@ test.describe('Chronik Lightbox', () => {
   });
 
   test('closes lightbox via backdrop click', async ({ page }) => {
-    await page.getByAltText('Gründungsversammlung in Berlin 2023').click();
+    await page.getByRole('button', { name: firstTriggerName }).click();
 
     const dialog = page.locator('[role="dialog"]');
     await expect(dialog).toBeVisible();
@@ -62,7 +65,7 @@ test.describe('Chronik Lightbox', () => {
   });
 
   test('switches image when opening different lightbox triggers', async ({ page }) => {
-    await page.getByAltText('Gründungsversammlung in Berlin 2023').click();
+    await page.getByRole('button', { name: firstTriggerName }).click();
 
     const dialog = page.locator('[role="dialog"]');
     await expect(dialog).toBeVisible();
@@ -75,11 +78,11 @@ test.describe('Chronik Lightbox', () => {
     await expect(dialog).not.toBeVisible();
 
     const secondEntry = page.locator('article').filter({ hasText: '11. Mai 2024' });
-    const secondImage = secondEntry.getByAltText('Jahreshauptversammlung in Köln 2024');
+    const secondTrigger = secondEntry.getByRole('button', { name: secondTriggerName });
 
     await secondEntry.scrollIntoViewIfNeeded();
-    await expect(secondImage).toBeVisible();
-    await secondImage.click();
+    await expect(secondTrigger).toBeVisible();
+    await secondTrigger.click();
     await expect(dialog).toBeVisible();
     await expect(title).toHaveText('Jahreshauptversammlung in Köln 2024');
   });

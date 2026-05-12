@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\SanitizedMarkdown;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -10,7 +11,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Str;
 
 /**
  * @property int $id
@@ -29,8 +29,6 @@ use Illuminate\Support\Str;
 class Review extends Model
 {
     use HasFactory, SoftDeletes;
-
-    private const ALLOWED_HTML_TAGS = '<p><strong><em><a><ul><ol><li><blockquote><code><pre><br><h1><h2><h3><h4><h5><h6>';
 
     protected $fillable = [
         'team_id',
@@ -88,191 +86,14 @@ class Review extends Model
     {
         $markdown = (string) ($this->content ?? '');
 
-        $cacheKey = $this->formattedContentCacheKey();
+        $cacheKey = SanitizedMarkdown::cacheKey($this, 'review', 'formatted', $markdown);
 
         if ($cacheKey !== null) {
             return Cache::rememberForever($cacheKey, function () use ($markdown) {
-                return $this->renderFormattedContent($markdown);
+                return SanitizedMarkdown::render($markdown);
             });
         }
 
-        return $this->renderFormattedContent($markdown);
-    }
-
-    /**
-     * Normalize anchor attributes and strip unsafe href values.
-     *
-     * @param  \DOMElement  $element  Anchor element to sanitize.
-     */
-    private function sanitizeLink(\DOMElement $element): void
-    {
-        $href = trim($element->getAttribute('href'));
-
-        if ($href !== '') {
-            // Guard against explicit dangerous protocols in the raw attribute value.
-            if (preg_match('/^(javascript|data|vbscript):/i', $href)) {
-                $element->removeAttribute('href');
-            } else {
-                $scheme = parse_url($href, PHP_URL_SCHEME);
-
-                if ($scheme === false) {
-                    $element->removeAttribute('href');
-                } elseif ($scheme !== null) {
-                    $normalizedScheme = strtolower($scheme);
-
-                    // Only allow common safe protocols; anything else is stripped.
-                    if (! in_array($normalizedScheme, ['http', 'https', 'mailto'], true)) {
-                        $element->removeAttribute('href');
-                    }
-                } else {
-                    $trimmedHref = ltrim($href);
-                    $isHashLink = Str::startsWith($trimmedHref, '#');
-                    $isRelativePath = Str::startsWith($trimmedHref, ['/', './', '../']);
-
-                    // Support underscore-prefixed paths (e.g., _drafts/) but block at- or
-                    // protocol-relative prefixes which could disguise external navigation.
-                    $looksLikeFile = preg_match('/^[A-Za-z_][A-Za-z0-9._\-\/]*([?#][^\s]*)?$/', $trimmedHref) === 1;
-
-                    // Protocol-relative URLs are rejected to avoid inheriting an unsafe
-                    // scheme from the embedding page, while hash links remain allowed for
-                    // in-page navigation.
-                    if (Str::startsWith($trimmedHref, '//') || (! $isHashLink && ! $isRelativePath && ! $looksLikeFile)) {
-                        $element->removeAttribute('href');
-                    }
-                }
-            }
-        }
-
-        $element->setAttribute('rel', 'noopener noreferrer');
-    }
-
-    /**
-     * Render Markdown to sanitized HTML with defense-in-depth escaping.
-     *
-     * @param  string  $markdown  Raw Markdown content from the review.
-     * @return string Sanitized HTML fragment.
-     */
-    private function renderFormattedContent(string $markdown): string
-    {
-        $html = Str::markdown($markdown, [
-            'html_input' => 'strip',
-        ]);
-
-        $html = strip_tags($html, self::ALLOWED_HTML_TAGS);
-
-        $textOnly = trim(strip_tags($html));
-
-        if ($textOnly === '') {
-            return '';
-        }
-
-        $dom = new \DOMDocument('1.0', 'UTF-8');
-        $previousLibxmlSetting = libxml_use_internal_errors(true);
-
-        try {
-            $wrappedHtml = '<div>'.$html.'</div>';
-            $encodedHtml = mb_convert_encoding($wrappedHtml, 'HTML-ENTITIES', 'UTF-8');
-
-            $loaded = $dom->loadHTML(
-                '<?xml version="1.0" encoding="UTF-8"?>'.$encodedHtml,
-                LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD
-            );
-
-            if (! $loaded) {
-                return $this->safeFallback($html);
-            }
-
-            $container = $dom->getElementsByTagName('div')->item(0);
-            if ($container === null) {
-                return $this->safeFallback($html);
-            }
-
-            // Reviews are short and cached, so iterating all elements for attribute
-            // cleanup remains acceptable for the expected content size.
-            foreach ($dom->getElementsByTagName('*') as $element) {
-                if ($element->hasAttributes()) {
-                    $attributesToRemove = [];
-
-                    foreach ($element->attributes as $attribute) {
-                        $name = strtolower($attribute->nodeName);
-
-                        if (str_starts_with($name, 'on') || $name === 'style') {
-                            $attributesToRemove[] = $attribute->nodeName;
-                        }
-                    }
-
-                    foreach ($attributesToRemove as $attributeName) {
-                        $element->removeAttribute($attributeName);
-                    }
-                }
-
-                if (strtolower($element->nodeName) === 'a') {
-                    $this->sanitizeLink($element);
-                }
-            }
-
-            $fragment = '';
-
-            foreach ($container->childNodes as $child) {
-                $fragment .= $dom->saveHTML($child);
-            }
-
-            return $fragment;
-        } finally {
-            libxml_use_internal_errors($previousLibxmlSetting);
-            libxml_clear_errors();
-        }
-    }
-
-    /**
-     * Provide a safe, escaped fallback fragment when DOM parsing fails.
-     *
-     * @param  string  $html  Previously rendered and tag-filtered HTML.
-     * @return string Escaped, newline-preserving text or empty string.
-     */
-    private function safeFallback(string $html): string
-    {
-        $text = trim(strip_tags($html));
-
-        if ($text === '') {
-            return '';
-        }
-
-        return nl2br(e($text));
-    }
-
-    /**
-     * Build a cache key for formatted content using the model id, timestamp, and content hash.
-     *
-     * Microsecond precision prevents collisions when a review is created and
-     * updated within the same second while the content hash guarantees cache
-     * invalidation if the timestamp is not updated for any reason.
-     *
-     * @return string|null Cache key when the model is persisted, otherwise null.
-     */
-    private function formattedContentCacheKey(): ?string
-    {
-        if (! $this->exists || $this->getKey() === null) {
-            return null;
-        }
-
-        $updatedAtAttribute = $this->getAttribute('updated_at');
-
-        if ($updatedAtAttribute === null) {
-            return null;
-        }
-
-        $updatedAt = $updatedAtAttribute instanceof Carbon
-            ? $updatedAtAttribute
-            : $this->asDateTime($updatedAtAttribute);
-
-        if ($updatedAt === null) {
-            return null;
-        }
-
-        $timestamp = $updatedAt->format('Uu');
-        $contentHash = md5((string) $this->content);
-
-        return sprintf('review:%s:formatted:%s:%s', $this->getKey(), $timestamp, $contentHash);
+        return SanitizedMarkdown::render($markdown);
     }
 }

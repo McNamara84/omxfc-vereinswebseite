@@ -39,6 +39,7 @@ return [
                 ['title' => 'Rezensionen', 'route' => 'reviews.index'],
                 ['title' => 'Fanfiction', 'route' => 'fanfiction.index'],
                 ['title' => 'Tauschbörse', 'route' => 'romantausch.index'],
+                ['title' => 'Auktionen', 'route' => 'auktionen.index'],
             ],
         ],
         [
@@ -118,6 +119,7 @@ return [
             'roles_any' => [Role::Admin, Role::Vorstand, Role::Kassenwart],
             'items' => [
                 ['title' => 'Kassenbuch', 'route' => 'kassenbuch.index'],
+                ['title' => 'Auktionen', 'route' => 'admin.auktionen.index'],
                 ['title' => 'Statistik', 'route' => 'admin.statistiken.index'],
                 ['title' => 'Veranstaltungen', 'route' => 'admin.veranstaltungen.index'],
                 ['title' => 'Fanfiction', 'route' => 'admin.fanfiction.index'],

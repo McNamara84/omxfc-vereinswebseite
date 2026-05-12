@@ -3,6 +3,8 @@
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AdminMessageController;
 use App\Http\Controllers\ArbeitsgruppenController;
+use App\Http\Controllers\AuktionController;
+use App\Http\Controllers\AuktionVerwaltungController;
 use App\Http\Controllers\Auth\CustomEmailVerificationController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DownloadsController;
@@ -195,6 +197,13 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
         Route::livewire('{todo}', \App\Livewire\TodoShow::class)->name('show');
         Route::livewire('{todo}/bearbeiten', \App\Livewire\TodoForm::class)->name('edit');
     });
+
+    Route::prefix('auktionen')->name('auktionen.')->controller(AuktionController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/{auktion}', 'show')->name('show')->whereNumber('auktion');
+        Route::post('/{auktion}/gebote', 'storeGebot')->name('gebote.store')->whereNumber('auktion');
+    });
+
     Route::prefix('hoerbuecher')->name('hoerbuecher.')->group(function () {
         Route::get('previous-speaker', [HoerbuchController::class, 'previousSpeaker'])->name('previous-speaker')->middleware('hoerbuch-manage');
         Route::patch('rollen/{role}/hochgeladen', [HoerbuchController::class, 'updateRoleUploaded'])->name('roles.uploaded')->middleware('hoerbuch-manage');
@@ -239,6 +248,19 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
             Route::post('anfrage/{editRequest}/freigeben', 'approveEditRequest')->name('approve-edit');
             Route::post('anfrage/{editRequest}/ablehnen', 'rejectEditRequest')->name('reject-edit');
         });
+    });
+
+    Route::prefix('admin/auktionen')->name('admin.auktionen.')->controller(AuktionVerwaltungController::class)->middleware('vorstand-or-kassenwart')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/neu', 'create')->name('create');
+        Route::post('/', 'store')->name('store');
+        Route::get('/{auktion}/bearbeiten', 'edit')->name('edit')->whereNumber('auktion');
+        Route::put('/{auktion}', 'update')->name('update')->whereNumber('auktion');
+        Route::delete('/{auktion}', 'destroy')->name('destroy')->whereNumber('auktion');
+        Route::post('/{auktion}/zum-ersten', 'zumErsten')->name('zum-ersten')->whereNumber('auktion');
+        Route::post('/{auktion}/zum-zweiten', 'zumZweiten')->name('zum-zweiten')->whereNumber('auktion');
+        Route::post('/{auktion}/verkaufen', 'verkaufen')->name('verkaufen')->whereNumber('auktion');
+        Route::post('/{auktion}/nicht-verkauft', 'nichtVerkauft')->name('nicht-verkauft')->whereNumber('auktion');
     });
 
     Route::controller(MaddraxiversumController::class)->group(function () {

@@ -41,8 +41,6 @@ class MitgliedWerdenForm extends Component
 
     public bool $satzung_check = false;
 
-    public bool $submitting = false;
-
     protected function rules(): array
     {
         return [
@@ -91,8 +89,6 @@ class MitgliedWerdenForm extends Component
     {
         $this->validate();
 
-        $this->submitting = true;
-
         try {
             $team = Team::membersTeam();
 
@@ -127,8 +123,6 @@ class MitgliedWerdenForm extends Component
 
             $this->redirect(route('mitglied.werden.erfolgreich'), navigate: true);
         } catch (\Throwable $e) {
-            $this->submitting = false;
-
             report($e);
             $this->addError('submit', 'Bei der Anmeldung ist ein Fehler aufgetreten. Bitte versuche es später erneut oder kontaktiere den Administrator.');
         }

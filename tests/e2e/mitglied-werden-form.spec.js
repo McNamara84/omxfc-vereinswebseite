@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { gotoMitgliedWerden } from './utils/mitglied-werden.js';
 
 async function fillRequiredFields(page) {
   await page.locator('input[name="vorname"]').fill('Max');
@@ -14,7 +15,7 @@ async function fillRequiredFields(page) {
 }
 
 test('form requires acceptance of Satzung before enabling submit', async ({ page }) => {
-  await page.goto('/mitglied-werden');
+  await gotoMitgliedWerden(page);
   await fillRequiredFields(page);
   const submitButton = page.getByRole('button', { name: 'Antrag absenden' });
   await expect(submitButton).toBeDisabled();
@@ -23,7 +24,7 @@ test('form requires acceptance of Satzung before enabling submit', async ({ page
 });
 
 test('updates membership fee output when slider changes', async ({ page }) => {
-  await page.goto('/mitglied-werden');
+  await gotoMitgliedWerden(page);
   const output = page.locator('#beitrag-output');
   await expect(output).toHaveText('12€');
   await page.locator('#mitgliedsbeitrag').fill('60');
@@ -31,7 +32,7 @@ test('updates membership fee output when slider changes', async ({ page }) => {
 });
 
 test('marks invalid email address as invalid', async ({ page }) => {
-  await page.goto('/mitglied-werden');
+  await gotoMitgliedWerden(page);
   const email = page.locator('input[name="mail"]');
   await email.fill('not-an-email');
   await email.blur();

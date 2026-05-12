@@ -1,7 +1,8 @@
 import { test, expect } from '@playwright/test';
+import { gotoMitgliedWerden } from './utils/mitglied-werden.js';
 
 test('mitglied-werden form enables submit button after validation and terms acceptance', async ({ page }) => {
-  await page.goto('/mitglied-werden');
+  await gotoMitgliedWerden(page);
   await expect(page).toHaveURL(/\/mitglied-werden$/);
   await page.locator('input[name="vorname"]').fill('Max');
   await page.locator('input[name="nachname"]').fill('Mustermann');
