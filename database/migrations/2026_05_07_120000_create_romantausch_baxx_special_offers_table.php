@@ -8,6 +8,10 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (Schema::hasTable('romantausch_baxx_special_offers')) {
+            return;
+        }
+
         Schema::create('romantausch_baxx_special_offers', function (Blueprint $table) {
             $table->id();
             $table->string('action_key', 64);

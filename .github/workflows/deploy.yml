@@ -74,10 +74,8 @@ jobs:
             
             # CRITICAL: Clear ALL caches FIRST - do this BEFORE any file operations
             echo "Clearing all caches BEFORE running any Laravel commands..."
-            echo "Removing provider cache..."
-            docker exec maddrax-app rm -f /var/www/html/bootstrap/cache/services.php || true
-            docker exec maddrax-app rm -f /var/www/html/bootstrap/cache/packages.php || true
-            docker exec maddrax-app rm -f /var/www/html/bootstrap/cache/config.php || true
+            echo "Removing Laravel bootstrap cache files..."
+            docker exec maddrax-app rm -f /var/www/html/bootstrap/cache/*.php || true
             docker exec maddrax-app rm -rf /var/www/html/storage/framework/cache/* || true
             docker exec maddrax-app rm -rf /var/www/html/storage/framework/views/* || true
             docker exec maddrax-app rm -rf /var/www/html/storage/framework/sessions/* || true
