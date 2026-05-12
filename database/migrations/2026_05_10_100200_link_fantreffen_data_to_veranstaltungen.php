@@ -128,6 +128,7 @@ return new class extends Migration
         $message = strtolower($exception->getMessage());
 
         return str_contains($message, 'no such index')
+            || str_contains($message, 'check that it exists')
             || str_contains($message, 'check that column/key exists')
             || str_contains($message, 'does not exist');
     }
