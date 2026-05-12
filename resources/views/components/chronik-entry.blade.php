@@ -19,9 +19,12 @@
         @if($webp && $alt)
             <button
                 type="button"
+                aria-label="Bild {{ $alt }} öffnen"
                 class="group mt-2 block max-w-xl overflow-hidden rounded-[1.5rem] border border-base-content/10 bg-base-100 text-left shadow-md transition hover:-translate-y-0.5 hover:shadow-lg"
-                data-lightbox-payload='@json(["avif" => $avif, "webp" => $webp, "alt" => $alt])'
-                @click='$dispatch("chronik-lightbox", JSON.parse($el.dataset.lightboxPayload))'
+                data-lightbox-avif="{{ $avif }}"
+                data-lightbox-webp="{{ $webp }}"
+                data-lightbox-alt="{{ $alt }}"
+                @click='$dispatch("chronik-lightbox", { avif: $el.dataset.lightboxAvif || "", webp: $el.dataset.lightboxWebp || "", alt: $el.dataset.lightboxAlt || "" })'
             >
                 <picture>
                     @if($avif)
