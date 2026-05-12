@@ -105,6 +105,11 @@ class AuktionAnzeigeTest extends TestCase
         $response->assertSee('14,00 €');
         $response->assertSee('Gebot speichern');
 
+        $html = $response->getContent();
+
+        $this->assertMatchesRegularExpression('/<input[^>]*id="betrag"[^>]*type="text"[^>]*inputmode="decimal"[^>]*>/i', $html);
+        $this->assertDoesNotMatchRegularExpression('/<input[^>]*id="betrag"[^>]*type="number"[^>]*>/i', $html);
+
         $geladeneAuktion = $response->viewData('auktion');
 
         $this->assertTrue($geladeneAuktion->relationLoaded('gebote'));

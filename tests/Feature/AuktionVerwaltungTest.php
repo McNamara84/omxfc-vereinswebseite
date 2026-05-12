@@ -64,6 +64,13 @@ class AuktionVerwaltungTest extends TestCase
 
         $response->assertOk();
 
+        $html = $response->getContent();
+
+        $this->assertMatchesRegularExpression('/<input[^>]*id="startbetrag"[^>]*type="text"[^>]*inputmode="decimal"[^>]*>/i', $html);
+        $this->assertMatchesRegularExpression('/<input[^>]*id="mindestschritt"[^>]*type="text"[^>]*inputmode="decimal"[^>]*>/i', $html);
+        $this->assertDoesNotMatchRegularExpression('/<input[^>]*id="startbetrag"[^>]*type="number"[^>]*>/i', $html);
+        $this->assertDoesNotMatchRegularExpression('/<input[^>]*id="mindestschritt"[^>]*type="number"[^>]*>/i', $html);
+
         $geladeneAuktion = $response->viewData('auktion');
 
         $this->assertTrue($geladeneAuktion->relationLoaded('gebote'));

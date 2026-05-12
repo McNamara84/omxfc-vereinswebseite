@@ -97,11 +97,16 @@ class AuktionModelTest extends TestCase
     public function test_markdown_description_is_sanitized(): void
     {
         $auktion = Auktion::factory()->create([
-            'beschreibung_markdown' => "**Sicher**\n\n<img src=x onerror=alert('xss')>",
+            'beschreibung_markdown' => "**Sicher**\n\n![Verstecktes Bild](https://example.com/bild.png)\n\n[Unsicher](javascript:alert('xss'))\n\n[Dokumente](docs/auktion.md?ref=1#start)",
         ]);
 
-        $this->assertStringContainsString('<strong>Sicher</strong>', $auktion->html_beschreibung);
-        $this->assertStringNotContainsString('<img', $auktion->html_beschreibung);
+        $htmlBeschreibung = $auktion->html_beschreibung;
+
+        $this->assertStringContainsString('<strong>Sicher</strong>', $htmlBeschreibung);
+        $this->assertStringNotContainsString('<img', $htmlBeschreibung);
+        $this->assertStringNotContainsStringIgnoringCase('javascript:', $htmlBeschreibung);
+        $this->assertStringContainsString('<a rel="noopener noreferrer">Unsicher</a>', $htmlBeschreibung);
+        $this->assertStringContainsString('<a href="docs/auktion.md?ref=1#start" rel="noopener noreferrer">Dokumente</a>', $htmlBeschreibung);
     }
 
     #[TestWith([AuktionsStatus::Laufend, true])]

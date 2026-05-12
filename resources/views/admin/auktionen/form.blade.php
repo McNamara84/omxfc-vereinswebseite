@@ -61,10 +61,10 @@
                         <input
                             id="startbetrag"
                             name="startbetrag"
-                            type="number"
-                            step="0.01"
-                            min="0"
+                            type="text"
+                            inputmode="decimal"
                             value="{{ old('startbetrag', \App\Support\Euro::decimal((int) $auktion->startbetrag_cent)) }}"
+                            placeholder="0,00"
                             class="input input-bordered w-full"
                             @readonly($basisFelderGesperrt)
                             required
@@ -79,10 +79,10 @@
                         <input
                             id="mindestschritt"
                             name="mindestschritt"
-                            type="number"
-                            step="0.01"
-                            min="0.01"
+                            type="text"
+                            inputmode="decimal"
                             value="{{ old('mindestschritt', \App\Support\Euro::decimal((int) $auktion->mindestschritt_cent)) }}"
+                            placeholder="1,00"
                             class="input input-bordered w-full"
                             @readonly($basisFelderGesperrt)
                             required

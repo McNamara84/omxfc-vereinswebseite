@@ -94,10 +94,10 @@
                             <input
                                 id="betrag"
                                 name="betrag"
-                                type="number"
-                                step="0.01"
-                                min="{{ \App\Support\Euro::decimal($auktion->naechstesMindestgebotCent()) }}"
+                                type="text"
+                                inputmode="decimal"
                                 value="{{ old('betrag', \App\Support\Euro::decimal($auktion->naechstesMindestgebotCent())) }}"
+                                placeholder="{{ str_replace('.', ',', \App\Support\Euro::decimal($auktion->naechstesMindestgebotCent())) }}"
                                 class="input input-bordered w-full"
                                 required
                             >
