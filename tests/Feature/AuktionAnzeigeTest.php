@@ -61,7 +61,13 @@ class AuktionAnzeigeTest extends TestCase
 
         $this->assertNotNull($geladeneAuktion);
         $this->assertTrue($geladeneAuktion->relationLoaded('hoechstgebotRelation'));
+        $this->assertFalse($geladeneAuktion->relationLoaded('verkauftesGebot'));
         $this->assertFalse($geladeneAuktion->relationLoaded('gebote'));
+
+        $geladeneArchivAuktion = $response->viewData('archivierteAuktionen')->firstWhere('id', $archivAuktion->id);
+
+        $this->assertNotNull($geladeneArchivAuktion);
+        $this->assertTrue($geladeneArchivAuktion->relationLoaded('verkauftesGebot'));
     }
 
     public function test_auction_detail_page_shows_complete_bid_history(): void
