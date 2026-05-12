@@ -44,8 +44,32 @@ class AuktionVerwaltungTest extends TestCase
 
         $this->assertNotNull($geladeneAuktion);
         $this->assertTrue($geladeneAuktion->relationLoaded('hoechstgebotRelation'));
+        $this->assertFalse($geladeneAuktion->relationLoaded('verkauftesGebot'));
         $this->assertFalse($geladeneAuktion->relationLoaded('gebote'));
         $this->assertSame('Index Bieter', $geladeneAuktion->hoechstgebot()?->bieter_name);
+    }
+
+    public function test_admin_edit_view_loads_bid_history_without_unused_relations(): void
+    {
+        $admin = $this->createUserWithRole(Role::Admin);
+        $bieter = $this->createUserWithRole(Role::Mitglied);
+        $auktion = Auktion::factory()->create();
+
+        AuktionGebot::factory()->for($auktion)->for($bieter)->create([
+            'bieter_name' => 'Bearbeitungs Bieter',
+            'betrag_cent' => 2700,
+        ]);
+
+        $response = $this->withoutVite()->actingAs($admin)->get(route('admin.auktionen.edit', $auktion));
+
+        $response->assertOk();
+
+        $geladeneAuktion = $response->viewData('auktion');
+
+        $this->assertTrue($geladeneAuktion->relationLoaded('gebote'));
+        $this->assertFalse($geladeneAuktion->relationLoaded('verkauftesGebot'));
+        $this->assertFalse($geladeneAuktion->relationLoaded('verkauftAnUser'));
+        $this->assertFalse($geladeneAuktion->gebote->first()->relationLoaded('user'));
     }
 
     public function test_member_cannot_open_auction_management_index(): void

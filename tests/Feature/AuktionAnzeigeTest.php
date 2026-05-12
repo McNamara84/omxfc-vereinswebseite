@@ -98,6 +98,13 @@ class AuktionAnzeigeTest extends TestCase
         $response->assertSee('Zweiter Bieter');
         $response->assertSee('14,00 €');
         $response->assertSee('Gebot speichern');
+
+        $geladeneAuktion = $response->viewData('auktion');
+
+        $this->assertTrue($geladeneAuktion->relationLoaded('gebote'));
+        $this->assertTrue($geladeneAuktion->relationLoaded('verkauftesGebot'));
+        $this->assertFalse($geladeneAuktion->relationLoaded('verkauftAnUser'));
+        $this->assertFalse($geladeneAuktion->gebote->first()->relationLoaded('user'));
     }
 
     public function test_closed_auction_detail_shows_result_and_hides_bid_form(): void
@@ -127,5 +134,10 @@ class AuktionAnzeigeTest extends TestCase
         $response->assertSee('53,00 €');
         $response->assertSee('für 53,00 €');
         $response->assertDontSee('Gebot speichern');
+
+        $geladeneAuktion = $response->viewData('auktion');
+
+        $this->assertTrue($geladeneAuktion->relationLoaded('verkauftesGebot'));
+        $this->assertFalse($geladeneAuktion->relationLoaded('verkauftAnUser'));
     }
 }

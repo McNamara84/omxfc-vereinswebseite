@@ -17,6 +17,7 @@ class EuroTest extends TestCase
         $this->assertSame(1234, Euro::toCents('12.34'));
         $this->assertSame(1234, Euro::toCents('12,34'));
         $this->assertSame(1200, Euro::toCents(12));
+        $this->assertSame(1235, Euro::toCents(12.345));
     }
 
     #[TestWith(['1e3'])]

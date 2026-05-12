@@ -19,7 +19,7 @@ class AuktionVerwaltungController extends Controller
 
         return view('admin.auktionen.index', [
             'auktionen' => Auktion::query()
-                ->with(['hoechstgebotRelation', 'verkauftesGebot'])
+                ->with(['hoechstgebotRelation'])
                 ->withCount('gebote')
                 ->orderByDesc('created_at')
                 ->get(),
@@ -55,7 +55,7 @@ class AuktionVerwaltungController extends Controller
     {
         $this->authorize('update', $auktion);
 
-        $auktion->load(['gebote.user', 'verkauftesGebot', 'verkauftAnUser']);
+        $auktion->load(['gebote']);
 
         return view('admin.auktionen.form', [
             'auktion' => $auktion,

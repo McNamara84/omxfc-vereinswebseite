@@ -37,7 +37,7 @@ class AuktionController extends Controller
     {
         $this->authorize('view', $auktion);
 
-        $auktion->load(['gebote.user', 'verkauftesGebot', 'verkauftAnUser']);
+        $auktion->load(['gebote', 'verkauftesGebot']);
 
         return view('auktionen.show', [
             'auktion' => $auktion,

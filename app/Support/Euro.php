@@ -48,9 +48,7 @@ class Euro
         }
 
         if (is_float($amount)) {
-            $amount = rtrim(rtrim(sprintf('%.14F', $amount), '0'), '.');
-
-            return $amount === '-0' ? '0' : $amount;
+            return number_format($amount, 2, '.', '');
         }
 
         return trim($amount);

@@ -1,4 +1,4 @@
-<form wire:submit="submit" x-data="{ satzungCheck: @js($satzung_check) }" class="w-full" data-testid="mitglied-werden-form">
+<form wire:submit="submit" x-data="{ satzungCheck: @entangle('satzung_check') }" class="w-full" data-testid="mitglied-werden-form">
     @if($errors->has('submit'))
         <div class="mb-4 p-4 bg-red-100 border border-red-400 text-red-800 rounded" role="alert">
             {{ $errors->first('submit') }}
@@ -92,7 +92,6 @@
             <label class="inline-flex items-center gap-3">
                 <input
                     type="checkbox"
-                    wire:model.live="satzung_check"
                     x-model="satzungCheck"
                     id="satzung_check"
                     name="satzung_check"
@@ -109,13 +108,10 @@
 
     <button
         type="submit"
-        @class([
-            'btn btn-primary mt-6',
-            'opacity-50 cursor-not-allowed' => ! $satzung_check || $submitting,
-        ])
+        class="btn btn-primary mt-6"
+        disabled
         x-bind:class="{ 'opacity-50 cursor-not-allowed': !satzungCheck }"
         x-bind:disabled="!satzungCheck"
-        @disabled(! $satzung_check || $submitting)
         wire:loading.attr="disabled"
         wire:target="submit"
         data-testid="mitglied-submit"

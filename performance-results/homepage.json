@@ -1,0 +1,178 @@
+{
+  "metrics": {
+    "totalLoadTime": 553.8666666671634,
+    "domContentLoaded": 251.73333333432674,
+    "timeToFirstByte": 49.533333333830036,
+    "firstContentfulPaint": 178.66666666666666,
+    "firstPaint": 178.66666666666666,
+    "largestContentfulPaint": null,
+    "transferSize": 48095,
+    "encodedBodySize": 47795,
+    "decodedBodySize": 47795
+  },
+  "raw": {
+    "navigation": {
+      "domContentLoadedEventEnd": 162.40000000223517,
+      "domContentLoadedEventStart": 155.69999999925494,
+      "loadEventEnd": 533.8000000007451,
+      "loadEventStart": 533.8000000007451,
+      "duration": 533.8000000007451,
+      "requestStart": 2.300000000745058,
+      "responseStart": 48.5,
+      "startTime": 0,
+      "transferSize": 48095,
+      "encodedBodySize": 47795,
+      "decodedBodySize": 47795
+    },
+    "paint": [
+      {
+        "name": "first-paint",
+        "startTime": 124
+      },
+      {
+        "name": "first-contentful-paint",
+        "startTime": 124
+      }
+    ],
+    "largestContentfulPaint": null
+  },
+  "runs": [
+    {
+      "index": 1,
+      "totalLoadTime": 773.6999999992549,
+      "totalLoadTimeMs": 773.6999999992549,
+      "domContentLoaded": 395,
+      "timeToFirstByte": 49.600000001490116,
+      "metrics": {
+        "totalLoadTime": 773.6999999992549,
+        "domContentLoaded": 395,
+        "timeToFirstByte": 49.600000001490116,
+        "firstContentfulPaint": 248,
+        "firstPaint": 248,
+        "largestContentfulPaint": null,
+        "transferSize": 48095,
+        "encodedBodySize": 47795,
+        "decodedBodySize": 47795
+      },
+      "raw": {
+        "navigation": {
+          "domContentLoadedEventEnd": 395,
+          "domContentLoadedEventStart": 378.69999999925494,
+          "loadEventEnd": 773.6999999992549,
+          "loadEventStart": 773.6999999992549,
+          "duration": 773.6999999992549,
+          "requestStart": 1.699999999254942,
+          "responseStart": 51.30000000074506,
+          "startTime": 0,
+          "transferSize": 48095,
+          "encodedBodySize": 47795,
+          "decodedBodySize": 47795
+        },
+        "paint": [
+          {
+            "name": "first-paint",
+            "startTime": 248
+          },
+          {
+            "name": "first-contentful-paint",
+            "startTime": 248
+          }
+        ],
+        "largestContentfulPaint": null
+      },
+      "recordedAt": "2025-12-31T17:11:41.796Z"
+    },
+    {
+      "index": 2,
+      "totalLoadTime": 354.1000000014901,
+      "totalLoadTimeMs": 354.1000000014901,
+      "domContentLoaded": 197.80000000074506,
+      "timeToFirstByte": 52.80000000074506,
+      "metrics": {
+        "totalLoadTime": 354.1000000014901,
+        "domContentLoaded": 197.80000000074506,
+        "timeToFirstByte": 52.80000000074506,
+        "firstContentfulPaint": 164,
+        "firstPaint": 164,
+        "largestContentfulPaint": null,
+        "transferSize": 48095,
+        "encodedBodySize": 47795,
+        "decodedBodySize": 47795
+      },
+      "raw": {
+        "navigation": {
+          "domContentLoadedEventEnd": 197.80000000074506,
+          "domContentLoadedEventStart": 191.5,
+          "loadEventEnd": 354.1000000014901,
+          "loadEventStart": 354.1000000014901,
+          "duration": 354.1000000014901,
+          "requestStart": 2.5,
+          "responseStart": 55.30000000074506,
+          "startTime": 0,
+          "transferSize": 48095,
+          "encodedBodySize": 47795,
+          "decodedBodySize": 47795
+        },
+        "paint": [
+          {
+            "name": "first-paint",
+            "startTime": 164
+          },
+          {
+            "name": "first-contentful-paint",
+            "startTime": 164
+          }
+        ],
+        "largestContentfulPaint": null
+      },
+      "recordedAt": "2025-12-31T17:11:42.670Z"
+    },
+    {
+      "index": 3,
+      "totalLoadTime": 533.8000000007451,
+      "totalLoadTimeMs": 533.8000000007451,
+      "domContentLoaded": 162.40000000223517,
+      "timeToFirstByte": 46.19999999925494,
+      "metrics": {
+        "totalLoadTime": 533.8000000007451,
+        "domContentLoaded": 162.40000000223517,
+        "timeToFirstByte": 46.19999999925494,
+        "firstContentfulPaint": 124,
+        "firstPaint": 124,
+        "largestContentfulPaint": null,
+        "transferSize": 48095,
+        "encodedBodySize": 47795,
+        "decodedBodySize": 47795
+      },
+      "raw": {
+        "navigation": {
+          "domContentLoadedEventEnd": 162.40000000223517,
+          "domContentLoadedEventStart": 155.69999999925494,
+          "loadEventEnd": 533.8000000007451,
+          "loadEventStart": 533.8000000007451,
+          "duration": 533.8000000007451,
+          "requestStart": 2.300000000745058,
+          "responseStart": 48.5,
+          "startTime": 0,
+          "transferSize": 48095,
+          "encodedBodySize": 47795,
+          "decodedBodySize": 47795
+        },
+        "paint": [
+          {
+            "name": "first-paint",
+            "startTime": 124
+          },
+          {
+            "name": "first-contentful-paint",
+            "startTime": 124
+          }
+        ],
+        "largestContentfulPaint": null
+      },
+      "recordedAt": "2025-12-31T17:11:43.719Z"
+    }
+  ],
+  "url": "http://127.0.0.1:8000/",
+  "recordedAt": "2025-12-31T17:11:43.719Z"
+}

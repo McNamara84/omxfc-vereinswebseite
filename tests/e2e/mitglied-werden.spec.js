@@ -1,10 +1,5 @@
 import { test, expect } from '@playwright/test';
-
-async function gotoMitgliedWerden(page) {
-  await page.goto('/mitglied-werden');
-  await page.waitForLoadState('networkidle');
-  await page.waitForFunction(() => typeof window.Livewire !== 'undefined');
-}
+import { gotoMitgliedWerden } from './utils/mitglied-werden.js';
 
 test('mitglied-werden form enables submit button after validation and terms acceptance', async ({ page }) => {
   await gotoMitgliedWerden(page);
