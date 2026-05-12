@@ -118,7 +118,7 @@ class AuktionVerwaltungController extends Controller
         $this->authorize('call', $auktion);
 
         DB::transaction(function () use ($auktion): void {
-            $lockedAuktion = Auktion::query()->with('gebote')->lockForUpdate()->findOrFail($auktion->id);
+            $lockedAuktion = Auktion::query()->with('hoechstgebotRelation')->lockForUpdate()->findOrFail($auktion->id);
             $this->ensureTransition($lockedAuktion->status === AuktionsStatus::ZumZweiten, 'Verkaufen ist erst nach "Zum zweiten" möglich.');
 
             $hoechstgebot = $lockedAuktion->hoechstgebot();

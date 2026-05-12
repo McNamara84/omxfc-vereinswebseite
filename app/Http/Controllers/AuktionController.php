@@ -51,7 +51,7 @@ class AuktionController extends Controller
         DB::transaction(function () use ($request, $auktion): void {
             /** @var Auktion $lockedAuktion */
             $lockedAuktion = Auktion::query()
-                ->with('gebote')
+                ->with('hoechstgebotRelation')
                 ->lockForUpdate()
                 ->findOrFail($auktion->id);
 

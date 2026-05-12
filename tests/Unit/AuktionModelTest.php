@@ -7,6 +7,7 @@ use App\Enums\Role;
 use App\Models\Auktion;
 use App\Models\AuktionGebot;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
 use PHPUnit\Framework\Attributes\TestWith;
 use Tests\Concerns\CreatesUserWithRole;
 use Tests\TestCase;
@@ -107,6 +108,51 @@ class AuktionModelTest extends TestCase
         $this->assertStringNotContainsStringIgnoringCase('javascript:', $htmlBeschreibung);
         $this->assertStringContainsString('<a rel="noopener noreferrer">Unsicher</a>', $htmlBeschreibung);
         $this->assertStringContainsString('<a href="docs/auktion.md?ref=1#start" rel="noopener noreferrer">Dokumente</a>', $htmlBeschreibung);
+    }
+
+    public function test_html_beschreibung_is_cached_across_instances(): void
+    {
+        config(['cache.default' => 'array']);
+        Cache::flush();
+
+        $auktion = Auktion::factory()->create([
+            'beschreibung_markdown' => '**Cached Inhalt**',
+        ]);
+
+        $first = $auktion->html_beschreibung;
+        $cacheKey = sprintf('auktion:%s:html_beschreibung:%s:%s', $auktion->id, $auktion->updated_at->format('Uu'), md5('**Cached Inhalt**'));
+
+        $this->assertTrue(Cache::has($cacheKey));
+        $this->assertSame($first, Auktion::find($auktion->id)->html_beschreibung);
+    }
+
+    public function test_html_beschreibung_cache_key_changes_after_update(): void
+    {
+        config(['cache.default' => 'array']);
+        Cache::flush();
+
+        $auktion = Auktion::factory()->create([
+            'beschreibung_markdown' => 'Erste Version',
+        ]);
+
+        $initialKey = sprintf('auktion:%s:html_beschreibung:%s:%s', $auktion->id, $auktion->updated_at->format('Uu'), md5('Erste Version'));
+
+        $auktion->html_beschreibung;
+
+        $this->assertTrue(Cache::has($initialKey));
+
+        $auktion->update([
+            'beschreibung_markdown' => 'Zweite Version',
+        ]);
+        $auktion->refresh();
+
+        $updatedKey = sprintf('auktion:%s:html_beschreibung:%s:%s', $auktion->id, $auktion->updated_at->format('Uu'), md5('Zweite Version'));
+
+        $this->assertNotSame($initialKey, $updatedKey);
+
+        $auktion->html_beschreibung;
+
+        $this->assertTrue(Cache::has($updatedKey));
     }
 
     #[TestWith([AuktionsStatus::Laufend, true])]

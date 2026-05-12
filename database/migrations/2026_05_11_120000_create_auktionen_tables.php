@@ -19,6 +19,9 @@ return new class extends Migration
             $table->unsignedBigInteger('verkauft_gebot_id')->nullable();
             $table->timestamp('verkauft_at')->nullable();
             $table->timestamps();
+
+            $table->index(['status', 'created_at'], 'auktionen_status_created_at_index');
+            $table->index(['status', 'verkauft_at'], 'auktionen_status_verkauft_at_index');
         });
 
         Schema::create('auktion_gebote', function (Blueprint $table): void {
