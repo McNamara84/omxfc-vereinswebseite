@@ -13,6 +13,10 @@ test.describe('Chronik Lightbox', () => {
 
   test.beforeEach(async ({ page }) => {
     await page.goto('/chronik');
+    await page.waitForLoadState('networkidle');
+    await page.waitForFunction(() => typeof window.Alpine !== 'undefined' && typeof window.Livewire !== 'undefined');
+    await expect(page.getByRole('button', { name: firstTriggerName })).toBeVisible();
+
     // Wait for Alpine.js to fully initialize ALL x-data components on the page
     await page.waitForFunction(() => {
       const components = document.querySelectorAll('[x-data]');
