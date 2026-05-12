@@ -6,6 +6,7 @@ use App\Enums\AuktionsStatus;
 use App\Http\Requests\StoreAuktionRequest;
 use App\Http\Requests\UpdateAuktionRequest;
 use App\Models\Auktion;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -67,7 +68,13 @@ class AuktionVerwaltungController extends Controller
     {
         $this->authorize('update', $auktion);
 
-        $auktion->update($request->payload($auktion));
+        DB::transaction(function () use ($request, $auktion): void {
+            $lockedAuktion = Auktion::query()->lockForUpdate()->findOrFail($auktion->id);
+
+            $request->ensureLockedMoneyFieldsStillMatch($lockedAuktion);
+
+            $lockedAuktion->update($request->payload($lockedAuktion));
+        });
 
         return redirect()
             ->route('admin.auktionen.edit', $auktion)
@@ -78,7 +85,15 @@ class AuktionVerwaltungController extends Controller
     {
         $this->authorize('delete', $auktion);
 
-        $auktion->delete();
+        DB::transaction(function () use ($auktion): void {
+            $lockedAuktion = Auktion::query()->lockForUpdate()->findOrFail($auktion->id);
+
+            if ($lockedAuktion->hasGebote()) {
+                throw new AuthorizationException;
+            }
+
+            $lockedAuktion->delete();
+        });
 
         return redirect()
             ->route('admin.auktionen.index')

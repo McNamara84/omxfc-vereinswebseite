@@ -4,10 +4,15 @@ namespace Tests\Feature;
 
 use App\Enums\AuktionsStatus;
 use App\Enums\Role;
+use App\Http\Controllers\AuktionVerwaltungController;
+use App\Http\Requests\UpdateAuktionRequest;
 use App\Models\Auktion;
 use App\Models\AuktionGebot;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Validation\ValidationException;
+use Mockery\MockInterface;
 use PHPUnit\Framework\Attributes\TestWith;
 use Tests\Concerns\CreatesUserWithRole;
 use Tests\TestCase;
@@ -309,6 +314,54 @@ class AuktionVerwaltungTest extends TestCase
         $this->assertSame(100, $auktion->mindestschritt_cent);
     }
 
+    public function test_update_rechecks_locked_money_fields_when_bid_arrives_after_initial_authorization(): void
+    {
+        $admin = $this->createUserWithRole(Role::Admin);
+        $bieter = $this->createUserWithRole(Role::Mitglied);
+        $auktion = Auktion::factory()->create([
+            'titel' => 'Vorher',
+            'beschreibung_markdown' => 'Alttext',
+            'startbetrag_cent' => 1000,
+            'mindestschritt_cent' => 100,
+        ]);
+
+        $this->actingAs($admin);
+
+        $controller = $this->partialMock(AuktionVerwaltungController::class, function (MockInterface $mock) use ($auktion, $bieter): void {
+            $mock->shouldAllowMockingProtectedMethods();
+            $mock->shouldReceive('authorize')->once()->andReturnUsing(function () use ($auktion, $bieter): void {
+                AuktionGebot::factory()->for($auktion)->for($bieter)->create([
+                    'bieter_name' => $bieter->name,
+                    'betrag_cent' => 1200,
+                ]);
+            });
+        });
+
+        $request = UpdateAuktionRequest::create('/admin/auktionen/'.$auktion->id, 'PUT', [
+            'titel' => 'Nachher',
+            'beschreibung_markdown' => 'Neutext',
+            'startbetrag' => '30.00',
+            'mindestschritt' => '5.00',
+        ]);
+
+        try {
+            $controller->update($request, $auktion);
+            $this->fail('Expected locked money field validation to abort the update.');
+        } catch (ValidationException $exception) {
+            $this->assertSame([
+                'startbetrag' => ['Der Startbetrag kann nach dem ersten Gebot nicht mehr geändert werden.'],
+                'mindestschritt' => ['Der Mindestschritt kann nach dem ersten Gebot nicht mehr geändert werden.'],
+            ], $exception->errors());
+        }
+
+        $auktion->refresh();
+
+        $this->assertSame('Vorher', $auktion->titel);
+        $this->assertSame('Alttext', $auktion->beschreibung_markdown);
+        $this->assertSame(1000, $auktion->startbetrag_cent);
+        $this->assertSame(100, $auktion->mindestschritt_cent);
+    }
+
     public function test_admin_can_delete_auction_without_bids(): void
     {
         $admin = $this->createUserWithRole(Role::Admin);
@@ -335,6 +388,39 @@ class AuktionVerwaltungTest extends TestCase
 
         $this->actingAs($admin)->delete(route('admin.auktionen.destroy', $auktion))
             ->assertForbidden();
+    }
+
+    public function test_destroy_rechecks_bid_existence_when_bid_arrives_after_initial_authorization(): void
+    {
+        $admin = $this->createUserWithRole(Role::Admin);
+        $bieter = $this->createUserWithRole(Role::Mitglied);
+        $auktion = Auktion::factory()->create();
+
+        $this->actingAs($admin);
+
+        $controller = $this->partialMock(AuktionVerwaltungController::class, function (MockInterface $mock) use ($auktion, $bieter): void {
+            $mock->shouldAllowMockingProtectedMethods();
+            $mock->shouldReceive('authorize')->once()->andReturnUsing(function () use ($auktion, $bieter): void {
+                AuktionGebot::factory()->for($auktion)->for($bieter)->create([
+                    'bieter_name' => $bieter->name,
+                    'betrag_cent' => 1200,
+                ]);
+            });
+        });
+
+        try {
+            $controller->destroy($auktion);
+            $this->fail('Expected destroy to abort when a bid appears after authorization.');
+        } catch (AuthorizationException) {
+            // Expected: the locked re-check blocks deleting the auction.
+        }
+
+        $this->assertDatabaseHas('auktionen', [
+            'id' => $auktion->id,
+        ]);
+        $this->assertDatabaseHas('auktion_gebote', [
+            'auktion_id' => $auktion->id,
+        ]);
     }
 
     public function test_only_vorstand_can_progress_and_sell_auction_to_highest_bidder(): void

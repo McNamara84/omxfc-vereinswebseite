@@ -5,6 +5,7 @@ namespace App\Http\Requests;
 use App\Models\Auktion;
 use App\Support\Euro;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\ValidationException;
 use InvalidArgumentException;
 
 class UpdateAuktionRequest extends FormRequest
@@ -80,23 +81,60 @@ class UpdateAuktionRequest extends FormRequest
         return $payload;
     }
 
+    public function ensureLockedMoneyFieldsStillMatch(Auktion $auktion): void
+    {
+        if (! $auktion->hasGebote()) {
+            return;
+        }
+
+        $errors = [];
+
+        $startbetragError = $this->lockedMoneyFieldError($auktion, 'startbetrag', $auktion->startbetrag_cent, 'Der Startbetrag kann nach dem ersten Gebot nicht mehr geändert werden.');
+        $mindestschrittError = $this->lockedMoneyFieldError($auktion, 'mindestschritt', $auktion->mindestschritt_cent, 'Der Mindestschritt kann nach dem ersten Gebot nicht mehr geändert werden.');
+
+        if ($startbetragError !== null) {
+            $errors['startbetrag'] = $startbetragError;
+        }
+
+        if ($mindestschrittError !== null) {
+            $errors['mindestschritt'] = $mindestschrittError;
+        }
+
+        if ($errors !== []) {
+            throw ValidationException::withMessages($errors);
+        }
+    }
+
     private function validateLockedMoneyField($validator, Auktion $auktion, string $field, int $storedValue, string $message): void
     {
         if (! $this->filled($field) || $validator->errors()->has($field)) {
             return;
         }
 
+        $error = $this->lockedMoneyFieldError($auktion, $field, $storedValue, $message);
+
+        if ($error !== null) {
+            $validator->errors()->add($field, $error);
+        }
+    }
+
+    private function lockedMoneyFieldError(Auktion $auktion, string $field, int $storedValue, string $message): ?string
+    {
+        if (! $this->filled($field)) {
+            return null;
+        }
+
         try {
             $incomingValue = Euro::toCents((string) $this->input($field));
         } catch (InvalidArgumentException) {
-            $validator->errors()->add($field, self::EURO_FORMAT_MESSAGE);
-
-            return;
+            return self::EURO_FORMAT_MESSAGE;
         }
 
         if ($incomingValue !== $storedValue) {
-            $validator->errors()->add($field, $message);
+            return $message;
         }
+
+        return null;
     }
 
     private function validateEditableMoneyField($validator, string $field, int $minimumInCents, bool $allowZero): void
