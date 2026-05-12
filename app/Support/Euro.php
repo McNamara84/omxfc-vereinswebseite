@@ -6,7 +6,9 @@ use InvalidArgumentException;
 
 class Euro
 {
-    public const VALIDATION_RULE = 'regex:/^\d+(?:[.,]\d{1,2})?$/';
+    private const VALIDATION_PATTERN = '/^\d+(?:[.,]\d{1,2})?$/';
+
+    public const VALIDATION_RULE = 'regex:'.self::VALIDATION_PATTERN;
 
     public static function toCents(string|int|float $amount): int
     {
@@ -28,7 +30,7 @@ class Euro
 
     public static function validationPattern(): string
     {
-        return '/^\d+(?:[.,]\d{1,2})?$/';
+        return self::VALIDATION_PATTERN;
     }
 
     public static function format(int $amountInCents): string

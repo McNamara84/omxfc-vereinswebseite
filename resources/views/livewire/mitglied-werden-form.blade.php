@@ -1,4 +1,4 @@
-<form wire:submit="submit" x-data="{ satzungCheck: @entangle('satzung_check') }" class="w-full" data-testid="mitglied-werden-form">
+<form wire:submit="submit" x-data="{ satzungCheck: @entangle('satzung_check').live }" class="w-full" data-testid="mitglied-werden-form">
     @if($errors->has('submit'))
         <div class="mb-4 p-4 bg-red-100 border border-red-400 text-red-800 rounded" role="alert">
             {{ $errors->first('submit') }}

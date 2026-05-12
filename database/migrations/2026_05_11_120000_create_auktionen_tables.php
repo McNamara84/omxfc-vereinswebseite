@@ -30,6 +30,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index(['auktion_id', 'created_at']);
+            $table->index(['auktion_id', 'betrag_cent', 'created_at', 'id']);
         });
 
         Schema::table('auktionen', function (Blueprint $table): void {
