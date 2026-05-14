@@ -2,6 +2,8 @@ import { vi } from 'vitest';
 
 import { initMarkdownEditors, registerMarkdownEditorLifecycle } from '@/reviews/markdown-editor.js';
 
+let cleanupLifecycle = null;
+
 function renderEditor(value = '') {
     document.body.innerHTML = `
         <div data-markdown-editor>
@@ -31,6 +33,12 @@ describe('review markdown editor', () => {
         document.body.innerHTML = '';
         delete document.documentElement.dataset.reviewMarkdownEditorLifecycleRegistered;
         vi.restoreAllMocks();
+        cleanupLifecycle = null;
+    });
+
+    afterEach(() => {
+        cleanupLifecycle?.();
+        cleanupLifecycle = null;
     });
 
     it('umschliesst die Auswahl für Fett und dispatcht Livewire-relevante Events', () => {
@@ -116,7 +124,7 @@ describe('review markdown editor', () => {
     it('initialisiert spaeter hinzugefuegte Editoren nach livewire:navigated', () => {
         const first = renderEditor('Erster');
 
-        registerMarkdownEditorLifecycle(document);
+        cleanupLifecycle = registerMarkdownEditorLifecycle(document);
         first.textarea.setSelectionRange(0, 6);
         clickAction(first.root, 'bold');
         expect(first.textarea.value).toBe('**Erster**');
@@ -140,5 +148,31 @@ describe('review markdown editor', () => {
         clickAction(secondRoot, 'bold');
 
         expect(secondTextarea.value).toBe('**Zweiter**');
+    });
+
+    it('entfernt den livewire-Lifecycle-Listener wieder ueber Cleanup', () => {
+        cleanupLifecycle = registerMarkdownEditorLifecycle(document);
+        cleanupLifecycle();
+        cleanupLifecycle = null;
+
+        document.body.innerHTML = `
+            <div data-markdown-editor>
+                <button type="button" data-markdown-action="bold">Fett</button>
+                <button type="button" data-markdown-action="italic">Kursiv</button>
+                <button type="button" data-markdown-action="bullet-list">Bullet-Liste</button>
+                <button type="button" data-markdown-action="numbered-list">Nummerierte Liste</button>
+                <button type="button" data-markdown-action="link">Link</button>
+                <textarea data-markdown-input>Cleanup</textarea>
+            </div>
+        `;
+
+        const root = document.querySelector('[data-markdown-editor]');
+        const textarea = root.querySelector('[data-markdown-input]');
+        textarea.setSelectionRange(0, 7);
+
+        document.dispatchEvent(new Event('livewire:navigated'));
+        clickAction(root, 'bold');
+
+        expect(textarea.value).toBe('Cleanup');
     });
 });

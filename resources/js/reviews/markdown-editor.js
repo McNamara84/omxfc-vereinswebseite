@@ -3,6 +3,7 @@ const INPUT_SELECTOR = '[data-markdown-input]';
 const ACTION_SELECTOR = '[data-markdown-action]';
 const INITIALIZED_FLAG = 'markdownEditorInitialized';
 const LIFECYCLE_FLAG = 'reviewMarkdownEditorLifecycleRegistered';
+const lifecycleRegistrations = new WeakMap();
 
 function focusTextarea(textarea) {
     textarea.focus();
@@ -159,25 +160,59 @@ export function initMarkdownEditors(root = document) {
 }
 
 export function registerMarkdownEditorLifecycle(doc = document) {
-    const root = doc.documentElement;
+    const existingRegistration = lifecycleRegistrations.get(doc);
 
-    if (root?.dataset[LIFECYCLE_FLAG] === 'true') {
-        initMarkdownEditors(doc);
+    if (existingRegistration) {
+        existingRegistration.initializeEditors();
 
-        return;
+        return existingRegistration.cleanup;
     }
+
+    const root = doc.documentElement;
 
     if (root) {
         root.dataset[LIFECYCLE_FLAG] = 'true';
     }
 
     const initializeEditors = () => initMarkdownEditors(doc);
+    let domContentLoadedHandler = null;
 
     if (doc.readyState === 'loading') {
-        doc.addEventListener('DOMContentLoaded', initializeEditors, { once: true });
+        domContentLoadedHandler = () => {
+            initializeEditors();
+
+            if (domContentLoadedHandler !== null) {
+                doc.removeEventListener('DOMContentLoaded', domContentLoadedHandler);
+                domContentLoadedHandler = null;
+            }
+        };
+
+        doc.addEventListener('DOMContentLoaded', domContentLoadedHandler);
     } else {
         initializeEditors();
     }
 
     doc.addEventListener('livewire:navigated', initializeEditors);
+
+    const cleanup = () => {
+        doc.removeEventListener('livewire:navigated', initializeEditors);
+
+        if (domContentLoadedHandler !== null) {
+            doc.removeEventListener('DOMContentLoaded', domContentLoadedHandler);
+            domContentLoadedHandler = null;
+        }
+
+        lifecycleRegistrations.delete(doc);
+
+        if (root) {
+            delete root.dataset[LIFECYCLE_FLAG];
+        }
+    };
+
+    lifecycleRegistrations.set(doc, {
+        initializeEditors,
+        cleanup,
+    });
+
+    return cleanup;
 }
