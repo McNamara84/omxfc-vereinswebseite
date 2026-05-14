@@ -51,7 +51,7 @@ class MeetingScheduleService
             if ($candidate) {
                 $candidate = $this->applyMeetingTime($meeting, $candidate);
 
-                if ($candidate >= $reference) {
+                if ($candidate && $candidate >= $reference) {
                     return $candidate;
                 }
             }
@@ -77,7 +77,7 @@ class MeetingScheduleService
                     $monthCursor->setDay($meeting->day_of_month)
                 );
 
-                if ($candidate >= $reference) {
+                if ($candidate && $candidate >= $reference) {
                     return $candidate;
                 }
             }
@@ -99,17 +99,24 @@ class MeetingScheduleService
             CarbonImmutable::parse($meeting->starts_on->format('Y-m-d'))
         );
 
+        if (! $candidate) {
+            return null;
+        }
+
         if ($candidate >= $reference) {
             return $candidate;
         }
 
-        $intervalSeconds = max(1, $meeting->interval_weeks) * 7 * 24 * 60 * 60;
-        $elapsedSeconds = max(0, $reference->getTimestamp() - $candidate->getTimestamp());
-        $elapsedIntervals = intdiv($elapsedSeconds, $intervalSeconds);
-        $candidate = $candidate->addSeconds($elapsedIntervals * $intervalSeconds);
+        $intervalWeeks = max(1, $meeting->interval_weeks);
+        $elapsedDays = max(0, $candidate->startOfDay()->diffInDays($reference->startOfDay(), false));
+        $elapsedIntervals = intdiv($elapsedDays, $intervalWeeks * 7);
+
+        if ($elapsedIntervals > 0) {
+            $candidate = $candidate->addWeeks($elapsedIntervals * $intervalWeeks);
+        }
 
         while ($candidate < $reference) {
-            $candidate = $candidate->addSeconds($intervalSeconds);
+            $candidate = $candidate->addWeeks($intervalWeeks);
         }
 
         return $candidate;
@@ -127,10 +134,10 @@ class MeetingScheduleService
         return $candidate;
     }
 
-    private function applyMeetingTime(Meeting $meeting, CarbonImmutable $date): CarbonImmutable
+    private function applyMeetingTime(Meeting $meeting, CarbonImmutable $date): ?CarbonImmutable
     {
         if (! filled($meeting->time_from)) {
-            return $date->startOfDay();
+            return null;
         }
 
         [$hour, $minute] = array_map('intval', explode(':', $meeting->time_from));

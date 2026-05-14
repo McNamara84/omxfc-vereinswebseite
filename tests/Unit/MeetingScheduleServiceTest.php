@@ -77,6 +77,32 @@ class MeetingScheduleServiceTest extends TestCase
         $this->assertSame('Zweiwöchentlich beginnend am 14.05.2026', $this->service->describe($meeting));
     }
 
+    public function test_it_keeps_local_wall_clock_time_across_dst_for_weekly_meetings(): void
+    {
+        Carbon::setTestNow('2026-03-31 12:00');
+
+        $meeting = Meeting::factory()->everyNWeeks(1, '2026-03-25')->make([
+            'time_from' => '20:00',
+        ]);
+
+        $next = $this->service->nextOccurrence($meeting);
+
+        $this->assertNotNull($next);
+        $this->assertSame('2026-04-01 20:00', $next->format('Y-m-d H:i'));
+        $this->assertSame('Europe/Berlin', $next->timezoneName);
+    }
+
+    public function test_it_returns_null_for_calculable_meeting_without_start_time(): void
+    {
+        Carbon::setTestNow('2026-05-03 12:00');
+
+        $meeting = Meeting::factory()->monthlyDayOfMonth(3)->make([
+            'time_from' => null,
+        ]);
+
+        $this->assertNull($this->service->nextOccurrence($meeting));
+    }
+
     public function test_it_returns_null_for_note_only_meetings(): void
     {
         $meeting = Meeting::factory()->noteOnly('Nach Abstimmung im Forum')->make();

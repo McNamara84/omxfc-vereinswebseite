@@ -34,8 +34,12 @@ class MeetingController extends Controller
             ->where('slug', (string) $request->input('meeting'))
             ->first();
 
-        if (! $meeting || blank($meeting->zoom_url)) {
+        if (! $meeting) {
             abort(403, 'Unbekanntes Meeting');
+        }
+
+        if (blank($meeting->zoom_url)) {
+            abort(403, 'Für dieses Treffen ist noch kein Zoom-Link hinterlegt.');
         }
 
         return redirect()->away($meeting->zoom_url);

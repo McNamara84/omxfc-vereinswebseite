@@ -80,6 +80,16 @@ class MeetingAdminTest extends TestCase
         ]);
     }
 
+    public function test_admin_page_hides_form_until_opened(): void
+    {
+        $this->actingAdmin();
+
+        Livewire::test(MeetingAdmin::class)
+            ->assertDontSee('Treffen anlegen')
+            ->call('openForm')
+            ->assertSee('Treffen anlegen');
+    }
+
     public function test_vorstand_can_update_meeting(): void
     {
         $vorstand = $this->actingVorstand();
@@ -120,6 +130,22 @@ class MeetingAdminTest extends TestCase
             ->set('day_of_month', '')
             ->call('save')
             ->assertHasErrors(['day_of_month']);
+    }
+
+    public function test_calculable_rhythm_requires_start_time(): void
+    {
+        $this->actingAdmin();
+
+        Livewire::test(MeetingAdmin::class)
+            ->call('openForm')
+            ->set('title', 'Ohne Startzeit')
+            ->set('zoom_url', 'https://example.com/meeting')
+            ->set('rhythm_type', MeetingRhythmType::EveryNWeeks->value)
+            ->set('starts_on', '2026-05-14')
+            ->set('interval_weeks', '2')
+            ->set('time_from', '')
+            ->call('save')
+            ->assertHasErrors(['time_from']);
     }
 
     public function test_admin_can_toggle_active_state(): void

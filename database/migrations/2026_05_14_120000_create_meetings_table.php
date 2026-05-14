@@ -1,6 +1,5 @@
 <?php
 
-use App\Enums\MeetingRhythmType;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
@@ -39,12 +38,12 @@ return new class extends Migration
             [
                 'title' => 'AG Maddraxikon',
                 'slug' => 'maddraxikon',
-                'zoom_url' => env('ZOOM_LINK_MADDRAXIKON'),
+                'zoom_url' => null,
                 'is_active' => true,
                 'sort_order' => 10,
                 'time_from' => '20:00',
                 'time_to' => '20:30',
-                'rhythm_type' => MeetingRhythmType::MonthlyNthWeekday->value,
+                'rhythm_type' => 'monthly_nth_weekday',
                 'interval_weeks' => null,
                 'starts_on' => null,
                 'weekday' => 1,
@@ -58,12 +57,12 @@ return new class extends Migration
             [
                 'title' => 'AG EARDRAX',
                 'slug' => 'fanhoerbuch',
-                'zoom_url' => env('ZOOM_LINK_HOERBUECHER'),
+                'zoom_url' => null,
                 'is_active' => true,
                 'sort_order' => 20,
                 'time_from' => '19:00',
                 'time_to' => '19:30',
-                'rhythm_type' => MeetingRhythmType::MonthlyNthWeekday->value,
+                'rhythm_type' => 'monthly_nth_weekday',
                 'interval_weeks' => null,
                 'starts_on' => null,
                 'weekday' => 3,
@@ -77,12 +76,12 @@ return new class extends Migration
             [
                 'title' => 'AG MAPDRAX',
                 'slug' => 'mapdrax',
-                'zoom_url' => env('ZOOM_LINK_MAPDRAX'),
+                'zoom_url' => null,
                 'is_active' => true,
                 'sort_order' => 30,
                 'time_from' => '20:00',
                 'time_to' => '20:30',
-                'rhythm_type' => MeetingRhythmType::MonthlyNthWeekday->value,
+                'rhythm_type' => 'monthly_nth_weekday',
                 'interval_weeks' => null,
                 'starts_on' => null,
                 'weekday' => 3,
@@ -96,12 +95,12 @@ return new class extends Migration
             [
                 'title' => 'CHATDRAX 2.0 - Der MADDRAX-Online-Stammtisch',
                 'slug' => 'stammtisch',
-                'zoom_url' => env('ZOOM_LINK_STAMMTISCH'),
+                'zoom_url' => null,
                 'is_active' => true,
                 'sort_order' => 40,
                 'time_from' => '20:00',
                 'time_to' => null,
-                'rhythm_type' => MeetingRhythmType::NoteOnly->value,
+                'rhythm_type' => 'note_only',
                 'interval_weeks' => null,
                 'starts_on' => null,
                 'weekday' => null,

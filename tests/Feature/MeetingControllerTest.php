@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Meeting;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use Tests\Concerns\CreatesUserWithRole;
 use Tests\TestCase;
 
@@ -24,8 +25,11 @@ class MeetingControllerTest extends TestCase
     {
         $this->actingAs($this->actingMember());
 
-        $this->post('/treffen/umleiten', ['meeting' => 'unknown'])
-            ->assertForbidden();
+        $response = $this->post('/treffen/umleiten', ['meeting' => 'unknown']);
+
+        $response->assertForbidden();
+        $this->assertInstanceOf(HttpException::class, $response->exception);
+        $this->assertSame('Unbekanntes Meeting', $response->exception?->getMessage());
     }
 
     public function test_meetings_page_returns_seeded_meeting_data(): void
@@ -107,7 +111,10 @@ class MeetingControllerTest extends TestCase
 
         $this->actingAs($this->actingMember());
 
-        $this->post('/treffen/umleiten', ['meeting' => 'maddraxikon'])
-            ->assertForbidden();
+        $response = $this->post('/treffen/umleiten', ['meeting' => 'maddraxikon']);
+
+        $response->assertForbidden();
+        $this->assertInstanceOf(HttpException::class, $response->exception);
+        $this->assertSame('Für dieses Treffen ist noch kein Zoom-Link hinterlegt.', $response->exception?->getMessage());
     }
 }

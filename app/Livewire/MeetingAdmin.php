@@ -225,20 +225,23 @@ class MeetingAdmin extends Component
         ];
 
         return match ($this->rhythm_type) {
-            MeetingRhythmType::MonthlyNthWeekday->value => $rules + [
+            MeetingRhythmType::MonthlyNthWeekday->value => array_merge($rules, [
+                'time_from' => ['required', 'date_format:H:i'],
                 'weekday' => ['required', 'integer', 'between:1,7'],
                 'week_of_month' => ['required', 'integer', 'between:1,5'],
-            ],
-            MeetingRhythmType::MonthlyDayOfMonth->value => $rules + [
+            ]),
+            MeetingRhythmType::MonthlyDayOfMonth->value => array_merge($rules, [
+                'time_from' => ['required', 'date_format:H:i'],
                 'day_of_month' => ['required', 'integer', 'between:1,31'],
-            ],
-            MeetingRhythmType::EveryNWeeks->value => $rules + [
+            ]),
+            MeetingRhythmType::EveryNWeeks->value => array_merge($rules, [
+                'time_from' => ['required', 'date_format:H:i'],
                 'interval_weeks' => ['required', 'integer', 'between:1,52'],
                 'starts_on' => ['required', 'date'],
-            ],
-            MeetingRhythmType::NoteOnly->value => $rules + [
+            ]),
+            MeetingRhythmType::NoteOnly->value => array_merge($rules, [
                 'rhythm_note' => ['required', 'string', 'max:500'],
-            ],
+            ]),
             default => $rules,
         };
     }
@@ -251,6 +254,7 @@ class MeetingAdmin extends Component
             'slug.regex' => 'Der technische Schlüssel darf nur Kleinbuchstaben, Zahlen und Bindestriche enthalten.',
             'slug.unique' => 'Dieser technische Schlüssel ist bereits vergeben.',
             'zoom_url.url' => 'Bitte gib eine gültige HTTPS-URL für Zoom an.',
+            'time_from.required' => 'Bitte gib eine Startzeit an.',
             'time_from.date_format' => 'Die Startzeit muss im Format HH:MM angegeben werden.',
             'time_to.date_format' => 'Die Endzeit muss im Format HH:MM angegeben werden.',
             'time_to.after' => 'Die Endzeit muss nach der Startzeit liegen.',

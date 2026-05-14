@@ -20,96 +20,95 @@
         </x-alert>
     @endif
 
-    <x-ui.panel
-        :title="$editingId ? 'Treffen bearbeiten' : 'Treffen anlegen'"
-        description="Der Rhythmus wird strukturiert gespeichert, damit /treffen den nächsten Termin automatisch berechnen kann."
-    >
-        <form wire:submit="save" class="space-y-5">
-            <div class="grid gap-4 md:grid-cols-2">
-                <x-input label="Titel *" wire:model="title" placeholder="z. B. AG Maddraxikon" />
-                <x-input label="Technischer Schlüssel" wire:model="slug" placeholder="wird bei Bedarf aus dem Titel erzeugt" hint="Für Redirect und interne Zuordnung." />
-            </div>
-
-            <div class="grid gap-4 md:grid-cols-2">
-                <x-input label="Zoom-URL" type="url" wire:model="zoom_url" placeholder="https://..." />
-                <div class="pt-6">
-                    <x-checkbox label="Auf /treffen anzeigen" wire:model="is_active" />
-                </div>
-            </div>
-
-            <div class="grid gap-4 md:grid-cols-2">
-                <x-input label="Beginn" type="time" wire:model="time_from" />
-                <x-input label="Ende" type="time" wire:model="time_to" />
-            </div>
-
-            <div class="space-y-2">
-                <label for="rhythm_type" class="text-sm font-medium text-base-content">Rhythmus *</label>
-                <select id="rhythm_type" wire:model.live="rhythm_type" class="select select-bordered w-full" data-testid="meeting-rhythm-type">
-                    @foreach ($rhythmTypeOptions as $value => $label)
-                        <option value="{{ $value }}">{{ $label }}</option>
-                    @endforeach
-                </select>
-                @error('rhythm_type')
-                    <p class="text-sm text-error">{{ $message }}</p>
-                @enderror
-            </div>
-
-            @if ($rhythm_type === \App\Enums\MeetingRhythmType::MonthlyNthWeekday->value)
+    @if ($showForm)
+        <x-ui.panel
+            :title="$editingId ? 'Treffen bearbeiten' : 'Treffen anlegen'"
+            description="Der Rhythmus wird strukturiert gespeichert, damit /treffen den nächsten Termin automatisch berechnen kann."
+        >
+            <form wire:submit="save" class="space-y-5">
                 <div class="grid gap-4 md:grid-cols-2">
-                    <div class="space-y-2">
-                        <label for="week_of_month" class="text-sm font-medium text-base-content">Woche im Monat *</label>
-                        <select id="week_of_month" wire:model="week_of_month" class="select select-bordered w-full">
-                            @foreach ($weekOfMonthOptions as $value => $label)
-                                <option value="{{ $value }}">{{ $label }}</option>
-                            @endforeach
-                        </select>
-                        @error('week_of_month')
-                            <p class="text-sm text-error">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <div class="space-y-2">
-                        <label for="weekday" class="text-sm font-medium text-base-content">Wochentag *</label>
-                        <select id="weekday" wire:model="weekday" class="select select-bordered w-full">
-                            @foreach ($weekdayOptions as $value => $label)
-                                <option value="{{ $value }}">{{ $label }}</option>
-                            @endforeach
-                        </select>
-                        @error('weekday')
-                            <p class="text-sm text-error">{{ $message }}</p>
-                        @enderror
+                    <x-input label="Titel *" wire:model="title" placeholder="z. B. AG Maddraxikon" />
+                    <x-input label="Technischer Schlüssel" wire:model="slug" placeholder="wird bei Bedarf aus dem Titel erzeugt" hint="Für Redirect und interne Zuordnung." />
+                </div>
+                <div class="grid gap-4 md:grid-cols-2">
+                    <x-input label="Zoom-URL" type="url" wire:model="zoom_url" placeholder="https://..." />
+                    <div class="pt-6">
+                        <x-checkbox label="Auf /treffen anzeigen" wire:model="is_active" />
                     </div>
                 </div>
-            @endif
 
-            @if ($rhythm_type === \App\Enums\MeetingRhythmType::MonthlyDayOfMonth->value)
                 <div class="grid gap-4 md:grid-cols-2">
-                    <x-input label="Monatstag *" type="number" min="1" max="31" wire:model="day_of_month" />
+                    <x-input label="Beginn" type="time" wire:model="time_from" />
+                    <x-input label="Ende" type="time" wire:model="time_to" />
                 </div>
-            @endif
 
-            @if ($rhythm_type === \App\Enums\MeetingRhythmType::EveryNWeeks->value)
-                <div class="grid gap-4 md:grid-cols-2">
-                    <x-input label="Startdatum *" type="date" wire:model="starts_on" />
-                    <x-input label="Alle X Wochen *" type="number" min="1" max="52" wire:model="interval_weeks" />
+                <div class="space-y-2">
+                    <label for="rhythm_type" class="text-sm font-medium text-base-content">Rhythmus *</label>
+                    <select id="rhythm_type" wire:model.live="rhythm_type" class="select select-bordered w-full" data-testid="meeting-rhythm-type">
+                        @foreach ($rhythmTypeOptions as $value => $label)
+                            <option value="{{ $value }}">{{ $label }}</option>
+                        @endforeach
+                    </select>
+                    @error('rhythm_type')
+                        <p class="text-sm text-error">{{ $message }}</p>
+                    @enderror
                 </div>
-            @endif
 
-            <x-textarea
-                wire:model="rhythm_note"
-                label="Ergänzender Hinweis"
-                placeholder="z. B. zusätzlicher Hinweis für Mitglieder oder Besonderheiten zum Termin"
-                hint="Bei Hinweisrhythmus ist dieses Feld verpflichtend."
-            />
+                @if ($rhythm_type === \App\Enums\MeetingRhythmType::MonthlyNthWeekday->value)
+                    <div class="grid gap-4 md:grid-cols-2">
+                        <div class="space-y-2">
+                            <label for="week_of_month" class="text-sm font-medium text-base-content">Woche im Monat *</label>
+                            <select id="week_of_month" wire:model="week_of_month" class="select select-bordered w-full">
+                                @foreach ($weekOfMonthOptions as $value => $label)
+                                    <option value="{{ $value }}">{{ $label }}</option>
+                                @endforeach
+                            </select>
+                            @error('week_of_month')
+                                <p class="text-sm text-error">{{ $message }}</p>
+                            @enderror
+                        </div>
 
-            <div class="flex justify-end gap-3 border-t border-base-200 pt-4">
-                @if ($showForm)
-                    <x-button label="Abbrechen" wire:click="closeForm" class="btn-ghost" />
+                        <div class="space-y-2">
+                            <label for="weekday" class="text-sm font-medium text-base-content">Wochentag *</label>
+                            <select id="weekday" wire:model="weekday" class="select select-bordered w-full">
+                                @foreach ($weekdayOptions as $value => $label)
+                                    <option value="{{ $value }}">{{ $label }}</option>
+                                @endforeach
+                            </select>
+                            @error('weekday')
+                                <p class="text-sm text-error">{{ $message }}</p>
+                            @enderror
+                        </div>
+                    </div>
                 @endif
-                <x-button :label="$editingId ? 'Änderungen speichern' : 'Treffen anlegen'" type="submit" icon="o-check" class="btn-primary" spinner="save" />
-            </div>
-        </form>
-    </x-ui.panel>
+
+                @if ($rhythm_type === \App\Enums\MeetingRhythmType::MonthlyDayOfMonth->value)
+                    <div class="grid gap-4 md:grid-cols-2">
+                        <x-input label="Monatstag *" type="number" min="1" max="31" wire:model="day_of_month" />
+                    </div>
+                @endif
+
+                @if ($rhythm_type === \App\Enums\MeetingRhythmType::EveryNWeeks->value)
+                    <div class="grid gap-4 md:grid-cols-2">
+                        <x-input label="Startdatum *" type="date" wire:model="starts_on" />
+                        <x-input label="Alle X Wochen *" type="number" min="1" max="52" wire:model="interval_weeks" />
+                    </div>
+                @endif
+
+                <x-textarea
+                    wire:model="rhythm_note"
+                    label="Ergänzender Hinweis"
+                    placeholder="z. B. zusätzlicher Hinweis für Mitglieder oder Besonderheiten zum Termin"
+                    hint="Bei Hinweisrhythmus ist dieses Feld verpflichtend."
+                />
+
+                <div class="flex justify-end gap-3 border-t border-base-200 pt-4">
+                    <x-button label="Abbrechen" wire:click="closeForm" class="btn-ghost" />
+                    <x-button :label="$editingId ? 'Änderungen speichern' : 'Treffen anlegen'" type="submit" icon="o-check" class="btn-primary" spinner="save" />
+                </div>
+            </form>
+        </x-ui.panel>
+    @endif
 
     <x-ui.panel
         :title="'Treffenliste ('.$meetings->count().')'"
