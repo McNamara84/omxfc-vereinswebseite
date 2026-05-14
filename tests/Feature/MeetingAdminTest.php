@@ -192,6 +192,25 @@ class MeetingAdminTest extends TestCase
             ->assertSee('Fallback aus Konfiguration');
     }
 
+    public function test_icon_only_actions_have_accessible_names_and_delete_prompt_is_not_double_escaped(): void
+    {
+        $this->actingAdmin();
+
+        Meeting::factory()->create([
+            'title' => 'Alpha & "Beta"',
+            'slug' => 'alpha-beta',
+        ]);
+
+        $html = Livewire::test(MeetingAdmin::class)->html();
+
+        $this->assertStringContainsString('aria-label="Treffen Alpha &amp; &quot;Beta&quot; nach oben verschieben"', $html);
+        $this->assertStringContainsString('aria-label="Treffen Alpha &amp; &quot;Beta&quot; nach unten verschieben"', $html);
+        $this->assertStringContainsString('aria-label="Treffen Alpha &amp; &quot;Beta&quot; bearbeiten"', $html);
+        $this->assertStringContainsString('aria-label="Treffen Alpha &amp; &quot;Beta&quot; löschen"', $html);
+        $this->assertStringContainsString('wire:confirm="Möchtest du das Treffen &quot;Alpha &amp;', $html);
+        $this->assertStringNotContainsString('Alpha &amp;amp;', $html);
+    }
+
     public function test_admin_can_delete_meeting(): void
     {
         $this->actingAdmin();

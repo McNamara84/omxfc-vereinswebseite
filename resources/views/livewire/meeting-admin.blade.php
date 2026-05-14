@@ -159,13 +159,35 @@
                                 class="{{ $meeting->is_active ? 'btn-success' : 'btn-ghost' }} btn-xs"
                                 spinner="toggleActive"
                             />
-                            <x-button wire:click="moveUp({{ $meeting->id }})" icon="o-chevron-up" class="btn-ghost btn-xs" spinner="moveUp" />
-                            <x-button wire:click="moveDown({{ $meeting->id }})" icon="o-chevron-down" class="btn-ghost btn-xs" spinner="moveDown" />
-                            <x-button wire:click="edit({{ $meeting->id }})" icon="o-pencil" class="btn-ghost btn-xs text-info" />
+                            <x-button
+                                wire:click="moveUp({{ $meeting->id }})"
+                                icon="o-chevron-up"
+                                title="Treffen {{ $meeting->title }} nach oben verschieben"
+                                aria-label="Treffen {{ $meeting->title }} nach oben verschieben"
+                                class="btn-ghost btn-xs"
+                                spinner="moveUp"
+                            />
+                            <x-button
+                                wire:click="moveDown({{ $meeting->id }})"
+                                icon="o-chevron-down"
+                                title="Treffen {{ $meeting->title }} nach unten verschieben"
+                                aria-label="Treffen {{ $meeting->title }} nach unten verschieben"
+                                class="btn-ghost btn-xs"
+                                spinner="moveDown"
+                            />
+                            <x-button
+                                wire:click="edit({{ $meeting->id }})"
+                                icon="o-pencil"
+                                title="Treffen {{ $meeting->title }} bearbeiten"
+                                aria-label="Treffen {{ $meeting->title }} bearbeiten"
+                                class="btn-ghost btn-xs text-info"
+                            />
                             <x-button
                                 wire:click="delete({{ $meeting->id }})"
-                                wire:confirm="Möchtest du das Treffen &quot;{{ e($meeting->title) }}&quot; wirklich löschen?"
+                                wire:confirm="Möchtest du das Treffen &quot;{{ $meeting->title }}&quot; wirklich löschen?"
                                 icon="o-trash"
+                                title="Treffen {{ $meeting->title }} löschen"
+                                aria-label="Treffen {{ $meeting->title }} löschen"
                                 class="btn-ghost btn-xs text-error"
                                 spinner="delete"
                             />
