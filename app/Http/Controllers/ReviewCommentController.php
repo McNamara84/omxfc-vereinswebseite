@@ -38,7 +38,7 @@ class ReviewCommentController extends Controller
             ->where('user_id', $user->id)
             ->exists();
 
-        if (! ($hasOwn || in_array($role, [Role::Ehrenmitglied, Role::Vorstand], true))) {
+        if (! ($hasOwn || in_array($role, [Role::Ehrenmitglied, Role::Vorstand, Role::Admin], true))) {
             abort(403);
         }
 
