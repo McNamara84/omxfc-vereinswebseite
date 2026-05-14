@@ -42,6 +42,7 @@ use App\Http\Controllers\StatistikController;
 use App\Http\Controllers\ThreeDModelController;
 use App\Http\Middleware\RedirectIfAnwaerter;
 use App\Livewire\BelohnungenAdmin;
+use App\Livewire\MeetingAdmin;
 use App\Livewire\ThreeDModelForm;
 use App\Livewire\ThreeDModelIndex;
 use App\Livewire\ThreeDModelShow;
@@ -228,6 +229,10 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
     Route::livewire('/belohnungen/admin', BelohnungenAdmin::class)
         ->name('rewards.admin')
         ->middleware('admin');
+
+    Route::livewire('/admin/treffen', MeetingAdmin::class)
+        ->name('admin.meetings')
+        ->middleware('admin-or-vorstand');
 
     Route::prefix('treffen')->controller(MeetingController::class)->group(function () {
         Route::get('/', 'index')->name('meetings');

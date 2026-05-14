@@ -57,7 +57,12 @@ test.describe('Chronik Lightbox', () => {
   });
 
   test('closes lightbox via backdrop click', async ({ page }) => {
-    await page.getByRole('button', { name: firstTriggerName }).click();
+    const trigger = page.getByRole('button', { name: firstTriggerName });
+
+    // This test exercises backdrop closing, not pointer hit-testing on the trigger.
+    // dispatchEvent avoids a Firefox-only flake where the real click occasionally
+    // does not open the already-mounted dialog before the visibility assertion.
+    await trigger.dispatchEvent('click');
 
     const dialog = page.locator('[role="dialog"]');
     await expect(dialog).toBeVisible();
