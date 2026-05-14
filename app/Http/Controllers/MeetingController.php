@@ -29,9 +29,17 @@ class MeetingController extends Controller
      */
     public function redirectToZoom(Request $request)
     {
+        $validator = validator($request->all(), [
+            'meeting' => ['required', 'string', 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/'],
+        ])->stopOnFirstFailure();
+
+        if ($validator->fails()) {
+            abort(403, 'Unbekanntes Meeting');
+        }
+
         $meeting = Meeting::query()
             ->active()
-            ->where('slug', (string) $request->input('meeting'))
+            ->where('slug', $validator->validated()['meeting'])
             ->first();
 
         if (! $meeting) {

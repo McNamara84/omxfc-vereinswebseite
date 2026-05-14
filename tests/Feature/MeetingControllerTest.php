@@ -32,6 +32,17 @@ class MeetingControllerTest extends TestCase
         $this->assertSame('Unbekanntes Meeting', $response->exception?->getMessage());
     }
 
+    public function test_malformed_meeting_payload_is_forbidden(): void
+    {
+        $this->actingAs($this->actingMember());
+
+        $response = $this->post('/treffen/umleiten', ['meeting' => ['maddraxikon']]);
+
+        $response->assertForbidden();
+        $this->assertInstanceOf(HttpException::class, $response->exception);
+        $this->assertSame('Unbekanntes Meeting', $response->exception?->getMessage());
+    }
+
     public function test_meetings_page_returns_seeded_meeting_data(): void
     {
         Carbon::setTestNow('2026-05-14 12:00');
