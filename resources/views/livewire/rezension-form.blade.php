@@ -36,21 +36,38 @@
                         </div>
 
                         <p id="review-markdown-help" class="text-xs text-base-content/60">
-                            Unterstuetzt werden Fett, Kursiv, Bullet-Listen, nummerierte Listen und Hyperlinks. Keine Vorschau, keine weiteren Markdown-Werkzeuge.
+                            Unterstützt werden Fett, Kursiv, Bullet-Listen, nummerierte Listen und Hyperlinks. Keine Vorschau, keine weiteren Markdown-Werkzeuge.
                         </p>
                     </div>
 
-                    <x-textarea
-                        id="review-content-input"
-                        wire:model="content"
-                        label="Rezensionstext"
-                        rows="10"
-                        hint="Mindestens 140 Zeichen."
-                        aria-describedby="review-markdown-help"
-                        data-markdown-input
-                        data-testid="review-markdown-input"
-                        required
-                    />
+                    <div>
+                        <fieldset class="fieldset py-0">
+                            <legend class="fieldset-legend mb-0.5">
+                                Rezensionstext
+                                <span class="text-error">*</span>
+                            </legend>
+
+                            <label>
+                                <div class="w-full">
+                                    <textarea
+                                        id="review-content-input"
+                                        wire:model="content"
+                                        rows="10"
+                                        aria-describedby="review-markdown-help review-content-hint"
+                                        data-markdown-input
+                                        data-testid="review-markdown-input"
+                                        @class([
+                                            'textarea w-full',
+                                            '!textarea-error' => $errors->has('content'),
+                                        ])
+                                        required
+                                    ></textarea>
+                                </div>
+                            </label>
+
+                            <div id="review-content-hint" class="fieldset-label" x-classes="fieldset-label">Mindestens 140 Zeichen.</div>
+                        </fieldset>
+                    </div>
                 </div>
                 @error('content') <p class="text-error text-sm">{{ $message }}</p> @enderror
             </div>
