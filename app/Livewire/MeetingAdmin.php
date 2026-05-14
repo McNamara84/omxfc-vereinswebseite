@@ -110,11 +110,16 @@ class MeetingAdmin extends Component
     public function toggleActive(int $meetingId): void
     {
         $meeting = $this->findMeeting($meetingId);
+        $isActive = ! $meeting->is_active;
 
         $meeting->update([
-            'is_active' => ! $meeting->is_active,
+            'is_active' => $isActive,
             'updated_by' => Auth::id(),
         ]);
+
+        if ($this->editingId === $meeting->id) {
+            $this->is_active = $isActive;
+        }
     }
 
     public function delete(int $meetingId): void
@@ -123,6 +128,10 @@ class MeetingAdmin extends Component
             $this->findMeeting($meetingId)->delete();
             $this->recompactSortOrder();
         });
+
+        if ($this->editingId === $meetingId) {
+            $this->closeForm();
+        }
 
         session()->flash('success', 'Treffen wurde gelöscht.');
     }

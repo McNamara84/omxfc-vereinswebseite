@@ -162,6 +162,23 @@ class MeetingAdminTest extends TestCase
         ]);
     }
 
+    public function test_toggling_currently_edited_meeting_updates_form_state(): void
+    {
+        $this->actingAdmin();
+        $meeting = Meeting::factory()->create(['is_active' => true]);
+
+        Livewire::test(MeetingAdmin::class)
+            ->call('edit', $meeting->id)
+            ->assertSet('is_active', true)
+            ->call('toggleActive', $meeting->id)
+            ->assertSet('is_active', false);
+
+        $this->assertDatabaseHas('meetings', [
+            'id' => $meeting->id,
+            'is_active' => false,
+        ]);
+    }
+
     public function test_admin_page_marks_zoom_fallback_as_configured(): void
     {
         $this->actingAdmin();
@@ -191,6 +208,21 @@ class MeetingAdminTest extends TestCase
         ]);
     }
 
+    public function test_deleting_currently_edited_meeting_closes_form(): void
+    {
+        $this->actingAdmin();
+        $meeting = Meeting::factory()->create();
+
+        Livewire::test(MeetingAdmin::class)
+            ->call('edit', $meeting->id)
+            ->assertSet('editingId', $meeting->id)
+            ->assertSet('showForm', true)
+            ->call('delete', $meeting->id)
+            ->assertSet('editingId', null)
+            ->assertSet('showForm', false)
+            ->assertSet('title', '');
+    }
+
     public function test_admin_can_reorder_meetings(): void
     {
         $this->actingAdmin();
@@ -207,6 +239,33 @@ class MeetingAdminTest extends TestCase
 
         Livewire::test(MeetingAdmin::class)
             ->call('moveUp', $second->id);
+
+        $this->assertDatabaseHas('meetings', [
+            'id' => $first->id,
+            'sort_order' => 110,
+        ]);
+        $this->assertDatabaseHas('meetings', [
+            'id' => $second->id,
+            'sort_order' => 100,
+        ]);
+    }
+
+    public function test_admin_can_move_meeting_down(): void
+    {
+        $this->actingAdmin();
+        $first = Meeting::factory()->create([
+            'title' => 'Sort A',
+            'slug' => 'sort-a',
+            'sort_order' => 100,
+        ]);
+        $second = Meeting::factory()->create([
+            'title' => 'Sort B',
+            'slug' => 'sort-b',
+            'sort_order' => 110,
+        ]);
+
+        Livewire::test(MeetingAdmin::class)
+            ->call('moveDown', $first->id);
 
         $this->assertDatabaseHas('meetings', [
             'id' => $first->id,

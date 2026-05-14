@@ -124,7 +124,7 @@
         @else
             <div class="divide-y divide-base-200">
                 @foreach ($meetings as $meeting)
-                    <div class="-mx-4 flex flex-col gap-4 px-4 py-4 transition-colors hover:bg-base-200/50 lg:flex-row lg:items-start lg:justify-between">
+                    <div wire:key="meeting-row-{{ $meeting->id }}" class="-mx-4 flex flex-col gap-4 px-4 py-4 transition-colors hover:bg-base-200/50 lg:flex-row lg:items-start lg:justify-between">
                         <div class="min-w-0 flex-1 space-y-2">
                             <div class="flex flex-wrap items-center gap-2">
                                 <span class="w-10 text-sm font-mono opacity-60">#{{ $meeting->sort_order }}</span>
