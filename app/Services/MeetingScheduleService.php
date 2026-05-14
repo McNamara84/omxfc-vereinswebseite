@@ -108,7 +108,9 @@ class MeetingScheduleService
         }
 
         $intervalWeeks = max(1, $meeting->interval_weeks);
-        $elapsedDays = max(0, $candidate->startOfDay()->diffInDays($reference->startOfDay(), false));
+        $elapsedDays = max(0, (int) round(
+            $candidate->startOfDay()->diffInDays($reference->startOfDay(), false)
+        ));
         $elapsedIntervals = intdiv($elapsedDays, $intervalWeeks * 7);
 
         if ($elapsedIntervals > 0) {
