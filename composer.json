@@ -37,7 +37,7 @@
         "spatie/browsershot": "^5.2",
         "spatie/laravel-pdf": "^2.6",
         "spatie/laravel-sitemap": "^8.0",
-        "teamtnt/laravel-scout-tntsearch-driver": "^15.0"
+        "typesense/typesense-php": "^6.0"
     },
     "require-dev": {
         "doctrine/dbal": "^4.4",

@@ -171,7 +171,7 @@ class KompendiumController extends Controller
         /* ------------------------------------------------------------------ */
         $raw = $this->searchService->search($tntQuery);
 
-        $ids = $raw['ids'] ?? [];                               // enthält unsere "path"-Schlüssel
+        $ids = $raw['paths'] ?? $raw['ids'] ?? [];              // normalisierte Pfad-Treffer
         $ids = array_values($ids);                              // re-indexieren
 
         // Sicherheitsprüfung: Nur gültige Pfade weiterverarbeiten

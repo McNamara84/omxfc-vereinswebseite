@@ -33,18 +33,23 @@ class RomanExcerpt extends Model
         'auf', 'in', 'im', 'ist', 'sind', 'war', 'waren', 'mit', 'von', 'für',
     ];
 
+    public static function scoutDocumentId(string $path): string
+    {
+        return sha1(str_replace('\\', '/', $path));
+    }
+
     /*  Scout-Schlüssel */
     public function getScoutKey(): mixed
     {
-        return $this->path;
+        return self::scoutDocumentId($this->path);
     }
 
     public function getScoutKeyName(): string
     {
-        return 'path';
+        return 'id';
     }
 
-    /*  Daten für Index – enthält jetzt KEY „path“ */
+    /*  Daten für Index – enthält Typesense-ID und den Originalpfad */
     public function toSearchableArray(): array
     {
         $clean = preg_replace("/[^\\p{L}\\p{N}' ]+/u", ' ', $this->body);
@@ -55,9 +60,10 @@ class RomanExcerpt extends Model
         );
 
         return [
-            'path' => $this->path,        // Primärschlüssel
+            'id' => (string) $this->getScoutKey(),
+            'path' => $this->path,
             'cycle' => $this->cycle,
-            'roman_nr' => $this->roman_nr,
+            'roman_nr' => $this->roman_nr === null ? null : (string) $this->roman_nr,
             'title' => $this->title,
             'body' => implode(' ', $tokens),
         ];

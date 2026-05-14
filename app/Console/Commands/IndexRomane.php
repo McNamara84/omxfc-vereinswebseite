@@ -12,7 +12,7 @@ class IndexRomane extends Command
     /** artisan romane:index  */
     protected $signature = 'romane:index {--fresh : löscht vorhandenen Index zuerst}';
 
-    protected $description = 'Scant alle TXT-Dateien und (re-)indexiert sie via Laravel Scout / TNTSearch';
+    protected $description = 'Scant alle TXT-Dateien und (re-)indexiert sie via Laravel Scout';
 
     public function handle(): int
     {
@@ -50,9 +50,9 @@ class IndexRomane extends Command
                 'body' => $disk->get($path),
             ]));
 
-            // Alle 250 Dokumente an Scout übergeben
+            // RomanExcerpt ist kein persistiertes Eloquent-Modell und muss daher synchron indiziert werden.
             if ($batch->count() === 250) {
-                $batch->searchable();
+                $batch->searchableSync();
                 $batch = collect();
             }
 
@@ -61,7 +61,7 @@ class IndexRomane extends Command
 
         // Rest flushen
         if ($batch->isNotEmpty()) {
-            $batch->searchable();
+            $batch->searchableSync();
         }
 
         $bar->finish();

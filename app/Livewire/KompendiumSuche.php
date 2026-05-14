@@ -120,7 +120,7 @@ class KompendiumSuche extends Component
             }
 
             $raw = $searchService->search($tntQuery);
-            $ids = array_values($raw['ids'] ?? []);
+            $ids = array_values($raw['paths'] ?? $raw['ids'] ?? []);
             $ids = array_values(array_filter($ids, fn ($path) => $this->isValidPath($path)));
 
             $textCache = [];

@@ -1,0 +1,40 @@
+<?php
+
+namespace Tests\Unit;
+
+use App\Models\RomanExcerpt;
+use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\TestCase;
+
+class RomanExcerptTest extends TestCase
+{
+    #[Test]
+    public function it_generates_a_stable_typesense_document_id_from_the_path(): void
+    {
+        $path = 'romane/maddrax/001 - Der Gott aus dem Eis.txt';
+
+        $this->assertSame(
+            RomanExcerpt::scoutDocumentId($path),
+            RomanExcerpt::scoutDocumentId($path)
+        );
+    }
+
+    #[Test]
+    public function it_exposes_id_and_path_in_the_searchable_payload(): void
+    {
+        $excerpt = new RomanExcerpt([
+            'path' => 'romane/maddrax/001 - Der Gott aus dem Eis.txt',
+            'cycle' => 'maddrax',
+            'roman_nr' => 1,
+            'title' => 'Der Gott aus dem Eis',
+            'body' => 'Matthew Drax reist erneut in die Zukunft.',
+        ]);
+
+        $payload = $excerpt->toSearchableArray();
+
+        $this->assertSame($excerpt->getScoutKey(), $payload['id']);
+        $this->assertSame('romane/maddrax/001 - Der Gott aus dem Eis.txt', $payload['path']);
+        $this->assertSame('1', $payload['roman_nr']);
+        $this->assertArrayHasKey('body', $payload);
+    }
+}

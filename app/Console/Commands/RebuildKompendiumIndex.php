@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\KompendiumRoman;
 use App\Models\RomanExcerpt;
+use App\Services\KompendiumSearchService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Storage;
 
@@ -13,24 +14,15 @@ class RebuildKompendiumIndex extends Command
 
     protected $description = 'Baut den Kompendium-Suchindex aus vorhandenen Romanen neu auf, falls er fehlt';
 
-    public function handle(): int
+    public function handle(KompendiumSearchService $searchService): int
     {
-        if (config('scout.driver') !== 'tntsearch') {
-            $this->warn('Scout-Driver ist nicht tntsearch – Rebuild nicht möglich.');
-
-            return self::FAILURE;
-        }
-
-        $indexName = (new RomanExcerpt)->searchableAs();
-        $indexPath = config('scout.tntsearch.storage').DIRECTORY_SEPARATOR.$indexName.'.index';
-
-        if (file_exists($indexPath)) {
+        if ($searchService->indexExists()) {
             $this->info('Index existiert bereits – kein Rebuild nötig.');
 
             return self::SUCCESS;
         }
 
-        $romane = KompendiumRoman::where('status', 'indexiert')->get();
+        $romane = KompendiumRoman::query()->indexiert()->get();
 
         if ($romane->isEmpty()) {
             $this->info('Keine indexierten Romane in der Datenbank gefunden – nichts zu tun.');
@@ -69,7 +61,7 @@ class RebuildKompendiumIndex extends Command
             ]));
 
             if ($batch->count() === 250) {
-                $batch->searchable();
+                $batch->searchableSync();
                 $batch = collect();
             }
 
@@ -77,7 +69,7 @@ class RebuildKompendiumIndex extends Command
         }
 
         if ($batch->isNotEmpty()) {
-            $batch->searchable();
+            $batch->searchableSync();
         }
 
         $bar->finish();

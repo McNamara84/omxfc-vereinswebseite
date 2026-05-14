@@ -4,7 +4,7 @@ namespace App\Services;
 
 use App\Models\RomanExcerpt;
 use Illuminate\Support\Facades\Log;
-use TeamTNT\TNTSearch\Exceptions\IndexNotFoundException;
+use Laravel\Scout\EngineManager;
 
 /**
  * Service für die Kompendium-Suche und Indexierung.
@@ -13,14 +13,32 @@ use TeamTNT\TNTSearch\Exceptions\IndexNotFoundException;
  */
 class KompendiumSearchService
 {
+    public function indexExists(): bool
+    {
+        $indexName = (new RomanExcerpt)->searchableAs();
+        $engine = app(EngineManager::class)->engine();
+
+        if (get_class($engine) === 'Laravel\\Scout\\Engines\\TypesenseEngine') {
+            return $this->typesenseCollectionExists($engine, $indexName);
+        }
+
+        return $this->legacyIndexExists($indexName);
+    }
+
     /**
      * Führt eine Volltextsuche in den Romantexten durch.
      *
-     * @return array{hits: array{total_hits: int}, ids: array<string>}
+     * @return array{total: int, paths: list<string>, raw: array<mixed>}
      */
     public function search(string $query): array
     {
-        return RomanExcerpt::search($query)->raw();
+        $raw = RomanExcerpt::search($query)->raw();
+
+        return [
+            'total' => $this->extractTotal($raw),
+            'paths' => $this->extractPaths($raw),
+            'raw' => $raw,
+        ];
     }
 
     /**
@@ -94,13 +112,101 @@ class KompendiumSearchService
     {
         try {
             $excerpt = new RomanExcerpt(['path' => $path]);
-            $excerpt->unsearchable();
-        } catch (IndexNotFoundException) {
-            // Index existiert nicht - nichts zu entfernen
-            Log::info("Index nicht gefunden, überspringe De-Indexierung für: {$path}");
+            $excerpt->unsearchableSync();
         } catch (\BadMethodCallException) {
             // Tritt auf wenn Scout gemockt ist (z.B. in Tests)
             Log::info("Scout gemockt, überspringe De-Indexierung für: {$path}");
+        } catch (\Throwable $exception) {
+            if ($this->isLegacyMissingIndexException($exception)) {
+                Log::info("Index nicht gefunden, überspringe De-Indexierung für: {$path}");
+
+                return;
+            }
+
+            throw $exception;
         }
+    }
+
+    private function legacyIndexExists(string $indexName): bool
+    {
+        $storagePath = config('scout.tntsearch.storage');
+
+        if (! is_string($storagePath) || $storagePath === '') {
+            return false;
+        }
+
+        return file_exists($storagePath.DIRECTORY_SEPARATOR.$indexName.'.index');
+    }
+
+    private function typesenseCollectionExists(object $engine, string $indexName): bool
+    {
+        try {
+            $engine->getCollections()->{$indexName}->retrieve();
+
+            return true;
+        } catch (\Throwable) {
+            return false;
+        }
+    }
+
+    private function isLegacyMissingIndexException(\Throwable $exception): bool
+    {
+        return config('scout.driver') === 'tntsearch'
+            && str_ends_with($exception::class, 'IndexNotFoundException');
+    }
+
+    /**
+     * @param  array<mixed>  $raw
+     * @return list<string>
+     */
+    private function extractPaths(array $raw): array
+    {
+        if (isset($raw['paths']) && is_array($raw['paths'])) {
+            return array_values(array_filter($raw['paths'], 'is_string'));
+        }
+
+        if (isset($raw['ids']) && is_array($raw['ids'])) {
+            return array_values(array_filter($raw['ids'], 'is_string'));
+        }
+
+        if (! isset($raw['hits']) || ! is_array($raw['hits'])) {
+            return [];
+        }
+
+        $paths = [];
+
+        foreach ($raw['hits'] as $hit) {
+            if (! is_array($hit)) {
+                continue;
+            }
+
+            $document = $hit['document'] ?? $hit;
+
+            if (is_array($document) && isset($document['path']) && is_string($document['path'])) {
+                $paths[] = $document['path'];
+            }
+        }
+
+        return array_values(array_unique($paths));
+    }
+
+    /**
+     * @param  array<mixed>  $raw
+     */
+    private function extractTotal(array $raw): int
+    {
+        if (isset($raw['total']) && is_numeric($raw['total'])) {
+            return (int) $raw['total'];
+        }
+
+        if (isset($raw['found']) && is_numeric($raw['found'])) {
+            return (int) $raw['found'];
+        }
+
+        if (isset($raw['hits']['total_hits']) && is_numeric($raw['hits']['total_hits'])) {
+            return (int) $raw['hits']['total_hits'];
+        }
+
+        return count($this->extractPaths($raw));
     }
 }
