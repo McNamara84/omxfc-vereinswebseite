@@ -89,6 +89,7 @@ window.L = L;
 
 import './alpine/char-editor';
 import './alpine/hoerbuch-role-repeater';
+import { registerMarkdownEditorLifecycle } from './reviews/markdown-editor';
 import './todos';
 import './dashboard';
 import './mitglieder/accessibility';
@@ -128,6 +129,8 @@ async function loadThreeDViewerIfNeeded() {
 }
 document.addEventListener('DOMContentLoaded', loadThreeDViewerIfNeeded);
 document.addEventListener('livewire:navigated', loadThreeDViewerIfNeeded);
+
+registerMarkdownEditorLifecycle();
 
 // Toast-Bridge: Livewire dispatch('toast') → maryUI window.toast()
 // Livewire-Komponenten nutzen $this->dispatch('toast', type: '...', title: '...'),

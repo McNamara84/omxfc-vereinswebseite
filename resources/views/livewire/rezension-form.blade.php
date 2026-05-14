@@ -20,13 +20,55 @@
                 />
                 @error('title') <p class="text-error text-sm">{{ $message }}</p> @enderror
 
-                <x-textarea
-                    wire:model="content"
-                    label="Rezensionstext"
-                    rows="8"
-                    hint="Mindestens 140 Zeichen."
-                    required
-                />
+                <div class="space-y-3" data-markdown-editor data-testid="review-markdown-editor">
+                    <div class="space-y-2">
+                        <div
+                            class="flex flex-wrap gap-2"
+                            role="toolbar"
+                            aria-label="Markdown-Werkzeuge für den Rezensionstext"
+                            data-testid="review-markdown-toolbar"
+                        >
+                            <button type="button" class="btn btn-sm btn-outline" data-markdown-action="bold" aria-controls="review-content-input" data-testid="review-markdown-bold">Fett</button>
+                            <button type="button" class="btn btn-sm btn-outline" data-markdown-action="italic" aria-controls="review-content-input" data-testid="review-markdown-italic">Kursiv</button>
+                            <button type="button" class="btn btn-sm btn-outline" data-markdown-action="bullet-list" aria-controls="review-content-input" data-testid="review-markdown-bullet-list">Bullet-Liste</button>
+                            <button type="button" class="btn btn-sm btn-outline" data-markdown-action="numbered-list" aria-controls="review-content-input" data-testid="review-markdown-numbered-list">Nummerierte Liste</button>
+                            <button type="button" class="btn btn-sm btn-outline" data-markdown-action="link" aria-controls="review-content-input" data-testid="review-markdown-link">Link</button>
+                        </div>
+
+                        <p id="review-markdown-help" class="text-xs text-base-content/60">
+                            Unterstützt werden Fett, Kursiv, Bullet-Listen, nummerierte Listen und Hyperlinks. Keine Vorschau, keine weiteren Markdown-Werkzeuge.
+                        </p>
+                    </div>
+
+                    <div>
+                        <fieldset class="fieldset py-0">
+                            <legend class="fieldset-legend mb-0.5">
+                                Rezensionstext
+                                <span class="text-error">*</span>
+                            </legend>
+
+                            <label>
+                                <div class="w-full">
+                                    <textarea
+                                        id="review-content-input"
+                                        wire:model="content"
+                                        rows="10"
+                                        aria-describedby="review-markdown-help review-content-hint"
+                                        data-markdown-input
+                                        data-testid="review-markdown-input"
+                                        @class([
+                                            'textarea w-full',
+                                            '!textarea-error' => $errors->has('content'),
+                                        ])
+                                        required
+                                    ></textarea>
+                                </div>
+                            </label>
+
+                            <div id="review-content-hint" class="fieldset-label">Mindestens 140 Zeichen.</div>
+                        </fieldset>
+                    </div>
+                </div>
                 @error('content') <p class="text-error text-sm">{{ $message }}</p> @enderror
             </div>
 
