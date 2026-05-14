@@ -25,7 +25,7 @@
                         <div
                             class="flex flex-wrap gap-2"
                             role="toolbar"
-                            aria-label="Markdown-Werkzeuge fuer den Rezensionstext"
+                            aria-label="Markdown-Werkzeuge für den Rezensionstext"
                             data-testid="review-markdown-toolbar"
                         >
                             <button type="button" class="btn btn-sm btn-outline" data-markdown-action="bold" aria-controls="review-content-input" data-testid="review-markdown-bold">Fett</button>

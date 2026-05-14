@@ -70,7 +70,7 @@ function createLink(textarea) {
     const end = textarea.selectionEnd ?? start;
     const selectedText = textarea.value.slice(start, end);
     const linkText = selectedText || 'Linktext';
-    const url = window.prompt('URL fuer den Hyperlink eingeben', 'https://');
+    const url = window.prompt('URL für den Hyperlink eingeben', 'https://');
 
     if (url === null) {
         focusTextarea(textarea);

@@ -33,7 +33,7 @@ describe('review markdown editor', () => {
         vi.restoreAllMocks();
     });
 
-    it('umschliesst die Auswahl fuer Fett und dispatcht Livewire-relevante Events', () => {
+    it('umschliesst die Auswahl für Fett und dispatcht Livewire-relevante Events', () => {
         const { root, textarea } = renderEditor('Alpha Beta Gamma');
         const inputSpy = vi.fn();
         const changeSpy = vi.fn();
