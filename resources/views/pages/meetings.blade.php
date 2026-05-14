@@ -62,15 +62,16 @@
                                 </div>
 
                                 <div class="flex shrink-0 items-center">
-                                    @if($meeting->zoom_url)
-                                        <form method="POST" action="{{ route('meetings.redirect') }}">
-                                            @csrf
-                                            <input type="hidden" name="meeting" value="{{ $meeting->slug }}">
+                                    <form method="POST" action="{{ route('meetings.redirect') }}">
+                                        @csrf
+                                        <input type="hidden" name="meeting" value="{{ $meeting->slug }}">
+
+                                        @if(filled($meeting->zoom_url))
                                             <x-button type="submit" label="Zoom-Meeting betreten" icon="o-video-camera" class="btn-primary btn-sm" />
-                                        </form>
-                                    @else
-                                        <span class="inline-flex items-center rounded-full border border-base-content/10 bg-base-200/70 px-4 py-2 text-sm font-medium text-base-content/50">Link folgt</span>
-                                    @endif
+                                        @else
+                                            <x-button type="button" label="Link folgt" class="btn-ghost btn-sm" disabled />
+                                        @endif
+                                    </form>
                                 </div>
                             </div>
                         </article>
