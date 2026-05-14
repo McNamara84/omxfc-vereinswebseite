@@ -48,6 +48,47 @@ class ReviewCreationTest extends TestCase
         Mail::assertNothingSent();
     }
 
+    public function test_member_can_store_review_with_supported_markdown_content(): void
+    {
+        Mail::fake();
+
+        $book = Book::create([
+            'roman_number' => 13,
+            'title' => 'Markdown Roman',
+            'author' => 'Author Markdown',
+        ]);
+
+        $user = $this->actingMember();
+        $this->actingAs($user);
+
+        $content = <<<'MD'
+**Fettes Intro** und *kursiver Einschub*.
+
+- Erster Punkt
+- Zweiter Punkt
+
+1. Anfang
+2. Fortsetzung
+
+[Mehr dazu](https://example.com/reviews)
+
+Zum Abschluss folgt noch ausreichend Fliesstext, damit die Mindestlaenge fuer Rezensionen sicher erreicht wird.
+MD;
+
+        Livewire::test(RezensionForm::class, ['book' => $book])
+            ->set('title', 'Markdown Rezension')
+            ->set('content', $content)
+            ->call('save')
+            ->assertRedirect(route('reviews.show', $book));
+
+        $this->assertDatabaseHas('reviews', [
+            'book_id' => $book->id,
+            'user_id' => $user->id,
+            'title' => 'Markdown Rezension',
+            'content' => $content,
+        ]);
+    }
+
     public function test_member_can_store_hardcover_review(): void
     {
         Mail::fake();
@@ -222,7 +263,13 @@ class ReviewCreationTest extends TestCase
             ->assertSee('fieldset-legend', false)
             ->assertSee('Rezensionstitel', false)
             ->assertSee('Rezensionstext', false)
-            ->assertSee('Mindestens 140 Zeichen.', false);
+            ->assertSee('Mindestens 140 Zeichen.', false)
+            ->assertSee('data-testid="review-markdown-toolbar"', false)
+            ->assertSee('data-markdown-action="bold"', false)
+            ->assertSee('data-markdown-action="italic"', false)
+            ->assertSee('data-markdown-action="bullet-list"', false)
+            ->assertSee('data-markdown-action="numbered-list"', false)
+            ->assertSee('data-markdown-action="link"', false);
     }
 
     public function test_review_creation_validation_errors(): void
