@@ -65,7 +65,7 @@
                                 </div>
                             </label>
 
-                            <div id="review-content-hint" class="fieldset-label" x-classes="fieldset-label">Mindestens 140 Zeichen.</div>
+                            <div id="review-content-hint" class="fieldset-label">Mindestens 140 Zeichen.</div>
                         </fieldset>
                     </div>
                 </div>
