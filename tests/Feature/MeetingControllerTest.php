@@ -89,6 +89,37 @@ class MeetingControllerTest extends TestCase
             ->assertRedirect('https://example.com/zoom');
     }
 
+    public function test_valid_meeting_redirects_to_configured_fallback_zoom_url(): void
+    {
+        config()->set('services.meetings.zoom_links.maddraxikon', 'https://example.com/fallback');
+
+        Meeting::query()->where('slug', 'maddraxikon')->update([
+            'zoom_url' => null,
+        ]);
+
+        $this->actingAs($this->actingMember());
+
+        $this->post('/treffen/umleiten', ['meeting' => 'maddraxikon'])
+            ->assertRedirect('https://example.com/fallback');
+    }
+
+    public function test_meetings_page_uses_configured_fallback_zoom_url(): void
+    {
+        config()->set('services.meetings.zoom_links.maddraxikon', 'https://example.com/fallback');
+        Carbon::setTestNow('2026-05-14 12:00');
+
+        Meeting::query()->where('slug', 'maddraxikon')->update([
+            'zoom_url' => null,
+        ]);
+
+        $this->actingAs($this->actingMember());
+
+        $this->get('/treffen')
+            ->assertOk()
+            ->assertSee('value="maddraxikon"', false)
+            ->assertSeeText('Zoom-Meeting betreten');
+    }
+
     public function test_meetings_page_hides_inactive_meetings(): void
     {
         Meeting::factory()->inactive()->create([

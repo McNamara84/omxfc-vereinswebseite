@@ -66,7 +66,7 @@
                                         @csrf
                                         <input type="hidden" name="meeting" value="{{ $meeting->slug }}">
 
-                                        @if(filled($meeting->zoom_url))
+                                        @if($meeting->hasResolvedZoomUrl())
                                             <x-button type="submit" label="Zoom-Meeting betreten" icon="o-video-camera" class="btn-primary btn-sm" />
                                         @else
                                             <x-button type="button" label="Link folgt" class="btn-ghost btn-sm" disabled />

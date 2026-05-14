@@ -11,6 +11,21 @@ class Meeting extends Model
 {
     use HasFactory;
 
+    public function resolvedZoomUrl(): ?string
+    {
+        return $this->zoom_url ?: config('services.meetings.zoom_links.'.$this->slug);
+    }
+
+    public function hasResolvedZoomUrl(): bool
+    {
+        return filled($this->resolvedZoomUrl());
+    }
+
+    public function usesZoomFallback(): bool
+    {
+        return blank($this->zoom_url) && filled(config('services.meetings.zoom_links.'.$this->slug));
+    }
+
     /**
      * The attributes that are mass assignable.
      *

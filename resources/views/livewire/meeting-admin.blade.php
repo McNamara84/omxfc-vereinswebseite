@@ -140,7 +140,15 @@
                                 @else
                                     <p><strong>Nächster Termin:</strong> Wird nur als Hinweis dargestellt</p>
                                 @endif
-                                <p><strong>Zoom:</strong> {{ $meeting->zoom_url ? 'konfiguriert' : 'fehlt' }}</p>
+                                <p><strong>Zoom:</strong>
+                                    @if ($meeting->zoom_url)
+                                        direkt konfiguriert
+                                    @elseif ($meeting->usesZoomFallback())
+                                        Fallback aus Konfiguration
+                                    @else
+                                        fehlt
+                                    @endif
+                                </p>
                             </div>
                         </div>
 

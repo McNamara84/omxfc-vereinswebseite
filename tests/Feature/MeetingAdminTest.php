@@ -162,6 +162,19 @@ class MeetingAdminTest extends TestCase
         ]);
     }
 
+    public function test_admin_page_marks_zoom_fallback_as_configured(): void
+    {
+        $this->actingAdmin();
+        config()->set('services.meetings.zoom_links.maddraxikon', 'https://example.com/fallback');
+
+        Meeting::query()->where('slug', 'maddraxikon')->update([
+            'zoom_url' => null,
+        ]);
+
+        Livewire::test(MeetingAdmin::class)
+            ->assertSee('Fallback aus Konfiguration');
+    }
+
     public function test_admin_can_delete_meeting(): void
     {
         $this->actingAdmin();

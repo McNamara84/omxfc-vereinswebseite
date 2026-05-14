@@ -38,10 +38,12 @@ class MeetingController extends Controller
             abort(403, 'Unbekanntes Meeting');
         }
 
-        if (blank($meeting->zoom_url)) {
+        $zoomUrl = $meeting->resolvedZoomUrl();
+
+        if (blank($zoomUrl)) {
             abort(403, 'Für dieses Treffen ist noch kein Zoom-Link hinterlegt.');
         }
 
-        return redirect()->away($meeting->zoom_url);
+        return redirect()->away($zoomUrl);
     }
 }

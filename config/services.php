@@ -53,4 +53,13 @@ return [
         'disable_rate_limit' => filter_var(env('FANTREFFEN_DISABLE_RATE_LIMIT', false), FILTER_VALIDATE_BOOLEAN),
     ],
 
+    'meetings' => [
+        'zoom_links' => [
+            'maddraxikon' => env('ZOOM_LINK_MADDRAXIKON'),
+            'fanhoerbuch' => env('ZOOM_LINK_HOERBUECHER'),
+            'mapdrax' => env('ZOOM_LINK_MAPDRAX'),
+            'stammtisch' => env('ZOOM_LINK_STAMMTISCH'),
+        ],
+    ],
+
 ];
