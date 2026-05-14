@@ -2,50 +2,24 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Meeting;
+use App\Services\MeetingScheduleService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
 
 class MeetingController extends Controller
 {
-    public function index()
+    public function index(MeetingScheduleService $scheduleService)
     {
-        $meetings = [
-            [
-                'name' => 'AG Maddraxikon',
-                'day' => 'third monday',
-                'time_from' => '20:00',
-                'time_to' => '20:30',
-            ],
-            [
-                'name' => 'AG EARDRAX',
-                'day' => 'second wednesday',
-                'time_from' => '19:00',
-                'time_to' => '19:30',
-            ],
-            [
-                'name' => 'AG MAPDRAX',
-                'day' => 'first wednesday',
-                'time_from' => '20:00',
-                'time_to' => '20:30',
-            ],
-            [
-                'name' => 'CHATDRAX 2.0 - Der MADDRAX-Online-Stammtisch',
-                'day' => 'see_note',
-                'time_from' => '20:00',
-                'time_to' => null,
-            ],
-        ];
+        $meetings = Meeting::query()
+            ->active()
+            ->ordered()
+            ->get()
+            ->map(function (Meeting $meeting) use ($scheduleService) {
+                $meeting->display_rhythm = $scheduleService->describe($meeting);
+                $meeting->next_occurrence = $scheduleService->nextOccurrence($meeting);
 
-        // Nächstes Datum für reguläre Wochentags-Meetings berechnen
-        foreach ($meetings as &$meeting) {
-            if ($meeting['day'] !== 'see_note') {
-                $meeting['next'] = Carbon::parse("{$meeting['day']} of this month")->isFuture()
-                    ? Carbon::parse("{$meeting['day']} of this month")
-                    : Carbon::parse("{$meeting['day']} of next month");
-            } else {
-                $meeting['next'] = null;
-            }
-        }
+                return $meeting;
+            });
 
         return view('pages.meetings', compact('meetings'));
     }
@@ -55,20 +29,15 @@ class MeetingController extends Controller
      */
     public function redirectToZoom(Request $request)
     {
-        $meeting = $request->input('meeting');
+        $meeting = Meeting::query()
+            ->active()
+            ->where('slug', (string) $request->input('meeting'))
+            ->first();
 
-        // Mapping von IDs zu echten Zoom-URLs (auf dem Server!)
-        $links = [
-            'maddraxikon' => env('ZOOM_LINK_MADDRAXIKON'),
-            'fanhoerbuch' => env('ZOOM_LINK_HOERBUECHER'),
-            'mapdrax' => env('ZOOM_LINK_MAPDRAX'),
-            'stammtisch' => env('ZOOM_LINK_STAMMTISCH'),
-        ];
-
-        if (! array_key_exists($meeting, $links)) {
+        if (! $meeting || blank($meeting->zoom_url)) {
             abort(403, 'Unbekanntes Meeting');
         }
 
-        return redirect()->away($links[$meeting]);
+        return redirect()->away($meeting->zoom_url);
     }
 }
