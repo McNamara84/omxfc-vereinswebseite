@@ -335,6 +335,101 @@ class RezensionLivewireTest extends TestCase
             ->assertRedirect(route('reviews.create', $book));
     }
 
+    public function test_show_displays_review_for_ehrenmitglied_without_own_review(): void
+    {
+        $user = $this->actingMember('Ehrenmitglied');
+
+        $book = Book::create([
+            'roman_number' => 1,
+            'title' => 'Roman1',
+            'author' => 'Author',
+        ]);
+        $other = $this->createUserWithRole('Mitglied');
+        Review::create([
+            'team_id' => $other->currentTeam->id,
+            'user_id' => $other->id,
+            'book_id' => $book->id,
+            'title' => 'R',
+            'content' => str_repeat('B', 140),
+        ]);
+
+        Livewire::actingAs($user)
+            ->test(RezensionShow::class, ['book' => $book])
+            ->assertSee('R')
+            ->assertOk();
+    }
+
+    public function test_show_redirects_kassenwart_without_own_review(): void
+    {
+        $user = $this->actingMember('Kassenwart');
+
+        $book = Book::create([
+            'roman_number' => 1,
+            'title' => 'Roman1',
+            'author' => 'Author',
+        ]);
+        $other = $this->createUserWithRole('Mitglied');
+        Review::create([
+            'team_id' => $other->currentTeam->id,
+            'user_id' => $other->id,
+            'book_id' => $book->id,
+            'title' => 'R',
+            'content' => str_repeat('B', 140),
+        ]);
+
+        Livewire::actingAs($user)
+            ->test(RezensionShow::class, ['book' => $book])
+            ->assertRedirect(route('reviews.create', $book));
+    }
+
+    public function test_show_displays_review_for_vorstand_without_own_review(): void
+    {
+        $user = $this->actingMember('Vorstand');
+
+        $book = Book::create([
+            'roman_number' => 1,
+            'title' => 'Roman1',
+            'author' => 'Author',
+        ]);
+        $other = $this->createUserWithRole('Mitglied');
+        Review::create([
+            'team_id' => $other->currentTeam->id,
+            'user_id' => $other->id,
+            'book_id' => $book->id,
+            'title' => 'R',
+            'content' => str_repeat('B', 140),
+        ]);
+
+        Livewire::actingAs($user)
+            ->test(RezensionShow::class, ['book' => $book])
+            ->assertSee('R')
+            ->assertOk();
+    }
+
+    public function test_show_displays_review_for_admin_without_own_review(): void
+    {
+        $user = $this->actingMember('Admin');
+
+        $book = Book::create([
+            'roman_number' => 1,
+            'title' => 'Roman1',
+            'author' => 'Author',
+        ]);
+        $other = $this->createUserWithRole('Mitglied');
+        Review::create([
+            'team_id' => $other->currentTeam->id,
+            'user_id' => $other->id,
+            'book_id' => $book->id,
+            'title' => 'R',
+            'content' => str_repeat('B', 140),
+        ]);
+
+        Livewire::actingAs($user)
+            ->test(RezensionShow::class, ['book' => $book])
+            ->assertSee('R')
+            ->assertOk();
+    }
+
     public function test_show_displays_review_for_author(): void
     {
         $user = $this->actingMember();

@@ -19,7 +19,71 @@ class ReviewCommentControllerTest extends TestCase
     use CreatesUserWithRole;
     use RefreshDatabase;
 
-    public function test_comment_saves_and_notifies_author(): void
+    public function test_vorstand_without_own_review_can_comment_and_notify_author(): void
+    {
+        Mail::fake();
+
+        $team = Team::membersTeam();
+        $author = User::factory()->create(['current_team_id' => $team->id, 'notify_new_review' => true]);
+        $team->users()->attach($author, ['role' => Role::Mitglied->value]);
+        $book = Book::create(['roman_number' => 1, 'title' => 'Roman1', 'author' => 'Foo']);
+        $review = Review::create([
+            'team_id' => $team->id,
+            'user_id' => $author->id,
+            'book_id' => $book->id,
+            'title' => 'Review',
+            'content' => str_repeat('B', 140),
+        ]);
+
+        $commenter = $this->actingMember('Vorstand');
+        $this->actingAs($commenter);
+
+        $response = $this->post(route('reviews.comments.store', $review), [
+            'content' => 'Nice review',
+        ]);
+
+        $response->assertRedirect();
+        $this->assertDatabaseHas('review_comments', [
+            'review_id' => $review->id,
+            'user_id' => $commenter->id,
+            'content' => 'Nice review',
+        ]);
+        Mail::assertQueued(ReviewCommentNotification::class);
+    }
+
+    public function test_admin_without_own_review_can_comment_and_notify_author(): void
+    {
+        Mail::fake();
+
+        $team = Team::membersTeam();
+        $author = User::factory()->create(['current_team_id' => $team->id, 'notify_new_review' => true]);
+        $team->users()->attach($author, ['role' => Role::Mitglied->value]);
+        $book = Book::create(['roman_number' => 1, 'title' => 'Roman1', 'author' => 'Foo']);
+        $review = Review::create([
+            'team_id' => $team->id,
+            'user_id' => $author->id,
+            'book_id' => $book->id,
+            'title' => 'Review',
+            'content' => str_repeat('B', 140),
+        ]);
+
+        $commenter = $this->actingMember('Admin');
+        $this->actingAs($commenter);
+
+        $response = $this->post(route('reviews.comments.store', $review), [
+            'content' => 'Admin-Kommentar',
+        ]);
+
+        $response->assertRedirect();
+        $this->assertDatabaseHas('review_comments', [
+            'review_id' => $review->id,
+            'user_id' => $commenter->id,
+            'content' => 'Admin-Kommentar',
+        ]);
+        Mail::assertQueued(ReviewCommentNotification::class);
+    }
+
+    public function test_ehrenmitglied_without_own_review_can_comment_and_notify_author(): void
     {
         Mail::fake();
 
@@ -39,14 +103,14 @@ class ReviewCommentControllerTest extends TestCase
         $this->actingAs($commenter);
 
         $response = $this->post(route('reviews.comments.store', $review), [
-            'content' => 'Nice review',
+            'content' => 'Ehren-Kommentar',
         ]);
 
         $response->assertRedirect();
         $this->assertDatabaseHas('review_comments', [
             'review_id' => $review->id,
             'user_id' => $commenter->id,
-            'content' => 'Nice review',
+            'content' => 'Ehren-Kommentar',
         ]);
         Mail::assertQueued(ReviewCommentNotification::class);
     }
