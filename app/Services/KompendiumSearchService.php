@@ -115,10 +115,14 @@ class KompendiumSearchService
     }
 
     /**
-     * Entfernt ein Dokument aus dem TNTSearch-Index.
+     * Entfernt ein Dokument aus dem aktuell konfigurierten Scout-Suchindex.
      *
-     * Fängt Fehler ab, wenn der Index nicht existiert oder das Dokument nicht gefunden wird.
-     * Wirft keine Exceptions, da das Entfernen eines nicht-existenten Dokuments kein Fehler ist.
+     * Das Entfernen ist für die unterstützten idempotenten "nicht gefunden"-Fälle bewusst tolerant:
+     * - Typesense: ObjectNotFound beim Delete wird als bereits entfernt behandelt.
+     * - TNTSearch (Legacy): ein fehlender Index wird aus Kompatibilitätsgründen ignoriert.
+     *
+     * Andere Treiber-, Konfigurations- oder Verbindungsfehler werden nicht unterdrückt,
+     * damit sie im Betrieb sichtbar bleiben.
      */
     public function removeFromIndex(string $path): void
     {
@@ -129,6 +133,12 @@ class KompendiumSearchService
             // Tritt auf wenn Scout gemockt ist (z.B. in Tests)
             Log::info("Scout gemockt, überspringe De-Indexierung für: {$path}");
         } catch (\Throwable $exception) {
+            if ($this->isTypesenseMissingDocumentException($exception)) {
+                Log::info("Dokument nicht gefunden, überspringe De-Indexierung für: {$path}");
+
+                return;
+            }
+
             if ($this->isLegacyMissingIndexException($exception)) {
                 Log::info("Index nicht gefunden, überspringe De-Indexierung für: {$path}");
 
@@ -165,6 +175,12 @@ class KompendiumSearchService
     {
         return config('scout.driver') === 'tntsearch'
             && str_ends_with($exception::class, 'IndexNotFoundException');
+    }
+
+    private function isTypesenseMissingDocumentException(\Throwable $exception): bool
+    {
+        return config('scout.driver') === 'typesense'
+            && $exception instanceof ObjectNotFound;
     }
 
     /**
