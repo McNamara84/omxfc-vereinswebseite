@@ -41,18 +41,20 @@ jobs:
           script: |
             set -e
             cd /root/maddrax-fanclub
+
+            COMPOSE="docker compose --env-file .env.production"
             
             echo "Pulling new images..."
-            docker compose pull
+            $COMPOSE pull
             
             echo "Removing old containers..."
-            docker compose down --remove-orphans
+            $COMPOSE down --remove-orphans
             
             echo "Removing app_data volume to ensure fresh assets..."
             docker volume rm maddrax-fanclub_app_data || true
             
             echo "Starting containers with new images..."
-            docker compose up -d --force-recreate
+            $COMPOSE up -d --force-recreate
             
             echo "Waiting for containers to start..."
             sleep 15
