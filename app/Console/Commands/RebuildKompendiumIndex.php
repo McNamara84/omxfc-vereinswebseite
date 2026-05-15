@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\Storage;
 
 class RebuildKompendiumIndex extends Command
 {
+    private const BATCH_SIZE = 25;
+
     protected $signature = 'kompendium:rebuild-index';
 
     protected $description = 'Baut den Kompendium-Suchindex aus vorhandenen Romanen neu auf, falls er fehlt';
@@ -60,14 +62,16 @@ class RebuildKompendiumIndex extends Command
                 'body' => $disk->get($roman->dateipfad),
             ]));
 
-            if ($batch->count() === 250) {
+            if ($batch->count() >= self::BATCH_SIZE) {
                 $batch->searchableSync();
                 $batch = collect();
+                gc_collect_cycles();
             }
         });
 
         if ($batch->isNotEmpty()) {
             $batch->searchableSync();
+            gc_collect_cycles();
         }
 
         $this->newLine(2);

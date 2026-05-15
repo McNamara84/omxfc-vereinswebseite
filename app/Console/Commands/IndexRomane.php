@@ -9,6 +9,8 @@ use Illuminate\Support\Str;
 
 class IndexRomane extends Command
 {
+    private const BATCH_SIZE = 25;
+
     /** artisan romane:index  */
     protected $signature = 'romane:index {--fresh : löscht vorhandenen Index zuerst}';
 
@@ -51,15 +53,17 @@ class IndexRomane extends Command
             ]));
 
             // RomanExcerpt ist kein persistiertes Eloquent-Modell und muss daher synchron indiziert werden.
-            if ($batch->count() === 250) {
+            if ($batch->count() >= self::BATCH_SIZE) {
                 $batch->searchableSync();
                 $batch = collect();
+                gc_collect_cycles();
             }
         });
 
         // Rest flushen
         if ($batch->isNotEmpty()) {
             $batch->searchableSync();
+            gc_collect_cycles();
         }
 
         $this->newLine(2);

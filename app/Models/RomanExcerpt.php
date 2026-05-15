@@ -52,20 +52,39 @@ class RomanExcerpt extends Model
     /*  Daten für Index – enthält Typesense-ID und den Originalpfad */
     public function toSearchableArray(): array
     {
-        $clean = preg_replace("/[^\\p{L}\\p{N}' ]+/u", ' ', $this->body);
-
-        $tokens = array_filter(
-            explode(' ', $clean),
-            fn ($w) => $w !== '' && ! in_array(mb_strtolower($w), self::STOP_WORDS, true)
-        );
-
         return [
             'id' => (string) $this->getScoutKey(),
             'path' => $this->path,
             'cycle' => $this->cycle,
             'roman_nr' => $this->roman_nr === null ? null : (string) $this->roman_nr,
             'title' => $this->title,
-            'body' => implode(' ', $tokens),
+            'body' => $this->searchableBody(),
         ];
+    }
+
+    private function searchableBody(): string
+    {
+        $clean = preg_replace("/[^\\p{L}\\p{N}' ]+/u", ' ', $this->body) ?? '';
+        $withoutStopWords = preg_replace(self::stopWordPattern(), ' ', $clean) ?? $clean;
+
+        return preg_replace('/\\s+/u', ' ', trim($withoutStopWords)) ?? trim($withoutStopWords);
+    }
+
+    private static function stopWordPattern(): string
+    {
+        static $pattern;
+
+        if ($pattern !== null) {
+            return $pattern;
+        }
+
+        $quotedStopWords = array_map(
+            static fn (string $word): string => preg_quote($word, '/'),
+            self::STOP_WORDS
+        );
+
+        $pattern = "/(?<![\\p{L}\\p{N}'])(?:".implode('|', $quotedStopWords).")(?![\\p{L}\\p{N}'])/iu";
+
+        return $pattern;
     }
 }

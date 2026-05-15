@@ -40,4 +40,20 @@ class RomanExcerptTest extends TestCase
         $this->assertSame('1', $payload['roman_nr']);
         $this->assertArrayHasKey('body', $payload);
     }
+
+    #[Test]
+    public function it_removes_stop_words_without_expanding_the_body_into_token_arrays(): void
+    {
+        $excerpt = new RomanExcerpt([
+            'path' => 'romane/maddrax/002 - Test.txt',
+            'cycle' => 'maddrax',
+            'roman_nr' => 2,
+            'title' => 'Test',
+            'body' => "Und Matthew reist, weil die Zukunft anders ist.",
+        ]);
+
+        $payload = $excerpt->toSearchableArray();
+
+        $this->assertSame('Matthew reist Zukunft anders', $payload['body']);
+    }
 }
