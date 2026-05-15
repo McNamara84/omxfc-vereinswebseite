@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\RomanExcerpt;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -76,9 +77,16 @@ class IndexRomane extends Command
     {
         $parts = preg_split('/[\\\\\/]+/', $path);   // beide Slash-Typen
         $cycle = $parts[1] ?? 'unknown';
+        $filename = pathinfo($path, PATHINFO_FILENAME);
 
-        [$romanNr, $title] = explode(' - ', pathinfo($path, PATHINFO_FILENAME), 2);
+        if (! preg_match('/^(\d+)\s*-\s*(.+)$/', $filename, $matches)) {
+            Log::warning("IndexRomane: Dateiname '{$filename}' entspricht nicht dem erwarteten Format '001 - Titel'.", [
+                'path' => $path,
+            ]);
 
-        return [$cycle, $romanNr, $title];
+            return [$cycle, null, $filename];
+        }
+
+        return [$cycle, $matches[1], trim($matches[2])];
     }
 }
