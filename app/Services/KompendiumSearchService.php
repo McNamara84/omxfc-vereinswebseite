@@ -4,7 +4,9 @@ namespace App\Services;
 
 use App\Models\RomanExcerpt;
 use Illuminate\Support\Facades\Log;
+use Laravel\Scout\Engines\TypesenseEngine;
 use Laravel\Scout\EngineManager;
+use Typesense\Exceptions\ObjectNotFound;
 
 /**
  * Service für die Kompendium-Suche und Indexierung.
@@ -16,13 +18,23 @@ class KompendiumSearchService
     public function indexExists(): bool
     {
         $indexName = (new RomanExcerpt)->searchableAs();
+        $driver = config('scout.driver');
+
+        if ($driver === 'tntsearch') {
+            return $this->legacyIndexExists($indexName);
+        }
+
+        if ($driver !== 'typesense') {
+            return false;
+        }
+
         $engine = app(EngineManager::class)->engine();
 
-        if (get_class($engine) === 'Laravel\\Scout\\Engines\\TypesenseEngine') {
+        if ($engine instanceof TypesenseEngine) {
             return $this->typesenseCollectionExists($engine, $indexName);
         }
 
-        return $this->legacyIndexExists($indexName);
+        return false;
     }
 
     /**
@@ -138,13 +150,13 @@ class KompendiumSearchService
         return file_exists($storagePath.DIRECTORY_SEPARATOR.$indexName.'.index');
     }
 
-    private function typesenseCollectionExists(object $engine, string $indexName): bool
+    private function typesenseCollectionExists(TypesenseEngine $engine, string $indexName): bool
     {
         try {
             $engine->getCollections()->{$indexName}->retrieve();
 
             return true;
-        } catch (\Throwable) {
+        } catch (ObjectNotFound) {
             return false;
         }
     }
