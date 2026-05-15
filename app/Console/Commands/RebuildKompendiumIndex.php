@@ -19,7 +19,7 @@ class RebuildKompendiumIndex extends Command
         if ($searchService->indexExists()) {
             $this->info('Index existiert bereits – kein Rebuild nötig.');
 
-            return self::SUCCESS;
+            return 0;
         }
 
         $romane = KompendiumRoman::query()->indexiert()->get();
@@ -27,7 +27,7 @@ class RebuildKompendiumIndex extends Command
         if ($romane->isEmpty()) {
             $this->info('Keine indexierten Romane in der Datenbank gefunden – nichts zu tun.');
 
-            return self::SUCCESS;
+            return 0;
         }
 
         $anzahl = $romane->count();
@@ -35,21 +35,21 @@ class RebuildKompendiumIndex extends Command
         $this->info("Index fehlt – baue {$anzahl} {$label} neu auf …");
 
         $disk = Storage::disk('private');
-        $bar = $this->output->createProgressBar($romane->count());
-        $bar->start();
+
+        /** @var array<int, KompendiumRoman> $indexierteRomane */
+        $indexierteRomane = $romane->all();
 
         $batch = collect();
         $fehler = 0;
 
-        foreach ($romane as $roman) {
+        $this->withProgressBar($indexierteRomane, function (KompendiumRoman $roman) use (&$batch, &$fehler, $disk): void {
             if (! $disk->exists($roman->dateipfad)) {
                 $this->newLine();
                 $this->warn("Datei nicht gefunden: {$roman->dateipfad} – überspringe.");
                 $roman->update(['status' => 'fehler', 'fehler_nachricht' => 'Datei nicht gefunden beim Index-Rebuild']);
                 $fehler++;
-                $bar->advance();
 
-                continue;
+                return;
             }
 
             $batch->push(new RomanExcerpt([
@@ -64,15 +64,12 @@ class RebuildKompendiumIndex extends Command
                 $batch->searchableSync();
                 $batch = collect();
             }
-
-            $bar->advance();
-        }
+        });
 
         if ($batch->isNotEmpty()) {
             $batch->searchableSync();
         }
 
-        $bar->finish();
         $this->newLine(2);
 
         if ($fehler > 0) {
@@ -82,6 +79,6 @@ class RebuildKompendiumIndex extends Command
 
         $this->info('Index-Rebuild abgeschlossen.');
 
-        return self::SUCCESS;
+        return 0;
     }
 }

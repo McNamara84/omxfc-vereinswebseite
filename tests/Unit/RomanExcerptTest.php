@@ -3,11 +3,14 @@
 namespace Tests\Unit;
 
 use App\Models\RomanExcerpt;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
-use PHPUnit\Framework\TestCase;
+use Tests\TestCase;
 
 class RomanExcerptTest extends TestCase
 {
+    use RefreshDatabase;
+
     #[Test]
     public function it_generates_a_stable_typesense_document_id_from_the_path(): void
     {
