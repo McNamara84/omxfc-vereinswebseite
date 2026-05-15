@@ -12,7 +12,7 @@ class IndexRomane extends Command
     /** artisan romane:index  */
     protected $signature = 'romane:index {--fresh : löscht vorhandenen Index zuerst}';
 
-    protected $description = 'Scant alle TXT-Dateien und (re-)indexiert sie via Laravel Scout / TNTSearch';
+    protected $description = 'Scant alle TXT-Dateien und (re-)indexiert sie via Laravel Scout';
 
     public function handle(): int
     {
@@ -25,7 +25,7 @@ class IndexRomane extends Command
         if ($txt->isEmpty()) {
             $this->error('Keine TXT-Dateien gefunden.');
 
-            return self::FAILURE;
+            return 1;
         }
 
         if ($this->option('fresh')) {
@@ -33,13 +33,13 @@ class IndexRomane extends Command
             $this->info('Alter Index geleert.');
         }
 
-        $bar = $this->output->createProgressBar($txt->count());
-        $bar->start();
+        /** @var array<int, string> $dateipfade */
+        $dateipfade = $txt->values()->all();
 
         /** @var Collection<RomanExcerpt> $batch */
         $batch = collect();
 
-        foreach ($txt as $path) {
+        $this->withProgressBar($dateipfade, function (string $path) use (&$batch, $disk): void {
             [$cycle, $romanNr, $title] = $this->metaFromPath($path);
 
             $batch->push(new RomanExcerpt([
@@ -50,25 +50,22 @@ class IndexRomane extends Command
                 'body' => $disk->get($path),
             ]));
 
-            // Alle 250 Dokumente an Scout übergeben
+            // RomanExcerpt ist kein persistiertes Eloquent-Modell und muss daher synchron indiziert werden.
             if ($batch->count() === 250) {
-                $batch->searchable();
+                $batch->searchableSync();
                 $batch = collect();
             }
-
-            $bar->advance();
-        }
+        });
 
         // Rest flushen
         if ($batch->isNotEmpty()) {
-            $batch->searchable();
+            $batch->searchableSync();
         }
 
-        $bar->finish();
         $this->newLine(2);
         $this->info('Indexierung abgeschlossen.');
 
-        return self::SUCCESS;
+        return 0;
     }
 
     private function metaFromPath(string $path): array

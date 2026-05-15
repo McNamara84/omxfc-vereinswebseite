@@ -31,3 +31,4 @@ yarn-error.log
 /test-results
 coverage.xml
 omxfc_vereinswebseite
+docker-compose.yml

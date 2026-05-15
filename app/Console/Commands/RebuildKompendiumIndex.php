@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\KompendiumRoman;
 use App\Models\RomanExcerpt;
+use App\Services\KompendiumSearchService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Storage;
 
@@ -13,29 +14,20 @@ class RebuildKompendiumIndex extends Command
 
     protected $description = 'Baut den Kompendium-Suchindex aus vorhandenen Romanen neu auf, falls er fehlt';
 
-    public function handle(): int
+    public function handle(KompendiumSearchService $searchService): int
     {
-        if (config('scout.driver') !== 'tntsearch') {
-            $this->warn('Scout-Driver ist nicht tntsearch – Rebuild nicht möglich.');
-
-            return self::FAILURE;
-        }
-
-        $indexName = (new RomanExcerpt)->searchableAs();
-        $indexPath = config('scout.tntsearch.storage').DIRECTORY_SEPARATOR.$indexName.'.index';
-
-        if (file_exists($indexPath)) {
+        if ($searchService->indexExists()) {
             $this->info('Index existiert bereits – kein Rebuild nötig.');
 
-            return self::SUCCESS;
+            return 0;
         }
 
-        $romane = KompendiumRoman::where('status', 'indexiert')->get();
+        $romane = KompendiumRoman::query()->indexiert()->get();
 
         if ($romane->isEmpty()) {
             $this->info('Keine indexierten Romane in der Datenbank gefunden – nichts zu tun.');
 
-            return self::SUCCESS;
+            return 0;
         }
 
         $anzahl = $romane->count();
@@ -43,21 +35,21 @@ class RebuildKompendiumIndex extends Command
         $this->info("Index fehlt – baue {$anzahl} {$label} neu auf …");
 
         $disk = Storage::disk('private');
-        $bar = $this->output->createProgressBar($romane->count());
-        $bar->start();
+
+        /** @var array<int, KompendiumRoman> $indexierteRomane */
+        $indexierteRomane = $romane->all();
 
         $batch = collect();
         $fehler = 0;
 
-        foreach ($romane as $roman) {
+        $this->withProgressBar($indexierteRomane, function (KompendiumRoman $roman) use (&$batch, &$fehler, $disk): void {
             if (! $disk->exists($roman->dateipfad)) {
                 $this->newLine();
                 $this->warn("Datei nicht gefunden: {$roman->dateipfad} – überspringe.");
                 $roman->update(['status' => 'fehler', 'fehler_nachricht' => 'Datei nicht gefunden beim Index-Rebuild']);
                 $fehler++;
-                $bar->advance();
 
-                continue;
+                return;
             }
 
             $batch->push(new RomanExcerpt([
@@ -69,18 +61,15 @@ class RebuildKompendiumIndex extends Command
             ]));
 
             if ($batch->count() === 250) {
-                $batch->searchable();
+                $batch->searchableSync();
                 $batch = collect();
             }
-
-            $bar->advance();
-        }
+        });
 
         if ($batch->isNotEmpty()) {
-            $batch->searchable();
+            $batch->searchableSync();
         }
 
-        $bar->finish();
         $this->newLine(2);
 
         if ($fehler > 0) {
@@ -90,6 +79,6 @@ class RebuildKompendiumIndex extends Command
 
         $this->info('Index-Rebuild abgeschlossen.');
 
-        return self::SUCCESS;
+        return 0;
     }
 }

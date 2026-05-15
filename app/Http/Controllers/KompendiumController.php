@@ -91,7 +91,7 @@ class KompendiumController extends Controller
         $hatZugang = $this->hatKompendiumZugang($user);
 
         // Kompendium-Reward aus der DB laden
-        $kompendiumReward = Reward::where('slug', 'kompendium')->first();
+        $kompendiumReward = Reward::query()->where('slug', 'kompendium')->first();
 
         // Zusammengefasste Übersicht (Maddrax-Zyklen konsolidiert, Miniserien als ein Eintrag)
         $indexierteRomaneSummary = $this->kompendiumService->getZusammengefassteUebersicht();
@@ -171,7 +171,7 @@ class KompendiumController extends Controller
         /* ------------------------------------------------------------------ */
         $raw = $this->searchService->search($tntQuery);
 
-        $ids = $raw['ids'] ?? [];                               // enthält unsere "path"-Schlüssel
+        $ids = $raw['paths'] ?? $raw['ids'] ?? [];              // normalisierte Pfad-Treffer
         $ids = array_values($ids);                              // re-indexieren
 
         // Sicherheitsprüfung: Nur gültige Pfade weiterverarbeiten

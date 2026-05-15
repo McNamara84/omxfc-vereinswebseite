@@ -16,7 +16,7 @@ use Throwable;
 /**
  * Job zum Indexieren eines Romans für die Kompendium-Suche.
  *
- * Liest die TXT-Datei ein und fügt sie dem TNTSearch-Index hinzu.
+ * Liest die TXT-Datei ein und fügt sie dem Scout-Index hinzu.
  */
 class IndexiereRomanJob implements ShouldQueue
 {
@@ -62,7 +62,7 @@ class IndexiereRomanJob implements ShouldQueue
             'body' => $inhalt,
         ]);
 
-        $excerpt->searchable();
+        $excerpt->searchableSync();
 
         // Status aktualisieren
         $roman->update([

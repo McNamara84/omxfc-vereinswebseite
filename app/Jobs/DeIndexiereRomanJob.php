@@ -15,7 +15,7 @@ use Throwable;
 /**
  * Job zum De-Indexieren eines Romans aus der Kompendium-Suche.
  *
- * Entfernt den Roman aus dem TNTSearch-Index, behält aber die Datei.
+ * Entfernt den Roman aus dem Scout-Index, behält aber die Datei.
  */
 class DeIndexiereRomanJob implements ShouldQueue
 {

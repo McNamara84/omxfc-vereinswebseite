@@ -1,5 +1,7 @@
 <?php
 
+use App\Models\RomanExcerpt;
+
 return [
 
     /*
@@ -16,7 +18,7 @@ return [
     |
     */
 
-    'driver' => env('SCOUT_DRIVER', 'tntsearch'),
+    'driver' => env('SCOUT_DRIVER', 'typesense'),
 
     /*
     |--------------------------------------------------------------------------
@@ -193,30 +195,43 @@ return [
             'num_retries' => env('TYPESENSE_NUM_RETRIES', 3),
             'retry_interval_seconds' => env('TYPESENSE_RETRY_INTERVAL_SECONDS', 1),
         ],
-        // 'max_total_results' => env('TYPESENSE_MAX_TOTAL_RESULTS', 1000),
+        'max_total_results' => env('TYPESENSE_MAX_TOTAL_RESULTS', 1000),
         'model-settings' => [
-            // User::class => [
-            //     'collection-schema' => [
-            //         'fields' => [
-            //             [
-            //                 'name' => 'id',
-            //                 'type' => 'string',
-            //             ],
-            //             [
-            //                 'name' => 'name',
-            //                 'type' => 'string',
-            //             ],
-            //             [
-            //                 'name' => 'created_at',
-            //                 'type' => 'int64',
-            //             ],
-            //         ],
-            //         'default_sorting_field' => 'created_at',
-            //     ],
-            //     'search-parameters' => [
-            //         'query_by' => 'name'
-            //     ],
-            // ],
+            RomanExcerpt::class => [
+                'collection-schema' => [
+                    'fields' => [
+                        [
+                            'name' => 'id',
+                            'type' => 'string',
+                        ],
+                        [
+                            'name' => 'path',
+                            'type' => 'string',
+                        ],
+                        [
+                            'name' => 'cycle',
+                            'type' => 'string',
+                            'optional' => true,
+                        ],
+                        [
+                            'name' => 'roman_nr',
+                            'type' => 'string',
+                            'optional' => true,
+                        ],
+                        [
+                            'name' => 'title',
+                            'type' => 'string',
+                        ],
+                        [
+                            'name' => 'body',
+                            'type' => 'string',
+                        ],
+                    ],
+                ],
+                'search-parameters' => [
+                    'query_by' => 'title,body,cycle,roman_nr',
+                ],
+            ],
         ],
     ],
 

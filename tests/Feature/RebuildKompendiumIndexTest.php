@@ -3,7 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\KompendiumRoman;
-use App\Models\RomanExcerpt;
+use App\Services\KompendiumSearchService;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -29,12 +29,7 @@ class RebuildKompendiumIndexTest extends TestCase
         File::ensureDirectoryExists($this->testStoragePath.'/app/private/romane/maddrax');
         File::ensureDirectoryExists($this->testStoragePath.'/framework/views');
         config(['filesystems.disks.private.root' => $this->testStoragePath.'/app/private']);
-        config(['scout.driver' => 'tntsearch']);
-        config(['scout.tntsearch.storage' => $this->testStoragePath.'/app']);
-
-        // Sicherstellen, dass kein Index von vorherigen Tests existiert
-        $indexName = (new RomanExcerpt)->searchableAs();
-        @unlink($this->testStoragePath.'/app/'.$indexName.'.index');
+        config(['scout.driver' => 'null']);
 
         $team = Team::membersTeam();
         $this->admin = User::factory()->create(['current_team_id' => $team->id]);
@@ -49,9 +44,11 @@ class RebuildKompendiumIndexTest extends TestCase
 
     public function test_skips_rebuild_when_index_already_exists(): void
     {
-        // Index-Datei aus Model-Name ableiten
-        $indexName = (new RomanExcerpt)->searchableAs();
-        file_put_contents($this->testStoragePath.'/app/'.$indexName.'.index', 'fake-index');
+        $this->partialMock(KompendiumSearchService::class, function ($mock) {
+            $mock->shouldReceive('indexExists')
+                ->once()
+                ->andReturn(true);
+        });
 
         $this->artisan('kompendium:rebuild-index')
             ->expectsOutput('Index existiert bereits – kein Rebuild nötig.')
@@ -60,6 +57,12 @@ class RebuildKompendiumIndexTest extends TestCase
 
     public function test_skips_rebuild_when_no_indexed_romane_in_database(): void
     {
+        $this->partialMock(KompendiumSearchService::class, function ($mock) {
+            $mock->shouldReceive('indexExists')
+                ->once()
+                ->andReturn(false);
+        });
+
         $this->artisan('kompendium:rebuild-index')
             ->expectsOutput('Keine indexierten Romane in der Datenbank gefunden – nichts zu tun.')
             ->assertExitCode(0);
@@ -67,6 +70,12 @@ class RebuildKompendiumIndexTest extends TestCase
 
     public function test_rebuilds_index_from_indexed_romane(): void
     {
+        $this->partialMock(KompendiumSearchService::class, function ($mock) {
+            $mock->shouldReceive('indexExists')
+                ->once()
+                ->andReturn(false);
+        });
+
         // Roman-Datei anlegen
         Storage::disk('private')->put(
             'romane/maddrax/001 - Der Gott aus dem Eis.txt',
@@ -89,14 +98,16 @@ class RebuildKompendiumIndexTest extends TestCase
             ->expectsOutputToContain('Index fehlt – baue 1 Roman neu auf')
             ->expectsOutput('Index-Rebuild abgeschlossen.')
             ->assertExitCode(0);
-
-        // Verifiziere, dass die Index-Datei tatsächlich erstellt wurde
-        $indexName = (new RomanExcerpt)->searchableAs();
-        $this->assertFileExists($this->testStoragePath.'/app/'.$indexName.'.index');
     }
 
     public function test_marks_roman_as_fehler_when_file_missing(): void
     {
+        $this->partialMock(KompendiumSearchService::class, function ($mock) {
+            $mock->shouldReceive('indexExists')
+                ->once()
+                ->andReturn(false);
+        });
+
         // DB-Eintrag ohne zugehörige Datei
         $roman = KompendiumRoman::create([
             'dateiname' => '999 - Fehlender Roman.txt',
@@ -118,17 +129,14 @@ class RebuildKompendiumIndexTest extends TestCase
         $this->assertStringContainsString('Datei nicht gefunden', $roman->fehler_nachricht);
     }
 
-    public function test_warns_when_scout_driver_is_not_tntsearch(): void
-    {
-        config(['scout.driver' => 'null']);
-
-        $this->artisan('kompendium:rebuild-index')
-            ->expectsOutput('Scout-Driver ist nicht tntsearch – Rebuild nicht möglich.')
-            ->assertExitCode(1);
-    }
-
     public function test_ignores_non_indexed_romane(): void
     {
+        $this->partialMock(KompendiumSearchService::class, function ($mock) {
+            $mock->shouldReceive('indexExists')
+                ->once()
+                ->andReturn(false);
+        });
+
         // Roman mit Status "hochgeladen" sollte nicht rebuildet werden
         KompendiumRoman::create([
             'dateiname' => '001 - Hochgeladener Roman.txt',
