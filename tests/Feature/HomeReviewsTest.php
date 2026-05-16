@@ -8,7 +8,9 @@ use App\Models\Review;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Attributes\Computed;
 use Livewire\Livewire;
+use ReflectionMethod;
 use Tests\TestCase;
 
 class HomeReviewsTest extends TestCase
@@ -85,5 +87,19 @@ class HomeReviewsTest extends TestCase
 
         Livewire::test(HomeReviews::class)
             ->assertDontSee('Gelöschte Rezension');
+    }
+
+    public function test_reviews_use_livewire_computed_cache_for_five_minutes(): void
+    {
+        $attributes = (new ReflectionMethod(HomeReviews::class, 'reviews'))
+            ->getAttributes(Computed::class);
+
+        $this->assertCount(1, $attributes);
+
+        $computed = $attributes[0]->newInstance();
+
+        $this->assertTrue($computed->cache);
+        $this->assertSame(300, $computed->seconds);
+        $this->assertFalse($computed->persist);
     }
 }

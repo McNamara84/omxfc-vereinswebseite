@@ -11,7 +11,7 @@ use Livewire\Component;
 
 class HomeReviews extends Component
 {
-    #[Computed]
+    #[Computed(cache: true, seconds: 300)]
     public function reviews(): Collection
     {
         $team = Team::membersTeam();
