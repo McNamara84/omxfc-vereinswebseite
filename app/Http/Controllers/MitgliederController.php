@@ -7,10 +7,12 @@ use App\Models\User;
 use App\Services\MembersTeamProvider;
 use App\Services\UserRoleService;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Attributes\Controllers\Authorize;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
+#[Authorize('manage', User::class)]
 class MitgliederController extends Controller
 {
     public function __construct(
@@ -26,8 +28,6 @@ class MitgliederController extends Controller
 
         $currentUser = Auth::user();
         $team = $this->membersTeamProvider->getMembersTeamOrAbort();
-
-        $this->authorize('manage', User::class);
 
         // Korrekte Ermittlung der Rolle des eingeloggten Nutzers
         $currentUserRole = $this->userRoleService->getRole($currentUser, $team);
@@ -70,8 +70,6 @@ class MitgliederController extends Controller
         $currentUser = Auth::user();
         $team = $this->membersTeamProvider->getMembersTeamOrAbort();
 
-        $this->authorize('manage', User::class);
-
         // Korrekte Ermittlung der Rolle des eingeloggten Nutzers
         $currentUserRole = $this->userRoleService->getRole($currentUser, $team);
 
@@ -113,8 +111,6 @@ class MitgliederController extends Controller
     {
         $user = Auth::user();
         $team = $this->membersTeamProvider->getMembersTeamOrAbort();
-
-        $this->authorize('manage', User::class);
 
         // Felder validieren
         $request->validate([
@@ -201,8 +197,6 @@ class MitgliederController extends Controller
     {
         $user = Auth::user();
         $team = $this->membersTeamProvider->getMembersTeamOrAbort();
-
-        $this->authorize('manage', User::class);
 
         // E-Mail-Adressen abrufen
         $emails = $team->activeUsers()
