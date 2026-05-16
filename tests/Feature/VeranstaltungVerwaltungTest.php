@@ -205,6 +205,45 @@ class VeranstaltungVerwaltungTest extends TestCase
         $this->assertDatabaseMissing('veranstaltungs_merchartikel', ['id' => $artikel->id]);
     }
 
+    public function test_invalid_merch_update_does_not_repopulate_all_article_forms_with_old_values(): void
+    {
+        $admin = $this->createUserWithRole(Role::Admin);
+        $veranstaltung = Veranstaltung::query()->where('slug', 'jubilaeumsfeier-band-700')->firstOrFail();
+
+        $erstesArtikel = $veranstaltung->merchartikel()->create([
+            'bezeichnung' => 'Erster Artikel',
+            'beschreibung' => 'Bestehende Beschreibung eins.',
+            'preis' => 9.50,
+            'sort_order' => 1,
+            'is_active' => true,
+        ]);
+
+        $veranstaltung->merchartikel()->create([
+            'bezeichnung' => 'Zweiter Artikel',
+            'beschreibung' => 'Bestehende Beschreibung zwei.',
+            'preis' => 11.00,
+            'sort_order' => 2,
+            'is_active' => true,
+        ]);
+
+        $response = $this->withoutVite()
+            ->followingRedirects()
+            ->from(route('admin.veranstaltungen.edit', $veranstaltung))
+            ->actingAs($admin)
+            ->put(route('admin.veranstaltungen.merch.update', [$veranstaltung, $erstesArtikel]), [
+                'bezeichnung' => '',
+                'beschreibung' => 'Fehlerhafte Zwischenbeschreibung',
+                'preis' => '14.00',
+                'sort_order' => 3,
+                'varianten' => "Fehlerhafte Variante A\nFehlerhafte Variante B",
+                'is_active' => '1',
+            ]);
+
+        $response->assertSee('Erster Artikel');
+        $response->assertSee('Zweiter Artikel');
+        $response->assertDontSee('Fehlerhafte Variante A');
+    }
+
     public function test_admin_can_add_and_update_markdown_section(): void
     {
         $admin = $this->createUserWithRole(Role::Admin);

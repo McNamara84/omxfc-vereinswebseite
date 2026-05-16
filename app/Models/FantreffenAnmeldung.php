@@ -154,7 +154,7 @@ class FantreffenAnmeldung extends Model
     }
 
     /**
-     * Scope a query to only include registrations with t-shirt orders.
+     * Kompatibilitäts-Scope für bestehende Aufrufer: liefert Anmeldungen mit irgendeiner Merchandise-Bestellung.
      */
     public function scopeMitTshirt($query)
     {

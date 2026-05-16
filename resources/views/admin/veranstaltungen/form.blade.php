@@ -170,31 +170,31 @@
                             <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                                 <label class="form-control w-full lg:col-span-2">
                                     <span class="label-text mb-1 block text-sm font-medium">Bezeichnung</span>
-                                    <input name="bezeichnung" value="{{ old('bezeichnung', $artikel->bezeichnung) }}" class="input input-bordered w-full" />
+                                    <input name="bezeichnung" value="{{ $artikel->bezeichnung }}" class="input input-bordered w-full" />
                                 </label>
                                 <label class="form-control w-full">
                                     <span class="label-text mb-1 block text-sm font-medium">Preis</span>
-                                    <input type="number" step="0.01" min="0" name="preis" value="{{ old('preis', $artikel->preis) }}" class="input input-bordered w-full" />
+                                    <input type="number" step="0.01" min="0" name="preis" value="{{ $artikel->preis }}" class="input input-bordered w-full" />
                                 </label>
                                 <label class="form-control w-full">
                                     <span class="label-text mb-1 block text-sm font-medium">Sortierung</span>
-                                    <input type="number" min="0" name="sort_order" value="{{ old('sort_order', $artikel->sort_order) }}" class="input input-bordered w-full" />
+                                    <input type="number" min="0" name="sort_order" value="{{ $artikel->sort_order }}" class="input input-bordered w-full" />
                                 </label>
                             </div>
 
                             <label class="form-control w-full">
                                 <span class="label-text mb-1 block text-sm font-medium">Beschreibung</span>
-                                <textarea name="beschreibung" rows="3" class="textarea textarea-bordered w-full">{{ old('beschreibung', $artikel->beschreibung) }}</textarea>
+                                <textarea name="beschreibung" rows="3" class="textarea textarea-bordered w-full">{{ $artikel->beschreibung }}</textarea>
                             </label>
 
                             <label class="form-control w-full">
                                 <span class="label-text mb-1 block text-sm font-medium">Varianten</span>
-                                <textarea name="varianten" rows="4" class="textarea textarea-bordered w-full" placeholder="Je Zeile eine Variante, z. B. S, M, L oder Motiv A, Motiv B">{{ old('varianten', $artikel->varianten->where('is_active', true)->sortBy('sort_order')->pluck('bezeichnung')->implode(PHP_EOL)) }}</textarea>
+                                <textarea name="varianten" rows="4" class="textarea textarea-bordered w-full" placeholder="Je Zeile eine Variante, z. B. S, M, L oder Motiv A, Motiv B">{{ $artikel->varianten->where('is_active', true)->sortBy('sort_order')->pluck('bezeichnung')->implode(PHP_EOL) }}</textarea>
                                 <span class="label-text-alt mt-1 block text-xs text-base-content/60">Leer lassen, wenn der Artikel keine Varianten benötigt.</span>
                             </label>
 
                             <label class="flex items-center gap-3 text-sm">
-                                <input type="checkbox" name="is_active" value="1" @checked(old('is_active', $artikel->is_active)) class="checkbox" />
+                                <input type="checkbox" name="is_active" value="1" @checked($artikel->is_active) class="checkbox" />
                                 Artikel aktiv anzeigen
                             </label>
 

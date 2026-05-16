@@ -49,7 +49,7 @@ class FantreffenRegistrationService
             'mobile' => 'nullable|string|max:50',
             'merch' => 'nullable|array',
             'merch.*.selected' => 'nullable|boolean',
-            'merch.*.variant_id' => 'nullable',
+            'merch.*.variant_id' => 'nullable|integer',
             'tshirt_bestellt' => 'boolean',
             'tshirt_groesse' => 'required_if:tshirt_bestellt,true|nullable|string|max:50',
         ];
@@ -83,15 +83,16 @@ class FantreffenRegistrationService
             'email.required' => 'Bitte gib deine E-Mail-Adresse an.',
             'email.email' => 'Bitte gib eine gültige E-Mail-Adresse an.',
             'mobile.string' => 'Bitte gib eine gültige Telefonnummer an.',
+            'merch.*.variant_id.integer' => 'Bitte wähle eine gültige Variante aus.',
             'tshirt_groesse.required_if' => 'Bitte wähle eine T-Shirt-Größe aus.',
             'email.unique' => "Diese E-Mail-Adresse ist bereits für {$bezeichnung} angemeldet.",
         ];
     }
 
     /**
-     * Berechnet den Zahlungsbetrag basierend auf T-Shirt-Bestellung und Mitgliedsstatus.
+     * Berechnet den Zahlungsbetrag basierend auf Merchandise-Auswahl und Mitgliedsstatus.
      *
-     * @param  bool  $tshirtBestellt  Ob ein T-Shirt bestellt wurde
+     * @param  bool|array  $tshirtBestellt  Legacy-T-Shirt-Flag oder bereits normalisierte Merchandise-Bestellungen
      * @param  bool  $isAuthenticated  Ob der User eingeloggt (Mitglied) ist
      */
     public function calculatePaymentAmount(bool|array $tshirtBestellt, bool $isAuthenticated, ?Veranstaltung $veranstaltung = null): float
@@ -317,6 +318,7 @@ class FantreffenRegistrationService
             return [];
         }
 
+        $canOrderMerch = ! $this->deadlineService->isPassed($veranstaltung);
         $selectedArtikel = [];
 
         foreach ($orderableArtikel as $artikel) {
@@ -326,7 +328,7 @@ class FantreffenRegistrationService
                 continue;
             }
 
-            if (! $this->canOrderMerch($veranstaltung)) {
+            if (! $canOrderMerch) {
                 throw ValidationException::withMessages([
                     'merch' => 'Die Bestellfrist für Merchandise ist leider abgelaufen.',
                     'tshirt_bestellt' => 'Die Bestellfrist für Merchandise ist leider abgelaufen.',
@@ -390,6 +392,10 @@ class FantreffenRegistrationService
     private function resolveVariante(VeranstaltungsMerchartikel $artikel, mixed $submittedVariant): ?VeranstaltungsMerchvariante
     {
         if ($submittedVariant === null || $submittedVariant === '') {
+            return null;
+        }
+
+        if (! is_scalar($submittedVariant)) {
             return null;
         }
 

@@ -202,6 +202,30 @@ class FantreffenAnmeldungTest extends TestCase
         $this->assertDatabaseMissing('fantreffen_anmeldungen', ['email' => 'nora@example.com']);
     }
 
+    public function test_variant_id_must_be_scalar_for_selected_merch(): void
+    {
+        Mail::fake();
+
+        $tshirt = VeranstaltungsMerchartikel::query()
+            ->where('veranstaltung_id', $this->veranstaltung->id)
+            ->where('bezeichnung', 'T-Shirt')
+            ->firstOrFail();
+
+        $response = $this->post($this->storeUrl(), [
+            'vorname' => 'Nina',
+            'nachname' => 'Array',
+            'email' => 'nina@example.com',
+            'website' => '',
+            '_form_token' => $this->validFormToken(),
+            'merch' => [
+                $tshirt->id => ['selected' => '1', 'variant_id' => ['id' => 1]],
+            ],
+        ]);
+
+        $response->assertSessionHasErrors('merch.'.$tshirt->id.'.variant_id');
+        $this->assertDatabaseMissing('fantreffen_anmeldungen', ['email' => 'nina@example.com']);
+    }
+
     public function test_logged_in_member_can_register_without_payment()
     {
         Mail::fake();

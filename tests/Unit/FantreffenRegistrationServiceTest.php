@@ -109,8 +109,10 @@ class FantreffenRegistrationServiceTest extends TestCase
         // Diese Felder sollten vorhanden sein
         $this->assertArrayHasKey('mobile', $rules);
         $this->assertArrayHasKey('merch', $rules);
+        $this->assertArrayHasKey('merch.*.variant_id', $rules);
         $this->assertArrayHasKey('tshirt_bestellt', $rules);
         $this->assertArrayHasKey('tshirt_groesse', $rules);
+        $this->assertStringContainsString('integer', $rules['merch.*.variant_id']);
     }
 
     public function test_validation_rules_for_guest(): void
