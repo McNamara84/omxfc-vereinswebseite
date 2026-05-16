@@ -89,6 +89,22 @@ class FanfictionBildTagTest extends TestCase
         $this->assertStringContainsString('fanfiction-bild--zentriert', $html);
     }
 
+    public function test_links_are_sanitized_with_php_8_5_uri_support_rules(): void
+    {
+        $fanfiction = $this->createFanfiction(
+            '[Safe](https://example.com) [Broken](http:///example.com) [Protocol](//example.com/path) [Anchor](#anchor) [Relative](docs/page?section=1) [Bad](javascript:alert(1))'
+        );
+
+        $html = $fanfiction->renderFormattedContent($fanfiction->content, $fanfiction->photos);
+
+        $this->assertStringContainsString('<a href="https://example.com" rel="noopener noreferrer">Safe</a>', $html);
+        $this->assertStringContainsString('<a rel="noopener noreferrer">Broken</a>', $html);
+        $this->assertStringContainsString('<a rel="noopener noreferrer">Protocol</a>', $html);
+        $this->assertStringContainsString('<a href="#anchor" rel="noopener noreferrer">Anchor</a>', $html);
+        $this->assertStringContainsString('<a href="docs/page?section=1" rel="noopener noreferrer">Relative</a>', $html);
+        $this->assertStringContainsString('<a rel="noopener noreferrer">Bad</a>', $html);
+    }
+
     public function test_bild_tag_with_caption(): void
     {
         $fanfiction = $this->createFanfiction(

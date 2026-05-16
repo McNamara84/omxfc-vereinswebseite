@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Support\UriSupport;
 use Carbon\Carbon;
 use DOMDocument;
 use DOMXPath;
@@ -191,22 +192,13 @@ class Crawl2012 extends Command
 
     private function resolveUrl(string $href): ?string
     {
-        if (str_starts_with($href, 'http://') || str_starts_with($href, 'https://')) {
-            return $this->isAllowedUrl($href) ? $href : null;
-        }
+        $resolved = UriSupport::resolve(self::BASE_URL, $href);
 
-        $absolute = self::BASE_URL.ltrim($href, '/');
-
-        return $this->isAllowedUrl($absolute) ? $absolute : null;
+        return $resolved !== null && $this->isAllowedUrl($resolved) ? $resolved : null;
     }
 
     private function isAllowedUrl(string $url): bool
     {
-        $parts = parse_url($url);
-        if (($parts['scheme'] ?? '') !== 'https') {
-            return false;
-        }
-
-        return ($parts['host'] ?? '') === 'de.maddraxikon.com';
+        return UriSupport::isAbsoluteUrlForHost($url, 'https', 'de.maddraxikon.com');
     }
 }

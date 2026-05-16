@@ -115,31 +115,8 @@ final class SanitizedMarkdown
     {
         $href = trim($element->getAttribute('href'));
 
-        if ($href !== '') {
-            if (preg_match('/^(javascript|data|vbscript):/i', $href)) {
-                $element->removeAttribute('href');
-            } else {
-                $scheme = parse_url($href, PHP_URL_SCHEME);
-
-                if ($scheme === false) {
-                    $element->removeAttribute('href');
-                } elseif ($scheme !== null) {
-                    $normalizedScheme = strtolower($scheme);
-
-                    if (! in_array($normalizedScheme, ['http', 'https', 'mailto'], true)) {
-                        $element->removeAttribute('href');
-                    }
-                } else {
-                    $trimmedHref = ltrim($href);
-                    $isHashLink = Str::startsWith($trimmedHref, '#');
-                    $isRelativePath = Str::startsWith($trimmedHref, ['/', './', '../']);
-                    $looksLikeFile = preg_match('/^[A-Za-z_][A-Za-z0-9._\-\/]*([?#][^\s]*)?$/', $trimmedHref) === 1;
-
-                    if (Str::startsWith($trimmedHref, '//') || (! $isHashLink && ! $isRelativePath && ! $looksLikeFile)) {
-                        $element->removeAttribute('href');
-                    }
-                }
-            }
+        if ($href !== '' && ! UriSupport::isSafeMarkdownHref($href)) {
+            $element->removeAttribute('href');
         }
 
         $element->setAttribute('rel', 'noopener noreferrer');

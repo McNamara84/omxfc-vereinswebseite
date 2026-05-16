@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Support\UriSupport;
 use Illuminate\Console\Command;
 use Spatie\Sitemap\SitemapGenerator;
 use Spatie\Sitemap\Tags\Url;
@@ -32,8 +33,11 @@ class GenerateSitemap extends Command
 
     public function handle(): int
     {
-        $baseUrl = config('app.url');
-        if (! $baseUrl || ! filter_var($baseUrl, FILTER_VALIDATE_URL)) {
+        $baseUrl = is_string(config('app.url'))
+            ? UriSupport::normalizeAbsoluteHttpUrl(config('app.url'))
+            : null;
+
+        if ($baseUrl === null) {
             $this->error('APP_URL is not set or is not a valid URL.');
 
             return self::FAILURE;
