@@ -5,7 +5,6 @@ namespace Tests\Feature;
 use App\Enums\Role;
 use App\Livewire\FantreffenAdminDashboard;
 use App\Models\FantreffenAnmeldung;
-use App\Models\FantreffenAnmeldungMerchartikel;
 use App\Models\Team;
 use App\Models\User;
 use App\Models\Veranstaltung;
@@ -585,6 +584,50 @@ class FantreffenAdminDashboardTest extends TestCase
         // Check headers
         $this->assertEquals('text/csv; charset=UTF-8', $response->headers->get('Content-Type'));
         $this->assertStringContainsString($this->veranstaltung->slug.'-anmeldungen-', $response->headers->get('Content-Disposition'));
+    }
+
+    #[Test]
+    public function test_admin_csv_export_escapes_quotes_and_sanitizes_formula_values(): void
+    {
+        $admin = $this->createUserWithRole(Role::Admin);
+        $artikel = $this->createMerchartikel("Beutel \"Deluxe\"\nSpezial", 12.00);
+
+        $anmeldung = FantreffenAnmeldung::create([
+            'veranstaltung_id' => $this->veranstaltung->id,
+            'vorname' => '=SUM(1+1)',
+            'nachname' => 'Evil',
+            'email' => 'evil@example.com',
+            'mobile' => '+4912345',
+            'ist_mitglied' => false,
+            'payment_status' => 'pending',
+            'payment_amount' => 12.00,
+            'zahlungseingang' => false,
+            'paypal_transaction_id' => '@paypal',
+        ]);
+
+        $anmeldung->merchartikelBestellungen()->create([
+            'veranstaltungs_merchartikel_id' => $artikel->id,
+            'preis_zum_bestellzeitpunkt' => 12.00,
+            'status_erledigt' => false,
+        ]);
+
+        $this->actingAs($admin);
+
+        $livewireComponent = new FantreffenAdminDashboard;
+        $livewireComponent->mount($this->veranstaltung);
+        $response = $livewireComponent->exportCsv();
+
+        $this->assertInstanceOf(StreamedResponse::class, $response);
+
+        ob_start();
+        $response->sendContent();
+        $csv = (string) ob_get_clean();
+
+        $this->assertStringContainsString("'=SUM(1+1) Evil", $csv);
+        $this->assertStringContainsString("'+4912345", $csv);
+        $this->assertStringContainsString("'@paypal", $csv);
+        $this->assertStringContainsString('Beutel ""Deluxe""', $csv);
+        $this->assertStringContainsString("Spezial", $csv);
     }
 
     #[Test]

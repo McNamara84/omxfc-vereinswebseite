@@ -226,6 +226,32 @@ class FantreffenAnmeldungTest extends TestCase
         $this->assertDatabaseMissing('fantreffen_anmeldungen', ['email' => 'nina@example.com']);
     }
 
+    public function test_invalid_variant_input_can_be_rendered_after_redirect_without_warning(): void
+    {
+        Mail::fake();
+
+        $tshirt = VeranstaltungsMerchartikel::query()
+            ->where('veranstaltung_id', $this->veranstaltung->id)
+            ->where('bezeichnung', 'T-Shirt')
+            ->firstOrFail();
+
+        $response = $this->from($this->showUrl())
+            ->followingRedirects()
+            ->post($this->storeUrl(), [
+                'vorname' => 'Nina',
+                'nachname' => 'Redirect',
+                'email' => 'nina-redirect@example.com',
+                'website' => '',
+                '_form_token' => $this->validFormToken(),
+                'merch' => [
+                    $tshirt->id => ['selected' => '1', 'variant_id' => ['id' => 1]],
+                ],
+            ]);
+
+        $response->assertOk();
+        $response->assertSee('Bitte wähle eine gültige Variante aus.');
+    }
+
     public function test_logged_in_member_can_register_without_payment()
     {
         Mail::fake();

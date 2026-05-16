@@ -206,44 +206,63 @@ class FantreffenAdminDashboard extends Component
     {
         $anmeldungen = $this->getFilteredQuery()->get();
 
-        $csv = "Name,Email,Mobil,Mitglied,Orga-Team,Merchandise,Merch-Status,Zahlungsstatus,Betrag,Zahlungseingang,PayPal ID,Registriert am\n";
+        return Response::streamDownload(function () use ($anmeldungen) {
+            $output = fopen('php://output', 'wb');
 
-        foreach ($anmeldungen as $anmeldung) {
-            $orderedMerchandise = $anmeldung->ordered_merchandise;
+            if ($output === false) {
+                return;
+            }
 
-            $merchandise = $orderedMerchandise->map(function (array $bestellung) {
-                return $bestellung['name'].($bestellung['variant'] ? ' ('.$bestellung['variant'].')' : '');
-            })->implode('; ');
-
-            $merchStatus = $orderedMerchandise->map(function (array $bestellung) {
-                return $bestellung['name'].': '.($bestellung['done'] ? 'erledigt' : 'offen');
-            })->implode('; ');
-
-            $csv .= sprintf(
-                '"%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s"'."\n",
-                $anmeldung->full_name,
-                $anmeldung->registrant_email,
-                $anmeldung->mobile ?? '-',
-                $anmeldung->ist_mitglied ? 'Ja' : 'Nein',
-                $anmeldung->orga_team ? 'Ja' : 'Nein',
-                $merchandise !== '' ? $merchandise : '-',
-                $merchStatus !== '' ? $merchStatus : '-',
-                match ($anmeldung->payment_status) {
-                    'paid' => 'Bezahlt',
-                    'pending' => 'Ausstehend',
-                    'free' => 'Kostenlos',
-                    default => $anmeldung->payment_status
-                },
-                number_format((float) $anmeldung->payment_amount, 2, ',', '.').' €',
-                $anmeldung->zahlungseingang ? 'Ja' : 'Nein',
-                $anmeldung->paypal_transaction_id ?? '-',
-                $anmeldung->created_at->format('d.m.Y H:i')
-            );
-        }
-
-        return Response::streamDownload(function () use ($csv) {
             echo "\xEF\xBB\xBF"; // UTF-8 BOM für Excel
-            echo $csv;
+
+            fputcsv($output, [
+                'Name',
+                'Email',
+                'Mobil',
+                'Mitglied',
+                'Orga-Team',
+                'Merchandise',
+                'Merch-Status',
+                'Zahlungsstatus',
+                'Betrag',
+                'Zahlungseingang',
+                'PayPal ID',
+                'Registriert am',
+            ]);
+
+            foreach ($anmeldungen as $anmeldung) {
+                $orderedMerchandise = $anmeldung->ordered_merchandise;
+
+                $merchandise = $orderedMerchandise->map(function (array $bestellung) {
+                    return $bestellung['name'].($bestellung['variant'] ? ' ('.$bestellung['variant'].')' : '');
+                })->implode('; ');
+
+                $merchStatus = $orderedMerchandise->map(function (array $bestellung) {
+                    return $bestellung['name'].': '.($bestellung['done'] ? 'erledigt' : 'offen');
+                })->implode('; ');
+
+                fputcsv($output, $this->sanitizeCsvRow([
+                    $anmeldung->full_name,
+                    $anmeldung->registrant_email,
+                    $anmeldung->mobile ?? '-',
+                    $anmeldung->ist_mitglied ? 'Ja' : 'Nein',
+                    $anmeldung->orga_team ? 'Ja' : 'Nein',
+                    $merchandise !== '' ? $merchandise : '-',
+                    $merchStatus !== '' ? $merchStatus : '-',
+                    match ($anmeldung->payment_status) {
+                        'paid' => 'Bezahlt',
+                        'pending' => 'Ausstehend',
+                        'free' => 'Kostenlos',
+                        default => $anmeldung->payment_status
+                    },
+                    number_format((float) $anmeldung->payment_amount, 2, ',', '.').' €',
+                    $anmeldung->zahlungseingang ? 'Ja' : 'Nein',
+                    $anmeldung->paypal_transaction_id ?? '-',
+                    $anmeldung->created_at->format('d.m.Y H:i'),
+                ]));
+            }
+
+            fclose($output);
         }, $this->currentVeranstaltung()->slug.'-anmeldungen-'.now()->format('Y-m-d').'.csv', [
             'Content-Type' => 'text/csv; charset=UTF-8',
         ]);
@@ -339,5 +358,21 @@ class FantreffenAdminDashboard extends Component
                 'tshirt_fertig' => $bestellung->status_erledigt,
             ]);
         }
+    }
+
+    private function sanitizeCsvRow(array $values): array
+    {
+        return array_map(fn (mixed $value) => $this->sanitizeCsvValue($value), $values);
+    }
+
+    private function sanitizeCsvValue(mixed $value): string
+    {
+        $stringValue = str_replace(["\r\n", "\r"], "\n", (string) ($value ?? '-'));
+
+        if (preg_match('/^\s*[=+\-@]/u', $stringValue) === 1) {
+            return "'".$stringValue;
+        }
+
+        return $stringValue;
     }
 }

@@ -176,6 +176,7 @@
                                                     @php($isLegacyTshirt = mb_strtolower($artikel->bezeichnung) === 't-shirt')
                                                     @php($isSelected = (bool) data_get($submittedMerch, $artikel->id.'.selected', $isLegacyTshirt ? old('tshirt_bestellt', false) : false))
                                                     @php($selectedVariant = data_get($submittedMerch, $artikel->id.'.variant_id', $isLegacyTshirt ? old('tshirt_groesse') : null))
+                                                    @php($selectedVariantValue = is_scalar($selectedVariant) ? (string) $selectedVariant : null)
                                                     @php($displayName = $isLegacyTshirt ? 'Event-T-Shirt' : $artikel->bezeichnung)
 
                                                     <div x-data="{ selected: @js($isSelected) }" class="rounded-box border border-base-300 p-3 space-y-3">
@@ -209,7 +210,7 @@
                                                                     >
                                                                         <option value="">Bitte wählen</option>
                                                                         @foreach ($artikel->varianten as $variante)
-                                                                            <option value="{{ $variante->id }}" @selected((string) $selectedVariant === (string) $variante->id || (string) $selectedVariant === (string) $variante->bezeichnung)>{{ $variante->bezeichnung }}</option>
+                                                                            <option value="{{ $variante->id }}" @selected($selectedVariantValue !== null && ($selectedVariantValue === (string) $variante->id || $selectedVariantValue === (string) $variante->bezeichnung))>{{ $variante->bezeichnung }}</option>
                                                                         @endforeach
                                                                     </select>
                                                                 </label>
