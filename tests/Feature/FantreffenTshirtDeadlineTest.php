@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Veranstaltung;
+use App\Models\VeranstaltungsMerchartikel;
 use App\Services\FantreffenDeadlineService;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -36,6 +37,21 @@ class FantreffenTshirtDeadlineTest extends TestCase
             'tshirt_preis' => 25,
             'ist_highlight' => true,
         ]);
+
+        $tshirt = $this->veranstaltung->merchartikel()->create([
+            'bezeichnung' => 'T-Shirt',
+            'preis' => 25,
+            'sort_order' => 0,
+            'is_active' => true,
+        ]);
+
+        foreach (['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL'] as $index => $groesse) {
+            $tshirt->varianten()->create([
+                'bezeichnung' => $groesse,
+                'sort_order' => $index,
+                'is_active' => true,
+            ]);
+        }
     }
 
     protected function showUrl(): string

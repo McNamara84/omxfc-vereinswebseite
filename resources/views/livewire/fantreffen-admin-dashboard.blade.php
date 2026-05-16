@@ -8,8 +8,8 @@
 
     $tshirtOptions = [
         ['id' => 'alle', 'name' => 'Alle'],
-        ['id' => 'mit_tshirt', 'name' => 'Mit T-Shirt'],
-        ['id' => 'ohne_tshirt', 'name' => 'Ohne T-Shirt'],
+        ['id' => 'mit_tshirt', 'name' => 'Mit Merchandise'],
+        ['id' => 'ohne_tshirt', 'name' => 'Ohne Merchandise'],
     ];
 
     $paymentOptions = [
@@ -27,7 +27,7 @@
 
     $tshirtFertigOptions = [
         ['id' => 'alle', 'name' => 'Alle'],
-        ['id' => 'fertig', 'name' => 'Fertig'],
+        ['id' => 'fertig', 'name' => 'Erledigt'],
         ['id' => 'offen', 'name' => 'Offen'],
     ];
 
@@ -38,7 +38,7 @@
         ['key' => 'mobile', 'label' => 'Mobil'],
         ['key' => 'status', 'label' => 'Status', 'class' => 'text-center'],
         ['key' => 'orga_team', 'label' => 'Orga-Team', 'class' => 'text-center'],
-        ['key' => 'tshirt', 'label' => 'T-Shirt', 'class' => 'text-center'],
+        ['key' => 'tshirt', 'label' => 'Merchandise', 'class' => 'text-center'],
         ['key' => 'zahlung', 'label' => 'Zahlung', 'class' => 'text-center'],
         ['key' => 'profil', 'label' => 'Profil', 'class' => 'text-center'],
         ['key' => 'actions', 'label' => 'Löschen', 'class' => 'text-center'],
@@ -51,7 +51,7 @@
         <x-ui.page-header
             eyebrow="Adminbereich"
             :title="$veranstaltung->titel.' – Anmeldungen'"
-            description="Verwalte alle Registrierungen, Zahlungen, T-Shirts und Orga-Team-Flags zentral pro Veranstaltung."
+            description="Verwalte alle Registrierungen, Zahlungen, Merchandise-Bestellungen und Orga-Team-Flags zentral pro Veranstaltung."
         >
             <x-slot:actions>
                 <x-button 
@@ -83,7 +83,7 @@
         @endif
 
         {{-- Statistik-Cards --}}
-        <x-ui.panel title="Überblick" description="Die Kennzahlen zeigen aktuelle Anmeldungen, T-Shirt-Bedarf und offene Zahlungen. Der Export steht direkt daneben bereit.">
+        <x-ui.panel title="Überblick" description="Die Kennzahlen zeigen aktuelle Anmeldungen, Merchandise-Bedarf und offene Zahlungen. Der Export steht direkt daneben bereit.">
             <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <x-stat 
                     title="Gesamt" 
@@ -93,7 +93,7 @@
                 />
 
                 <x-stat 
-                    title="T-Shirts bestellt" 
+                    title="Merch bestellt" 
                     value="{{ $this->stats['tshirts'] }}"
                     description="{{ $this->stats['tshirts_offen'] }} noch offen"
                     icon="o-shopping-bag"
@@ -119,7 +119,7 @@
         </x-ui.panel>
 
         {{-- Filter & Suche --}}
-        <x-ui.panel title="Filter & Suche" description="Kombiniere Status-, T-Shirt- und Zahlungsfilter mit einer Schnellsuche nach Name oder E-Mail.">
+        <x-ui.panel title="Filter & Suche" description="Kombiniere Status-, Merchandise- und Zahlungsfilter mit einer Schnellsuche nach Name oder E-Mail.">
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <x-select 
                     label="Mitgliedsstatus" 
@@ -129,7 +129,7 @@
                 />
 
                 <x-select 
-                    label="T-Shirt" 
+                    label="Merchandise" 
                     :options="$tshirtOptions"
                     wire:model.live="filterTshirt"
                     icon="o-shopping-bag"
@@ -150,7 +150,7 @@
                 />
 
                 <x-select 
-                    label="T-Shirt Status" 
+                    label="Merch-Status" 
                     :options="$tshirtFertigOptions"
                     wire:model.live="filterTshirtFertig"
                     icon="o-check-badge"
@@ -167,7 +167,7 @@
         </x-ui.panel>
 
         {{-- Anmeldungen Tabelle --}}
-        <x-ui.panel title="Anmeldungen" description="Die Tabelle bleibt die zentrale Arbeitsfläche für Profilzugriffe, Status-Toggles und das Entfernen einzelner Registrierungen.">
+        <x-ui.panel title="Anmeldungen" description="Die Tabelle bleibt die zentrale Arbeitsfläche für Profilzugriffe, Merchandise-Status, Zahlungen und das Entfernen einzelner Registrierungen.">
             {{-- Skeleton Loading State --}}
             <div wire:loading.delay wire:target="filterMemberStatus, filterTshirt, filterPayment, filterZahlungseingang, filterTshirtFertig, search, toggleOrgaTeam, toggleTshirtFertig, toggleZahlungseingang, deleteAnmeldung">
                 <x-skeleton-table :columns="9" :rows="8" />
@@ -194,7 +194,13 @@
                                         <td>{{ $anmeldung->mobile ?? '-' }}</td>
                                         <td class="text-center">{{ $anmeldung->ist_mitglied ? 'Mitglied' : 'Gast' }}</td>
                                         <td class="text-center">{{ $anmeldung->orga_team ? 'Im Orga-Team' : '-' }}</td>
-                                        <td class="text-center">{{ $anmeldung->tshirt_bestellt ? ($anmeldung->tshirt_groesse ?? 'Ja') : '-' }}</td>
+                                        <td class="text-center">
+                                            @if ($anmeldung->ordered_merchandise->isNotEmpty())
+                                                {{ $anmeldung->ordered_merchandise->map(fn ($bestellung) => $bestellung['name'].($bestellung['variant'] ? ' ('.$bestellung['variant'].')' : ''))->implode(', ') }}
+                                            @else
+                                                -
+                                            @endif
+                                        </td>
                                         <td class="text-center">{{ number_format($anmeldung->payment_amount, 2, ',', '.') }} €</td>
                                         <td class="text-center">{{ $anmeldung->user ? 'Profil' : '-' }}</td>
                                         <td class="text-center">Löschen</td>
@@ -262,17 +268,27 @@
                             </div>
                         @endscope
 
-                        {{-- T-Shirt Spalte --}}
+                        {{-- Merchandise Spalte --}}
                         @scope('cell_tshirt', $anmeldung)
                             <div class="text-center">
-                                @if ($anmeldung->tshirt_bestellt)
-                                    <div class="font-medium">{{ $anmeldung->tshirt_groesse }}</div>
-                                    <x-button 
-                                        wire:click="toggleTshirtFertig({{ $anmeldung->id }})"
-                                        class="btn-xs mt-1 {{ $anmeldung->tshirt_fertig ? 'btn-success' : 'btn-warning' }}"
-                                    >
-                                        {{ $anmeldung->tshirt_fertig ? '✓ Fertig' : 'Offen' }}
-                                    </x-button>
+                                @if ($anmeldung->ordered_merchandise->isNotEmpty())
+                                    <div class="space-y-2 text-left">
+                                        @foreach ($anmeldung->ordered_merchandise as $bestellung)
+                                            <div class="rounded-box border border-base-300 px-3 py-2">
+                                                <div class="font-medium text-sm">
+                                                    {{ $bestellung['name'] }}
+                                                    @if ($bestellung['variant'])
+                                                        <span class="text-xs text-base-content/60">({{ $bestellung['variant'] }})</span>
+                                                    @endif
+                                                </div>
+                                                <x-button 
+                                                    wire:click="{{ $bestellung['id'] ? 'toggleMerchFertig('.$bestellung['id'].')' : 'toggleTshirtFertig('.$anmeldung->id.')' }}"
+                                                    class="btn-xs mt-2 {{ $bestellung['done'] ? 'btn-success' : 'btn-warning' }}"
+                                                >
+                                                    {{ $bestellung['done'] ? '✓ Erledigt' : 'Offen' }}
+                                                </x-button>
+                                            </div>
+                                        @endforeach
                                 @else
                                     <span class="opacity-40">-</span>
                                 @endif

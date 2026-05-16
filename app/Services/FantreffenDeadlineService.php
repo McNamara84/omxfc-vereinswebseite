@@ -15,11 +15,9 @@ class FantreffenDeadlineService
 {
     private function resolveDeadline(?Veranstaltung $veranstaltung = null): ?Carbon
     {
-        if ($veranstaltung && ! $veranstaltung->tshirt_aktiv) {
-            return null;
-        }
-
-        $value = $veranstaltung?->tshirt_deadline ?: config('services.fantreffen.tshirt_deadline');
+        $value = $veranstaltung?->merch_deadline
+            ?: $veranstaltung?->tshirt_deadline
+            ?: config('services.fantreffen.tshirt_deadline');
 
         if (! $value) {
             return null;
@@ -91,10 +89,15 @@ class FantreffenDeadlineService
     public function toArray(?Veranstaltung $veranstaltung = null): array
     {
         $formattedDate = $this->getFormattedDate($veranstaltung);
+        $deadlinePassed = $this->isPassed($veranstaltung);
+        $daysRemaining = $this->getDaysRemaining($veranstaltung);
 
         return [
-            'tshirtDeadlinePassed' => $this->isPassed($veranstaltung),
-            'daysUntilDeadline' => $this->getDaysRemaining($veranstaltung),
+            'merchDeadlinePassed' => $deadlinePassed,
+            'daysUntilMerchDeadline' => $daysRemaining,
+            'merchDeadlineFormatted' => $formattedDate,
+            'tshirtDeadlinePassed' => $deadlinePassed,
+            'daysUntilDeadline' => $daysRemaining,
             'tshirtDeadlineFormatted' => $formattedDate,
         ];
     }

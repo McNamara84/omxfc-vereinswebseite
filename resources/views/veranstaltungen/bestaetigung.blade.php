@@ -10,6 +10,8 @@
         />
 
         <x-ui.panel>
+            @php($orderedMerchandise = $anmeldung->ordered_merchandise)
+
             <div class="mb-6 text-center">
                 <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-success/20">
                     <x-icon name="o-check" class="h-8 w-8 text-success" />
@@ -32,10 +34,19 @@
                         <dd class="font-medium text-base-content">{{ $anmeldung->mobile }}</dd>
                     </div>
                 @endif
-                @if ($anmeldung->tshirt_bestellt)
+                @if ($orderedMerchandise->isNotEmpty())
                     <div class="flex justify-between gap-4">
-                        <dt class="text-base-content/60">T-Shirt</dt>
-                        <dd class="font-medium text-base-content">Größe {{ $anmeldung->tshirt_groesse }}</dd>
+                        <dt class="text-base-content/60">Merchandise</dt>
+                        <dd class="font-medium text-base-content text-right space-y-1">
+                            @foreach ($orderedMerchandise as $bestellung)
+                                <div>
+                                    {{ $bestellung['name'] }}
+                                    @if ($bestellung['variant'])
+                                        <span class="text-sm text-base-content/70">({{ $bestellung['variant'] }})</span>
+                                    @endif
+                                </div>
+                            @endforeach
+                        </dd>
                     </div>
                 @endif
             </dl>

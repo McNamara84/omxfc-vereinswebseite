@@ -6,6 +6,7 @@ use App\Models\FantreffenAnmeldung;
 use App\Models\Team;
 use App\Models\User;
 use App\Models\Veranstaltung;
+use App\Models\VeranstaltungsMerchartikel;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Crypt;
@@ -44,9 +45,33 @@ class FantreffenAnmeldungTest extends TestCase
             'zahlung_aktiv' => true,
             'tshirt_aktiv' => true,
             'tshirt_deadline' => '2026-02-28 23:59:59',
+            'merch_deadline' => '2027-02-28 23:59:59',
             'gastgebuehr' => 5,
             'tshirt_preis' => 25,
             'ist_highlight' => true,
+        ]);
+
+        $tshirt = $this->veranstaltung->merchartikel()->create([
+            'bezeichnung' => 'T-Shirt',
+            'preis' => 25,
+            'sort_order' => 0,
+            'is_active' => true,
+        ]);
+
+        foreach (['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL'] as $index => $groesse) {
+            $tshirt->varianten()->create([
+                'bezeichnung' => $groesse,
+                'sort_order' => $index,
+                'is_active' => true,
+            ]);
+        }
+
+        $this->veranstaltung->merchartikel()->create([
+            'bezeichnung' => 'Stoffbeutel',
+            'beschreibung' => 'Limitierter Beutel zur Veranstaltung.',
+            'preis' => 12,
+            'sort_order' => 1,
+            'is_active' => true,
         ]);
     }
 
@@ -111,9 +136,70 @@ class FantreffenAnmeldungTest extends TestCase
             $this->assertDatabaseHas('fantreffen_anmeldungen', [
                 'payment_amount' => 30.00,
             ]);
+            $this->assertDatabaseHas('fantreffen_anmeldung_merchartikel', [
+                'preis_zum_bestellzeitpunkt' => 25.00,
+            ]);
         } finally {
             Carbon::setTestNow();
         }
+    }
+
+    public function test_guest_can_register_with_multiple_merch_items(): void
+    {
+        Mail::fake();
+
+        $tshirt = VeranstaltungsMerchartikel::query()
+            ->where('veranstaltung_id', $this->veranstaltung->id)
+            ->where('bezeichnung', 'T-Shirt')
+            ->firstOrFail();
+        $bag = VeranstaltungsMerchartikel::query()
+            ->where('veranstaltung_id', $this->veranstaltung->id)
+            ->where('bezeichnung', 'Stoffbeutel')
+            ->firstOrFail();
+        $sizeL = $tshirt->varianten()->where('bezeichnung', 'L')->value('id');
+
+        $response = $this->post($this->storeUrl(), [
+            'vorname' => 'Mira',
+            'nachname' => 'Merch',
+            'email' => 'mira@example.com',
+            'website' => '',
+            '_form_token' => $this->validFormToken(),
+            'merch' => [
+                $tshirt->id => ['selected' => '1', 'variant_id' => (string) $sizeL],
+                $bag->id => ['selected' => '1'],
+            ],
+        ]);
+
+        $response->assertRedirect();
+        $this->assertDatabaseHas('fantreffen_anmeldungen', [
+            'email' => 'mira@example.com',
+            'payment_amount' => 42.00,
+        ]);
+        $this->assertSame(2, FantreffenAnmeldung::query()->firstOrFail()->merchartikelBestellungen()->count());
+    }
+
+    public function test_variant_is_required_for_selected_merch_with_variants(): void
+    {
+        Mail::fake();
+
+        $tshirt = VeranstaltungsMerchartikel::query()
+            ->where('veranstaltung_id', $this->veranstaltung->id)
+            ->where('bezeichnung', 'T-Shirt')
+            ->firstOrFail();
+
+        $response = $this->post($this->storeUrl(), [
+            'vorname' => 'Nora',
+            'nachname' => 'Variant',
+            'email' => 'nora@example.com',
+            'website' => '',
+            '_form_token' => $this->validFormToken(),
+            'merch' => [
+                $tshirt->id => ['selected' => '1'],
+            ],
+        ]);
+
+        $response->assertSessionHasErrors('merch.'.$tshirt->id.'.variant_id');
+        $this->assertDatabaseMissing('fantreffen_anmeldungen', ['email' => 'nora@example.com']);
     }
 
     public function test_logged_in_member_can_register_without_payment()

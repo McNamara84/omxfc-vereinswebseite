@@ -112,11 +112,7 @@
                     </label>
                     <label class="flex items-start gap-3 rounded-box border border-base-300 p-4">
                         <input type="checkbox" name="zahlung_aktiv" value="1" @checked(old('zahlung_aktiv', $veranstaltung->zahlung_aktiv)) class="checkbox mt-1" />
-                        <span><span class="block font-medium">Zahlung aktiv</span><span class="block text-sm text-base-content/70">Schaltet Gastgebühr und Zahlungsanzeige frei.</span></span>
-                    </label>
-                    <label class="flex items-start gap-3 rounded-box border border-base-300 p-4">
-                        <input type="checkbox" name="tshirt_aktiv" value="1" @checked(old('tshirt_aktiv', $veranstaltung->tshirt_aktiv)) class="checkbox mt-1" />
-                        <span><span class="block font-medium">T-Shirt-Modul aktiv</span><span class="block text-sm text-base-content/70">Ermöglicht T-Shirt-Bestellungen samt Deadline.</span></span>
+                        <span><span class="block font-medium">Teilnahmegebühr aktiv</span><span class="block text-sm text-base-content/70">Aktiviert die Gastgebühr für die Veranstaltung. Merchandise-Preise werden separat gepflegt.</span></span>
                     </label>
                     <label class="flex items-start gap-3 rounded-box border border-base-300 p-4">
                         <input type="checkbox" name="vip_autoren_aktiv" value="1" @checked(old('vip_autoren_aktiv', $veranstaltung->vip_autoren_aktiv)) class="checkbox mt-1" />
@@ -134,16 +130,12 @@
                         <input type="datetime-local" name="anmeldung_ende" value="{{ old('anmeldung_ende', $veranstaltung->anmeldung_ende?->format('Y-m-d\TH:i')) }}" class="input input-bordered w-full" />
                     </label>
                     <label class="form-control w-full">
-                        <span class="label-text mb-1 block text-sm font-medium">T-Shirt-Deadline</span>
-                        <input type="datetime-local" name="tshirt_deadline" value="{{ old('tshirt_deadline', $veranstaltung->tshirt_deadline?->format('Y-m-d\TH:i')) }}" class="input input-bordered w-full" />
+                        <span class="label-text mb-1 block text-sm font-medium">Merchandise-Bestellfrist</span>
+                        <input type="datetime-local" name="merch_deadline" value="{{ old('merch_deadline', $veranstaltung->merch_deadline?->format('Y-m-d\TH:i')) }}" class="input input-bordered w-full" />
                     </label>
                     <label class="form-control w-full">
                         <span class="label-text mb-1 block text-sm font-medium">Gastgebühr</span>
                         <input type="number" step="0.01" min="0" name="gastgebuehr" value="{{ old('gastgebuehr', $veranstaltung->gastgebuehr) }}" class="input input-bordered w-full" />
-                    </label>
-                    <label class="form-control w-full">
-                        <span class="label-text mb-1 block text-sm font-medium">T-Shirt-Preis</span>
-                        <input type="number" step="0.01" min="0" name="tshirt_preis" value="{{ old('tshirt_preis', $veranstaltung->tshirt_preis) }}" class="input input-bordered w-full" />
                     </label>
                     <label class="form-control w-full">
                         <span class="label-text mb-1 block text-sm font-medium">Benachrichtigungs-E-Mail</span>
@@ -169,6 +161,105 @@
         </x-ui.panel>
 
         @unless ($isCreate)
+            <x-ui.panel title="Merchandise" description="Pflege bis zu 10 optionale Zusatzartikel mit Preis, Aktiv-Status und festen Varianten pro Veranstaltung.">
+                <div class="space-y-4">
+                    @forelse ($merchartikel as $artikel)
+                        <form method="POST" action="{{ route('admin.veranstaltungen.merch.update', [$veranstaltung, $artikel]) }}" class="rounded-box border border-base-300 p-4 space-y-3">
+                            @csrf
+                            @method('PUT')
+                            <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                                <label class="form-control w-full lg:col-span-2">
+                                    <span class="label-text mb-1 block text-sm font-medium">Bezeichnung</span>
+                                    <input name="bezeichnung" value="{{ old('bezeichnung', $artikel->bezeichnung) }}" class="input input-bordered w-full" />
+                                </label>
+                                <label class="form-control w-full">
+                                    <span class="label-text mb-1 block text-sm font-medium">Preis</span>
+                                    <input type="number" step="0.01" min="0" name="preis" value="{{ old('preis', $artikel->preis) }}" class="input input-bordered w-full" />
+                                </label>
+                                <label class="form-control w-full">
+                                    <span class="label-text mb-1 block text-sm font-medium">Sortierung</span>
+                                    <input type="number" min="0" name="sort_order" value="{{ old('sort_order', $artikel->sort_order) }}" class="input input-bordered w-full" />
+                                </label>
+                            </div>
+
+                            <label class="form-control w-full">
+                                <span class="label-text mb-1 block text-sm font-medium">Beschreibung</span>
+                                <textarea name="beschreibung" rows="3" class="textarea textarea-bordered w-full">{{ old('beschreibung', $artikel->beschreibung) }}</textarea>
+                            </label>
+
+                            <label class="form-control w-full">
+                                <span class="label-text mb-1 block text-sm font-medium">Varianten</span>
+                                <textarea name="varianten" rows="4" class="textarea textarea-bordered w-full" placeholder="Je Zeile eine Variante, z. B. S, M, L oder Motiv A, Motiv B">{{ old('varianten', $artikel->varianten->where('is_active', true)->sortBy('sort_order')->pluck('bezeichnung')->implode(PHP_EOL)) }}</textarea>
+                                <span class="label-text-alt mt-1 block text-xs text-base-content/60">Leer lassen, wenn der Artikel keine Varianten benötigt.</span>
+                            </label>
+
+                            <label class="flex items-center gap-3 text-sm">
+                                <input type="checkbox" name="is_active" value="1" @checked(old('is_active', $artikel->is_active)) class="checkbox" />
+                                Artikel aktiv anzeigen
+                            </label>
+
+                            <div class="flex flex-wrap justify-end gap-2">
+                                <button type="submit" class="btn btn-primary btn-sm">Artikel speichern</button>
+                            </div>
+                        </form>
+
+                        <form method="POST" action="{{ route('admin.veranstaltungen.merch.destroy', [$veranstaltung, $artikel]) }}" class="flex justify-end">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="btn btn-ghost btn-sm text-error">Artikel entfernen</button>
+                        </form>
+                    @empty
+                        <p class="rounded-box border border-dashed border-base-300 px-4 py-5 text-sm text-base-content/70">
+                            Für diese Veranstaltung ist noch kein Merchandise hinterlegt.
+                        </p>
+                    @endforelse
+
+                    @if ($merchartikel->count() < 10)
+                        <form method="POST" action="{{ route('admin.veranstaltungen.merch.store', $veranstaltung) }}" class="rounded-box border border-dashed border-base-300 p-4 space-y-3">
+                            @csrf
+                            <h3 class="text-lg font-semibold">Neuen Merchandise-Artikel hinzufügen</h3>
+                            <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                                <label class="form-control w-full lg:col-span-2">
+                                    <span class="label-text mb-1 block text-sm font-medium">Bezeichnung</span>
+                                    <input name="bezeichnung" class="input input-bordered w-full" />
+                                </label>
+                                <label class="form-control w-full">
+                                    <span class="label-text mb-1 block text-sm font-medium">Preis</span>
+                                    <input type="number" step="0.01" min="0" name="preis" class="input input-bordered w-full" />
+                                </label>
+                                <label class="form-control w-full">
+                                    <span class="label-text mb-1 block text-sm font-medium">Sortierung</span>
+                                    <input type="number" min="0" name="sort_order" value="{{ $merchartikel->max('sort_order') + 1 }}" class="input input-bordered w-full" />
+                                </label>
+                            </div>
+
+                            <label class="form-control w-full">
+                                <span class="label-text mb-1 block text-sm font-medium">Beschreibung</span>
+                                <textarea name="beschreibung" rows="3" class="textarea textarea-bordered w-full"></textarea>
+                            </label>
+
+                            <label class="form-control w-full">
+                                <span class="label-text mb-1 block text-sm font-medium">Varianten</span>
+                                <textarea name="varianten" rows="4" class="textarea textarea-bordered w-full" placeholder="Je Zeile eine Variante"></textarea>
+                            </label>
+
+                            <label class="flex items-center gap-3 text-sm">
+                                <input type="checkbox" name="is_active" value="1" checked class="checkbox" />
+                                Artikel aktiv anzeigen
+                            </label>
+
+                            <div class="flex justify-end">
+                                <button type="submit" class="btn btn-primary btn-sm">Artikel anlegen</button>
+                            </div>
+                        </form>
+                    @else
+                        <x-alert icon="o-exclamation-circle" class="alert-warning">
+                            Das Limit von 10 Merchandise-Artikeln für diese Veranstaltung ist erreicht.
+                        </x-alert>
+                    @endif
+                </div>
+            </x-ui.panel>
+
             <x-ui.panel title="Freie Inhalte" description="Ergänze beliebig viele Markdown-Abschnitte für Programm, FAQ, Hinweise oder Archivtexte.">
                 <div class="space-y-4">
                     @foreach ($abschnitte as $abschnitt)

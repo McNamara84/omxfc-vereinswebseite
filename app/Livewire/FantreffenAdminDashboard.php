@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Enums\Role;
 use App\Models\FantreffenAnmeldung;
+use App\Models\FantreffenAnmeldungMerchartikel;
 use App\Models\Veranstaltung;
 use Illuminate\Support\Facades\Response;
 use Livewire\Attributes\Computed;
@@ -48,10 +49,10 @@ class FantreffenAdminDashboard extends Component
             'total' => $query->count(),
             'mitglieder' => (clone $query)->where('ist_mitglied', true)->count(),
             'gaeste' => (clone $query)->where('ist_mitglied', false)->count(),
-            'tshirts' => (clone $query)->where('tshirt_bestellt', true)->count(),
+            'tshirts' => (clone $query)->mitTshirt()->count(),
             'zahlungen_ausstehend' => (clone $query)->where('payment_status', 'pending')->where('zahlungseingang', false)->count(),
             'zahlungen_offen_betrag' => (clone $query)->where('payment_status', 'pending')->where('zahlungseingang', false)->sum('payment_amount'),
-            'tshirts_offen' => (clone $query)->where('tshirt_bestellt', true)->where('tshirt_fertig', false)->count(),
+            'tshirts_offen' => (clone $query)->mitOffenemMerch()->count(),
         ];
     }
 
@@ -82,7 +83,18 @@ class FantreffenAdminDashboard extends Component
     {
         return FantreffenAnmeldung::query()
             ->where('veranstaltung_id', $this->currentVeranstaltung()->id)
+            ->with(['merchartikelBestellungen.artikel', 'merchartikelBestellungen.variante'])
             ->findOrFail($anmeldungId);
+    }
+
+    protected function findMerchBestellung(int $bestellungId): FantreffenAnmeldungMerchartikel
+    {
+        return FantreffenAnmeldungMerchartikel::query()
+            ->with(['anmeldung', 'artikel', 'variante'])
+            ->whereHas('anmeldung', function ($query) {
+                $query->where('veranstaltung_id', $this->currentVeranstaltung()->id);
+            })
+            ->findOrFail($bestellungId);
     }
 
     public function updatedFilterMemberStatus(): void
@@ -134,11 +146,28 @@ class FantreffenAdminDashboard extends Component
     public function toggleTshirtFertig(int $anmeldungId): void
     {
         $anmeldung = $this->findAnmeldung($anmeldungId);
-        $anmeldung->tshirt_fertig = ! $anmeldung->tshirt_fertig;
-        $anmeldung->save();
+
+        $bestellung = $anmeldung->merchartikelBestellungen()->orderBy('id')->first();
+
+        if ($bestellung) {
+            $this->toggleMerchBestellungStatus($bestellung);
+        } else {
+            $anmeldung->tshirt_fertig = ! $anmeldung->tshirt_fertig;
+            $anmeldung->save();
+        }
 
         unset($this->stats, $this->anmeldungen);
-        session()->flash('success', 'T-Shirt-Status aktualisiert.');
+        session()->flash('success', 'Merchandise-Status aktualisiert.');
+    }
+
+    public function toggleMerchFertig(int $bestellungId): void
+    {
+        $bestellung = $this->findMerchBestellung($bestellungId);
+
+        $this->toggleMerchBestellungStatus($bestellung);
+
+        unset($this->stats, $this->anmeldungen);
+        session()->flash('success', 'Merchandise-Status aktualisiert.');
     }
 
     public function deleteAnmeldung(int $anmeldungId): void
@@ -177,18 +206,26 @@ class FantreffenAdminDashboard extends Component
     {
         $anmeldungen = $this->getFilteredQuery()->get();
 
-        $csv = "Name,Email,Mobil,Mitglied,Orga-Team,T-Shirt,Größe,Zahlungsstatus,Betrag,Zahlungseingang,T-Shirt fertig,PayPal ID,Registriert am\n";
+        $csv = "Name,Email,Mobil,Mitglied,Orga-Team,Merchandise,Merch-Status,Zahlungsstatus,Betrag,Zahlungseingang,PayPal ID,Registriert am\n";
 
         foreach ($anmeldungen as $anmeldung) {
+            $merchandise = $anmeldung->ordered_merchandise->map(function (array $bestellung) {
+                return $bestellung['name'].($bestellung['variant'] ? ' ('.$bestellung['variant'].')' : '');
+            })->implode('; ');
+
+            $merchStatus = $anmeldung->ordered_merchandise->map(function (array $bestellung) {
+                return $bestellung['name'].': '.($bestellung['done'] ? 'erledigt' : 'offen');
+            })->implode('; ');
+
             $csv .= sprintf(
-                '"%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s"'."\n",
+                '"%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s"'."\n",
                 $anmeldung->full_name,
                 $anmeldung->registrant_email,
                 $anmeldung->mobile ?? '-',
                 $anmeldung->ist_mitglied ? 'Ja' : 'Nein',
                 $anmeldung->orga_team ? 'Ja' : 'Nein',
-                $anmeldung->tshirt_bestellt ? 'Ja' : 'Nein',
-                $anmeldung->tshirt_groesse ?? '-',
+                $merchandise !== '' ? $merchandise : '-',
+                $merchStatus !== '' ? $merchStatus : '-',
                 match ($anmeldung->payment_status) {
                     'paid' => 'Bezahlt',
                     'pending' => 'Ausstehend',
@@ -197,7 +234,6 @@ class FantreffenAdminDashboard extends Component
                 },
                 number_format((float) $anmeldung->payment_amount, 2, ',', '.').' €',
                 $anmeldung->zahlungseingang ? 'Ja' : 'Nein',
-                $anmeldung->tshirt_fertig ? 'Ja' : 'Nein',
                 $anmeldung->paypal_transaction_id ?? '-',
                 $anmeldung->created_at->format('d.m.Y H:i')
             );
@@ -214,7 +250,7 @@ class FantreffenAdminDashboard extends Component
     protected function getFilteredQuery()
     {
         $query = FantreffenAnmeldung::query()
-            ->with('user')
+            ->with(['user', 'merchartikelBestellungen.artikel', 'merchartikelBestellungen.variante'])
             ->where('veranstaltung_id', $this->currentVeranstaltung()->id);
 
         // Mitgliedsstatus-Filter
@@ -228,7 +264,7 @@ class FantreffenAdminDashboard extends Component
         if ($this->filterTshirt === 'mit_tshirt') {
             $query->mitTshirt();
         } elseif ($this->filterTshirt === 'ohne_tshirt') {
-            $query->where('tshirt_bestellt', false);
+            $query->ohneMerch();
         }
 
         // Payment-Filter
@@ -249,9 +285,9 @@ class FantreffenAdminDashboard extends Component
 
         // T-Shirt fertig-Filter
         if ($this->filterTshirtFertig === 'fertig') {
-            $query->where('tshirt_fertig', true);
+            $query->mitErledigtemMerch();
         } elseif ($this->filterTshirtFertig === 'offen') {
-            $query->where('tshirt_fertig', false)->where('tshirt_bestellt', true);
+            $query->mitOffenemMerch();
         }
 
         // Suchfilter
@@ -288,5 +324,18 @@ class FantreffenAdminDashboard extends Component
             ->layout('layouts.app', [
                 'title' => $veranstaltung->titel.' - Anmeldungen',
             ]);
+    }
+
+    private function toggleMerchBestellungStatus(FantreffenAnmeldungMerchartikel $bestellung): void
+    {
+        $bestellung->status_erledigt = ! $bestellung->status_erledigt;
+        $bestellung->status_erledigt_am = $bestellung->status_erledigt ? now() : null;
+        $bestellung->save();
+
+        if (mb_strtolower($bestellung->artikel?->bezeichnung ?? '') === 't-shirt') {
+            $bestellung->anmeldung?->update([
+                'tshirt_fertig' => $bestellung->status_erledigt,
+            ]);
+        }
     }
 }

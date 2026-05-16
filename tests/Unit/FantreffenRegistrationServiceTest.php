@@ -83,6 +83,16 @@ class FantreffenRegistrationServiceTest extends TestCase
         $this->assertIsFloat($amount);
     }
 
+    public function test_guest_with_multiple_merch_items_pays_guest_fee_plus_all_item_prices(): void
+    {
+        $amount = $this->service->calculatePaymentAmount([
+            ['price' => 12.0],
+            ['price' => 25.0],
+        ], false);
+
+        $this->assertSame(42.0, $amount);
+    }
+
     // ============================================
     // validationRules() Tests
     // ============================================
@@ -98,6 +108,7 @@ class FantreffenRegistrationServiceTest extends TestCase
 
         // Diese Felder sollten vorhanden sein
         $this->assertArrayHasKey('mobile', $rules);
+        $this->assertArrayHasKey('merch', $rules);
         $this->assertArrayHasKey('tshirt_bestellt', $rules);
         $this->assertArrayHasKey('tshirt_groesse', $rules);
     }

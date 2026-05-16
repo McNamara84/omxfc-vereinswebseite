@@ -5,9 +5,11 @@ namespace Tests\Feature;
 use App\Enums\Role;
 use App\Livewire\FantreffenAdminDashboard;
 use App\Models\FantreffenAnmeldung;
+use App\Models\FantreffenAnmeldungMerchartikel;
 use App\Models\Team;
 use App\Models\User;
 use App\Models\Veranstaltung;
+use App\Models\VeranstaltungsMerchartikel;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Config;
 use Livewire\Livewire;
@@ -50,6 +52,26 @@ class FantreffenAdminDashboardTest extends TestCase
         ]);
 
         return $user;
+    }
+
+    protected function createMerchartikel(string $bezeichnung = 'T-Shirt', float $preis = 25.00, array $varianten = []): VeranstaltungsMerchartikel
+    {
+        $artikel = $this->veranstaltung->merchartikel()->create([
+            'bezeichnung' => $bezeichnung,
+            'preis' => $preis,
+            'sort_order' => 0,
+            'is_active' => true,
+        ]);
+
+        foreach ($varianten as $index => $variante) {
+            $artikel->varianten()->create([
+                'bezeichnung' => $variante,
+                'sort_order' => $index,
+                'is_active' => true,
+            ]);
+        }
+
+        return $artikel;
     }
 
     #[Test]
@@ -459,6 +481,79 @@ class FantreffenAdminDashboardTest extends TestCase
 
         $anmeldung->refresh();
         $this->assertTrue($anmeldung->tshirt_fertig);
+    }
+
+    #[Test]
+    public function test_admin_can_toggle_specific_merch_status_on_order_row(): void
+    {
+        $admin = $this->createUserWithRole(Role::Admin);
+        $artikel = $this->createMerchartikel('Stoffbeutel', 12.00);
+
+        $anmeldung = FantreffenAnmeldung::create([
+            'veranstaltung_id' => $this->veranstaltung->id,
+            'vorname' => 'Mila',
+            'nachname' => 'Merch',
+            'email' => 'mila@example.com',
+            'ist_mitglied' => false,
+            'payment_status' => 'pending',
+            'payment_amount' => 12.00,
+            'zahlungseingang' => false,
+        ]);
+
+        $bestellung = $anmeldung->merchartikelBestellungen()->create([
+            'veranstaltungs_merchartikel_id' => $artikel->id,
+            'preis_zum_bestellzeitpunkt' => 12.00,
+            'status_erledigt' => false,
+        ]);
+
+        Livewire::actingAs($admin)
+            ->test(FantreffenAdminDashboard::class, ['veranstaltung' => $this->veranstaltung])
+            ->call('toggleMerchFertig', $bestellung->id);
+
+        $this->assertTrue($bestellung->fresh()->status_erledigt);
+    }
+
+    #[Test]
+    public function test_admin_can_filter_by_open_merch_orders(): void
+    {
+        $admin = $this->createUserWithRole(Role::Admin);
+        $artikel = $this->createMerchartikel('Stoffbeutel', 12.00);
+
+        $offen = FantreffenAnmeldung::create([
+            'veranstaltung_id' => $this->veranstaltung->id,
+            'vorname' => 'Offen',
+            'nachname' => 'Bestellt',
+            'email' => 'offen@example.com',
+            'ist_mitglied' => false,
+            'payment_status' => 'pending',
+            'payment_amount' => 12.00,
+        ]);
+        $offen->merchartikelBestellungen()->create([
+            'veranstaltungs_merchartikel_id' => $artikel->id,
+            'preis_zum_bestellzeitpunkt' => 12.00,
+            'status_erledigt' => false,
+        ]);
+
+        $erledigt = FantreffenAnmeldung::create([
+            'veranstaltung_id' => $this->veranstaltung->id,
+            'vorname' => 'Erledigt',
+            'nachname' => 'Bestellt',
+            'email' => 'erledigt@example.com',
+            'ist_mitglied' => false,
+            'payment_status' => 'pending',
+            'payment_amount' => 12.00,
+        ]);
+        $erledigt->merchartikelBestellungen()->create([
+            'veranstaltungs_merchartikel_id' => $artikel->id,
+            'preis_zum_bestellzeitpunkt' => 12.00,
+            'status_erledigt' => true,
+        ]);
+
+        Livewire::actingAs($admin)
+            ->test(FantreffenAdminDashboard::class, ['veranstaltung' => $this->veranstaltung])
+            ->set('filterTshirtFertig', 'offen')
+            ->assertSee('Offen Bestellt')
+            ->assertDontSee('Erledigt Bestellt');
     }
 
     #[Test]

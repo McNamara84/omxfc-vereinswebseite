@@ -1,6 +1,8 @@
 <x-mail::message>
 # Neue Anmeldung zu {{ $veranstaltung?->titel ?? 'einer Veranstaltung' }}
 
+@php($orderedMerchandise = $anmeldung->ordered_merchandise)
+
 Es liegt eine neue Anmeldung vor.
 
 @if($veranstaltung)
@@ -31,12 +33,14 @@ Es liegt eine neue Anmeldung vor.
 
 ## Bestelldetails
 
-@if($anmeldung->tshirt_bestellt)
-**T-Shirt:** ✅ Ja  
-**Größe:** {{ $anmeldung->tshirt_groesse }}  
-**T-Shirt-Spende:** {{ $anmeldung->getFormattedTshirtPrice() }}
+@if($orderedMerchandise->isNotEmpty())
+**Merchandise:**
+
+@foreach($orderedMerchandise as $bestellung)
+- {{ $bestellung['name'] }}@if($bestellung['variant']) ({{ $bestellung['variant'] }})@endif - {{ number_format((float) $bestellung['price'], 2, ',', '.') }} €
+@endforeach
 @else
-**T-Shirt:** ❌ Nicht bestellt
+**Merchandise:** ❌ Nicht bestellt
 @endif
 
 ## Zahlungsinformationen

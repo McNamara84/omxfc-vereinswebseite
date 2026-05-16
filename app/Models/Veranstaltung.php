@@ -32,6 +32,7 @@ class Veranstaltung extends Model
         'zahlung_aktiv',
         'tshirt_aktiv',
         'tshirt_deadline',
+        'merch_deadline',
         'vip_autoren_aktiv',
         'gastgebuehr',
         'tshirt_preis',
@@ -51,6 +52,7 @@ class Veranstaltung extends Model
         'zahlung_aktiv' => 'boolean',
         'tshirt_aktiv' => 'boolean',
         'tshirt_deadline' => 'datetime',
+        'merch_deadline' => 'datetime',
         'vip_autoren_aktiv' => 'boolean',
         'gastgebuehr' => 'decimal:2',
         'tshirt_preis' => 'decimal:2',
@@ -70,6 +72,13 @@ class Veranstaltung extends Model
     public function abschnitte(): HasMany
     {
         return $this->hasMany(VeranstaltungsAbschnitt::class)->orderBy('sort_order');
+    }
+
+    public function merchartikel(): HasMany
+    {
+        return $this->hasMany(VeranstaltungsMerchartikel::class)
+            ->orderBy('sort_order')
+            ->orderBy('id');
     }
 
     public function vipAutoren(): HasMany

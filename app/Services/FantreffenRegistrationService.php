@@ -8,9 +8,14 @@ use App\Models\Activity;
 use App\Models\FantreffenAnmeldung;
 use App\Models\User;
 use App\Models\Veranstaltung;
+use App\Models\VeranstaltungsMerchartikel;
+use App\Models\VeranstaltungsMerchvariante;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 /**
  * Service für Fantreffen-Anmeldungen.
@@ -39,15 +44,14 @@ class FantreffenRegistrationService
      */
     public function validationRules(bool $isAuthenticated, ?Veranstaltung $veranstaltung = null): array
     {
-        $tshirtAktiv = $veranstaltung?->tshirt_aktiv ?? true;
-
         $rules = [
             'website' => 'nullable',
             'mobile' => 'nullable|string|max:50',
+            'merch' => 'nullable|array',
+            'merch.*.selected' => 'nullable|boolean',
+            'merch.*.variant_id' => 'nullable',
             'tshirt_bestellt' => 'boolean',
-            'tshirt_groesse' => $tshirtAktiv
-                ? 'required_if:tshirt_bestellt,true|nullable|in:XS,S,M,L,XL,XXL,XXXL'
-                : 'nullable|in:XS,S,M,L,XL,XXL,XXXL',
+            'tshirt_groesse' => 'required_if:tshirt_bestellt,true|nullable|string|max:50',
         ];
 
         if (! $isAuthenticated) {
@@ -80,7 +84,6 @@ class FantreffenRegistrationService
             'email.email' => 'Bitte gib eine gültige E-Mail-Adresse an.',
             'mobile.string' => 'Bitte gib eine gültige Telefonnummer an.',
             'tshirt_groesse.required_if' => 'Bitte wähle eine T-Shirt-Größe aus.',
-            'tshirt_groesse.in' => 'Bitte wähle eine gültige T-Shirt-Größe aus.',
             'email.unique' => "Diese E-Mail-Adresse ist bereits für {$bezeichnung} angemeldet.",
         ];
     }
@@ -91,39 +94,35 @@ class FantreffenRegistrationService
      * @param  bool  $tshirtBestellt  Ob ein T-Shirt bestellt wurde
      * @param  bool  $isAuthenticated  Ob der User eingeloggt (Mitglied) ist
      */
-    public function calculatePaymentAmount(bool $tshirtBestellt, bool $isAuthenticated, ?Veranstaltung $veranstaltung = null): float
+    public function calculatePaymentAmount(bool|array $tshirtBestellt, bool $isAuthenticated, ?Veranstaltung $veranstaltung = null): float
     {
-        if ($veranstaltung && ! $veranstaltung->zahlung_aktiv) {
-            return 0.0;
-        }
-
         $amount = 0.0;
-        $guestFee = (float) ($veranstaltung?->gastgebuehr ?? FantreffenAnmeldung::GUEST_FEE);
-        $tshirtPrice = (float) ($veranstaltung?->tshirt_preis ?? FantreffenAnmeldung::TSHIRT_PRICE);
 
         // Gäste zahlen Grundgebühr
-        if (! $isAuthenticated) {
-            $amount += $guestFee;
+        if (! $isAuthenticated && ($veranstaltung?->zahlung_aktiv ?? true)) {
+            $amount += (float) ($veranstaltung?->gastgebuehr ?? FantreffenAnmeldung::GUEST_FEE);
         }
 
-        // T-Shirt-Preis
-        if ($tshirtBestellt && ($veranstaltung?->tshirt_aktiv ?? true)) {
-            $amount += $tshirtPrice;
-        }
+        $amount += $this->calculateMerchandiseTotal($tshirtBestellt, $veranstaltung);
 
         return $amount;
     }
 
     /**
-     * Prüft ob T-Shirt-Bestellung noch möglich ist.
+     * Prüft ob Merchandise-Bestellung noch möglich ist.
      */
-    public function canOrderTshirt(?Veranstaltung $veranstaltung = null): bool
+    public function canOrderMerch(?Veranstaltung $veranstaltung = null): bool
     {
-        if ($veranstaltung && ! $veranstaltung->tshirt_aktiv) {
+        if ($veranstaltung && $this->orderableMerchArtikel($veranstaltung)->isEmpty()) {
             return false;
         }
 
         return ! $this->deadlineService->isPassed($veranstaltung);
+    }
+
+    public function canOrderTshirt(?Veranstaltung $veranstaltung = null): bool
+    {
+        return $this->canOrderMerch($veranstaltung);
     }
 
     /**
@@ -146,21 +145,14 @@ class FantreffenRegistrationService
      */
     public function register(array $data, ?User $user = null, ?Veranstaltung $veranstaltung = null): FantreffenAnmeldung
     {
-        $tshirtBestellt = (bool) ($data['tshirt_bestellt'] ?? false) && ($veranstaltung?->tshirt_aktiv ?? true);
+        $selectedMerchArtikel = $this->normalizeSelectedMerchArtikel($data, $veranstaltung);
         $isAuthenticated = $user !== null;
 
         $this->safeLog('info', 'FantreffenRegistrationService: Starting registration', [
-            'tshirt_bestellt' => $tshirtBestellt,
+            'merch_count' => count($selectedMerchArtikel),
             'is_authenticated' => $isAuthenticated,
             'user_id' => $user?->id,
         ]);
-
-        // T-Shirt-Deadline prüfen
-        if ($tshirtBestellt && ! $this->canOrderTshirt($veranstaltung)) {
-            throw new \InvalidArgumentException(
-                'Die Deadline für T-Shirt-Bestellungen ist leider abgelaufen.'
-            );
-        }
 
         // Daten aus User oder Request
         if ($isAuthenticated) {
@@ -179,34 +171,67 @@ class FantreffenRegistrationService
         }
 
         // Zahlungsbetrag berechnen
-        $paymentAmount = $this->calculatePaymentAmount($tshirtBestellt, $isAuthenticated, $veranstaltung);
+        $paymentAmount = $this->calculatePaymentAmount($selectedMerchArtikel, $isAuthenticated, $veranstaltung);
 
         try {
-            // Anmeldung erstellen
-            $anmeldung = FantreffenAnmeldung::create([
-                'veranstaltung_id' => $veranstaltung?->id,
-                'user_id' => $user?->id,
-                'vorname' => $vorname,
-                'nachname' => $nachname,
-                'email' => $email,
-                'mobile' => $data['mobile'] ?? null,
-                'tshirt_bestellt' => $tshirtBestellt,
-                'tshirt_groesse' => $tshirtBestellt ? ($data['tshirt_groesse'] ?? null) : null,
-                'payment_amount' => $paymentAmount,
-                'payment_status' => $paymentAmount > 0 ? 'pending' : 'free',
-                'ist_mitglied' => $isAuthenticated,
-                'zahlungseingang' => false,
+            $anmeldung = DB::transaction(function () use (
+                $data,
+                $email,
+                $isAuthenticated,
+                $paymentAmount,
+                $selectedMerchArtikel,
+                $user,
+                $veranstaltung,
+                $vorname,
+                $nachname
+            ) {
+                $legacyTshirtBestellung = collect($selectedMerchArtikel)->first(
+                    fn (array $bestellung) => $this->isLegacyTshirtArtikel($bestellung['artikel'])
+                );
+                $legacyTshirtVariante = $legacyTshirtBestellung['variante'] ?? null;
+
+                $anmeldung = FantreffenAnmeldung::create([
+                    'veranstaltung_id' => $veranstaltung?->id,
+                    'user_id' => $user?->id,
+                    'vorname' => $vorname,
+                    'nachname' => $nachname,
+                    'email' => $email,
+                    'mobile' => $data['mobile'] ?? null,
+                    'tshirt_bestellt' => $legacyTshirtBestellung !== null,
+                    'tshirt_groesse' => $legacyTshirtVariante?->bezeichnung,
+                    'payment_amount' => $paymentAmount,
+                    'payment_status' => $paymentAmount > 0 ? 'pending' : 'free',
+                    'ist_mitglied' => $isAuthenticated,
+                    'zahlungseingang' => $paymentAmount === 0,
+                ]);
+
+                foreach ($selectedMerchArtikel as $bestellung) {
+                    $anmeldung->merchartikelBestellungen()->create([
+                        'veranstaltungs_merchartikel_id' => $bestellung['artikel']->id,
+                        'veranstaltungs_merchvariante_id' => $bestellung['variante']?->id,
+                        'preis_zum_bestellzeitpunkt' => $bestellung['price'],
+                        'status_erledigt' => false,
+                        'status_erledigt_am' => null,
+                    ]);
+                }
+
+                Activity::create([
+                    'user_id' => $user?->id,
+                    'subject_type' => FantreffenAnmeldung::class,
+                    'subject_id' => $anmeldung->id,
+                    'action' => 'fantreffen_registered',
+                ]);
+
+                return $anmeldung;
+            });
+
+            $anmeldung->loadMissing([
+                'veranstaltung',
+                'merchartikelBestellungen.artikel',
+                'merchartikelBestellungen.variante',
             ]);
 
             $this->safeLog('info', 'FantreffenRegistrationService: Registration created', ['id' => $anmeldung->id]);
-
-            // Activity Log (auch für Gäste, dann ohne user_id)
-            Activity::create([
-                'user_id' => $user?->id,
-                'subject_type' => FantreffenAnmeldung::class,
-                'subject_id' => $anmeldung->id,
-                'action' => 'fantreffen_registered',
-            ]);
 
             // Mails versenden
             $this->sendConfirmationMails($anmeldung);
@@ -231,6 +256,12 @@ class FantreffenRegistrationService
      */
     protected function sendConfirmationMails(FantreffenAnmeldung $anmeldung): void
     {
+        $anmeldung->loadMissing([
+            'veranstaltung',
+            'merchartikelBestellungen.artikel',
+            'merchartikelBestellungen.variante',
+        ]);
+
         // Bestätigung an Teilnehmer
         // Wir verwenden direkt $anmeldung->email, da dieses Feld in register()
         // bereits korrekt gesetzt wurde (User-Email oder Gast-Email)
@@ -254,5 +285,145 @@ class FantreffenRegistrationService
                 'error' => $e->getMessage(),
             ]);
         }
+    }
+
+    private function orderableMerchArtikel(?Veranstaltung $veranstaltung = null): Collection
+    {
+        if (! $veranstaltung) {
+            return collect();
+        }
+
+        return $veranstaltung->merchartikel()
+            ->aktiv()
+            ->with([
+                'varianten' => fn ($query) => $query->aktiv()->orderBy('sort_order')->orderBy('id'),
+            ])
+            ->get();
+    }
+
+    private function normalizeSelectedMerchArtikel(array $data, ?Veranstaltung $veranstaltung = null): array
+    {
+        $orderableArtikel = $this->orderableMerchArtikel($veranstaltung)->keyBy('id');
+        $submittedMerch = $this->submittedMerchData($data, $orderableArtikel);
+
+        if ($orderableArtikel->isEmpty()) {
+            if (($data['tshirt_bestellt'] ?? false) || ! empty($submittedMerch)) {
+                throw ValidationException::withMessages([
+                    'merch' => 'Für diese Veranstaltung kann aktuell kein Merchandise bestellt werden.',
+                    'tshirt_bestellt' => 'Für diese Veranstaltung kann aktuell kein Merchandise bestellt werden.',
+                ]);
+            }
+
+            return [];
+        }
+
+        $selectedArtikel = [];
+
+        foreach ($orderableArtikel as $artikel) {
+            $isSelected = $this->isTruthy(data_get($submittedMerch, $artikel->id.'.selected', false));
+
+            if (! $isSelected) {
+                continue;
+            }
+
+            if (! $this->canOrderMerch($veranstaltung)) {
+                throw ValidationException::withMessages([
+                    'merch' => 'Die Bestellfrist für Merchandise ist leider abgelaufen.',
+                    'tshirt_bestellt' => 'Die Bestellfrist für Merchandise ist leider abgelaufen.',
+                ]);
+            }
+
+            $variante = $this->resolveVariante($artikel, data_get($submittedMerch, $artikel->id.'.variant_id'));
+
+            if ($artikel->requiresVariant() && ! $variante) {
+                $errors = [
+                    'merch.'.$artikel->id.'.variant_id' => 'Bitte wähle eine gültige Variante für '.$artikel->bezeichnung.' aus.',
+                ];
+
+                if ($this->isLegacyTshirtArtikel($artikel)) {
+                    $errors['tshirt_groesse'] = 'Bitte wähle eine T-Shirt-Größe aus.';
+                }
+
+                throw ValidationException::withMessages($errors);
+            }
+
+            if (! $artikel->requiresVariant() && data_get($submittedMerch, $artikel->id.'.variant_id') && ! $variante) {
+                throw ValidationException::withMessages([
+                    'merch.'.$artikel->id.'.variant_id' => 'Bitte wähle eine gültige Variante für '.$artikel->bezeichnung.' aus.',
+                ]);
+            }
+
+            $selectedArtikel[] = [
+                'artikel' => $artikel,
+                'variante' => $variante,
+                'price' => (float) $artikel->preis,
+            ];
+        }
+
+        return $selectedArtikel;
+    }
+
+    private function submittedMerchData(array $data, Collection $orderableArtikel): array
+    {
+        $submittedMerch = is_array($data['merch'] ?? null) ? $data['merch'] : [];
+
+        if (! $this->isTruthy($data['tshirt_bestellt'] ?? false)) {
+            return $submittedMerch;
+        }
+
+        $legacyArtikel = $orderableArtikel->first(
+            fn (VeranstaltungsMerchartikel $artikel) => $this->isLegacyTshirtArtikel($artikel)
+        );
+
+        if (! $legacyArtikel) {
+            return $submittedMerch;
+        }
+
+        $submittedMerch[$legacyArtikel->id] = [
+            'selected' => true,
+            'variant_id' => $data['tshirt_groesse'] ?? null,
+        ];
+
+        return $submittedMerch;
+    }
+
+    private function resolveVariante(VeranstaltungsMerchartikel $artikel, mixed $submittedVariant): ?VeranstaltungsMerchvariante
+    {
+        if ($submittedVariant === null || $submittedVariant === '') {
+            return null;
+        }
+
+        $varianten = $artikel->varianten;
+
+        if (is_numeric($submittedVariant)) {
+            return $varianten->firstWhere('id', (int) $submittedVariant);
+        }
+
+        return $varianten->first(
+            fn (VeranstaltungsMerchvariante $variante) => $variante->bezeichnung === (string) $submittedVariant
+        );
+    }
+
+    private function calculateMerchandiseTotal(bool|array $tshirtBestellt, ?Veranstaltung $veranstaltung = null): float
+    {
+        if (is_bool($tshirtBestellt)) {
+            if (! $tshirtBestellt) {
+                return 0.0;
+            }
+
+            return (float) ($veranstaltung?->tshirt_preis ?? FantreffenAnmeldung::TSHIRT_PRICE);
+        }
+
+        return (float) collect($tshirtBestellt)->sum('price');
+    }
+
+    private function isTruthy(mixed $value): bool
+    {
+        return in_array($value, [true, 1, '1', 'true', 'on'], true);
+    }
+
+    private function isLegacyTshirtArtikel(VeranstaltungsMerchartikel $artikel): bool
+    {
+        return mb_strtolower($artikel->bezeichnung) === 't-shirt';
     }
 }

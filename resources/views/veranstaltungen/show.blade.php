@@ -151,42 +151,86 @@
                                     <input name="mobile" value="{{ old('mobile') }}" class="input input-bordered w-full" />
                                 </label>
 
-                                @if ($veranstaltung->tshirt_aktiv)
-                                    <div x-data="{ tshirtBestellt: @js(old('tshirt_bestellt', false)) }" class="space-y-3">
-                                        <label class="flex items-start gap-3 rounded-box border border-base-300 p-3">
-                                            <input type="checkbox" name="tshirt_bestellt" value="1" x-model="tshirtBestellt" class="checkbox mt-1" data-testid="fantreffen-tshirt-checkbox" />
-                                            <span>
-                                                <span class="block font-medium">Event-T-Shirt bestellen</span>
-                                                <span class="block text-sm text-base-content/70">{{ number_format((float) $veranstaltung->tshirt_preis, 2, ',', '.') }} €</span>
-                                            </span>
-                                        </label>
+                                @if ($merchArtikel->isNotEmpty())
+                                    @php($submittedMerch = old('merch', []))
 
-                                        <div x-show="tshirtBestellt" x-cloak data-testid="fantreffen-tshirt-container">
-                                            <label class="form-control w-full">
-                                                <span class="label-text mb-1 block text-sm font-medium">T-Shirt-Größe</span>
-                                                <select name="tshirt_groesse" class="select select-bordered w-full" :required="tshirtBestellt" data-testid="fantreffen-tshirt-groesse">
-                                                    <option value="">Bitte wählen</option>
-                                                    @foreach (['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL'] as $groesse)
-                                                        <option value="{{ $groesse }}" @selected(old('tshirt_groesse') === $groesse)>{{ $groesse }}</option>
-                                                    @endforeach
-                                                </select>
-                                            </label>
-                                        </div>
-
-                                        @if ($tshirtDeadlineFormatted)
+                                    <div class="space-y-3">
+                                        @if ($tshirtDeadlineFormatted && $merchBestellbar)
                                             <x-fantreffen-tshirt-deadline-notice
                                                 :tshirtDeadlinePassed="$tshirtDeadlinePassed"
                                                 :tshirtDeadlineFormatted="$tshirtDeadlineFormatted"
                                                 :daysUntilDeadline="$daysUntilDeadline"
+                                                variant="prominent"
                                             />
+                                        @elseif (! $merchBestellbar)
+                                            <x-alert icon="o-clock" class="alert-warning">
+                                                Die Bestellfrist für zusätzliches Merchandise ist abgelaufen.
+                                            </x-alert>
+                                        @endif
+
+                                        @if ($merchBestellbar)
+                                            <div class="space-y-3">
+                                                <p class="text-sm font-semibold text-base-content">Zusätzliches Merchandise</p>
+
+                                                @foreach ($merchArtikel as $artikel)
+                                                    @php($isLegacyTshirt = mb_strtolower($artikel->bezeichnung) === 't-shirt')
+                                                    @php($isSelected = (bool) data_get($submittedMerch, $artikel->id.'.selected', $isLegacyTshirt ? old('tshirt_bestellt', false) : false))
+                                                    @php($selectedVariant = data_get($submittedMerch, $artikel->id.'.variant_id', $isLegacyTshirt ? old('tshirt_groesse') : null))
+                                                    @php($displayName = $isLegacyTshirt ? 'Event-T-Shirt' : $artikel->bezeichnung)
+
+                                                    <div x-data="{ selected: @js($isSelected) }" class="rounded-box border border-base-300 p-3 space-y-3">
+                                                        <label class="flex items-start gap-3">
+                                                            <input
+                                                                type="checkbox"
+                                                                name="merch[{{ $artikel->id }}][selected]"
+                                                                value="1"
+                                                                x-model="selected"
+                                                                class="checkbox mt-1"
+                                                                @if ($isLegacyTshirt) data-testid="fantreffen-tshirt-checkbox" @endif
+                                                            />
+                                                            <span class="flex-1">
+                                                                <span class="block font-medium">{{ $displayName }} bestellen</span>
+                                                                <span class="block text-sm text-base-content/70">{{ number_format((float) $artikel->preis, 2, ',', '.') }} €</span>
+                                                                @if ($artikel->beschreibung)
+                                                                    <span class="mt-1 block text-sm text-base-content/60">{{ $artikel->beschreibung }}</span>
+                                                                @endif
+                                                            </span>
+                                                        </label>
+
+                                                        @if ($artikel->requiresVariant())
+                                                            <div x-show="selected" x-cloak @if ($isLegacyTshirt) data-testid="fantreffen-tshirt-container" @endif>
+                                                                <label class="form-control w-full">
+                                                                    <span class="label-text mb-1 block text-sm font-medium">Variante</span>
+                                                                    <select
+                                                                        name="merch[{{ $artikel->id }}][variant_id]"
+                                                                        class="select select-bordered w-full"
+                                                                        :required="selected"
+                                                                        @if ($isLegacyTshirt) data-testid="fantreffen-tshirt-groesse" @endif
+                                                                    >
+                                                                        <option value="">Bitte wählen</option>
+                                                                        @foreach ($artikel->varianten as $variante)
+                                                                            <option value="{{ $variante->id }}" @selected((string) $selectedVariant === (string) $variante->id || (string) $selectedVariant === (string) $variante->bezeichnung)>{{ $variante->bezeichnung }}</option>
+                                                                        @endforeach
+                                                                    </select>
+                                                                </label>
+                                                            </div>
+                                                        @endif
+                                                    </div>
+                                                @endforeach
+                                            </div>
                                         @endif
                                     </div>
                                 @endif
 
-                                @if ($veranstaltung->zahlung_aktiv)
+                                @if ($veranstaltung->zahlung_aktiv || $merchArtikel->isNotEmpty())
                                     <div class="rounded-box bg-base-200/80 p-4 text-sm text-base-content/75">
-                                        <p>Mitglieder: kostenlos</p>
-                                        <p>Gäste: {{ number_format((float) $veranstaltung->gastgebuehr, 2, ',', '.') }} €</p>
+                                        @if ($veranstaltung->zahlung_aktiv)
+                                            <p>Mitglieder: kostenlose Teilnahme</p>
+                                            <p>Gäste: {{ number_format((float) $veranstaltung->gastgebuehr, 2, ',', '.') }} € Teilnahmegebühr</p>
+                                        @endif
+                                        @if ($merchArtikel->isNotEmpty())
+                                            <p>Merchandise wird zusätzlich gemäß Auswahl berechnet.</p>
+                                        @endif
                                     </div>
                                 @endif
 

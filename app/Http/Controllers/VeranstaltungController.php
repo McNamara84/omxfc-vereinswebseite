@@ -67,6 +67,12 @@ class VeranstaltungController extends Controller
         abort_unless($veranstaltung->isPubliclyVisible(), 404);
 
         $user = Auth::user();
+        $merchArtikel = $veranstaltung->merchartikel()
+            ->aktiv()
+            ->with([
+                'varianten' => fn ($query) => $query->aktiv()->orderBy('sort_order')->orderBy('id'),
+            ])
+            ->get();
         $vipAuthors = $veranstaltung->vip_autoren_aktiv
             ? $veranstaltung->vipAutoren()->active()->ordered()->get()
             : collect();
@@ -77,6 +83,8 @@ class VeranstaltungController extends Controller
                 'veranstaltung' => $veranstaltung,
                 'sections' => $veranstaltung->abschnitte()->sichtbar()->get(),
                 'user' => $user,
+                'merchArtikel' => $merchArtikel,
+                'merchBestellbar' => $merchArtikel->isNotEmpty() && $this->registrationService->canOrderMerch($veranstaltung),
                 'vipAuthors' => $vipAuthors,
                 'formLoadedAt' => Crypt::encryptString((string) time()),
             ]
@@ -168,6 +176,10 @@ class VeranstaltungController extends Controller
 
             return redirect()->to($this->confirmationUrl($veranstaltung, $anmeldung))
                 ->with('success', 'Deine Anmeldung wurde erfolgreich gespeichert!');
+        } catch (ValidationException $e) {
+            return back()
+                ->withInput()
+                ->withErrors($e->errors());
         } catch (\InvalidArgumentException $e) {
             return back()
                 ->withInput()
