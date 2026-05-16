@@ -8,9 +8,8 @@ use App\Models\Review;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Livewire\Attributes\Computed;
+use Illuminate\Support\Facades\Cache;
 use Livewire\Livewire;
-use ReflectionMethod;
 use Tests\TestCase;
 
 class HomeReviewsTest extends TestCase
@@ -27,7 +26,7 @@ class HomeReviewsTest extends TestCase
 
     public function test_shows_latest_reviews(): void
     {
-        $team = Team::where('name', 'Mitglieder')->first();
+        $team = Team::query()->where('name', 'Mitglieder')->first();
         $user = User::factory()->create();
         $book = Book::factory()->create(['title' => 'Der Untergang', 'roman_number' => 42]);
 
@@ -46,7 +45,7 @@ class HomeReviewsTest extends TestCase
 
     public function test_shows_max_five_reviews(): void
     {
-        $team = Team::where('name', 'Mitglieder')->first();
+        $team = Team::query()->where('name', 'Mitglieder')->first();
         $user = User::factory()->create();
 
         for ($i = 1; $i <= 7; $i++) {
@@ -73,7 +72,7 @@ class HomeReviewsTest extends TestCase
 
     public function test_soft_deleted_reviews_are_excluded(): void
     {
-        $team = Team::where('name', 'Mitglieder')->first();
+        $team = Team::query()->where('name', 'Mitglieder')->first();
         $user = User::factory()->create();
         $book = Book::factory()->create(['roman_number' => 999]);
 
@@ -89,17 +88,30 @@ class HomeReviewsTest extends TestCase
             ->assertDontSee('Gelöschte Rezension');
     }
 
-    public function test_reviews_use_livewire_computed_cache_for_five_minutes(): void
+    public function test_reviews_are_cached_as_array_payloads_for_five_minutes(): void
     {
-        $attributes = (new ReflectionMethod(HomeReviews::class, 'reviews'))
-            ->getAttributes(Computed::class);
+        $team = Team::query()->where('name', 'Mitglieder')->first();
+        $user = User::factory()->create();
+        $book = Book::factory()->create(['title' => 'Cache Roman', 'roman_number' => 77]);
 
-        $this->assertCount(1, $attributes);
+        Review::factory()->create([
+            'team_id' => $team->id,
+            'user_id' => $user->id,
+            'book_id' => $book->id,
+            'title' => 'Cache Rezension',
+            'content' => 'Cache-sichere Ausgabe der neuesten Rezensionen.',
+        ]);
 
-        $computed = $attributes[0]->newInstance();
+        Livewire::test(HomeReviews::class)
+            ->assertSee('Cache Rezension');
 
-        $this->assertTrue($computed->cache);
-        $this->assertSame(300, $computed->seconds);
-        $this->assertFalse($computed->persist);
+        $cachedReviews = Cache::get(HomeReviews::cacheKeyForTeam($team->id));
+
+        $this->assertIsArray($cachedReviews);
+        $this->assertCount(1, $cachedReviews);
+        $this->assertSame('Cache Rezension', $cachedReviews[0]['review_title']);
+        $this->assertSame('Cache Roman', $cachedReviews[0]['roman_title']);
+        $this->assertIsString($cachedReviews[0]['reviewed_at_iso']);
+        $this->assertIsString($cachedReviews[0]['reviewed_at_label']);
     }
 }
