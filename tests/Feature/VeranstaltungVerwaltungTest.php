@@ -123,7 +123,7 @@ class VeranstaltungVerwaltungTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('Archivierte Veranstaltung');
-        $response->assertSee('Anmeldeliste weiterhin verfuegbar.');
+        $response->assertSee('Anmeldeliste weiterhin verfügbar.');
     }
 
     public function test_admin_can_create_event_with_structured_data(): void

@@ -56,7 +56,7 @@
                         </dl>
 
                         @if ($veranstaltung->status === 'archiviert')
-                            <p class="text-sm text-base-content/70">Archivierte Veranstaltung. Anmeldeliste weiterhin verfuegbar.</p>
+                            <p class="text-sm text-base-content/70">Archivierte Veranstaltung. Anmeldeliste weiterhin verfügbar.</p>
                         @endif
 
                         <div class="flex flex-wrap gap-2">
