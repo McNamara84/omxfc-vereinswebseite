@@ -169,10 +169,10 @@
         {{-- Anmeldungen Tabelle --}}
         <x-ui.panel title="Anmeldungen" description="Die Tabelle bleibt die zentrale Arbeitsfläche für Profilzugriffe, Merchandise-Status, Zahlungen und das Entfernen einzelner Registrierungen.">
             {{-- Skeleton Loading State --}}
-            <div wire:loading.delay wire:target="filterMemberStatus, filterTshirt, filterPayment, filterZahlungseingang, filterTshirtFertig, search, toggleOrgaTeam, toggleTshirtFertig, toggleZahlungseingang, deleteAnmeldung">
+            <div wire:loading.delay wire:target="filterMemberStatus, filterTshirt, filterPayment, filterZahlungseingang, filterTshirtFertig, search, toggleOrgaTeam, toggleTshirtFertig, toggleMerchFertig, toggleZahlungseingang, deleteAnmeldung">
                 <x-skeleton-table :columns="9" :rows="8" />
             </div>
-            <div wire:loading.remove wire:target="filterMemberStatus, filterTshirt, filterPayment, filterZahlungseingang, filterTshirtFertig, search, toggleOrgaTeam, toggleTshirtFertig, toggleZahlungseingang, deleteAnmeldung">
+            <div wire:loading.remove wire:target="filterMemberStatus, filterTshirt, filterPayment, filterZahlungseingang, filterTshirtFertig, search, toggleOrgaTeam, toggleTshirtFertig, toggleMerchFertig, toggleZahlungseingang, deleteAnmeldung">
                 @if (app()->runningUnitTests())
                     <div class="overflow-x-auto">
                         <table class="table w-full">

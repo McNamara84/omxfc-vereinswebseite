@@ -147,7 +147,7 @@ class FantreffenAdminDashboard extends Component
     {
         $anmeldung = $this->findAnmeldung($anmeldungId);
 
-        $bestellung = $anmeldung->merchartikelBestellungen()->orderBy('id')->first();
+        $bestellung = $anmeldung->merchartikelBestellungen->first();
 
         if ($bestellung) {
             $this->toggleMerchBestellungStatus($bestellung);
@@ -209,11 +209,13 @@ class FantreffenAdminDashboard extends Component
         $csv = "Name,Email,Mobil,Mitglied,Orga-Team,Merchandise,Merch-Status,Zahlungsstatus,Betrag,Zahlungseingang,PayPal ID,Registriert am\n";
 
         foreach ($anmeldungen as $anmeldung) {
-            $merchandise = $anmeldung->ordered_merchandise->map(function (array $bestellung) {
+            $orderedMerchandise = $anmeldung->ordered_merchandise;
+
+            $merchandise = $orderedMerchandise->map(function (array $bestellung) {
                 return $bestellung['name'].($bestellung['variant'] ? ' ('.$bestellung['variant'].')' : '');
             })->implode('; ');
 
-            $merchStatus = $anmeldung->ordered_merchandise->map(function (array $bestellung) {
+            $merchStatus = $orderedMerchandise->map(function (array $bestellung) {
                 return $bestellung['name'].': '.($bestellung['done'] ? 'erledigt' : 'offen');
             })->implode('; ');
 

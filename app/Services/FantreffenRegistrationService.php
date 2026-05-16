@@ -92,10 +92,10 @@ class FantreffenRegistrationService
     /**
      * Berechnet den Zahlungsbetrag basierend auf Merchandise-Auswahl und Mitgliedsstatus.
      *
-     * @param  bool|array  $tshirtBestellt  Legacy-T-Shirt-Flag oder bereits normalisierte Merchandise-Bestellungen
+     * @param  bool|array  $merchSelection  Legacy-T-Shirt-Flag oder bereits normalisierte Merchandise-Bestellungen
      * @param  bool  $isAuthenticated  Ob der User eingeloggt (Mitglied) ist
      */
-    public function calculatePaymentAmount(bool|array $tshirtBestellt, bool $isAuthenticated, ?Veranstaltung $veranstaltung = null): float
+    public function calculatePaymentAmount(bool|array $merchSelection, bool $isAuthenticated, ?Veranstaltung $veranstaltung = null): float
     {
         $amount = 0.0;
 
@@ -104,7 +104,7 @@ class FantreffenRegistrationService
             $amount += (float) ($veranstaltung?->gastgebuehr ?? FantreffenAnmeldung::GUEST_FEE);
         }
 
-        $amount += $this->calculateMerchandiseTotal($tshirtBestellt, $veranstaltung);
+        $amount += $this->calculateMerchandiseTotal($merchSelection, $veranstaltung);
 
         return $amount;
     }
@@ -139,9 +139,10 @@ class FantreffenRegistrationService
      *
      * @param  array  $data  Die validierten Formulardaten
      * @param  User|null  $user  Der eingeloggte User (falls vorhanden)
-     * @return FantreffenAnmeldung Die erstellte Anmeldung
+        * @return FantreffenAnmeldung Die erstellte Anmeldung
      *
-     * @throws \InvalidArgumentException wenn T-Shirt nach Deadline bestellt wird
+        * @throws \InvalidArgumentException wenn das Benutzerprofil eines eingeloggten Mitglieds unvollständig ist
+        * @throws \Illuminate\Validation\ValidationException wenn Merchandise-Auswahl oder Varianten ungültig sind
      * @throws \RuntimeException wenn die Anmeldung nicht erstellt werden konnte
      */
     public function register(array $data, ?User $user = null, ?Veranstaltung $veranstaltung = null): FantreffenAnmeldung
@@ -410,17 +411,17 @@ class FantreffenRegistrationService
         );
     }
 
-    private function calculateMerchandiseTotal(bool|array $tshirtBestellt, ?Veranstaltung $veranstaltung = null): float
+    private function calculateMerchandiseTotal(bool|array $merchSelection, ?Veranstaltung $veranstaltung = null): float
     {
-        if (is_bool($tshirtBestellt)) {
-            if (! $tshirtBestellt) {
+        if (is_bool($merchSelection)) {
+            if (! $merchSelection) {
                 return 0.0;
             }
 
             return (float) ($veranstaltung?->tshirt_preis ?? FantreffenAnmeldung::TSHIRT_PRICE);
         }
 
-        return (float) collect($tshirtBestellt)->sum('price');
+        return (float) collect($merchSelection)->sum('price');
     }
 
     private function isTruthy(mixed $value): bool

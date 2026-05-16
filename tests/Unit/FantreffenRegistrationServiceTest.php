@@ -38,7 +38,7 @@ class FantreffenRegistrationServiceTest extends TestCase
     public function test_member_without_tshirt_pays_nothing(): void
     {
         $amount = $this->service->calculatePaymentAmount(
-            tshirtBestellt: false,
+            merchSelection: false,
             isAuthenticated: true
         );
 
@@ -48,7 +48,7 @@ class FantreffenRegistrationServiceTest extends TestCase
     public function test_member_with_tshirt_pays_tshirt_price(): void
     {
         $amount = $this->service->calculatePaymentAmount(
-            tshirtBestellt: true,
+            merchSelection: true,
             isAuthenticated: true
         );
 
@@ -58,7 +58,7 @@ class FantreffenRegistrationServiceTest extends TestCase
     public function test_guest_without_tshirt_pays_guest_fee(): void
     {
         $amount = $this->service->calculatePaymentAmount(
-            tshirtBestellt: false,
+            merchSelection: false,
             isAuthenticated: false
         );
 
@@ -68,7 +68,7 @@ class FantreffenRegistrationServiceTest extends TestCase
     public function test_guest_with_tshirt_pays_guest_fee_plus_tshirt(): void
     {
         $amount = $this->service->calculatePaymentAmount(
-            tshirtBestellt: true,
+            merchSelection: true,
             isAuthenticated: false
         );
 
