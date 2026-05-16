@@ -7,11 +7,10 @@ use App\Models\VeranstaltungsAbschnitt;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Attributes\Controllers\Authorize;
-use Illuminate\Routing\Attributes\Controllers\Middleware;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
-#[Middleware('vorstand-or-kassenwart')]
+#[\Illuminate\Routing\Attributes\Controllers\Middleware('can:manage,App\Models\Veranstaltung')]
 #[Authorize('manage', Veranstaltung::class)]
 class VeranstaltungVerwaltungController extends Controller
 {

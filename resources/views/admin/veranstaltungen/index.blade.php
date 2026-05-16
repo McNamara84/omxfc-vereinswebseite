@@ -25,6 +25,9 @@
                             @if ($veranstaltung->ist_highlight)
                                 <x-badge value="Aktuelle Hauptveranstaltung" class="badge-primary" icon="o-star" />
                             @endif
+                            @if ($veranstaltung->status === 'archiviert')
+                                <x-badge value="Archivierte Veranstaltung" class="badge-warning" icon="o-archive-box" />
+                            @endif
                             @if ($veranstaltung->anmeldung_aktiv)
                                 <x-badge value="Anmeldung aktiv" class="badge-success" icon="o-ticket" />
                             @endif
@@ -51,6 +54,10 @@
                                 <dd>{{ $veranstaltung->abschnitte_count }}</dd>
                             </div>
                         </dl>
+
+                        @if ($veranstaltung->status === 'archiviert')
+                            <p class="text-sm text-base-content/70">Archivierte Veranstaltung. Anmeldeliste weiterhin verfügbar.</p>
+                        @endif
 
                         <div class="flex flex-wrap gap-2">
                             <x-button label="Bearbeiten" link="{{ route('admin.veranstaltungen.edit', $veranstaltung) }}" class="btn-primary btn-sm" />

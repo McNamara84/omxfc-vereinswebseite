@@ -9,6 +9,6 @@ class VeranstaltungPolicy
 {
     public function manage(User $user): bool
     {
-        return $user->hasAnyRole(Role::Admin, Role::Vorstand, Role::Kassenwart);
+        return $user->canManageVeranstaltungen();
     }
 }

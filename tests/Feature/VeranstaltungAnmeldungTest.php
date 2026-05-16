@@ -2,18 +2,40 @@
 
 namespace Tests\Feature;
 
+use App\Enums\Role;
 use App\Models\FantreffenAnmeldung;
+use App\Models\Team;
+use App\Models\User;
 use App\Models\Veranstaltung;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Mail;
+use PHPUnit\Framework\Attributes\TestWith;
+use Tests\Concerns\CreatesUserWithRole;
 use Tests\Concerns\CreatesFantreffenFormToken;
 use Tests\TestCase;
 
 class VeranstaltungAnmeldungTest extends TestCase
 {
+    use CreatesUserWithRole;
     use CreatesFantreffenFormToken;
     use RefreshDatabase;
+
+    private function createManagementUserWithDifferentCurrentTeam(Role $role): User
+    {
+        $user = $this->createUserWithRole($role);
+
+        $otherTeam = Team::factory()->create([
+            'user_id' => $user->id,
+            'name' => 'Nebenverein',
+            'personal_team' => false,
+        ]);
+        $otherTeam->users()->attach($user, ['role' => Role::Mitglied->value]);
+
+        $user->forceFill(['current_team_id' => $otherTeam->id])->save();
+
+        return $user->refresh();
+    }
 
     public function test_published_event_page_is_accessible_via_slug(): void
     {
@@ -85,5 +107,19 @@ class VeranstaltungAnmeldungTest extends TestCase
         ]);
 
         $this->assertSame(2, FantreffenAnmeldung::where('email', 'alex@example.com')->count());
+    }
+
+    #[TestWith([Role::Admin->value])]
+    #[TestWith([Role::Vorstand->value])]
+    public function test_management_user_with_other_active_team_sees_event_management_cta_on_public_event_page(string $roleValue): void
+    {
+        $user = $this->createManagementUserWithDifferentCurrentTeam(Role::from($roleValue));
+        $veranstaltung = Veranstaltung::query()->where('slug', 'jubilaeumsfeier-band-700')->firstOrFail();
+
+        $response = $this->withoutVite()->actingAs($user)->get(route('veranstaltungen.show', $veranstaltung));
+
+        $response->assertOk();
+        $response->assertSee(route('admin.veranstaltungen.edit', $veranstaltung));
+        $response->assertSee(route('admin.veranstaltungen.anmeldungen', $veranstaltung));
     }
 }

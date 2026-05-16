@@ -205,7 +205,7 @@ class User extends Authenticatable
             return null;
         }
 
-        $membership = Membership::where('team_id', $this->currentTeam->id)
+        $membership = Membership::query()->where('team_id', $this->currentTeam->id)
             ->where('user_id', $this->id)
             ->first();
 
@@ -236,6 +236,42 @@ class User extends Authenticatable
     public function hasVorstandRole(): bool
     {
         return $this->hasAnyRole(Role::Admin, Role::Vorstand, Role::Kassenwart);
+    }
+
+    /**
+     * Get the role of the user in the Mitglieder-Team.
+     */
+    public function mitgliederTeamRole(): ?Role
+    {
+        $mitgliederTeam = Team::membersTeam();
+
+        if (! $mitgliederTeam) {
+            return null;
+        }
+
+        $membership = Membership::query()->where('team_id', $mitgliederTeam->id)
+            ->where('user_id', $this->id)
+            ->first();
+
+        return Role::tryFrom($membership->role ?? null);
+    }
+
+    /**
+     * Check if the user has any of the given roles in the Mitglieder-Team.
+     */
+    public function hasAnyMitgliederTeamRole(Role ...$roles): bool
+    {
+        $userRole = $this->mitgliederTeamRole();
+
+        return $userRole instanceof Role && in_array($userRole, $roles, true);
+    }
+
+    /**
+     * Determine if the user may manage club events regardless of the active team.
+     */
+    public function canManageVeranstaltungen(): bool
+    {
+        return $this->hasAnyMitgliederTeamRole(Role::Admin, Role::Vorstand, Role::Kassenwart);
     }
 
     /**

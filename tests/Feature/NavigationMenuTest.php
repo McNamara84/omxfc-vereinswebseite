@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Support\Navigation\NavigationBuilder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use PHPUnit\Framework\Attributes\TestWith;
 use Symfony\Component\DomCrawler\Crawler;
 use Tests\Concerns\CreatesUserWithRole;
 use Tests\TestCase;
@@ -16,6 +17,28 @@ class NavigationMenuTest extends TestCase
 {
     use CreatesUserWithRole;
     use RefreshDatabase;
+
+    private function createManagementUserWithDifferentCurrentTeam(Role $role): User
+    {
+        $managementTeam = Team::membersTeam() ?? Team::factory()->create([
+            'name' => 'Mitglieder',
+            'personal_team' => false,
+        ]);
+
+        $user = User::factory()->create(['current_team_id' => $managementTeam->id]);
+        $managementTeam->users()->attach($user, ['role' => $role->value]);
+
+        $otherTeam = Team::factory()->create([
+            'user_id' => $user->id,
+            'name' => 'Nebenverein',
+            'personal_team' => false,
+        ]);
+        $otherTeam->users()->attach($user, ['role' => Role::Mitglied->value]);
+
+        $user->forceFill(['current_team_id' => $otherTeam->id])->save();
+
+        return $user->refresh();
+    }
 
     public function test_guest_navigation_uses_public_sections_and_featured_actions(): void
     {
@@ -74,6 +97,25 @@ class NavigationMenuTest extends TestCase
         $response->assertSeeText('Admin');
         $response->assertSee(route('admin.auktionen.index'));
         $response->assertSeeText('Umfrage verwalten');
+    }
+
+    #[TestWith([Role::Admin->value])]
+    #[TestWith([Role::Vorstand->value])]
+    public function test_management_user_with_other_active_team_still_sees_event_management_link_in_navigation(string $roleValue): void
+    {
+        $user = $this->createManagementUserWithDifferentCurrentTeam(Role::from($roleValue));
+
+        $response = $this->actingAs($user)->get(route('dashboard'));
+        $crawler = new Crawler($response->getContent());
+        $navigationText = preg_replace('/\s+/u', ' ', $crawler->filter('nav[aria-label="Hauptnavigation"]')->text());
+        $navigationHtml = $crawler->filter('nav[aria-label="Hauptnavigation"]')->html();
+
+        $response->assertOk();
+        $this->assertIsString($navigationText);
+        $this->assertIsString($navigationHtml);
+        $this->assertStringContainsString('Vorstand', $navigationText);
+        $this->assertStringContainsString(route('admin.veranstaltungen.index'), $navigationHtml);
+        $this->assertStringNotContainsString(route('admin.auktionen.index'), $navigationHtml);
     }
 
     public function test_navigation_builder_loads_team_visibility_state_only_once_per_build(): void
