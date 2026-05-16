@@ -112,9 +112,13 @@ class FantreffenRegistrationService
     /**
      * Prüft ob Merchandise-Bestellung noch möglich ist.
      */
-    public function canOrderMerch(?Veranstaltung $veranstaltung = null): bool
+    public function canOrderMerch(?Veranstaltung $veranstaltung = null, ?Collection $orderableArtikel = null): bool
     {
-        if ($veranstaltung && $this->orderableMerchArtikel($veranstaltung)->isEmpty()) {
+        if ($orderableArtikel instanceof Collection) {
+            if ($orderableArtikel->isEmpty()) {
+                return false;
+            }
+        } elseif ($veranstaltung && ! $veranstaltung->merchartikel()->aktiv()->exists()) {
             return false;
         }
 
@@ -139,10 +143,10 @@ class FantreffenRegistrationService
      *
      * @param  array  $data  Die validierten Formulardaten
      * @param  User|null  $user  Der eingeloggte User (falls vorhanden)
-      * @return FantreffenAnmeldung Die erstellte Anmeldung
+        * @return FantreffenAnmeldung Die erstellte Anmeldung
      *
-      * @throws \InvalidArgumentException wenn das Benutzerprofil eines eingeloggten Mitglieds unvollständig ist
-      * @throws \Illuminate\Validation\ValidationException wenn Merchandise-Auswahl oder Varianten ungültig sind
+        * @throws \InvalidArgumentException wenn das Benutzerprofil eines eingeloggten Mitglieds unvollständig ist
+        * @throws \Illuminate\Validation\ValidationException wenn Merchandise-Auswahl oder Varianten ungültig sind
      * @throws \RuntimeException wenn die Anmeldung nicht erstellt werden konnte
      */
     public function register(array $data, ?User $user = null, ?Veranstaltung $veranstaltung = null): FantreffenAnmeldung

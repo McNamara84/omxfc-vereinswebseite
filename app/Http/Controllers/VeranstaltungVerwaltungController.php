@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\FantreffenAnmeldung;
 use App\Models\Veranstaltung;
 use App\Models\VeranstaltungsAbschnitt;
 use App\Models\VeranstaltungsMerchartikel;
@@ -195,7 +196,7 @@ class VeranstaltungVerwaltungController extends Controller
         $validated['vip_autoren_aktiv'] = $request->boolean('vip_autoren_aktiv');
         $validated['ist_highlight'] = $request->boolean('ist_highlight');
         $validated['gastgebuehr'] = $validated['gastgebuehr'] ?? 0;
-        $validated['tshirt_preis'] = $veranstaltung?->tshirt_preis ?? 0;
+        $validated['tshirt_preis'] = $veranstaltung?->tshirt_preis ?? FantreffenAnmeldung::TSHIRT_PRICE;
         $validated['sort_order'] = $validated['sort_order'] ?? 0;
 
         return $validated;
@@ -211,6 +212,7 @@ class VeranstaltungVerwaltungController extends Controller
             'varianten' => ['nullable', 'string'],
         ]);
 
+        $validated['beschreibung'] = $validated['beschreibung'] ?? null;
         $validated['is_active'] = $request->boolean('is_active', true);
         $validated['sort_order'] = $validated['sort_order'] ?? 0;
         $validated['varianten'] = $this->parseVarianten($validated['varianten'] ?? null);

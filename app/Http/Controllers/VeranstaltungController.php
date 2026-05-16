@@ -84,7 +84,7 @@ class VeranstaltungController extends Controller
                 'sections' => $veranstaltung->abschnitte()->sichtbar()->get(),
                 'user' => $user,
                 'merchArtikel' => $merchArtikel,
-                'merchBestellbar' => $merchArtikel->isNotEmpty() && $this->registrationService->canOrderMerch($veranstaltung),
+                'merchBestellbar' => $this->registrationService->canOrderMerch($veranstaltung, $merchArtikel),
                 'vipAuthors' => $vipAuthors,
                 'formLoadedAt' => Crypt::encryptString((string) time()),
             ]

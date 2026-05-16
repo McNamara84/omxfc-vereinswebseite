@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Enums\Role;
+use App\Models\FantreffenAnmeldung;
 use App\Models\Team;
 use App\Models\User;
 use App\Models\Veranstaltung;
@@ -158,8 +159,30 @@ class VeranstaltungVerwaltungTest extends TestCase
         $this->assertTrue($veranstaltung->zahlung_aktiv);
         $this->assertTrue($veranstaltung->ist_highlight);
         $this->assertSame('2027-02-01 18:00:00', $veranstaltung->merch_deadline?->format('Y-m-d H:i:s'));
+        $this->assertSame(FantreffenAnmeldung::TSHIRT_PRICE, (float) $veranstaltung->tshirt_preis);
 
         $this->assertFalse(Veranstaltung::query()->where('slug', 'jubilaeumsfeier-band-700')->firstOrFail()->ist_highlight);
+    }
+
+    public function test_admin_can_add_merchandise_article_without_description(): void
+    {
+        $admin = $this->createUserWithRole(Role::Admin);
+        $veranstaltung = Veranstaltung::query()->where('slug', 'jubilaeumsfeier-band-700')->firstOrFail();
+
+        $this->actingAs($admin)->post(route('admin.veranstaltungen.merch.store', $veranstaltung), [
+            'bezeichnung' => 'Poster',
+            'preis' => '7.50',
+            'sort_order' => 4,
+            'is_active' => '1',
+        ])->assertRedirect(route('admin.veranstaltungen.edit', $veranstaltung));
+
+        $artikel = VeranstaltungsMerchartikel::query()
+            ->where('veranstaltung_id', $veranstaltung->id)
+            ->where('bezeichnung', 'Poster')
+            ->first();
+
+        $this->assertNotNull($artikel);
+        $this->assertNull($artikel->beschreibung);
     }
 
     public function test_admin_can_add_update_and_delete_merchandise_article_with_variants(): void

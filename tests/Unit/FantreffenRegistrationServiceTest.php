@@ -5,6 +5,7 @@ namespace Tests\Unit;
 use App\Models\FantreffenAnmeldung;
 use App\Services\FantreffenDeadlineService;
 use App\Services\FantreffenRegistrationService;
+use Illuminate\Support\Collection;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -181,5 +182,15 @@ class FantreffenRegistrationServiceTest extends TestCase
         $service = new FantreffenRegistrationService($deadlineService);
 
         $this->assertFalse($service->canOrderTshirt());
+    }
+
+    public function test_can_order_merch_with_preloaded_collection_before_deadline(): void
+    {
+        $this->assertTrue($this->service->canOrderMerch(orderableArtikel: new Collection([['id' => 1]])));
+    }
+
+    public function test_cannot_order_merch_with_empty_preloaded_collection(): void
+    {
+        $this->assertFalse($this->service->canOrderMerch(orderableArtikel: new Collection()));
     }
 }
