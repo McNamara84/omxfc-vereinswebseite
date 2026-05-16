@@ -11,6 +11,13 @@ test.describe('Chronik Lightbox', () => {
   const firstTriggerName = 'Bild Gründungsversammlung in Berlin 2023 öffnen';
   const secondTriggerName = 'Bild Jahreshauptversammlung in Köln 2024 öffnen';
 
+  async function openLightbox(trigger) {
+    // This suite validates Alpine lightbox behavior, not browser pointer hit-testing.
+    // dispatchEvent avoids a Firefox-only flake where real clicks occasionally
+    // do not reach the trigger before the visibility assertion runs.
+    await trigger.dispatchEvent('click');
+  }
+
   test.beforeEach(async ({ page }) => {
     await page.goto('/chronik');
     await page.waitForLoadState('networkidle');
@@ -25,7 +32,7 @@ test.describe('Chronik Lightbox', () => {
   });
 
   test('opens lightbox on image click and shows correct alt text', async ({ page }) => {
-    await page.getByRole('button', { name: firstTriggerName }).click();
+    await openLightbox(page.getByRole('button', { name: firstTriggerName }));
 
     const dialog = page.locator('[role="dialog"]');
     await expect(dialog).toBeVisible();
@@ -37,7 +44,7 @@ test.describe('Chronik Lightbox', () => {
   });
 
   test('closes lightbox via close button', async ({ page }) => {
-    await page.getByRole('button', { name: firstTriggerName }).click();
+    await openLightbox(page.getByRole('button', { name: firstTriggerName }));
 
     const dialog = page.locator('[role="dialog"]');
     await expect(dialog).toBeVisible();
@@ -47,7 +54,7 @@ test.describe('Chronik Lightbox', () => {
   });
 
   test('closes lightbox via Escape key', async ({ page }) => {
-    await page.getByRole('button', { name: firstTriggerName }).click();
+    await openLightbox(page.getByRole('button', { name: firstTriggerName }));
 
     const dialog = page.locator('[role="dialog"]');
     await expect(dialog).toBeVisible();
@@ -59,10 +66,7 @@ test.describe('Chronik Lightbox', () => {
   test('closes lightbox via backdrop click', async ({ page }) => {
     const trigger = page.getByRole('button', { name: firstTriggerName });
 
-    // This test exercises backdrop closing, not pointer hit-testing on the trigger.
-    // dispatchEvent avoids a Firefox-only flake where the real click occasionally
-    // does not open the already-mounted dialog before the visibility assertion.
-    await trigger.dispatchEvent('click');
+    await openLightbox(trigger);
 
     const dialog = page.locator('[role="dialog"]');
     await expect(dialog).toBeVisible();
@@ -74,7 +78,7 @@ test.describe('Chronik Lightbox', () => {
   });
 
   test('switches image when opening different lightbox triggers', async ({ page }) => {
-    await page.getByRole('button', { name: firstTriggerName }).click();
+    await openLightbox(page.getByRole('button', { name: firstTriggerName }));
 
     const dialog = page.locator('[role="dialog"]');
     await expect(dialog).toBeVisible();
@@ -91,7 +95,7 @@ test.describe('Chronik Lightbox', () => {
 
     await secondEntry.scrollIntoViewIfNeeded();
     await expect(secondTrigger).toBeVisible();
-    await secondTrigger.click();
+    await openLightbox(secondTrigger);
     await expect(dialog).toBeVisible();
     await expect(title).toHaveText('Jahreshauptversammlung in Köln 2024');
   });

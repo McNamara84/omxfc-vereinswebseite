@@ -4,8 +4,8 @@ namespace Tests\Feature;
 
 use App\Http\Controllers\PhotoGalleryController;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Http;
-use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Tests\Concerns\CreatesUserWithRole;
 use Tests\TestCase;
 
@@ -14,8 +14,17 @@ class PhotoGalleryControllerTest extends TestCase
     use CreatesUserWithRole;
     use RefreshDatabase;
 
-    /** @var string[] */
-    private array $createdPlaceholders = [];
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        config()->set('services.nextcloud.links', [
+            '2026' => 'https://cloud.maddrax-fanclub.de/public.php/dav/files/fotos2026Token/Foto',
+            '2025' => 'https://cloud.maddrax-fanclub.de/public.php/dav/files/jnGa6sEecKa3fiX/Foto',
+            '2024' => 'https://cloud.maddrax-fanclub.de/public.php/dav/files/tztWY5ML5XMRWPw/Foto',
+            '2023' => 'https://cloud.maddrax-fanclub.de/public.php/dav/files/jjpfnJbgStE8LcQ/Foto',
+        ]);
+    }
 
     public function test_index_loads_photos_for_years(): void
     {
@@ -29,9 +38,11 @@ class PhotoGalleryControllerTest extends TestCase
         $response = $this->get('/fotogalerie');
 
         $response->assertOk();
-        $response->assertViewHas('activeYear', '2025');
+        $response->assertViewHas('activeYear', '2026');
+        $response->assertViewHas('years', ['2026', '2025', '2024', '2023']);
 
         $photos = $response->viewData('photos');
+        $this->assertEquals('https://cloud.maddrax-fanclub.de/public.php/dav/files/fotos2026Token/Foto1.jpg', $photos['2026'][0]);
         $this->assertEquals('https://cloud.maddrax-fanclub.de/public.php/dav/files/jnGa6sEecKa3fiX/Foto1.jpg', $photos['2025'][0]);
         $this->assertEquals('https://cloud.maddrax-fanclub.de/public.php/dav/files/tztWY5ML5XMRWPw/Foto1.jpg', $photos['2024'][0]);
         $this->assertEquals('https://cloud.maddrax-fanclub.de/public.php/dav/files/jjpfnJbgStE8LcQ/Foto1.jpg', $photos['2023'][0]);
@@ -50,51 +61,46 @@ class PhotoGalleryControllerTest extends TestCase
         $response->assertOk();
 
         $photos = $response->viewData('photos');
-        $this->assertEquals(asset('images/galerie/2025/placeholder1.jpg'), $photos['2025'][0]);
-        $this->assertEquals(asset('images/galerie/2024/placeholder1.jpg'), $photos['2024'][0]);
-        $this->assertEquals(asset('images/galerie/2023/placeholder1.jpg'), $photos['2023'][0]);
+        $this->assertStringStartsWith('data:image/svg+xml;charset=UTF-8,', $photos['2026'][0]);
+        $this->assertStringStartsWith('data:image/svg+xml;charset=UTF-8,', $photos['2025'][0]);
+        $this->assertStringStartsWith('data:image/svg+xml;charset=UTF-8,', $photos['2024'][0]);
+        $this->assertStringStartsWith('data:image/svg+xml;charset=UTF-8,', $photos['2023'][0]);
+        $this->assertStringContainsString('2026', rawurldecode(explode(',', $photos['2026'][0], 2)[1]));
     }
 
-    private function ensurePlaceholder(string $year): void
+    public function test_index_filters_years_without_configured_links(): void
     {
-        $path = public_path("images/galerie/{$year}/placeholder1.jpg");
-        if (! file_exists($path)) {
-            $dir = dirname($path);
-            if (! is_dir($dir)) {
-                mkdir($dir, 0777, true);
-            }
-            file_put_contents($path, 'dummy');
-            $this->createdPlaceholders[] = $path;
-        }
-    }
+        config()->set('services.nextcloud.links', [
+            '2026' => '',
+            '2025' => 'https://cloud.maddrax-fanclub.de/public.php/dav/files/jnGa6sEecKa3fiX/Foto',
+            '2024' => '',
+            '2023' => 'https://cloud.maddrax-fanclub.de/public.php/dav/files/jjpfnJbgStE8LcQ/Foto',
+        ]);
 
-    protected function tearDown(): void
-    {
-        foreach ($this->createdPlaceholders as $path) {
-            if (file_exists($path)) {
-                unlink($path);
-            }
-            $yearDir = dirname($path);
-            if (is_dir($yearDir) && count(scandir($yearDir)) === 2) {
-                rmdir($yearDir);
-                $galerieDir = dirname($yearDir);
-                if (is_dir($galerieDir) && count(scandir($galerieDir)) === 2) {
-                    rmdir($galerieDir);
-                }
-            }
-        }
-        parent::tearDown();
+        Http::fake([
+            'cloud.maddrax-fanclub.de/*1.jpg' => Http::response('', 200),
+            'cloud.maddrax-fanclub.de/*2.jpg' => Http::response('', 404),
+        ]);
+
+        $this->actingAs($this->actingMember());
+
+        $response = $this->get('/fotogalerie');
+
+        $response->assertOk();
+        $response->assertViewHas('years', ['2025', '2023']);
+        $response->assertViewHas('activeYear', '2025');
+
+        $photos = $response->viewData('photos');
+        $this->assertSame(['2025', '2023'], array_map('strval', array_keys($photos)));
     }
 
     public function test_proxy_image_returns_remote_file(): void
     {
-        $this->ensurePlaceholder('2025');
-
         Http::fake([
             'cloud.maddrax-fanclub.de/*Foto1.jpg' => Http::response('img', 200, ['Content-Type' => 'image/jpeg']),
         ]);
 
-        $response = app(PhotoGalleryController::class)->proxyImage('2025', 1);
+        $response = app(PhotoGalleryController::class)->proxyImage('2026', 1);
 
         $this->assertEquals(200, $response->getStatusCode());
         $this->assertEquals('image/jpeg', $response->headers->get('Content-Type'));
@@ -103,15 +109,15 @@ class PhotoGalleryControllerTest extends TestCase
 
     public function test_proxy_image_returns_placeholder_on_failure(): void
     {
-        $this->ensurePlaceholder('2025');
-
         Http::fake([
             'cloud.maddrax-fanclub.de/*Foto1.jpg' => Http::response('', 404),
         ]);
 
-        $response = app(PhotoGalleryController::class)->proxyImage('2025', 1);
+        $response = app(PhotoGalleryController::class)->proxyImage('2026', 1);
 
-        $this->assertInstanceOf(BinaryFileResponse::class, $response);
-        $this->assertStringEndsWith('images/galerie/2025/placeholder1.jpg', $response->getFile()->getPathname());
+        $this->assertInstanceOf(Response::class, $response);
+        $this->assertEquals(200, $response->getStatusCode());
+        $this->assertEquals('image/svg+xml', $response->headers->get('Content-Type'));
+        $this->assertStringContainsString('2026', $response->getContent());
     }
 }
