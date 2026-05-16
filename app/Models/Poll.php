@@ -32,10 +32,12 @@ class Poll extends Model
     {
         static::saved(function () {
             Cache::forget('polls.active_for_menu.v1');
+            Cache::forget('polls.active_for_menu.v2');
         });
 
         static::deleted(function () {
             Cache::forget('polls.active_for_menu.v1');
+            Cache::forget('polls.active_for_menu.v2');
         });
     }
 

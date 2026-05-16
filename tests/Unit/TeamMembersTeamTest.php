@@ -70,7 +70,23 @@ class TeamMembersTeamTest extends TestCase
         $renamedTeam = Team::membersTeam();
 
         $this->assertCount(1, DB::getQueryLog());
-        $this->assertSame('Mitglieder-renamed', $renamedTeam->name);
+        $this->assertNull($renamedTeam);
+    }
+
+    public function test_members_team_ignores_stale_cached_team_id(): void
+    {
+        $team = Team::membersTeam();
+
+        Team::clearMembersTeamCache();
+        cache()->forever(Team::MEMBERS_TEAM_ID_CACHE_KEY, $team->id);
+
+        $team->update(['name' => 'Archiviertes Team']);
+        $replacement = Team::factory()->create(['name' => 'Mitglieder']);
+
+        $resolvedTeam = Team::membersTeam();
+
+        $this->assertNotNull($resolvedTeam);
+        $this->assertTrue($resolvedTeam->is($replacement));
     }
 
     public function test_members_team_returns_null_when_not_found(): void

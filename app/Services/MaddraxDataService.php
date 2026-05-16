@@ -44,9 +44,11 @@ class MaddraxDataService
     {
         $cacheKey = "maddrax_series_{$seriesKey}";
 
-        return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($seriesKey) {
-            return $this->loadSeriesFromFile($seriesKey);
+        $series = Cache::remember($cacheKey, self::CACHE_TTL, function () use ($seriesKey) {
+            return $this->loadSeriesFromFile($seriesKey)->all();
         });
+
+        return collect($series);
     }
 
     /**
@@ -56,14 +58,18 @@ class MaddraxDataService
      */
     public function getAllSeries(): array
     {
-        return Cache::remember('maddrax_all_series', self::CACHE_TTL, function () {
+        $series = Cache::remember('maddrax_all_series', self::CACHE_TTL, function () {
             $result = [];
             foreach (array_keys(self::SERIES_FILES) as $key) {
-                $result[$key] = $this->loadSeriesFromFile($key);
+                $result[$key] = $this->loadSeriesFromFile($key)->all();
             }
 
             return $result;
         });
+
+        return collect($series)
+            ->map(fn ($items) => collect($items))
+            ->all();
     }
 
     /**

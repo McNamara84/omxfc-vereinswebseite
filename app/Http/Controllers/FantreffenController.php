@@ -24,9 +24,14 @@ class FantreffenController extends Controller
         $user = Auth::user();
 
         // VIP-Autoren laden (cached for 1 hour)
-        $vipAuthors = Cache::remember('fantreffen_vip_authors', 3600, function () {
-            return FantreffenVipAuthor::active()->ordered()->get();
+        $cachedVipAuthors = Cache::remember('fantreffen_vip_authors', 3600, function () {
+            return FantreffenVipAuthor::active()->ordered()->get()
+                ->map(fn (FantreffenVipAuthor $author) => $author->getAttributes())
+                ->values()
+                ->all();
         });
+
+        $vipAuthors = FantreffenVipAuthor::hydrate($cachedVipAuthors);
 
         // Hinweis: paymentAmount wird nur für Button-Text verwendet
         // Die tatsächliche Berechnung erfolgt in store() basierend auf Auswahl

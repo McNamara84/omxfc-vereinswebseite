@@ -52,13 +52,18 @@ class DashboardController extends Controller
         }
 
         if (in_array($userRole, $allowedRoles, true)) {
-            $anwaerter = Cache::remember(
+            $cachedApplicants = Cache::remember(
                 "anwaerter_{$team->id}",
                 $cacheFor,
                 fn () => $team->users()
                     ->wherePivot('role', Role::Anwaerter->value)
-                    ->get()
+                    ->get(['users.id', 'users.name', 'users.email', 'users.mitgliedsbeitrag'])
+                    ->map(fn (User $applicant) => $applicant->getAttributes())
+                    ->values()
+                    ->all()
             );
+
+            $anwaerter = User::hydrate($cachedApplicants);
         }
 
         // ToDo-Statistiken abrufen
@@ -126,7 +131,9 @@ class DashboardController extends Controller
                             'profile_photo_url' => $user->profile_photo_url,
                             'points' => $item->total_points,
                         ];
-                    });
+                    })
+                    ->values()
+                    ->all();
             }
         );
 

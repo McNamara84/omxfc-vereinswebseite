@@ -7,6 +7,8 @@ use App\Models\RomanExcerpt;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Queue\Attributes\Timeout;
+use Illuminate\Queue\Attributes\Tries;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
@@ -18,19 +20,11 @@ use Throwable;
  *
  * Liest die TXT-Datei ein und fügt sie dem Scout-Index hinzu.
  */
+#[Tries(3)]
+#[Timeout(120)]
 class IndexiereRomanJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
-
-    /**
-     * Anzahl der Versuche bei Fehlern.
-     */
-    public int $tries = 3;
-
-    /**
-     * Timeout in Sekunden.
-     */
-    public int $timeout = 120;
 
     public function __construct(
         public KompendiumRoman $kompendiumRoman

@@ -30,6 +30,8 @@ class Team extends JetstreamTeam
     /** @use HasFactory<TeamFactory> */
     use HasFactory;
 
+    protected static ?self $resolvedMembersTeam = null;
+
     public const MEMBERS_TEAM_CACHE_KEY = 'team.members';
 
     public const MEMBERS_TEAM_ID_CACHE_KEY = 'team.members.id';
@@ -115,11 +117,24 @@ class Team extends JetstreamTeam
      */
     public static function membersTeam(): ?self
     {
+        if (
+            self::$resolvedMembersTeam instanceof self
+            && self::$resolvedMembersTeam->name === 'Mitglieder'
+            && Cache::get(self::MEMBERS_TEAM_ID_CACHE_KEY) === self::$resolvedMembersTeam->id
+        ) {
+            return self::$resolvedMembersTeam;
+        }
+
         $cached = Cache::get(self::MEMBERS_TEAM_CACHE_KEY);
 
-        if ($cached instanceof self) {
-            return $cached;
+        if ($cached instanceof self && $cached->name === 'Mitglieder') {
+            Cache::forever(self::MEMBERS_TEAM_ID_CACHE_KEY, $cached->id);
+            Cache::forget(self::MEMBERS_TEAM_CACHE_KEY);
+
+            return self::$resolvedMembersTeam = $cached;
         }
+
+        Cache::forget(self::MEMBERS_TEAM_CACHE_KEY);
 
         $teamId = Cache::get(self::MEMBERS_TEAM_ID_CACHE_KEY);
 
@@ -127,6 +142,11 @@ class Team extends JetstreamTeam
 
         if ($teamId) {
             $team = self::query()->find($teamId);
+
+            if ($team?->name !== 'Mitglieder') {
+                $team = null;
+                Cache::forget(self::MEMBERS_TEAM_ID_CACHE_KEY);
+            }
         }
 
         if (! $team) {
@@ -134,8 +154,9 @@ class Team extends JetstreamTeam
         }
 
         if ($team) {
-            Cache::put(self::MEMBERS_TEAM_CACHE_KEY, $team, now()->addHour());
             Cache::forever(self::MEMBERS_TEAM_ID_CACHE_KEY, $team->id);
+
+            self::$resolvedMembersTeam = $team;
         }
 
         return $team;
@@ -143,7 +164,10 @@ class Team extends JetstreamTeam
 
     public static function clearMembersTeamCache(): void
     {
+        self::$resolvedMembersTeam = null;
+
         Cache::forget(self::MEMBERS_TEAM_CACHE_KEY);
+        Cache::forget(self::MEMBERS_TEAM_ID_CACHE_KEY);
     }
 
     protected static function booted(): void
@@ -160,7 +184,6 @@ class Team extends JetstreamTeam
         static::deleted(function (self $team) {
             if ($team->getOriginal('name') === 'Mitglieder' || $team->name === 'Mitglieder') {
                 self::clearMembersTeamCache();
-                Cache::forget(self::MEMBERS_TEAM_ID_CACHE_KEY);
             }
         });
     }

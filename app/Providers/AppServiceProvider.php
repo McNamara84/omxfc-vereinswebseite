@@ -111,27 +111,30 @@ class AppServiceProvider extends ServiceProvider
         });
 
         View::composer('navigation-menu', function ($view) {
-            $poll = null;
+            $navigationContext = [
+                'activePollMenuLabel' => null,
+                'showActivePollForAuth' => false,
+                'showActivePollForGuest' => false,
+            ];
 
             try {
-                $cacheKey = 'polls.active_for_menu.v1';
-                $poll = Cache::remember($cacheKey, now()->addMinutes(10), function () {
-                    return app(ActivePollResolver::class)->current();
+                $cacheKey = 'polls.active_for_menu.v2';
+                $navigationContext = Cache::remember($cacheKey, now()->addMinutes(10), function () {
+                    $poll = app(ActivePollResolver::class)->current();
+                    $isWithinWindow = $poll ? $poll->isWithinVotingWindow() : false;
+
+                    return [
+                        'activePollMenuLabel' => $poll?->menu_label,
+                        'showActivePollForAuth' => (bool) ($poll && $isWithinWindow),
+                        'showActivePollForGuest' => (bool) ($poll && $isWithinWindow && $poll->visibility === PollVisibility::Public),
+                    ];
                 });
             } catch (QueryException $e) {
                 // Table may not exist during tests before migrations run
             }
 
-            $isWithinWindow = $poll ? $poll->isWithinVotingWindow() : false;
-
-            $navigationContext = [
-                'activePollMenuLabel' => $poll?->menu_label,
-                'showActivePollForAuth' => (bool) ($poll && $isWithinWindow),
-                'showActivePollForGuest' => (bool) ($poll && $isWithinWindow && $poll->visibility === PollVisibility::Public),
-            ];
-
             $view->with([
-                'activePollForMenu' => $poll,
+                'activePollForMenu' => null,
                 'activePollMenuLabel' => $navigationContext['activePollMenuLabel'],
                 'showActivePollForAuth' => $navigationContext['showActivePollForAuth'],
                 'showActivePollForGuest' => $navigationContext['showActivePollForGuest'],

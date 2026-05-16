@@ -31,14 +31,24 @@ class BaxxEarningRule extends Model
 
     public static function getActiveRuleFor(string $actionKey): ?self
     {
-        return Cache::remember(
+        $attributes = Cache::remember(
             "baxx_earning_rule_model_{$actionKey}",
             3600,
             fn () => static::query()
                 ->where('action_key', $actionKey)
                 ->where('is_active', true)
-                ->first()
+                ->first()?->getAttributes()
         );
+
+        if (! is_array($attributes)) {
+            return null;
+        }
+
+        $rule = new static;
+        $rule->exists = true;
+        $rule->setRawAttributes($attributes, true);
+
+        return $rule;
     }
 
     /**

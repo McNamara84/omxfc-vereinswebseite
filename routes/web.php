@@ -115,17 +115,25 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
         ->name('admin.umfragen.index')
         ->middleware('can:manage,'.Poll::class);
 
-    Route::prefix('admin/veranstaltungen')->name('admin.veranstaltungen.')->middleware('vorstand-or-kassenwart')->group(function () {
-        Route::get('/', [VeranstaltungVerwaltungController::class, 'index'])->name('index');
-        Route::get('/neu', [VeranstaltungVerwaltungController::class, 'create'])->name('create');
-        Route::post('/', [VeranstaltungVerwaltungController::class, 'store'])->name('store');
-        Route::get('/{veranstaltung}/bearbeiten', [VeranstaltungVerwaltungController::class, 'edit'])->name('edit');
-        Route::put('/{veranstaltung}', [VeranstaltungVerwaltungController::class, 'update'])->name('update');
-        Route::post('/{veranstaltung}/abschnitte', [VeranstaltungVerwaltungController::class, 'storeAbschnitt'])->name('abschnitte.store');
-        Route::put('/{veranstaltung}/abschnitte/{abschnitt}', [VeranstaltungVerwaltungController::class, 'updateAbschnitt'])->name('abschnitte.update');
-        Route::delete('/{veranstaltung}/abschnitte/{abschnitt}', [VeranstaltungVerwaltungController::class, 'destroyAbschnitt'])->name('abschnitte.destroy');
-        Route::livewire('/{veranstaltung}/anmeldungen', FantreffenAdminDashboard::class)->name('anmeldungen');
-        Route::livewire('/{veranstaltung}/vip-autoren', FantreffenVipAuthors::class)->name('vip-authors');
+    Route::prefix('admin/veranstaltungen')->name('admin.veranstaltungen.')->group(function () {
+        Route::controller(VeranstaltungVerwaltungController::class)->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::get('/neu', 'create')->name('create');
+            Route::post('/', 'store')->name('store');
+            Route::get('/{veranstaltung}/bearbeiten', 'edit')->name('edit');
+            Route::put('/{veranstaltung}', 'update')->name('update');
+            Route::post('/{veranstaltung}/abschnitte', 'storeAbschnitt')->name('abschnitte.store');
+            Route::put('/{veranstaltung}/abschnitte/{abschnitt}', 'updateAbschnitt')->name('abschnitte.update');
+            Route::delete('/{veranstaltung}/abschnitte/{abschnitt}', 'destroyAbschnitt')->name('abschnitte.destroy');
+        });
+
+        Route::livewire('/{veranstaltung}/anmeldungen', FantreffenAdminDashboard::class)
+            ->name('anmeldungen')
+            ->middleware('vorstand-or-kassenwart');
+
+        Route::livewire('/{veranstaltung}/vip-autoren', FantreffenVipAuthors::class)
+            ->name('vip-authors')
+            ->middleware('vorstand-or-kassenwart');
     });
 
     Route::get('/admin/fantreffen-2026', fn () => redirect()->route('admin.veranstaltungen.anmeldungen', ['veranstaltung' => 'maddrax-fantreffen-2026']))
@@ -206,8 +214,8 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
     });
 
     Route::prefix('hoerbuecher')->name('hoerbuecher.')->group(function () {
-        Route::get('previous-speaker', [HoerbuchController::class, 'previousSpeaker'])->name('previous-speaker')->middleware('hoerbuch-manage');
-        Route::patch('rollen/{role}/hochgeladen', [HoerbuchController::class, 'updateRoleUploaded'])->name('roles.uploaded')->middleware('hoerbuch-manage');
+        Route::get('previous-speaker', [HoerbuchController::class, 'previousSpeaker'])->name('previous-speaker');
+        Route::patch('rollen/{role}/hochgeladen', [HoerbuchController::class, 'updateRoleUploaded'])->name('roles.uploaded');
         Route::livewire('erstellen', \App\Livewire\HoerbuchForm::class)->name('create')->middleware('hoerbuch-manage');
         Route::livewire('{episode}/bearbeiten', \App\Livewire\HoerbuchForm::class)->name('edit')->middleware('hoerbuch-manage');
     });
@@ -241,8 +249,11 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
 
     Route::get('kassenstand', [KassenbuchController::class, 'kassenstand'])->name('kassenstand.index');
 
-    Route::prefix('kassenbuch')->name('kassenbuch.')->middleware('vorstand-or-kassenwart')->group(function () {
-        Route::livewire('/', KassenbuchIndex::class)->name('index');
+    Route::prefix('kassenbuch')->name('kassenbuch.')->group(function () {
+        Route::livewire('/', KassenbuchIndex::class)
+            ->name('index')
+            ->middleware('vorstand-or-kassenwart');
+
         Route::controller(KassenbuchController::class)->group(function () {
             Route::put('zahlung-aktualisieren/{user}', 'updatePaymentStatus')->name('update-payment');
             Route::post('eintrag-hinzufuegen', 'addKassenbuchEntry')->name('add-entry');
@@ -255,7 +266,7 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
         });
     });
 
-    Route::prefix('admin/auktionen')->name('admin.auktionen.')->controller(AuktionVerwaltungController::class)->middleware('vorstand-or-kassenwart')->group(function () {
+    Route::prefix('admin/auktionen')->name('admin.auktionen.')->controller(AuktionVerwaltungController::class)->group(function () {
         Route::get('/', 'index')->name('index');
         Route::get('/neu', 'create')->name('create');
         Route::post('/', 'store')->name('store');

@@ -6,16 +6,16 @@ use App\Enums\AuktionsStatus;
 use App\Http\Requests\StoreAuktionGebotRequest;
 use App\Models\Auktion;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Routing\Attributes\Controllers\Authorize;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class AuktionController extends Controller
 {
+    #[Authorize('viewAny', Auktion::class)]
     public function index(): View
     {
-        $this->authorize('viewAny', Auktion::class);
-
         return view('auktionen.index', [
             'aktiveAuktionen' => Auktion::query()
                 ->aktiv()
@@ -33,10 +33,9 @@ class AuktionController extends Controller
         ]);
     }
 
+    #[Authorize('view', 'auktion')]
     public function show(Auktion $auktion): View
     {
-        $this->authorize('view', $auktion);
-
         $auktion->load(['gebote', 'verkauftesGebot']);
 
         return view('auktionen.show', [
@@ -44,10 +43,9 @@ class AuktionController extends Controller
         ]);
     }
 
+    #[Authorize('bid', 'auktion')]
     public function storeGebot(StoreAuktionGebotRequest $request, Auktion $auktion): RedirectResponse
     {
-        $this->authorize('bid', $auktion);
-
         DB::transaction(function () use ($request, $auktion): void {
             /** @var Auktion $lockedAuktion */
             $lockedAuktion = Auktion::query()

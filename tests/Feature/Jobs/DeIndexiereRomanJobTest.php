@@ -8,9 +8,12 @@ use App\Models\Team;
 use App\Models\User;
 use App\Services\KompendiumSearchService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Queue\Attributes\Timeout;
+use Illuminate\Queue\Attributes\Tries;
 use Illuminate\Support\Facades\Storage;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
+use ReflectionClass;
 use Tests\TestCase;
 
 #[CoversClass(DeIndexiereRomanJob::class)]
@@ -86,5 +89,17 @@ class DeIndexiereRomanJobTest extends TestCase
 
         $roman->refresh();
         $this->assertEquals('hochgeladen', $roman->status);
+    }
+
+    #[Test]
+    public function job_verwendet_laravel_13_queue_attribute_fuer_tries_und_timeout(): void
+    {
+        $reflection = new ReflectionClass(DeIndexiereRomanJob::class);
+
+        $tries = $reflection->getAttributes(Tries::class)[0]?->newInstance();
+        $timeout = $reflection->getAttributes(Timeout::class)[0]?->newInstance();
+
+        $this->assertSame(3, $tries?->tries);
+        $this->assertSame(60, $timeout?->timeout);
     }
 }
