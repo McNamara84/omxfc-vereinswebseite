@@ -17,7 +17,7 @@ use Illuminate\Routing\Attributes\Controllers\Middleware;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
-#[Middleware('vorstand-or-kassenwart', null, ['kassenstand'])]
+#[Middleware(middleware: 'vorstand-or-kassenwart', except: ['kassenstand'])]
 class KassenbuchController extends Controller
 {
     public function __construct(

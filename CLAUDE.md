@@ -42,7 +42,7 @@ This document provides comprehensive guidance for AI assistants working with the
 ## Tech Stack
 
 ### Backend
-- **Framework:** Laravel 12 (latest version)
+- **Framework:** Laravel 13 (latest version)
 - **PHP:** 8.5 (PHP 8.5 only)
 - **Key Packages:**
   - Laravel Jetstream 5.5 (team management, authentication)
