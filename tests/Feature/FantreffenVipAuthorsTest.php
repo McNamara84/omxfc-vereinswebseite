@@ -43,7 +43,10 @@ class FantreffenVipAuthorsTest extends TestCase
 
     protected function createUserWithRole(Role $role): User
     {
-        $team = Team::factory()->create(['name' => 'Mitglieder']);
+        $team = Team::membersTeam() ?? Team::factory()->create([
+            'name' => 'Mitglieder',
+            'personal_team' => false,
+        ]);
         $user = User::factory()->create(['current_team_id' => $team->id]);
 
         $user->teams()->attach($team->id, [

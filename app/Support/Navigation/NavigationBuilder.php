@@ -139,6 +139,10 @@ class NavigationBuilder
             return false;
         }
 
+        if (($predicate['veranstaltungsverwaltung'] ?? false) && ! ($visibilityState['can_manage_veranstaltungen'] ?? false)) {
+            return false;
+        }
+
         if (isset($predicate['roles_any'])) {
             $roles = array_values(array_filter(
                 $predicate['roles_any'],
@@ -188,6 +192,7 @@ class NavigationBuilder
             return [
                 'current_role' => null,
                 'has_vorstand_role' => false,
+                'can_manage_veranstaltungen' => false,
                 'team_names' => [],
                 'has_non_personal_team' => false,
                 'has_non_personal_owned_team' => false,
@@ -199,12 +204,17 @@ class NavigationBuilder
         $currentRole = Role::tryFrom(
             $user->teams->firstWhere('id', $user->current_team_id)?->membership?->role ?? null,
         );
+        $mitgliederTeamRole = Role::tryFrom(
+            $user->teams->firstWhere('name', 'Mitglieder')?->membership?->role ?? null,
+        );
         $teamNames = array_values(array_filter($user->teams->pluck('name')->all(), 'is_string'));
 
         return [
             'current_role' => $currentRole,
             'has_vorstand_role' => $currentRole instanceof Role
                 && in_array($currentRole, [Role::Admin, Role::Vorstand, Role::Kassenwart], true),
+            'can_manage_veranstaltungen' => $mitgliederTeamRole instanceof Role
+                && in_array($mitgliederTeamRole, [Role::Admin, Role::Vorstand, Role::Kassenwart], true),
             'team_names' => array_fill_keys($teamNames, true),
             'has_non_personal_team' => $user->teams->contains(fn ($team): bool => ! $team->personal_team),
             'has_non_personal_owned_team' => $user->ownedTeams->contains(fn ($team): bool => ! $team->personal_team),

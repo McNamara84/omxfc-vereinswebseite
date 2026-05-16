@@ -40,6 +40,18 @@
                             <a href="{{ $veranstaltung->maps_url }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm rounded-full border-white text-white hover:bg-white hover:text-[#8B0116]">Route öffnen</a>
                         </div>
                     @endif
+                    @if ($user?->canManageVeranstaltungen())
+                        <div class="space-y-2 rounded-[1.25rem] border border-white/15 bg-white/8 p-3">
+                            <p class="text-xs uppercase tracking-[0.2em] text-white/60">Verwaltung</p>
+                            <div class="flex flex-wrap gap-2">
+                                <a href="{{ route('admin.veranstaltungen.edit', $veranstaltung) }}" wire:navigate class="btn btn-sm rounded-full border-white text-white hover:bg-white hover:text-[#8B0116]">Veranstaltung bearbeiten</a>
+                                <a href="{{ route('admin.veranstaltungen.anmeldungen', $veranstaltung) }}" wire:navigate class="btn btn-sm rounded-full bg-white text-[#8B0116] hover:bg-white/90">Anmeldeliste</a>
+                                @if ($veranstaltung->vip_autoren_aktiv)
+                                    <a href="{{ route('admin.veranstaltungen.vip-authors', $veranstaltung) }}" wire:navigate class="btn btn-sm rounded-full border-white text-white hover:bg-white hover:text-[#8B0116]">VIP-Autoren</a>
+                                @endif
+                            </div>
+                        </div>
+                    @endif
                 </div>
             </div>
         </section>

@@ -9,6 +9,7 @@ use App\Models\Veranstaltung;
 use App\Models\VeranstaltungsAbschnitt;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Config;
+use PHPUnit\Framework\Attributes\TestWith;
 use Tests\TestCase;
 
 class VeranstaltungVerwaltungTest extends TestCase
@@ -24,7 +25,10 @@ class VeranstaltungVerwaltungTest extends TestCase
 
     protected function createUserWithRole(Role $role): User
     {
-        $team = Team::factory()->create(['name' => 'Mitglieder']);
+        $team = Team::membersTeam() ?? Team::factory()->create([
+            'name' => 'Mitglieder',
+            'personal_team' => false,
+        ]);
         $user = User::factory()->create(['current_team_id' => $team->id]);
 
         $user->teams()->attach($team->id, [
@@ -34,6 +38,36 @@ class VeranstaltungVerwaltungTest extends TestCase
         ]);
 
         return $user;
+    }
+
+    protected function createUserWithRoleAndDifferentCurrentTeam(Role $role): User
+    {
+        $managementTeam = Team::membersTeam() ?? Team::factory()->create([
+            'name' => 'Mitglieder',
+            'personal_team' => false,
+        ]);
+        $user = User::factory()->create(['current_team_id' => $managementTeam->id]);
+
+        $managementTeam->users()->attach($user->id, [
+            'role' => $role->value,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $otherTeam = Team::factory()->create([
+            'user_id' => $user->id,
+            'name' => 'Nebenverein',
+            'personal_team' => false,
+        ]);
+        $otherTeam->users()->attach($user->id, [
+            'role' => Role::Mitglied->value,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $user->forceFill(['current_team_id' => $otherTeam->id])->save();
+
+        return $user->refresh();
     }
 
     public function test_admin_can_open_event_management_index(): void
@@ -54,6 +88,42 @@ class VeranstaltungVerwaltungTest extends TestCase
         $response = $this->actingAs($member)->get(route('admin.veranstaltungen.index'));
 
         $response->assertForbidden();
+    }
+
+    #[TestWith([Role::Admin->value])]
+    #[TestWith([Role::Vorstand->value])]
+    public function test_management_user_with_other_active_team_can_open_event_management_index(string $roleValue): void
+    {
+        $user = $this->createUserWithRoleAndDifferentCurrentTeam(Role::from($roleValue));
+
+        $response = $this->withoutVite()->actingAs($user)->get(route('admin.veranstaltungen.index'));
+
+        $response->assertOk();
+        $response->assertSee('Veranstaltungen verwalten');
+    }
+
+    #[TestWith([Role::Admin->value])]
+    #[TestWith([Role::Vorstand->value])]
+    public function test_management_user_with_other_active_team_can_open_event_registration_list(string $roleValue): void
+    {
+        $user = $this->createUserWithRoleAndDifferentCurrentTeam(Role::from($roleValue));
+        $veranstaltung = Veranstaltung::query()->where('slug', 'jubilaeumsfeier-band-700')->firstOrFail();
+
+        $response = $this->withoutVite()->actingAs($user)->get(route('admin.veranstaltungen.anmeldungen', $veranstaltung));
+
+        $response->assertOk();
+        $response->assertSee('Anmeldungen');
+    }
+
+    public function test_event_management_index_marks_archived_events_as_still_accessible_for_registration_lists(): void
+    {
+        $admin = $this->createUserWithRole(Role::Admin);
+
+        $response = $this->withoutVite()->actingAs($admin)->get(route('admin.veranstaltungen.index'));
+
+        $response->assertOk();
+        $response->assertSee('Archivierte Veranstaltung');
+        $response->assertSee('Anmeldeliste weiterhin verfuegbar.');
     }
 
     public function test_admin_can_create_event_with_structured_data(): void
