@@ -27,6 +27,7 @@
     "license": "GPL-3.0-or-later",
     "require": {
         "php": "~8.5.0",
+        "guzzlehttp/psr7": "^2.9",
         "laravel/framework": "^13.0",
         "laravel/jetstream": "^5.5",
         "laravel/sanctum": "^4.3",

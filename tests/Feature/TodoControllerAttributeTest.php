@@ -20,22 +20,32 @@ class TodoControllerAttributeTest extends TestCase
     #[Test]
     public function create_und_store_verwenden_laravel_13_authorize_attribute_fuer_create(): void
     {
-        $create = (new ReflectionMethod(TodoController::class, 'create'))
-            ->getAttributes(AuthorizeAttribute::class)[0]?->newInstance();
+        $createAttributes = (new ReflectionMethod(TodoController::class, 'create'))
+            ->getAttributes(AuthorizeAttribute::class);
 
-        $store = (new ReflectionMethod(TodoController::class, 'store'))
-            ->getAttributes(AuthorizeAttribute::class)[0]?->newInstance();
+        $storeAttributes = (new ReflectionMethod(TodoController::class, 'store'))
+            ->getAttributes(AuthorizeAttribute::class);
 
-        $this->assertSame(AuthorizeMiddleware::using('create', Todo::class), $create?->middleware);
-        $this->assertSame(AuthorizeMiddleware::using('create', Todo::class), $store?->middleware);
+        $this->assertCount(1, $createAttributes);
+        $this->assertCount(1, $storeAttributes);
+
+        $create = $createAttributes[0]->newInstance();
+        $store = $storeAttributes[0]->newInstance();
+
+        $this->assertSame(AuthorizeMiddleware::using('create', Todo::class), $create->middleware);
+        $this->assertSame(AuthorizeMiddleware::using('create', Todo::class), $store->middleware);
     }
 
     #[Test]
     public function verify_verwendet_laravel_13_authorize_attribute_fuer_verify(): void
     {
-        $verify = (new ReflectionMethod(TodoController::class, 'verify'))
-            ->getAttributes(AuthorizeAttribute::class)[0]?->newInstance();
+        $verifyAttributes = (new ReflectionMethod(TodoController::class, 'verify'))
+            ->getAttributes(AuthorizeAttribute::class);
 
-        $this->assertSame(AuthorizeMiddleware::using('verify', Todo::class), $verify?->middleware);
+        $this->assertCount(1, $verifyAttributes);
+
+        $verify = $verifyAttributes[0]->newInstance();
+
+        $this->assertSame(AuthorizeMiddleware::using('verify', Todo::class), $verify->middleware);
     }
 }

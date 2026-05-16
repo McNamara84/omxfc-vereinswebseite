@@ -46,12 +46,20 @@ class GeocodeUserTest extends TestCase
     {
         $reflection = new ReflectionClass(GeocodeUser::class);
 
-        $tries = $reflection->getAttributes(Tries::class)[0]?->newInstance();
-        $timeout = $reflection->getAttributes(Timeout::class)[0]?->newInstance();
-        $backoff = $reflection->getAttributes(Backoff::class)[0]?->newInstance();
+        $triesAttributes = $reflection->getAttributes(Tries::class);
+        $timeoutAttributes = $reflection->getAttributes(Timeout::class);
+        $backoffAttributes = $reflection->getAttributes(Backoff::class);
 
-        $this->assertSame(3, $tries?->tries);
-        $this->assertSame(30, $timeout?->timeout);
-        $this->assertSame(300, $backoff?->backoff);
+        $this->assertCount(1, $triesAttributes);
+        $this->assertCount(1, $timeoutAttributes);
+        $this->assertCount(1, $backoffAttributes);
+
+        $tries = $triesAttributes[0]->newInstance();
+        $timeout = $timeoutAttributes[0]->newInstance();
+        $backoff = $backoffAttributes[0]->newInstance();
+
+        $this->assertSame(3, $tries->tries);
+        $this->assertSame(30, $timeout->timeout);
+        $this->assertSame(300, $backoff->backoff);
     }
 }

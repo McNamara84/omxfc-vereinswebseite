@@ -11,6 +11,8 @@ class BaxxEarningRule extends Model
 {
     use HasFactory;
 
+    private const CACHE_KEY_SUFFIX = '.v2';
+
     protected $fillable = [
         'action_key',
         'label',
@@ -32,7 +34,7 @@ class BaxxEarningRule extends Model
     public static function getActiveRuleFor(string $actionKey): ?self
     {
         $attributes = Cache::remember(
-            "baxx_earning_rule_model_{$actionKey}",
+            self::cacheKey($actionKey),
             3600,
             fn () => static::query()
                 ->where('action_key', $actionKey)
@@ -80,13 +82,25 @@ class BaxxEarningRule extends Model
     public static function clearCache(?string $actionKey = null): void
     {
         if ($actionKey) {
-            Cache::forget("baxx_earning_rule_model_{$actionKey}");
+            Cache::forget(self::cacheKey($actionKey));
+            Cache::forget(self::legacyCacheKey($actionKey));
         } else {
             $rules = static::all();
             foreach ($rules as $rule) {
-                Cache::forget("baxx_earning_rule_model_{$rule->action_key}");
+                Cache::forget(self::cacheKey($rule->action_key));
+                Cache::forget(self::legacyCacheKey($rule->action_key));
             }
         }
+    }
+
+    private static function cacheKey(string $actionKey): string
+    {
+        return self::legacyCacheKey($actionKey).self::CACHE_KEY_SUFFIX;
+    }
+
+    private static function legacyCacheKey(string $actionKey): string
+    {
+        return "baxx_earning_rule_model_{$actionKey}";
     }
 
     protected static function booted(): void

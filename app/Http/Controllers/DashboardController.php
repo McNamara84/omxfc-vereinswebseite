@@ -53,7 +53,7 @@ class DashboardController extends Controller
 
         if (in_array($userRole, $allowedRoles, true)) {
             $cachedApplicants = Cache::remember(
-                "anwaerter_{$team->id}",
+                self::applicantsCacheKey($team->id),
                 $cacheFor,
                 fn () => $team->users()
                     ->wherePivot('role', Role::Anwaerter->value)
@@ -63,7 +63,9 @@ class DashboardController extends Controller
                     ->all()
             );
 
-            $anwaerter = User::hydrate($cachedApplicants);
+            if (is_array($cachedApplicants)) {
+                $anwaerter = User::hydrate(array_values(array_filter($cachedApplicants, static fn (mixed $applicant): bool => is_array($applicant))));
+            }
         }
 
         // ToDo-Statistiken abrufen
@@ -492,7 +494,8 @@ class DashboardController extends Controller
         ]);
 
         Cache::forget("member_count_{$team->id}");
-        Cache::forget("anwaerter_{$team->id}");
+        Cache::forget(self::applicantsCacheKey($team->id));
+        Cache::forget(self::legacyApplicantsCacheKey($team->id));
 
         return back()->with('status', 'Antrag genehmigt.');
     }
@@ -504,8 +507,19 @@ class DashboardController extends Controller
         $user->delete();
 
         Cache::forget("member_count_{$team->id}");
-        Cache::forget("anwaerter_{$team->id}");
+        Cache::forget(self::applicantsCacheKey($team->id));
+        Cache::forget(self::legacyApplicantsCacheKey($team->id));
 
         return back()->with('status', 'Antrag abgelehnt und gelöscht.');
+    }
+
+    private static function applicantsCacheKey(int $teamId): string
+    {
+        return self::legacyApplicantsCacheKey($teamId).'.v2';
+    }
+
+    private static function legacyApplicantsCacheKey(int $teamId): string
+    {
+        return "anwaerter_{$teamId}";
     }
 }

@@ -96,10 +96,16 @@ class DeIndexiereRomanJobTest extends TestCase
     {
         $reflection = new ReflectionClass(DeIndexiereRomanJob::class);
 
-        $tries = $reflection->getAttributes(Tries::class)[0]?->newInstance();
-        $timeout = $reflection->getAttributes(Timeout::class)[0]?->newInstance();
+        $triesAttributes = $reflection->getAttributes(Tries::class);
+        $timeoutAttributes = $reflection->getAttributes(Timeout::class);
 
-        $this->assertSame(3, $tries?->tries);
-        $this->assertSame(60, $timeout?->timeout);
+        $this->assertCount(1, $triesAttributes);
+        $this->assertCount(1, $timeoutAttributes);
+
+        $tries = $triesAttributes[0]->newInstance();
+        $timeout = $timeoutAttributes[0]->newInstance();
+
+        $this->assertSame(3, $tries->tries);
+        $this->assertSame(60, $timeout->timeout);
     }
 }

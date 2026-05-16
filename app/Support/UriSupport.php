@@ -2,9 +2,10 @@
 
 namespace App\Support;
 
+use GuzzleHttp\Psr7\Uri;
+use GuzzleHttp\Psr7\UriResolver;
 use Illuminate\Support\Str;
 use Throwable;
-use Uri\Rfc3986\Uri;
 
 final class UriSupport
 {
@@ -22,7 +23,7 @@ final class UriSupport
             return null;
         }
 
-        return $parsed->toString();
+        return (string) $parsed;
     }
 
     public static function isAbsoluteUrlForHost(string $uri, string $scheme, string $host): bool
@@ -46,7 +47,7 @@ final class UriSupport
         }
 
         try {
-            return (new Uri($normalizedBase))->resolve($reference)->toString();
+            return (string) UriResolver::resolve(new Uri($normalizedBase), new Uri($reference));
         } catch (Throwable) {
             return null;
         }
@@ -62,7 +63,7 @@ final class UriSupport
 
         $scheme = $parsed->getScheme();
 
-        if ($scheme !== null) {
+        if ($scheme !== '') {
             return match (strtolower($scheme)) {
                 'http', 'https' => self::hasNonEmptyHost($parsed),
                 'mailto' => $parsed->getPath() !== '',
@@ -93,8 +94,6 @@ final class UriSupport
 
     private static function hasNonEmptyHost(Uri $uri): bool
     {
-        $host = $uri->getHost();
-
-        return is_string($host) && $host !== '';
+        return $uri->getHost() !== '';
     }
 }

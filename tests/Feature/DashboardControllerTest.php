@@ -12,11 +12,11 @@ use App\Models\BookOffer;
 use App\Models\BookRequest;
 use App\Models\BookSwap;
 use App\Models\Fanfiction;
-use App\Models\Reward;
-use App\Models\RewardPurchase;
 use App\Models\Review;
 use App\Models\ReviewBaxxSpecialOffer;
 use App\Models\ReviewComment;
+use App\Models\Reward;
+use App\Models\RewardPurchase;
 use App\Models\Team;
 use App\Models\Todo;
 use App\Models\TodoCategory;
@@ -101,6 +101,23 @@ class DashboardControllerTest extends TestCase
 
         $response->assertViewHas('openTodos');
         $this->assertFalse($response->viewData('anwaerter')->contains($applicant));
+    }
+
+    public function test_dashboard_ignores_legacy_cached_applicant_collections(): void
+    {
+        $admin = $this->actingAdmin();
+        $applicant = $this->createApplicant();
+        $team = Team::membersTeam();
+
+        Cache::put("anwaerter_{$team->id}", collect([$applicant]), now()->addMinutes(10));
+
+        $response = $this->actingAs($admin)->get('/dashboard');
+
+        $response->assertOk();
+        $anwaerter = $response->viewData('anwaerter');
+
+        $this->assertCount(1, $anwaerter);
+        $this->assertTrue($anwaerter->contains(fn (User $user): bool => $user->is($applicant)));
     }
 
     public function test_index_displays_dashboard_statistics(): void

@@ -112,8 +112,9 @@ class Team extends JetstreamTeam
     /**
      * Retrieve the "Mitglieder" team if it exists.
      *
-     * The result is cached for an hour when present. Missing teams are not
-     * cached to avoid persisting a null value.
+     * The resolved team is cached by ID indefinitely across requests and the
+     * hydrated model is reused statically within the current request. Missing
+     * teams are not cached to avoid persisting a null value.
      */
     public static function membersTeam(): ?self
     {
