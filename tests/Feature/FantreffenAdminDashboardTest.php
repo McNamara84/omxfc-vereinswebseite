@@ -556,6 +556,64 @@ class FantreffenAdminDashboardTest extends TestCase
     }
 
     #[Test]
+    public function test_admin_can_filter_by_completed_merch_without_matching_mixed_open_orders(): void
+    {
+        $admin = $this->createUserWithRole(Role::Admin);
+        $artikel = $this->createMerchartikel('Stoffbeutel', 12.00);
+
+        $legacyFertig = FantreffenAnmeldung::create([
+            'veranstaltung_id' => $this->veranstaltung->id,
+            'vorname' => 'Legacy',
+            'nachname' => 'Fertig',
+            'email' => 'legacy-fertig@example.com',
+            'ist_mitglied' => false,
+            'payment_status' => 'pending',
+            'payment_amount' => 25.00,
+            'tshirt_bestellt' => true,
+            'tshirt_fertig' => true,
+        ]);
+
+        $gemischt = FantreffenAnmeldung::create([
+            'veranstaltung_id' => $this->veranstaltung->id,
+            'vorname' => 'Gemischt',
+            'nachname' => 'Offen',
+            'email' => 'gemischt-offen@example.com',
+            'ist_mitglied' => false,
+            'payment_status' => 'pending',
+            'payment_amount' => 37.00,
+            'tshirt_bestellt' => true,
+            'tshirt_fertig' => true,
+        ]);
+        $gemischt->merchartikelBestellungen()->create([
+            'veranstaltungs_merchartikel_id' => $artikel->id,
+            'preis_zum_bestellzeitpunkt' => 12.00,
+            'status_erledigt' => false,
+        ]);
+
+        $vollstaendig = FantreffenAnmeldung::create([
+            'veranstaltung_id' => $this->veranstaltung->id,
+            'vorname' => 'Vollstaendig',
+            'nachname' => 'Erledigt',
+            'email' => 'vollstaendig-erledigt@example.com',
+            'ist_mitglied' => false,
+            'payment_status' => 'pending',
+            'payment_amount' => 12.00,
+        ]);
+        $vollstaendig->merchartikelBestellungen()->create([
+            'veranstaltungs_merchartikel_id' => $artikel->id,
+            'preis_zum_bestellzeitpunkt' => 12.00,
+            'status_erledigt' => true,
+        ]);
+
+        Livewire::actingAs($admin)
+            ->test(FantreffenAdminDashboard::class, ['veranstaltung' => $this->veranstaltung])
+            ->set('filterTshirtFertig', 'fertig')
+            ->assertSee($legacyFertig->full_name)
+            ->assertSee($vollstaendig->full_name)
+            ->assertDontSee($gemischt->full_name);
+    }
+
+    #[Test]
     public function test_admin_can_export_csv()
     {
         $admin = $this->createUserWithRole(Role::Admin);

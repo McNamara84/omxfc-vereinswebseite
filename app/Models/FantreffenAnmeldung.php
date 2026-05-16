@@ -192,7 +192,8 @@ class FantreffenAnmeldung extends Model
         return $query->where(function ($subQuery) {
             $subQuery->where(function ($legacyQuery) {
                 $legacyQuery->where('tshirt_bestellt', true)
-                    ->where('tshirt_fertig', true);
+                    ->where('tshirt_fertig', true)
+                    ->whereDoesntHave('merchartikelBestellungen');
             })->orWhere(function ($bestellungenQuery) {
                 $bestellungenQuery->whereHas('merchartikelBestellungen')
                     ->whereDoesntHave('merchartikelBestellungen', function ($offenQuery) {
