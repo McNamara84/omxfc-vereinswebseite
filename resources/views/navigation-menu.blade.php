@@ -3,7 +3,7 @@
     $sectionNavigation = $navigation['sections'] ?? [];
 @endphp
 
-<div>
+<div x-data="{ mobileOpen: false }">
     <nav aria-label="Hauptnavigation">
         <x-nav sticky>
             <x-slot:brand>
@@ -101,20 +101,19 @@
                 </div>
 
                 {{-- Hamburger (Mobile) --}}
-                <div class="-mr-2 flex items-center xl:hidden" x-data="{ open: false }">
+                <div class="-mr-2 flex items-center xl:hidden">
                     <button
                         type="button"
-                        @click="open = !open; $dispatch('toggle-mobile-menu', { open })"
+                        @click="mobileOpen = !mobileOpen"
                         aria-expanded="false"
-                        :aria-expanded="open"
-                        aria-label="Menü öffnen"
-                        :aria-label="open ? 'Menü schließen' : 'Menü öffnen'"
+                        :aria-expanded="mobileOpen"
                         aria-controls="mobile-navigation"
                         class="btn btn-ghost btn-sm"
                     >
-                        <x-icon x-show="!open" name="o-bars-3" class="w-6 h-6" />
-                        <x-icon x-show="open" x-cloak name="o-x-mark" class="w-6 h-6" />
-                        <span class="text-sm" x-text="open ? 'Schließen' : 'Menü'">Menü</span>
+                        <x-icon x-show="!mobileOpen" name="o-bars-3" class="w-6 h-6" aria-hidden="true" />
+                        <x-icon x-show="mobileOpen" x-cloak name="o-x-mark" class="w-6 h-6" aria-hidden="true" />
+                        <span class="text-sm" aria-hidden="true" x-text="mobileOpen ? 'Schließen' : 'Menü'">Menü</span>
+                        <span class="sr-only" x-text="mobileOpen ? 'Menü schließen' : 'Menü öffnen'">Menü öffnen</span>
                     </button>
                 </div>
             </x-slot:actions>
@@ -122,8 +121,6 @@
 
         {{-- Mobile-Menü --}}
         <div id="mobile-navigation"
-            x-data="{ mobileOpen: false }"
-            @toggle-mobile-menu.window="mobileOpen = $event.detail.open"
             x-show="mobileOpen"
             x-cloak
             x-collapse

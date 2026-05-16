@@ -6,15 +6,17 @@ use App\Models\Veranstaltung;
 use App\Models\VeranstaltungsAbschnitt;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Attributes\Controllers\Authorize;
+use Illuminate\Routing\Attributes\Controllers\Middleware;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
+#[Middleware('vorstand-or-kassenwart')]
+#[Authorize('manage', Veranstaltung::class)]
 class VeranstaltungVerwaltungController extends Controller
 {
     public function index(): View
     {
-        $this->authorize('manage', Veranstaltung::class);
-
         return view('admin.veranstaltungen.index', [
             'veranstaltungen' => Veranstaltung::query()
                 ->withCount(['anmeldungen', 'abschnitte', 'vipAutoren'])
@@ -27,8 +29,6 @@ class VeranstaltungVerwaltungController extends Controller
 
     public function create(): View
     {
-        $this->authorize('manage', Veranstaltung::class);
-
         return view('admin.veranstaltungen.form', [
             'veranstaltung' => new Veranstaltung([
                 'status' => 'entwurf',
@@ -46,8 +46,6 @@ class VeranstaltungVerwaltungController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        $this->authorize('manage', Veranstaltung::class);
-
         $veranstaltung = Veranstaltung::create($this->validatedData($request));
         $this->syncHighlight($veranstaltung);
 
@@ -57,8 +55,6 @@ class VeranstaltungVerwaltungController extends Controller
 
     public function edit(Veranstaltung $veranstaltung): View
     {
-        $this->authorize('manage', Veranstaltung::class);
-
         return view('admin.veranstaltungen.form', [
             'veranstaltung' => $veranstaltung,
             'abschnitte' => $veranstaltung->abschnitte()->orderBy('sort_order')->get(),
@@ -68,8 +64,6 @@ class VeranstaltungVerwaltungController extends Controller
 
     public function update(Request $request, Veranstaltung $veranstaltung): RedirectResponse
     {
-        $this->authorize('manage', Veranstaltung::class);
-
         $veranstaltung->update($this->validatedData($request, $veranstaltung));
         $this->syncHighlight($veranstaltung);
 
@@ -79,8 +73,6 @@ class VeranstaltungVerwaltungController extends Controller
 
     public function storeAbschnitt(Request $request, Veranstaltung $veranstaltung): RedirectResponse
     {
-        $this->authorize('manage', Veranstaltung::class);
-
         $veranstaltung->abschnitte()->create($this->validatedAbschnitt($request));
 
         return redirect()->route('admin.veranstaltungen.edit', $veranstaltung)
@@ -89,7 +81,6 @@ class VeranstaltungVerwaltungController extends Controller
 
     public function updateAbschnitt(Request $request, Veranstaltung $veranstaltung, VeranstaltungsAbschnitt $abschnitt): RedirectResponse
     {
-        $this->authorize('manage', Veranstaltung::class);
         abort_unless($abschnitt->veranstaltung_id === $veranstaltung->id, 404);
 
         $abschnitt->update($this->validatedAbschnitt($request));
@@ -100,7 +91,6 @@ class VeranstaltungVerwaltungController extends Controller
 
     public function destroyAbschnitt(Veranstaltung $veranstaltung, VeranstaltungsAbschnitt $abschnitt): RedirectResponse
     {
-        $this->authorize('manage', Veranstaltung::class);
         abort_unless($abschnitt->veranstaltung_id === $veranstaltung->id, 404);
 
         $abschnitt->delete();

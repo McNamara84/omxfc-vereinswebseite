@@ -8,16 +8,18 @@ use App\Http\Requests\UpdateAuktionRequest;
 use App\Models\Auktion;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Routing\Attributes\Controllers\Authorize;
+use Illuminate\Routing\Attributes\Controllers\Middleware;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
+#[Middleware('vorstand-or-kassenwart')]
 class AuktionVerwaltungController extends Controller
 {
+    #[Authorize('manage', Auktion::class)]
     public function index(): View
     {
-        $this->authorize('manage', Auktion::class);
-
         return view('admin.auktionen.index', [
             'auktionen' => Auktion::query()
                 ->with(['hoechstgebotRelation'])
@@ -27,10 +29,9 @@ class AuktionVerwaltungController extends Controller
         ]);
     }
 
+    #[Authorize('manage', Auktion::class)]
     public function create(): View
     {
-        $this->authorize('manage', Auktion::class);
-
         return view('admin.auktionen.form', [
             'auktion' => new Auktion([
                 'status' => AuktionsStatus::Laufend,
@@ -41,10 +42,9 @@ class AuktionVerwaltungController extends Controller
         ]);
     }
 
+    #[Authorize('manage', Auktion::class)]
     public function store(StoreAuktionRequest $request): RedirectResponse
     {
-        $this->authorize('manage', Auktion::class);
-
         $auktion = Auktion::create($request->payload());
 
         return redirect()
@@ -52,10 +52,9 @@ class AuktionVerwaltungController extends Controller
             ->with('success', 'Auktion erfolgreich angelegt.');
     }
 
+    #[Authorize('update', 'auktion')]
     public function edit(Auktion $auktion): View
     {
-        $this->authorize('update', $auktion);
-
         $auktion->load(['gebote']);
 
         return view('admin.auktionen.form', [
@@ -64,6 +63,7 @@ class AuktionVerwaltungController extends Controller
         ]);
     }
 
+    #[Authorize('update', 'auktion')]
     public function update(UpdateAuktionRequest $request, Auktion $auktion): RedirectResponse
     {
         $this->authorize('update', $auktion);
@@ -81,6 +81,7 @@ class AuktionVerwaltungController extends Controller
             ->with('success', 'Auktion erfolgreich aktualisiert.');
     }
 
+    #[Authorize('delete', 'auktion')]
     public function destroy(Auktion $auktion): RedirectResponse
     {
         $this->authorize('delete', $auktion);
@@ -100,10 +101,9 @@ class AuktionVerwaltungController extends Controller
             ->with('success', 'Auktion gelöscht.');
     }
 
+    #[Authorize('call', 'auktion')]
     public function zumErsten(Auktion $auktion): RedirectResponse
     {
-        $this->authorize('call', $auktion);
-
         DB::transaction(function () use ($auktion): void {
             $lockedAuktion = Auktion::query()->lockForUpdate()->findOrFail($auktion->id);
             $this->ensureTransition($lockedAuktion->kannZumErstenAufgerufenWerden(), 'Die Auktion kann nur aus dem Status "Laufend" auf "Zum ersten" gesetzt werden.');
@@ -114,10 +114,9 @@ class AuktionVerwaltungController extends Controller
         return back()->with('success', 'Auktion steht jetzt auf "Zum ersten".');
     }
 
+    #[Authorize('call', 'auktion')]
     public function zumZweiten(Auktion $auktion): RedirectResponse
     {
-        $this->authorize('call', $auktion);
-
         DB::transaction(function () use ($auktion): void {
             $lockedAuktion = Auktion::query()->lockForUpdate()->findOrFail($auktion->id);
             $this->ensureTransition($lockedAuktion->kannZumZweitenAufgerufenWerden(), 'Die Auktion kann nur aus dem Status "Zum ersten" auf "Zum zweiten" gesetzt werden.');
@@ -128,10 +127,9 @@ class AuktionVerwaltungController extends Controller
         return back()->with('success', 'Auktion steht jetzt auf "Zum zweiten".');
     }
 
+    #[Authorize('call', 'auktion')]
     public function verkaufen(Auktion $auktion): RedirectResponse
     {
-        $this->authorize('call', $auktion);
-
         DB::transaction(function () use ($auktion): void {
             $lockedAuktion = Auktion::query()->with('hoechstgebotRelation')->lockForUpdate()->findOrFail($auktion->id);
             $this->ensureTransition($lockedAuktion->status === AuktionsStatus::ZumZweiten, 'Verkaufen ist erst nach "Zum zweiten" möglich.');
@@ -155,10 +153,9 @@ class AuktionVerwaltungController extends Controller
         return back()->with('success', 'Auktion wurde an das aktuelle Höchstgebot verkauft.');
     }
 
+    #[Authorize('call', 'auktion')]
     public function nichtVerkauft(Auktion $auktion): RedirectResponse
     {
-        $this->authorize('call', $auktion);
-
         DB::transaction(function () use ($auktion): void {
             $lockedAuktion = Auktion::query()->lockForUpdate()->findOrFail($auktion->id);
             $this->ensureTransition($lockedAuktion->kannAlsNichtVerkauftBeendetWerden(), 'Die Auktion kann erst nach "Zum zweiten" als nicht verkauft beendet werden.');

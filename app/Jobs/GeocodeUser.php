@@ -5,9 +5,15 @@ namespace App\Jobs;
 use App\Models\User;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Queue\Attributes\Backoff;
+use Illuminate\Queue\Attributes\Timeout;
+use Illuminate\Queue\Attributes\Tries;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 
+#[Tries(3)]
+#[Timeout(30)]
+#[Backoff(300)]
 class GeocodeUser implements ShouldQueue
 {
     use Queueable;

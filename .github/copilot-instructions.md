@@ -1,6 +1,6 @@
 # OMXFC Vereinswebseite – AI Agent Instructions
 
-> MADDRAX-Fanclub-Website. Laravel 12 + Livewire 4 + Tailwind 4. Deutsche Domain-Sprache.
+> MADDRAX-Fanclub-Website. Laravel 13 + Livewire 4 + Tailwind 4. Deutsche Domain-Sprache.
 
 ## Bevorzugte Technologien
 
@@ -12,7 +12,7 @@
 
 | Layer | Stack | Pfad |
 |-------|-------|------|
-| Backend | Laravel 12, PHP 8.5, Livewire 4, Jetstream 5.3 | `app/` |
+| Backend | Laravel 13, PHP 8.5, Livewire 4, Jetstream 5.3 | `app/` |
 | Frontend | Vite 7, Tailwind 4, Alpine.js | `resources/` |
 | Daten | MySQL/MariaDB (Prod), SQLite (Tests) | `database/` |
 | CI | PHPUnit, Vitest 4, Playwright | `.github/workflows/` |

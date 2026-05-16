@@ -13,6 +13,7 @@ use App\Services\TeamPointService;
 use App\Services\UserRoleService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Attributes\Controllers\Authorize;
 use Illuminate\Support\Facades\Auth;
 
 class TodoController extends Controller
@@ -82,12 +83,11 @@ class TodoController extends Controller
     /**
      * Zeigt das Formular zum Erstellen eines neuen Todos.
      */
+    #[Authorize('create', Todo::class)]
     public function create()
     {
         $user = Auth::user();
         $memberTeam = $this->membersTeamProvider->getMembersTeamOrAbort();
-
-        $this->authorize('create', Todo::class);
 
         $categories = TodoCategory::orderBy('name')->get();
 
@@ -100,12 +100,11 @@ class TodoController extends Controller
     /**
      * Speichert ein neues Todo.
      */
+    #[Authorize('create', Todo::class)]
     public function store(TodoRequest $request)
     {
         $user = Auth::user();
         $memberTeam = $this->membersTeamProvider->getMembersTeamOrAbort();
-
-        $this->authorize('create', Todo::class);
 
         $data = $request->validated();
 
@@ -274,6 +273,7 @@ class TodoController extends Controller
     /**
      * Verifiziert ein erledigtes Todo und schreibt Punkte gut.
      */
+    #[Authorize('verify', Todo::class)]
     public function verify(Todo $todo)
     {
         $user = Auth::user();
@@ -288,8 +288,6 @@ class TodoController extends Controller
             return redirect()->route('todos.show', $todo)
                 ->with('error', 'Diese Challenge kann nicht verifiziert werden.');
         }
-
-        $this->authorize('verify', Todo::class);
 
         // Punkte gutschreiben
         UserPoint::create([

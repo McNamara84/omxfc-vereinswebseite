@@ -14,7 +14,8 @@ test('mobile navigation groups quick links and sections', async ({ page }) => {
   const menuToggle = page.locator('button[aria-controls="mobile-navigation"]');
   await expect(menuToggle).toHaveAccessibleName(/Menü öffnen/i);
   await menuToggle.click();
-  await expect(menuToggle).toHaveAccessibleName(/Menü schließen/i);
+  await expect(menuToggle).toHaveAttribute('aria-expanded', 'true');
+  await expect(menuToggle).toContainText(/Schließen/i);
 
   await expect(page.getByTestId('mobile-navigation-menu')).toBeVisible();
   await expect(page.getByTestId('mobile-nav-featured-heading')).toContainText('Schnellzugriff');

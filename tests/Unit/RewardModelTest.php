@@ -7,6 +7,7 @@ use App\Models\Reward;
 use App\Models\RewardPurchase;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
 use Tests\TestCase;
 
 class RewardModelTest extends TestCase
@@ -113,6 +114,16 @@ class RewardModelTest extends TestCase
     {
         $points = BaxxEarningRule::getPointsFor('nonexistent_action');
         $this->assertEquals(0, $points);
+    }
+
+    public function test_baxx_earning_rule_ignores_legacy_cached_model_payloads(): void
+    {
+        $legacyRule = BaxxEarningRule::query()->where('action_key', 'rezension')->firstOrFail();
+
+        Cache::forever('baxx_earning_rule_model_rezension', $legacyRule);
+
+        $this->assertEquals(1, BaxxEarningRule::getPointsFor('rezension'));
+        $this->assertEquals(10, BaxxEarningRule::getEveryCountFor('rezension'));
     }
 
     public function test_romantausch_rules_are_seeded_for_offer_request_and_completed_swap(): void

@@ -2,11 +2,10 @@
 
 namespace Tests\Feature\Jobs;
 
-use App\Jobs\DeIndexiereRomanJob;
+use App\Jobs\IndexiereRomanJob;
 use App\Models\KompendiumRoman;
 use App\Models\Team;
 use App\Models\User;
-use App\Services\KompendiumSearchService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Queue\Attributes\Timeout;
 use Illuminate\Queue\Attributes\Tries;
@@ -14,10 +13,11 @@ use Illuminate\Support\Facades\Storage;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use ReflectionClass;
+use RuntimeException;
 use Tests\TestCase;
 
-#[CoversClass(DeIndexiereRomanJob::class)]
-class DeIndexiereRomanJobTest extends TestCase
+#[CoversClass(IndexiereRomanJob::class)]
+class IndexiereRomanJobTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -28,13 +28,40 @@ class DeIndexiereRomanJobTest extends TestCase
         parent::setUp();
 
         Storage::fake('private');
+        config(['scout.driver' => 'null']);
 
         $team = Team::membersTeam();
         $this->admin = User::factory()->create(['current_team_id' => $team->id]);
     }
 
     #[Test]
-    public function job_setzt_status_auf_hochgeladen(): void
+    public function job_indexiert_datei_und_setzt_status(): void
+    {
+        Storage::disk('private')->put('romane/maddrax/001 - Test.txt', 'Testinhalt');
+
+        $roman = KompendiumRoman::create([
+            'dateiname' => '001 - Test.txt',
+            'dateipfad' => 'romane/maddrax/001 - Test.txt',
+            'serie' => 'maddrax',
+            'roman_nr' => 1,
+            'titel' => 'Test',
+            'hochgeladen_am' => now(),
+            'hochgeladen_von' => $this->admin->id,
+            'status' => 'hochgeladen',
+        ]);
+
+        $job = new IndexiereRomanJob($roman);
+        $job->handle();
+
+        $roman->refresh();
+
+        $this->assertSame('indexiert', $roman->status);
+        $this->assertNotNull($roman->indexiert_am);
+        $this->assertNull($roman->fehler_nachricht);
+    }
+
+    #[Test]
+    public function failed_setzt_status_auf_fehler(): void
     {
         $roman = KompendiumRoman::create([
             'dateiname' => '001 - Test.txt',
@@ -44,57 +71,22 @@ class DeIndexiereRomanJobTest extends TestCase
             'titel' => 'Test',
             'hochgeladen_am' => now(),
             'hochgeladen_von' => $this->admin->id,
-            'status' => 'indexiert',
-            'indexiert_am' => now(),
+            'status' => 'hochgeladen',
         ]);
 
-        $searchService = $this->mock(KompendiumSearchService::class);
-        $searchService->shouldReceive('removeFromIndex')
-            ->once()
-            ->with($roman->dateipfad);
-
-        $job = new DeIndexiereRomanJob($roman);
-        $job->handle($searchService);
+        $job = new IndexiereRomanJob($roman);
+        $job->failed(new RuntimeException('Index fehlgeschlagen'));
 
         $roman->refresh();
-        $this->assertEquals('hochgeladen', $roman->status);
-        $this->assertNull($roman->indexiert_am);
-    }
 
-    #[Test]
-    public function job_funktioniert_auch_wenn_index_nicht_existiert(): void
-    {
-        // Erstelle Roman ohne echten Index
-        $roman = KompendiumRoman::create([
-            'dateiname' => '002 - Ohne Index.txt',
-            'dateipfad' => 'romane/maddrax/002 - Ohne Index.txt',
-            'serie' => 'maddrax',
-            'roman_nr' => 2,
-            'titel' => 'Ohne Index',
-            'hochgeladen_am' => now(),
-            'hochgeladen_von' => $this->admin->id,
-            'status' => 'indexiert',
-            'indexiert_am' => now(),
-        ]);
-
-        // Service-Mock - removeFromIndex kann aufgerufen werden ohne Fehler
-        $searchService = $this->mock(KompendiumSearchService::class);
-        $searchService->shouldReceive('removeFromIndex')
-            ->once()
-            ->with($roman->dateipfad);
-
-        // Job sollte nicht fehlschlagen, auch wenn der Index nicht existiert
-        $job = new DeIndexiereRomanJob($roman);
-        $job->handle($searchService);
-
-        $roman->refresh();
-        $this->assertEquals('hochgeladen', $roman->status);
+        $this->assertSame('fehler', $roman->status);
+        $this->assertSame('Index fehlgeschlagen', $roman->fehler_nachricht);
     }
 
     #[Test]
     public function job_verwendet_laravel_13_queue_attribute_fuer_tries_und_timeout(): void
     {
-        $reflection = new ReflectionClass(DeIndexiereRomanJob::class);
+        $reflection = new ReflectionClass(IndexiereRomanJob::class);
 
         $triesAttributes = $reflection->getAttributes(Tries::class);
         $timeoutAttributes = $reflection->getAttributes(Timeout::class);
@@ -106,6 +98,6 @@ class DeIndexiereRomanJobTest extends TestCase
         $timeout = $timeoutAttributes[0]->newInstance();
 
         $this->assertSame(3, $tries->tries);
-        $this->assertSame(60, $timeout->timeout);
+        $this->assertSame(120, $timeout->timeout);
     }
 }

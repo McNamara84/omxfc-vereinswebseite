@@ -12,15 +12,15 @@ test.describe('Accessibility checks', () => {
     });
     const menuToggle = page.locator('button[aria-controls="mobile-navigation"]');
 
-    await expect(hamburgerWrapper).toHaveAttribute('x-data', /open/);
+    await expect(hamburgerWrapper).toHaveAttribute('x-data', /mobileOpen/);
     await expect(menuToggle).toHaveAccessibleName('Menü öffnen');
     await expect(menuToggle).toHaveAttribute('aria-expanded', 'false');
 
     await menuToggle.click();
-    await expect(menuToggle).toHaveAccessibleName('Menü schließen');
     await expect(menuToggle).toHaveAttribute('aria-expanded', 'true');
+    await expect(menuToggle).toContainText(/Schließen/);
 
-    await expect(menuToggle).toHaveAttribute('@click', /open\s*=\s*!open/);
+    await expect(menuToggle).toHaveAttribute('@click', /mobileOpen\s*=\s*!mobileOpen/);
     await expect(menuToggle).toContainText(/Menü|Schließen/);
 
     const accessibilityScanResults = await new AxeBuilder({ page })

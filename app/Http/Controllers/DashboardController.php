@@ -52,13 +52,20 @@ class DashboardController extends Controller
         }
 
         if (in_array($userRole, $allowedRoles, true)) {
-            $anwaerter = Cache::remember(
-                "anwaerter_{$team->id}",
+            $cachedApplicants = Cache::remember(
+                self::applicantsCacheKey($team->id),
                 $cacheFor,
                 fn () => $team->users()
                     ->wherePivot('role', Role::Anwaerter->value)
-                    ->get()
+                    ->get(['users.id', 'users.name', 'users.email', 'users.mitgliedsbeitrag'])
+                    ->map(fn (User $applicant) => $applicant->getAttributes())
+                    ->values()
+                    ->all()
             );
+
+            if (is_array($cachedApplicants)) {
+                $anwaerter = User::hydrate(array_values(array_filter($cachedApplicants, static fn (mixed $applicant): bool => is_array($applicant))));
+            }
         }
 
         // ToDo-Statistiken abrufen
@@ -126,7 +133,9 @@ class DashboardController extends Controller
                             'profile_photo_url' => $user->profile_photo_url,
                             'points' => $item->total_points,
                         ];
-                    });
+                    })
+                    ->values()
+                    ->all();
             }
         );
 
@@ -485,7 +494,8 @@ class DashboardController extends Controller
         ]);
 
         Cache::forget("member_count_{$team->id}");
-        Cache::forget("anwaerter_{$team->id}");
+        Cache::forget(self::applicantsCacheKey($team->id));
+        Cache::forget(self::legacyApplicantsCacheKey($team->id));
 
         return back()->with('status', 'Antrag genehmigt.');
     }
@@ -497,8 +507,19 @@ class DashboardController extends Controller
         $user->delete();
 
         Cache::forget("member_count_{$team->id}");
-        Cache::forget("anwaerter_{$team->id}");
+        Cache::forget(self::applicantsCacheKey($team->id));
+        Cache::forget(self::legacyApplicantsCacheKey($team->id));
 
         return back()->with('status', 'Antrag abgelehnt und gelöscht.');
+    }
+
+    private static function applicantsCacheKey(int $teamId): string
+    {
+        return self::legacyApplicantsCacheKey($teamId).'.v2';
+    }
+
+    private static function legacyApplicantsCacheKey(int $teamId): string
+    {
+        return "anwaerter_{$teamId}";
     }
 }

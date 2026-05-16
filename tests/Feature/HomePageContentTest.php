@@ -60,7 +60,6 @@ class HomePageContentTest extends TestCase
         ]);
 
         Team::clearMembersTeamCache();
-        Cache::forever(Team::MEMBERS_TEAM_CACHE_KEY, $team);
         Cache::forever(Team::MEMBERS_TEAM_ID_CACHE_KEY, $team->id);
 
         $response = $this->get('/');
@@ -93,7 +92,6 @@ class HomePageContentTest extends TestCase
         ]);
 
         Team::clearMembersTeamCache();
-        Cache::forever(Team::MEMBERS_TEAM_CACHE_KEY, $team);
         Cache::forever(Team::MEMBERS_TEAM_ID_CACHE_KEY, $team->id);
 
         $response = $this->get('/');
@@ -142,7 +140,6 @@ class HomePageContentTest extends TestCase
         $trashedReview->delete();
 
         Team::clearMembersTeamCache();
-        Cache::forever(Team::MEMBERS_TEAM_CACHE_KEY, $team);
         Cache::forever(Team::MEMBERS_TEAM_ID_CACHE_KEY, $team->id);
 
         $response = $this->get('/');

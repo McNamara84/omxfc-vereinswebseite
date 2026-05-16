@@ -54,7 +54,8 @@ class ReviewPreviewController extends Controller
                         'excerpt' => $excerpt,
                     ];
                 })
-                ->values();
+                ->values()
+                ->all();
         });
 
         return response()->json($reviews);

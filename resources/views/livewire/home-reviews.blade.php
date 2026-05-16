@@ -22,10 +22,10 @@
                     <h3 class="mt-3 flex flex-wrap items-center gap-1 text-base font-semibold text-base-content">
                         <span>{{ $review['review_title'] }}</span>
                         vom
-                        <time datetime="{{ $review['reviewed_at']->toISOString() }}"
+                        <time datetime="{{ $review['reviewed_at_iso'] }}"
                               class="text-sm font-normal text-base-content/60"
-                              aria-label="Rezension veröffentlicht am {{ $review['reviewed_at']->isoFormat('D. MMM YYYY') }}">
-                            {{ $review['reviewed_at']->isoFormat('D. MMM YYYY') }}
+                              aria-label="Rezension veröffentlicht am {{ $review['reviewed_at_label'] }}">
+                            {{ $review['reviewed_at_label'] }}
                         </time>
                     </h3>
                     <p class="mt-2 text-sm leading-relaxed text-base-content/72">

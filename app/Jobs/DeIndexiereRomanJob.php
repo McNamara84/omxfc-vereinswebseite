@@ -7,6 +7,8 @@ use App\Services\KompendiumSearchService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Queue\Attributes\Timeout;
+use Illuminate\Queue\Attributes\Tries;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
@@ -17,19 +19,11 @@ use Throwable;
  *
  * Entfernt den Roman aus dem Scout-Index, behält aber die Datei.
  */
+#[Tries(3)]
+#[Timeout(60)]
 class DeIndexiereRomanJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
-
-    /**
-     * Anzahl der Versuche bei Fehlern.
-     */
-    public int $tries = 3;
-
-    /**
-     * Timeout in Sekunden.
-     */
-    public int $timeout = 60;
 
     public function __construct(
         public KompendiumRoman $kompendiumRoman

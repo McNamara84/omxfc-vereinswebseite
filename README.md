@@ -1,6 +1,6 @@
 # OMFXC Vereinswebseite
 
-![Laravel 12](https://img.shields.io/badge/laravel-12-red?logo=laravel&style=flat)
+![Laravel 13](https://img.shields.io/badge/laravel-13-red?logo=laravel&style=flat)
 ![PHP 8.5](https://img.shields.io/badge/php-8.5-blue?logo=php)
 ![Node 24](https://img.shields.io/badge/node-24-5FA04E?logo=node.js&logoColor=white)
 ![JS Coverage](https://raw.githubusercontent.com/McNamara84/omxfc-vereinswebseite/image-data/js-coverage.svg)
@@ -8,7 +8,7 @@
 [![License](https://img.shields.io/badge/license-GPLv3-green)](LICENSE)
 [![E2E Tests](https://github.com/McNamara84/omxfc-vereinswebseite/actions/workflows/playwright.yml/badge.svg)](https://github.com/McNamara84/omxfc-vereinswebseite/actions/workflows/playwright.yml)
 
-Offizielle Laravel-12-Anwendung für die Vereinswebseite des **Offizieller MADDRAX Fanclub (OMFXC)**. Das Projekt kombiniert eine moderne, barrierearme Oberfläche auf Basis von Tailwind CSS, Alpine.js und Livewire mit einem umfassenden Funktionsumfang für Mitgliederverwaltung, Vereinskommunikation und Content-Pflege.
+Offizielle Laravel-13-Anwendung für die Vereinswebseite des **Offizieller MADDRAX Fanclub (OMFXC)**. Das Projekt kombiniert eine moderne, barrierearme Oberfläche auf Basis von Tailwind CSS, Alpine.js und Livewire mit einem umfassenden Funktionsumfang für Mitgliederverwaltung, Vereinskommunikation und Content-Pflege.
 
 ## Inhaltsverzeichnis
 
@@ -46,9 +46,9 @@ Offizielle Laravel-12-Anwendung für die Vereinswebseite des **Offizieller MADDR
 
 ## Technologie-Stack
 
-- **Backend:** Laravel 12, Jetstream, Sanctum, Scout (TNTSearch), Livewire 3, Spatie PDF & Sitemap.
+- **Backend:** Laravel 13, Jetstream, Sanctum, Scout (TNTSearch), Livewire 4, Spatie PDF & Sitemap.
 - **Frontend:** Tailwind CSS, Alpine.js, Vite, Chart.js, Simple Datatables, Leaflet.
-- **Testing:** PHPUnit 11, Jest 30, Vitest 3, Playwright inkl. axe-core für Accessibility-Regressionen.
+- **Testing:** PHPUnit 13, Jest 30, Vitest 4, Playwright inkl. axe-core für Accessibility-Regressionen.
 - **Tooling & DevOps:** Laravel Pint, Laravel Sail (optional), Dockerfile für PHP-FPM + Node 24 (LTS) Build-Stage.
 
 ## Voraussetzungen

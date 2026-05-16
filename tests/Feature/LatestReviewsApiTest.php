@@ -22,7 +22,6 @@ class LatestReviewsApiTest extends TestCase
         $otherTeam = Team::factory()->create();
 
         Team::clearMembersTeamCache();
-        Cache::forever(Team::MEMBERS_TEAM_CACHE_KEY, $team);
         Cache::forever(Team::MEMBERS_TEAM_ID_CACHE_KEY, $team->id);
 
         $book = Book::factory()->create([
@@ -75,7 +74,6 @@ class LatestReviewsApiTest extends TestCase
         ]);
 
         Team::clearMembersTeamCache();
-        Cache::forever(Team::MEMBERS_TEAM_CACHE_KEY, $team);
         Cache::forever(Team::MEMBERS_TEAM_ID_CACHE_KEY, $team->id);
 
         $longContent = 'Dies ist eine besonders ausführliche Rezension über einen spannenden Roman, die weit mehr als fünfundsiebzig Zeichen besitzt.';
@@ -108,7 +106,6 @@ class LatestReviewsApiTest extends TestCase
         ]);
 
         Team::clearMembersTeamCache();
-        Cache::forever(Team::MEMBERS_TEAM_CACHE_KEY, $team);
         Cache::forever(Team::MEMBERS_TEAM_ID_CACHE_KEY, $team->id);
 
         $reviewDate = Carbon::create(2024, 5, 1, 8, 15, 0, config('app.timezone'));
@@ -134,7 +131,6 @@ class LatestReviewsApiTest extends TestCase
         ]);
 
         Team::clearMembersTeamCache();
-        Cache::forever(Team::MEMBERS_TEAM_CACHE_KEY, $team);
         Cache::forever(Team::MEMBERS_TEAM_ID_CACHE_KEY, $team->id);
 
         $review = Review::factory()->create([

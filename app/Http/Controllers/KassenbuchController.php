@@ -13,9 +13,11 @@ use App\Services\KassenbuchService;
 use App\Services\MembersTeamProvider;
 use App\Services\UserRoleService;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Attributes\Controllers\Middleware;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
+#[Middleware(middleware: 'vorstand-or-kassenwart', except: ['kassenstand'])]
 class KassenbuchController extends Controller
 {
     public function __construct(
