@@ -167,7 +167,7 @@ class NavigationMenuTest extends TestCase
         $response->assertSee(route('termine'));
     }
 
-    public function test_mobile_menu_button_has_static_accessibility_defaults_before_alpine_initialization(): void
+    public function test_mobile_menu_button_has_static_accessibility_text_before_alpine_initialization(): void
     {
         $response = $this->withoutVite()->get('/');
 
@@ -175,11 +175,13 @@ class NavigationMenuTest extends TestCase
 
         $crawler = new Crawler($response->getContent());
         $menuToggle = $crawler->filter('button[aria-controls="mobile-navigation"]');
+        $menuToggleAccessibilityText = $crawler->filter('button[aria-controls="mobile-navigation"] .sr-only');
 
         $this->assertCount(1, $menuToggle, 'Mobile menu toggle missing');
+        $this->assertCount(1, $menuToggleAccessibilityText, 'Mobile menu toggle accessibility text missing');
         $this->assertSame('false', $menuToggle->attr('aria-expanded'));
-        $this->assertSame('Menü öffnen', $menuToggle->attr('aria-label'));
         $this->assertSame('mobile-navigation', $menuToggle->attr('aria-controls'));
+        $this->assertSame('Menü öffnen', trim($menuToggleAccessibilityText->text()));
     }
 
     public function test_admin_users_see_admin_menu_with_statistik_link(): void
