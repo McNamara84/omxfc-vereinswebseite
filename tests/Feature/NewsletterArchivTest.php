@@ -45,6 +45,26 @@ class NewsletterArchivTest extends TestCase
             ->assertSee('Diese Ausgabe enthält aktuell noch keine Themenblöcke.');
     }
 
+    public function test_newsletter_archive_index_view_handles_missing_topic_title_defensively(): void
+    {
+        $ausgabe = NewsletterAusgabe::factory()->published()->make([
+            'subject' => 'Thema ohne Titel',
+            'slug' => 'thema-ohne-titel',
+            'topics' => [
+                [
+                    'content' => 'Nur Inhalt ohne Überschrift',
+                ],
+            ],
+        ]);
+
+        $this->view('newsletter.archiv.index', [
+            'ausgaben' => new LengthAwarePaginator(collect([$ausgabe]), 1, 12),
+        ])
+            ->assertSee('Thema ohne Titel')
+            ->assertSee('Ohne Titel')
+            ->assertSee('Nur Inhalt ohne Überschrift');
+    }
+
     public function test_mitglied_can_view_published_newsletter_detail(): void
     {
         $mitglied = $this->actingMember();
