@@ -142,6 +142,7 @@ class FantreffenRegistrationService
      * Registriert eine neue Fantreffen-Anmeldung.
      *
      * @param  array  $data  Die validierten Formulardaten
+     * @param  Veranstaltung  $veranstaltung  Die Veranstaltung, für die die Anmeldung erfolgt
      * @param  User|null  $user  Der eingeloggte User (falls vorhanden)
       * @return FantreffenAnmeldung Die erstellte Anmeldung
      *
@@ -149,7 +150,7 @@ class FantreffenRegistrationService
       * @throws \Illuminate\Validation\ValidationException wenn Merchandise-Auswahl oder Varianten ungültig sind
      * @throws \RuntimeException wenn die Anmeldung nicht erstellt werden konnte
      */
-    public function register(array $data, ?User $user = null, ?Veranstaltung $veranstaltung = null): FantreffenAnmeldung
+    public function register(array $data, Veranstaltung $veranstaltung, ?User $user = null): FantreffenAnmeldung
     {
         $selectedMerchArtikel = $this->normalizeSelectedMerchArtikel($data, $veranstaltung);
         $isAuthenticated = $user !== null;

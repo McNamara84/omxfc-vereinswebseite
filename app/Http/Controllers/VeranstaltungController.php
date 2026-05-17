@@ -172,7 +172,7 @@ class VeranstaltungController extends Controller
         }
 
         try {
-            $anmeldung = $this->registrationService->register($validated, Auth::user(), $veranstaltung);
+            $anmeldung = $this->registrationService->register($validated, $veranstaltung, Auth::user());
 
             return redirect()->to($this->confirmationUrl($veranstaltung, $anmeldung))
                 ->with('success', 'Deine Anmeldung wurde erfolgreich gespeichert!');

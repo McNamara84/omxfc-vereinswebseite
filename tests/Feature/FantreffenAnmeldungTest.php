@@ -144,6 +144,80 @@ class FantreffenAnmeldungTest extends TestCase
         }
     }
 
+    public function test_legacy_route_can_register_with_tshirt(): void
+    {
+        Carbon::setTestNow(Carbon::create(2026, 2, 15, 12));
+
+        try {
+            Mail::fake();
+
+            $legacyVeranstaltung = Veranstaltung::query()
+                ->where('slug', 'maddrax-fantreffen-2026')
+                ->firstOrFail();
+
+            $legacyVeranstaltung->forceFill([
+                'status' => 'veroeffentlicht',
+                'anmeldung_aktiv' => true,
+                'merch_deadline' => Carbon::now()->addWeek(),
+            ])->save();
+
+            $tshirt = $legacyVeranstaltung->merchartikel()->firstOrCreate(
+                ['bezeichnung' => 'T-Shirt'],
+                [
+                    'preis' => 25,
+                    'sort_order' => 0,
+                    'is_active' => true,
+                ]
+            );
+
+            $tshirt->forceFill([
+                'preis' => 25,
+                'sort_order' => 0,
+                'is_active' => true,
+            ])->save();
+
+            $groesse = $tshirt->varianten()->firstOrCreate(
+                ['bezeichnung' => 'L'],
+                [
+                    'sort_order' => 0,
+                    'is_active' => true,
+                ]
+            );
+
+            $groesse->forceFill([
+                'sort_order' => 0,
+                'is_active' => true,
+            ])->save();
+
+            $response = $this->post(route('fantreffen.2026.store'), [
+                'vorname' => 'Lara',
+                'nachname' => 'Legacy',
+                'email' => 'legacy@example.com',
+                'tshirt_bestellt' => true,
+                'tshirt_groesse' => 'L',
+                'website' => '',
+                '_form_token' => $this->validFormToken(),
+            ]);
+
+            $response->assertRedirect();
+
+            $this->assertDatabaseHas('fantreffen_anmeldungen', [
+                'veranstaltung_id' => $legacyVeranstaltung->id,
+                'email' => 'legacy@example.com',
+                'tshirt_bestellt' => true,
+                'tshirt_groesse' => 'L',
+            ]);
+
+            $this->assertDatabaseHas('fantreffen_anmeldung_merchartikel', [
+                'veranstaltungs_merchartikel_id' => $tshirt->id,
+                'veranstaltungs_merchvariante_id' => $groesse->id,
+                'preis_zum_bestellzeitpunkt' => 25.00,
+            ]);
+        } finally {
+            Carbon::setTestNow();
+        }
+    }
+
     public function test_guest_can_register_with_multiple_merch_items(): void
     {
         Mail::fake();
@@ -288,7 +362,7 @@ class FantreffenAnmeldungTest extends TestCase
         ]);
 
         $response->assertRedirect();
-        $anmeldung = FantreffenAnmeldung::first();
+        $anmeldung = FantreffenAnmeldung::query()->first();
 
         $this->assertNotNull($anmeldung);
         $this->assertDatabaseHas('activities', [
@@ -313,7 +387,7 @@ class FantreffenAnmeldungTest extends TestCase
         ]);
 
         $response->assertRedirect();
-        $anmeldung = FantreffenAnmeldung::first();
+        $anmeldung = FantreffenAnmeldung::query()->first();
 
         $this->assertNotNull($anmeldung);
         $this->assertDatabaseHas('activities', [
