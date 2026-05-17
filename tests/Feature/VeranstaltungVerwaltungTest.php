@@ -254,7 +254,7 @@ class VeranstaltungVerwaltungTest extends TestCase
             'is_active' => true,
         ]);
 
-        $veranstaltung->merchartikel()->create([
+        $zweitesArtikel = $veranstaltung->merchartikel()->create([
             'bezeichnung' => 'Zweiter Artikel',
             'beschreibung' => 'Bestehende Beschreibung zwei.',
             'preis' => 11.00,
@@ -283,7 +283,7 @@ class VeranstaltungVerwaltungTest extends TestCase
         $this->assertSame(1, preg_match('/action="[^"]*\/merch\/'.$erstesArtikel->id.'".*?name="bezeichnung" value=""/s', $content));
         $this->assertSame(1, preg_match('/action="[^"]*\/merch\/'.$erstesArtikel->id.'".*?Fehlerhafte Variante A/s', $content));
         $this->assertSame(1, preg_match('/action="[^"]*\/merch\/'.$erstesArtikel->id.'".*?Fehlerhafte Zwischenbeschreibung/s', $content));
-        $this->assertSame(0, preg_match('/action="[^"]*\/merch\/'.($erstesArtikel->id + 1).'".*?Fehlerhafte Variante A/s', $content));
+        $this->assertSame(0, preg_match('/action="[^"]*\/merch\/'.$zweitesArtikel->id.'".*?Fehlerhafte Variante A/s', $content));
     }
 
     public function test_admin_can_add_and_update_markdown_section(): void
