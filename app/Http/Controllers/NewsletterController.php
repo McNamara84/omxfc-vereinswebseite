@@ -11,6 +11,7 @@ use App\Services\NewsletterImageService;
 use App\Support\NewsletterTopics;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rule;
 
@@ -73,17 +74,29 @@ class NewsletterController extends Controller
                 ->withErrors(['topics' => $exception->getMessage()]);
         }
 
-        NewsletterAusgabe::query()->create([
-            'subject' => $data['subject'],
-            'topics' => $topics,
-            'recipient_roles' => $data['roles'],
-            'status' => NewsletterAusgabeStatus::Entwurf,
-            'sent_at' => now(),
-            'created_by' => $user?->id,
-        ]);
+        $uploadedImages = $this->extractTopicImages($topics);
 
-        foreach ($recipients as $recipient) {
-            Mail::to($recipient->email)->queue(new Newsletter($data['subject'], $topics));
+        try {
+            DB::transaction(function () use ($data, $recipients, $topics, $user): void {
+                NewsletterAusgabe::query()->create([
+                    'subject' => $data['subject'],
+                    'topics' => $topics,
+                    'recipient_roles' => $data['roles'],
+                    'status' => NewsletterAusgabeStatus::Entwurf,
+                    'sent_at' => now(),
+                    'created_by' => $user?->id,
+                ]);
+
+                foreach ($recipients as $recipient) {
+                    Mail::to($recipient->email)->queue(
+                        (new Newsletter($data['subject'], $topics))->afterCommit(),
+                    );
+                }
+            });
+        } catch (\Throwable $exception) {
+            $this->newsletterImageService->deleteImages($uploadedImages);
+
+            throw $exception;
         }
 
         return redirect()->route('newsletter.create')->with('status', 'Newsletter versendet.');
@@ -135,5 +148,20 @@ class NewsletterController extends Controller
         ) {
             abort(403);
         }
+    }
+
+    /**
+     * @param  array<int, array{images?: array<int, string>}>  $topics
+     * @return array<int, string>
+     */
+    private function extractTopicImages(array $topics): array
+    {
+        return array_values(array_unique(array_merge(
+            [],
+            ...array_map(
+                static fn (array $topic): array => is_array($topic['images'] ?? null) ? $topic['images'] : [],
+                $topics,
+            ),
+        )));
     }
 }

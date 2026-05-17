@@ -201,6 +201,46 @@ class NewsletterControllerTest extends TestCase
         });
     }
 
+    public function test_send_cleans_up_uploaded_images_when_queueing_throws(): void
+    {
+        Storage::fake('public');
+
+        $admin = $this->actingMember('Admin');
+        $empfaenger = $this->createUserWithRole('Ehrenmitglied');
+
+        Mail::shouldReceive('to')
+            ->once()
+            ->with($empfaenger->email)
+            ->andReturnSelf();
+        Mail::shouldReceive('queue')
+            ->once()
+            ->andThrow(new \RuntimeException('Queue fehlgeschlagen.'));
+
+        $this->withoutExceptionHandling();
+
+        try {
+            $this->actingAs($admin)->post(route('newsletter.send'), [
+                'roles' => ['Ehrenmitglied'],
+                'subject' => 'Mit Fehler',
+                'topics' => [
+                    [
+                        'key' => 'topic-fehler',
+                        'title' => 'Fotothema',
+                        'content' => 'Text',
+                        'images' => [UploadedFile::fake()->image('fehlerbild.jpg', 800, 600)],
+                    ],
+                ],
+            ]);
+
+            $this->fail('Der Versand hätte mit einer Queue-Exception abbrechen müssen.');
+        } catch (\RuntimeException $exception) {
+            $this->assertSame('Queue fehlgeschlagen.', $exception->getMessage());
+        }
+
+        $this->assertDatabaseCount('newsletter_ausgaben', 0);
+        $this->assertSame([], Storage::disk('public')->allFiles(NewsletterImageService::STORAGE_PATH));
+    }
+
     public function test_send_validation_rejects_duplicate_topic_keys(): void
     {
         $admin = $this->actingMember('Admin');

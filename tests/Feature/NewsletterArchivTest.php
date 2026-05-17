@@ -423,6 +423,62 @@ class NewsletterArchivTest extends TestCase
 
     #[TestWith(['Admin'])]
     #[TestWith(['Vorstand'])]
+    public function test_update_cleans_up_uploaded_images_when_persisting_fails(string $role): void
+    {
+        Storage::fake('public');
+        Storage::disk('public')->put('newsletter-images/bestand.jpg', 'bestand');
+
+        $user = $this->actingMember($role);
+        $ausgabe = NewsletterAusgabe::factory()->create([
+            'topics' => [
+                [
+                    'key' => 'topic-bestand',
+                    'title' => 'Mit Bestand',
+                    'content' => 'Alttext',
+                    'images' => ['newsletter-images/bestand.jpg'],
+                ],
+            ],
+        ]);
+
+        NewsletterAusgabe::flushEventListeners();
+        NewsletterAusgabe::updating(static function (): void {
+            throw new \RuntimeException('Update fehlgeschlagen.');
+        });
+
+        $this->withoutExceptionHandling();
+
+        try {
+            $this->actingAs($user)->put(route('newsletter.archiv.admin.update', $ausgabe), [
+                'subject' => 'Fehler beim Speichern',
+                'slug' => 'fehler-beim-speichern',
+                'recipient_roles' => ['Mitglied'],
+                'sent_at' => '2026-05-17 12:00',
+                'topics' => [
+                    [
+                        'key' => 'topic-bestand',
+                        'title' => 'Mit Bestand',
+                        'content' => 'Neutext',
+                        'images' => [UploadedFile::fake()->image('neu.jpg', 700, 500)],
+                    ],
+                ],
+            ]);
+
+            $this->fail('Das Update hätte mit einer Persistenz-Exception abbrechen müssen.');
+        } catch (\RuntimeException $exception) {
+            $this->assertSame('Update fehlgeschlagen.', $exception->getMessage());
+        } finally {
+            NewsletterAusgabe::flushEventListeners();
+            NewsletterAusgabe::clearBootedModels();
+        }
+
+        $ausgabe->refresh();
+
+        $this->assertSame(['newsletter-images/bestand.jpg'], $ausgabe->topics[0]['images']);
+        $this->assertSame(['newsletter-images/bestand.jpg'], Storage::disk('public')->allFiles(NewsletterImageService::STORAGE_PATH));
+    }
+
+    #[TestWith(['Admin'])]
+    #[TestWith(['Vorstand'])]
     public function test_authorized_roles_can_update_newsletter_archive_entry_with_long_colliding_slug(string $role): void
     {
         $user = $this->actingMember($role);

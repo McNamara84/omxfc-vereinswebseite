@@ -10,6 +10,7 @@ use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
@@ -81,21 +82,29 @@ class NewsletterArchivAdminController extends Controller
                 ->withErrors(['topics' => $exception->getMessage()]);
         }
 
-        $newsletterAusgabe->update([
-            'subject' => $validated['subject'],
-            'slug' => NewsletterAusgabe::generateUniqueSlug(
-                $validated['slug'],
-                $validated['subject'],
-                $newsletterAusgabe,
-            ),
-            'recipient_roles' => $validated['recipient_roles'],
-            'sent_at' => filled($validated['sent_at'] ?? null)
-                ? Carbon::parse($validated['sent_at'])
-                : null,
-            'topics' => $topics['topics'],
-        ]);
+        try {
+            DB::transaction(function () use ($newsletterAusgabe, $topics, $validated): void {
+                $newsletterAusgabe->update([
+                    'subject' => $validated['subject'],
+                    'slug' => NewsletterAusgabe::generateUniqueSlug(
+                        $validated['slug'],
+                        $validated['subject'],
+                        $newsletterAusgabe,
+                    ),
+                    'recipient_roles' => $validated['recipient_roles'],
+                    'sent_at' => filled($validated['sent_at'] ?? null)
+                        ? Carbon::parse($validated['sent_at'])
+                        : null,
+                    'topics' => $topics['topics'],
+                ]);
 
-        $this->newsletterImageService->deleteImages($topics['delete_after_save']);
+                DB::afterCommit(fn () => $this->newsletterImageService->deleteImages($topics['delete_after_save']));
+            });
+        } catch (\Throwable $exception) {
+            $this->newsletterImageService->deleteImages($topics['uploaded_images']);
+
+            throw $exception;
+        }
 
         return redirect()
             ->route('newsletter.archiv.admin.edit', $newsletterAusgabe->fresh())
@@ -116,7 +125,7 @@ class NewsletterArchivAdminController extends Controller
 
     /**
      * @param  array<int, array<string, mixed>>  $topics
-     * @return array{topics: array<int, array{key: string, title: string, content: string, images: array<int, string>}>, delete_after_save: array<int, string>}
+        * @return array{topics: array<int, array{key: string, title: string, content: string, images: array<int, string>}>, delete_after_save: array<int, string>, uploaded_images: array<int, string>}
      */
     private function prepareTopicsForUpdate(NewsletterAusgabe $newsletterAusgabe, array $topics): array
     {
@@ -180,6 +189,7 @@ class NewsletterArchivAdminController extends Controller
         return [
             'topics' => $preparedTopics,
             'delete_after_save' => array_values(array_unique($deleteAfterSave)),
+            'uploaded_images' => array_values(array_unique($uploadedImages)),
         ];
     }
 
