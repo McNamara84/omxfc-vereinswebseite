@@ -14,7 +14,7 @@
         </x-ui.page-header>
 
         <div class="flex justify-end">
-            <x-button label="Zurueck zum Archiv" link="{{ route('newsletter.archiv.index') }}" wire:navigate class="btn-ghost btn-sm" icon="o-arrow-left" />
+            <x-button label="Zurück zum Archiv" link="{{ route('newsletter.archiv.index') }}" wire:navigate class="btn-ghost btn-sm" icon="o-arrow-left" />
         </div>
 
         <section class="space-y-6">

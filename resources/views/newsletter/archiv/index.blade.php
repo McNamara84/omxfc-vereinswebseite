@@ -1,9 +1,9 @@
-<x-app-layout title="Newsletter-Archiv – Offizieller MADDRAX Fanclub e. V." description="Archivierte Vereinsnewsletter fuer Mitglieder.">
+<x-app-layout title="Newsletter-Archiv – Offizieller MADDRAX Fanclub e. V." description="Archivierte Vereinsnewsletter für Mitglieder.">
     <x-member-page class="max-w-6xl space-y-8">
         <x-ui.page-header
             eyebrow="Verein"
             title="Newsletter-Archiv"
-            description="Hier findest du alle veroeffentlichten Vereinsnewsletter im Webformat, chronologisch sortiert und dauerhaft im Mitgliederbereich verfuegbar."
+            description="Hier findest du alle veröffentlichten Vereinsnewsletter im Webformat, chronologisch sortiert und dauerhaft im Mitgliederbereich verfügbar."
         >
             <x-slot:actions>
                 <div class="flex flex-wrap gap-2">
@@ -17,7 +17,7 @@
             <x-ui.panel>
                 <div class="py-12 text-center">
                     <x-icon name="o-envelope" class="mx-auto h-12 w-12 text-base-content/50" />
-                    <h2 class="mt-4 text-lg font-semibold">Noch keine veroeffentlichten Newsletter</h2>
+                    <h2 class="mt-4 text-lg font-semibold">Noch keine veröffentlichten Newsletter</h2>
                     <p class="mt-2 text-sm text-base-content/70">Sobald die erste Ausgabe freigegeben ist, erscheint sie hier automatisch im Archiv.</p>
                 </div>
             </x-ui.panel>
@@ -49,7 +49,7 @@
                                     <p class="font-medium text-base-content">{{ $firstTopic['title'] }}</p>
                                     <p>{{ \Illuminate\Support\Str::limit($firstTopic['content'] ?? '', 220) }}</p>
                                 @else
-                                    <p>Diese Ausgabe enthaelt aktuell noch keine Themenbloecke.</p>
+                                    <p>Diese Ausgabe enthält aktuell noch keine Themenblöcke.</p>
                                 @endif
                             </div>
 

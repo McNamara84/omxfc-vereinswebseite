@@ -9,7 +9,7 @@
         <x-ui.page-header
             eyebrow="Adminbereich"
             title="Newsletter-Archiv verwalten"
-            description="Hier pruefst du Archiv-Entwuerfe, pflegst Inhalte nach und gibst Ausgaben fuer das Mitgliederarchiv frei."
+            description="Hier prüfst du Archiv-Entwürfe, pflegst Inhalte nach und gibst Ausgaben für das Mitgliederarchiv frei."
         >
             <x-slot:actions>
                 <x-button label="Newsletter versenden" link="{{ route('newsletter.create') }}" class="btn-primary btn-sm" icon="o-paper-airplane" />
@@ -20,7 +20,7 @@
             <x-ui.panel>
                 <div class="py-12 text-center">
                     <x-icon name="o-envelope" class="mx-auto h-12 w-12 text-base-content/50" />
-                    <h2 class="mt-4 text-lg font-semibold">Noch keine Archiv-Eintraege</h2>
+                    <h2 class="mt-4 text-lg font-semibold">Noch keine Archiv-Einträge</h2>
                     <p class="mt-2 text-sm text-base-content/70">Nach dem ersten echten Newsletter-Versand wird hier automatisch ein Entwurf angelegt.</p>
                 </div>
             </x-ui.panel>
@@ -33,7 +33,7 @@
                                 <div class="flex flex-wrap items-center gap-2">
                                     <h2 class="text-xl font-semibold">{{ $newsletterAusgabe->subject }}</h2>
                                     @if ($newsletterAusgabe->status === \App\Enums\NewsletterAusgabeStatus::Veroeffentlicht)
-                                        <x-badge value="Veroeffentlicht" class="badge-success" icon="o-check-circle" />
+                                        <x-badge value="Veröffentlicht" class="badge-success" icon="o-check-circle" />
                                     @else
                                         <x-badge value="Entwurf" class="badge-warning" icon="o-pencil-square" />
                                     @endif
@@ -47,7 +47,7 @@
                                 @if ($newsletterAusgabe->status !== \App\Enums\NewsletterAusgabeStatus::Veroeffentlicht)
                                     <form method="POST" action="{{ route('newsletter.archiv.admin.publish', $newsletterAusgabe) }}">
                                         @csrf
-                                        <x-button type="submit" label="Veroeffentlichen" class="btn-secondary btn-sm" icon="o-check" />
+                                        <x-button type="submit" label="Veröffentlichen" class="btn-secondary btn-sm" icon="o-check" />
                                     </form>
                                 @endif
                             </div>

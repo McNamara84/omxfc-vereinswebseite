@@ -40,7 +40,7 @@ class NewsletterArchivAdminController extends Controller
             'slug' => ['required', 'string', 'max:255'],
             'recipient_roles' => ['required', 'array', 'min:1'],
             'recipient_roles.*' => ['string', Rule::in(NewsletterAusgabe::recipientRoleValues())],
-            'sent_at' => ['required', 'date'],
+            'sent_at' => ['nullable', 'date'],
             'topics' => ['required', 'array', 'min:1'],
             'topics.*.title' => ['required', 'string', 'max:255'],
             'topics.*.content' => ['required', 'string'],
@@ -50,7 +50,9 @@ class NewsletterArchivAdminController extends Controller
             'subject' => $validated['subject'],
             'slug' => $this->uniqueSlug($validated['slug'], $validated['subject'], $newsletterAusgabe),
             'recipient_roles' => $validated['recipient_roles'],
-            'sent_at' => Carbon::parse($validated['sent_at']),
+            'sent_at' => filled($validated['sent_at'] ?? null)
+                ? Carbon::parse($validated['sent_at'])
+                : null,
             'topics' => $validated['topics'],
         ]);
 
@@ -68,7 +70,7 @@ class NewsletterArchivAdminController extends Controller
 
         return redirect()
             ->route('newsletter.archiv.admin.edit', $newsletterAusgabe)
-            ->with('status', 'Newsletter-Ausgabe veroeffentlicht.');
+            ->with('status', 'Newsletter-Ausgabe veröffentlicht.');
     }
 
     private function uniqueSlug(string $slugInput, string $subject, ?NewsletterAusgabe $ignore = null): string

@@ -142,7 +142,7 @@ class NewsletterArchivTest extends TestCase
             ->assertOk()
             ->assertSee('Newsletter-Ausgabe bearbeiten')
             ->assertSee('Bearbeitbare Ausgabe')
-            ->assertSee('Themenbloecke');
+            ->assertSee('Themenblöcke');
     }
 
     public function test_admin_can_update_newsletter_archive_entry(): void
@@ -188,6 +188,32 @@ class NewsletterArchivTest extends TestCase
 
         $this->assertSame(NewsletterAusgabeStatus::Veroeffentlicht, $ausgabe->status);
         $this->assertNotNull($ausgabe->published_at);
+    }
+
+    public function test_admin_can_update_newsletter_archive_entry_without_sent_at(): void
+    {
+        $admin = $this->actingMember('Admin');
+        $ausgabe = NewsletterAusgabe::factory()->create([
+            'subject' => 'Ohne Versandzeit',
+            'sent_at' => null,
+        ]);
+
+        $this->actingAs($admin)
+            ->put(route('newsletter.archiv.admin.update', $ausgabe), [
+                'subject' => 'Ohne Versandzeit aktualisiert',
+                'slug' => 'ohne-versandzeit-aktualisiert',
+                'recipient_roles' => ['Mitglied'],
+                'sent_at' => '',
+                'topics' => [
+                    ['title' => 'Update', 'content' => 'Weiter ohne Zeitpunkt'],
+                ],
+            ])
+            ->assertRedirect(route('newsletter.archiv.admin.edit', $ausgabe->fresh()));
+
+        $ausgabe->refresh();
+
+        $this->assertSame('Ohne Versandzeit aktualisiert', $ausgabe->subject);
+        $this->assertNull($ausgabe->sent_at);
     }
 
     public function test_navigation_builder_places_newsletter_archive_only_in_authenticated_verein_section(): void

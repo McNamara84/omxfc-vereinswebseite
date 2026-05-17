@@ -15,11 +15,6 @@ use Illuminate\Validation\Rule;
 class NewsletterController extends Controller
 {
     /**
-     * Default role pre-selected on the form. Members are the usual audience.
-     */
-    private const DEFAULT_ROLE = Role::Mitglied;
-
-    /**
      * Display the newsletter form.
      */
     public function create()
