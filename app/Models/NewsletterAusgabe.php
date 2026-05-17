@@ -14,6 +14,10 @@ class NewsletterAusgabe extends Model
 {
     use HasFactory;
 
+    private const FALLBACK_SLUG = 'newsletter';
+
+    private const MAX_SLUG_LENGTH = 255;
+
     protected $table = 'newsletter_ausgaben';
 
     protected $fillable = [
@@ -41,20 +45,10 @@ class NewsletterAusgabe extends Model
     protected static function booted(): void
     {
         static::creating(function (NewsletterAusgabe $newsletterAusgabe) {
-            if (filled($newsletterAusgabe->slug)) {
-                return;
-            }
-
-            $baseSlug = Str::slug($newsletterAusgabe->subject) ?: 'newsletter';
-            $slug = $baseSlug;
-            $counter = 2;
-
-            while (static::query()->where('slug', $slug)->exists()) {
-                $slug = "{$baseSlug}-{$counter}";
-                $counter++;
-            }
-
-            $newsletterAusgabe->slug = $slug;
+            $newsletterAusgabe->slug = static::generateUniqueSlug(
+                $newsletterAusgabe->slug,
+                $newsletterAusgabe->subject,
+            );
         });
     }
 
@@ -119,5 +113,46 @@ class NewsletterAusgabe extends Model
     public static function defaultRecipientRole(): Role
     {
         return Role::Mitglied;
+    }
+
+    public static function generateUniqueSlug(?string $preferredSlug, ?string $fallbackSubject = null, ?self $ignore = null): string
+    {
+        $baseSlug = static::baseSlug($preferredSlug, $fallbackSubject);
+        $slug = static::truncateSlug($baseSlug);
+        $counter = 2;
+
+        while (static::slugExists($slug, $ignore)) {
+            $suffix = '-'.$counter;
+            $slug = static::truncateSlug($baseSlug, strlen($suffix)).$suffix;
+            $counter++;
+        }
+
+        return $slug;
+    }
+
+    private static function baseSlug(?string $preferredSlug, ?string $fallbackSubject = null): string
+    {
+        $baseSlug = Str::slug((string) $preferredSlug);
+
+        if ($baseSlug === '') {
+            $baseSlug = Str::slug((string) $fallbackSubject);
+        }
+
+        return $baseSlug !== '' ? $baseSlug : self::FALLBACK_SLUG;
+    }
+
+    private static function truncateSlug(string $slug, int $reservedSuffixLength = 0): string
+    {
+        $maxLength = max(1, self::MAX_SLUG_LENGTH - $reservedSuffixLength);
+
+        return rtrim(Str::substr($slug, 0, $maxLength), '-');
+    }
+
+    private static function slugExists(string $slug, ?self $ignore = null): bool
+    {
+        return static::query()
+            ->when($ignore, fn (Builder $query) => $query->whereKeyNot($ignore->getKey()))
+            ->where('slug', $slug)
+            ->exists();
     }
 }

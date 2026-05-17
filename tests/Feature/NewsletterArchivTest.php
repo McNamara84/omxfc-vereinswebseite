@@ -172,6 +172,35 @@ class NewsletterArchivTest extends TestCase
         ]);
     }
 
+    public function test_admin_can_update_newsletter_archive_entry_with_long_colliding_slug(): void
+    {
+        $admin = $this->actingMember('Admin');
+        $longSlug = str_repeat('a', 255);
+        NewsletterAusgabe::factory()->create([
+            'slug' => $longSlug,
+        ]);
+        $ausgabe = NewsletterAusgabe::factory()->create([
+            'slug' => 'kollision',
+        ]);
+
+        $this->actingAs($admin)
+            ->put(route('newsletter.archiv.admin.update', $ausgabe), [
+                'subject' => 'Lange Kollision',
+                'slug' => $longSlug,
+                'recipient_roles' => ['Mitglied'],
+                'sent_at' => '2026-05-17 12:00',
+                'topics' => [
+                    ['title' => 'Update', 'content' => 'Langer Slug mit Suffix'],
+                ],
+            ])
+            ->assertRedirect(route('newsletter.archiv.admin.edit', $ausgabe->fresh()));
+
+        $ausgabe->refresh();
+
+        $this->assertLessThanOrEqual(255, strlen($ausgabe->slug));
+        $this->assertStringEndsWith('-2', $ausgabe->slug);
+    }
+
     public function test_admin_can_publish_newsletter_archive_entry(): void
     {
         $admin = $this->actingMember('Admin');
@@ -248,6 +277,24 @@ class NewsletterArchivTest extends TestCase
 
         $this->assertSame('doppelter-betreff', $ersteAusgabe->slug);
         $this->assertSame('doppelter-betreff-2', $zweiteAusgabe->slug);
+    }
+
+    public function test_newsletter_ausgaben_truncate_generated_slugs_to_database_limit(): void
+    {
+        $longSubject = str_repeat('Extrem langer Newsletter Betreff ', 20);
+
+        $ersteAusgabe = NewsletterAusgabe::factory()->create([
+            'subject' => $longSubject,
+            'slug' => null,
+        ]);
+        $zweiteAusgabe = NewsletterAusgabe::factory()->create([
+            'subject' => $longSubject,
+            'slug' => null,
+        ]);
+
+        $this->assertLessThanOrEqual(255, strlen($ersteAusgabe->slug));
+        $this->assertLessThanOrEqual(255, strlen($zweiteAusgabe->slug));
+        $this->assertStringEndsWith('-2', $zweiteAusgabe->slug);
     }
 
     /**

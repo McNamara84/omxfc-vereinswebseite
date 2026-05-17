@@ -7,7 +7,6 @@ use App\Models\NewsletterAusgabe;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
@@ -48,7 +47,11 @@ class NewsletterArchivAdminController extends Controller
 
         $newsletterAusgabe->update([
             'subject' => $validated['subject'],
-            'slug' => $this->uniqueSlug($validated['slug'], $validated['subject'], $newsletterAusgabe),
+            'slug' => NewsletterAusgabe::generateUniqueSlug(
+                $validated['slug'],
+                $validated['subject'],
+                $newsletterAusgabe,
+            ),
             'recipient_roles' => $validated['recipient_roles'],
             'sent_at' => filled($validated['sent_at'] ?? null)
                 ? Carbon::parse($validated['sent_at'])
@@ -71,22 +74,5 @@ class NewsletterArchivAdminController extends Controller
         return redirect()
             ->route('newsletter.archiv.admin.edit', $newsletterAusgabe)
             ->with('status', 'Newsletter-Ausgabe veröffentlicht.');
-    }
-
-    private function uniqueSlug(string $slugInput, string $subject, ?NewsletterAusgabe $ignore = null): string
-    {
-        $baseSlug = Str::slug($slugInput) ?: Str::slug($subject) ?: 'newsletter';
-        $slug = $baseSlug;
-        $counter = 2;
-
-        while (NewsletterAusgabe::query()
-            ->when($ignore, fn ($query) => $query->whereKeyNot($ignore->getKey()))
-            ->where('slug', $slug)
-            ->exists()) {
-            $slug = "{$baseSlug}-{$counter}";
-            $counter++;
-        }
-
-        return $slug;
     }
 }
