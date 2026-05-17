@@ -9,6 +9,14 @@ return new class extends Migration
 {
     private const DEFAULT_TSHIRT_VARIANTEN = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL'];
 
+    public const FOREIGN_KEY_MERCHVARIANTEN_ARTIKEL = 'vmv_artikel_fk';
+
+    public const FOREIGN_KEY_MERCHBESTELLUNG_ANMELDUNG = 'fam_merch_anm_fk';
+
+    public const FOREIGN_KEY_MERCHBESTELLUNG_ARTIKEL = 'fam_merch_art_fk';
+
+    public const FOREIGN_KEY_MERCHBESTELLUNG_VARIANTE = 'fam_merch_var_fk';
+
     public function up(): void
     {
         if (! Schema::hasColumn('veranstaltungen', 'merch_deadline')) {
@@ -35,11 +43,16 @@ return new class extends Migration
         if (! Schema::hasTable('veranstaltungs_merchvarianten')) {
             Schema::create('veranstaltungs_merchvarianten', function (Blueprint $table) {
                 $table->id();
-                $table->foreignId('veranstaltungs_merchartikel_id')->constrained('veranstaltungs_merchartikel')->cascadeOnDelete();
+                $table->foreignId('veranstaltungs_merchartikel_id');
                 $table->string('bezeichnung');
                 $table->unsignedSmallInteger('sort_order')->default(0);
                 $table->boolean('is_active')->default(true);
                 $table->timestamps();
+
+                $table->foreign('veranstaltungs_merchartikel_id', self::FOREIGN_KEY_MERCHVARIANTEN_ARTIKEL)
+                    ->references('id')
+                    ->on('veranstaltungs_merchartikel')
+                    ->cascadeOnDelete();
 
                 $table->unique(
                     ['veranstaltungs_merchartikel_id', 'bezeichnung'],
@@ -48,16 +61,39 @@ return new class extends Migration
             });
         }
 
+        $this->ensureMySqlForeignKey(
+            'veranstaltungs_merchvarianten',
+            'veranstaltungs_merchartikel_id',
+            self::FOREIGN_KEY_MERCHVARIANTEN_ARTIKEL,
+            'veranstaltungs_merchartikel',
+            'cascade'
+        );
+
         if (! Schema::hasTable('fantreffen_anmeldung_merchartikel')) {
             Schema::create('fantreffen_anmeldung_merchartikel', function (Blueprint $table) {
                 $table->id();
-                $table->foreignId('fantreffen_anmeldung_id')->constrained('fantreffen_anmeldungen')->cascadeOnDelete();
-                $table->foreignId('veranstaltungs_merchartikel_id')->constrained('veranstaltungs_merchartikel')->cascadeOnDelete();
-                $table->foreignId('veranstaltungs_merchvariante_id')->nullable()->constrained('veranstaltungs_merchvarianten')->nullOnDelete();
+                $table->foreignId('fantreffen_anmeldung_id');
+                $table->foreignId('veranstaltungs_merchartikel_id');
+                $table->foreignId('veranstaltungs_merchvariante_id')->nullable();
                 $table->decimal('preis_zum_bestellzeitpunkt', 8, 2);
                 $table->boolean('status_erledigt')->default(false);
                 $table->timestamp('status_erledigt_am')->nullable();
                 $table->timestamps();
+
+                $table->foreign('fantreffen_anmeldung_id', self::FOREIGN_KEY_MERCHBESTELLUNG_ANMELDUNG)
+                    ->references('id')
+                    ->on('fantreffen_anmeldungen')
+                    ->cascadeOnDelete();
+
+                $table->foreign('veranstaltungs_merchartikel_id', self::FOREIGN_KEY_MERCHBESTELLUNG_ARTIKEL)
+                    ->references('id')
+                    ->on('veranstaltungs_merchartikel')
+                    ->cascadeOnDelete();
+
+                $table->foreign('veranstaltungs_merchvariante_id', self::FOREIGN_KEY_MERCHBESTELLUNG_VARIANTE)
+                    ->references('id')
+                    ->on('veranstaltungs_merchvarianten')
+                    ->nullOnDelete();
 
                 $table->unique(
                     ['fantreffen_anmeldung_id', 'veranstaltungs_merchartikel_id'],
@@ -65,6 +101,30 @@ return new class extends Migration
                 );
             });
         }
+
+        $this->ensureMySqlForeignKey(
+            'fantreffen_anmeldung_merchartikel',
+            'fantreffen_anmeldung_id',
+            self::FOREIGN_KEY_MERCHBESTELLUNG_ANMELDUNG,
+            'fantreffen_anmeldungen',
+            'cascade'
+        );
+
+        $this->ensureMySqlForeignKey(
+            'fantreffen_anmeldung_merchartikel',
+            'veranstaltungs_merchartikel_id',
+            self::FOREIGN_KEY_MERCHBESTELLUNG_ARTIKEL,
+            'veranstaltungs_merchartikel',
+            'cascade'
+        );
+
+        $this->ensureMySqlForeignKey(
+            'fantreffen_anmeldung_merchartikel',
+            'veranstaltungs_merchvariante_id',
+            self::FOREIGN_KEY_MERCHBESTELLUNG_VARIANTE,
+            'veranstaltungs_merchvarianten',
+            'set null'
+        );
 
         DB::table('veranstaltungen')
             ->whereNull('merch_deadline')
@@ -178,5 +238,41 @@ return new class extends Migration
                 $table->dropColumn('merch_deadline');
             });
         }
+    }
+
+    private function ensureMySqlForeignKey(
+        string $table,
+        string $column,
+        string $constraint,
+        string $referencesTable,
+        string $onDelete
+    ): void {
+        if (DB::getDriverName() !== 'mysql') {
+            return;
+        }
+
+        if (! Schema::hasTable($table) || ! Schema::hasColumn($table, $column)) {
+            return;
+        }
+
+        $constraintExists = DB::table('information_schema.TABLE_CONSTRAINTS')
+            ->where('CONSTRAINT_SCHEMA', DB::getDatabaseName())
+            ->where('TABLE_NAME', $table)
+            ->where('CONSTRAINT_NAME', $constraint)
+            ->where('CONSTRAINT_TYPE', 'FOREIGN KEY')
+            ->exists();
+
+        if ($constraintExists) {
+            return;
+        }
+
+        DB::statement(sprintf(
+            'ALTER TABLE `%s` ADD CONSTRAINT `%s` FOREIGN KEY (`%s`) REFERENCES `%s` (`id`) ON DELETE %s',
+            $table,
+            $constraint,
+            $column,
+            $referencesTable,
+            strtoupper($onDelete)
+        ));
     }
 };
