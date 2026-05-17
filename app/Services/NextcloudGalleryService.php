@@ -79,15 +79,51 @@ XML;
     {
         $galleryLink = $this->sanitizeGalleryLink($galleryLink);
 
-        $configuration = $this->resolveListingConfiguration($galleryLink);
+        $configurations = $this->resolveListingConfigurations($galleryLink);
 
-        if ($configuration === null) {
+        if ($configurations === []) {
             return [
                 'urls' => [],
                 'cache_until' => null,
             ];
         }
 
+        foreach ($configurations as $configuration) {
+            $attempt = $this->fetchListingAttempt($galleryLink, $configuration);
+
+            if ($attempt['status'] === 'not_found') {
+                continue;
+            }
+
+            if ($attempt['status'] === 'error') {
+                return [
+                    'urls' => [],
+                    'cache_until' => null,
+                ];
+            }
+
+            $photoUrls = $attempt['urls'];
+
+            return [
+                'urls' => $photoUrls,
+                'cache_until' => empty($photoUrls)
+                    ? now()->addMinutes(self::EMPTY_LISTING_CACHE_MINUTES)
+                    : now()->addMinutes(self::SUCCESSFUL_LISTING_CACHE_MINUTES),
+            ];
+        }
+
+        return [
+            'urls' => [],
+            'cache_until' => null,
+        ];
+    }
+
+    /**
+     * @param  array{directory_url: string, origin: string, filename_prefix: ?string}  $configuration
+     * @return array{status: 'success', urls: array<int, string>}|array{status: 'not_found'}|array{status: 'error'}
+     */
+    private function fetchListingAttempt(string $galleryLink, array $configuration): array
+    {
         try {
             $response = Http::timeout(10)
                 ->accept('application/xml, text/xml, */*')
@@ -95,22 +131,21 @@ XML;
                 ->withHeaders(['Depth' => '1'])
                 ->send('PROPFIND', $configuration['directory_url']);
 
+            if ($response->status() === 404) {
+                return ['status' => 'not_found'];
+            }
+
             if (! $response->successful()) {
-                return [
-                    'urls' => [],
-                    'cache_until' => null,
-                ];
+                return ['status' => 'error'];
             }
         } catch (\Throwable $throwable) {
             Log::warning('Fehler beim Laden der Nextcloud-Fotogalerie', [
                 'link' => $galleryLink,
+                'directory_url' => $configuration['directory_url'],
                 'message' => $throwable->getMessage(),
             ]);
 
-            return [
-                'urls' => [],
-                'cache_until' => null,
-            ];
+            return ['status' => 'error'];
         }
 
         $photoUrls = $this->parsePhotoUrls(
@@ -120,58 +155,54 @@ XML;
         );
 
         if ($photoUrls === null) {
-            return [
-                'urls' => [],
-                'cache_until' => null,
-            ];
+            return ['status' => 'error'];
         }
 
         return [
+            'status' => 'success',
             'urls' => $photoUrls,
-            'cache_until' => empty($photoUrls)
-                ? now()->addMinutes(self::EMPTY_LISTING_CACHE_MINUTES)
-                : now()->addMinutes(self::SUCCESSFUL_LISTING_CACHE_MINUTES),
         ];
     }
 
     /**
-     * @return array{directory_url: string, origin: string, filename_prefix: ?string}|null
+     * @return array<int, array{directory_url: string, origin: string, filename_prefix: ?string}>
      */
-    private function resolveListingConfiguration(string $galleryLink): ?array
+    private function resolveListingConfigurations(string $galleryLink): array
     {
         $parts = parse_url($galleryLink);
 
         if (! isset($parts['scheme'], $parts['host'], $parts['path'])) {
-            return null;
+            return [];
         }
 
         $origin = $parts['scheme'].'://'.$parts['host'].(isset($parts['port']) ? ':'.$parts['port'] : '');
         $path = $parts['path'];
 
         if (preg_match('#^/s/([^/]+)/?$#', $path, $matches) === 1) {
-            return [
+            return [[
                 'directory_url' => $origin.'/public.php/dav/files/'.$matches[1].'/',
                 'origin' => $origin,
                 'filename_prefix' => null,
-            ];
+            ]];
         }
 
         if (preg_match('#^/public\.php/dav/files/([^/]+)(?:/(.*))?$#', $path, $matches) !== 1) {
-            return null;
+            return [];
         }
 
         $token = $matches[1];
         $suffix = $matches[2] ?? '';
 
         if ($suffix === '' || str_ends_with($path, '/')) {
-            return [
+            return [[
                 'directory_url' => $origin.'/public.php/dav/files/'.$token.'/'.ltrim($suffix, '/'),
                 'origin' => $origin,
                 'filename_prefix' => null,
-            ];
+            ]];
         }
 
-        $segments = explode('/', trim($suffix, '/'));
+        $normalizedSuffix = trim($suffix, '/');
+        $segments = explode('/', $normalizedSuffix);
         $filenamePrefix = array_pop($segments);
         $directoryPath = '/public.php/dav/files/'.$token.'/';
 
@@ -180,9 +211,16 @@ XML;
         }
 
         return [
-            'directory_url' => $origin.$directoryPath,
-            'origin' => $origin,
-            'filename_prefix' => $filenamePrefix,
+            [
+                'directory_url' => $origin.'/public.php/dav/files/'.$token.'/'.$normalizedSuffix.'/',
+                'origin' => $origin,
+                'filename_prefix' => null,
+            ],
+            [
+                'directory_url' => $origin.$directoryPath,
+                'origin' => $origin,
+                'filename_prefix' => $filenamePrefix,
+            ],
         ];
     }
 
@@ -331,6 +369,14 @@ XML;
 
         if (! str_starts_with($normalizedPath, '/public.php/dav/files/')) {
             return null;
+        }
+
+        foreach (explode('/', $normalizedPath) as $segment) {
+            $decodedSegment = rawurldecode($segment);
+
+            if ($decodedSegment === '.' || $decodedSegment === '..') {
+                return null;
+            }
         }
 
         return $normalizedPath;

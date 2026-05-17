@@ -52,6 +52,7 @@ class NextcloudGalleryServiceTest extends TestCase
     public function photo_urls_support_legacy_dav_prefix_links(): void
     {
         Http::fake([
+            'https://cloud.maddrax-fanclub.de/public.php/dav/files/shareToken/Foto/' => Http::response('', 404),
             'https://cloud.maddrax-fanclub.de/public.php/dav/files/shareToken/' => Http::response(
                 $this->propfindResponse('shareToken', [
                     'Banner1.jpg',
@@ -68,6 +69,36 @@ class NextcloudGalleryServiceTest extends TestCase
             'https://cloud.maddrax-fanclub.de/public.php/dav/files/shareToken/Foto1.jpg',
             'https://cloud.maddrax-fanclub.de/public.php/dav/files/shareToken/Foto2.jpg',
         ], $photos);
+
+        Http::assertSentCount(2);
+    }
+
+    #[Test]
+    public function photo_urls_treat_suffix_without_trailing_slash_as_directory_before_prefix_fallback(): void
+    {
+        Http::fake([
+            'https://cloud.maddrax-fanclub.de/public.php/dav/files/shareToken/some-folder/' => Http::response(
+                $this->propfindResponseWithEntries('/public.php/dav/files/shareToken/some-folder/', [
+                    [
+                        'href' => '/public.php/dav/files/shareToken/some-folder/Foto1.jpg',
+                        'contentType' => 'image/jpeg',
+                    ],
+                ]),
+                207,
+            ),
+            'https://cloud.maddrax-fanclub.de/public.php/dav/files/shareToken/' => Http::response(
+                $this->propfindResponse('shareToken', ['Foto9.jpg']),
+                207,
+            ),
+        ]);
+
+        $photos = app(NextcloudGalleryService::class)->photoUrls('https://cloud.maddrax-fanclub.de/public.php/dav/files/shareToken/some-folder');
+
+        $this->assertSame([
+            'https://cloud.maddrax-fanclub.de/public.php/dav/files/shareToken/some-folder/Foto1.jpg',
+        ], $photos);
+
+        Http::assertSentCount(1);
     }
 
     #[Test]
@@ -172,6 +203,36 @@ class NextcloudGalleryServiceTest extends TestCase
 
         $this->assertSame([
             'https://cloud.maddrax-fanclub.de/public.php/dav/files/shareToken/Foto1.jpg',
+        ], $photos);
+    }
+
+    #[Test]
+    public function photo_urls_ignore_traversal_segments_in_dav_hrefs(): void
+    {
+        Http::fake([
+            'https://cloud.maddrax-fanclub.de/public.php/dav/files/shareToken/' => Http::response(
+                $this->propfindResponseWithEntries('/public.php/dav/files/shareToken/', [
+                    [
+                        'href' => '/public.php/dav/files/shareToken/../other-token/Foto1.jpg',
+                        'contentType' => 'image/jpeg',
+                    ],
+                    [
+                        'href' => 'https://cloud.maddrax-fanclub.de/public.php/dav/files/shareToken/%2E%2E/other-token/Foto2.jpg',
+                        'contentType' => 'image/jpeg',
+                    ],
+                    [
+                        'href' => '/public.php/dav/files/shareToken/Foto3.jpg',
+                        'contentType' => 'image/jpeg',
+                    ],
+                ]),
+                207,
+            ),
+        ]);
+
+        $photos = app(NextcloudGalleryService::class)->photoUrls('https://cloud.maddrax-fanclub.de/s/shareToken');
+
+        $this->assertSame([
+            'https://cloud.maddrax-fanclub.de/public.php/dav/files/shareToken/Foto3.jpg',
         ], $photos);
     }
 
