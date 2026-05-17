@@ -14,6 +14,8 @@ const TOAST_CLASSES = {
 
 const TOUR_DEBUG_STORAGE_KEY = 'omxfc-tour-debug';
 const TOUR_DEBUG_QUERY_PARAM = 'tour_debug';
+const TOUR_DEBUG_BUFFER_KEY = '__OMXFC_TOUR_DEBUG_LOGS__';
+const TOUR_DEBUG_BUFFER_LIMIT = 100;
 
 const state = {
     root: null,
@@ -116,23 +118,58 @@ function serializeTourError(error) {
     };
 }
 
+function ensureTourDebugBuffer() {
+    if (typeof window === 'undefined') {
+        return [];
+    }
+
+    if (!Array.isArray(window[TOUR_DEBUG_BUFFER_KEY])) {
+        window[TOUR_DEBUG_BUFFER_KEY] = [];
+    }
+
+    return window[TOUR_DEBUG_BUFFER_KEY];
+}
+
+function pushTourDebugEntry(level, event, payload) {
+    const buffer = ensureTourDebugBuffer();
+
+    buffer.push({
+        timestamp: new Date().toISOString(),
+        level,
+        event,
+        payload,
+    });
+
+    if (buffer.length > TOUR_DEBUG_BUFFER_LIMIT) {
+        buffer.splice(0, buffer.length - TOUR_DEBUG_BUFFER_LIMIT);
+    }
+}
+
 function logTourDebug(event, extra = {}) {
+    const payload = tourDebugSnapshot(extra);
+
+    pushTourDebugEntry('warn', event, payload);
+
     if (!isTourDebugEnabled()) {
         return;
     }
 
-    console.debug('[tour-runner]', event, tourDebugSnapshot(extra));
+    console.warn('[tour-runner]', event, payload);
 }
 
 function logTourError(event, error, extra = {}) {
+    const payload = {
+        ...tourDebugSnapshot(extra),
+        error: serializeTourError(error),
+    };
+
+    pushTourDebugEntry('error', event, payload);
+
     if (!isTourDebugEnabled()) {
         return;
     }
 
-    console.error('[tour-runner]', event, {
-        ...tourDebugSnapshot(extra),
-        error: serializeTourError(error),
-    });
+    console.error('[tour-runner]', event, payload);
 }
 
 function runTourTask(label, task) {
