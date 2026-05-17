@@ -8,17 +8,6 @@ use Illuminate\Support\Facades\Log;
 
 class PhotoGalleryController extends Controller
 {
-    /**
-     * @var array<int, string>
-     */
-    private const ALLOWED_PROXY_IMAGE_CONTENT_TYPES = [
-        'image/jpeg',
-        'image/png',
-        'image/webp',
-        'image/gif',
-        'image/avif',
-    ];
-
     public function __construct(
         private readonly NextcloudGalleryService $galleryService,
     ) {}
@@ -165,9 +154,9 @@ SVG;
 
     private function proxiedImageContentType(string $photoUrl, string $responseContentType): string
     {
-        $normalizedContentType = strtolower(trim(explode(';', $responseContentType)[0] ?? ''));
+        $normalizedContentType = $this->galleryService->normalizeAllowedImageContentType($responseContentType);
 
-        if (in_array($normalizedContentType, self::ALLOWED_PROXY_IMAGE_CONTENT_TYPES, true)) {
+        if ($normalizedContentType !== null) {
             return $normalizedContentType;
         }
 

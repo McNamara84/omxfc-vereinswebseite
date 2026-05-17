@@ -73,6 +73,19 @@ XML;
         return $this->photoUrls($galleryLink)[$index - 1] ?? null;
     }
 
+    public function normalizeAllowedImageContentType(string $contentType): ?string
+    {
+        $normalizedContentType = $this->normalizeContentType($contentType);
+
+        if ($normalizedContentType === null) {
+            return null;
+        }
+
+        return in_array($normalizedContentType, self::ALLOWED_IMAGE_CONTENT_TYPES, true)
+            ? $normalizedContentType
+            : null;
+    }
+
     private function cacheKey(string $galleryLink): string
     {
         return 'nextcloud_gallery:'.sha1($galleryLink);
@@ -312,9 +325,7 @@ XML;
 
     private function isImageResource(string $basename, string $contentType): bool
     {
-        $normalizedContentType = $this->normalizeContentType($contentType);
-
-        if ($normalizedContentType !== null && in_array($normalizedContentType, self::ALLOWED_IMAGE_CONTENT_TYPES, true)) {
+        if ($this->normalizeAllowedImageContentType($contentType) !== null) {
             return true;
         }
 
@@ -336,8 +347,9 @@ XML;
         }
 
         $query = parse_url($href, PHP_URL_QUERY);
+        $normalizedQuery = $this->normalizeQueryString($query);
 
-        return $origin.$path.($this->normalizeQueryString($query) !== null ? '?'.$this->normalizeQueryString($query) : '');
+        return $origin.$path.($normalizedQuery !== null ? '?'.$normalizedQuery : '');
     }
 
     private function normalizeQueryString(mixed $query): ?string
