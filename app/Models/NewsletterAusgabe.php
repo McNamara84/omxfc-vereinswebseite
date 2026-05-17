@@ -64,12 +64,12 @@ class NewsletterAusgabe extends Model
 
     public function scopePublished(Builder $query): Builder
     {
-        return $query->where('status', NewsletterAusgabeStatus::Veroeffentlicht->value);
+        return $query->where('status', NewsletterAusgabeStatus::Veroeffentlicht);
     }
 
     public function scopeDraft(Builder $query): Builder
     {
-        return $query->where('status', NewsletterAusgabeStatus::Entwurf->value);
+        return $query->where('status', NewsletterAusgabeStatus::Entwurf);
     }
 
     public function scopeVisibleInArchivFor(Builder $query, Role $role): Builder

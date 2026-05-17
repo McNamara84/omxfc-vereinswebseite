@@ -7,6 +7,7 @@ use App\Models\NewsletterAusgabe;
 use App\Models\User;
 use App\Support\Navigation\NavigationBuilder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Tests\Concerns\CreatesUserWithRole;
 use Tests\TestCase;
 
@@ -27,6 +28,21 @@ class NewsletterArchivTest extends TestCase
             ->assertOk()
             ->assertSee('Newsletter Mai 2026')
             ->assertSee(route('newsletter.archiv.show', $ausgabe), false);
+    }
+
+    public function test_newsletter_archive_index_view_handles_null_topics_defensively(): void
+    {
+        $ausgabe = NewsletterAusgabe::factory()->published()->make([
+            'subject' => 'Ohne Themen',
+            'slug' => 'ohne-themen',
+            'topics' => null,
+        ]);
+
+        $this->view('newsletter.archiv.index', [
+            'ausgaben' => new LengthAwarePaginator(collect([$ausgabe]), 1, 12),
+        ])
+            ->assertSee('Ohne Themen')
+            ->assertSee('Diese Ausgabe enthält aktuell noch keine Themenblöcke.');
     }
 
     public function test_mitglied_can_view_published_newsletter_detail(): void

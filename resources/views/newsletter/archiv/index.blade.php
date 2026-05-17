@@ -25,7 +25,8 @@
             <section class="grid gap-6 lg:grid-cols-2">
                 @foreach ($ausgaben as $ausgabe)
                     @php
-                        $firstTopic = $ausgabe->topics[0] ?? null;
+                        $topics = $ausgabe->topics ?? [];
+                        $firstTopic = $topics[0] ?? null;
                     @endphp
 
                     <x-ui.panel class="h-full">
