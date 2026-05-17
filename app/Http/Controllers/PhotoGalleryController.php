@@ -2,10 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\NextcloudGalleryService;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class PhotoGalleryController extends Controller
 {
+    public function __construct(
+        private readonly NextcloudGalleryService $galleryService,
+    ) {}
+
     public function index()
     {
         $photoBaseUrls = $this->photoBaseUrls();
@@ -23,56 +29,19 @@ class PhotoGalleryController extends Controller
      */
     private function getPhotosForYear(string $year, ?string $baseUrl = null): array
     {
-        $photoUrls = [];
-
         $baseUrl ??= $this->photoBaseUrls()[$year] ?? '';
 
         if (empty($baseUrl)) {
             return $this->getFallbackPhotos($year);
         }
 
-        // Fotos mit einer Schleife laden und abbrechen, wenn ein Foto nicht existiert
-        $maxTries = 5; // Sicherheitslimit
-        $index = 1;
+        $photoUrls = $this->galleryService->photoUrls($baseUrl, 'nextcloud_gallery:'.$year.':'.sha1($baseUrl));
 
-        while ($index <= $maxTries) {
-            $photoUrl = $baseUrl.$index.'.jpg';
-
-            if ($this->photoExists($photoUrl)) {
-                $photoUrls[] = $photoUrl;
-                $index++;
-            } else {
-                // Wenn ein Foto nicht existiert, brechen wir die Schleife ab
-                break;
-            }
-        }
-
-        // Cache die Anzahl der Fotos für zukünftige Anfragen
-        // (optional - könnte in einer Datenbank oder Cache gespeichert werden)
-        // Cache::put('photo_count_' . $year, count($photoUrls), now()->addDay());
-
-        // Wenn keine Fotos gefunden wurden, Fallback verwenden
         if (empty($photoUrls)) {
             return $this->getFallbackPhotos($year);
         }
 
         return $photoUrls;
-    }
-
-    /**
-     * Prüft, ob ein Foto unter der angegebenen URL existiert
-     */
-    private function photoExists(string $url): bool
-    {
-        try {
-            $response = Http::timeout(5)->head($url);
-
-            return $response->successful();
-        } catch (\Exception $e) {
-            \Log::error('Fehler beim Prüfen des Fotos: '.$e->getMessage());
-
-            return false;
-        }
     }
 
     /**
@@ -155,7 +124,11 @@ SVG;
             return $this->placeholderResponse($year, $index);
         }
 
-        $photoUrl = $baseUrl.$index.'.jpg';
+        $photoUrl = $this->galleryService->photoUrlForIndex($baseUrl, $index, 'nextcloud_gallery:'.$year.':'.sha1($baseUrl));
+
+        if ($photoUrl === null) {
+            return $this->placeholderResponse($year, $index);
+        }
 
         try {
             $response = Http::timeout(10)->get($photoUrl);
@@ -166,7 +139,7 @@ SVG;
                     ->header('Cache-Control', 'public, max-age=86400'); // 1 Tag cachen
             }
         } catch (\Exception $e) {
-            \Log::error('Fehler beim Proxy-Aufruf: '.$e->getMessage());
+            Log::error('Fehler beim Proxy-Aufruf: '.$e->getMessage());
         }
 
         return $this->placeholderResponse($year, $index);
