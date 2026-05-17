@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use DateTimeInterface;
 use DOMDocument;
 use DOMXPath;
 use Illuminate\Support\Facades\Cache;
@@ -10,6 +11,10 @@ use Illuminate\Support\Facades\Log;
 
 class NextcloudGalleryService
 {
+    private const SUCCESSFUL_LISTING_CACHE_MINUTES = 30;
+
+    private const EMPTY_LISTING_CACHE_MINUTES = 2;
+
     /**
      * @return array<int, string>
      */
@@ -21,11 +26,21 @@ class NextcloudGalleryService
             return [];
         }
 
-        return Cache::remember(
-            $cacheKey ?? $this->cacheKey($galleryLink),
-            now()->addMinutes(30),
-            fn (): array => $this->fetchPhotoUrls($galleryLink),
-        );
+        $cacheKey ??= $this->cacheKey($galleryLink);
+
+        $cachedPhotoUrls = Cache::get($cacheKey);
+
+        if (is_array($cachedPhotoUrls)) {
+            return $cachedPhotoUrls;
+        }
+
+        $result = $this->fetchPhotoUrls($galleryLink);
+
+        if ($result['cache_until'] instanceof DateTimeInterface) {
+            Cache::put($cacheKey, $result['urls'], $result['cache_until']);
+        }
+
+        return $result['urls'];
     }
 
     public function photoUrlForIndex(string $galleryLink, int $index, ?string $cacheKey = null): ?string
@@ -48,7 +63,7 @@ class NextcloudGalleryService
     }
 
     /**
-     * @return array<int, string>
+     * @return array{urls: array<int, string>, cache_until: ?DateTimeInterface}
      */
     private function fetchPhotoUrls(string $galleryLink): array
     {
@@ -57,7 +72,10 @@ class NextcloudGalleryService
         $configuration = $this->resolveListingConfiguration($galleryLink);
 
         if ($configuration === null) {
-            return [];
+            return [
+                'urls' => [],
+                'cache_until' => null,
+            ];
         }
 
         try {
@@ -67,7 +85,10 @@ class NextcloudGalleryService
                 ->send('PROPFIND', $configuration['directory_url']);
 
             if (! $response->successful()) {
-                return [];
+                return [
+                    'urls' => [],
+                    'cache_until' => null,
+                ];
             }
         } catch (\Throwable $throwable) {
             Log::warning('Fehler beim Laden der Nextcloud-Fotogalerie', [
@@ -75,14 +96,31 @@ class NextcloudGalleryService
                 'message' => $throwable->getMessage(),
             ]);
 
-            return [];
+            return [
+                'urls' => [],
+                'cache_until' => null,
+            ];
         }
 
-        return $this->parsePhotoUrls(
+        $photoUrls = $this->parsePhotoUrls(
             $response->body(),
             $configuration['origin'],
             $configuration['filename_prefix'],
         );
+
+        if ($photoUrls === null) {
+            return [
+                'urls' => [],
+                'cache_until' => null,
+            ];
+        }
+
+        return [
+            'urls' => $photoUrls,
+            'cache_until' => empty($photoUrls)
+                ? now()->addMinutes(self::EMPTY_LISTING_CACHE_MINUTES)
+                : now()->addMinutes(self::SUCCESSFUL_LISTING_CACHE_MINUTES),
+        ];
     }
 
     /**
@@ -138,9 +176,9 @@ class NextcloudGalleryService
     }
 
     /**
-     * @return array<int, string>
+     * @return array<int, string>|null
      */
-    private function parsePhotoUrls(string $xml, string $origin, ?string $filenamePrefix): array
+    private function parsePhotoUrls(string $xml, string $origin, ?string $filenamePrefix): ?array
     {
         $dom = new DOMDocument('1.0', 'UTF-8');
 
@@ -150,7 +188,7 @@ class NextcloudGalleryService
         libxml_use_internal_errors($previousState);
 
         if (! $loaded) {
-            return [];
+            return null;
         }
 
         $xpath = new DOMXPath($dom);
@@ -180,7 +218,13 @@ class NextcloudGalleryService
                 continue;
             }
 
-            $urls[] = $this->toAbsoluteUrl($origin, $href);
+            $url = $this->toAbsoluteUrl($origin, $href);
+
+            if ($url === null) {
+                continue;
+            }
+
+            $urls[] = $url;
         }
 
         $urls = array_values(array_unique($urls));
@@ -207,12 +251,71 @@ class NextcloudGalleryService
         return in_array($extension, ['jpg', 'jpeg', 'png', 'webp', 'gif', 'avif'], true);
     }
 
-    private function toAbsoluteUrl(string $origin, string $href): string
+    private function toAbsoluteUrl(string $origin, string $href): ?string
     {
         if (preg_match('#^https?://#i', $href) === 1) {
-            return $href;
+            return $this->sameOriginDavUrl($origin, $href) ? $href : null;
         }
 
-        return $origin.'/'.ltrim($href, '/');
+        $path = $this->normalizeDavPath((string) parse_url($href, PHP_URL_PATH));
+
+        if ($path === null) {
+            return null;
+        }
+
+        $query = parse_url($href, PHP_URL_QUERY);
+
+        return $origin.$path.($query !== null ? '?'.$query : '');
+    }
+
+    private function sameOriginDavUrl(string $origin, string $href): bool
+    {
+        $originParts = parse_url($origin);
+        $hrefParts = parse_url($href);
+
+        if (! is_array($originParts) || ! is_array($hrefParts)) {
+            return false;
+        }
+
+        if (! isset($originParts['scheme'], $originParts['host'], $hrefParts['scheme'], $hrefParts['host'])) {
+            return false;
+        }
+
+        if (strtolower($originParts['scheme']) !== strtolower($hrefParts['scheme'])) {
+            return false;
+        }
+
+        if (strtolower($originParts['host']) !== strtolower($hrefParts['host'])) {
+            return false;
+        }
+
+        if ($this->normalizedPort($originParts) !== $this->normalizedPort($hrefParts)) {
+            return false;
+        }
+
+        return $this->normalizeDavPath((string) ($hrefParts['path'] ?? '')) !== null;
+    }
+
+    /**
+     * @param  array<string, mixed>  $parts
+     */
+    private function normalizedPort(array $parts): int
+    {
+        if (isset($parts['port'])) {
+            return (int) $parts['port'];
+        }
+
+        return strtolower((string) ($parts['scheme'] ?? 'https')) === 'http' ? 80 : 443;
+    }
+
+    private function normalizeDavPath(string $path): ?string
+    {
+        $normalizedPath = '/'.ltrim($path, '/');
+
+        if (! str_starts_with($normalizedPath, '/public.php/dav/files/')) {
+            return null;
+        }
+
+        return $normalizedPath;
     }
 }
