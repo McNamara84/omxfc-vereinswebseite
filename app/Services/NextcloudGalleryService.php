@@ -171,6 +171,10 @@ XML;
     {
         $parts = parse_url($galleryLink);
 
+        if (! is_array($parts)) {
+            return [];
+        }
+
         if (! isset($parts['scheme'], $parts['host'], $parts['path'])) {
             return [];
         }
@@ -320,7 +324,16 @@ XML;
 
         $query = parse_url($href, PHP_URL_QUERY);
 
-        return $origin.$path.($query !== null ? '?'.$query : '');
+        return $origin.$path.($this->normalizeQueryString($query) !== null ? '?'.$this->normalizeQueryString($query) : '');
+    }
+
+    private function normalizeQueryString(mixed $query): ?string
+    {
+        if (! is_string($query) || $query === '') {
+            return null;
+        }
+
+        return $query;
     }
 
     private function sameOriginDavUrl(string $origin, string $href): bool

@@ -102,6 +102,17 @@ class NextcloudGalleryServiceTest extends TestCase
     }
 
     #[Test]
+    public function photo_urls_ignore_malformed_gallery_links_without_http_requests(): void
+    {
+        Http::fake();
+
+        $photos = app(NextcloudGalleryService::class)->photoUrls('http://example.com:bad/path');
+
+        $this->assertSame([], $photos);
+        Http::assertNothingSent();
+    }
+
+    #[Test]
     public function photo_urls_cache_the_resolved_listing(): void
     {
         Http::fake([
@@ -233,6 +244,28 @@ class NextcloudGalleryServiceTest extends TestCase
 
         $this->assertSame([
             'https://cloud.maddrax-fanclub.de/public.php/dav/files/shareToken/Foto3.jpg',
+        ], $photos);
+    }
+
+    #[Test]
+    public function photo_urls_do_not_append_trailing_question_mark_for_empty_query_parts(): void
+    {
+        Http::fake([
+            'https://cloud.maddrax-fanclub.de/public.php/dav/files/shareToken/' => Http::response(
+                $this->propfindResponseWithEntries('/public.php/dav/files/shareToken/', [
+                    [
+                        'href' => '/public.php/dav/files/shareToken/Foto1.jpg?#fragment',
+                        'contentType' => 'image/jpeg',
+                    ],
+                ]),
+                207,
+            ),
+        ]);
+
+        $photos = app(NextcloudGalleryService::class)->photoUrls('https://cloud.maddrax-fanclub.de/s/shareToken');
+
+        $this->assertSame([
+            'https://cloud.maddrax-fanclub.de/public.php/dav/files/shareToken/Foto1.jpg',
         ], $photos);
     }
 
