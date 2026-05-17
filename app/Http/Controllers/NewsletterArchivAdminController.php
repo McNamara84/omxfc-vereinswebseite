@@ -125,7 +125,7 @@ class NewsletterArchivAdminController extends Controller
 
     /**
      * @param  array<int, array<string, mixed>>  $topics
-        * @return array{topics: array<int, array{key: string, title: string, content: string, images: array<int, string>}>, delete_after_save: array<int, string>, uploaded_images: array<int, string>}
+     * @return array{topics: array<int, array{key: string, title: string, content: string, images: array<int, string>}>, delete_after_save: array<int, string>, uploaded_images: array<int, string>}
      */
     private function prepareTopicsForUpdate(NewsletterAusgabe $newsletterAusgabe, array $topics): array
     {
