@@ -35,6 +35,7 @@ class TourManagementTest extends TestCase
             ->assertOk()
             ->assertSeeText('Touren & Hilfestart')
             ->assertSeeText('Hauptmenü entdecken')
+            ->assertSeeText('Profil pflegen')
             ->assertSee(route('touren.restart', 'hauptmenue'));
     }
 
@@ -48,7 +49,8 @@ class TourManagementTest extends TestCase
             ->assertOk()
             ->assertSeeText('Touren verwalten')
             ->assertSeeText($member->name)
-            ->assertSeeText('Hauptmenü entdecken');
+            ->assertSeeText('Hauptmenü entdecken')
+            ->assertSeeText('Profil pflegen');
     }
 
     public function test_vorstand_can_reassign_tour_for_member(): void
@@ -82,6 +84,28 @@ class TourManagementTest extends TestCase
             'assigned_via' => TourAssignmentSource::Manual->value,
             'assigned_by_user_id' => $vorstand->id,
             'current_step_key' => null,
+        ]);
+    }
+
+    public function test_vorstand_can_assign_profile_tour_for_member(): void
+    {
+        $vorstand = $this->createUserWithRole(Role::Vorstand);
+        $member = $this->createUserWithRole(Role::Mitglied);
+
+        $this->actingAs($vorstand)
+            ->post(route('admin.touren.assign'), [
+                'user_id' => $member->id,
+                'tour_key' => 'profilpflege',
+            ])
+            ->assertRedirect(route('admin.touren.index'));
+
+        $this->assertDatabaseHas('tour_assignments', [
+            'user_id' => $member->id,
+            'tour_key' => 'profilpflege',
+            'tour_version' => 1,
+            'status' => TourAssignmentStatus::Pending->value,
+            'assigned_via' => TourAssignmentSource::Manual->value,
+            'assigned_by_user_id' => $vorstand->id,
         ]);
     }
 

@@ -16,6 +16,39 @@ class TourAssignmentServiceTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_current_promptable_assignment_uses_creation_order_as_tiebreaker(): void
+    {
+        $team = Team::membersTeam();
+        $member = User::factory()->create(['current_team_id' => $team->id]);
+
+        $team->users()->attach($member, ['role' => Role::Mitglied->value]);
+
+        $first = TourAssignment::create([
+            'user_id' => $member->id,
+            'tour_key' => 'hauptmenue',
+            'tour_version' => 1,
+            'status' => TourAssignmentStatus::Pending,
+            'assigned_via' => TourAssignmentSource::System,
+            'assigned_at' => now(),
+            'metadata' => [],
+        ]);
+
+        TourAssignment::create([
+            'user_id' => $member->id,
+            'tour_key' => 'profilpflege',
+            'tour_version' => 1,
+            'status' => TourAssignmentStatus::Pending,
+            'assigned_via' => TourAssignmentSource::System,
+            'assigned_at' => $first->assigned_at,
+            'metadata' => [],
+        ]);
+
+        $assignment = app(TourAssignmentService::class)->currentPromptableAssignmentForUser($member);
+
+        $this->assertNotNull($assignment);
+        $this->assertSame('hauptmenue', $assignment->tour_key);
+    }
+
     public function test_reassign_resets_existing_assignment_state(): void
     {
         $team = Team::membersTeam();

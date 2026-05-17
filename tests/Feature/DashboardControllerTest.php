@@ -76,6 +76,13 @@ class DashboardControllerTest extends TestCase
             'status' => TourAssignmentStatus::Pending->value,
             'assigned_via' => TourAssignmentSource::System->value,
         ]);
+        $this->assertDatabaseHas('tour_assignments', [
+            'user_id' => $applicant->id,
+            'tour_key' => 'profilpflege',
+            'tour_version' => 1,
+            'status' => TourAssignmentStatus::Pending->value,
+            'assigned_via' => TourAssignmentSource::System->value,
+        ]);
         $this->assertNotNull($applicant->fresh()->mitglied_seit);
         Mail::assertQueued(MitgliedGenehmigtMail::class);
     }
@@ -92,10 +99,15 @@ class DashboardControllerTest extends TestCase
 
         app(TourAssignmentService::class)->assignAutoToursForApprovedMember($applicant->fresh(), $admin);
 
-        $this->assertDatabaseCount('tour_assignments', 1);
+        $this->assertDatabaseCount('tour_assignments', 2);
         $this->assertDatabaseHas('tour_assignments', [
             'user_id' => $applicant->id,
             'tour_key' => 'hauptmenue',
+            'tour_version' => 1,
+        ]);
+        $this->assertDatabaseHas('tour_assignments', [
+            'user_id' => $applicant->id,
+            'tour_key' => 'profilpflege',
             'tour_version' => 1,
         ]);
     }

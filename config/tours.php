@@ -619,4 +619,86 @@ return [
             ],
         ],
     ],
+    'profilpflege' => [
+        'version' => 1,
+        'title' => 'Profil pflegen',
+        'description' => 'Zeigt dir die wichtigsten Bereiche deiner Profil- und Sicherheitseinstellungen.',
+        'self_service_enabled' => true,
+        'auto_assign_on_member_approval' => true,
+        'audience' => ['mitglied'],
+        'steps' => [
+            [
+                'key' => 'profile-header',
+                'title' => 'Profil & Einstellungen',
+                'description' => 'Hier bündelst du alles, was dein Mitgliederkonto, deine Sichtbarkeit und deine Sicherheit betrifft.',
+                'selectors' => [
+                    'desktop' => '[data-tour-profile-key="profile-header"]',
+                    'mobile' => '[data-tour-profile-key="profile-header"]',
+                ],
+            ],
+            [
+                'key' => 'profile-tour-overview',
+                'title' => 'Touren & Hilfestart',
+                'description' => 'In diesem Bereich startest du Touren später erneut, wenn du Funktionen noch einmal geführt ansehen möchtest.',
+                'selectors' => [
+                    'desktop' => '[data-tour-profile-key="profile-tour-overview"]',
+                    'mobile' => '[data-tour-profile-key="profile-tour-overview"]',
+                ],
+            ],
+            [
+                'key' => 'profile-public-view',
+                'title' => 'Öffentliches Profil ansehen',
+                'description' => 'Mit diesem Button prüfst du schnell, wie andere Mitglieder dein Profil im Vereinsbereich sehen.',
+                'selectors' => [
+                    'desktop' => '[data-tour-profile-key="profile-public-view"]',
+                    'mobile' => '[data-tour-profile-key="profile-public-view"]',
+                ],
+            ],
+            [
+                'key' => 'profile-personal-data',
+                'title' => 'Persönliche Daten',
+                'description' => 'Hier hältst du Name, Foto, Adresse, Beitrag und Kontaktmöglichkeiten aktuell.',
+                'selectors' => [
+                    'desktop' => '[data-tour-profile-key="profile-personal-data"]',
+                    'mobile' => '[data-tour-profile-key="profile-personal-data"]',
+                ],
+            ],
+            [
+                'key' => 'profile-series-data',
+                'title' => 'Serienspezifische Daten',
+                'description' => 'In diesem Abschnitt pflegst du Lieblingsromane, Figuren und weitere Maddrax-Vorlieben für dein Profil.',
+                'selectors' => [
+                    'desktop' => '[data-tour-profile-key="profile-series-data"]',
+                    'mobile' => '[data-tour-profile-key="profile-series-data"]',
+                ],
+            ],
+            [
+                'key' => 'profile-password',
+                'title' => 'Passwort ändern',
+                'description' => 'Nutze diesen Bereich, wenn du dein Passwort erneuern oder nach einem Vorfall absichern möchtest.',
+                'selectors' => [
+                    'desktop' => '[data-tour-profile-key="profile-password"]',
+                    'mobile' => '[data-tour-profile-key="profile-password"]',
+                ],
+            ],
+            [
+                'key' => 'profile-two-factor',
+                'title' => 'Zwei-Faktor-Authentisierung',
+                'description' => 'Hier aktivierst du einen zusätzlichen Sicherheitsfaktor, damit dein Zugang besser geschützt ist.',
+                'selectors' => [
+                    'desktop' => '[data-tour-profile-key="profile-two-factor"]',
+                    'mobile' => '[data-tour-profile-key="profile-two-factor"]',
+                ],
+            ],
+            [
+                'key' => 'profile-browser-sessions',
+                'title' => 'Browser-Sitzungen',
+                'description' => 'Über die Sitzungsübersicht erkennst du aktive Geräte und meldest fremde oder alte Logins ab.',
+                'selectors' => [
+                    'desktop' => '[data-tour-profile-key="profile-browser-sessions"]',
+                    'mobile' => '[data-tour-profile-key="profile-browser-sessions"]',
+                ],
+            ],
+        ],
+    ],
 ];

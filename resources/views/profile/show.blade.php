@@ -5,6 +5,7 @@
                 eyebrow="Mitgliederbereich"
                 title="Profil & Einstellungen"
                 description="Verwalte persönliche Daten, Serienpräferenzen, Sicherheitsoptionen und deine aktiven Sitzungen an einem zentralen Ort."
+                data-tour-profile-key="profile-header"
             >
                 <x-slot:actions>
                     <x-button
@@ -13,12 +14,13 @@
                         link="{{ route('profile.view.self') }}"
                         wire:navigate
                         class="btn-outline"
+                        data-tour-profile-key="profile-public-view"
                     />
                 </x-slot:actions>
             </x-ui.page-header>
 
             @if (($tourOverview ?? collect())->isNotEmpty())
-                <x-ui.panel title="Touren & Hilfestart" description="Starte verfügbare Einführungen erneut, wenn du Menüs oder Vereinsbereiche noch einmal geführt erkunden möchtest.">
+                <x-ui.panel title="Touren & Hilfestart" description="Starte verfügbare Einführungen erneut, wenn du Menüs oder Vereinsbereiche noch einmal geführt erkunden möchtest." data-tour-profile-key="profile-tour-overview">
                     <div class="grid gap-4 lg:grid-cols-2">
                         @foreach ($tourOverview as $tour)
                             @php
@@ -84,13 +86,13 @@
             @endif
 
             @if (Laravel\Fortify\Features::canUpdateProfileInformation())
-                <x-ui.panel title="Persönliche Daten" description="Halte Name, Foto, Adresse, Beitrag und Kontaktmöglichkeiten aktuell, damit der Verein dich zuverlässig erreicht.">
+                <x-ui.panel title="Persönliche Daten" description="Halte Name, Foto, Adresse, Beitrag und Kontaktmöglichkeiten aktuell, damit der Verein dich zuverlässig erreicht." data-tour-profile-key="profile-personal-data">
                     @livewire('profile.update-profile-information-form')
                 </x-ui.panel>
             @endif
 
             {{-- Serienspezifische Daten ergänzen --}}
-            <x-ui.panel title="Serienspezifische Daten" description="Pflege deine Lieblingsdetails zur Serie Maddrax. Diese Angaben können andere Mitglieder in deinem Profil sehen.">
+            <x-ui.panel title="Serienspezifische Daten" description="Pflege deine Lieblingsdetails zur Serie Maddrax. Diese Angaben können andere Mitglieder in deinem Profil sehen." data-tour-profile-key="profile-series-data">
                 @livewire('profile.update-seriendaten-form')
             </x-ui.panel>
 
@@ -101,18 +103,18 @@
             @endif
 
             @if (Laravel\Fortify\Features::enabled(Laravel\Fortify\Features::updatePasswords()))
-                <x-ui.panel title="Passwort ändern" description="Nutze ein starkes Passwort und aktualisiere es regelmäßig für einen sicheren Mitgliederzugang.">
+                <x-ui.panel title="Passwort ändern" description="Nutze ein starkes Passwort und aktualisiere es regelmäßig für einen sicheren Mitgliederzugang." data-tour-profile-key="profile-password">
                     @livewire('profile.update-password-form')
                 </x-ui.panel>
             @endif
 
             @if (Laravel\Fortify\Features::canManageTwoFactorAuthentication())
-                <x-ui.panel title="Zwei-Faktor-Authentisierung" description="Erhöhe die Sicherheit deines Kontos mit einem zusätzlichen Anmeldeschritt per Authenticator-App.">
+                <x-ui.panel title="Zwei-Faktor-Authentisierung" description="Erhöhe die Sicherheit deines Kontos mit einem zusätzlichen Anmeldeschritt per Authenticator-App." data-tour-profile-key="profile-two-factor">
                     @livewire('profile.two-factor-authentication-form')
                 </x-ui.panel>
             @endif
 
-            <x-ui.panel title="Browser-Sitzungen" description="Behalte den Überblick über aktive Geräte und beende bei Bedarf andere Sitzungen zentral.">
+            <x-ui.panel title="Browser-Sitzungen" description="Behalte den Überblick über aktive Geräte und beende bei Bedarf andere Sitzungen zentral." data-tour-profile-key="profile-browser-sessions">
                 @livewire('profile.logout-other-browser-sessions-form')
             </x-ui.panel>
 
