@@ -70,4 +70,37 @@ class NewsletterImageServiceTest extends TestCase
         $this->assertFalse(Storage::disk('public')->exists('newsletter-images/loeschen-1.jpg'));
         $this->assertFalse(Storage::disk('public')->exists('newsletter-images/loeschen-2.jpg'));
     }
+
+    public function test_delete_image_ignores_paths_outside_newsletter_directory(): void
+    {
+        Storage::fake('public');
+
+        Storage::disk('public')->put('anderes-feature/fremd.jpg', 'fremd');
+
+        $service = app(NewsletterImageService::class);
+        $service->deleteImage('anderes-feature/fremd.jpg');
+        $service->deleteImage('newsletter-images/../anderes-feature/fremd.jpg');
+
+        $this->assertTrue(Storage::disk('public')->exists('anderes-feature/fremd.jpg'));
+    }
+
+    public function test_sync_images_ignores_unmanaged_existing_paths(): void
+    {
+        Storage::fake('public');
+
+        Storage::disk('public')->put('anderes-feature/fremd.jpg', 'fremd');
+
+        $service = app(NewsletterImageService::class);
+
+        $result = $service->syncImages(
+            ['anderes-feature/fremd.jpg', 'newsletter-images/../anderes-feature/fremd.jpg'],
+            ['anderes-feature/fremd.jpg', 'newsletter-images/../anderes-feature/fremd.jpg'],
+            [],
+        );
+
+        $this->assertSame([], $result['deleted']);
+        $this->assertSame([], $result['uploaded']);
+        $this->assertSame([], $result['images']);
+        $this->assertTrue(Storage::disk('public')->exists('anderes-feature/fremd.jpg'));
+    }
 }

@@ -6,6 +6,7 @@ use App\Enums\NewsletterAusgabeStatus;
 use App\Models\NewsletterAusgabe;
 use App\Models\User;
 use App\Services\NewsletterImageService;
+use App\Support\NewsletterTopics;
 use App\Support\Navigation\NavigationBuilder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -204,6 +205,38 @@ class NewsletterArchivTest extends TestCase
 
     #[TestWith(['Admin'])]
     #[TestWith(['Vorstand'])]
+    public function test_newsletter_archive_edit_form_escapes_old_topics_in_alpine_payload(string $role): void
+    {
+        $user = $this->actingMember($role);
+        $ausgabe = NewsletterAusgabe::factory()->create();
+
+        $response = $this->actingAs($user)
+            ->withSession([
+                '_old_input' => [
+                    'subject' => "Bob's Archiv-Ausgabe",
+                    'slug' => 'bobs-archiv-ausgabe',
+                    'recipient_roles' => ['Mitglied'],
+                    'topics' => [
+                        [
+                            'key' => 'topic-1',
+                            'title' => "Bob's Thema",
+                            'content' => "Text mit 'Zitat' und Markdown",
+                        ],
+                    ],
+                ],
+            ])
+            ->get(route('newsletter.archiv.admin.edit', $ausgabe));
+
+        $response->assertOk();
+
+        $this->assertStringContainsString('x-data="newsletterArchivForm(', $response->getContent());
+        $this->assertStringNotContainsString("x-data='newsletterArchivForm(", $response->getContent());
+        $this->assertStringContainsString('Bob\\\\u0027s Thema', $response->getContent());
+        $this->assertStringContainsString('Text mit \\\\u0027Zitat\\\\u0027 und Markdown', $response->getContent());
+    }
+
+    #[TestWith(['Admin'])]
+    #[TestWith(['Vorstand'])]
     public function test_authorized_roles_can_view_newsletter_archive_admin_index(string $role): void
     {
         $user = $this->actingMember($role);
@@ -343,6 +376,49 @@ class NewsletterArchivTest extends TestCase
         $this->assertStringStartsWith(NewsletterImageService::STORAGE_PATH.'/', $ausgabe->topics[0]['images'][0]);
         $this->assertFalse(Storage::disk('public')->exists('newsletter-images/altbild.jpg'));
         $this->assertTrue(Storage::disk('public')->exists($ausgabe->topics[0]['images'][0]));
+    }
+
+    #[TestWith(['Admin'])]
+    #[TestWith(['Vorstand'])]
+    public function test_authorized_roles_preserve_images_when_legacy_topic_keys_are_rotated(string $role): void
+    {
+        Storage::fake('public');
+        Storage::disk('public')->put('newsletter-images/legacy.jpg', 'legacy');
+
+        $user = $this->actingMember($role);
+        $ausgabe = NewsletterAusgabe::factory()->create([
+            'topics' => [
+                [
+                    'key' => 'legacy-topic-0',
+                    'title' => 'Mit Legacy-Key',
+                    'content' => 'Alttext',
+                    'images' => ['newsletter-images/legacy.jpg'],
+                ],
+            ],
+        ]);
+
+        $this->actingAs($user)
+            ->put(route('newsletter.archiv.admin.update', $ausgabe), [
+                'subject' => 'Legacy aktualisiert',
+                'slug' => 'legacy-aktualisiert',
+                'recipient_roles' => ['Mitglied'],
+                'sent_at' => '2026-05-17 12:00',
+                'topics' => [
+                    [
+                        'key' => 'legacy-topic-0',
+                        'title' => 'Mit Legacy-Key',
+                        'content' => 'Neutext',
+                    ],
+                ],
+            ])
+            ->assertRedirect(route('newsletter.archiv.admin.edit', $ausgabe->fresh()));
+
+        $ausgabe->refresh();
+
+        $this->assertSame(['newsletter-images/legacy.jpg'], $ausgabe->topics[0]['images']);
+        $this->assertNotSame('legacy-topic-0', $ausgabe->topics[0]['key']);
+        $this->assertFalse(NewsletterTopics::usesLegacyKey($ausgabe->topics[0]['key']));
+        $this->assertTrue(Storage::disk('public')->exists('newsletter-images/legacy.jpg'));
     }
 
     #[TestWith(['Admin'])]

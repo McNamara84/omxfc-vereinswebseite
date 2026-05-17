@@ -30,6 +30,6 @@ class NewsletterMailTest extends TestCase
         $this->assertStringContainsString('<strong>Markdown</strong>', $html);
         $this->assertStringContainsString('Zweite Zeile', $html);
         $this->assertStringContainsString(url('/storage/newsletter-images/mailbild.jpg'), $html);
-        $this->assertStringContainsString('Tuma sa feesa,<br>TanjaTanja 1.Vorsitzende', $html);
+        $this->assertStringContainsString('Tuma sa feesa,<br>Tanja 1.Vorsitzende', $html);
     }
 }

@@ -75,18 +75,32 @@ class NewsletterImageService
      */
     public function deleteImages(array $paths): void
     {
-        foreach ($this->sanitizePaths($paths) as $path) {
+        foreach ($paths as $path) {
+            if (! is_string($path)) {
+                continue;
+            }
+
             $this->deleteImage($path);
         }
     }
 
     public function deleteImage(string $path): void
     {
+        $sanitizedPath = $this->sanitizePath($path);
+
+        if ($sanitizedPath === null) {
+            Log::warning('Newsletter-Bildpfad wurde verworfen.', [
+                'path' => $path,
+            ]);
+
+            return;
+        }
+
         try {
-            Storage::disk('public')->delete($path);
+            Storage::disk('public')->delete($sanitizedPath);
         } catch (\Throwable $exception) {
             Log::warning('Newsletter-Bild konnte nicht gelöscht werden.', [
-                'path' => $path,
+                'path' => $sanitizedPath,
                 'error' => $exception->getMessage(),
             ]);
         }
@@ -124,9 +138,32 @@ class NewsletterImageService
      */
     private function sanitizePaths(array $paths): array
     {
-        return array_values(array_filter(array_map(
-            static fn (mixed $path): string => is_string($path) ? trim($path) : '',
+        return array_values(array_unique(array_filter(array_map(
+            fn (mixed $path): ?string => $this->sanitizePath($path),
             $paths,
-        )));
+        ))));
+    }
+
+    private function sanitizePath(mixed $path): ?string
+    {
+        if (! is_string($path)) {
+            return null;
+        }
+
+        $path = str_replace('\\', '/', trim($path));
+
+        if ($path === '') {
+            return null;
+        }
+
+        if (! str_starts_with($path, self::STORAGE_PATH.'/')) {
+            return null;
+        }
+
+        if (preg_match('~(?:^|/)\.\.(?:/|$)~', $path) === 1) {
+            return null;
+        }
+
+        return $path;
     }
 }

@@ -121,16 +121,24 @@ class NewsletterArchivAdminController extends Controller
     private function prepareTopicsForUpdate(NewsletterAusgabe $newsletterAusgabe, array $topics): array
     {
         $currentTopics = NewsletterTopics::normalize($newsletterAusgabe->topics ?? []);
-        $currentTopicsByKey = collect($currentTopics)->keyBy('key');
-        $submittedTopics = NewsletterTopics::ensureDistinctPersistentKeys(NewsletterTopics::normalize($topics));
+        $normalizedSubmittedTopics = NewsletterTopics::normalize($topics);
+        $submittedTopics = NewsletterTopics::ensureDistinctPersistentKeys($normalizedSubmittedTopics);
         $preparedTopics = [];
         $uploadedImages = [];
         $deleteAfterSave = [];
+        $matchedCurrentTopicIndexes = [];
 
         try {
             foreach ($submittedTopics as $index => $topic) {
-                $currentTopic = $currentTopicsByKey->get($topic['key']);
-                $existingImages = $currentTopic['images'] ?? [];
+                $submittedTopic = $normalizedSubmittedTopics[$index] ?? $topic;
+                $currentTopicIndex = $this->resolveCurrentTopicIndex(
+                    $currentTopics,
+                    $submittedTopic['key'],
+                    $index,
+                    $matchedCurrentTopicIndexes,
+                );
+                $currentTopic = $currentTopicIndex !== null ? $currentTopics[$currentTopicIndex] : null;
+                $existingImages = is_array($currentTopic) ? ($currentTopic['images'] ?? []) : [];
                 $removedImages = array_values(array_intersect(
                     $existingImages,
                     array_values(array_filter(array_map(
@@ -144,12 +152,14 @@ class NewsletterArchivAdminController extends Controller
                     $topics[$index]['images'] ?? [],
                 );
 
+                if ($currentTopicIndex !== null) {
+                    $matchedCurrentTopicIndexes[$currentTopicIndex] = true;
+                }
+
                 $uploadedImages = array_merge($uploadedImages, $sync['uploaded']);
                 $deleteAfterSave = array_merge($deleteAfterSave, $sync['deleted']);
                 $preparedTopics[] = [
-                    'key' => $currentTopic && ! NewsletterTopics::usesLegacyKey($topic['key'])
-                        ? $topic['key']
-                        : $topic['key'],
+                    'key' => $topic['key'],
                     'title' => $topic['title'],
                     'content' => $topic['content'],
                     'images' => $sync['images'],
@@ -161,13 +171,8 @@ class NewsletterArchivAdminController extends Controller
             throw $exception;
         }
 
-        $submittedKeys = array_map(
-            static fn (array $topic): string => $topic['key'],
-            $submittedTopics,
-        );
-
-        foreach ($currentTopics as $currentTopic) {
-            if (! in_array($currentTopic['key'], $submittedKeys, true)) {
+        foreach ($currentTopics as $currentIndex => $currentTopic) {
+            if (! isset($matchedCurrentTopicIndexes[$currentIndex])) {
                 $deleteAfterSave = array_merge($deleteAfterSave, $currentTopic['images']);
             }
         }
@@ -176,5 +181,34 @@ class NewsletterArchivAdminController extends Controller
             'topics' => $preparedTopics,
             'delete_after_save' => array_values(array_unique($deleteAfterSave)),
         ];
+    }
+
+    /**
+     * @param  array<int, array{key: string, title: string, content: string, images: array<int, string>}>  $currentTopics
+     * @param  array<int, bool>  $matchedCurrentTopicIndexes
+     */
+    private function resolveCurrentTopicIndex(array $currentTopics, string $submittedKey, int $submittedIndex, array $matchedCurrentTopicIndexes): ?int
+    {
+        foreach ($currentTopics as $currentIndex => $currentTopic) {
+            if (isset($matchedCurrentTopicIndexes[$currentIndex])) {
+                continue;
+            }
+
+            if (($currentTopic['key'] ?? null) === $submittedKey) {
+                return $currentIndex;
+            }
+        }
+
+        $fallbackTopic = $currentTopics[$submittedIndex] ?? null;
+
+        if (
+            is_array($fallbackTopic)
+            && ! isset($matchedCurrentTopicIndexes[$submittedIndex])
+            && NewsletterTopics::usesLegacyKey($fallbackTopic['key'] ?? null)
+        ) {
+            return $submittedIndex;
+        }
+
+        return null;
     }
 }

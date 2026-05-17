@@ -219,4 +219,32 @@ class NewsletterControllerTest extends TestCase
         $response->assertRedirect(route('newsletter.create'));
         $response->assertSessionHasErrors(['topics.1.key']);
     }
+
+    public function test_newsletter_form_escapes_old_topics_in_alpine_payload(): void
+    {
+        $admin = $this->actingMember('Admin');
+
+        $response = $this->actingAs($admin)
+            ->withSession([
+                '_old_input' => [
+                    'subject' => "Bob's Newsletter",
+                    'roles' => ['Mitglied'],
+                    'topics' => [
+                        [
+                            'key' => 'topic-a',
+                            'title' => "Bob's Thema",
+                            'content' => "Text mit 'Zitat' und Markdown",
+                        ],
+                    ],
+                ],
+            ])
+            ->get(route('newsletter.create'));
+
+        $response->assertOk();
+
+        $this->assertStringContainsString('x-data="newsletterForm(', $response->getContent());
+        $this->assertStringNotContainsString("x-data='newsletterForm(", $response->getContent());
+        $this->assertStringContainsString('Bob\\\\u0027s Thema', $response->getContent());
+        $this->assertStringContainsString('Text mit \\\\u0027Zitat\\\\u0027 und Markdown', $response->getContent());
+    }
 }

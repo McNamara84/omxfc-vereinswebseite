@@ -30,7 +30,7 @@
                 <div class="topic-content">{!! \App\Support\NewsletterTopics::renderHtml($topic['content'] ?? '') !!}</div>
             </div>
         @endforeach
-        <p style="margin-top: 20px;">Tuma sa feesa,<br>TanjaTanja 1.Vorsitzende</p>
+        <p style="margin-top: 20px;">Tuma sa feesa,<br>Tanja 1.Vorsitzende</p>
     </div>
 </body>
 </html>

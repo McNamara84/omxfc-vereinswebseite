@@ -35,7 +35,7 @@
             <form
                 method="POST"
                 action="{{ route('newsletter.archiv.admin.update', $newsletterAusgabe) }}"
-                x-data='newsletterArchivForm(@json($initialTopics))'
+                x-data="newsletterArchivForm(@js($initialTopics))"
                 class="space-y-6"
                 enctype="multipart/form-data"
             >

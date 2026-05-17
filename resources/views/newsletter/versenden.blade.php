@@ -23,7 +23,7 @@
 
         <x-ui.panel title="Newsletter-Inhalt" description="Betreff, Rollen und Themenblöcke werden gemeinsam vorbereitet, bevor der Versand bestätigt wird.">
 
-            <form x-data='newsletterForm(@json($initialTopics))' x-ref="form" method="POST" action="{{ route('newsletter.send') }}" enctype="multipart/form-data">
+            <form x-data="newsletterForm(@js($initialTopics))" x-ref="form" method="POST" action="{{ route('newsletter.send') }}" enctype="multipart/form-data">
                 @csrf
                 
                 {{-- Betreff --}}
