@@ -1,6 +1,8 @@
 <x-mail::message>
 # Wundan zum Gruße, {{ $fullName }}!
 
+@php($orderedMerchandise = $anmeldung->ordered_merchandise)
+
 Deine Anmeldung zu **{{ $veranstaltung?->titel ?? 'unserer Veranstaltung' }}** ist bei uns eingegangen!
 
 ## Event-Details
@@ -22,17 +24,22 @@ Deine Anmeldung zu **{{ $veranstaltung?->titel ?? 'unserer Veranstaltung' }}** i
 
 @if($anmeldung->ist_mitglied)
 **Status:** Vereinsmitglied  
-**Kosten:** Kostenlose Teilnahme
 @else
 **Status:** Gast  
-**Kosten:** {{ number_format(\App\Models\FantreffenAnmeldung::GUEST_FEE, 2, ',', '.') }} € Spende erbeten
 @endif
 
-@if($anmeldung->tshirt_bestellt)
-**T-Shirt:** Ja, Größe {{ $anmeldung->tshirt_groesse }}  
-**T-Shirt-Spende:** {{ $anmeldung->getFormattedTshirtPrice() }}
+@if($veranstaltung?->zahlung_aktiv && ! $anmeldung->ist_mitglied)
+**Teilnahmegebühr:** {{ number_format((float) ($veranstaltung?->gastgebuehr ?? \App\Models\FantreffenAnmeldung::GUEST_FEE), 2, ',', '.') }} €  
+@endif
+
+@if($orderedMerchandise->isNotEmpty())
+**Merchandise:**
+
+@foreach($orderedMerchandise as $bestellung)
+- {{ $bestellung['name'] }}@if($bestellung['variant']) ({{ $bestellung['variant'] }})@endif - {{ number_format((float) $bestellung['price'], 2, ',', '.') }} €
+@endforeach
 @else
-**T-Shirt:** Nicht bestellt
+**Merchandise:** Nicht bestellt
 @endif
 
 @if($anmeldung->mobile)

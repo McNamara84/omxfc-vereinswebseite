@@ -5,6 +5,7 @@ namespace Tests\Unit;
 use App\Models\FantreffenAnmeldung;
 use App\Services\FantreffenDeadlineService;
 use App\Services\FantreffenRegistrationService;
+use Illuminate\Support\Collection;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -38,7 +39,7 @@ class FantreffenRegistrationServiceTest extends TestCase
     public function test_member_without_tshirt_pays_nothing(): void
     {
         $amount = $this->service->calculatePaymentAmount(
-            tshirtBestellt: false,
+            merchSelection: false,
             isAuthenticated: true
         );
 
@@ -48,7 +49,7 @@ class FantreffenRegistrationServiceTest extends TestCase
     public function test_member_with_tshirt_pays_tshirt_price(): void
     {
         $amount = $this->service->calculatePaymentAmount(
-            tshirtBestellt: true,
+            merchSelection: true,
             isAuthenticated: true
         );
 
@@ -58,7 +59,7 @@ class FantreffenRegistrationServiceTest extends TestCase
     public function test_guest_without_tshirt_pays_guest_fee(): void
     {
         $amount = $this->service->calculatePaymentAmount(
-            tshirtBestellt: false,
+            merchSelection: false,
             isAuthenticated: false
         );
 
@@ -68,7 +69,7 @@ class FantreffenRegistrationServiceTest extends TestCase
     public function test_guest_with_tshirt_pays_guest_fee_plus_tshirt(): void
     {
         $amount = $this->service->calculatePaymentAmount(
-            tshirtBestellt: true,
+            merchSelection: true,
             isAuthenticated: false
         );
 
@@ -81,6 +82,16 @@ class FantreffenRegistrationServiceTest extends TestCase
         $amount = $this->service->calculatePaymentAmount(false, true);
 
         $this->assertIsFloat($amount);
+    }
+
+    public function test_guest_with_multiple_merch_items_pays_guest_fee_plus_all_item_prices(): void
+    {
+        $amount = $this->service->calculatePaymentAmount([
+            ['price' => 12.0],
+            ['price' => 25.0],
+        ], false);
+
+        $this->assertSame(42.0, $amount);
     }
 
     // ============================================
@@ -98,8 +109,11 @@ class FantreffenRegistrationServiceTest extends TestCase
 
         // Diese Felder sollten vorhanden sein
         $this->assertArrayHasKey('mobile', $rules);
+        $this->assertArrayHasKey('merch', $rules);
+        $this->assertArrayHasKey('merch.*.variant_id', $rules);
         $this->assertArrayHasKey('tshirt_bestellt', $rules);
         $this->assertArrayHasKey('tshirt_groesse', $rules);
+        $this->assertStringContainsString('integer', $rules['merch.*.variant_id']);
     }
 
     public function test_validation_rules_for_guest(): void
@@ -168,5 +182,15 @@ class FantreffenRegistrationServiceTest extends TestCase
         $service = new FantreffenRegistrationService($deadlineService);
 
         $this->assertFalse($service->canOrderTshirt());
+    }
+
+    public function test_can_order_merch_with_preloaded_collection_before_deadline(): void
+    {
+        $this->assertTrue($this->service->canOrderMerch(orderableArtikel: new Collection([['id' => 1]])));
+    }
+
+    public function test_cannot_order_merch_with_empty_preloaded_collection(): void
+    {
+        $this->assertFalse($this->service->canOrderMerch(orderableArtikel: new Collection()));
     }
 }

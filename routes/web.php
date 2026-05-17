@@ -125,6 +125,9 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
             Route::post('/{veranstaltung}/abschnitte', 'storeAbschnitt')->name('abschnitte.store');
             Route::put('/{veranstaltung}/abschnitte/{abschnitt}', 'updateAbschnitt')->name('abschnitte.update');
             Route::delete('/{veranstaltung}/abschnitte/{abschnitt}', 'destroyAbschnitt')->name('abschnitte.destroy');
+            Route::post('/{veranstaltung}/merch', 'storeMerchartikel')->name('merch.store');
+            Route::put('/{veranstaltung}/merch/{merchartikel}', 'updateMerchartikel')->name('merch.update');
+            Route::delete('/{veranstaltung}/merch/{merchartikel}', 'destroyMerchartikel')->name('merch.destroy');
         });
 
         Route::livewire('/{veranstaltung}/anmeldungen', FantreffenAdminDashboard::class)

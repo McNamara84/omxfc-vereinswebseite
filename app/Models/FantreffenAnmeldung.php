@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Collection;
 
 class FantreffenAnmeldung extends Model
 {
@@ -86,12 +88,119 @@ class FantreffenAnmeldung extends Model
         return $this->belongsTo(Veranstaltung::class);
     }
 
+    public function merchartikelBestellungen(): HasMany
+    {
+        return $this->hasMany(FantreffenAnmeldungMerchartikel::class, 'fantreffen_anmeldung_id')
+            ->orderBy('id');
+    }
+
+    public function hasMerchBestellungen(): bool
+    {
+        if ($this->relationLoaded('merchartikelBestellungen')) {
+            return $this->merchartikelBestellungen->isNotEmpty();
+        }
+
+        return $this->merchartikelBestellungen()->exists();
+    }
+
+    public function getMerchandiseTotal(): float
+    {
+        if ($this->hasMerchBestellungen()) {
+            $bestellungen = $this->relationLoaded('merchartikelBestellungen')
+                ? $this->merchartikelBestellungen
+                : $this->merchartikelBestellungen()->get();
+
+            return (float) $bestellungen->sum(
+                fn (FantreffenAnmeldungMerchartikel $bestellung) => (float) $bestellung->preis_zum_bestellzeitpunkt
+            );
+        }
+
+        if ($this->tshirt_bestellt) {
+            return (float) ($this->veranstaltung?->tshirt_preis ?? self::TSHIRT_PRICE);
+        }
+
+        return 0.0;
+    }
+
+    public function getOrderedMerchandiseAttribute(): Collection
+    {
+        $bestellungen = $this->relationLoaded('merchartikelBestellungen')
+            ? $this->merchartikelBestellungen
+            : $this->merchartikelBestellungen()->with(['artikel', 'variante'])->get();
+
+        if ($bestellungen instanceof Collection && $bestellungen->isNotEmpty()) {
+            $bestellungen->loadMissing(['artikel', 'variante']);
+
+            return $bestellungen->map(fn (FantreffenAnmeldungMerchartikel $bestellung) => [
+                'id' => $bestellung->id,
+                'name' => $bestellung->artikel?->bezeichnung ?? 'Merchandise',
+                'variant' => $bestellung->variante?->bezeichnung,
+                'price' => (float) $bestellung->preis_zum_bestellzeitpunkt,
+                'done' => $bestellung->status_erledigt,
+            ]);
+        }
+
+        if (! $this->tshirt_bestellt) {
+            return collect();
+        }
+
+        return collect([[
+            'id' => null,
+            'name' => 'T-Shirt',
+            'variant' => $this->tshirt_groesse,
+            'price' => $this->getLegacyTshirtPrice(),
+            'done' => $this->tshirt_fertig,
+        ]]);
+    }
+
     /**
-     * Scope a query to only include registrations with t-shirt orders.
+     * Kompatibilitäts-Scope für bestehende Aufrufer: liefert Anmeldungen mit irgendeiner Merchandise-Bestellung.
      */
     public function scopeMitTshirt($query)
     {
-        return $query->where('tshirt_bestellt', true);
+        return $query->mitMerch();
+    }
+
+    public function scopeMitMerch($query)
+    {
+        return $query->where(function ($subQuery) {
+            $subQuery->where('tshirt_bestellt', true)
+                ->orWhereHas('merchartikelBestellungen');
+        });
+    }
+
+    public function scopeOhneMerch($query)
+    {
+        return $query->where('tshirt_bestellt', false)
+            ->whereDoesntHave('merchartikelBestellungen');
+    }
+
+    public function scopeMitOffenemMerch($query)
+    {
+        return $query->where(function ($subQuery) {
+            $subQuery->where(function ($legacyQuery) {
+                $legacyQuery->where('tshirt_bestellt', true)
+                    ->where('tshirt_fertig', false);
+            })->orWhereHas('merchartikelBestellungen', function ($bestellungenQuery) {
+                $bestellungenQuery->where('status_erledigt', false);
+            });
+        });
+    }
+
+    public function scopeMitErledigtemMerch($query)
+    {
+        return $query->where(function ($subQuery) {
+            $subQuery->where(function ($legacyQuery) {
+                $legacyQuery->where('tshirt_bestellt', true)
+                    ->where('tshirt_fertig', true)
+                    ->whereDoesntHave('merchartikelBestellungen');
+            })->orWhere(function ($bestellungenQuery) {
+                $bestellungenQuery->whereHas('merchartikelBestellungen')
+                    ->whereDoesntHave('merchartikelBestellungen', function ($offenQuery) {
+                        $offenQuery->where('status_erledigt', false);
+                    });
+            });
+        });
     }
 
     /**
@@ -171,12 +280,29 @@ class FantreffenAnmeldung extends Model
     }
 
     /**
-     * Get the t-shirt price for this registration.
-     * T-shirt price is always 25.00€, but the total amount differs:
-     * - Members: 25.00€ (t-shirt only)
-     * - Guests: 30.00€ (5.00€ guest fee + 25.00€ t-shirt)
+     * Get the effective T-shirt price for this registration.
+     *
+     * Prefers the persisted price from a merchandise order row, then the event configuration,
+     * and finally the legacy fallback constant.
      */
     public function getTshirtPrice(): float
+    {
+        $tshirtBestellung = $this->getOrderedMerchandiseAttribute()->first(
+            fn (array $bestellung) => mb_strtolower($bestellung['name']) === 't-shirt'
+        );
+
+        if ($tshirtBestellung !== null) {
+            return (float) $tshirtBestellung['price'];
+        }
+
+        if ($this->veranstaltung && $this->veranstaltung->tshirt_aktiv) {
+            return (float) $this->veranstaltung->tshirt_preis;
+        }
+
+        return $this->getLegacyTshirtPrice();
+    }
+
+    private function getLegacyTshirtPrice(): float
     {
         if ($this->veranstaltung && $this->veranstaltung->tshirt_aktiv) {
             return (float) $this->veranstaltung->tshirt_preis;
@@ -187,10 +313,9 @@ class FantreffenAnmeldung extends Model
 
     /**
      * Get the total amount to pay for this registration.
-     * - Member without t-shirt: 0.00€ (free)
-     * - Member with t-shirt: 25.00€
-     * - Guest without t-shirt: 5.00€
-     * - Guest with t-shirt: 30.00€ (5.00€ + 25.00€)
+     *
+     * The total is composed of an optional guest fee when event payments are active,
+     * plus the sum of all ordered merchandise positions. Orga-team registrations stay free.
      */
     public function getTotalAmount(): float
     {
@@ -198,21 +323,14 @@ class FantreffenAnmeldung extends Model
             return 0;
         }
 
-        if ($this->veranstaltung && ! $this->veranstaltung->zahlung_aktiv) {
-            return 0;
-        }
-
         $amount = 0;
         $guestFee = (float) ($this->veranstaltung?->gastgebuehr ?? self::GUEST_FEE);
-        $tshirtPrice = (float) ($this->veranstaltung?->tshirt_preis ?? self::TSHIRT_PRICE);
 
-        if (! $this->ist_mitglied) {
+        if (! $this->ist_mitglied && ($this->veranstaltung?->zahlung_aktiv ?? true)) {
             $amount += $guestFee;
         }
 
-        if ($this->tshirt_bestellt) {
-            $amount += $tshirtPrice;
-        }
+        $amount += $this->getMerchandiseTotal();
 
         return $amount;
     }
@@ -229,8 +347,10 @@ class FantreffenAnmeldung extends Model
             return '0,00 €';
         }
 
-        $guestFee = (float) ($this->veranstaltung?->gastgebuehr ?? self::GUEST_FEE);
-        $tshirtPrice = (float) ($this->veranstaltung?->tshirt_preis ?? self::TSHIRT_PRICE);
+        $guestFee = ($this->veranstaltung?->zahlung_aktiv ?? true)
+            ? (float) ($this->veranstaltung?->gastgebuehr ?? self::GUEST_FEE)
+            : 0.0;
+        $tshirtPrice = $this->getTshirtPrice();
         $price = $this->ist_mitglied ? $tshirtPrice : ($guestFee + $tshirtPrice);
 
         return number_format($price, 2, ',', '.').' €';

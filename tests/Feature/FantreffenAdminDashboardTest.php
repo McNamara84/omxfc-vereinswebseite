@@ -8,6 +8,7 @@ use App\Models\FantreffenAnmeldung;
 use App\Models\Team;
 use App\Models\User;
 use App\Models\Veranstaltung;
+use App\Models\VeranstaltungsMerchartikel;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Config;
 use Livewire\Livewire;
@@ -50,6 +51,26 @@ class FantreffenAdminDashboardTest extends TestCase
         ]);
 
         return $user;
+    }
+
+    protected function createMerchartikel(string $bezeichnung = 'T-Shirt', float $preis = 25.00, array $varianten = []): VeranstaltungsMerchartikel
+    {
+        $artikel = $this->veranstaltung->merchartikel()->create([
+            'bezeichnung' => $bezeichnung,
+            'preis' => $preis,
+            'sort_order' => 0,
+            'is_active' => true,
+        ]);
+
+        foreach ($varianten as $index => $variante) {
+            $artikel->varianten()->create([
+                'bezeichnung' => $variante,
+                'sort_order' => $index,
+                'is_active' => true,
+            ]);
+        }
+
+        return $artikel;
     }
 
     #[Test]
@@ -462,6 +483,137 @@ class FantreffenAdminDashboardTest extends TestCase
     }
 
     #[Test]
+    public function test_admin_can_toggle_specific_merch_status_on_order_row(): void
+    {
+        $admin = $this->createUserWithRole(Role::Admin);
+        $artikel = $this->createMerchartikel('Stoffbeutel', 12.00);
+
+        $anmeldung = FantreffenAnmeldung::create([
+            'veranstaltung_id' => $this->veranstaltung->id,
+            'vorname' => 'Mila',
+            'nachname' => 'Merch',
+            'email' => 'mila@example.com',
+            'ist_mitglied' => false,
+            'payment_status' => 'pending',
+            'payment_amount' => 12.00,
+            'zahlungseingang' => false,
+        ]);
+
+        $bestellung = $anmeldung->merchartikelBestellungen()->create([
+            'veranstaltungs_merchartikel_id' => $artikel->id,
+            'preis_zum_bestellzeitpunkt' => 12.00,
+            'status_erledigt' => false,
+        ]);
+
+        Livewire::actingAs($admin)
+            ->test(FantreffenAdminDashboard::class, ['veranstaltung' => $this->veranstaltung])
+            ->call('toggleMerchFertig', $bestellung->id);
+
+        $this->assertTrue($bestellung->fresh()->status_erledigt);
+    }
+
+    #[Test]
+    public function test_admin_can_filter_by_open_merch_orders(): void
+    {
+        $admin = $this->createUserWithRole(Role::Admin);
+        $artikel = $this->createMerchartikel('Stoffbeutel', 12.00);
+
+        $offen = FantreffenAnmeldung::create([
+            'veranstaltung_id' => $this->veranstaltung->id,
+            'vorname' => 'Offen',
+            'nachname' => 'Bestellt',
+            'email' => 'offen@example.com',
+            'ist_mitglied' => false,
+            'payment_status' => 'pending',
+            'payment_amount' => 12.00,
+        ]);
+        $offen->merchartikelBestellungen()->create([
+            'veranstaltungs_merchartikel_id' => $artikel->id,
+            'preis_zum_bestellzeitpunkt' => 12.00,
+            'status_erledigt' => false,
+        ]);
+
+        $erledigt = FantreffenAnmeldung::create([
+            'veranstaltung_id' => $this->veranstaltung->id,
+            'vorname' => 'Erledigt',
+            'nachname' => 'Bestellt',
+            'email' => 'erledigt@example.com',
+            'ist_mitglied' => false,
+            'payment_status' => 'pending',
+            'payment_amount' => 12.00,
+        ]);
+        $erledigt->merchartikelBestellungen()->create([
+            'veranstaltungs_merchartikel_id' => $artikel->id,
+            'preis_zum_bestellzeitpunkt' => 12.00,
+            'status_erledigt' => true,
+        ]);
+
+        Livewire::actingAs($admin)
+            ->test(FantreffenAdminDashboard::class, ['veranstaltung' => $this->veranstaltung])
+            ->set('filterTshirtFertig', 'offen')
+            ->assertSee('Offen Bestellt')
+            ->assertDontSee('Erledigt Bestellt');
+    }
+
+    #[Test]
+    public function test_admin_can_filter_by_completed_merch_without_matching_mixed_open_orders(): void
+    {
+        $admin = $this->createUserWithRole(Role::Admin);
+        $artikel = $this->createMerchartikel('Stoffbeutel', 12.00);
+
+        $legacyFertig = FantreffenAnmeldung::create([
+            'veranstaltung_id' => $this->veranstaltung->id,
+            'vorname' => 'Legacy',
+            'nachname' => 'Fertig',
+            'email' => 'legacy-fertig@example.com',
+            'ist_mitglied' => false,
+            'payment_status' => 'pending',
+            'payment_amount' => 25.00,
+            'tshirt_bestellt' => true,
+            'tshirt_fertig' => true,
+        ]);
+
+        $gemischt = FantreffenAnmeldung::create([
+            'veranstaltung_id' => $this->veranstaltung->id,
+            'vorname' => 'Gemischt',
+            'nachname' => 'Offen',
+            'email' => 'gemischt-offen@example.com',
+            'ist_mitglied' => false,
+            'payment_status' => 'pending',
+            'payment_amount' => 37.00,
+            'tshirt_bestellt' => true,
+            'tshirt_fertig' => true,
+        ]);
+        $gemischt->merchartikelBestellungen()->create([
+            'veranstaltungs_merchartikel_id' => $artikel->id,
+            'preis_zum_bestellzeitpunkt' => 12.00,
+            'status_erledigt' => false,
+        ]);
+
+        $vollstaendig = FantreffenAnmeldung::create([
+            'veranstaltung_id' => $this->veranstaltung->id,
+            'vorname' => 'Vollstaendig',
+            'nachname' => 'Erledigt',
+            'email' => 'vollstaendig-erledigt@example.com',
+            'ist_mitglied' => false,
+            'payment_status' => 'pending',
+            'payment_amount' => 12.00,
+        ]);
+        $vollstaendig->merchartikelBestellungen()->create([
+            'veranstaltungs_merchartikel_id' => $artikel->id,
+            'preis_zum_bestellzeitpunkt' => 12.00,
+            'status_erledigt' => true,
+        ]);
+
+        Livewire::actingAs($admin)
+            ->test(FantreffenAdminDashboard::class, ['veranstaltung' => $this->veranstaltung])
+            ->set('filterTshirtFertig', 'fertig')
+            ->assertSee($legacyFertig->full_name)
+            ->assertSee($vollstaendig->full_name)
+            ->assertDontSee($gemischt->full_name);
+    }
+
+    #[Test]
     public function test_admin_can_export_csv()
     {
         $admin = $this->createUserWithRole(Role::Admin);
@@ -490,6 +642,50 @@ class FantreffenAdminDashboardTest extends TestCase
         // Check headers
         $this->assertEquals('text/csv; charset=UTF-8', $response->headers->get('Content-Type'));
         $this->assertStringContainsString($this->veranstaltung->slug.'-anmeldungen-', $response->headers->get('Content-Disposition'));
+    }
+
+    #[Test]
+    public function test_admin_csv_export_escapes_quotes_and_sanitizes_formula_values(): void
+    {
+        $admin = $this->createUserWithRole(Role::Admin);
+        $artikel = $this->createMerchartikel("Beutel \"Deluxe\"\nSpezial", 12.00);
+
+        $anmeldung = FantreffenAnmeldung::create([
+            'veranstaltung_id' => $this->veranstaltung->id,
+            'vorname' => '=SUM(1+1)',
+            'nachname' => 'Evil',
+            'email' => 'evil@example.com',
+            'mobile' => '+4912345',
+            'ist_mitglied' => false,
+            'payment_status' => 'pending',
+            'payment_amount' => 12.00,
+            'zahlungseingang' => false,
+            'paypal_transaction_id' => '@paypal',
+        ]);
+
+        $anmeldung->merchartikelBestellungen()->create([
+            'veranstaltungs_merchartikel_id' => $artikel->id,
+            'preis_zum_bestellzeitpunkt' => 12.00,
+            'status_erledigt' => false,
+        ]);
+
+        $this->actingAs($admin);
+
+        $livewireComponent = new FantreffenAdminDashboard;
+        $livewireComponent->mount($this->veranstaltung);
+        $response = $livewireComponent->exportCsv();
+
+        $this->assertInstanceOf(StreamedResponse::class, $response);
+
+        ob_start();
+        $response->sendContent();
+        $csv = (string) ob_get_clean();
+
+        $this->assertStringContainsString("'=SUM(1+1) Evil", $csv);
+        $this->assertStringContainsString("'+4912345", $csv);
+        $this->assertStringContainsString("'@paypal", $csv);
+        $this->assertStringContainsString('Beutel ""Deluxe""', $csv);
+        $this->assertStringContainsString("Spezial", $csv);
     }
 
     #[Test]

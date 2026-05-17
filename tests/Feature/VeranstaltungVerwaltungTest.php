@@ -3,10 +3,12 @@
 namespace Tests\Feature;
 
 use App\Enums\Role;
+use App\Models\FantreffenAnmeldung;
 use App\Models\Team;
 use App\Models\User;
 use App\Models\Veranstaltung;
 use App\Models\VeranstaltungsAbschnitt;
+use App\Models\VeranstaltungsMerchartikel;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Config;
 use PHPUnit\Framework\Attributes\TestWith;
@@ -143,8 +145,8 @@ class VeranstaltungVerwaltungTest extends TestCase
             'ort_adresse' => 'Köln',
             'anmeldung_aktiv' => '1',
             'zahlung_aktiv' => '1',
+            'merch_deadline' => '2027-02-01 18:00:00',
             'gastgebuehr' => '12.50',
-            'tshirt_preis' => '29.00',
             'ist_highlight' => '1',
         ]);
 
@@ -156,8 +158,132 @@ class VeranstaltungVerwaltungTest extends TestCase
         $this->assertTrue($veranstaltung->anmeldung_aktiv);
         $this->assertTrue($veranstaltung->zahlung_aktiv);
         $this->assertTrue($veranstaltung->ist_highlight);
+        $this->assertSame('2027-02-01 18:00:00', $veranstaltung->merch_deadline?->format('Y-m-d H:i:s'));
+        $this->assertSame(FantreffenAnmeldung::TSHIRT_PRICE, (float) $veranstaltung->tshirt_preis);
 
         $this->assertFalse(Veranstaltung::query()->where('slug', 'jubilaeumsfeier-band-700')->firstOrFail()->ist_highlight);
+    }
+
+    public function test_admin_can_add_merchandise_article_without_description(): void
+    {
+        $admin = $this->createUserWithRole(Role::Admin);
+        $veranstaltung = Veranstaltung::query()->where('slug', 'jubilaeumsfeier-band-700')->firstOrFail();
+
+        $this->actingAs($admin)->post(route('admin.veranstaltungen.merch.store', $veranstaltung), [
+            'bezeichnung' => 'Poster',
+            'preis' => '7.50',
+            'sort_order' => 4,
+            'is_active' => '1',
+        ])->assertRedirect(route('admin.veranstaltungen.edit', $veranstaltung));
+
+        $artikel = VeranstaltungsMerchartikel::query()
+            ->where('veranstaltung_id', $veranstaltung->id)
+            ->where('bezeichnung', 'Poster')
+            ->first();
+
+        $this->assertNotNull($artikel);
+        $this->assertNull($artikel->beschreibung);
+    }
+
+    public function test_admin_can_add_update_and_delete_merchandise_article_with_variants(): void
+    {
+        $admin = $this->createUserWithRole(Role::Admin);
+        $veranstaltung = Veranstaltung::query()->where('slug', 'jubilaeumsfeier-band-700')->firstOrFail();
+
+        $this->actingAs($admin)->post(route('admin.veranstaltungen.merch.store', $veranstaltung), [
+            'bezeichnung' => 'Stoffbeutel',
+            'beschreibung' => 'Limitierter Beutel.',
+            'preis' => '12.50',
+            'sort_order' => 2,
+            'varianten' => "Rot\nBlau",
+            'is_active' => '1',
+        ])->assertRedirect(route('admin.veranstaltungen.edit', $veranstaltung));
+
+        $artikel = VeranstaltungsMerchartikel::query()
+            ->where('veranstaltung_id', $veranstaltung->id)
+            ->where('bezeichnung', 'Stoffbeutel')
+            ->first();
+
+        $this->assertNotNull($artikel);
+        $this->assertSame(2, $artikel->varianten()->count());
+
+        $this->actingAs($admin)->put(route('admin.veranstaltungen.merch.update', [$veranstaltung, $artikel]), [
+            'bezeichnung' => 'Sammlerbeutel',
+            'beschreibung' => 'Aktualisierte Beschreibung.',
+            'preis' => '15.00',
+            'sort_order' => 1,
+            'varianten' => "Schwarz\nWeiß",
+            'is_active' => '1',
+        ])->assertRedirect(route('admin.veranstaltungen.edit', $veranstaltung));
+
+        $artikel->refresh();
+        $this->assertSame('Sammlerbeutel', $artikel->bezeichnung);
+        $this->assertSame('15.00', $artikel->preis);
+        $this->assertTrue($artikel->is_active);
+        $this->assertSame(2, $artikel->varianten()->where('is_active', true)->count());
+        $this->assertTrue($artikel->varianten()->where('bezeichnung', 'Schwarz')->exists());
+
+        $this->actingAs($admin)->put(route('admin.veranstaltungen.merch.update', [$veranstaltung, $artikel]), [
+            'bezeichnung' => 'Sammlerbeutel',
+            'beschreibung' => 'Aktualisierte Beschreibung.',
+            'preis' => '15.00',
+            'sort_order' => 1,
+            'varianten' => "Schwarz\nWeiß",
+            'is_active' => '0',
+        ])->assertRedirect(route('admin.veranstaltungen.edit', $veranstaltung));
+
+        $artikel->refresh();
+        $this->assertFalse($artikel->is_active);
+
+        $this->actingAs($admin)->delete(route('admin.veranstaltungen.merch.destroy', [$veranstaltung, $artikel]))
+            ->assertRedirect(route('admin.veranstaltungen.edit', $veranstaltung));
+
+        $this->assertDatabaseMissing('veranstaltungs_merchartikel', ['id' => $artikel->id]);
+    }
+
+    public function test_invalid_merch_update_does_not_repopulate_all_article_forms_with_old_values(): void
+    {
+        $admin = $this->createUserWithRole(Role::Admin);
+        $veranstaltung = Veranstaltung::query()->where('slug', 'jubilaeumsfeier-band-700')->firstOrFail();
+
+        $erstesArtikel = $veranstaltung->merchartikel()->create([
+            'bezeichnung' => 'Erster Artikel',
+            'beschreibung' => 'Bestehende Beschreibung eins.',
+            'preis' => 9.50,
+            'sort_order' => 1,
+            'is_active' => true,
+        ]);
+
+        $zweitesArtikel = $veranstaltung->merchartikel()->create([
+            'bezeichnung' => 'Zweiter Artikel',
+            'beschreibung' => 'Bestehende Beschreibung zwei.',
+            'preis' => 11.00,
+            'sort_order' => 2,
+            'is_active' => true,
+        ]);
+
+        $response = $this->withoutVite()
+            ->followingRedirects()
+            ->from(route('admin.veranstaltungen.edit', $veranstaltung))
+            ->actingAs($admin)
+            ->put(route('admin.veranstaltungen.merch.update', [$veranstaltung, $erstesArtikel]), [
+                'merch_form_id' => (string) $erstesArtikel->id,
+                'bezeichnung' => '',
+                'beschreibung' => 'Fehlerhafte Zwischenbeschreibung',
+                'preis' => '14.00',
+                'sort_order' => 3,
+                'varianten' => "Fehlerhafte Variante A\nFehlerhafte Variante B",
+                'is_active' => '1',
+            ]);
+
+        $response->assertSee('Zweiter Artikel');
+
+        $content = $response->getContent();
+        $this->assertIsString($content);
+        $this->assertSame(1, preg_match('/action="[^"]*\/merch\/'.$erstesArtikel->id.'".*?name="bezeichnung" value=""/s', $content));
+        $this->assertSame(1, preg_match('/action="[^"]*\/merch\/'.$erstesArtikel->id.'".*?Fehlerhafte Variante A/s', $content));
+        $this->assertSame(1, preg_match('/action="[^"]*\/merch\/'.$erstesArtikel->id.'".*?Fehlerhafte Zwischenbeschreibung/s', $content));
+        $this->assertSame(0, preg_match('/action="[^"]*\/merch\/'.$zweitesArtikel->id.'".*?Fehlerhafte Variante A/s', $content));
     }
 
     public function test_admin_can_add_and_update_markdown_section(): void

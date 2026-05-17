@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\FantreffenAnmeldung;
 use App\Models\FantreffenVipAuthor;
+use App\Models\Veranstaltung;
 use App\Services\FantreffenRegistrationService;
 use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Http\Request;
@@ -24,6 +25,7 @@ class FantreffenController extends Controller
     public function create()
     {
         $user = Auth::user();
+        $veranstaltung = $this->legacyVeranstaltung();
 
         // VIP-Autoren laden (cached for 1 hour)
         $cachedVipAuthors = Cache::remember(self::VIP_AUTHORS_CACHE_KEY, 3600, function () {
@@ -44,7 +46,7 @@ class FantreffenController extends Controller
         $paymentAmount = 0;
 
         return view('fantreffen.anmeldung', array_merge(
-            $this->registrationService->getDeadlineInfo(),
+            $this->registrationService->getDeadlineInfo($veranstaltung),
             [
                 'user' => $user,
                 'paymentAmount' => $paymentAmount,
@@ -56,6 +58,7 @@ class FantreffenController extends Controller
 
     public function store(Request $request)
     {
+        $veranstaltung = $this->legacyVeranstaltung();
         $spamErrorMessage = 'Die Anmeldung konnte nicht verarbeitet werden. Bitte versuche es erneut.';
 
         // Honeypot-Prüfung: Jeder nicht-leere Wert ist ein Bot.
@@ -113,7 +116,7 @@ class FantreffenController extends Controller
 
         // Duplikat-Prüfung für eingeloggte User (per user_id, nicht nur E-Mail)
         if (Auth::check()) {
-            if (FantreffenAnmeldung::where('user_id', Auth::id())->exists()) {
+            if (FantreffenAnmeldung::query()->where('user_id', Auth::id())->exists()) {
                 return back()->withErrors([
                     'email' => 'Du bist bereits für das Fantreffen 2026 angemeldet.',
                 ])->withInput();
@@ -125,8 +128,8 @@ class FantreffenController extends Controller
 
         try {
             $validated = $request->validate(
-                $this->registrationService->validationRules($isAuthenticated),
-                $this->registrationService->validationMessages()
+                $this->registrationService->validationRules($isAuthenticated, $veranstaltung),
+                $this->registrationService->validationMessages($veranstaltung)
             );
             Log::info('Fantreffen Anmeldung: Validation passed');
         } catch (ValidationException $e) {
@@ -136,7 +139,7 @@ class FantreffenController extends Controller
 
         try {
             // Anmeldung über Service erstellen
-            $anmeldung = $this->registrationService->register($validated, Auth::user());
+            $anmeldung = $this->registrationService->register($validated, $veranstaltung, Auth::user());
 
             // Redirect zur Bestätigungsseite
             return redirect()->route('fantreffen.2026.bestaetigung', ['id' => $anmeldung->id])
@@ -172,5 +175,13 @@ class FantreffenController extends Controller
         return view('fantreffen.bestaetigung', [
             'anmeldung' => $anmeldung,
         ]);
+    }
+
+    private function legacyVeranstaltung(): Veranstaltung
+    {
+        return Veranstaltung::query()
+            ->oeffentlichSichtbar()
+            ->where('slug', 'maddrax-fantreffen-2026')
+            ->firstOrFail();
     }
 }
