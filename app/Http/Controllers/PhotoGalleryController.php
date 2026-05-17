@@ -35,7 +35,7 @@ class PhotoGalleryController extends Controller
             return $this->getFallbackPhotos($year);
         }
 
-        $photoUrls = $this->galleryService->photoUrls($baseUrl, 'nextcloud_gallery:'.$year.':'.sha1($baseUrl));
+        $photoUrls = $this->galleryService->photoUrls($baseUrl);
 
         if (empty($photoUrls)) {
             return $this->getFallbackPhotos($year);
@@ -124,7 +124,7 @@ SVG;
             return $this->placeholderResponse($year, $index);
         }
 
-        $photoUrl = $this->galleryService->photoUrlForIndex($baseUrl, $index, 'nextcloud_gallery:'.$year.':'.sha1($baseUrl));
+        $photoUrl = $this->galleryService->photoUrlForIndex($baseUrl, $index);
 
         if ($photoUrl === null) {
             return $this->placeholderResponse($year, $index);

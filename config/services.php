@@ -37,9 +37,9 @@ return [
     'nextcloud' => [
         'links' => [
             '2026' => env('NEXTCLOUD_LINK_2026', ''),
-            '2025' => env('NEXTCLOUD_LINK_2025', 'https://cloud.maddrax-fanclub.de/public.php/dav/files/jnGa6sEecKa3fiX/Foto'),
-            '2024' => env('NEXTCLOUD_LINK_2024', 'https://cloud.maddrax-fanclub.de/public.php/dav/files/tztWY5ML5XMRWPw/Foto'),
-            '2023' => env('NEXTCLOUD_LINK_2023', 'https://cloud.maddrax-fanclub.de/public.php/dav/files/jjpfnJbgStE8LcQ/Foto'),
+            '2025' => env('NEXTCLOUD_LINK_2025', 'https://cloud.maddrax-fanclub.de/s/jnGa6sEecKa3fiX'),
+            '2024' => env('NEXTCLOUD_LINK_2024', 'https://cloud.maddrax-fanclub.de/s/tztWY5ML5XMRWPw'),
+            '2023' => env('NEXTCLOUD_LINK_2023', 'https://cloud.maddrax-fanclub.de/s/jjpfnJbgStE8LcQ'),
         ],
     ],
 

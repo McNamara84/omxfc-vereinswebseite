@@ -28,7 +28,7 @@ XML;
     /**
      * @return array<int, string>
      */
-    public function photoUrls(string $galleryLink, ?string $cacheKey = null): array
+    public function photoUrls(string $galleryLink): array
     {
         $galleryLink = $this->sanitizeGalleryLink($galleryLink);
 
@@ -36,7 +36,7 @@ XML;
             return [];
         }
 
-        $cacheKey ??= $this->cacheKey($galleryLink);
+        $cacheKey = $this->cacheKey($galleryLink);
 
         $cachedPhotoUrls = Cache::get($cacheKey);
 
@@ -53,13 +53,13 @@ XML;
         return $result['urls'];
     }
 
-    public function photoUrlForIndex(string $galleryLink, int $index, ?string $cacheKey = null): ?string
+    public function photoUrlForIndex(string $galleryLink, int $index): ?string
     {
         if ($index < 1) {
             return null;
         }
 
-        return $this->photoUrls($galleryLink, $cacheKey)[$index - 1] ?? null;
+        return $this->photoUrls($galleryLink)[$index - 1] ?? null;
     }
 
     private function cacheKey(string $galleryLink): string
@@ -191,10 +191,16 @@ XML;
      */
     private function parsePhotoUrls(string $xml, string $origin, ?string $filenamePrefix): ?array
     {
+        if ($this->containsForbiddenXmlDeclarations($xml)) {
+            return null;
+        }
+
         $dom = new DOMDocument('1.0', 'UTF-8');
+        $dom->resolveExternals = false;
+        $dom->substituteEntities = false;
 
         $previousState = libxml_use_internal_errors(true);
-        $loaded = $dom->loadXML($xml);
+        $loaded = $dom->loadXML($xml, LIBXML_NONET);
         libxml_clear_errors();
         libxml_use_internal_errors($previousState);
 
@@ -328,5 +334,10 @@ XML;
         }
 
         return $normalizedPath;
+    }
+
+    private function containsForbiddenXmlDeclarations(string $xml): bool
+    {
+        return preg_match('/<!DOCTYPE|<!ENTITY/i', $xml) === 1;
     }
 }

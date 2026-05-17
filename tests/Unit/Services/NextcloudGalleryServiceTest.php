@@ -175,6 +175,25 @@ class NextcloudGalleryServiceTest extends TestCase
         ], $photos);
     }
 
+    #[Test]
+    public function photo_urls_reject_doctype_responses_and_do_not_cache_them(): void
+    {
+        Http::fake([
+            'https://cloud.maddrax-fanclub.de/public.php/dav/files/shareToken/' => Http::sequence()
+                ->push($this->propfindResponseWithDoctype('shareToken', ['Foto1.jpg']), 207)
+                ->push($this->propfindResponse('shareToken', ['Foto1.jpg']), 207),
+        ]);
+
+        $service = app(NextcloudGalleryService::class);
+
+        $this->assertSame([], $service->photoUrls('https://cloud.maddrax-fanclub.de/s/shareToken'));
+        $this->assertSame([
+            'https://cloud.maddrax-fanclub.de/public.php/dav/files/shareToken/Foto1.jpg',
+        ], $service->photoUrls('https://cloud.maddrax-fanclub.de/s/shareToken'));
+
+        Http::assertSentCount(2);
+    }
+
     private function propfindResponse(string $token, array $files): string
     {
         $entries = array_map(
@@ -186,6 +205,17 @@ class NextcloudGalleryServiceTest extends TestCase
         );
 
         return $this->propfindResponseWithEntries('/public.php/dav/files/'.$token.'/', $entries);
+    }
+
+    private function propfindResponseWithDoctype(string $token, array $files): string
+    {
+        $xml = $this->propfindResponse($token, $files);
+
+        return str_replace(
+            '<?xml version="1.0"?>',
+            "<?xml version=\"1.0\"?>\n<!DOCTYPE multistatus [<!ELEMENT multistatus ANY>]>",
+            $xml,
+        );
     }
 
     /**
