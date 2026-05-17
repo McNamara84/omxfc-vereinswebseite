@@ -74,15 +74,26 @@ class NewsletterAusgabe extends Model
 
     public function scopeVisibleInArchivFor(Builder $query, Role $role): Builder
     {
-        return $query
-            ->published()
-            ->whereJsonContains('recipient_roles', $role->value);
+        $query->published();
+
+        if (self::hasArchivBypassRole($role)) {
+            return $query;
+        }
+
+        return $query->whereJsonContains('recipient_roles', $role->value);
     }
 
     public function isVisibleInArchivFor(Role $role): bool
     {
-        return $this->status === NewsletterAusgabeStatus::Veroeffentlicht
-            && in_array($role->value, $this->recipient_roles ?? [], true);
+        if ($this->status !== NewsletterAusgabeStatus::Veroeffentlicht) {
+            return false;
+        }
+
+        if (self::hasArchivBypassRole($role)) {
+            return true;
+        }
+
+        return in_array($role->value, $this->recipient_roles ?? [], true);
     }
 
     /**
@@ -154,5 +165,10 @@ class NewsletterAusgabe extends Model
             ->when($ignore, fn (Builder $query) => $query->whereKeyNot($ignore->getKey()))
             ->where('slug', $slug)
             ->exists();
+    }
+
+    private static function hasArchivBypassRole(Role $role): bool
+    {
+        return in_array($role, [Role::Kassenwart, Role::Vorstand, Role::Admin], true);
     }
 }

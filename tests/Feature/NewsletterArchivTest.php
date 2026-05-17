@@ -112,6 +112,25 @@ class NewsletterArchivTest extends TestCase
             ->assertSee('Fuer Mitglieder');
     }
 
+    public function test_admin_can_view_published_newsletter_archive_entry_even_when_not_recipient(): void
+    {
+        $admin = $this->actingMember('Admin');
+        $mitgliedIntern = NewsletterAusgabe::factory()->published()->create([
+            'subject' => 'Nur für Mitglieder sichtbar',
+            'recipient_roles' => ['Mitglied'],
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('newsletter.archiv.index'))
+            ->assertOk()
+            ->assertSee('Nur für Mitglieder sichtbar');
+
+        $this->actingAs($admin)
+            ->get(route('newsletter.archiv.show', $mitgliedIntern))
+            ->assertOk()
+            ->assertSee('Nur für Mitglieder sichtbar');
+    }
+
     public function test_guest_is_redirected_from_newsletter_archive(): void
     {
         $ausgabe = NewsletterAusgabe::factory()->published()->create();
