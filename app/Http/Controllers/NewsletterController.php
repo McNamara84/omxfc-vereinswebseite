@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\NewsletterAusgabeStatus;
 use App\Enums\Role;
 use App\Mail\Newsletter;
+use App\Models\NewsletterAusgabe;
 use App\Models\Team;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -76,6 +78,17 @@ class NewsletterController extends Controller
 
         foreach ($recipients as $recipient) {
             Mail::to($recipient->email)->queue(new Newsletter($data['subject'], $data['topics']));
+        }
+
+        if (! $request->boolean('test')) {
+            NewsletterAusgabe::query()->create([
+                'subject' => $data['subject'],
+                'topics' => $data['topics'],
+                'recipient_roles' => $data['roles'],
+                'status' => NewsletterAusgabeStatus::Entwurf,
+                'sent_at' => now(),
+                'created_by' => $user?->id,
+            ]);
         }
 
         return redirect()->route('newsletter.create')->with(

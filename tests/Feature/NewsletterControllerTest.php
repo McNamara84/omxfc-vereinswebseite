@@ -58,6 +58,11 @@ class NewsletterControllerTest extends TestCase
             return $mail->hasTo($board->email);
         });
         Mail::assertQueuedCount(2);
+
+        $this->assertDatabaseHas('newsletter_ausgaben', [
+            'subject' => 'Info',
+            'status' => 'entwurf',
+        ]);
     }
 
     public function test_send_validation_errors(): void
@@ -110,5 +115,7 @@ class NewsletterControllerTest extends TestCase
         Mail::assertNotQueued(Newsletter::class, function (Newsletter $mail) use ($member) {
             return $mail->hasTo($member->email);
         });
+
+        $this->assertDatabaseCount('newsletter_ausgaben', 0);
     }
 }
