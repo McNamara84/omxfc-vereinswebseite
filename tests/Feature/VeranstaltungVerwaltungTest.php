@@ -267,6 +267,7 @@ class VeranstaltungVerwaltungTest extends TestCase
             ->from(route('admin.veranstaltungen.edit', $veranstaltung))
             ->actingAs($admin)
             ->put(route('admin.veranstaltungen.merch.update', [$veranstaltung, $erstesArtikel]), [
+                'merch_form_id' => (string) $erstesArtikel->id,
                 'bezeichnung' => '',
                 'beschreibung' => 'Fehlerhafte Zwischenbeschreibung',
                 'preis' => '14.00',
@@ -275,9 +276,14 @@ class VeranstaltungVerwaltungTest extends TestCase
                 'is_active' => '1',
             ]);
 
-        $response->assertSee('Erster Artikel');
         $response->assertSee('Zweiter Artikel');
-        $response->assertDontSee('Fehlerhafte Variante A');
+
+        $content = $response->getContent();
+        $this->assertIsString($content);
+        $this->assertSame(1, preg_match('/action="[^"]*\/merch\/'.$erstesArtikel->id.'".*?name="bezeichnung" value=""/s', $content));
+        $this->assertSame(1, preg_match('/action="[^"]*\/merch\/'.$erstesArtikel->id.'".*?Fehlerhafte Variante A/s', $content));
+        $this->assertSame(1, preg_match('/action="[^"]*\/merch\/'.$erstesArtikel->id.'".*?Fehlerhafte Zwischenbeschreibung/s', $content));
+        $this->assertSame(0, preg_match('/action="[^"]*\/merch\/'.($erstesArtikel->id + 1).'".*?Fehlerhafte Variante A/s', $content));
     }
 
     public function test_admin_can_add_and_update_markdown_section(): void

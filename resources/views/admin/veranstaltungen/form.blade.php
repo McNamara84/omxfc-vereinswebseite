@@ -163,39 +163,48 @@
         @unless ($isCreate)
             <x-ui.panel title="Merchandise" description="Pflege bis zu 10 optionale Zusatzartikel mit Preis, Aktiv-Status und festen Varianten pro Veranstaltung.">
                 <div class="space-y-4">
+                    @php($submittedMerchFormId = old('merch_form_id'))
                     @forelse ($merchartikel as $artikel)
+                        @php($usesOldMerchValues = (string) $submittedMerchFormId === (string) $artikel->id)
+                        @php($artikelBezeichnung = $usesOldMerchValues ? old('bezeichnung') : $artikel->bezeichnung)
+                        @php($artikelPreis = $usesOldMerchValues ? old('preis') : $artikel->preis)
+                        @php($artikelSortierung = $usesOldMerchValues ? old('sort_order') : $artikel->sort_order)
+                        @php($artikelBeschreibung = $usesOldMerchValues ? old('beschreibung') : $artikel->beschreibung)
+                        @php($artikelVarianten = $usesOldMerchValues ? old('varianten') : $artikel->varianten->where('is_active', true)->sortBy('sort_order')->pluck('bezeichnung')->implode(PHP_EOL))
+                        @php($artikelAktiv = $usesOldMerchValues ? old('is_active') : $artikel->is_active)
                         <form method="POST" action="{{ route('admin.veranstaltungen.merch.update', [$veranstaltung, $artikel]) }}" class="rounded-box border border-base-300 p-4 space-y-3">
                             @csrf
                             @method('PUT')
+                            <input type="hidden" name="merch_form_id" value="{{ $artikel->id }}" />
                             <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                                 <label class="form-control w-full lg:col-span-2">
                                     <span class="label-text mb-1 block text-sm font-medium">Bezeichnung</span>
-                                    <input name="bezeichnung" value="{{ $artikel->bezeichnung }}" class="input input-bordered w-full" />
+                                    <input name="bezeichnung" value="{{ $artikelBezeichnung }}" class="input input-bordered w-full" />
                                 </label>
                                 <label class="form-control w-full">
                                     <span class="label-text mb-1 block text-sm font-medium">Preis</span>
-                                    <input type="number" step="0.01" min="0" name="preis" value="{{ $artikel->preis }}" class="input input-bordered w-full" />
+                                    <input type="number" step="0.01" min="0" name="preis" value="{{ $artikelPreis }}" class="input input-bordered w-full" />
                                 </label>
                                 <label class="form-control w-full">
                                     <span class="label-text mb-1 block text-sm font-medium">Sortierung</span>
-                                    <input type="number" min="0" name="sort_order" value="{{ $artikel->sort_order }}" class="input input-bordered w-full" />
+                                    <input type="number" min="0" name="sort_order" value="{{ $artikelSortierung }}" class="input input-bordered w-full" />
                                 </label>
                             </div>
 
                             <label class="form-control w-full">
                                 <span class="label-text mb-1 block text-sm font-medium">Beschreibung</span>
-                                <textarea name="beschreibung" rows="3" class="textarea textarea-bordered w-full">{{ $artikel->beschreibung }}</textarea>
+                                <textarea name="beschreibung" rows="3" class="textarea textarea-bordered w-full">{{ $artikelBeschreibung }}</textarea>
                             </label>
 
                             <label class="form-control w-full">
                                 <span class="label-text mb-1 block text-sm font-medium">Varianten</span>
-                                <textarea name="varianten" rows="4" class="textarea textarea-bordered w-full" placeholder="Je Zeile eine Variante, z. B. S, M, L oder Motiv A, Motiv B">{{ $artikel->varianten->where('is_active', true)->sortBy('sort_order')->pluck('bezeichnung')->implode(PHP_EOL) }}</textarea>
+                                <textarea name="varianten" rows="4" class="textarea textarea-bordered w-full" placeholder="Je Zeile eine Variante, z. B. S, M, L oder Motiv A, Motiv B">{{ $artikelVarianten }}</textarea>
                                 <span class="label-text-alt mt-1 block text-xs text-base-content/60">Leer lassen, wenn der Artikel keine Varianten benötigt.</span>
                             </label>
 
                             <label class="flex items-center gap-3 text-sm">
                                 <input type="hidden" name="is_active" value="0" />
-                                <input type="checkbox" name="is_active" value="1" @checked($artikel->is_active) class="checkbox" />
+                                <input type="checkbox" name="is_active" value="1" @checked($artikelAktiv) class="checkbox" />
                                 Artikel aktiv anzeigen
                             </label>
 
@@ -216,37 +225,39 @@
                     @endforelse
 
                     @if ($merchartikel->count() < 10)
+                        @php($usesOldCreateMerchValues = old('merch_form_id') === 'create')
                         <form method="POST" action="{{ route('admin.veranstaltungen.merch.store', $veranstaltung) }}" class="rounded-box border border-dashed border-base-300 p-4 space-y-3">
                             @csrf
+                            <input type="hidden" name="merch_form_id" value="create" />
                             <h3 class="text-lg font-semibold">Neuen Merchandise-Artikel hinzufügen</h3>
                             <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                                 <label class="form-control w-full lg:col-span-2">
                                     <span class="label-text mb-1 block text-sm font-medium">Bezeichnung</span>
-                                    <input name="bezeichnung" class="input input-bordered w-full" />
+                                    <input name="bezeichnung" value="{{ $usesOldCreateMerchValues ? old('bezeichnung') : '' }}" class="input input-bordered w-full" />
                                 </label>
                                 <label class="form-control w-full">
                                     <span class="label-text mb-1 block text-sm font-medium">Preis</span>
-                                    <input type="number" step="0.01" min="0" name="preis" class="input input-bordered w-full" />
+                                    <input type="number" step="0.01" min="0" name="preis" value="{{ $usesOldCreateMerchValues ? old('preis') : '' }}" class="input input-bordered w-full" />
                                 </label>
                                 <label class="form-control w-full">
                                     <span class="label-text mb-1 block text-sm font-medium">Sortierung</span>
-                                    <input type="number" min="0" name="sort_order" value="{{ $merchartikel->max('sort_order') + 1 }}" class="input input-bordered w-full" />
+                                    <input type="number" min="0" name="sort_order" value="{{ $usesOldCreateMerchValues ? old('sort_order') : $merchartikel->max('sort_order') + 1 }}" class="input input-bordered w-full" />
                                 </label>
                             </div>
 
                             <label class="form-control w-full">
                                 <span class="label-text mb-1 block text-sm font-medium">Beschreibung</span>
-                                <textarea name="beschreibung" rows="3" class="textarea textarea-bordered w-full"></textarea>
+                                <textarea name="beschreibung" rows="3" class="textarea textarea-bordered w-full">{{ $usesOldCreateMerchValues ? old('beschreibung') : '' }}</textarea>
                             </label>
 
                             <label class="form-control w-full">
                                 <span class="label-text mb-1 block text-sm font-medium">Varianten</span>
-                                <textarea name="varianten" rows="4" class="textarea textarea-bordered w-full" placeholder="Je Zeile eine Variante"></textarea>
+                                <textarea name="varianten" rows="4" class="textarea textarea-bordered w-full" placeholder="Je Zeile eine Variante">{{ $usesOldCreateMerchValues ? old('varianten') : '' }}</textarea>
                             </label>
 
                             <label class="flex items-center gap-3 text-sm">
                                 <input type="hidden" name="is_active" value="0" />
-                                <input type="checkbox" name="is_active" value="1" checked class="checkbox" />
+                                <input type="checkbox" name="is_active" value="1" @checked($usesOldCreateMerchValues ? old('is_active', true) : true) class="checkbox" />
                                 Artikel aktiv anzeigen
                             </label>
 
