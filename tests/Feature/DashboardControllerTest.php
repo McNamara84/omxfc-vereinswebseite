@@ -6,6 +6,8 @@ use App\Enums\BookType;
 use App\Enums\FanfictionStatus;
 use App\Enums\Role;
 use App\Enums\TodoStatus;
+use App\Enums\TourAssignmentSource;
+use App\Enums\TourAssignmentStatus;
 use App\Mail\MitgliedGenehmigtMail;
 use App\Models\Book;
 use App\Models\BookOffer;
@@ -24,6 +26,7 @@ use App\Models\User;
 use App\Models\UserPoint;
 use App\Services\MembersTeamProvider;
 use App\Services\RewardService;
+use App\Services\TourAssignmentService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Mail;
@@ -66,8 +69,47 @@ class DashboardControllerTest extends TestCase
             'user_id' => $applicant->id,
             'role' => Role::Mitglied->value,
         ]);
+        $this->assertDatabaseHas('tour_assignments', [
+            'user_id' => $applicant->id,
+            'tour_key' => 'hauptmenue',
+            'tour_version' => 1,
+            'status' => TourAssignmentStatus::Pending->value,
+            'assigned_via' => TourAssignmentSource::System->value,
+        ]);
+        $this->assertDatabaseHas('tour_assignments', [
+            'user_id' => $applicant->id,
+            'tour_key' => 'profilpflege',
+            'tour_version' => 1,
+            'status' => TourAssignmentStatus::Pending->value,
+            'assigned_via' => TourAssignmentSource::System->value,
+        ]);
         $this->assertNotNull($applicant->fresh()->mitglied_seit);
         Mail::assertQueued(MitgliedGenehmigtMail::class);
+    }
+
+    public function test_approved_member_auto_tours_are_only_assigned_once(): void
+    {
+        Mail::fake();
+        $admin = $this->actingAdmin();
+        $applicant = $this->createApplicant();
+
+        $this->actingAs($admin)
+            ->post(route('anwaerter.approve', $applicant))
+            ->assertRedirect();
+
+        app(TourAssignmentService::class)->assignAutoToursForApprovedMember($applicant->fresh(), $admin);
+
+        $this->assertDatabaseCount('tour_assignments', 2);
+        $this->assertDatabaseHas('tour_assignments', [
+            'user_id' => $applicant->id,
+            'tour_key' => 'hauptmenue',
+            'tour_version' => 1,
+        ]);
+        $this->assertDatabaseHas('tour_assignments', [
+            'user_id' => $applicant->id,
+            'tour_key' => 'profilpflege',
+            'tour_version' => 1,
+        ]);
     }
 
     public function test_admin_can_reject_applicant(): void

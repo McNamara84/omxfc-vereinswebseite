@@ -1162,6 +1162,7 @@ Book::chunk(100, function ($books) {
 3. **Update documentation** - Keep README.md and this file updated
 4. **Consider accessibility** - Use semantic HTML, ARIA labels, keyboard navigation
 5. **Support dark mode** - Add dark mode variants to all new UI components
+6. **Keep tours in sync** - If you change `config/navigation.php`, `resources/views/navigation-menu.blade.php`, profile entry points, or major member onboarding flows, also review `config/tours.php` and the related Tour feature/Vitest tests
 
 ### Common Pitfalls to Avoid
 
@@ -1172,6 +1173,7 @@ Book::chunk(100, function ($books) {
 5. **Don't forget migrations** - Database changes need migrations
 6. **Don't skip dark mode** - All UI should support dark mode
 7. **Don't ignore mobile** - Use responsive Tailwind classes
+8. **Don't desync guided tours** - Stable `tour_key` anchors in navigation and matching step definitions in `config/tours.php` must evolve together
 
 ### Testing Checklist
 

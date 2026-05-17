@@ -11,13 +11,14 @@ use App\Services\Polls\ActivePollResolver;
 use App\Support\Navigation\NavigationBuilder;
 use App\View\Components\Alert;
 use Illuminate\Cache\RateLimiting\Limit;
-use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Vite;
@@ -50,8 +51,8 @@ class AppServiceProvider extends ServiceProvider
         // weil die signierte URL https:// nutzt, aber request()->url() http://:80 zurückgibt.
         if ($this->app->environment('production')) {
             URL::forceScheme('https');
-            $this->app['request']->headers->set('X-Forwarded-Proto', 'https');
-            $this->app['request']->headers->set('X-Forwarded-Port', '443');
+            request()->headers->set('X-Forwarded-Proto', 'https');
+            request()->headers->set('X-Forwarded-Port', '443');
         }
 
         // Rate Limiter für Fantreffen-Anmeldung (deaktivierbar via Config für Tests)
@@ -117,7 +118,7 @@ class AppServiceProvider extends ServiceProvider
                 'showActivePollForGuest' => false,
             ];
 
-            try {
+            if (Schema::hasTable('polls')) {
                 $cacheKey = 'polls.active_for_menu.v2';
                 $navigationContext = Cache::remember($cacheKey, now()->addMinutes(10), function () {
                     $poll = app(ActivePollResolver::class)->current();
@@ -129,8 +130,6 @@ class AppServiceProvider extends ServiceProvider
                         'showActivePollForGuest' => (bool) ($poll && $isWithinWindow && $poll->visibility === PollVisibility::Public),
                     ];
                 });
-            } catch (QueryException $e) {
-                // Table may not exist during tests before migrations run
             }
 
             $view->with([
@@ -138,11 +137,22 @@ class AppServiceProvider extends ServiceProvider
                 'activePollMenuLabel' => $navigationContext['activePollMenuLabel'],
                 'showActivePollForAuth' => $navigationContext['showActivePollForAuth'],
                 'showActivePollForGuest' => $navigationContext['showActivePollForGuest'],
-                'navigation' => app(NavigationBuilder::class)->build(auth()->user(), $navigationContext),
+                'navigation' => app(NavigationBuilder::class)->build(Auth::user(), $navigationContext),
             ]);
         });
 
-        Blade::if('vorstand', fn () => auth()->check() && auth()->user()->hasVorstandRole());
+        View::composer('profile.show', function ($view) {
+            $tourOverview = collect();
+
+            if (Auth::check() && Schema::hasTable('tour_assignments')) {
+                $tourOverview = app(\App\Services\TourAssignmentService::class)
+                    ->selfServiceOverviewForUser(Auth::user());
+            }
+
+            $view->with('tourOverview', $tourOverview);
+        });
+
+        Blade::if('vorstand', fn () => Auth::check() && Auth::user()?->hasVorstandRole());
 
         if ($this->app->runningUnitTests()) {
             Blade::component('testing.components.button', 'button');

@@ -29,6 +29,8 @@ use App\Http\Controllers\ProfileViewController;
 use App\Http\Controllers\RezensionController;
 use App\Http\Controllers\ReviewCommentController;
 use App\Http\Controllers\RomantauschController;
+use App\Http\Controllers\TourAdminController;
+use App\Http\Controllers\TourController;
 use App\Http\Controllers\VeranstaltungController;
 use App\Http\Controllers\VeranstaltungVerwaltungController;
 use App\Livewire\RezensionForm;
@@ -204,6 +206,20 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
             return app(ProfileViewController::class)->show(Auth::user());
         })->name('view.self');
         Route::get('{user}', [ProfileViewController::class, 'show'])->name('view');
+    });
+
+    Route::prefix('touren')->name('touren.')->controller(TourController::class)->group(function () {
+        Route::get('aktuell', 'current')->name('current');
+        Route::post('{tourAssignment}/starten', 'start')->name('start');
+        Route::post('{tourAssignment}/schritt', 'progress')->name('progress');
+        Route::post('{tourAssignment}/abbrechen', 'dismiss')->name('dismiss');
+        Route::post('{tourAssignment}/abschliessen', 'complete')->name('complete');
+        Route::post('{tourKey}/neu-starten', 'restart')->name('restart');
+    });
+
+    Route::prefix('admin/touren')->name('admin.touren.')->controller(TourAdminController::class)->middleware('admin-or-vorstand')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::post('/zuweisen', 'assign')->name('assign');
     });
 
     Route::prefix('mitglieder/karte')->controller(MitgliederKarteController::class)->group(function () {

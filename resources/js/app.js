@@ -97,6 +97,7 @@ import './mitglieder/map-utils';
 import './romantausch-dropzone';
 
 import './polls/charts';
+import './tours/runner';
 
 // Wire-navigate-kompatible Module (Dual-Event-Listener)
 import './mitglieder/karte';

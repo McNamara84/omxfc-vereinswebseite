@@ -171,6 +171,14 @@ class User extends Authenticatable
     }
 
     /**
+     * Get the tour assignments for the user.
+     */
+    public function tourAssignments(): HasMany
+    {
+        return $this->hasMany(TourAssignment::class);
+    }
+
+    /**
      * Get the total points for a specific team.
      */
     public function totalPointsForTeam(Team $team): int
