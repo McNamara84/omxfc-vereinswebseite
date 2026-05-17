@@ -77,7 +77,7 @@ test.describe('Fanfiction Menüpunkt (Issue #493 & #495)', () => {
         }
     });
 
-    test('Verein-Menü enthält Fanfiction als ersten Unterpunkt', async ({ page }) => {
+    test('Community-Menü enthält Fanfiction-Unterpunkt', async ({ page }) => {
         // Login als Mitglied
         await page.goto('/login');
         await page.fill('input[name="email"]', 'playwright-member@example.com');
@@ -87,14 +87,14 @@ test.describe('Fanfiction Menüpunkt (Issue #493 & #495)', () => {
 
         await page.goto('/dashboard');
 
-        // Öffne das Verein-Dropdown
-        const vereinDropdown = page.locator('nav').getByRole('button', { name: /Verein/i });
+        // Öffne das Community-Dropdown
+        const communityDropdown = page.locator('nav').getByRole('button', { name: /Community/i });
 
-        if (await vereinDropdown.isVisible()) {
-            await vereinDropdown.click();
+        if (await communityDropdown.isVisible()) {
+            await communityDropdown.click();
 
-            // Fanfiction sollte im Dropdown sein
-            const fanfictionLink = page.getByRole('link', { name: 'Fanfiction' }).first();
+            // Fanfiction sollte im Community-Dropdown sichtbar sein
+            const fanfictionLink = page.locator('nav [data-tour-device="desktop"][data-tour-key="community-fanfiction"]');
             await expect(fanfictionLink).toBeVisible();
         }
     });
