@@ -1,5 +1,13 @@
 <x-app-layout title="Newsletter-Archiv bearbeiten">
     <x-member-page class="max-w-5xl space-y-8">
+        @php
+            $initialTopics = \App\Support\NewsletterTopics::normalize(old('topics', $newsletterAusgabe->topics ?? []));
+
+            if ($initialTopics === []) {
+                $initialTopics = [\App\Support\NewsletterTopics::initialTopic()];
+            }
+        @endphp
+
         @if (session('status'))
             <x-alert icon="o-check-circle" class="alert-success mb-4" dismissible>
                 {{ session('status') }}
@@ -27,8 +35,9 @@
             <form
                 method="POST"
                 action="{{ route('newsletter.archiv.admin.update', $newsletterAusgabe) }}"
-                x-data="newsletterArchivForm({ topics: @js(old('topics', $newsletterAusgabe->topics ?? [])) })"
+                x-data="newsletterArchivForm(@js($initialTopics))"
                 class="space-y-6"
+                enctype="multipart/form-data"
             >
                 @csrf
                 @method('PUT')
@@ -69,9 +78,14 @@
                         <x-button type="button" label="Thema hinzufügen" class="btn-ghost btn-sm" icon="o-plus" @click="addTopic" />
                     </div>
 
-                    <template x-for="(topic, index) in topics" :key="index">
+                    @error('topics')
+                        <p class="text-sm text-error">{{ $message }}</p>
+                    @enderror
+
+                    <template x-for="(topic, index) in topics" :key="topic.key">
                         <x-ui.panel class="bg-base-200/70 shadow-none">
                             <div class="space-y-3">
+                                <input x-bind:name="'topics[' + index + '][key]'" x-model="topic.key" type="hidden">
                                 <div class="flex justify-end" x-show="topics.length > 1">
                                     <x-button type="button" label="Entfernen" class="btn-ghost btn-xs" icon="o-trash" @click="removeTopic(index)" />
                                 </div>
@@ -86,6 +100,31 @@
                                         <span class="label-text">Text</span>
                                     </label>
                                     <textarea x-bind:id="'topic-content-' + index" x-bind:name="'topics[' + index + '][content]'" x-model="topic.content" class="textarea textarea-bordered w-full" rows="6" required></textarea>
+                                    <p class="mt-2 text-xs text-base-content/60">Markdown wird unterstützt. Die Formatierung erscheint später im Archiv und in der Mail als HTML.</p>
+                                </div>
+
+                                <div class="space-y-3" x-show="topic.images.length > 0">
+                                    <p class="text-sm font-medium text-base-content">Bereits gespeicherte Bilder</p>
+
+                                    <template x-for="image in topic.images" :key="image">
+                                        <div class="rounded-2xl border border-base-content/10 bg-base-100/70 p-3">
+                                            <div class="grid gap-3 md:grid-cols-[10rem_1fr] md:items-center">
+                                                <img :src="'/storage/' + image" :alt="'Bild zu ' + (topic.title || 'Ohne Titel')" class="h-32 w-full rounded-xl object-cover">
+                                                <label class="label cursor-pointer justify-start gap-3">
+                                                    <input type="checkbox" class="checkbox checkbox-sm" :name="'topics[' + index + '][remove_images][]'" :value="image">
+                                                    <span class="label-text">Bild beim Speichern entfernen</span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+
+                                <div>
+                                    <label class="label" x-bind:for="'topic-images-' + index">
+                                        <span class="label-text">Neue Bilder</span>
+                                    </label>
+                                    <input x-bind:id="'topic-images-' + index" x-bind:name="'topics[' + index + '][images][]'" type="file" accept="image/jpeg,image/png,image/gif,image/webp" multiple class="file-input file-input-bordered w-full">
+                                    <p class="mt-2 text-xs text-base-content/60">Mehrere Bilder pro Thema sind möglich. Neue Uploads werden an die vorhandenen Bilder angehängt.</p>
                                 </div>
                             </div>
                         </x-ui.panel>
@@ -108,18 +147,20 @@
     </x-member-page>
 
     <script>
-        function newsletterArchivForm({ topics }) {
-            const initialTopics = Array.isArray(topics) && topics.length > 0
-                ? topics.map((topic) => ({
+        function newsletterArchivForm(initialTopics) {
+            const topics = Array.isArray(initialTopics) && initialTopics.length > 0
+                ? initialTopics.map((topic) => ({
+                    key: topic.key || crypto.randomUUID(),
                     title: topic.title ?? '',
                     content: topic.content ?? '',
+                    images: Array.isArray(topic.images) ? topic.images : [],
                 }))
-                : [{ title: '', content: '' }];
+                : [{ key: crypto.randomUUID(), title: '', content: '', images: [] }];
 
             return {
-                topics: initialTopics,
+                topics,
                 addTopic() {
-                    this.topics.push({ title: '', content: '' });
+                    this.topics.push({ key: crypto.randomUUID(), title: '', content: '', images: [] });
                 },
                 removeTopic(index) {
                     if (this.topics.length === 1) {

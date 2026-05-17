@@ -12,7 +12,13 @@
             description="Hier prüfst du Archiv-Entwürfe, pflegst Inhalte nach und gibst Ausgaben für das Mitgliederarchiv frei."
         >
             <x-slot:actions>
-                <x-button label="Newsletter versenden" link="{{ route('newsletter.create') }}" class="btn-primary btn-sm" icon="o-paper-airplane" />
+                <div class="flex flex-wrap gap-2">
+                    <form method="POST" action="{{ route('newsletter.archiv.admin.store') }}">
+                        @csrf
+                        <x-button type="submit" label="Zum Archiv hinzufügen" class="btn-secondary btn-sm" icon="o-plus" />
+                    </form>
+                    <x-button label="Newsletter versenden" link="{{ route('newsletter.create') }}" class="btn-primary btn-sm" icon="o-paper-airplane" />
+                </div>
             </x-slot:actions>
         </x-ui.page-header>
 
@@ -21,7 +27,7 @@
                 <div class="py-12 text-center">
                     <x-icon name="o-envelope" class="mx-auto h-12 w-12 text-base-content/50" />
                     <h2 class="mt-4 text-lg font-semibold">Noch keine Archiv-Einträge</h2>
-                    <p class="mt-2 text-sm text-base-content/70">Nach dem ersten echten Newsletter-Versand wird hier automatisch ein Entwurf angelegt.</p>
+                    <p class="mt-2 text-sm text-base-content/70">Lege manuell einen Archiv-Entwurf an oder sende zuerst einen echten Newsletter, damit hier ein Eintrag erscheint.</p>
                 </div>
             </x-ui.panel>
         @else

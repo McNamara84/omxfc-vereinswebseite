@@ -7,13 +7,20 @@ use App\Enums\Role;
 use App\Mail\Newsletter;
 use App\Models\NewsletterAusgabe;
 use App\Models\Team;
+use App\Services\NewsletterImageService;
+use App\Support\NewsletterTopics;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\Rule;
 
 class NewsletterController extends Controller
 {
+    public function __construct(
+        private readonly NewsletterImageService $newsletterImageService,
+    ) {}
+
     /**
      * Display the newsletter form.
      */
@@ -38,10 +45,13 @@ class NewsletterController extends Controller
         $data = $request->validate([
             'roles' => ['required', 'array', 'min:1'],
             'roles.*' => ['string', Rule::in(NewsletterAusgabe::recipientRoleValues())],
-            'subject' => ['required', 'string'],
+            'subject' => ['required', 'string', 'max:255'],
             'topics' => ['required', 'array', 'min:1'],
-            'topics.*.title' => ['required', 'string'],
+            'topics.*.key' => ['required', 'string', 'max:255', 'distinct'],
+            'topics.*.title' => ['required', 'string', 'max:255'],
             'topics.*.content' => ['required', 'string'],
+            'topics.*.images' => ['nullable', 'array'],
+            'topics.*.images.*' => ['image', 'mimes:jpg,jpeg,png,gif,webp', 'max:'.NewsletterImageService::MAX_FILE_SIZE_KB],
         ]);
 
         $membersTeam = Team::membersTeam();
@@ -51,39 +61,76 @@ class NewsletterController extends Controller
 
         $recipients = $membersTeam->users()->wherePivotIn('role', $data['roles'])->get();
 
-        if ($request->boolean('test')) {
-            $recipients = $membersTeam->users()->wherePivot('role', Role::Admin->value)->get();
-
-            if ($recipients->isEmpty()) {
-                return redirect()->route('newsletter.create')
-                    ->with('status', 'Keine Admin-Empfänger gefunden.');
-            }
-        }
-
         if ($recipients->isEmpty()) {
             return redirect()->route('newsletter.create')
                 ->with('status', 'Keine Empfänger für die ausgewählten Rollen gefunden.');
         }
 
-        foreach ($recipients as $recipient) {
-            Mail::to($recipient->email)->queue(new Newsletter($data['subject'], $data['topics']));
+        try {
+            $topics = $this->prepareTopicsForStorage($data['topics']);
+        } catch (\RuntimeException $exception) {
+            return back()
+                ->withInput()
+                ->withErrors(['topics' => $exception->getMessage()]);
         }
 
-        if (! $request->boolean('test')) {
-            NewsletterAusgabe::query()->create([
-                'subject' => $data['subject'],
-                'topics' => $data['topics'],
-                'recipient_roles' => $data['roles'],
-                'status' => NewsletterAusgabeStatus::Entwurf,
-                'sent_at' => now(),
-                'created_by' => $user?->id,
-            ]);
+        $uploadedImages = $this->extractTopicImages($topics);
+
+        try {
+            DB::transaction(function () use ($data, $recipients, $topics, $user): void {
+                NewsletterAusgabe::query()->create([
+                    'subject' => $data['subject'],
+                    'topics' => $topics,
+                    'recipient_roles' => $data['roles'],
+                    'status' => NewsletterAusgabeStatus::Entwurf,
+                    'sent_at' => now(),
+                    'created_by' => $user?->id,
+                ]);
+
+                foreach ($recipients as $recipient) {
+                    Mail::to($recipient->email)->queue(
+                        (new Newsletter($data['subject'], $topics))->afterCommit(),
+                    );
+                }
+            });
+        } catch (\Throwable $exception) {
+            $this->newsletterImageService->deleteImages($uploadedImages);
+
+            throw $exception;
         }
 
-        return redirect()->route('newsletter.create')->with(
-            'status',
-            $request->boolean('test') ? 'Newsletter-Test versendet.' : 'Newsletter versendet.'
-        );
+        return redirect()->route('newsletter.create')->with('status', 'Newsletter versendet.');
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $topics
+     * @return array<int, array{key: string, title: string, content: string, images: array<int, string>}>
+     */
+    private function prepareTopicsForStorage(array $topics): array
+    {
+        $normalizedTopics = NewsletterTopics::ensureDistinctPersistentKeys(NewsletterTopics::normalize($topics));
+        $preparedTopics = [];
+        $uploadedImages = [];
+
+        try {
+            foreach ($normalizedTopics as $index => $topic) {
+                $newImages = $this->newsletterImageService->uploadImages($topics[$index]['images'] ?? []);
+                $uploadedImages = array_merge($uploadedImages, $newImages);
+
+                $preparedTopics[] = [
+                    'key' => $topic['key'],
+                    'title' => $topic['title'],
+                    'content' => $topic['content'],
+                    'images' => $newImages,
+                ];
+            }
+        } catch (\RuntimeException $exception) {
+            $this->newsletterImageService->deleteImages($uploadedImages);
+
+            throw new \RuntimeException('Mindestens ein Bild konnte nicht hochgeladen werden.', 0, $exception);
+        }
+
+        return $preparedTopics;
     }
 
     private function abortUnlessCanManageNewsletter(): void
@@ -101,5 +148,20 @@ class NewsletterController extends Controller
         ) {
             abort(403);
         }
+    }
+
+    /**
+     * @param  array<int, array{images?: array<int, string>}>  $topics
+     * @return array<int, string>
+     */
+    private function extractTopicImages(array $topics): array
+    {
+        return array_values(array_unique(array_merge(
+            [],
+            ...array_map(
+                static fn (array $topic): array => is_array($topic['images'] ?? null) ? $topic['images'] : [],
+                $topics,
+            ),
+        )));
     }
 }

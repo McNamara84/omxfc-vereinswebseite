@@ -180,6 +180,7 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
 
     Route::prefix('admin/newsletter-archiv')->name('newsletter.archiv.admin.')->controller(NewsletterArchivAdminController::class)->middleware('admin-or-vorstand')->group(function () {
         Route::get('/', 'index')->name('index');
+        Route::post('/anlegen', 'store')->name('store');
         Route::get('/{newsletterAusgabe}/bearbeiten', 'edit')->name('edit');
         Route::put('/{newsletterAusgabe}', 'update')->name('update');
         Route::post('/{newsletterAusgabe}/veroeffentlichen', 'publish')->name('publish');

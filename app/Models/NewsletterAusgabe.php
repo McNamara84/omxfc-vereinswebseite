@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\NewsletterAusgabeStatus;
 use App\Enums\Role;
+use App\Support\NewsletterTopics;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -94,6 +95,18 @@ class NewsletterAusgabe extends Model
         }
 
         return in_array($role->value, $this->recipient_roles ?? [], true);
+    }
+
+    /**
+     * @param  array{key?: string, content?: string}|array<string, mixed>  $topic
+     */
+    public function excerptForTopic(array $topic, int $limit = 220, string $fallbackVariant = 'topic'): string
+    {
+        $variant = is_string($topic['key'] ?? null) && trim((string) $topic['key']) !== ''
+            ? trim((string) $topic['key'])
+            : $fallbackVariant;
+
+        return NewsletterTopics::excerpt((string) ($topic['content'] ?? ''), $limit, $this, $variant);
     }
 
     /**
