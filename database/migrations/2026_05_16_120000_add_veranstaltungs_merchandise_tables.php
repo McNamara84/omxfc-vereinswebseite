@@ -17,48 +17,54 @@ return new class extends Migration
             });
         }
 
-        Schema::create('veranstaltungs_merchartikel', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('veranstaltung_id')->constrained('veranstaltungen')->cascadeOnDelete();
-            $table->string('bezeichnung');
-            $table->text('beschreibung')->nullable();
-            $table->decimal('preis', 8, 2)->default(0);
-            $table->unsignedSmallInteger('sort_order')->default(0);
-            $table->boolean('is_active')->default(true);
-            $table->timestamps();
+        if (! Schema::hasTable('veranstaltungs_merchartikel')) {
+            Schema::create('veranstaltungs_merchartikel', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('veranstaltung_id')->constrained('veranstaltungen')->cascadeOnDelete();
+                $table->string('bezeichnung');
+                $table->text('beschreibung')->nullable();
+                $table->decimal('preis', 8, 2)->default(0);
+                $table->unsignedSmallInteger('sort_order')->default(0);
+                $table->boolean('is_active')->default(true);
+                $table->timestamps();
 
-            $table->index(['veranstaltung_id', 'sort_order'], 'veranstaltungs_merchartikel_veranstaltung_sort_index');
-        });
+                $table->index(['veranstaltung_id', 'sort_order'], 'veranstaltungs_merchartikel_veranstaltung_sort_index');
+            });
+        }
 
-        Schema::create('veranstaltungs_merchvarianten', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('veranstaltungs_merchartikel_id')->constrained('veranstaltungs_merchartikel')->cascadeOnDelete();
-            $table->string('bezeichnung');
-            $table->unsignedSmallInteger('sort_order')->default(0);
-            $table->boolean('is_active')->default(true);
-            $table->timestamps();
+        if (! Schema::hasTable('veranstaltungs_merchvarianten')) {
+            Schema::create('veranstaltungs_merchvarianten', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('veranstaltungs_merchartikel_id')->constrained('veranstaltungs_merchartikel')->cascadeOnDelete();
+                $table->string('bezeichnung');
+                $table->unsignedSmallInteger('sort_order')->default(0);
+                $table->boolean('is_active')->default(true);
+                $table->timestamps();
 
-            $table->unique(
-                ['veranstaltungs_merchartikel_id', 'bezeichnung'],
-                'veranstaltungs_merchvarianten_artikel_bezeichnung_unique'
-            );
-        });
+                $table->unique(
+                    ['veranstaltungs_merchartikel_id', 'bezeichnung'],
+                    'veranstaltungs_merchvarianten_artikel_bezeichnung_unique'
+                );
+            });
+        }
 
-        Schema::create('fantreffen_anmeldung_merchartikel', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('fantreffen_anmeldung_id')->constrained('fantreffen_anmeldungen')->cascadeOnDelete();
-            $table->foreignId('veranstaltungs_merchartikel_id')->constrained('veranstaltungs_merchartikel')->cascadeOnDelete();
-            $table->foreignId('veranstaltungs_merchvariante_id')->nullable()->constrained('veranstaltungs_merchvarianten')->nullOnDelete();
-            $table->decimal('preis_zum_bestellzeitpunkt', 8, 2);
-            $table->boolean('status_erledigt')->default(false);
-            $table->timestamp('status_erledigt_am')->nullable();
-            $table->timestamps();
+        if (! Schema::hasTable('fantreffen_anmeldung_merchartikel')) {
+            Schema::create('fantreffen_anmeldung_merchartikel', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('fantreffen_anmeldung_id')->constrained('fantreffen_anmeldungen')->cascadeOnDelete();
+                $table->foreignId('veranstaltungs_merchartikel_id')->constrained('veranstaltungs_merchartikel')->cascadeOnDelete();
+                $table->foreignId('veranstaltungs_merchvariante_id')->nullable()->constrained('veranstaltungs_merchvarianten')->nullOnDelete();
+                $table->decimal('preis_zum_bestellzeitpunkt', 8, 2);
+                $table->boolean('status_erledigt')->default(false);
+                $table->timestamp('status_erledigt_am')->nullable();
+                $table->timestamps();
 
-            $table->unique(
-                ['fantreffen_anmeldung_id', 'veranstaltungs_merchartikel_id'],
-                'fantreffen_anmeldung_merch_unique'
-            );
-        });
+                $table->unique(
+                    ['fantreffen_anmeldung_id', 'veranstaltungs_merchartikel_id'],
+                    'fantreffen_anmeldung_merch_unique'
+                );
+            });
+        }
 
         DB::table('veranstaltungen')
             ->whereNull('merch_deadline')
@@ -80,28 +86,55 @@ return new class extends Migration
                 continue;
             }
 
-            $artikelId = DB::table('veranstaltungs_merchartikel')->insertGetId([
-                'veranstaltung_id' => $veranstaltung->id,
-                'bezeichnung' => 'T-Shirt',
-                'beschreibung' => null,
-                'preis' => $veranstaltung->tshirt_preis ?? 25.00,
-                'sort_order' => 0,
-                'is_active' => (bool) $veranstaltung->tshirt_aktiv,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
+            $timestamp = now();
+            $artikelId = DB::table('veranstaltungs_merchartikel')
+                ->where('veranstaltung_id', $veranstaltung->id)
+                ->where('bezeichnung', 'T-Shirt')
+                ->value('id');
+
+            if ($artikelId === null) {
+                $artikelId = DB::table('veranstaltungs_merchartikel')->insertGetId([
+                    'veranstaltung_id' => $veranstaltung->id,
+                    'bezeichnung' => 'T-Shirt',
+                    'beschreibung' => null,
+                    'preis' => $veranstaltung->tshirt_preis ?? 25.00,
+                    'sort_order' => 0,
+                    'is_active' => (bool) $veranstaltung->tshirt_aktiv,
+                    'created_at' => $timestamp,
+                    'updated_at' => $timestamp,
+                ]);
+            } else {
+                DB::table('veranstaltungs_merchartikel')
+                    ->where('id', $artikelId)
+                    ->update([
+                        'beschreibung' => null,
+                        'preis' => $veranstaltung->tshirt_preis ?? 25.00,
+                        'sort_order' => 0,
+                        'is_active' => (bool) $veranstaltung->tshirt_aktiv,
+                        'updated_at' => $timestamp,
+                    ]);
+            }
 
             $variantenMap = [];
 
             foreach (self::DEFAULT_TSHIRT_VARIANTEN as $index => $bezeichnung) {
-                $varianteId = DB::table('veranstaltungs_merchvarianten')->insertGetId([
-                    'veranstaltungs_merchartikel_id' => $artikelId,
-                    'bezeichnung' => $bezeichnung,
-                    'sort_order' => $index,
-                    'is_active' => true,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ]);
+                DB::table('veranstaltungs_merchvarianten')->updateOrInsert(
+                    [
+                        'veranstaltungs_merchartikel_id' => $artikelId,
+                        'bezeichnung' => $bezeichnung,
+                    ],
+                    [
+                        'sort_order' => $index,
+                        'is_active' => true,
+                        'created_at' => $timestamp,
+                        'updated_at' => $timestamp,
+                    ]
+                );
+
+                $varianteId = DB::table('veranstaltungs_merchvarianten')
+                    ->where('veranstaltungs_merchartikel_id', $artikelId)
+                    ->where('bezeichnung', $bezeichnung)
+                    ->value('id');
 
                 $variantenMap[$bezeichnung] = $varianteId;
             }
@@ -114,18 +147,22 @@ return new class extends Migration
                 ->get();
 
             foreach ($anmeldungen as $anmeldung) {
-                DB::table('fantreffen_anmeldung_merchartikel')->insert([
-                    'fantreffen_anmeldung_id' => $anmeldung->id,
-                    'veranstaltungs_merchartikel_id' => $artikelId,
-                    'veranstaltungs_merchvariante_id' => $anmeldung->tshirt_groesse
-                        ? ($variantenMap[$anmeldung->tshirt_groesse] ?? null)
-                        : null,
-                    'preis_zum_bestellzeitpunkt' => $veranstaltung->tshirt_preis ?? 25.00,
-                    'status_erledigt' => (bool) $anmeldung->tshirt_fertig,
-                    'status_erledigt_am' => $anmeldung->tshirt_fertig ? $anmeldung->updated_at : null,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ]);
+                DB::table('fantreffen_anmeldung_merchartikel')->updateOrInsert(
+                    [
+                        'fantreffen_anmeldung_id' => $anmeldung->id,
+                        'veranstaltungs_merchartikel_id' => $artikelId,
+                    ],
+                    [
+                        'veranstaltungs_merchvariante_id' => $anmeldung->tshirt_groesse
+                            ? ($variantenMap[$anmeldung->tshirt_groesse] ?? null)
+                            : null,
+                        'preis_zum_bestellzeitpunkt' => $veranstaltung->tshirt_preis ?? 25.00,
+                        'status_erledigt' => (bool) $anmeldung->tshirt_fertig,
+                        'status_erledigt_am' => $anmeldung->tshirt_fertig ? $anmeldung->updated_at : null,
+                        'created_at' => $timestamp,
+                        'updated_at' => $timestamp,
+                    ]
+                );
             }
         }
     }
