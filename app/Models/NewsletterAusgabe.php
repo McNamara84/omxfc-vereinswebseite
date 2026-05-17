@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\NewsletterAusgabeStatus;
+use App\Enums\Role;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -75,5 +76,48 @@ class NewsletterAusgabe extends Model
     public function scopeDraft(Builder $query): Builder
     {
         return $query->where('status', NewsletterAusgabeStatus::Entwurf->value);
+    }
+
+    public function scopeVisibleInArchivFor(Builder $query, Role $role): Builder
+    {
+        return $query
+            ->published()
+            ->whereJsonContains('recipient_roles', $role->value);
+    }
+
+    public function isVisibleInArchivFor(Role $role): bool
+    {
+        return $this->status === NewsletterAusgabeStatus::Veroeffentlicht
+            && in_array($role->value, $this->recipient_roles ?? [], true);
+    }
+
+    /**
+     * @return array<int, Role>
+     */
+    public static function recipientRoles(): array
+    {
+        return [
+            Role::Mitglied,
+            Role::Ehrenmitglied,
+            Role::Kassenwart,
+            Role::Vorstand,
+            Role::Admin,
+        ];
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    public static function recipientRoleValues(): array
+    {
+        return array_map(
+            fn (Role $role): string => $role->value,
+            self::recipientRoles(),
+        );
+    }
+
+    public static function defaultRecipientRole(): Role
+    {
+        return Role::Mitglied;
     }
 }

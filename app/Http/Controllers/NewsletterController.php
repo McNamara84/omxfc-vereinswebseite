@@ -15,11 +15,6 @@ use Illuminate\Validation\Rule;
 class NewsletterController extends Controller
 {
     /**
-     * Roles that can receive newsletters.
-     */
-    private const ROLES = [Role::Mitglied, Role::Ehrenmitglied, Role::Kassenwart, Role::Vorstand, Role::Admin];
-
-    /**
      * Default role pre-selected on the form. Members are the usual audience.
      */
     private const DEFAULT_ROLE = Role::Mitglied;
@@ -34,8 +29,8 @@ class NewsletterController extends Controller
         if (! $team || ! $team->hasUserWithRole($user, Role::Admin->value)) {
             abort(403);
         }
-        $roles = self::ROLES;
-        $defaultRole = self::DEFAULT_ROLE;
+        $roles = NewsletterAusgabe::recipientRoles();
+        $defaultRole = NewsletterAusgabe::defaultRecipientRole();
 
         return view('newsletter.versenden', compact('roles', 'defaultRole'));
     }
@@ -53,7 +48,7 @@ class NewsletterController extends Controller
 
         $data = $request->validate([
             'roles' => ['required', 'array'],
-            'roles.*' => ['string', Rule::in(array_map(fn (Role $r) => $r->value, self::ROLES))],
+            'roles.*' => ['string', Rule::in(NewsletterAusgabe::recipientRoleValues())],
             'subject' => ['required', 'string'],
             'topics' => ['required', 'array', 'min:1'],
             'topics.*.title' => ['required', 'string'],

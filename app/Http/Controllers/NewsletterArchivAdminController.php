@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Enums\NewsletterAusgabeStatus;
-use App\Enums\Role;
 use App\Models\NewsletterAusgabe;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
@@ -14,8 +13,6 @@ use Illuminate\View\View;
 
 class NewsletterArchivAdminController extends Controller
 {
-    private const ROLES = [Role::Mitglied, Role::Ehrenmitglied, Role::Kassenwart, Role::Vorstand, Role::Admin];
-
     public function index(): View
     {
         $newsletterAusgaben = NewsletterAusgabe::query()
@@ -32,7 +29,7 @@ class NewsletterArchivAdminController extends Controller
     {
         return view('newsletter.archiv.admin.edit', [
             'newsletterAusgabe' => $newsletterAusgabe,
-            'roles' => self::ROLES,
+            'roles' => NewsletterAusgabe::recipientRoles(),
         ]);
     }
 
@@ -42,7 +39,7 @@ class NewsletterArchivAdminController extends Controller
             'subject' => ['required', 'string', 'max:255'],
             'slug' => ['required', 'string', 'max:255'],
             'recipient_roles' => ['required', 'array', 'min:1'],
-            'recipient_roles.*' => ['string', Rule::in(array_map(fn (Role $role) => $role->value, self::ROLES))],
+            'recipient_roles.*' => ['string', Rule::in(NewsletterAusgabe::recipientRoleValues())],
             'sent_at' => ['required', 'date'],
             'topics' => ['required', 'array', 'min:1'],
             'topics.*.title' => ['required', 'string', 'max:255'],

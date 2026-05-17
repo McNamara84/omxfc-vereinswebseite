@@ -23,10 +23,10 @@ class NewsletterArchivController extends Controller
 
     public function index(): View
     {
-        $this->authorizeMemberArea();
+        $role = $this->authorizeMemberArea();
 
         $ausgaben = NewsletterAusgabe::query()
-            ->published()
+            ->visibleInArchivFor($role)
             ->orderByDesc('published_at')
             ->orderByDesc('sent_at')
             ->paginate(12);
@@ -38,9 +38,9 @@ class NewsletterArchivController extends Controller
 
     public function show(NewsletterAusgabe $newsletterAusgabe): View
     {
-        $this->authorizeMemberArea();
+        $role = $this->authorizeMemberArea();
 
-        if ($newsletterAusgabe->status !== NewsletterAusgabeStatus::Veroeffentlicht) {
+        if (! $newsletterAusgabe->isVisibleInArchivFor($role)) {
             abort(404);
         }
 

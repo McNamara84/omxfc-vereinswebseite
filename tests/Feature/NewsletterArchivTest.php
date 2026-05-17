@@ -68,6 +68,34 @@ class NewsletterArchivTest extends TestCase
             ->assertNotFound();
     }
 
+    public function test_mitglied_cannot_view_vorstand_only_newsletter_archive_entry(): void
+    {
+        $mitglied = $this->actingMember();
+        $vorstandIntern = NewsletterAusgabe::factory()->published()->create([
+            'subject' => 'Nur fuer Vorstand',
+            'recipient_roles' => ['Vorstand'],
+        ]);
+        $mitgliedIntern = NewsletterAusgabe::factory()->published()->create([
+            'subject' => 'Fuer Mitglieder',
+            'recipient_roles' => ['Mitglied'],
+        ]);
+
+        $this->actingAs($mitglied)
+            ->get(route('newsletter.archiv.index'))
+            ->assertOk()
+            ->assertSee('Fuer Mitglieder')
+            ->assertDontSee('Nur fuer Vorstand');
+
+        $this->actingAs($mitglied)
+            ->get(route('newsletter.archiv.show', $vorstandIntern))
+            ->assertNotFound();
+
+        $this->actingAs($mitglied)
+            ->get(route('newsletter.archiv.show', $mitgliedIntern))
+            ->assertOk()
+            ->assertSee('Fuer Mitglieder');
+    }
+
     public function test_guest_is_redirected_from_newsletter_archive(): void
     {
         $ausgabe = NewsletterAusgabe::factory()->published()->create();
