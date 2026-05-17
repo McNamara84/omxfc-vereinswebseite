@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\NewsletterAusgabeStatus;
 use App\Http\Controllers\Concerns\MembersTeamAware;
 use App\Models\NewsletterAusgabe;
 use App\Services\UserRoleService;

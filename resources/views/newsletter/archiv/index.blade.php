@@ -47,7 +47,7 @@
                             <div class="space-y-2 text-sm leading-relaxed text-base-content/80">
                                 @if ($firstTopic)
                                     <p class="font-medium text-base-content">{{ $firstTopic['title'] }}</p>
-                                    <p>{{ Str::limit($firstTopic['content'] ?? '', 220) }}</p>
+                                    <p>{{ \Illuminate\Support\Str::limit($firstTopic['content'] ?? '', 220) }}</p>
                                 @else
                                     <p>Diese Ausgabe enthaelt aktuell noch keine Themenbloecke.</p>
                                 @endif
