@@ -20,6 +20,8 @@ const state = {
     target: null,
     lastSyncedStepKey: null,
     skippedStepKeys: new Set(),
+    boundRoot: null,
+    handleRootClick: null,
 };
 
 const elementIds = {
@@ -354,48 +356,98 @@ async function completeTour() {
     toast('success', 'Tour abgeschlossen', 'Du kannst die Tour später im Profil erneut starten.');
 }
 
+async function handleRunnerAction(actionId) {
+    if (!state.payload) {
+        return;
+    }
+
+    if (actionId === elementIds.back) {
+        state.stepIndex = Math.max(state.stepIndex - 1, 0);
+        const nextStep = state.steps[state.stepIndex];
+
+        if (nextStep) {
+            state.payload.current_step_key = nextStep.key;
+            state.lastSyncedStepKey = null;
+        }
+
+        await showCurrentStep();
+
+        return;
+    }
+
+    if (actionId === elementIds.skip) {
+        await skipTour();
+
+        return;
+    }
+
+    if (actionId === elementIds.next) {
+        if (state.stepIndex >= state.steps.length - 1) {
+            await completeTour();
+
+            return;
+        }
+
+        state.stepIndex += 1;
+        const nextStep = state.steps[state.stepIndex];
+
+        if (nextStep) {
+            state.payload.current_step_key = nextStep.key;
+            state.lastSyncedStepKey = null;
+        }
+
+        await showCurrentStep();
+
+        return;
+    }
+
+    if (actionId === elementIds.complete) {
+        await completeTour();
+    }
+}
+
 function bindButtons() {
-    const backButton = getElement(elementIds.back);
-    const skipButton = getElement(elementIds.skip);
-    const nextButton = getElement(elementIds.next);
-    const completeButton = getElement(elementIds.complete);
+    if (!(state.root instanceof HTMLElement)) {
+        if (state.boundRoot instanceof HTMLElement && typeof state.handleRootClick === 'function') {
+            state.boundRoot.removeEventListener('click', state.handleRootClick);
+        }
 
-    if (backButton instanceof HTMLElement) {
-        backButton.onclick = async () => {
-            state.stepIndex = Math.max(state.stepIndex - 1, 0);
-            const nextStep = state.steps[state.stepIndex];
-            if (nextStep) {
-                state.payload.current_step_key = nextStep.key;
-                state.lastSyncedStepKey = null;
-            }
-            await showCurrentStep();
-        };
+        state.boundRoot = null;
+
+        return;
     }
 
-    if (skipButton instanceof HTMLElement) {
-        skipButton.onclick = () => skipTour();
-    }
-
-    if (nextButton instanceof HTMLElement) {
-        nextButton.onclick = async () => {
-            if (state.stepIndex >= state.steps.length - 1) {
-                await completeTour();
+    if (!state.handleRootClick) {
+        state.handleRootClick = (event) => {
+            if (!(event.target instanceof Element)) {
                 return;
             }
 
-            state.stepIndex += 1;
-            const nextStep = state.steps[state.stepIndex];
-            if (nextStep) {
-                state.payload.current_step_key = nextStep.key;
-                state.lastSyncedStepKey = null;
+            const actionButton = event.target.closest([
+                `#${elementIds.back}`,
+                `#${elementIds.skip}`,
+                `#${elementIds.next}`,
+                `#${elementIds.complete}`,
+            ].join(', '));
+
+            if (!(actionButton instanceof HTMLElement) || actionButton.hasAttribute('disabled')) {
+                return;
             }
-            await showCurrentStep();
+
+            void handleRunnerAction(actionButton.id);
         };
     }
 
-    if (completeButton instanceof HTMLElement) {
-        completeButton.onclick = () => completeTour();
+    if (state.boundRoot === state.root) {
+        return;
     }
+
+    if (state.boundRoot instanceof HTMLElement && typeof state.handleRootClick === 'function') {
+        state.boundRoot.removeEventListener('click', state.handleRootClick);
+    }
+
+    state.root.addEventListener('click', state.handleRootClick);
+    state.boundRoot = state.root;
 }
 
 function hydrateRoot() {

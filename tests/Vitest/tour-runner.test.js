@@ -175,4 +175,33 @@ describe('tour runner', () => {
             step_key: 'dashboard',
         });
     });
+
+    it('haelt remorphte Tour-Buttons fuer weiter, zurueck und spaeter klickbar', async () => {
+        const payload = createPayload();
+        const axios = stubAxios(payload);
+
+        await bootRunner();
+
+        ['tour-runner-next', 'tour-runner-back', 'tour-runner-skip'].forEach((id) => {
+            const button = document.getElementById(id);
+
+            if (button) {
+                button.replaceWith(button.cloneNode(true));
+            }
+        });
+
+        document.getElementById('tour-runner-next')?.click();
+        await flushAsyncWork();
+        expect(document.getElementById('tour-runner-title')?.textContent).toBe('Sichtbarer Folgeschritt');
+
+        document.getElementById('tour-runner-back')?.click();
+        await flushAsyncWork();
+        expect(document.getElementById('tour-runner-title')?.textContent).toBe('Dashboard');
+
+        document.getElementById('tour-runner-skip')?.click();
+        await flushAsyncWork();
+
+        expect(document.getElementById('tour-runner-panel')?.classList.contains('hidden')).toBe(true);
+        expect(axios.post).toHaveBeenLastCalledWith('/tour/7/dismiss');
+    });
 });
