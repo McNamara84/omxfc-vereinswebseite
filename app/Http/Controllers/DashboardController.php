@@ -17,6 +17,7 @@ use App\Models\UserPoint;
 use App\Services\MembersTeamProvider;
 use App\Services\ReviewBaxxService;
 use App\Services\RewardService;
+use App\Services\TourAssignmentService;
 use App\Services\UserRoleService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Auth;
@@ -31,6 +32,7 @@ class DashboardController extends Controller
         private MembersTeamProvider $membersTeamProvider,
         private ReviewBaxxService $reviewBaxxService,
         private RewardService $rewardService,
+        private TourAssignmentService $tourAssignmentService,
     ) {}
 
     public function index()
@@ -484,6 +486,7 @@ class DashboardController extends Controller
         // Mitgliedsdatum setzen
         $user->mitglied_seit = now()->toDateString();
         $user->save();
+        $this->tourAssignmentService->assignAutoToursForApprovedMember($user, Auth::user());
         Mail::to($user->email)->queue(new MitgliedGenehmigtMail($user));
 
         Activity::create([

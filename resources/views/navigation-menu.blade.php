@@ -27,6 +27,10 @@
                                 <a
                                     href="{{ $item['href'] }}"
                                     wire:navigate
+                                    data-tour-device="desktop"
+                                    @if($item['tour_key'] ?? null)
+                                        data-tour-key="{{ $item['tour_key'] }}"
+                                    @endif
                                     @class([
                                         'btn btn-sm rounded-full whitespace-nowrap border transition',
                                         'btn-primary border-primary text-primary-content shadow-sm' => $item['accent'] || $item['active'],
@@ -46,12 +50,33 @@
                         <p class="hidden px-2 pb-2 text-[0.62rem] font-semibold uppercase tracking-[0.24em] text-base-content/45 2xl:block">Bereiche</p>
                         <x-ui.action-cluster>
                             @foreach($sectionNavigation as $section)
-                                <x-dropdown as="menu" :label="$section['title']" :right="$loop->last" class="btn-sm rounded-full whitespace-nowrap {{ $section['active'] ? 'btn-primary btn-outline' : 'btn-ghost bg-base-100/60' }}">
+                                <x-dropdown as="menu" :right="$loop->last" class="shrink-0" x-bind:data-tour-open="open ? 'true' : 'false'">
+                                    <x-slot:trigger>
+                                        <button
+                                            type="button"
+                                            data-tour-device="desktop"
+                                            @if($section['tour_key'] ?? null)
+                                                data-tour-key="{{ $section['tour_key'] }}"
+                                            @endif
+                                            x-bind:data-tour-open="open ? 'true' : 'false'"
+                                            :aria-expanded="open"
+                                            class="btn btn-sm rounded-full whitespace-nowrap {{ $section['active'] ? 'btn-primary btn-outline' : 'btn-ghost bg-base-100/60' }}"
+                                        >
+                                            <span>{{ $section['title'] }}</span>
+                                            <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                                <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.168l3.71-3.938a.75.75 0 1 1 1.08 1.04l-4.25 4.5a.75.75 0 0 1-1.08 0l-4.25-4.5a.75.75 0 0 1 .02-1.06Z" clip-rule="evenodd" />
+                                            </svg>
+                                        </button>
+                                    </x-slot:trigger>
                                     @foreach($section['items'] as $item)
                                         <li class="w-fit min-w-[14rem] max-w-[min(24rem,calc(100vw-2rem))]" data-testid="desktop-nav-dropdown-item">
                                             <a
                                                 href="{{ $item['href'] }}"
                                                 wire:navigate
+                                                data-tour-device="desktop"
+                                                @if($item['tour_key'] ?? null)
+                                                    data-tour-key="{{ $item['tour_key'] }}"
+                                                @endif
                                                 class="my-0.5 flex w-full items-center gap-3 rounded-xl px-4 py-2 text-sm leading-5 text-base-content transition hover:bg-base-200/80 whitespace-nowrap"
                                             >
                                                 @if($item['icon'] ?? null)
@@ -75,13 +100,19 @@
                 {{-- Profil-Dropdown / Login (Desktop) --}}
                 <div class="hidden xl:flex xl:items-center">
                     @auth
-                        <x-dropdown as="menu" right>
+                        <x-dropdown as="menu" right class="shrink-0" x-bind:data-tour-open="open ? 'true' : 'false'">
                             <x-slot:trigger>
-                                <button class="flex items-center">
+                                <button
+                                    class="flex items-center"
+                                    data-tour-device="desktop"
+                                    data-tour-key="profile-menu"
+                                    x-bind:data-tour-open="open ? 'true' : 'false'"
+                                    :aria-expanded="open"
+                                >
                                     <img class="h-8 w-8 rounded-full object-cover" src="{{ Auth::user()->profile_photo_url }}" alt="{{ Auth::user()->name }}" />
                                 </button>
                             </x-slot:trigger>
-                            <x-menu-item title="Profil" link="{{ route('profile.show') }}" wire:navigate icon="o-user" />
+                            <x-menu-item title="Profil" link="{{ route('profile.show') }}" wire:navigate icon="o-user" data-tour-device="desktop" data-tour-key="profile-settings" />
                             <x-menu-separator />
                             <li>
                                 <form method="POST" action="{{ route('logout') }}">
@@ -107,6 +138,9 @@
                         @click="mobileOpen = !mobileOpen"
                         aria-expanded="false"
                         :aria-expanded="mobileOpen"
+                        x-bind:data-tour-open="mobileOpen ? 'true' : 'false'"
+                        data-tour-device="mobile"
+                        data-tour-key="mobile-menu-toggle"
                         aria-controls="mobile-navigation"
                         class="btn btn-ghost btn-sm"
                     >
@@ -128,7 +162,7 @@
             <x-menu class="p-2" data-testid="mobile-navigation-menu">
                 <li class="menu-title px-4 pt-2 text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-base-content/45" data-testid="mobile-nav-featured-heading">Schnellzugriff</li>
                 @foreach($featuredNavigation as $item)
-                    <x-menu-item :title="$item['title']" :link="$item['href']" wire:navigate :icon="$item['icon'] ?? null" />
+                    <x-menu-item :title="$item['title']" :link="$item['href']" wire:navigate :icon="$item['icon'] ?? null" data-tour-device="mobile" :data-tour-key="$item['tour_key'] ?? null" />
                 @endforeach
 
                 <li role="separator" aria-hidden="true">
@@ -136,11 +170,30 @@
                 </li>
                 <li class="menu-title px-4 pt-2 text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-base-content/45" data-testid="mobile-nav-sections-heading">Bereiche</li>
                 @foreach($sectionNavigation as $section)
-                    <x-menu-sub :title="$section['title']" :icon="$section['icon'] ?? 'o-ellipsis-horizontal-circle'">
+                    <li x-data="{ open: {{ $section['active'] ? 'true' : 'false' }} }">
+                        <details :open="open" @click.stop>
+                            <summary
+                                @click.prevent="open = !open"
+                                class="hover:text-inherit px-4 py-1.5 my-0.5 text-inherit {{ $section['active'] ? 'bg-base-300' : '' }}"
+                                data-tour-device="mobile"
+                                @if($section['tour_key'] ?? null)
+                                    data-tour-key="{{ $section['tour_key'] }}"
+                                @endif
+                                x-bind:data-tour-open="open ? 'true' : 'false'"
+                                :aria-expanded="open"
+                            >
+                                @if($section['icon'] ?? null)
+                                    <x-icon :name="$section['icon']" class="inline-flex my-0.5 h-4 w-4" />
+                                @endif
+                                <span class="mary-hideable whitespace-nowrap truncate">{{ $section['title'] }}</span>
+                            </summary>
+                            <ul class="mary-hideable">
                         @foreach($section['items'] as $item)
-                            <x-menu-item :title="$item['title']" :link="$item['href']" wire:navigate :icon="$item['icon'] ?? null" />
+                                <x-menu-item :title="$item['title']" :link="$item['href']" wire:navigate :icon="$item['icon'] ?? null" data-tour-device="mobile" :data-tour-key="$item['tour_key'] ?? null" />
                         @endforeach
-                    </x-menu-sub>
+                            </ul>
+                        </details>
+                    </li>
                 @endforeach
 
                 <li role="separator" aria-hidden="true">
@@ -148,7 +201,7 @@
                 </li>
 
                 @auth
-                    <x-menu-item title="Profil" :link="route('profile.show')" wire:navigate icon="o-user" />
+                    <x-menu-item title="Profil" :link="route('profile.show')" wire:navigate icon="o-user" data-tour-device="mobile" data-tour-key="profile-settings" />
                     <li>
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf

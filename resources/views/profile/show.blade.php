@@ -17,6 +17,72 @@
                 </x-slot:actions>
             </x-ui.page-header>
 
+            @if (($tourOverview ?? collect())->isNotEmpty())
+                <x-ui.panel title="Touren & Hilfestart" description="Starte verfügbare Einführungen erneut, wenn du Menüs oder Vereinsbereiche noch einmal geführt erkunden möchtest.">
+                    <div class="grid gap-4 lg:grid-cols-2">
+                        @foreach ($tourOverview as $tour)
+                            @php
+                                $assignment = $tour['assignment'];
+                                $statusValue = $tour['status']?->value;
+                                $statusLabel = match ($statusValue) {
+                                    'completed' => 'Abgeschlossen',
+                                    'in_progress' => 'In Bearbeitung',
+                                    'pending' => 'Offen',
+                                    default => 'Noch nicht gestartet',
+                                };
+                                $statusClass = match ($statusValue) {
+                                    'completed' => 'badge-success',
+                                    'in_progress' => 'badge-warning',
+                                    'pending' => 'badge-primary',
+                                    default => 'badge-outline',
+                                };
+                            @endphp
+
+                            <article class="rounded-3xl border border-base-300 bg-base-100/70 p-5 shadow-sm">
+                                <div class="flex flex-wrap items-start justify-between gap-3">
+                                    <div class="space-y-2">
+                                        <h3 class="text-lg font-semibold text-base-content">{{ $tour['definition']->title }}</h3>
+                                        <p class="text-sm leading-relaxed text-base-content/70">{{ $tour['definition']->description }}</p>
+                                    </div>
+
+                                    <x-badge :value="$statusLabel" class="{{ $statusClass }}" />
+                                </div>
+
+                                <dl class="mt-4 grid gap-3 text-sm text-base-content/70 sm:grid-cols-2">
+                                    <div>
+                                        <dt class="font-semibold text-base-content">Schritte</dt>
+                                        <dd>{{ count($tour['definition']->steps) }}</dd>
+                                    </div>
+                                    <div>
+                                        <dt class="font-semibold text-base-content">Zuletzt zugewiesen</dt>
+                                        <dd>{{ $assignment?->assigned_at?->locale('de')->isoFormat('D. MMM YYYY, HH:mm') ?? 'Noch nicht zugewiesen' }}</dd>
+                                    </div>
+                                    <div>
+                                        <dt class="font-semibold text-base-content">Fortschritt</dt>
+                                        <dd>{{ $assignment?->current_step_key ?: 'Startet am Anfang' }}</dd>
+                                    </div>
+                                    <div>
+                                        <dt class="font-semibold text-base-content">Version</dt>
+                                        <dd>{{ $tour['definition']->version }}</dd>
+                                    </div>
+                                </dl>
+
+                                <div class="mt-5 flex flex-wrap gap-2">
+                                    <form method="POST" action="{{ route('touren.restart', $tour['definition']->key) }}">
+                                        @csrf
+                                        <x-button
+                                            :label="$tour['is_open'] ? 'Tour von vorn starten' : 'Tour erneut starten'"
+                                            icon="o-play"
+                                            class="btn-primary btn-sm"
+                                        />
+                                    </form>
+                                </div>
+                            </article>
+                        @endforeach
+                    </div>
+                </x-ui.panel>
+            @endif
+
             @if (Laravel\Fortify\Features::canUpdateProfileInformation())
                 <x-ui.panel title="Persönliche Daten" description="Halte Name, Foto, Adresse, Beitrag und Kontaktmöglichkeiten aktuell, damit der Verein dich zuverlässig erreicht.">
                     @livewire('profile.update-profile-information-form')

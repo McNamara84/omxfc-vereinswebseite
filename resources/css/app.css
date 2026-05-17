@@ -93,6 +93,41 @@
     margin-right: auto;
 }
 
+.tour-runner-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    background: oklch(0% 0 0 / 0.42);
+}
+
+.tour-runner-highlight {
+    position: fixed;
+    z-index: 70;
+    border-radius: 1.5rem;
+    box-shadow: 0 0 0 9999px oklch(0% 0 0 / 0.5);
+    outline: 3px solid color-mix(in oklab, var(--color-primary) 75%, white 25%);
+    outline-offset: 2px;
+    transition: top 160ms ease, left 160ms ease, width 160ms ease, height 160ms ease;
+}
+
+.tour-runner-panel {
+    position: fixed;
+    inset-inline: 1rem;
+    bottom: 1rem;
+    z-index: 80;
+    margin-inline: auto;
+    max-width: 38rem;
+    pointer-events: auto;
+}
+
+@media (min-width: 768px) {
+    .tour-runner-panel {
+        inset-inline: auto;
+        right: 1.5rem;
+        left: auto;
+    }
+}
+
 /* ===================================================================
  * Chromium/WebKit Autofill Override für DaisyUI-5-Inputs
  *

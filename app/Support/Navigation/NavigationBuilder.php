@@ -72,6 +72,7 @@ class NavigationBuilder
             return [
                 'layout' => $entry['layout'] ?? 'section',
                 'title' => $entry['title'],
+                'tour_key' => $entry['tour_key'] ?? null,
                 'icon' => $entry['icon'] ?? null,
                 'items' => $items,
                 'active' => collect($items)->contains(fn (array $item): bool => (bool) ($item['active'] ?? false)),
@@ -81,6 +82,7 @@ class NavigationBuilder
         return [
             'layout' => $entry['layout'] ?? 'section',
             'title' => $entry['title'],
+            'tour_key' => $entry['tour_key'] ?? null,
             'icon' => $entry['icon'] ?? null,
             'href' => isset($entry['href']) ? $entry['href'] : route($entry['route']),
             'active' => $this->isActive($entry['active_patterns'] ?? [$entry['route']]),

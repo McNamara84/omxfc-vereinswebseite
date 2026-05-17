@@ -96,6 +96,8 @@ class NavigationMenuTest extends TestCase
         $response->assertSeeText('Vorstand');
         $response->assertSeeText('Admin');
         $response->assertSee(route('admin.auktionen.index'));
+        $response->assertSee(route('admin.touren.index'));
+        $response->assertSeeText('Touren');
         $response->assertSeeText('Umfrage verwalten');
     }
 

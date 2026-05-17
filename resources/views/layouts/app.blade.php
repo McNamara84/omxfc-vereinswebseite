@@ -55,6 +55,8 @@
             {{ $slot }}
         </main>
 
+        @include('layouts.partials.tour-runner')
+
         <!-- Footer -->
         @persist('footer')
             <x-footer />

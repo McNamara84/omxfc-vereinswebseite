@@ -82,6 +82,11 @@ public function render() {
 }
 ```
 
+### Navigation & Touren synchron halten
+- `config/navigation.php` ist die Quelle für Menüstruktur und stabile `tour_key`-Anker.
+- Wenn Navigation, Profil-Menüs oder wichtige Mitglieder-Flows geändert werden, immer auch `config/tours.php`, `resources/views/navigation-menu.blade.php` und die zugehörigen Feature-/Vitest-Tests prüfen und bei Bedarf aktualisieren.
+- Neue Verwaltungs- oder Schnellzugriffslinks für Mitglieder nicht „nur im Menü“ ergänzen: prüfen, ob die Hauptmenü-Tour oder Folge-Touren erweitert werden müssen.
+
 ### Service-Injection
 ```php
 public function __construct(
