@@ -13,7 +13,7 @@ Es liegt eine neue Anmeldung vor.
 **Datum:** {{ $veranstaltung->datum_von->locale('de')->isoFormat('D. MMMM YYYY, HH:mm') }} Uhr  
 @endif
 @if($veranstaltung->ort_name)
-**Ort:** {{ $veranstaltung->ort_name }}
+**Ort:** {{ $veranstaltung->ort_name }}  
 @endif
 @endif
 
@@ -25,10 +25,10 @@ Es liegt eine neue Anmeldung vor.
 **Mobile:** {{ $anmeldung->mobile }}  
 @endif
 
-**Typ:** {{ $anmeldung->ist_mitglied ? 'Vereinsmitglied' : 'Gast' }}
+**Typ:** {{ $anmeldung->ist_mitglied ? 'Vereinsmitglied' : 'Gast' }}  
 
 @if($anmeldung->user_id)
-**User-ID:** {{ $anmeldung->user_id }}
+**User-ID:** {{ $anmeldung->user_id }}  
 @endif
 
 ## Bestelldetails
@@ -47,13 +47,13 @@ Es liegt eine neue Anmeldung vor.
 
 **Zahlungsstatus:** {{ $anmeldung->payment_status === 'paid' ? '✅ Bezahlt' : '⏳ Ausstehend' }}  
 @if($anmeldung->payment_status === 'free')
-**Betrag:** Kostenlose Teilnahme (Mitglied)
+**Betrag:** Kostenlose Teilnahme (Mitglied)  
 @else
-**Betrag:** {{ number_format($anmeldung->payment_amount, 2, ',', '.') }} €
+**Betrag:** {{ number_format($anmeldung->payment_amount, 2, ',', '.') }} €  
 @endif
 
 @if($anmeldung->paypal_transaction_id)
-**PayPal Transaktions-ID:** {{ $anmeldung->paypal_transaction_id }}
+**PayPal Transaktions-ID:** {{ $anmeldung->paypal_transaction_id }}  
 @endif
 
 ---

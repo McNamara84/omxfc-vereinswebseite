@@ -23,13 +23,13 @@ Deine Anmeldung zu **{{ $veranstaltung?->titel ?? 'unserer Veranstaltung' }}** i
 ## Deine Anmeldedaten
 
 @if($anmeldung->ist_mitglied)
-**Status:** Vereinsmitglied
+**Status:** Vereinsmitglied  
 @else
-**Status:** Gast
+**Status:** Gast  
 @endif
 
 @if($veranstaltung?->zahlung_aktiv && ! $anmeldung->ist_mitglied)
-**Teilnahmegebühr:** {{ number_format((float) ($veranstaltung?->gastgebuehr ?? \App\Models\FantreffenAnmeldung::GUEST_FEE), 2, ',', '.') }} €
+**Teilnahmegebühr:** {{ number_format((float) ($veranstaltung?->gastgebuehr ?? \App\Models\FantreffenAnmeldung::GUEST_FEE), 2, ',', '.') }} €  
 @endif
 
 @if($orderedMerchandise->isNotEmpty())
