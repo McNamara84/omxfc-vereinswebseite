@@ -141,6 +141,7 @@ return [
                 ['title' => 'Veranstaltungen', 'route' => 'admin.veranstaltungen.index', 'tour_key' => 'board-events', 'veranstaltungsverwaltung' => true],
                 ['title' => 'Fanfiction', 'route' => 'admin.fanfiction.index', 'tour_key' => 'board-fanfiction', 'roles_any' => [Role::Admin, Role::Vorstand, Role::Kassenwart]],
                 ['title' => 'Touren', 'route' => 'admin.touren.index', 'tour_key' => 'board-tours', 'roles_any' => [Role::Admin, Role::Vorstand]],
+                ['title' => 'Newsletter versenden', 'route' => 'newsletter.create', 'tour_key' => 'admin-newsletter', 'roles_any' => [Role::Admin, Role::Vorstand]],
                 ['title' => 'Umfrage verwalten', 'route' => 'admin.umfragen.index', 'tour_key' => 'board-polls', 'roles_any' => [Role::Admin, Role::Vorstand, Role::Kassenwart], 'can' => ['manage', Poll::class]],
             ],
         ],
@@ -151,7 +152,6 @@ return [
             'icon' => 'o-cog-6-tooth',
             'roles_any' => [Role::Admin],
             'items' => [
-                ['title' => 'Newsletter versenden', 'route' => 'newsletter.create', 'tour_key' => 'admin-newsletter'],
                 ['title' => 'Kurznachrichten', 'route' => 'admin.messages.index', 'tour_key' => 'admin-messages'],
                 ['title' => 'Charakter-Editor', 'route' => 'rpg.char-editor', 'tour_key' => 'admin-char-editor'],
                 ['title' => 'Arbeitsgruppen', 'route' => 'arbeitsgruppen.index', 'tour_key' => 'admin-working-groups'],

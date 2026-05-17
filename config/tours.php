@@ -548,8 +548,8 @@ return [
                     'mobile' => '[data-tour-device="mobile"][data-tour-key="admin-newsletter"]',
                 ],
                 'reveal' => [
-                    'desktop' => ['[data-tour-device="desktop"][data-tour-key="section-admin"]'],
-                    'mobile' => ['[data-tour-device="mobile"][data-tour-key="mobile-menu-toggle"]', '[data-tour-device="mobile"][data-tour-key="section-admin"]'],
+                    'desktop' => ['[data-tour-device="desktop"][data-tour-key="section-board"]'],
+                    'mobile' => ['[data-tour-device="mobile"][data-tour-key="mobile-menu-toggle"]', '[data-tour-device="mobile"][data-tour-key="section-board"]'],
                 ],
             ],
             [

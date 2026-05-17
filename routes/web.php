@@ -173,12 +173,12 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
 
     Route::get('/fotogalerie', [PhotoGalleryController::class, 'index'])->name('fotogalerie');
 
-    Route::prefix('newsletter')->name('newsletter.')->controller(NewsletterController::class)->middleware('admin')->group(function () {
+    Route::prefix('newsletter')->name('newsletter.')->controller(NewsletterController::class)->middleware('admin-or-vorstand')->group(function () {
         Route::get('versenden', 'create')->name('create');
         Route::post('versenden', 'send')->name('send');
     });
 
-    Route::prefix('admin/newsletter-archiv')->name('newsletter.archiv.admin.')->controller(NewsletterArchivAdminController::class)->middleware('admin')->group(function () {
+    Route::prefix('admin/newsletter-archiv')->name('newsletter.archiv.admin.')->controller(NewsletterArchivAdminController::class)->middleware('admin-or-vorstand')->group(function () {
         Route::get('/', 'index')->name('index');
         Route::get('/{newsletterAusgabe}/bearbeiten', 'edit')->name('edit');
         Route::put('/{newsletterAusgabe}', 'update')->name('update');

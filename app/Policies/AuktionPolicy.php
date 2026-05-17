@@ -41,7 +41,6 @@ class AuktionPolicy
     public function bid(User $user, Auktion $auktion): bool
     {
         return $this->isVisibleForAuthenticatedMember($user)
-            && $user->hasAnyRole(Role::Mitglied, Role::Ehrenmitglied, Role::Mitwirkender)
             && $auktion->kannGeboteAnnehmen();
     }
 

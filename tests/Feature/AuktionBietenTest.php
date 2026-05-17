@@ -27,6 +27,9 @@ class AuktionBietenTest extends TestCase
     #[TestWith([Role::Mitglied])]
     #[TestWith([Role::Ehrenmitglied])]
     #[TestWith([Role::Mitwirkender])]
+    #[TestWith([Role::Admin])]
+    #[TestWith([Role::Vorstand])]
+    #[TestWith([Role::Kassenwart])]
     public function test_eligible_roles_can_place_bids(Role $role): void
     {
         $user = $this->createUserWithRole($role);
@@ -49,19 +52,17 @@ class AuktionBietenTest extends TestCase
         ]);
     }
 
-    #[TestWith([Role::Admin])]
-    #[TestWith([Role::Vorstand])]
-    #[TestWith([Role::Kassenwart])]
-    public function test_administrative_roles_cannot_place_bids(Role $role): void
+    public function test_anwaerter_cannot_place_bids(): void
     {
-        $user = $this->createUserWithRole($role);
+        $user = $this->createUserWithRole(Role::Anwaerter);
         $auktion = Auktion::factory()->create();
 
         $response = $this->actingAs($user)->post(route('auktionen.gebote.store', $auktion), [
             'betrag' => '12.00',
         ]);
 
-        $response->assertForbidden();
+        $response->assertRedirect(route('login'));
+        $response->assertSessionHasErrors();
         $this->assertDatabaseCount('auktion_gebote', 0);
     }
 

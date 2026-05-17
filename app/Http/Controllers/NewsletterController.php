@@ -19,11 +19,8 @@ class NewsletterController extends Controller
      */
     public function create()
     {
-        $user = Auth::user();
-        $team = $user?->currentTeam;
-        if (! $team || ! $team->hasUserWithRole($user, Role::Admin->value)) {
-            abort(403);
-        }
+        $this->abortUnlessCanManageNewsletter();
+
         $roles = NewsletterAusgabe::recipientRoles();
         $defaultRole = NewsletterAusgabe::defaultRecipientRole();
 
@@ -36,10 +33,7 @@ class NewsletterController extends Controller
     public function send(Request $request)
     {
         $user = Auth::user();
-        $team = $user?->currentTeam;
-        if (! $team || ! $team->hasUserWithRole($user, Role::Admin->value)) {
-            abort(403);
-        }
+        $this->abortUnlessCanManageNewsletter();
 
         $data = $request->validate([
             'roles' => ['required', 'array', 'min:1'],
@@ -90,5 +84,22 @@ class NewsletterController extends Controller
             'status',
             $request->boolean('test') ? 'Newsletter-Test versendet.' : 'Newsletter versendet.'
         );
+    }
+
+    private function abortUnlessCanManageNewsletter(): void
+    {
+        $user = Auth::user();
+        $team = $user?->currentTeam;
+
+        if (! $team) {
+            abort(403);
+        }
+
+        if (
+            ! $team->hasUserWithRole($user, Role::Admin->value)
+            && ! $team->hasUserWithRole($user, Role::Vorstand->value)
+        ) {
+            abort(403);
+        }
     }
 }
