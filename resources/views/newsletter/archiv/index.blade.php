@@ -25,7 +25,7 @@
             <section class="grid gap-6 lg:grid-cols-2">
                 @foreach ($ausgaben as $ausgabe)
                     @php
-                        $topics = $ausgabe->topics ?? [];
+                        $topics = \App\Support\NewsletterTopics::normalize($ausgabe->topics ?? []);
                         $firstTopic = $topics[0] ?? null;
                     @endphp
 
@@ -47,8 +47,8 @@
 
                             <div class="space-y-2 text-sm leading-relaxed text-base-content/80">
                                 @if ($firstTopic)
-                                    <p class="font-medium text-base-content">{{ data_get($firstTopic, 'title', 'Ohne Titel') }}</p>
-                                    <p>{{ \Illuminate\Support\Str::limit(data_get($firstTopic, 'content', ''), 220) }}</p>
+                                    <p class="font-medium text-base-content">{{ filled(data_get($firstTopic, 'title')) ? data_get($firstTopic, 'title') : 'Ohne Titel' }}</p>
+                                    <p>{{ \App\Support\NewsletterTopics::excerpt(data_get($firstTopic, 'content', ''), 220) }}</p>
                                 @else
                                     <p>Diese Ausgabe enthält aktuell noch keine Themenblöcke.</p>
                                 @endif

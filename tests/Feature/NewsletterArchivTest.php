@@ -5,9 +5,12 @@ namespace Tests\Feature;
 use App\Enums\NewsletterAusgabeStatus;
 use App\Models\NewsletterAusgabe;
 use App\Models\User;
+use App\Services\NewsletterImageService;
 use App\Support\Navigation\NavigationBuilder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Storage;
 use PHPUnit\Framework\Attributes\TestWith;
 use Tests\Concerns\CreatesUserWithRole;
 use Tests\TestCase;
@@ -68,13 +71,17 @@ class NewsletterArchivTest extends TestCase
 
     public function test_mitglied_can_view_published_newsletter_detail(): void
     {
+        Storage::fake('public');
+        Storage::disk('public')->put('newsletter-images/detailbild.jpg', 'bildinhalt');
+
         $mitglied = $this->actingMember();
         $ausgabe = NewsletterAusgabe::factory()->published()->create([
             'subject' => 'Detailausgabe',
             'topics' => [
                 [
                     'title' => 'Rundschau',
-                    'content' => "Erste Zeile\nZweite Zeile",
+                    'content' => "Erste Zeile\nZweite Zeile\n\n**Wichtiger Hinweis**",
+                    'images' => ['newsletter-images/detailbild.jpg'],
                 ],
             ],
         ]);
@@ -84,8 +91,31 @@ class NewsletterArchivTest extends TestCase
             ->assertOk()
             ->assertSee('Detailausgabe')
             ->assertSee('Rundschau')
-            ->assertSee('Erste Zeile<br />', false)
-            ->assertSee('Zweite Zeile');
+            ->assertSee('Erste Zeile')
+            ->assertSee('Zweite Zeile')
+            ->assertSee('<strong>Wichtiger Hinweis</strong>', false)
+            ->assertSee('/storage/newsletter-images/detailbild.jpg', false);
+    }
+
+    public function test_newsletter_archive_index_uses_markdown_excerpt_for_first_topic(): void
+    {
+        $mitglied = $this->actingMember();
+
+        NewsletterAusgabe::factory()->published()->create([
+            'subject' => 'Markdown-Ausgabe',
+            'topics' => [
+                [
+                    'title' => 'Formatierung',
+                    'content' => '**Fett** mit [Link](https://example.com) und normalem Text',
+                ],
+            ],
+        ]);
+
+        $this->actingAs($mitglied)
+            ->get(route('newsletter.archiv.index'))
+            ->assertOk()
+            ->assertSee('Fett mit Link und normalem Text')
+            ->assertDontSee('**Fett**');
     }
 
     public function test_mitglieder_do_not_see_drafts_in_archive(): void
@@ -199,6 +229,32 @@ class NewsletterArchivTest extends TestCase
 
     #[TestWith(['Admin'])]
     #[TestWith(['Vorstand'])]
+    public function test_authorized_roles_can_create_newsletter_archive_draft_manually(string $role): void
+    {
+        $user = $this->actingMember($role);
+
+        $this->actingAs($user)
+            ->post(route('newsletter.archiv.admin.store'))
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('newsletter_ausgaben', [
+            'subject' => 'Neue Archiv-Ausgabe',
+            'status' => NewsletterAusgabeStatus::Entwurf->value,
+            'created_by' => $user->id,
+        ]);
+    }
+
+    public function test_kassenwart_cannot_create_newsletter_archive_draft_manually(): void
+    {
+        $kassenwart = $this->actingMember('Kassenwart');
+
+        $this->actingAs($kassenwart)
+            ->post(route('newsletter.archiv.admin.store'))
+            ->assertForbidden();
+    }
+
+    #[TestWith(['Admin'])]
+    #[TestWith(['Vorstand'])]
     public function test_authorized_roles_can_view_newsletter_archive_edit_form(string $role): void
     {
         $user = $this->actingMember($role);
@@ -241,6 +297,52 @@ class NewsletterArchivTest extends TestCase
             'subject' => 'Neue Ausgabe',
             'slug' => 'neue-ausgabe',
         ]);
+    }
+
+    #[TestWith(['Admin'])]
+    #[TestWith(['Vorstand'])]
+    public function test_authorized_roles_can_update_newsletter_archive_entry_images(string $role): void
+    {
+        Storage::fake('public');
+        Storage::disk('public')->put('newsletter-images/altbild.jpg', 'alt');
+
+        $user = $this->actingMember($role);
+        $ausgabe = NewsletterAusgabe::factory()->create([
+            'topics' => [
+                [
+                    'key' => 'topic-1',
+                    'title' => 'Mit Bild',
+                    'content' => 'Alttext',
+                    'images' => ['newsletter-images/altbild.jpg'],
+                ],
+            ],
+        ]);
+
+        $this->actingAs($user)
+            ->put(route('newsletter.archiv.admin.update', $ausgabe), [
+                'subject' => 'Mit Bild aktualisiert',
+                'slug' => 'mit-bild-aktualisiert',
+                'recipient_roles' => ['Mitglied'],
+                'sent_at' => '2026-05-17 12:00',
+                'topics' => [
+                    [
+                        'key' => 'topic-1',
+                        'title' => 'Mit Bild',
+                        'content' => 'Neutext',
+                        'remove_images' => ['newsletter-images/altbild.jpg'],
+                        'images' => [UploadedFile::fake()->image('neu.jpg', 700, 500)],
+                    ],
+                ],
+            ])
+            ->assertRedirect(route('newsletter.archiv.admin.edit', $ausgabe->fresh()));
+
+        $ausgabe->refresh();
+
+        $this->assertSame('Mit Bild aktualisiert', $ausgabe->subject);
+        $this->assertCount(1, $ausgabe->topics[0]['images']);
+        $this->assertStringStartsWith(NewsletterImageService::STORAGE_PATH.'/', $ausgabe->topics[0]['images'][0]);
+        $this->assertFalse(Storage::disk('public')->exists('newsletter-images/altbild.jpg'));
+        $this->assertTrue(Storage::disk('public')->exists($ausgabe->topics[0]['images'][0]));
     }
 
     #[TestWith(['Admin'])]

@@ -3,7 +3,11 @@
 namespace Tests\Feature;
 
 use App\Mail\Newsletter;
+use App\Models\NewsletterAusgabe;
+use App\Services\NewsletterImageService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Mail;
 use PHPUnit\Framework\Attributes\TestWith;
 use Tests\Concerns\CreatesUserWithRole;
@@ -22,7 +26,10 @@ class NewsletterControllerTest extends TestCase
 
         $this->actingAs($user)
             ->get(route('newsletter.create'))
-            ->assertOk();
+            ->assertOk()
+            ->assertDontSee('Newsletter testen')
+            ->assertSee('Markdown wird unterstützt')
+            ->assertSee('Bilder');
     }
 
     #[TestWith(['Mitglied'])]
@@ -120,42 +127,10 @@ class NewsletterControllerTest extends TestCase
             ->assertForbidden();
     }
 
-    public function test_test_mode_sends_only_to_admins(): void
-    {
-        Mail::fake();
-
-        $admin = $this->actingMember('Admin');
-        $otherAdmin = $this->actingMember('Admin');
-        $member = $this->actingMember();
-
-        $data = [
-            'roles' => ['Mitglied'],
-            'subject' => 'Test',
-            'topics' => [
-                ['title' => 'T', 'content' => 'C'],
-            ],
-            'test' => true,
-        ];
-
-        $this->actingAs($admin)->post(route('newsletter.send'), $data)
-            ->assertRedirect(route('newsletter.create'));
-
-        Mail::assertQueued(Newsletter::class, function (Newsletter $mail) use ($admin) {
-            return $mail->hasTo($admin->email);
-        });
-        Mail::assertQueued(Newsletter::class, function (Newsletter $mail) use ($otherAdmin) {
-            return $mail->hasTo($otherAdmin->email);
-        });
-        Mail::assertNotQueued(Newsletter::class, function (Newsletter $mail) use ($member) {
-            return $mail->hasTo($member->email);
-        });
-
-        $this->assertDatabaseCount('newsletter_ausgaben', 0);
-    }
-
     public function test_newsletter_is_not_archived_when_selected_roles_have_no_recipients(): void
     {
         Mail::fake();
+        Storage::fake('public');
 
         $admin = $this->actingMember('Admin');
 
@@ -163,7 +138,11 @@ class NewsletterControllerTest extends TestCase
             'roles' => ['Ehrenmitglied'],
             'subject' => 'Info',
             'topics' => [
-                ['title' => 'A', 'content' => 'B'],
+                [
+                    'title' => 'A',
+                    'content' => 'B',
+                    'images' => [UploadedFile::fake()->image('niemand.jpg', 600, 400)],
+                ],
             ],
         ];
 
@@ -174,5 +153,49 @@ class NewsletterControllerTest extends TestCase
 
         Mail::assertNothingQueued();
         $this->assertDatabaseCount('newsletter_ausgaben', 0);
+        $this->assertSame([], Storage::disk('public')->allFiles(NewsletterImageService::STORAGE_PATH));
+    }
+
+    public function test_authorized_roles_can_send_newsletter_with_topic_images(): void
+    {
+        Mail::fake();
+        Storage::fake('public');
+
+        $admin = $this->actingMember('Admin');
+        $member = $this->actingMember('Mitglied');
+
+        $data = [
+            'roles' => ['Mitglied'],
+            'subject' => 'Mit Bild',
+            'topics' => [
+                [
+                    'title' => 'Fotothema',
+                    'content' => 'Text mit **Markdown**',
+                    'images' => [
+                        UploadedFile::fake()->image('eins.jpg', 800, 600),
+                        UploadedFile::fake()->image('zwei.png', 640, 480),
+                    ],
+                ],
+            ],
+        ];
+
+        $this->actingAs($admin)
+            ->post(route('newsletter.send'), $data)
+            ->assertRedirect(route('newsletter.create'));
+
+        $ausgabe = NewsletterAusgabe::query()->firstOrFail();
+
+        $this->assertSame('Mit Bild', $ausgabe->subject);
+        $this->assertCount(2, $ausgabe->topics[0]['images']);
+
+        foreach ($ausgabe->topics[0]['images'] as $path) {
+            $this->assertTrue(Storage::disk('public')->exists($path));
+            $this->assertStringStartsWith(NewsletterImageService::STORAGE_PATH.'/', $path);
+        }
+
+        Mail::assertQueued(Newsletter::class, function (Newsletter $mail) use ($member, $ausgabe) {
+            return $mail->hasTo($member->email)
+                && $mail->topics[0]['images'] === $ausgabe->topics[0]['images'];
+        });
     }
 }
