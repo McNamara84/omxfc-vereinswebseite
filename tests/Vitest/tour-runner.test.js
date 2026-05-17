@@ -72,31 +72,49 @@ function createPayload() {
     };
 }
 
+function clonePayload(payload, overrides = {}) {
+    return {
+        ...payload,
+        ...overrides,
+        steps: payload.steps.map((step) => ({
+            ...step,
+            selectors: {
+                ...step.selectors,
+            },
+        })),
+    };
+}
+
 function stubAxios(payload) {
+    let currentStepKey = payload.current_step_key;
+
+    const responseFor = (stepKey = currentStepKey) => ({
+        data: {
+            tour: clonePayload(payload, {
+                current_step_key: stepKey,
+            }),
+        },
+    });
+
     const post = vi.fn().mockImplementation(async (url, body = {}) => {
         if (url === '/tour/7/progress') {
-            return {
-                data: {
-                    tour: {
-                        ...payload,
-                        current_step_key: body.step_key,
-                    },
-                },
-            };
+            currentStepKey = body.step_key;
+
+            return responseFor(currentStepKey);
         }
 
-        return { data: { tour: payload } };
+        return responseFor();
     });
 
     window.axios = {
-        get: vi.fn().mockResolvedValue({ data: { tour: payload } }),
+        get: vi.fn().mockImplementation(async () => responseFor()),
         post,
     };
 
     return { post };
 }
 
-async function bootRunner(payload) {
+async function bootRunner() {
     Object.defineProperty(document, 'readyState', {
         configurable: true,
         value: 'loading',
@@ -125,7 +143,7 @@ describe('tour runner', () => {
         const payload = createPayload();
         stubAxios(payload);
 
-        await bootRunner(payload);
+        await bootRunner();
         expect(document.getElementById('tour-runner-title')?.textContent).toBe('Dashboard');
 
         document.getElementById('tour-runner-next')?.click();
@@ -142,7 +160,7 @@ describe('tour runner', () => {
         const payload = createPayload();
         const axios = stubAxios(payload);
 
-        await bootRunner(payload);
+        await bootRunner();
 
         document.getElementById('tour-runner-next')?.click();
         await flushAsyncWork();
