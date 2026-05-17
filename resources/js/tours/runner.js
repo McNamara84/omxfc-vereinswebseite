@@ -240,6 +240,13 @@ async function showCurrentStep() {
         }
 
         state.stepIndex = Math.min(state.stepIndex, state.steps.length - 1);
+        const fallbackStep = state.steps[state.stepIndex];
+
+        if (fallbackStep && state.payload) {
+            state.payload.current_step_key = fallbackStep.key;
+            state.lastSyncedStepKey = null;
+        }
+
         await showCurrentStep();
         return;
     }
