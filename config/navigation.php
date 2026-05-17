@@ -69,6 +69,7 @@ return [
             'title' => 'Verein',
             'icon' => 'o-building-office-2',
             'items' => [
+                ['title' => 'Newsletter-Archiv', 'route' => 'newsletter.archiv.index'],
                 ['title' => 'Protokolle', 'route' => 'protokolle'],
                 ['title' => 'Satzung', 'route' => 'satzung'],
                 ['title' => 'Kassenstand', 'route' => 'kassenstand.index'],

@@ -20,6 +20,8 @@ use App\Http\Controllers\MeetingController;
 use App\Http\Controllers\MitgliederController;
 use App\Http\Controllers\MitgliederKarteController;
 use App\Http\Controllers\MitgliedschaftController;
+use App\Http\Controllers\NewsletterArchivAdminController;
+use App\Http\Controllers\NewsletterArchivController;
 use App\Http\Controllers\NewsletterController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\PhotoGalleryController;
@@ -172,6 +174,13 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
     Route::prefix('newsletter')->name('newsletter.')->controller(NewsletterController::class)->middleware('admin')->group(function () {
         Route::get('versenden', 'create')->name('create');
         Route::post('versenden', 'send')->name('send');
+    });
+
+    Route::prefix('admin/newsletter-archiv')->name('newsletter.archiv.admin.')->controller(NewsletterArchivAdminController::class)->middleware('admin')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/{newsletterAusgabe}/bearbeiten', 'edit')->name('edit');
+        Route::put('/{newsletterAusgabe}', 'update')->name('update');
+        Route::post('/{newsletterAusgabe}/veroeffentlichen', 'publish')->name('publish');
     });
 
     Route::prefix('admin/messages')->name('admin.messages.')->controller(AdminMessageController::class)->middleware('admin')->group(function () {
@@ -366,6 +375,11 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
         Route::post('/{fanfiction}/kommentar', [FanfictionCommentController::class, 'store'])->name('comments.store');
         Route::put('/kommentar/{comment}', [FanfictionCommentController::class, 'update'])->name('comments.update');
         Route::delete('/kommentar/{comment}', [FanfictionCommentController::class, 'destroy'])->name('comments.destroy');
+    });
+
+    Route::prefix('newsletter-archiv')->name('newsletter.archiv.')->controller(NewsletterArchivController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/{newsletterAusgabe}', 'show')->name('show');
     });
 
     Route::prefix('rezensionen')->name('reviews.')->group(function () {
