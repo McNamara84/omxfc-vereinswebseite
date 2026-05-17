@@ -54,6 +54,35 @@ class TourControllerTest extends TestCase
             ->assertJsonCount(48, 'tour.steps');
     }
 
+    public function test_current_upgrades_outdated_assignment_before_returning_payload(): void
+    {
+        $member = $this->createMember();
+        $staleAssignment = $this->createPendingAssignment($member);
+
+        Config::set('tours.hauptmenue.version', 2);
+
+        $response = $this->actingAs($member)
+            ->getJson(route('touren.current'))
+            ->assertOk()
+            ->assertJsonPath('tour.key', 'hauptmenue')
+            ->assertJsonPath('tour.version', 2)
+            ->assertJsonPath('tour.status', TourAssignmentStatus::Pending->value);
+
+        $assignmentId = $response->json('tour.assignment_id');
+
+        $this->assertIsInt($assignmentId);
+        $this->assertNotSame($staleAssignment->id, $assignmentId);
+        $this->assertDatabaseHas('tour_assignments', [
+            'id' => $assignmentId,
+            'user_id' => $member->id,
+            'tour_key' => 'hauptmenue',
+            'tour_version' => 2,
+            'status' => TourAssignmentStatus::Pending->value,
+        ]);
+
+        $this->assertSame(TourAssignmentStatus::Completed, $staleAssignment->fresh()->status);
+    }
+
     public function test_progress_starts_tour_and_updates_current_step(): void
     {
         $member = $this->createMember();

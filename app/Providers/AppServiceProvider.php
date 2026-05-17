@@ -28,11 +28,6 @@ use Livewire\Livewire;
 class AppServiceProvider extends ServiceProvider
 {
     /**
-     * @var array<string, bool>
-     */
-    private array $tableAvailability = [];
-
-    /**
      * Register any application services.
      */
     public function register(): void
@@ -123,7 +118,7 @@ class AppServiceProvider extends ServiceProvider
                 'showActivePollForGuest' => false,
             ];
 
-            if ($this->hasTable('polls')) {
+            if (Schema::hasTable('polls')) {
                 $cacheKey = 'polls.active_for_menu.v2';
                 $navigationContext = Cache::remember($cacheKey, now()->addMinutes(10), function () {
                     $poll = app(ActivePollResolver::class)->current();
@@ -149,7 +144,7 @@ class AppServiceProvider extends ServiceProvider
         View::composer('profile.show', function ($view) {
             $tourOverview = collect();
 
-            if (Auth::check() && $this->hasTable('tour_assignments')) {
+            if (Auth::check() && Schema::hasTable('tour_assignments')) {
                 $tourOverview = app(\App\Services\TourAssignmentService::class)
                     ->selfServiceOverviewForUser(Auth::user());
             }
@@ -187,10 +182,5 @@ class AppServiceProvider extends ServiceProvider
         Livewire::component('profile.logout-other-browser-sessions-form', LogoutOtherBrowserSessionsForm::class);
         Livewire::component('teams.update-team-name-form', UpdateTeamNameForm::class);
         Livewire::component('teams.team-member-manager', TeamMemberManager::class);
-    }
-
-    private function hasTable(string $table): bool
-    {
-        return $this->tableAvailability[$table] ??= Schema::hasTable($table);
     }
 }

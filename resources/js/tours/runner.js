@@ -215,7 +215,7 @@ async function showCurrentStep() {
     state.steps = filterReachableSteps(state.payload.steps, device, document);
 
     if (state.steps.length === 0) {
-        hideRunner(true);
+        hideRunner(false);
         return;
     }
 
@@ -223,7 +223,7 @@ async function showCurrentStep() {
     const step = state.steps[state.stepIndex];
 
     if (!step) {
-        hideRunner(true);
+        hideRunner(false);
         return;
     }
 
@@ -235,7 +235,7 @@ async function showCurrentStep() {
         state.steps = state.steps.filter((candidate) => candidate.key !== step.key);
 
         if (state.steps.length === 0) {
-            hideRunner(true);
+            hideRunner(false);
             return;
         }
 

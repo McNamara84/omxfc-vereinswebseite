@@ -10,11 +10,46 @@ use App\Models\TourAssignment;
 use App\Models\User;
 use App\Services\TourAssignmentService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Config;
 use Tests\TestCase;
 
 class TourAssignmentServiceTest extends TestCase
 {
     use RefreshDatabase;
+
+    public function test_current_promptable_assignment_upgrades_outdated_assignment_to_current_version(): void
+    {
+        $team = Team::membersTeam();
+        $member = User::factory()->create(['current_team_id' => $team->id]);
+
+        $team->users()->attach($member, ['role' => Role::Mitglied->value]);
+
+        $staleAssignment = TourAssignment::create([
+            'user_id' => $member->id,
+            'tour_key' => 'hauptmenue',
+            'tour_version' => 1,
+            'status' => TourAssignmentStatus::Pending,
+            'assigned_via' => TourAssignmentSource::System,
+            'assigned_at' => now()->subDay(),
+            'current_step_key' => 'dashboard',
+            'metadata' => [],
+        ]);
+
+        Config::set('tours.hauptmenue.version', 2);
+
+        $assignment = app(TourAssignmentService::class)->currentPromptableAssignmentForUser($member);
+
+        $this->assertNotNull($assignment);
+        $this->assertSame('hauptmenue', $assignment->tour_key);
+        $this->assertSame(2, $assignment->tour_version);
+        $this->assertSame(TourAssignmentStatus::Pending, $assignment->status);
+        $this->assertNotSame($staleAssignment->id, $assignment->id);
+
+        $staleAssignment = $staleAssignment->fresh();
+
+        $this->assertSame(TourAssignmentStatus::Completed, $staleAssignment->status);
+        $this->assertSame(2, $staleAssignment->metadata['superseded_by_version'] ?? null);
+    }
 
     public function test_current_promptable_assignment_uses_creation_order_as_tiebreaker(): void
     {

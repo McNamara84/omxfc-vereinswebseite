@@ -97,7 +97,7 @@ class TourAssignmentService
 
     public function currentPromptableAssignmentForUser(User $user, array $suppressedAssignmentIds = []): ?TourAssignment
     {
-        return TourAssignment::query()
+        $assignments = TourAssignment::query()
             ->where('user_id', $user->id)
             ->whereIn('status', [
                 TourAssignmentStatus::Pending->value,
@@ -111,7 +111,13 @@ class TourAssignmentService
             ->orderByRaw("case when status = ? then 0 else 1 end", [TourAssignmentStatus::InProgress->value])
             ->orderBy('assigned_at')
             ->orderBy('id')
-            ->first();
+            ->get();
+
+        foreach ($assignments as $assignment) {
+            return $this->activeAssignment($assignment);
+        }
+
+        return null;
     }
 
     /**
@@ -130,6 +136,8 @@ class TourAssignmentService
 
     public function start(TourAssignment $assignment): TourAssignment
     {
+        $assignment = $this->activeAssignment($assignment);
+
         if ($assignment->status === TourAssignmentStatus::Completed) {
             return $assignment;
         }
@@ -144,6 +152,8 @@ class TourAssignmentService
 
     public function rememberProgress(TourAssignment $assignment, string $stepKey): TourAssignment
     {
+        $assignment = $this->activeAssignment($assignment);
+
         if ($assignment->status === TourAssignmentStatus::Completed) {
             return $assignment;
         }
@@ -159,6 +169,8 @@ class TourAssignmentService
 
     public function dismiss(TourAssignment $assignment): TourAssignment
     {
+        $assignment = $this->activeAssignment($assignment);
+
         if ($assignment->status === TourAssignmentStatus::Completed) {
             return $assignment;
         }
@@ -172,6 +184,8 @@ class TourAssignmentService
 
     public function complete(TourAssignment $assignment): TourAssignment
     {
+        $assignment = $this->activeAssignment($assignment);
+
         $assignment->forceFill([
             'status' => TourAssignmentStatus::Completed,
             'completed_at' => now(),
@@ -212,6 +226,7 @@ class TourAssignmentService
      */
     public function payloadForAssignment(TourAssignment $assignment): array
     {
+        $assignment = $this->activeAssignment($assignment);
         $definition = $this->tourRegistry->definition($assignment->tour_key);
         $stepKeys = collect($definition->steps)
             ->pluck('key')
@@ -235,5 +250,32 @@ class TourAssignmentService
     private function assignmentMapKey(string $tourKey, int $tourVersion): string
     {
         return $tourKey.':'.$tourVersion;
+    }
+
+    public function activeAssignment(TourAssignment $assignment): TourAssignment
+    {
+        $definition = $this->tourRegistry->definition($assignment->tour_key);
+
+        if ($assignment->tour_version >= $definition->version) {
+            return $assignment->fresh() ?? $assignment;
+        }
+
+        $metadata = $assignment->metadata;
+        $metadata['superseded_by_version'] = $definition->version;
+
+        $assignment->forceFill([
+            'status' => TourAssignmentStatus::Completed,
+            'completed_at' => $assignment->completed_at ?? now(),
+            'dismissed_at' => null,
+            'next_prompt_at' => null,
+            'metadata' => $metadata,
+        ])->save();
+
+        return $this->reassign(
+            user: $assignment->user,
+            tourKey: $assignment->tour_key,
+            source: $assignment->assigned_via,
+            assignedBy: $assignment->assignedBy,
+        );
     }
 }
