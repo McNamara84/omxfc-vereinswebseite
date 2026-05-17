@@ -15,6 +15,16 @@ class NextcloudGalleryService
 
     private const EMPTY_LISTING_CACHE_MINUTES = 2;
 
+    private const PROPFIND_BODY = <<<'XML'
+<?xml version="1.0" encoding="UTF-8"?>
+<d:propfind xmlns:d="DAV:">
+    <d:prop>
+        <d:resourcetype/>
+        <d:getcontenttype/>
+    </d:prop>
+</d:propfind>
+XML;
+
     /**
      * @return array<int, string>
      */
@@ -81,6 +91,7 @@ class NextcloudGalleryService
         try {
             $response = Http::timeout(10)
                 ->accept('application/xml, text/xml, */*')
+                ->withBody(self::PROPFIND_BODY, 'application/xml')
                 ->withHeaders(['Depth' => '1'])
                 ->send('PROPFIND', $configuration['directory_url']);
 

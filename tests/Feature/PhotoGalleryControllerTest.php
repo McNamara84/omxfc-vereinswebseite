@@ -101,14 +101,28 @@ class PhotoGalleryControllerTest extends TestCase
     public function test_proxy_image_returns_remote_file(): void
     {
         Http::fake([
-            'https://cloud.maddrax-fanclub.de/public.php/dav/files/fotos2026Token/' => Http::response($this->propfindResponse('fotos2026Token', ['Foto1.jpg']), 207),
-            'https://cloud.maddrax-fanclub.de/public.php/dav/files/fotos2026Token/Foto1.jpg' => Http::response('img', 200, ['Content-Type' => 'image/jpeg']),
+            'https://cloud.maddrax-fanclub.de/public.php/dav/files/fotos2026Token/' => Http::response($this->propfindResponse('fotos2026Token', ['Foto1.webp']), 207),
+            'https://cloud.maddrax-fanclub.de/public.php/dav/files/fotos2026Token/Foto1.webp' => Http::response('img', 200, ['Content-Type' => 'image/webp; charset=binary']),
         ]);
 
         $response = app(PhotoGalleryController::class)->proxyImage('2026', 1);
 
         $this->assertEquals(200, $response->getStatusCode());
-        $this->assertEquals('image/jpeg', $response->headers->get('Content-Type'));
+        $this->assertEquals('image/webp', $response->headers->get('Content-Type'));
+        $this->assertEquals('img', $response->getContent());
+    }
+
+    public function test_proxy_image_falls_back_to_extension_based_content_type_when_remote_type_is_invalid(): void
+    {
+        Http::fake([
+            'https://cloud.maddrax-fanclub.de/public.php/dav/files/fotos2026Token/' => Http::response($this->propfindResponse('fotos2026Token', ['Foto1.png']), 207),
+            'https://cloud.maddrax-fanclub.de/public.php/dav/files/fotos2026Token/Foto1.png' => Http::response('img', 200, ['Content-Type' => 'application/octet-stream']),
+        ]);
+
+        $response = app(PhotoGalleryController::class)->proxyImage('2026', 1);
+
+        $this->assertEquals(200, $response->getStatusCode());
+        $this->assertEquals('image/png', $response->headers->get('Content-Type'));
         $this->assertEquals('img', $response->getContent());
     }
 

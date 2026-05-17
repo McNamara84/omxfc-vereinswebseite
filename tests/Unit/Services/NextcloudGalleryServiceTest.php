@@ -4,6 +4,7 @@ namespace Tests\Unit\Services;
 
 use App\Services\NextcloudGalleryService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
@@ -36,6 +37,15 @@ class NextcloudGalleryServiceTest extends TestCase
             'https://cloud.maddrax-fanclub.de/public.php/dav/files/shareToken/Foto2.jpg',
             'https://cloud.maddrax-fanclub.de/public.php/dav/files/shareToken/Foto10.jpg',
         ], $photos);
+
+        Http::assertSent(function (Request $request): bool {
+            return $request->method() === 'PROPFIND'
+                && $request->url() === 'https://cloud.maddrax-fanclub.de/public.php/dav/files/shareToken/'
+                && in_array('1', $request->header('Depth'), true)
+                && str_contains($request->header('Content-Type')[0] ?? '', 'application/xml')
+                && str_contains($request->body(), '<d:resourcetype/>')
+                && str_contains($request->body(), '<d:getcontenttype/>');
+        });
     }
 
     #[Test]

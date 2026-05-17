@@ -135,7 +135,7 @@ SVG;
 
             if ($response->successful()) {
                 return response($response->body(), 200)
-                    ->header('Content-Type', 'image/jpeg')
+                    ->header('Content-Type', $this->proxiedImageContentType($photoUrl, (string) $response->header('Content-Type')))
                     ->header('Cache-Control', 'public, max-age=86400'); // 1 Tag cachen
             }
         } catch (\Exception $e) {
@@ -150,5 +150,22 @@ SVG;
         return response($this->placeholderSvg($year, $index), 200)
             ->header('Content-Type', 'image/svg+xml')
             ->header('Cache-Control', 'public, max-age=86400');
+    }
+
+    private function proxiedImageContentType(string $photoUrl, string $responseContentType): string
+    {
+        $normalizedContentType = strtolower(trim(explode(';', $responseContentType)[0] ?? ''));
+
+        if (str_starts_with($normalizedContentType, 'image/')) {
+            return $normalizedContentType;
+        }
+
+        return match (strtolower(pathinfo((string) parse_url($photoUrl, PHP_URL_PATH), PATHINFO_EXTENSION))) {
+            'png' => 'image/png',
+            'webp' => 'image/webp',
+            'gif' => 'image/gif',
+            'avif' => 'image/avif',
+            default => 'image/jpeg',
+        };
     }
 }
