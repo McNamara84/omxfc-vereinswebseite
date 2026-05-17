@@ -97,7 +97,7 @@ class VeranstaltungVerwaltungController extends Controller
     {
         abort_unless($abschnitt->veranstaltung_id === $veranstaltung->id, 404);
 
-        $abschnitt->delete();
+        $abschnitt->deleteOrFail();
 
         return redirect()->route('admin.veranstaltungen.edit', $veranstaltung)
             ->with('success', 'Abschnitt gelöscht.');
@@ -158,7 +158,7 @@ class VeranstaltungVerwaltungController extends Controller
                 ->with('success', 'Merchandise-Artikel wurde deaktiviert, da bereits Bestellungen vorliegen.');
         }
 
-        $merchartikel->delete();
+        $merchartikel->deleteOrFail();
 
         return redirect()->route('admin.veranstaltungen.edit', $veranstaltung)
             ->with('success', 'Merchandise-Artikel gelöscht.');
@@ -213,7 +213,7 @@ class VeranstaltungVerwaltungController extends Controller
         ]);
 
         $validated['beschreibung'] = $validated['beschreibung'] ?? null;
-        $validated['is_active'] = $request->boolean('is_active', true);
+        $validated['is_active'] = $request->boolean('is_active', false);
         $validated['sort_order'] = $validated['sort_order'] ?? 0;
         $validated['varianten'] = $this->parseVarianten($validated['varianten'] ?? null);
 

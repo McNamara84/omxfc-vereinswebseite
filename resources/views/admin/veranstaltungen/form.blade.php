@@ -194,6 +194,7 @@
                             </label>
 
                             <label class="flex items-center gap-3 text-sm">
+                                <input type="hidden" name="is_active" value="0" />
                                 <input type="checkbox" name="is_active" value="1" @checked($artikel->is_active) class="checkbox" />
                                 Artikel aktiv anzeigen
                             </label>
@@ -244,6 +245,7 @@
                             </label>
 
                             <label class="flex items-center gap-3 text-sm">
+                                <input type="hidden" name="is_active" value="0" />
                                 <input type="checkbox" name="is_active" value="1" checked class="checkbox" />
                                 Artikel aktiv anzeigen
                             </label>

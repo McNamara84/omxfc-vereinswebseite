@@ -280,10 +280,10 @@ class FantreffenAnmeldung extends Model
     }
 
     /**
-     * Get the t-shirt price for this registration.
-     * T-shirt price is always 25.00€, but the total amount differs:
-     * - Members: 25.00€ (t-shirt only)
-     * - Guests: 30.00€ (5.00€ guest fee + 25.00€ t-shirt)
+     * Get the effective T-shirt price for this registration.
+     *
+     * Prefers the persisted price from a merchandise order row, then the event configuration,
+     * and finally the legacy fallback constant.
      */
     public function getTshirtPrice(): float
     {
@@ -313,10 +313,9 @@ class FantreffenAnmeldung extends Model
 
     /**
      * Get the total amount to pay for this registration.
-     * - Member without t-shirt: 0.00€ (free)
-     * - Member with t-shirt: 25.00€
-     * - Guest without t-shirt: 5.00€
-     * - Guest with t-shirt: 30.00€ (5.00€ + 25.00€)
+     *
+     * The total is composed of an optional guest fee when event payments are active,
+     * plus the sum of all ordered merchandise positions. Orga-team registrations stay free.
      */
     public function getTotalAmount(): float
     {

@@ -219,8 +219,21 @@ class VeranstaltungVerwaltungTest extends TestCase
         $artikel->refresh();
         $this->assertSame('Sammlerbeutel', $artikel->bezeichnung);
         $this->assertSame('15.00', $artikel->preis);
+        $this->assertTrue($artikel->is_active);
         $this->assertSame(2, $artikel->varianten()->where('is_active', true)->count());
         $this->assertTrue($artikel->varianten()->where('bezeichnung', 'Schwarz')->exists());
+
+        $this->actingAs($admin)->put(route('admin.veranstaltungen.merch.update', [$veranstaltung, $artikel]), [
+            'bezeichnung' => 'Sammlerbeutel',
+            'beschreibung' => 'Aktualisierte Beschreibung.',
+            'preis' => '15.00',
+            'sort_order' => 1,
+            'varianten' => "Schwarz\nWeiß",
+            'is_active' => '0',
+        ])->assertRedirect(route('admin.veranstaltungen.edit', $veranstaltung));
+
+        $artikel->refresh();
+        $this->assertFalse($artikel->is_active);
 
         $this->actingAs($admin)->delete(route('admin.veranstaltungen.merch.destroy', [$veranstaltung, $artikel]))
             ->assertRedirect(route('admin.veranstaltungen.edit', $veranstaltung));
