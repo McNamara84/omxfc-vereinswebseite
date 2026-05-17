@@ -5,14 +5,18 @@ namespace App\Http\Controllers;
 use App\Enums\TourAssignmentSource;
 use App\Models\TourAssignment;
 use App\Services\TourAssignmentService;
+use App\Services\TourRegistry;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 
 class TourController extends Controller
 {
     public function __construct(
         private readonly TourAssignmentService $tourAssignmentService,
+        private readonly TourRegistry $tourRegistry,
     ) {}
 
     public function current(Request $request): JsonResponse
@@ -41,7 +45,7 @@ class TourController extends Controller
         $this->ensureOwnAssignment($request, $tourAssignment);
 
         $validated = $request->validate([
-            'step_key' => ['required', 'string', 'max:255'],
+            'step_key' => ['required', 'string', 'max:255', Rule::in($this->stepKeysForAssignment($tourAssignment))],
         ]);
 
         return response()->json([
@@ -88,9 +92,14 @@ class TourController extends Controller
 
     public function restart(Request $request, string $tourKey): RedirectResponse
     {
+        $validated = Validator::make(
+            ['tour_key' => $tourKey],
+            ['tour_key' => ['required', 'string', Rule::in($this->selfServiceTourKeys())]],
+        )->validate();
+
         $assignment = $this->tourAssignmentService->reassign(
             user: $request->user(),
-            tourKey: $tourKey,
+            tourKey: $validated['tour_key'],
             source: TourAssignmentSource::SelfService,
         );
 
@@ -107,6 +116,30 @@ class TourController extends Controller
     private function ensureOwnAssignment(Request $request, TourAssignment $tourAssignment): void
     {
         abort_unless($request->user()->id === $tourAssignment->user_id, 403);
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function selfServiceTourKeys(): array
+    {
+        return collect($this->tourRegistry->selfServiceEnabled())
+            ->pluck('key')
+            ->filter(fn (mixed $key): bool => is_string($key) && $key !== '')
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function stepKeysForAssignment(TourAssignment $tourAssignment): array
+    {
+        return collect($this->tourRegistry->definition($tourAssignment->tour_key)->steps)
+            ->pluck('key')
+            ->filter(fn (mixed $key): bool => is_string($key) && $key !== '')
+            ->values()
+            ->all();
     }
 
     /**

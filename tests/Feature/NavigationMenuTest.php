@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Support\Navigation\NavigationBuilder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use PHPUnit\Framework\Attributes\TestWith;
 use Symfony\Component\DomCrawler\Crawler;
 use Tests\Concerns\CreatesUserWithRole;
@@ -57,6 +58,16 @@ class NavigationMenuTest extends TestCase
         $response->assertDontSeeText('Dashboard');
         $response->assertDontSeeText('Vorstand');
         $response->assertDontSeeText('Admin');
+    }
+
+    public function test_guest_navigation_renders_without_polls_table(): void
+    {
+        Schema::drop('polls');
+
+        $this->get(route('home'))
+            ->assertOk()
+            ->assertSeeText('Mitglied werden')
+            ->assertDontSeeText('Dashboard');
     }
 
     public function test_member_navigation_shows_reorganized_sections_without_governance_links(): void

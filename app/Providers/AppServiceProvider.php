@@ -11,7 +11,6 @@ use App\Services\Polls\ActivePollResolver;
 use App\Support\Navigation\NavigationBuilder;
 use App\View\Components\Alert;
 use Illuminate\Cache\RateLimiting\Limit;
-use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Cache;
@@ -19,6 +18,7 @@ use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Vite;
@@ -27,6 +27,11 @@ use Livewire\Livewire;
 
 class AppServiceProvider extends ServiceProvider
 {
+    /**
+     * @var array<string, bool>
+     */
+    private array $tableAvailability = [];
+
     /**
      * Register any application services.
      */
@@ -118,7 +123,7 @@ class AppServiceProvider extends ServiceProvider
                 'showActivePollForGuest' => false,
             ];
 
-            try {
+            if ($this->hasTable('polls')) {
                 $cacheKey = 'polls.active_for_menu.v2';
                 $navigationContext = Cache::remember($cacheKey, now()->addMinutes(10), function () {
                     $poll = app(ActivePollResolver::class)->current();
@@ -130,8 +135,6 @@ class AppServiceProvider extends ServiceProvider
                         'showActivePollForGuest' => (bool) ($poll && $isWithinWindow && $poll->visibility === PollVisibility::Public),
                     ];
                 });
-            } catch (QueryException $e) {
-                // Table may not exist during tests before migrations run
             }
 
             $view->with([
@@ -146,13 +149,9 @@ class AppServiceProvider extends ServiceProvider
         View::composer('profile.show', function ($view) {
             $tourOverview = collect();
 
-            try {
-                if (Auth::check()) {
-                    $tourOverview = app(\App\Services\TourAssignmentService::class)
-                        ->selfServiceOverviewForUser(Auth::user());
-                }
-            } catch (QueryException $e) {
-                // Table may not exist during tests before migrations run
+            if (Auth::check() && $this->hasTable('tour_assignments')) {
+                $tourOverview = app(\App\Services\TourAssignmentService::class)
+                    ->selfServiceOverviewForUser(Auth::user());
             }
 
             $view->with('tourOverview', $tourOverview);
@@ -188,5 +187,10 @@ class AppServiceProvider extends ServiceProvider
         Livewire::component('profile.logout-other-browser-sessions-form', LogoutOtherBrowserSessionsForm::class);
         Livewire::component('teams.update-team-name-form', UpdateTeamNameForm::class);
         Livewire::component('teams.team-member-manager', TeamMemberManager::class);
+    }
+
+    private function hasTable(string $table): bool
+    {
+        return $this->tableAvailability[$table] ??= Schema::hasTable($table);
     }
 }

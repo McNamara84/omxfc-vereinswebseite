@@ -6,8 +6,9 @@ use App\Enums\Role;
 use App\Enums\TourAssignmentSource;
 use App\Enums\TourAssignmentStatus;
 use App\Models\TourAssignment;
-use Tests\Concerns\CreatesUserWithRole;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Schema;
+use Tests\Concerns\CreatesUserWithRole;
 use Tests\TestCase;
 
 class TourManagementTest extends TestCase
@@ -37,6 +38,18 @@ class TourManagementTest extends TestCase
             ->assertSeeText('Hauptmenü entdecken')
             ->assertSeeText('Profil pflegen')
             ->assertSee(route('touren.restart', 'hauptmenue'));
+    }
+
+    public function test_profile_page_renders_without_tour_assignments_table(): void
+    {
+        $member = $this->createUserWithRole(Role::Mitglied);
+
+        Schema::drop('tour_assignments');
+
+        $this->actingAs($member)
+            ->get(route('profile.show'))
+            ->assertOk()
+            ->assertDontSeeText('Touren & Hilfestart');
     }
 
     public function test_vorstand_can_view_tour_admin_page(): void

@@ -10,6 +10,7 @@ use App\Models\TourAssignment;
 use App\Models\User;
 use App\Services\TourAssignmentService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Config;
 use Tests\TestCase;
 
 class TourControllerTest extends TestCase
@@ -73,6 +74,23 @@ class TourControllerTest extends TestCase
         $this->assertNotNull($assignment->fresh()->started_at);
     }
 
+    public function test_progress_rejects_step_key_outside_tour_definition(): void
+    {
+        $member = $this->createMember();
+        $assignment = $this->createPendingAssignment($member);
+
+        $this->actingAs($member)
+            ->postJson(route('touren.progress', $assignment), ['step_key' => 'ungueltiger-schritt'])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['step_key']);
+
+        $this->assertDatabaseHas('tour_assignments', [
+            'id' => $assignment->id,
+            'status' => TourAssignmentStatus::Pending->value,
+            'current_step_key' => null,
+        ]);
+    }
+
     public function test_dismiss_suppresses_tour_for_current_session(): void
     {
         $member = $this->createMember();
@@ -134,6 +152,33 @@ class TourControllerTest extends TestCase
             'status' => TourAssignmentStatus::Pending->value,
             'assigned_via' => TourAssignmentSource::SelfService->value,
             'current_step_key' => null,
+        ]);
+    }
+
+    public function test_restart_rejects_unknown_tour_key(): void
+    {
+        $member = $this->createMember();
+
+        $this->actingAs($member)
+            ->postJson(route('touren.restart', 'unbekannt'))
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['tour_key']);
+    }
+
+    public function test_restart_rejects_non_self_service_tour_key(): void
+    {
+        $member = $this->createMember();
+        Config::set('tours.profilpflege.self_service_enabled', false);
+
+        $this->actingAs($member)
+            ->postJson(route('touren.restart', 'profilpflege'))
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['tour_key']);
+
+        $this->assertDatabaseMissing('tour_assignments', [
+            'user_id' => $member->id,
+            'tour_key' => 'profilpflege',
+            'assigned_via' => TourAssignmentSource::SelfService->value,
         ]);
     }
 
