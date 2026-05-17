@@ -53,8 +53,17 @@ jobs:
             echo "Removing app_data volume to ensure fresh assets..."
             docker volume rm maddrax-fanclub_app_data || true
             
-            echo "Starting containers with new images..."
-            $COMPOSE up -d --force-recreate
+            echo "Starting infrastructure containers..."
+            $COMPOSE up -d --force-recreate db typesense
+
+            echo "Starting application container to initialize shared app volume..."
+            $COMPOSE up -d --force-recreate --no-deps app
+
+            echo "Starting queue worker container..."
+            $COMPOSE up -d --force-recreate --no-deps queue
+
+            echo "Starting web container..."
+            $COMPOSE up -d --force-recreate --no-deps nginx
             
             echo "Waiting for containers to start..."
             sleep 15
