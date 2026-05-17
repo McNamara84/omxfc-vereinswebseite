@@ -15,6 +15,17 @@ class NextcloudGalleryService
 
     private const EMPTY_LISTING_CACHE_MINUTES = 2;
 
+    /**
+     * @var array<int, string>
+     */
+    private const ALLOWED_IMAGE_CONTENT_TYPES = [
+        'image/jpeg',
+        'image/png',
+        'image/webp',
+        'image/gif',
+        'image/avif',
+    ];
+
     private const PROPFIND_BODY = <<<'XML'
 <?xml version="1.0" encoding="UTF-8"?>
 <d:propfind xmlns:d="DAV:">
@@ -301,7 +312,9 @@ XML;
 
     private function isImageResource(string $basename, string $contentType): bool
     {
-        if (str_starts_with($contentType, 'image/')) {
+        $normalizedContentType = $this->normalizeContentType($contentType);
+
+        if ($normalizedContentType !== null && in_array($normalizedContentType, self::ALLOWED_IMAGE_CONTENT_TYPES, true)) {
             return true;
         }
 
@@ -398,5 +411,12 @@ XML;
     private function containsForbiddenXmlDeclarations(string $xml): bool
     {
         return preg_match('/<!DOCTYPE|<!ENTITY/i', $xml) === 1;
+    }
+
+    private function normalizeContentType(string $contentType): ?string
+    {
+        $normalizedContentType = strtolower(trim(explode(';', $contentType)[0] ?? ''));
+
+        return $normalizedContentType !== '' ? $normalizedContentType : null;
     }
 }

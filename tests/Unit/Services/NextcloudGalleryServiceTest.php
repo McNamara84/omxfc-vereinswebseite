@@ -218,6 +218,32 @@ class NextcloudGalleryServiceTest extends TestCase
     }
 
     #[Test]
+    public function photo_urls_ignore_non_whitelisted_image_content_types(): void
+    {
+        Http::fake([
+            'https://cloud.maddrax-fanclub.de/public.php/dav/files/shareToken/' => Http::response(
+                $this->propfindResponseWithEntries('/public.php/dav/files/shareToken/', [
+                    [
+                        'href' => '/public.php/dav/files/shareToken/vector.svg',
+                        'contentType' => 'image/svg+xml; charset=utf-8',
+                    ],
+                    [
+                        'href' => '/public.php/dav/files/shareToken/Foto1.webp',
+                        'contentType' => 'image/webp; charset=binary',
+                    ],
+                ]),
+                207,
+            ),
+        ]);
+
+        $photos = app(NextcloudGalleryService::class)->photoUrls('https://cloud.maddrax-fanclub.de/s/shareToken');
+
+        $this->assertSame([
+            'https://cloud.maddrax-fanclub.de/public.php/dav/files/shareToken/Foto1.webp',
+        ], $photos);
+    }
+
+    #[Test]
     public function photo_urls_ignore_traversal_segments_in_dav_hrefs(): void
     {
         Http::fake([

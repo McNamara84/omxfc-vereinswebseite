@@ -8,6 +8,17 @@ use Illuminate\Support\Facades\Log;
 
 class PhotoGalleryController extends Controller
 {
+    /**
+     * @var array<int, string>
+     */
+    private const ALLOWED_PROXY_IMAGE_CONTENT_TYPES = [
+        'image/jpeg',
+        'image/png',
+        'image/webp',
+        'image/gif',
+        'image/avif',
+    ];
+
     public function __construct(
         private readonly NextcloudGalleryService $galleryService,
     ) {}
@@ -156,7 +167,7 @@ SVG;
     {
         $normalizedContentType = strtolower(trim(explode(';', $responseContentType)[0] ?? ''));
 
-        if (str_starts_with($normalizedContentType, 'image/')) {
+        if (in_array($normalizedContentType, self::ALLOWED_PROXY_IMAGE_CONTENT_TYPES, true)) {
             return $normalizedContentType;
         }
 

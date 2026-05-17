@@ -126,6 +126,20 @@ class PhotoGalleryControllerTest extends TestCase
         $this->assertEquals('img', $response->getContent());
     }
 
+    public function test_proxy_image_does_not_forward_non_whitelisted_image_content_types(): void
+    {
+        Http::fake([
+            'https://cloud.maddrax-fanclub.de/public.php/dav/files/fotos2026Token/' => Http::response($this->propfindResponse('fotos2026Token', ['Foto1.jpg']), 207),
+            'https://cloud.maddrax-fanclub.de/public.php/dav/files/fotos2026Token/Foto1.jpg' => Http::response('img', 200, ['Content-Type' => 'image/svg+xml']),
+        ]);
+
+        $response = app(PhotoGalleryController::class)->proxyImage('2026', 1);
+
+        $this->assertEquals(200, $response->getStatusCode());
+        $this->assertEquals('image/jpeg', $response->headers->get('Content-Type'));
+        $this->assertEquals('img', $response->getContent());
+    }
+
     public function test_proxy_image_returns_placeholder_on_failure(): void
     {
         Http::fake([
