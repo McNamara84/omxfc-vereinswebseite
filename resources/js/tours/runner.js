@@ -12,6 +12,9 @@ const TOAST_CLASSES = {
     info: 'alert-info',
 };
 
+const TOUR_DEBUG_STORAGE_KEY = 'omxfc-tour-debug';
+const TOUR_DEBUG_QUERY_PARAM = 'tour_debug';
+
 const state = {
     root: null,
     payload: null,
@@ -38,6 +41,105 @@ const elementIds = {
     next: 'tour-runner-next',
     complete: 'tour-runner-complete',
 };
+
+function isTourDebugEnabled() {
+    if (typeof window === 'undefined') {
+        return false;
+    }
+
+    if (window.__OMXFC_TOUR_DEBUG__ === true) {
+        return true;
+    }
+
+    try {
+        const params = new URLSearchParams(window.location.search);
+
+        if (params.get(TOUR_DEBUG_QUERY_PARAM) === '1') {
+            return true;
+        }
+    } catch {
+        // Ignore malformed URLs while probing debug state.
+    }
+
+    try {
+        return window.localStorage?.getItem(TOUR_DEBUG_STORAGE_KEY) === '1';
+    } catch {
+        return false;
+    }
+}
+
+function tourDebugSnapshot(extra = {}) {
+    return {
+        assignmentId: state.payload?.assignment_id ?? null,
+        status: state.payload?.status ?? null,
+        currentStepKey: state.payload?.current_step_key ?? null,
+        stepIndex: state.stepIndex,
+        activeSteps: state.steps.map((step) => step?.key).filter(Boolean),
+        ...extra,
+    };
+}
+
+function serializeTourError(error) {
+    if (error instanceof Error) {
+        return {
+            name: error.name,
+            message: error.message,
+            stack: error.stack,
+        };
+    }
+
+    if (typeof error === 'object' && error !== null) {
+        const response = error.response && typeof error.response === 'object'
+            ? {
+                status: error.response.status ?? null,
+                statusText: error.response.statusText ?? null,
+                data: error.response.data ?? null,
+            }
+            : null;
+
+        const config = error.config && typeof error.config === 'object'
+            ? {
+                method: error.config.method ?? null,
+                url: error.config.url ?? null,
+            }
+            : null;
+
+        return {
+            ...error,
+            response,
+            config,
+        };
+    }
+
+    return {
+        message: String(error),
+    };
+}
+
+function logTourDebug(event, extra = {}) {
+    if (!isTourDebugEnabled()) {
+        return;
+    }
+
+    console.debug('[tour-runner]', event, tourDebugSnapshot(extra));
+}
+
+function logTourError(event, error, extra = {}) {
+    if (!isTourDebugEnabled()) {
+        return;
+    }
+
+    console.error('[tour-runner]', event, {
+        ...tourDebugSnapshot(extra),
+        error: serializeTourError(error),
+    });
+}
+
+function runTourTask(label, task) {
+    void Promise.resolve()
+        .then(task)
+        .catch((error) => logTourError(label, error));
+}
 
 function getElement(id) {
     return document.getElementById(id);
@@ -215,25 +317,62 @@ function updatePanel(step) {
 
 async function syncProgress(stepKey) {
     if (!state.payload || state.lastSyncedStepKey === stepKey) {
+        logTourDebug('progress:skipped', {
+            stepKey,
+            reason: !state.payload ? 'missing-payload' : 'already-synced',
+        });
+
         return;
     }
 
     const templates = currentUrlTemplates();
 
     if (!templates) {
+        logTourDebug('progress:skipped', {
+            stepKey,
+            reason: 'missing-templates',
+        });
+
         return;
     }
 
-    const response = await window.axios.post(urlFor(templates.progress, state.payload.assignment_id), {
-        step_key: stepKey,
+    const progressUrl = urlFor(templates.progress, state.payload.assignment_id);
+
+    logTourDebug('progress:request', {
+        stepKey,
+        url: progressUrl,
     });
+
+    let response;
+
+    try {
+        response = await window.axios.post(progressUrl, {
+            step_key: stepKey,
+        });
+    } catch (error) {
+        logTourError('progress:error', error, {
+            stepKey,
+            url: progressUrl,
+        });
+
+        throw error;
+    }
 
     state.payload = response.data.tour;
     state.lastSyncedStepKey = stepKey;
+
+    logTourDebug('progress:success', {
+        stepKey,
+        returnedStepKey: state.payload?.current_step_key ?? null,
+    });
 }
 
 async function showCurrentStep() {
     if (!state.payload) {
+        logTourDebug('show-step:reset', {
+            reason: 'missing-payload',
+        });
+
         hideRunner(true);
         return;
     }
@@ -241,7 +380,17 @@ async function showCurrentStep() {
     const device = detectTourDevice();
     state.steps = activeSteps(device);
 
+    logTourDebug('show-step:resolved-steps', {
+        device,
+        reachableStepCount: state.steps.length,
+    });
+
     if (state.steps.length === 0) {
+        logTourDebug('show-step:reset', {
+            reason: 'no-reachable-steps',
+            device,
+        });
+
         hideRunner(false);
         return;
     }
@@ -250,15 +399,32 @@ async function showCurrentStep() {
     const step = state.steps[state.stepIndex];
 
     if (!step) {
+        logTourDebug('show-step:reset', {
+            reason: 'missing-step',
+            device,
+        });
+
         hideRunner(false);
         return;
     }
+
+    logTourDebug('show-step:start', {
+        device,
+        stepKey: step.key,
+    });
 
     await revealStep(step);
 
     const target = document.querySelector(selectorForStep(step, device));
 
     if (!(target instanceof HTMLElement) || !isElementVisible(target)) {
+        logTourDebug('show-step:hidden-target', {
+            device,
+            stepKey: step.key,
+            selector: selectorForStep(step, device),
+            targetFound: target instanceof HTMLElement,
+        });
+
         const fallbackIndex = state.stepIndex;
         state.steps = skipHiddenStep(step.key);
 
@@ -284,6 +450,10 @@ async function showCurrentStep() {
     showRunnerChrome();
     updateHighlight(target);
     updatePanel(step);
+    logTourDebug('show-step:ready', {
+        device,
+        stepKey: step.key,
+    });
     await syncProgress(step.key);
 }
 
@@ -292,16 +462,48 @@ async function activateTour(payload) {
     state.lastSyncedStepKey = payload.current_step_key ?? null;
     state.skippedStepKeys.clear();
 
+    logTourDebug('tour:activate', {
+        assignmentId: payload.assignment_id,
+        status: payload.status,
+        currentStepKey: payload.current_step_key ?? null,
+        totalSteps: Array.isArray(payload.steps) ? payload.steps.length : 0,
+    });
+
     const templates = currentUrlTemplates();
 
     if (!templates) {
+        logTourDebug('tour:activate-skipped', {
+            reason: 'missing-templates',
+        });
+
         return;
     }
 
     if (payload.status === 'pending') {
-        const response = await window.axios.post(urlFor(templates.start, payload.assignment_id));
+        const startUrl = urlFor(templates.start, payload.assignment_id);
+
+        logTourDebug('tour:start-request', {
+            url: startUrl,
+        });
+
+        let response;
+
+        try {
+            response = await window.axios.post(startUrl);
+        } catch (error) {
+            logTourError('tour:start-error', error, {
+                url: startUrl,
+            });
+
+            throw error;
+        }
+
         state.payload = response.data.tour;
         state.lastSyncedStepKey = state.payload.current_step_key ?? null;
+
+        logTourDebug('tour:start-success', {
+            currentStepKey: state.payload.current_step_key ?? null,
+        });
     }
 
     await showCurrentStep();
@@ -311,12 +513,31 @@ async function fetchCurrentTour() {
     const templates = currentUrlTemplates();
 
     if (!templates?.current || typeof window.axios === 'undefined') {
+        logTourDebug('tour:fetch-skipped', {
+            reason: !templates?.current ? 'missing-current-url' : 'missing-axios',
+        });
+
         return;
     }
 
-    const response = await window.axios.get(templates.current);
+    logTourDebug('tour:fetch-request', {
+        url: templates.current,
+    });
+
+    let response;
+
+    try {
+        response = await window.axios.get(templates.current);
+    } catch (error) {
+        logTourError('tour:fetch-error', error, {
+            url: templates.current,
+        });
+
+        throw error;
+    }
 
     if (!response.data?.tour) {
+        logTourDebug('tour:fetch-empty');
         hideRunner(true);
         return;
     }
@@ -326,40 +547,97 @@ async function fetchCurrentTour() {
 
 async function skipTour() {
     if (!state.payload) {
+        logTourDebug('skip:ignored', {
+            reason: 'missing-payload',
+        });
+
         return;
     }
 
     const templates = currentUrlTemplates();
 
     if (!templates) {
+        logTourDebug('skip:ignored', {
+            reason: 'missing-templates',
+        });
+
         return;
     }
 
-    await window.axios.post(urlFor(templates.dismiss, state.payload.assignment_id));
+    const dismissUrl = urlFor(templates.dismiss, state.payload.assignment_id);
+
+    logTourDebug('skip:request', {
+        url: dismissUrl,
+    });
+
+    try {
+        await window.axios.post(dismissUrl);
+    } catch (error) {
+        logTourError('skip:error', error, {
+            url: dismissUrl,
+        });
+
+        throw error;
+    }
+
     hideRunner(true);
+    logTourDebug('skip:success');
     toast('info', 'Tour pausiert', 'Wir zeigen dir die Tour nach dem nächsten Login erneut an.');
 }
 
 async function completeTour() {
     if (!state.payload) {
+        logTourDebug('complete:ignored', {
+            reason: 'missing-payload',
+        });
+
         return;
     }
 
     const templates = currentUrlTemplates();
 
     if (!templates) {
+        logTourDebug('complete:ignored', {
+            reason: 'missing-templates',
+        });
+
         return;
     }
 
-    await window.axios.post(urlFor(templates.complete, state.payload.assignment_id));
+    const completeUrl = urlFor(templates.complete, state.payload.assignment_id);
+
+    logTourDebug('complete:request', {
+        url: completeUrl,
+    });
+
+    try {
+        await window.axios.post(completeUrl);
+    } catch (error) {
+        logTourError('complete:error', error, {
+            url: completeUrl,
+        });
+
+        throw error;
+    }
+
     hideRunner(true);
+    logTourDebug('complete:success');
     toast('success', 'Tour abgeschlossen', 'Du kannst die Tour später im Profil erneut starten.');
 }
 
 async function handleRunnerAction(actionId) {
     if (!state.payload) {
+        logTourDebug('action:ignored', {
+            actionId,
+            reason: 'missing-payload',
+        });
+
         return;
     }
+
+    logTourDebug('action:start', {
+        actionId,
+    });
 
     if (actionId === elementIds.back) {
         state.stepIndex = Math.max(state.stepIndex - 1, 0);
@@ -404,6 +682,10 @@ async function handleRunnerAction(actionId) {
     if (actionId === elementIds.complete) {
         await completeTour();
     }
+
+    logTourDebug('action:done', {
+        actionId,
+    });
 }
 
 function bindButtons() {
@@ -430,11 +712,25 @@ function bindButtons() {
                 `#${elementIds.complete}`,
             ].join(', '));
 
-            if (!(actionButton instanceof HTMLElement) || actionButton.hasAttribute('disabled')) {
+            if (!(actionButton instanceof HTMLElement)) {
                 return;
             }
 
-            void handleRunnerAction(actionButton.id);
+            if (actionButton.hasAttribute('disabled')) {
+                logTourDebug('action:ignored', {
+                    actionId: actionButton.id,
+                    reason: 'disabled-button',
+                });
+
+                return;
+            }
+
+            logTourDebug('action:clicked', {
+                actionId: actionButton.id,
+                targetTag: event.target.tagName,
+            });
+
+            runTourTask(`action:${actionButton.id}`, () => handleRunnerAction(actionButton.id));
         };
     }
 
@@ -452,6 +748,11 @@ function bindButtons() {
 
 function hydrateRoot() {
     state.root = document.getElementById('tour-runner-root');
+
+    if (state.root instanceof HTMLElement) {
+        logTourDebug('root:hydrated');
+    }
+
     bindButtons();
 }
 
@@ -459,8 +760,14 @@ async function initTourRunner() {
     hydrateRoot();
 
     if (!state.root) {
+        logTourDebug('init:skipped', {
+            reason: 'missing-root',
+        });
+
         return;
     }
+
+    logTourDebug('init:start');
 
     if (state.payload) {
         await showCurrentStep();
@@ -472,17 +779,17 @@ async function initTourRunner() {
 
 window.addEventListener('resize', () => {
     if (state.payload) {
-        void showCurrentStep();
+        runTourTask('window:resize', () => showCurrentStep());
     }
 });
 
 window.addEventListener('scroll', refreshHighlight, true);
-document.addEventListener('livewire:navigated', () => void initTourRunner());
+document.addEventListener('livewire:navigated', () => runTourTask('livewire:navigated', () => initTourRunner()));
 
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => void initTourRunner(), { once: true });
+    document.addEventListener('DOMContentLoaded', () => runTourTask('dom:content-loaded', () => initTourRunner()), { once: true });
 } else {
-    void initTourRunner();
+    runTourTask('boot', () => initTourRunner());
 }
 
 export { initTourRunner };
