@@ -68,6 +68,9 @@ class AuktionPolicyTest extends TestCase
     #[TestWith([Role::Mitglied])]
     #[TestWith([Role::Ehrenmitglied])]
     #[TestWith([Role::Mitwirkender])]
+    #[TestWith([Role::Admin])]
+    #[TestWith([Role::Vorstand])]
+    #[TestWith([Role::Kassenwart])]
     public function test_bid_allows_configured_bidding_roles(Role $role): void
     {
         $user = $this->createUserWithRole($role);
@@ -76,9 +79,6 @@ class AuktionPolicyTest extends TestCase
         $this->assertTrue($this->policy->bid($user, $auktion));
     }
 
-    #[TestWith([Role::Admin])]
-    #[TestWith([Role::Vorstand])]
-    #[TestWith([Role::Kassenwart])]
     #[TestWith([Role::Anwaerter])]
     public function test_bid_denies_non_bidding_roles(Role $role): void
     {

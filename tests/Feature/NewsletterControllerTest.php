@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Mail\Newsletter;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
+use PHPUnit\Framework\Attributes\TestWith;
 use Tests\Concerns\CreatesUserWithRole;
 use Tests\TestCase;
 
@@ -13,29 +14,35 @@ class NewsletterControllerTest extends TestCase
     use CreatesUserWithRole;
     use RefreshDatabase;
 
-    public function test_admin_can_view_newsletter_form(): void
+    #[TestWith(['Admin'])]
+    #[TestWith(['Vorstand'])]
+    public function test_authorized_roles_can_view_newsletter_form(string $role): void
     {
-        $user = $this->actingMember('Admin');
+        $user = $this->actingMember($role);
 
         $this->actingAs($user)
             ->get(route('newsletter.create'))
             ->assertOk();
     }
 
-    public function test_vorstand_cannot_view_newsletter_form(): void
+    #[TestWith(['Mitglied'])]
+    #[TestWith(['Kassenwart'])]
+    public function test_unauthorized_roles_cannot_view_newsletter_form(string $role): void
     {
-        $user = $this->actingMember('Vorstand');
+        $user = $this->actingMember($role);
 
         $this->actingAs($user)
             ->get(route('newsletter.create'))
             ->assertForbidden();
     }
 
-    public function test_admin_can_send_newsletter_to_selected_roles(): void
+    #[TestWith(['Admin'])]
+    #[TestWith(['Vorstand'])]
+    public function test_authorized_roles_can_send_newsletter_to_selected_roles(string $senderRole): void
     {
         Mail::fake();
 
-        $admin = $this->actingMember('Admin');
+        $sender = $this->actingMember($senderRole);
         $member = $this->actingMember('Mitglied');
         $board = $this->actingMember('Vorstand');
 
@@ -47,7 +54,7 @@ class NewsletterControllerTest extends TestCase
             ],
         ];
 
-        $response = $this->actingAs($admin)->post(route('newsletter.send'), $data);
+        $response = $this->actingAs($sender)->post(route('newsletter.send'), $data);
 
         $response->assertRedirect(route('newsletter.create'));
 
@@ -57,7 +64,14 @@ class NewsletterControllerTest extends TestCase
         Mail::assertQueued(Newsletter::class, function (Newsletter $mail) use ($board) {
             return $mail->hasTo($board->email);
         });
-        Mail::assertQueuedCount(2);
+
+        if ($senderRole === 'Vorstand') {
+            Mail::assertQueued(Newsletter::class, function (Newsletter $mail) use ($sender) {
+                return $mail->hasTo($sender->email);
+            });
+        }
+
+        Mail::assertQueuedCount($senderRole === 'Vorstand' ? 3 : 2);
 
         $this->assertDatabaseHas('newsletter_ausgaben', [
             'subject' => 'Info',
@@ -95,11 +109,13 @@ class NewsletterControllerTest extends TestCase
         $response->assertSessionHasErrors(['roles']);
     }
 
-    public function test_non_admin_cannot_send_newsletter(): void
+    #[TestWith(['Mitglied'])]
+    #[TestWith(['Kassenwart'])]
+    public function test_unauthorized_roles_cannot_send_newsletter(string $role): void
     {
-        $member = $this->actingMember();
+        $user = $this->actingMember($role);
 
-        $this->actingAs($member)
+        $this->actingAs($user)
             ->post(route('newsletter.send'), [])
             ->assertForbidden();
     }

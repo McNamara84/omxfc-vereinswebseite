@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Support\Navigation\NavigationBuilder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Pagination\LengthAwarePaginator;
+use PHPUnit\Framework\Attributes\TestWith;
 use Tests\Concerns\CreatesUserWithRole;
 use Tests\TestCase;
 
@@ -171,28 +172,41 @@ class NewsletterArchivTest extends TestCase
             ->assertForbidden();
     }
 
-    public function test_admin_can_view_newsletter_archive_admin_index(): void
+    #[TestWith(['Admin'])]
+    #[TestWith(['Vorstand'])]
+    public function test_authorized_roles_can_view_newsletter_archive_admin_index(string $role): void
     {
-        $admin = $this->actingMember('Admin');
+        $user = $this->actingMember($role);
 
         NewsletterAusgabe::factory()->create(['subject' => 'Archiv Entwurf']);
         NewsletterAusgabe::factory()->published()->create(['subject' => 'Archiv Live']);
 
-        $this->actingAs($admin)
+        $this->actingAs($user)
             ->get(route('newsletter.archiv.admin.index'))
             ->assertOk()
             ->assertSee('Archiv Entwurf')
             ->assertSee('Archiv Live');
     }
 
-    public function test_admin_can_view_newsletter_archive_edit_form(): void
+    public function test_kassenwart_cannot_view_newsletter_archive_admin_index(): void
     {
-        $admin = $this->actingMember('Admin');
+        $kassenwart = $this->actingMember('Kassenwart');
+
+        $this->actingAs($kassenwart)
+            ->get(route('newsletter.archiv.admin.index'))
+            ->assertForbidden();
+    }
+
+    #[TestWith(['Admin'])]
+    #[TestWith(['Vorstand'])]
+    public function test_authorized_roles_can_view_newsletter_archive_edit_form(string $role): void
+    {
+        $user = $this->actingMember($role);
         $ausgabe = NewsletterAusgabe::factory()->create([
             'subject' => 'Bearbeitbare Ausgabe',
         ]);
 
-        $this->actingAs($admin)
+        $this->actingAs($user)
             ->get(route('newsletter.archiv.admin.edit', $ausgabe))
             ->assertOk()
             ->assertSee('Newsletter-Ausgabe bearbeiten')
@@ -200,15 +214,17 @@ class NewsletterArchivTest extends TestCase
             ->assertSee('Themenblöcke');
     }
 
-    public function test_admin_can_update_newsletter_archive_entry(): void
+    #[TestWith(['Admin'])]
+    #[TestWith(['Vorstand'])]
+    public function test_authorized_roles_can_update_newsletter_archive_entry(string $role): void
     {
-        $admin = $this->actingMember('Admin');
+        $user = $this->actingMember($role);
         $ausgabe = NewsletterAusgabe::factory()->create([
             'subject' => 'Alte Ausgabe',
             'slug' => 'alte-ausgabe',
         ]);
 
-        $this->actingAs($admin)
+        $this->actingAs($user)
             ->put(route('newsletter.archiv.admin.update', $ausgabe), [
                 'subject' => 'Neue Ausgabe',
                 'slug' => 'neue-ausgabe',
@@ -227,9 +243,11 @@ class NewsletterArchivTest extends TestCase
         ]);
     }
 
-    public function test_admin_can_update_newsletter_archive_entry_with_long_colliding_slug(): void
+    #[TestWith(['Admin'])]
+    #[TestWith(['Vorstand'])]
+    public function test_authorized_roles_can_update_newsletter_archive_entry_with_long_colliding_slug(string $role): void
     {
-        $admin = $this->actingMember('Admin');
+        $user = $this->actingMember($role);
         $longSlug = str_repeat('a', 255);
         NewsletterAusgabe::factory()->create([
             'slug' => $longSlug,
@@ -238,7 +256,7 @@ class NewsletterArchivTest extends TestCase
             'slug' => 'kollision',
         ]);
 
-        $this->actingAs($admin)
+        $this->actingAs($user)
             ->put(route('newsletter.archiv.admin.update', $ausgabe), [
                 'subject' => 'Lange Kollision',
                 'slug' => $longSlug,
@@ -256,15 +274,17 @@ class NewsletterArchivTest extends TestCase
         $this->assertStringEndsWith('-2', $ausgabe->slug);
     }
 
-    public function test_admin_can_publish_newsletter_archive_entry(): void
+    #[TestWith(['Admin'])]
+    #[TestWith(['Vorstand'])]
+    public function test_authorized_roles_can_publish_newsletter_archive_entry(string $role): void
     {
-        $admin = $this->actingMember('Admin');
+        $user = $this->actingMember($role);
         $ausgabe = NewsletterAusgabe::factory()->create([
             'status' => NewsletterAusgabeStatus::Entwurf,
             'published_at' => null,
         ]);
 
-        $this->actingAs($admin)
+        $this->actingAs($user)
             ->post(route('newsletter.archiv.admin.publish', $ausgabe))
             ->assertRedirect(route('newsletter.archiv.admin.edit', $ausgabe->fresh()));
 
@@ -274,15 +294,17 @@ class NewsletterArchivTest extends TestCase
         $this->assertNotNull($ausgabe->published_at);
     }
 
-    public function test_admin_can_update_newsletter_archive_entry_without_sent_at(): void
+    #[TestWith(['Admin'])]
+    #[TestWith(['Vorstand'])]
+    public function test_authorized_roles_can_update_newsletter_archive_entry_without_sent_at(string $role): void
     {
-        $admin = $this->actingMember('Admin');
+        $user = $this->actingMember($role);
         $ausgabe = NewsletterAusgabe::factory()->create([
             'subject' => 'Ohne Versandzeit',
             'sent_at' => null,
         ]);
 
-        $this->actingAs($admin)
+        $this->actingAs($user)
             ->put(route('newsletter.archiv.admin.update', $ausgabe), [
                 'subject' => 'Ohne Versandzeit aktualisiert',
                 'slug' => 'ohne-versandzeit-aktualisiert',

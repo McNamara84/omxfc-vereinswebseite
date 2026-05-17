@@ -248,8 +248,24 @@ class NavigationMenuTest extends TestCase
         $response = $this->actingAs($user)->get('/');
 
         $response->assertSee(route('admin.statistiken.index'));
-        // maryUI menu-sub generates a summary element with "Admin" text
         $response->assertSee('Newsletter versenden');
+    }
+
+    public function test_newsletter_link_is_listed_under_vorstand_for_admin_and_vorstand_only(): void
+    {
+        $builder = app(NavigationBuilder::class);
+        $admin = $this->createUserWithRole(Role::Admin)->load('teams', 'ownedTeams');
+        $vorstand = $this->createUserWithRole(Role::Vorstand)->load('teams', 'ownedTeams');
+        $kassenwart = $this->createUserWithRole(Role::Kassenwart)->load('teams', 'ownedTeams');
+
+        $adminNavigation = $builder->build($admin);
+        $vorstandNavigation = $builder->build($vorstand);
+        $kassenwartNavigation = $builder->build($kassenwart);
+
+        $this->assertContains('Newsletter versenden', $this->sectionItemTitles($adminNavigation, 'Vorstand'));
+        $this->assertContains('Newsletter versenden', $this->sectionItemTitles($vorstandNavigation, 'Vorstand'));
+        $this->assertNotContains('Newsletter versenden', $this->sectionItemTitles($kassenwartNavigation, 'Vorstand'));
+        $this->assertNotContains('Newsletter versenden', $this->sectionItemTitles($adminNavigation, 'Admin'));
     }
 
     public function test_non_admin_users_do_not_see_admin_menu(): void
@@ -302,5 +318,16 @@ class NavigationMenuTest extends TestCase
 
         $response->assertSee('/veranstaltungen/aktuell', false);
         $response->assertSee('Aktuelle Veranstaltung');
+    }
+
+    /**
+     * @param  array<string, mixed>  $navigation
+     * @return array<int, string>
+     */
+    private function sectionItemTitles(array $navigation, string $sectionTitle): array
+    {
+        $section = collect($navigation['sections'] ?? [])->firstWhere('title', $sectionTitle);
+
+        return array_column($section['items'] ?? [], 'title');
     }
 }
