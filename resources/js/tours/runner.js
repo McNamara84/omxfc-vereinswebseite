@@ -19,6 +19,7 @@ const state = {
     stepIndex: 0,
     target: null,
     lastSyncedStepKey: null,
+    skippedStepKeys: new Set(),
 };
 
 const elementIds = {
@@ -113,7 +114,31 @@ function hideRunner(resetPayload = false) {
         state.steps = [];
         state.stepIndex = 0;
         state.lastSyncedStepKey = null;
+        state.skippedStepKeys.clear();
     }
+}
+
+function activeSteps(device) {
+    if (!state.payload) {
+        return [];
+    }
+
+    const steps = state.payload.steps.filter((step) => !state.skippedStepKeys.has(step?.key));
+
+    return filterReachableSteps(steps, device, document);
+}
+
+function skipHiddenStep(stepKey) {
+    state.skippedStepKeys.add(stepKey);
+    state.steps = state.steps.filter((step) => step?.key !== stepKey);
+
+    if (!state.payload) {
+        return state.steps;
+    }
+
+    state.payload.steps = state.payload.steps.filter((step) => step?.key !== stepKey);
+
+    return state.steps;
 }
 
 function updateHighlight(target) {
@@ -212,7 +237,7 @@ async function showCurrentStep() {
     }
 
     const device = detectTourDevice();
-    state.steps = filterReachableSteps(state.payload.steps, device, document);
+    state.steps = activeSteps(device);
 
     if (state.steps.length === 0) {
         hideRunner(false);
@@ -232,14 +257,15 @@ async function showCurrentStep() {
     const target = document.querySelector(selectorForStep(step, device));
 
     if (!(target instanceof HTMLElement) || !isElementVisible(target)) {
-        state.steps = state.steps.filter((candidate) => candidate.key !== step.key);
+        const fallbackIndex = state.stepIndex;
+        state.steps = skipHiddenStep(step.key);
 
         if (state.steps.length === 0) {
             hideRunner(false);
             return;
         }
 
-        state.stepIndex = Math.min(state.stepIndex, state.steps.length - 1);
+        state.stepIndex = Math.min(fallbackIndex, state.steps.length - 1);
         const fallbackStep = state.steps[state.stepIndex];
 
         if (fallbackStep && state.payload) {
@@ -262,6 +288,7 @@ async function showCurrentStep() {
 async function activateTour(payload) {
     state.payload = payload;
     state.lastSyncedStepKey = payload.current_step_key ?? null;
+    state.skippedStepKeys.clear();
 
     const templates = currentUrlTemplates();
 
