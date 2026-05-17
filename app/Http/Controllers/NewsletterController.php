@@ -42,7 +42,7 @@ class NewsletterController extends Controller
         }
 
         $data = $request->validate([
-            'roles' => ['required', 'array'],
+            'roles' => ['required', 'array', 'min:1'],
             'roles.*' => ['string', Rule::in(NewsletterAusgabe::recipientRoleValues())],
             'subject' => ['required', 'string'],
             'topics' => ['required', 'array', 'min:1'],
@@ -64,6 +64,11 @@ class NewsletterController extends Controller
                 return redirect()->route('newsletter.create')
                     ->with('status', 'Keine Admin-Empfänger gefunden.');
             }
+        }
+
+        if ($recipients->isEmpty()) {
+            return redirect()->route('newsletter.create')
+                ->with('status', 'Keine Empfänger für die ausgewählten Rollen gefunden.');
         }
 
         foreach ($recipients as $recipient) {
