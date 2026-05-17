@@ -2,6 +2,8 @@
 
 namespace App\Support;
 
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 
 final class NewsletterTopics
@@ -72,16 +74,36 @@ final class NewsletterTopics
 
     public static function renderHtml(?string $markdown): string
     {
-        $markdown = preg_replace('/(?<!\n)\n(?!\n)/', "  \n", (string) ($markdown ?? ''));
+        $markdown = self::normalizeLineEndings((string) ($markdown ?? ''));
+        $markdown = preg_replace('/(?<!\n)\n(?!\n)/', "  \n", $markdown);
 
         return SanitizedMarkdown::render((string) $markdown);
     }
 
-    public static function excerpt(?string $markdown, int $limit = 220): string
+    public static function excerpt(?string $markdown, int $limit = 220, ?Model $cacheModel = null, string $cacheVariant = 'default'): string
     {
-        $text = trim(preg_replace('/\s+/u', ' ', strip_tags(self::renderHtml($markdown))) ?? '');
+        $render = function () use ($markdown, $limit): string {
+            $text = trim(preg_replace('/\s+/u', ' ', strip_tags(self::renderPlainTextHtml($markdown))) ?? '');
 
-        return Str::limit($text, $limit);
+            return Str::limit($text, $limit);
+        };
+
+        if (! $cacheModel) {
+            return $render();
+        }
+
+        $cacheKey = SanitizedMarkdown::cacheKey(
+            $cacheModel,
+            'newsletter-ausgabe',
+            sprintf('excerpt:%s:%d', $cacheVariant, $limit),
+            (string) ($markdown ?? ''),
+        );
+
+        if ($cacheKey === null) {
+            return $render();
+        }
+
+        return Cache::rememberForever($cacheKey, $render);
     }
 
     public static function usesLegacyKey(?string $key): bool
@@ -94,8 +116,44 @@ final class NewsletterTopics
         return (string) Str::uuid();
     }
 
+    /**
+     * @param  array<int, array{key: string, title: string, content: string, images: array<int, string>}>  $topics
+     * @return array<int, array{key: string, title: string, content: string, images: array<int, string>}>
+     */
+    public static function ensureDistinctPersistentKeys(array $topics): array
+    {
+        $seen = [];
+
+        foreach ($topics as $index => $topic) {
+            $candidateKey = trim((string) ($topic['key'] ?? ''));
+
+            if ($candidateKey === '' || self::usesLegacyKey($candidateKey) || isset($seen[$candidateKey])) {
+                do {
+                    $candidateKey = self::generatePersistentKey();
+                } while (isset($seen[$candidateKey]));
+            }
+
+            $topics[$index]['key'] = $candidateKey;
+            $seen[$candidateKey] = true;
+        }
+
+        return $topics;
+    }
+
     private static function legacyKey(int $index): string
     {
         return self::LEGACY_KEY_PREFIX.$index;
+    }
+
+    private static function normalizeLineEndings(string $markdown): string
+    {
+        return str_replace(["\r\n", "\r"], "\n", $markdown);
+    }
+
+    private static function renderPlainTextHtml(?string $markdown): string
+    {
+        return (string) Str::markdown(self::normalizeLineEndings((string) ($markdown ?? '')), [
+            'html_input' => 'strip',
+        ]);
     }
 }

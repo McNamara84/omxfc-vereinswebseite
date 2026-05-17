@@ -57,7 +57,7 @@ class NewsletterControllerTest extends TestCase
             'roles' => ['Mitglied', 'Vorstand'],
             'subject' => 'Info',
             'topics' => [
-                ['title' => 'A', 'content' => 'B'],
+                ['key' => 'topic-a', 'title' => 'A', 'content' => 'B'],
             ],
         ];
 
@@ -108,7 +108,7 @@ class NewsletterControllerTest extends TestCase
                 'roles' => [],
                 'subject' => 'Info',
                 'topics' => [
-                    ['title' => 'A', 'content' => 'B'],
+                    ['key' => 'topic-a', 'title' => 'A', 'content' => 'B'],
                 ],
             ]);
 
@@ -139,6 +139,7 @@ class NewsletterControllerTest extends TestCase
             'subject' => 'Info',
             'topics' => [
                 [
+                    'key' => 'topic-a',
                     'title' => 'A',
                     'content' => 'B',
                     'images' => [UploadedFile::fake()->image('niemand.jpg', 600, 400)],
@@ -169,6 +170,7 @@ class NewsletterControllerTest extends TestCase
             'subject' => 'Mit Bild',
             'topics' => [
                 [
+                    'key' => 'topic-a',
                     'title' => 'Fotothema',
                     'content' => 'Text mit **Markdown**',
                     'images' => [
@@ -197,5 +199,24 @@ class NewsletterControllerTest extends TestCase
             return $mail->hasTo($member->email)
                 && $mail->topics[0]['images'] === $ausgabe->topics[0]['images'];
         });
+    }
+
+    public function test_send_validation_rejects_duplicate_topic_keys(): void
+    {
+        $admin = $this->actingMember('Admin');
+
+        $response = $this->actingAs($admin)
+            ->from(route('newsletter.create'))
+            ->post(route('newsletter.send'), [
+                'roles' => ['Mitglied'],
+                'subject' => 'Doppelte Keys',
+                'topics' => [
+                    ['key' => 'duplicate-key', 'title' => 'A', 'content' => 'B'],
+                    ['key' => 'duplicate-key', 'title' => 'C', 'content' => 'D'],
+                ],
+            ]);
+
+        $response->assertRedirect(route('newsletter.create'));
+        $response->assertSessionHasErrors(['topics.1.key']);
     }
 }

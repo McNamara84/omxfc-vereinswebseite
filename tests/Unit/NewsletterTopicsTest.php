@@ -2,8 +2,10 @@
 
 namespace Tests\Unit;
 
+use App\Models\NewsletterAusgabe;
 use App\Support\NewsletterTopics;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
 use Tests\TestCase;
 
 class NewsletterTopicsTest extends TestCase
@@ -63,6 +65,48 @@ class NewsletterTopicsTest extends TestCase
         $this->assertStringContainsString('Fetter Text mit Link', $excerpt);
         $this->assertStringNotContainsString('**', $excerpt);
         $this->assertStringNotContainsString('[', $excerpt);
+    }
+
+    public function test_render_html_normalizes_windows_line_endings(): void
+    {
+        $html = NewsletterTopics::renderHtml("Erste Zeile\r\nZweite Zeile\r\n\r\nDritte Zeile");
+
+        $this->assertStringContainsString('Erste Zeile', $html);
+        $this->assertStringContainsString('Zweite Zeile', $html);
+        $this->assertStringContainsString('Dritte Zeile', $html);
+        $this->assertStringNotContainsString("\r", $html);
+    }
+
+    public function test_ensure_distinct_persistent_keys_replaces_legacy_and_duplicate_keys(): void
+    {
+        $topics = NewsletterTopics::ensureDistinctPersistentKeys([
+            ['key' => 'legacy-topic-0', 'title' => 'A', 'content' => 'B', 'images' => []],
+            ['key' => 'duplicate-key', 'title' => 'C', 'content' => 'D', 'images' => []],
+            ['key' => 'duplicate-key', 'title' => 'E', 'content' => 'F', 'images' => []],
+        ]);
+
+        $keys = array_column($topics, 'key');
+
+        $this->assertCount(3, array_unique($keys));
+        $this->assertNotSame('legacy-topic-0', $keys[0]);
+        $this->assertSame('duplicate-key', $keys[1]);
+        $this->assertNotSame('duplicate-key', $keys[2]);
+    }
+
+    public function test_excerpt_uses_model_cache_when_model_is_available(): void
+    {
+        Cache::flush();
+
+        $ausgabe = NewsletterAusgabe::factory()->create();
+
+        $first = NewsletterTopics::excerpt('**Cache** Text', 80, $ausgabe, 'topic-a');
+
+        $ausgabe->forceFill(['updated_at' => $ausgabe->updated_at->copy()->addSecond()])->saveQuietly();
+
+        $second = NewsletterTopics::excerpt('**Cache** Text', 80, $ausgabe->fresh(), 'topic-a');
+
+        $this->assertSame('Cache Text', $first);
+        $this->assertSame('Cache Text', $second);
     }
 
     public function test_initial_topic_uses_persistent_key(): void

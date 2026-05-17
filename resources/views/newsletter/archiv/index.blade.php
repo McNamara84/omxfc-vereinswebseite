@@ -48,7 +48,7 @@
                             <div class="space-y-2 text-sm leading-relaxed text-base-content/80">
                                 @if ($firstTopic)
                                     <p class="font-medium text-base-content">{{ filled(data_get($firstTopic, 'title')) ? data_get($firstTopic, 'title') : 'Ohne Titel' }}</p>
-                                    <p>{{ \App\Support\NewsletterTopics::excerpt(data_get($firstTopic, 'content', ''), 220) }}</p>
+                                    <p>{{ $ausgabe->excerptForTopic($firstTopic, 220, 'first-topic') }}</p>
                                 @else
                                     <p>Diese Ausgabe enthält aktuell noch keine Themenblöcke.</p>
                                 @endif

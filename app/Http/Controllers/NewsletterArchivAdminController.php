@@ -64,7 +64,7 @@ class NewsletterArchivAdminController extends Controller
             'recipient_roles.*' => ['string', Rule::in(NewsletterAusgabe::recipientRoleValues())],
             'sent_at' => ['nullable', 'date'],
             'topics' => ['required', 'array', 'min:1'],
-            'topics.*.key' => ['nullable', 'string', 'max:255'],
+            'topics.*.key' => ['required', 'string', 'max:255', 'distinct'],
             'topics.*.title' => ['required', 'string', 'max:255'],
             'topics.*.content' => ['required', 'string'],
             'topics.*.remove_images' => ['nullable', 'array'],
@@ -122,7 +122,7 @@ class NewsletterArchivAdminController extends Controller
     {
         $currentTopics = NewsletterTopics::normalize($newsletterAusgabe->topics ?? []);
         $currentTopicsByKey = collect($currentTopics)->keyBy('key');
-        $submittedTopics = NewsletterTopics::normalize($topics);
+        $submittedTopics = NewsletterTopics::ensureDistinctPersistentKeys(NewsletterTopics::normalize($topics));
         $preparedTopics = [];
         $uploadedImages = [];
         $deleteAfterSave = [];
@@ -149,7 +149,7 @@ class NewsletterArchivAdminController extends Controller
                 $preparedTopics[] = [
                     'key' => $currentTopic && ! NewsletterTopics::usesLegacyKey($topic['key'])
                         ? $topic['key']
-                        : NewsletterTopics::generatePersistentKey(),
+                        : $topic['key'],
                     'title' => $topic['title'],
                     'content' => $topic['content'],
                     'images' => $sync['images'],

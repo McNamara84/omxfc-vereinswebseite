@@ -287,7 +287,7 @@ class NewsletterArchivTest extends TestCase
                 'recipient_roles' => ['Mitglied', 'Vorstand'],
                 'sent_at' => '2026-05-17 12:00',
                 'topics' => [
-                    ['title' => 'Update', 'content' => 'Archivtext'],
+                    ['key' => 'topic-update', 'title' => 'Update', 'content' => 'Archivtext'],
                 ],
             ])
             ->assertRedirect(route('newsletter.archiv.admin.edit', $ausgabe->fresh()));
@@ -365,7 +365,7 @@ class NewsletterArchivTest extends TestCase
                 'recipient_roles' => ['Mitglied'],
                 'sent_at' => '2026-05-17 12:00',
                 'topics' => [
-                    ['title' => 'Update', 'content' => 'Langer Slug mit Suffix'],
+                    ['key' => 'topic-long', 'title' => 'Update', 'content' => 'Langer Slug mit Suffix'],
                 ],
             ])
             ->assertRedirect(route('newsletter.archiv.admin.edit', $ausgabe->fresh()));
@@ -413,7 +413,7 @@ class NewsletterArchivTest extends TestCase
                 'recipient_roles' => ['Mitglied'],
                 'sent_at' => '',
                 'topics' => [
-                    ['title' => 'Update', 'content' => 'Weiter ohne Zeitpunkt'],
+                    ['key' => 'topic-ohne-sent-at', 'title' => 'Update', 'content' => 'Weiter ohne Zeitpunkt'],
                 ],
             ])
             ->assertRedirect(route('newsletter.archiv.admin.edit', $ausgabe->fresh()));
@@ -422,6 +422,30 @@ class NewsletterArchivTest extends TestCase
 
         $this->assertSame('Ohne Versandzeit aktualisiert', $ausgabe->subject);
         $this->assertNull($ausgabe->sent_at);
+    }
+
+    #[TestWith(['Admin'])]
+    #[TestWith(['Vorstand'])]
+    public function test_authorized_roles_cannot_update_newsletter_archive_entry_with_duplicate_topic_keys(string $role): void
+    {
+        $user = $this->actingMember($role);
+        $ausgabe = NewsletterAusgabe::factory()->create();
+
+        $response = $this->actingAs($user)
+            ->from(route('newsletter.archiv.admin.edit', $ausgabe))
+            ->put(route('newsletter.archiv.admin.update', $ausgabe), [
+                'subject' => 'Doppelte Keys',
+                'slug' => 'doppelte-keys',
+                'recipient_roles' => ['Mitglied'],
+                'sent_at' => '2026-05-17 12:00',
+                'topics' => [
+                    ['key' => 'duplicate-key', 'title' => 'A', 'content' => 'B'],
+                    ['key' => 'duplicate-key', 'title' => 'C', 'content' => 'D'],
+                ],
+            ]);
+
+        $response->assertRedirect(route('newsletter.archiv.admin.edit', $ausgabe));
+        $response->assertSessionHasErrors(['topics.1.key']);
     }
 
     public function test_navigation_builder_places_newsletter_archive_only_in_authenticated_verein_section(): void

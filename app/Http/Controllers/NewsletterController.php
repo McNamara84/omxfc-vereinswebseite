@@ -46,7 +46,7 @@ class NewsletterController extends Controller
             'roles.*' => ['string', Rule::in(NewsletterAusgabe::recipientRoleValues())],
             'subject' => ['required', 'string', 'max:255'],
             'topics' => ['required', 'array', 'min:1'],
-            'topics.*.key' => ['nullable', 'string', 'max:255'],
+            'topics.*.key' => ['required', 'string', 'max:255', 'distinct'],
             'topics.*.title' => ['required', 'string', 'max:255'],
             'topics.*.content' => ['required', 'string'],
             'topics.*.images' => ['nullable', 'array'],
@@ -95,18 +95,17 @@ class NewsletterController extends Controller
      */
     private function prepareTopicsForStorage(array $topics): array
     {
+        $normalizedTopics = NewsletterTopics::ensureDistinctPersistentKeys(NewsletterTopics::normalize($topics));
         $preparedTopics = [];
         $uploadedImages = [];
 
         try {
-            foreach (NewsletterTopics::normalize($topics) as $index => $topic) {
+            foreach ($normalizedTopics as $index => $topic) {
                 $newImages = $this->newsletterImageService->uploadImages($topics[$index]['images'] ?? []);
                 $uploadedImages = array_merge($uploadedImages, $newImages);
 
                 $preparedTopics[] = [
-                    'key' => NewsletterTopics::usesLegacyKey($topic['key'])
-                        ? NewsletterTopics::generatePersistentKey()
-                        : $topic['key'],
+                    'key' => $topic['key'],
                     'title' => $topic['title'],
                     'content' => $topic['content'],
                     'images' => $newImages,
