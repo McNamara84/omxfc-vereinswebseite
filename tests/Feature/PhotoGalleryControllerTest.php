@@ -18,19 +18,21 @@ class PhotoGalleryControllerTest extends TestCase
     {
         parent::setUp();
 
-        config()->set('services.nextcloud.links', [
-            '2026' => 'https://cloud.maddrax-fanclub.de/public.php/dav/files/fotos2026Token/Foto',
-            '2025' => 'https://cloud.maddrax-fanclub.de/public.php/dav/files/jnGa6sEecKa3fiX/Foto',
-            '2024' => 'https://cloud.maddrax-fanclub.de/public.php/dav/files/tztWY5ML5XMRWPw/Foto',
-            '2023' => 'https://cloud.maddrax-fanclub.de/public.php/dav/files/jjpfnJbgStE8LcQ/Foto',
-        ]);
+        config(['services.nextcloud.links' => [
+            '2026' => 'https://cloud.maddrax-fanclub.de/s/fotos2026Token',
+            '2025' => 'https://cloud.maddrax-fanclub.de/s/jnGa6sEecKa3fiX',
+            '2024' => 'https://cloud.maddrax-fanclub.de/s/tztWY5ML5XMRWPw',
+            '2023' => 'https://cloud.maddrax-fanclub.de/s/jjpfnJbgStE8LcQ',
+        ]]);
     }
 
     public function test_index_loads_photos_for_years(): void
     {
         Http::fake([
-            'cloud.maddrax-fanclub.de/*1.jpg' => Http::response('', 200),
-            'cloud.maddrax-fanclub.de/*2.jpg' => Http::response('', 404),
+            'https://cloud.maddrax-fanclub.de/public.php/dav/files/fotos2026Token/' => Http::response($this->propfindResponse('fotos2026Token', ['Foto10.jpg', 'Foto2.jpg', 'Foto1.jpg']), 207),
+            'https://cloud.maddrax-fanclub.de/public.php/dav/files/jnGa6sEecKa3fiX/' => Http::response($this->propfindResponse('jnGa6sEecKa3fiX', ['Foto1.jpg']), 207),
+            'https://cloud.maddrax-fanclub.de/public.php/dav/files/tztWY5ML5XMRWPw/' => Http::response($this->propfindResponse('tztWY5ML5XMRWPw', ['Foto1.jpg']), 207),
+            'https://cloud.maddrax-fanclub.de/public.php/dav/files/jjpfnJbgStE8LcQ/' => Http::response($this->propfindResponse('jjpfnJbgStE8LcQ', ['Foto1.jpg']), 207),
         ]);
 
         $this->actingAs($this->actingMember());
@@ -43,6 +45,8 @@ class PhotoGalleryControllerTest extends TestCase
 
         $photos = $response->viewData('photos');
         $this->assertEquals('https://cloud.maddrax-fanclub.de/public.php/dav/files/fotos2026Token/Foto1.jpg', $photos['2026'][0]);
+        $this->assertEquals('https://cloud.maddrax-fanclub.de/public.php/dav/files/fotos2026Token/Foto2.jpg', $photos['2026'][1]);
+        $this->assertEquals('https://cloud.maddrax-fanclub.de/public.php/dav/files/fotos2026Token/Foto10.jpg', $photos['2026'][2]);
         $this->assertEquals('https://cloud.maddrax-fanclub.de/public.php/dav/files/jnGa6sEecKa3fiX/Foto1.jpg', $photos['2025'][0]);
         $this->assertEquals('https://cloud.maddrax-fanclub.de/public.php/dav/files/tztWY5ML5XMRWPw/Foto1.jpg', $photos['2024'][0]);
         $this->assertEquals('https://cloud.maddrax-fanclub.de/public.php/dav/files/jjpfnJbgStE8LcQ/Foto1.jpg', $photos['2023'][0]);
@@ -51,7 +55,7 @@ class PhotoGalleryControllerTest extends TestCase
     public function test_index_uses_fallback_when_no_photos_found(): void
     {
         Http::fake([
-            'cloud.maddrax-fanclub.de/*1.jpg' => Http::response('', 404),
+            'https://cloud.maddrax-fanclub.de/public.php/dav/files/*/' => Http::response($this->propfindResponse('leer', ['notizen.txt'], includeImages: false), 207),
         ]);
 
         $this->actingAs($this->actingMember());
@@ -70,16 +74,16 @@ class PhotoGalleryControllerTest extends TestCase
 
     public function test_index_filters_years_without_configured_links(): void
     {
-        config()->set('services.nextcloud.links', [
+        config(['services.nextcloud.links' => [
             '2026' => '',
-            '2025' => 'https://cloud.maddrax-fanclub.de/public.php/dav/files/jnGa6sEecKa3fiX/Foto',
+            '2025' => 'https://cloud.maddrax-fanclub.de/s/jnGa6sEecKa3fiX',
             '2024' => '',
-            '2023' => 'https://cloud.maddrax-fanclub.de/public.php/dav/files/jjpfnJbgStE8LcQ/Foto',
-        ]);
+            '2023' => 'https://cloud.maddrax-fanclub.de/s/jjpfnJbgStE8LcQ',
+        ]]);
 
         Http::fake([
-            'cloud.maddrax-fanclub.de/*1.jpg' => Http::response('', 200),
-            'cloud.maddrax-fanclub.de/*2.jpg' => Http::response('', 404),
+            'https://cloud.maddrax-fanclub.de/public.php/dav/files/jnGa6sEecKa3fiX/' => Http::response($this->propfindResponse('jnGa6sEecKa3fiX', ['Foto1.jpg']), 207),
+            'https://cloud.maddrax-fanclub.de/public.php/dav/files/jjpfnJbgStE8LcQ/' => Http::response($this->propfindResponse('jjpfnJbgStE8LcQ', ['Foto1.jpg']), 207),
         ]);
 
         $this->actingAs($this->actingMember());
@@ -97,7 +101,36 @@ class PhotoGalleryControllerTest extends TestCase
     public function test_proxy_image_returns_remote_file(): void
     {
         Http::fake([
-            'cloud.maddrax-fanclub.de/*Foto1.jpg' => Http::response('img', 200, ['Content-Type' => 'image/jpeg']),
+            'https://cloud.maddrax-fanclub.de/public.php/dav/files/fotos2026Token/' => Http::response($this->propfindResponse('fotos2026Token', ['Foto1.webp']), 207),
+            'https://cloud.maddrax-fanclub.de/public.php/dav/files/fotos2026Token/Foto1.webp' => Http::response('img', 200, ['Content-Type' => 'image/webp; charset=binary']),
+        ]);
+
+        $response = app(PhotoGalleryController::class)->proxyImage('2026', 1);
+
+        $this->assertEquals(200, $response->getStatusCode());
+        $this->assertEquals('image/webp', $response->headers->get('Content-Type'));
+        $this->assertEquals('img', $response->getContent());
+    }
+
+    public function test_proxy_image_falls_back_to_extension_based_content_type_when_remote_type_is_invalid(): void
+    {
+        Http::fake([
+            'https://cloud.maddrax-fanclub.de/public.php/dav/files/fotos2026Token/' => Http::response($this->propfindResponse('fotos2026Token', ['Foto1.png']), 207),
+            'https://cloud.maddrax-fanclub.de/public.php/dav/files/fotos2026Token/Foto1.png' => Http::response('img', 200, ['Content-Type' => 'application/octet-stream']),
+        ]);
+
+        $response = app(PhotoGalleryController::class)->proxyImage('2026', 1);
+
+        $this->assertEquals(200, $response->getStatusCode());
+        $this->assertEquals('image/png', $response->headers->get('Content-Type'));
+        $this->assertEquals('img', $response->getContent());
+    }
+
+    public function test_proxy_image_does_not_forward_non_whitelisted_image_content_types(): void
+    {
+        Http::fake([
+            'https://cloud.maddrax-fanclub.de/public.php/dav/files/fotos2026Token/' => Http::response($this->propfindResponse('fotos2026Token', ['Foto1.jpg']), 207),
+            'https://cloud.maddrax-fanclub.de/public.php/dav/files/fotos2026Token/Foto1.jpg' => Http::response('img', 200, ['Content-Type' => 'image/svg+xml']),
         ]);
 
         $response = app(PhotoGalleryController::class)->proxyImage('2026', 1);
@@ -110,7 +143,8 @@ class PhotoGalleryControllerTest extends TestCase
     public function test_proxy_image_returns_placeholder_on_failure(): void
     {
         Http::fake([
-            'cloud.maddrax-fanclub.de/*Foto1.jpg' => Http::response('', 404),
+            'https://cloud.maddrax-fanclub.de/public.php/dav/files/fotos2026Token/' => Http::response($this->propfindResponse('fotos2026Token', ['Foto1.jpg']), 207),
+            'https://cloud.maddrax-fanclub.de/public.php/dav/files/fotos2026Token/Foto1.jpg' => Http::response('', 404),
         ]);
 
         $response = app(PhotoGalleryController::class)->proxyImage('2026', 1);
@@ -119,5 +153,45 @@ class PhotoGalleryControllerTest extends TestCase
         $this->assertEquals(200, $response->getStatusCode());
         $this->assertEquals('image/svg+xml', $response->headers->get('Content-Type'));
         $this->assertStringContainsString('2026', $response->getContent());
+    }
+
+    private function propfindResponse(string $token, array $files, bool $includeImages = true): string
+    {
+        $responses = [<<<XML
+<d:response>
+    <d:href>/public.php/dav/files/{$token}/</d:href>
+    <d:propstat>
+        <d:prop>
+            <d:resourcetype><d:collection/></d:resourcetype>
+        </d:prop>
+        <d:status>HTTP/1.1 200 OK</d:status>
+    </d:propstat>
+</d:response>
+XML];
+
+        foreach ($files as $file) {
+            $contentType = $includeImages ? 'image/jpeg' : 'text/plain';
+
+            $responses[] = <<<XML
+<d:response>
+    <d:href>/public.php/dav/files/{$token}/{$file}</d:href>
+    <d:propstat>
+        <d:prop>
+            <d:getcontenttype>{$contentType}</d:getcontenttype>
+        </d:prop>
+        <d:status>HTTP/1.1 200 OK</d:status>
+    </d:propstat>
+</d:response>
+XML;
+        }
+
+        $items = implode('', $responses);
+
+        return <<<XML
+<?xml version="1.0"?>
+<d:multistatus xmlns:d="DAV:">
+    {$items}
+</d:multistatus>
+XML;
     }
 }

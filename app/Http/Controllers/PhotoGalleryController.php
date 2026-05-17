@@ -2,10 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\NextcloudGalleryService;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class PhotoGalleryController extends Controller
 {
+    public function __construct(
+        private readonly NextcloudGalleryService $galleryService,
+    ) {}
+
     public function index()
     {
         $photoBaseUrls = $this->photoBaseUrls();
@@ -23,56 +29,19 @@ class PhotoGalleryController extends Controller
      */
     private function getPhotosForYear(string $year, ?string $baseUrl = null): array
     {
-        $photoUrls = [];
-
         $baseUrl ??= $this->photoBaseUrls()[$year] ?? '';
 
         if (empty($baseUrl)) {
             return $this->getFallbackPhotos($year);
         }
 
-        // Fotos mit einer Schleife laden und abbrechen, wenn ein Foto nicht existiert
-        $maxTries = 5; // Sicherheitslimit
-        $index = 1;
+        $photoUrls = $this->galleryService->photoUrls($baseUrl);
 
-        while ($index <= $maxTries) {
-            $photoUrl = $baseUrl.$index.'.jpg';
-
-            if ($this->photoExists($photoUrl)) {
-                $photoUrls[] = $photoUrl;
-                $index++;
-            } else {
-                // Wenn ein Foto nicht existiert, brechen wir die Schleife ab
-                break;
-            }
-        }
-
-        // Cache die Anzahl der Fotos für zukünftige Anfragen
-        // (optional - könnte in einer Datenbank oder Cache gespeichert werden)
-        // Cache::put('photo_count_' . $year, count($photoUrls), now()->addDay());
-
-        // Wenn keine Fotos gefunden wurden, Fallback verwenden
         if (empty($photoUrls)) {
             return $this->getFallbackPhotos($year);
         }
 
         return $photoUrls;
-    }
-
-    /**
-     * Prüft, ob ein Foto unter der angegebenen URL existiert
-     */
-    private function photoExists(string $url): bool
-    {
-        try {
-            $response = Http::timeout(5)->head($url);
-
-            return $response->successful();
-        } catch (\Exception $e) {
-            \Log::error('Fehler beim Prüfen des Fotos: '.$e->getMessage());
-
-            return false;
-        }
     }
 
     /**
@@ -155,18 +124,22 @@ SVG;
             return $this->placeholderResponse($year, $index);
         }
 
-        $photoUrl = $baseUrl.$index.'.jpg';
+        $photoUrl = $this->galleryService->photoUrlForIndex($baseUrl, $index);
+
+        if ($photoUrl === null) {
+            return $this->placeholderResponse($year, $index);
+        }
 
         try {
             $response = Http::timeout(10)->get($photoUrl);
 
             if ($response->successful()) {
                 return response($response->body(), 200)
-                    ->header('Content-Type', 'image/jpeg')
+                    ->header('Content-Type', $this->proxiedImageContentType($photoUrl, (string) $response->header('Content-Type')))
                     ->header('Cache-Control', 'public, max-age=86400'); // 1 Tag cachen
             }
         } catch (\Exception $e) {
-            \Log::error('Fehler beim Proxy-Aufruf: '.$e->getMessage());
+            Log::error('Fehler beim Proxy-Aufruf: '.$e->getMessage());
         }
 
         return $this->placeholderResponse($year, $index);
@@ -177,5 +150,22 @@ SVG;
         return response($this->placeholderSvg($year, $index), 200)
             ->header('Content-Type', 'image/svg+xml')
             ->header('Cache-Control', 'public, max-age=86400');
+    }
+
+    private function proxiedImageContentType(string $photoUrl, string $responseContentType): string
+    {
+        $normalizedContentType = $this->galleryService->normalizeAllowedImageContentType($responseContentType);
+
+        if ($normalizedContentType !== null) {
+            return $normalizedContentType;
+        }
+
+        return match (strtolower(pathinfo((string) parse_url($photoUrl, PHP_URL_PATH), PATHINFO_EXTENSION))) {
+            'png' => 'image/png',
+            'webp' => 'image/webp',
+            'gif' => 'image/gif',
+            'avif' => 'image/avif',
+            default => 'image/jpeg',
+        };
     }
 }
