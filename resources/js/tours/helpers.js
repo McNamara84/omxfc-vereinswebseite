@@ -43,7 +43,19 @@ export function isElementVisible(element) {
         return false;
     }
 
+    for (let ancestor = element.parentElement; ancestor; ancestor = ancestor.parentElement) {
+        if (ancestor instanceof HTMLDetailsElement && !ancestor.open) {
+            const summary = ancestor.querySelector('summary');
+
+            if (!(summary instanceof HTMLElement) || !summary.contains(element)) {
+                return false;
+            }
+        }
+    }
+
     const style = window.getComputedStyle(element);
 
-    return style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0';
+    return style.display !== 'none'
+        && style.visibility !== 'hidden'
+        && style.opacity !== '0';
 }

@@ -35,6 +35,57 @@ function renderRunnerDom() {
     `;
 }
 
+function renderRunnerDomWithDesktopDropdown() {
+    document.body.innerHTML = `
+        <div
+            id="tour-runner-root"
+            data-tour-current-url="/tour/current"
+            data-tour-start-url-template="/tour/__TOUR_ASSIGNMENT__/start"
+            data-tour-progress-url-template="/tour/__TOUR_ASSIGNMENT__/progress"
+            data-tour-dismiss-url-template="/tour/__TOUR_ASSIGNMENT__/dismiss"
+            data-tour-complete-url-template="/tour/__TOUR_ASSIGNMENT__/complete"
+        >
+            <div id="tour-runner-backdrop" class="hidden"></div>
+            <div id="tour-runner-highlight" class="hidden"></div>
+            <section id="tour-runner-panel" class="hidden">
+                <h2 id="tour-runner-title"></h2>
+                <p id="tour-runner-description"></p>
+                <p id="tour-runner-counter"></p>
+                <span id="tour-runner-progress-label"></span>
+                <div id="tour-runner-progress-bar"></div>
+                <button id="tour-runner-back" type="button">Zurueck</button>
+                <button id="tour-runner-skip" type="button">Spaeter</button>
+                <button id="tour-runner-next" type="button">Weiter</button>
+                <button id="tour-runner-complete" type="button" class="hidden">Tour abschliessen</button>
+            </section>
+        </div>
+
+        <details id="community-dropdown">
+            <summary>
+                <div data-tour-device="desktop" data-tour-key="section-community" data-tour-open="false">Community</div>
+            </summary>
+            <a id="community-members-link" href="/mitglieder" data-tour-device="desktop" data-tour-key="community-members">Mitgliederliste</a>
+        </details>
+    `;
+
+    const dropdown = document.getElementById('community-dropdown');
+    const summary = document.querySelector('[data-tour-device="desktop"][data-tour-key="section-community"]');
+
+    if (dropdown instanceof HTMLDetailsElement && summary instanceof HTMLElement) {
+        summary.click = vi.fn(() => {
+            const isOpen = dropdown.hasAttribute('open');
+
+            if (isOpen) {
+                dropdown.removeAttribute('open');
+            } else {
+                dropdown.setAttribute('open', '');
+            }
+
+            summary.dataset.tourOpen = dropdown.hasAttribute('open') ? 'true' : 'false';
+        });
+    }
+}
+
 function createPayload() {
     return {
         assignment_id: 7,
@@ -203,5 +254,42 @@ describe('tour runner', () => {
 
         expect(document.getElementById('tour-runner-panel')?.classList.contains('hidden')).toBe(true);
         expect(axios.post).toHaveBeenLastCalledWith('/tour/7/dismiss');
+    });
+
+    it('oeffnet Desktop-Dropdowns ueber den Tour-Trigger, bevor Unterpunkte gezeigt werden', async () => {
+        vi.resetModules();
+        renderRunnerDomWithDesktopDropdown();
+        Object.defineProperty(window, 'innerWidth', {
+            configurable: true,
+            value: 1440,
+        });
+
+        HTMLElement.prototype.scrollIntoView = vi.fn();
+        window.toast = vi.fn();
+
+        stubAxios({
+            assignment_id: 9,
+            status: 'open',
+            current_step_key: 'community-members',
+            steps: [
+                {
+                    key: 'community-members',
+                    title: 'Mitgliederliste',
+                    description: 'Unterpunkt der Community-Navigation',
+                    selectors: {
+                        desktop: '[data-tour-device="desktop"][data-tour-key="community-members"]',
+                        mobile: '[data-tour-device="mobile"][data-tour-key="community-members"]',
+                    },
+                    reveal: {
+                        desktop: ['[data-tour-device="desktop"][data-tour-key="section-community"]'],
+                    },
+                },
+            ],
+        });
+
+        await bootRunner();
+
+        expect(document.getElementById('community-dropdown')?.hasAttribute('open')).toBe(true);
+        expect(document.getElementById('tour-runner-title')?.textContent).toBe('Mitgliederliste');
     });
 });

@@ -221,11 +221,30 @@ function waitForFrame() {
     return new Promise((resolve) => window.requestAnimationFrame(() => resolve()));
 }
 
+function resolveRevealTrigger(toggle) {
+    if (!(toggle instanceof HTMLElement)) {
+        return null;
+    }
+
+    if (toggle.tagName === 'SUMMARY') {
+        return toggle;
+    }
+
+    const summary = toggle.closest('summary');
+
+    if (summary instanceof HTMLElement) {
+        return summary;
+    }
+
+    return toggle;
+}
+
 async function revealStep(step) {
     for (const selector of revealSelectorsForStep(step, detectTourDevice())) {
         const toggle = document.querySelector(selector);
+        const trigger = resolveRevealTrigger(toggle);
 
-        if (!(toggle instanceof HTMLElement)) {
+        if (!(toggle instanceof HTMLElement) || !(trigger instanceof HTMLElement)) {
             continue;
         }
 
@@ -233,7 +252,7 @@ async function revealStep(step) {
             continue;
         }
 
-        toggle.click();
+        trigger.click();
         await waitForFrame();
         await waitForFrame();
     }

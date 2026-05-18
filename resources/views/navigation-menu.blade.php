@@ -50,15 +50,15 @@
                         <p class="hidden px-2 pb-2 text-[0.62rem] font-semibold uppercase tracking-[0.24em] text-base-content/45 2xl:block">Bereiche</p>
                         <x-ui.action-cluster>
                             @foreach($sectionNavigation as $section)
-                                <x-dropdown as="menu" :right="$loop->last" class="shrink-0" x-bind:data-tour-open="open ? 'true' : 'false'">
+                                <x-dropdown as="menu" :right="$loop->last" class="shrink-0">
                                     <x-slot:trigger>
                                         <div
+                                            class="btn btn-sm rounded-full whitespace-nowrap {{ $section['active'] ? 'btn-primary btn-outline' : 'btn-ghost bg-base-100/60' }}"
                                             data-tour-device="desktop"
                                             @if($section['tour_key'] ?? null)
                                                 data-tour-key="{{ $section['tour_key'] }}"
                                             @endif
                                             x-bind:data-tour-open="open ? 'true' : 'false'"
-                                            class="btn btn-sm rounded-full whitespace-nowrap {{ $section['active'] ? 'btn-primary btn-outline' : 'btn-ghost bg-base-100/60' }}"
                                         >
                                             <span>{{ $section['title'] }}</span>
                                             <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -98,7 +98,7 @@
                 {{-- Profil-Dropdown / Login (Desktop) --}}
                 <div class="hidden xl:flex xl:items-center">
                     @auth
-                        <x-dropdown as="menu" right class="shrink-0" x-bind:data-tour-open="open ? 'true' : 'false'">
+                        <x-dropdown as="menu" right class="shrink-0">
                             <x-slot:trigger>
                                 <div
                                     class="flex items-center"

@@ -2,6 +2,7 @@ import {
     TOUR_DESKTOP_BREAKPOINT,
     detectTourDevice,
     filterReachableSteps,
+    isElementVisible,
     revealSelectorsForStep,
     resolveCurrentStepIndex,
     selectorForStep,
@@ -60,5 +61,17 @@ describe('tour helpers', () => {
 
         expect(filterReachableSteps(steps, 'desktop')).toHaveLength(2);
         expect(filterReachableSteps(steps, 'mobile')).toHaveLength(0);
+    });
+
+    it('behandelt Elemente in geschlossenen details als unsichtbar, ausser summary selbst', () => {
+        document.body.innerHTML = `
+            <details>
+                <summary id="tour-summary">Community</summary>
+                <a id="tour-hidden-link" href="/mitglieder">Mitgliederliste</a>
+            </details>
+        `;
+
+        expect(isElementVisible(document.getElementById('tour-summary'))).toBe(true);
+        expect(isElementVisible(document.getElementById('tour-hidden-link'))).toBe(false);
     });
 });
