@@ -221,6 +221,38 @@ function waitForFrame() {
     return new Promise((resolve) => window.requestAnimationFrame(() => resolve()));
 }
 
+async function resolveStepTarget(step, device) {
+    const selector = selectorForStep(step, device);
+    const revealSelectors = revealSelectorsForStep(step, device);
+    let target = document.querySelector(selector);
+
+    if (revealSelectors.length === 0) {
+        return target;
+    }
+
+    await revealStep(step);
+    await waitForFrame();
+    await waitForFrame();
+
+    target = document.querySelector(selector);
+
+    if (target instanceof HTMLElement && isElementVisible(target)) {
+        return target;
+    }
+
+    await revealStep(step);
+    await waitForFrame();
+    await waitForFrame();
+
+    target = document.querySelector(selector);
+
+    if (target instanceof HTMLElement && isElementVisible(target)) {
+        return target;
+    }
+
+    return target;
+}
+
 function resolveRevealTrigger(toggle) {
     if (!(toggle instanceof HTMLElement)) {
         return null;
@@ -469,9 +501,7 @@ async function showCurrentStep() {
         stepKey: step.key,
     });
 
-    await revealStep(step);
-
-    const target = document.querySelector(selectorForStep(step, device));
+    const target = await resolveStepTarget(step, device);
 
     if (!(target instanceof HTMLElement) || !isElementVisible(target)) {
         logTourDebug('show-step:hidden-target', {

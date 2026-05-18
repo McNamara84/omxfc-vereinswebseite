@@ -1,6 +1,8 @@
 async function flushAsyncWork() {
     await Promise.resolve();
     await Promise.resolve();
+    await new Promise((resolve) => window.requestAnimationFrame(() => resolve()));
+    await new Promise((resolve) => window.requestAnimationFrame(() => resolve()));
     await new Promise((resolve) => setTimeout(resolve, 0));
 }
 
@@ -65,6 +67,7 @@ function renderRunnerDomWithDesktopDropdown() {
                 <div data-tour-device="desktop" data-tour-key="section-community" data-tour-open="false">Community</div>
             </summary>
             <a id="community-members-link" href="/mitglieder" data-tour-device="desktop" data-tour-key="community-members">Mitgliederliste</a>
+            <a id="community-reviews-link" href="/rezensionen" data-tour-device="desktop" data-tour-key="community-reviews">Rezensionen</a>
         </details>
     `;
 
@@ -84,6 +87,30 @@ function renderRunnerDomWithDesktopDropdown() {
             summary.dataset.tourOpen = dropdown.hasAttribute('open') ? 'true' : 'false';
         });
     }
+}
+
+function openDesktopDropdown() {
+    const dropdown = document.getElementById('community-dropdown');
+    const trigger = document.querySelector('[data-tour-device="desktop"][data-tour-key="section-community"]');
+
+    if (!(dropdown instanceof HTMLDetailsElement) || !(trigger instanceof HTMLElement)) {
+        return;
+    }
+
+    dropdown.setAttribute('open', '');
+    trigger.dataset.tourOpen = 'true';
+}
+
+function closeDesktopDropdown() {
+    const dropdown = document.getElementById('community-dropdown');
+    const trigger = document.querySelector('[data-tour-device="desktop"][data-tour-key="section-community"]');
+
+    if (!(dropdown instanceof HTMLDetailsElement) || !(trigger instanceof HTMLElement)) {
+        return;
+    }
+
+    dropdown.removeAttribute('open');
+    trigger.dataset.tourOpen = 'false';
 }
 
 function createPayload() {
@@ -291,5 +318,70 @@ describe('tour runner', () => {
 
         expect(document.getElementById('community-dropdown')?.hasAttribute('open')).toBe(true);
         expect(document.getElementById('tour-runner-title')?.textContent).toBe('Mitgliederliste');
+    });
+
+    it('oeffnet den Desktop-Dropdown beim Wechsel zum naechsten Unterpunkt erneut, wenn click.outside ihn schliesst', async () => {
+        vi.resetModules();
+        renderRunnerDomWithDesktopDropdown();
+        Object.defineProperty(window, 'innerWidth', {
+            configurable: true,
+            value: 1440,
+        });
+
+        HTMLElement.prototype.scrollIntoView = vi.fn();
+        window.toast = vi.fn();
+
+        openDesktopDropdown();
+
+        stubAxios({
+            assignment_id: 10,
+            status: 'open',
+            current_step_key: 'community-members',
+            steps: [
+                {
+                    key: 'community-members',
+                    title: 'Mitgliederliste',
+                    description: 'Unterpunkt der Community-Navigation',
+                    selectors: {
+                        desktop: '[data-tour-device="desktop"][data-tour-key="community-members"]',
+                        mobile: '[data-tour-device="mobile"][data-tour-key="community-members"]',
+                    },
+                    reveal: {
+                        desktop: ['[data-tour-device="desktop"][data-tour-key="section-community"]'],
+                    },
+                },
+                {
+                    key: 'community-reviews',
+                    title: 'Rezensionen',
+                    description: 'Unterpunkt der Community-Navigation',
+                    selectors: {
+                        desktop: '[data-tour-device="desktop"][data-tour-key="community-reviews"]',
+                        mobile: '[data-tour-device="mobile"][data-tour-key="community-reviews"]',
+                    },
+                    reveal: {
+                        desktop: ['[data-tour-device="desktop"][data-tour-key="section-community"]'],
+                    },
+                },
+            ],
+        });
+
+        document.getElementById('tour-runner-next')?.addEventListener('click', () => {
+            window.requestAnimationFrame(() => {
+                closeDesktopDropdown();
+            });
+        });
+
+        await bootRunner();
+
+        document.getElementById('tour-runner-next')?.click();
+        await flushAsyncWork();
+        await flushAsyncWork();
+        await flushAsyncWork();
+
+        expect(document.getElementById('community-dropdown')?.hasAttribute('open')).toBe(true);
+        expect(document.getElementById('tour-runner-title')?.textContent).toBe('Rezensionen');
+        expect(window.axios.post).toHaveBeenLastCalledWith('/tour/10/progress', {
+            step_key: 'community-reviews',
+        });
     });
 });
