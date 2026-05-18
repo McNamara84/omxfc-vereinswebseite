@@ -6,6 +6,7 @@ use App\Enums\Role;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Symfony\Component\DomCrawler\Crawler;
 use Tests\TestCase;
 
 class NavigationTourMarkupTest extends TestCase
@@ -18,7 +19,7 @@ class NavigationTourMarkupTest extends TestCase
         $member = User::factory()->create(['current_team_id' => $team->id]);
         $team->users()->attach($member, ['role' => Role::Mitglied->value]);
 
-        $this->actingAs($member)
+        $response = $this->actingAs($member)
             ->get(route('dashboard'))
             ->assertOk()
             ->assertSee('id="tour-runner-root"', false)
@@ -27,5 +28,9 @@ class NavigationTourMarkupTest extends TestCase
             ->assertSee('data-tour-key="profile-menu"', false)
             ->assertSee('data-tour-key="profile-settings"', false)
             ->assertSee('data-tour-key="mobile-menu-toggle"', false);
+
+        $crawler = new Crawler($response->getContent());
+
+        $this->assertCount(0, $crawler->filter('nav summary button'));
     }
 }

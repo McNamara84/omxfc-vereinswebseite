@@ -52,8 +52,7 @@
                             @foreach($sectionNavigation as $section)
                                 <x-dropdown as="menu" :right="$loop->last" class="shrink-0" x-bind:data-tour-open="open ? 'true' : 'false'">
                                     <x-slot:trigger>
-                                        <button
-                                            type="button"
+                                        <div
                                             data-tour-device="desktop"
                                             @if($section['tour_key'] ?? null)
                                                 data-tour-key="{{ $section['tour_key'] }}"
@@ -66,7 +65,7 @@
                                             <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                                                 <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.168l3.71-3.938a.75.75 0 1 1 1.08 1.04l-4.25 4.5a.75.75 0 0 1-1.08 0l-4.25-4.5a.75.75 0 0 1 .02-1.06Z" clip-rule="evenodd" />
                                             </svg>
-                                        </button>
+                                        </div>
                                     </x-slot:trigger>
                                     @foreach($section['items'] as $item)
                                         <li class="w-fit min-w-[14rem] max-w-[min(24rem,calc(100vw-2rem))]" data-testid="desktop-nav-dropdown-item">
@@ -102,7 +101,7 @@
                     @auth
                         <x-dropdown as="menu" right class="shrink-0" x-bind:data-tour-open="open ? 'true' : 'false'">
                             <x-slot:trigger>
-                                <button
+                                <div
                                     class="flex items-center"
                                     data-tour-device="desktop"
                                     data-tour-key="profile-menu"
@@ -110,7 +109,8 @@
                                     :aria-expanded="open"
                                 >
                                     <img class="h-8 w-8 rounded-full object-cover" src="{{ Auth::user()->profile_photo_url }}" alt="{{ Auth::user()->name }}" />
-                                </button>
+                                    <span class="sr-only">Profilmenü öffnen</span>
+                                </div>
                             </x-slot:trigger>
                             <x-menu-item title="Profil" link="{{ route('profile.show') }}" wire:navigate icon="o-user" data-tour-device="desktop" data-tour-key="profile-settings" />
                             <x-menu-separator />
