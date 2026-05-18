@@ -58,7 +58,6 @@
                                                 data-tour-key="{{ $section['tour_key'] }}"
                                             @endif
                                             x-bind:data-tour-open="open ? 'true' : 'false'"
-                                            :aria-expanded="open"
                                             class="btn btn-sm rounded-full whitespace-nowrap {{ $section['active'] ? 'btn-primary btn-outline' : 'btn-ghost bg-base-100/60' }}"
                                         >
                                             <span>{{ $section['title'] }}</span>
@@ -106,7 +105,6 @@
                                     data-tour-device="desktop"
                                     data-tour-key="profile-menu"
                                     x-bind:data-tour-open="open ? 'true' : 'false'"
-                                    :aria-expanded="open"
                                 >
                                     <img class="h-8 w-8 rounded-full object-cover" src="{{ Auth::user()->profile_photo_url }}" alt="{{ Auth::user()->name }}" />
                                     <span class="sr-only">Profilmenü öffnen</span>

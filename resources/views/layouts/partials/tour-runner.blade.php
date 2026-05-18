@@ -37,13 +37,19 @@
 
                     <div class="flex flex-wrap items-center justify-between gap-3">
                         <div class="flex flex-wrap gap-2">
-                            <x-button id="tour-runner-skip" label="Später" class="btn-ghost btn-sm" />
-                            <x-button id="tour-runner-back" label="Zurück" class="btn-ghost btn-sm" />
+                            <button id="tour-runner-skip" type="button" class="btn btn-ghost btn-sm">Später</button>
+                            <button id="tour-runner-back" type="button" class="btn btn-ghost btn-sm">Zurück</button>
                         </div>
 
                         <div class="flex flex-wrap gap-2">
-                            <x-button id="tour-runner-next" label="Weiter" icon="o-arrow-right" class="btn-primary btn-sm" />
-                            <x-button id="tour-runner-complete" label="Tour abschließen" icon="o-check" class="btn-success btn-sm hidden" />
+                            <button id="tour-runner-next" type="button" class="btn btn-primary btn-sm">
+                                <span>Weiter</span>
+                                <x-icon name="o-arrow-right" class="h-4 w-4" />
+                            </button>
+                            <button id="tour-runner-complete" type="button" class="btn btn-success btn-sm hidden">
+                                <span>Tour abschließen</span>
+                                <x-icon name="o-check" class="h-4 w-4" />
+                            </button>
                         </div>
                     </div>
                 </div>

@@ -23,6 +23,10 @@ class NavigationTourMarkupTest extends TestCase
             ->get(route('dashboard'))
             ->assertOk()
             ->assertSee('id="tour-runner-root"', false)
+            ->assertSee('id="tour-runner-skip"', false)
+            ->assertSee('id="tour-runner-back"', false)
+            ->assertSee('id="tour-runner-next"', false)
+            ->assertSee('id="tour-runner-complete"', false)
             ->assertSee('data-tour-key="dashboard"', false)
             ->assertSee('data-tour-key="section-community"', false)
             ->assertSee('data-tour-key="profile-menu"', false)
@@ -32,5 +36,6 @@ class NavigationTourMarkupTest extends TestCase
         $crawler = new Crawler($response->getContent());
 
         $this->assertCount(0, $crawler->filter('nav summary button'));
+        $this->assertCount(0, $crawler->filter('nav summary [data-tour-key][aria-expanded]'));
     }
 }
