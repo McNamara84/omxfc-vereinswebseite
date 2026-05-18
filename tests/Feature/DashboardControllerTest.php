@@ -56,6 +56,9 @@ class DashboardControllerTest extends TestCase
 
     public function test_admin_can_approve_applicant(): void
     {
+        $hauptmenueVersion = (int) config('tours.hauptmenue.version');
+        $profilpflegeVersion = (int) config('tours.profilpflege.version');
+
         Mail::fake();
         $admin = $this->actingAdmin();
         $applicant = $this->createApplicant();
@@ -72,14 +75,14 @@ class DashboardControllerTest extends TestCase
         $this->assertDatabaseHas('tour_assignments', [
             'user_id' => $applicant->id,
             'tour_key' => 'hauptmenue',
-            'tour_version' => 1,
+            'tour_version' => $hauptmenueVersion,
             'status' => TourAssignmentStatus::Pending->value,
             'assigned_via' => TourAssignmentSource::System->value,
         ]);
         $this->assertDatabaseHas('tour_assignments', [
             'user_id' => $applicant->id,
             'tour_key' => 'profilpflege',
-            'tour_version' => 1,
+            'tour_version' => $profilpflegeVersion,
             'status' => TourAssignmentStatus::Pending->value,
             'assigned_via' => TourAssignmentSource::System->value,
         ]);
@@ -89,6 +92,9 @@ class DashboardControllerTest extends TestCase
 
     public function test_approved_member_auto_tours_are_only_assigned_once(): void
     {
+        $hauptmenueVersion = (int) config('tours.hauptmenue.version');
+        $profilpflegeVersion = (int) config('tours.profilpflege.version');
+
         Mail::fake();
         $admin = $this->actingAdmin();
         $applicant = $this->createApplicant();
@@ -103,12 +109,12 @@ class DashboardControllerTest extends TestCase
         $this->assertDatabaseHas('tour_assignments', [
             'user_id' => $applicant->id,
             'tour_key' => 'hauptmenue',
-            'tour_version' => 1,
+            'tour_version' => $hauptmenueVersion,
         ]);
         $this->assertDatabaseHas('tour_assignments', [
             'user_id' => $applicant->id,
             'tour_key' => 'profilpflege',
-            'tour_version' => 1,
+            'tour_version' => $profilpflegeVersion,
         ]);
     }
 
