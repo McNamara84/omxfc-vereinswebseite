@@ -23,7 +23,7 @@ class TourManagementTest extends TestCase
         TourAssignment::query()->create([
             'user_id' => $member->id,
             'tour_key' => 'hauptmenue',
-            'tour_version' => 1,
+            'tour_version' => (int) config('tours.hauptmenue.version'),
             'status' => TourAssignmentStatus::Completed,
             'assigned_via' => TourAssignmentSource::System,
             'assigned_at' => now()->subDay(),
@@ -74,7 +74,7 @@ class TourManagementTest extends TestCase
         $assignment = TourAssignment::query()->create([
             'user_id' => $member->id,
             'tour_key' => 'hauptmenue',
-            'tour_version' => 1,
+            'tour_version' => (int) config('tours.hauptmenue.version'),
             'status' => TourAssignmentStatus::Completed,
             'assigned_via' => TourAssignmentSource::System,
             'assigned_at' => now()->subDay(),
@@ -115,7 +115,7 @@ class TourManagementTest extends TestCase
         $this->assertDatabaseHas('tour_assignments', [
             'user_id' => $member->id,
             'tour_key' => 'profilpflege',
-            'tour_version' => 1,
+            'tour_version' => (int) config('tours.profilpflege.version'),
             'status' => TourAssignmentStatus::Pending->value,
             'assigned_via' => TourAssignmentSource::Manual->value,
             'assigned_by_user_id' => $vorstand->id,

@@ -35,20 +35,20 @@ class TourAssignmentServiceTest extends TestCase
             'metadata' => [],
         ]);
 
-        Config::set('tours.hauptmenue.version', 2);
+        $currentVersion = (int) config('tours.hauptmenue.version');
 
         $assignment = app(TourAssignmentService::class)->currentPromptableAssignmentForUser($member);
 
         $this->assertNotNull($assignment);
         $this->assertSame('hauptmenue', $assignment->tour_key);
-        $this->assertSame(2, $assignment->tour_version);
+        $this->assertSame($currentVersion, $assignment->tour_version);
         $this->assertSame(TourAssignmentStatus::Pending, $assignment->status);
         $this->assertNotSame($staleAssignment->id, $assignment->id);
 
         $staleAssignment = $staleAssignment->fresh();
 
         $this->assertSame(TourAssignmentStatus::Completed, $staleAssignment->status);
-        $this->assertSame(2, $staleAssignment->metadata['superseded_by_version'] ?? null);
+        $this->assertSame($currentVersion, $staleAssignment->metadata['superseded_by_version'] ?? null);
     }
 
     public function test_current_promptable_assignment_uses_creation_order_as_tiebreaker(): void
@@ -61,7 +61,7 @@ class TourAssignmentServiceTest extends TestCase
         $first = TourAssignment::create([
             'user_id' => $member->id,
             'tour_key' => 'hauptmenue',
-            'tour_version' => 1,
+            'tour_version' => (int) config('tours.hauptmenue.version'),
             'status' => TourAssignmentStatus::Pending,
             'assigned_via' => TourAssignmentSource::System,
             'assigned_at' => now(),
@@ -71,7 +71,7 @@ class TourAssignmentServiceTest extends TestCase
         TourAssignment::create([
             'user_id' => $member->id,
             'tour_key' => 'profilpflege',
-            'tour_version' => 1,
+            'tour_version' => (int) config('tours.profilpflege.version'),
             'status' => TourAssignmentStatus::Pending,
             'assigned_via' => TourAssignmentSource::System,
             'assigned_at' => $first->assigned_at,
@@ -96,7 +96,7 @@ class TourAssignmentServiceTest extends TestCase
         TourAssignment::create([
             'user_id' => $member->id,
             'tour_key' => 'hauptmenue',
-            'tour_version' => 1,
+            'tour_version' => (int) config('tours.hauptmenue.version'),
             'status' => TourAssignmentStatus::Completed,
             'assigned_via' => TourAssignmentSource::System,
             'assigned_by_user_id' => null,

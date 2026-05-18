@@ -26,12 +26,12 @@ class TourControllerTest extends TestCase
         return $user;
     }
 
-    private function createPendingAssignment(User $user): TourAssignment
+    private function createPendingAssignment(User $user, ?int $tourVersion = null): TourAssignment
     {
         return TourAssignment::create([
             'user_id' => $user->id,
             'tour_key' => 'hauptmenue',
-            'tour_version' => 1,
+            'tour_version' => $tourVersion ?? (int) config('tours.hauptmenue.version'),
             'status' => TourAssignmentStatus::Pending,
             'assigned_via' => TourAssignmentSource::System,
             'assigned_by_user_id' => null,
@@ -51,21 +51,20 @@ class TourControllerTest extends TestCase
             ->assertJsonPath('tour.assignment_id', $assignment->id)
             ->assertJsonPath('tour.key', 'hauptmenue')
             ->assertJsonPath('tour.status', TourAssignmentStatus::Pending->value)
-            ->assertJsonCount(48, 'tour.steps');
+            ->assertJsonCount(34, 'tour.steps');
     }
 
     public function test_current_upgrades_outdated_assignment_before_returning_payload(): void
     {
         $member = $this->createMember();
-        $staleAssignment = $this->createPendingAssignment($member);
-
-        Config::set('tours.hauptmenue.version', 2);
+        $staleAssignment = $this->createPendingAssignment($member, 1);
+        $currentVersion = (int) config('tours.hauptmenue.version');
 
         $response = $this->actingAs($member)
             ->getJson(route('touren.current'))
             ->assertOk()
             ->assertJsonPath('tour.key', 'hauptmenue')
-            ->assertJsonPath('tour.version', 2)
+            ->assertJsonPath('tour.version', $currentVersion)
             ->assertJsonPath('tour.status', TourAssignmentStatus::Pending->value);
 
         $assignmentId = $response->json('tour.assignment_id');
@@ -76,7 +75,7 @@ class TourControllerTest extends TestCase
             'id' => $assignmentId,
             'user_id' => $member->id,
             'tour_key' => 'hauptmenue',
-            'tour_version' => 2,
+            'tour_version' => $currentVersion,
             'status' => TourAssignmentStatus::Pending->value,
         ]);
 
@@ -93,7 +92,7 @@ class TourControllerTest extends TestCase
             ->assertOk()
             ->assertJsonPath('tour.current_step_key', 'profile-settings')
             ->assertJsonPath('tour.status', TourAssignmentStatus::InProgress->value)
-            ->assertJsonPath('tour.current_step_index', 47);
+            ->assertJsonPath('tour.current_step_index', 33);
 
         $this->assertDatabaseHas('tour_assignments', [
             'id' => $assignment->id,
