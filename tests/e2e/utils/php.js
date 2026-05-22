@@ -1,10 +1,10 @@
 import path from 'path';
 
-const dockerComposeFile = path.resolve('docker-compose.playwright.yml');
-const dockerPhpService = 'playwright-php';
+const dockerComposeFile = path.resolve(process.env.PLAYWRIGHT_DOCKER_COMPOSE_FILE ?? 'docker-compose.dev.yml');
+const dockerPhpService = process.env.PLAYWRIGHT_DOCKER_PHP_SERVICE ?? 'playwright-php';
 const workspaceRoot = path.resolve('.');
 const dockerWorkspaceRoot = '/workspace';
-const forwardedEnvironmentKeys = [
+const explicitForwardedEnvironmentKeys = [
     'APP_ENV',
     'APP_DEBUG',
     'APP_KEY',
@@ -20,6 +20,7 @@ const forwardedEnvironmentKeys = [
     'FANTREFFEN_DISABLE_RATE_LIMIT',
     'PLAYWRIGHT_PORT',
 ];
+const forwardedEnvironmentPrefixes = ['E2E_', 'TEST_'];
 
 export function shouldUseDockerPhp() {
     return process.env.PLAYWRIGHT_USE_DOCKER === '1';
@@ -59,7 +60,13 @@ export function isBatchPhpBinary(binary = resolvePhpBinary()) {
 }
 
 function createDockerEnvironmentArgs(environment = {}) {
-    return forwardedEnvironmentKeys.flatMap((key) => {
+    const forwardedEnvironmentKeys = new Set(explicitForwardedEnvironmentKeys);
+
+    Object.keys(environment)
+        .filter((key) => forwardedEnvironmentPrefixes.some((prefix) => key.startsWith(prefix)))
+        .forEach((key) => forwardedEnvironmentKeys.add(key));
+
+    return [...forwardedEnvironmentKeys].flatMap((key) => {
         const value = environment[key];
 
         if (value === undefined) {

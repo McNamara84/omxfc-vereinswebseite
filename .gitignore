@@ -10,6 +10,7 @@
 /vendor
 .env
 .env.backup
+.env.docker.dev.local
 .env.production
 .phpactor.json
 .phpunit.result.cache

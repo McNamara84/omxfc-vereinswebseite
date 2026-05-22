@@ -48,7 +48,7 @@ describe('php utils', () => {
             args: [
                 'compose',
                 '-f',
-                expect.stringMatching(/docker-compose\.playwright\.yml$/),
+                expect.stringMatching(/docker-compose\.dev\.yml$/),
                 'run',
                 '--rm',
                 '-e',
@@ -61,6 +61,24 @@ describe('php utils', () => {
             shell: false,
         });
         expect(toPhpRuntimePath('database/playwright.sqlite')).toBe('/workspace/database/playwright.sqlite');
+    });
+
+    it('reicht zusaetzliche Test-Credentials mit E2E- oder TEST-Prefix an Docker weiter', async () => {
+        vi.stubEnv('PLAYWRIGHT_USE_DOCKER', '1');
+
+        const { createPhpProcess } = await importPhpUtils();
+
+        expect(createPhpProcess(['artisan', 'about'], {
+            env: {
+                E2E_SANDBOX_USERNAME: 'demo-user',
+                TEST_API_TOKEN: 'top-secret',
+            },
+        }).args).toEqual(expect.arrayContaining([
+            '-e',
+            'E2E_SANDBOX_USERNAME=demo-user',
+            '-e',
+            'TEST_API_TOKEN=top-secret',
+        ]));
     });
 
     it('formatiert unter Docker den service-port-faehigen Server-Command', async () => {

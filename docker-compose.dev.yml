@@ -1,0 +1,178 @@
+name: omxfc-dev
+
+x-app-environment: &app-environment
+  APP_ENV: ${DOCKER_DEV_APP_ENV:-local}
+  APP_DEBUG: ${DOCKER_DEV_APP_DEBUG:-true}
+  APP_KEY: ${DOCKER_DEV_APP_KEY:-base64:oK0ZsJlI+o7C++h527lMcrrO4jzZrXqhouB/p0l+gFw=}
+  APP_URL: ${DOCKER_DEV_APP_URL:-http://localhost:8080}
+  ASSET_URL: ${DOCKER_DEV_ASSET_URL:-http://localhost:8080}
+  APP_LOCALE: ${DOCKER_DEV_APP_LOCALE:-de}
+  APP_FALLBACK_LOCALE: ${DOCKER_DEV_APP_FALLBACK_LOCALE:-de}
+  LOG_CHANNEL: ${DOCKER_DEV_LOG_CHANNEL:-stack}
+  LOG_STACK: ${DOCKER_DEV_LOG_STACK:-single}
+  LOG_LEVEL: ${DOCKER_DEV_LOG_LEVEL:-debug}
+  DB_CONNECTION: mysql
+  DB_HOST: db
+  DB_PORT: 3306
+  DB_DATABASE: ${DOCKER_DEV_DB_DATABASE:-omxfc_dev}
+  DB_USERNAME: ${DOCKER_DEV_DB_USERNAME:-omxfc}
+  DB_PASSWORD: ${DOCKER_DEV_DB_PASSWORD:-omxfc}
+  CACHE_STORE: ${DOCKER_DEV_CACHE_STORE:-database}
+  SESSION_DRIVER: ${DOCKER_DEV_SESSION_DRIVER:-database}
+  QUEUE_CONNECTION: ${DOCKER_DEV_QUEUE_CONNECTION:-database}
+  SCOUT_DRIVER: ${DOCKER_DEV_SCOUT_DRIVER:-typesense}
+  SCOUT_QUEUE: ${DOCKER_DEV_SCOUT_QUEUE:-true}
+  MAIL_MAILER: ${DOCKER_DEV_MAIL_MAILER:-log}
+  TYPESENSE_HOST: typesense
+  TYPESENSE_PORT: 8108
+  TYPESENSE_PROTOCOL: http
+  TYPESENSE_API_KEY: ${DOCKER_DEV_TYPESENSE_API_KEY:-local-dev-typesense-key}
+  TRUSTED_PROXIES: ${DOCKER_DEV_TRUSTED_PROXIES:-*}
+  VITE_PORT: ${DOCKER_DEV_VITE_PORT:-5173}
+  VITE_HMR_HOST: ${DOCKER_DEV_VITE_HMR_HOST:-localhost}
+  VITE_DEV_SERVER_URL: ${DOCKER_DEV_VITE_DEV_SERVER_URL:-http://localhost:5173}
+  VITE_USE_POLLING: ${DOCKER_DEV_VITE_USE_POLLING:-1}
+  VITE_POLLING_INTERVAL: ${DOCKER_DEV_VITE_POLLING_INTERVAL:-300}
+  DOCKER_DEV_AUTO_MIGRATE: ${DOCKER_DEV_AUTO_MIGRATE:-1}
+  E2E_SANDBOX_BASE_URL: ${E2E_SANDBOX_BASE_URL:-}
+  E2E_SANDBOX_USERNAME: ${E2E_SANDBOX_USERNAME:-}
+  E2E_SANDBOX_PASSWORD: ${E2E_SANDBOX_PASSWORD:-}
+  E2E_SANDBOX_API_TOKEN: ${E2E_SANDBOX_API_TOKEN:-}
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    init: true
+    working_dir: /var/www/html
+    command: ['sh', '/var/www/html/docker/dev/start-app.sh']
+    environment:
+      <<: *app-environment
+    depends_on:
+      db:
+        condition: service_healthy
+      typesense:
+        condition: service_started
+    volumes:
+      - .:/var/www/html
+      - vendor:/var/www/html/vendor
+      - storage:/var/www/html/storage
+      - bootstrap-cache:/var/www/html/bootstrap/cache
+    networks:
+      - omxfc-dev-network
+
+  queue:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    init: true
+    working_dir: /var/www/html
+    command: ['sh', '/var/www/html/docker/dev/start-queue.sh']
+    environment:
+      <<: *app-environment
+    depends_on:
+      db:
+        condition: service_healthy
+      app:
+        condition: service_started
+    volumes:
+      - .:/var/www/html
+      - vendor:/var/www/html/vendor
+      - storage:/var/www/html/storage
+      - bootstrap-cache:/var/www/html/bootstrap/cache
+    networks:
+      - omxfc-dev-network
+
+  nginx:
+    image: nginx:stable-alpine
+    depends_on:
+      app:
+        condition: service_started
+    ports:
+      - '${DOCKER_DEV_APP_PORT:-8080}:80'
+    volumes:
+      - ./deploy/nginx/laravel.conf:/etc/nginx/conf.d/default.conf:ro
+      - .:/var/www/html:ro
+      - storage:/var/www/html/storage:ro
+    networks:
+      - omxfc-dev-network
+
+  vite:
+    image: node:24-alpine
+    init: true
+    working_dir: /workspace
+    command: ['sh', '/workspace/docker/dev/start-vite.sh']
+    environment:
+      <<: *app-environment
+      CHOKIDAR_USEPOLLING: ${DOCKER_DEV_CHOKIDAR_USEPOLLING:-1}
+    ports:
+      - '${DOCKER_DEV_VITE_PORT:-5173}:5173'
+    volumes:
+      - .:/workspace
+      - node-modules:/workspace/node_modules
+    networks:
+      - omxfc-dev-network
+
+  db:
+    image: mariadb:11
+    environment:
+      MYSQL_DATABASE: ${DOCKER_DEV_DB_DATABASE:-omxfc_dev}
+      MYSQL_USER: ${DOCKER_DEV_DB_USERNAME:-omxfc}
+      MYSQL_PASSWORD: ${DOCKER_DEV_DB_PASSWORD:-omxfc}
+      MYSQL_ROOT_PASSWORD: ${DOCKER_DEV_MYSQL_ROOT_PASSWORD:-omxfc-root}
+    ports:
+      - '${DOCKER_DEV_DB_FORWARD_PORT:-3307}:3306'
+    volumes:
+      - db-data:/var/lib/mysql
+    healthcheck:
+      test: ['CMD-SHELL', 'mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD --silent']
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+    networks:
+      - omxfc-dev-network
+
+  typesense:
+    image: typesense/typesense:30.2
+    command: '--data-dir /typesense-data --api-key=${DOCKER_DEV_TYPESENSE_API_KEY:-local-dev-typesense-key}'
+    ports:
+      - '${DOCKER_DEV_TYPESENSE_FORWARD_PORT:-8108}:8108'
+    volumes:
+      - typesense-data:/typesense-data
+    networks:
+      - omxfc-dev-network
+
+  playwright-php:
+    profiles: ['playwright']
+    build:
+      context: .
+      dockerfile: docker/playwright-php.Dockerfile
+    working_dir: /workspace
+    environment:
+      PLAYWRIGHT_PORT: ${DOCKER_DEV_PLAYWRIGHT_PORT:-8001}
+      E2E_SANDBOX_BASE_URL: ${E2E_SANDBOX_BASE_URL:-}
+      E2E_SANDBOX_USERNAME: ${E2E_SANDBOX_USERNAME:-}
+      E2E_SANDBOX_PASSWORD: ${E2E_SANDBOX_PASSWORD:-}
+      E2E_SANDBOX_API_TOKEN: ${E2E_SANDBOX_API_TOKEN:-}
+    ports:
+      - '${DOCKER_DEV_PLAYWRIGHT_PORT:-8001}:${DOCKER_DEV_PLAYWRIGHT_PORT:-8001}'
+    volumes:
+      - .:/workspace
+    networks:
+      - omxfc-dev-network
+
+networks:
+  omxfc-dev-network:
+    driver: bridge
+
+volumes:
+  vendor:
+  node-modules:
+  storage:
+  bootstrap-cache:
+  db-data:
+  typesense-data:
