@@ -122,6 +122,53 @@ jobs:
           DB_DATABASE: database/database.sqlite
         run: php vendor/bin/phpunit --group large
 
+  browser_preview:
+    runs-on: ubuntu-latest
+    name: PHP 8.5 Browser Preview Regression
+    env:
+      APP_KEY: ${{ secrets.APP_KEY }}
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@44454db4f0199b8b9685a5d763dc37cbf79108e1 # v2
+        with:
+          php-version: '8.5'
+      - name: Copy .env
+        run: php -r "file_exists('.env') || copy('.env.example', '.env');"
+      - name: Cache Composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: ${{ runner.os }}-php-8.5-composer-${{ hashFiles('composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-php-8.5-composer-
+            ${{ runner.os }}-php-8.5-
+            ${{ runner.os }}-
+      - name: Cache Composer downloads
+        uses: actions/cache@v4
+        with:
+          path: ~/.composer/cache
+          key: ${{ runner.os }}-php-8.5-composer-cache-${{ hashFiles('composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-php-8.5-composer-cache-
+            ${{ runner.os }}-php-8.5-
+            ${{ runner.os }}-
+      - name: Install Dependencies
+        run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
+      - name: Directory Permissions
+        run: chmod -R 777 storage bootstrap/cache
+      - name: Create Database
+        run: |
+          mkdir -p database
+          touch database/database.sqlite
+      - name: Setup Node.js and build assets
+        uses: ./.github/actions/build-assets
+      - name: Execute Pest browser preview regression
+        env:
+          DB_CONNECTION: sqlite
+          DB_DATABASE: database/database.sqlite
+        run: ./vendor/bin/pest tests/Browser/ModalBackdropPreviewTest.php
+
   coverage:
     needs:
       - tests

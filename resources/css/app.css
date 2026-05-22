@@ -153,11 +153,11 @@ details.dropdown:has(> summary.btn-sm) > ul.menu {
     font-weight: 600;
 }
 
-/* DaisyUI-Modal-Hintergrund: Die produktive Modal-Kette laeuft ueber
-   `dialog.modal`, den nativen `::backdrop` und bei Mary zusaetzlich ueber ein
-   internes `.modal-backdrop`-Element. DaisyUI liefert diese Regeln in einem
-   Layer aus; hier bewusst un-layered haerten, damit der halbtransparente
-   Overlay in allen Oeffnungspfaden sichtbar bleibt. */
+/* DaisyUI-Modal-Hintergrund: Die produktive Modal-Kette läuft über
+    `dialog.modal`, den nativen `::backdrop` und bei Mary zusätzlich über ein
+    internes `.modal-backdrop`-Element. DaisyUI liefert diese Regeln in einem
+    Layer aus; hier bewusst ohne Layer härten, damit der halbtransparente
+    Overlay in allen Öffnungspfaden sichtbar bleibt. */
 dialog.modal:is(.modal-open, [open], :target),
 dialog.modal:is(.modal-open, [open], :target)::backdrop,
 dialog.modal:is(.modal-open, [open], :target) > .modal-backdrop {
