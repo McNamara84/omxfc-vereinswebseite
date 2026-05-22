@@ -8,19 +8,16 @@ it('zeigt fuer Vorschau-Modals deckende Backdrops', function () {
         ->assertScript('window.__omxfcPreviewExpectedModalCount() === document.querySelectorAll("[data-modal-trigger]").length', true)
         ->assertNoJavaScriptErrors();
 
-    $page->click('#open-preview-todo-delete')
-        ->assertVisible('#preview-todo-delete')
-        ->assertScript('window.__omxfcPreviewBackdropAlpha("preview-todo-delete") > 0.2', true);
+    $modalIds = $page->script("() => Array.from(document.querySelectorAll('[data-modal-trigger]')).map((trigger) => trigger.dataset.modalTarget)");
+    $expectedModalCount = $page->script('() => window.__omxfcPreviewExpectedModalCount()');
 
-    $page->script('window.__omxfcClosePreviewModals()');
+    expect($modalIds)->toHaveCount($expectedModalCount);
 
-    $page->click('#open-preview-profile-photo')
-        ->assertVisible('#preview-profile-photo')
-        ->assertScript('window.__omxfcPreviewBackdropAlpha("preview-profile-photo") > 0.2', true);
+    foreach ($modalIds as $modalId) {
+        $page->click("#open-{$modalId}")
+            ->assertVisible("#{$modalId}")
+            ->assertScript("window.__omxfcPreviewBackdropAlpha('{$modalId}') > 0.2", true);
 
-    $page->script('window.__omxfcClosePreviewModals()');
-
-    $page->click('#open-preview-chronik-lightbox')
-        ->assertVisible('#preview-chronik-lightbox')
-        ->assertScript('window.__omxfcPreviewBackdropAlpha("preview-chronik-lightbox") > 0.2', true);
+        $page->script('window.__omxfcClosePreviewModals()');
+    }
 });
