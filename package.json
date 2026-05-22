@@ -7,6 +7,13 @@
     "scripts": {
         "build": "vite build",
         "dev": "vite",
+        "docker:dev:build": "docker compose --env-file .env.docker.dev.local -f docker-compose.dev.yml build",
+        "docker:dev:up": "docker compose --env-file .env.docker.dev.local -f docker-compose.dev.yml up -d --build",
+        "docker:dev:down": "docker compose --env-file .env.docker.dev.local -f docker-compose.dev.yml down --remove-orphans",
+        "docker:dev:logs": "docker compose --env-file .env.docker.dev.local -f docker-compose.dev.yml logs -f --tail=200",
+        "docker:dev:test:php": "docker compose --env-file .env.docker.dev.local -f docker-compose.dev.yml exec app php artisan test",
+        "docker:dev:test:jest": "docker compose --env-file .env.docker.dev.local -f docker-compose.dev.yml exec vite npm run test",
+        "docker:dev:test:vitest": "docker compose --env-file .env.docker.dev.local -f docker-compose.dev.yml exec vite npm run test:vitest",
         "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
         "test:e2e": "playwright test",
         "test:e2e:docker": "node tests/e2e/run-playwright-docker.mjs",

@@ -360,37 +360,33 @@ protected static function booted()
 ### Local Development Setup
 
 ```bash
-# 1. Clone and install dependencies
+# 1. Clone repository
 git clone https://github.com/McNamara84/omxfc-vereinswebseite.git
 cd omxfc-vereinswebseite
+
+# 2. Preferred local stack: Docker Compose Dev
+cp .env.docker.dev.example .env.docker.dev.local
+docker compose --env-file .env.docker.dev.local -f docker-compose.dev.yml up -d --build
+
+# 3. Optional host fallback
 composer install
 npm install
-
-# 2. Environment setup
 cp .env.example .env
 php artisan key:generate
-
-# 3. Database setup (configure DB_* in .env first)
 php artisan migrate
-php artisan db:seed --class=DefaultAdminAndTeamSeeder
-php artisan db:seed --class=TodoCategorySeeder
-
-# 4. Build assets
-npm run build  # Production
-# OR
-npm run dev    # Development with hot reload
 ```
 
 ### Running Development Server
 
-**Option 1: Separate processes**
+**Preferred: Docker Compose Dev stack**
 ```bash
-php artisan serve          # Terminal 1
-npm run dev                # Terminal 2
-php artisan queue:work     # Terminal 3 (if using queues)
+docker compose --env-file .env.docker.dev.local -f docker-compose.dev.yml up -d --build
+docker compose --env-file .env.docker.dev.local -f docker-compose.dev.yml logs -f --tail=200
 ```
 
-**Option 2: Combined (recommended)**
+Der Stack startet lokal Nginx, PHP-FPM, Queue, MariaDB, Typesense und einen Vite-HMR-Container. Die Runtime bleibt damit näher an Production als der alte Host-Workflow.
+
+**Optionaler Host-Workflow**
 ```bash
 composer run dev
 # Runs server, queue worker, and Vite in parallel with color-coded output
@@ -400,6 +396,7 @@ composer run dev
 
 **Development:**
 ```bash
+docker compose --env-file .env.docker.dev.local -f docker-compose.dev.yml exec app php artisan tinker
 php artisan serve              # Start development server
 php artisan tinker             # REPL
 php artisan pail               # Log viewer
@@ -452,20 +449,22 @@ php artisan schedule:run          # Run scheduled tasks (cron)
 ### Testing Commands
 
 ```bash
-# PHP Tests
-php artisan test                    # Run all PHPUnit tests
-php artisan test --filter=TodoTest  # Run specific test
-php artisan test --coverage         # With coverage
+# PHP Tests (preferred in Docker dev stack; still SQLite-backed for speed)
+docker compose --env-file .env.docker.dev.local -f docker-compose.dev.yml exec app php artisan test
+php artisan test --filter=TodoTest
+php artisan test --coverage
 
 # JavaScript Tests
-npm test                 # Run Jest tests
-npm run test:vitest      # Run Vitest tests
-npm run test:e2e         # Run Playwright E2E tests
+docker compose --env-file .env.docker.dev.local -f docker-compose.dev.yml exec vite npm run test
+docker compose --env-file .env.docker.dev.local -f docker-compose.dev.yml exec vite npm run test:vitest
+npm run test:e2e:docker  # Uses playwright-php from docker-compose.dev.yml
 
 # Code Style
 ./vendor/bin/pint        # Auto-fix PHP code style
 ./vendor/bin/pint --test # Check without fixing
 ```
+
+Secret-bearing local Docker values belong in `.env.docker.dev.local` only. Never commit that file.
 
 ### Git Workflow
 
@@ -1300,6 +1299,11 @@ response()->view('view', $data)
 **Docker Build:**
 ```bash
 docker build -t omxfc-vereinswebseite .
+```
+
+**Local Dev Stack:**
+```bash
+docker compose --env-file .env.docker.dev.local -f docker-compose.dev.yml up -d --build
 ```
 
 **Production Checklist:**

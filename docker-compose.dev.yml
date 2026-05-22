@@ -41,6 +41,7 @@ x-app-environment: &app-environment
 
 services:
   app:
+    image: omxfc-dev-php:local
     build:
       context: .
       dockerfile: Dockerfile
@@ -64,10 +65,7 @@ services:
       - omxfc-dev-network
 
   queue:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: development
+    image: omxfc-dev-php:local
     init: true
     working_dir: /var/www/html
     command: ['sh', '/var/www/html/docker/dev/start-queue.sh']

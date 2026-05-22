@@ -45,6 +45,15 @@ npm run test:vitest                   # Vitest (JS)
 npm run test:e2e                      # Playwright (benötigt npm run build)
 ```
 
+## Lokaler Standard-Stack
+
+- Bevorzugte lokale Entwicklung läuft über `docker-compose.dev.yml`, nicht mehr über den klassischen Host-Workflow.
+- Lokale Secrets und externe Test-Credentials gehören ausschließlich in `.env.docker.dev.local` auf Basis von `.env.docker.dev.example`.
+- Niemals `.env.docker.dev.local` oder andere echte Secret-Dateien committen.
+- Für produktionsnahe lokale Checks zuerst `docker compose --env-file .env.docker.dev.local -f docker-compose.dev.yml up -d --build` verwenden.
+- Schnelle Standardtests bleiben absichtlich effizient: `php artisan test` nutzt weiter SQLite, auch wenn die Runtime lokal über MariaDB und Typesense läuft.
+- Für Playwright lokal bevorzugt `npm run test:e2e:docker`; der Docker-PHP-Helfer nutzt dafür standardmäßig `docker-compose.dev.yml`.
+
 ## Projekt-Konventionen
 
 ### Deutsche Domain-Sprache

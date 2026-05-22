@@ -49,58 +49,86 @@ Offizielle Laravel-13-Anwendung für die Vereinswebseite des **Offizieller MADDR
 - **Backend:** Laravel 13, Jetstream, Sanctum, Scout (TNTSearch), Livewire 4, Spatie PDF & Sitemap.
 - **Frontend:** Tailwind CSS, Alpine.js, Vite, Chart.js, Simple Datatables, Leaflet.
 - **Testing:** PHPUnit 13, Jest 30, Vitest 4, Playwright inkl. axe-core für Accessibility-Regressionen.
-- **Tooling & DevOps:** Laravel Pint, Laravel Sail (optional), Dockerfile für PHP-FPM + Node 24 (LTS) Build-Stage.
+- **Tooling & DevOps:** Laravel Pint, Dockerfile mit Production- und Development-Target, docker-compose.dev.yml für den lokalen Stack.
 
 ## Voraussetzungen
 
 | Komponente       | Version / Hinweis                                      |
 |------------------|---------------------------------------------------------|
-| PHP              | ≥ 8.5 inklusive Extensions: `pdo_mysql`, `mbstring`, `bcmath`, `gd`, `pcntl` |
-| Composer         | ≥ 2.6                                                   |
-| Node.js & npm    | Node 24 LTS (siehe `.node-version`)                     |
-| Datenbank        | MariaDB / MySQL (Standard) oder SQLite für lokale Tests |
-| Optional         | Docker & Docker Compose, falls Container genutzt werden |
+| Docker Desktop / Docker Engine | Empfohlen für die lokale Entwicklung mit `docker-compose.dev.yml` |
+| PHP              | ≥ 8.5 inklusive Extensions: `pdo_mysql`, `pdo_sqlite`, `mbstring`, `bcmath`, `gd`, `pcntl` |
+| Composer         | ≥ 2.6, nur für klassische Host-Entwicklung nötig        |
+| Node.js & npm    | Node 24 LTS (siehe `.node-version`), nur für klassische Host-Entwicklung nötig |
+| Datenbank        | MariaDB / MySQL für Runtime, SQLite für schnelle Standardtests |
 
-> **Tipp:** Für eine schnelle lokale Entwicklungsumgebung kann auch Laravel Sail genutzt werden. Die Standardkonfiguration erwartet jedoch eine klassische LAMP-/LEMP-Umgebung.
+> **Empfehlung:** Nutze lokal den produktionsnahen Docker-Stack aus `docker-compose.dev.yml`. Die klassische Host-Entwicklung bleibt als Fallback erhalten.
 
 ## Lokale Entwicklung
 
-### Installation
+### Docker Compose Dev-Stack (empfohlen)
 
 1. Repository klonen und ins Projektverzeichnis wechseln.
-2. PHP- und Node-Abhängigkeiten installieren:
+2. Die lokale Docker-Env-Datei anlegen:
    ```bash
-   composer install
-   npm install
+  cp .env.docker.dev.example .env.docker.dev.local
    ```
-3. Beispiel-Environment kopieren und Applikationsschlüssel erzeugen:
+3. Falls du externe Test- oder Sandbox-Credentials brauchst, trage sie nur in `.env.docker.dev.local` ein.
+4. Den Stack bauen und starten:
    ```bash
-   cp .env.example .env
-   php artisan key:generate
+  npm run docker:dev:up
    ```
-4. Datenbankzugang in `.env` anpassen (z. B. `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`).
-5. Datenbankmigrationen ausführen:
+5. Anwendung und HMR stehen danach standardmäßig hier bereit:
+  - App: `http://localhost:8080`
+  - Vite-HMR: `http://localhost:5173`
+  - MariaDB (optional von außen): `127.0.0.1:3307`
+  - Typesense (optional von außen): `127.0.0.1:8108`
+
+Die App-Container warten auf MariaDB, führen standardmäßig Migrationen aus und starten danach PHP-FPM, Queue-Worker und Vite. Das Verhalten lässt sich über `DOCKER_DEV_AUTO_MIGRATE` in `.env.docker.dev.local` steuern.
+
+### Klassische Host-Entwicklung (optional)
+
+1. PHP- und Node-Abhängigkeiten installieren:
    ```bash
-   php artisan migrate
+  composer install
+  npm install
    ```
-6. Assets für Produktion kompilieren (optional, Vite-Dev-Server reicht lokal):
+2. Beispiel-Environment kopieren und Applikationsschlüssel erzeugen:
    ```bash
-   npm run build
+  cp .env.example .env
+  php artisan key:generate
    ```
+3. Datenbankzugang in `.env` anpassen (z. B. `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`).
+4. Datenbankmigrationen ausführen:
+  ```bash
+  php artisan migrate
+  ```
+5. Assets für Produktion kompilieren (optional, Vite-Dev-Server reicht lokal):
+  ```bash
+  npm run build
+  ```
 
 ### Entwicklungsumgebung starten
 
-- **Vite- und PHP-Server separat:**
+- **Docker-Stack starten / stoppen:**
+  ```bash
+  npm run docker:dev:up
+  npm run docker:dev:down
+  ```
+- **Docker-Logs folgen:**
+  ```bash
+  npm run docker:dev:logs
+  ```
+- **Host-Workflow separat:**
   ```bash
   php artisan serve
   npm run dev
   ```
-- **Kombiniert mit Queue-Worker (empfohlen):**
+- **Host-Workflow kombiniert:**
   ```bash
   composer run dev
   ```
 
-Der kombinierte Befehl startet den PHP-Entwicklungsserver, einen `queue:work`-Prozess sowie den Vite-Dev-Server parallel. Stellen Sie sicher, dass notwendige externe Dienste (z. B. Datenbank, Redis) laufen.
+Der Host-Workflow startet wie bisher den PHP-Entwicklungsserver, einen `queue:work`-Prozess sowie den Vite-Dev-Server parallel. Für produktionsnahe Entwicklung ist aber der Docker-Stack die Standardempfehlung.
 
 ### Datenbank seeden
 
@@ -155,18 +183,19 @@ Das Admin-Dashboard ist nur für Benutzer mit den Rollen `Admin`, `Vorstand` ode
 
 | Zweck                        | Befehl |
 |------------------------------|--------|
-| PHPUnit-Tests                | `php artisan test` |
+| PHPUnit-Tests                | `npm run docker:dev:test:php` |
 | Pest-Browser-Regression      | `./vendor/bin/pest tests/Browser/ModalBackdropPreviewTest.php` |
-| JavaScript-Tests (Jest)      | `npm run test` |
-| Komponenten-Tests (Vitest)   | `npm run test:vitest` |
-| End-to-End- & Accessibility-Checks | `npm run test:e2e` |
+| JavaScript-Tests (Jest)      | `npm run docker:dev:test:jest` |
+| Komponenten-Tests (Vitest)   | `npm run docker:dev:test:vitest` |
 | End-to-End-Checks mit Docker-PHP 8.5 | `npm run test:e2e:docker` |
 | Modal-Screenshot-Export mit Docker | `npm run test:e2e:modal-screenshots:docker` |
 | Code-Style (Laravel Pint)    | `./vendor/bin/pint` |
 
-Die Playwright-Suite setzt eine laufende Anwendung (lokal oder in CI) voraus und führt zusätzlich axe-core-Prüfungen für Barrierefreiheit durch.
-Für Windows- oder Docker-Setups ohne passendes lokales PHP kann die Suite mit `npm run test:e2e:docker` in einem kleinen PHP-8.5-Container mit SQLite-Support gestartet werden.
+Die schnellen Standard-Checks laufen lokal bewusst effizient: PHPUnit bleibt auf SQLite `:memory:`, Vitest und Jest laufen im Node-Container, und die Runtime selbst bleibt parallel produktionsnah über MariaDB, Typesense, Nginx und Queue.
+Die Playwright-Suite nutzt mit `npm run test:e2e:docker` standardmäßig den `playwright-php`-Service aus `docker-compose.dev.yml` und startet damit einen isolierten PHP-8.5-Container mit SQLite-Support für die Browser-Suite.
 Der Export der Modal-Vorschau-Screenshots ist bewusst an `PLAYWRIGHT_CAPTURE_MODAL_SCREENSHOTS=1` gekoppelt; das Docker-Skript `npm run test:e2e:modal-screenshots:docker` setzt diese Flag automatisch, während normale CI- und lokale Playwright-Läufe keine dauerhaften Screenshot-Artefakte erzeugen.
+
+Externe Test- oder Sandbox-Credentials gehören ausschließlich in `.env.docker.dev.local` und niemals in versionierte Dateien.
 
 Die lokale Pest-Browser-Regression benötigt aktuell noch den Pest-5-Stack und `symfony/process` aus unreleasten Branches. Ein Rückfall auf stabile Pest-4-Releases ist im Projekt derzeit nicht möglich, weil das stabile `pestphp/pest-plugin-laravel` nur Laravel 11/12 unterstützt, nicht aber Laravel 13. Sobald es stabile 5.x-Tags für diesen Stack gibt, können die Commit-Referenzen in `composer.json` entfallen.
 
@@ -175,7 +204,9 @@ Die lokale Pest-Browser-Regression benötigt aktuell noch den Pest-5-Stack und `
 Für das Deployment steht ein mehrstufiger Dockerfile bereit:
 
 1. **Node-Build-Stage** kompiliert die Vite-Assets mit Node 24 (LTS) (`npm ci` + `npm run build`).
-2. **PHP-FPM-Stage** installiert Composer-Abhängigkeiten ohne Dev-Pakete, kopiert die Anwendung sowie die vorgerenderten Assets und setzt korrekte Dateiberechtigungen.
+2. **Gemeinsame PHP-Basis** installiert die produktions- und testrelevanten PHP-Extensions.
+3. **Production-Target** installiert Composer-Abhängigkeiten ohne Dev-Pakete, kopiert die Anwendung sowie die vorgerenderten Assets und setzt korrekte Dateiberechtigungen.
+4. **Development-Target** installiert zusätzlich Dev-Abhängigkeiten und dient als Basis für `docker-compose.dev.yml`.
 
 Bei klassischen Deployments sollten Sie mindestens folgende Schritte automatisieren:
 
