@@ -1,6 +1,6 @@
 <?php
 
-it('zeigt fuer Vorschau-Modals deckende Backdrops', function () {
+it('zeigt für Vorschau-Modals deckende Backdrops', function () {
     $page = visit('/_testing/modal-vorschau');
 
     $page->assertSee('Modal-Vorschau')
