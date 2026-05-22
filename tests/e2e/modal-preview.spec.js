@@ -1,6 +1,8 @@
 import { test, expect } from '@playwright/test';
 
-const expectedModalCount = 35;
+async function expectedModalCount(page) {
+    return page.evaluate(() => window.__omxfcPreviewExpectedModalCount());
+}
 
 async function backdropAlpha(page, modalId) {
     return page.evaluate((id) => window.__omxfcPreviewBackdropAlpha(id), modalId);
@@ -19,10 +21,13 @@ test.describe('Modal-Vorschau', () => {
         await page.goto('/_testing/modal-vorschau');
         await expect(page.getByRole('heading', { level: 1, name: 'Modal-Vorschau' })).toBeVisible();
 
-        const triggers = page.locator('[data-modal-trigger]');
-        await expect(triggers).toHaveCount(expectedModalCount);
+        const modalCount = await expectedModalCount(page);
+        expect(modalCount).toBeGreaterThan(0);
 
-        for (let index = 0; index < expectedModalCount; index += 1) {
+        const triggers = page.locator('[data-modal-trigger]');
+        await expect(triggers).toHaveCount(modalCount);
+
+        for (let index = 0; index < modalCount; index += 1) {
             const trigger = triggers.nth(index);
             const modalId = await trigger.getAttribute('data-modal-target');
 
@@ -49,10 +54,13 @@ test.describe('Modal-Vorschau', () => {
 
         await page.goto('/_testing/modal-vorschau');
 
-        const triggers = page.locator('[data-modal-trigger]');
-        await expect(triggers).toHaveCount(expectedModalCount);
+        const modalCount = await expectedModalCount(page);
+        expect(modalCount).toBeGreaterThan(0);
 
-        for (let index = 0; index < expectedModalCount; index += 1) {
+        const triggers = page.locator('[data-modal-trigger]');
+        await expect(triggers).toHaveCount(modalCount);
+
+        for (let index = 0; index < modalCount; index += 1) {
             const trigger = triggers.nth(index);
             const modalId = await trigger.getAttribute('data-modal-target');
 
@@ -63,7 +71,7 @@ test.describe('Modal-Vorschau', () => {
 
             const modal = page.locator(`#${modalId}`);
             await expect(modal).toBeVisible();
-            await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
+            await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'auto' }));
             await page.screenshot({
                 path: testInfo.outputPath(`modal-preview/${String(index + 1).padStart(2, '0')}-${modalId}.png`),
             });

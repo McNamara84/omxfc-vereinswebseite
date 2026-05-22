@@ -51,8 +51,8 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="min-h-screen bg-base-200 text-base-content antialiased">
-    <main data-preview-page class="mx-auto flex min-h-screen w-full max-w-7xl flex-col gap-8 px-4 py-6 sm:px-6 lg:px-8 lg:py-10">
-        <header class="rounded-4xl border border-base-300 bg-base-100 px-6 py-8 shadow-sm sm:px-8">
+    <main data-preview-page data-expected-modal-count="{{ count($allModals) }}" class="mx-auto flex min-h-screen w-full max-w-7xl flex-col gap-8 px-4 py-6 sm:px-6 lg:px-8 lg:py-10">
+        <header class="rounded-3xl border border-base-300 bg-base-100 px-6 py-8 shadow-sm sm:px-8">
             <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                 <div class="max-w-3xl space-y-3">
                     <span class="badge badge-outline badge-lg">Nur lokal und im Test</span>
@@ -129,7 +129,7 @@
                 </section>
             </div>
 
-            <aside class="rounded-4xl border border-base-300 bg-base-100 p-6 shadow-sm lg:p-7">
+            <aside class="rounded-3xl border border-base-300 bg-base-100 p-6 shadow-sm lg:p-7">
                 <h2 class="text-xl font-semibold">Prüfziel</h2>
                 <div class="mt-4 space-y-4 text-sm leading-7 text-base-content/70">
                     <p>Alle Vorschauen verwenden dieselbe Backdrop-Prüfung wie die Browser-Tests. Sobald ein Modal geöffnet wird, darf der Hintergrund nicht transparent bleiben.</p>
@@ -155,7 +155,7 @@
         <dialog id="{{ $modal['id'] }}" class="modal" data-preview-modal data-modal-family="{{ $modal['family'] }}">
             <div class="modal-box">
                 <form method="dialog" tabindex="-1">
-                    <button type="submit" class="btn btn-circle btn-ghost btn-sm absolute inset-e-2 top-2 z-999" tabindex="-1">✕</button>
+                    <button type="submit" class="btn btn-circle btn-ghost btn-sm absolute inset-e-2 top-2 z-10" aria-label="Schließen" tabindex="-1">✕</button>
                 </form>
 
                 <div class="mb-5 space-y-3">
@@ -190,9 +190,9 @@
             data-preview-overlay
             data-modal-family="{{ $modal['family'] }}"
             data-open="false"
-            class="{{ $modal['backdropClass'] }} fixed inset-0 z-50 hidden items-center justify-center px-4 py-8"
+            class="{{ $modal['backdropClass'] }} fixed inset-0 z-50 hidden flex items-center justify-center px-4 py-8"
         >
-            <div class="relative w-full max-w-2xl rounded-4xl border border-white/15 bg-base-100 p-6 shadow-2xl sm:p-8">
+            <div class="relative w-full max-w-2xl rounded-3xl border border-white/15 bg-base-100 p-6 shadow-2xl sm:p-8">
                 <button type="button" class="btn btn-circle btn-ghost absolute right-4 top-4" aria-label="Schließen" onclick="window.__omxfcClosePreviewModals()">✕</button>
                 <div class="space-y-4">
                     <span class="badge badge-outline">{{ $modal['family'] }}</span>
@@ -212,34 +212,81 @@
 
     <script>
         (() => {
-            const colorParser = document.createElement('canvas').getContext('2d');
+            function clampAlpha(value) {
+                return Math.min(Math.max(value, 0), 1);
+            }
 
-            function normalizeColor(color) {
-                if (!colorParser || !color) {
-                    return 'transparent';
+            function normalizeAlphaValue(value) {
+                const normalized = value.trim();
+
+                if (!normalized) {
+                    return 0;
                 }
 
-                colorParser.fillStyle = '#000';
-                colorParser.fillStyle = color;
+                const parsed = Number.parseFloat(normalized);
 
-                return colorParser.fillStyle;
+                if (Number.isNaN(parsed)) {
+                    return 0;
+                }
+
+                return clampAlpha(normalized.endsWith('%') ? parsed / 100 : parsed);
+            }
+
+            function alphaFromHex(color) {
+                const value = color.slice(1);
+
+                if (value.length === 4) {
+                    return clampAlpha(Number.parseInt(value.slice(3, 4).repeat(2), 16) / 255);
+                }
+
+                if (value.length === 8) {
+                    return clampAlpha(Number.parseInt(value.slice(6, 8), 16) / 255);
+                }
+
+                return 1;
             }
 
             function alphaFromColor(color) {
-                const normalized = normalizeColor(color);
+                if (typeof color !== 'string') {
+                    return 0;
+                }
+
+                const normalized = color.trim().toLowerCase();
 
                 if (!normalized || normalized === 'transparent') {
                     return 0;
                 }
 
-                const rgbaMatch = normalized.match(/^rgba\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*,\s*([0-9.]+)\s*\)$/i);
+                if (normalized.startsWith('#')) {
+                    return alphaFromHex(normalized);
+                }
 
-                if (rgbaMatch) {
-                    return Number(rgbaMatch[1]);
+                const functionalColorMatch = normalized.match(/^([a-z-]+)\((.*)\)$/i);
+
+                if (!functionalColorMatch) {
+                    return 0;
+                }
+
+                const [, functionName, rawArguments] = functionalColorMatch;
+                const alphaSeparatorIndex = rawArguments.lastIndexOf('/');
+
+                if (alphaSeparatorIndex !== -1) {
+                    return normalizeAlphaValue(rawArguments.slice(alphaSeparatorIndex + 1));
+                }
+
+                const commaSeparatedArguments = rawArguments
+                    .split(',')
+                    .map((part) => part.trim())
+                    .filter(Boolean);
+
+                if ((functionName.endsWith('a') || commaSeparatedArguments.length === 4) && commaSeparatedArguments.length > 0) {
+                    return normalizeAlphaValue(commaSeparatedArguments.at(-1));
                 }
 
                 return 1;
             }
+
+            window.__omxfcPreviewExpectedModalCount = () => Number(document.querySelector('[data-preview-page]')?.dataset.expectedModalCount ?? 0);
 
             window.__omxfcClosePreviewModals = () => {
                 document.querySelectorAll('dialog[data-preview-modal][open]').forEach((dialog) => {

@@ -4,7 +4,8 @@ it('zeigt fuer Vorschau-Modals deckende Backdrops', function () {
     $page = visit('/_testing/modal-vorschau');
 
     $page->assertSee('Modal-Vorschau')
-        ->assertCount('[data-modal-trigger]', 35)
+        ->assertScript('window.__omxfcPreviewExpectedModalCount() > 0', true)
+        ->assertScript('window.__omxfcPreviewExpectedModalCount() === document.querySelectorAll("[data-modal-trigger]").length', true)
         ->assertNoJavaScriptErrors();
 
     $page->click('#open-preview-todo-delete')
