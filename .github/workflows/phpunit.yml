@@ -163,6 +163,10 @@ jobs:
           touch database/database.sqlite
       - name: Setup Node.js and build assets
         uses: ./.github/actions/build-assets
+      - name: Install Playwright browser dependencies
+        run: npx playwright install-deps chromium
+      - name: Install Playwright Chromium
+        run: npx playwright install chromium
       - name: Execute Pest browser preview regression
         env:
           DB_CONNECTION: sqlite
