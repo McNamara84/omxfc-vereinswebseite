@@ -101,6 +101,10 @@ Route::prefix('hoerbuecher')->name('hoerbuecher.')->group(function () {
     Route::livewire('{episode}', \App\Livewire\HoerbuchShow::class)->name('show')->whereNumber('episode');
 });
 
+if (app()->environment(['local', 'testing'])) {
+    Route::view('/_testing/modal-vorschau', 'testing.modal-preview')->name('testing.modal-preview');
+}
+
 // POST Route für Mitgliedschaftsantrag
 Route::post('/mitglied-werden', [MitgliedschaftController::class, 'store'])->name('mitglied.store');
 
