@@ -156,14 +156,19 @@ Das Admin-Dashboard ist nur für Benutzer mit den Rollen `Admin`, `Vorstand` ode
 | Zweck                        | Befehl |
 |------------------------------|--------|
 | PHPUnit-Tests                | `php artisan test` |
+| Pest-Browser-Regression      | `./vendor/bin/pest tests/Browser/ModalBackdropPreviewTest.php` |
 | JavaScript-Tests (Jest)      | `npm run test` |
 | Komponenten-Tests (Vitest)   | `npm run test:vitest` |
 | End-to-End- & Accessibility-Checks | `npm run test:e2e` |
 | End-to-End-Checks mit Docker-PHP 8.5 | `npm run test:e2e:docker` |
+| Modal-Screenshot-Export mit Docker | `npm run test:e2e:modal-screenshots:docker` |
 | Code-Style (Laravel Pint)    | `./vendor/bin/pint` |
 
 Die Playwright-Suite setzt eine laufende Anwendung (lokal oder in CI) voraus und führt zusätzlich axe-core-Prüfungen für Barrierefreiheit durch.
 Für Windows- oder Docker-Setups ohne passendes lokales PHP kann die Suite mit `npm run test:e2e:docker` in einem kleinen PHP-8.5-Container mit SQLite-Support gestartet werden.
+Der Export der Modal-Vorschau-Screenshots ist bewusst an `PLAYWRIGHT_CAPTURE_MODAL_SCREENSHOTS=1` gekoppelt; das Docker-Skript `npm run test:e2e:modal-screenshots:docker` setzt diese Flag automatisch, während normale CI- und lokale Playwright-Läufe keine dauerhaften Screenshot-Artefakte erzeugen.
+
+Die lokale Pest-Browser-Regression benötigt aktuell noch den Pest-5-Stack und `symfony/process` aus unreleasten Branches. Ein Rückfall auf stabile Pest-4-Releases ist im Projekt derzeit nicht möglich, weil das stabile `pestphp/pest-plugin-laravel` nur Laravel 11/12 unterstützt, nicht aber Laravel 13. Sobald es stabile 5.x-Tags für diesen Stack gibt, können die Commit-Referenzen in `composer.json` entfallen.
 
 ## Deployment
 
