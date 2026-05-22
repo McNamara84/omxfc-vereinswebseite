@@ -7,14 +7,20 @@ const captureModalScreenshots = extraArgs.includes('--capture-modal-screenshots'
 const playwrightArgs = captureModalScreenshots
     ? extraArgs.filter((arg) => arg !== '--capture-modal-screenshots')
     : extraArgs;
+const forwardedScreenshotFlag = captureModalScreenshots
+    ? '1'
+    : process.env.PLAYWRIGHT_CAPTURE_MODAL_SCREENSHOTS ?? null;
+const childEnv = {
+    ...process.env,
+    PLAYWRIGHT_USE_DOCKER: '1',
+    ...(forwardedScreenshotFlag === null
+        ? {}
+        : { PLAYWRIGHT_CAPTURE_MODAL_SCREENSHOTS: forwardedScreenshotFlag }),
+};
 
 const child = spawn(process.execPath, [playwrightCli, 'test', ...playwrightArgs], {
     stdio: 'inherit',
-    env: {
-        ...process.env,
-        PLAYWRIGHT_USE_DOCKER: '1',
-        PLAYWRIGHT_CAPTURE_MODAL_SCREENSHOTS: captureModalScreenshots ? '1' : process.env.PLAYWRIGHT_CAPTURE_MODAL_SCREENSHOTS,
-    },
+    env: childEnv,
 });
 
 child.on('exit', (code) => {
