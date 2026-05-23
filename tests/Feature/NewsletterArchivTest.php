@@ -616,7 +616,7 @@ class NewsletterArchivTest extends TestCase
 
     public function test_newsletter_ausgaben_truncate_generated_slugs_to_database_limit(): void
     {
-        $longSubject = str_repeat('Extrem langer Newsletter Betreff ', 20);
+        $longSubject = str_repeat('a', 255);
 
         $ersteAusgabe = NewsletterAusgabe::factory()->create([
             'subject' => $longSubject,

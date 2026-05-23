@@ -13,14 +13,18 @@ FROM php:8.5-fpm as php-base
 RUN apt-get update && apt-get install -y \
     git \
     curl \
+    libfreetype6-dev \
+    libjpeg62-turbo-dev \
     libpng-dev \
+    libwebp-dev \
     libonig-dev \
     libsqlite3-dev \
     libxml2-dev \
     zip \
     unzip \
     mariadb-client \
-    && docker-php-ext-install pdo_mysql pdo_sqlite mbstring exif pcntl bcmath gd \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
+    && docker-php-ext-install pdo_mysql pdo_sqlite mbstring exif pcntl bcmath gd sockets \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Composer
@@ -109,9 +113,7 @@ RUN composer dump-autoload --optimize --no-interaction \
     && mkdir -p storage/logs \
     && touch storage/logs/laravel.log \
     && mkdir -p bootstrap/cache \
-    && chown -R www-data:www-data /var/www/html \
-    && chmod -R 755 /var/www/html \
-    && chmod -R 775 /var/www/html/storage \
-    && chmod -R 775 /var/www/html/bootstrap/cache
+    && chown -R www-data:www-data storage bootstrap/cache public/vendor/livewire \
+    && chmod -R 775 storage bootstrap/cache public/vendor/livewire
 
 EXPOSE 9000

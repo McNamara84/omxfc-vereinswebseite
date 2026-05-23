@@ -622,6 +622,5 @@ INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (45,'2025_10_01_000
 INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (46,'2025_09_25_052816_create_member_client_snapshots_table',2);
 INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (47,'2025_09_26_094551_add_uploaded_to_audiobook_roles_table',2);
 INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (48,'2025_09_26_130232_add_contact_and_pseudonym_to_audiobook_roles_table',2);
-INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (49,'2025_11_08_092743_create_fantreffen_anmeldungen_table',3);
 INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (50,'2025_11_29_102701_fix_mission_mars_enum_value_in_books_table',3);
 INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES (51,'2025_12_02_000001_make_activities_user_id_nullable',3);

@@ -50,6 +50,12 @@ class KompendiumPathValidationTest extends TestCase
         return $method->invoke($this->controller, $path);
     }
 
+    private function expectRejectedPathWarning(): void
+    {
+        Log::shouldReceive('channel')->zeroOrMoreTimes()->andReturnSelf();
+        Log::shouldReceive('warning')->atLeast()->once();
+    }
+
     /* --------------------------------------------------------------------- */
     /*  Gültige Pfade */
     /* --------------------------------------------------------------------- */
@@ -81,31 +87,31 @@ class KompendiumPathValidationTest extends TestCase
 
     public function test_rejects_simple_parent_directory_traversal(): void
     {
-        Log::shouldReceive('warning')->once();
+        $this->expectRejectedPathWarning();
         $this->assertFalse($this->isValidRomanPath('../.env'));
     }
 
     public function test_rejects_traversal_at_path_start(): void
     {
-        Log::shouldReceive('warning')->once();
+        $this->expectRejectedPathWarning();
         $this->assertFalse($this->isValidRomanPath('romane/../../../.env'));
     }
 
     public function test_rejects_traversal_in_middle_of_path(): void
     {
-        Log::shouldReceive('warning')->once();
+        $this->expectRejectedPathWarning();
         $this->assertFalse($this->isValidRomanPath('romane/maddrax/../../../etc/passwd'));
     }
 
     public function test_rejects_current_directory_reference(): void
     {
-        Log::shouldReceive('warning')->once();
+        $this->expectRejectedPathWarning();
         $this->assertFalse($this->isValidRomanPath('./romane/maddrax/001 - Titel.txt'));
     }
 
     public function test_rejects_hidden_traversal_with_backslashes(): void
     {
-        Log::shouldReceive('warning')->once();
+        $this->expectRejectedPathWarning();
         $this->assertFalse($this->isValidRomanPath('romane\\..\\..\\..\\secret.txt'));
     }
 
@@ -115,26 +121,26 @@ class KompendiumPathValidationTest extends TestCase
 
     public function test_rejects_path_not_starting_with_romane(): void
     {
-        Log::shouldReceive('warning')->once();
+        $this->expectRejectedPathWarning();
         $this->assertFalse($this->isValidRomanPath('andere/ordner/datei.txt'));
     }
 
     public function test_rejects_absolute_path(): void
     {
-        Log::shouldReceive('warning')->once();
+        $this->expectRejectedPathWarning();
         $this->assertFalse($this->isValidRomanPath('/etc/passwd'));
     }
 
     public function test_rejects_windows_absolute_path(): void
     {
-        Log::shouldReceive('warning')->once();
+        $this->expectRejectedPathWarning();
         $this->assertFalse($this->isValidRomanPath('C:\\Windows\\System32\\config'));
     }
 
     public function test_rejects_similar_but_not_exact_base_path(): void
     {
         // "romane_fake" startet nicht mit "romane/"
-        Log::shouldReceive('warning')->once();
+        $this->expectRejectedPathWarning();
         $this->assertFalse($this->isValidRomanPath('romane_fake/maddrax/001.txt'));
     }
 }

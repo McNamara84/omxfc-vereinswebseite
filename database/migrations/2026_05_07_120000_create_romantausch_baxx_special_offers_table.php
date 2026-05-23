@@ -21,7 +21,7 @@ return new class extends Migration
             $table->boolean('is_active')->default(true);
             $table->timestamps();
 
-            $table->index(['action_key', 'is_active', 'ends_at']);
+            $table->index(['action_key', 'is_active', 'ends_at'], 'rbs_offers_lookup_idx');
         });
     }
 
