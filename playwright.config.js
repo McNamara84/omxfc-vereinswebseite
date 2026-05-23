@@ -7,6 +7,12 @@ const playwrightPort = Number(process.env.PLAYWRIGHT_PORT ?? 8001);
 const phpServerHost = shouldUseDockerPhp() ? '0.0.0.0' : '127.0.0.1';
 const playwrightRunToken = process.env.PLAYWRIGHT_RUN_TOKEN ?? `local-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 process.env.PLAYWRIGHT_RUN_TOKEN = playwrightRunToken;
+const configuredWorkers = Number(process.env.PLAYWRIGHT_WORKERS ?? NaN);
+const playwrightWorkers = Number.isInteger(configuredWorkers) && configuredWorkers > 0
+  ? configuredWorkers
+  : shouldUseDockerPhp()
+    ? 1
+    : undefined;
 const phpEnvironment = {
   APP_ENV: 'testing',
   APP_DEBUG: 'false',
@@ -46,6 +52,10 @@ const shouldReuseExistingServer = process.env.PLAYWRIGHT_REUSE_EXISTING_SERVER =
 export default defineConfig({
   testDir: 'tests/e2e',
   globalSetup: './tests/e2e/global-setup.js',
+  // The Docker harness serves the app through a single PHP dev server instance
+  // backed by one shared SQLite file. Default to one worker there to avoid
+  // request queueing and cross-test interference; allow explicit override.
+  workers: playwrightWorkers,
   
   // Browser-Projekte explizit definieren
   projects: isCI
