@@ -1,4 +1,4 @@
-﻿import { test, expect } from './test-support.js';
+import { test, expect } from './test-support.js';
 import AxeBuilder from '@axe-core/playwright';
 
 test.describe('Accessibility checks', () => {

@@ -1,4 +1,4 @@
-﻿import { expect, test } from './test-support.js';
+import { expect, test } from './test-support.js';
 
 const escapeRegExp = (value) => String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 

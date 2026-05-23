@@ -38,8 +38,8 @@ RUN echo 'upload_max_filesize = 110M' > /usr/local/etc/php/conf.d/uploads.ini \
     && echo 'post_max_size = 120M' >> /usr/local/etc/php/conf.d/uploads.ini
 
 # Ensure PHP-FPM runs as www-data
-RUN sed -i 's/user = www-data/user = www-data/g' /usr/local/etc/php-fpm.d/www.conf \
-    && sed -i 's/group = www-data/group = www-data/g' /usr/local/etc/php-fpm.d/www.conf
+RUN sed -i 's/^user = .*/user = www-data/' /usr/local/etc/php-fpm.d/www.conf \
+    && sed -i 's/^group = .*/group = www-data/' /usr/local/etc/php-fpm.d/www.conf
 
 # PHP Production Stage
 FROM php-base as production

@@ -1,4 +1,4 @@
-﻿import { test, expect } from './test-support.js';
+import { test, expect } from './test-support.js';
 
 const login = async (page, email, password = 'password') => {
     await page.goto('/login');

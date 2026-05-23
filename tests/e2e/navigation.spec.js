@@ -1,4 +1,4 @@
-﻿import { test, expect } from './test-support.js';
+import { test, expect } from './test-support.js';
 
 test('navbar link navigates to Mitglied werden page', async ({ page }) => {
   await page.goto('/');

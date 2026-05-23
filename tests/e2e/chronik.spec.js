@@ -1,4 +1,4 @@
-﻿import { test, expect } from './test-support.js';
+import { test, expect } from './test-support.js';
 
 test('chronik page displays timeline images with alt text', async ({ page }) => {
   await page.goto('/chronik');

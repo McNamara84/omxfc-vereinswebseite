@@ -1,4 +1,4 @@
-﻿import { test, expect } from './test-support.js';
+import { test, expect } from './test-support.js';
 
 async function expectHeadingsInDomOrder(page, headings) {
     const locators = headings.map((name) => page.getByRole('heading', { level: 2, name, exact: true }));

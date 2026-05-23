@@ -39,11 +39,12 @@ describe('php utils', () => {
         vi.stubEnv('PLAYWRIGHT_USE_DOCKER', '1');
 
         const { createPhpProcess, shouldUseDockerPhp, toPhpRuntimePath } = await importPhpUtils();
+        const runtimeDatabasePath = toPhpRuntimePath('database/playwright.sqlite');
 
         expect(shouldUseDockerPhp()).toBe(true);
         expect(createPhpProcess(['artisan', 'migrate'], {
             env: {
-                DB_DATABASE: '/workspace/database/playwright.sqlite',
+                DB_DATABASE: runtimeDatabasePath,
                 VITE_DEV_SERVER_URL: 'http://localhost:5173',
             },
         })).toEqual({
@@ -56,7 +57,7 @@ describe('php utils', () => {
                 '-T',
                 '--rm',
                 '-e',
-                'DB_DATABASE=/workspace/database/playwright.sqlite',
+                `DB_DATABASE=${runtimeDatabasePath}`,
                 '-e',
                 'VITE_DEV_SERVER_URL=http://localhost:5173',
                 'playwright-php',

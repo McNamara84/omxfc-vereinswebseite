@@ -1,4 +1,4 @@
-﻿import { expect, test } from './test-support.js';
+import { expect, test } from './test-support.js';
 
 function uniqueGuestEmail(prefix, projectName) {
     const normalizedProject = projectName.replace(/[^a-z0-9]+/gi, '-').toLowerCase();

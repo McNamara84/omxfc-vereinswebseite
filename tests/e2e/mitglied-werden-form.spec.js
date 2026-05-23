@@ -1,4 +1,4 @@
-﻿import { test, expect } from './test-support.js';
+import { test, expect } from './test-support.js';
 import { gotoMitgliedWerden } from './utils/mitglied-werden.js';
 
 async function fillRequiredFields(page) {
