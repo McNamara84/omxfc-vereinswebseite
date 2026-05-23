@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\User;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Config;
 use Tests\TestCase;
 
@@ -71,5 +72,27 @@ class AppServiceProviderTest extends TestCase
         $this->assertStringContainsString('Testinhalt', $html);
         $this->assertStringNotContainsString('resources/css/app.css', $html);
         $this->assertStringNotContainsString('resources/js/app.js', $html);
+    }
+
+    public function test_testing_environment_ignores_standard_vite_hot_file(): void
+    {
+        $hotPath = public_path('hot');
+        $originalHotExists = is_file($hotPath);
+        $originalHotContents = $originalHotExists ? file_get_contents($hotPath) : null;
+
+        file_put_contents($hotPath, 'http://127.0.0.1:5999');
+
+        try {
+            $html = Blade::render("@vite(['resources/css/app.css'])");
+
+            $this->assertStringNotContainsString('http://127.0.0.1:5999', $html);
+            $this->assertStringContainsString('/build/assets/', $html);
+        } finally {
+            if ($originalHotExists) {
+                file_put_contents($hotPath, $originalHotContents ?: '');
+            } elseif (is_file($hotPath)) {
+                unlink($hotPath);
+            }
+        }
     }
 }

@@ -55,6 +55,11 @@ class AppServiceProvider extends ServiceProvider
             request()->headers->set('X-Forwarded-Port', '443');
         }
 
+        if ($this->app->environment('testing')) {
+            // Tests should use built assets instead of inheriting a local dev hot file.
+            Vite::useHotFile(public_path('testing.hot'));
+        }
+
         if (env('PLAYWRIGHT_USE_DOCKER') === '1') {
             Vite::useHotFile(public_path('playwright.hot'));
         }
