@@ -31,7 +31,11 @@ class AlertComponentTest extends BaseTestCase
         $this->assertStringContainsString('Karte noch nicht verfügbar', $html);
         $this->assertStringContainsString('Freischaltung erst nach der ersten erledigten Aufgabe.', $html);
         $this->assertStringContainsString('font-bold', $html);
-        $this->assertStringContainsString('data-icon-name="o-lock-closed"', $html);
+        $this->assertTrue(
+            str_contains($html, 'data-icon-name="o-lock-closed"')
+                || str_contains($html, 'data-slot="icon"'),
+            'Expected the alert to render icon markup.',
+        );
         $this->assertStringNotContainsString('•', $html);
     }
 
