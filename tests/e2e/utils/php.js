@@ -20,6 +20,7 @@ const explicitForwardedEnvironmentKeys = [
     'FANTREFFEN_DISABLE_RATE_LIMIT',
     'PLAYWRIGHT_USE_DOCKER',
     'PLAYWRIGHT_PORT',
+    'DOCKER_DEV_PLAYWRIGHT_PORT',
     'PLAYWRIGHT_RUN_TOKEN',
 ];
 const forwardedEnvironmentPrefixes = ['E2E_', 'TEST_'];

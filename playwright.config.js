@@ -29,6 +29,7 @@ const phpEnvironment = {
   FANTREFFEN_DISABLE_RATE_LIMIT: 'true',
   PLAYWRIGHT_USE_DOCKER: process.env.PLAYWRIGHT_USE_DOCKER ?? '0',
   PLAYWRIGHT_PORT: String(playwrightPort),
+  DOCKER_DEV_PLAYWRIGHT_PORT: String(playwrightPort),
   PLAYWRIGHT_RUN_TOKEN: playwrightRunToken,
 };
 const phpCommand = shouldUseDockerPhp()
