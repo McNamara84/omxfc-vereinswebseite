@@ -2,6 +2,7 @@
 
 namespace Tests;
 
+use Illuminate\Console\Application as ArtisanApplication;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Testing\TestResponse;
 use Illuminate\Testing\TestView;
@@ -21,6 +22,13 @@ abstract class TestCase extends BaseTestCase
     protected const DEFAULT_LAT = '48.0';
 
     protected const DEFAULT_LON = '11.0';
+
+    public function createApplication()
+    {
+        ArtisanApplication::forgetBootstrappers();
+
+        return parent::createApplication();
+    }
 
     protected function setUp(): void
     {

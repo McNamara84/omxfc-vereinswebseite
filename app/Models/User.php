@@ -47,6 +47,11 @@ class User extends Authenticatable
     use TwoFactorAuthenticatable;
 
     /**
+     * @var array<string, bool>
+     */
+    private static array $geocodeColumnsAvailable = [];
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var array<int, string>
@@ -127,7 +132,7 @@ class User extends Authenticatable
     protected static function booted()
     {
         static::saved(function (User $user) {
-            if (! Schema::hasColumns('users', ['lat', 'lon'])) {
+            if (! $user->hasGeocodeColumns()) {
                 return;
             }
 
@@ -136,6 +141,19 @@ class User extends Authenticatable
                 GeocodeUser::dispatch($user);
             }
         });
+    }
+
+    private function hasGeocodeColumns(): bool
+    {
+        $connectionName = $this->getConnectionName() ?? config('database.default', 'default');
+        $cacheKey = implode(':', [
+            $connectionName,
+            (string) config("database.connections.{$connectionName}.database", 'default'),
+            $this->getTable(),
+        ]);
+
+        return self::$geocodeColumnsAvailable[$cacheKey]
+            ??= Schema::connection($connectionName)->hasColumns($this->getTable(), ['lat', 'lon']);
     }
 
     /**

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use Illuminate\Console\Application as ArtisanApplication;
 use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 use Illuminate\Support\Facades\Blade;
@@ -10,6 +11,8 @@ class AlertComponentTest extends BaseTestCase
 {
     public function createApplication()
     {
+        ArtisanApplication::forgetBootstrappers();
+
         $app = require __DIR__.'/../../bootstrap/app.php';
 
         $app->make(Kernel::class)->bootstrap();
