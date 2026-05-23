@@ -50,6 +50,7 @@ describe('php utils', () => {
                 '-f',
                 expect.stringMatching(/docker-compose\.dev\.yml$/),
                 'run',
+                '-T',
                 '--rm',
                 '-e',
                 'DB_DATABASE=/workspace/database/playwright.sqlite',
@@ -60,7 +61,7 @@ describe('php utils', () => {
             ],
             shell: false,
         });
-        expect(toPhpRuntimePath('database/playwright.sqlite')).toBe('/workspace/database/playwright.sqlite');
+        expect(toPhpRuntimePath('database/playwright.sqlite')).toBe('/var/www/html/database/playwright.sqlite');
     });
 
     it('reicht zusaetzliche Test-Credentials mit E2E- oder TEST-Prefix an Docker weiter', async () => {
