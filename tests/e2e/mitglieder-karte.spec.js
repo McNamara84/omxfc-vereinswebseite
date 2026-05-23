@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './test-support.js';
 
 const login = async (page, email, password = 'password') => {
     await page.goto('/login');

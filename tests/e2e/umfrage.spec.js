@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './test-support.js';
 import { runArtisan } from './utils/artisan.js';
 
 const login = async (page, email, password = 'password') => {

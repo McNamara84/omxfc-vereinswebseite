@@ -1,9 +1,9 @@
 <?php
 
 it('zeigt für Vorschau-Modals deckende Backdrops', function () {
-    $page = visit('/_testing/modal-vorschau');
+    $page = visit('/_testing/modal-vorschau', ['waitUntil' => 'domcontentloaded']);
 
-    $page->assertSee('Modal-Vorschau')
+    $page->assertTitle('Modal-Vorschau')
         ->assertScript('window.__omxfcPreviewExpectedModalCount() > 0', true)
         ->assertScript('window.__omxfcPreviewExpectedModalCount() === document.querySelectorAll("[data-modal-trigger]").length', true)
         ->assertNoJavaScriptErrors();

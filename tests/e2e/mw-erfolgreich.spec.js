@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './test-support.js';
 
 test('mitglied werden erfolgreich page displays confirmation and home link', async ({ page }) => {
   await page.goto('/mitglied-werden/erfolgreich');

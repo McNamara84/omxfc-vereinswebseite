@@ -39,20 +39,27 @@ describe('php utils', () => {
         vi.stubEnv('PLAYWRIGHT_USE_DOCKER', '1');
 
         const { createPhpProcess, shouldUseDockerPhp, toPhpRuntimePath } = await importPhpUtils();
+        const runtimeDatabasePath = toPhpRuntimePath('database/playwright.sqlite');
 
         expect(shouldUseDockerPhp()).toBe(true);
         expect(createPhpProcess(['artisan', 'migrate'], {
-            env: { DB_DATABASE: '/workspace/database/playwright.sqlite' },
+            env: {
+                DB_DATABASE: runtimeDatabasePath,
+                VITE_DEV_SERVER_URL: 'http://localhost:5173',
+            },
         })).toEqual({
             command: 'docker',
             args: [
                 'compose',
                 '-f',
-                expect.stringMatching(/docker-compose\.playwright\.yml$/),
+                expect.stringMatching(/docker-compose\.dev\.yml$/),
                 'run',
+                '-T',
                 '--rm',
                 '-e',
-                'DB_DATABASE=/workspace/database/playwright.sqlite',
+                `DB_DATABASE=${runtimeDatabasePath}`,
+                '-e',
+                'VITE_DEV_SERVER_URL=http://localhost:5173',
                 'playwright-php',
                 'php',
                 'artisan',
@@ -60,7 +67,25 @@ describe('php utils', () => {
             ],
             shell: false,
         });
-        expect(toPhpRuntimePath('database/playwright.sqlite')).toBe('/workspace/database/playwright.sqlite');
+        expect(toPhpRuntimePath('database/playwright.sqlite')).toBe('/var/www/html/database/playwright.sqlite');
+    });
+
+    it('reicht zusaetzliche Test-Credentials mit E2E- oder TEST-Prefix an Docker weiter', async () => {
+        vi.stubEnv('PLAYWRIGHT_USE_DOCKER', '1');
+
+        const { createPhpProcess } = await importPhpUtils();
+
+        expect(createPhpProcess(['artisan', 'about'], {
+            env: {
+                E2E_SANDBOX_USERNAME: 'demo-user',
+                TEST_API_TOKEN: 'top-secret',
+            },
+        }).args).toEqual(expect.arrayContaining([
+            '-e',
+            'E2E_SANDBOX_USERNAME=demo-user',
+            '-e',
+            'TEST_API_TOKEN=top-secret',
+        ]));
     });
 
     it('formatiert unter Docker den service-port-faehigen Server-Command', async () => {

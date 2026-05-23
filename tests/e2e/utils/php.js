@@ -1,25 +1,31 @@
 import path from 'path';
 
-const dockerComposeFile = path.resolve('docker-compose.playwright.yml');
-const dockerPhpService = 'playwright-php';
+const dockerComposeFile = path.resolve(process.env.PLAYWRIGHT_DOCKER_COMPOSE_FILE ?? 'docker-compose.dev.yml');
+const dockerPhpService = process.env.PLAYWRIGHT_DOCKER_PHP_SERVICE ?? 'playwright-php';
 const workspaceRoot = path.resolve('.');
-const dockerWorkspaceRoot = '/workspace';
-const forwardedEnvironmentKeys = [
+const dockerWorkspaceRoot = '/var/www/html';
+const explicitForwardedEnvironmentKeys = [
     'APP_ENV',
     'APP_DEBUG',
     'APP_KEY',
     'DB_CONNECTION',
     'DB_DATABASE',
     'SESSION_DRIVER',
+    'CACHE_STORE',
     'CACHE_DRIVER',
+    'VITE_DEV_SERVER_URL',
     'QUEUE_CONNECTION',
     'MAIL_MAILER',
     'FORTIFY_DISABLE_LOGIN_RATE_LIMIT',
     'FANTREFFEN_TSHIRT_DEADLINE',
     'FANTREFFEN_MIN_FORM_TIME',
     'FANTREFFEN_DISABLE_RATE_LIMIT',
+    'PLAYWRIGHT_USE_DOCKER',
     'PLAYWRIGHT_PORT',
+    'DOCKER_DEV_PLAYWRIGHT_PORT',
+    'PLAYWRIGHT_RUN_TOKEN',
 ];
+const forwardedEnvironmentPrefixes = ['E2E_', 'TEST_'];
 
 export function shouldUseDockerPhp() {
     return process.env.PLAYWRIGHT_USE_DOCKER === '1';
@@ -59,7 +65,13 @@ export function isBatchPhpBinary(binary = resolvePhpBinary()) {
 }
 
 function createDockerEnvironmentArgs(environment = {}) {
-    return forwardedEnvironmentKeys.flatMap((key) => {
+    const forwardedEnvironmentKeys = new Set(explicitForwardedEnvironmentKeys);
+
+    Object.keys(environment)
+        .filter((key) => forwardedEnvironmentPrefixes.some((prefix) => key.startsWith(prefix)))
+        .forEach((key) => forwardedEnvironmentKeys.add(key));
+
+    return [...forwardedEnvironmentKeys].flatMap((key) => {
         const value = environment[key];
 
         if (value === undefined) {
@@ -85,6 +97,7 @@ export function createPhpProcess(args = [], options = {}) {
                 '-f',
                 dockerComposeFile,
                 'run',
+                '-T',
                 '--rm',
                 ...(options.servicePorts ? ['--service-ports'] : []),
                 ...createDockerEnvironmentArgs(options.env),
@@ -105,8 +118,39 @@ export function createPhpProcess(args = [], options = {}) {
     };
 }
 
+export function createDockerServiceProcess(args = [], options = {}) {
+    if (!shouldUseDockerPhp()) {
+        throw new Error('createDockerServiceProcess() requires PLAYWRIGHT_USE_DOCKER=1.');
+    }
+
+    return {
+        command: 'docker',
+        args: [
+            'compose',
+            '-f',
+            dockerComposeFile,
+            'run',
+            '-T',
+            '--rm',
+            ...(options.servicePorts ? ['--service-ports'] : []),
+            ...createDockerEnvironmentArgs(options.env),
+            dockerPhpService,
+            ...args,
+        ],
+        shell: false,
+    };
+}
+
 export function formatPhpCommand(args = [], options = {}) {
     const processDefinition = createPhpProcess(args, options);
+
+    return [processDefinition.command, ...processDefinition.args]
+        .map(quoteCommandPart)
+        .join(' ');
+}
+
+export function formatDockerServiceCommand(args = [], options = {}) {
+    const processDefinition = createDockerServiceProcess(args, options);
 
     return [processDefinition.command, ...processDefinition.args]
         .map(quoteCommandPart)

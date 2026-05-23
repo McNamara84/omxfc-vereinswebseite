@@ -55,6 +55,15 @@ class AppServiceProvider extends ServiceProvider
             request()->headers->set('X-Forwarded-Port', '443');
         }
 
+        if ($this->app->environment('testing')) {
+            // Tests should use built assets instead of inheriting a local dev hot file.
+            Vite::useHotFile(public_path('testing.hot'));
+        }
+
+        if (env('PLAYWRIGHT_USE_DOCKER') === '1') {
+            Vite::useHotFile(public_path('playwright.hot'));
+        }
+
         // Rate Limiter für Fantreffen-Anmeldung (deaktivierbar via Config für Tests)
         RateLimiter::for('fantreffen-registration', function ($request) {
             if (config('services.fantreffen.disable_rate_limit')) {
@@ -155,22 +164,28 @@ class AppServiceProvider extends ServiceProvider
         Blade::if('vorstand', fn () => Auth::check() && Auth::user()?->hasVorstandRole());
 
         if ($this->app->runningUnitTests()) {
-            Blade::component('testing.components.button', 'button');
-            Blade::component('testing.components.badge', 'badge');
-            Blade::component('testing.components.checkbox', 'checkbox');
-            Blade::component('testing.components.avatar', 'avatar');
-            Blade::component('testing.components.file', 'file');
-            Blade::component('testing.components.icon', 'icon');
-            Blade::component('testing.components.input', 'input');
-            Blade::component('testing.components.main', 'main');
-            Blade::component('testing.components.mary-modal', 'mary-modal');
-            Blade::component('testing.components.mary-modal', 'modal');
-            Blade::component('testing.components.password', 'password');
-            Blade::component('testing.components.select', 'select');
-            Blade::component('testing.components.stat', 'stat');
-            Blade::component('testing.components.table', 'table');
-            Blade::component('testing.components.theme-toggle', 'theme-toggle');
-            Blade::component('testing.components.toast', 'toast');
+            $registerTestingComponents = static function (): void {
+                Blade::component('testing.components.button', 'button');
+                Blade::component('testing.components.badge', 'badge');
+                Blade::component('testing.components.checkbox', 'checkbox');
+                Blade::component('testing.components.avatar', 'avatar');
+                Blade::component('testing.components.file', 'file');
+                Blade::component('testing.components.icon', 'icon');
+                Blade::component('testing.components.icon', 'svg');
+                Blade::component('testing.components.input', 'input');
+                Blade::component('testing.components.main', 'main');
+                Blade::component('testing.components.mary-modal', 'mary-modal');
+                Blade::component('testing.components.mary-modal', 'modal');
+                Blade::component('testing.components.password', 'password');
+                Blade::component('testing.components.select', 'select');
+                Blade::component('testing.components.stat', 'stat');
+                Blade::component('testing.components.table', 'table');
+                Blade::component('testing.components.theme-toggle', 'theme-toggle');
+                Blade::component('testing.components.toast', 'toast');
+            };
+
+            $registerTestingComponents();
+            $this->app->booted($registerTestingComponents);
         }
 
         // Registriert die projektweite Alert-Komponente mit Titel-, Description-, Actions-

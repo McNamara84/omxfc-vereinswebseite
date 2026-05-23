@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './test-support.js';
 
 /**
  * Fanfiction E2E Tests

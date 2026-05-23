@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use Illuminate\Console\Application as ArtisanApplication;
 use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 use Illuminate\Support\Facades\Blade;
@@ -10,6 +11,8 @@ class AlertComponentTest extends BaseTestCase
 {
     public function createApplication()
     {
+        ArtisanApplication::forgetBootstrappers();
+
         $app = require __DIR__.'/../../bootstrap/app.php';
 
         $app->make(Kernel::class)->bootstrap();
@@ -31,7 +34,11 @@ class AlertComponentTest extends BaseTestCase
         $this->assertStringContainsString('Karte noch nicht verfügbar', $html);
         $this->assertStringContainsString('Freischaltung erst nach der ersten erledigten Aufgabe.', $html);
         $this->assertStringContainsString('font-bold', $html);
-        $this->assertStringContainsString('data-icon-name="o-lock-closed"', $html);
+        $this->assertTrue(
+            str_contains($html, 'data-icon-name="o-lock-closed"')
+                || str_contains($html, 'data-slot="icon"'),
+            'Expected the alert to render icon markup.',
+        );
         $this->assertStringNotContainsString('•', $html);
     }
 

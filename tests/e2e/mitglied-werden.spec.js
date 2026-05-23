@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './test-support.js';
 import { gotoMitgliedWerden } from './utils/mitglied-werden.js';
 
 test('mitglied-werden form enables submit button after validation and terms acceptance', async ({ page }) => {

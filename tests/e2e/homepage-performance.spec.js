@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './test-support.js';
 import fs from 'fs';
 import path from 'path';
 import {

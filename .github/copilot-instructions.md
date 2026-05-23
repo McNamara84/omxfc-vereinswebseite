@@ -31,19 +31,37 @@ app/Models/               # Eloquent: User, Team, Todo, Review, FantreffenAnmeld
 ## Entwicklungs-Workflow
 
 ```bash
-# Setup
+# Setup (bevorzugt: Docker-Compose-Dev-Stack)
+cp .env.docker.dev.example .env.docker.dev.local
+
+# Lokalen App-Key erzeugen und in .env.docker.dev.local eintragen
+npm run docker:dev:key:generate
+
+docker compose --env-file .env.docker.dev.local -f docker-compose.dev.yml up -d --build
+
+# Optionaler Host-Fallback
 composer install && npm install      # Node 24 LTS (siehe .node-version)
 cp .env.example .env && php artisan key:generate
 php artisan migrate
 
-# Entwickeln (empfohlen – startet serve + queue:work + vite parallel)
-composer run dev
+# Entwickeln
+docker compose --env-file .env.docker.dev.local -f docker-compose.dev.yml logs -f --tail=200
 
 # Tests
-php artisan test                      # PHPUnit (SQLite :memory:)
-npm run test:vitest                   # Vitest (JS)
-npm run test:e2e                      # Playwright (benötigt npm run build)
+docker compose --env-file .env.docker.dev.local -f docker-compose.dev.yml exec app php artisan test
+docker compose --env-file .env.docker.dev.local -f docker-compose.dev.yml exec vite npm run test:vitest
+npm run test:e2e:docker
 ```
+
+## Lokaler Standard-Stack
+
+- Bevorzugte lokale Entwicklung läuft über `docker-compose.dev.yml`, nicht mehr über den klassischen Host-Workflow.
+- Lokale Secrets und externe Test-Credentials gehören ausschließlich in `.env.docker.dev.local` auf Basis von `.env.docker.dev.example`.
+- `DOCKER_DEV_APP_KEY` in `.env.docker.dev.local` darf nicht leer bleiben und nicht auf `base64:CHANGE_ME` stehen.
+- Niemals `.env.docker.dev.local` oder andere echte Secret-Dateien committen.
+- Für produktionsnahe lokale Checks zuerst `docker compose --env-file .env.docker.dev.local -f docker-compose.dev.yml up -d --build` verwenden.
+- Schnelle Standardtests bleiben absichtlich effizient: `php artisan test` nutzt weiter SQLite, auch wenn die Runtime lokal über MariaDB und Typesense läuft.
+- Für Playwright lokal bevorzugt `npm run test:e2e:docker`; der Docker-PHP-Helfer nutzt dafür standardmäßig `docker-compose.dev.yml`.
 
 ## Projekt-Konventionen
 

@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './test-support.js';
 
 test('impressum page shows contact email link', async ({ page }) => {
   await page.goto('/impressum');

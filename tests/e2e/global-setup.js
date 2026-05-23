@@ -4,11 +4,15 @@ import { spawnSync } from 'child_process';
 import { runArtisan } from './utils/artisan.js';
 import { createPhpProcess, toPhpRuntimePath } from './utils/php.js';
 
+const shouldHideWindowsShell = process.platform === 'win32';
+
 export default async function globalSetup() {
     const databasePath = path.resolve('database/playwright.sqlite');
     const runtimeDatabasePath = toPhpRuntimePath(databasePath);
     const sqliteSchemaPath = path.resolve('database/schema/sqlite-schema.sql');
     const runtimeSqliteSchemaPath = toPhpRuntimePath(sqliteSchemaPath);
+    const runToken = process.env.PLAYWRIGHT_RUN_TOKEN ?? 'local-default';
+    const readyFilePath = path.resolve('storage/framework/testing', `playwright-ready-${runToken}.flag`);
 
     process.env.APP_ENV = 'testing';
     process.env.APP_DEBUG = 'false';
@@ -16,6 +20,7 @@ export default async function globalSetup() {
     process.env.DB_CONNECTION = 'sqlite';
     process.env.DB_DATABASE = runtimeDatabasePath;
     process.env.SESSION_DRIVER = 'file';
+    process.env.CACHE_STORE = 'array';
     process.env.CACHE_DRIVER = 'array';
     process.env.QUEUE_CONNECTION = 'database';
     process.env.MAIL_MAILER = 'array';
@@ -27,6 +32,15 @@ export default async function globalSetup() {
     const databaseDirectory = path.dirname(databasePath);
     if (!fs.existsSync(databaseDirectory)) {
         fs.mkdirSync(databaseDirectory, { recursive: true });
+    }
+
+    const readyFileDirectory = path.dirname(readyFilePath);
+    if (!fs.existsSync(readyFileDirectory)) {
+        fs.mkdirSync(readyFileDirectory, { recursive: true });
+    }
+
+    if (fs.existsSync(readyFilePath)) {
+        fs.rmSync(readyFilePath);
     }
 
     fs.closeSync(fs.openSync(databasePath, 'w'));
@@ -49,6 +63,7 @@ export default async function globalSetup() {
         env: process.env,
         shell: schemaLoader.shell,
         stdio: 'inherit',
+        windowsHide: shouldHideWindowsShell,
     });
 
     if (schemaResult.status !== 0) {
@@ -66,4 +81,6 @@ export default async function globalSetup() {
     await runArtisan(['db:seed', '--class=Database\\Seeders\\FanfictionPlaywrightSeeder']);
     await runArtisan(['db:seed', '--class=Database\\Seeders\\KompendiumPlaywrightSeeder']);
     await runArtisan(['db:seed', '--class=Database\\Seeders\\FantreffenPlaywrightSeeder']);
+
+    fs.writeFileSync(readyFilePath, 'ready\n');
 }

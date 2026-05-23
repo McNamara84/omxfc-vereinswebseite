@@ -2,7 +2,9 @@
 /node_modules
 /public/build
 /public/hot
+/public/playwright.hot
 /public/storage
+/public/vendor/livewire
 /storage/*.key
 /storage/*.index
 /storage/app/*.index
@@ -10,6 +12,7 @@
 /vendor
 .env
 .env.backup
+.env.docker.dev.local
 .env.production
 .phpactor.json
 .phpunit.result.cache

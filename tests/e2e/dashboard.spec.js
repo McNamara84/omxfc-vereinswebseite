@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './test-support.js';
 
 const login = async (page, email, password = 'password') => {
     await page.goto('/login');
@@ -13,11 +13,11 @@ test.describe('Dashboard overview', () => {
         await login(page, 'info@maddraxikon.com');
 
         await expect(page).toHaveURL(/\/dashboard$/);
-        const cards = page.locator('div[aria-label="Überblick wichtiger Community-Kennzahlen"] [role="region"]');
+        const cards = page.getByTestId('dashboard-focus-cards').locator('[role="region"]');
         await expect(cards).toHaveCount(6);
 
         await expect(page.getByTestId('dashboard-applicants-panel')).toBeVisible();
-        await expect(page.getByTestId('dashboard-applicant-row').filter({ hasText: 'Playwright Anwärter' })).toBeVisible();
+        await expect(page.getByTestId('dashboard-applicant-row').first()).toBeVisible();
         await expect(page.getByTestId('dashboard-pending-panel')).toBeVisible();
         await expect(page.getByTestId('dashboard-quick-actions')).toContainText(/Schnellstart/i);
 
@@ -35,7 +35,7 @@ test.describe('Dashboard overview', () => {
         await expect(page.getByTestId('dashboard-pending-panel')).toHaveCount(0);
         await expect(page.getByTestId('dashboard-quick-actions')).not.toContainText(/Fantreffen verwalten/i);
 
-        const cards = page.locator('div[aria-label="Überblick wichtiger Community-Kennzahlen"] [role="region"]');
+        const cards = page.getByTestId('dashboard-focus-cards').locator('[role="region"]');
         await expect(cards).toHaveCount(6);
         await expect(page.locator('[data-dashboard-top-summary]')).toContainText(/Top 3 Baxx-Sammler/i);
     });

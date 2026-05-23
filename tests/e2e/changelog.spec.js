@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './test-support.js';
 
 test('changelog page displays heading and version information', async ({ page }) => {
   await page.goto('/changelog');

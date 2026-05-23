@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './test-support.js';
 
 test('datenschutz page has data protection contact email', async ({ page }) => {
   await page.goto('/datenschutz');

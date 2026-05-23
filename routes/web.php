@@ -366,10 +366,8 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
             Route::livewire('erstellen', ThreeDModelForm::class)->name('create');
             Route::livewire('{threeDModel}/bearbeiten', ThreeDModelForm::class)->name('edit');
         });
-        Route::controller(ThreeDModelController::class)->group(function () {
-            Route::get('{threeDModel}/herunterladen', 'download')->name('download');
-            Route::get('{threeDModel}/vorschau', 'preview')->name('preview');
-        });
+        Route::get('{threeDModel}/herunterladen', [ThreeDModelController::class, 'download'])->name('download');
+        Route::get('{threeDModel}/vorschau', [ThreeDModelController::class, 'preview'])->name('preview');
         Route::livewire('{threeDModel}', ThreeDModelShow::class)->name('show');
     });
 

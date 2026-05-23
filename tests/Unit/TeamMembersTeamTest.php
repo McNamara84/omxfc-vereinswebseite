@@ -30,23 +30,25 @@ class TeamMembersTeamTest extends TestCase
 
     public function test_members_team_is_cached_after_first_call(): void
     {
+        DB::flushQueryLog();
         DB::enableQueryLog();
 
         Team::membersTeam();
         Team::membersTeam();
 
-        $this->assertCount(1, DB::getQueryLog());
+        $this->assertTeamsQueryCount(1);
     }
 
     public function test_clear_members_team_cache_resets_cache(): void
     {
+        DB::flushQueryLog();
         DB::enableQueryLog();
 
         Team::membersTeam();
         Team::clearMembersTeamCache();
         Team::membersTeam();
 
-        $this->assertCount(2, DB::getQueryLog());
+        $this->assertTeamsQueryCount(2);
     }
 
     public function test_members_team_cache_not_cleared_when_description_updated(): void
@@ -54,10 +56,11 @@ class TeamMembersTeamTest extends TestCase
         $team = Team::membersTeam();
         $team->update(['description' => 'updated']);
 
+        DB::flushQueryLog();
         DB::enableQueryLog();
         $cachedTeam = Team::membersTeam();
 
-        $this->assertCount(0, DB::getQueryLog());
+        $this->assertTeamsQueryCount(0);
         $this->assertSame('updated', $cachedTeam->description);
     }
 
@@ -66,10 +69,11 @@ class TeamMembersTeamTest extends TestCase
         $team = Team::membersTeam();
         $team->update(['name' => 'Mitglieder-renamed']);
 
+        DB::flushQueryLog();
         DB::enableQueryLog();
         $renamedTeam = Team::membersTeam();
 
-        $this->assertCount(1, DB::getQueryLog());
+        $this->assertTeamsQueryCount(1);
         $this->assertNull($renamedTeam);
     }
 
@@ -94,6 +98,7 @@ class TeamMembersTeamTest extends TestCase
         $team = Team::membersTeam();
         $team->delete();
 
+        DB::flushQueryLog();
         DB::enableQueryLog();
         $firstCall = Team::membersTeam();
         $secondCall = Team::membersTeam();
@@ -102,7 +107,7 @@ class TeamMembersTeamTest extends TestCase
         $this->assertNull($firstCall);
         $this->assertNull($secondCall);
         $this->assertNull($thirdCall);
-        $this->assertCount(3, DB::getQueryLog());
+        $this->assertTeamsQueryCount(3);
     }
 
     public function test_members_team_cache_cleared_on_team_delete(): void
@@ -111,10 +116,21 @@ class TeamMembersTeamTest extends TestCase
         $team->delete();
         Team::factory()->create(['name' => 'Mitglieder']);
 
+        DB::flushQueryLog();
         DB::enableQueryLog();
         $newTeam = Team::membersTeam();
 
-        $this->assertCount(1, DB::getQueryLog());
+        $this->assertTeamsQueryCount(1);
         $this->assertNotSame($team->id, $newTeam->id);
+    }
+
+    private function assertTeamsQueryCount(int $expectedCount): void
+    {
+        $teamsQueries = array_filter(
+            DB::getQueryLog(),
+            static fn (array $entry): bool => preg_match('/\bfrom\s+["`]?teams["`]?\b/i', $entry['query']) === 1
+        );
+
+        $this->assertCount($expectedCount, $teamsQueries);
     }
 }

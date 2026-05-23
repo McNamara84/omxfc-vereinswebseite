@@ -617,7 +617,11 @@ class ThreeDModelLivewireTest extends TestCase
         $user = $this->actingAdmin();
 
         $file = UploadedFile::fake()->create('modell.stl', 512);
-        $thumbnail = UploadedFile::fake()->image('vorschau.jpg')->size(2049);
+        $baseThumbnail = UploadedFile::fake()->image('vorschau.jpg', 400, 300);
+        $thumbnail = UploadedFile::fake()->createWithContent(
+            'vorschau.jpg',
+            file_get_contents($baseThumbnail->getRealPath()).str_repeat('A', (2048 * 1024) + 1),
+        );
 
         Livewire::actingAs($user)
             ->test(ThreeDModelForm::class)

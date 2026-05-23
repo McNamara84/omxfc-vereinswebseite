@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './test-support.js';
 import AxeBuilder from '@axe-core/playwright';
 
 /**
@@ -230,7 +230,7 @@ test.describe('Romantauschbörse - Stapel-Angebote', () => {
             await editLink.click();
 
             // Warte auf die Seite und Alpine.js Initialisierung
-            await page.waitForURL(/stapel\/.*\/bearbeiten$/);
+            await page.waitForURL(/stapel\/.*\/bearbeiten$/, { waitUntil: 'domcontentloaded' });
             
             // Aktuelle Roman-Nummern sollten im Eingabefeld stehen
             // Warte bis Alpine.js das Input-Feld mit dem initialen Wert befüllt hat
@@ -314,7 +314,7 @@ test.describe('Romantauschbörse - Stapel-Angebote', () => {
             await editLink.click();
 
             // wire:navigate navigiert per SPA – auf die Bearbeiten-Seite warten
-            await page.waitForURL(/\/bearbeiten/);
+            await page.waitForURL(/\/bearbeiten/, { waitUntil: 'domcontentloaded' });
 
             const accessibilityScanResults = await new AxeBuilder({ page })
                 .withTags(['wcag2a', 'wcag2aa'])

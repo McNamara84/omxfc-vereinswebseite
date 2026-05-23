@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './test-support.js';
 
 test('arbeitsgruppen page shows heading for public teams', async ({ page }) => {
   await page.goto('/arbeitsgruppen');

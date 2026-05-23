@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './test-support.js';
 
 const shouldCaptureModalScreenshots = process.env.PLAYWRIGHT_CAPTURE_MODAL_SCREENSHOTS === '1';
 
