@@ -7,11 +7,15 @@ use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Vite;
 use Tests\TestCase;
 
 class AppServiceProviderTest extends TestCase
 {
     use RefreshDatabase;
+
+    private const TEST_VITE_BUILD_DIRECTORY = 'build-app-service-provider-test';
+    private const TEST_VITE_ASSET = 'assets/app-service-provider-test.css';
 
     public function test_password_reset_does_not_change_existing_verified_timestamp(): void
     {
@@ -80,20 +84,22 @@ class AppServiceProviderTest extends TestCase
         $originalHotExists = is_file($hotPath);
         $originalHotContents = $originalHotExists ? file_get_contents($hotPath) : null;
 
-        file_put_contents($hotPath, 'http://127.0.0.1:5999');
+        $this->withTemporaryViteManifest(function () use ($hotPath, $originalHotExists, $originalHotContents): void {
+            file_put_contents($hotPath, 'http://127.0.0.1:5999');
 
-        try {
-            $html = Blade::render("@vite(['resources/css/app.css'])");
+            try {
+                $html = Blade::render("@vite(['resources/css/app.css'])");
 
-            $this->assertStringNotContainsString('http://127.0.0.1:5999', $html);
-            $this->assertStringContainsString('/build/assets/', $html);
-        } finally {
-            if ($originalHotExists) {
-                file_put_contents($hotPath, $originalHotContents ?: '');
-            } elseif (is_file($hotPath)) {
-                unlink($hotPath);
+                $this->assertStringNotContainsString('http://127.0.0.1:5999', $html);
+                $this->assertStringContainsString('/'.self::TEST_VITE_BUILD_DIRECTORY.'/'.self::TEST_VITE_ASSET, $html);
+            } finally {
+                if ($originalHotExists) {
+                    file_put_contents($hotPath, $originalHotContents ?: '');
+                } elseif (is_file($hotPath)) {
+                    unlink($hotPath);
+                }
             }
-        }
+        });
     }
 
     public function test_playwright_docker_environment_uses_dedicated_vite_hot_file(): void
@@ -132,6 +138,71 @@ class AppServiceProviderTest extends TestCase
             }
 
             $this->refreshApplication();
+        }
+    }
+
+    private function withTemporaryViteManifest(callable $callback): void
+    {
+        $buildDirectory = public_path(self::TEST_VITE_BUILD_DIRECTORY);
+        $assetsDirectory = $buildDirectory.'/assets';
+        $manifestPath = $buildDirectory.'/manifest.json';
+        $assetPath = $buildDirectory.'/'.self::TEST_VITE_ASSET;
+
+        $buildDirectoryCreated = ! is_dir($buildDirectory);
+        $assetsDirectoryCreated = ! is_dir($assetsDirectory);
+        $originalManifestExists = is_file($manifestPath);
+        $originalManifestContents = $originalManifestExists ? file_get_contents($manifestPath) : null;
+        $originalAssetExists = is_file($assetPath);
+        $originalAssetContents = $originalAssetExists ? file_get_contents($assetPath) : null;
+
+        if ($buildDirectoryCreated) {
+            mkdir($buildDirectory, 0777, true);
+        }
+
+        if ($assetsDirectoryCreated) {
+            mkdir($assetsDirectory, 0777, true);
+        }
+
+        file_put_contents($manifestPath, json_encode([
+            'resources/css/app.css' => [
+                'file' => self::TEST_VITE_ASSET,
+                'src' => 'resources/css/app.css',
+                'isEntry' => true,
+            ],
+        ], JSON_THROW_ON_ERROR));
+        file_put_contents($assetPath, 'body { display: block; }');
+
+        clearstatcache(true, $manifestPath);
+        clearstatcache(true, $assetPath);
+        Vite::useBuildDirectory(self::TEST_VITE_BUILD_DIRECTORY);
+
+        try {
+            $callback();
+        } finally {
+            Vite::useBuildDirectory('build');
+
+            if ($originalManifestExists) {
+                file_put_contents($manifestPath, $originalManifestContents ?: '');
+            } elseif (is_file($manifestPath)) {
+                unlink($manifestPath);
+            }
+
+            if ($originalAssetExists) {
+                file_put_contents($assetPath, $originalAssetContents ?: '');
+            } elseif (is_file($assetPath)) {
+                unlink($assetPath);
+            }
+
+            if ($assetsDirectoryCreated) {
+                @rmdir($assetsDirectory);
+            }
+
+            if ($buildDirectoryCreated) {
+                @rmdir($buildDirectory);
+            }
+
+            clearstatcache(true, $manifestPath);
+            clearstatcache(true, $assetPath);
         }
     }
 }
