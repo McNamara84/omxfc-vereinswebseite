@@ -75,18 +75,22 @@ Für neue Entwickler ist der Docker-Compose-Dev-Stack der Standard-Onboarding-Pf
    ```bash
   cp .env.docker.dev.example .env.docker.dev.local
    ```
-3. Falls du externe Test- oder Sandbox-Credentials brauchst, trage sie nur in `.env.docker.dev.local` ein.
-4. Den Stack bauen und starten:
+3. Den Platzhalter `DOCKER_DEV_APP_KEY=base64:CHANGE_ME` in `.env.docker.dev.local` durch einen lokal generierten Schlüssel ersetzen, zum Beispiel mit:
+  ```bash
+  npm run docker:dev:key:generate
+  ```
+4. Falls du externe Test- oder Sandbox-Credentials brauchst, trage sie nur in `.env.docker.dev.local` ein.
+5. Den Stack bauen und starten:
    ```bash
   npm run docker:dev:up
    ```
-5. Anwendung und HMR stehen danach standardmäßig hier bereit:
+6. Anwendung und HMR stehen danach standardmäßig hier bereit:
   - App: `http://localhost:8080`
   - Vite-HMR: `http://localhost:5173`
   - MariaDB (optional von außen): `127.0.0.1:3307`
   - Typesense (optional von außen): `127.0.0.1:8108`
 
-Die App-Container warten auf MariaDB, führen standardmäßig Migrationen aus und starten danach PHP-FPM, Queue-Worker und Vite. Das Verhalten lässt sich über `DOCKER_DEV_AUTO_MIGRATE` in `.env.docker.dev.local` steuern.
+Die App-Container warten auf MariaDB, führen standardmäßig Migrationen aus und starten danach PHP-FPM, Queue-Worker und Vite. Das Verhalten lässt sich über `DOCKER_DEV_AUTO_MIGRATE` in `.env.docker.dev.local` steuern. Bleibt `DOCKER_DEV_APP_KEY` auf `base64:CHANGE_ME` oder leer, brechen App- und Queue-Container bewusst früh mit einer klaren Fehlermeldung ab.
 
 ### Klassische Host-Entwicklung (optional)
 

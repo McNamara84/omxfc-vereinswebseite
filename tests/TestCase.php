@@ -66,7 +66,17 @@ abstract class TestCase extends BaseTestCase
         $manifestPath = app()->bootstrapPath('cache/blade-icons.php');
 
         if (! is_file($manifestPath)) {
-            Artisan::call('icons:cache');
+            $exitCode = Artisan::call('icons:cache');
+
+            clearstatcache(true, $manifestPath);
+
+            if ($exitCode !== 0 || ! is_file($manifestPath)) {
+                throw new \RuntimeException(sprintf(
+                    'Blade-Icons-Manifest konnte nicht erzeugt werden (icons:cache exit code %d). %s',
+                    $exitCode,
+                    trim(Artisan::output())
+                ));
+            }
         }
 
         self::$bladeIconsManifestReady = true;

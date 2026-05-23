@@ -3,7 +3,7 @@ name: omxfc-dev
 x-app-environment: &app-environment
   APP_ENV: ${DOCKER_DEV_APP_ENV:-local}
   APP_DEBUG: ${DOCKER_DEV_APP_DEBUG:-true}
-  APP_KEY: ${DOCKER_DEV_APP_KEY:-base64:oK0ZsJlI+o7C++h527lMcrrO4jzZrXqhouB/p0l+gFw=}
+  APP_KEY: ${DOCKER_DEV_APP_KEY:-}
   APP_URL: ${DOCKER_DEV_APP_URL:-http://localhost:8080}
   ASSET_URL: ${DOCKER_DEV_ASSET_URL:-http://localhost:8080}
   APP_LOCALE: ${DOCKER_DEV_APP_LOCALE:-de}

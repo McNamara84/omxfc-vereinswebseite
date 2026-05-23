@@ -366,6 +366,10 @@ cd omxfc-vereinswebseite
 
 # 2. Preferred local stack: Docker Compose Dev
 cp .env.docker.dev.example .env.docker.dev.local
+
+# 2a. Replace DOCKER_DEV_APP_KEY=base64:CHANGE_ME with a local key
+npm run docker:dev:key:generate
+
 docker compose --env-file .env.docker.dev.local -f docker-compose.dev.yml up -d --build
 
 # 3. Optional host fallback
@@ -465,6 +469,7 @@ npm run test:e2e:docker  # Uses playwright-php from docker-compose.dev.yml
 ```
 
 Secret-bearing local Docker values belong in `.env.docker.dev.local` only. Never commit that file.
+`DOCKER_DEV_APP_KEY` must not stay empty or at `base64:CHANGE_ME`; generate a local key before starting the Docker dev stack.
 
 ### Git Workflow
 

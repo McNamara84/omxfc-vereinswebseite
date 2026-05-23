@@ -8,6 +8,7 @@
         "build": "vite build",
         "dev": "vite",
         "docker:dev:build": "docker compose --env-file .env.docker.dev.local -f docker-compose.dev.yml build",
+        "docker:dev:key:generate": "docker compose --env-file .env.docker.dev.local -f docker-compose.dev.yml run --rm -T --no-deps app php artisan key:generate --show",
         "docker:dev:up": "docker compose --env-file .env.docker.dev.local -f docker-compose.dev.yml up -d --build",
         "docker:dev:down": "docker compose --env-file .env.docker.dev.local -f docker-compose.dev.yml down --remove-orphans",
         "docker:dev:logs": "docker compose --env-file .env.docker.dev.local -f docker-compose.dev.yml logs -f --tail=200",

@@ -1,29 +1,8 @@
 import { expect, test as base } from '@playwright/test';
-
-const matchesUrl = (currentUrl, expectedUrl) => {
-    if (typeof expectedUrl === 'function') {
-        return expectedUrl(new URL(currentUrl));
-    }
-
-    if (expectedUrl instanceof RegExp) {
-        return expectedUrl.test(currentUrl);
-    }
-
-    return currentUrl === String(expectedUrl);
-};
-
-const waitForMatchingUrl = async (page, expectedUrl, timeout) => {
-    await expect
-        .poll(() => matchesUrl(page.url(), expectedUrl), {
-            timeout,
-            intervals: [100, 250, 500, 1000],
-        })
-        .toBe(true);
-};
+import { waitForUrl, withNavigationDefaults } from './utils/navigation.js';
 
 export const test = base.extend({
     page: async ({ page }, use) => {
-        const withNavigationDefaults = (options = {}) => ({ waitUntil: 'domcontentloaded', ...options });
         const goto = page.goto.bind(page);
         const goBack = page.goBack.bind(page);
         const goForward = page.goForward.bind(page);
@@ -35,12 +14,7 @@ export const test = base.extend({
         page.goForward = (options = {}) => goForward(withNavigationDefaults(options));
         page.reload = (options = {}) => reload(withNavigationDefaults(options));
         page.waitForNavigation = (options = {}) => waitForNavigation(withNavigationDefaults(options));
-        page.waitForURL = async (url, options = {}) => {
-            const navigationOptions = withNavigationDefaults(options);
-            const timeout = navigationOptions.timeout ?? 30000;
-
-            await waitForMatchingUrl(page, url, timeout);
-        };
+        page.waitForURL = (url, options = {}) => waitForUrl(page, url, options);
 
         await use(page);
     },

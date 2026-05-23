@@ -4,6 +4,7 @@ set -eu
 
 cd /var/www/html
 
+sh /var/www/html/docker/dev/ensure-app-key.sh
 sh /var/www/html/docker/dev/ensure-composer-deps.sh
 sh /var/www/html/docker/dev/wait-for-mysql.sh
 
