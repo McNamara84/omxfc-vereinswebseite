@@ -1,4 +1,4 @@
-import { expect, test } from './test-support.js';
+﻿import { expect, test } from './test-support.js';
 
 const login = async (page, email, password = 'password') => {
     await page.goto('/login');
@@ -18,11 +18,11 @@ test.describe('Fantreffen VIP-Autoren Verwaltung', () => {
         await page.waitForLoadState('networkidle');
         const authorsList = page.getByTestId('vip-authors-list');
 
-        // ÃƒÅ“berschrift sichtbar (maryUI <x-header> rendert als <div>, nicht als heading)
+        // Überschrift sichtbar (maryUI <x-header> rendert als <div>, nicht als heading)
         await expect(page.getByText('VIP-Autoren verwalten').first()).toBeVisible();
 
         // Bestehende Autoren aus dem Seeder sichtbar
-        await expect(authorsList.getByText('Oliver FrÃƒÂ¶hlich', { exact: true })).toBeVisible();
+        await expect(authorsList.getByText('Oliver Fröhlich', { exact: true })).toBeVisible();
         await expect(authorsList.getByText('Jo Zybell', { exact: true })).toBeVisible();
     });
 
@@ -31,11 +31,11 @@ test.describe('Fantreffen VIP-Autoren Verwaltung', () => {
         await page.waitForLoadState('networkidle');
         const authorsList = page.getByTestId('vip-authors-list');
 
-        // "Neuen Autor hinzufÃƒÂ¼gen"-Button klicken
-        await page.getByRole('button', { name: /Neuen Autor hinzufÃƒÂ¼gen/i }).click();
+        // "Neuen Autor hinzufügen"-Button klicken
+        await page.getByRole('button', { name: /Neuen Autor hinzufügen/i }).click();
 
         // Formular muss sichtbar sein (maryUI <x-card title> rendert als <div>; Button ist jetzt weg)
-        await expect(page.getByText('Neuen Autor hinzufÃƒÂ¼gen').first()).toBeVisible();
+        await expect(page.getByText('Neuen Autor hinzufügen').first()).toBeVisible();
 
         // Name eingeben
         const nameInput = page.locator('input[wire\\:model="name"]');
@@ -46,14 +46,14 @@ test.describe('Fantreffen VIP-Autoren Verwaltung', () => {
         await pseudonymInput.fill('Pseudo Test');
 
         // Submit-Button klicken (muss innerhalb des Formulars liegen)
-        const submitButton = page.getByRole('button', { name: /HinzufÃƒÂ¼gen/i });
+        const submitButton = page.getByRole('button', { name: /Hinzufügen/i });
         await expect(submitButton).toBeVisible();
         await submitButton.click();
 
         // Warten auf Livewire-Aktualisierung
         await page.waitForLoadState('networkidle');
 
-        // Erfolg prÃƒÂ¼fen: neuer Autor in der Liste sichtbar
+        // Erfolg prüfen: neuer Autor in der Liste sichtbar
         await expect(authorsList.getByText('Testautor Playwright', { exact: true })).toBeVisible();
         await expect(authorsList.getByText('Pseudo Test')).toBeVisible();
 
@@ -65,23 +65,23 @@ test.describe('Fantreffen VIP-Autoren Verwaltung', () => {
         await page.goto('/admin/fantreffen-2026/vip-autoren');
         await page.waitForLoadState('networkidle');
 
-        // Formular ÃƒÂ¶ffnen
-        await page.getByRole('button', { name: /Neuen Autor hinzufÃƒÂ¼gen/i }).click();
+        // Formular öffnen
+        await page.getByRole('button', { name: /Neuen Autor hinzufügen/i }).click();
 
         // Submit ohne Name
-        await page.getByRole('button', { name: /HinzufÃƒÂ¼gen/i }).click();
+        await page.getByRole('button', { name: /Hinzufügen/i }).click();
         await page.waitForLoadState('networkidle');
 
         // Fehlermeldung sichtbar (maryUI rendert Fehler als <div class="text-error"> in <fieldset>)
         await expect(page.locator('.text-error').first()).toBeVisible();
     });
 
-    test('Abbrechen-Button schlieÃƒÅ¸t das Formular', async ({ page }) => {
+    test('Abbrechen-Button schließt das Formular', async ({ page }) => {
         await page.goto('/admin/fantreffen-2026/vip-autoren');
         await page.waitForLoadState('networkidle');
 
-        // Formular ÃƒÂ¶ffnen
-        await page.getByRole('button', { name: /Neuen Autor hinzufÃƒÂ¼gen/i }).click();
+        // Formular öffnen
+        await page.getByRole('button', { name: /Neuen Autor hinzufügen/i }).click();
         await expect(page.locator('input[wire\\:model="name"]')).toBeVisible();
 
         // Abbrechen klicken
@@ -91,7 +91,7 @@ test.describe('Fantreffen VIP-Autoren Verwaltung', () => {
         // Formular geschlossen
         await expect(page.locator('input[wire\\:model="name"]')).not.toBeVisible();
 
-        // "Neuen Autor hinzufÃƒÂ¼gen"-Button wieder sichtbar
-        await expect(page.getByRole('button', { name: /Neuen Autor hinzufÃƒÂ¼gen/i })).toBeVisible();
+        // "Neuen Autor hinzufügen"-Button wieder sichtbar
+        await expect(page.getByRole('button', { name: /Neuen Autor hinzufügen/i })).toBeVisible();
     });
 });

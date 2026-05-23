@@ -59,6 +59,7 @@ services:
     volumes:
       - .:/var/www/html
       - vendor:/var/www/html/vendor
+      - storage:/var/www/html/storage
       - bootstrap-cache:/var/www/html/bootstrap/cache
     networks:
       - omxfc-dev-network
@@ -163,7 +164,6 @@ services:
     volumes:
       - .:/var/www/html
       - vendor:/var/www/html/vendor
-      - storage:/var/www/html/storage
       - bootstrap-cache:/var/www/html/bootstrap/cache
     networks:
       - omxfc-dev-network

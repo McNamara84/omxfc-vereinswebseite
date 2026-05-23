@@ -1,4 +1,4 @@
-import { expect, test } from './test-support.js';
+﻿import { expect, test } from './test-support.js';
 
 const login = async (page, email, password = 'password') => {
     await page.goto('/login');
@@ -17,7 +17,7 @@ test.describe('Kompendium Admin Dashboard', () => {
     test('admin can access the admin dashboard', async ({ page }) => {
         await page.goto('/kompendium/admin');
 
-        // Verwende data-testid fÃƒÂ¼r stabile Selektoren
+        // Verwende data-testid für stabile Selektoren
         await page.waitForLoadState('networkidle');
         await expect(page.getByTestId('page-header')).toContainText('Kompendium-Administration');
     });
@@ -25,7 +25,7 @@ test.describe('Kompendium Admin Dashboard', () => {
     test('displays statistics cards correctly', async ({ page }) => {
         await page.goto('/kompendium/admin');
 
-        // PrÃƒÂ¼fe ob Statistik-Karten angezeigt werden
+        // Prüfe ob Statistik-Karten angezeigt werden
         await expect(page.getByTestId('stats-section')).toBeVisible();
     });
 
@@ -40,17 +40,17 @@ test.describe('Kompendium Admin Dashboard', () => {
     test('shows novels in table', async ({ page }) => {
         await page.goto('/kompendium/admin');
 
-        // PrÃƒÂ¼fe ob die Tabelle existiert
+        // Prüfe ob die Tabelle existiert
         await expect(page.getByTestId('novels-table')).toBeVisible();
 
-        // PrÃƒÂ¼fe auf Seeder-Daten - verwende spezifische Zelle
+        // Prüfe auf Seeder-Daten - verwende spezifische Zelle
         await expect(page.getByRole('cell', { name: 'Der Gott aus dem Eis' })).toBeVisible();
     });
 
     test('can filter by series', async ({ page }) => {
         await page.goto('/kompendium/admin');
 
-        // Standard-Tab ist Maddrax - prÃƒÂ¼fe dass Maddrax-Roman sichtbar ist
+        // Standard-Tab ist Maddrax - prüfe dass Maddrax-Roman sichtbar ist
         await expect(page.getByRole('cell', { name: 'Der Gott aus dem Eis' })).toBeVisible();
 
         // Auf Mission Mars Tab klicken
@@ -81,10 +81,10 @@ test.describe('Kompendium Admin Dashboard', () => {
         await page.goto('/kompendium/admin');
 
         // Suche nach einem Roman - verwende data-testid
-        await page.getByTestId('search-input').fill('DÃƒÂ¤monen');
+        await page.getByTestId('search-input').fill('Dämonen');
 
-        // Warten bis Livewire die Suche ausgefÃƒÂ¼hrt hat (debounce + Render)
-        await expect(page.getByRole('cell', { name: 'DÃƒÂ¤monen der Vergangenheit' })).toBeVisible();
+        // Warten bis Livewire die Suche ausgeführt hat (debounce + Render)
+        await expect(page.getByRole('cell', { name: 'Dämonen der Vergangenheit' })).toBeVisible();
 
         // Andere Romane sollten nicht sichtbar sein
         await expect(page.getByRole('cell', { name: 'Der Gott aus dem Eis' })).not.toBeVisible();
@@ -93,7 +93,7 @@ test.describe('Kompendium Admin Dashboard', () => {
     test('shows status badges correctly', async ({ page }) => {
         await page.goto('/kompendium/admin');
 
-        // PrÃƒÂ¼fe ob Status-Badges angezeigt werden
+        // Prüfe ob Status-Badges angezeigt werden
         const table = page.getByTestId('novels-table');
 
         // Es sollten verschiedene Status-Badges existieren
@@ -103,7 +103,7 @@ test.describe('Kompendium Admin Dashboard', () => {
     test('shows action buttons for novels', async ({ page }) => {
         await page.goto('/kompendium/admin');
 
-        // FÃƒÂ¼r hochgeladene Romane sollte der Indexieren-Button sichtbar sein
+        // Für hochgeladene Romane sollte der Indexieren-Button sichtbar sein
         await expect(page.getByRole('button', { name: 'Indexieren' }).first()).toBeVisible();
     });
 
@@ -116,9 +116,9 @@ test.describe('Kompendium Admin Dashboard', () => {
 
         // Erstelle eine Test-TXT-Datei
         const testFileName = '100 - Playwright Testroman.txt';
-        const testContent = 'Dies ist ein Testroman fÃƒÂ¼r Playwright E2E-Tests.';
+        const testContent = 'Dies ist ein Testroman für Playwright E2E-Tests.';
 
-        // WÃƒÂ¤hle die Serie - verwende das vollstÃƒÂ¤ndige Label
+        // Wähle die Serie - verwende das vollständige Label
         await page.getByLabel('Serie (falls nicht automatisch erkannt)').selectOption('maddrax');
 
         // Lade die Datei hoch
@@ -150,7 +150,7 @@ test.describe('Kompendium Admin Dashboard', () => {
     test('admin link visible on kompendium page', async ({ page }) => {
         await page.goto('/kompendium');
 
-        // Der Admin-Link sollte fÃƒÂ¼r Admins sichtbar sein
+        // Der Admin-Link sollte für Admins sichtbar sein
         await expect(page.getByRole('link', { name: 'Kompendium verwalten' })).toBeVisible();
     });
 
@@ -174,7 +174,7 @@ test.describe('Kompendium Public Page', () => {
     test('public page shows no admin link for guests', async ({ page }) => {
         await page.goto('/kompendium');
 
-        // Der Admin-Link sollte fÃƒÂ¼r GÃƒÂ¤ste nicht sichtbar sein
+        // Der Admin-Link sollte für Gäste nicht sichtbar sein
         await expect(page.getByRole('link', { name: 'Kompendium verwalten' })).not.toBeVisible();
     });
 });

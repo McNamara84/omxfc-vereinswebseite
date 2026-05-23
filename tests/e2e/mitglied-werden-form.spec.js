@@ -1,10 +1,10 @@
-import { test, expect } from './test-support.js';
+﻿import { test, expect } from './test-support.js';
 import { gotoMitgliedWerden } from './utils/mitglied-werden.js';
 
 async function fillRequiredFields(page) {
   await page.locator('input[name="vorname"]').fill('Max');
   await page.locator('input[name="nachname"]').fill('Mustermann');
-  await page.locator('input[name="strasse"]').fill('MusterstraÃƒÅ¸e');
+  await page.locator('input[name="strasse"]').fill('Musterstraße');
   await page.locator('input[name="hausnummer"]').fill('1');
   await page.locator('input[name="plz"]').fill('12345');
   await page.locator('input[name="stadt"]').fill('Musterstadt');
@@ -26,9 +26,9 @@ test('form requires acceptance of Satzung before enabling submit', async ({ page
 test('updates membership fee output when slider changes', async ({ page }) => {
   await gotoMitgliedWerden(page);
   const output = page.locator('#beitrag-output');
-  await expect(output).toHaveText('12Ã¢â€šÂ¬');
+  await expect(output).toHaveText('12€');
   await page.locator('#mitgliedsbeitrag').fill('60');
-  await expect(output).toHaveText('60Ã¢â€šÂ¬');
+  await expect(output).toHaveText('60€');
 });
 
 test('marks invalid email address as invalid', async ({ page }) => {

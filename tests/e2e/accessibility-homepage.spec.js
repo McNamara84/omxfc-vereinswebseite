@@ -1,4 +1,4 @@
-import { test, expect } from './test-support.js';
+﻿import { test, expect } from './test-support.js';
 import AxeBuilder from '@axe-core/playwright';
 
 test.describe('Accessibility checks', () => {
@@ -6,30 +6,30 @@ test.describe('Accessibility checks', () => {
     await page.setViewportSize({ width: 375, height: 812 });
     await page.goto('/');
 
-    // maryUI <x-nav> rendert ein <div>, kein <nav> Ã¢â‚¬â€œ x-data liegt auf dem Hamburger-Wrapper
+    // maryUI <x-nav> rendert ein <div>, kein <nav> – x-data liegt auf dem Hamburger-Wrapper
     const hamburgerWrapper = page.locator('div[x-data]').filter({
       has: page.locator('button[aria-controls="mobile-navigation"]'),
     });
     const menuToggle = page.locator('button[aria-controls="mobile-navigation"]');
 
     await expect(hamburgerWrapper).toHaveAttribute('x-data', /mobileOpen/);
-    await expect(menuToggle).toHaveAccessibleName('MenÃƒÂ¼ ÃƒÂ¶ffnen');
+    await expect(menuToggle).toHaveAccessibleName('Menü öffnen');
     await expect(menuToggle).toHaveAttribute('aria-expanded', 'false');
 
     await menuToggle.click();
     await expect(menuToggle).toHaveAttribute('aria-expanded', 'true');
-    await expect(menuToggle).toContainText(/SchlieÃƒÅ¸en/);
+    await expect(menuToggle).toContainText(/Schließen/);
 
     await expect(menuToggle).toHaveAttribute('@click', /mobileOpen\s*=\s*!mobileOpen/);
-    await expect(menuToggle).toContainText(/MenÃƒÂ¼|SchlieÃƒÅ¸en/);
+    await expect(menuToggle).toContainText(/Menü|Schließen/);
 
     const accessibilityScanResults = await new AxeBuilder({ page })
       .withTags(['wcag2a', 'wcag2aa'])
       // daisyUI drawer-toggle ist ein verstecktes Checkbox-Element ohne Label
       .exclude('input.drawer-toggle')
-      // maryUI ThemeToggle erzeugt ein verstecktes Checkbox-Element ohne zugÃƒÂ¤ngliches Label
+      // maryUI ThemeToggle erzeugt ein verstecktes Checkbox-Element ohne zugängliches Label
       .exclude('input.theme-controller')
-      // Livewire wire:navigate Progress-Bar (NProgress) nutzt ungÃƒÂ¼ltiges role="bar"
+      // Livewire wire:navigate Progress-Bar (NProgress) nutzt ungültiges role="bar"
       .exclude('#nprogress [role="bar"]')
       // Deaktiviere nested-interactive - bekanntes maryUI Dropdown Problem
       .disableRules(['nested-interactive'])

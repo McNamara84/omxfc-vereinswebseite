@@ -1,4 +1,4 @@
-import { test, expect } from './test-support.js';
+﻿import { test, expect } from './test-support.js';
 
 const login = async (page, email, password = 'password') => {
     await page.goto('/login');
@@ -171,6 +171,6 @@ test.describe('Mitgliederliste', () => {
         await expect(page.getByRole('button', { name: 'E-Mail-Adressen kopieren' })).toHaveCount(0);
         await expect(page.locator('[data-copy-email]')).toHaveCount(0);
         // Sort button 'Rolle' is visible for all users, but role-change actions must not be
-        await expect(page.locator('button[title="Rolle ÃƒÂ¤ndern"]')).toHaveCount(0);
+        await expect(page.locator('button[title="Rolle ändern"]')).toHaveCount(0);
     });
 });

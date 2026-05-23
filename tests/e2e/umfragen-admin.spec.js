@@ -1,4 +1,4 @@
-import { expect, test } from './test-support.js';
+﻿import { expect, test } from './test-support.js';
 
 const login = async (page, email, password = 'password') => {
     await page.goto('/login');
@@ -65,7 +65,7 @@ test.describe('Umfragen Admin Dashboard', () => {
     test('admin can access the poll management page', async ({ page }) => {
         await page.goto('/admin/umfragen');
 
-        // Verwende data-testid fÃƒÂ¼r stabile Selektoren
+        // Verwende data-testid für stabile Selektoren
         await page.waitForLoadState('networkidle');
         await expect(page.getByTestId('page-header')).toContainText('Umfrage verwalten');
     });
@@ -73,7 +73,7 @@ test.describe('Umfragen Admin Dashboard', () => {
     test('displays poll selection dropdown', async ({ page }) => {
         await page.goto('/admin/umfragen');
 
-        // PrÃƒÂ¼fe ob Umfrage-Auswahl vorhanden ist
+        // Prüfe ob Umfrage-Auswahl vorhanden ist
         await expect(page.getByTestId('poll-selection-card')).toBeVisible();
         await expect(page.getByTestId('poll-select')).toBeVisible();
     });
@@ -94,10 +94,10 @@ test.describe('Umfragen Admin Dashboard', () => {
     test('displays visibility radio buttons', async ({ page }) => {
         await page.goto('/admin/umfragen');
 
-        // PrÃƒÂ¼fe ob Sichtbarkeit-Sektion vorhanden ist
+        // Prüfe ob Sichtbarkeit-Sektion vorhanden ist
         await expect(page.getByTestId('visibility-section')).toBeVisible();
 
-        // PrÃƒÂ¼fe ob Radio-Buttons vorhanden und klickbar sind
+        // Prüfe ob Radio-Buttons vorhanden und klickbar sind
         const internalRadio = page.getByTestId('visibility-internal');
         const publicRadio = page.getByTestId('visibility-public');
 
@@ -108,11 +108,11 @@ test.describe('Umfragen Admin Dashboard', () => {
     test('can select visibility option', async ({ page }) => {
         await page.goto('/admin/umfragen');
 
-        // Klicke auf "Ãƒâ€“ffentlich" Radio-Button
+        // Klicke auf "Öffentlich" Radio-Button
         const publicRadio = page.getByTestId('visibility-public');
         await publicRadio.click();
 
-        // PrÃƒÂ¼fe ob ausgewÃƒÂ¤hlt
+        // Prüfe ob ausgewählt
         await expect(publicRadio).toBeChecked();
     });
 
@@ -134,13 +134,13 @@ test.describe('Umfragen Admin Dashboard', () => {
         await page.goto('/admin/umfragen');
         await startNewPoll(page);
 
-        // ZÃƒÂ¤hle initiale Antwort-Felder
+        // Zähle initiale Antwort-Felder
         const initialCount = await answerOptionCards(page).count();
 
-        // Klicke auf "Antwort hinzufÃƒÂ¼gen"
+        // Klicke auf "Antwort hinzufügen"
         await addAnswerOption(page, initialCount + 1);
 
-        // PrÃƒÂ¼fe ob neue Antwort hinzugefÃƒÂ¼gt wurde
+        // Prüfe ob neue Antwort hinzugefügt wurde
         const newCount = await answerOptionCards(page).count();
         expect(newCount).toBeGreaterThan(initialCount);
     });
@@ -156,7 +156,7 @@ test.describe('Umfragen Admin Dashboard', () => {
     test('displays evaluation section', async ({ page }) => {
         await page.goto('/admin/umfragen');
 
-        // data-testid fÃƒÂ¼r Auswertung
+        // data-testid für Auswertung
         await expect(page.getByTestId('evaluation-card')).toBeVisible();
     });
 
@@ -166,13 +166,13 @@ test.describe('Umfragen Admin Dashboard', () => {
         // Klicke auf "Neue Umfrage" um sicherzustellen dass wir im richtigen Zustand sind
         await startNewPoll(page);
 
-        // FÃƒÂ¼lle Frage aus - verwende data-testid
+        // Fülle Frage aus - verwende data-testid
         await page.getByTestId('question-textarea').fill('Was ist dein Lieblings-MADDRAX-Roman?');
 
-        // FÃƒÂ¼lle Menu-Label aus - verwende data-testid
+        // Fülle Menu-Label aus - verwende data-testid
         await page.getByTestId('menu-label-input').fill('Lieblingsroman');
 
-        // WÃƒÂ¤hle Sichtbarkeit
+        // Wähle Sichtbarkeit
         await page.getByTestId('visibility-internal').click();
 
         // Setze Startdatum (heute)
@@ -183,20 +183,20 @@ test.describe('Umfragen Admin Dashboard', () => {
         const nextWeek = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16);
         await page.getByTestId('ends-at-input').fill(nextWeek);
 
-        // ZusÃƒÂ¤tzliche AntwortmÃƒÂ¶glichkeiten zuerst anlegen, dann befÃƒÂ¼llen.
-        // Das vermeidet Blur/Add-Option-Races wÃƒÂ¤hrend paralleler Livewire-Requests.
+        // Zusätzliche Antwortmöglichkeiten zuerst anlegen, dann befüllen.
+        // Das vermeidet Blur/Add-Option-Races während paralleler Livewire-Requests.
         await addAnswerOption(page, 3);
         await addAnswerOption(page, 4);
 
         const firstAnswerInput = await fillOptionLabel(page, 0, 'Der Gott aus dem Eis');
-        const secondAnswerInput = await fillOptionLabel(page, 1, 'DÃƒÂ¤monen der Vergangenheit');
+        const secondAnswerInput = await fillOptionLabel(page, 1, 'Dämonen der Vergangenheit');
         const thirdAnswerInput = await fillOptionLabel(page, 2, 'Stadt ohne Hoffnung');
 
-        // PrÃƒÂ¼fe dass alle Felder ausgefÃƒÂ¼llt sind
+        // Prüfe dass alle Felder ausgefüllt sind
         await expect(page.getByTestId('question-textarea')).toHaveValue('Was ist dein Lieblings-MADDRAX-Roman?');
         await expect(page.getByTestId('menu-label-input')).toHaveValue('Lieblingsroman');
         await expect(firstAnswerInput).toHaveValue('Der Gott aus dem Eis');
-        await expect(secondAnswerInput).toHaveValue('DÃƒÂ¤monen der Vergangenheit');
+        await expect(secondAnswerInput).toHaveValue('Dämonen der Vergangenheit');
         await expect(thirdAnswerInput).toHaveValue('Stadt ohne Hoffnung');
     });
 
@@ -206,19 +206,19 @@ test.describe('Umfragen Admin Dashboard', () => {
         // Neue Umfrage starten
         await startNewPoll(page);
 
-        // FÃƒÂ¼ge zwei Antworten hinzu
+        // Füge zwei Antworten hinzu
         await addAnswerOption(page, 3);
         await addAnswerOption(page, 4);
 
-        // ZÃƒÂ¤hle Antwort-Cards
+        // Zähle Antwort-Cards
         const initialCards = await answerOptionCards(page).count();
 
-        // Klicke auf LÃƒÂ¶schen-Button der ersten Antwort
+        // Klicke auf Löschen-Button der ersten Antwort
         const deleteButton = page.locator('button[wire\\:click="removeOption(0)"]');
         await deleteButton.click();
         await expect(answerOptionCards(page)).toHaveCount(initialCards - 1);
 
-        // PrÃƒÂ¼fe ob weniger Cards vorhanden sind
+        // Prüfe ob weniger Cards vorhanden sind
         const newCards = await answerOptionCards(page).count();
         expect(newCards).toBeLessThan(initialCards);
     });
@@ -229,18 +229,18 @@ test.describe('Umfragen Admin Dashboard', () => {
         // Neue Umfrage starten
         await startNewPoll(page);
 
-        // FÃƒÂ¼ge eine Antwort hinzu
+        // Füge eine Antwort hinzu
         await addAnswerOption(page, 3);
 
-        // Hover ÃƒÂ¼ber den Info-Button (mit tooltip) - suche nach tooltip-Elementen
+        // Hover über den Info-Button (mit tooltip) - suche nach tooltip-Elementen
         const tooltipElement = page.locator('[data-tip]').first();
         
-        // Falls tooltip vorhanden, prÃƒÂ¼fen wir das Attribut
+        // Falls tooltip vorhanden, prüfen wir das Attribut
         const tooltipCount = await tooltipElement.count();
         if (tooltipCount > 0) {
             await expect(tooltipElement).toHaveAttribute('data-tip');
         } else {
-            // Fallback: PrÃƒÂ¼fe ob info-Icon im Formular existiert
+            // Fallback: Prüfe ob info-Icon im Formular existiert
             await expect(page.locator('.tooltip, [data-tip]')).toHaveCount(0);
         }
     });

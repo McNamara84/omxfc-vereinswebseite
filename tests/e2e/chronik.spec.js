@@ -1,15 +1,15 @@
-import { test, expect } from './test-support.js';
+﻿import { test, expect } from './test-support.js';
 
 test('chronik page displays timeline images with alt text', async ({ page }) => {
   await page.goto('/chronik');
   await expect(page).toHaveURL(/\/chronik$/);
   await expect(page.getByRole('heading', { level: 1 })).toContainText('Chronik');
-  await expect(page.getByAltText('GrÃƒÂ¼ndungsversammlung in Berlin 2023')).toBeVisible();
+  await expect(page.getByAltText('Gründungsversammlung in Berlin 2023')).toBeVisible();
 });
 
 test.describe('Chronik Lightbox', () => {
-  const firstTriggerName = 'Bild GrÃƒÂ¼ndungsversammlung in Berlin 2023 ÃƒÂ¶ffnen';
-  const secondTriggerName = 'Bild Jahreshauptversammlung in KÃƒÂ¶ln 2024 ÃƒÂ¶ffnen';
+  const firstTriggerName = 'Bild Gründungsversammlung in Berlin 2023 öffnen';
+  const secondTriggerName = 'Bild Jahreshauptversammlung in Köln 2024 öffnen';
 
   async function openLightbox(trigger) {
     // This suite validates Alpine lightbox behavior, not browser pointer hit-testing.
@@ -40,7 +40,7 @@ test.describe('Chronik Lightbox', () => {
     await expect(dialog).toHaveAttribute('aria-labelledby', 'chronik-lightbox-title');
 
     const title = page.locator('#chronik-lightbox-title');
-    await expect(title).toHaveText('GrÃƒÂ¼ndungsversammlung in Berlin 2023');
+    await expect(title).toHaveText('Gründungsversammlung in Berlin 2023');
   });
 
   test('closes lightbox via close button', async ({ page }) => {
@@ -49,7 +49,7 @@ test.describe('Chronik Lightbox', () => {
     const dialog = page.locator('[role="dialog"]');
     await expect(dialog).toBeVisible();
 
-    await page.getByLabel('Bild schlieÃƒÅ¸en').click();
+    await page.getByLabel('Bild schließen').click();
     await expect(dialog).not.toBeVisible();
   });
 
@@ -84,7 +84,7 @@ test.describe('Chronik Lightbox', () => {
     await expect(dialog).toBeVisible();
 
     const title = page.locator('#chronik-lightbox-title');
-    await expect(title).toHaveText('GrÃƒÂ¼ndungsversammlung in Berlin 2023');
+    await expect(title).toHaveText('Gründungsversammlung in Berlin 2023');
 
     // Close and open a different image
     await page.keyboard.press('Escape');
@@ -97,6 +97,6 @@ test.describe('Chronik Lightbox', () => {
     await expect(secondTrigger).toBeVisible();
     await openLightbox(secondTrigger);
     await expect(dialog).toBeVisible();
-    await expect(title).toHaveText('Jahreshauptversammlung in KÃƒÂ¶ln 2024');
+    await expect(title).toHaveText('Jahreshauptversammlung in Köln 2024');
   });
 });

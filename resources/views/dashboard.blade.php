@@ -35,7 +35,7 @@
             <div class="grid gap-8 xl:grid-cols-[minmax(0,1.7fr)_minmax(22rem,0.95fr)] xl:items-start">
                 <div class="space-y-8">
                     <x-ui.panel title="Dein Fokus heute" description="Die wichtigsten Kennzahlen und Einstiege für deinen nächsten Schritt in der Community.">
-                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3 grid-flow-row-dense" aria-label="Überblick wichtiger Community-Kennzahlen">
+                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3 grid-flow-row-dense" aria-label="Überblick wichtiger Community-Kennzahlen" data-testid="dashboard-focus-cards">
                             @foreach($focusCards as $card)
                                 <x-bento-card :href="$card['href']" :title="$card['title']" :sr-text="$card['sr_text']" :icon="$card['icon']" wire:navigate>
                                     <x-slot:description>{{ $card['description'] }}</x-slot:description>

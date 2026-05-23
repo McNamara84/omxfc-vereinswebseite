@@ -1,4 +1,4 @@
-import { test, expect } from './test-support.js';
+﻿import { test, expect } from './test-support.js';
 import AxeBuilder from '@axe-core/playwright';
 
 const analyzeContrast = async (page) =>
@@ -64,19 +64,19 @@ test.describe('system preference change handling', () => {
     expect(hasDarkClass).toBe(false);
 
     // Alpine $persist schreibt beim Init automatisch das aktuelle Theme in localStorage.
-    // Damit der Change-Handler die SystemprÃƒÂ¤ferenz-Ãƒâ€žnderung nicht als "User hat Theme gewÃƒÂ¤hlt"
+    // Damit der Change-Handler die Systempräferenz-Änderung nicht als "User hat Theme gewählt"
     // interpretiert, localStorage NACH dem Laden der Seite nochmals leeren.
     await page.evaluate(() => {
       window.localStorage.removeItem('mary-theme');
       window.localStorage.removeItem('mary-class');
     });
 
-    // SystemprÃƒÂ¤ferenz auf Dark ÃƒÂ¤ndern via Playwright
+    // Systempräferenz auf Dark ändern via Playwright
     await page.emulateMedia({ colorScheme: 'dark' });
 
-    // Playwright emuliert die PrÃƒÂ¤ferenz zuverlÃƒÂ¤ssig, feuert das MQL-Change-Event
+    // Playwright emuliert die Präferenz zuverlässig, feuert das MQL-Change-Event
     // in CI aber nicht in jedem Chromium-Lauf deterministisch. Deshalb nach dem
-    // Emulationswechsel die bestehende Theme-Sync-Hilfe explizit ausfÃƒÂ¼hren.
+    // Emulationswechsel die bestehende Theme-Sync-Hilfe explizit ausführen.
     await page.waitForFunction(() => window.matchMedia('(prefers-color-scheme: dark)').matches);
 
     const applied = await page.evaluate(() => window.__omxfcApplyStoredTheme?.());

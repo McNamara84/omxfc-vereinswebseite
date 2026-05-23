@@ -1,22 +1,22 @@
-import { test, expect } from './test-support.js';
+﻿import { test, expect } from './test-support.js';
 
 /**
- * RomantauschbÃƒÂ¶rse Einzelangebot E2E Tests
+ * Romantauschbörse Einzelangebot E2E Tests
  *
  * Diese Tests decken den Workflow zur Erstellung von Einzelangeboten ab
- * und prÃƒÂ¼fen insbesondere, dass der gesamte Request erfolgreich durchlÃƒÂ¤uft
+ * und prüfen insbesondere, dass der gesamte Request erfolgreich durchläuft
  * (inklusive Activity-Logging), um Regressions wie den properties-Bug zu vermeiden.
  *
  * TEST-ISOLATION HINWEISE:
  * - Jeder Test verwendet eindeutige Buchnummern um Kollisionen zu vermeiden
  * - Die Test-Datenbank wird vor jedem Playwright-Run frisch geseedet
- * - Der BookPlaywrightSeeder stellt Testdaten (BÃƒÂ¼cher 1-100) bereit
+ * - Der BookPlaywrightSeeder stellt Testdaten (Bücher 1-100) bereit
  */
 
 /**
  * Helper: Login as member
  *
- * SICHERHEITSWARNUNG: Diese Credentials sind AUSSCHLIESSLICH fÃƒÂ¼r CI- und
+ * SICHERHEITSWARNUNG: Diese Credentials sind AUSSCHLIESSLICH für CI- und
  * lokale Testumgebungen bestimmt! NIEMALS in Produktion verwenden.
  */
 const loginAsMember = async (page, email = 'playwright-member@example.com', password = 'password') => {
@@ -32,7 +32,7 @@ const SERIES_MADDRAX = 'Maddrax - Die dunkle Zukunft der Erde';
 const CONDITION_Z1 = 'Z1';
 const CONDITION_Z2 = 'Z2';
 
-test.describe('RomantauschbÃƒÂ¶rse - Einzelangebote', () => {
+test.describe('Romantauschbörse - Einzelangebote', () => {
     test.describe('Angebot erstellen', () => {
         test('Angebot-Formular ist erreichbar', async ({ page }) => {
             await loginAsMember(page);
@@ -60,19 +60,19 @@ test.describe('RomantauschbÃƒÂ¶rse - Einzelangebote', () => {
         });
 
         // HINWEIS: Kein Pflichtfeld-Validierungstest, da die Dropdowns bereits
-        // Standardwerte haben (erste Option vorausgewÃƒÂ¤hlt). Das Formular kann
+        // Standardwerte haben (erste Option vorausgewählt). Das Formular kann
         // daher immer erfolgreich abgeschickt werden.
 
         test('Erfolgreiches Erstellen eines Einzelangebots', async ({ page }) => {
             await loginAsMember(page);
             await page.goto('/romantauschboerse/angebot-erstellen');
 
-            // Formular ausfÃƒÂ¼llen
+            // Formular ausfüllen
             await page.selectOption('select[name="series"]', SERIES_MADDRAX);
             
             // Warte bis die filterBooks()-Funktion das Dropdown aktualisiert hat
-            // Die Funktion setzt option.hidden = true fÃƒÂ¼r nicht passende Serien,
-            // daher prÃƒÂ¼fen wir mit waitForFunction ob die Option nicht hidden ist
+            // Die Funktion setzt option.hidden = true für nicht passende Serien,
+            // daher prüfen wir mit waitForFunction ob die Option nicht hidden ist
             await page.waitForFunction(
                 (value) => {
                     const opt = document.querySelector(`select[name="book_number"] option[value="${value}"]`);
@@ -81,28 +81,28 @@ test.describe('RomantauschbÃƒÂ¶rse - Einzelangebote', () => {
                 '42'
             );
             
-            // WÃƒÂ¤hle eine Buchnummer (z.B. 42 - sollte im Seeder existieren)
+            // Wähle eine Buchnummer (z.B. 42 - sollte im Seeder existieren)
             await page.selectOption('select[name="book_number"]', '42');
             await page.selectOption('select[name="condition"]', CONDITION_Z1);
 
             // Absenden
             await page.locator('#offer-form button[type="submit"]').click();
 
-            // Sollte zur ÃƒÅ“bersicht weiterleiten
+            // Sollte zur Übersicht weiterleiten
             await expect(page).toHaveURL(/romantauschboerse$/);
 
-            // WICHTIG: Erfolgsmeldung prÃƒÂ¼fen - dieser Check fÃƒÂ¤ngt DB-Fehler wie den
+            // WICHTIG: Erfolgsmeldung prüfen - dieser Check fängt DB-Fehler wie den
             // Activity::create() Bug, bei dem ein nicht existierendes 'properties'-Feld
-            // verwendet wurde. Ohne diesen Check wÃƒÂ¼rde ein 500er-Fehler unbemerkt bleiben.
+            // verwendet wurde. Ohne diesen Check würde ein 500er-Fehler unbemerkt bleiben.
             const successMessage = page.locator('[data-testid="flash-success"], [role="alert"]').filter({ hasText: /Angebot erstellt/i });
             await expect(successMessage).toBeVisible();
         });
 
-        test('Erstelltes Angebot erscheint in der ÃƒÅ“bersicht', async ({ page }) => {
+        test('Erstelltes Angebot erscheint in der Übersicht', async ({ page }) => {
             await loginAsMember(page);
             await page.goto('/romantauschboerse/angebot-erstellen');
 
-            // Formular ausfÃƒÂ¼llen mit eindeutiger Buchnummer
+            // Formular ausfüllen mit eindeutiger Buchnummer
             await page.selectOption('select[name="series"]', SERIES_MADDRAX);
             await page.waitForFunction(
                 (value) => {
@@ -120,7 +120,7 @@ test.describe('RomantauschbÃƒÂ¶rse - Einzelangebote', () => {
             // Warte auf Weiterleitung
             await expect(page).toHaveURL(/romantauschboerse$/);
 
-            // PrÃƒÂ¼fe, dass das Angebot in der Liste erscheint
+            // Prüfe, dass das Angebot in der Liste erscheint
             // (Maddrax Band 77 sollte jetzt sichtbar sein)
             const offerInList = page.locator('text=77').first();
             await expect(offerInList).toBeVisible();
@@ -130,27 +130,27 @@ test.describe('RomantauschbÃƒÂ¶rse - Einzelangebote', () => {
     test.describe('Gesuch erstellen', () => {
         test('Gesuch-Formular ist erreichbar', async ({ page }) => {
             await loginAsMember(page);
-            // HINWEIS: Die Route heiÃƒÅ¸t "anfrage-erstellen" (nicht "gesuch-erstellen")
+            // HINWEIS: Die Route heißt "anfrage-erstellen" (nicht "gesuch-erstellen")
             await page.goto('/romantauschboerse/anfrage-erstellen');
 
             await expect(page).toHaveURL(/anfrage-erstellen$/);
             
-            // Warte auf das Formular, um sicherzugehen dass die Seite vollstÃƒÂ¤ndig geladen ist
+            // Warte auf das Formular, um sicherzugehen dass die Seite vollständig geladen ist
             await expect(page.locator('#request-form')).toBeVisible();
             
-            // Die ÃƒÅ“berschrift lautet "Neues Gesuch erstellen" (aus dem Partial)
+            // Die Überschrift lautet "Neues Gesuch erstellen" (aus dem Partial)
             await expect(page.locator('[data-testid="page-title"]')).toContainText(/Gesuch/i);
         });
 
         test('Erfolgreiches Erstellen eines Gesuchs', async ({ page }) => {
             await loginAsMember(page);
-            // HINWEIS: Die Route heiÃƒÅ¸t "anfrage-erstellen" (nicht "gesuch-erstellen")
+            // HINWEIS: Die Route heißt "anfrage-erstellen" (nicht "gesuch-erstellen")
             await page.goto('/romantauschboerse/anfrage-erstellen');
 
-            // Warte auf das Formular bevor wir es ausfÃƒÂ¼llen
+            // Warte auf das Formular bevor wir es ausfüllen
             await expect(page.locator('#request-form')).toBeVisible();
 
-            // Formular ausfÃƒÂ¼llen
+            // Formular ausfüllen
             await page.selectOption('select[name="series"]', SERIES_MADDRAX);
             await page.waitForFunction(
                 (value) => {
@@ -165,17 +165,17 @@ test.describe('RomantauschbÃƒÂ¶rse - Einzelangebote', () => {
             // Absenden
             await page.locator('#request-form button[type="submit"]').click();
 
-            // Sollte zur ÃƒÅ“bersicht weiterleiten
+            // Sollte zur Übersicht weiterleiten
             await expect(page).toHaveURL(/romantauschboerse$/);
 
-            // Erfolgsmeldung prÃƒÂ¼fen
+            // Erfolgsmeldung prüfen
             const successMessage = page.locator('[data-testid="flash-success"], [role="alert"]').filter({ hasText: /Gesuch erstellt/i });
             await expect(successMessage).toBeVisible();
         });
     });
 
     test.describe('Angebot bearbeiten', () => {
-        test('Bearbeiten-Link ist fÃƒÂ¼r eigene Angebote sichtbar', async ({ page }) => {
+        test('Bearbeiten-Link ist für eigene Angebote sichtbar', async ({ page }) => {
             await loginAsMember(page);
             
             // Erstelle zuerst ein Angebot
@@ -199,7 +199,7 @@ test.describe('RomantauschbÃƒÂ¶rse - Einzelangebote', () => {
             await expect(editLink).toBeVisible();
         });
 
-        test('Bearbeiten-Seite lÃƒÂ¤dt fÃƒÂ¼r eigenes Angebot', async ({ page }) => {
+        test('Bearbeiten-Seite lädt für eigenes Angebot', async ({ page }) => {
             await loginAsMember(page);
             
             // Erstelle ein Angebot
@@ -224,13 +224,13 @@ test.describe('RomantauschbÃƒÂ¶rse - Einzelangebote', () => {
 
             // Bearbeiten-Seite sollte laden
             await expect(page).toHaveURL(/angebot\/\d+\/bearbeiten$/);
-            // Die ÃƒÅ“berschrift beim Bearbeiten lautet "Angebot bearbeiten" (aus dem Partial)
+            // Die Überschrift beim Bearbeiten lautet "Angebot bearbeiten" (aus dem Partial)
             await expect(page.locator('[data-testid="page-title"]')).toContainText(/Angebot bearbeiten/i);
         });
     });
 
-    test.describe('Angebot lÃƒÂ¶schen', () => {
-        test('LÃƒÂ¶schen-Button ist fÃƒÂ¼r eigene Angebote sichtbar', async ({ page }) => {
+    test.describe('Angebot löschen', () => {
+        test('Löschen-Button ist für eigene Angebote sichtbar', async ({ page }) => {
             await loginAsMember(page);
             
             // Erstelle ein Angebot
@@ -249,9 +249,9 @@ test.describe('RomantauschbÃƒÂ¶rse - Einzelangebote', () => {
             
             await expect(page).toHaveURL(/romantauschboerse$/);
 
-            // LÃƒÂ¶schen-Button ist im Formular mit dem Text "LÃƒÂ¶schen" in einem span
-            // Der Button enthÃƒÂ¤lt <span>LÃƒÂ¶schen</span>, daher suchen wir nach dem Text im Button
-            const deleteButton = page.locator('form[action*="delete"] button, button:has-text("LÃƒÂ¶schen")').first();
+            // Löschen-Button ist im Formular mit dem Text "Löschen" in einem span
+            // Der Button enthält <span>Löschen</span>, daher suchen wir nach dem Text im Button
+            const deleteButton = page.locator('form[action*="delete"] button, button:has-text("Löschen")').first();
             await expect(deleteButton).toBeVisible();
         });
     });

@@ -1,4 +1,4 @@
-import { expect, test } from './test-support.js';
+﻿import { expect, test } from './test-support.js';
 
 function uniqueGuestEmail(prefix, projectName) {
     const normalizedProject = projectName.replace(/[^a-z0-9]+/gi, '-').toLowerCase();
@@ -20,10 +20,10 @@ test.describe('Veranstaltungsanmeldung', () => {
     test('Seite ist erreichbar und zeigt das Anmeldeformular', async ({ page }) => {
         await gotoFantreffenAnmeldung(page);
 
-        // HauptÃƒÂ¼berschrift sichtbar
+        // Hauptüberschrift sichtbar
         await expect(page.locator('h1')).toBeVisible();
 
-        // Anmeldeformular mit ÃƒÅ“berschrift vorhanden
+        // Anmeldeformular mit Überschrift vorhanden
         await expect(anmeldungsPanel(page).getByRole('heading', { name: 'Anmeldung', exact: true })).toBeVisible();
     });
 
@@ -47,7 +47,7 @@ test.describe('Veranstaltungsanmeldung', () => {
     test('Gast kann sich erfolgreich ohne T-Shirt registrieren', async ({ page }, testInfo) => {
         await gotoFantreffenAnmeldung(page);
 
-        // Formularfelder ausfÃƒÂ¼llen
+        // Formularfelder ausfüllen
         await page.fill('input[name="vorname"]', 'Max');
         await page.fill('input[name="nachname"]', 'Mustermann');
         await page.fill('input[name="email"]', uniqueGuestEmail('max-mustermann', testInfo.project.name));
@@ -55,7 +55,7 @@ test.describe('Veranstaltungsanmeldung', () => {
         // Submit
         await page.getByTestId('fantreffen-submit').click();
 
-        // Weiterleitung zur BestÃƒÂ¤tigungsseite
+        // Weiterleitung zur Bestätigungsseite
         await page.waitForURL(/bestaetigung/, { timeout: 10000 });
     });
 
@@ -83,13 +83,13 @@ test.describe('Veranstaltungsanmeldung', () => {
         await expect(buttonInForm).toHaveCount(1);
     });
 
-    test('T-Shirt-GrÃƒÂ¶ÃƒÅ¸e ist ohne aktives Modul nicht Teil des Formulars', async ({ page }) => {
+    test('T-Shirt-Größe ist ohne aktives Modul nicht Teil des Formulars', async ({ page }) => {
         await gotoFantreffenAnmeldung(page);
 
         await expect(page.locator('select[name="tshirt_groesse"]')).toHaveCount(0);
     });
 
-    test('Mehrere GÃƒÂ¤ste kÃƒÂ¶nnen sich nacheinander ohne 429-Fehler registrieren', async ({ page }, testInfo) => {
+    test('Mehrere Gäste können sich nacheinander ohne 429-Fehler registrieren', async ({ page }, testInfo) => {
         test.slow();
 
         const gaeste = [
@@ -107,7 +107,7 @@ test.describe('Veranstaltungsanmeldung', () => {
 
             await page.getByTestId('fantreffen-submit').click();
 
-            // Muss zur BestÃƒÂ¤tigungsseite weiterleiten, NICHT 429
+            // Muss zur Bestätigungsseite weiterleiten, NICHT 429
             await page.waitForURL(/bestaetigung/, { timeout: 10000 });
         }
     });
