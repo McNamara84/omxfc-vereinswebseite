@@ -11,6 +11,7 @@ const explicitForwardedEnvironmentKeys = [
     'DB_CONNECTION',
     'DB_DATABASE',
     'SESSION_DRIVER',
+    'CACHE_STORE',
     'CACHE_DRIVER',
     'QUEUE_CONNECTION',
     'MAIL_MAILER',

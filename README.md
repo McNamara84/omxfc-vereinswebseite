@@ -18,7 +18,8 @@ Offizielle Laravel-13-Anwendung für die Vereinswebseite des **Offizieller MADDR
   - [Technologie-Stack](#technologie-stack)
   - [Voraussetzungen](#voraussetzungen)
   - [Lokale Entwicklung](#lokale-entwicklung)
-    - [Installation](#installation)
+    - [Docker Compose Dev-Stack (empfohlen)](#docker-compose-dev-stack-empfohlen)
+    - [Klassische Host-Entwicklung (optional)](#klassische-host-entwicklung-optional)
     - [Entwicklungsumgebung starten](#entwicklungsumgebung-starten)
     - [Datenbank seeden](#datenbank-seeden)
   - [Maddrax-Fantreffen 2026 Event-System](#maddrax-fantreffen-2026-event-system)
@@ -64,6 +65,8 @@ Offizielle Laravel-13-Anwendung für die Vereinswebseite des **Offizieller MADDR
 > **Empfehlung:** Nutze lokal den produktionsnahen Docker-Stack aus `docker-compose.dev.yml`. Die klassische Host-Entwicklung bleibt als Fallback erhalten.
 
 ## Lokale Entwicklung
+
+Für neue Entwickler ist der Docker-Compose-Dev-Stack der Standard-Onboarding-Pfad. Die klassische Host-Entwicklung bleibt nur als Fallback für Spezialfälle erhalten.
 
 ### Docker Compose Dev-Stack (empfohlen)
 

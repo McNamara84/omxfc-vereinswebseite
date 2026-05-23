@@ -31,18 +31,22 @@ app/Models/               # Eloquent: User, Team, Todo, Review, FantreffenAnmeld
 ## Entwicklungs-Workflow
 
 ```bash
-# Setup
+# Setup (bevorzugt: Docker-Compose-Dev-Stack)
+cp .env.docker.dev.example .env.docker.dev.local
+docker compose --env-file .env.docker.dev.local -f docker-compose.dev.yml up -d --build
+
+# Optionaler Host-Fallback
 composer install && npm install      # Node 24 LTS (siehe .node-version)
 cp .env.example .env && php artisan key:generate
 php artisan migrate
 
-# Entwickeln (empfohlen – startet serve + queue:work + vite parallel)
-composer run dev
+# Entwickeln
+docker compose --env-file .env.docker.dev.local -f docker-compose.dev.yml logs -f --tail=200
 
 # Tests
-php artisan test                      # PHPUnit (SQLite :memory:)
-npm run test:vitest                   # Vitest (JS)
-npm run test:e2e                      # Playwright (benötigt npm run build)
+docker compose --env-file .env.docker.dev.local -f docker-compose.dev.yml exec app php artisan test
+docker compose --env-file .env.docker.dev.local -f docker-compose.dev.yml exec vite npm run test:vitest
+npm run test:e2e:docker
 ```
 
 ## Lokaler Standard-Stack

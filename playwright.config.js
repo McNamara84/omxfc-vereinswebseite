@@ -20,6 +20,7 @@ const phpEnvironment = {
   DB_CONNECTION: 'sqlite',
   DB_DATABASE: databasePath,
   SESSION_DRIVER: 'file',
+  CACHE_STORE: 'array',
   CACHE_DRIVER: 'array',
   QUEUE_CONNECTION: 'database',
   MAIL_MAILER: 'array',
