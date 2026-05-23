@@ -59,7 +59,6 @@ services:
     volumes:
       - .:/var/www/html
       - vendor:/var/www/html/vendor
-      - storage:/var/www/html/storage
       - bootstrap-cache:/var/www/html/bootstrap/cache
     networks:
       - omxfc-dev-network
@@ -146,10 +145,13 @@ services:
 
   playwright-php:
     profiles: ['playwright']
+    image: omxfc-dev-php:local
     build:
       context: .
-      dockerfile: docker/playwright-php.Dockerfile
-    working_dir: /workspace
+      dockerfile: Dockerfile
+      target: development
+    init: true
+    working_dir: /var/www/html
     environment:
       PLAYWRIGHT_PORT: ${DOCKER_DEV_PLAYWRIGHT_PORT:-8001}
       E2E_SANDBOX_BASE_URL: ${E2E_SANDBOX_BASE_URL:-}
@@ -159,7 +161,10 @@ services:
     ports:
       - '${DOCKER_DEV_PLAYWRIGHT_PORT:-8001}:${DOCKER_DEV_PLAYWRIGHT_PORT:-8001}'
     volumes:
-      - .:/workspace
+      - .:/var/www/html
+      - vendor:/var/www/html/vendor
+      - storage:/var/www/html/storage
+      - bootstrap-cache:/var/www/html/bootstrap/cache
     networks:
       - omxfc-dev-network
 

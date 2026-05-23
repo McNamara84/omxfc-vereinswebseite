@@ -3,7 +3,7 @@ import path from 'path';
 const dockerComposeFile = path.resolve(process.env.PLAYWRIGHT_DOCKER_COMPOSE_FILE ?? 'docker-compose.dev.yml');
 const dockerPhpService = process.env.PLAYWRIGHT_DOCKER_PHP_SERVICE ?? 'playwright-php';
 const workspaceRoot = path.resolve('.');
-const dockerWorkspaceRoot = '/workspace';
+const dockerWorkspaceRoot = '/var/www/html';
 const explicitForwardedEnvironmentKeys = [
     'APP_ENV',
     'APP_DEBUG',
