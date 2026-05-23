@@ -19,6 +19,7 @@ const explicitForwardedEnvironmentKeys = [
     'FANTREFFEN_MIN_FORM_TIME',
     'FANTREFFEN_DISABLE_RATE_LIMIT',
     'PLAYWRIGHT_PORT',
+    'PLAYWRIGHT_RUN_TOKEN',
 ];
 const forwardedEnvironmentPrefixes = ['E2E_', 'TEST_'];
 
@@ -92,6 +93,7 @@ export function createPhpProcess(args = [], options = {}) {
                 '-f',
                 dockerComposeFile,
                 'run',
+                '-T',
                 '--rm',
                 ...(options.servicePorts ? ['--service-ports'] : []),
                 ...createDockerEnvironmentArgs(options.env),
@@ -112,8 +114,39 @@ export function createPhpProcess(args = [], options = {}) {
     };
 }
 
+export function createDockerServiceProcess(args = [], options = {}) {
+    if (!shouldUseDockerPhp()) {
+        throw new Error('createDockerServiceProcess() requires PLAYWRIGHT_USE_DOCKER=1.');
+    }
+
+    return {
+        command: 'docker',
+        args: [
+            'compose',
+            '-f',
+            dockerComposeFile,
+            'run',
+            '-T',
+            '--rm',
+            ...(options.servicePorts ? ['--service-ports'] : []),
+            ...createDockerEnvironmentArgs(options.env),
+            dockerPhpService,
+            ...args,
+        ],
+        shell: false,
+    };
+}
+
 export function formatPhpCommand(args = [], options = {}) {
     const processDefinition = createPhpProcess(args, options);
+
+    return [processDefinition.command, ...processDefinition.args]
+        .map(quoteCommandPart)
+        .join(' ');
+}
+
+export function formatDockerServiceCommand(args = [], options = {}) {
+    const processDefinition = createDockerServiceProcess(args, options);
 
     return [processDefinition.command, ...processDefinition.args]
         .map(quoteCommandPart)

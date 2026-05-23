@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './test-support.js';
 
 test('navbar link navigates to Mitglied werden page', async ({ page }) => {
   await page.goto('/');
@@ -12,10 +12,10 @@ test('mobile navigation groups quick links and sections', async ({ page }) => {
   await page.goto('/');
 
   const menuToggle = page.locator('button[aria-controls="mobile-navigation"]');
-  await expect(menuToggle).toHaveAccessibleName(/Menü öffnen/i);
+  await expect(menuToggle).toHaveAccessibleName(/MenÃƒÂ¼ ÃƒÂ¶ffnen/i);
   await menuToggle.click();
   await expect(menuToggle).toHaveAttribute('aria-expanded', 'true');
-  await expect(menuToggle).toContainText(/Schließen/i);
+  await expect(menuToggle).toContainText(/SchlieÃƒÅ¸en/i);
 
   await expect(page.getByTestId('mobile-navigation-menu')).toBeVisible();
   await expect(page.getByTestId('mobile-nav-featured-heading')).toContainText('Schnellzugriff');

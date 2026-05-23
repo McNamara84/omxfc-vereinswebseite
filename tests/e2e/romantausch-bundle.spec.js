@@ -1,31 +1,31 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './test-support.js';
 import AxeBuilder from '@axe-core/playwright';
 
 /**
- * Romantauschbörse Stapel-Angebote E2E Tests
+ * RomantauschbÃƒÂ¶rse Stapel-Angebote E2E Tests
  *
  * TEST-ISOLATION HINWEISE:
  * 
- * 1. Sequentielle Ausführung:
+ * 1. Sequentielle AusfÃƒÂ¼hrung:
  *    Diese Tests verwenden test.describe.serial() nicht, laufen aber in Playwright
- *    standardmäßig sequentiell im selben Worker. Bei paralleler Worker-Konfiguration
- *    könnten Kollisionen auftreten.
+ *    standardmÃƒÂ¤ÃƒÅ¸ig sequentiell im selben Worker. Bei paralleler Worker-Konfiguration
+ *    kÃƒÂ¶nnten Kollisionen auftreten.
  *
  * 2. Buchnummern-Strategie:
  *    Jeder Test verwendet eindeutige Buchnummern-Bereiche um Kollisionen zu vermeiden:
  *    - Stapel erstellen: 10-15
  *    - Bearbeiten-Test: 90-92
- *    - Löschen-Test: 50-52
+ *    - LÃƒÂ¶schen-Test: 50-52
  *    - etc.
- *    Falls neue Tests hinzugefügt werden, sollten nicht verwendete Bereiche gewählt werden.
+ *    Falls neue Tests hinzugefÃƒÂ¼gt werden, sollten nicht verwendete Bereiche gewÃƒÂ¤hlt werden.
  *
- * 3. Parallele Ausführung:
- *    Falls in Zukunft parallele Ausführung aktiviert wird, sollten entweder:
- *    - test.describe.serial() verwendet werden für Tests die dieselben Daten modifizieren
- *    - Oder eindeutige Datensätze pro Test erstellt werden (z.B. mit Zeitstempel-Suffix)
+ * 3. Parallele AusfÃƒÂ¼hrung:
+ *    Falls in Zukunft parallele AusfÃƒÂ¼hrung aktiviert wird, sollten entweder:
+ *    - test.describe.serial() verwendet werden fÃƒÂ¼r Tests die dieselben Daten modifizieren
+ *    - Oder eindeutige DatensÃƒÂ¤tze pro Test erstellt werden (z.B. mit Zeitstempel-Suffix)
  *
  * 4. DB-Reset:
- *    CI führt vor jedem Playwright-Run frische Migrations mit Seeding aus.
+ *    CI fÃƒÂ¼hrt vor jedem Playwright-Run frische Migrations mit Seeding aus.
  *    Lokal sollte bei Testfehlern die DB neu geseedet werden.
  */
 
@@ -34,15 +34,15 @@ import AxeBuilder from '@axe-core/playwright';
  *
  * WICHTIG: Der Test-User 'playwright-member@example.com' wird vom
  * BookPlaywrightSeeder erstellt (database/seeders/BookPlaywrightSeeder.php).
- * Dieser Seeder muss in der Test-Datenbank ausgeführt werden, bevor die
+ * Dieser Seeder muss in der Test-Datenbank ausgefÃƒÂ¼hrt werden, bevor die
  * E2E-Tests laufen. In CI wird dies automatisch durch die Migrations/Seeding
  * in .github/workflows/playwright.yml erledigt.
  *
  * SICHERHEITSWARNUNG: Diese Credentials (playwright-member@example.com / password)
- * sind AUSSCHLIESSLICH für CI- und lokale Testumgebungen bestimmt!
+ * sind AUSSCHLIESSLICH fÃƒÂ¼r CI- und lokale Testumgebungen bestimmt!
  * - NIEMALS in Produktion verwenden
- * - NIEMALS dieses Pattern für echte Authentifizierung kopieren
- * - Der BookPlaywrightSeeder sollte NUR in Test-Datenbanken ausgeführt werden
+ * - NIEMALS dieses Pattern fÃƒÂ¼r echte Authentifizierung kopieren
+ * - Der BookPlaywrightSeeder sollte NUR in Test-Datenbanken ausgefÃƒÂ¼hrt werden
  */
 const loginAsMember = async (page, email = 'playwright-member@example.com', password = 'password') => {
     await page.goto('/login', { waitUntil: 'domcontentloaded' });
@@ -78,7 +78,7 @@ const CONDITION_Z1 = 'Z1';
 const CONDITION_Z2 = 'Z2';
 const CONDITION_Z3 = 'Z3';
 
-test.describe('Romantauschbörse - Stapel-Angebote', () => {
+test.describe('RomantauschbÃƒÂ¶rse - Stapel-Angebote', () => {
     test.describe('Formular zum Stapel-Angebot erstellen', () => {
         test('Stapel-Angebot Formular ist erreichbar', async ({ page }) => {
             await loginAsMember(page);
@@ -108,11 +108,11 @@ test.describe('Romantauschbörse - Stapel-Angebote', () => {
             await expect(conditionMax).toBeVisible();
         });
 
-        test('Formular validiert Mindestanzahl von 2 Büchern', async ({ page }) => {
+        test('Formular validiert Mindestanzahl von 2 BÃƒÂ¼chern', async ({ page }) => {
             await loginAsMember(page);
             await gotoBundleCreateForm(page);
 
-            // Formular ausfüllen mit nur einem Buch
+            // Formular ausfÃƒÂ¼llen mit nur einem Buch
             await page.selectOption('select[name="series"]', SERIES_MADDRAX);
             await page.fill('input[name="book_numbers"]', '1');
             await page.selectOption('select[name="condition"]', CONDITION_Z2);
@@ -128,7 +128,7 @@ test.describe('Romantauschbörse - Stapel-Angebote', () => {
             await loginAsMember(page);
             await gotoBundleCreateForm(page);
 
-            // Formular ausfüllen
+            // Formular ausfÃƒÂ¼llen
             await page.selectOption('select[name="series"]', SERIES_MADDRAX);
             await page.fill('input[name="book_numbers"]', '1-5');
             await page.selectOption('select[name="condition"]', CONDITION_Z2);
@@ -136,10 +136,10 @@ test.describe('Romantauschbörse - Stapel-Angebote', () => {
             // Absenden
             await submitBundleForm(page);
 
-            // Sollte zur Übersicht weiterleiten
+            // Sollte zur ÃƒÅ“bersicht weiterleiten
             await expect(page).toHaveURL(/romantauschboerse$/);
 
-            // WICHTIG: Erfolgsmeldung prüfen - dieser Check hätte den Bug mit dem
+            // WICHTIG: Erfolgsmeldung prÃƒÂ¼fen - dieser Check hÃƒÂ¤tte den Bug mit dem
             // fehlenden 'properties'-Feld in Activity::create() gefangen, da bei
             // einem DB-Fehler keine Erfolgsmeldung angezeigt wird.
             const successMessage = page.locator('[data-testid="flash-success"], [role="alert"]').filter({ hasText: /Stapel-Angebot.*erstellt/i });
@@ -147,7 +147,7 @@ test.describe('Romantauschbörse - Stapel-Angebote', () => {
         });
     });
 
-    test.describe('Stapel in der Übersicht', () => {
+    test.describe('Stapel in der ÃƒÅ“bersicht', () => {
         test('Stapel werden gruppiert angezeigt', async ({ page }) => {
             await loginAsMember(page);
             
@@ -165,7 +165,7 @@ test.describe('Romantauschbörse - Stapel-Angebote', () => {
             await expect(bundleSection).toBeVisible();
         });
 
-        test('Stapel zeigt Bearbeiten-Link für Eigentümer', async ({ page }) => {
+        test('Stapel zeigt Bearbeiten-Link fÃƒÂ¼r EigentÃƒÂ¼mer', async ({ page }) => {
             await loginAsMember(page);
             
             // Erstelle ein Stapel-Angebot
@@ -177,14 +177,14 @@ test.describe('Romantauschbörse - Stapel-Angebote', () => {
 
             await expect(page).toHaveURL(/romantauschboerse$/);
 
-            // Bearbeiten-Link sollte für eigene Stapel sichtbar sein
+            // Bearbeiten-Link sollte fÃƒÂ¼r eigene Stapel sichtbar sein
             const editLink = page.locator('a[href*="/stapel/"][href*="/bearbeiten"]').first();
             await expect(editLink).toBeVisible();
         });
     });
 
     test.describe('Stapel bearbeiten', () => {
-        test('Bearbeiten-Seite lädt für eigene Stapel', async ({ page }) => {
+        test('Bearbeiten-Seite lÃƒÂ¤dt fÃƒÂ¼r eigene Stapel', async ({ page }) => {
             await loginAsMember(page);
             
             // Erstelle ein Stapel-Angebot
@@ -211,8 +211,8 @@ test.describe('Romantauschbörse - Stapel-Angebote', () => {
             // Erstelle ein Stapel-Angebot mit Nummern im Bereich 90-92.
             // Diese Nummern existieren im BookPlaywrightSeeder (1-100).
             // HINWEIS zur Test-Isolation: Playwright-Tests laufen sequentiell in einem
-            // Browser-Kontext mit frischer DB pro Workflow-Run. Bei paralleler Ausführung
-            // oder persistenten Testdaten könnten Kollisionen auftreten. In diesem Fall
+            // Browser-Kontext mit frischer DB pro Workflow-Run. Bei paralleler AusfÃƒÂ¼hrung
+            // oder persistenten Testdaten kÃƒÂ¶nnten Kollisionen auftreten. In diesem Fall
             // sollten eindeutige Nummern pro Test verwendet werden (z.B. 90-92, 93-95, 96-98).
             await gotoBundleCreateForm(page);
             await page.selectOption('select[name="series"]', SERIES_MADDRAX);
@@ -222,8 +222,8 @@ test.describe('Romantauschbörse - Stapel-Angebote', () => {
 
             await expect(page).toHaveURL(/romantauschboerse$/);
 
-            // Finde das Bundle über data-book-numbers-display mit "90-92" Substring.
-            // .first() wählt das erste Match falls mehrere existieren (Test-Isolation).
+            // Finde das Bundle ÃƒÂ¼ber data-book-numbers-display mit "90-92" Substring.
+            // .first() wÃƒÂ¤hlt das erste Match falls mehrere existieren (Test-Isolation).
             const bundleWithNumbers = page.locator('[data-bundle-id][data-book-numbers-display*="90"]').first();
             await expect(bundleWithNumbers).toBeVisible({ timeout: 5000 });
             const editLink = bundleWithNumbers.locator('a[href*="/stapel/"][href*="/bearbeiten"]');
@@ -233,12 +233,12 @@ test.describe('Romantauschbörse - Stapel-Angebote', () => {
             await page.waitForURL(/stapel\/.*\/bearbeiten$/);
             
             // Aktuelle Roman-Nummern sollten im Eingabefeld stehen
-            // Warte bis Alpine.js das Input-Feld mit dem initialen Wert befüllt hat
+            // Warte bis Alpine.js das Input-Feld mit dem initialen Wert befÃƒÂ¼llt hat
             const bookNumbersInput = page.locator('input[name="book_numbers"]');
             await expect(bookNumbersInput).toHaveValue(/90/, { timeout: 10000 });
         });
 
-        test('Stapel kann gelöscht werden', async ({ page }) => {
+        test('Stapel kann gelÃƒÂ¶scht werden', async ({ page }) => {
             await loginAsMember(page);
             
             // Erstelle ein Stapel-Angebot
@@ -254,32 +254,32 @@ test.describe('Romantauschbörse - Stapel-Angebote', () => {
             const editLink = page.locator('a[href*="/stapel/"][href*="/bearbeiten"]').first();
             await editLink.click();
 
-            // Lösch-Button sollte vorhanden sein
-            const deleteButton = page.getByRole('button', { name: 'Stapel löschen' });
+            // LÃƒÂ¶sch-Button sollte vorhanden sein
+            const deleteButton = page.getByRole('button', { name: 'Stapel lÃƒÂ¶schen' });
             await expect(deleteButton).toBeVisible();
 
             // wire:confirm erzeugt einen Browser-Dialog
             page.on('dialog', dialog => dialog.accept());
 
-            // Löschen
+            // LÃƒÂ¶schen
             await deleteButton.click();
 
-            // Sollte zur Übersicht weiterleiten (Firefox braucht mehr Zeit für Form-Submit nach Dialog)
+            // Sollte zur ÃƒÅ“bersicht weiterleiten (Firefox braucht mehr Zeit fÃƒÂ¼r Form-Submit nach Dialog)
             await expect(page).toHaveURL(/romantauschboerse$/, { timeout: 15000 });
         });
     });
 
     test.describe('Accessibility', () => {
-        test('Stapel-Angebot Formular erfüllt WCAG AA Richtlinien', async ({ page }) => {
+        test('Stapel-Angebot Formular erfÃƒÂ¼llt WCAG AA Richtlinien', async ({ page }) => {
             await loginAsMember(page);
             await gotoBundleCreateForm(page);
 
             const accessibilityScanResults = await new AxeBuilder({ page })
                 .withTags(['wcag2a', 'wcag2aa'])
                 .exclude('.leaflet-container')
-                // maryUI ThemeToggle erzeugt ein verstecktes Checkbox-Element ohne zugängliches Label
+                // maryUI ThemeToggle erzeugt ein verstecktes Checkbox-Element ohne zugÃƒÂ¤ngliches Label
                 .exclude('input.theme-controller')
-                // Livewire wire:navigate Progress-Bar (NProgress) nutzt ungültiges role="bar"
+                // Livewire wire:navigate Progress-Bar (NProgress) nutzt ungÃƒÂ¼ltiges role="bar"
                 .exclude('#nprogress [role="bar"]')
                 // Deaktiviere nested-interactive - bekanntes maryUI Dropdown Problem
                 .disableRules(['nested-interactive'])
@@ -297,7 +297,7 @@ test.describe('Romantauschbörse - Stapel-Angebote', () => {
             expect(accessibilityScanResults.violations, formattedViolations).toEqual([]);
         });
 
-        test('Stapel-Bearbeiten Formular erfüllt WCAG AA Richtlinien', async ({ page }) => {
+        test('Stapel-Bearbeiten Formular erfÃƒÂ¼llt WCAG AA Richtlinien', async ({ page }) => {
             await loginAsMember(page);
             
             // Erstelle erst ein Stapel-Angebot
@@ -313,15 +313,15 @@ test.describe('Romantauschbörse - Stapel-Angebote', () => {
             const editLink = page.locator('a[href*="/stapel/"][href*="/bearbeiten"]').first();
             await editLink.click();
 
-            // wire:navigate navigiert per SPA – auf die Bearbeiten-Seite warten
+            // wire:navigate navigiert per SPA Ã¢â‚¬â€œ auf die Bearbeiten-Seite warten
             await page.waitForURL(/\/bearbeiten/);
 
             const accessibilityScanResults = await new AxeBuilder({ page })
                 .withTags(['wcag2a', 'wcag2aa'])
                 .exclude('.leaflet-container')
-                // maryUI ThemeToggle erzeugt ein verstecktes Checkbox-Element ohne zugängliches Label
+                // maryUI ThemeToggle erzeugt ein verstecktes Checkbox-Element ohne zugÃƒÂ¤ngliches Label
                 .exclude('input.theme-controller')
-                // Livewire wire:navigate Progress-Bar (NProgress) nutzt ungültiges role="bar"
+                // Livewire wire:navigate Progress-Bar (NProgress) nutzt ungÃƒÂ¼ltiges role="bar"
                 .exclude('#nprogress [role="bar"]')
                 .disableRules(['nested-interactive'])
                 .analyze();
@@ -338,10 +338,10 @@ test.describe('Romantauschbörse - Stapel-Angebote', () => {
             expect(accessibilityScanResults.violations, formattedViolations).toEqual([]);
         });
 
-        test('Romantauschbörse Übersicht mit Stapeln erfüllt WCAG AA Richtlinien', async ({ page }) => {
+        test('RomantauschbÃƒÂ¶rse ÃƒÅ“bersicht mit Stapeln erfÃƒÂ¼llt WCAG AA Richtlinien', async ({ page }) => {
             await loginAsMember(page);
             
-            // Erstelle ein Stapel-Angebot damit die Übersicht Stapel enthält
+            // Erstelle ein Stapel-Angebot damit die ÃƒÅ“bersicht Stapel enthÃƒÂ¤lt
             await gotoBundleCreateForm(page);
             await page.selectOption('select[name="series"]', SERIES_MADDRAX);
             await page.fill('input[name="book_numbers"]', '70-75');
@@ -353,9 +353,9 @@ test.describe('Romantauschbörse - Stapel-Angebote', () => {
             const accessibilityScanResults = await new AxeBuilder({ page })
                 .withTags(['wcag2a', 'wcag2aa'])
                 .exclude('.leaflet-container')
-                // maryUI ThemeToggle erzeugt ein verstecktes Checkbox-Element ohne zugängliches Label
+                // maryUI ThemeToggle erzeugt ein verstecktes Checkbox-Element ohne zugÃƒÂ¤ngliches Label
                 .exclude('input.theme-controller')
-                // Livewire wire:navigate Progress-Bar (NProgress) nutzt ungültiges role="bar"
+                // Livewire wire:navigate Progress-Bar (NProgress) nutzt ungÃƒÂ¼ltiges role="bar"
                 .exclude('#nprogress [role="bar"]')
                 // Deaktiviere nested-interactive - bekanntes maryUI Dropdown Problem
                 .disableRules(['nested-interactive'])
@@ -380,14 +380,14 @@ test.describe('Romantauschbörse - Stapel-Angebote', () => {
             await gotoBundleCreateForm(page);
 
             // maryUI rendert Labels als <legend> innerhalb von <fieldset>,
-            // daher prüfen wir den Labeltext über die fieldset-legend Klasse
+            // daher prÃƒÂ¼fen wir den Labeltext ÃƒÂ¼ber die fieldset-legend Klasse
             await expect(page.locator('select[name="condition"]')).toBeVisible();
             await expect(page.locator('select[name="condition_max"]')).toBeVisible();
             await expect(page.locator('.fieldset-legend:has-text("Von")')).toBeVisible();
             await expect(page.locator('.fieldset-legend:has-text("Bis")')).toBeVisible();
         });
 
-        test('Abbrechen-Button führt zurück zur Übersicht', async ({ page }) => {
+        test('Abbrechen-Button fÃƒÂ¼hrt zurÃƒÂ¼ck zur ÃƒÅ“bersicht', async ({ page }) => {
             await loginAsMember(page);
             await gotoBundleCreateForm(page);
 

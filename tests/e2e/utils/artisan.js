@@ -1,8 +1,5 @@
-import { execFile as execFileCallback } from 'child_process';
-import { promisify } from 'util';
+import { spawn } from 'child_process';
 import { createPhpProcess } from './php.js';
-
-const execFile = promisify(execFileCallback);
 
 export async function runArtisan(args, options = {}) {
     const env = {
@@ -18,23 +15,25 @@ export async function runArtisan(args, options = {}) {
 
     const phpProcess = createPhpProcess(['artisan', ...args], { env });
 
-    try {
-        const result = await execFile(phpProcess.command, phpProcess.args, {
+    await new Promise((resolve, reject) => {
+        const child = spawn(phpProcess.command, phpProcess.args, {
             env,
             shell: phpProcess.shell,
+            stdio: options.stdio ?? 'inherit',
             ...options,
         });
 
-        return result.stdout.trim();
-    } catch (error) {
-        if (error.stdout) {
-            console.error(error.stdout);
-        }
+        child.on('error', reject);
+        child.on('exit', (code) => {
+            if (code === 0) {
+                resolve();
 
-        if (error.stderr) {
-            console.error(error.stderr);
-        }
+                return;
+            }
 
-        throw error;
-    }
+            reject(new Error(`Command failed: ${phpProcess.command} ${phpProcess.args.join(' ')}`));
+        });
+    });
+
+    return '';
 }

@@ -55,6 +55,10 @@ class AppServiceProvider extends ServiceProvider
             request()->headers->set('X-Forwarded-Port', '443');
         }
 
+        if (env('PLAYWRIGHT_USE_DOCKER') === '1') {
+            Vite::useHotFile(public_path('playwright.hot'));
+        }
+
         // Rate Limiter für Fantreffen-Anmeldung (deaktivierbar via Config für Tests)
         RateLimiter::for('fantreffen-registration', function ($request) {
             if (config('services.fantreffen.disable_rate_limit')) {

@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './test-support.js';
 
 test('home page provides meta description for SEO', async ({ page }) => {
   await page.goto('/');

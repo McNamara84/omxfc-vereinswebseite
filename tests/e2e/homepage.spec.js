@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './test-support.js';
 
 test('homepage shows MADDRAX Fanclub title', async ({ page }) => {
   await page.goto('/');

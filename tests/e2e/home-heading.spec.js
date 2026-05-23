@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './test-support.js';
 
 test('home page uses exactly one h1 heading', async ({ page }) => {
   await page.goto('/');

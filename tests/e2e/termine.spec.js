@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './test-support.js';
 
 test('termine page contains link to Google Kalender', async ({ page }) => {
   await page.goto('/termine');

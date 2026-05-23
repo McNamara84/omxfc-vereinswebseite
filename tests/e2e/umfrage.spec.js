@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './test-support.js';
 import { runArtisan } from './utils/artisan.js';
 
 const login = async (page, email, password = 'password') => {
@@ -27,7 +27,7 @@ test.describe('Umfragen', () => {
     await expect(page.getByRole('link', { name: 'Playwright Umfrage' }).first()).toBeVisible();
 
     await page.goto('/umfrage');
-    await expect(page.locator('[data-testid="page-title"]')).toContainText('Playwright: Öffentliche Umfrage?');
+    await expect(page.locator('[data-testid="page-title"]')).toContainText('Playwright: Ãƒâ€“ffentliche Umfrage?');
 
     await page.getByRole('radio', { name: 'Option A' }).check();
     

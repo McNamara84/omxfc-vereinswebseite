@@ -1,42 +1,42 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './test-support.js';
 
 /**
  * Fanfiction E2E Tests
  *
  * Testet die Akzeptanzkriterien aus den Issues:
- * - #493: Verwaltung/Import für Vorstand
- * - #495: Menüpunkt und Übersicht für Mitglieder
- * - #496: Struktur der Übersichtsseite (Auf-/Zuklappen, Kommentare)
- * - #497: Sichtbarkeit für Gäste (Teaser)
+ * - #493: Verwaltung/Import fÃƒÂ¼r Vorstand
+ * - #495: MenÃƒÂ¼punkt und ÃƒÅ“bersicht fÃƒÂ¼r Mitglieder
+ * - #496: Struktur der ÃƒÅ“bersichtsseite (Auf-/Zuklappen, Kommentare)
+ * - #497: Sichtbarkeit fÃƒÂ¼r GÃƒÂ¤ste (Teaser)
  */
 
-test.describe('Fanfiction für Gäste (Issue #497)', () => {
-    test('Gast kann öffentliche Teaser-Seite aufrufen', async ({ page }) => {
+test.describe('Fanfiction fÃƒÂ¼r GÃƒÂ¤ste (Issue #497)', () => {
+    test('Gast kann ÃƒÂ¶ffentliche Teaser-Seite aufrufen', async ({ page }) => {
         await page.goto('/fanfiction-teaser');
 
         await expect(page).toHaveURL(/fanfiction-teaser/);
         await expect(page.getByRole('heading', { name: 'Fanfiction' })).toBeVisible();
     });
 
-    test('Teaser-Seite zeigt veröffentlichte Geschichten', async ({ page }) => {
+    test('Teaser-Seite zeigt verÃƒÂ¶ffentlichte Geschichten', async ({ page }) => {
         await page.goto('/fanfiction-teaser');
 
-        // Prüfe ob mindestens eine Geschichte angezeigt wird
+        // PrÃƒÂ¼fe ob mindestens eine Geschichte angezeigt wird
         await expect(page.getByText('Die Reise nach Doredo')).toBeVisible();
-        await expect(page.getByText('Schatten über dem Kratersee')).toBeVisible();
+        await expect(page.getByText('Schatten ÃƒÂ¼ber dem Kratersee')).toBeVisible();
     });
 
-    test('Teaser-Seite zeigt keine Entwürfe', async ({ page }) => {
+    test('Teaser-Seite zeigt keine EntwÃƒÂ¼rfe', async ({ page }) => {
         await page.goto('/fanfiction-teaser');
 
         // Der Entwurf sollte nicht sichtbar sein
         await expect(page.getByText('Die dunkle Prophezeiung')).not.toBeVisible();
     });
 
-    test('Teaser-Seite zeigt Hinweis für Gäste', async ({ page }) => {
+    test('Teaser-Seite zeigt Hinweis fÃƒÂ¼r GÃƒÂ¤ste', async ({ page }) => {
         await page.goto('/fanfiction-teaser');
 
-        // Prüfe ob der Hinweis für Gäste angezeigt wird
+        // PrÃƒÂ¼fe ob der Hinweis fÃƒÂ¼r GÃƒÂ¤ste angezeigt wird
         await expect(page.getByText(/Als Gast siehst du nur einen kurzen Teaser/i)).toBeVisible();
         await expect(page.getByRole('link', { name: /Werde Mitglied/i })).toBeVisible();
     });
@@ -55,8 +55,8 @@ test.describe('Fanfiction für Gäste (Issue #497)', () => {
     });
 });
 
-test.describe('Fanfiction Menüpunkt (Issue #493 & #495)', () => {
-    test('Vorstand-Menü enthält Fanfiction-Unterpunkt', async ({ page }) => {
+test.describe('Fanfiction MenÃƒÂ¼punkt (Issue #493 & #495)', () => {
+    test('Vorstand-MenÃƒÂ¼ enthÃƒÂ¤lt Fanfiction-Unterpunkt', async ({ page }) => {
         // Login als Admin
         await page.goto('/login');
         await page.fill('input[name="email"]', 'info@maddraxikon.com');
@@ -67,7 +67,7 @@ test.describe('Fanfiction Menüpunkt (Issue #493 & #495)', () => {
         // Navigiere zum Dashboard
         await page.goto('/dashboard');
 
-        // Öffne das Vorstand-Dropdown im Desktop-Menü
+        // Ãƒâ€“ffne das Vorstand-Dropdown im Desktop-MenÃƒÂ¼
         const vorstandDropdown = page.locator('nav').getByRole('button', { name: /Vorstand/i });
 
         // Desktop: Klicke auf Vorstand-Dropdown wenn sichtbar
@@ -77,7 +77,7 @@ test.describe('Fanfiction Menüpunkt (Issue #493 & #495)', () => {
         }
     });
 
-    test('Community-Menü enthält Fanfiction-Unterpunkt', async ({ page }) => {
+    test('Community-MenÃƒÂ¼ enthÃƒÂ¤lt Fanfiction-Unterpunkt', async ({ page }) => {
         // Login als Mitglied
         await page.goto('/login');
         await page.fill('input[name="email"]', 'playwright-member@example.com');
@@ -87,7 +87,7 @@ test.describe('Fanfiction Menüpunkt (Issue #493 & #495)', () => {
 
         await page.goto('/dashboard');
 
-        // Öffne das Community-Dropdown
+        // Ãƒâ€“ffne das Community-Dropdown
         const communityDropdown = page.locator('nav').getByRole('button', { name: /Community/i });
 
         if (await communityDropdown.isVisible()) {
@@ -100,7 +100,7 @@ test.describe('Fanfiction Menüpunkt (Issue #493 & #495)', () => {
     });
 });
 
-test.describe('Fanfiction Verwaltung für Vorstand (Issue #493)', () => {
+test.describe('Fanfiction Verwaltung fÃƒÂ¼r Vorstand (Issue #493)', () => {
     test.beforeEach(async ({ page }) => {
         // Login als Admin/Vorstand
         await page.goto('/login');
@@ -121,23 +121,23 @@ test.describe('Fanfiction Verwaltung für Vorstand (Issue #493)', () => {
     test('Vorstand sieht Liste der Fanfictions mit Status', async ({ page }) => {
         await page.goto('/vorstand/fanfiction');
 
-        // Prüfe ob die Tabelle/Liste existiert - verwende spezifischeren Selektor für die Tabelle
+        // PrÃƒÂ¼fe ob die Tabelle/Liste existiert - verwende spezifischeren Selektor fÃƒÂ¼r die Tabelle
         await expect(page.getByRole('table').getByText('Die Reise nach Doredo')).toBeVisible();
 
-        // Prüfe ob Status angezeigt wird
-        await expect(page.getByText(/Veröffentlicht|Entwurf/i).first()).toBeVisible();
+        // PrÃƒÂ¼fe ob Status angezeigt wird
+        await expect(page.getByText(/VerÃƒÂ¶ffentlicht|Entwurf/i).first()).toBeVisible();
     });
 
     test('Vorstand kann neue Fanfiction erstellen', async ({ page }) => {
         await page.goto('/vorstand/fanfiction/erstellen');
 
-        // Prüfe ob alle erforderlichen Felder vorhanden sind
+        // PrÃƒÂ¼fe ob alle erforderlichen Felder vorhanden sind
         // maryUI x-input verwendet fieldset/legend statt label/input - nutze placeholder
-        await expect(page.getByPlaceholder('z.B. Die Rückkehr nach Dorado')).toBeVisible();
-        // Textarea hat keinen Placeholder, prüfe dass legend-Text existiert (exact match)
+        await expect(page.getByPlaceholder('z.B. Die RÃƒÂ¼ckkehr nach Dorado')).toBeVisible();
+        // Textarea hat keinen Placeholder, prÃƒÂ¼fe dass legend-Text existiert (exact match)
         await expect(page.getByText('Geschichte *', { exact: true })).toBeVisible();
 
-        // Autortyp-Auswahl (Radio-Buttons) - exact match um Hint-Text auszuschließen
+        // Autortyp-Auswahl (Radio-Buttons) - exact match um Hint-Text auszuschlieÃƒÅ¸en
         await expect(page.getByText('Vereinsmitglied', { exact: true })).toBeVisible();
         await expect(page.getByText('Externer Autor', { exact: true })).toBeVisible();
     });
@@ -145,50 +145,50 @@ test.describe('Fanfiction Verwaltung für Vorstand (Issue #493)', () => {
     test('Vorstand kann Fanfiction mit externem Autor erstellen', async ({ page }) => {
         await page.goto('/vorstand/fanfiction/erstellen');
 
-        // Wähle externen Autor robust über das eigentliche Radio-Input.
-        // Ein reiner Text-Klick kann auf CI den Livewire-State zu spät umschalten,
+        // WÃƒÂ¤hle externen Autor robust ÃƒÂ¼ber das eigentliche Radio-Input.
+        // Ein reiner Text-Klick kann auf CI den Livewire-State zu spÃƒÂ¤t umschalten,
         // wodurch die Validierung weiter einen Vereinsautor erwartet.
         await page.getByLabel('Externer Autor').check();
         await expect(page.locator('[wire\\:model\\.live="userId"]')).toHaveCount(0);
 
-        // Fülle Formular aus - maryUI verwendet fieldset/legend, nutze wire:model Selektoren
+        // FÃƒÂ¼lle Formular aus - maryUI verwendet fieldset/legend, nutze wire:model Selektoren
         await page.locator('[wire\\:model="title"]').fill('E2E Test Geschichte');
         await page.locator('[wire\\:model="authorName"]').fill('E2E Testautor');
-        await page.locator('[wire\\:model="content"]').fill('Dies ist eine Testgeschichte für den E2E-Test. Sie enthält genug Text um die Validierung zu bestehen.');
+        await page.locator('[wire\\:model="content"]').fill('Dies ist eine Testgeschichte fÃƒÂ¼r den E2E-Test. Sie enthÃƒÂ¤lt genug Text um die Validierung zu bestehen.');
 
-        // Wähle Status "Entwurf" explizit über das Radio-Input.
+        // WÃƒÂ¤hle Status "Entwurf" explizit ÃƒÂ¼ber das Radio-Input.
         await page.getByLabel('Als Entwurf speichern').check();
 
         // Speichern
         await page.getByRole('button', { name: 'Fanfiction speichern' }).click();
 
-        // Sollte exakt zurück zur Übersicht leiten und dort den neuen Eintrag zeigen.
+        // Sollte exakt zurÃƒÂ¼ck zur ÃƒÅ“bersicht leiten und dort den neuen Eintrag zeigen.
         await expect(page).toHaveURL(/\/vorstand\/fanfiction$/);
         await expect(page.getByText(/Fanfiction erfolgreich erstellt/i)).toBeVisible();
         await expect(page.getByRole('row', { name: /E2E Test Geschichte/ })).toBeVisible();
     });
 
-    test('Vorstand kann Entwurf veröffentlichen', async ({ page }) => {
+    test('Vorstand kann Entwurf verÃƒÂ¶ffentlichen', async ({ page }) => {
         await page.goto('/vorstand/fanfiction');
 
         // Finde einen Entwurf (die "Dunkle Prophezeiung" aus dem Seeder)
         const draftRow = page.locator('tr', { hasText: 'Entwurf' }).first();
 
         if (await draftRow.isVisible()) {
-            // Klicke auf Veröffentlichen-Button
-            const publishButton = draftRow.getByRole('button', { name: /Veröffentlichen/i });
+            // Klicke auf VerÃƒÂ¶ffentlichen-Button
+            const publishButton = draftRow.getByRole('button', { name: /VerÃƒÂ¶ffentlichen/i });
 
             if (await publishButton.isVisible()) {
                 await publishButton.click();
 
-                // Erfolgs-Meldung prüfen
-                await expect(page.getByText(/erfolgreich veröffentlicht/i).first()).toBeVisible();
+                // Erfolgs-Meldung prÃƒÂ¼fen
+                await expect(page.getByText(/erfolgreich verÃƒÂ¶ffentlicht/i).first()).toBeVisible();
             }
         }
     });
 });
 
-test.describe('Fanfiction Übersicht für Mitglieder (Issue #495 & #496)', () => {
+test.describe('Fanfiction ÃƒÅ“bersicht fÃƒÂ¼r Mitglieder (Issue #495 & #496)', () => {
     test.beforeEach(async ({ page }) => {
         // Login als Mitglied
         await page.goto('/login');
@@ -198,28 +198,28 @@ test.describe('Fanfiction Übersicht für Mitglieder (Issue #495 & #496)', () =>
         await page.waitForURL((url) => !url.pathname.endsWith('/login'));
     });
 
-    test('Mitglied kann Fanfiction-Übersicht aufrufen', async ({ page }) => {
+    test('Mitglied kann Fanfiction-ÃƒÅ“bersicht aufrufen', async ({ page }) => {
         await page.goto('/fanfiction');
 
         await expect(page).toHaveURL(/\/fanfiction$/);
         await expect(page.locator('[data-testid="page-title"]')).toContainText('Fanfiction');
     });
 
-    test('Übersicht zeigt veröffentlichte Geschichten', async ({ page }) => {
+    test('ÃƒÅ“bersicht zeigt verÃƒÂ¶ffentlichte Geschichten', async ({ page }) => {
         await page.goto('/fanfiction');
 
         await expect(page.getByText('Die Reise nach Doredo')).toBeVisible();
-        await expect(page.getByText('Schatten über dem Kratersee')).toBeVisible();
+        await expect(page.getByText('Schatten ÃƒÂ¼ber dem Kratersee')).toBeVisible();
     });
 
-    test('Übersicht zeigt nur ersten 400 Zeichen als Teaser', async ({ page }) => {
+    test('ÃƒÅ“bersicht zeigt nur ersten 400 Zeichen als Teaser', async ({ page }) => {
         await page.goto('/fanfiction');
 
         // Der Teaser sollte sichtbar sein
         const teaserElement = page.locator('[data-fanfiction-teaser]').first();
         await expect(teaserElement).toBeVisible();
 
-        // Der vollständige Inhalt sollte zunächst verborgen sein
+        // Der vollstÃƒÂ¤ndige Inhalt sollte zunÃƒÂ¤chst verborgen sein
         const contentElement = page.locator('[data-fanfiction-content]').first();
         await expect(contentElement).not.toBeVisible();
     });
@@ -235,13 +235,13 @@ test.describe('Fanfiction Übersicht für Mitglieder (Issue #495 & #496)', () =>
         // Klicke zum Aufklappen
         await toggleButton.click();
 
-        // Warte auf Alpine.js State-Änderung (Button-Text ändert sich)
+        // Warte auf Alpine.js State-Ãƒâ€žnderung (Button-Text ÃƒÂ¤ndert sich)
         await expect(toggleButton).toContainText(/zuklappen/i);
 
         // Klicke zum Zuklappen
         await toggleButton.click();
 
-        // Warte auf Alpine.js State-Änderung
+        // Warte auf Alpine.js State-Ãƒâ€žnderung
         await expect(toggleButton).toContainText(/aufklappen/i);
     });
 
@@ -261,10 +261,10 @@ test.describe('Fanfiction Übersicht für Mitglieder (Issue #495 & #496)', () =>
     test('Bilder werden nur bei aufgeklappter Geschichte angezeigt', async ({ page }) => {
         await page.goto('/fanfiction');
 
-        // Zunächst sollte die Galerie nicht sichtbar sein (falls Bilder vorhanden)
+        // ZunÃƒÂ¤chst sollte die Galerie nicht sichtbar sein (falls Bilder vorhanden)
         const gallery = page.locator('[data-fanfiction-gallery]').first();
 
-        // Wenn eine Galerie existiert, sollte sie zunächst verborgen sein
+        // Wenn eine Galerie existiert, sollte sie zunÃƒÂ¤chst verborgen sein
         if ((await gallery.count()) > 0) {
             await expect(gallery).not.toBeVisible();
 
@@ -275,14 +275,14 @@ test.describe('Fanfiction Übersicht für Mitglieder (Issue #495 & #496)', () =>
         }
     });
 
-    test('Mitglied kann keine Entwürfe sehen', async ({ page }) => {
+    test('Mitglied kann keine EntwÃƒÂ¼rfe sehen', async ({ page }) => {
         await page.goto('/fanfiction');
 
-        // Der Seeder erstellt einen zweiten Entwurf "Geheimer Entwurf für Tests",
-        // der von keinem anderen Test veröffentlicht wird.
+        // Der Seeder erstellt einen zweiten Entwurf "Geheimer Entwurf fÃƒÂ¼r Tests",
+        // der von keinem anderen Test verÃƒÂ¶ffentlicht wird.
         // Der published() Scope im Controller sollte diesen herausfiltern.
         const fanfictionList = page.locator('[data-fanfiction-list]');
-        await expect(fanfictionList.getByText('Geheimer Entwurf für Tests')).not.toBeVisible();
+        await expect(fanfictionList.getByText('Geheimer Entwurf fÃƒÂ¼r Tests')).not.toBeVisible();
     });
 });
 
@@ -302,22 +302,22 @@ test.describe('Fanfiction Einzelansicht', () => {
         // Klicke auf den Titel der ersten Geschichte
         await page.getByRole('link', { name: 'Die Reise nach Doredo' }).first().click();
 
-        // Prüfe ob die Einzelansicht geladen wurde - verwende spezifischeren Selektor (h1 im Main-Bereich)
+        // PrÃƒÂ¼fe ob die Einzelansicht geladen wurde - verwende spezifischeren Selektor (h1 im Main-Bereich)
         await expect(page.locator('main').getByRole('heading', { name: 'Die Reise nach Doredo' })).toBeVisible();
     });
 
-    test('Einzelansicht zeigt vollständigen Inhalt', async ({ page }) => {
+    test('Einzelansicht zeigt vollstÃƒÂ¤ndigen Inhalt', async ({ page }) => {
         await page.goto('/fanfiction');
         await page.getByRole('link', { name: 'Die Reise nach Doredo' }).first().click();
 
-        // wire:navigate navigiert per SPA – auf die Einzelansicht warten
+        // wire:navigate navigiert per SPA Ã¢â‚¬â€œ auf die Einzelansicht warten
         await page.waitForURL(/\/fanfiction\//);
 
-        // Der vollständige Inhalt sollte sichtbar sein - prüfe auf prose-Container mit Inhalt
+        // Der vollstÃƒÂ¤ndige Inhalt sollte sichtbar sein - prÃƒÂ¼fe auf prose-Container mit Inhalt
         const proseContainer = page.locator('.fanfiction-content.prose').first();
         await expect(proseContainer).toBeVisible();
 
-        // Prüfe dass der Container nicht leer ist (hat mindestens ein p-Element)
+        // PrÃƒÂ¼fe dass der Container nicht leer ist (hat mindestens ein p-Element)
         await expect(proseContainer.locator('p').first()).toBeVisible();
     });
 
@@ -343,8 +343,8 @@ test.describe('Fanfiction Einzelansicht', () => {
         await page.goto('/fanfiction');
         await page.getByRole('link', { name: 'Die Reise nach Doredo' }).first().click();
 
-        // Prüfe ob existierende Kommentare mit Autorname angezeigt werden
-        // Suche den Kommentar-Text unabhängig von CSS-Klassen
+        // PrÃƒÂ¼fe ob existierende Kommentare mit Autorname angezeigt werden
+        // Suche den Kommentar-Text unabhÃƒÂ¤ngig von CSS-Klassen
         await expect(page.getByText('Spannende Geschichte').first()).toBeVisible();
     });
 });
@@ -369,7 +369,7 @@ test.describe('Fanfiction Zugriffsrechte', () => {
         // Versuche Vorstand-Bereich aufzurufen
         const response = await page.goto('/vorstand/fanfiction');
 
-        // Sollte 403 zurückgeben oder weiterleiten
+        // Sollte 403 zurÃƒÂ¼ckgeben oder weiterleiten
         expect(response?.status()).toBe(403);
     });
 });

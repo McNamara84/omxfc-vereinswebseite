@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './test-support.js';
 
 test('ehrenmitglieder page shows honorary member image with alt text', async ({ page }) => {
   await page.goto('/ehrenmitglieder');

@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './test-support.js';
 
 const escapeRegExp = (value) => String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
@@ -29,7 +29,7 @@ test.describe('Kassenbuch Verwaltung', () => {
 
         // Warte bis Seite geladen ist
         await page.waitForLoadState('networkidle');
-        // Verwende data-testid für stabile Selektoren
+        // Verwende data-testid fÃƒÂ¼r stabile Selektoren
         await expect(page.getByTestId('page-header')).toContainText('Kassenbuch');
         await expect(page.getByTestId('kassenstand-card')).toBeVisible();
 
@@ -94,7 +94,7 @@ test.describe('Kassenbuch Verwaltung', () => {
         await expect(addDialog).toBeVisible();
         await expect(addDialog.getByLabel('Buchungsdatum')).toHaveAttribute('aria-describedby', 'buchungsdatum-error');
         await expect(addDialog.getByLabel('Beschreibung')).toHaveAttribute('aria-describedby', 'beschreibung-error');
-        await expect(addDialog.getByLabel('Betrag (€)')).toHaveAttribute('aria-describedby', 'betrag-error');
+        await expect(addDialog.getByLabel('Betrag (Ã¢â€šÂ¬)')).toHaveAttribute('aria-describedby', 'betrag-error');
 
         // Regression guard: the dialog must be clickable/focusable (not covered by the backdrop).
         const addBeschreibungInput = addDialog.getByLabel('Beschreibung');
@@ -102,13 +102,13 @@ test.describe('Kassenbuch Verwaltung', () => {
         await expect(addBeschreibungInput).toBeFocused();
 
         await addBeschreibungInput.fill('Playwright Einnahme');
-        const addBetragInput = addDialog.getByLabel('Betrag (€)');
+        const addBetragInput = addDialog.getByLabel('Betrag (Ã¢â€šÂ¬)');
         await addBetragInput.click();
         await expect(addBetragInput).toBeFocused();
         await addBetragInput.fill('15');
 
-        await addDialog.getByRole('button', { name: 'Hinzufügen' }).click();
-        await expect(page.getByText('Kassenbucheintrag wurde hinzugefügt.').first()).toBeVisible({ timeout: 10000 });
+        await addDialog.getByRole('button', { name: 'HinzufÃƒÂ¼gen' }).click();
+        await expect(page.getByText('Kassenbucheintrag wurde hinzugefÃƒÂ¼gt.').first()).toBeVisible({ timeout: 10000 });
         await expect(page.getByRole('cell', { name: 'Playwright Einnahme' })).toBeVisible();
     });
 
@@ -177,7 +177,7 @@ test.describe('Kassenbuch Verwaltung', () => {
         });
         await expect(editDialog).toBeVisible();
 
-        const mitgliedsbeitragInput = editDialog.getByLabel('Mitgliedsbeitrag (€)');
+        const mitgliedsbeitragInput = editDialog.getByLabel('Mitgliedsbeitrag (Ã¢â€šÂ¬)');
         await expect(mitgliedsbeitragInput).toHaveAttribute('aria-describedby', 'mitgliedsbeitrag-error');
         await mitgliedsbeitragInput.click();
         await expect(mitgliedsbeitragInput).toBeFocused();
@@ -189,13 +189,13 @@ test.describe('Kassenbuch Verwaltung', () => {
         await editDialog.getByRole('button', { name: 'Speichern' }).click();
 
         const escapedName = escapeRegExp(editDetail.userName);
-        await expect(page.getByText(new RegExp(`Zahlungsdaten für\\s+${escapedName}\\s+wurden aktualisiert\\.`)).first()).toBeVisible({
+        await expect(page.getByText(new RegExp(`Zahlungsdaten fÃƒÂ¼r\\s+${escapedName}\\s+wurden aktualisiert\\.`)).first()).toBeVisible({
             timeout: 10000,
         });
 
         const membersTable = page.getByRole('table').first();
         const memberRow = membersTable.getByRole('row', { name: new RegExp(escapedName) }).first();
-        await expect(memberRow).toContainText(/50,00\s+€/);
+        await expect(memberRow).toContainText(/50,00\s+Ã¢â€šÂ¬/);
         await expect(memberRow).toContainText('31.12.2026');
     });
 
@@ -216,12 +216,12 @@ test.describe('Kassenbuch Verwaltung', () => {
         await expect(statusBadges.first()).toBeVisible();
 
         const dialogs = page.locator('[role="dialog"]');
-        // Prüfe mindestens 2 Dialoge (add-entry, edit-payment sind immer da)
-        // Weitere Dialoge (request-edit, edit-entry, reject-edit) sind je nach Rolle verfügbar
+        // PrÃƒÂ¼fe mindestens 2 Dialoge (add-entry, edit-payment sind immer da)
+        // Weitere Dialoge (request-edit, edit-entry, reject-edit) sind je nach Rolle verfÃƒÂ¼gbar
         const dialogCount = await dialogs.count();
         expect(dialogCount).toBeGreaterThanOrEqual(2);
 
-        // Prüfe dass alle vorhandenen Dialoge aria-modal haben
+        // PrÃƒÂ¼fe dass alle vorhandenen Dialoge aria-modal haben
         for (let i = 0; i < dialogCount; i++) {
             await expect(dialogs.nth(i)).toHaveAttribute('aria-modal', 'true');
         }

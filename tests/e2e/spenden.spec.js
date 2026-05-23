@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './test-support.js';
 
 test('spenden page contains PayPal donate button', async ({ page }) => {
   await page.goto('/spenden');

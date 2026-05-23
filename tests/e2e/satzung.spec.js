@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './test-support.js';
 
 test('satzung page displays correct main heading', async ({ page }) => {
   await page.goto('/satzung');
@@ -10,15 +10,15 @@ test('satzung page displays all paragraph headings', async ({ page }) => {
   await page.goto('/satzung');
 
   const expectedHeadings = [
-    '§1 Name, Sitz des Vereins, Rechtsform und Geschäftsjahr',
-    '§2 Zweck und Ziele',
-    '§3 Mitgliedschaft',
-    '§4 Mitgliedsbeiträge',
-    '§5 Austritt',
-    '§6 Organe',
-    '§7 Vorstand',
-    '§8 Mittel',
-    '§9 Kassenprüfung',
+    'Ã‚Â§1 Name, Sitz des Vereins, Rechtsform und GeschÃƒÂ¤ftsjahr',
+    'Ã‚Â§2 Zweck und Ziele',
+    'Ã‚Â§3 Mitgliedschaft',
+    'Ã‚Â§4 MitgliedsbeitrÃƒÂ¤ge',
+    'Ã‚Â§5 Austritt',
+    'Ã‚Â§6 Organe',
+    'Ã‚Â§7 Vorstand',
+    'Ã‚Â§8 Mittel',
+    'Ã‚Â§9 KassenprÃƒÂ¼fung',
   ];
 
   for (const heading of expectedHeadings) {
@@ -28,5 +28,5 @@ test('satzung page displays all paragraph headings', async ({ page }) => {
 
 test('satzung page displays version date', async ({ page }) => {
   await page.goto('/satzung');
-  await expect(page.getByText('Fassung vom 14. März 2026')).toBeVisible();
+  await expect(page.getByText('Fassung vom 14. MÃƒÂ¤rz 2026')).toBeVisible();
 });

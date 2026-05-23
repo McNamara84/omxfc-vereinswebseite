@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './test-support.js';
 import { gotoMitgliedWerden } from './utils/mitglied-werden.js';
 
 test('mitglied-werden form enables submit button after validation and terms acceptance', async ({ page }) => {
@@ -6,7 +6,7 @@ test('mitglied-werden form enables submit button after validation and terms acce
   await expect(page).toHaveURL(/\/mitglied-werden$/);
   await page.locator('input[name="vorname"]').fill('Max');
   await page.locator('input[name="nachname"]').fill('Mustermann');
-  await page.locator('input[name="strasse"]').fill('Musterstraße');
+  await page.locator('input[name="strasse"]').fill('MusterstraÃƒÅ¸e');
   await page.locator('input[name="hausnummer"]').fill('1');
   await page.locator('input[name="plz"]').fill('12345');
   await page.locator('input[name="stadt"]').fill('Berlin');

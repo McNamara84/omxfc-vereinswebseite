@@ -9,6 +9,8 @@ export default async function globalSetup() {
     const runtimeDatabasePath = toPhpRuntimePath(databasePath);
     const sqliteSchemaPath = path.resolve('database/schema/sqlite-schema.sql');
     const runtimeSqliteSchemaPath = toPhpRuntimePath(sqliteSchemaPath);
+    const runToken = process.env.PLAYWRIGHT_RUN_TOKEN ?? 'local-default';
+    const readyFilePath = path.resolve('storage/framework/testing', `playwright-ready-${runToken}.flag`);
 
     process.env.APP_ENV = 'testing';
     process.env.APP_DEBUG = 'false';
@@ -27,6 +29,15 @@ export default async function globalSetup() {
     const databaseDirectory = path.dirname(databasePath);
     if (!fs.existsSync(databaseDirectory)) {
         fs.mkdirSync(databaseDirectory, { recursive: true });
+    }
+
+    const readyFileDirectory = path.dirname(readyFilePath);
+    if (!fs.existsSync(readyFileDirectory)) {
+        fs.mkdirSync(readyFileDirectory, { recursive: true });
+    }
+
+    if (fs.existsSync(readyFilePath)) {
+        fs.rmSync(readyFilePath);
     }
 
     fs.closeSync(fs.openSync(databasePath, 'w'));
@@ -66,4 +77,6 @@ export default async function globalSetup() {
     await runArtisan(['db:seed', '--class=Database\\Seeders\\FanfictionPlaywrightSeeder']);
     await runArtisan(['db:seed', '--class=Database\\Seeders\\KompendiumPlaywrightSeeder']);
     await runArtisan(['db:seed', '--class=Database\\Seeders\\FantreffenPlaywrightSeeder']);
+
+    fs.writeFileSync(readyFilePath, 'ready\n');
 }

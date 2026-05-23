@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './test-support.js';
 
 test('navbar shows login link for guests', async ({ page }) => {
   await page.goto('/');

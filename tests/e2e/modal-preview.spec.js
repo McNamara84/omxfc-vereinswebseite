@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './test-support.js';
 
 const shouldCaptureModalScreenshots = process.env.PLAYWRIGHT_CAPTURE_MODAL_SCREENSHOTS === '1';
 
@@ -50,8 +50,8 @@ test.describe('Modal-Vorschau', () => {
         }
     });
 
-    test('schreibt in Chromium Screenshots für alle Vorschau-Modals', async ({ page, browserName }, testInfo) => {
-        test.skip(browserName !== 'chromium', 'Screenshots werden nur einmal benötigt.');
+    test('schreibt in Chromium Screenshots fÃƒÂ¼r alle Vorschau-Modals', async ({ page, browserName }, testInfo) => {
+        test.skip(browserName !== 'chromium', 'Screenshots werden nur einmal benÃƒÂ¶tigt.');
         test.skip(!shouldCaptureModalScreenshots, 'Screenshots werden nur bei explizitem Export geschrieben.');
         test.slow();
 

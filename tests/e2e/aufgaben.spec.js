@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './test-support.js';
 
 async function expectHeadingsInDomOrder(page, headings) {
     const locators = headings.map((name) => page.getByRole('heading', { level: 2, name, exact: true }));
@@ -67,7 +67,7 @@ test.describe('Aufgaben (Mobile)', () => {
             'Vereins-Dashboard',
         ];
 
-        // Nicht alle Abschnitte sind garantiert gerendert (abhängig von Seed-Daten).
+        // Nicht alle Abschnitte sind garantiert gerendert (abhÃƒÂ¤ngig von Seed-Daten).
         // Diese drei sollten aber immer da sein.
         await expect(page.getByRole('heading', { level: 2, name: 'Deine Challenges', exact: true })).toBeVisible();
         await expect(page.getByRole('heading', { level: 2, name: 'Offene Challenges', exact: true })).toBeVisible();
@@ -107,7 +107,7 @@ test('admin can filter and accept challenges', async ({ page }) => {
     await filterSummary.click();
 
     await expect(page.getByRole('heading', { name: 'Deine Challenges' })).toBeVisible();
-    await expect(page.locator('[data-todo-filter-status]')).toHaveText(/alle verfügbaren Challenges/i);
+    await expect(page.locator('[data-todo-filter-status]')).toHaveText(/alle verfÃƒÂ¼gbaren Challenges/i);
 
     const verifyButton = page.getByRole('button', { name: 'Zu verifizieren', exact: true });
     await expect(verifyButton).toBeVisible();
@@ -126,18 +126,18 @@ test('admin can filter and accept challenges', async ({ page }) => {
     await allButton.click();
     await expect(page).not.toHaveURL(/filter=pending/);
 
-    const assignButton = page.getByRole('button', { name: 'Übernehmen', exact: true }).first();
+    const assignButton = page.getByRole('button', { name: 'ÃƒÅ“bernehmen', exact: true }).first();
     await expect(assignButton).toBeVisible();
 
-    // Den Titel der zu übernehmenden Challenge auslesen (er steht in der ersten
+    // Den Titel der zu ÃƒÂ¼bernehmenden Challenge auslesen (er steht in der ersten
     // Zelle derselben Tabellen-Zeile wie der Button).
     const assignRow = assignButton.locator('xpath=ancestor::tr[1]');
     const todoTitle = (await assignRow.locator('td').first().innerText()).trim();
 
     await assignButton.click();
 
-    // Livewire aktualisiert die Seite inline; prüfe den stabilen Endzustand
-    // statt auf einen flüchtigen Toast zu warten.
+    // Livewire aktualisiert die Seite inline; prÃƒÂ¼fe den stabilen Endzustand
+    // statt auf einen flÃƒÂ¼chtigen Toast zu warten.
     await expect(page.locator('[data-todo-section="assigned"]')).toContainText(todoTitle);
     await expect(page.locator('[data-todo-section="open"]')).not.toContainText(todoTitle);
 });
@@ -162,7 +162,7 @@ test('member can focus on own challenges and release one', async ({ page }) => {
     const releaseButton = page.getByRole('button', { name: 'Freigeben', exact: true }).first();
 
     await releaseButton.click();
-    await expect(page.locator('[data-todo-section="assigned"]')).not.toContainText('Übernommene Playwright Challenge');
+    await expect(page.locator('[data-todo-section="assigned"]')).not.toContainText('ÃƒÅ“bernommene Playwright Challenge');
 
     // Filter auf "Alle" wechseln, damit die freigegebene Challenge in der
     // offenen Sektion sichtbar wird (bei Filter "assigned" wird die Sektion
@@ -172,5 +172,5 @@ test('member can focus on own challenges and release one', async ({ page }) => {
         await page.locator('[data-todo-filter-summary]').click();
     }
     await page.getByRole('button', { name: 'Alle', exact: true }).click();
-    await expect(page.locator('[data-todo-section="open"]')).toContainText('Übernommene Playwright Challenge');
+    await expect(page.locator('[data-todo-section="open"]')).toContainText('ÃƒÅ“bernommene Playwright Challenge');
 });

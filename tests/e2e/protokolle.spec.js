@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './test-support.js';
 
 const login = async (page, email, password = 'password') => {
     await page.goto('/login');
@@ -24,28 +24,28 @@ test.describe('Protokolle page', () => {
         await expect(page).toHaveURL(/\/protokolle$/);
         await expect(page.locator('[data-testid="page-title"]')).toContainText('Protokolle');
 
-        // Das erste Accordion (2026) ist standardmäßig geöffnet
+        // Das erste Accordion (2026) ist standardmÃƒÂ¤ÃƒÅ¸ig geÃƒÂ¶ffnet
         const firstAccordion = page.locator('details[data-protokolle-accordion-item]').first();
         const accordionButton2026 = page.getByRole('button', { name: /Protokolle 2026/i });
         await expect(accordionButton2026).toHaveAttribute('aria-expanded', 'true');
         await expect(firstAccordion).toHaveJSProperty('open', true);
         const firstPanel = page.locator('#content-2026');
         await expect(firstPanel).toBeVisible();
-        await expect(firstPanel).toContainText('Außerordentliche Mitgliederversammlung');
+        await expect(firstPanel).toContainText('AuÃƒÅ¸erordentliche Mitgliederversammlung');
 
         // Zuklappen per Klick
         await accordionButton2026.click();
         await expect(firstAccordion).toHaveJSProperty('open', false);
         await expect(page.locator('#content-2026')).toBeHidden();
 
-        // 2023 Accordion per Tastatur öffnen und wieder schließen
+        // 2023 Accordion per Tastatur ÃƒÂ¶ffnen und wieder schlieÃƒÅ¸en
         const accordion2023 = page.locator('details[data-protokolle-accordion-item]').last();
         const accordionButton2023 = page.getByRole('button', { name: /Protokolle 2023/i });
         await expect(accordionButton2023).toHaveAttribute('aria-expanded', 'false');
 
         await accordionButton2023.click();
         await expect(accordion2023).toHaveJSProperty('open', true);
-        await expect(page.locator('#content-2023')).toContainText('Gründungsversammlung');
+        await expect(page.locator('#content-2023')).toContainText('GrÃƒÂ¼ndungsversammlung');
         await accordionButton2023.focus();
         await page.keyboard.press('Space');
         await expect(accordion2023).toHaveJSProperty('open', false);

@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './test-support.js';
 
 test('html element declares German language for accessibility', async ({ page }) => {
   await page.goto('/');
