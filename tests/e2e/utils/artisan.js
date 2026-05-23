@@ -1,6 +1,8 @@
 import { spawn } from 'child_process';
 import { createPhpProcess } from './php.js';
 
+const shouldHideWindowsShell = process.platform === 'win32';
+
 export async function runArtisan(args, options = {}) {
     const env = {
         ...process.env,
@@ -20,6 +22,7 @@ export async function runArtisan(args, options = {}) {
             env,
             shell: phpProcess.shell,
             stdio: options.stdio ?? 'inherit',
+            windowsHide: shouldHideWindowsShell,
             ...options,
         });
 

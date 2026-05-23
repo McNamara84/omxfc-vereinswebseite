@@ -1,0 +1,4 @@
+name: OMXFC CodeQL Config
+
+paths-ignore:
+  - public/vendor/**

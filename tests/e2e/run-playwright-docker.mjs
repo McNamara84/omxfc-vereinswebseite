@@ -18,6 +18,7 @@ const childEnv = {
         ? {}
         : { PLAYWRIGHT_CAPTURE_MODAL_SCREENSHOTS: forwardedScreenshotFlag }),
 };
+const shouldHideWindowsShell = process.platform === 'win32';
 const hasExplicitProjectSelection = playwrightArgs.some((arg) => arg === '--project' || arg.startsWith('--project='));
 const defaultProjects = process.env.PLAYWRIGHT_DOCKER_PROJECTS
     ? process.env.PLAYWRIGHT_DOCKER_PROJECTS.split(',').map((project) => project.trim()).filter(Boolean)
@@ -34,6 +35,7 @@ const projectRuns = hasExplicitProjectSelection
 const cleanupDockerPort = (port) => {
     const listing = spawnSync('docker', ['ps', '--filter', `publish=${port}`, '--format', '{{.ID}}'], {
         encoding: 'utf8',
+        windowsHide: shouldHideWindowsShell,
     });
 
     if (listing.status !== 0) {
@@ -46,13 +48,17 @@ const cleanupDockerPort = (port) => {
         .filter(Boolean);
 
     for (const containerId of containerIds) {
-        spawnSync('docker', ['rm', '-f', containerId], { stdio: 'ignore' });
+        spawnSync('docker', ['rm', '-f', containerId], {
+            stdio: 'ignore',
+            windowsHide: shouldHideWindowsShell,
+        });
     }
 };
 
 const runPlaywright = (args, envOverrides = {}) => new Promise((resolve, reject) => {
     const child = spawn(process.execPath, [playwrightCli, 'test', ...args], {
         stdio: 'inherit',
+        windowsHide: shouldHideWindowsShell,
         env: {
             ...childEnv,
             ...envOverrides,

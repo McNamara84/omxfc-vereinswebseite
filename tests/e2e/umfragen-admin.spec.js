@@ -272,9 +272,9 @@ test.describe('Umfragen Admin Dashboard', () => {
     test('guest is redirected from poll management', async ({ page }) => {
         // Visit page without login
         await page.context().clearCookies();
-        await page.goto('/admin/umfragen');
+        await page.goto('/admin/umfragen', { waitUntil: 'domcontentloaded' });
 
         // Should be redirected to login
-        await expect(page).toHaveURL(/\/login/);
+        await page.waitForURL(/\/login/, { waitUntil: 'domcontentloaded' });
     });
 });

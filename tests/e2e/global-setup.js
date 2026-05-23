@@ -4,6 +4,8 @@ import { spawnSync } from 'child_process';
 import { runArtisan } from './utils/artisan.js';
 import { createPhpProcess, toPhpRuntimePath } from './utils/php.js';
 
+const shouldHideWindowsShell = process.platform === 'win32';
+
 export default async function globalSetup() {
     const databasePath = path.resolve('database/playwright.sqlite');
     const runtimeDatabasePath = toPhpRuntimePath(databasePath);
@@ -60,6 +62,7 @@ export default async function globalSetup() {
         env: process.env,
         shell: schemaLoader.shell,
         stdio: 'inherit',
+        windowsHide: shouldHideWindowsShell,
     });
 
     if (schemaResult.status !== 0) {
