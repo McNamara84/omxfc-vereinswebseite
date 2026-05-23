@@ -13,6 +13,7 @@ const explicitForwardedEnvironmentKeys = [
     'SESSION_DRIVER',
     'CACHE_STORE',
     'CACHE_DRIVER',
+    'VITE_DEV_SERVER_URL',
     'QUEUE_CONNECTION',
     'MAIL_MAILER',
     'FORTIFY_DISABLE_LOGIN_RATE_LIMIT',

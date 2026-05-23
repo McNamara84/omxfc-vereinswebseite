@@ -2,6 +2,7 @@
 /node_modules
 /public/build
 /public/hot
+/public/playwright.hot
 /public/storage
 /public/vendor/livewire
 /storage/*.key

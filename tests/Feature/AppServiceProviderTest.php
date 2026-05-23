@@ -95,4 +95,43 @@ class AppServiceProviderTest extends TestCase
             }
         }
     }
+
+    public function test_playwright_docker_environment_uses_dedicated_vite_hot_file(): void
+    {
+        $hotPath = public_path('playwright.hot');
+        $originalHotExists = is_file($hotPath);
+        $originalHotContents = $originalHotExists ? file_get_contents($hotPath) : null;
+        $originalPlaywrightUseDocker = getenv('PLAYWRIGHT_USE_DOCKER');
+
+        file_put_contents($hotPath, 'http://127.0.0.1:5173');
+        putenv('PLAYWRIGHT_USE_DOCKER=1');
+        $_ENV['PLAYWRIGHT_USE_DOCKER'] = '1';
+        $_SERVER['PLAYWRIGHT_USE_DOCKER'] = '1';
+
+        try {
+            $this->refreshApplication();
+
+            $html = Blade::render("@vite(['resources/css/app.css'])");
+
+            $this->assertStringContainsString('http://127.0.0.1:5173', $html);
+            $this->assertStringContainsString('resources/css/app.css', $html);
+        } finally {
+            if ($originalPlaywrightUseDocker === false) {
+                putenv('PLAYWRIGHT_USE_DOCKER');
+                unset($_ENV['PLAYWRIGHT_USE_DOCKER'], $_SERVER['PLAYWRIGHT_USE_DOCKER']);
+            } else {
+                putenv("PLAYWRIGHT_USE_DOCKER={$originalPlaywrightUseDocker}");
+                $_ENV['PLAYWRIGHT_USE_DOCKER'] = $originalPlaywrightUseDocker;
+                $_SERVER['PLAYWRIGHT_USE_DOCKER'] = $originalPlaywrightUseDocker;
+            }
+
+            if ($originalHotExists) {
+                file_put_contents($hotPath, $originalHotContents ?: '');
+            } elseif (is_file($hotPath)) {
+                unlink($hotPath);
+            }
+
+            $this->refreshApplication();
+        }
+    }
 }

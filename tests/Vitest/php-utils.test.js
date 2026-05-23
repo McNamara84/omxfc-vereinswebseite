@@ -42,7 +42,10 @@ describe('php utils', () => {
 
         expect(shouldUseDockerPhp()).toBe(true);
         expect(createPhpProcess(['artisan', 'migrate'], {
-            env: { DB_DATABASE: '/workspace/database/playwright.sqlite' },
+            env: {
+                DB_DATABASE: '/workspace/database/playwright.sqlite',
+                VITE_DEV_SERVER_URL: 'http://localhost:5173',
+            },
         })).toEqual({
             command: 'docker',
             args: [
@@ -54,6 +57,8 @@ describe('php utils', () => {
                 '--rm',
                 '-e',
                 'DB_DATABASE=/workspace/database/playwright.sqlite',
+                '-e',
+                'VITE_DEV_SERVER_URL=http://localhost:5173',
                 'playwright-php',
                 'php',
                 'artisan',

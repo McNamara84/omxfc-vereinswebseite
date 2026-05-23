@@ -184,6 +184,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Dieser Job startet oft deutlich spaeter als die PR-Testjobs.
+          # Der persistente Head-SHA vermeidet fragile Fetches auf einen veralteten Merge-Ref.
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - uses: shivammathur/setup-php@44454db4f0199b8b9685a5d763dc37cbf79108e1 # v2
         with:
           php-version: '8.5'
@@ -271,6 +275,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Dieser Job startet oft deutlich spaeter als die PR-Testjobs.
+          # Der persistente Head-SHA vermeidet fragile Fetches auf einen veralteten Merge-Ref.
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:

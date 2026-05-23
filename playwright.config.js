@@ -4,8 +4,12 @@ import { formatDockerServiceCommand, formatPhpCommand, shouldUseDockerPhp, toPhp
 
 const databasePath = toPhpRuntimePath(path.resolve('database/playwright.sqlite'));
 const playwrightPort = Number(process.env.PLAYWRIGHT_PORT ?? 8001);
+const vitePort = Number(process.env.VITE_PORT ?? process.env.DOCKER_DEV_VITE_PORT ?? 5173);
 const phpServerHost = shouldUseDockerPhp() ? '0.0.0.0' : '127.0.0.1';
 const playwrightRunToken = process.env.PLAYWRIGHT_RUN_TOKEN ?? `local-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+const playwrightViteDevServerUrl = process.env.VITE_DEV_SERVER_URL
+  ?? process.env.DOCKER_DEV_VITE_DEV_SERVER_URL
+  ?? `http://localhost:${vitePort}`;
 process.env.PLAYWRIGHT_RUN_TOKEN = playwrightRunToken;
 const configuredWorkers = Number(process.env.PLAYWRIGHT_WORKERS ?? NaN);
 const playwrightWorkers = Number.isInteger(configuredWorkers) && configuredWorkers > 0
@@ -22,6 +26,7 @@ const phpEnvironment = {
   SESSION_DRIVER: 'file',
   CACHE_STORE: 'array',
   CACHE_DRIVER: 'array',
+  VITE_DEV_SERVER_URL: playwrightViteDevServerUrl,
   QUEUE_CONNECTION: 'database',
   MAIL_MAILER: 'array',
   FORTIFY_DISABLE_LOGIN_RATE_LIMIT: 'true',

@@ -1,5 +1,6 @@
-import { spawn, spawnSync } from 'child_process';
+import { spawn } from 'child_process';
 import path from 'path';
+import { cleanupManagedDockerPort } from './utils/docker.js';
 
 const playwrightCli = path.resolve('node_modules/playwright/cli.js');
 const extraArgs = process.argv.slice(2);
@@ -32,29 +33,6 @@ const projectRuns = hasExplicitProjectSelection
         env: { PLAYWRIGHT_PORT: String(basePort + index) },
     }));
 
-const cleanupDockerPort = (port) => {
-    const listing = spawnSync('docker', ['ps', '--filter', `publish=${port}`, '--format', '{{.ID}}'], {
-        encoding: 'utf8',
-        windowsHide: shouldHideWindowsShell,
-    });
-
-    if (listing.status !== 0) {
-        return;
-    }
-
-    const containerIds = listing.stdout
-        .split(/\r?\n/)
-        .map((line) => line.trim())
-        .filter(Boolean);
-
-    for (const containerId of containerIds) {
-        spawnSync('docker', ['rm', '-f', containerId], {
-            stdio: 'ignore',
-            windowsHide: shouldHideWindowsShell,
-        });
-    }
-};
-
 const runPlaywright = (args, envOverrides = {}) => new Promise((resolve, reject) => {
     const child = spawn(process.execPath, [playwrightCli, 'test', ...args], {
         stdio: 'inherit',
@@ -78,11 +56,11 @@ try {
     for (const run of projectRuns) {
         const projectPort = Number(run.env.PLAYWRIGHT_PORT ?? childEnv.PLAYWRIGHT_PORT ?? basePort);
 
-        cleanupDockerPort(projectPort);
+        cleanupManagedDockerPort(projectPort);
 
         const code = await runPlaywright(run.args, run.env);
 
-        cleanupDockerPort(projectPort);
+        cleanupManagedDockerPort(projectPort);
 
         if (code !== 0) {
             process.exit(code);
