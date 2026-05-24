@@ -73,6 +73,10 @@ class AppServiceProvider extends ServiceProvider
             return Limit::perHour(15)->by($request->ip());
         });
 
+        RateLimiter::for('arbeitsgruppen-kontakt', function ($request) {
+            return Limit::perHour(5)->by($request->ip());
+        });
+
         $version = Config::get('app.version');
 
         if ($version === null || $version === '0.0.0') {

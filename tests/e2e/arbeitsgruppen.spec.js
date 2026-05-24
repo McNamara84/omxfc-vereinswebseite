@@ -6,7 +6,7 @@ test('arbeitsgruppen page shows heading for public teams', async ({ page }) => {
   await expect(page.getByRole('heading', { level: 1, name: 'Arbeitsgruppen des OMXFC e.V.' })).toBeVisible();
 });
 
-test('arbeitsgruppen page shows obfuscated contact details and a stacked contact card', async ({ page }) => {
+test('arbeitsgruppen page links to the protected contact flow and keeps the contact card wide', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1200 });
   await page.goto('/arbeitsgruppen');
 
@@ -24,16 +24,7 @@ test('arbeitsgruppen page shows obfuscated contact details and a stacked contact
   await expect(contactLink).toHaveAttribute('href', /\/arbeitsgruppen\/\d+\/kontakt$/);
   await expect(contactLink).not.toHaveAttribute('href', /ag-hoerbuecher@maddrax-fanclub\.de/);
 
-  const leadershipCard = article.locator('dl > div').nth(0);
-  const contactCard = article.locator('dl > div').nth(2);
-
-  await expect(leadershipCard.getByText('AG-Leitung', { exact: true })).toBeVisible();
-  await expect(contactCard.getByText('Kontakt', { exact: true })).toBeVisible();
-
-  const leadershipBox = await leadershipCard.boundingBox();
-  const contactBox = await contactCard.boundingBox();
-
-  expect(leadershipBox).not.toBeNull();
-  expect(contactBox).not.toBeNull();
-  expect(contactBox.y).toBeGreaterThan(leadershipBox.y + 20);
+  await expect(article.getByTestId('ag-detail-grid')).toHaveClass(/sm:grid-cols-2/);
+  await expect(article.getByTestId('ag-contact-card')).toHaveClass(/sm:col-span-2/);
+  await expect(article.getByTestId('ag-contact-card').getByText('Kontakt', { exact: true })).toBeVisible();
 });

@@ -3,9 +3,11 @@
 namespace Tests\Feature;
 
 use App\Enums\Role;
+use App\Mail\ArbeitsgruppenKontaktNachricht;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 
 class ArbeitsgruppenControllerTest extends TestCase
@@ -248,7 +250,7 @@ class ArbeitsgruppenControllerTest extends TestCase
             ->assertDontSee($member->name);
     }
 
-    public function test_public_contact_redirects_to_the_ag_mail_address(): void
+    public function test_public_contact_shows_the_public_contact_form(): void
     {
         $leader = User::factory()->create();
         $ag = Team::factory()->create([
@@ -259,7 +261,11 @@ class ArbeitsgruppenControllerTest extends TestCase
         ]);
 
         $this->get(route('arbeitsgruppen.kontakt', $ag))
-            ->assertRedirect('mailto:ag-kontakt@example.com');
+            ->assertOk()
+            ->assertSeeText('Kontakt zu AG Kontakt')
+            ->assertSee('action="'.route('arbeitsgruppen.kontakt.senden', $ag).'"', false)
+            ->assertDontSee('ag-kontakt@example.com', false)
+            ->assertDontSee('mailto:ag-kontakt@example.com', false);
     }
 
     public function test_public_contact_returns_not_found_for_non_public_teams(): void
@@ -288,5 +294,59 @@ class ArbeitsgruppenControllerTest extends TestCase
 
         $this->get(route('arbeitsgruppen.kontakt', $ag))
             ->assertNotFound();
+    }
+
+    public function test_public_contact_form_sends_a_server_side_mail_without_exposing_the_target_address(): void
+    {
+        Mail::fake();
+
+        $leader = User::factory()->create();
+        $ag = Team::factory()->create([
+            'user_id' => $leader->id,
+            'personal_team' => false,
+            'name' => 'AG Kontakt',
+            'email' => 'ag-kontakt@example.com',
+        ]);
+
+        $this->post(route('arbeitsgruppen.kontakt.senden', $ag), [
+            'name' => 'Martin',
+            'email' => 'martin@example.com',
+            'message' => 'Ich interessiere mich für eure Arbeitsgruppe und würde gerne mehr erfahren.',
+            'website' => '',
+        ])
+            ->assertRedirect(route('arbeitsgruppen.kontakt', $ag))
+            ->assertSessionHas('status');
+
+        Mail::assertSent(ArbeitsgruppenKontaktNachricht::class, function (ArbeitsgruppenKontaktNachricht $mail) use ($ag) {
+            return $mail->team->is($ag)
+                && $mail->absenderName === 'Martin'
+                && $mail->absenderEmail === 'martin@example.com'
+                && $mail->nachricht === 'Ich interessiere mich für eure Arbeitsgruppe und würde gerne mehr erfahren.';
+        });
+    }
+
+    public function test_public_contact_form_rejects_honeypot_submissions(): void
+    {
+        Mail::fake();
+
+        $leader = User::factory()->create();
+        $ag = Team::factory()->create([
+            'user_id' => $leader->id,
+            'personal_team' => false,
+            'name' => 'AG Kontakt',
+            'email' => 'ag-kontakt@example.com',
+        ]);
+
+        $this->from(route('arbeitsgruppen.kontakt', $ag))
+            ->post(route('arbeitsgruppen.kontakt.senden', $ag), [
+                'name' => 'Bot',
+                'email' => 'bot@example.com',
+                'message' => 'Diese Nachricht sollte nicht versendet werden.',
+                'website' => 'https://spam.invalid',
+            ])
+            ->assertRedirect(route('arbeitsgruppen.kontakt', $ag))
+            ->assertSessionHasErrors('error');
+
+        Mail::assertNothingSent();
     }
 }

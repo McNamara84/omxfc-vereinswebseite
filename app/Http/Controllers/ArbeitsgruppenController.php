@@ -5,12 +5,14 @@ namespace App\Http\Controllers;
 use App\Actions\Jetstream\AddTeamMember;
 use App\Enums\Role;
 use App\Http\Requests\ArbeitsgruppeRequest;
+use App\Mail\ArbeitsgruppenKontaktNachricht;
 use App\Models\Team;
 use App\Models\User;
 use App\Services\UserRoleService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
@@ -88,7 +90,7 @@ class ArbeitsgruppenController extends Controller
     }
 
     /**
-     * Redirect to the public AG contact address without embedding it in the listing HTML.
+     * Show the public AG contact form without exposing the target address in markup.
      */
     public function publicContact(Team $team)
     {
@@ -98,7 +100,51 @@ class ArbeitsgruppenController extends Controller
 
         abort_if(! $ag || blank($ag->email), 404);
 
-        return redirect()->away('mailto:'.$ag->email);
+        return view('pages.arbeitsgruppen-kontakt', [
+            'ag' => $ag,
+        ]);
+    }
+
+    /**
+     * Send a public contact request to an AG without revealing the mail address.
+     */
+    public function sendPublicContact(Request $request, Team $team)
+    {
+        $ag = $this->agQuery()
+            ->whereKey($team->getKey())
+            ->first();
+
+        abort_if(! $ag || blank($ag->email), 404);
+
+        $spamErrorMessage = 'Die Nachricht konnte nicht verarbeitet werden. Bitte versuche es erneut.';
+
+        if (filled($request->input('website'))) {
+            return back()
+                ->withInput($request->except('website'))
+                ->withErrors(['error' => $spamErrorMessage]);
+        }
+
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:120'],
+            'email' => ['required', 'email', 'max:255'],
+            'message' => ['required', 'string', 'min:10', 'max:5000'],
+        ], [
+            'name.required' => 'Bitte gib deinen Namen an.',
+            'email.required' => 'Bitte gib deine E-Mail-Adresse an.',
+            'email.email' => 'Bitte gib eine gültige E-Mail-Adresse an.',
+            'message.required' => 'Bitte gib eine Nachricht ein.',
+            'message.min' => 'Die Nachricht sollte mindestens 10 Zeichen lang sein.',
+        ]);
+
+        Mail::to($ag->email)->send(new ArbeitsgruppenKontaktNachricht(
+            team: $ag,
+            absenderName: $validated['name'],
+            absenderEmail: $validated['email'],
+            nachricht: $validated['message'],
+        ));
+
+        return redirect()->route('arbeitsgruppen.kontakt', $ag)
+            ->with('status', 'Deine Nachricht wurde an die Arbeitsgruppe weitergeleitet.');
     }
 
     /**
