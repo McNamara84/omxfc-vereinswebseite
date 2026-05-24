@@ -23,6 +23,13 @@ class DownloadsTest extends TestCase
         Storage::fake('private');
     }
 
+    protected function tearDown(): void
+    {
+        Mockery::close();
+
+        parent::tearDown();
+    }
+
     public function test_index_shows_downloads_grouped_by_category(): void
     {
         $this->actingMember();
