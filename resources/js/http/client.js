@@ -16,8 +16,12 @@ function isJsonBody(body) {
         && !(body instanceof ArrayBuffer);
 }
 
+function defaultRequestHeaders() {
+    return http.defaults?.headers?.common ?? defaultHeaders;
+}
+
 function buildHeaders(headers = {}, body) {
-    const mergedHeaders = new Headers(defaultHeaders);
+    const mergedHeaders = new Headers(defaultRequestHeaders());
 
     Object.entries(headers).forEach(([key, value]) => {
         if (value !== null && typeof value !== 'undefined') {

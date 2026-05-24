@@ -15,6 +15,9 @@ describe('http client', () => {
     beforeEach(() => {
         document.head.innerHTML = '';
         global.fetch = vi.fn();
+        http.defaults.headers.common = {
+            'X-Requested-With': 'XMLHttpRequest',
+        };
     });
 
     it('sendet Standard-Header und parsed JSON-Antworten', async () => {
@@ -42,6 +45,16 @@ describe('http client', () => {
         expect(options.body).toBe('{"answer":42}');
         expect(options.headers.get('Content-Type')).toBe('application/json');
         expect(options.headers.get('X-CSRF-TOKEN')).toBe('TOKEN');
+    });
+
+    it('beruecksichtigt Laufzeit-Aenderungen an den globalen Default-Headern', async () => {
+        http.defaults.headers.common.Accept = 'application/json';
+        global.fetch.mockResolvedValue(jsonResponse({ status: 'ok' }));
+
+        await http.get('/api/test');
+        const [, options] = global.fetch.mock.calls[0];
+
+        expect(options.headers.get('Accept')).toBe('application/json');
     });
 
     it('wirft Fehler mit response-Payload bei nicht erfolgreichen Antworten', async () => {
