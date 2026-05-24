@@ -7,6 +7,7 @@ use App\Models\Team;
 use App\Models\User;
 use App\Support\Navigation\NavigationBuilder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use PHPUnit\Framework\Attributes\TestWith;
@@ -68,6 +69,33 @@ class NavigationMenuTest extends TestCase
             ->assertOk()
             ->assertSeeText('Mitglied werden')
             ->assertDontSeeText('Dashboard');
+    }
+
+    public function test_guest_navigation_ignores_active_polls_with_invalid_legacy_visibility_values(): void
+    {
+        $user = User::factory()->create();
+
+        DB::table('polls')->insert([
+            'question' => 'Legacy-Umfrage',
+            'menu_label' => 'Legacy-Umfrage',
+            'visibility' => 'legacy-public',
+            'status' => 'active',
+            'starts_at' => now()->subHour(),
+            'ends_at' => now()->addHour(),
+            'activated_at' => now()->subMinute(),
+            'archived_at' => null,
+            'created_by_user_id' => $user->id,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        Cache::forget('polls.active_for_menu.v1');
+        Cache::forget('polls.active_for_menu.v2');
+
+        $this->get(route('home'))
+            ->assertOk()
+            ->assertSeeText('Mitglied werden')
+            ->assertDontSeeText('Legacy-Umfrage');
     }
 
     public function test_member_navigation_shows_reorganized_sections_without_governance_links(): void
