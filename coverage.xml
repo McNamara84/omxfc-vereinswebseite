@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1779597162">
-  <project timestamp="1779597162" name="Clover Coverage">
+<coverage generated="1779607020">
+  <project timestamp="1779607020" name="Clover Coverage">
     <package name="App\Actions\Fortify">
       <file name="/home/runner/work/omxfc-vereinswebseite/omxfc-vereinswebseite/app/Actions/Fortify/CreateNewUser.php">
         <class name="App\Actions\Fortify\CreateNewUser" namespace="App\Actions\Fortify">
@@ -4481,15 +4481,15 @@
         <line num="150" type="stmt" count="12"/>
         <line num="151" type="stmt" count="12"/>
         <line num="153" type="stmt" count="12"/>
-        <line num="154" type="stmt" count="5"/>
-        <line num="155" type="stmt" count="5"/>
-        <line num="156" type="stmt" count="5"/>
-        <line num="157" type="stmt" count="5"/>
-        <line num="158" type="stmt" count="5"/>
-        <line num="159" type="stmt" count="5"/>
-        <line num="160" type="stmt" count="5"/>
-        <line num="161" type="stmt" count="5"/>
-        <line num="163" type="stmt" count="5"/>
+        <line num="154" type="stmt" count="8"/>
+        <line num="155" type="stmt" count="8"/>
+        <line num="156" type="stmt" count="8"/>
+        <line num="157" type="stmt" count="8"/>
+        <line num="158" type="stmt" count="8"/>
+        <line num="159" type="stmt" count="8"/>
+        <line num="160" type="stmt" count="8"/>
+        <line num="161" type="stmt" count="8"/>
+        <line num="163" type="stmt" count="8"/>
         <line num="164" type="stmt" count="1"/>
         <line num="165" type="stmt" count="1"/>
         <line num="166" type="stmt" count="1"/>
@@ -5486,8 +5486,8 @@
         <line num="213" type="stmt" count="0"/>
         <line num="220" type="method" name="getMimeType" visibility="private" complexity="5" crap="5.20" count="2"/>
         <line num="222" type="stmt" count="2"/>
-        <line num="223" type="stmt" count="0"/>
-        <line num="224" type="stmt" count="1"/>
+        <line num="223" type="stmt" count="1"/>
+        <line num="224" type="stmt" count="0"/>
         <line num="225" type="stmt" count="1"/>
         <line num="226" type="stmt" count="2"/>
         <metrics loc="230" ncloc="194" classes="1" methods="12" coveredmethods="3" conditionals="0" coveredconditionals="0" statements="97" coveredstatements="25" elements="109" coveredelements="28"/>
@@ -11985,7 +11985,7 @@
         <line num="98" type="stmt" count="7"/>
         <line num="99" type="stmt" count="0"/>
         <line num="102" type="stmt" count="7"/>
-        <line num="103" type="stmt" count="3"/>
+        <line num="103" type="stmt" count="2"/>
         <line num="106" type="stmt" count="5"/>
         <metrics loc="109" ncloc="94" classes="1" methods="7" coveredmethods="3" conditionals="0" coveredconditionals="0" statements="27" coveredstatements="21" elements="34" coveredelements="24"/>
       </file>
@@ -12003,8 +12003,8 @@
         <line num="97" type="stmt" count="0"/>
         <line num="104" type="method" name="getAuthorDisplayNameAttribute" visibility="public" complexity="2" crap="2" count="13"/>
         <line num="106" type="stmt" count="13"/>
-        <line num="107" type="stmt" count="10"/>
-        <line num="110" type="stmt" count="3"/>
+        <line num="107" type="stmt" count="8"/>
+        <line num="110" type="stmt" count="5"/>
         <line num="116" type="method" name="comments" visibility="public" complexity="1" crap="1" count="17"/>
         <line num="118" type="stmt" count="17"/>
         <line num="124" type="method" name="scopePublished" visibility="public" complexity="1" crap="1" count="66"/>
@@ -12764,8 +12764,8 @@
         <class name="App\Models\Review" namespace="App\Models">
           <metrics complexity="5" methods="4" coveredmethods="3" conditionals="0" coveredconditionals="0" statements="10" coveredstatements="9" elements="14" coveredelements="12"/>
         </class>
-        <line num="44" type="method" name="book" visibility="public" complexity="1" crap="1" count="28"/>
-        <line num="46" type="stmt" count="28"/>
+        <line num="44" type="method" name="book" visibility="public" complexity="1" crap="1" count="31"/>
+        <line num="46" type="stmt" count="31"/>
         <line num="52" type="method" name="user" visibility="public" complexity="1" crap="1" count="13"/>
         <line num="54" type="stmt" count="13"/>
         <line num="60" type="method" name="comments" visibility="public" complexity="1" crap="1" count="71"/>
