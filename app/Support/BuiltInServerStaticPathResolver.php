@@ -8,13 +8,13 @@ final class BuiltInServerStaticPathResolver
     {
         $normalizedRequestPath = self::normalizeRequestPath($requestPath);
 
-        if ($normalizedRequestPath === null || $normalizedRequestPath === '/') {
+        if ($normalizedRequestPath === null || $normalizedRequestPath === '/' || self::isDisallowedStaticRequestPath($normalizedRequestPath)) {
             return null;
         }
 
-        $publicPath = self::buildProjectPath($projectRoot, 'public', $normalizedRequestPath);
+        $publicPath = self::resolvePublicPath($projectRoot, $normalizedRequestPath);
 
-        if ($publicPath !== null && is_file($publicPath)) {
+        if ($publicPath !== null) {
             return $publicPath;
         }
 
@@ -74,6 +74,29 @@ final class BuiltInServerStaticPathResolver
         return self::pathIsWithinBase($resolvedPath, $storageRoot) ? $resolvedPath : null;
     }
 
+    private static function resolvePublicPath(string $projectRoot, string $requestPath): ?string
+    {
+        $publicRoot = realpath(self::buildProjectPath($projectRoot, 'public', '/'));
+
+        if ($publicRoot === false) {
+            return null;
+        }
+
+        $candidatePath = self::buildProjectPath($projectRoot, 'public', $requestPath);
+
+        if ($candidatePath === null) {
+            return null;
+        }
+
+        $resolvedPath = realpath($candidatePath);
+
+        if ($resolvedPath === false || ! is_file($resolvedPath)) {
+            return null;
+        }
+
+        return self::pathIsWithinBase($resolvedPath, $publicRoot) ? $resolvedPath : null;
+    }
+
     private static function buildProjectPath(string $projectRoot, string $baseDirectory, string $requestPath): ?string
     {
         $relativePath = ltrim($requestPath, '/');
@@ -93,5 +116,18 @@ final class BuiltInServerStaticPathResolver
 
         return $normalizedResolvedPath === $normalizedBasePath
             || str_starts_with($normalizedResolvedPath, $normalizedBasePath.'/');
+    }
+
+    private static function isDisallowedStaticRequestPath(string $requestPath): bool
+    {
+        $basename = basename($requestPath);
+
+        if ($basename === '' || str_starts_with($basename, '.')) {
+            return true;
+        }
+
+        $extension = strtolower(pathinfo($basename, PATHINFO_EXTENSION));
+
+        return in_array($extension, ['php', 'phtml', 'phar'], true);
     }
 }
