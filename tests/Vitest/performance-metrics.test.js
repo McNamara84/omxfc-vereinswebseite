@@ -1,10 +1,12 @@
 import {
   summarizeNavigationPerformance,
+  combineBenchmarkRuns,
+} from '../e2e/utils/performance-metrics.js';
+import {
   formatMetricsForSummary,
   formatBenchmarkTitle,
   extractBenchmarkOutputs,
-  combineBenchmarkRuns,
-} from '../e2e/utils/performance-metrics.js';
+} from '../e2e/utils/performance-metrics-reporting.js';
 
 describe('performance metrics utilities', () => {
   const baseMetrics = {

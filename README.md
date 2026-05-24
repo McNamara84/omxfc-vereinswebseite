@@ -204,7 +204,7 @@ Der Export der Modal-Vorschau-Screenshots ist bewusst an `PLAYWRIGHT_CAPTURE_MOD
 
 Externe Test- oder Sandbox-Credentials gehören ausschließlich in `.env.docker.dev.local` und niemals in versionierte Dateien.
 
-Die lokale Pest-Browser-Regression benötigt aktuell noch den Pest-5-Stack und `symfony/process` aus unreleasten Branches. Ein Rückfall auf stabile Pest-4-Releases ist im Projekt derzeit nicht möglich, weil das stabile `pestphp/pest-plugin-laravel` nur Laravel 11/12 unterstützt, nicht aber Laravel 13. Sobald es stabile 5.x-Tags für diesen Stack gibt, können die Commit-Referenzen in `composer.json` entfallen.
+Die lokale Pest-Browser-Regression benötigt aktuell noch den Pest-5-Stack und `symfony/process` aus unreleasten Branches. Ein Rückfall auf stabile Pest-4-Releases ist im Projekt derzeit nicht möglich, weil das stabile `pestphp/pest-plugin-laravel` nur Laravel 11/12 unterstützt, nicht aber Laravel 13. Der derzeit gepinnte Pest-5-Stand blockiert außerdem `phpunit/phpunit` oberhalb von `13.1.8`. Sobald es stabile 5.x-Tags für diesen Stack gibt, können die Commit-Referenzen in `composer.json` entfallen.
 
 ## Deployment
 

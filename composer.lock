@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "ffb179852cb27c894594c1f17170e2a2",
+    "content-hash": "e58c92cfee568d4c359b32c084590cd6",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -7844,12 +7844,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/process.git",
-                "reference": "93d6507ad72e3f2df1cc8d41bbbc431fef1b7b74"
+                "reference": "f686de254d1970f8dd0991ed55a36a8fd731e2d9"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/process/zipball/93d6507ad72e3f2df1cc8d41bbbc431fef1b7b74",
-                "reference": "93d6507ad72e3f2df1cc8d41bbbc431fef1b7b74",
+                "url": "https://api.github.com/repos/symfony/process/zipball/f686de254d1970f8dd0991ed55a36a8fd731e2d9",
+                "reference": "f686de254d1970f8dd0991ed55a36a8fd731e2d9",
                 "shasum": ""
             },
             "require": {

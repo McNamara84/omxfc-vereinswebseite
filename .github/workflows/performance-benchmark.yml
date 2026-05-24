@@ -84,7 +84,7 @@ jobs:
 
           const outputsFile = process.env.GITHUB_OUTPUT;
           const summaryPath = process.env.GITHUB_STEP_SUMMARY;
-          const moduleUrl = pathToFileURL(path.resolve('tests/e2e/utils/performance-metrics.js')).href;
+          const moduleUrl = pathToFileURL(path.resolve('tests/e2e/utils/performance-metrics-reporting.js')).href;
           const {
             formatMetricsForSummary,
             formatBenchmarkTitle,
@@ -251,7 +251,7 @@ jobs:
 
       - name: Upload performance artifact
         if: always() && steps.publish_performance_metrics.outputs.metrics_found == 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: homepage-performance
           path: playwright-performance/homepage.json

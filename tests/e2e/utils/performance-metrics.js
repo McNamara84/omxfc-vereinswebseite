@@ -1,4 +1,9 @@
 import { z } from 'zod';
+import {
+  extractBenchmarkOutputs as extractBenchmarkOutputsForReporting,
+  formatBenchmarkTitle as formatBenchmarkTitleForReporting,
+  formatMetricsForSummary as formatMetricsForSummaryForReporting,
+} from './performance-metrics-reporting.js';
 
 const navigationSchema = z
   .object({
@@ -94,26 +99,11 @@ export function summarizeNavigationPerformance(rawMetrics) {
 }
 
 export function formatMetricsForSummary(summary) {
-  const metrics = summary.metrics;
-  const format = (value) => (typeof value === 'number' ? `${value.toFixed(1)} ms` : 'n/a');
-
-  return [
-    ['Total Load', format(metrics.totalLoadTime)],
-    ['DOM Content Loaded', format(metrics.domContentLoaded)],
-    ['Time to First Byte', format(metrics.timeToFirstByte)],
-    ['First Paint', format(metrics.firstPaint)],
-    ['First Contentful Paint', format(metrics.firstContentfulPaint)],
-    ['Largest Contentful Paint', format(metrics.largestContentfulPaint)],
-  ];
+  return formatMetricsForSummaryForReporting(summarySchema.parse(summary));
 }
 
 export function formatBenchmarkTitle(summary) {
-  const { metrics } = summarySchema.parse(summary);
-  const totalLoadTime = metrics.totalLoadTime;
-  const formattedValue =
-    typeof totalLoadTime === 'number' ? `${Math.round(totalLoadTime)} ms` : 'n/a ms';
-
-  return `Benchmark: Homepage loaded in ${formattedValue}`;
+  return formatBenchmarkTitleForReporting(summarySchema.parse(summary));
 }
 
 function toFiniteOrNull(value) {
@@ -130,45 +120,7 @@ function average(values) {
 }
 
 export function extractBenchmarkOutputs(summary) {
-  const parsed = summarySchema.parse(summary);
-  const navigation = parsed.raw?.navigation ?? null;
-  const metrics = parsed.metrics ?? {};
-
-  const runs = Array.isArray(parsed.runs) ? parsed.runs : [];
-  const runLoadTimes = runs
-    .map((run) => {
-      if (!run || typeof run !== 'object') {
-        return null;
-      }
-
-      if ('totalLoadTimeMs' in run) {
-        return toFiniteOrNull(run.totalLoadTimeMs);
-      }
-
-      if ('totalLoadTime' in run) {
-        return toFiniteOrNull(run.totalLoadTime);
-      }
-
-      if ('metrics' in run && run.metrics && typeof run.metrics === 'object') {
-        return toFiniteOrNull(run.metrics.totalLoadTime);
-      }
-
-      return null;
-    })
-    .filter((value) => value !== null);
-
-  const loadTime = toFiniteOrNull(metrics.totalLoadTime ?? null);
-  const navigationDuration = toFiniteOrNull(navigation?.duration ?? null);
-  const domContentLoaded = toFiniteOrNull(
-    metrics.domContentLoaded ?? navigation?.domContentLoadedEventEnd ?? null,
-  );
-
-  return {
-    loadTime,
-    navigationDuration,
-    domContentLoaded,
-    runLoadTimes,
-  };
+  return extractBenchmarkOutputsForReporting(summarySchema.parse(summary));
 }
 
 export function combineBenchmarkRuns(runSummaries) {
