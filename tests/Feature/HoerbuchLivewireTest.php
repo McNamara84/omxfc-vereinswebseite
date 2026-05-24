@@ -414,17 +414,23 @@ class HoerbuchLivewireTest extends TestCase
     public function test_detail_view_hides_upload_column_and_controls(): void
     {
         $user = $this->actingMember('Admin');
+        $assignedSpeaker = User::factory()->create(['name' => 'Mitgliedsstimme']);
 
         $episode = AudiobookEpisode::create([
             'episode_number' => 'F42', 'title' => 'Keine Upload Checkbox', 'author' => 'Autor',
             'planned_release_date' => '12.2025', 'status' => 'Skripterstellung',
             'responsible_user_id' => null, 'progress' => 10,
-            'roles_total' => 1, 'roles_filled' => 1, 'notes' => null,
+            'roles_total' => 2, 'roles_filled' => 2, 'notes' => null,
         ]);
 
         $episode->roles()->create([
             'name' => 'Erzähler', 'description' => 'Erzählt die Geschichte',
-            'takes' => 4, 'uploaded' => true,
+            'takes' => 4, 'speaker_name' => 'Lesestimme', 'uploaded' => true,
+        ]);
+
+        $episode->roles()->create([
+            'name' => 'Captain', 'description' => 'Fuehrt durch die Szene',
+            'takes' => 2, 'user_id' => $assignedSpeaker->id, 'uploaded' => true,
         ]);
 
         $response = $this->actingAs($user)->get(route('hoerbuecher.show', $episode));
@@ -436,6 +442,9 @@ class HoerbuchLivewireTest extends TestCase
         $response->assertDontSee('data-auto-submit');
         $response->assertSee('Upload vorhanden');
         $response->assertSee('bg-success/10', false);
+        $response->assertDontSee('text-success-content', false);
+        $response->assertSee('<span class="text-base-content">Lesestimme</span>', false);
+        $response->assertSee('<span class="text-base-content">Mitgliedsstimme</span>', false);
     }
 
     public function test_admin_can_delete_episode(): void

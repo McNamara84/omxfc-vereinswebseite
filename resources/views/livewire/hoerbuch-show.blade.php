@@ -55,7 +55,7 @@
                         <tbody>
                             @foreach($this->episode->roles as $role)
                             @php
-                                $rowClasses = $role->uploaded ? 'bg-success/10 text-success-content' : '';
+                                $rowClasses = $role->uploaded ? 'bg-success/10' : '';
                             @endphp
                             <tr class="{{ $rowClasses }}">
                                 <td class="align-top">
@@ -70,7 +70,7 @@
                                 <td>{{ $role->description }}</td>
                                 <td>{{ $role->takes }}</td>
                                 <td>
-                                    {{ $role->user?->name ?? $role->speaker_name ?? '-' }}
+                                    <span class="text-base-content">{{ $role->user?->name ?? $role->speaker_name ?? '-' }}</span>
                                     @if(auth()->user()?->hasVorstandRole() || auth()->user()?->isMemberOfTeam('AG Fanhörbücher'))
                                         @php($prev = $this->previousSpeakers[$role->name] ?? null)
                                         @if($prev)
