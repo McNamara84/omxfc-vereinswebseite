@@ -237,7 +237,7 @@ class KassenbuchController extends Controller
 
             if ($lockedRequest->isDeleteRequest()) {
                 $lockedEntry = KassenbuchEntry::query()->lockForUpdate()->findOrFail($lockedRequest->kassenbuch_entry_id);
-                $kassenstand = Kassenstand::where('team_id', $team->id)->lockForUpdate()->firstOrFail();
+                $kassenstand = $this->lockOrCreateKassenstand($team);
                 $entrySnapshot = $this->entrySnapshot($lockedEntry);
 
                 $lockedRequest->update([
@@ -516,5 +516,34 @@ class KassenbuchController extends Controller
             $reasonText,
             $rejectionReason,
         ));
+    }
+
+    private function lockOrCreateKassenstand(Team $team): Kassenstand
+    {
+        $kassenstand = Kassenstand::where('team_id', $team->id)
+            ->lockForUpdate()
+            ->first();
+
+        if ($kassenstand instanceof Kassenstand) {
+            return $kassenstand;
+        }
+
+        // Rebuild a missing aggregate row from the current live entries before mutating it.
+        $aktuellerBetrag = (float) KassenbuchEntry::query()
+            ->where('team_id', $team->id)
+            ->lockForUpdate()
+            ->sum('betrag');
+
+        $this->kassenbuchService->getOrCreateKassenstand($team);
+
+        $kassenstand = Kassenstand::where('team_id', $team->id)
+            ->lockForUpdate()
+            ->firstOrFail();
+
+        $kassenstand->betrag = $aktuellerBetrag;
+        $kassenstand->letzte_aktualisierung = now();
+        $kassenstand->save();
+
+        return $kassenstand;
     }
 }

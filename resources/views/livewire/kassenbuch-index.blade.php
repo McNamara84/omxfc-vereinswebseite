@@ -132,7 +132,7 @@
                                             icon="o-x-mark"
                                             class="btn-error btn-sm"
                                             x-data
-                                            @click="$dispatch('reject-edit-modal', { id: {{ $request->id }}, beschreibung: {{ Js::from($request->entry->beschreibung) }} })" />
+                                            @click="$dispatch('reject-edit-modal', { id: {{ $request->id }}, beschreibung: {{ Js::from($request->entry->beschreibung) }}, requestTypeLabel: {{ Js::from($request->requestTypeLabel()) }} })" />
                                     </div>
                                 </div>
                             </div>
@@ -775,9 +775,9 @@
 
     {{-- Modal: Anfrage ablehnen (für Vorstand und Admin) --}}
     @if($this->canProcessEditRequests)
-        <div x-data="{ open: false, request_id: '', beschreibung: '' }"
+           <div x-data="{ open: false, request_id: '', beschreibung: '', request_type_label: '' }"
              x-show="open"
-             x-on:reject-edit-modal.window="open = true; request_id = $event.detail.id; beschreibung = $event.detail.beschreibung"
+               x-on:reject-edit-modal.window="open = true; request_id = $event.detail.id; beschreibung = $event.detail.beschreibung; request_type_label = $event.detail.requestTypeLabel ?? ''"
              x-on:keydown.escape.window="open = false"
              class="fixed inset-0 z-50 overflow-y-auto"
              style="display: none;">
@@ -804,9 +804,12 @@
                      aria-modal="true"
                      aria-labelledby="reject-request-title">
                     <div class="flex justify-between items-center mb-4">
-                        <h3 id="reject-request-title" class="text-lg font-medium">Bearbeitungsanfrage ablehnen</h3>
+                        <h3 id="reject-request-title" class="text-lg font-medium">Anfrage ablehnen</h3>
                         <x-button icon="o-x-mark" class="btn-ghost btn-sm" @click="open = false" />
                     </div>
+
+                    <p class="text-sm text-base-content mb-2">Angefragter Vorgang:</p>
+                    <p class="text-sm font-medium mb-4" x-text="request_type_label"></p>
 
                     <p class="text-sm text-base-content mb-2">Eintrag:</p>
                     <p class="text-sm font-medium mb-4" x-text="beschreibung"></p>
@@ -816,9 +819,9 @@
 
                         <div>
                             <label class="label" for="rejection_reason">
-                                <span class="label-text">Begründung (optional)</span>
+                                <span class="label-text">Begründung der Ablehnung (optional)</span>
                             </label>
-                            <textarea id="rejection_reason" name="rejection_reason" rows="3" maxlength="500" placeholder="Optionale Begründung für die Ablehnung..." class="textarea textarea-bordered w-full"></textarea>
+                            <textarea id="rejection_reason" name="rejection_reason" rows="3" maxlength="500" placeholder="Optionale Begründung für die Ablehnung der Anfrage..." class="textarea textarea-bordered w-full"></textarea>
                         </div>
 
                         <div class="mt-6 flex justify-end gap-2">

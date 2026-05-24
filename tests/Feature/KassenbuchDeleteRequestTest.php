@@ -203,6 +203,41 @@ class KassenbuchDeleteRequestTest extends TestCase
             && $mail->hasTo($vorstandB->email));
     }
 
+    public function test_vorstand_can_approve_delete_request_without_existing_kassenstand_row(): void
+    {
+        Mail::fake();
+
+        $kassenwart = $this->createUserWithRole(Role::Kassenwart);
+        $vorstand = $this->createUserWithRole(Role::Vorstand);
+
+        Kassenstand::where('team_id', $this->team->id)->delete();
+
+        $deletedEntry = $this->createKassenbuchEntry($kassenwart, 50.00);
+        $remainingEntry = $this->createKassenbuchEntry($kassenwart, 25.00);
+
+        $deleteRequest = KassenbuchEditRequest::create([
+            'kassenbuch_entry_id' => $deletedEntry->id,
+            'requested_by' => $kassenwart->id,
+            'reason_type' => KassenbuchEditReasonType::Sonstiges->value,
+            'reason_text' => 'Eintrag wurde doppelt angelegt.',
+            'request_type' => KassenbuchEditRequestType::Delete->value,
+            'status' => KassenbuchEditRequest::STATUS_PENDING,
+        ]);
+
+        $response = $this->actingAs($vorstand)
+            ->post("/kassenbuch/anfrage/{$deleteRequest->id}/freigeben");
+
+        $response->assertRedirect();
+        $response->assertSessionHas('status', 'Löschung wurde freigegeben und durchgeführt.');
+
+        $this->assertSoftDeleted('kassenbuch_entries', ['id' => $deletedEntry->id]);
+        $this->assertDatabaseHas('kassenbuch_entries', ['id' => $remainingEntry->id]);
+        $this->assertDatabaseHas('kassenstand', [
+            'team_id' => $this->team->id,
+            'betrag' => 25.00,
+        ]);
+    }
+
     public function test_delete_approval_reverses_ausgabe_in_kassenstand(): void
     {
         Mail::fake();
@@ -326,5 +361,8 @@ class KassenbuchDeleteRequestTest extends TestCase
         $response->assertSee('Offene Freigabeanfragen (1)');
         $response->assertSee('Löschung');
         $response->assertSee('Eintrag wurde doppelt angelegt.');
+        $response->assertSee('Anfrage ablehnen');
+        $response->assertSee('Angefragter Vorgang:');
+        $response->assertDontSee('Bearbeitungsanfrage ablehnen');
     }
 }
