@@ -2,7 +2,7 @@
  * @vitest-environment node
  */
 
-import { createProjectRuns } from '../e2e/run-playwright-docker.mjs';
+import { createProjectRuns, isDirectExecution } from '../e2e/run-playwright-docker.mjs';
 import { createPlaywrightRunToken, resolvePlaywrightRunToken } from '../e2e/utils/playwright-run-token.js';
 
 describe('playwright run token helper', () => {
@@ -65,6 +65,12 @@ describe('playwright docker harness', () => {
                 },
             },
         ]);
+    });
+
+    it('erkennt direkte Ausfuehrung auch mit relativem Scriptpfad robust', () => {
+        expect(() => isDirectExecution('tests/e2e/run-playwright-docker.mjs')).not.toThrow();
+        expect(isDirectExecution('tests/e2e/run-playwright-docker.mjs')).toBe(true);
+        expect(isDirectExecution('tests/e2e/other-script.mjs')).toBe(false);
     });
 });
 

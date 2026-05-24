@@ -96,7 +96,15 @@ export async function main({ argv = process.argv.slice(2), env = process.env } =
     return 0;
 }
 
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+export function isDirectExecution(scriptPath = process.argv[1]) {
+    if (!scriptPath) {
+        return false;
+    }
+
+    return import.meta.url === pathToFileURL(path.resolve(scriptPath)).href;
+}
+
+if (isDirectExecution()) {
     try {
         process.exit(await main());
     } catch (error) {
