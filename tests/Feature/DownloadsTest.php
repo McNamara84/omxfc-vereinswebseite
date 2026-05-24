@@ -187,6 +187,26 @@ class DownloadsTest extends TestCase
         $this->assertTrue(Storage::disk('private')->exists($download->file_path));
     }
 
+    public function test_bundled_rulebook_restoration_rejects_traversal_paths(): void
+    {
+        $this->actingMember();
+
+        $download = Download::query()->where('slug', 'rollenspiel-regelwerk-2001')->firstOrFail();
+        $download->update([
+            'file_path' => 'downloads/../views/pages/downloads.blade.php',
+            'original_filename' => 'downloads.blade.php',
+        ]);
+
+        $response = $this->from('/downloads')->get('/downloads/herunterladen/'.$download->slug);
+
+        $response->assertRedirect('/downloads');
+        $response->assertSessionHasErrors();
+        $this->assertStringContainsString(
+            'Die Datei existiert nicht.',
+            $response->getSession()->get('errors')->first()
+        );
+    }
+
     public function test_download_fails_when_file_missing(): void
     {
         $user = $this->actingMember();
