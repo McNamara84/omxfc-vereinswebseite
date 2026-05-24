@@ -54,26 +54,26 @@
                                     </p>
                                 </div>
 
-                                <dl class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                                    <div class="rounded-[1.35rem] border border-base-content/10 bg-base-100/75 p-4">
+                                <dl class="grid gap-3 sm:grid-cols-2" data-testid="ag-detail-grid">
+                                    <div class="rounded-[1.35rem] border border-base-content/10 bg-base-100/75 p-4" data-testid="ag-lead-card">
                                         <dt class="text-[0.72rem] font-semibold uppercase tracking-[0.2em] text-base-content/46">AG-Leitung</dt>
                                         <dd class="mt-2 text-sm font-medium text-base-content sm:text-base">
-                                            {{ $ag->owner?->name ?: 'Wird im Team abgestimmt' }}
+                                            {{ $ag->owner?->publicFirstName() ?: 'Wird im Team abgestimmt' }}
                                         </dd>
                                     </div>
 
-                                    <div class="rounded-[1.35rem] border border-base-content/10 bg-base-100/75 p-4">
+                                    <div class="rounded-[1.35rem] border border-base-content/10 bg-base-100/75 p-4" data-testid="ag-meeting-card">
                                         <dt class="text-[0.72rem] font-semibold uppercase tracking-[0.2em] text-base-content/46">Treffen</dt>
                                         <dd class="mt-2 text-sm font-medium text-base-content sm:text-base">
                                             {{ $ag->meeting_schedule ?: 'Nach Bedarf und Projektphase' }}
                                         </dd>
                                     </div>
 
-                                    <div class="rounded-[1.35rem] border border-base-content/10 bg-base-100/75 p-4 sm:col-span-2 xl:col-span-1">
+                                    <div class="rounded-[1.35rem] border border-base-content/10 bg-base-100/75 p-4 sm:col-span-2" data-testid="ag-contact-card">
                                         <dt class="text-[0.72rem] font-semibold uppercase tracking-[0.2em] text-base-content/46">Kontakt</dt>
                                         <dd class="mt-2 text-sm font-medium text-base-content sm:text-base">
                                             @if($ag->email)
-                                                <a href="mailto:{{ $ag->email }}" class="link link-primary break-all">{{ $ag->email }}</a>
+                                                <a href="{{ route('arbeitsgruppen.kontakt', $ag) }}" class="link link-primary" aria-label="Kontakt zur Arbeitsgruppe {{ $ag->name }} aufnehmen">Kontakt aufnehmen</a>
                                             @else
                                                 über das Mitgliedernetzwerk
                                             @endif

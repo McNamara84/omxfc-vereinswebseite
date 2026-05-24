@@ -77,6 +77,7 @@ export default async function globalSetup() {
     await runArtisan(['db:seed', '--class=Database\\Seeders\\TodoCategorySeeder']);
     await runArtisan(['db:seed', '--class=Database\\Seeders\\TodoPlaywrightSeeder']);
     await runArtisan(['db:seed', '--class=Database\\Seeders\\DashboardSampleSeeder']);
+    await runArtisan(['db:seed', '--class=Database\\Seeders\\ArbeitsgruppenPlaywrightSeeder']);
     await runArtisan(['db:seed', '--class=Database\\Seeders\\BookPlaywrightSeeder']);
     await runArtisan(['db:seed', '--class=Database\\Seeders\\FanfictionPlaywrightSeeder']);
     await runArtisan(['db:seed', '--class=Database\\Seeders\\KompendiumPlaywrightSeeder']);

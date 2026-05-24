@@ -14,9 +14,12 @@ class ArbeitsgruppenPageTest extends TestCase
 
     public function test_arbeitsgruppen_page_shows_information_architecture_and_single_main_heading(): void
     {
-        $leader = User::factory()->create(['name' => 'Leitung Test']);
+        $leader = User::factory()->create([
+            'name' => 'Leitung Test',
+            'vorname' => 'Leitung',
+        ]);
 
-        Team::factory()->create([
+        $ag = Team::factory()->create([
             'name' => 'AG Test',
             'user_id' => $leader->id,
             'personal_team' => false,
@@ -32,7 +35,16 @@ class ArbeitsgruppenPageTest extends TestCase
         $response->assertSeeText('So funktionieren die AGs');
         $response->assertSeeText('Mitmachen');
         $response->assertSeeText('AG Test');
-        $response->assertSeeText('Leitung Test');
+        $response->assertSeeText('Leitung');
+        $response->assertDontSeeText('Leitung Test');
+        $response->assertSeeText('Kontakt aufnehmen');
+        $response->assertSee('href="'.route('arbeitsgruppen.kontakt', $ag).'"', false);
+        $response->assertSee('aria-label="Kontakt zur Arbeitsgruppe AG Test aufnehmen"', false);
+        $response->assertDontSee('ag-test@example.com', false);
+        $response->assertDontSee('mailto:ag-test@example.com', false);
+        $response->assertSee('sm:grid-cols-2', false);
+        $response->assertDontSee('xl:grid-cols-3', false);
+        $response->assertSee('sm:col-span-2', false);
 
         $crawler = new Crawler($response->getContent());
         $this->assertCount(1, $crawler->filter('h1'));

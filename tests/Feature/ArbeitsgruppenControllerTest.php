@@ -3,9 +3,11 @@
 namespace Tests\Feature;
 
 use App\Enums\Role;
+use App\Mail\ArbeitsgruppenKontaktNachricht;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 
 class ArbeitsgruppenControllerTest extends TestCase
@@ -246,5 +248,156 @@ class ArbeitsgruppenControllerTest extends TestCase
             ->assertOk()
             ->assertSee('AG Test')
             ->assertDontSee($member->name);
+    }
+
+    public function test_public_contact_shows_the_public_contact_form(): void
+    {
+        $leader = User::factory()->create();
+        $ag = Team::factory()->create([
+            'user_id' => $leader->id,
+            'personal_team' => false,
+            'name' => 'AG Kontakt',
+            'email' => 'ag-kontakt@example.com',
+        ]);
+
+        $this->get(route('arbeitsgruppen.kontakt', $ag))
+            ->assertOk()
+            ->assertSeeText('Kontakt zu AG Kontakt')
+            ->assertSee('action="'.route('arbeitsgruppen.kontakt.senden', $ag).'"', false)
+            ->assertDontSee('ag-kontakt@example.com', false)
+            ->assertDontSee('mailto:ag-kontakt@example.com', false);
+    }
+
+    public function test_public_contact_returns_not_found_for_non_public_teams(): void
+    {
+        $leader = User::factory()->create();
+        $privateTeam = Team::factory()->create([
+            'user_id' => $leader->id,
+            'personal_team' => true,
+            'name' => 'Privates Team',
+            'email' => 'privat@example.com',
+        ]);
+
+        $this->get(route('arbeitsgruppen.kontakt', $privateTeam))
+            ->assertNotFound();
+    }
+
+    public function test_public_contact_returns_not_found_when_no_mail_address_exists(): void
+    {
+        $leader = User::factory()->create();
+        $ag = Team::factory()->create([
+            'user_id' => $leader->id,
+            'personal_team' => false,
+            'name' => 'AG Ohne Mail',
+            'email' => null,
+        ]);
+
+        $this->get(route('arbeitsgruppen.kontakt', $ag))
+            ->assertNotFound();
+    }
+
+    public function test_public_contact_form_sends_a_server_side_mail_without_exposing_the_target_address(): void
+    {
+        Mail::fake();
+
+        $leader = User::factory()->create();
+        $ag = Team::factory()->create([
+            'user_id' => $leader->id,
+            'personal_team' => false,
+            'name' => 'AG Kontakt',
+            'email' => 'ag-kontakt@example.com',
+        ]);
+
+        $this->post(route('arbeitsgruppen.kontakt.senden', $ag), [
+            'name' => 'Martin',
+            'email' => 'martin@example.com',
+            'message' => 'Ich interessiere mich für eure Arbeitsgruppe und würde gerne mehr erfahren.',
+            'website' => '',
+        ])
+            ->assertRedirect(route('arbeitsgruppen.kontakt', $ag))
+            ->assertSessionHas('status');
+
+        Mail::assertQueued(ArbeitsgruppenKontaktNachricht::class, function (ArbeitsgruppenKontaktNachricht $mail) use ($ag) {
+            return $mail->hasTo($ag->email)
+                && $mail->team->is($ag)
+                && $mail->absenderName === 'Martin'
+                && $mail->absenderEmail === 'martin@example.com'
+                && $mail->nachricht === 'Ich interessiere mich für eure Arbeitsgruppe und würde gerne mehr erfahren.';
+        });
+    }
+
+    public function test_public_contact_form_rejects_honeypot_submissions(): void
+    {
+        Mail::fake();
+
+        $leader = User::factory()->create();
+        $ag = Team::factory()->create([
+            'user_id' => $leader->id,
+            'personal_team' => false,
+            'name' => 'AG Kontakt',
+            'email' => 'ag-kontakt@example.com',
+        ]);
+
+        $response = $this->withHeader('referer', 'https://evil.example/redirect-me')
+            ->post(route('arbeitsgruppen.kontakt.senden', $ag), [
+                'name' => 'Bot',
+                'email' => 'bot@example.com',
+                'message' => 'Diese Nachricht sollte nicht versendet werden.',
+                'website' => 'https://spam.invalid',
+            ]);
+
+        $response->assertRedirect(route('arbeitsgruppen.kontakt', $ag))
+            ->assertSessionHasErrors('error');
+
+        $oldInput = $this->app['session.store']->getOldInput();
+
+        $this->assertSame([
+            'name' => 'Bot',
+            'email' => 'bot@example.com',
+            'message' => 'Diese Nachricht sollte nicht versendet werden.',
+        ], $oldInput);
+
+        Mail::assertNothingQueued();
+    }
+
+    public function test_public_contact_form_is_rate_limited_after_five_requests(): void
+    {
+        Mail::fake();
+
+        $leader = User::factory()->create();
+        $ag = Team::factory()->create([
+            'user_id' => $leader->id,
+            'personal_team' => false,
+            'name' => 'AG Kontakt',
+            'email' => 'ag-kontakt@example.com',
+        ]);
+
+        $server = ['REMOTE_ADDR' => '203.0.113.10'];
+
+        for ($i = 1; $i <= 5; $i++) {
+            $this->withServerVariables($server)
+                ->post(route('arbeitsgruppen.kontakt.senden', $ag), [
+                    'name' => "Interessent {$i}",
+                    'email' => "interessent{$i}@example.com",
+                    'message' => 'Ich interessiere mich für eure Arbeitsgruppe und würde gerne mitmachen.',
+                    'website' => '',
+                ])
+                ->assertRedirect(route('arbeitsgruppen.kontakt', $ag))
+                ->assertSessionHasNoErrors();
+        }
+
+        $this->withServerVariables($server)
+            ->post(route('arbeitsgruppen.kontakt.senden', $ag), [
+                'name' => 'Geblockter Interessent',
+                'email' => 'blocked@example.com',
+                'message' => 'Ich sollte wegen des Rate-Limits nicht mehr durchkommen.',
+                'website' => '',
+            ])
+            ->assertStatus(429);
+
+        Mail::assertQueuedCount(5);
+        Mail::assertNotQueued(ArbeitsgruppenKontaktNachricht::class, function (ArbeitsgruppenKontaktNachricht $mail) {
+            return $mail->absenderEmail === 'blocked@example.com';
+        });
     }
 }

@@ -74,6 +74,8 @@ Route::get('/chronik', [PageController::class, 'chronik'])->name('chronik');
 Route::get('/ehrenmitglieder', [PageController::class, 'ehrenmitglieder'])->name('ehrenmitglieder');
 Route::get('/termine', [PageController::class, 'termine'])->name('termine');
 Route::get('/arbeitsgruppen', [ArbeitsgruppenController::class, 'publicIndex'])->name('arbeitsgruppen');
+Route::get('/arbeitsgruppen/{team}/kontakt', [ArbeitsgruppenController::class, 'publicContact'])->name('arbeitsgruppen.kontakt');
+Route::post('/arbeitsgruppen/{team}/kontakt', [ArbeitsgruppenController::class, 'sendPublicContact'])->middleware('throttle:arbeitsgruppen-kontakt')->name('arbeitsgruppen.kontakt.senden');
 Route::get('/mitglied-werden', [PageController::class, 'mitgliedWerden'])->name('mitglied.werden');
 Route::get('/impressum', [PageController::class, 'impressum'])->name('impressum');
 Route::get('/datenschutz', [PageController::class, 'datenschutz'])->name('datenschutz');
