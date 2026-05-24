@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\KassenbuchEditReasonType;
+use App\Enums\KassenbuchEditRequestType;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -15,6 +16,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int|null $processed_by
  * @property string $reason_type
  * @property string|null $reason_text
+ * @property KassenbuchEditRequestType $request_type
  * @property string $status
  * @property string|null $rejection_reason
  * @property Carbon|null $processed_at
@@ -40,6 +42,7 @@ class KassenbuchEditRequest extends Model
         'processed_by',
         'reason_type',
         'reason_text',
+        'request_type',
         'status',
         'rejection_reason',
         'processed_at',
@@ -47,6 +50,7 @@ class KassenbuchEditRequest extends Model
 
     protected $casts = [
         'processed_at' => 'datetime',
+        'request_type' => KassenbuchEditRequestType::class,
     ];
 
     /**
@@ -95,6 +99,42 @@ class KassenbuchEditRequest extends Model
     public function isRejected(): bool
     {
         return $this->status === self::STATUS_REJECTED;
+    }
+
+    /**
+     * Check if the request is an edit request.
+     */
+    public function isEditRequest(): bool
+    {
+        return $this->request_type === KassenbuchEditRequestType::Edit;
+    }
+
+    /**
+     * Check if the request is a delete request.
+     */
+    public function isDeleteRequest(): bool
+    {
+        return $this->request_type === KassenbuchEditRequestType::Delete;
+    }
+
+    /**
+     * Get the request type label.
+     */
+    public function requestTypeLabel(): string
+    {
+        return $this->request_type->label();
+    }
+
+    /**
+     * Get the reason text formatted for UI output.
+     */
+    public function displayReason(): string
+    {
+        if ($this->isDeleteRequest()) {
+            return $this->reason_text ?: 'Keine Begründung angegeben.';
+        }
+
+        return $this->getFormattedReason();
     }
 
     /**

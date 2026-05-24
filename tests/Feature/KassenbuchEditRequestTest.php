@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Enums\KassenbuchEditReasonType;
+use App\Enums\KassenbuchEditRequestType;
 use App\Enums\KassenbuchEntryType;
 use App\Enums\Role;
 use App\Models\KassenbuchEditRequest;
@@ -144,7 +145,7 @@ class KassenbuchEditRequestTest extends TestCase
             ]);
 
         $response->assertRedirect();
-        $response->assertSessionHasErrors('entry');
+        $response->assertSessionHas('error', 'Für diesen Eintrag existiert bereits eine offene oder freigegebene Anfrage.');
     }
 
     public function test_cannot_request_edit_when_approved_exists(): void
@@ -170,7 +171,7 @@ class KassenbuchEditRequestTest extends TestCase
             ]);
 
         $response->assertRedirect();
-        $response->assertSessionHasErrors('entry');
+        $response->assertSessionHas('error', 'Für diesen Eintrag existiert bereits eine offene oder freigegebene Anfrage.');
     }
 
     public function test_sonstiges_requires_reason_text(): void
@@ -511,7 +512,7 @@ class KassenbuchEditRequestTest extends TestCase
         $response = $this->actingAs($vorstand)->get('/kassenbuch');
 
         $response->assertOk();
-        $response->assertSee('Offene Bearbeitungsanfragen (1)');
+        $response->assertSee('Offene Freigabeanfragen (1)');
     }
 
     public function test_kassenwart_does_not_see_pending_requests_section(): void
@@ -529,7 +530,7 @@ class KassenbuchEditRequestTest extends TestCase
         $response = $this->actingAs($kassenwart)->get('/kassenbuch');
 
         $response->assertOk();
-        $response->assertDontSee('Offene Bearbeitungsanfragen');
+        $response->assertDontSee('Offene Freigabeanfragen');
     }
 
     public function test_index_shows_edit_reason_types(): void
@@ -613,6 +614,26 @@ class KassenbuchEditRequestTest extends TestCase
         $this->assertEquals('Falscher Betrag', $request->getFormattedReason());
     }
 
+    public function test_delete_request_helper_methods(): void
+    {
+        $kassenwart = $this->createUserWithRole(Role::Kassenwart);
+        $entry = $this->createKassenbuchEntry($kassenwart);
+
+        $request = KassenbuchEditRequest::create([
+            'kassenbuch_entry_id' => $entry->id,
+            'requested_by' => $kassenwart->id,
+            'reason_type' => KassenbuchEditReasonType::Sonstiges->value,
+            'reason_text' => 'Doppelt erstellt',
+            'request_type' => KassenbuchEditRequestType::Delete->value,
+            'status' => KassenbuchEditRequest::STATUS_PENDING,
+        ]);
+
+        $this->assertTrue($request->isDeleteRequest());
+        $this->assertFalse($request->isEditRequest());
+        $this->assertSame('Löschung', $request->requestTypeLabel());
+        $this->assertSame('Doppelt erstellt', $request->displayReason());
+    }
+
     public function test_entry_has_pending_and_approved_helpers(): void
     {
         $kassenwart = $this->createUserWithRole(Role::Kassenwart);
@@ -635,6 +656,32 @@ class KassenbuchEditRequestTest extends TestCase
         $this->assertTrue($entry->hasPendingEditRequest());
         $this->assertFalse($entry->hasApprovedEditRequest());
         $this->assertFalse($entry->canBeEdited());
+    }
+
+    public function test_entry_has_pending_delete_and_generic_request_helpers(): void
+    {
+        $kassenwart = $this->createUserWithRole(Role::Kassenwart);
+        $entry = $this->createKassenbuchEntry($kassenwart);
+
+        $this->assertFalse($entry->hasPendingRequest());
+        $this->assertFalse($entry->hasApprovedRequest());
+        $this->assertFalse($entry->hasPendingDeleteRequest());
+
+        KassenbuchEditRequest::create([
+            'kassenbuch_entry_id' => $entry->id,
+            'requested_by' => $kassenwart->id,
+            'reason_type' => KassenbuchEditReasonType::Sonstiges->value,
+            'reason_text' => 'Doppelt erstellt',
+            'request_type' => KassenbuchEditRequestType::Delete->value,
+            'status' => KassenbuchEditRequest::STATUS_PENDING,
+        ]);
+
+        $entry->refresh();
+
+        $this->assertTrue($entry->hasPendingRequest());
+        $this->assertFalse($entry->hasApprovedRequest());
+        $this->assertTrue($entry->hasPendingDeleteRequest());
+        $this->assertFalse($entry->hasPendingEditRequest());
     }
 
     public function test_entry_was_edited_helper(): void
@@ -759,7 +806,7 @@ class KassenbuchEditRequestTest extends TestCase
             ->post("/kassenbuch/anfrage/{$editRequest->id}/freigeben");
 
         $response->assertRedirect();
-        $response->assertSessionHasErrors('request');
+        $response->assertSessionHas('error', 'Diese Anfrage wurde bereits bearbeitet.');
     }
 
     public function test_cannot_approve_already_rejected_request(): void
@@ -781,7 +828,7 @@ class KassenbuchEditRequestTest extends TestCase
             ->post("/kassenbuch/anfrage/{$editRequest->id}/freigeben");
 
         $response->assertRedirect();
-        $response->assertSessionHasErrors('request');
+        $response->assertSessionHas('error', 'Diese Anfrage wurde bereits bearbeitet.');
     }
 
     public function test_cannot_reject_already_approved_request(): void
@@ -803,7 +850,7 @@ class KassenbuchEditRequestTest extends TestCase
             ->post("/kassenbuch/anfrage/{$editRequest->id}/ablehnen");
 
         $response->assertRedirect();
-        $response->assertSessionHasErrors('request');
+        $response->assertSessionHas('error', 'Diese Anfrage wurde bereits bearbeitet.');
     }
 
     public function test_cannot_reject_already_rejected_request(): void
@@ -825,7 +872,7 @@ class KassenbuchEditRequestTest extends TestCase
             ->post("/kassenbuch/anfrage/{$editRequest->id}/ablehnen");
 
         $response->assertRedirect();
-        $response->assertSessionHasErrors('request');
+        $response->assertSessionHas('error', 'Diese Anfrage wurde bereits bearbeitet.');
     }
 
     // === N+1 Query Prevention Test ===

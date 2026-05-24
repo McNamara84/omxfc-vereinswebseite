@@ -77,33 +77,40 @@
         </x-ui.panel>
 
         @if($this->canViewKassenbuch)
-            {{-- Card: Offene Bearbeitungsanfragen (für Vorstand und Admin sichtbar) --}}
-            @if($this->canProcessEditRequests && $this->pendingEditRequests && $this->pendingEditRequests->count() > 0)
+            {{-- Card: Offene Freigabeanfragen (für Vorstand und Admin sichtbar) --}}
+            @if($this->canProcessEditRequests && $this->pendingRequests && $this->pendingRequests->count() > 0)
                 <x-ui.panel class="md:col-span-2">
                     <x-slot:header>
                         <div class="space-y-2">
                             <div class="flex items-center gap-2">
                                 <x-icon name="o-bell" class="h-5 w-5 text-warning" />
-                                <h2 class="font-display text-2xl font-semibold tracking-tight text-base-content">Offene Bearbeitungsanfragen ({{ $this->pendingEditRequests->count() }})</h2>
+                                <h2 class="font-display text-2xl font-semibold tracking-tight text-base-content">Offene Freigabeanfragen ({{ $this->pendingRequests->count() }})</h2>
                             </div>
-                            <p class="max-w-3xl text-sm leading-relaxed text-base-content/72">Freigaben und Ablehnungen für angefragte Änderungen an bestehenden Kassenbucheinträgen.</p>
+                            <p class="max-w-3xl text-sm leading-relaxed text-base-content/72">Freigaben und Ablehnungen für angefragte Änderungen oder Löschungen an bestehenden Kassenbucheinträgen.</p>
                         </div>
                     </x-slot:header>
 
                     <div class="space-y-4">
-                        @foreach($this->pendingEditRequests as $request)
-                            <div wire:key="edit-request-{{ $request->id }}" class="border border-warning/30 rounded-lg p-4 bg-warning/10">
+                        @foreach($this->pendingRequests as $request)
+                            <div wire:key="kassenbuch-request-{{ $request->id }}" class="border border-warning/30 rounded-lg p-4 bg-warning/10">
                                 <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
                                     <div class="flex-1">
-                                        <p class="font-medium">{{ $request->entry->beschreibung }}</p>
+                                        <div class="flex flex-wrap items-center gap-2">
+                                            <p class="font-medium">{{ $request->entry->beschreibung }}</p>
+                                            <x-badge value="{{ $request->requestTypeLabel() }}" class="badge-outline {{ $request->isDeleteRequest() ? 'badge-error' : 'badge-warning' }}" />
+                                        </div>
                                         <p class="text-sm text-base-content mt-1">
                                             {{ number_format(abs($request->entry->betrag), 2, ',', '.') }} €
                                             ({{ $request->entry->typ->value === 'einnahme' ? 'Einnahme' : 'Ausgabe' }})
                                             – {{ $request->entry->buchungsdatum->format('d.m.Y') }}
                                         </p>
                                         <p class="text-sm text-base-content mt-2">
+                                            <strong>Anfrage:</strong>
+                                            {{ $request->requestTypeLabel() }}
+                                        </p>
+                                        <p class="text-sm text-base-content mt-2">
                                             <strong>Begründung:</strong>
-                                            {{ $request->getFormattedReason() }}
+                                            {{ $request->displayReason() }}
                                         </p>
                                         <p class="text-xs text-base-content mt-1">
                                             Angefragt von
@@ -125,7 +132,7 @@
                                             icon="o-x-mark"
                                             class="btn-error btn-sm"
                                             x-data
-                                            @click="$dispatch('reject-edit-modal', { id: {{ $request->id }}, beschreibung: {{ Js::from($request->entry->beschreibung) }} })" />
+                                            @click="$dispatch('reject-edit-modal', { id: {{ $request->id }}, beschreibung: {{ Js::from($request->entry->beschreibung) }}, requestTypeLabel: {{ Js::from($request->requestTypeLabel()) }} })" />
                                     </div>
                                 </div>
                             </div>
@@ -309,22 +316,39 @@
                                                         betrag: '{{ abs($entry->betrag) }}',
                                                         typ: '{{ $entry->typ->value }}'
                                                     })" />
+                                            @elseif($entry->hasPendingDeleteRequest())
+                                                <span data-testid="kassenbuch-status-badge">
+                                                    <x-badge value="Löschanfrage läuft" class="badge-error animate-pulse" icon="o-trash" />
+                                                </span>
                                             @elseif($entry->hasPendingEditRequest())
                                                 {{-- Anfrage läuft --}}
                                                 <span data-testid="kassenbuch-status-badge">
                                                     <x-badge value="Anfrage läuft" class="badge-warning animate-pulse" icon="o-clock" />
                                                 </span>
                                             @else
-                                                {{-- Bearbeitung anfragen --}}
-                                                <x-button
-                                                    label="Bearbeiten anfragen"
-                                                    icon="o-lock-closed"
-                                                    class="btn-ghost btn-xs"
-                                                    x-data
-                                                    @click="$dispatch('request-edit-modal', {
-                                                        id: {{ $entry->id }},
-                                                        beschreibung: {{ Js::from($entry->beschreibung) }}
-                                                    })" />
+                                                <div class="flex flex-wrap gap-2">
+                                                    {{-- Bearbeitung anfragen --}}
+                                                    <x-button
+                                                        label="Bearbeiten anfragen"
+                                                        icon="o-lock-closed"
+                                                        class="btn-ghost btn-xs"
+                                                        x-data
+                                                        @click="$dispatch('request-edit-modal', {
+                                                            id: {{ $entry->id }},
+                                                            beschreibung: {{ Js::from($entry->beschreibung) }}
+                                                        })" />
+
+                                                    <x-button
+                                                        label="Löschen anfragen"
+                                                        icon="o-trash"
+                                                        class="btn-ghost btn-error btn-xs"
+                                                        x-data
+                                                        data-kassenbuch-delete-request="true"
+                                                        @click="$dispatch('request-delete-modal', {
+                                                            id: {{ $entry->id }},
+                                                            beschreibung: {{ Js::from($entry->beschreibung) }}
+                                                        })" />
+                                                </div>
                                             @endif
                                         </td>
                                     @endif
@@ -685,13 +709,75 @@
                 </div>
             </div>
         </div>
+
+        {{-- Modal: Löschung anfragen --}}
+        <div x-data="{ open: false, entry_id: '', entry_desc: '' }"
+             x-show="open"
+             x-on:request-delete-modal.window="open = true; entry_id = $event.detail.id; entry_desc = $event.detail.beschreibung"
+             x-on:keydown.escape.window="open = false"
+             class="fixed inset-0 z-50 overflow-y-auto"
+             style="display: none;">
+            <div class="flex items-center justify-center min-h-screen p-4">
+                <div x-show="open"
+                     x-transition:enter="ease-out duration-300"
+                     x-transition:enter-start="opacity-0"
+                     x-transition:enter-end="opacity-100"
+                     x-transition:leave="ease-in duration-200"
+                     x-transition:leave-start="opacity-100"
+                     x-transition:leave-end="opacity-0"
+                     class="fixed inset-0 bg-base-300/75"
+                     @click="open = false"></div>
+
+                <div x-show="open"
+                     x-transition:enter="ease-out duration-300"
+                     x-transition:enter-start="opacity-0 scale-95"
+                     x-transition:enter-end="opacity-100 scale-100"
+                     x-transition:leave="ease-in duration-200"
+                     x-transition:leave-start="opacity-100 scale-100"
+                     x-transition:leave-end="opacity-0 scale-95"
+                     class="relative bg-base-100 rounded-box shadow-xl max-w-lg w-full p-6"
+                     role="dialog"
+                     aria-modal="true"
+                     aria-labelledby="request-delete-title"
+                     data-testid="request-delete-dialog">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 id="request-delete-title" class="text-lg font-medium">Löschung anfragen</h3>
+                        <x-button icon="o-x-mark" class="btn-ghost btn-sm" @click="open = false" />
+                    </div>
+
+                    <x-alert icon="o-exclamation-triangle" class="alert-warning mb-4">
+                        Die Löschung wird erst nach Freigabe durch den Vorstand ausgeführt.
+                    </x-alert>
+
+                    <p class="text-sm text-base-content mb-2">Eintrag:</p>
+                    <p class="text-sm font-medium mb-4" x-text="entry_desc"></p>
+
+                    <form :action="'{{ route('kassenbuch.request-delete', '__ID__') }}'.replace('__ID__', entry_id)" method="POST">
+                        @csrf
+
+                        <div>
+                            <label class="label" for="delete_reason_text">
+                                <span class="label-text">Begründung</span>
+                            </label>
+                            <textarea id="delete_reason_text" name="reason_text" rows="4" maxlength="500" required placeholder="Bitte kurz begründen, warum der Eintrag gelöscht werden soll, z. B. doppelt erstellt." class="textarea textarea-bordered w-full"></textarea>
+                            @error('reason_text') <span class="text-error text-xs">{{ $message }}</span> @enderror
+                        </div>
+
+                        <div class="mt-6 flex justify-end gap-2">
+                            <x-button label="Abbrechen" class="btn-ghost" @click="open = false" />
+                            <x-button label="Löschanfrage senden" type="submit" class="btn-error" />
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
     @endif
 
     {{-- Modal: Anfrage ablehnen (für Vorstand und Admin) --}}
     @if($this->canProcessEditRequests)
-        <div x-data="{ open: false, request_id: '', beschreibung: '' }"
+           <div x-data="{ open: false, request_id: '', beschreibung: '', request_type_label: '' }"
              x-show="open"
-             x-on:reject-edit-modal.window="open = true; request_id = $event.detail.id; beschreibung = $event.detail.beschreibung"
+               x-on:reject-edit-modal.window="open = true; request_id = $event.detail.id; beschreibung = $event.detail.beschreibung; request_type_label = $event.detail.requestTypeLabel ?? ''"
              x-on:keydown.escape.window="open = false"
              class="fixed inset-0 z-50 overflow-y-auto"
              style="display: none;">
@@ -718,9 +804,12 @@
                      aria-modal="true"
                      aria-labelledby="reject-request-title">
                     <div class="flex justify-between items-center mb-4">
-                        <h3 id="reject-request-title" class="text-lg font-medium">Bearbeitungsanfrage ablehnen</h3>
+                        <h3 id="reject-request-title" class="text-lg font-medium">Anfrage ablehnen</h3>
                         <x-button icon="o-x-mark" class="btn-ghost btn-sm" @click="open = false" />
                     </div>
+
+                    <p class="text-sm text-base-content mb-2">Angefragter Vorgang:</p>
+                    <p class="text-sm font-medium mb-4" x-text="request_type_label"></p>
 
                     <p class="text-sm text-base-content mb-2">Eintrag:</p>
                     <p class="text-sm font-medium mb-4" x-text="beschreibung"></p>
@@ -730,9 +819,9 @@
 
                         <div>
                             <label class="label" for="rejection_reason">
-                                <span class="label-text">Begründung (optional)</span>
+                                <span class="label-text">Begründung der Ablehnung (optional)</span>
                             </label>
-                            <textarea id="rejection_reason" name="rejection_reason" rows="3" maxlength="500" placeholder="Optionale Begründung für die Ablehnung..." class="textarea textarea-bordered w-full"></textarea>
+                            <textarea id="rejection_reason" name="rejection_reason" rows="3" maxlength="500" placeholder="Optionale Begründung für die Ablehnung der Anfrage..." class="textarea textarea-bordered w-full"></textarea>
                         </div>
 
                         <div class="mt-6 flex justify-end gap-2">
