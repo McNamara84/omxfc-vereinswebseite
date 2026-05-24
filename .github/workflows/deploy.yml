@@ -25,6 +25,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
+          target: production
           push: true
           no-cache: true
           tags: ghcr.io/mcnamara84/omxfc-vereinswebseite:latest
