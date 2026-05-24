@@ -1,0 +1,83 @@
+/**
+ * @vitest-environment node
+ */
+
+import { createProjectRuns } from '../e2e/run-playwright-docker.mjs';
+import { createPlaywrightRunToken, resolvePlaywrightRunToken } from '../e2e/utils/playwright-run-token.js';
+
+describe('playwright run token helper', () => {
+    it('erstellt praefixierte Tokens ueber die injizierte UUID-Factory', () => {
+        const token = createPlaywrightRunToken('local', {
+            uuidFactory: () => 'uuid-123',
+        });
+
+        expect(token).toBe('local-uuid-123');
+    });
+
+    it('uebernimmt vorhandene Tokens unveraendert', () => {
+        expect(resolvePlaywrightRunToken('provided-token', { prefix: 'docker' })).toBe('provided-token');
+    });
+});
+
+describe('playwright docker harness', () => {
+    it('plant pro Browserprojekt eigene Ports und Tokens', () => {
+        const runs = createProjectRuns({
+            args: ['tests/e2e/homepage-performance.spec.js'],
+            env: {
+                CI: '1',
+                PLAYWRIGHT_PORT: '8100',
+            },
+            basePort: 8100,
+        });
+
+        expect(runs).toHaveLength(2);
+        expect(runs[0].args).toEqual(['tests/e2e/homepage-performance.spec.js', '--project', 'chromium']);
+        expect(runs[0].env.PLAYWRIGHT_PORT).toBe('8100');
+        expect(runs[0].env.PLAYWRIGHT_RUN_TOKEN).toMatch(/^docker-chromium-/);
+        expect(runs[1].args).toEqual(['tests/e2e/homepage-performance.spec.js', '--project', 'firefox']);
+        expect(runs[1].env.PLAYWRIGHT_PORT).toBe('8101');
+        expect(runs[1].env.PLAYWRIGHT_RUN_TOKEN).toMatch(/^docker-firefox-/);
+    });
+
+    it('haelt explizite Projektwahl kompakt und respektiert vorhandene Tokens', () => {
+        const runs = createProjectRuns({
+            args: ['--project=webkit'],
+            env: {
+                PLAYWRIGHT_RUN_TOKEN: 'provided-token',
+            },
+            basePort: 8001,
+        });
+
+        expect(runs).toEqual([
+            {
+                args: ['--project=webkit'],
+                env: {
+                    PLAYWRIGHT_RUN_TOKEN: 'provided-token',
+                },
+            },
+        ]);
+    });
+});
+
+describe('playwright config smoke import', () => {
+    const originalRunToken = process.env.PLAYWRIGHT_RUN_TOKEN;
+
+    afterEach(() => {
+        if (typeof originalRunToken === 'undefined') {
+            delete process.env.PLAYWRIGHT_RUN_TOKEN;
+            return;
+        }
+
+        process.env.PLAYWRIGHT_RUN_TOKEN = originalRunToken;
+    });
+
+    it('laedt die Config und setzt einen konsistenten Run-Token', async () => {
+        delete process.env.PLAYWRIGHT_RUN_TOKEN;
+        vi.resetModules();
+
+        const { default: config } = await import('../../playwright.config.js');
+
+        expect(process.env.PLAYWRIGHT_RUN_TOKEN).toMatch(/^local-/);
+        expect(config.webServer.env.PLAYWRIGHT_RUN_TOKEN).toBe(process.env.PLAYWRIGHT_RUN_TOKEN);
+    });
+});

@@ -1,6 +1,6 @@
 import L from 'leaflet';
 import 'leaflet.markercluster';
-import axios from 'axios';
+import http from './http/client';
 
 // Definierte Koordinaten
 const coordinates = {
@@ -44,7 +44,7 @@ const missions = {
 };
 
 // Lade Städte und erstelle Marker mit Popup und Missionslink
-axios.get('/maddraxikon-staedte').then(response => {
+http.get('/maddraxikon-staedte').then(response => {
     const results = response.data.query.results;
     for (const cityName in results) {
         const city = results[cityName];
@@ -207,7 +207,7 @@ startMissionButton.addEventListener('click', async () => {
 
     try {
         // Starte die Mission auf dem Backend
-        const response = await axios.post('/mission/starten', {
+        const response = await http.post('/mission/starten', {
             name: mission.name,
             origin: "Waashton",
             destination: mission.destination,
@@ -230,7 +230,7 @@ startMissionButton.addEventListener('click', async () => {
 
         // 4. Mission als abgeschlossen markieren
         console.log('Sende Status-Check-Request...');
-        const statusResponse = await axios.post('/mission/status-pruefen', {}, {
+        const statusResponse = await http.post('/mission/status-pruefen', {}, {
             headers: { 'X-CSRF-TOKEN': csrfToken }
         });
         console.log('Status-Check-Response:', statusResponse.data);
@@ -254,7 +254,7 @@ startMissionButton.addEventListener('click', async () => {
 // Funktion zum Laden des Mission-Status
 async function loadMissionStatus() {
     try {
-        const response = await axios.get('/mission/status');
+        const response = await http.get('/mission/status');
         console.log('Mission-Status geladen:', response.data);
 
         if (response.data.status !== 'none') {
@@ -309,7 +309,7 @@ async function loadMissionStatus() {
                 }
 
                 // Mission als abgeschlossen markieren
-                const statusResponse = await axios.post('/mission/status-pruefen', {}, {
+                const statusResponse = await http.post('/mission/status-pruefen', {}, {
                     headers: { 'X-CSRF-TOKEN': csrfToken }
                 });
 

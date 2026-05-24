@@ -4,6 +4,7 @@ import {
   formatBenchmarkTitle as formatBenchmarkTitleForReporting,
   formatMetricsForSummary as formatMetricsForSummaryForReporting,
 } from './performance-metrics-reporting.js';
+import { formatEpochMillisecondsAsIsoInstant } from './temporal.js';
 
 const navigationSchema = z
   .object({
@@ -78,7 +79,7 @@ export function summarizeNavigationPerformance(rawMetrics) {
 
   return {
     url,
-    recordedAt: new Date(timestamp).toISOString(),
+    recordedAt: formatEpochMillisecondsAsIsoInstant(timestamp),
     metrics: {
       totalLoadTime,
       domContentLoaded,

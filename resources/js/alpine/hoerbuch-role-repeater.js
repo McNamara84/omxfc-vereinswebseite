@@ -1,3 +1,5 @@
+import http from '../http/client';
+
 document.addEventListener('alpine:init', () => {
     window.Alpine.data('hoerbuchRoleRepeater', ({ initialRoles = [], members = [], previousSpeakerUrl = '' }) => ({
     roles: initialRoles,
@@ -47,19 +49,15 @@ document.addEventListener('alpine:init', () => {
         try {
             const url = new URL(this.previousSpeakerUrl, window.location.origin);
             url.searchParams.set('name', name);
-            const token = document.querySelector('meta[name="csrf-token"]')?.content;
-            const headers = { 'X-Requested-With': 'XMLHttpRequest' };
-            if (token) headers['X-CSRF-TOKEN'] = token;
-            const res = await fetch(url, { headers, signal: controller.signal });
-            if (res.status === 401) {
+            const response = await http.get(url, { signal: controller.signal });
+            const data = response.data ?? {};
+            role.previousSpeaker = data.speaker ? `Bisheriger Sprecher: ${data.speaker}` : '';
+        } catch (error) {
+            if (error.name === 'AbortError') return;
+            if (error.response?.status === 401) {
                 role.previousSpeaker = 'Nicht berechtigt';
                 return;
             }
-            if (!res.ok) throw new Error();
-            const data = await res.json();
-            role.previousSpeaker = data.speaker ? `Bisheriger Sprecher: ${data.speaker}` : '';
-        } catch (e) {
-            if (e.name === 'AbortError') return;
             role.previousSpeaker = 'Fehler beim Laden des bisherigen Sprechers';
         }
     },

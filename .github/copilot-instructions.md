@@ -65,6 +65,8 @@ npm run test:e2e:docker
 
 ## Projekt-Konventionen
 
+- Node-26-Built-ins wie `randomUUIDv7()`, `Map.prototype.getOrInsert*()` und `Iterator.concat()` nur in Node-only-Dateien verwenden, z.B. `playwright.config.js` oder `tests/e2e/**`. In `resources/js/**` und Blade-Inline-Skripten bleiben sie tabu, bis die Browser-Zielmatrix das explizit traegt.
+
 ### Deutsche Domain-Sprache
 Routes, Views und Models verwenden deutsche Begriffe:
 - Routes: `/mitglieder`, `/hoerbuecher`, `/fantreffen`, `/kassenbuch`, `/romantausch`

@@ -163,7 +163,7 @@ function clonePayload(payload, overrides = {}) {
     };
 }
 
-function stubAxios(payload) {
+function stubHttp(payload) {
     let currentStepKey = payload.current_step_key;
 
     const responseFor = (stepKey = currentStepKey) => ({
@@ -184,7 +184,7 @@ function stubAxios(payload) {
         return responseFor();
     });
 
-    window.axios = {
+    window.omxfcHttp = {
         get: vi.fn().mockImplementation(async () => responseFor()),
         post,
     };
@@ -219,7 +219,7 @@ describe('tour runner', () => {
 
     it('springt bei unsichtbaren Schritten auf den naechsten sichtbaren Schritt', async () => {
         const payload = createPayload();
-        stubAxios(payload);
+        stubHttp(payload);
 
         await bootRunner();
         expect(document.getElementById('tour-runner-title')?.textContent).toBe('Dashboard');
@@ -229,14 +229,14 @@ describe('tour runner', () => {
 
         expect(document.getElementById('tour-runner-title')?.textContent).toBe('Sichtbarer Folgeschritt');
         expect(document.getElementById('tour-runner-counter')?.textContent).toBe('2 / 2');
-        expect(window.axios.post).toHaveBeenLastCalledWith('/tour/7/progress', {
+        expect(window.omxfcHttp.post).toHaveBeenLastCalledWith('/tour/7/progress', {
             step_key: 'visible-follow-up',
         });
     });
 
     it('navigiert ueber uebersprungene unsichtbare Schritte auch rueckwaerts zum vorherigen sichtbaren Schritt', async () => {
         const payload = createPayload();
-        const axios = stubAxios(payload);
+        const http = stubHttp(payload);
 
         await bootRunner();
 
@@ -249,14 +249,14 @@ describe('tour runner', () => {
 
         expect(document.getElementById('tour-runner-title')?.textContent).toBe('Dashboard');
         expect(document.getElementById('tour-runner-counter')?.textContent).toBe('1 / 2');
-        expect(axios.post).toHaveBeenLastCalledWith('/tour/7/progress', {
+        expect(http.post).toHaveBeenLastCalledWith('/tour/7/progress', {
             step_key: 'dashboard',
         });
     });
 
     it('haelt remorphte Tour-Buttons fuer weiter, zurueck und spaeter klickbar', async () => {
         const payload = createPayload();
-        const axios = stubAxios(payload);
+        const http = stubHttp(payload);
 
         await bootRunner();
 
@@ -280,7 +280,7 @@ describe('tour runner', () => {
         await flushAsyncWork();
 
         expect(document.getElementById('tour-runner-panel')?.classList.contains('hidden')).toBe(true);
-        expect(axios.post).toHaveBeenLastCalledWith('/tour/7/dismiss');
+        expect(http.post).toHaveBeenLastCalledWith('/tour/7/dismiss');
     });
 
     it('oeffnet Desktop-Dropdowns ueber den Tour-Trigger, bevor Unterpunkte gezeigt werden', async () => {
@@ -294,7 +294,7 @@ describe('tour runner', () => {
         HTMLElement.prototype.scrollIntoView = vi.fn();
         window.toast = vi.fn();
 
-        stubAxios({
+        stubHttp({
             assignment_id: 9,
             status: 'open',
             current_step_key: 'community-members',
@@ -333,7 +333,7 @@ describe('tour runner', () => {
 
         openDesktopDropdown();
 
-        stubAxios({
+        stubHttp({
             assignment_id: 10,
             status: 'open',
             current_step_key: 'community-members',
@@ -380,7 +380,7 @@ describe('tour runner', () => {
 
         expect(document.getElementById('community-dropdown')?.hasAttribute('open')).toBe(true);
         expect(document.getElementById('tour-runner-title')?.textContent).toBe('Rezensionen');
-        expect(window.axios.post).toHaveBeenLastCalledWith('/tour/10/progress', {
+        expect(window.omxfcHttp.post).toHaveBeenLastCalledWith('/tour/10/progress', {
             step_key: 'community-reviews',
         });
     });

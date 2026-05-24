@@ -434,7 +434,7 @@ async function syncProgress(stepKey) {
     let response;
 
     try {
-        response = await window.axios.post(progressUrl, {
+        response = await window.omxfcHttp.post(progressUrl, {
             step_key: stepKey,
         });
     } catch (error) {
@@ -575,7 +575,7 @@ async function activateTour(payload) {
         let response;
 
         try {
-            response = await window.axios.post(startUrl);
+            response = await window.omxfcHttp.post(startUrl);
         } catch (error) {
             logTourError('tour:start-error', error, {
                 url: startUrl,
@@ -598,9 +598,9 @@ async function activateTour(payload) {
 async function fetchCurrentTour() {
     const templates = currentUrlTemplates();
 
-    if (!templates?.current || typeof window.axios === 'undefined') {
+    if (!templates?.current || typeof window.omxfcHttp === 'undefined') {
         logTourDebug('tour:fetch-skipped', {
-            reason: !templates?.current ? 'missing-current-url' : 'missing-axios',
+            reason: !templates?.current ? 'missing-current-url' : 'missing-http',
         });
 
         return;
@@ -613,7 +613,7 @@ async function fetchCurrentTour() {
     let response;
 
     try {
-        response = await window.axios.get(templates.current);
+        response = await window.omxfcHttp.get(templates.current);
     } catch (error) {
         logTourError('tour:fetch-error', error, {
             url: templates.current,
@@ -657,7 +657,7 @@ async function skipTour() {
     });
 
     try {
-        await window.axios.post(dismissUrl);
+        await window.omxfcHttp.post(dismissUrl);
     } catch (error) {
         logTourError('skip:error', error, {
             url: dismissUrl,
@@ -697,7 +697,7 @@ async function completeTour() {
     });
 
     try {
-        await window.axios.post(completeUrl);
+        await window.omxfcHttp.post(completeUrl);
     } catch (error) {
         logTourError('complete:error', error, {
             url: completeUrl,
