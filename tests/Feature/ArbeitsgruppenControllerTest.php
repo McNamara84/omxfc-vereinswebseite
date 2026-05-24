@@ -338,15 +338,24 @@ class ArbeitsgruppenControllerTest extends TestCase
             'email' => 'ag-kontakt@example.com',
         ]);
 
-        $this->from(route('arbeitsgruppen.kontakt', $ag))
+        $response = $this->withHeader('referer', 'https://evil.example/redirect-me')
             ->post(route('arbeitsgruppen.kontakt.senden', $ag), [
                 'name' => 'Bot',
                 'email' => 'bot@example.com',
                 'message' => 'Diese Nachricht sollte nicht versendet werden.',
                 'website' => 'https://spam.invalid',
-            ])
-            ->assertRedirect(route('arbeitsgruppen.kontakt', $ag))
+            ]);
+
+        $response->assertRedirect(route('arbeitsgruppen.kontakt', $ag))
             ->assertSessionHasErrors('error');
+
+        $oldInput = $this->app['session.store']->getOldInput();
+
+        $this->assertSame([
+            'name' => 'Bot',
+            'email' => 'bot@example.com',
+            'message' => 'Diese Nachricht sollte nicht versendet werden.',
+        ], $oldInput);
 
         Mail::assertNothingQueued();
     }

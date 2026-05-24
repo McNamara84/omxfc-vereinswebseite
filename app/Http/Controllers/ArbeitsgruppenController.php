@@ -122,7 +122,7 @@ class ArbeitsgruppenController extends Controller
         $spamErrorMessage = 'Die Nachricht konnte nicht verarbeitet werden. Bitte versuche es erneut.';
 
         if (filled($request->input('website'))) {
-            return back()
+            return redirect()->route('arbeitsgruppen.kontakt', $ag)
                 ->withInput($request->except('website'))
                 ->withErrors(['error' => $spamErrorMessage]);
         }

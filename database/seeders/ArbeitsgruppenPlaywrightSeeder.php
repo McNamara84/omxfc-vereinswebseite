@@ -14,6 +14,8 @@ class ArbeitsgruppenPlaywrightSeeder extends Seeder
         $membersTeam = Team::membersTeam();
 
         if (! $membersTeam) {
+            $this->command?->warn('Team "Mitglieder" not found. Run TodoPlaywrightSeeder first.');
+
             return;
         }
 
