@@ -157,6 +157,18 @@ class NavigationBuilder
             }
         }
 
+        if (isset($predicate['mitglieder_roles_any'])) {
+            $roles = array_values(array_filter(
+                $predicate['mitglieder_roles_any'],
+                fn (mixed $role): bool => $role instanceof Role,
+            ));
+            $mitgliederRole = $visibilityState['mitglieder_team_role'] ?? null;
+
+            if ($roles === [] || ! $mitgliederRole instanceof Role || ! in_array($mitgliederRole, $roles, true)) {
+                return false;
+            }
+        }
+
         if (isset($predicate['team_any'])) {
             $teamNames = array_filter($predicate['team_any'], 'is_string');
             $memberTeamNames = $visibilityState['team_names'] ?? [];
@@ -213,6 +225,7 @@ class NavigationBuilder
 
         return [
             'current_role' => $currentRole,
+            'mitglieder_team_role' => $mitgliederTeamRole,
             'has_vorstand_role' => $currentRole instanceof Role
                 && in_array($currentRole, [Role::Admin, Role::Vorstand, Role::Kassenwart], true),
             'can_manage_veranstaltungen' => $mitgliederTeamRole instanceof Role

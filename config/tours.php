@@ -2,7 +2,7 @@
 
 return [
     'hauptmenue' => [
-        'version' => 2,
+        'version' => 3,
         'title' => 'Hauptmenü entdecken',
         'description' => 'Fuehrt neue Mitglieder durch Schnellzugriff, Bereiche und Profil-Einstieg des Hauptmenues.',
         'self_service_enabled' => true,
@@ -418,6 +418,19 @@ return [
                 'selectors' => [
                     'desktop' => '[data-tour-device="desktop"][data-tour-key="teams-manage"]',
                     'mobile' => '[data-tour-device="mobile"][data-tour-key="teams-manage"]',
+                ],
+                'reveal' => [
+                    'desktop' => ['[data-tour-device="desktop"][data-tour-key="section-teams"]'],
+                    'mobile' => ['[data-tour-device="mobile"][data-tour-key="mobile-menu-toggle"]', '[data-tour-device="mobile"][data-tour-key="section-teams"]'],
+                ],
+            ],
+            [
+                'key' => 'teams-char-editor',
+                'title' => 'Charakter-Editor',
+                'description' => 'Wenn du in der AG Rollenspiel aktiv bist oder den globalen Adminzugriff hast, erreichst du hier den Charakter-Editor.',
+                'selectors' => [
+                    'desktop' => '[data-tour-device="desktop"][data-tour-key="teams-char-editor"]',
+                    'mobile' => '[data-tour-device="mobile"][data-tour-key="teams-char-editor"]',
                 ],
                 'reveal' => [
                     'desktop' => ['[data-tour-device="desktop"][data-tour-key="section-teams"]'],

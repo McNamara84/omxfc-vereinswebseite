@@ -325,11 +325,11 @@ Route::middleware(['auth', 'verified', 'redirect.if.anwaerter'])->group(function
 
     Route::get('/rpg/char-editor', [RpgCharEditorController::class, 'index'])
         ->name('rpg.char-editor')
-        ->middleware('admin');
+        ->middleware('can:access-rpg-char-editor');
 
     Route::post('/rpg/char-editor/pdf', [RpgCharEditorController::class, 'pdf'])
         ->name('rpg.char-editor.pdf')
-        ->middleware('admin');
+        ->middleware('can:access-rpg-char-editor');
 
     Route::prefix('romantauschboerse')->name('romantausch.')->group(function () {
         Route::livewire('/', RomantauschIndex::class)->name('index');

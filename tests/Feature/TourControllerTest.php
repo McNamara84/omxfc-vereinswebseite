@@ -51,7 +51,7 @@ class TourControllerTest extends TestCase
             ->assertJsonPath('tour.assignment_id', $assignment->id)
             ->assertJsonPath('tour.key', 'hauptmenue')
             ->assertJsonPath('tour.status', TourAssignmentStatus::Pending->value)
-            ->assertJsonCount(34, 'tour.steps');
+            ->assertJsonCount(35, 'tour.steps');
     }
 
     public function test_current_upgrades_outdated_assignment_before_returning_payload(): void
@@ -92,7 +92,7 @@ class TourControllerTest extends TestCase
             ->assertOk()
             ->assertJsonPath('tour.current_step_key', 'profile-settings')
             ->assertJsonPath('tour.status', TourAssignmentStatus::InProgress->value)
-            ->assertJsonPath('tour.current_step_index', 33);
+            ->assertJsonPath('tour.current_step_index', 34);
 
         $this->assertDatabaseHas('tour_assignments', [
             'id' => $assignment->id,

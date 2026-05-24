@@ -123,6 +123,15 @@ return [
                     'tour_key' => 'teams-manage',
                     'has_non_personal_owned_team' => true,
                 ],
+                [
+                    'title' => 'Charakter-Editor',
+                    'route' => 'rpg.char-editor',
+                    'tour_key' => 'teams-char-editor',
+                    'visible_any' => [
+                        ['team_any' => ['AG Rollenspiel']],
+                        ['mitglieder_roles_any' => [Role::Admin]],
+                    ],
+                ],
             ],
         ],
         [
@@ -153,7 +162,6 @@ return [
             'roles_any' => [Role::Admin],
             'items' => [
                 ['title' => 'Kurznachrichten', 'route' => 'admin.messages.index', 'tour_key' => 'admin-messages'],
-                ['title' => 'Charakter-Editor', 'route' => 'rpg.char-editor', 'tour_key' => 'admin-char-editor'],
                 ['title' => 'Arbeitsgruppen', 'route' => 'arbeitsgruppen.index', 'tour_key' => 'admin-working-groups'],
                 ['title' => 'Belohnungen', 'route' => 'rewards.admin', 'tour_key' => 'admin-rewards'],
             ],

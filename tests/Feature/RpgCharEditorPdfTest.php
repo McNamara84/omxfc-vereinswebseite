@@ -16,18 +16,60 @@ class RpgCharEditorPdfTest extends TestCase
 {
     use RefreshDatabase;
 
-    private function adminUser(): User
+    private function createMember(Role|string $role = Role::Mitglied): User
     {
         $team = Team::membersTeam();
-        $user = User::factory()->create(['current_team_id' => $team->id]);
-        $team->users()->attach($user, ['role' => Role::Admin->value]);
 
-        return $user;
+        if (! $team) {
+            $team = Team::factory()->create(['name' => 'Mitglieder', 'personal_team' => false]);
+        }
+
+        $user = User::factory()->create(['current_team_id' => $team->id]);
+        $team->users()->attach($user, ['role' => $role instanceof Role ? $role->value : $role]);
+
+        return $user->refresh();
     }
 
-    public function test_pdf_downloads_with_sanitized_filename(): void
+    private function addAgRollenspielMembership(User $user): User
     {
-        $admin = $this->adminUser();
+        $owner = User::factory()->create();
+
+        $team = Team::factory()->create([
+            'user_id' => $owner->id,
+            'name' => 'AG Rollenspiel',
+            'personal_team' => false,
+        ]);
+        $team->users()->attach($user, ['role' => Role::Mitglied->value]);
+
+        return $user->refresh();
+    }
+
+    private function createManagementUserWithDifferentCurrentTeam(Role $role): User
+    {
+        $managementTeam = Team::membersTeam() ?? Team::factory()->create([
+            'name' => 'Mitglieder',
+            'personal_team' => false,
+        ]);
+
+        $user = User::factory()->create(['current_team_id' => $managementTeam->id]);
+        $managementTeam->users()->attach($user, ['role' => $role->value]);
+
+        $otherTeam = Team::factory()->create([
+            'user_id' => $user->id,
+            'name' => 'Nebenverein',
+            'personal_team' => false,
+        ]);
+        $otherTeam->users()->attach($user, ['role' => Role::Mitglied->value]);
+
+        $user->forceFill(['current_team_id' => $otherTeam->id])->save();
+
+        return $user->refresh();
+    }
+
+    public function test_pdf_downloads_with_sanitized_filename_for_ag_rollenspiel_member(): void
+    {
+        $member = $this->addAgRollenspielMembership($this->createMember());
+
         Pdf::shouldReceive('view')->once()->with('rpg.char-sheet', \Mockery::type('array'))
             ->andReturn(new class extends PdfBuilder
             {
@@ -37,7 +79,7 @@ class RpgCharEditorPdfTest extends TestCase
                 }
             });
 
-        $response = $this->actingAs($admin)->post('/rpg/char-editor/pdf', [
+        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', [
             'character_name' => 'Foo/Bar',
             'portrait' => UploadedFile::fake()->image('avatar.jpg'),
         ]);
@@ -45,20 +87,20 @@ class RpgCharEditorPdfTest extends TestCase
         $this->assertStringContainsString('foobar.pdf', $response->headers->get('content-disposition'));
     }
 
-    public function test_rejects_non_image_portrait(): void
+    public function test_rejects_non_image_portrait_for_ag_rollenspiel_member(): void
     {
-        $admin = $this->adminUser();
+        $member = $this->addAgRollenspielMembership($this->createMember());
 
-        $response = $this->actingAs($admin)->post('/rpg/char-editor/pdf', [
+        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', [
             'portrait' => UploadedFile::fake()->create('bad.exe', 10, 'application/octet-stream'),
         ]);
 
         $response->assertSessionHasErrors('portrait');
     }
 
-    public function test_pdf_generates_without_portrait(): void
+    public function test_pdf_generates_without_portrait_for_global_admin_with_different_current_team(): void
     {
-        $admin = $this->adminUser();
+        $admin = $this->createManagementUserWithDifferentCurrentTeam(Role::Admin);
 
         Pdf::shouldReceive('view')
             ->once()
@@ -78,9 +120,9 @@ class RpgCharEditorPdfTest extends TestCase
         $response->assertOk();
     }
 
-    public function test_pdf_includes_base64_portrait_when_uploaded(): void
+    public function test_pdf_includes_base64_portrait_when_uploaded_for_ag_rollenspiel_member(): void
     {
-        $admin = $this->adminUser();
+        $member = $this->addAgRollenspielMembership($this->createMember());
 
         Pdf::shouldReceive('view')
             ->once()
@@ -93,12 +135,21 @@ class RpgCharEditorPdfTest extends TestCase
                 }
             });
 
-        $response = $this->actingAs($admin)->post('/rpg/char-editor/pdf', [
+        $response = $this->actingAs($member)->post('/rpg/char-editor/pdf', [
             'character_name' => 'Foo',
             'portrait' => UploadedFile::fake()->image('avatar.png'),
         ]);
 
         $response->assertOk();
+    }
+
+    public function test_member_without_ag_rollenspiel_is_forbidden_from_pdf_endpoint(): void
+    {
+        $member = $this->createMember();
+
+        $this->actingAs($member)
+            ->post('/rpg/char-editor/pdf', ['character_name' => 'Foo'])
+            ->assertForbidden();
     }
 
     public function test_laravel_pdf_is_configured(): void
