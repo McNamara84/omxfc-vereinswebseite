@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Download;
 use App\Models\RewardPurchase;
 use App\Models\User;
+use App\Support\BundledDownloadLocator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -81,7 +82,7 @@ class DownloadsController extends Controller
 
         // Downloads ohne verknüpfte Belohnung sind frei verfügbar
 
-        $path = $this->validatedDownloadPath($download);
+        $path = BundledDownloadLocator::normalizeStoragePath($download->file_path);
         if ($path === null) {
             return back()->withErrors('Die Datei existiert nicht.');
         }
@@ -100,33 +101,9 @@ class DownloadsController extends Controller
         );
     }
 
-    private function validatedDownloadPath(Download $download): ?string
-    {
-        $path = str_replace('\\', '/', $download->file_path);
-
-        if ($path === '' || str_starts_with($path, '/')) {
-            return null;
-        }
-
-        if (preg_match('/^[A-Za-z]:\//', $path) === 1) {
-            return null;
-        }
-
-        if (! str_starts_with($path, 'downloads/')) {
-            return null;
-        }
-
-        $segments = explode('/', $path);
-        if (in_array('.', $segments, true) || in_array('..', $segments, true) || in_array('', $segments, true)) {
-            return null;
-        }
-
-        return $path;
-    }
-
     private function restoreBundledDownloadIfMissing(string $path): void
     {
-        $sourcePath = $this->bundledSourcePath($path);
+        $sourcePath = BundledDownloadLocator::sourcePath($path);
 
         if ($sourcePath === null) {
             return;
@@ -139,28 +116,13 @@ class DownloadsController extends Controller
         }
 
         try {
-            Storage::disk('private')->put($path, $stream);
+            try {
+                Storage::disk('private')->put($path, $stream);
+            } catch (\Throwable) {
+                return;
+            }
         } finally {
             fclose($stream);
         }
-    }
-
-    private function bundledSourcePath(string $path): ?string
-    {
-        $downloadsRoot = realpath(resource_path('downloads'));
-        $sourcePath = realpath(resource_path($path));
-
-        if ($downloadsRoot === false || $sourcePath === false) {
-            return null;
-        }
-
-        $downloadsRoot = str_replace('\\', '/', $downloadsRoot);
-        $sourcePath = str_replace('\\', '/', $sourcePath);
-
-        if ($sourcePath !== $downloadsRoot && ! str_starts_with($sourcePath, $downloadsRoot.'/')) {
-            return null;
-        }
-
-        return $sourcePath;
     }
 }

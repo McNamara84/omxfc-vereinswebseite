@@ -5,8 +5,10 @@ namespace Tests\Feature;
 use App\Models\Download;
 use App\Models\Reward;
 use App\Models\RewardPurchase;
+use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
+use Mockery;
 use Tests\Concerns\CreatesUserWithRole;
 use Tests\TestCase;
 
@@ -196,6 +198,37 @@ class DownloadsTest extends TestCase
             'file_path' => 'downloads/../views/pages/downloads.blade.php',
             'original_filename' => 'downloads.blade.php',
         ]);
+
+        $response = $this->from('/downloads')->get('/downloads/herunterladen/'.$download->slug);
+
+        $response->assertRedirect('/downloads');
+        $response->assertSessionHasErrors();
+        $this->assertStringContainsString(
+            'Die Datei existiert nicht.',
+            $response->getSession()->get('errors')->first()
+        );
+    }
+
+    public function test_bundled_rulebook_restore_falls_back_to_missing_file_message_when_private_write_fails(): void
+    {
+        $this->actingMember();
+
+        $download = Download::query()->where('slug', 'rollenspiel-regelwerk-2001')->firstOrFail();
+
+        $disk = Mockery::mock(FilesystemAdapter::class);
+        $disk->shouldReceive('exists')
+            ->with($download->file_path)
+            ->twice()
+            ->andReturn(false, false);
+        $disk->shouldReceive('put')
+            ->once()
+            ->with($download->file_path, Mockery::on(static fn ($stream) => is_resource($stream)))
+            ->andThrow(new \RuntimeException('Disk voll'));
+
+        Storage::shouldReceive('disk')
+            ->with('private')
+            ->times(3)
+            ->andReturn($disk);
 
         $response = $this->from('/downloads')->get('/downloads/herunterladen/'.$download->slug);
 

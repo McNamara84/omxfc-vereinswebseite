@@ -1,5 +1,6 @@
 <?php
 
+use App\Support\BundledDownloadLocator;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
 
@@ -77,7 +78,7 @@ return new class extends Migration
                 'file_path' => 'downloads/Regelwerk2001.pdf',
                 'original_filename' => 'Regelwerk2001.pdf',
                 'mime_type' => 'application/pdf',
-                'file_size' => $this->bundledFileSize('Regelwerk2001.pdf'),
+                'file_size' => BundledDownloadLocator::fileSize('downloads/Regelwerk2001.pdf'),
                 'sort_order' => 0,
             ],
             [
@@ -88,22 +89,9 @@ return new class extends Migration
                 'file_path' => 'downloads/Regelwerk2007.pdf',
                 'original_filename' => 'Regelwerk2007.pdf',
                 'mime_type' => 'application/pdf',
-                'file_size' => $this->bundledFileSize('Regelwerk2007.pdf'),
+                'file_size' => BundledDownloadLocator::fileSize('downloads/Regelwerk2007.pdf'),
                 'sort_order' => 1,
             ],
         ];
-    }
-
-    private function bundledFileSize(string $fileName): ?int
-    {
-        $sourcePath = base_path('resources/downloads/'.$fileName);
-
-        if (! is_file($sourcePath)) {
-            return null;
-        }
-
-        $fileSize = filesize($sourcePath);
-
-        return $fileSize === false ? null : $fileSize;
     }
 };

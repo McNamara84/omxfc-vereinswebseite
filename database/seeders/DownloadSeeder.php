@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Download;
+use App\Support\BundledDownloadLocator;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\DB;
@@ -60,7 +61,7 @@ class DownloadSeeder extends Seeder
                 'file_path' => 'downloads/Regelwerk2001.pdf',
                 'original_filename' => 'Regelwerk2001.pdf',
                 'mime_type' => 'application/pdf',
-                'file_size' => $this->bundledFileSize('Regelwerk2001.pdf'),
+                'file_size' => BundledDownloadLocator::fileSize('downloads/Regelwerk2001.pdf'),
                 'reward_slug' => null,
                 'sort_order' => 0,
             ],
@@ -72,7 +73,7 @@ class DownloadSeeder extends Seeder
                 'file_path' => 'downloads/Regelwerk2007.pdf',
                 'original_filename' => 'Regelwerk2007.pdf',
                 'mime_type' => 'application/pdf',
-                'file_size' => $this->bundledFileSize('Regelwerk2007.pdf'),
+                'file_size' => BundledDownloadLocator::fileSize('downloads/Regelwerk2007.pdf'),
                 'reward_slug' => null,
                 'sort_order' => 1,
             ],
@@ -101,18 +102,5 @@ class DownloadSeeder extends Seeder
                 Storage::disk('private')->put($data['file_path'], 'Dummy-Datei für Entwicklung');
             }
         }
-    }
-
-    private function bundledFileSize(string $fileName): ?int
-    {
-        $sourcePath = base_path('resources/downloads/'.$fileName);
-
-        if (! is_file($sourcePath)) {
-            return null;
-        }
-
-        $fileSize = filesize($sourcePath);
-
-        return $fileSize === false ? null : $fileSize;
     }
 }
